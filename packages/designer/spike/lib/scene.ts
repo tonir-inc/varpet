@@ -26,6 +26,25 @@ export function loadScene(path = 'scene.json'): Scene {
   scene.items ??= []; scene.fixed ??= []; scene.openings ??= [];
   return scene;
 }
+/** Workspace budget (budget.json {budget_dram}) next to the scene file; undefined when absent. */
+export function loadBudget(scenePath = 'scene.json'): number | undefined {
+  const path = join(dirname(scenePath), 'budget.json');
+  if (!existsSync(path)) return undefined;
+  const value = Number(JSON.parse(readFileSync(path, 'utf8'))?.budget_dram);
+  return Number.isFinite(value) && value > 0 ? value : undefined;
+}
+/** Editor document the flat came from (source.json next to the scene file); undefined for old Avani workspaces. */
+export function loadSource(scenePath = 'scene.json'): unknown {
+  const path = join(dirname(scenePath), 'source.json');
+  return existsSync(path) ? JSON.parse(readFileSync(path, 'utf8')) : undefined;
+}
+/** Furniture price per room (items with a price), in draft order. */
+export function roomSubtotals(draft: Draft): [string, number][] {
+  const out = new Map<string, number>();
+  for (const item of draft.items ?? []) if (typeof item.price === 'number') out.set(item.room_id, (out.get(item.room_id) ?? 0) + item.price);
+  return [...out];
+}
+
 export function loadDraft(path = 'draft.json'): Draft {
   if (!existsSync(path)) return { items: [] };
   const draft = JSON.parse(readFileSync(path, 'utf8')) as Draft;
@@ -64,7 +83,14 @@ export function wallOutward(scene: Scene, wall: Wall): Vec2 {
   const l = len(wall), n: Vec2 = [(wall.b[1] - wall.a[1]) / l, (wall.a[0] - wall.b[0]) / l];
   const mid: Vec2 = [(wall.a[0] + wall.b[0]) / 2, (wall.a[1] + wall.b[1]) / 2];
   const poly = room(scene, wall.room_id).polygon;
-  return inPoly([mid[0] + n[0] * 0.05, mid[1] + n[1] * 0.05], poly) ? [-n[0], -n[1]] : n;
+  // Reconstructed flats keep wall centre lines half a thickness off the room polygon: probe just past the face too,
+  // and when neither probe lands in the room, the side facing the room centre is inward.
+  for (const d of [0.05, (wall.thickness ?? 0) / 2 + 0.05]) {
+    const plus = inPoly([mid[0] + n[0] * d, mid[1] + n[1] * d], poly), minus = inPoly([mid[0] - n[0] * d, mid[1] - n[1] * d], poly);
+    if (plus !== minus) return plus ? [-n[0], -n[1]] : n;
+  }
+  const c = centerOf(scene, wall.room_id);
+  return (c[0] - mid[0]) * n[0] + (c[1] - mid[1]) * n[1] > 0 ? [-n[0], -n[1]] : n;
 }
 /** Plain side name from the outward normal, e.g. "left wall x=-5.00 (y -4.00..4.00)". */
 function wallName(scene: Scene, wall: Wall): string {
@@ -241,7 +267,7 @@ function touching(scene: Scene, item: Item): string[] {
 }
 
 /** Compact plain-language brief a designer model can reason from. */
-export function describe(scene: Scene, draft?: Draft): string {
+export function describe(scene: Scene, draft?: Draft, budget?: number): string {
   const items = [...(scene.items ?? []), ...(draft?.items ?? [])];
   const thick = [...new Set(scene.walls.map(w => w.thickness ?? 0))];
   const L: string[] = [
@@ -271,6 +297,10 @@ export function describe(scene: Scene, draft?: Draft): string {
     const where = it.wall_id !== undefined ? `, hung on ${spot ? wallName(scene, spot.wall).split(' (')[0] : 'unknown wall'} [${it.wall_id}] ${spot ? `${f(spot.along)} m along, ` : ''}centre ${f(it.height_m ?? defaultArtHeight(it.size[2]))} m high`
       : it.on !== undefined ? `, resting on ${it.on}` : walls.length ? `, against ${walls.join(', ')}` : '';
     L.push(`  ${it.id} ${it.kind} "${it.name}" [${it.room_id}] at ${pt(it.pos)} rot ${norm360(it.rot)} ${faceWord(it.rot)}, size ${it.size.map(f).join('x')}${where}${it.sku ? `, sku ${it.sku}` : ''}${it.price !== undefined ? ` ${it.price} AMD` : ''}`);
+  }
+  if (budget !== undefined) {
+    const subtotals = draft ? roomSubtotals(draft) : [], total = subtotals.reduce((sum, [, v]) => sum + v, 0);
+    L.push('', `BUDGET: ${budget} AMD for furniture; draft total ${total} AMD, ${budget - total} AMD left${subtotals.length ? ` (${subtotals.map(([r, v]) => `${r} ${v}`).join(', ')})` : ''}. ./varpet check fails above it.`);
   }
   const surfaces = draft ? describeSurfaces(scene, draft) : [];
   L.push('', `FINISHES & LIGHTING (${surfaces.length})${surfaces.length ? ':' : ': none yet (editor defaults: warm white walls, pale plank floor, no designed lights)'}`, ...surfaces);

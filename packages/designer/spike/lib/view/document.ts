@@ -24,8 +24,14 @@ export type ViewCamera = 'overview' | 'eye' | 'eye2' | 'top' | { eye: [number, n
 
 const EDITOR_KINDS = new Set<string>(['sofa', 'chair', 'table', 'desk', 'bed', 'cabinet', 'wardrobe', 'dresser', 'lamp', 'plant', 'rug', 'shelf', 'toilet', 'sink', 'bathtub', 'shower', 'fridge', 'stove', 'oven', 'washing_machine', 'dryer', 'dishwasher', 'microwave', 'tv', 'monitor', 'computer', 'laptop', 'speaker', 'printer', 'game_console', 'kitchen_cabinet', 'kitchen_counter', 'kitchen_island', 'radiator', 'fan', 'coat_rack', 'shoe_rack', 'decor', 'wall_art', 'mirror']);
 
-/** The Avani shell is the only editor document we have; designer scenes of other flats are refused. */
-function editorShell(scene: Scene): SceneDocument {
+/** The flat's own editor document (workspace source.json) without its furniture; without one, the Avani demo shell. */
+function editorShell(scene: Scene, source?: unknown): SceneDocument {
+  if (source) {
+    const doc = structuredClone(source) as SceneDocument, rooms = new Set(doc.rooms.map(room => room.id));
+    const missing = scene.rooms.filter(room => !rooms.has(room.id)).map(room => room.id);
+    if (missing.length) throw new Error(`source.json has no rooms ${missing.join(', ')}; it is not this scene's editor document`);
+    return { ...doc, objects: [] };
+  }
   const rooms = new Set(demoScene.rooms.map(room => room.id));
   if (!scene.rooms.every(room => rooms.has(room.id))) throw new Error('renderView supports the Avani demo shell only (room ids must match apps/editor demoScene)');
   return { ...structuredClone(demoScene), objects: [] };
@@ -50,8 +56,8 @@ async function loadAssets(skus: string[]): Promise<CatalogAsset[]> {
 /** Draft/scene items become editor objects; a product without a usable model renders as the editor's procedural piece.
  * Wall-hung items (wall_id) get the editor's furniture `host` on the matching editor wall at height_m; items with `on`
  * are placed by the editor's own placeFurniture so they carry `restsOn` and sit on the support's top surface. */
-export async function editorDocument(scene: Scene, draft: Draft): Promise<{ scene: SceneDocument; catalog: CatalogAsset[] }> {
-  const doc = editorShell(scene), items: DraftItem[] = [...scene.items, ...draft.items];
+export async function editorDocument(scene: Scene, draft: Draft, source?: unknown): Promise<{ scene: SceneDocument; catalog: CatalogAsset[] }> {
+  const doc = editorShell(scene, source), items: DraftItem[] = [...scene.items, ...draft.items];
   const catalog = await loadAssets(items.flatMap(item => item.sku ? [item.sku] : []));
   const placed = new Map<string, SceneObject>();
   const base = (item: DraftItem): SceneObject => {
@@ -230,10 +236,12 @@ const editorPoint = ([x, y, h]: [number, number, number?], fallback: number) => 
 
 
 /** Everything the page needs for one picture. */
-export async function renderPayload(scene: Scene, draft: Draft, roomId: string, camera: ViewCamera = 'overview', time: 'day' | 'evening' = 'day') {
-  if (!scene.rooms.some(room => room.id === roomId)) throw new Error(`Unknown room ${roomId}`);
-  const document = await editorDocument(scene, draft);
-  const explicit = typeof camera === 'object' ? camera : camera === 'eye' || camera === 'eye2' ? cornerPoses(scene, draft, roomId)[camera === 'eye' ? 0 : 1] : undefined;
+/** roomId undefined: the whole flat (overview/top or an explicit pose). */
+export async function renderPayload(scene: Scene, draft: Draft, roomId: string | undefined, camera: ViewCamera = 'overview', time: 'day' | 'evening' = 'day', source?: unknown) {
+  if (roomId !== undefined && !scene.rooms.some(room => room.id === roomId)) throw new Error(`Unknown room ${roomId}`);
+  if (roomId === undefined && (camera === 'eye' || camera === 'eye2')) throw new Error('eye cameras need a room');
+  const document = await editorDocument(scene, draft, source);
+  const explicit = typeof camera === 'object' ? camera : roomId !== undefined && (camera === 'eye' || camera === 'eye2') ? cornerPoses(scene, draft, roomId)[camera === 'eye' ? 0 : 1] : undefined;
   const pose = explicit ? { position: editorPoint(explicit.eye, EYE_HEIGHT), target: editorPoint(explicit.target, 0.9), fov: EYE_FOV } : null;
   return { ...document, roomId, pose, time, view: explicit ? 'inside' : camera === 'top' ? 'top' : 'perspective', walls: explicit ? 'full' : 'cutaway' };
 }

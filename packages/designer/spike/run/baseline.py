@@ -3,8 +3,9 @@
 
 uv run --project ../../../harness python run/baseline.py --case a-japandi-living   (from packages/designer/spike)
 
-Same worker, job fields, env and default_service_settings() as the live service. Skipped: the HTTP layer
-and the editor bridge (the fixture already is a designer scene), and custom builds (no build pool here, so
+Same worker, job fields, env and default_service_settings() as the live service. The flat is built like the spike's
+(run/flat.ts: editor document -> editorToDesigner), the editor document goes in as editor_scene_path, and the full
+request text is the job request. Skipped: the HTTP layer, and custom builds (no build pool here, so
 VARPET_BUILDS_DIR / conversation / turn ids are unset and build_piece is not offered unless --builds).
 """
 from __future__ import annotations
@@ -38,18 +39,24 @@ def draft_from(ops: list[dict]) -> dict:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--case", required=True)
+    parser.add_argument("--cases", type=Path, default=spike.RUN / "cases.json")
     parser.add_argument("--deadline", type=float, default=900.0)
     parser.add_argument("--builds", action="store_true", help="set the build env like the service (needs a build pool)")
     parser.add_argument("--no-render", action="store_true")
     args = parser.parse_args()
-    case, scene_path = spike.load_case(args.case)
-    scene = json.loads(scene_path.read_text())
+    case = spike.load_case(args.case, args.cases)
     settings = designer.default_service_settings()
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     out = spike.SPIKE / "out" / case["id"] / ("baseline-" + stamp)
     out.mkdir(parents=True)
+    rooms = spike.build_flat(case, out)
+    if case.get("budget_dram"):
+        (out / "budget.json").write_text(json.dumps({"budget_dram": int(case["budget_dram"])}) + "\n")
+    scene_path = out / "scene.json"
+    scene = json.loads(scene_path.read_text())
     print(f"out: {out}", flush=True)
     result = {"case": case["id"], "request": case["request"], "image": case.get("image"), "runner": "baseline",
+              "flat": case.get("flat", "avani"), "rooms": spike.scope(case, rooms), "budget_dram": case.get("budget_dram"),
               "model": designer.MODEL, **settings, "scene_sha256": hashlib.sha256(scene_path.read_bytes()).hexdigest(),
               "env_fast_path": os.environ.get("VARPET_DESIGNER_FAST_PATH"), "builds_env": args.builds}
     events: list[dict] = []
@@ -64,7 +71,7 @@ def main() -> int:
         job = {"runtime": runtime, "request": case["request"], "variant": False, "discover_catalog": True,
                "excluded_ops": [], "followup_guidance": "", "effort": settings["effort"],
                "profile": settings["profile"], "images": [], "conversion_error": None,
-               "catalog_path": str(catalog), "editor_scene_path": None, "catalogCurrency": None}
+               "catalog_path": str(catalog), "editor_scene_path": str(out / "source.json"), "catalogCurrency": None}
         if case.get("image"):
             inspiration = root / "inspiration" / (uuid.uuid4().hex + Path(case["image"]).suffix)
             inspiration.parent.mkdir()
@@ -124,7 +131,6 @@ def main() -> int:
                   final_message=summary.get("response"), proposal_ops=ops,
                   op_types=dict(Counter(op.get("type") for op in ops)), proposal_checks=(saved or {}).get("checks"),
                   draft=draft, item_count=len(items), total_price=sum(i.get("price") or 0 for i in items))
-    shutil.copyfile(scene_path, out / "scene.json")
     (out / "draft.json").write_text(json.dumps(draft, indent=1, ensure_ascii=False))
     if saved is not None:
         (out / "proposal.json").write_text(json.dumps(saved, indent=1, ensure_ascii=False))

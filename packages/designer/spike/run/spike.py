@@ -29,12 +29,44 @@ TSX = ROOT / "packages/designer/node_modules/.bin/tsx"
 TSX_LOADER = (ROOT / "packages/designer/node_modules/tsx/dist/loader.mjs").resolve()
 
 
-def load_case(case_id: str) -> tuple[dict, Path]:
-    cases = json.loads((RUN / "cases.json").read_text())
+def load_case(case_id: str, cases_path: Path = RUN / "cases.json") -> dict:
+    """A case: request, optional image, `flat` ("avani" default, or an editor document / architect shell path
+    relative to spike/), `rooms` ("all" or room ids; legacy `room`), optional `budget_dram`."""
+    cases = json.loads(cases_path.read_text())
     case = next((c for c in cases["cases"] if c["id"] == case_id), None)
     if case is None:
         raise SystemExit(f"unknown case {case_id}; have {[c['id'] for c in cases['cases']]}")
-    return case, SPIKE / case.get("scene", cases["scene"])
+    return case
+
+
+def build_flat(case: dict, out: Path) -> list[dict]:
+    """scene.json + source.json for the case's flat (run/flat.ts); returns [{id, name}] of its rooms."""
+    result = subprocess.run([str(TSX), str(RUN / "flat.ts"), case.get("flat", "avani"), str(out)],
+                            capture_output=True, text=True, timeout=120)
+    if result.returncode != 0:
+        raise SystemExit(f"flat {case.get('flat', 'avani')}: {result.stderr.strip()}")
+    return json.loads(result.stdout)
+
+
+def scope(case: dict, rooms: list[dict]) -> list[str]:
+    """Room ids the case is about."""
+    wanted = case.get("rooms", [case["room"]] if case.get("room") else "all")
+    ids = [r["id"] for r in rooms]
+    if wanted == "all":
+        return ids
+    unknown = [r for r in wanted if r not in ids]
+    if unknown:
+        raise SystemExit(f"case {case['id']}: unknown rooms {unknown}; flat has {ids}")
+    return list(wanted)
+
+
+def notes(case: dict, rooms: list[dict]) -> dict[str, str]:
+    in_scope = scope(case, rooms)
+    names = ", ".join(f"{r['id']} ({r['name']})" for r in rooms if r["id"] in in_scope)
+    rooms_note = (f"Rooms in scope: all rooms ({names})." if len(in_scope) == len(rooms) else f"Rooms in scope: {names}.")
+    budget = case.get("budget_dram")
+    budget_note = f"Budget: {budget} AMD for furniture; ./varpet check enforces it." if budget else ""
+    return {"rooms_note": rooms_note, "budget_note": budget_note}
 
 
 def toml(value) -> str:
@@ -49,9 +81,11 @@ def wrapper(cli: Path) -> str:
     return f'#!/bin/sh\nexec node --import "{TSX_LOADER.as_uri()}" "{cli}" "$@"\n'
 
 
-def make_workspace(case: dict, scene: Path, out: Path, cli: Path) -> Path:
+def make_workspace(case: dict, out: Path, cli: Path) -> tuple[Path, list[dict]]:
     out.mkdir(parents=True)
-    shutil.copyfile(scene, out / "scene.json")
+    rooms = build_flat(case, out)
+    if case.get("budget_dram"):
+        (out / "budget.json").write_text(json.dumps({"budget_dram": int(case["budget_dram"])}) + "\n")
     (out / "draft.json").write_text('{"items": []}\n')
     (out / "lib").symlink_to(SPIKE / "lib")
     if cli.resolve() == (SPIKE / "cli.ts").resolve():
@@ -71,10 +105,10 @@ def make_workspace(case: dict, scene: Path, out: Path, cli: Path) -> Path:
         image_tool_note = ", and the inspiration picture"
     prompt = (RUN / "AGENTS.md").read_text()
     for key, value in (("case_id", case["id"]), ("request", case["request"]), ("image_note", image_note),
-                       ("image_tool_note", image_tool_note)):
+                       ("image_tool_note", image_tool_note), *notes(case, rooms).items()):
         prompt = prompt.replace("{" + key + "}", value)
     (out / "AGENTS.md").write_text(prompt)
-    return out
+    return out, rooms
 
 
 def private_home(tool_mode: str) -> tuple[Path, dict]:
@@ -209,20 +243,30 @@ def varpet(workspace: Path, *argv: str) -> dict:
         return {"argv": list(argv), "exit": None, "error": str(error)}
 
 
+def furnished_rooms(workspace: Path) -> list[str]:
+    """Rooms with draft items, in scene order."""
+    draft, _ = read_draft(workspace)
+    items = (draft or {}).get("items", []) if isinstance(draft, dict) else []
+    used = {i.get("room_id") for i in items if isinstance(i, dict)}
+    return [r["id"] for r in json.loads((workspace / "scene.json").read_text())["rooms"] if r["id"] in used]
+
+
 def final_report(workspace: Path, case: dict) -> dict:
-    room = case.get("room", "room-living")
+    """check, whole-flat plan, a plan per furnished room, and report/: overview + eye + evening per furnished room
+    plus flat-overview and flat-top."""
+    rooms = furnished_rooms(workspace)
     return {"check": varpet(workspace, "check"),
             "plan": varpet(workspace, "render-plan", "final-plan.png"),
-            "plan_room": varpet(workspace, "render-plan", "final-plan-room.png", "--room", room),
-            "view": varpet(workspace, "render-view", "final-view.png", "--room", room),
-            "report_angles": report_angles(workspace / "scene.json", workspace / "draft.json", workspace / "report", room)}
+            "plan_rooms": {room: varpet(workspace, "render-plan", f"final-plan-{room}.png", "--room", room) for room in rooms},
+            "report_angles": report_angles(workspace / "scene.json", workspace / "draft.json", workspace / "report", rooms)}
 
 
-def report_angles(scene: Path, draft: Path, out_dir: Path, room: str) -> dict:
+def report_angles(scene: Path, draft: Path, out_dir: Path, rooms: list[str]) -> dict:
+    """run/report.ts: every listed room (none: the whole flat only) plus the whole-flat shots."""
     out_dir.mkdir(exist_ok=True)
     try:
-        result = subprocess.run([str(TSX), str(RUN / "report.ts"), str(scene), str(draft), str(out_dir), room],
-                                capture_output=True, text=True, timeout=300)
+        result = subprocess.run([str(TSX), str(RUN / "report.ts"), str(scene), str(draft), str(out_dir), *rooms],
+                                capture_output=True, text=True, timeout=300 + 120 * len(rooms))
         return {"exit": result.returncode, "paths": result.stdout.split(), "stderr": result.stderr[-2000:]}
     except (OSError, subprocess.TimeoutExpired) as error:
         return {"exit": None, "error": str(error)}
@@ -244,9 +288,17 @@ def read_draft(workspace: Path) -> tuple[dict | None, str | None]:
         return None, str(error)
 
 
+def read_text(path: Path) -> str | None:
+    try:
+        return path.read_text()
+    except OSError:
+        return None
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--case", required=True, help="case id from run/cases.json")
+    parser.add_argument("--cases", type=Path, default=RUN / "cases.json", help="cases file (default run/cases.json)")
     parser.add_argument("--effort", default="medium", choices=("low", "medium", "high"))
     parser.add_argument("--tool-mode", default="default",
                         help="'default' keeps the model's tool_mode (code_mode_only); 'direct' exposes exec_command/view_image as plain tools")
@@ -256,17 +308,18 @@ def main() -> int:
     parser.add_argument("--cli", type=Path, default=SPIKE / "cli.ts", help="CLI to expose (stub for plumbing tests)")
     parser.add_argument("--no-render", action="store_true", help="skip the final check/render report")
     args = parser.parse_args()
-    case, scene = load_case(args.case)
+    case = load_case(args.case, args.cases)
     if not args.cli.exists():
         raise SystemExit(f"{args.cli} does not exist yet")
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-    workspace = make_workspace(case, scene, SPIKE / "out" / case["id"] / stamp, args.cli)
+    workspace, rooms = make_workspace(case, SPIKE / "out" / case["id"] / stamp, args.cli)
     print(f"workspace: {workspace}", flush=True)
     result = {"case": case["id"], "request": case["request"], "image": case.get("image"), "model": MODEL,
-              "effort": args.effort, "workspace": str(workspace),
-              "scene_sha256": hashlib.sha256(scene.read_bytes()).hexdigest()}
+              "effort": args.effort, "workspace": str(workspace), "flat": case.get("flat", "avani"),
+              "rooms": scope(case, rooms), "budget_dram": case.get("budget_dram"),
+              "scene_sha256": hashlib.sha256((workspace / "scene.json").read_bytes()).hexdigest()}
     if not args.no_render:
-        result["warmup"] = warm_renderer(workspace, case.get("room", "room-living"))
+        result["warmup"] = warm_renderer(workspace, scope(case, rooms)[0])
     try:
         result.update(run_thread(workspace, case, args, workspace / "events.jsonl"))
     except Exception as error:  # record, then still report what the workspace holds
@@ -274,7 +327,8 @@ def main() -> int:
     draft, draft_error = read_draft(workspace)
     items = (draft or {}).get("items", []) if isinstance(draft, dict) else []
     result.update(draft=draft, draft_error=draft_error, item_count=len(items),
-                  total_price=sum(i.get("price") or 0 for i in items if isinstance(i, dict)))
+                  total_price=sum(i.get("price") or 0 for i in items if isinstance(i, dict)),
+                  plan=read_text(workspace / "plan.md"), missing=read_text(workspace / "missing.md"))
     if not args.no_render:
         result["report"] = final_report(workspace, case)
     (workspace / "result.json").write_text(json.dumps(result, indent=2, ensure_ascii=False))

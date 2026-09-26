@@ -1,8 +1,36 @@
 /** Hard-physics check of a draft: wraps checkLayout from src/layout.ts with one add op per item.
  * Async because src is imported at runtime from designerSrc() (works from a copied workspace). */
-import { footprint, importSrc, openingSpans, wallSpot, type Draft, type DraftItem, type Scene, type Vec2 } from './scene.ts';
+import { footprint, importSrc, openingSpans, roomSubtotals, wallSpot, type Draft, type DraftItem, type Scene, type Vec2 } from './scene.ts';
 import { checkSurfaces, onFloor, plainItem, surfaceQuantities } from './finishes.ts';
 import { designRelations, tuckedPair, tuckedTargets } from './relations.ts';
+import { createHash } from 'node:crypto';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { centerOf } from './scene.ts';
+
+const NO_PATH = /^door:(\S+) to (\S+): no accessible path/;
+/** Doors the EMPTY flat cannot walk from (reconstructed shells sometimes put a door's approach outside every room):
+ * the door shared by every door-to-door failure of the empty flat, and doors from which a small probe at a room's
+ * centre is unreachable. A draft cannot fix these, so paths from or to them are noted, not failed. Cached per scene. */
+async function unusableDoors(scene: Scene): Promise<string[]> {
+  const key = createHash('sha1').update(JSON.stringify({ v: 2, rooms: scene.rooms, walls: scene.walls, openings: scene.openings, fixed: scene.fixed })).digest('hex').slice(0, 16);
+  const cache = join(tmpdir(), `varpet-spike-doors-${key}.json`);
+  if (existsSync(cache)) try { return JSON.parse(readFileSync(cache, 'utf8')); } catch { /* recompute */ }
+  const { checkLayout } = await importSrc<typeof import('../../src/layout.ts')>('layout.ts');
+  const out = new Set<string>();
+  const pairs = checkLayout(scene, []).errors.flatMap(e => { const m = e.severity === 'hard' ? NO_PATH.exec(e.message) : null; return m ? [[m[1]!, m[2]!.replace(/^door:/, '')]] : []; });
+  if (pairs.length) for (const door of pairs[0]!) if (pairs.every(pair => pair.includes(door))) out.add(door);
+  for (const room of scene.rooms) {
+    const probe = { id: '__probe', room_id: room.id, kind: 'chair', name: 'probe', pos: centerOf(scene, room.id), rot: 0, size: [0.3, 0.3, 0.4] as [number, number, number], keep: false, price: 0 };
+    const errors = checkLayout(scene, [{ type: 'add', item: probe }]).errors.filter(e => e.severity === 'hard');
+    if (errors.some(e => e.check !== 'walkway')) continue; // probe landed on a fixture; no evidence
+    for (const e of errors) { const m = NO_PATH.exec(e.message); if (m && m[2] === 'item:__probe') out.add(m[1]!); }
+  }
+  const doors = [...out].sort();
+  try { writeFileSync(cache, JSON.stringify(doors)); } catch { /* read-only tmp */ }
+  return doors;
+}
 
 export interface CheckResult { ok: boolean; problems: string[]; summary: string; cost_dram: number | null }
 
@@ -96,7 +124,8 @@ export function checkDecor(scene: Scene, draft: Draft): string[] {
   return out;
 }
 
-export async function check(scene: Scene, draft: Draft): Promise<CheckResult> {
+/** budget: furniture budget in AMD (workspace budget.json); going over it is a hard problem. */
+export async function check(scene: Scene, draft: Draft, options: { budget?: number } = {}): Promise<CheckResult> {
   const { checkLayout, layoutPrice } = await importSrc<typeof import('../../src/layout.ts')>('layout.ts');
   const { opsSchema } = await importSrc<typeof import('../../src/adapter.ts')>('adapter.ts');
   const items = draft.items ?? [];
@@ -104,7 +133,14 @@ export async function check(scene: Scene, draft: Draft): Promise<CheckResult> {
   const ops = items.filter(onFloor).map(addOp), decorOps = items.filter(item => !onFloor(item)).map(addOp);
   const result = checkLayout(scene, ops);
   const tucked = (e: (typeof result.errors)[number]) => tuckedPair((e as { item_ids?: string[] }).item_ids, items, e.overlap_depth_m ?? e.deficit_m);
-  const hard = result.errors.filter(e => e.severity === 'hard' && !tucked(e));
+  const broken = new Set(await unusableDoors(scene)), flatNotes = new Set<string>();
+  const unusable = (e: (typeof result.errors)[number]) => {
+    const m = e.check === 'walkway' ? /^(\S+) to (\S+): no accessible path/.exec(e.message) : null;
+    const hit = m ? [m[1]!, m[2]!].map(id => id.replace(/^door:/, '')).find(id => broken.has(id)) : undefined;
+    if (hit) flatNotes.add(hit);
+    return hit !== undefined;
+  };
+  const hard = result.errors.filter(e => e.severity === 'hard' && !tucked(e) && !unusable(e));
   const soft = result.errors.filter(e => e.severity === 'soft');
   const problems: string[] = [], blocked = new Map<string, { from: Set<string>; to: Set<string> }>();
   for (const e of hard) {
@@ -131,7 +167,12 @@ export async function check(scene: Scene, draft: Draft): Promise<CheckResult> {
   const bySoft = new Map<string, number>();
   for (const e of soft) bySoft.set(e.check, (bySoft.get(e.check) ?? 0) + 1);
   const cost = decorOps.length ? layoutPrice([...ops, ...decorOps]).cost_dram : result.price.cost_dram;
-  const summary = `${items.length} items, ${problems.length} hard, ${soft.length} soft warnings${soft.length ? ` (${[...bySoft].map(([k, v]) => `${k} ${v}`).join(', ')})` : ''}${cost !== null ? `, furniture total ${cost} AMD` : ''}${work.length ? `\nunquoted finish and lighting work (price on request): ${work.join('; ')}` : ''}`;
+  const subtotals = roomSubtotals(draft), total = cost ?? subtotals.reduce((sum, [, v]) => sum + v, 0);
+  if (options.budget !== undefined && total > options.budget) problems.push(`budget: furniture total ${total} AMD is ${total - options.budget} AMD over the ${options.budget} AMD budget`);
+  const notes = flatNotes.size ? `\nflat (not your draft, ignored): no walkable path through door ${[...flatNotes].join(', ')} even in the empty flat` : '';
+  const rooms = subtotals.length > 1 ? `\nby room: ${subtotals.map(([r, v]) => `${r} ${v}`).join(', ')}` : '';
+  const budgetLine = options.budget !== undefined ? `\nbudget: ${total} of ${options.budget} AMD` : '';
+  const summary = `${items.length} items, ${problems.length} hard, ${soft.length} soft warnings${soft.length ? ` (${[...bySoft].map(([k, v]) => `${k} ${v}`).join(', ')})` : ''}${cost !== null ? `, furniture total ${cost} AMD` : ''}${work.length ? `\nunquoted finish and lighting work (price on request): ${work.join('; ')}` : ''}${notes}${rooms}${budgetLine}`;
   // Every hard error is either listed in problems or deliberately exempted (tucked chairs), so problems decide.
   return { ok: problems.length === 0, problems, summary, cost_dram: cost };
 }

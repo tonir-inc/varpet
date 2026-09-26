@@ -10,6 +10,12 @@ uv run --project ../../../harness python run/baseline.py --case a-japandi-living
 Cases live in `cases.json` (a-japandi-living, b-midcentury-bedroom, c-inspo-bedroom,
 d-living-dining-four; `smoke` and `smoke-render` are plumbing tests). One case per invocation.
 
+A case may name a `flat` (path relative to `spike/` to an editor SceneDocument or an architect
+`*.shell.json`, which goes through the product's replace-scene reconstruction; default `"avani"`), `rooms`
+(`"all"` or room ids; legacy `room`), `budget_dram` and `image`. `--cases PATH` reads another cases file.
+`run/flat.ts <flat> <dir>` writes `source.json` (editor document, the base of every 3D render) and `scene.json`
+(`editorToDesigner`; Avani keeps `fixtures/avani-empty.json`). `budget.json` makes `./varpet check` enforce the budget.
+
 ## spike.py
 - Workspace `out/<case>/<ts>/`: `scene.json`, `draft.json`, `AGENTS.md` (filled from `run/AGENTS.md`),
   symlinks `lib` and `cli.ts` to the real spike files, `./varpet` wrapper

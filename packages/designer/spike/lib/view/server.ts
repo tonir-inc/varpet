@@ -20,7 +20,7 @@ async function importFrom(pkgJson: string, name: string): Promise<any> {
 }
 
 export interface RenderRequest {
-  scene: Scene; draft: Draft; roomId: string; camera: ViewCamera; time?: 'day' | 'evening'; outPng: string; width: number; height: number; assetTimeoutMs: number;
+  scene: Scene; draft: Draft; source?: unknown; roomId?: string; camera: ViewCamera; time?: 'day' | 'evening'; outPng: string; width: number; height: number; assetTimeoutMs: number;
 }
 
 async function main() {
@@ -49,7 +49,7 @@ async function main() {
   async function render(request: RenderRequest) {
     const started = Date.now(); pageErrors.length = 0;
     await page.setViewportSize({ width: request.width, height: request.height });
-    const payload = await renderPayload(request.scene, request.draft, request.roomId, request.camera, request.time);
+    const payload = await renderPayload(request.scene, request.draft, request.roomId, request.camera, request.time, request.source);
     await page.evaluate((r: unknown) => (window as any).viewRender(r), payload);
     // Assets: wait until every glTF asset in the scene has loaded or failed, then let the camera settle.
     let timedOut = false;

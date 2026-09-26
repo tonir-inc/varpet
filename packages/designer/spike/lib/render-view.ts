@@ -14,7 +14,9 @@ import { STATE_FILE, codeVersion } from './view/state.js';
 
 export type { Draft, ViewCamera } from './view/document.js';
 /** time: day (afternoon sun, lamps off) or evening (after dusk, every designed light on). */
-export interface RenderViewOptions { roomId: string; camera?: ViewCamera; time?: 'day' | 'evening'; width?: number; height?: number }
+/** roomId undefined frames the whole flat (overview/top cameras only). source: the flat's editor document (source.json);
+ * without it the Avani demo shell is used. */
+export interface RenderViewOptions { roomId?: string; source?: unknown; camera?: ViewCamera; time?: 'day' | 'evening'; width?: number; height?: number }
 
 const here = dirname(fileURLToPath(import.meta.url));
 const designerRoot = resolve(here, '../..');
@@ -58,20 +60,24 @@ export async function startViewDaemon(): Promise<void> { await daemon(); }
 export async function renderView(scene: Scene, draft: Draft, outPng: string, options: RenderViewOptions): Promise<string> {
   const port = await daemon();
   const response = await fetch(`http://127.0.0.1:${port}/render`, { method: 'POST', headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ scene, draft, roomId: options.roomId, camera: options.camera ?? 'overview', time: options.time ?? 'day', outPng: resolve(outPng),
+    body: JSON.stringify({ scene, draft, source: options.source, roomId: options.roomId, camera: options.camera ?? 'overview', time: options.time ?? 'day', outPng: resolve(outPng),
       width: options.width ?? 1200, height: options.height ?? 800, assetTimeoutMs: 25_000 }) });
   const result = await response.json() as { ok: boolean; error?: string; missing?: string[]; timedOut?: boolean };
   if (!result.ok) throw new Error(`renderView failed: ${result.error}`);
   if (result.missing?.length) process.stderr.write(`renderView: models not loaded (${result.timedOut ? 'timeout' : 'failed'}): ${result.missing.join(', ')}\n`);
   return resolve(outPng);
 }
-/** Human-facing shots: cutaway overview and eye level by day, plus eye level in the evening when the draft has lighting. */
-export async function renderViewsForReport(scene: Scene, draft: Draft, outDir: string, roomId: string): Promise<string[]> {
-  const shots = [await renderView(scene, draft, resolve(outDir, `${roomId}-overview.png`), { roomId, camera: 'overview' }),
-    await renderView(scene, draft, resolve(outDir, `${roomId}-eye.png`), { roomId, camera: 'eye' })];
-  if (draft.lighting?.some(light => light.room_id === roomId) || draft.items.some(item => item.room_id === roomId && item.kind === 'lamp'))
-    shots.push(await renderView(scene, draft, resolve(outDir, `${roomId}-evening.png`), { roomId, camera: 'eye', time: 'evening' }));
-  return shots;
+/** Human-facing shots of one room: cutaway overview and eye level by day, eye level in the evening. */
+export async function renderViewsForReport(scene: Scene, draft: Draft, outDir: string, roomId: string, source?: unknown): Promise<string[]> {
+  return [await renderView(scene, draft, resolve(outDir, `${roomId}-overview.png`), { roomId, source, camera: 'overview' }),
+    await renderView(scene, draft, resolve(outDir, `${roomId}-eye.png`), { roomId, source, camera: 'eye' }),
+    await renderView(scene, draft, resolve(outDir, `${roomId}-evening.png`), { roomId, source, camera: 'eye', time: 'evening' })];
+}
+
+/** Whole-flat shots: cutaway overview and top view. */
+export async function renderFlatForReport(scene: Scene, draft: Draft, outDir: string, source?: unknown): Promise<string[]> {
+  return [await renderView(scene, draft, resolve(outDir, 'flat-overview.png'), { source, camera: 'overview' }),
+    await renderView(scene, draft, resolve(outDir, 'flat-top.png'), { source, camera: 'top' })];
 }
 
 /** Stop the warm daemon (runners call this at the end of a batch; it also exits on its own when idle). */
