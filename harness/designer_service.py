@@ -92,7 +92,7 @@ class Conversation:
 
 class DesignerService:
     def __init__(self, *, bridge_command=None, worker_command=None, progress_interval=5.0,
-                 idle_timeout=designer.IDLE_TIMEOUT, effort="medium", profile=None):
+                 idle_timeout=designer.IDLE_TIMEOUT, effort="medium", profile=None, image_paths=None):
         if not 0 < progress_interval <= 10 or idle_timeout <= 0:
             raise ValueError("progress_interval must be in (0, 10]; idle_timeout must be positive")
         if effort not in ("low", "medium"):
@@ -100,6 +100,7 @@ class DesignerService:
         # Preserve the original embedding API; the CLI passes the measured product defaults.
         self.effort = effort
         self.profile = dict(profile) if profile is not None else {"placement": "relations", "context": "full"}
+        self.image_paths = designer.first_turn_images({"images": image_paths if image_paths is not None else []}, first_turn=True)
         self.bridge_command = bridge_command or [
             str(designer.ROOT / "packages/designer/node_modules/.bin/tsx"),
             str(designer.ROOT / "packages/designer/src/editor-bridge.ts")]
@@ -185,7 +186,7 @@ class DesignerService:
                 proposals.mkdir()
                 job = root / "job.json"
                 job.write_text(json.dumps({"runtime": conversation.runtime, "request": body["request"],
-                                           "effort": self.effort, "profile": self.profile}))
+                                           "effort": self.effort, "profile": self.profile, "images": self.image_paths}))
                 env = {**os.environ, "VARPET_SCENE": conversation.runtime["scene"],
                        "VARPET_PROPOSALS_DIR": str(proposals)}
                 events, pending = [], ""
@@ -378,8 +379,12 @@ def make_server(service: DesignerService, port=8787) -> ThreadingHTTPServer:
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--port", type=int, default=8787)
+    parser.add_argument("--image", action="append", default=[], help="Opt-in first-turn local PNG/JPEG fixture; repeat up to twice")
     args = parser.parse_args()
-    service = DesignerService(**designer.default_service_settings())
+    settings = designer.default_service_settings()
+    if args.image:
+        settings["image_paths"] = args.image
+    service = DesignerService(**settings)
     server = make_server(service, args.port)
     print(f"Designer service: http://127.0.0.1:{server.server_port}", flush=True)
     try:
