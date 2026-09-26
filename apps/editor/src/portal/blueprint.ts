@@ -3,7 +3,8 @@ import { apartmentTemplates, type ApartmentTemplate } from './templates';
 import type { SceneDocument } from '../contracts';
 import type { CatalogProduct } from '../adapters/database-catalog';
 import type { ArchitectStage, StagePhase } from '../ui/architect-stage';
-import { BLUEPRINT_TOTAL_LIMIT, blueprintTransportFiles, retainBlueprintEvidence, validateBlueprintFile } from './blueprint-evidence';
+import { BLUEPRINT_TOTAL_LIMIT, retainBlueprintEvidence, validateBlueprintFile } from './blueprint-evidence';
+import { startBlueprintBuild } from './blueprint-build';
 import { traceInk, type BlueprintInk } from './blueprint-ink';
 import './blueprint.css';
 
@@ -23,6 +24,8 @@ const COLUMNS = 9, ROWS = 7;
 const ease = 'cubic-bezier(.65,0,.35,1)', easeOut = 'cubic-bezier(.16,1,.3,1)';
 const escape = (value: string) => value.replace(/[&<>"']/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[c]!));
 const nextFrame = () => new Promise<number>(resolve => requestAnimationFrame(resolve));
+interface Point { x: number; y: number }
+const centre = (element: Element): Point => { const r = element.getBoundingClientRect(); return {x: r.left + r.width / 2, y: r.top + r.height / 2}; };
 
 export interface BlueprintLandingOptions {
   showSample(template: ApartmentTemplate): void;
@@ -38,7 +41,7 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
     <section class="blueprint-welcome" aria-labelledby="blueprint-title">
       <div class="blueprint-heading"><p class="blueprint-eyebrow"><span></span>A LITTLE PLAN. A WHOLE NEW PERSPECTIVE.</p>
         <h1 id="blueprint-title">It starts with <em>a plan.</em></h1>
-        <p>Drop your blueprint. Watch your home take shape.</p></div>
+        <p>Drop your blueprint. We’ll start reading it right away.</p></div>
       <div class="blueprint-drawing">
         <div class="blueprint-board" style="--paper:${PAPER}">
           <div class="bp-grid" aria-hidden="true"></div>
@@ -63,7 +66,7 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
         <div class="blueprint-file"><span>${icon('layers')}<strong></strong></span><button type="button" data-change>Change plan</button></div>
         <div class="blueprint-photos"><button type="button" data-photos>${icon('plus')} Add room photos <span>optional</span></button><input type="file" accept="image/jpeg,image/png,image/webp" multiple hidden><div class="blueprint-photo-list"></div></div>
         <button type="button" class="portal-button portal-primary blueprint-build" disabled>Bring my plan to life ${icon('arrow')}</button>
-        <p class="blueprint-build-note">A few minutes to build. Yours to review and make your own.</p>
+        <p class="blueprint-build-note" role="status">A few minutes to build. Yours to review and make your own.</p>
       </div>
       <p class="blueprint-error" role="alert" hidden></p>
       <div class="blueprint-bottom"><span>${icon('layers')} Your plan</span><i></i><span>${icon('walls')} A space in 3D</span><i></i><span>${icon('home')} Make it yours</span></div>
@@ -71,8 +74,8 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
     </section>
     <section class="blueprint-flow" aria-label="Your apartment taking shape" style="--paper:${PAPER}" hidden>
       <div class="blueprint-stage"></div>
-      <div class="blueprint-flow-top"><button type="button" class="blueprint-back">${icon('undo')} Back to my plan</button><span class="blueprint-flow-name"></span><span class="blueprint-live"><i></i>CREATING YOUR SPACE</span></div>
-      <div class="blueprint-flow-heading"><p class="blueprint-eyebrow">FROM YOUR PLAN, INTO YOUR SPACE</p><h2 role="status">Getting to know your plan.</h2><p class="blueprint-flow-message">Placing your blueprint on the drawing board…</p></div>
+      <div class="blueprint-flow-top"><button type="button" class="blueprint-back">${icon('undo')} Back to my plan</button><span class="blueprint-flow-name"></span><span class="blueprint-live"><i></i>CREATING YOUR SPACE<time class="blueprint-elapsed" aria-hidden="true">0:00</time></span></div>
+      <div class="blueprint-flow-heading"><p class="blueprint-eyebrow">FROM YOUR PLAN, INTO YOUR SPACE</p><h2 role="status">Getting to know your plan.</h2><p class="blueprint-flow-message" role="status"><span class="blueprint-flow-message-text">Reading the plan</span><span class="blueprint-flow-dots" aria-hidden="true" hidden><span>.</span><span>.</span><span>.</span></span></p></div>
       <div class="blueprint-flow-bottom"><ol aria-label="Build progress">${PHASES.map(([phase, label], i) => `<li data-phase="${phase}"><span>${String(i + 1).padStart(2, '0')}</span>${label}</li>`).join('')}</ol><p>Your original plan becomes the foundation for your 3D home.</p></div>
       <div class="blueprint-complete" hidden><p>Tap doors and windows to try them. Open your apartment to correct any detail.</p><button type="button" class="portal-button portal-primary" data-open>Open my apartment ${icon('arrow')}</button></div>
       <div class="blueprint-flow-error" role="alert" hidden><h3>Let’s give that another look.</h3><p></p><button type="button" class="portal-button" data-retry>Try again</button><button type="button" class="portal-text-button" data-return>Change my plan</button></div>
@@ -87,15 +90,28 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
   const photoInput = q<HTMLInputElement>('.blueprint-photos input');
   let plan: File | null = null, photos: File[] = [], ink: BlueprintInk | undefined;
   let disposed = false, selection = 0, run = 0, dragDepth = 0;
-  let controller: AbortController | undefined, stage: ArchitectStage | undefined;
+  let reading: ReturnType<typeof startBlueprintBuild> | undefined, stage: ArchitectStage | undefined;
   let completed: {scene: SceneDocument; catalog: CatalogProduct[]} | undefined;
   const photoUrls: string[] = [];
+  const flights = new Set<HTMLElement>();
   const report = (message: string) => { error.textContent = message; error.hidden = false; };
   const validate = validateBlueprintFile;
   // Warm the build while the plan is being drawn, so the handoff never waits on a download.
   const warmBuild = () => Promise.all([
-    import('../ui/architect-stage'), import('../adapters/architect-http'), import('../adapters/database-catalog'), import('../adapters/built-catalog'), import('../core/persistence'),
+    import('../ui/architect-stage'), import('../adapters/database-catalog'), import('../adapters/built-catalog'), import('../core/persistence'),
   ]);
+  function startReading() {
+    if (!plan || disposed) return;
+    reading?.cancel();
+    const job = startBlueprintBuild(plan, photos, () => {
+      if (disposed || reading !== job) return;
+      q('.blueprint-build-note').textContent = job.status === 'ready'
+        ? 'Your apartment is ready to preview.' : 'We couldn’t read your plan yet. Continue to try again.';
+    });
+    reading = job;
+    q('.blueprint-build-note').textContent = 'Reading your blueprint while you get ready…';
+    return job;
+  }
   function renderPhotos() {
     photoUrls.splice(0).forEach(URL.revokeObjectURL);
     q('.blueprint-photo-list').innerHTML = photos.map((photo, i) => {
@@ -103,18 +119,20 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
       return `<span><img src="${url}" alt="${escape(photo.name)}"><button type="button" data-remove-photo="${i}" aria-label="Remove ${escape(photo.name)}">${icon('close')}</button></span>`;
     }).join('');
     q('.blueprint-photo-list').querySelectorAll<HTMLButtonElement>('[data-remove-photo]').forEach(button => {
-      button.onclick = () => { photos.splice(Number(button.dataset.removePhoto), 1); renderPhotos(); };
+      button.onclick = () => { photos.splice(Number(button.dataset.removePhoto), 1); renderPhotos(); startReading(); };
     });
   }
-  function addPhotos(files: File[]) {
+  function addPhotos(files: File[], restart = true) {
+    if (!files.length) return;
     try {
       files.forEach(validate);
       if (photos.length + files.length > 10) throw new Error('Add up to 10 room photos. Remove a photo to make space.');
       if ([plan, ...photos, ...files].reduce((sum, file) => sum + (file?.size ?? 0), 0) > MAX_TOTAL) throw new Error('Keep the plan and photos under 12 MB in total.');
       photos.push(...files); renderPhotos(); error.hidden = true;
+      if (restart) startReading();
     } catch (cause) { report((cause as Error).message); }
   }
-  async function chooseFiles(files: File[]) {
+  async function chooseFiles(files: File[], from: Point) {
     if (!files.length || !flow.hidden) return;
     const candidate = files.find(file => /plan|blueprint/i.test(file.name)) ?? files[0]!;
     const version = ++selection;
@@ -127,11 +145,12 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
       const probe = new Image(); probe.src = url; await probe.decode();
       if (disposed || version !== selection) { URL.revokeObjectURL(url); return; }
       const traced = inkOf(probe);
+      probe.src = ''; URL.revokeObjectURL(url); url = '';
       plan = candidate; ink = traced; error.hidden = true;
-      void warmBuild();
-      if (files.length > 1) addPhotos(files.filter(file => file !== candidate));
-      await revealPlan(probe, traced, candidate.name, version);
-      URL.revokeObjectURL(url);
+      void warmBuild().catch(() => {}); // Submit reports any module-loading failure with a retry.
+      if (files.length > 1) addPhotos(files.filter(file => file !== candidate), false);
+      startReading();
+      await revealPlan(traced, candidate.name, version, from);
       if (disposed || version !== selection) return;
       build.disabled = false;
     } catch (cause) {
@@ -142,40 +161,95 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
     }
   }
 
-  /** The dropped image lands on the sheet, dissolves into it, and the plan is redrawn in ink. */
-  async function revealPlan(image: HTMLImageElement, traced: BlueprintInk, name: string, version: number) {
+  /**
+   * A clean paper card of the traced plan flies out of wherever the file came from and drops onto
+   * the sheet. A developing line then sweeps down it: behind the line the paper is gone and the plan
+   * is already a faint blueprint, which the pen inks over. The plan never leaves the screen.
+   */
+  async function revealPlan(traced: BlueprintInk, name: string, version: number, from: Point) {
     const still = reduced();
     const current = () => !disposed && version === selection;
     next.hidden = true; board.classList.add('has-plan');
-    area.querySelectorAll('.bp-incoming, .bp-scan').forEach(node => node.remove());
-    if (!inkCanvas.hidden && !still) await inkCanvas.animate([{opacity: 1}, {opacity: 0, filter: 'blur(4px)'}], {duration: 260, easing: 'ease-in', fill: 'forwards'}).finished;
-    if (!current()) return;
-    if (!drop.hidden && !still) await drop.animate([{opacity: 1, transform: 'none'}, {opacity: 0, transform: 'translateY(-10px) scale(.97)'}], {duration: 240, easing: 'ease-in'}).finished;
+    flights.forEach(node => node.remove()); flights.clear();
+    const outgoing = [
+      !still && !inkCanvas.hidden && inkCanvas.animate([{opacity: 1}, {opacity: 0, filter: 'blur(4px)'}], {duration: 260, easing: 'ease-in', fill: 'forwards'}).finished,
+      !still && !drop.hidden && drop.animate([{opacity: 1, transform: 'none'}, {opacity: 0, transform: 'translateY(-10px) scale(.97)'}], {duration: 240, easing: 'ease-in', fill: 'forwards'}).finished,
+    ];
+    // The card starts its flight at once; the prompt and any earlier drawing clear underneath it.
+    const card = still ? undefined : flyIn(traced, from);
+    await Promise.all(outgoing);
     if (!current()) return;
     drop.hidden = true;
     inkCanvas.getAnimations().forEach(animation => animation.cancel());
     inkCanvas.width = traced.width; inkCanvas.height = traced.height; inkCanvas.hidden = false;
+    inkCanvas.getContext('2d')!.clearRect(0, 0, traced.width, traced.height);
     setTitle(name);
-    if (still) { paintInk(traced, 1, 1); showNext(false); return; }
-
-    // The paper lands, settles, and melts into the sheet while a reading line passes over it.
-    const incoming = image.cloneNode() as HTMLImageElement;
-    incoming.className = 'bp-incoming'; incoming.alt = ''; area.append(incoming);
-    const scan = document.createElement('i'); scan.className = 'bp-scan'; area.append(scan);
-    const landing = incoming.animate([
-      {opacity: 0, transform: 'translateY(-7%) scale(1.22) rotate(-5deg)', filter: 'drop-shadow(0 40px 40px #0006)'},
-      {opacity: 1, transform: 'translateY(0) scale(1.02) rotate(-1.2deg)', filter: 'drop-shadow(0 18px 24px #0005)', offset: .38},
-      {opacity: 1, transform: 'scale(1) rotate(0)', filter: 'drop-shadow(0 2px 3px #0003) brightness(1)', offset: .56},
-      {opacity: 0, transform: 'scale(.992)', filter: 'drop-shadow(0 0 0 #0000) brightness(1.8) blur(3px)'},
-    ], {duration: 1700, easing: easeOut, fill: 'forwards'});
-    scan.animate([{top: '0%', opacity: 0}, {opacity: 1, offset: .12}, {opacity: 1, offset: .85}, {top: '100%', opacity: 0}], {duration: 1300, delay: 700, easing: ease, fill: 'both'});
-    paintInk(traced, 0, 0);
-    await new Promise(resolve => setTimeout(resolve, 900));
-    if (!current()) { incoming.remove(); scan.remove(); return; }
-    const drawing = drawInk(traced, 2600, current);
-    await landing.finished; incoming.remove();
-    await drawing; scan.remove();
+    if (!card) { paintInk(traced, 1, 1); showNext(false); return; }
+    await card.landed;
+    if (!current()) return;
+    inkCanvas.getContext('2d')!.putImageData(ghostInk(traced), 0, 0);
+    await card.develop();
+    if (!current()) return;
+    await drawInk(traced, 2400, current);
     if (current()) showNext(true);
+  }
+
+  /**
+   * One continuous drop: the card travels on an arc (horizontal and vertical ease differently),
+   * tilted and lifted off the page, then lays flat onto the sheet, which gives a little under it.
+   * `develop` then turns it into blueprint from the top down; it resolves just before the sweep ends.
+   */
+  function flyIn(traced: BlueprintInk, from: Point): { landed: Promise<void>; develop(): Promise<void> } {
+    const box = area.getBoundingClientRect();
+    const fit = Math.min(box.width / traced.width, box.height / traced.height);
+    const width = traced.width * fit, height = traced.height * fit;
+    const left = box.left + (box.width - width) / 2, top = box.top + (box.height - height) / 2;
+    const card = document.createElement('div'); card.className = 'bp-card-x';
+    card.innerHTML = '<i class="bp-card-ripple"></i><div class="bp-card-y"><div class="bp-card"><canvas></canvas></div></div><i class="bp-card-scan"></i>';
+    Object.assign(card.style, {left: `${left}px`, top: `${top}px`, width: `${width}px`, height: `${height}px`});
+    const paper = card.querySelector('canvas')!;
+    paper.width = traced.width; paper.height = traced.height;
+    const ctx = paper.getContext('2d')!, image = ctx.createImageData(traced.width, traced.height);
+    for (let i = 0; i < traced.alpha.length; i++) { const k = i * 4; image.data[k] = 24; image.data[k + 1] = 58; image.data[k + 2] = 64; image.data[k + 3] = traced.alpha[i]!; }
+    ctx.putImageData(image, 0, 0);
+    document.body.append(card); flights.add(card);
+    const dx = from.x - (left + width / 2), dy = from.y - (top + height / 2);
+    const start = Math.min(.9, Math.max(.16, 110 / Math.max(width, height)));
+    const flight = 820, land = 300, total = flight + land, at = flight / total;
+    card.animate([{transform: `translateX(${dx}px)`}, {transform: 'none'}], {duration: flight, easing: 'cubic-bezier(.3,.8,.35,1)', fill: 'both'});
+    card.firstElementChild!.nextElementSibling!.animate([{transform: `translateY(${dy}px)`}, {transform: 'none'}], {duration: flight, easing: 'cubic-bezier(.5,0,.3,1)', fill: 'both'});
+    const body = card.querySelector<HTMLElement>('.bp-card')!;
+    // Same transform list in every frame so the tilt, lift and scale interpolate together.
+    const pose = (tilt: number, turn: number, lift: number, scale: number) =>
+      `perspective(1600px) translateZ(${lift}px) rotateX(${tilt}deg) rotateZ(${turn}deg) scale(${scale})`;
+    const motion = body.animate([
+      {transform: pose(26, -9, 0, start), opacity: 0, boxShadow: '0 24px 30px #0e343b2e', easing: 'cubic-bezier(.3,.6,.4,1)'},
+      {opacity: 1, offset: .1},
+      {transform: pose(10, -2, 40, 1.02), boxShadow: '0 46px 70px #0e343b4d', offset: at * .82, easing: 'cubic-bezier(.5,0,.8,.4)'},
+      {transform: pose(0, 0, 0, .988), boxShadow: '0 2px 4px #0e343b47', offset: at + (1 - at) * .35, easing: 'cubic-bezier(.2,.8,.3,1)'},
+      {transform: pose(0, 0, 0, 1), opacity: 1, boxShadow: '0 1px 2px #0e343b33'},
+    ], {duration: total, fill: 'both'});
+    // The sheet takes the weight: a small give, the frame brightens, and a ripple rings out.
+    const contact = flight + land * .35;
+    board.animate([{transform: 'none'}, {transform: 'scale(.994)', offset: .3}, {transform: 'none'}], {duration: 520, delay: contact - 60, easing: 'cubic-bezier(.3,.7,.4,1)'});
+    q('.bp-frame rect').animate([{strokeWidth: 1.4}, {strokeWidth: 2.6, stroke: '#ffffff', offset: .25}, {strokeWidth: 1.4}], {duration: 700, delay: contact - 60, easing: 'ease-out'});
+    card.querySelector('.bp-card-ripple')!.animate([{opacity: .75, transform: 'scale(1)'}, {opacity: 0, transform: 'scale(1.07)'}], {duration: 760, delay: contact - 40, easing: 'cubic-bezier(.2,.7,.3,1)', fill: 'both'});
+    const landed = motion.finished.then(() => undefined, () => undefined);
+    const develop = () => {
+      // The mask is three cards tall: clear, a soft edge at the scan line, then paper; sliding it down wipes the paper away.
+      const sweep = 1050;
+      Object.assign(body.style, {maskImage: 'linear-gradient(#0000 46%, #000 54%)', maskSize: `100% ${height * 3}px`, maskRepeat: 'no-repeat'});
+      body.style.setProperty('-webkit-mask-image', body.style.maskImage);
+      body.style.setProperty('-webkit-mask-size', body.style.maskSize);
+      body.style.setProperty('-webkit-mask-repeat', 'no-repeat');
+      const wipe = {duration: sweep, easing: 'cubic-bezier(.45,.05,.4,1)', fill: 'both'} as const;
+      body.animate([{maskPosition: `0 ${-height * 1.8}px`, WebkitMaskPosition: `0 ${-height * 1.8}px`}, {maskPosition: '0 0', WebkitMaskPosition: '0 0'}] as Keyframe[], wipe);
+      card.querySelector('.bp-card-scan')!.animate([
+        {top: '-30%', opacity: 0}, {opacity: 1, offset: .2}, {opacity: 1, offset: .75}, {top: '150%', opacity: 0},
+      ], wipe).finished.then(() => { card.remove(); flights.delete(card); }, () => undefined);
+      return new Promise<void>(resolve => setTimeout(resolve, sweep * .55));
+    };
+    return { landed, develop };
   }
 
   function showNext(animate: boolean) {
@@ -201,9 +275,17 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
     ctx.putImageData(data, 0, 0);
     return data;
   }
+  /** The whole plan, faint: the blueprint as the paper leaves it, before the pen goes over it. */
+  function ghostInk(traced: BlueprintInk) {
+    const data = new ImageData(traced.width, traced.height);
+    for (let i = 0; i < traced.alpha.length; i++) {
+      const k = i * 4; data.data[k] = 200; data.data[k + 1] = 228; data.data[k + 2] = 230; data.data[k + 3] = traced.alpha[i]! * .5;
+    }
+    return data;
+  }
   async function drawInk(traced: BlueprintInk, duration: number, current: () => boolean) {
     const ctx = inkCanvas.getContext('2d')!;
-    const data = ctx.createImageData(traced.width, traced.height);
+    const data = ghostInk(traced);
     const pixels = data.data, {sequence, order, alpha} = traced;
     let head = 0, tail = 0;
     const start = await nextFrame();
@@ -224,9 +306,12 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
     }
   }
 
-  drop.onclick = () => picker.click();
-  q('[data-change]').onclick = () => picker.click();
-  picker.onchange = () => { void chooseFiles([...picker.files ?? []]); picker.value = ''; };
+  // A chosen or pasted file flies out of the control that asked for it.
+  const source = () => centre(!drop.hidden ? q('.blueprint-upload-mark') : !next.hidden ? q('[data-change]') : area);
+  let pickedFrom: Point | undefined;
+  drop.onclick = () => { pickedFrom = centre(q('.blueprint-upload-mark')); picker.click(); };
+  q('[data-change]').onclick = () => { pickedFrom = centre(q('[data-change]')); picker.click(); };
+  picker.onchange = () => { void chooseFiles([...picker.files ?? []], pickedFrom ?? source()); picker.value = ''; };
   q('[data-photos]').onclick = () => photoInput.click();
   photoInput.onchange = () => { addPhotos([...photoInput.files ?? []]); photoInput.value = ''; };
   const dropLabel = q('.blueprint-drop strong');
@@ -242,7 +327,7 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
   const onDrop = (event: DragEvent) => {
     if (!flow.hidden || !event.dataTransfer?.types.includes('Files')) return;
     event.preventDefault(); dragDepth = 0; setOver(false);
-    void chooseFiles([...event.dataTransfer.files]);
+    void chooseFiles([...event.dataTransfer.files], {x: event.clientX, y: event.clientY});
   };
   const onPaste = (event: ClipboardEvent) => {
     if (disposed || !host.isConnected || !flow.hidden || event.defaultPrevented || !event.clipboardData) return;
@@ -254,7 +339,7 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
       .filter(item => item.kind === 'file' && item.type.startsWith('image/'))
       .map(item => item.getAsFile()).filter((file): file is File => file !== null);
     if (!images.length) return;
-    event.preventDefault(); void chooseFiles(images);
+    event.preventDefault(); void chooseFiles(images, source());
   };
   welcome.addEventListener('dragenter', event => { onDrag(event); ++dragDepth; });
   welcome.addEventListener('dragleave', () => { if (--dragDepth <= 0) setOver(false); });
@@ -271,7 +356,7 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
       element.classList.toggle('is-current', i === index); element.classList.toggle('is-done', i < index);
       if (i === index) element.setAttribute('aria-current', 'step'); else element.removeAttribute('aria-current');
     });
-    q('.blueprint-flow-heading h2').textContent = phase === 'done' ? 'A plan. Now a place.' : PHASES[index]![2];
+    swap(q('.blueprint-flow-heading h2'), phase === 'done' ? 'A plan. Now a place.' : PHASES[index]![2]);
   }
   /** Space the 3D view keeps clear of the flow's heading and bottom controls. */
   function insets() {
@@ -282,13 +367,37 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
     const bottom = bottoms.length ? flow.clientHeight - Math.min(...bottoms.map(element => element.offsetTop)) + 8 : 24;
     return {top, bottom};
   }
-  function stop() { ++run; controller?.abort(); controller = undefined; stage?.dispose(); stage = undefined; }
+  function stop(cancelReading = true) {
+    ++run; working(false);
+    if (cancelReading) { reading?.cancel(); reading = undefined; }
+    stage?.dispose(); stage = undefined;
+  }
+  /** A changed line of text rises into place, so each step of the work reads as progress. */
+  function swap(element: HTMLElement, text: string) {
+    if (element.textContent === text) return;
+    element.textContent = text;
+    if (!reduced()) element.animate([{opacity: 0, transform: 'translateY(8px)', filter: 'blur(3px)'}, {opacity: 1, transform: 'none', filter: 'none'}], {duration: 460, easing: easeOut});
+  }
+  const say = (message: string) => swap(q('.blueprint-flow-message-text'),
+    /^Reading (?:the|your) plan\b/i.test(message) ? 'Reading the plan' : message.replace(/(?:…|\.{3})\s*$/, ''));
+  /** While the architect works: the live dot breathes, the current step shimmers and time counts up. */
+  let clock = 0;
+  function working(on: boolean, started = performance.now()) {
+    flow.classList.toggle('is-working', on);
+    flow.querySelector<HTMLElement>('.blueprint-flow-dots')!.hidden = !on;
+    clearInterval(clock); clock = 0;
+    if (!on) return;
+    const elapsed = q('.blueprint-elapsed');
+    const tick = () => { const s = Math.floor((performance.now() - started) / 1000); elapsed.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+    tick(); clock = window.setInterval(tick, 1000);
+  }
   function back() {
     stop(); completed = undefined; flow.hidden = true; welcome.hidden = false; board.style.visibility = '';
     flow.classList.remove('is-entering', 'is-handoff');
     flow.querySelectorAll('.bp-ghost').forEach(node => node.remove());
     flow.getAnimations().forEach(animation => animation.cancel());
     host.closest('.portal')?.classList.remove('is-building');
+    q('.blueprint-build-note').textContent = 'Your plan is here. Continue when you’re ready to build.';
     build.disabled = !plan; build.focus();
   }
   q('.blueprint-back').onclick = back; q('[data-return]').onclick = back;
@@ -329,57 +438,65 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
     flow.getAnimations().forEach(animation => animation.cancel());
   }
 
-  async function startBuild() {
+  async function startBuild(retry = false) {
     if (!plan || !ink || disposed) return;
-    stop(); const version = run; controller = new AbortController();
-    const signal = controller.signal;
+    if ((!flow.hidden && !retry) || (retry && flowError.hidden)) return;
+    stop(false); const version = run;
+    const job = !reading || reading.status === 'failed' || retry ? startReading()! : reading;
+    const signal = job.signal;
     completed = undefined; flow.hidden = false; flowError.hidden = true;
     flow.classList.add('is-entering');
     q('.blueprint-complete').hidden = true; q('.blueprint-flow-bottom').hidden = false;
     q('.blueprint-live').hidden = false;
     q('.blueprint-flow-name').textContent = plan.name;
-    q('.blueprint-flow-message').textContent = 'Placing your blueprint on the drawing board…';
+    say('Reading the plan');
+    working(true, job.started);
     updatePhase('reading'); q('.blueprint-back').focus({preventScroll: true});
     try {
-      const [{createArchitectStage}, {buildFurnishedFlat}, {resolveSceneProducts}, {resolveFurnitureProducts}, {parseScene}] = await warmBuild();
+      const [{createArchitectStage}, {resolveSceneProducts}, {resolveFurnitureProducts}, {parseScene}] = await warmBuild();
       if (disposed || version !== run) return;
-      const sheet = document.createElement('canvas');
-      sheet.width = inkCanvas.width; sheet.height = inkCanvas.height; sheet.getContext('2d')!.drawImage(inkCanvas, 0, 0);
+      const sheet = inkSheet(ink);
       stage = createArchitectStage(q('.blueprint-stage'), {onPhase: updatePhase, holdOnFinish: true, blueprint: {ink: sheet, paper: PAPER, insets}});
-      stage.start(plan, photos);
-      void handoff(version);
-      const url = import.meta.env.VITE_ARCHITECT_URL || 'http://127.0.0.1:8788';
-      const raw = await buildFurnishedFlat({...blueprintTransportFiles(plan, photos), name: plan.name.replace(/\.[^.]+$/, '').slice(0, 40) || 'My apartment'}, message => {
-        if (version !== run) return;
-        q('.blueprint-flow-message').textContent = message; stage?.progress(message);
-      }, {url, signal, onEvent: event => { if (version === run) stage?.event(event as never); }});
+      stage.start(job.plan, job.photos);
+      // Keep the receiving sheet still until the source lands. Early shell events can reframe it.
+      await handoff(version);
       if (disposed || version !== run) return;
-      q('.blueprint-flow-message').textContent = 'Checking your apartment before you step inside…';
+      const url = import.meta.env.VITE_ARCHITECT_URL || 'http://127.0.0.1:8788';
+      job.attach(message => {
+        if (version !== run) return;
+        say(message); stage?.progress(message);
+      }, event => { if (version === run) stage?.event(event as never); });
+      const result = await job.result;
+      if (disposed || version !== run) return;
+      if (!result.ok) throw result.error;
+      const raw = result.project;
+      say('Checking your apartment before you step inside…');
       const catalog = await resolveSceneProducts(raw, new Map(), ids => resolveFurnitureProducts(ids, {url}));
       if (disposed || version !== run) return;
       const assets = catalog.map(product => product.asset);
       const reviewed = parseScene(JSON.stringify(raw), assets);
-      const scene = parseScene(JSON.stringify(await retainBlueprintEvidence(reviewed, plan, photos)), assets);
+      const scene = parseScene(JSON.stringify(await retainBlueprintEvidence(reviewed, job.plan, job.photos)), assets);
       if (disposed || version !== run) return;
       await stage!.finish();
       if (disposed || version !== run) return;
       completed = {scene, catalog};
-      updatePhase('done'); q('.blueprint-flow-message').textContent = 'Built from your blueprint. Ready for your ideas.';
+      updatePhase('done'); say('Built from your blueprint. Ready for your ideas.'); working(false);
       q('.blueprint-live').hidden = true; q('.blueprint-flow-bottom').hidden = true;
       q('.blueprint-complete').hidden = false; q('[data-open]').focus();
     } catch (cause) {
       if (disposed || version !== run || signal.aborted) return;
+      job.cancel(); if (reading === job) reading = undefined;
       stage?.dispose(); stage = undefined;
       welcome.hidden = true; building(); board.style.visibility = ''; flow.querySelectorAll('.bp-ghost').forEach(node => node.remove());
       flow.classList.remove('is-entering', 'is-handoff');
-      q('.blueprint-live').hidden = true; q('.blueprint-flow-bottom').hidden = true;
+      working(false); q('.blueprint-live').hidden = true; q('.blueprint-flow-bottom').hidden = true;
       q('.blueprint-flow-heading h2').textContent = 'Your plan is still here.';
-      q('.blueprint-flow-message').textContent = 'We couldn’t finish this build. Your uploaded files are ready to try again.';
+      say('We couldn’t finish this build. Your uploaded files are ready to try again.');
       flowError.querySelector('p')!.textContent = cause instanceof TypeError ? 'The architect is unavailable. Check the connection and try again.' : cause instanceof Error ? cause.message : 'The build could not be completed.';
       flowError.hidden = false; q('[data-retry]').focus();
     }
   }
-  build.onclick = () => void startBuild(); q('[data-retry]').onclick = () => void startBuild();
+  build.onclick = () => void startBuild(); q('[data-retry]').onclick = () => void startBuild(true);
   q<HTMLButtonElement>('[data-open]').onclick = async () => {
     if (!completed) return;
     const button = q<HTMLButtonElement>('[data-open]'); button.disabled = true;
@@ -398,6 +515,7 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
   return () => {
     disposed = true; ++selection; stop();
     window.removeEventListener('paste', onPaste);
+    flights.forEach(node => node.remove());
     photoUrls.splice(0).forEach(URL.revokeObjectURL);
   };
 }
@@ -420,6 +538,18 @@ async function handOver(view: ArchitectStage | undefined, overlay: HTMLElement, 
   } finally {
     view?.dispose(); overlay.remove();
   }
+}
+
+/** The stage's copy of the plan: ink coverage in alpha, and its pen order in red for the working trace. */
+function inkSheet(ink: BlueprintInk): HTMLCanvasElement {
+  const canvas = document.createElement('canvas'); canvas.width = ink.width; canvas.height = ink.height;
+  const ctx = canvas.getContext('2d')!, image = ctx.createImageData(ink.width, ink.height);
+  for (let i = 0; i < ink.alpha.length; i++) {
+    const k = i * 4;
+    image.data[k] = ink.order[i]! >= 0 ? Math.round(ink.order[i]! * 255) : 0; image.data[k + 3] = ink.alpha[i]!;
+  }
+  ctx.putImageData(image, 0, 0);
+  return canvas;
 }
 
 /** Trace the decoded plan at sheet resolution, cropped to its drawing. */

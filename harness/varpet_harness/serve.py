@@ -16,6 +16,7 @@ import json
 import re
 import sys
 import time
+import uuid
 from collections.abc import Callable
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -110,7 +111,9 @@ async def furnished_flat(body: dict, repo: Path, runs: Path, progress: Callable[
     if not isinstance(body.get("plan"), dict):
         raise ValueError("send a plan image")
     name = SAFE.sub("-", str(body.get("name") or "flat")).strip("-").lower()[:40] or "flat"
-    run_dir = runs / f"{name}-{time.strftime('%Y%m%d-%H%M%S')}"
+    # Upload replacements can start several sessions with the same name in a single second.
+    # Keep the previous 56-character bound: built asset IDs also include this directory name.
+    run_dir = runs / f"{name[:27]}-{time.strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:12]}"
     inputs = run_dir / "inputs"
     inputs.mkdir(parents=True)
     plan = _save(body["plan"], inputs, "plan.jpg")

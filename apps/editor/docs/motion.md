@@ -1,5 +1,7 @@
 # Editor motion rules
 
+The [interactive construction world](interactive-blueprint.md) uses direct orbit, pan, zoom and keyboard movement while the architect builds. Input interrupts framing without a camera jump; incoming geometry preserves the person's view until Reset view. The editor handoff begins from that current pose. Navigation releases, blur, hidden documents and disposal clear active input; reduced motion preserves direct controls.
+
 Inside walking-camera behavior and its verification are recorded in [Inside walkthrough](walkthrough.md): immediate room entry/exit, direct drag/look and grounded movement, input interruption, and idle rendering. The [current walking response](walkthrough-camera.md#walking-response) uses 2.8 m/s with elapsed-time movement on frames up to 250 ms and a release tail below 7.5 cm; avoid capping ordinary slow frames to 50 ms, which makes navigation slow down with rendering.
 
 Exterior [keyboard navigation](keyboard-navigation.md) uses direct, continuous 5 m/s movement along the full camera viewing direction in 3D, including up/down pitch; Top retains ground-plane panning. Camera and orbit target move together; key release stops immediately. This intentional direct-input response also applies with reduced motion. Keyboard takeover cancels framing and queued selection reveal; mouse orbit, pan and zoom can continue alongside held movement keys. Report navigation as active until both inputs finish; actual editing gestures still cancel and block keyboard travel. Frames run only while a direction is held, with no inertia or idle loop. Plan retains its existing 35 px key-repeat pan, with WASD aliases for arrows.
@@ -190,3 +192,33 @@ pnpm --filter @varpet/editor build
 ```
 
 The first typecheck caught four unchecked typed-array counter accesses in concurrent `blueprint-ink.ts` work. Explicit definite-index assertions fixed those mechanically without changing runtime behavior. No tests, fixtures or schemas changed for the indicator. Existing bundle-size advisory remains. Shared unfinished work was preserved on `main`; synchronization was deferred under the editor's coordination rules. Notion required authentication, so these measurements are recorded locally.
+
+### Reading status dots — 2026-09-27
+
+The reading message now displays “Reading the plan” with a fixed-width ellipsis cycling through three, two, one, and two dots over 1.6 seconds. Only dot opacity changes; the text stays in place. Other progress messages retain their wording, with trailing ellipses replaced by the same indicator. The original backend message still reaches the construction stage. Reduced motion shows all three dots without animation. Completion, error, back, and disposal remove the indicator.
+
+Keep cleanup queries scoped to the flow: opening the finished apartment reparents it outside the landing host before disposal. This was caught by the fresh-context reviewer and verified after correction. Browser probes must wait for the sheet handoff and heading entrance to finish, then sample a whole dot cycle; shorter samples can miss a discrete opacity change.
+
+Verified with a mocked architect stream on desktop and at 390 px, including unchanged text bounds, live reduced motion, retry, error, cancellation, completion, disposal, and disposal after reparenting. Screenshots were visually inspected. Evidence: `output/reading-plan-animation/`. Fresh-context review: APPROVE. No scene contracts, fixtures, or existing tests changed. The repository's referenced `definition-of-done` skill is unavailable; checks are recorded here.
+
+```text
+node output/reading-plan-animation/probe.cjs
+{"status":"passed","checks":14,"pageErrors":0}
+
+VITEST_MAX_WORKERS=2 pnpm test
+packages/designer: Test Files 126 passed; Tests 606 passed
+packages/designer: Ran 200 tests; OK
+packages/designer: Ran 81 tests; OK
+packages/engine, packages/designer, apps/buyer, apps/showcase, apps/editor: Done
+
+pnpm --filter @varpet/editor test
+exit 0
+
+pnpm typecheck
+packages/engine, packages/designer, apps/buyer, apps/showcase, apps/editor: Done
+
+pnpm --filter @varpet/editor build
+exit 0 (existing chunk-size advisory)
+```
+
+The first unrestricted `pnpm test` run hit the existing 5-second timeouts in two designer geometry-search tests (`ashot-live` and `taste-contradictions`). The complete suite passed with two Vitest workers; no expectations or timeouts were changed. Model: Codex (GPT-6).

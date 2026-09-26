@@ -78,8 +78,14 @@
 .bp-title strong { overflow: hidden; color: #f4fbfa; font: 400 13px/1.25 var(--serif); letter-spacing: 0; text-overflow: ellipsis; white-space: nowrap; }
 .bp-area { position: absolute; inset: calc(var(--t) + 36px) calc(var(--r) + 40px) calc(var(--b) + 44px) calc(var(--l) + 40px); }
 .bp-ink { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 5px #ffffff38); pointer-events: none; }
-.bp-incoming { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; will-change: transform, opacity, filter; }
-.bp-scan { position: absolute; left: -6%; right: -6%; height: 2px; margin-top: -1px; background: linear-gradient(90deg, #0000, #fff 20%, #fff 80%, #0000); box-shadow: 0 0 18px 4px #ffffff4d; pointer-events: none; }
+/* The file in flight: the traced plan on clean paper, above everything on the page. X and Y
+ * move on separate layers so they can ease differently and trace an arc. */
+.bp-card-x { position: fixed; z-index: 60; pointer-events: none; }
+.bp-card-y, .bp-card { width: 100%; height: 100%; }
+.bp-card { background: #f7f6f0; outline: 1px solid #d5dcd6; outline-offset: -1px; will-change: transform, opacity, filter; }
+.bp-card canvas { display: block; width: 100%; height: 100%; }
+.bp-card-ripple { position: absolute; inset: 0; outline: 1.5px solid #f4fbfa; opacity: 0; }
+.bp-card-scan { position: absolute; left: -4%; right: -4%; height: 2px; margin-top: -1px; background: linear-gradient(90deg, #0000, #fff 18%, #fff 82%, #0000); box-shadow: 0 0 22px 6px #ffffff59; opacity: 0; }
 
 /* ---- Drop prompt ---- */
 .blueprint-drop {
@@ -167,10 +173,30 @@
 .blueprint-flow-name { max-width: 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #cfe3e1b3; font: 500 10px/1 ui-monospace, 'SF Mono', Menlo, monospace; letter-spacing: .8px; }
 .blueprint-live { display: flex; align-items: center; gap: 7px; color: #cfe3e1; font-size: 9px; letter-spacing: 1.2px; }
 .blueprint-live i { width: 5px; height: 5px; border-radius: 50%; background: #9fe0cf; box-shadow: 0 0 8px #9fe0cf; }
+.blueprint-elapsed { min-width: 3.2em; margin-left: 8px; padding-left: 9px; border-left: 1px solid #e6f3f240; color: #f4fbfa; font: 500 10px/1 ui-monospace, 'SF Mono', Menlo, monospace; letter-spacing: .5px; font-variant-numeric: tabular-nums; }
+/* Working: bounded to the architect's run, and stopped with it (reduced motion keeps it still). */
+.blueprint-flow.is-working .blueprint-live i { animation: bp-breathe 1.6s ease-in-out infinite; }
+.blueprint-flow-bottom li { position: relative; overflow: hidden; }
+.blueprint-flow.is-working .blueprint-flow-bottom li.is-current::after {
+  position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; content: '';
+  background: linear-gradient(90deg, #0000, #fff 45%, #9fe0cf 55%, #0000) 0 0 / 50% 100% no-repeat;
+  animation: bp-shimmer 1.4s cubic-bezier(.45, 0, .55, 1) infinite;
+}
+.blueprint-flow.is-working .blueprint-flow-bottom li.is-current > span { animation: bp-breathe 1.6s ease-in-out infinite; }
+@keyframes bp-breathe { 50% { opacity: .35; box-shadow: 0 0 2px #9fe0cf; } }
+@keyframes bp-shimmer { from { background-position: -100% 0; } to { background-position: 200% 0; } }
 .blueprint-flow-heading { position: absolute; top: 88px; left: 24px; right: 24px; text-align: center; pointer-events: none; z-index: 2; }
 .blueprint-flow .blueprint-eyebrow { color: #cfe3e1b3; }
 .blueprint-flow-heading h2 { font-family: var(--serif); font-size: clamp(30px, 3.4vw, 49px); line-height: 1.2; font-weight: 400; letter-spacing: -1.5px; margin: 10px 0; color: #f4fbfa; }
 .blueprint-flow-message { color: #cfe3e1cc; font-size: 13px; max-width: 580px; margin: 0 auto; text-wrap: balance; }
+/* Reserve all three dots so the centered status stays still as they cycle: ... .. . .. */
+.blueprint-flow-dots { display: inline-flex; width: .9em; white-space: nowrap; }
+.blueprint-flow-dots[hidden] { display: none; }
+.blueprint-flow-dots > span { width: .3em; }
+.blueprint-flow.is-working .blueprint-flow-dots > span:nth-child(2) { animation: bp-dot-two 1.6s step-end infinite; }
+.blueprint-flow.is-working .blueprint-flow-dots > span:nth-child(3) { animation: bp-dot-three 1.6s step-end infinite; }
+@keyframes bp-dot-two { 0%, 75%, 100% { opacity: 1; } 50% { opacity: 0; } }
+@keyframes bp-dot-three { 0%, 100% { opacity: 1; } 25% { opacity: 0; } }
 .blueprint-flow-bottom { position: absolute; bottom: 27px; left: 24px; right: 24px; z-index: 2; text-align: center; pointer-events: none; }
 .blueprint-flow-bottom ol { display: flex; justify-content: center; padding: 0; gap: 7px; margin: 0 0 15px; list-style: none; }
 .blueprint-flow-bottom li { display: flex; gap: 8px; align-items: center; color: #cfe3e199; font-size: 12px; padding: 10px 17px; border-bottom: 1px solid #e6f3f233; transition: color 220ms ease-out, border-color 220ms ease-out, background-color 220ms ease-out; }

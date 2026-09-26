@@ -1,0 +1,594 @@
+{
+  "checks": [
+    "desktop active dots visible with unchanged accessible status text",
+    "active frames change opacity and keep status text fixed",
+    "live reduced motion settles visible dots without animation",
+    "restoring motion restarts dots",
+    "stream failure removes indicator and active animations",
+    "retry starts a new active indicator",
+    "returning to plan cancels request and removes animations",
+    "390px mobile status and dots remain visible without horizontal overflow",
+    "checking remains visibly active until completion",
+    "project validation and finish choreography keep indicator active",
+    "finished apartment hides indicator and leaves no dot animation",
+    "reduced-motion startup keeps active indicator static",
+    "disposal removes dot animations",
+    "disposal succeeds when the flow is reparented for editor handoff"
+  ],
+  "pageErrors": [],
+  "blockedServices": [
+    "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&family=Noto+Serif+Armenian:wght@400..700&family=Sofia+Sans:wght@300..700&family=Sofia+Sans+Condensed:wght@500..700&family=Noto+Sans+Armenian:wdth,wght@62.5..100,300..700&display=swap"
+  ],
+  "screenshots": [
+    "/Users/davitstepanyan/Documents/varpet/output/reading-plan-animation/desktop-working.png",
+    "/Users/davitstepanyan/Documents/varpet/output/reading-plan-animation/desktop-reduced-motion.png",
+    "/Users/davitstepanyan/Documents/varpet/output/reading-plan-animation/desktop-error.png",
+    "/Users/davitstepanyan/Documents/varpet/output/reading-plan-animation/mobile-working.png",
+    "/Users/davitstepanyan/Documents/varpet/output/reading-plan-animation/mobile-complete.png"
+  ],
+  "desktopFrames": [
+    {
+      "text": "Reading the plan",
+      "textRect": [
+        663.609375,
+        181.734375,
+        101.09375,
+        18
+      ],
+      "hidden": false,
+      "count": 2,
+      "dotStyles": [
+        {
+          "opacity": "1",
+          "transform": "none",
+          "animation": "none"
+        },
+        {
+          "opacity": "0",
+          "transform": "none",
+          "animation": "bp-dot-two"
+        },
+        {
+          "opacity": "0",
+          "transform": "none",
+          "animation": "bp-dot-three"
+        }
+      ]
+    },
+    {
+      "text": "Reading the plan",
+      "textRect": [
+        663.609375,
+        181.734375,
+        101.09375,
+        18
+      ],
+      "hidden": false,
+      "count": 2,
+      "dotStyles": [
+        {
+          "opacity": "1",
+          "transform": "none",
+          "animation": "none"
+        },
+        {
+          "opacity": "0",
+          "transform": "none",
+          "animation": "bp-dot-two"
+        },
+        {
+          "opacity": "0",
+          "transform": "none",
+          "animation": "bp-dot-three"
+        }
+      ]
+    },
+    {
+      "text": "Reading the plan",
+      "textRect": [
+        663.609375,
+        181.734375,
+        101.09375,
+        18
+      ],
+      "hidden": false,
+      "count": 2,
+      "dotStyles": [
+        {
+          "opacity": "1",
+          "transform": "none",
+          "animation": "none"
+        },
+        {
+          "opacity": "1",
+          "transform": "none",
+          "animation": "bp-dot-two"
+        },
+        {
+          "opacity": "0",
+          "transform": "none",
+          "animation": "bp-dot-three"
+        }
+      ]
+    },
+    {
+      "text": "Reading the plan",
+      "textRect": [
+        663.609375,
+        181.734375,
+        101.09375,
+        18
+      ],
+      "hidden": false,
+      "count": 2,
+      "dotStyles": [
+        {
+          "opacity": "1",
+          "transform": "none",
+          "animation": "none"
+        },
+        {
+          "opacity": "1",
+          "transform": "none",
+          "animation": "bp-dot-two"
+        },
+        {
+          "opacity": "1",
+          "transform": "none",
+          "animation": "bp-dot-three"
+        }
+      ]
+    },
+    {
+      "text": "Reading the plan",
+      "textRect": [
+        663.609375,
+        181.734375,
+        101.09375,
+        18
+      ],
+      "hidden": false,
+      "count": 2,
+      "dotStyles": [
+        {
+          "opacity": "1",
+          "transform": "none",
+          "animation": "none"
+        },
+        {
+          "opacity": "1",
+          "transform": "none",
+          "animation": "bp-dot-two"
+        },
+        {
+          "opacity": "0",
+          "transform": "none",
+          "animation": "bp-dot-three"
+        }
+      ]
+    },
+    {
+      "text": "Reading the plan",
+      "textRect": [
+        663.609375,
+        181.734375,
+        101.09375,
+        18
+      ],
+      "hidden": false,
+      "count": 2,
+      "dotStyles": [
+        {
+          "opacity": "1",
+          "transform": "none",
+          "animation": "none"
+        },
+        {
+          "opacity": "0",
+          "transform": "none",
+          "animation": "bp-dot-two"
+        },
+        {
+          "opacity": "0",
+          "transform": "none",
+          "animation": "bp-dot-three"
+        }
+      ]
+    },
+    {
+      "text": "Reading the plan",
+      "textRect": [
+        663.609375,
+        181.734375,
+        101.09375,
+        18
+      ],
+      "hidden": false,
+      "count": 2,
+      "dotStyles": [
+        {
+          "opacity": "1",
+          "transform": "none",
+          "animation": "none"
+        },
+        {
+          "opacity": "1",
+          "transform": "none",
+          "animation": "bp-dot-two"
+        },
+        {
+          "opacity": "0",
+          "transform": "none",
+          "animation": "bp-dot-three"
+        }
+      ]
+    },
+    {
+      "text": "Reading the plan",
+      "textRect": [
+        663.609375,
+        181.734375,
+        101.09375,
+        18
+      ],
+      "hidden": false,
+      "count": 2,
+      "dotStyles": [
+        {
+          "opacity": "1",
+          "transform": "none",
+          "animation": "none"
+        },
+        {
+          "opacity": "1",
+          "transform": "none",
+          "animation": "bp-dot-two"
+        },
+        {
+          "opacity": "0",
+          "transform": "none",
+          "animation": "bp-dot-three"
+        }
+      ]
+    },
+    {
+      "text": "Reading the plan",
+      "textRect": [
+        663.609375,
+        181.734375,
+        101.09375,
+        18
+      ],
+      "hidden": false,
+      "count": 2,
+      "dotStyles": [
+        {
+          "opacity": "1",
+          "transform": "none",
+          "animation": "none"
+        },
+        {
+          "opacity": "1",
+          "transform": "none",
+          "animation": "bp-dot-two"
+        },
+        {
+          "opacity": "1",
+          "transform": "none",
+          "animation": "bp-dot-three"
+        }
+      ]
+    },
+    {
+      "text": "Reading the plan",
+      "textRect": [
+        663.609375,
+        181.734375,
+        101.09375,
+        18
+      ],
+      "hidden": false,
+      "count": 2,
+      "dotStyles": [
+        {
+          "opacity": "1",
+          "transform": "none",
+          "animation": "none"
+        },
+        {
+          "opacity": "1",
+          "transform": "none",
+          "animation": "bp-dot-two"
+        },
+        {
+          "opacity": "0",
+          "transform": "none",
+          "animation": "bp-dot-three"
+        }
+      ]
+    },
+    {
+      "text": "Reading the plan",
+      "textRect": [
+        663.609375,
+        181.734375,
+        101.09375,
+        18
+      ],
+      "hidden": false,
+      "count": 2,
+      "dotStyles": [
+        {
+          "opacity": "1",
+          "transform": "none",
+          "animation": "none"
+        },
+        {
+          "opacity": "0",
+          "transform": "none",
+          "animation": "bp-dot-two"
+        },
+        {
+          "opacity": "0",
+          "transform": "none",
+          "animation": "bp-dot-three"
+        }
+      ]
+    },
+    {
+      "text": "Reading the plan",
+      "textRect": [
+        663.609375,
+        181.734375,
+        101.09375,
+        18
+      ],
+      "hidden": false,
+      "count": 2,
+      "dotStyles": [
+        {
+          "opacity": "1",
+          "transform": "none",
+          "animation": "none"
+        },
+        {
+          "opacity": "1",
+          "transform": "none",
+          "animation": "bp-dot-two"
+        },
+        {
+          "opacity": "0",
+          "transform": "none",
+          "animation": "bp-dot-three"
+        }
+      ]
+    }
+  ],
+  "mobileFrames": [
+    {
+      "text": "Reading the plan",
+      "textRect": [
+        146.375,
+        138,
+        87.34375,
+        15
+      ],
+      "hidden": false,
+      "count": 2,
+      "dotStyles": [
+        {
+          "opacity": "1",
+          "transform": "none",
+          "animation": "none"
+        },
+        {
+          "opacity": "0",
+          "transform": "none",
+          "animation": "bp-dot-two"
+        },
+        {
+          "opacity": "0",
+          "transform": "none",
+          "animation": "bp-dot-three"
+        }
+      ]
+    },
+    {
+      "text": "Reading the plan",
+      "textRect": [
+        146.375,
+        138,
+        87.34375,
+        15
+      ],
+      "hidden": false,
+      "count": 2,
+      "dotStyles": [
+        {
+          "opacity": "1",
+          "transform": "none",
+          "animation": "none"
+        },
+        {
+          "opacity": "1",
+          "transform": "none",
+          "animation": "bp-dot-two"
+        },
+        {
+          "opacity": "0",
+          "transform": "none",
+          "animation": "bp-dot-three"
+        }
+      ]
+    },
+    {
+      "text": "Reading the plan",
+      "textRect": [
+        146.375,
+        138,
+        87.34375,
+        15
+      ],
+      "hidden": false,
+      "count": 2,
+      "dotStyles": [
+        {
+          "opacity": "1",
+          "transform": "none",
+          "animation": "none"
+        },
+        {
+          "opacity": "1",
+          "transform": "none",
+          "animation": "bp-dot-two"
+        },
+        {
+          "opacity": "0",
+          "transform": "none",
+          "animation": "bp-dot-three"
+        }
+      ]
+    },
+    {
+      "text": "Reading the plan",
+      "textRect": [
+        146.375,
+        138,
+        87.34375,
+        15
+      ],
+      "hidden": false,
+      "count": 2,
+      "dotStyles": [
+        {
+          "opacity": "1",
+          "transform": "none",
+          "animation": "none"
+        },
+        {
+          "opacity": "1",
+          "transform": "none",
+          "animation": "bp-dot-two"
+        },
+        {
+          "opacity": "1",
+          "transform": "none",
+          "animation": "bp-dot-three"
+        }
+      ]
+    },
+    {
+      "text": "Reading the plan",
+      "textRect": [
+        146.375,
+        138,
+        87.34375,
+        15
+      ],
+      "hidden": false,
+      "count": 2,
+      "dotStyles": [
+        {
+          "opacity": "1",
+          "transform": "none",
+          "animation": "none"
+        },
+        {
+          "opacity": "1",
+          "transform": "none",
+          "animation": "bp-dot-two"
+        },
+        {
+          "opacity": "0",
+          "transform": "none",
+          "animation": "bp-dot-three"
+        }
+      ]
+    },
+    {
+      "text": "Reading the plan",
+      "textRect": [
+        146.375,
+        138,
+        87.34375,
+        15
+      ],
+      "hidden": false,
+      "count": 2,
+      "dotStyles": [
+        {
+          "opacity": "1",
+          "transform": "none",
+          "animation": "none"
+        },
+        {
+          "opacity": "1",
+          "transform": "none",
+          "animation": "bp-dot-two"
+        },
+        {
+          "opacity": "0",
+          "transform": "none",
+          "animation": "bp-dot-three"
+        }
+      ]
+    },
+    {
+      "text": "Reading the plan",
+      "textRect": [
+        146.375,
+        138,
+        87.34375,
+        15
+      ],
+      "hidden": false,
+      "count": 2,
+      "dotStyles": [
+        {
+          "opacity": "1",
+          "transform": "none",
+          "animation": "none"
+        },
+        {
+          "opacity": "0",
+          "transform": "none",
+          "animation": "bp-dot-two"
+        },
+        {
+          "opacity": "0",
+          "transform": "none",
+          "animation": "bp-dot-three"
+        }
+      ]
+    },
+    {
+      "text": "Reading the plan",
+      "textRect": [
+        146.375,
+        138,
+        87.34375,
+        15
+      ],
+      "hidden": false,
+      "count": 2,
+      "dotStyles": [
+        {
+          "opacity": "1",
+          "transform": "none",
+          "animation": "none"
+        },
+        {
+          "opacity": "1",
+          "transform": "none",
+          "animation": "bp-dot-two"
+        },
+        {
+          "opacity": "0",
+          "transform": "none",
+          "animation": "bp-dot-three"
+        }
+      ]
+    }
+  ],
+  "status": "passed"
+}

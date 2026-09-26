@@ -2,20 +2,21 @@
  * materials, renderer lighting, source images, or the plan's paper colours.
  * Attribute specificity keeps the palette stable when route CSS loads later. */
 :root[data-theme] {
-  --accent: #3454d1;
-  --accent-dark: #21399d;
-  --accent-hover: #2945b8;
-  --accent-ink: #3454d1;
-  --accent-wash: #eaf0ff;
+  /* Match the drafting sheet's PAPER colour in portal/blueprint.ts. */
+  --accent: #155f6d;
+  --accent-dark: #0d424c;
+  --accent-hover: #104d59;
+  --accent-ink: #155f6d;
+  --accent-wash: #e8f2f3;
   --on-accent: #ffffff;
-  --select: #e0e8ff;
-  --select-wash: #eaf0ff;
+  --select: #d6e9ec;
+  --select-wash: var(--accent-wash);
   --designer: var(--accent-ink);
-  --designer-soft: #8ea3eb;
+  --designer-soft: #80b8c0;
   --designer-wash: var(--accent-wash);
   --focus: var(--accent-ink);
   --blueprint-ground: #f5f5f0;
-  --blueprint-grid: #3454d10a;
+  --blueprint-grid: #155f6d0a;
   color-scheme: light;
 }
 
@@ -28,14 +29,14 @@
   --control-line: #64666e;
   --ink: #f1f0eb;
   --muted: #b0b0ac;
-  --accent: #4b68dc;
-  --accent-hover: #526ddb;
-  --accent-dark: #3454d1;
-  --accent-ink: #a1b3ff;
-  --accent-wash: #2a365c;
-  --select: #32416b;
+  --accent: #247c89;
+  --accent-hover: #267e8b;
+  --accent-dark: #155f6d;
+  --accent-ink: #8dcdd5;
+  --accent-wash: #203d43;
+  --select: #294d55;
   --select-wash: var(--accent-wash);
-  --designer-soft: #8ea3eb;
+  --designer-soft: #80b8c0;
   --positive: #8ad2aa;
   --positive-wash: #233c30;
   --warning: #edc578;
@@ -45,7 +46,7 @@
   --scrim: #17181be6;
   --shadow-color: #00000038;
   --blueprint-ground: var(--ground);
-  --blueprint-grid: #a1b3ff09;
+  --blueprint-grid: #8dcdd509;
   color-scheme: dark;
 }
 
@@ -56,7 +57,7 @@
 
 :root[data-theme] ::selection { background: var(--select); color: var(--ink); }
 
-/* Blue text is lighter on charcoal; filled actions retain the same cobalt. */
+/* Teal text is lighter on charcoal; filled actions use the deeper accent. */
 :root[data-theme] :is(
   .brand-dot,
   .nav-button.active,
@@ -93,7 +94,7 @@
 :root[data-theme] .designer-product-index,
 :root[data-theme] .as-part-label { background: var(--accent); color: var(--on-accent); }
 
-/* Only the current editing tool and view get a solid blue tile. */
+/* Only the current editing tool and view get a solid teal tile. */
 :root[data-theme] .folio .folio-edit-tools button.active,
 :root[data-theme] .folio .folio-edit-tools [data-folio="inspect"][aria-pressed="true"],
 :root[data-theme] .folio-dock .view-switch button.active,

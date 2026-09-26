@@ -1,0 +1,124 @@
+{
+  "command": "node output/blueprint-prefetch-verification/probe.cjs",
+  "baseURL": "http://127.0.0.1:5186",
+  "checks": [
+    {
+      "name": "picker starts exactly one request before reveal ends or Submit",
+      "status": "passed"
+    },
+    {
+      "name": "normal-motion handoff completes before buffered shell replay; repeated Submit is ignored",
+      "status": "passed"
+    },
+    {
+      "name": "Back during normal handoff prevents queued shell and progress replay",
+      "status": "passed"
+    },
+    {
+      "name": "drop prefetch buffers progress and shell, then replays in order on Submit",
+      "status": "passed"
+    },
+    {
+      "name": "pasted plan completed before Submit opens review without a second request",
+      "status": "passed"
+    },
+    {
+      "name": "replacing a plan aborts old prefetch and stale events never reach new stage",
+      "status": "passed"
+    },
+    {
+      "name": "photo add and removal each replace prefetch using current evidence only",
+      "status": "passed"
+    },
+    {
+      "name": "multi-file drop starts one prefetch with the selected plan and all room photos",
+      "status": "passed"
+    },
+    {
+      "name": "failed prefetch is handled before Submit; Submit and explicit retry each start fresh work",
+      "status": "passed"
+    },
+    {
+      "name": "invalid format, empty, oversized, and undecodable plans never start work",
+      "status": "passed"
+    },
+    {
+      "name": "invalid replacement or photo preserves a valid in-flight prefetch",
+      "status": "passed"
+    },
+    {
+      "name": "Back cancels current work; late callbacks stay inert and resubmission starts fresh",
+      "status": "passed"
+    },
+    {
+      "name": "disposing landing aborts prefetch and late events never create a stage",
+      "status": "passed"
+    }
+  ],
+  "pageErrors": [],
+  "blockedRequests": [
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&family=Noto+Serif+Armenian:wght@400..700&family=Sofia+Sans:wght@300..700&family=Sofia+Sans+Condensed:wght@500..700&family=Noto+Sans+Armenian:wdth,wght@62.5..100,300..700&display=swap",
+      "method": "GET"
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&family=Noto+Serif+Armenian:wght@400..700&family=Sofia+Sans:wght@300..700&family=Sofia+Sans+Condensed:wght@500..700&family=Noto+Sans+Armenian:wdth,wght@62.5..100,300..700&display=swap",
+      "method": "GET"
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&family=Noto+Serif+Armenian:wght@400..700&family=Sofia+Sans:wght@300..700&family=Sofia+Sans+Condensed:wght@500..700&family=Noto+Sans+Armenian:wdth,wght@62.5..100,300..700&display=swap",
+      "method": "GET"
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&family=Noto+Serif+Armenian:wght@400..700&family=Sofia+Sans:wght@300..700&family=Sofia+Sans+Condensed:wght@500..700&family=Noto+Sans+Armenian:wdth,wght@62.5..100,300..700&display=swap",
+      "method": "GET"
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&family=Noto+Serif+Armenian:wght@400..700&family=Sofia+Sans:wght@300..700&family=Sofia+Sans+Condensed:wght@500..700&family=Noto+Sans+Armenian:wdth,wght@62.5..100,300..700&display=swap",
+      "method": "GET"
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&family=Noto+Serif+Armenian:wght@400..700&family=Sofia+Sans:wght@300..700&family=Sofia+Sans+Condensed:wght@500..700&family=Noto+Sans+Armenian:wdth,wght@62.5..100,300..700&display=swap",
+      "method": "GET"
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&family=Noto+Serif+Armenian:wght@400..700&family=Sofia+Sans:wght@300..700&family=Sofia+Sans+Condensed:wght@500..700&family=Noto+Sans+Armenian:wdth,wght@62.5..100,300..700&display=swap",
+      "method": "GET"
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&family=Noto+Serif+Armenian:wght@400..700&family=Sofia+Sans:wght@300..700&family=Sofia+Sans+Condensed:wght@500..700&family=Noto+Sans+Armenian:wdth,wght@62.5..100,300..700&display=swap",
+      "method": "GET"
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&family=Noto+Serif+Armenian:wght@400..700&family=Sofia+Sans:wght@300..700&family=Sofia+Sans+Condensed:wght@500..700&family=Noto+Sans+Armenian:wdth,wght@62.5..100,300..700&display=swap",
+      "method": "GET"
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&family=Noto+Serif+Armenian:wght@400..700&family=Sofia+Sans:wght@300..700&family=Sofia+Sans+Condensed:wght@500..700&family=Noto+Sans+Armenian:wdth,wght@62.5..100,300..700&display=swap",
+      "method": "GET"
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&family=Noto+Serif+Armenian:wght@400..700&family=Sofia+Sans:wght@300..700&family=Sofia+Sans+Condensed:wght@500..700&family=Noto+Sans+Armenian:wdth,wght@62.5..100,300..700&display=swap",
+      "method": "GET"
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&family=Noto+Serif+Armenian:wght@400..700&family=Sofia+Sans:wght@300..700&family=Sofia+Sans+Condensed:wght@500..700&family=Noto+Sans+Armenian:wdth,wght@62.5..100,300..700&display=swap",
+      "method": "GET"
+    }
+  ],
+  "screenshots": [
+    "reading-during-plan-reveal.png",
+    "submitted-reading.png",
+    "normal-handoff-buffered-shell.png",
+    "buffered-shell-replayed.png",
+    "completed-before-submit-mobile.png",
+    "prefetch-failure-review.png"
+  ],
+  "measurements": {
+    "pickerRequestMs": 36.20000000298023,
+    "pickerRevealReadyMs": 4179.5999999940395,
+    "handoffBeforeReplayMs": 4205.29999999702
+  },
+  "browser": "153.0.8010.12",
+  "status": "passed"
+}

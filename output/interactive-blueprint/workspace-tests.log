@@ -1,0 +1,96 @@
+
+> varpet@ test /Users/davitstepanyan/Documents/varpet
+> pnpm -r test
+
+Scope: 6 of 7 workspace projects
+apps/buyer test$ node --test tests/*.test.mjs
+packages/engine test$ vitest run --passWithNoTests
+apps/showcase test$ node --test tests/*.test.mjs
+packages/designer test$ vitest run && python3 -m unittest discover -s ../../harness -p 'designer*_test.py' && python3 -m unittest discover -s eval -p 'test_*.py'
+packages/designer test:  RUN  v5.0.2 /Users/davitstepanyan/Documents/varpet/packages/designer
+apps/buyer test: ✔ owned pieces cost nothing, the developer's furniture is still to buy, custom pieces are estimates (7.815125ms)
+apps/buyer test: ✔ a developer piece the designer picked counts as a shop purchase unless it is owned (0.183459ms)
+apps/buyer test: ✔ sizes read width, depth, height in centimetres (0.075709ms)
+packages/engine test:  RUN  v5.0.2 /Users/davitstepanyan/Documents/varpet/packages/engine
+apps/showcase test: ✔ Avani is an explicit example with unquoted currency, not a Komitas or model result (2.25375ms)
+apps/showcase test: ✔ prices require explicit AMD and count only added pieces; factual room counts do not include inferred service rooms (43.759583ms)
+apps/showcase test: ✔ missing catalog does not pretend a furnished state is ready (63.37375ms)
+apps/showcase test: ✔ partial deliveries choose the available view and never advertise an absent example (9.785167ms)
+apps/showcase test: ✔ recorded request outcomes distinguish applied proposals, questions and declines (6.610958ms)
+apps/showcase test: ✔ facts-only real collection retains an explicitly labelled interactive example (0.240709ms)
+apps/showcase test: ✔ Avani never advertises a developer plan; real flats preserve explicit availability only (0.169875ms)
+apps/showcase test: ✔ developer drawings use their own catalog and disclose omitted pieces without claiming designer purchases (12.619458ms)
+apps/showcase test: ✔ missing drawing audit cannot imply a complete developer layout (27.459542ms)
+apps/showcase test: ✔ standalone model transport resolves editor optimization paths to the exact frozen public model (1.00875ms)
+apps/showcase test: ✔ an explicit model mirror preserves the exact SKU and leaves unrelated resources alone (0.229042ms)
+apps/buyer test: ✔ progress and streamed text: deltas replace then append, progress waits while text streams (2.90825ms)
+packages/engine test: No test files found, exiting with code 0
+packages/engine test: include: **/*.{test,spec}.?(c|m)[jt]s?(x)
+packages/engine test: exclude:  **/node_modules/**, **/.git/**
+apps/buyer test: ✔ tool lines move pieces from seen to searching, found, reserved; scripted is sticky (2.688958ms)
+apps/buyer test: ✔ propose, build, proposal, question, message, decline and error lines set their phases (0.5935ms)
+apps/buyer test: ✔ readLines skips blank, malformed, oversized and unknown lines and handles split chunks (107.679917ms)
+apps/buyer test: ✔ player emits every line in order, honours speed changes and skipToEnd (17.878875ms)
+packages/engine test: Done
+apps/buyer test: ✔ fixture: sorted, scripted, real catalog assets, and plays through the reducer to done (4.619292ms)
+apps/buyer test: ✔ fixture: the proposal command executes on the Avani demo flat with the slot assets (35.282584ms)
+apps/showcase test: ✔ missing Komitas inputs returns no invented flats (5.248292ms)
+apps/showcase test: ✔ loads real shell, ground truth and furnished result as separate states (26.510625ms)
+apps/showcase test: ✔ local plans allow only flat IDs and supported image extensions (17.114584ms)
+apps/showcase test: ✔ uses the latest completed BENCH run with its exact final catalog, ignoring in-progress runs (21.00625ms)
+apps/showcase test: ✔ plan availability is explicit and only true for a supplied local original (11.557458ms)
+apps/showcase test: ✔ loads drawn-only residences with their frozen catalog and a compact omissions audit (7.904625ms)
+apps/showcase test: ℹ tests 17
+apps/showcase test: ℹ suites 0
+apps/showcase test: ℹ pass 17
+apps/showcase test: ℹ fail 0
+apps/showcase test: ℹ cancelled 0
+apps/showcase test: ℹ skipped 0
+apps/showcase test: ℹ todo 0
+apps/showcase test: ℹ duration_ms 1257.495416
+apps/showcase test: Done
+apps/buyer test: ℹ tests 10
+apps/buyer test: ℹ suites 0
+apps/buyer test: ℹ pass 10
+apps/buyer test: ℹ fail 0
+apps/buyer test: ℹ cancelled 0
+apps/buyer test: ℹ skipped 0
+apps/buyer test: ℹ todo 0
+apps/buyer test: ℹ duration_ms 1293.661167
+apps/buyer test: Done
+packages/designer test:  ❯ test/ashot-live.test.ts (16 tests | 1 failed) 6680ms
+packages/designer test:    × live furnishing discovers real products even when the editor has registered none 6506ms
+packages/designer test:  ❯ test/taste-contradictions.test.ts (7 tests | 1 failed) 6889ms
+packages/designer test:    × one surviving fully checked composition is returned, with no-alternative disclosure 5173ms
+packages/designer test: ⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+packages/designer test:  FAIL  test/ashot-live.test.ts > live furnishing discovers real products even when the editor has registered none
+packages/designer test: Error: Test timed out in 5000ms.
+packages/designer test: If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+packages/designer test:  ❯ test/ashot-live.test.ts:7:1
+packages/designer test:       5|
+packages/designer test:       6| const empty = () => {const {scene}=createEditorDemoInput();scene.items…
+packages/designer test:       7| test('live furnishing discovers real products even when the editor has…
+packages/designer test:        | ^
+packages/designer test:       8|   expect(fast).toHaveProperty('discoverFastCatalog');
+packages/designer test:       9|   const calls:string[]=[];
+packages/designer test: ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+packages/designer test:  FAIL  test/taste-contradictions.test.ts > one surviving fully checked composition is returned, with no-alternative disclosure
+packages/designer test: Error: Test timed out in 5000ms.
+packages/designer test: If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+packages/designer test:  ❯ test/taste-contradictions.test.ts:25:1
+packages/designer test:      23|  expect(scoreComposition({...scene,items:[{...chair,sku:'unknown'}]},'…
+packages/designer test:      24| });
+packages/designer test:      25| test('one surviving fully checked composition is returned, with no-alt…
+packages/designer test:        | ^
+packages/designer test:      26|  const original=layout.checkLayout;let survivors=0;
+packages/designer test:      27|  vi.spyOn(layout,'checkLayout').mockImplementation((...args)=>{
+packages/designer test: ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+packages/designer test:  Test Files  2 failed | 124 passed (126)
+packages/designer test:       Tests  2 failed | 604 passed (606)
+packages/designer test:    Start at  00:18:39
+packages/designer test:    Duration  57.70s (tests 86%, import 9%, transform 4%)
+packages/designer test: Failed
+/Users/davitstepanyan/Documents/varpet/packages/designer:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @varpet/designer@0.0.0 test: `vitest run && python3 -m unittest discover -s ../../harness -p 'designer*_test.py' && python3 -m unittest discover -s eval -p 'test_*.py'`
+Exit status 1
+ ELIFECYCLE  Test failed. See above for more details.

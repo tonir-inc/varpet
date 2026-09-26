@@ -59,11 +59,19 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await page.evaluate(async (src) => {
     const blob = await (await fetch(src)).blob();
     const dt = new DataTransfer(); dt.items.add(new File([blob], src.split('/').pop(), { type: blob.type }));
-    document.querySelector('.blueprint-welcome').dispatchEvent(new DragEvent('drop', { dataTransfer: dt, bubbles: true, cancelable: true }));
+    // Released over the lower-left of the sheet, as a person would.
+    document.querySelector('.blueprint-welcome').dispatchEvent(new DragEvent('drop', { dataTransfer: dt, bubbles: true, cancelable: true, clientX: 330, clientY: 610 }));
   }, plan);
   const inkCount = () => page.evaluate(() => { const c = document.querySelector('.bp-ink'); if (c.hidden || !c.width) return -1; const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 3; i < d.length; i += 4) if (d[i]) n++; return n; });
-  const ink = [];
-  for (const [ms, name] of [[450, 'drop-landing'], [500, 'drop-dissolve'], [600, 'pen-early'], [700, 'pen-mid'], [800, 'pen-late'], [1300, 'plan-drawn']]) { await sleep(ms); await shot(name); ink.push(await inkCount()); }
+  const ink = [], tokenSeen = [];
+  const dropAt = Date.now();
+  for (const [at, name] of [[120, 'token-lift'], [330, 'token-arc'], [560, 'token-apex'], [800, 'token-descent'], [1000, 'impact'], [1250, 'ripple-ink'], [1700, 'ink-spreading'], [2400, 'ink-late'], [4200, 'plan-drawn']]) {
+    await sleep(Math.max(0, at - (Date.now() - dropAt))); await shot(name);
+    ink.push(await inkCount()); tokenSeen.push(await page.evaluate(() => !!document.querySelector('.bp-card-x')));
+  }
+  results.tokenSeen = tokenSeen;
+  check(tokenSeen.some(Boolean) && !tokenSeen[tokenSeen.length - 1], 'a plan card flies in and is gone once it lands');
+  check(await page.evaluate(() => !document.querySelector('.blueprint-welcome img')), 'the uploaded image itself is never shown');
   results.ink = ink;
   check(ink.some((n, i) => i > 0 && n > 0 && n < ink[ink.length - 1]), 'plan ink is drawn progressively, not all at once');
   check(await page.locator('.blueprint-next').isVisible(), 'build action appears after the plan is drawn');

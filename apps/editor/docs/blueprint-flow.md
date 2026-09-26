@@ -2,13 +2,56 @@
 
 Verified 2026-09-26, Codex (GPT-6).
 
-The home page now asks for one blueprint. Sample apartments live behind a small disclosure; accounts and saved apartments keep their existing routes. Choosing, dropping, or pasting an image reveals the original and a build action. Room photos are optional.
+The home page now asks for one blueprint. Sample apartments live behind a small disclosure; accounts and saved apartments keep their existing routes. Choosing, dropping, or pasting a valid image starts the architect request immediately after decoding, while its drawing and build action appear. Room photos are optional. Submit opens the construction view and reuses the request already underway.
 
 The upload area shows the platform's paste shortcut (⌘V on Apple devices, Ctrl+V elsewhere). Image paste works anywhere on the landing page, including replacing a selected plan, through the same validation and decode path as file selection. Clipboard file items are a fallback when the file list has no images. Text and non-image paste are left alone; editable fields, open dialogs, construction, and disposed landing pages do not capture images. Paste uses the browser's paste event and requires no clipboard-read permission.
 
 `portal/blueprint.ts` consumes the existing `buildFurnishedFlat` NDJSON workflow. Progress and geometry come from the service's events. The full-screen construction stage draws the returned footprint over the uploaded image, raises walls, installs the catalog opening models, and sweeps away the source sheet. Completion holds the model for review. **Open my apartment** explicitly accepts the validated result into the existing editor session; no account write occurs until the person saves.
 
 Back aborts the stream and invalidates late results. Failure retains selected files and exposes retry/change-plan actions. The stage and object URLs are disposed on return or handoff. A terminal completion heading cannot be overwritten by queued phase events.
+
+### Reading before submission
+
+`portal/blueprint-build.ts` owns one request with an immutable snapshot of the original plan and photos. Before submission it buffers progress and geometry; activity logs are discarded because the construction stage does not render them. Submit creates the stage, completes the sheet handoff, then replays the buffered events in wire order and follows the same live stream. Replaying a cached shell before handoff completes would move the receiving sheet and camera while the source is still flying toward it. Completed requests are also reused. Elapsed time includes the head start on the upload page.
+
+Accepted replacements and photo additions/removals abort the old transport and start a request for the updated files. A multi-file drop starts once after adding its photos. Invalid files preserve the current valid request. Background failures are handled immediately; the upload status invites the user to continue, which makes a fresh attempt. Construction failures retain the explicit retry action. Back and disposal abort and invalidate the request; stale callbacks cannot update the current preview. Original evidence comes from the exact request snapshot.
+
+The existing `/flat` endpoint starts the entire architect session; it has no separate read-only preparation or incremental-photo API. Browser abort stops the stream, but the service currently discovers disconnects on subsequent writes, so an abandoned model run may continue until then. No model cancellation latency was measured here. A server restart is needed to pick up changes to `harness/varpet_harness/serve.py`; active reconstructions were left running.
+
+Upload changes can start two same-name sessions within one second. The service now appends a random suffix to run directories and shortens only their name prefix to retain the previous 56-character bound. Keeping this bound matters because built asset IDs include the directory name and truncate at 100 characters; the user-facing project name remains unchanged.
+
+Verified 2026-09-27, Codex (GPT-6). Chromium 153.0.8010.12 started the mocked request **36.2 ms** after choosing a valid 120×90 PNG; Submit appeared at **4,179.6 ms**, giving a **4.14 s** head start during the reveal alone. This is one local UI measurement, not model-processing throughput. All 13 browser checks passed, with zero page errors and zero real architect requests from the browser probe. They cover picker/drop/paste, buffered handoff, completed-result reuse, input changes, retry, invalid files, rapid repeated submission, and cancellation/disposal. Desktop and 390 px mobile screenshots were inspected. The repeatable probe and detailed results are in `output/blueprint-prefetch-verification/`.
+
+```text
+node output/blueprint-prefetch-verification/probe.cjs
+13 checks passed; 0 page errors; 0 real architect requests
+
+node --test apps/editor/tests/blueprint-build.test.mjs
+tests 7; pass 7; fail 0
+
+cd harness && uv run pytest -q tests
+90 passed in 6.02s
+
+VITEST_MAX_WORKERS=2 pnpm test
+apps/buyer: 10 passed; apps/showcase: 17 passed
+packages/designer: Test Files 126 passed; Tests 606 passed
+packages/designer: Ran 200 tests; OK; Ran 81 tests; OK
+apps/editor: server tests 29 passed; application tests 201 passed
+apps/editor: all domain/render checks passed; Done
+
+pnpm typecheck
+All workspace packages: Done
+
+pnpm --filter @varpet/editor build
+built in 250ms; existing chunk-size advisory
+
+git diff --check
+exit 0
+```
+
+Default-worker root test attempts hit 5-second timeouts in unrelated designer suites under concurrent load. Those three files passed all 34 tests in isolation; the full root suite above passed with two workers and unchanged test timeouts/expectations. The first new helper-test setup failed to intercept its dynamic transport import and accidentally started a local architect run with synthetic 4-byte/16-byte inputs (33,192 tokens; shell failed, no project). The test now installs a network guard before module loading, intercepts the transport with a pre-resolution plugin, and has a bounded timeout. This accidental failed run is not evidence of successful model reconstruction.
+
+Fresh-context source review: **APPROVE**, after preserving the run-name bound and buffering geometry until the handoff finishes. No existing test expectations, fixtures or scene contracts changed. Shared primary `main` and unfinished editor work were preserved; origin was fetched and reviewed, with synchronization deferred under editor coordination rules. Notion tools and the referenced definition-of-done/systematic-debugging skill files were unavailable; contracts, gotchas and measurements are recorded here.
 
 ## Evidence and transport
 
@@ -112,14 +155,14 @@ Clipboard completion review — DONE: 7 of 7.
 Implemented 2026-09-26, Claude (Opus 5.5). One continuous sequence, no hard cuts:
 
 1. **Empty sheet.** The drop area is a blueprint sheet (`PAPER` `#155f6d`): grid ripples out from the centre, the frame draws itself, column numbers 1–9 and rows A–G stagger in, dimension arrows extend, title block reads "Awaiting your plan". No floor plan is ever drawn that the person did not supply. Plays once; no idle motion.
-2. **Drop.** The image lands on the sheet, settles and dissolves while a reading line passes. `portal/blueprint-ink.ts` re-inks it: paper is the most common tone, ink the far side of it (2nd percentile), with a smooth ramp so tinted room fills become faint shading and light-on-dark blueprints read correctly. Cropped to the drawing. The pen order is a breadth-first walk along each connected stroke network from its top-left end, so walls draw as continuous lines with a glowing frontier (2.6 s). The build action appears after the drawing.
+2. **Drop.** The upload itself is never shown: most plans look poor at this size. A clean paper card of the *traced* plan (dark ink on cream) flies out of wherever the file came from (the drop point, the upload mark, **Change plan**) on an arc: horizontal and vertical travel sit on separate layers with different easings, so the path curves in one continuous move. It grows to the drawing's size, settles, and melts into the sheet under a reading line. `portal/blueprint-ink.ts` re-inks it: paper is the most common tone, ink the far side of it (2nd percentile), with a smooth ramp so tinted room fills become faint shading and light-on-dark blueprints read correctly. Cropped to the drawing. The pen order is a breadth-first walk along each connected stroke network from its top-left end, so walls draw as continuous lines with a glowing frontier (2.6 s). The build action appears after the drawing.
 3. **Handoff to 3D.** The stage starts top-down on the same ink texture (`ArchitectStageOptions.blueprint`), reports where its sheet sits (`planRect()`), and the drawn 2D sheet FLIPs onto exactly that rectangle while the page floods with paper. Crossfade, then `enter()` tilts the camera into perspective. The page header is hidden only after the sheet lands; hiding it earlier shifts layout under the moving sheet.
-4. **Construction.** Main walls (metadata `boundary` exterior/shared, else walls with no room on one side, else bounding-box walls) sweep up around the flat from the entrance; then partitions; then all doors and windows in one pass as the last partitions top out. Floors flood once the main walls are up.
+4. **Working, then construction.** Until the architect's first geometry arrives, the stage shows that work is happening: a light runs along the plan's own lines in pen order (the red channel of the stage's ink texture carries the order), the reading band sweeps the sheet again every few seconds, and the camera drifts slowly (stopped by the person's own navigation). The header shows elapsed time, the live dot breathes, the current step shimmers, and each new progress message rises into place. All of it ends when the shell arrives or the run stops; reduced motion keeps it still apart from the timer. This is a bounded progress indicator, not idle motion. Then main walls (metadata `boundary` exterior/shared, else walls with no room on one side, else bounding-box walls) sweep up around the flat from the entrance; then partitions; then all doors and windows in one pass as the last partitions top out. Floors flood once the main walls are up.
 5. **Into the editor.** **Open my apartment** lifts the construction overlay to `<body>` (the canvas keeps its WebGL context), the editor boots underneath, and `settle()` orbits the construction camera into the editor's live pose (`editorView.cameraPose()`, read every frame), rendering the whole canvas as if it were the editor's viewport rectangle (`setViewOffset`), while the paper blends to the editor backdrop. The overlay then fades over an identical picture of the same apartment.
 
 `FinishViewport.cameraPose()` is read-only presentation state; it does not touch the document or history.
 
-Gotchas: the in-app browser pane throttles rAF to ~1 fps while hidden, and the stage clamps frame dt to 0.1 s, so motion there runs ~10× slow. Headless SwiftShader stalls ~1 s compiling shaders on the first frame; warm the QA page before running its timed checks. Other agents' edits reload a shared Vite page mid-run; the probes answer the HMR socket themselves.
+Gotchas: a clipboard image pasted anywhere on the landing replaces the plan (browsers name it `image.png`); a screenshot of the app pasted by accident is traced like any plan. Under heavy machine load the stage clock (frame dt clamped to 0.1 s) runs slow, so timed probes can miss their windows; check the load average before reading a timing failure as a regression. The in-app browser pane throttles rAF to ~1 fps while hidden, and the stage clamps frame dt to 0.1 s, so motion there runs ~10× slow. Headless SwiftShader stalls ~1 s compiling shaders on the first frame; warm the QA page before running its timed checks. Other agents' edits reload a shared Vite page mid-run; the probes answer the HMR socket themselves.
 
 Verification (headless Chromium 1243, stubbed `/flat` stream with the demo shell; no model run):
 

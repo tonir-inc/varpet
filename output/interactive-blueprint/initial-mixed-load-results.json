@@ -1,0 +1,79 @@
+{
+  "baseURL": "http://localhost:5173",
+  "checks": [
+    {
+      "label": "normal: drag orbits the uploaded plan while the architect is reading",
+      "pass": true,
+      "detail": 31.202234653485508
+    },
+    {
+      "label": "normal: canvas is keyboard focusable and names its controls",
+      "pass": true
+    },
+    {
+      "label": "normal: shell arrival preserves the manually chosen camera",
+      "pass": true,
+      "detail": 0
+    }
+  ],
+  "cases": {
+    "normal": {
+      "screenshots": [
+        "normal-reading.png"
+      ],
+      "poses": {
+        "reading": {
+          "position": [
+            -4.621981215950499,
+            26.805532541651296,
+            17.37446218060976
+          ],
+          "quaternion": [
+            -0.4666546969061976,
+            -0.11438046363110757,
+            -0.061009183507700473,
+            0.8748876401702342
+          ],
+          "fov": 38,
+          "aspect": 1.6,
+          "count": 292
+        },
+        "reading-orbit": {
+          "position": [
+            -26.72603508939157,
+            17.884921682461645,
+            -2.760406868631514
+          ],
+          "quaternion": [
+            -0.19387219229317448,
+            -0.7107569671665985,
+            -0.21492769911787613,
+            0.6411272813033873
+          ],
+          "fov": 38,
+          "aspect": 1.6,
+          "count": 316
+        },
+        "after-shell": {
+          "position": [
+            -26.72603508939157,
+            17.884921682461645,
+            -2.760406868631514
+          ],
+          "quaternion": [
+            -0.19387219229317448,
+            -0.7107569671665985,
+            -0.21492769911787613,
+            0.6411272813033873
+          ],
+          "fov": 38,
+          "aspect": 1.6,
+          "count": 746
+        }
+      }
+    }
+  },
+  "pageErrors": [],
+  "console": [],
+  "failure": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /reset view|fit apartment|frame apartment/i })\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" title=\"Frame your space and follow the build\">Reset view</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"blueprint-flow-top\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"blueprint-flow-top\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    58 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div class=\"blueprint-flow-top\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\n    at reset (/Users/davitstepanyan/Documents/varpet/output/interactive-blueprint/probe.cjs:70:91)\n    at runCase (/Users/davitstepanyan/Documents/varpet/output/interactive-blueprint/probe.cjs:108:9)\n    at async /Users/davitstepanyan/Documents/varpet/output/interactive-blueprint/probe.cjs:220:5"
+}

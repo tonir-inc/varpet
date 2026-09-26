@@ -7,6 +7,9 @@ import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
 import { Line2 } from 'three/addons/lines/Line2.js';
 import { LineGeometry } from 'three/addons/lines/LineGeometry.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { KeyboardNavigationControls } from '../render/keyboard-navigation';
+import { HandPanControls } from '../render/hand-pan';
 import { disposeObject, normalizeAsset } from '../render/assets';
 import { makeOpening, type OpeningProjection } from '../render/structure';
 import { OpeningAssetLoader } from '../render/opening-assets';
@@ -76,7 +79,7 @@ export interface ArchitectStageOptions { onPhase?: (phase: StagePhase) => void; 
  * down at the traced plan so a flat 2D sheet can hand over to it, then tilts on `enter()`.
  */
 export interface BlueprintTheme {
-  /** The traced plan; ink coverage is read from the alpha channel. */
+  /** The traced plan: ink coverage in alpha, and optionally the pen order (0..1) in red for the working trace. */
   ink: HTMLCanvasElement;
   /** Paper colour, shared with the page behind the stage. */
   paper: string;
@@ -115,6 +118,13 @@ class Stage implements ArchitectStage {
   private readonly labels = new CSS2DRenderer();
   private readonly scene = new THREE.Scene();
   private readonly camera = new THREE.PerspectiveCamera(38, 1, 0.1, 400);
+  private readonly controls: OrbitControls;
+  private readonly keyboard: KeyboardNavigationControls;
+  private readonly handPan: HandPanControls;
+  private readonly navigation: HTMLElement;
+  private manualCamera = false;
+  private orbitActive = false;
+  private layoutInsets = { top: -1, bottom: -1 };
   private readonly pmrem: THREE.PMREMGenerator;
   private readonly envTexture: THREE.Texture;
   private readonly motionQuery = typeof matchMedia === 'function' ? matchMedia('(prefers-reduced-motion: reduce)') : undefined;
@@ -138,6 +148,7 @@ class Stage implements ArchitectStage {
   private readonly openings = new Map<string, { projection: OpeningProjection; ready: boolean; token: number; button: HTMLButtonElement }>();
   private readonly raycaster = new THREE.Raycaster();
   private pointerStart: { x: number; y: number; id: number } | undefined;
+  private readonly pointers = new Set<number>();
 
   private readonly rig: Rig = { target: new THREE.Vector3(), radius: 24, el: 0.95, az: -0.2, orbit: 0, sway: 0 };
   /** Drafting colour: the designer's green on paper, light ink on a blueprint. */
@@ -152,12 +163,14 @@ class Stage implements ArchitectStage {
   private readonly sheetUniforms = {
     uMap: { value: null as THREE.Texture | null }, uHasMap: { value: 0 }, uScan: { value: -1 }, uBand: { value: 1 },
     uReveal: { value: 0 }, uDim: { value: 1 }, uOpacity: { value: 0 }, uErase: { value: -0.1 }, uAccent: { value: ACCENT.clone() },
-    uBlueprint: { value: 0 },
+    uBlueprint: { value: 0 }, uTrace: { value: -1 }, uTraceOn: { value: 0 },
   };
   private readonly gridUniforms = { uOpacity: { value: 1 }, uColor: { value: ACCENT.clone() }, uCenter: { value: new THREE.Vector2() } };
   private readonly sheet: THREE.Mesh;
   private planAspect = 1.4;
   private scanning = false;
+  /** While the architect works and no shell has arrived, light keeps running along the plan's lines. */
+  private tracing = false;
   private scanClock = 0;
   private photos: Photo[] = [];
   private photosOut = false;
@@ -213,6 +226,17 @@ class Stage implements ArchitectStage {
     if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
     this.root.className = 'as-stage';
     this.root.innerHTML = `<div class="as-labels"></div><div class="as-veil"></div><div class="as-opening-hint" hidden>Tap a door or window to try it</div><div class="as-opening-actions" aria-label="Preview doors and windows"></div>`;
+    this.root.classList.toggle('is-blueprint', !!options.blueprint);
+    this.navigation = document.createElement('div');
+    this.navigation.className = 'as-navigation';
+    this.navigation.hidden = !!options.blueprint;
+    // A drawing legend: each gesture is a key, each action its meaning.
+    const legend = (rows: [string, string][]) => rows.map(([key, action]) => `<div><dt>${key}</dt><dd>${action}</dd></div>`).join('');
+    this.navigation.innerHTML = `<div class="as-nav-head"><strong>Explore your space</strong><button type="button" title="Frame your space and follow the build"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8a5.5 5.5 0 1 0 1.7-4"/><path d="M2.5 2v3.2h3.2"/></svg>Reset view</button></div>
+      <dl class="as-mouse-help">${legend([['Drag', 'orbit'], ['Scroll', 'zoom'], ['Space + drag', 'pan'], ['WASD', 'move']])}</dl>
+      <dl class="as-touch-help">${legend([['Drag', 'orbit'], ['Pinch', 'zoom'], ['Two fingers', 'pan']])}</dl>`;
+    this.navigation.querySelector('button')!.onclick = this.resetView;
+    this.root.append(this.navigation);
     const q = <T extends HTMLElement>(sel: string) => this.root.querySelector(sel) as T;
     this.veil = q('.as-veil');
     if (this.reduced) this.root.classList.add('is-reduced');
@@ -225,10 +249,17 @@ class Stage implements ArchitectStage {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFShadowMap;
     this.renderer.domElement.className = 'as-canvas';
-    this.renderer.domElement.setAttribute('aria-label', 'Your blueprint becoming a three-dimensional apartment');
+    this.renderer.domElement.tabIndex = 0;
+    this.renderer.domElement.setAttribute('aria-label', 'Interactive 3D apartment. Drag to orbit, scroll or pinch to zoom, right-drag or hold Space and drag to pan. Focus this view and use WASD or arrow keys to move. Tap doors and windows to open or close them.');
     this.renderer.domElement.addEventListener('pointerdown', this.onPointerDown);
+    this.renderer.domElement.addEventListener('pointermove', this.onPointerMove);
     this.renderer.domElement.addEventListener('pointerup', this.onPointerUp);
     this.renderer.domElement.addEventListener('pointercancel', this.onPointerCancel);
+    this.renderer.domElement.addEventListener('lostpointercapture', this.onPointerCancel);
+    window.addEventListener('pointerup', this.onPointerCancel);
+    window.addEventListener('pointercancel', this.onPointerCancel);
+    window.addEventListener('blur', this.onInputBlur);
+    document.addEventListener('visibilitychange', this.onVisibilityChange);
     this.motionQuery?.addEventListener('change', this.onMotionChange);
     this.root.insertBefore(this.renderer.domElement, this.root.firstChild);
     const labelHost = q('.as-labels');
@@ -279,15 +310,21 @@ class Stage implements ArchitectStage {
       vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
       fragmentShader: `
         uniform sampler2D uMap; uniform float uHasMap; uniform float uScan; uniform float uBand; uniform float uReveal;
-        uniform float uDim; uniform float uOpacity; uniform float uErase; uniform vec3 uAccent; uniform float uBlueprint; varying vec2 vUv;
+        uniform float uDim; uniform float uOpacity; uniform float uErase; uniform vec3 uAccent; uniform float uBlueprint;
+        uniform float uTrace; uniform float uTraceOn; varying vec2 vUv;
         void main() {
           if (uBlueprint > 0.5) {
             // Traced ink only: the paper is the ground itself, as on the landing sheet.
             float y = 1.0 - vUv.y, d = y - uScan;
             float band = exp(-(d * d) / (0.03 * 0.03)) * uBand;
-            float ink = uHasMap > 0.5 ? texture2D(uMap, vUv).a : 0.0;
+            vec4 tex = uHasMap > 0.5 ? texture2D(uMap, vUv) : vec4(0.0);
+            float ink = tex.a;
+            // Working trace: a bright head follows the pen order along the lines, with a fading tail.
+            float t = tex.r - uTrace;
+            float glow = (exp(-(t * t) / (0.024 * 0.024)) + 0.7 * step(t, 0.0) * exp(t / 0.12)) * uTraceOn;
             float remaining = smoothstep(uErase - 0.035, uErase + 0.035, y);
-            gl_FragColor = vec4(mix(uAccent, vec3(1.0), band * 0.7), (ink * (0.94 + band * 0.06) + band * 0.07) * uOpacity * remaining);
+            float alpha = ink * (0.94 - 0.5 * uTraceOn + min(1.0, glow) * 0.56 + band * 0.06) + band * 0.07;
+            gl_FragColor = vec4(mix(uAccent, vec3(1.0), max(band * 0.7, min(1.0, glow))), min(1.0, alpha) * uOpacity * remaining);
             return;
           }
           float lum = uHasMap > 0.5 ? dot(texture2D(uMap, vUv).rgb, vec3(0.299, 0.587, 0.114)) : 1.0;
@@ -326,6 +363,35 @@ class Stage implements ArchitectStage {
     this.rig.orbit = 0;
     this.setPhase(0);
 
+    this.updateCamera(0);
+    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    // Connecting controls clears their old cursor inline; let our gesture/focus styles own it.
+    this.renderer.domElement.style.cursor = '';
+    this.controls.enabled = !options.blueprint;
+    this.controls.enableDamping = false;
+    this.controls.minDistance = 1;
+    this.controls.maxDistance = 150;
+    this.controls.minPolarAngle = 0.002;
+    this.controls.maxPolarAngle = Math.PI / 2 - 0.02;
+    this.controls.screenSpacePanning = true;
+    this.controls.target.copy(this.rig.target);
+    this.controls.addEventListener('start', this.onOrbitStart);
+    this.controls.addEventListener('change', this.onCameraChange);
+    this.controls.addEventListener('end', this.onOrbitEnd);
+    this.keyboard = new KeyboardNavigationControls(this.renderer.domElement, {
+      camera: () => this.camera, target: this.controls.target,
+      enabled: () => this.controls.enabled && !this.disposed,
+      start: () => { this.pointerStart = undefined; this.takeCamera(); },
+      stop: this.onNavigationEnd,
+      change: () => { this.controls.update(); this.onCameraChange(); },
+      render: this.invalidate,
+    });
+    this.handPan = new HandPanControls(this.renderer.domElement, {
+      enabled: () => this.controls.enabled && !this.pointers.size && !this.disposed,
+      start: () => { this.pointerStart = undefined; this.takeCamera(); },
+      move: (dx, dy) => this.controls.pan(dx * this.controls.panSpeed, dy * this.controls.panSpeed),
+      stop: this.onNavigationEnd,
+    });
     this.resize = new ResizeObserver(() => this.onResize());
     this.resize.observe(host);
     this.onResize();
@@ -417,6 +483,8 @@ class Stage implements ArchitectStage {
     if (!first) return Promise.resolve();
     this.updateCamera(0);
     this.pinned = true; this.frameFn = undefined; this.cameraToken++; clearTimeout(this.refitTimer);
+    this.controls.enabled = false; this.keyboard.cancel(); this.handPan.cancel();
+    this.navigation.hidden = true; this.pointerStart = undefined; this.pointers.clear();
     const canvas = this.renderer.domElement.getBoundingClientRect(), insets = this.insets();
     const w = Math.max(1, canvas.width), h = Math.max(1, canvas.height), y0 = -(insets.top - insets.bottom) / 2;
     const fromPosition = this.camera.position.clone(), fromTarget = this.rig.target.clone(), fromFov = this.camera.fov;
@@ -449,14 +517,20 @@ class Stage implements ArchitectStage {
   enter(): void {
     if (this.disposed || !this.options.blueprint || this.entered) return;
     this.entered = true;
+    this.controls.enabled = true;
+    this.navigation.hidden = false;
+    this.onResize();
     this.scanning = !this.reduced;
+    this.tracing = !this.reduced && !this.flatBox;
+    this.sheetUniforms.uTrace.value = -0.4;
     this.scanClock = 0;
     this.sheetUniforms.uReveal.value = 0;
     // The sheet tips back onto the ground plane; a shell that already arrived keeps its framing.
     if (this.flatBox) return;
     const w = NOMINAL_PLAN_WIDTH, d = w * this.planAspect;
     const box = { minX: -w / 2, maxX: w / 2, minZ: -d / 2, maxZ: d / 2 };
-    void this.fit(() => ({ ...this.framing(box, 0.98, -0.26, 1.02), target: new THREE.Vector3(0, 0, 0) }), 2.6, { orbit: 0, sway: 0 });
+    // A slow drift keeps the waiting view alive; the shell's own framing, or the person's hand, stops it.
+    void this.fit(() => ({ ...this.framing(box, 0.98, -0.26, 1.02), target: new THREE.Vector3(0, 0, 0) }), 2.6, { orbit: 0.025, sway: 0 });
   }
 
   event(e: StageEvent): void {
@@ -493,9 +567,19 @@ class Stage implements ArchitectStage {
     this.disposed = true;
     cancelAnimationFrame(this.raf);
     this.motionQuery?.removeEventListener('change', this.onMotionChange);
+    this.keyboard.dispose(); this.handPan.dispose(); this.controls.dispose();
+    this.controls.removeEventListener('start', this.onOrbitStart);
+    this.controls.removeEventListener('change', this.onCameraChange);
+    this.controls.removeEventListener('end', this.onOrbitEnd);
     this.renderer.domElement.removeEventListener('pointerdown', this.onPointerDown);
+    this.renderer.domElement.removeEventListener('pointermove', this.onPointerMove);
     this.renderer.domElement.removeEventListener('pointerup', this.onPointerUp);
     this.renderer.domElement.removeEventListener('pointercancel', this.onPointerCancel);
+    this.renderer.domElement.removeEventListener('lostpointercapture', this.onPointerCancel);
+    window.removeEventListener('pointerup', this.onPointerCancel);
+    window.removeEventListener('pointercancel', this.onPointerCancel);
+    window.removeEventListener('blur', this.onInputBlur);
+    document.removeEventListener('visibilitychange', this.onVisibilityChange);
     this.openingAssets.dispose();
     clearTimeout(this.refitTimer);
     this.resize.disconnect();
@@ -537,6 +621,9 @@ class Stage implements ArchitectStage {
     if (this.disposed) return;
     this.raf = 0;
     this.inFrame = true;
+    // Phase copy and completion controls change the clear area without resizing the host.
+    const insets = this.insets();
+    if (!this.pinned && (insets.top !== this.layoutInsets.top || insets.bottom !== this.layoutInsets.bottom)) this.onResize();
     const dt = Math.min(0.1, (ms - this.last) / 1000);
     this.last = ms;
     this.now += dt * this.timeScale;
@@ -549,6 +636,8 @@ class Stage implements ArchitectStage {
     }
     if (this.wantPhase > this.phase && (this.reduced || this.now - this.phaseAt >= PHASE_HOLD)) this.setPhase(this.wantPhase);
     this.updateScan(dt);
+    this.updateTrace(dt);
+    this.keyboard.update(ms);
     this.updateCamera(dt);
     this.updatePhotos();
     this.renderer.render(this.scene, this.camera);
@@ -556,7 +645,8 @@ class Stage implements ArchitectStage {
     this.inFrame = false;
     // Keep the last RAF timestamp while a sequence is active. Resetting it after
     // each render would subtract GPU/label work and slow the construction clock.
-    if (this.tweens.length || this.scanning || this.wantPhase > this.phase) this.raf = requestAnimationFrame(this.frame);
+    const drifting = this.rig.orbit !== 0 && !this.manualCamera && !this.pinned;
+    if (this.tweens.length || this.scanning || this.tracing || this.sheetUniforms.uTraceOn.value > 0 || drifting || this.wantPhase > this.phase || this.keyboard.active) this.raf = requestAnimationFrame(this.frame);
   };
 
   private invalidate = (): void => {
@@ -569,7 +659,7 @@ class Stage implements ArchitectStage {
     this.reduced = event.matches;
     this.root.classList.toggle('is-reduced', this.reduced);
     if (this.reduced) {
-      this.scanning = false;
+      this.scanning = false; this.tracing = false; this.sheetUniforms.uTraceOn.value = 0;
       this.sheetUniforms.uReveal.value = 1;
       this.sheetUniforms.uBand.value = 0;
       this.rig.orbit = 0; this.rig.sway = 0;
@@ -593,13 +683,16 @@ class Stage implements ArchitectStage {
     const w = Math.max(1, this.host.clientWidth), h = Math.max(1, this.host.clientHeight);
     this.renderer.setSize(w, h, false);
     this.labels.setSize(w, h);
-    this.camera.aspect = w / h;
     // Keep the scene clear of the title and log on the left of wide screens.
     const insets = this.insets();
+    this.layoutInsets = { ...insets };
+    this.navigation.style.bottom = `${insets.bottom + 12}px`;
+    if (this.pinned) { this.invalidate(); return; }
+    this.camera.aspect = w / h;
     if (insets.top || insets.bottom) this.camera.setViewOffset(w, h, 0, -(insets.top - insets.bottom) / 2, w, h);
     else this.camera.clearViewOffset();
     this.camera.updateProjectionMatrix();
-    if (this.frameFn) {
+    if (this.frameFn && !this.manualCamera) {
       clearTimeout(this.refitTimer);
       this.refitTimer = window.setTimeout(() => { if (!this.disposed && this.frameFn) void this.moveCamera(this.frameFn(), 1.5); }, 150);
     }
@@ -610,17 +703,67 @@ class Stage implements ArchitectStage {
 
   // ---------- camera ----------
 
+  /** Direct navigation owns the camera until the person explicitly resets the view. */
+  private takeCamera = (): void => {
+    if (this.pinned || this.disposed) return;
+    this.manualCamera = true;
+    this.cameraToken++;
+    clearTimeout(this.refitTimer);
+    this.rig.orbit = 0; this.rig.sway = 0;
+    this.renderer.domElement.classList.add('is-navigating');
+  };
+
+  private onOrbitStart = (): void => { this.orbitActive = true; this.takeCamera(); };
+  private onOrbitEnd = (): void => { this.orbitActive = false; this.onNavigationEnd(); };
+  private onNavigationEnd = (): void => {
+    this.renderer.domElement.classList.toggle('is-navigating', this.orbitActive || !!this.keyboard?.active || !!this.handPan?.active);
+  };
+  private onInputBlur = (): void => {
+    if (this.disposed) return;
+    this.pointerStart = undefined; this.orbitActive = false;
+    this.keyboard.cancel(); this.handPan.cancel();
+    // A release outside the window never reaches OrbitControls. Clear its input session too.
+    const canvas = this.renderer.domElement;
+    this.controls.disconnect();
+    for (const id of this.pointers) if (canvas.hasPointerCapture(id)) canvas.releasePointerCapture(id);
+    this.pointers.clear();
+    this.controls.connect(canvas); canvas.style.cursor = '';
+    this.onNavigationEnd();
+  };
+  private onVisibilityChange = (): void => { if (document.hidden) this.onInputBlur(); };
+
+  private onCameraChange = (): void => {
+    if (!this.manualCamera || this.pinned || this.disposed) return;
+    const orbit = new THREE.Spherical().setFromVector3(this.camera.position.clone().sub(this.controls.target));
+    this.rig.target.copy(this.controls.target);
+    this.rig.radius = orbit.radius; this.rig.el = Math.PI / 2 - orbit.phi; this.rig.az = orbit.theta;
+    this.invalidate();
+  };
+
+  private resetView = (): void => {
+    if (this.pinned || this.disposed || !this.controls.enabled) return;
+    this.keyboard.cancel(); this.handPan.cancel(); this.onNavigationEnd();
+    this.pointerStart = undefined;
+    this.manualCamera = false;
+    this.onResize();
+    clearTimeout(this.refitTimer);
+    if (this.frameFn) void this.moveCamera(this.frameFn(), 1.5);
+    this.renderer.domElement.focus({ preventScroll: true });
+  };
+
   private updateCamera(dt: number): void {
-    if (this.pinned) return;
+    if (this.pinned || this.manualCamera) return;
     const r = this.rig;
     r.az += r.orbit * dt;
     const az = r.az + r.sway * Math.sin(this.now * 0.07);
     const c = Math.cos(r.el);
     this.camera.position.set(r.target.x + r.radius * c * Math.sin(az), r.target.y + r.radius * Math.sin(r.el), r.target.z + r.radius * c * Math.cos(az));
     this.camera.lookAt(r.target);
+    this.controls?.target.copy(r.target);
   }
 
   private moveCamera(to: Partial<Rig>, dur: number): Promise<void> {
+    if (this.manualCamera || this.pinned) return Promise.resolve();
     const token = ++this.cameraToken;
     const from = { ...this.rig, target: this.rig.target.clone() };
     let toAz = to.az ?? from.az;
@@ -651,6 +794,7 @@ class Stage implements ArchitectStage {
     const width = sx1 - sx0;
     const height = (sy1 - sy0) * Math.sin(el) + 2.8 * Math.cos(el);
     const insets = this.insets(), h = Math.max(1, this.host.clientHeight);
+    if (!this.navigation.hidden) insets.bottom += this.navigation.offsetHeight + 24;
     const vf = Math.atan(Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2) * Math.max(0.3, (h - insets.top - insets.bottom) / h));
     const hf = Math.atan(Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2) * this.camera.aspect);
     return Math.max(width / 2 / Math.tan(hf), height / 2 / Math.tan(vf)) * pad + 1.5;
@@ -678,13 +822,29 @@ class Stage implements ArchitectStage {
     this.gridUniforms.uCenter.value.set(cx, cz);
   }
 
+  private updateTrace(dt: number): void {
+    const u = this.sheetUniforms, on = this.tracing && !this.reduced;
+    u.uTraceOn.value = on ? Math.min(1, u.uTraceOn.value + dt / 1.2) : Math.max(0, u.uTraceOn.value - dt / 0.6);
+    if (!on && u.uTraceOn.value === 0) return;
+    // One pass over the whole plan every 4.5 s, with a short breath between passes.
+    u.uTrace.value += dt / 4.5;
+    if (u.uTrace.value > 1.25) u.uTrace.value = -0.12;
+  }
+
   private updateScan(dt: number): void {
     const u = this.sheetUniforms;
     if (this.reduced) { u.uBand.value = 0; return; }
+    if (this.scanning && !this.tracing && this.scanClock < 0) { this.scanning = false; }
     if (!this.scanning) { u.uBand.value = 0; return; }
-    this.scanClock += dt / 6.5;
-    if (this.scanClock >= 1) { u.uReveal.value = 1; this.scanClock = 1; this.scanning = false; u.uBand.value = 0; }
-    u.uScan.value = -0.1 + 1.25 * this.scanClock;
+    this.scanClock += dt / (this.tracing ? 3.8 : 6.5);
+    if (this.scanClock >= 1) {
+      u.uReveal.value = 1;
+      // While the architect is still working, the reading band passes again after a short rest.
+      if (this.tracing) this.scanClock = -0.45;
+      else { this.scanClock = 1; this.scanning = false; u.uBand.value = 0; }
+    }
+    u.uBand.value = this.scanClock < 0 ? 0 : 1;
+    u.uScan.value = -0.1 + 1.25 * Math.max(0, this.scanClock);
   }
 
   private addPhoto(tex: THREE.Texture, aspect: number, index: number): void {
@@ -756,7 +916,7 @@ class Stage implements ArchitectStage {
     this.root.querySelector('.as-opening-actions')!.replaceChildren();
     (this.root.querySelector('.as-opening-hint') as HTMLElement).hidden = true;
     this.flatBox = box;
-    this.scanning = false;
+    this.scanning = false; this.tracing = false;
     this.sheet.visible = true;
     this.sheet.rotation.set(-Math.PI / 2, 0, 0);
     this.sheetUniforms.uReveal.value = 1;
@@ -991,15 +1151,25 @@ class Stage implements ArchitectStage {
   }
 
   private onPointerDown = (event: PointerEvent): void => {
-    if (event.button !== 0) return;
+    if (!this.controls.enabled) return;
+    this.pointers.add(event.pointerId);
+    if (this.pointers.size > 1 || event.button !== 0 || this.keyboard.active) { this.pointerStart = undefined; return; }
     this.pointerStart = { x: event.clientX, y: event.clientY, id: event.pointerId };
   };
 
-  private onPointerCancel = (): void => { this.pointerStart = undefined; };
+  private onPointerMove = (event: PointerEvent): void => {
+    const down = this.pointerStart;
+    if (down?.id === event.pointerId && Math.hypot(event.clientX - down.x, event.clientY - down.y) > 7) this.pointerStart = undefined;
+  };
+
+  private onPointerCancel = (event: PointerEvent): void => {
+    this.pointerStart = undefined; this.pointers.delete(event.pointerId); this.onNavigationEnd();
+  };
 
   private onPointerUp = (event: PointerEvent): void => {
+    this.pointers.delete(event.pointerId);
     const down = this.pointerStart; this.pointerStart = undefined;
-    if (!down || down.id !== event.pointerId || Math.hypot(event.clientX - down.x, event.clientY - down.y) > 7) return;
+    if (!this.controls.enabled || !down || down.id !== event.pointerId || Math.hypot(event.clientX - down.x, event.clientY - down.y) > 7) return;
     const rect = this.renderer.domElement.getBoundingClientRect();
     this.raycaster.setFromCamera(new THREE.Vector2((event.clientX - rect.left) / rect.width * 2 - 1, 1 - (event.clientY - rect.top) / rect.height * 2), this.camera);
     this.scene.updateMatrixWorld(true);
@@ -1304,6 +1474,7 @@ class Stage implements ArchitectStage {
 
   private async runFinish(): Promise<void> {
     if (this.disposed) return;
+    this.tracing = false;
     // Even a fast/cached response gets its complete, truthful construction reveal.
     let shellReady: Promise<void>;
     do { shellReady = this.shellReady; await shellReady; } while (!this.disposed && shellReady !== this.shellReady);
