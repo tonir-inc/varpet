@@ -2,7 +2,7 @@ import json
 import subprocess
 import sys
 
-from varpet_harness.shell import Shell, Wall, check
+from varpet_harness.shell import Opening, Shell, Wall, check, check_file
 
 WHITE, OAK = "#f2f0eb", "#b08a5a"
 
@@ -75,3 +75,20 @@ def test_cli_contract(tmp_path):
     good.write_text(json.dumps({"rooms": []}))
     bad = subprocess.run([sys.executable, "-m", "varpet_harness.shell", str(good), str(tmp_path)], capture_output=True)
     assert bad.returncode == 1 and json.loads((tmp_path / "faults.json").read_text())[0]["check"] == "format"
+
+
+def test_wall_through_a_door_is_a_fault():
+    s = flat()
+    s.walls[0].openings = [Opening.model_validate({"id": "x", "kind": "door", "offset": 4.6, "width": 0.8, "height": 2.1, "sill": 0})]
+    f = check(s)
+    assert any(x["check"] == "opening" and "w-mid" in x["detail"] for x in f)
+
+
+def test_door_at_a_junction_slides_clear(tmp_path):
+    s = flat()
+    s.walls[0].openings = [Opening.model_validate({"id": "x", "kind": "door", "offset": 4.25, "width": 0.8, "height": 2.1, "sill": 0})]
+    path = tmp_path / "shell.json"
+    path.write_text(s.model_dump_json())
+    assert check_file(path, tmp_path) == []
+    moved = Shell.model_validate_json(path.read_text()).walls[0].openings[0]
+    assert moved.offset + moved.width <= 5 - 0.06 + 1e-3
