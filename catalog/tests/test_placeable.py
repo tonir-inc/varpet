@@ -110,3 +110,8 @@ def test_extra_decorations_are_placeable(extra_matches, kind):
 def test_abo_decorations_use_abo_eligibility():
     from search import PLACEABLE_KINDS
     assert {"decor", "wall_art", "mirror", "planter"} <= set(PLACEABLE_KINDS)
+
+
+def test_extra_mattress_is_placeable(extra_matches):
+    assert extra_matches(kind="mattress", slug="mattress-double-140x200-grey", group="bedding",
+                         tags={"extra": {"notes": "Rests on a 140x200 bed frame; foot end faces +Z"}})

@@ -51,8 +51,33 @@ export function tuckedTargets(items: DraftItem[]): string[] {
   return ids;
 }
 
+/** Catalog beds are frames (slats, platform, base): only a name that says a mattress comes with it counts as made up. */
+const MATTRESS_INCLUDED = /\b(with|incl\w*|\+)\s+(an?\s+)?([\w-]+\s+){0,2}mattress(es)?\b|\bmattress\s+included\b/i;
+export const isBedFrame = (item: DraftItem) => item.kind === 'bed' && !MATTRESS_INCLUDED.test(item.name ?? '');
+export const isMattress = (item: DraftItem) => item.kind === 'mattress' || (item.kind !== 'bed' && /\bmattress\b/i.test(item.name ?? '') && !/\b(frame|foundation|protector|pad|topper)\b/i.test(item.name ?? ''));
+
+/** A bed frame with no mattress on it renders as bare slats; a mattress much narrower or shorter than its frame looks lost. */
+function bedRelations(items: DraftItem[]): string[] {
+  const problems: string[] = [];
+  for (const bed of items.filter(isBedFrame)) {
+    const mattresses = items.filter(item => isMattress(item) && item.on === bed.id);
+    const [w, d] = bed.size, fit = `--max-w ${w.toFixed(2)} --max-d ${d.toFixed(2)}`;
+    if (!mattresses.length) {
+      problems.push(`relation: ${bed.id} is a bare bed frame (slats, no mattress); add one: ./varpet search --kind mattress ${fit}, `
+        + `then an item with on: "${bed.id}", the same rot and pos as the bed, centred on it`);
+      continue;
+    }
+    for (const m of mattresses) {
+      const [mw, md] = m.size, gapW = w - mw, gapD = d - md;
+      if (gapW > 0.4 || gapD > 0.45) problems.push(`relation: ${m.id} (${mw.toFixed(2)}x${md.toFixed(2)} m) leaves ${gapW.toFixed(2)} m of `
+        + `${bed.id}'s width and ${gapD.toFixed(2)} m of its length bare; pick the mattress size that fills the frame (./varpet search --kind mattress ${fit})`);
+    }
+  }
+  return problems;
+}
+
 export function designRelations(draft: Draft): string[] {
-  const items = draft.items ?? [], problems: string[] = [];
+  const items = draft.items ?? [], problems: string[] = bedRelations(draft.items ?? []);
   for (const chair of items.filter(isChair)) {
     const hit = tableFor(chair, items);
     if (hit && hit.gap > 0.2) problems.push(`relation: ${chair.id} faces ${hit.table.id} but its seat is ${hit.gap.toFixed(2)} m from the table edge; dining and desk chairs sit at the edge or slide under it (0-0.15 m)`);

@@ -24,7 +24,7 @@ export function retainRegisteredProducts(products: readonly CatalogProduct[], kn
 
 const kinds: Record<string, CatalogAsset['kind']> = {
   decor: 'decor', wall_art: 'wall_art', mirror: 'mirror', curtain: 'curtain', clock: 'wall_art', wall_hanging: 'wall_art', blind: 'curtain', crib: 'bed', changing_table: 'dresser', pet_bed: 'decor', towel_rack: 'shelf',
-  vase: 'decor', candle: 'decor', book: 'decor', books: 'decor', throw_blanket: 'decor', cushion: 'decor', basket: 'decor', bowl: 'decor', tray: 'decor', sculpture: 'decor', lantern: 'decor', toy: 'decor', picture_frame: 'decor', poster: 'wall_art', framed_print: 'wall_art', canvas: 'wall_art',
+  vase: 'decor', candle: 'decor', book: 'decor', books: 'decor', throw_blanket: 'decor', cushion: 'decor', basket: 'decor', bowl: 'decor', tray: 'decor', sculpture: 'decor', lantern: 'decor', toy: 'decor', picture_frame: 'decor', mattress: 'decor', poster: 'wall_art', framed_print: 'wall_art', canvas: 'wall_art',
   sofa: 'sofa', chair: 'chair', table: 'table', desk: 'desk', bed: 'bed', cabinet: 'cabinet',
   dresser: 'dresser', wardrobe: 'wardrobe', nightstand: 'cabinet', storage: 'cabinet',
   shelf: 'shelf', bench: 'chair', ottoman: 'chair', stool: 'chair', lamp: 'lamp', rug: 'rug', planter: 'decor', plant: 'plant',
