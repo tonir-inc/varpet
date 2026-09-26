@@ -1,6 +1,6 @@
 import { EditorStore } from '../core/store';
 import type { AgentProposal, CatalogAsset, SceneDocument } from '../contracts';
-import { askDesigner } from '../adapters/designer-http';
+import { askDesigner, type DesignerRequest } from '../adapters/designer-http';
 type AskDesigner = typeof askDesigner;
 
 interface MetricRow { label: string; value: string }
@@ -36,7 +36,7 @@ export interface DesignerPanelState {
 }
 interface ConversationOptions {
   ask: AskDesigner;
-  snapshot: () => { scene: SceneDocument; revision: number };
+  snapshot: () => Pick<DesignerRequest, 'scene' | 'revision' | 'catalog' | 'catalogCurrency'>;
   onProposal: (proposal: AgentProposal) => void;
   onChange?: (state: DesignerPanelState) => void;
   canRequest?: () => boolean;
@@ -193,7 +193,7 @@ export function createDesignerConversation(options: ConversationOptions) {
       controller.refreshSettings();
       if (state.northError) { reply(state.northError); publish(); return; }
       if (options.canRequest?.() === false) { reply('Finish the current preview or request, then try again.'); publish(); return; }
-      const { scene, revision } = options.snapshot();
+      const { scene, revision, catalog, catalogCurrency } = options.snapshot();
       const abortController = new AbortController(); active = abortController;
       state.keep = state.keep.filter(id => scene.objects.some(object => object.id === id));
       state.messages.push({ role: 'user', text: request });
@@ -201,6 +201,7 @@ export function createDesignerConversation(options: ConversationOptions) {
       state.busy = true; state.progress = 'Sending your request to the designer…'; state.options = []; publish();
       try {
         const result = await options.ask({ scene: structuredClone(scene), revision, request,
+          ...(catalog === undefined ? {} : { catalog: structuredClone(catalog) }), ...(catalogCurrency === undefined ? {} : { catalogCurrency }),
           conversationId: state.conversationId, keep: [...state.keep], ...(state.northDeg === undefined ? {} : { northDeg: state.northDeg }) }, {
           signal: abortController.signal,
           onProgress: message => { if (active === abortController && !disposed) { state.progress = message; publish(false); } },

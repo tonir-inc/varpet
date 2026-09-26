@@ -26,6 +26,8 @@ export interface EditorBridgeOptions {
 
 const EPS = 1e-7;
 const kinds: Record<AssetKind, string> = { sofa: 'sofa', chair: 'chair', table: 'table', bed: 'bed', cabinet: 'cabinet', lamp: 'lamp', plant: 'plant', rug: 'rug', shelf: 'shelf' };
+/** Purchased catalog subtypes share editor render kinds; identity, dimensions and price remain exact. */
+const editorKindOf: Record<string, AssetKind> = { desk: 'table', dresser: 'cabinet', wardrobe: 'cabinet', nightstand: 'cabinet', stool: 'chair', ottoman: 'chair', bench: 'chair' };
 const swings = { 'in-left': 'inward-left', 'in-right': 'inward-right', 'out-left': 'outward-left', 'out-right': 'outward-right' } as const;
 const plan = ([x, z]: Vec2): Vec2 => [x, -z];
 const digest = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
@@ -153,7 +155,7 @@ export function proposalToEditor(input: unknown, editorInput: unknown, revision:
     if (!asset) throw new Error(`Addition ${op.item.id} needs a real catalog asset ID in sku`);
     if (options.catalogCurrency !== 'AMD') throw new Error('Purchases require explicit catalogCurrency AMD; catalog currency is otherwise unknown');
     if (!Number.isSafeInteger(asset.price) || op.item.price !== asset.price) throw new Error(`Addition ${op.item.id} must carry the exact catalog price in AMD`);
-    if (op.item.kind !== kinds[asset.kind] || op.item.size.some((size, index) => Math.abs(size - [asset.dimensions[0], asset.dimensions[2], asset.dimensions[1]][index]!) > EPS)) throw new Error(`Addition ${op.item.id} does not match catalog asset kind and dimensions`);
+    if ((editorKindOf[op.item.kind] ?? op.item.kind) !== asset.kind || op.item.size.some((size, index) => Math.abs(size - [asset.dimensions[0], asset.dimensions[2], asset.dimensions[1]][index]!) > EPS)) throw new Error(`Addition ${op.item.id} does not match catalog asset kind and dimensions`);
   }
   const session = new DesignerSession(scene);
   session.setIntent(candidate.intent);
