@@ -63,6 +63,83 @@ an actual tight clearance or shared-wall paint scope stays visible in the paragr
 proposal IDs, operations, checks, scores, model prompts and eval grading remain unchanged. This adds
 no model call. Legacy custom bridges without accepted operations retain their original copy.
 
+## Opt-in tool and build events (website contract, 26 September 2026)
+
+[Derived contract, agreed with PICTURE's controller] Add `"events": true` to the request.
+Omitted or `false` preserves the existing progress/delta/final stream. Non-boolean values fail
+request validation. Tool/build lines are **nonterminal** and never authorize a scene edit.
+Clients consume them in wire order until the usual single proposal/question/message/decline/error.
+No event may follow that terminal record. Disconnect cancels the designer and its builders.
+
+```ts
+type ToolEvent = {
+  type: 'tool'; name: string; phase: 'start' | 'end' | 'error';
+  callId?: string; summary: string;
+  refs?: {
+    results?: string[]; candidates?: string[]; itemIds?: string[];
+    slotId?: string; size_wdh_m?: [number, number, number];
+    proposalId?: string; ok?: boolean; cost_dram?: number;
+    currency?: 'AMD'; basis?: string; price_source?: 'mock' | 'catalog' | 'unknown';
+  };
+};
+type BuildEvent = {
+  type: 'build'; slotId: string;
+  state: 'queued' | 'building' | 'fixing' | 'done' | 'failed';
+  glb?: string; reason?: string;
+};
+```
+
+`name` preserves the tool name: `set_intent`, `scene_summary`, `search_catalog`, `reserve_slot`,
+`build_piece`, `place`, `check_layout`, `score_layout`, `sun`, `propose`, `ask`.
+`show_candidates` is an **observed result event**, emitted at `phase:"end"` after a successful
+search returns candidates/products, even if there was no separate model tool call of that name.
+`quote` is likewise an `end` event derived from the saved checked proposal's price, after the
+editor bridge accepts it, immediately before the final proposal. Its basis remains
+`incremental_purchases` until ownership pricing lands; it is not a promised workshop price.
+`check_layout` and `place` can be derived `end` observations of a successfully checked composition
+returned by `propose`, when the model did not call those tools separately. These carry the proposal
+reference; they do not claim extra model calls. No fake starts are emitted for derived observations.
+
+Tool phases mean invocation, completed result, and failed result. `callId`, when present, correlates
+SDK starts/ends (derived events may reuse that call ID); it is not an ordering counter.
+`summary` is bounded plain customer text (1–300 characters). IDs are at most 200 characters;
+reference arrays contain at most 100 IDs. Size is metres in **W/D/H**, all positive; prices are
+nonnegative whole AMD. Refs are an allowlisted projection, never raw arguments/results, reasoning,
+image bytes, local file paths or private prompts. Unknown tool names do not expose their payloads.
+
+Build names/states exactly match PICTURE's `BuildPool.turn(..., emit)` callback. A slot normally
+moves `queued → building → [fixing → building] → done|failed`; repeated states are allowed,
+and different slots interleave. The first observed state may be later than queued on a resumed
+request. `done` requires `glb: "/designer/files/<conversationId>/<slotId>.glb"`; `failed` requires
+`reason` (1–300 characters). Neither is a successful layout approval. Keep a failed slot as a grey
+placeholder and show its reason. Do not synthesize success when a build or connection fails.
+
+The final proposal waits for all referenced builds to finish and may include `assets: CatalogAsset[]`.
+These are private conversation assets with fixed dimensions and prices: provisional
+`source:{type:"procedural"}`, finished `source:{type:"gltf",url:"/designer/files/...glb"}`.
+Consumers validate the assets and command together, then register assets before preview/application.
+The file route serves only known successful GLBs for that conversation, never arbitrary files.
+Progress and message-delta records retain their old shape. Existing callers need not opt in merely
+to receive a checked proposal. The editor adapter exposes `onEvent(event)` and the chat opts in,
+using the same single progress line with elapsed time; websites may render a richer timeline.
+
+### Recorded replay for the website
+
+`packages/designer/eval/event-stream-sample.ndjson` is a **composite replay of measured recordings**,
+not a claim that custom building and the industrial proposal ran in one live request. Its designer
+starts/ends, candidate IDs, checks, quote and final proposal are projected from the recorded
+industrial Avani turn at 2026-09-26 13:49 UTC (`after-styles` evaluation); the cabinet build states
+are copied from PICTURE's real 54.351 s / 86,193-token controller run. The reserve-slot completion
+is reconstructed from that run's persisted slot record, labelled in its summary. The custom cabinet
+is an independent lifecycle example, not an item in the final industrial proposal, so it is not
+smuggled into that proposal's `assets`. Its GLB URL requires the corresponding running service;
+the sample does not bundle private source images or a model file. Replay with the Avani empty-room
+scene and catalog from that recorded evaluation if applying its final proposal.
+
+This first contract/sample commit unblocks timeline rendering before the opt-in runtime lands.
+Failure/fixing/cancellation behavior is covered by the runtime tests; this successful recording
+must not be relabelled as evidence of a real failed build.
+
 ## Bridge CLI (TypeScript, run with the package's `tsx`)
 
 ```
