@@ -32,7 +32,7 @@ with sync_playwright() as playwright:
                 'url': page.url, 'browser': browser.version, 'viewport': page.viewport_size,
                 'scene_id': snapshot['scene']['id'], 'page_errors': errors,
                 'method': 'Fresh browser context, unmodified demo, default cutaway 3D and Plan buttons; crop to rendered viewport, no image editing.',
-                'sha256': {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in OUTPUT.iterdir() if p.suffix in ('.png', '.json')}}
+                'sha256': {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in OUTPUT.iterdir() if p.name in ('avani-plan.png', 'avani-3d.png', 'editor-input.json')}}
     (OUTPUT / 'capture.json').write_text(json.dumps(manifest, indent=2) + '\n')
     browser.close()
     print(json.dumps(manifest, indent=2))
