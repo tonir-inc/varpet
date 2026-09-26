@@ -13,7 +13,7 @@ No open issues.
 
 ## catalog
 
-- **minor** · open · [43" TV \(extra:electronics:tv-43-stand-grey\) renders almost white](20260926T192504Z-catalog-43-tv-extra-electronics-tv-43-stand-grey-renders-ab2bc978a498466cbf925790cd301447.md)
+No open issues.
 
 ## architect
 
