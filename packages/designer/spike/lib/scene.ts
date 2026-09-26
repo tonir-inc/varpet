@@ -45,6 +45,14 @@ export function roomSubtotals(draft: Draft): [string, number][] {
   return [...out];
 }
 
+/** The customer request from the workspace prompt (AGENTS.md next to the scene file, section "## Customer request"). */
+export function loadBrief(scenePath = 'scene.json'): string | undefined {
+  const path = join(dirname(scenePath), 'AGENTS.md');
+  if (!existsSync(path)) return undefined;
+  const m = /## Customer request\n([\s\S]*?)(\n## |$)/.exec(readFileSync(path, 'utf8'));
+  return m?.[1]?.trim() || undefined;
+}
+
 export function loadDraft(path = 'draft.json'): Draft {
   if (!existsSync(path)) return { items: [] };
   const draft = JSON.parse(readFileSync(path, 'utf8')) as Draft;
@@ -63,7 +71,7 @@ function room(scene: Scene, roomId: string) {
   if (!r) throw new Error(`Unknown room ${roomId}; rooms: ${scene.rooms.map(r => r.id).join(', ')}`);
   return r;
 }
-function inPoly(p: Vec2, poly: Vec2[]): boolean {
+export function inPoly(p: Vec2, poly: Vec2[]): boolean {
   let hit = false;
   for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
     const a = poly[i]!, b = poly[j]!;
@@ -71,11 +79,11 @@ function inPoly(p: Vec2, poly: Vec2[]): boolean {
   }
   return hit;
 }
-function bbox(poly: Vec2[]) {
+export function bbox(poly: Vec2[]) {
   const xs = poly.map(p => p[0]), ys = poly.map(p => p[1]);
   return { x0: Math.min(...xs), x1: Math.max(...xs), y0: Math.min(...ys), y1: Math.max(...ys) };
 }
-function area(poly: Vec2[]) {
+export function area(poly: Vec2[]) {
   return Math.abs(poly.reduce((s, p, i) => { const q = poly[(i + 1) % poly.length]!; return s + p[0] * q[1] - q[0] * p[1]; }, 0)) / 2;
 }
 /** Unit normal pointing out of the wall's room. */
@@ -104,12 +112,12 @@ function wallName(scene: Scene, wall: Wall): string {
   return `wall ${pt(wall.a)}-${pt(wall.b)} facing out ${norm360(Math.atan2(ox, oy) * 180 / Math.PI)}deg`;
 }
 const physical = (w: Wall) => w.source_id ?? w.id;
-function openingCentre(scene: Scene, o: Opening): Vec2 {
+export function openingCentre(scene: Scene, o: Opening): Vec2 {
   const w = scene.walls.find(w => w.id === o.wall_id)!, t = (o.offset + o.width / 2) / len(w);
   return [w.a[0] + (w.b[0] - w.a[0]) * t, w.a[1] + (w.b[1] - w.a[1]) * t];
 }
 /** Rooms an opening joins: explicit room_ids, else every room owning an alias of its physical wall. */
-function openingRooms(scene: Scene, o: Opening): string[] {
+export function openingRooms(scene: Scene, o: Opening): string[] {
   if (o.room_ids?.length) return o.room_ids;
   const owner = scene.walls.find(w => w.id === o.wall_id)!;
   return [...new Set(scene.walls.filter(w => physical(w) === physical(owner)).map(w => w.room_id))];
@@ -121,7 +129,7 @@ function openingsOn(scene: Scene, wall: Wall): Opening[] {
   });
 }
 /** Inner face of the wall as seen from its room (centre line moved thickness/2 inward). */
-function innerFace(scene: Scene, wall: Wall): [Vec2, Vec2] {
+export function innerFace(scene: Scene, wall: Wall): [Vec2, Vec2] {
   const h = wall.open ? 0 : (wall.thickness ?? 0) / 2, [ox, oy] = wallOutward(scene, wall);
   return [[wall.a[0] - ox * h, wall.a[1] - oy * h], [wall.b[0] - ox * h, wall.b[1] - oy * h]];
 }
@@ -132,7 +140,7 @@ export function footprint(item: Pick<Item, 'pos' | 'rot' | 'size'>): Vec2[] {
     item.pos[1] + x * item.size[0] / 2 * s + y * item.size[1] / 2 * c,
   ]);
 }
-function segDist(p: Vec2, a: Vec2, b: Vec2): number {
+export function segDist(p: Vec2, a: Vec2, b: Vec2): number {
   const vx = b[0] - a[0], vy = b[1] - a[1], t = Math.max(0, Math.min(1, ((p[0] - a[0]) * vx + (p[1] - a[1]) * vy) / (vx * vx + vy * vy)));
   return Math.hypot(p[0] - a[0] - vx * t, p[1] - a[1] - vy * t);
 }
@@ -192,15 +200,37 @@ export function onWall(scene: Scene, roomId: string, wallId: string, size: [numb
   const { pos, rot, wall } = flush(scene, roomId, wallId, size, along, 0);
   return { pos, rot, wall_id: wall.id, height_m: height ?? defaultArtHeight(size[2]) };
 }
+/** Curtains and blinds: the editor hangs them from a rod just under the ceiling, centred on the nearest window. */
+export const isCurtain = (item: Pick<Item, 'kind'>) => item.kind === 'curtain' || item.kind === 'blind';
+/** Bottom height the editor renders a wall-hung item at (apps/editor/src/core/decoration-placement.ts mountDecoration):
+ * height_m is ignored there. Mirrors taller than 1.4 m lean on the floor; curtains hang from a rod 3 cm under the
+ * ceiling; everything else hangs at the standard max(0.9, 1.5 - h/2). */
+export function renderedBottom(item: Pick<Item, 'kind' | 'size'>, wallHeight: number): number {
+  const h = item.size[2];
+  if (item.kind === 'mirror' && h > 1.4) return 0;
+  if (isCurtain(item)) return Math.max(0, wallHeight - 0.03 - h);
+  return Math.max(0.9, 1.5 - h / 2);
+}
+/** A curtain or blind hung over window windowId: {pos, rot, wall_id, height_m} for the draft item (pos flush on the
+ * window's wall, centred on it; the editor centres a curtain on the window and hangs its rod under the ceiling). */
+export function atWindow(scene: Scene, roomId: string, windowId: string, size: [number, number, number]): { pos: Vec2; rot: number; wall_id: string; height_m: number } {
+  const o = scene.openings.find(o => o.id === windowId && o.kind === 'window');
+  if (!o) throw new Error(`Unknown window ${windowId}; windows: ${scene.openings.filter(o => o.kind === 'window').map(o => o.id).join(', ')}`);
+  const wall = roomWall(scene, roomId, o.wall_id), span = openingSpans(scene, wall).find(s => s.opening.id === windowId)!;
+  const placed = onWall(scene, roomId, wall.id, size, (span.from + span.to) / 2);
+  const wallHeight = wall.height ?? roomHeight(scene, roomId);
+  return { ...placed, height_m: Math.round((renderedBottom({ kind: 'curtain', size }, wallHeight) + size[2] / 2) * 1000) / 1000 };
+}
 /** Where a wall-hung item sits on its wall: centre metres along the room alias from `a`, distance of pos from the
- * wall's room-side face, wall length, and bottom/top heights. undefined if the wall is unknown. */
+ * wall's room-side face, wall length, and bottom/top heights as the editor renders them (height_m is ignored).
+ * undefined if the wall is unknown. */
 export function wallSpot(scene: Scene, item: DraftItem): { wall: Wall; along: number; offFace: number; length: number; bottom: number; top: number; wallHeight: number } | undefined {
   let wall: Wall;
   try { wall = roomWall(scene, item.room_id, item.wall_id!); } catch { return undefined; }
   const [fa, fb] = innerFace(scene, wall), l = len(wall), ux = (fb[0] - fa[0]) / l, uy = (fb[1] - fa[1]) / l, [ox, oy] = wallOutward(scene, wall);
   const dx = item.pos[0] - fa[0], dy = item.pos[1] - fa[1];
-  const h = item.height_m ?? defaultArtHeight(item.size[2]);
-  return { wall, along: dx * ux + dy * uy, offFace: -(dx * ox + dy * oy), length: l, bottom: h - item.size[2] / 2, top: h + item.size[2] / 2, wallHeight: wall.height ?? roomHeight(scene, item.room_id) };
+  const wallHeight = wall.height ?? roomHeight(scene, item.room_id), bottom = renderedBottom(item, wallHeight);
+  return { wall, along: dx * ux + dy * uy, offFace: -(dx * ox + dy * oy), length: l, bottom, top: bottom + item.size[2], wallHeight };
 }
 /** Openings on a wall as [from, to] metres along the given room alias (robust to reversed aliases). */
 export function openingSpans(scene: Scene, wall: Wall): { opening: Opening; from: number; to: number }[] {
@@ -213,11 +243,18 @@ export function openingSpans(scene: Scene, wall: Wall): { opening: Opening; from
 
 // ---------- free zones ----------
 const CELL = 0.1;
+export interface Rect { x0: number; x1: number; y0: number; y1: number; area: number }
+export const rectText = (z: Rect) => `x ${f(z.x0)}..${f(z.x1)}, y ${f(z.y0)}..${f(z.y1)} (${f(z.x1 - z.x0)} x ${f(z.y1 - z.y0)} m)`;
 /** Largest empty axis-aligned rectangles (>= 0.8 m each side) after items and door clear zones. */
 function freeZones(scene: Scene, roomId: string, items: DraftItem[], max = 2): string[] {
+  return emptyRects(scene, roomId, items, max).map(rectText);
+}
+/** The same rectangles as numbers; pad grows each floor item's footprint (its use zone) before the search. */
+export function emptyRects(scene: Scene, roomId: string, items: DraftItem[], max = 2, pad = 0, minSide = 0.8): Rect[] {
   const r = room(scene, roomId), b = bbox(r.polygon), inset = 0.08;
   const nx = Math.round((b.x1 - b.x0) / CELL), ny = Math.round((b.y1 - b.y0) / CELL);
-  const blocked: Vec2[][] = items.filter(i => i.room_id === roomId && onFloor(i)).map(footprint);
+  const blocked: Vec2[][] = items.filter(i => i.room_id === roomId && onFloor(i))
+    .map(i => footprint(pad > 0 && i.kind !== 'rug' ? { ...i, size: [i.size[0] + 2 * pad, i.size[1] + 2 * pad, i.size[2]] } : i));
   for (const o of scene.openings) {
     if (o.kind === 'window' || !openingRooms(scene, o).includes(roomId)) continue;
     const owner = scene.walls.find(w => w.id === o.wall_id)!;
@@ -234,7 +271,7 @@ function freeZones(scene: Scene, roomId: string, items: DraftItem[], max = 2): s
       grid[j]!.push(!edge && inPoly(p, r.polygon) && !blocked.some(poly => inPoly(p, poly)));
     }
   }
-  const out: string[] = [];
+  const out: Rect[] = [];
   for (let k = 0; k < max; k++) {
     let best = { a: 0, i0: 0, i1: 0, j0: 0, j1: 0 };
     const h = new Array(nx).fill(0);
@@ -244,14 +281,14 @@ function freeZones(scene: Scene, roomId: string, items: DraftItem[], max = 2): s
         let mh = Infinity;
         for (let e = i; e < nx && h[e] > 0; e++) {
           mh = Math.min(mh, h[e]); const a = mh * (e - i + 1);
-          if (a > best.a && mh * CELL >= 0.8 && (e - i + 1) * CELL >= 0.8) best = { a, i0: i, i1: e, j0: j - mh + 1, j1: j };
+          if (a > best.a && mh * CELL >= minSide - 1e-9 && (e - i + 1) * CELL >= minSide - 1e-9) best = { a, i0: i, i1: e, j0: j - mh + 1, j1: j };
         }
       }
     }
     if (!best.a) break;
     for (let j = best.j0; j <= best.j1; j++) for (let i = best.i0; i <= best.i1; i++) grid[j]![i] = false;
     const x0 = b.x0 + best.i0 * CELL, x1 = b.x0 + (best.i1 + 1) * CELL, y0 = b.y0 + best.j0 * CELL, y1 = b.y0 + (best.j1 + 1) * CELL;
-    out.push(`x ${f(x0)}..${f(x1)}, y ${f(y0)}..${f(y1)} (${f(x1 - x0)} x ${f(y1 - y0)} m)`);
+    out.push({ x0, x1, y0, y1, area: (x1 - x0) * (y1 - y0) });
   }
   return out;
 }
@@ -294,7 +331,7 @@ export function describe(scene: Scene, draft?: Draft, budget?: number): string {
   L.push('', `DRAFT ITEMS (${added.length})${added.length ? ':' : ': none yet'}`);
   for (const it of added) {
     const walls = onFloor(it) ? touching(scene, it) : [], spot = it.wall_id !== undefined ? wallSpot(scene, it) : undefined;
-    const where = it.wall_id !== undefined ? `, hung on ${spot ? wallName(scene, spot.wall).split(' (')[0] : 'unknown wall'} [${it.wall_id}] ${spot ? `${f(spot.along)} m along, ` : ''}centre ${f(it.height_m ?? defaultArtHeight(it.size[2]))} m high`
+    const where = it.wall_id !== undefined ? `, hung on ${spot ? wallName(scene, spot.wall).split(' (')[0] : 'unknown wall'} [${it.wall_id}] ${spot ? `${f(spot.along)} m along, ` : ''}centre ${spot ? `${f((spot.bottom + spot.top) / 2)} m high (as the editor hangs it)` : '?'}`
       : it.on !== undefined ? `, resting on ${it.on}` : walls.length ? `, against ${walls.join(', ')}` : '';
     L.push(`  ${it.id} ${it.kind} "${it.name}" [${it.room_id}] at ${pt(it.pos)} rot ${norm360(it.rot)} ${faceWord(it.rot)}, size ${it.size.map(f).join('x')}${where}${it.sku ? `, sku ${it.sku}` : ''}${it.price !== undefined ? ` ${it.price} AMD` : ''}`);
   }

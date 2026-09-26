@@ -1,8 +1,8 @@
 /** Hard-physics check of a draft: wraps checkLayout from src/layout.ts with one add op per item.
  * Async because src is imported at runtime from designerSrc() (works from a copied workspace). */
-import { footprint, importSrc, openingSpans, roomSubtotals, wallSpot, type Draft, type DraftItem, type Scene, type Vec2 } from './scene.ts';
+import { footprint, importSrc, isCurtain, loadBrief, openingSpans, roomSubtotals, wallSpot, type Draft, type DraftItem, type Scene, type Vec2 } from './scene.ts';
 import { checkSurfaces, onFloor, plainItem, surfaceQuantities } from './finishes.ts';
-import { designRelations, tuckedPair, tuckedTargets } from './relations.ts';
+import { designRelations, functionRules, tuckedPair, tuckedTargets } from './relations.ts';
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -42,7 +42,7 @@ async function unusableDoors(scene: Scene): Promise<string[]> {
   return doors;
 }
 
-export interface CheckResult { ok: boolean; problems: string[]; summary: string; cost_dram: number | null }
+export interface CheckResult { ok: boolean; problems: string[]; summary: string; cost_dram: number | null; advice: string[] }
 
 const m = (n: number | undefined) => (n === undefined ? '' : ` (${n.toFixed(2)} m)`);
 
@@ -69,7 +69,7 @@ function overlapDepth(a: Vec2[], b: Vec2[]): number {
   }
   return depth;
 }
-const WALL_KINDS = new Set(['wall_art', 'mirror']);
+const WALL_KINDS = new Set(['wall_art', 'mirror', 'curtain', 'blind']);
 
 /** The item as the editor's placement rules see it (kind by the bridge's mapping, name, size as w, h, d). */
 function editorAsset(item: DraftItem, kindOf: (kind: string) => string): CatalogAsset {
@@ -89,7 +89,8 @@ export function checkDecor(scene: Scene, draft: Draft, kindOf: (kind: string) =>
     if (item.wall_id !== undefined && item.on !== undefined) { out.push(`decor: ${item.id} has both wall_id and on; pick one`); continue; }
     if (item.height_m !== undefined && item.wall_id === undefined) out.push(`decor: ${item.id} has height_m but no wall_id`);
     if (item.wall_id === undefined && item.on === undefined && WALL_KINDS.has(item.kind) && !(item.kind === 'mirror' && item.size[2] > 1.4))
-      out.push(`decor: ${item.id} ${item.kind} must hang on a wall: set wall_id and height_m (use onWall())`);
+      out.push(isCurtain(item) ? `decor: ${item.id} ${item.kind} must hang over a window: set wall_id and pos with atWindow(scene, room, window, size)`
+        : `decor: ${item.id} ${item.kind} must hang on a wall: set wall_id and height_m (use onWall())`);
     if (item.wall_id !== undefined && !wallDecoration(editorAsset(item, kindOf))) {
       out.push(`decor: ${item.id} ${item.kind} cannot hang on a wall: the editor hangs only wall art, mirrors, curtains and clocks; drop wall_id and height_m and stand it on the floor (or pick a hanging kind)`);
       continue;
@@ -99,10 +100,19 @@ export function checkDecor(scene: Scene, draft: Draft, kindOf: (kind: string) =>
       if (!spot) { out.push(`decor: ${item.id} wall ${item.wall_id} does not bound ${item.room_id}`); continue; }
       const [w, d] = item.size;
       if (Math.abs(spot.offFace - d / 2) > 0.05) out.push(`decor: ${item.id} is ${(spot.offFace - d / 2).toFixed(2)} m off the face of ${item.wall_id}; pos must be flush (use onWall())`);
+      if (isCurtain(item)) {
+        // The editor centres a curtain on the window whose span (grown by half the curtain) holds its centre, rod under the ceiling.
+        const windows = openingSpans(scene, spot.wall).filter(o => o.opening.kind === 'window');
+        const over = windows.find(o => spot.along >= o.from - w / 2 && spot.along <= o.to + w / 2);
+        if (!over) out.push(`decor: ${item.id} ${item.kind} on ${item.wall_id} is not at a window${windows.length ? ` (windows there: ${windows.map(o => `${o.opening.id} ${((o.from + o.to) / 2).toFixed(2)} m along`).join(', ')}); centre it on one with atWindow()` : '; hang it on a wall with a window (atWindow())'}`);
+        else if (w < over.opening.width - 0.05) out.push(`decor: ${item.id} (${w.toFixed(2)} m) is narrower than window ${over.opening.id} (${over.opening.width.toFixed(2)} m); pick one at least as wide`);
+        if (w > spot.length) out.push(`decor: ${item.id} (${w.toFixed(2)} m) is wider than ${item.wall_id} (${spot.length.toFixed(2)} m); the editor cannot hang it there`);
+        hung.push({ item, spot });
+        continue;
+      }
       const margin = Math.max(0, ...scene.walls.map(x => (x.thickness ?? 0) / 2));
       if (spot.along - w / 2 < margin - 0.01 || spot.along + w / 2 > spot.length - margin + 0.01)
         out.push(`decor: ${item.id} runs past the end of ${item.wall_id} (spans ${(spot.along - w / 2).toFixed(2)}..${(spot.along + w / 2).toFixed(2)} m of ${spot.length.toFixed(2)} m)`);
-      if (spot.bottom < 0.05) out.push(`decor: ${item.id} bottom is ${spot.bottom.toFixed(2)} m, below the floor line; raise height_m`);
       if (spot.top > spot.wallHeight + 0.001) out.push(`decor: ${item.id} top ${spot.top.toFixed(2)} m is above the ${spot.wallHeight.toFixed(2)} m wall`);
       for (const o of openingSpans(scene, spot.wall)) {
         const across = Math.min(spot.along + w / 2, o.to) - Math.max(spot.along - w / 2, o.from);
@@ -112,8 +122,8 @@ export function checkDecor(scene: Scene, draft: Draft, kindOf: (kind: string) =>
       // Tall floor pieces in front of the art hide it (art above a sofa or sideboard is fine).
       const strip = footprint({ pos: item.pos, rot: item.rot, size: [w, d + 0.3, 1] });
       for (const other of floor) {
-        if (other.room_id !== item.room_id || other.kind === 'rug' || other.size[2] <= spot.bottom - 0.01) continue;
-        if (overlapDepth(strip, footprint(other)) > 0.01) out.push(`decor: ${item.id} (bottom ${spot.bottom.toFixed(2)} m) is behind ${other.id} (${other.size[2].toFixed(2)} m tall); hang it higher or elsewhere`);
+        if (other.room_id !== item.room_id || other.kind === 'rug' || other.size[2] <= spot.bottom + 0.05) continue;
+        if (overlapDepth(strip, footprint(other)) > 0.01) out.push(`decor: ${item.id} (bottom ${spot.bottom.toFixed(2)} m) is behind ${other.id} (${other.size[2].toFixed(2)} m tall); the editor hangs it at a fixed height (height_m is ignored), so move it along the wall or to another wall`);
       }
       hung.push({ item, spot });
     }
@@ -149,7 +159,8 @@ export function checkDecor(scene: Scene, draft: Draft, kindOf: (kind: string) =>
 }
 
 /** budget: furniture budget in AMD (workspace budget.json); going over it is a hard problem. */
-export async function check(scene: Scene, draft: Draft, options: { budget?: number } = {}): Promise<CheckResult> {
+/** brief: the customer request (default: the workspace AGENTS.md in cwd); it decides whether curtains are required. */
+export async function check(scene: Scene, draft: Draft, options: { budget?: number; brief?: string } = {}): Promise<CheckResult> {
   const { checkLayout, layoutPrice } = await importSrc<typeof import('../../src/layout.ts')>('layout.ts');
   const { opsSchema } = await importSrc<typeof import('../../src/adapter.ts')>('adapter.ts');
   const items = draft.items ?? [];
@@ -189,6 +200,11 @@ export async function check(scene: Scene, draft: Draft, options: { budget?: numb
   // Mattress models ship with a catalog deploy; while the live catalog has none, a frame cannot be dressed.
   const noMattresses = bare.length > 0 && !(await mattressesAvailable());
   problems.push(...(noMattresses ? relations.filter(p => !bare.includes(p)) : relations));
+  const rules = functionRules(scene, draft, options.brief ?? loadBrief());
+  // A rule about kept flat furniture alone (no draft id in the line) cannot be fixed by the draft: advice, not failure.
+  const draftIds = new Set(items.map(item => item.id)), fixable = (line: string) => !scene.items.length || line.split(/[\s,:;()"]+/).some(word => draftIds.has(word));
+  problems.push(...rules.hard.filter(fixable));
+  const advice = [...rules.hard.filter(line => !fixable(line)), ...rules.soft];
   problems.push(...checkSurfaces(scene, draft).map(p => `surfaces: ${p}`));
   // Editor finish presets and fixtures carry no supplier price: list the work, never add it to the total.
   const work = surfaceQuantities(scene, draft);
@@ -201,9 +217,10 @@ export async function check(scene: Scene, draft: Draft, options: { budget?: numb
     + (noMattresses ? `\ncatalog (not blocking): ${bare.length} bed frame(s) without a mattress; the live catalog has no mattresses yet` : '');
   const rooms = subtotals.length > 1 ? `\nby room: ${subtotals.map(([r, v]) => `${r} ${v}`).join(', ')}` : '';
   const budgetLine = options.budget !== undefined ? `\nbudget: ${total} of ${options.budget} AMD` : '';
-  const summary = `${items.length} items, ${problems.length} hard, ${soft.length} soft warnings${soft.length ? ` (${[...bySoft].map(([k, v]) => `${k} ${v}`).join(', ')})` : ''}${cost !== null ? `, furniture total ${cost} AMD` : ''}${work.length ? `\nunquoted finish and lighting work (price on request): ${work.join('; ')}` : ''}${notes}${rooms}${budgetLine}`;
+  const adviceText = advice.length ? `\nadvice (soft, not blocking; fix what you agree with):\n${advice.map(line => `~ ${line}`).join('\n')}` : '';
+  const summary = `${items.length} items, ${problems.length} hard, ${soft.length} soft warnings${soft.length ? ` (${[...bySoft].map(([k, v]) => `${k} ${v}`).join(', ')})` : ''}${cost !== null ? `, furniture total ${cost} AMD` : ''}${work.length ? `\nunquoted finish and lighting work (price on request): ${work.join('; ')}` : ''}${notes}${rooms}${budgetLine}${adviceText}`;
   // Every hard error is either listed in problems or deliberately exempted (tucked chairs), so problems decide.
-  return { ok: problems.length === 0, problems, summary, cost_dram: cost };
+  return { ok: problems.length === 0, problems, summary, cost_dram: cost, advice };
 }
 
 /** Soft guidance lines (function clearance, walkway width), for when the model asks. */
