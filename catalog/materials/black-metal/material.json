@@ -1,0 +1,10 @@
+{
+  "id": "black-metal",
+  "family": "metal",
+  "tile_m": 0.5,
+  "grain": false,
+  "default_color": "#5c5c5e",
+  "metal": 1.0,
+  "source": "ambientcg:Metal046A",
+  "license": "CC0"
+}

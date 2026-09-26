@@ -62,6 +62,7 @@ def _uv(mesh: trimesh.Trimesh, p: Part, prog: Program) -> trimesh.Trimesh:
     """Unmerge so each face owns its vertices, then box-project in part-local metres."""
     mat = prog.materials.get(p.material)
     fin = library().get(mat.finish) if mat and mat.finish else None
+    corner_normals = _smooth_corner_normals(mesh) if p.shape != "box" else None
     mesh.unmerge_vertices()
     normals = mesh.face_normals[np.repeat(np.arange(len(mesh.faces)), 3)]
     verts = mesh.vertices[mesh.faces.reshape(-1)]
@@ -69,7 +70,29 @@ def _uv(mesh: trimesh.Trimesh, p: Part, prog: Program) -> trimesh.Trimesh:
     uv[mesh.faces.reshape(-1)] = box_uv(verts, normals, fin.tile_m if fin else 1.0,
                                         AXIS[p.grain] if p.grain else None)
     mesh.visual = TextureVisuals(uv=uv)
+    if corner_normals is not None:
+        mesh.vertex_normals = corner_normals  # after unmerge, vertex i is face corner i
     return mesh
+
+
+SMOOTH_COS = np.cos(np.radians(35))
+
+
+def _smooth_corner_normals(mesh: trimesh.Trimesh) -> np.ndarray:
+    """Per face corner: mean of the adjacent face normals within 35 degrees of this face.
+
+    Curved surfaces shade smooth; a cylinder's rim and caps stay sharp.
+    """
+    fn = mesh.face_normals
+    out = np.zeros((len(mesh.faces) * 3, 3))
+    vf = mesh.vertex_faces  # padded with -1
+    for f, face in enumerate(mesh.faces):
+        for k, v in enumerate(face):
+            adj = vf[v][vf[v] >= 0]
+            near = adj[fn[adj] @ fn[f] > SMOOTH_COS]
+            n = fn[near].sum(axis=0)
+            out[f * 3 + k] = n / np.linalg.norm(n)
+    return out
 
 
 def _box(bounds: dict[str, tuple[np.ndarray, np.ndarray]], ref: str, piece: np.ndarray):
@@ -199,7 +222,7 @@ def export(prog: Program, parts: list[Instance], path: Path) -> None:
         mesh.visual = TextureVisuals(uv=p.mesh.visual.uv, material=pbr(m.finish, m.color, m.kind, m.roughness))
         mesh.metadata["extras"] = {"finish": m.finish, "tint": m.color}
         scene.add_geometry(mesh, node_name=p.id, geom_name=p.id)
-    path.write_bytes(scene.export(file_type="glb"))
+    path.write_bytes(scene.export(file_type="glb", include_normals=True))
 
 
 def compile_file(program: Path, workdir: Path) -> list[dict]:

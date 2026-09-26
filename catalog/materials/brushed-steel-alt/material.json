@@ -1,0 +1,10 @@
+{
+  "id": "brushed-steel-alt",
+  "family": "metal",
+  "tile_m": 0.5,
+  "grain": true,
+  "default_color": "#929598",
+  "metal": 1.0,
+  "source": "ambientcg:Metal009",
+  "license": "CC0"
+}

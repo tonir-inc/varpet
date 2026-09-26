@@ -5,10 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "test": "node scripts/check.mjs && node scripts/check-renovation.mjs && node scripts/check-openings.mjs",
+    "test": "node scripts/check.mjs && node scripts/check-renovation.mjs && node scripts/check-openings.mjs && node scripts/check-finishes.mjs && node scripts/check-placement.mjs && node scripts/check-walls.mjs && node scripts/check-wall-controller.mjs && node scripts/check-grouping.mjs && node scripts/check-plan-move.mjs",
+    "test:grouping": "node scripts/check-grouping.mjs",
+    "test:placement": "node scripts/check-placement.mjs",
     "test:renovation": "node scripts/check-renovation.mjs",
     "build": "vite build",
-    "typecheck": "tsc -p ."
+    "typecheck": "tsc -p .",
+    "test:plan": "node scripts/check-plan-move.mjs"
   },
   "dependencies": {
     "@varpet/engine": "workspace:*",

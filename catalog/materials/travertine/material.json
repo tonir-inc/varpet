@@ -1,0 +1,10 @@
+{
+  "id": "travertine",
+  "family": "stone",
+  "tile_m": 1.2,
+  "grain": false,
+  "default_color": "#dfccac",
+  "metal": 0.0,
+  "source": "ambientcg:Travertine009",
+  "license": "CC0"
+}

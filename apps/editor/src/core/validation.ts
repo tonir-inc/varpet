@@ -221,18 +221,25 @@ export function validateScene(input: unknown, catalog: CatalogAsset[]): Validati
     openingIntervals.sort((a, b) => a[0] - b[0]);
     if (openingIntervals.some((interval, index) => index > 0 && interval[0] < openingIntervals[index - 1]![1] - EPS)) fail(`Wall ${i + 1} has overlapping openings.`);
   }
+  const groupCounts = new Map<string, number>();
   for (const [i, object] of (input.objects as unknown[]).entries()) {
     if (!isRecord(object)) { fail(`Object ${i + 1} must be an object.`); continue; }
     unique(object.id, `Object ${i + 1}`);
-    if (!keys(object, ['id', 'name', 'assetId', 'position', 'rotation', 'scale', 'color']) || !text(object.name) || !text(object.assetId, 100)
+    if (!keys(object, ['id', 'name', 'assetId', 'position', 'rotation', 'scale', 'color', 'groupId']) || !text(object.name) || !text(object.assetId, 100)
       || !vector(object.position, 3, -COORD_LIMIT, COORD_LIMIT) || !finite(object.rotation, -Math.PI * 100, Math.PI * 100)
       || !vector(object.scale, 3, 0.1, 4) || (object.color !== undefined && (typeof object.color !== 'string' || !COLOR.test(object.color)))) { fail(`Object ${i + 1} has invalid fields or a non-finite/out-of-range transform.`); continue; }
+    if (object.groupId !== undefined) {
+      if (input.version !== 2 || !text(object.groupId, 100) || ['__proto__', 'prototype', 'constructor'].includes(object.groupId)) fail(`Object ${i + 1} needs a valid v2 furniture group ID.`);
+      else groupCounts.set(object.groupId, (groupCounts.get(object.groupId) ?? 0) + 1);
+    }
     const asset = assets.get(object.assetId);
     if (!asset) fail(`“${object.name}” references unknown catalog asset “${object.assetId}”.`);
     if (input.version === 1 && Math.abs(object.position[1]!) > EPS) fail(`“${object.name}” must be supported on the floor at y = 0.`);
     const scale = object.scale;
     if (asset && asset.dimensions.some((size, index) => size * scale[index]! > 20)) fail(`“${object.name}” is larger than the 20 m object limit.`);
   }
+  if (errors.length) return result();
+  for (const [id, count] of groupCounts) if (count < 2) fail(`Furniture group “${id}” needs at least two objects.`);
   if (errors.length) return result();
   const scene = input as unknown as SceneDocument;
   if (scene.version === 2) {

@@ -1,0 +1,10 @@
+{
+  "id": "marble-white-alt",
+  "family": "stone",
+  "tile_m": 1.0,
+  "grain": false,
+  "default_color": "#adaeb7",
+  "metal": 0.0,
+  "source": "ambientcg:Marble012",
+  "license": "CC0"
+}

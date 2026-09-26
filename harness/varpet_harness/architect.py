@@ -12,20 +12,22 @@ from pathlib import Path
 from openai_codex import ApprovalMode, AsyncCodex, LocalImageInput, Sandbox, TextInput
 from pydantic import ValidationError
 
-from .codex_runner import thread_config
+from .codex_runner import IMAGE_SUFFIXES, thread_config
 from .dispatch import Report
 from .graph import Graph, strict_schema
 
 PLAN_PROMPT = """You are the architect for flat "{flat}". Plan jobs; do not build anything.
-Jobs: one `shell` job from the plan; one `piece` job per furniture piece that is not
-in the catalog below, with its size [w, d, h] in metres (if the plan and photos
+Jobs: one `shell` job from the plan; it also owns everything fixed: fitted kitchens and
+wardrobes, sanitaryware, appliances, radiators. One `piece` job per movable furniture piece
+(sofas, beds, tables, chairs, storage, rugs, mirrors) that is not in the catalog below,
+with `count` for identical copies, with its size [w, d, h] in metres (if the plan and photos
 do not give it, use a typical size and set size_estimated); `designer` jobs last,
 depending on the shell and the pieces they arrange. Identical pieces are one job.
 Give each job only the skills it needs from: {skills}.
-Put in each piece job's refs the photos that show that piece (by path below); the shell gets the plan.
+Put in each piece job's refs the photos that show that piece best, best first, at most 3.
 Catalog SKUs already built (do not make piece jobs for these): {catalog}
-Plan: {plan}
-Photos, attached in this order: {photos}"""
+Plan: {plan} (attached first when it is an image)
+Photos, attached after it in this order: {photos}"""
 
 
 async def plan(
@@ -53,7 +55,8 @@ async def plan(
         config=thread_config(),
     )
     try:
-        items = [TextInput(prompt), *(LocalImageInput(path=str(repo / p)) for p in photos)]
+        images = ([plan_path] if Path(plan_path).suffix.lower() in IMAGE_SUFFIXES else []) + photos
+        items = [TextInput(prompt), *(LocalImageInput(path=str(repo / p)) for p in images)]
         schema = strict_schema()
         result = await thread.run(items, output_schema=schema, effort="medium")
         try:
@@ -67,12 +70,17 @@ async def plan(
         await codex.thread_archive(thread.id)
 
 
+MAX_PIECE_PHOTOS = 3  # every image is paid for again in the builder's call
+
+
 def settle(graph: Graph, plan_path: str) -> Graph:
     """Mechanical fixes in code, not in the prompt: pieces run at low effort
-    (Astra low beat medium, 0.907 vs 0.876) and the shell always sees the plan."""
+    (Astra low beat medium, 0.907 vs 0.876) on at most three photos, and the
+    shell always sees the plan."""
     for job in graph.jobs:
         if job.kind == "piece":
             job.effort = "low"
+            job.refs = job.refs[:MAX_PIECE_PHOTOS]
         if job.kind == "shell" and plan_path not in job.refs:
             job.refs.insert(0, plan_path)
     return graph

@@ -13,3 +13,10 @@ assets/build/
 catalog/data/
 .env
 catalog/eval/sheets/
+
+# real-listing fixtures (copyrighted listing media, private testing only)
+fixtures/real/
+
+# procedural candidates: rebuild with catalog/texgen/gen.py
+catalog/materials/*-gen/
+catalog/texgen/contact.png

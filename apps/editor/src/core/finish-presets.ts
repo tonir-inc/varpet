@@ -21,8 +21,8 @@ export const FINISH_PRESETS: FinishPreset[] = [
   { id: 'porcelain', name: 'Cloud porcelain', category: 'floor', color: '#e1e1db', accent: '#b9bdb6', pattern: 'tile', size: [0.6, 0.6], roughness: 0.58, description: '60 × 60 cm · soft satin' },
   { id: 'terracotta', name: 'Terracotta', category: 'floor', color: '#b87960', accent: '#8d6151', pattern: 'tile', size: [0.3, 0.3], roughness: 0.92, description: '30 × 30 cm · natural clay' },
   { id: 'slate', name: 'Charcoal slate', category: 'floor', color: '#646c6b', accent: '#444c4c', pattern: 'tile', size: [0.6, 0.4], roughness: 0.86, description: '60 × 40 cm · honed stone' },
-  { id: 'oak', name: 'Natural oak', category: 'floor', color: '#b9956b', accent: '#887050', pattern: 'wood', size: [0.18, 1.2], roughness: 0.72, description: '18 × 120 cm · oak planks' },
-  { id: 'walnut', name: 'Smoked walnut', category: 'floor', color: '#806249', accent: '#543f31', pattern: 'wood', size: [0.18, 1.2], roughness: 0.68, description: '18 × 120 cm · dark planks' },
+  { id: 'oak', name: 'Natural oak', category: 'floor', color: '#b9956b', accent: '#887050', pattern: 'wood', size: [1.2, 0.18], roughness: 0.72, description: '18 × 120 cm · oak planks' },
+  { id: 'walnut', name: 'Smoked walnut', category: 'floor', color: '#806249', accent: '#543f31', pattern: 'wood', size: [1.2, 0.18], roughness: 0.68, description: '18 × 120 cm · dark planks' },
   { id: 'terrazzo', name: 'Ivory terrazzo', category: 'floor', color: '#ddd8cc', accent: '#a69883', pattern: 'terrazzo', size: [0.6, 0.6], roughness: 0.66, description: '60 × 60 cm · fine aggregate' },
   { id: 'sage-terrazzo', name: 'Sage terrazzo', category: 'floor', color: '#a5afa3', accent: '#697b6c', pattern: 'terrazzo', size: [0.6, 0.6], roughness: 0.68, description: '60 × 60 cm · fine aggregate' },
   { id: 'chalk', name: 'Chalk white', category: 'wall', color: '#eeeae0', accent: '#d2cdc2', pattern: 'solid', size: [1, 1], roughness: 0.94, description: 'Warm white · matte paint' },
@@ -54,10 +54,10 @@ export function materialForPreset(preset: FinishPreset): FinishMaterial {
   };
 }
 
-/** The marker survives collision-safe IDs and keeps custom materials independent. */
+/** Pattern identity survives color edits and collision-safe material IDs. */
 export function getPresetForMaterial(material: FinishMaterial | undefined): FinishPreset | undefined {
   if (!material || material.unit !== 'm2') return undefined;
-  return FINISH_PRESETS.find(preset => material.color.toLowerCase() === preset.color && material.notes?.startsWith(`${materialMarker(preset)} `));
+  return FINISH_PRESETS.find(preset => material.notes?.startsWith(`${materialMarker(preset)} `));
 }
 
 export function buildFinishOperations(
@@ -77,7 +77,10 @@ export function buildFinishOperations(
 
   const existing = project?.finishes.find(finish => finish.entityId === entityId && finish.surface === surface);
   const currentMaterial = project?.materials.find(material => material.id === existing?.materialId);
-  if (getPresetForMaterial(currentMaterial)?.id === preset.id) return [];
+  // A tinted sample retains its pattern, but choosing the original swatch must
+  // restore the original color without changing other surfaces using that tint.
+  const matchesPreset = (material: FinishMaterial | undefined): boolean => getPresetForMaterial(material)?.id === preset.id && material?.color.toLowerCase() === preset.color.toLowerCase();
+  if (matchesPreset(currentMaterial)) return [];
 
   // IDs are shared with geometry and project records, including inactive designs.
   // A user's material may occupy the preferred ID; it must never be overwritten.
@@ -98,7 +101,7 @@ export function buildFinishOperations(
   };
 
   const operations: Operation[] = scene.version === 1 ? [{ type: 'migrate-project' }] : [];
-  let material = project?.materials.find(candidate => getPresetForMaterial(candidate)?.id === preset.id);
+  let material = project?.materials.find(matchesPreset);
   if (!material) {
     material = materialForPreset(preset);
     material.id = freeId(material.id);

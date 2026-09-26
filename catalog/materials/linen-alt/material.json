@@ -1,0 +1,10 @@
+{
+  "id": "linen-alt",
+  "family": "fabric",
+  "tile_m": 0.271,
+  "grain": false,
+  "default_color": "#92acce",
+  "metal": 0.0,
+  "source": "polyhaven:rough_linen",
+  "license": "CC0"
+}

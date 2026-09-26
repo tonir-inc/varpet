@@ -22,6 +22,8 @@ export interface SceneObject {
   id: string;
   name: string;
   assetId: string;
+  /** Flat furniture group membership, supported only in v2 documents. */
+  groupId?: string;
   position: Vec3; // floor-centred origin, base at y=0
   rotation: number; // radians about +Y
   scale: Vec3;
@@ -41,6 +43,8 @@ export interface SceneDocument {
 }
 export type ObjectPatch = Partial<Pick<SceneObject, 'name' | 'position' | 'rotation' | 'scale' | 'color'>>;
 export type Operation =
+  | { type: 'group'; id: string; objectIds: string[] }
+  | { type: 'ungroup'; id: string }
   | { type: 'add'; object: SceneObject }
   | { type: 'update'; id: string; patch: ObjectPatch }
   | { type: 'delete'; id: string }
@@ -67,7 +71,7 @@ export interface ViewportCallbacks {
   onWallEndpoint?(id: string, endpoint: 'start' | 'end', point: Vec2): void;
   onWallMove?(id: string, start: Vec2, end: Vec2): void;
   onOpeningMove?(id: string, offset: number): void;
-  onSelect(id: string | null): void;
+  onSelect(id: string | null, additive?: boolean): void;
   onTransform(id: string, patch: ObjectPatch): void;
   onInteraction(active: boolean): void;
   onError(message: string): void;
@@ -75,7 +79,7 @@ export interface ViewportCallbacks {
 export interface Viewport {
   setScene(scene: SceneDocument, catalog: CatalogAsset[]): void;
   animatePlacement(id: string): void;
-  setSelection(id: string | null): void;
+  setSelection(id: string | null, furnitureIds?: string[]): void;
   setTool(tool: ToolMode): void;
   setView(view: ViewMode): void;
   setSnap(enabled: boolean): void;

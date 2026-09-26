@@ -354,6 +354,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     const group = previous.component ? services?.components.get(previous.id) : rendered.get(previous.id)?.group;
     const releasedPosition = group?.position.clone();
     const releaseHeight = rendered.get(previous.id)?.visual.position.y ?? 0;
+    const releaseScale = rendered.get(previous.id)?.visual.scale.clone();
     placementMotion.stop(previous.id);
     const queued = pendingScene;
     pendingScene = null;
@@ -403,6 +404,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       && releasedPosition.distanceToSquared(previous.position) > 1e-10
       && record.group.position.distanceToSquared(releasedPosition) < 1e-10) {
       record.visual.position.y = releaseHeight;
+      if (releaseScale) record.visual.scale.copy(releaseScale);
       placementMotion.land(previous.id, record.visual, record.dimensions);
     }
     requestRender();
@@ -413,10 +415,10 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     const component = callbacks.onComponentTransform ? documentState?.project?.components.find(item => item.id === selectedId) : undefined;
     const group = rendered.get(selectedId)?.group ?? (component ? services?.components.get(selectedId) : undefined);
     if (!group) return;
-    placementMotion.stop(selectedId);
     drag = { component, id: selectedId, position: group.position.clone(), quaternion: group.quaternion.clone(), scale: group.scale.clone() };
     const record = rendered.get(selectedId);
     if (!component && tool === 'move' && record) placementMotion.lift(selectedId, record.visual, record.dimensions);
+    else placementMotion.stop(selectedId);
     suppressPick = true; orbit.enabled = false; callbacks.onInteraction(true);
     updatePlacementFeedback();
   }
@@ -493,7 +495,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   function setScene(next: SceneDocument, catalog: CatalogAsset[]): void {
     if (disposed) return;
     if (drag || endpointDrag || openingDrag || wallMove.active) { pendingScene = { scene: next, catalog }; return; }
-    if (next !== documentState) placementMotion.clear();
+    const previousObjects = new Map(documentState?.objects.map(object => [object.id, object]));
     sceneGeneration++;
     lightingPreview.setComponents(next.project?.components ?? []);
     documentState = next; catalogState = catalog;
@@ -535,6 +537,10 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     for (const object of next.objects) {
       const asset = catalogById.get(object.assetId);
       if (!asset) continue;
+      const previous = previousObjects.get(object.id);
+      if (previous && (previous.rotation !== object.rotation
+        || previous.position.some((value, axis) => value !== object.position[axis])
+        || previous.scale.some((value, axis) => value !== object.scale[axis]))) placementMotion.stop(object.id);
       const signature = JSON.stringify([asset, object.color]);
       let record = rendered.get(object.id);
       if (!record || record.signature !== signature) {
@@ -772,6 +778,10 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     render: requestRender, error: callbacks.onError,
     apply: (presetId, target) => {
       if (!documentState || drag || endpointDrag || openingDrag || wallMove.active) return;
+      if (structure?.updateFinishes(performance.now())) {
+        callbacks.onError('The finish is still spreading. Apply the next sample in a moment.');
+        return;
+      }
       pendingFinishReveal = { ...target, previousScene: documentState, startedAt: performance.now(), reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches };
       try { callbacks.onFinish?.(presetId, target); }
       finally { pendingFinishReveal = undefined; }

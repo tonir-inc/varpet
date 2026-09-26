@@ -1,0 +1,10 @@
+{
+  "id": "wool-felt",
+  "family": "fabric",
+  "tile_m": 0.3,
+  "grain": false,
+  "default_color": "#a2a0a6",
+  "metal": 0.0,
+  "source": "ambientcg:Fabric034",
+  "license": "CC0"
+}

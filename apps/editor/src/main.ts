@@ -159,7 +159,12 @@ const viewport = createViewport($('#viewport'), {
   },
   onError: message => notify(message, true),
 });
-const floorPlan = createFloorPlan($('#floor-plan'), id => select(id));
+const floorPlan = createFloorPlan($('#floor-plan'), id => select(id), {
+  onInteraction: active => { interacting = active; if (active) interactionRevision = store.revision; renderProposal(); },
+  onCommit: (operation, label) => { run([operation], label, interactionRevision); },
+  onError: message => notify(message, true),
+  onSnapChange: enabled => { snap = enabled; viewport.setSnap(snap); renderViewportHints(); renderInspector(); },
+});
 const materialsUI = createMaterialsUI($('#materials-panel'), {
   onChoose: preset => chooseFinish(preset),
   onDragStart: preset => chooseFinish(preset),
@@ -233,7 +238,6 @@ renovationUI = createRenovationUI($('#renovation-panel'), {
 });
 
 function select(id: string | null) {
-  if (view === 'plan' && store.scene.objects.some(object => object.id === id)) setView('perspective');
   selectedId = id && entityName(id) ? id : null;
   viewport.setSelection(selectedId);
   floorPlan.setSelection(selectedId);
@@ -352,6 +356,7 @@ function renderAssets(){
 function switchPanel(panel:Panel, toggle=false){
   if (panel !== 'materials' && activeFinish) chooseFinish(null);
   panelOpen=toggle && activePanel===panel ? !panelOpen : true;
+  if (!panelOpen && activeFinish) chooseFinish(null);
   activePanel=panel;
   $('.workspace').classList.toggle('left-collapsed',!panelOpen);
   $('.left-panel').hidden=!panelOpen;
@@ -371,7 +376,7 @@ function renderViewportHints() {
     return;
   }
   if (view === 'plan') {
-    $('#view-hint').textContent = 'Select a room for interior dimensions · Drag to pan · Scroll to zoom · F to frame';
+    $('#view-hint').textContent = 'Drag items to move · Empty floor / Alt-drag to pan · Esc to cancel · F to frame';
     return;
   }
   const openingWall = store.scene.walls.find(w => w.openings.some(o => o.id === selectedId));
@@ -415,7 +420,6 @@ function setView(next:ApartmentView){
   $('#floor-plan').hidden = !isPlan;
   floorPlan.setVisible(isPlan);
   if (view !== 'plan') viewport.setView(view);
-  else if (store.scene.objects.some(object => object.id === selectedId)) select(null);
   for (const [id, mode] of [['perspective','perspective'],['top-view','top'],['plan-view','plan']]) {
     $(`#${id}`).classList.toggle('active',view===mode);
     $(`#${id}`).setAttribute('aria-pressed',String(view===mode));
@@ -478,7 +482,7 @@ function refresh(){
   const scene=store.scene;
   if(selectedId&&!entityName(selectedId))selectedId=null;
   viewport.setScene(scene,catalog);viewport.setSelection(selectedId);
-  floorPlan.setScene(scene);floorPlan.setSelection(selectedId);
+  floorPlan.setScene(scene,catalog);floorPlan.setSelection(selectedId);
   $('#project-name').textContent=scene.name;
   const area=scene.rooms.reduce((sum,r)=>sum+Math.abs(r.polygon.reduce((a,p,i)=>{const q=r.polygon[(i+1)%r.polygon.length]!;return a+p[0]*q[1]-q[0]*p[1];},0))/2,0);
   $('#scene-area').textContent=`${area.toFixed(0)} m²`;
@@ -526,15 +530,15 @@ $('#preview').onclick=()=>setPreview(!previewMode);
 $('#perspective').onclick=()=>setView('perspective');$('#top-view').onclick=()=>setView('top');$('#plan-view').onclick=()=>setView('plan');
 document.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach(b=>b.onclick=()=>setTool(b.dataset.tool as ToolMode));
 $('#focus').onclick=()=>focusView(selectedId??undefined);
-$('#snap').onclick=()=>{snap=!snap;viewport.setSnap(snap);renderViewportHints();renderInspector();};
+$('#snap').onclick=()=>{snap=!snap;viewport.setSnap(snap);floorPlan.setSnap(snap);renderViewportHints();renderInspector();};
 $('#walls').onclick=()=>{wallMode=wallMode==='cutaway'?'full':wallMode==='full'?'hidden':'cutaway';viewport.setWalls(wallMode);$('#walls span').textContent={cutaway:'Cutaway',full:'Full walls',hidden:'Walls hidden'}[wallMode];};
 let highQuality=false;$('#quality').onclick=()=>{highQuality=!highQuality;viewport.setQuality(highQuality?'high':'balanced');$('#quality span').textContent=highQuality?'High quality':'Balanced';$('#quality').setAttribute('aria-pressed',String(highQuality));};
 $('#suggest').onclick=()=>void requestProposal('designer');
-$('#help').onclick=()=>showModal('Keyboard & navigation',`<p class="modal-intro">Select walls, openings, rooms, furniture and systems in the canvas or Renovate panel. In Select mode, click a selected door or switch again to test it.</p><div class="shortcut-list">${[['1 / 2 / 3 / 4 / 5','Scene / Furniture / Assistant / Renovate / Materials'],['[','Toggle sidebar'],['P','Enter / exit preview'],['V / G / R / S','Select / Move / Rotate / Resize'],['F','Frame selection / apartment'],['⌘ / Ctrl + S','Save on this device'],['⌘ / Ctrl + D','Duplicate furniture'],['Delete / Backspace','Delete selected furniture'],['⌘ / Ctrl + Z','Undo'],['⌘ / Ctrl + Shift + Z','Redo'],['Esc','Cancel drag / clear selection / exit preview']].map(([key,label])=>`<div><span>${label}</span><kbd>${key}</kbd></div>`).join('')}</div><p class="modal-footnote">3D: drag empty space to orbit, right drag to pan, scroll to zoom. Top: drag to pan. Select a door or window, choose Move (G), then drag it or its purple arrows along the wall. Openings stay inside their wall section and stop at neighbouring openings. Move snaps to 0.05 m for openings and walls; toggle snapping for finer placement. Release to apply, Esc to cancel, or Undo to restore the previous position. Select a wall and choose Move to drag it back or forth with its purple center arrows; connected walls and room boundaries follow. The endpoint spheres adjust individual corners; use Renovate for precise dimensions, evidence and service editing.</p>`);
+$('#help').onclick=()=>showModal('Keyboard & navigation',`<p class="modal-intro">Select walls, openings, rooms, furniture and systems in the canvas or Renovate panel. In Select mode, click a selected door or switch again to test it.</p><div class="shortcut-list">${[['1 / 2 / 3 / 4 / 5','Scene / Furniture / Assistant / Renovate / Materials'],['[','Toggle sidebar'],['P','Enter / exit preview'],['V / G / R / S','Select / Move / Rotate / Resize'],['F','Frame selection / apartment'],['⌘ / Ctrl + S','Save on this device'],['⌘ / Ctrl + D','Duplicate furniture'],['Delete / Backspace','Delete selected furniture'],['⌘ / Ctrl + Z','Undo'],['⌘ / Ctrl + Shift + Z','Redo'],['Esc','Cancel drag / clear selection / exit preview']].map(([key,label])=>`<div><span>${label}</span><kbd>${key}</kbd></div>`).join('')}</div><p class="modal-footnote">Plan: drag furniture, fixtures, walls, doors or windows to move them. Drag empty floor, Alt-drag, or right/middle drag to pan. Hold Shift for finer placement. 3D: drag empty space to orbit, right drag to pan, scroll to zoom. Top: drag to pan. Select a door or window, choose Move (G), then drag it or its purple arrows along the wall. Openings stay inside their wall section and stop at neighbouring openings. Move snaps to 0.05 m for openings and walls; toggle snapping for finer placement. Release to apply, Esc to cancel, or Undo to restore the previous position. Select a wall and choose Move to drag it back or forth with its purple center arrows; connected walls and room boundaries follow. The endpoint spheres adjust individual corners; use Renovate for precise dimensions, evidence and service editing.</p>`);
 window.addEventListener('keydown',event=>{
   if(document.querySelector('dialog[open]') || (event.target instanceof HTMLElement && (event.target.closest('input,textarea,select') || event.target.isContentEditable)))return;
   const key=event.key.toLowerCase();const mod=event.metaKey||event.ctrlKey;
-  if(key==='escape'){event.preventDefault();if(activeFinish){chooseFinish(null);return;}if(previewMode){setPreview(false);return;}viewport.cancelInteraction();interacting=false;select(null);renderProposal();return;}
+  if(key==='escape'){event.preventDefault();if(activeFinish){chooseFinish(null);return;}if(previewMode){setPreview(false);return;}if(floorPlan.cancelInteraction())return;viewport.cancelInteraction();interacting=false;select(null);renderProposal();return;}
   if(!mod&&key==='p'){event.preventDefault();setPreview(!previewMode);return;}
   if(previewMode){
     if(mod&&key==='s'){event.preventDefault();$('#save').click();}

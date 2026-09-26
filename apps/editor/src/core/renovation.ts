@@ -14,6 +14,19 @@ function segmentPosition(point: Vec2, start: Vec2, end: Vec2): number | null {
   if (t < -EPS || t > 1 + EPS || Math.abs((point[0] - start[0]) * dz - (point[1] - start[1]) * dx) > EPS * Math.sqrt(lengthSquared)) return null;
   return t;
 }
+/** Preserve a split wall's junctions even when a room stores one long boundary edge. */
+function roomWallJunctions(polygon: Vec2[], start: Vec2, end: Vec2): Vec2[] {
+  const dx = end[0] - start[0], dz = end[1] - start[1], length = Math.hypot(dx, dz);
+  return polygon.flatMap((a, i) => {
+    const b = polygon[(i + 1) % polygon.length]!, ex = b[0] - a[0], ez = b[1] - a[1];
+    if (Math.abs(dx * ez - dz * ex) > EPS * length * Math.hypot(ex, ez)) return [a];
+    const junctions = [start, end].flatMap(point => {
+      const t = segmentPosition(point, a, b);
+      return t !== null && t > EPS && t < 1 - EPS ? [{ point, t }] : [];
+    }).sort((first, second) => first.t - second.t);
+    return [a, ...junctions.map(({ point }): Vec2 => [...point])];
+  });
+}
 
 export function emptyProject(): RenovationProject {
   return { mode: 'correct', currency: 'USD', metadata: {}, components: [], routes: [], sources: [], assumptions: [], materials: [], finishes: [], tasks: [], options: [] };
@@ -87,7 +100,7 @@ function syncHostedRoutes(scene: SceneDocument): void {
   }
 }
 export function isRenovationOperation(operation: Operation): operation is RenovationOperation {
-  return !['add', 'update', 'delete', 'replace-structure', 'replace-scene'].includes(operation.type);
+  return !['add', 'update', 'delete', 'group', 'ungroup', 'replace-structure', 'replace-scene'].includes(operation.type);
 }
 /** Applies to a transaction-local draft. EditorStore validates and commits the complete transaction atomically. */
 export function applyRenovationOperation(input: SceneDocument, operation: RenovationOperation): SceneDocument {
@@ -99,14 +112,20 @@ export function applyRenovationOperation(input: SceneDocument, operation: Renova
       const wall = find(scene.walls, operation.id, 'Wall'); alteration(scene, wall.id);
       const start = [...wall.start] as Vec2, end = [...wall.end] as Vec2;
       const nextStart = operation.patch.start ?? start, nextEnd = operation.patch.end ?? end;
+      const elevation = project.metadata[wall.id]?.elevation ?? 0, top = elevation + wall.height;
+      const overlapsHeight = (base: number, height: number) => Math.min(top, base + height) - Math.max(elevation, base) > EPS;
+      // Plan coordinates alone do not establish a junction: stacked walls/rooms
+      // remain independent, while raised spaces with overlapping height still join.
+      const connectedWalls = scene.walls.filter(other => overlapsHeight(project.metadata[other.id]?.elevation ?? 0, other.height));
+      const connectedRooms = scene.rooms.filter(room => overlapsHeight(project.metadata[room.id]?.elevation ?? 0, project.metadata[room.id]?.ceilingHeight ?? 2.8));
       const translation = !!operation.patch.start && !!operation.patch.end && same(
         [nextStart[0] - start[0], nextStart[1] - start[1]],
         [nextEnd[0] - end[0], nextEnd[1] - end[1]],
       ) && (!same(start, nextStart) || !same(end, nextEnd));
       // Capture topology before changing any points: a large pointer step must not jump
       // over an adjoining wall or carry an existing T junction off its host segment.
-      const previousWalls = translation ? scene.walls.map(other => ({ id: other.id, start: [...other.start] as Vec2, end: [...other.end] as Vec2 })) : [];
-      const previousAreas = translation ? new Map(scene.rooms.map(room => [room.id, signedArea(room.polygon)])) : new Map<string, number>();
+      const previousWalls = translation ? connectedWalls.map(other => ({ id: other.id, start: [...other.start] as Vec2, end: [...other.end] as Vec2 })) : [];
+      const previousAreas = translation ? new Map(connectedRooms.map(room => [room.id, signedArea(room.polygon)])) : new Map<string, number>();
       const endpointHosts = previousWalls.flatMap(other => {
         if (other.id === wall.id) return [];
         return (['start', 'end'] as const).flatMap(side => {
@@ -121,13 +140,14 @@ export function applyRenovationOperation(input: SceneDocument, operation: Renova
         if (t === null) return null;
         return [nextStart[0] + (nextEnd[0] - nextStart[0]) * t, nextStart[1] + (nextEnd[1] - nextStart[1]) * t];
       };
-      for (const other of scene.walls) for (const side of ['start', 'end'] as const) {
+      for (const other of connectedWalls) for (const side of ['start', 'end'] as const) {
         const moved = movePoint(other[side]);
         if (moved && !same(moved, other[side])) { alteration(scene, other.id); other[side] = moved; }
       }
-      for (const room of scene.rooms) {
-        const points = room.polygon.map(point => movePoint(point) ?? point);
-        if (points.some((point, i) => !same(point, room.polygon[i]!))) {
+      for (const room of connectedRooms) {
+        const boundary = !same(start, nextStart) || !same(end, nextEnd) ? roomWallJunctions(room.polygon, start, end) : room.polygon;
+        const points = boundary.map(point => movePoint(point) ?? point);
+        if (points.some((point, i) => !same(point, boundary[i]!))) {
           if (translation && signedArea(points) * previousAreas.get(room.id)! <= 0) throw new Error(`Moving this wall would collapse or reverse room “${room.name}”. Keep it inside the connected room boundaries.`);
           ensureEditable(scene, room.id); invalidateAssumptions(scene, [room.id]); room.polygon = points;
         }

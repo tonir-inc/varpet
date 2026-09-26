@@ -1,0 +1,10 @@
+{
+  "id": "walnut",
+  "family": "wood",
+  "tile_m": 1.0,
+  "grain": true,
+  "default_color": "#aa8a72",
+  "metal": 0.0,
+  "source": "polyhaven:walnut_veneer_02",
+  "license": "CC0"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "brushed-steel",
+  "family": "metal",
+  "tile_m": 0.3,
+  "grain": true,
+  "default_color": "#b9bbbd",
+  "metal": 1.0,
+  "source": "procedural",
+  "license": "CC0"
+}
