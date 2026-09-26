@@ -9,7 +9,7 @@ export class StudioStage {
   /** Pedestal bounds for camera framing; deliberately excludes studio scenery. */
   readonly bounds = new THREE.Box3();
 
-  private readonly border = new THREE.MeshStandardMaterial({ color: '#bdbab2', roughness: 0.9, metalness: 0 });
+  private readonly border = new THREE.MeshStandardMaterial({ color: '#b9b9b9', roughness: 0.9, metalness: 0 });
   private readonly charcoal = new THREE.MeshStandardMaterial({ color: '#ecebe6', roughness: 0.6, metalness: 0.02 });
   private readonly recess = new THREE.MeshStandardMaterial({ color: '#d6d4cd', roughness: 0.78 });
   private readonly brass = new THREE.MeshStandardMaterial({ color: '#a88754', roughness: 0.36, metalness: 0.72 });
