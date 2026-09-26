@@ -1,12 +1,12 @@
 import { expect, test } from 'vitest';
-import type { SceneDocument } from '../../../apps/editor/src/contracts.js';
-import { migrateScene } from '../../../apps/editor/src/core/renovation.js';
-import { placementIssues, validateScene } from '../../../apps/editor/src/core/validation.js';
-import { editorToDesigner } from '../src/editor-bridge.js';
-import { checkDecor } from '../spike/lib/check.js';
-import type { Draft, DraftItem } from '../spike/lib/finishes.js';
-import { onWall } from '../spike/lib/scene.js';
-import { editorDocument, wallFaces } from '../spike/lib/view/document.js';
+import type { SceneDocument } from '../../../../apps/editor/src/contracts.js';
+import { migrateScene } from '../../../../apps/editor/src/core/renovation.js';
+import { placementIssues, validateScene } from '../../../../apps/editor/src/core/validation.js';
+import { editorToDesigner } from '../../src/editor-bridge.js';
+import { checkDecor } from '../lib/check.js';
+import type { Draft, DraftItem } from '../lib/finishes.js';
+import { onWall } from '../lib/scene.js';
+import { editorDocument, wallFaces } from '../lib/view/document.js';
 
 /** Three rooms traced 2 cm short of their wall faces, as reconstructed flats are: A on the left, B and C on the right
  * of partition P (B the longer stretch), wall BC between them. */
