@@ -315,6 +315,13 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       if (selection && selectedId) { const chosen = entity(selectedId); if (chosen) selectionBounds(chosen, selection.box); }
       if (animating) requestRender();
       stage.updateView(camera, view === 'top');
+      // Resolve live roots, including wall-drag projections and loaded models.
+      const selectedRoots = new Set<THREE.Object3D>();
+      for (const id of [selectedId, ...selectedFurnitureIds]) {
+        const root = id ? entity(id) : undefined;
+        if (root) selectedRoots.add(root);
+      }
+      studioRenderer.setSelection([...selectedRoots]);
       try { studioRenderer.render(camera); }
       catch (error) {
         if (!renderFailed) { renderFailed = true; callbacks.onError(`The 3D view could not render: ${error instanceof Error ? error.message : 'unknown graphics error'}`); }
@@ -344,8 +351,10 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     transform.detach();
     const chosen = selectedId ? entity(selectedId) : undefined;
     if (chosen) {
-      selection = new SelectionFrame(selectionBounds(chosen));
-      world.add(selection);
+      if (tool !== 'select') {
+        selection = new SelectionFrame(selectionBounds(chosen));
+        world.add(selection);
+      }
       if (tool !== 'select' && selectedId && (furnitureTransformAllowed() || (services?.components.has(selectedId) && callbacks.onComponentTransform))) {
         const component = services?.components.has(selectedId); transform.minY = component ? -50 : chosen.position.y; transform.maxY = component ? 50 : chosen.position.y;
         transform.showY = tool === 'rotate' || tool === 'scale' || (Boolean(component) && tool === 'move'); transform.attach(chosen);

@@ -4,6 +4,7 @@ import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { SelectionOutline } from './selection-outline';
 
 type StudioCamera = THREE.PerspectiveCamera | THREE.OrthographicCamera;
 
@@ -92,6 +93,7 @@ export class StudioRenderer {
   private readonly occlusion: ContactOcclusionPass;
   private readonly grade: ShaderPass;
   private readonly output = new OutputPass();
+  private readonly selection: SelectionOutline;
   private disposed = false;
 
   constructor(private readonly renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: StudioCamera) {
@@ -99,6 +101,7 @@ export class StudioRenderer {
     target.texture.name = 'Studio linear HDR';
     this.composer = new EffectComposer(renderer, target);
     this.beauty = new RenderPass(scene, camera);
+    this.selection = new SelectionOutline(scene, camera);
     this.occlusion = new ContactOcclusionPass(scene, camera, 1, 1);
     this.occlusion.blendIntensity = 0.82;
     // Metres, not screen pixels: nearby floor/wall junctions stay grounded as
@@ -139,6 +142,7 @@ export class StudioRenderer {
     this.composer.addPass(this.occlusion);
     this.composer.addPass(this.grade);
     this.composer.addPass(this.output);
+    this.composer.addPass(this.selection);
     this.setQuality('balanced');
     const size = renderer.getSize(new THREE.Vector2());
     this.setSize(size.x, size.y);
@@ -148,6 +152,7 @@ export class StudioRenderer {
     if (this.disposed) return;
     this.beauty.camera = camera;
     this.occlusion.camera = camera;
+    this.selection.renderCamera = camera;
     // Top mode is a measurement-oriented orthographic view. Keep its fills
     // even and its overlays clear rather than carrying perspective AO into it.
     this.occlusion.enabled = camera instanceof THREE.PerspectiveCamera;
@@ -158,8 +163,14 @@ export class StudioRenderer {
   /** Width/height are CSS pixels; the renderer remains owned by the viewport. */
   setSize(width: number, height: number, pixelRatio = this.renderer.getPixelRatio()): void {
     if (this.disposed) return;
+    // The edge buffers stay at CSS resolution across quality/retina changes.
+    this.selection.downSampleRatio = pixelRatio;
     this.composer.setPixelRatio(pixelRatio);
     this.composer.setSize(Math.max(1, width), Math.max(1, height));
+  }
+
+  setSelection(objects: THREE.Object3D[]): void {
+    if (!this.disposed) this.selection.setSelection(objects);
   }
 
   setQuality(quality: 'balanced' | 'high'): void {
@@ -183,6 +194,7 @@ export class StudioRenderer {
     this.occlusion.dispose();
     this.grade.dispose();
     this.output.dispose();
+    this.selection.dispose();
     this.composer.dispose();
   }
 }

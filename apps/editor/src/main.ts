@@ -178,7 +178,7 @@ const materialsUI = createMaterialsUI($('#materials-panel'), {
 function chooseFinish(preset: FinishPreset | null) {
   if (preset && previewMode) { notify('Exit preview to apply materials.'); return; }
   if (preset) {
-    if (view === 'plan') setView('perspective');
+    if (view === 'plan' || (view === 'top' && preset.category === 'wall')) setView('perspective');
     setTool('select');
     // Paint needs a visible wall face; a cutaway exposes only a narrow stub.
     if (preset.category === 'wall' && wallMode !== 'full') {
@@ -329,6 +329,8 @@ function renderInspector() {
     advanced: () => { switchPanel('renovation'); renovationUI?.setSelection(selectedId); },
     getDoorAngle: (id: string) => viewport.getDoorAngle(id),
     testDoor: (id: string, angle: number) => viewport.setDoorAngle(id, angle),
+    onFinishDragStart: (preset: FinishPreset) => chooseFinish(preset),
+    onFinishDragEnd: () => chooseFinish(null),
   };
   if (!object) {
     if (!selectedId || !renderEntityInspector($('#inspector'), selectedId, inspectorOptions)) $('#inspector').innerHTML = '';

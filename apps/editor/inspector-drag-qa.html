@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inspector drag verification</title>
+<body style="margin:24px;background:#202126;color:#eee;font:16px system-ui">
+<h1>Inspector drag verification</h1>
+<p>Native drag events, checked history, and Three.js surface raycasts without WebGL.</p>
+<button id="qa-checks" type="button">Run checks</button>
+<p id="qa-results" role="status">Not run</p>
+<pre id="qa-transfer-probe"></pre>
+<div id="qa-check-container"></div>
+<div id="qa-native-container"></div>
+<script type="module">
+import { checkInspectorDrag, mountNativeInspectorDragQA } from './src/ui/inspector-drag-check';
+mountNativeInspectorDragQA(document.querySelector('#qa-native-container'));
+document.querySelector('#qa-checks').onclick = async () => {
+  const results = document.querySelector('#qa-results');
+  const probe = new DataTransfer();
+  const initial = { effectAllowed: probe.effectAllowed, dropEffect: probe.dropEffect };
+  probe.effectAllowed = 'copy'; probe.dropEffect = 'copy';
+  document.querySelector('#qa-transfer-probe').textContent = JSON.stringify({ initial, afterCopyAssignment: { effectAllowed: probe.effectAllowed, dropEffect: probe.dropEffect } });
+  try { results.textContent = await checkInspectorDrag(document.querySelector('#qa-check-container')); }
+  catch (error) { results.textContent = 'FAIL: ' + error.message; console.error(error); }
+};
+</script>
+</body>
+</html>
