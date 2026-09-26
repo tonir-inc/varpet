@@ -103,7 +103,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   renderer.setClearColor('#e2e2dd');
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 0.78;
+  renderer.toneMappingExposure = 1.02;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
@@ -149,7 +149,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   world.add(transformHelper);
 
   const lighting = new THREE.Group();
-  const ambient = new THREE.HemisphereLight('#bccce6', '#6c4930', 0.18);
+  const ambient = new THREE.HemisphereLight('#dfe4ec', '#a89580', 0.42);
   lighting.add(ambient);
   const sunlight = new THREE.DirectionalLight('#ffd296', 0.95);
   sunlight.name = 'Sun';
@@ -409,17 +409,18 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     studioFog.color.copy(eveningBackground).lerp(studioBackground, daylight);
     world.fog = inside || sky ? null : studioFog;
     world.environment = sky?.environment ?? environment.texture;
-    world.environmentIntensity = THREE.MathUtils.lerp(0.008, sky ? 0.35 : 0.16, daylight);
-    ambient.intensity = THREE.MathUtils.lerp(0.035, 0.25, daylight);
-    ambient.color.set('#bccce6');
-    ambient.groundColor.set('#6c4930');
+    world.environmentIntensity = THREE.MathUtils.lerp(0.008, sky ? 0.35 : 0.4, daylight);
+    ambient.intensity = THREE.MathUtils.lerp(0.035, 0.42, daylight);
+    // A light studio: soft sky above, warm paper below.
+    ambient.color.set('#dfe4ec');
+    ambient.groundColor.set('#a89580');
     const sun = effectiveSunlight(sunSettings);
     sunlight.color.set(sun.sunColor); sunlight.intensity = sun.sunIntensity;
     // Keep the studio readable without painting false pools of sunlight through walls.
     fill.visible = rim.visible = daylight > 0; fill.intensity = 0.08 * daylight; rim.intensity = 0.12 * daylight;
     warmPool.visible = secondPool.visible = false;
     applyPracticalLighting();
-    renderer.toneMappingExposure = 0.78;
+    renderer.toneMappingExposure = 1.02;
     // Keep the same studio color grade and contact shadows for both cameras.
   }
   function updateEndpointHandles(): void {
