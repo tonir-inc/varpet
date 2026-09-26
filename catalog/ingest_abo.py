@@ -33,6 +33,13 @@ TYPE_KIND = {
 NAME_KIND = [
     (r"\b(laptop|monitor) (desk )?stand|desk stand|workstation converter|computer workstation|laptop computer holder", "decor"),
     (r"\bdesk (high )?pedestal|drawer pedestal", "cabinet"),
+    # Before the cushion and "dining table" rules: "Slipcover Chair", "Chair with Removable Cushions" and
+    # "Dining Room Table Chairs" are chairs (a table-kind chair broke the editor's asset check, 27 Sept).
+    (r"\bwall art\b", "wall_art"),
+    (r"table (set )?with|with side table|dining set|table set|kiddie table", "table"),
+    (r"chair (cushions?|pads?|glides?|casters?|covers?|slipcovers?)\b|seat cushion", "decor"),
+    (r"anti-fatigue|floor mat|chair mat", "rug"),
+    (r"\bchairs?\b", "chair"),
     (r"\blamp\b", "lamp"),
     (r"\bpendant|chandelier|sconce|ceiling light|light fixture", "light"),
     (r"\bpillow|cushion|throw\b|slipcover|\bcover\b", "decor"),
