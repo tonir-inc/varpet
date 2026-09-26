@@ -116,6 +116,8 @@ export class StudioStage {
   private studioSpan = 10;
   private groundY = -1.39;
   private disposed = false;
+  private sceneryVisible = true;
+  private topView = false;
 
   constructor() {
     this.group.name = 'Apartment presentation stage';
@@ -234,11 +236,20 @@ export class StudioStage {
     this.group.updateMatrixWorld(true);
   }
 
+  /** Keep the pedestal while letting a skybox replace the surrounding gallery. */
+  setSceneryVisible(visible: boolean): void {
+    this.sceneryVisible = visible;
+    this.ground.visible = visible;
+    this.shadow.visible = visible;
+    this.backdrop.visible = visible && !this.topView;
+    this.inlays.visible = visible && !this.topView;
+  }
+
   /** Keep distant scenery behind the exhibit while allowing unrestricted orbit. */
   updateView(camera: THREE.Camera, topView: boolean): void {
     if (this.disposed) return;
-    this.backdrop.visible = !topView;
-    this.inlays.visible = !topView;
+    this.topView = topView;
+    this.setSceneryVisible(this.sceneryVisible);
     if (topView) return;
     camera.getWorldPosition(this.viewPosition);
     this.viewPosition.sub(this.center).setY(0);

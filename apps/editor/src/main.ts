@@ -21,6 +21,7 @@ import { createDesignerAdapter, structureAdapter as mockStructureAdapter } from 
 import { createArchitectHttpAdapter, withBuiltPieceResolver } from './adapters/architect-http';
 import { createReconstructionProposal } from './core/reconstruction-proposal';
 import { createViewport } from './render/viewport';
+import { SKYBOX_PRESETS, isSkyboxPreset, type SkyboxPreset } from './render/skybox';
 import { createFloorPlan } from './render/floor-plan';
 import { createCatalogPreviews } from './render/catalog-previews';
 import { icon } from './ui/icons';
@@ -89,6 +90,7 @@ app.innerHTML = `
       <div id="viewport"></div>
       <div id="floor-plan" hidden></div>
       <div class="viewport-top"><div class="view-switch" role="group" aria-label="Apartment view"><button id="perspective" class="active" aria-pressed="true" title="Perspective camera">${icon('cube')} 3D</button><button id="top-view" aria-pressed="false" title="Orthographic camera">${icon('top')} Top</button><button id="inside-view" aria-pressed="false" title="Walk inside at standing eye height">${icon('eye')} Inside</button><button id="plan-view" aria-pressed="false" title="Floor plan with room dimensions">${icon('room')} Plan</button></div><div class="view-options"><button id="walls" title="Cycle wall visibility">${icon('walls')} <span>Cutaway</span></button><button id="quality" aria-pressed="false" title="Toggle rendering quality">${icon('sun')} <span>Balanced</span></button><button id="preview" aria-pressed="false" title="Preview apartment · P">${icon('eye')} <span>Preview</span></button></div></div>
+      <label class="skybox-control" title="Choose a sky for 3D and Inside views">${icon('sun')}<span>Sky</span><select id="skybox" aria-label="Skybox">${SKYBOX_PRESETS.map(preset => `<option value="${preset.id}">${preset.label}</option>`).join('')}</select></label>
       <div class="inside-label"><strong>Inside</strong><span>Eye height · 1.65 m</span></div>
       <div class="canvas-label">${icon('layers')} <span>Ground floor</span><span class="pill">1 level</span></div>
       <div class="selection-chip" hidden><span id="selected-name"></span><button id="focus-selected" class="icon-button" aria-label="Frame selected object" title="Frame selection · F">${icon('focus')}</button></div>
@@ -139,6 +141,7 @@ let selectedFurnitureIds: string[] = [];
 let tool: ToolMode = 'select';
 type ApartmentView = ViewMode | 'plan';
 let view: ApartmentView = 'perspective';
+let selectedSkybox: SkyboxPreset = 'studio';
 let previewReturnView: ApartmentView | null = null;
 let insideReturnView: ApartmentView = 'perspective';
 let wallMode: WallMode = 'cutaway';
@@ -598,6 +601,8 @@ function setView(next:ApartmentView){
   if (viewport.setView(next === 'plan' ? 'perspective' : next) === false) return;
   if (next === 'inside' && view !== 'inside') insideReturnView = view;
   view=next;
+  $<HTMLSelectElement>('#skybox').disabled = view === 'top' || view === 'plan';
+  $('.viewport-shell').classList.toggle('skybox-active', selectedSkybox !== 'studio' && (view === 'perspective' || view === 'inside'));
   app.classList.toggle('inside-mode', view === 'inside');
   if (view === 'inside') select(null);
   const isPlan = view === 'plan';
@@ -782,6 +787,12 @@ document.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach(b=>b.onclick
 $('#focus').onclick=()=>focusView(selectedId??undefined);
 $('#snap').onclick=()=>{snap=!snap;viewport.setSnap(snap);floorPlan.setSnap(snap);renderViewportHints();renderInspector();};
 $('#walls').onclick=()=>{wallMode=wallMode==='cutaway'?'full':wallMode==='full'?'hidden':'cutaway';viewport.setWalls(wallMode);$('#walls span').textContent={cutaway:'Cutaway',full:'Full walls',hidden:'Walls hidden'}[wallMode];};
+$<HTMLSelectElement>('#skybox').onchange = event => {
+  const select = event.currentTarget as HTMLSelectElement;
+  if (isSkyboxPreset(select.value) && viewport.setSkybox(select.value)) selectedSkybox = select.value;
+  else select.value = selectedSkybox;
+  $('.viewport-shell').classList.toggle('skybox-active', selectedSkybox !== 'studio' && (view === 'perspective' || view === 'inside'));
+};
 let highQuality=false;$('#quality').onclick=()=>{highQuality=!highQuality;viewport.setQuality(highQuality?'high':'balanced');$('#quality span').textContent=highQuality?'High quality':'Balanced';$('#quality').setAttribute('aria-pressed',String(highQuality));};
 $('#suggest').onclick=()=>void requestProposal('designer');
 $('#help').onclick=()=>showModal('Keyboard & navigation',`<p class="modal-intro">Select walls, openings, rooms, furniture and systems in the canvas or Renovate panel. In Select mode, click a selected door or switch again to test it.</p><div class="shortcut-list">${[['1 / 2 / 3 / 4 / 5 / 6','Scene / Furniture / Assistant / Renovate / Materials / Ceilings'],['[','Toggle sidebar'],['P','Enter / exit preview'],['W A S D / arrows','Walk in Inside view'],['Drag / Esc','Look around / leave Inside'],['V / G / R / S','Select / Move / Rotate / Resize'],['F','Frame selection / apartment'],['⌘ / Ctrl + S','Save on this device'],['Shift + click','Add / remove furniture selection'],['⌘ / Ctrl + G','Group selected furniture'],['⌘ / Ctrl + Shift + G','Ungroup furniture'],['⌘ / Ctrl + D','Duplicate furniture'],['Delete / Backspace','Delete selected furniture'],['⌘ / Ctrl + Z','Undo'],['⌘ / Ctrl + Shift + Z','Redo'],['Esc','Cancel drag / clear selection / exit preview']].map(([key,label])=>`<div><span>${label}</span><kbd>${key}</kbd></div>`).join('')}</div><p class="modal-footnote">Plan: drag furniture, fixtures, walls, doors or windows to move them. Drag empty floor, Alt-drag, or right/middle drag to pan. Hold Shift for finer placement. Inside: standing eye height is 1.65 m above the current floor. Click the canvas, then use WASD or arrows to walk; drag to look around. Doors open for the walkthrough and restore when you leave. 3D: drag empty space to orbit, right drag to pan, scroll to zoom. Top: drag to pan. Select a door or window, choose Move (G), then drag it or its purple arrows along the wall. Openings stay inside their wall section and stop at neighbouring openings. Move snaps to 0.05 m for openings and walls. Wall corners also catch nearby straight and 90° alignments, including connected corners. Click Snap / Smooth in the toolbar to turn snapping on or off. Release to apply, Esc to cancel, or Undo to restore the previous position. Select a wall and choose Move to drag it back or forth with its purple center arrows; connected walls and room boundaries follow. The endpoint spheres adjust individual corners; use Renovate for precise dimensions, evidence and service editing.</p>`);

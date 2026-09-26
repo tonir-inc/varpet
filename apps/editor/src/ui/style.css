@@ -629,3 +629,34 @@ dialog::backdrop { background: var(--scrim); backdrop-filter: none; }
 #catalog-retry { flex-shrink: 0; margin: var(--space-3) 0; }
 .catalog-note { text-align: left; }
 .catalog-note a { text-decoration: underline; text-underline-offset: 3px; }
+
+/* Background selection stays separate from the crowded camera/quality controls. */
+.skybox-control {
+  position: absolute; top: 64px; right: 16px; z-index: 5;
+  display: flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-1) var(--space-2); border: 1px solid var(--line);
+  border-radius: var(--radius-sm); background: var(--surface); color: var(--muted);
+  box-shadow: var(--shadow-1); font-size: var(--text-xs);
+}
+.skybox-control svg { width: 16px; height: 16px; }
+.skybox-control select {
+  min-width: 94px; min-height: 28px; padding: var(--space-1);
+  border: 0; border-radius: var(--radius-sm); background: var(--surface); color: var(--ink);
+  cursor: pointer; transition: background var(--motion-feedback) ease;
+}
+.skybox-control select:hover { background: var(--hover); }
+.skybox-control:has(select:disabled) { opacity: .55; }
+.skybox-control select:disabled { cursor: default; }
+@media (max-width: 720px) {
+  .skybox-control { top: 60px; right: 10px; gap: var(--space-1); }
+  .skybox-control > span { display: none; }
+}
+
+/* Leave a full row for Sky when Properties is open. */
+.viewport-shell .right-panel { top: 112px; }
+/* Canvas labels need a solid surface over bright skies. */
+.skybox-active .canvas-label, .skybox-active #view-hint {
+  padding: var(--space-1) var(--space-2); border: 1px solid var(--line);
+  border-radius: var(--radius-sm); background: var(--surface); color: var(--ink); text-shadow: none;
+}
+.skybox-active .canvas-label span, .skybox-active .canvas-label > svg { color: var(--ink); }

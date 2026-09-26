@@ -32,6 +32,8 @@ Lighting combines a restrained hemisphere light, a warm shadow-casting key, two 
 
 `src/render/studio-stage.ts` presents the apartment on a 1.24 m deep beveled charcoal pedestal with a fixed dark-gray cap, recessed foot, and fine brass trim. Its top meets the underside of the apartment's 14 cm floor slab. The pedestal adapts to structural bounds and floor elevation; perspective framing includes the base while selected-entity focus and Top framing retain their editing behavior. The surrounding charcoal floor has large slab joints, a brass inlay, and a procedural soft contact shadow. A camera-relative distant gallery backdrop has softly lit curtain panels that blend into the floor. All stage geometry is disposable, unselectable presentation scenery outside the scene document, quantities, and edit history.
 
+Selectable local sky backgrounds and their measured behavior are documented in [Skyboxes](skyboxes.md).
+
 ## Performance and lifecycle
 
 Rendering is event-driven: scene, camera, selection, resize, and asset-load changes request a frame; there is no idle animation loop or orbit damping. Furniture groups are reused for transform-only edits. Asset/style changes rebuild the affected object, while a room/wall change rebuilds structure. `ResizeObserver` updates both cameras and canvas dimensions.

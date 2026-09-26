@@ -16,6 +16,7 @@ import { analyzeProject, componentPosition } from '../core/renovation';
 import { findOpeningMove, constrainOpeningOffset, type OpeningMoveContext } from '../core/opening-move';
 import { SelectionFrame, resizeTransformControls, styleTransformControls } from './selection-style';
 import { StudioStage } from './studio-stage';
+import { SkyboxResources, isSkyboxPreset, type SkyboxPreset } from './skybox';
 import { StudioRenderer } from './studio-renderer';
 import { placementConflicts } from '../core/placement-conflicts';
 import { expandFurnitureSelection, furnitureMembers, furnitureUpdates } from '../core/grouping';
@@ -59,6 +60,7 @@ export interface FinishViewport extends Viewport {
   setFinishBrush(presetId: string | null): void;
   revealSelection(available: ScreenRect): void;
   setLightingMood(mood: 'day' | 'evening'): void;
+  setSkybox(preset: SkyboxPreset): boolean;
   inspectCeiling(roomId: string): boolean;
 }
 export function createViewport(container: HTMLElement, callbacks: ViewportCallbacks & { onFinish?(presetId: string, target: FinishTarget): boolean }, normalizeScene?: SceneNormalizer): FinishViewport {
@@ -71,7 +73,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     message.textContent = '3D view unavailable. Enable browser hardware acceleration and reload.';
     message.style.cssText = 'margin:auto;padding:2rem;color:#6a5849;max-width:28rem;text-align:center';
     container.append(message);
-    return { setLightingMood() {}, inspectCeiling() { return false; }, setFinishBrush() {}, revealSelection() {}, setScene() {}, animatePlacement() {}, setSelection() {}, setTool() {}, setView() {}, setSnap() {}, setWalls() {}, setQuality() {}, setLayer() {}, setDoorAngle() {}, getDoorAngle() { return 0; }, toggleSwitch() {}, setSwitchLevel() {}, getSwitchLevel() { return 0; }, setComparison() {}, focus() {}, cancelInteraction() {}, dispose() { message.remove(); } };
+    return { setSkybox() { return false; }, setLightingMood() {}, inspectCeiling() { return false; }, setFinishBrush() {}, revealSelection() {}, setScene() {}, animatePlacement() {}, setSelection() {}, setTool() {}, setView() {}, setSnap() {}, setWalls() {}, setQuality() {}, setLayer() {}, setDoorAngle() {}, getDoorAngle() { return 0; }, toggleSwitch() {}, setSwitchLevel() {}, getSwitchLevel() { return 0; }, setComparison() {}, focus() {}, cancelInteraction() {}, dispose() { message.remove(); } };
   }
   renderer.setClearColor('#171d25');
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -142,6 +144,8 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   world.add(lighting);
   const stage = new StudioStage(); world.add(stage.group);
   const interiorDaylight = new InteriorDaylight(); world.add(interiorDaylight.group);
+  const skyboxes = new SkyboxResources(renderer);
+  let skyboxPreset: SkyboxPreset = 'studio';
   const studioBackground = world.background;
   const daylightBackground = new THREE.Color('#dce9f1');
 
@@ -306,9 +310,14 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     if (ceilingDesigns) ceilingDesigns.visible = (view === 'inside' || (layers.shell && layers.ceilings)) && !wallPreview;
     const inside = view === 'inside', evening = inside && lightingMood === 'evening';
     interiorDaylight.setEnabled(inside && !evening); interiorDaylight.invalidateShadows();
-    world.background = inside ? (evening ? eveningBackground : daylightBackground) : studioBackground;
-    world.fog = inside ? null : studioFog;
-    world.environmentIntensity = inside ? (evening ? 0.08 : 0.35) : 0.16;
+    // Sky selection is view state. Top stays neutral; the ceiling evening preview
+    // takes precedence Inside and restores the selected sky when returning to day.
+    const sky = skyboxPreset !== 'studio' && view !== 'top' && !evening ? skyboxes.get(skyboxPreset) : null;
+    stage.setSceneryVisible(!sky);
+    world.background = sky?.background ?? (inside ? (evening ? eveningBackground : daylightBackground) : studioBackground);
+    world.fog = inside || sky ? null : studioFog;
+    world.environment = sky?.environment ?? environment.texture;
+    world.environmentIntensity = sky ? (inside ? 0.45 : 0.35) : inside ? (evening ? 0.08 : 0.35) : 0.16;
     ambient.intensity = inside ? (evening ? 0.16 : 0.6) : 0.18;
     ambient.color.set(inside ? '#e6efff' : '#bccce6');
     ambient.groundColor.set(inside ? '#b6a18b' : '#6c4930');
@@ -1125,6 +1134,18 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     setTool,
     setView,
     setLightingMood(mood) { lightingMood = mood; applyLayers(); requestRender(); },
+    setSkybox(preset) {
+      if (disposed || !isSkyboxPreset(preset)) return false;
+      if (preset === skyboxPreset) return true;
+      try {
+        if (preset !== 'studio') skyboxes.get(preset);
+      } catch {
+        callbacks.onError('This sky could not be rendered. Choose another sky or reload the editor.');
+        return false;
+      }
+      skyboxPreset = preset;
+      applyLayers(); requestRender(); return true;
+    },
     inspectCeiling(roomId) {
       const room = documentState?.rooms.find(room => room.id === roomId);
       if (!room || !documentState) return false;
@@ -1196,7 +1217,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       if (ceilingDesigns) disposeObject(ceilingDesigns);
       if (services) disposeObject(services.group); if (comparison) disposeObject(comparison); disposeObject(annotations); disposeObject(endpointHandles); disposeObject(openingHandle);
       stage.dispose(); interiorDaylight.dispose(); loader.dispose(); sunlight.shadow.dispose();
-      studioRenderer.dispose(); environment.dispose(); renderer.dispose(); renderer.domElement.remove();
+      studioRenderer.dispose(); skyboxes.dispose(); environment.dispose(); renderer.dispose(); renderer.domElement.remove();
     },
   };
 }
