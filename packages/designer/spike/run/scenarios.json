@@ -1,0 +1,50 @@
+{
+  "scenarios": [
+    {
+      "id": "sunday-hosts",
+      "title": "Whole-flat planning and hosting in the Sunday Towers penthouse, then a 20% cut",
+      "flat": "../../../apartments/sunday-b12121/scene.json",
+      "rooms": ["r-entrance", "r-living", "r-kitchen", "r-balcony-4", "r-bedroom-6", "r-bedroom-9", "r-bedroom-11", "r-bath-10"],
+      "budget_dram": 16000000,
+      "timeout_s": 3600,
+      "request": "We just got the keys to the penthouse on the 12th floor of Sunday Towers in Arabkir and want the whole flat furnished before we move in in November. We are Narek (52) and Lilit (49) Hakobyan. Narek is a commercial lawyer: he often works from home until late, reads contracts on paper, and needs a real office with a big desk, a proper ergonomic chair, closed storage for files and a spot where he can take video calls with a calm background. Lilit is a pastry chef who teaches masterclasses on Saturdays; she is the one who cooks, so the kitchen stays hers, but the table is the heart of this family. Our daughter Mariam (19) studies in Vienna and is home for summers and New Year; her room must stay hers (she paints, needs a desk by the window and space for an easel), and when she is away it is the guest room for Lilit's mother from Gyumri, who is 76 and needs a bed that is easy to get in and out of and a chair with arms. Every Sunday we host lunch for 10 people, sometimes 12 with cousins, and in summer we eat on the big balcony off the living room. So: a dining table for at least 10 in the living room, with the sofa corner separate from it, and a summer table on the balcony for 6. Use the two big bedrooms (about 25 m2 each) for us and for Narek's office, and the smaller one (17 m2) for Mariam. Style: warm and grown-up, walnut and oak, travertine, deep green and rust accents, linen, lots of plants, brass lamps. We hate grey minimalism, glossy white furniture and anything that looks like a hotel. Our bedroom needs a king-size bed, a big wardrobe and blackout curtains (Narek sleeps badly), and a reading chair for Lilit. The entrance should welcome guests: a bench to take off shoes, a coat rack for 12 coats in winter, a mirror. Budget: 16,000,000 AMD for furniture.",
+      "if_asked": "Go with the option that keeps Mariam's room and Narek's office as separate rooms; we can live with a smaller dining table if it extends to 10.",
+      "followups": [
+        {"text": "Lilit's mother saw the renders and says the living room feels cold. Swap the sofa for something in deep green velvet, add warmer evening light around the sofa and the table, and show me the living room in the evening."},
+        {"text": "We just saw the bank's offer. Can we do the whole flat for 20% less, 12,800,000 AMD in total? Keep the dining table, the bed and everything in Narek's office; cut elsewhere and tell us what you changed.", "budget_dram": 12800000},
+        {"text": "New Year's Eve is at ours this year: 14 people. How do we seat everyone in the living room and still keep a way to the balcony and the kitchen?"}
+      ]
+    },
+    {
+      "id": "orion-t8-family",
+      "title": "Young family in Orion type 8: a shared kids' room, a home office, then playful and a dog",
+      "flat": "../../../apartments/orion-t8/scene.json",
+      "rooms": ["lounge", "bedroom-1", "bedroom-2", "hall", "living", "balcony"],
+      "budget_dram": 7500000,
+      "timeout_s": 2700,
+      "request": "Please furnish our new flat in Orion on the top floor. We are Arman (36) and Siranush (34) Petrosyan with two kids, Tigran (7) and Nare (4). Arman is a game developer at a studio in Yerevan and works from home four days a week: he needs a real office with a 160 cm desk, two monitors, a good chair, shelves for his board-game collection and a door he can close for calls. The small reading room next to the bedrooms is his office. Siranush is a pediatric dentist, out early, back at six; in the evenings she reads and does pilates at home, so she wants a clear spot for a yoga mat in the living room. Tigran and Nare share one bedroom for now: Tigran loves dinosaurs and Lego and needs a little desk for homework, Nare still naps and loves drawing. They need two beds (a bunk bed is fine if it is safe), lots of low toy storage they can reach themselves, a soft rug to play on and a reading nook. We take the other bedroom: a queen bed, a wardrobe and a dresser, nothing fancy. The big living room with the kitchen is where everything happens: a dining table for six (grandparents come every Friday), a large sofa that survives kids, a TV for movie nights, and a corner where the kids can play without toys taking over the whole room. The balcony: two chairs and a small table for morning coffee, plus plants. Style: bright Scandinavian with warm oak, soft pastels, rounded corners (no sharp glass tables with kids), washable fabrics. We dislike dark colours and anything fragile. Budget: 7,500,000 AMD for furniture.",
+      "if_asked": "The kids share one bedroom and Arman's office stays in the reading room; go ahead.",
+      "followups": [
+        {"text": "The kids' room feels too plain. Make it more playful: Tigran wants a climbing corner and a dinosaur on the wall, Nare wants a teepee to hide in. Keep the beds and the desk."},
+        {"text": "Surprise: we adopted a dog yesterday, Bambuk, a medium-size corgi mix. Where does he sleep, where do his bowls go, and where do we keep his lead and toys?"},
+        {"text": "Arman is on video calls all day. Show me what is behind him on camera in the office and make that wall look good."}
+      ]
+    },
+    {
+      "id": "orion-t7-inspired",
+      "title": "Picture-inspired living room in Orion type 7, a studio and a guest room, then green velvet and a wine evening",
+      "flat": "../../../apartments/orion-t7/scene.json",
+      "rooms": ["living", "bedroom-1", "bedroom-2", "bedroom-3", "hall", "balcony"],
+      "budget_dram": 9000000,
+      "image": "fixtures/inspiration-terracotta-living.jpg",
+      "timeout_s": 2700,
+      "request": "We are Hayk (31) and Mane (29) Sargsyan and we just bought this top-floor flat in Orion. Hayk is a sommelier and runs a small wine bar in Kond; Mane is a ceramicist who sells her work online and teaches wheel classes on weekends. We love the room in the picture I attached: the terracotta wall, the soft cream sofa, the walnut sideboard, the travertine table, the olive tree and the big abstract canvas. Please make our living room feel like that, and carry the same warm palette through the rest of the flat without copying it everywhere. The long living room with the kitchen must seat 8 for Friday wine tastings: a solid dining table, comfortable chairs, a place to display bottles and glasses (a bar cabinet or open shelves), and a sofa corner for after dinner with a record player. Bedroom 1 (the big one with the ensuite) is ours: a king bed, a walk-in feel with wardrobes, two nightstands, a reading chair, and linen curtains. Bedroom 2 is Mane's studio office: a big worktable for packing orders, a desk for her laptop, open shelves to photograph and store finished pieces, good light, no carpet (clay dust). Bedroom 3 is the guest room for Hayk's parents, who fly in from Glendale for two months every summer: a queen bed, a wardrobe, a small desk and a comfortable armchair for his father, who has a bad back. The hall needs shoe storage and a mirror, and the little balcony two stools and plants. We dislike cold greys, chrome and heavy, dark bedrooms. Budget: 9,000,000 AMD for furniture.",
+      "if_asked": "Go with your recommendation; the guest room stays a guest room and the studio stays a studio.",
+      "followups": [
+        {"text": "Mane loves it but says the cream sofa will not survive our red-wine evenings. Swap the sofa for something in green velvet and adjust the room around it so it still feels like the picture."},
+        {"text": "Show me the living room in the evening: eight people for a Friday tasting. Is there enough light at the table and on the bottles, and does everyone have a seat after dinner?"},
+        {"text": "Hayk's parents extended their visit to three months. Make the guest room work for a long stay: more storage, blackout curtains and a better chair for his father's back."}
+      ]
+    }
+  ]
+}
