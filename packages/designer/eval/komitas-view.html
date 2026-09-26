@@ -1,0 +1,14 @@
+<!doctype html><html><head><meta charset="UTF-8"><title>Komitas — furnished apartment</title><style>html,body,#viewport{margin:0;width:100%;height:100%;overflow:hidden}#label{position:absolute;left:28px;top:24px;z-index:1;color:#f2eadf;font:24px system-ui;text-shadow:0 2px 8px #000}</style></head><body><div id="label"></div><div id="viewport"></div><script type="module">
+import {AssetLoader} from '/src/render/assets.ts';
+import {createViewport} from '/src/render/viewport.ts';
+const errors=[];window.captureErrors=errors;window.capturePending=0;window.captureLoaded=[];
+const load=AssetLoader.prototype.load;
+AssetLoader.prototype.load=async function(asset){window.capturePending++;try{const model=await load.call(this,asset);window.captureLoaded.push(asset.id);return model;}catch(error){errors.push(String(error));throw error;}finally{window.capturePending--;}};
+const viewport=createViewport(document.querySelector('#viewport'),{onSelect(){},onTransform(){},onInteraction(){},onError(message){errors.push(message)}});
+const path=new URL(location.href).searchParams.get('state');
+const {scene,catalog}=await fetch(path).then(r=>r.json());
+window.captureExpected=[...new Set(scene.objects.map(object=>object.assetId))].filter(id=>catalog.find(asset=>asset.id===id)?.source.type==='gltf');
+document.querySelector('#label').textContent=scene.name;
+viewport.setScene(scene,catalog);viewport.setWalls('cutaway');viewport.setQuality('high');viewport.focus();
+window.evalViewport=viewport;window.captureReady=true;
+</script></body></html>
