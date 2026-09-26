@@ -135,6 +135,90 @@ class BoardTests(unittest.TestCase):
         self.assertEqual(self.git('diff', '--cached', '--name-only'), 'code.txt')
         self.assertEqual(self.git('log', '-1', '--format=%s'), 'board: catalog → editor: Commit')
 
+    def qa_add(self, title='Broken move', lane='editor', severity='major', *extra):
+        return self.cli('qa', 'add', '--lane', lane, '--severity', severity,
+                        '--title', title, *extra).stdout.strip()
+
+    def test_qa_add_images_and_staging(self):
+        image = self.root / 'screen.png'
+        image.write_bytes(b'\x89PNG\r\n\x1a\n' + b'evidence')
+        (self.root / 'unrelated.txt').write_text('leave unstaged')
+        ident = self.qa_add('Move: "bad" #1', 'editor', 'major', '--steps', 'Select\nDrag',
+                            '--expected', 'Moves', '--actual', 'Stays', '--by', 'Sergey',
+                            '--image', str(image), '--image', str(image))
+        text = self.cli('qa', 'show', ident).stdout
+        for fragment in ('**Steps**', 'Select\nDrag', '**Expected**', 'Moves', '**Actual**',
+                         'Stays', '**Evidence**', '**Notes**', 'reported_by: "Sergey"'):
+            self.assertIn(fragment, text)
+        expected = {f'board/qa/{ident}.md', 'board/qa/INDEX.md'}
+        for number in (1, 2):
+            path = f'board/qa/img/{ident}-{number}.png'
+            self.assertEqual((self.root / path).read_bytes(), image.read_bytes())
+            self.assertIn(f'img/{ident}-{number}.png', text)
+            expected.add(path)
+        self.assertEqual(set(self.git('diff', '--cached', '--name-only').splitlines()), expected)
+        self.assertEqual(self.git('log', '-1', '--format=%s'), 'initial')
+
+    def test_qa_large_image_warns_and_is_not_copied(self):
+        image = self.root / 'large.png'
+        image.write_bytes(b'\x89PNG\r\n\x1a\n' + b'x' * (2 * 1024 * 1024))
+        result = self.cli('qa', 'add', '--lane', 'unknown', '--severity', 'minor',
+                          '--title', 'Large screenshot', '--image', str(image))
+        self.assertIn('warning:', result.stderr)
+        self.assertFalse((self.root / 'board/qa/img').exists())
+        self.assertIn(result.stdout.strip(), self.cli('qa', 'show', result.stdout.strip()).stdout)
+
+    def test_qa_order_filters_and_prefixes(self):
+        minor = self.qa_add('Minor', 'editor', 'minor')
+        first = self.qa_add('First blocker', 'designer', 'blocker')
+        second = self.qa_add('Second blocker', 'editor', 'blocker')
+        self.cli('qa', 'set', first, '--status', 'fixing')
+        self.cli('qa', 'set', minor, '--status', 'fixed')
+        rows = self.cli('qa', 'list').stdout.splitlines()[1:]
+        self.assertEqual([self.cli('qa', 'show', row.split()[0]).stdout.splitlines()[1]
+                          for row in rows], [f'id: "{i}"' for i in (first, second, minor)])
+        output = self.cli('qa', 'list', '--lane', 'editor', '--open', '--severity', 'blocker').stdout
+        self.assertIn('Second blocker', output)
+        self.assertNotIn('First blocker', output)
+        self.assertNotIn('Minor', output)
+        self.assertIn('First blocker', self.cli('qa', 'list', '--open').stdout)
+        self.assertIn('Minor', self.cli('qa', 'list', '--status', 'fixed').stdout)
+        self.assertNotIn('blocker  ', self.cli('qa', 'list', '--status', 'fixed').stdout)
+        self.assertIn('ambiguous', self.cli('qa', 'show', first[:8], ok=False).stderr)
+        self.assertIn('unknown QA id', self.cli('qa', 'show', '../escape', ok=False).stderr)
+
+    def test_qa_status_note_index_and_summary(self):
+        ident = self.qa_add()
+        index = self.root / 'board/qa/INDEX.md'
+        self.assertIn(f'({ident}.md)', index.read_text())
+        prefix = ident[:-20]
+        self.cli('qa', 'set', prefix, '--status', 'fixing', '--note', 'Investigating')
+        self.assertIn('fixing', index.read_text())
+        rows = self.cli('qa', 'summary').stdout.splitlines()
+        self.assertEqual(next(row.split()[1:] for row in rows if row.startswith('editor')), ['0', '1', '0', '0'])
+        self.cli('qa', 'set', prefix, '--status', 'fixed', '--fixed-in', 'abc1234', '--note', 'Verified')
+        text = self.cli('qa', 'show', prefix).stdout
+        self.assertIn('status: "fixed"', text)
+        self.assertIn('fixed_in: "abc1234"', text)
+        self.assertRegex(text, r'\*\*Notes\*\*[\s\S]*- \d{4}-\d{2}-\d{2}T[^\n]+: Investigating')
+        self.assertIn(': Verified', text)
+        self.assertNotIn(ident, index.read_text())
+        self.assertTrue((self.root / f'board/qa/{ident}.md').exists())
+        index.write_text('stale')
+        self.cli('qa', 'summary')
+        self.assertIn('No open issues.', index.read_text())
+        self.assertEqual(self.git('show', ':board/qa/INDEX.md'), index.read_text().strip())
+
+    def test_qa_validation_before_writing(self):
+        for extra in (('--lane', 'all'), ('--severity', 'urgent'), ('--image', 'missing.png')):
+            self.cli('qa', 'add', '--lane', 'editor', '--severity', 'major', '--title', 'Bad', *extra, ok=False)
+        self.assertFalse((self.root / 'board/qa').exists())
+        ident = self.qa_add()
+        before = self.cli('qa', 'show', ident).stdout
+        self.cli('qa', 'set', ident, '--status', 'fixed', '--fixed-in', 'not-a-sha', ok=False)
+        self.assertEqual(before, self.cli('qa', 'show', ident).stdout)
+
+
     def remote(self):
         remote = self.root / 'remote.git'
         self.git('init', '--bare', str(remote))

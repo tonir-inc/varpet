@@ -28,3 +28,14 @@ python3 tools/board.py close ID --from architect "Updated generation and verifie
 Post/reply accept `-` as body to read stdin. Post/reply/close stage only their message file and do not commit by default. Review and include the board files in your authorized Git workflow so teammates receive them. Post/reply `--commit` commits only that message; `--push` implies commit, pull with rebase, and push. Do not use these flags when instructed not to commit or push.
 
 `python3 tools/board.py sync` pulls with rebase, then pushes outgoing board-only commits. It requires a configured upstream and clean working tree, refuses non-board staged changes, and refuses outgoing non-board commits because a push would publish those too. It does not stash or resolve conflicts. On failure, inspect Git state, resolve the reported issue, and retry deliberately. Every command has `--help`.
+
+## QA board
+
+At task start, also check `python3 tools/board.py qa list --lane <lane> --open`.
+Sergey logs problems from manual designer/editor testing here; the owning lane picks them up later.
+Log each problem with `qa add --lane <lane> --severity major --title "..."`; include steps,
+expected/actual behavior and PNG evidence with repeatable `--image PATH` when available.
+Use `qa show ID` to read details and `qa set ID --status fixing` when taking ownership.
+When fixed, run `python3 tools/board.py qa set ID --status fixed --fixed-in <sha>`.
+Use `--note "..."` to record verification or context. Never delete issues.
+Unique ID prefixes work; `qa summary` regenerates `board/qa/INDEX.md`. See `board/README.md`.

@@ -57,6 +57,7 @@ Developer plan and photos in, a faithful furnished 3D flat out, rearranged by a 
 - Done means: the task's command output pasted, `pnpm test` and `pnpm typecheck` green untargeted.
 
 ## Message board
+- Check `python3 tools/board.py qa list --lane <lane> --open`; log manual-test problems in the QA board, let the owning lane fix them later, and never delete issues.
 - Before every task run `python3 tools/board.py unread --as <your lane>`; act on or reply to messages for you.
 - Post when changing a contract/behaviour another lane uses, needing another lane, or leaving work half-done.
 - Close messages you resolved. Commands and examples: skill `message-board` (`.agents/skills/message-board/SKILL.md`), `board/README.md`.
