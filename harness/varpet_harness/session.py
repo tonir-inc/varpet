@@ -74,24 +74,28 @@ def _skill(repo: Path, name: str) -> str:
 READ_PROMPT = """You are the architect for the flat "{flat}". You stay for the whole flat: first you read it,
 later you place the furniture that builders make, then you check your result against the photos.
 
-Step 1 now. Write two files in this folder:
-1. shell/shell.json: the flat as it is, per the flat-shell skill below, including `components` for every
-   fixture the plan or photos show (toilet, shower, bath, sink, kitchen worktop and cabinets, appliances,
-   radiators). Fixtures are part of the flat, not furniture.
-2. pieces.json: {{"pieces": [{{"id", "brief", "size": [w, d, h], "size_source", "count", "refs"}}]}}, one entry
-   per movable furniture piece (sofas, beds, tables, chairs, storage, rugs, mirrors, lamps) to be built from
-   the photos. Identical pieces are one entry with a count. size in metres; size_source: plan, photo (measured
-   against something of known size such as a 2.0 m door), scan or typical. refs: the paths of the photos that
-   show that piece best, best first, at most 3. brief: what it looks like, in one or two sentences.
-   set: give pieces that belong together the same short set name, so one builder makes them together with
-   matching materials: dining table + chairs, bed + bedside tables + bedside lamps, sofa + coffee table +
-   side table, desk + desk chair. At most 4 pieces per set. Pieces that match nothing get no set.
+Step 1a now: write shell/shell.json with the rooms and walls (doors and windows included), per the
+flat-shell skill below. Leave `components` out for now; fixtures come in the next step. Be quick and exact:
+people are watching the walls go up.
 
 Plan: {plan} (the first image). Photos, in the order attached after it:
 {photos}
 
 # Skill: flat-shell
 {shell_skill}"""
+
+FIXTURES_PROMPT = """Step 1b. Your rooms and walls are checked. Now, in this folder:
+1. add `components` to shell/shell.json: every fixture the plan or photos show (toilet, shower, bath, sink,
+   kitchen worktop and cabinets, appliances, radiators), per the flat-shell skill. Fixtures are part of the flat,
+   not furniture. Keep the rooms and walls as they are.
+2. write pieces.json: {{"pieces": [{{"id", "brief", "size": [w, d, h], "size_source", "count", "refs", "set"}}]}}, one
+   entry per movable furniture piece (sofas, beds, tables, chairs, storage, rugs, mirrors, lamps) to be built from
+   the photos. Identical pieces are one entry with a count. size in metres; size_source: plan, photo (measured
+   against something of known size such as a 2.0 m door), scan or typical. refs: the paths of the photos that
+   show that piece best, best first, at most 3. brief: what it looks like, in one or two sentences.
+   set: give pieces that belong together the same short set name, so one builder makes them together with
+   matching materials: dining table + chairs, bed + bedside tables + bedside lamps, sofa + coffee table +
+   side table, desk + desk chair. At most 4 pieces per set. Pieces that match nothing get no set."""
 
 PLACE_PROMPT = """Step 3. The builders finished. Place the pieces where the photos show them, per the flat-furnish skill
 below, into furnish/placements.json. The flat is your shell/shell.json (fixtures included: keep furniture off them).
@@ -129,6 +133,17 @@ def export_project(repo: Path, run_dir: Path, base_url: str = "http://127.0.0.1:
                           cwd=repo / "apps" / "editor", capture_output=True, text=True, stdin=subprocess.DEVNULL)
     (run_dir / "export.log").write_text(proc.stdout + proc.stderr)
     return out if proc.returncode == 0 and out.exists() else None
+
+
+def _emit_shell(emit, run_dir: Path) -> None:
+    if not emit:
+        return
+    from .shell import Shell, to_editor
+
+    try:
+        emit({"type": "shell", **to_editor(Shell.model_validate_json((run_dir / "shell" / "shell.json").read_text()))})
+    except (ValueError, OSError):
+        pass
 
 
 def _emit_placements(emit, run_dir: Path, base_url: str) -> None:
@@ -201,7 +216,8 @@ async def run_session(codex: AsyncCodex, repo: Path, flat: str, plan: str, photo
     for sub in ("shell", "furnish", "review"):
         (run_dir / sub).mkdir(exist_ok=True)
     report = SessionReport(flat=flat, run_dir=str(run_dir))
-    runner = CodexRunner(codex, repo, model=model, compile_cmd=compile_cmd, progress=progress)
+    activity = (lambda who, kind, text: emit({"type": "activity", "who": who, "kind": kind, "text": text})) if emit else None
+    runner = CodexRunner(codex, repo, model=model, compile_cmd=compile_cmd, progress=progress, activity=activity)
     me = Job(id="architect", kind="shell", brief="-", effort="medium")
     thread = await codex.thread_start(approval_mode=ApprovalMode.deny_all, sandbox=Sandbox.workspace_write,
                                       cwd=str(run_dir), model=model, config=thread_config())
@@ -233,6 +249,10 @@ async def run_session(codex: AsyncCodex, repo: Path, flat: str, plan: str, photo
                                     shell_skill=_skill(repo, "flat-shell"))
         await turn([TextInput(prompt), *images])
         shell_faults = await checked("shell/shell.json", SHELL_CHECK, run_dir / "shell" / "shell.json")
+        _emit_shell(emit, run_dir)  # the walls go up on screen now, fixtures follow
+        progress("architect: reading the fixtures and furniture")
+        await turn([TextInput(FIXTURES_PROMPT)])
+        shell_faults = await checked("shell/shell.json", SHELL_CHECK, run_dir / "shell" / "shell.json")
         pieces = None
         for attempt in range(FIX_TURNS + 1):
             try:
@@ -244,13 +264,8 @@ async def run_session(codex: AsyncCodex, repo: Path, flat: str, plan: str, photo
                 progress("architect: fixing pieces.json")
                 await turn([TextInput(_fix_prompt("pieces.json", str(e)[:3000]))])
         report.step("read", t, shell_ok=shell_faults is None, pieces=len(pieces.pieces))
+        _emit_shell(emit, run_dir)
         if emit:
-            from .shell import Shell, to_editor
-
-            try:
-                emit({"type": "shell", **to_editor(Shell.model_validate_json((run_dir / "shell" / "shell.json").read_text()))})
-            except ValueError:
-                pass
             emit({"type": "pieces", "pieces": [{"id": p.id, "size": p.size, "count": p.count} for p in pieces.pieces]})
 
         # 2. build the pieces in parallel

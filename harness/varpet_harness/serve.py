@@ -71,7 +71,8 @@ async def reconstruct(body: dict, repo: Path, runs: Path, progress: Callable[[st
     return to_editor(Shell.model_validate_json(Path(result.output).read_text()))
 
 
-FRIENDLY = [("architect: reading", "Reading the plan and photos: walls, doors, kitchen and bathroom"),
+FRIENDLY = [("architect: reading the fixtures", "Reading the kitchen, bathroom and furniture"),
+            ("architect: reading", "Reading the plan: rooms, walls, doors and windows"),
             ("architect: fixing shell", "Correcting the walls and fixtures"),
             ("architect: fixing pieces", "Correcting the furniture list"),
             ("builders:", "Building furniture from the photos"),

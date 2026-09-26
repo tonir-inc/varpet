@@ -21,3 +21,6 @@ fixtures/real/
 # procedural candidates: rebuild with catalog/texgen/gen.py
 catalog/materials/*-gen/
 catalog/texgen/contact.png
+
+# replay media from real listings (copyrighted, local only)
+apps/editor/public/architect-replay/

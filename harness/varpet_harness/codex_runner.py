@@ -72,6 +72,7 @@ class CodexRunner:
         format_turns: int = 2,
         stall: float = 4 * 60,
         progress=None,
+        activity=None,
     ):
         self.codex = codex
         self.repo = repo
@@ -85,6 +86,7 @@ class CodexRunner:
         self.format_turns = format_turns
         self.stall = stall
         self.progress = progress or (lambda message: None)
+        self.activity = activity  # activity(who, kind, text): what a thread is doing, for a live view
         self.config = thread_config()
 
     async def run(self, job: Job, workdir: Path, deps: dict[str, JobResult]) -> JobResult:
@@ -181,6 +183,16 @@ class CodexRunner:
         finally:
             await self.codex.thread_archive(thread.id)
 
+    async def _tap(self, stream, job: Job):
+        """Pass the turn's events through untouched; report commands run and reasoning summaries."""
+        async for event in stream:
+            if self.activity:
+                try:
+                    _report_activity(self.activity, job.id, event)
+                except Exception:  # a live view must never break a build
+                    pass
+            yield event
+
     def _set_input(self, name: str, members: list[Job], run_dir: Path) -> list:
         lines = [f"Build this matching set of {len(members)} pieces ({name}). Where the photos show the same wood, "
                  "metal or fabric across the pieces, use the same finish and the same colour in every piece.",
@@ -212,7 +224,7 @@ class CodexRunner:
             stream = handle.stream()
             try:
                 return await _collect_async_turn_result(
-                    quiet_guard(stream, self.stall), turn_id=handle.id
+                    quiet_guard(self._tap(stream, job), self.stall), turn_id=handle.id
                 )
             except TimeoutError:
                 await handle.interrupt()
@@ -296,6 +308,24 @@ def _strip_frontmatter(text: str) -> str:
         if end != -1:
             return text[end + 4 :].lstrip()
     return text
+
+
+def _report_activity(activity, who: str, event) -> None:
+    if event.method not in ("item/started", "item/completed"):
+        return
+    item = getattr(event.payload, "item", None)
+    item = getattr(item, "root", item)
+    kind = getattr(item, "type", None)
+    if event.method == "item/started" and kind == "commandExecution":
+        activity(who, "command", str(getattr(item, "command", ""))[:200])
+    elif event.method == "item/completed" and kind == "reasoning":
+        summary = " ".join(getattr(item, "summary", None) or []).strip()
+        if summary:
+            activity(who, "thought", summary[:400])
+    elif event.method == "item/completed" and kind == "fileChange":
+        paths = [getattr(c, "path", "") for c in getattr(item, "changes", None) or []]
+        if paths:
+            activity(who, "file", ", ".join(Path(p).name for p in paths if p)[:200])
 
 
 def _detail(job: Job, workdir: Path) -> str | None:

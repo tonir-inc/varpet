@@ -58,7 +58,7 @@ def test_session_reads_builds_places(tmp_path, monkeypatch):
     report = asyncio.run(S.run_session(FakeCodex(), REPO, "t", "fixtures/real/x/plan.jpg", [], run, None,
                                        review=False, progress=lambda m: None))
     assert [s["step"] for s in report.steps] == ["read", "build", "place", "export"]
-    assert report.steps[2]["ok"] and report.architect_turns == 3  # read, place, one fix
+    assert report.steps[2]["ok"] and report.architect_turns == 4  # walls, fixtures, place, one fix
     graph = json.loads((run / "graph.json").read_text())
     assert {j["kind"] for j in graph["jobs"]} == {"piece", "shell", "furnish"}
 
