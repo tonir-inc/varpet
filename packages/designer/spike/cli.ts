@@ -1,6 +1,6 @@
 /** varpet designer CLI. Run from a workspace holding scene.json and draft.json:
  *   npx tsx cli.ts describe | check [--warnings] | render-plan [out.png] [--room id]
- *     | render-view [out.png] [--room id] [--camera overview|eye|eye2|top] [--time day|evening]   (no --room: whole flat, overview/top)
+ *     | render-view [out.png] [--room id] [--camera overview|eye|eye2|top] [--time day|evening] [--width 768] [--height 512]   (no --room: whole flat, overview/top)
  *     | materials | swatches [out.png] | search --kind k [--text t] [--max-w n --max-d n --max-h n --max-price n --limit n]
  *     | sheet sku1 sku2 ... [out.png]
  * Optional --scene path / --draft path override the cwd files. budget.json ({budget_dram}) and source.json (the flat's
@@ -11,6 +11,10 @@
  * or set NODE_PATH so the lib modules can resolve their own dependencies. */
 import { loadBudget, loadDraft, loadScene, loadSource, describe } from './lib/scene.ts';
 
+const KINDS = 'sofa chair table bed cabinet lamp rug shelf plant decor wall_art mirror tv desk dresser wardrobe nightstand stool ottoman bench '
+  + 'vase candle books cushion throw_blanket basket tray bowl lantern picture_frame planter clock wall_hanging monitor computer speaker '
+  + 'coat_rack shoe_rack curtain blind crib changing_table pet_bed mattress kitchen_cabinet fridge washing_machine sink toilet bathtub shower towel_rack '
+  + '(dining table: table --text dining; sideboard/tv stand: cabinet --text)';
 const argv = process.argv.slice(2);
 const cmd = argv.shift();
 function flag(name: string): string | undefined {
@@ -49,13 +53,15 @@ async function main(): Promise<number> {
     }
     case 'render-view': {
       const roomId = flag('room');
-      const out = argv[0] ?? `view-${roomId ?? 'flat'}.png`;
+      // 768x512 by default: the model sees as much at a third of the pixels, and the render returns sooner.
+      const width = num('width') ?? 768, height = num('height') ?? Math.round(width * 2 / 3);
       const camera = flag('camera') ?? 'overview', time = flag('time') ?? 'day';
+      const out = argv[0] ?? `view-${roomId ?? 'flat'}.png`;
       if (!['overview', 'eye', 'eye2', 'top'].includes(camera)) throw new Error('--camera is overview, eye, eye2 or top');
       if (!roomId && (camera === 'eye' || camera === 'eye2')) throw new Error('eye cameras need --room <id>');
       if (!['day', 'evening'].includes(time)) throw new Error('--time is day or evening');
       const { renderView } = await lib('render-view.ts');
-      console.log(await renderView(scene, draft, out, { roomId, camera, time, source: loadSource(scenePath) })); return 0;
+      console.log(await renderView(scene, draft, out, { roomId, camera, time, width, height, source: loadSource(scenePath) })); return 0;
     }
     case 'materials': {
       const { MATERIALS } = await lib('finishes.ts');
@@ -73,7 +79,7 @@ async function main(): Promise<number> {
       const q = { kind, text: flag('text'), maxW: num('max-w'), maxD: num('max-d'), maxH: num('max-h'), maxPrice: num('max-price'), limit: num('limit') };
       const { search } = await lib('catalog.ts');
       const rows: { sku: string; kind: string; name: string; size: number[]; price: number; vendor: string; image?: string }[] = await search(q);
-      if (!rows.length) console.log('no results');
+      if (!rows.length) console.log(`no results for kind ${kind}; kinds: ${KINDS}`);
       for (const p of rows) console.log(`${p.sku} | ${p.name} | ${p.size.map(n => n.toFixed(2)).join('x')} m | ${p.price} AMD | ${p.vendor}`);
       return 0;
     }
@@ -84,7 +90,7 @@ async function main(): Promise<number> {
       console.log(await productSheet(argv, out)); return 0;
     }
     default:
-      console.log('usage: varpet describe | check [--warnings] | render-plan [out.png] [--room id] | render-view [out.png] [--room id] [--camera overview|eye|eye2|top] [--time day|evening] | materials | swatches [out.png] | search --kind k [--text t] [--max-w n] [--max-d n] [--max-h n] [--max-price n] [--limit n] | sheet sku... [out.png]');
+      console.log('usage: varpet describe | check [--warnings] | render-plan [out.png] [--room id] | render-view [out.png] [--room id] [--camera overview|eye|eye2|top] [--time day|evening] [--width n] [--height n] | materials | swatches [out.png] | search --kind k [--text t] [--max-w n] [--max-d n] [--max-h n] [--max-price n] [--limit n] | sheet sku... [out.png]');
       return cmd ? 2 : 0;
   }
 }
