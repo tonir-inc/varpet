@@ -1,0 +1,55 @@
+
+> varpet@ test /Users/ashotarushanyan/AshProjects/varpet-bench
+> pnpm -r test
+
+Scope: 5 of 6 workspace projects
+tools test$ node --test
+packages/engine test$ vitest run --passWithNoTests
+packages/designer test$ vitest run && python3 -m unittest discover -s ../../harness -p 'designer*_test.py' && python3 -m unittest discover -s eval -p 'test_*.py'
+packages/designer test:  RUN  v5.0.2 /Users/ashotarushanyan/AshProjects/varpet-bench/packages/designer
+packages/engine test:  RUN  v5.0.2 /Users/ashotarushanyan/AshProjects/varpet-bench/packages/engine
+packages/engine test: No test files found, exiting with code 0
+packages/engine test: include: **/*.{test,spec}.?(c|m)[jt]s?(x)
+packages/engine test: exclude:  **/node_modules/**, **/.git/**
+packages/engine test: Done
+tools test: ✔ contract files and dirs are denied, ordinary source is allowed (1190.552625ms)
+tools test: ✔ a NEW test file may be added; an existing one may not be deleted, weakened or skipped (1098.593042ms)
+tools test: ✔ any package's test/ folder is protected from removal, not only the ones listed by name (1634.90875ms)
+tools test: ✔ the Stop check reports by default and blocks only when asked (1050.043166ms)
+tools test: ✔ a test file that is not committed yet (the agent's own draft) may be fixed; committed ones stay locked (1135.101625ms)
+tools test: ✔ if git cannot answer, an uncommitted-looking test is treated as committed (fail closed) (377.198583ms)
+tools test: ✔ changing an expect() in a committed vitest file is denied like an assert (306.34175ms)
+tools test: ℹ tests 7
+tools test: ℹ suites 0
+tools test: ℹ pass 7
+tools test: ℹ fail 0
+tools test: ℹ cancelled 0
+tools test: ℹ skipped 0
+tools test: ℹ todo 0
+tools test: ℹ duration_ms 7015.094916
+tools test: Done
+packages/designer test:  ❯ test/place.test.ts (11 tests | 1 failed) 13086ms
+packages/designer test:    × near_window uses the full span and away_from enforces an edge gap 9058ms
+packages/designer test: ⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+packages/designer test:  FAIL  test/place.test.ts > near_window uses the full span and away_from enforces an edge gap
+packages/designer test: Error: Test timed out in 5000ms.
+packages/designer test: If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+packages/designer test:  ❯ test/place.test.ts:94:1
+packages/designer test:      92| });
+packages/designer test:      93|
+packages/designer test:      94| test('near_window uses the full span and away_from enforces an edge ga…
+packages/designer test:        | ^
+packages/designer test:      95|   const scene = room(); scene.items = [anchor];
+packages/designer test:      96|   const near = place(scene, request([{ type: 'near_window', window_id:…
+packages/designer test: ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+packages/designer test:  Test Files  1 failed | 56 passed (57)
+packages/designer test:       Tests  1 failed | 289 passed (290)
+packages/designer test:    Start at  15:06:43
+packages/designer test:    Duration  20.30s (tests 84%, import 8%, transform 7%, worker 1%)
+packages/designer test:     Isolate  57 workers spawned · ~452ms startup each (spawn + environment, per file)
+packages/designer test:              at least ~3.23s faster with isolate: false — reuses workers across files instead of one per file
+packages/designer test: Failed
+/Users/ashotarushanyan/AshProjects/varpet-bench/packages/designer:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @varpet/designer@0.0.0 test: `vitest run && python3 -m unittest discover -s ../../harness -p 'designer*_test.py' && python3 -m unittest discover -s eval -p 'test_*.py'`
+Exit status 1
+ ELIFECYCLE  Test failed. See above for more details.
