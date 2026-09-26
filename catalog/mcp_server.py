@@ -5,6 +5,7 @@ Sizes are metres [w, d, h]; prices whole dram. Hard constraints (kind, fit, pric
 colour, style, text and visual likeness only rank what passed.
 """
 import os
+import re
 
 import psycopg
 from mcp.server.mcpserver import MCPServer
@@ -122,14 +123,15 @@ def check_fit(item_id: str, max_w: float, max_d: float, max_h: float, allow_rota
     return {"fits": min(m) >= 0, "margin_m": {"w": round(m[0], 3), "d": round(m[1], 3), "h": round(m[2], 3)}, "size_m": row[0]}
 
 
-EDITOR_ORIGINS = {"http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:5174", "http://127.0.0.1:5174"}
+# Any local dev server: each editor or Codex session picks its own port.
+EDITOR_ORIGIN = re.compile(r"^http://(localhost|127\.0\.0\.1)(:\d{1,5})?$")
 CATEGORY = {"sofa": "Living", "chair": "Living", "table": "Living", "bed": "Bedroom", "cabinet": "Storage",
             "shelf": "Storage", "lamp": "Lighting", "rug": "Textiles"}
 
 
 def _cors(request, response):
     origin = request.headers.get("origin")
-    if origin in EDITOR_ORIGINS:
+    if origin and EDITOR_ORIGIN.match(origin):
         response.headers["Access-Control-Allow-Origin"] = origin
         response.headers["Vary"] = "Origin"
     return response

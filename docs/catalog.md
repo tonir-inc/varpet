@@ -58,7 +58,7 @@ table, bed, cabinet, lamp, rug and shelf.
    `scope="editor"`, so every SKU the designer gets is one the editor has. `scope="all"` searches
    the whole catalog.
 3. **The editor loads it.** `GET http://100.107.246.46:8765/editor/assets` returns `CatalogAsset[]`
-   (CORS for `localhost:5173/5174`). `dimensions` are `[w, h, d]` from the same size the designer
+   (CORS for any `http://localhost` or `127.0.0.1` port). `dimensions` are `[w, h, d]` from the same size the designer
    gets, so the bridge's size check passes exactly. GLBs come from ABO's S3 (CORS open).
 
 ### Davit (editor), in `apps/editor/src/main.ts`
