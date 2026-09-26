@@ -4,6 +4,8 @@ import { emptyProject } from '../core/renovation';
 import { validateScene } from '../core/validation';
 import { installOpeningModel, openingModel } from './opening-models';
 import { makeStructure } from './structure';
+import { doorBarriers } from '../core/door-barriers';
+import { openingMechanism } from '../core/opening-catalog';
 
 let assertions = 0;
 function assert(value: unknown, message: string): asserts value { assertions++; if (!value) throw new Error(message); }
@@ -64,5 +66,32 @@ installOpeningModel(slider, scene.walls[0]!.openings[2]!, { mechanism: 'sliding'
 const before = sliderParts.leaf.getWorldPosition(new THREE.Vector3()).x;
 slider.setAngle(Math.PI / 2);
 assert(near(sliderParts.leaf.getWorldPosition(new THREE.Vector3()).x, before - 1.12), 'a sliding sash translates along -X');
+
+// With no confirmed mechanism, an opening opens the way its model does.
+const modelled: SceneDocument = structuredClone(scene);
+modelled.project!.metadata = {};
+modelled.walls[0]!.openings.push(
+  { id: 'french', kind: 'door', offset: 7.8, width: 1.2, height: 2.15, sill: 0, assetId: 'extra:openings:door-steel-french' },
+  { id: 'tilt', kind: 'window', offset: 9.1, width: 0.8, height: 1.4, sill: 1, assetId: 'extra:openings:window-pvc-single' },
+);
+const plain = { id: 'plain', kind: 'window' as const, offset: 0, width: 1, height: 1, sill: 1 };
+assert(openingMechanism(plain, {}) === 'fixed' && openingMechanism({ ...plain, kind: 'door' }, {}) === 'hinged', 'openings without a model keep the old defaults');
+assert(openingMechanism(modelled.walls[0]!.openings[3]!, {}) === 'double' && openingMechanism(modelled.walls[0]!.openings[4]!, {}) === 'tilt', 'a model supplies the mechanism');
+assert(openingMechanism(modelled.walls[0]!.openings[3]!, { mechanism: 'hinged' }) === 'hinged', 'confirmed metadata wins over the model');
+const modelledShell = makeStructure(modelled);
+assert(modelledShell.openings.get('french')!.leaves.length === 2 && !modelledShell.openings.get('tilt')!.fixed, 'the procedural stand-in and angle follow the model mechanism');
+const swings = doorBarriers(modelled).filter(b => b.entityId === 'french' && b.kind === 'door-swing');
+const confirmed: SceneDocument = structuredClone(modelled); confirmed.project!.metadata = { french: { mechanism: 'double' } };
+const confirmedSwings = doorBarriers(confirmed).filter(b => b.entityId === 'french' && b.kind === 'door-swing');
+assert(JSON.stringify(swings) === JSON.stringify(confirmedSwings), 'a double model gives the same door barriers as a confirmed double door');
+
+// A resize preview redraws procedurally and asks for the model again.
+const resized: string[] = [];
+const previewed = makeStructure(scene), target = previewed.openings.get('door')!;
+target.rebuilt = next => resized.push(`${next.width}`);
+previewed.previewOpening('door', { width: 0.95 });
+assert(resized.join() === '0.95', 'a resize preview calls rebuilt with the new size');
+previewed.previewOpening('door', { offset: 1.2 });
+assert(resized.length === 1, 'a move alone keeps the model and does not rebuild');
 
 console.log(`opening model checks passed (${assertions} assertions)`);

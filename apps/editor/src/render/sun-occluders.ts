@@ -1,3 +1,4 @@
+import { openingMechanism } from '../core/opening-catalog';
 import * as THREE from 'three';
 import type { EntityMetadata, Opening, Room, SceneDocument, Wall } from '../contracts';
 import { roomCeilingHeight } from '../core/heights';
@@ -122,7 +123,7 @@ export class SunOccluders {
     const bottom = opening.kind === 'window' ? frame : Math.min(metadata.threshold ?? 0, opening.height / 4);
     const height = Math.max(.01, opening.height - frame - bottom);
     const thickness = metadata.leafThickness ?? .035;
-    const mechanism = metadata.mechanism ?? (opening.kind === 'door' ? 'hinged' : 'fixed');
+    const mechanism = openingMechanism(opening, metadata);
     const swing = metadata.swing ?? 1;
     this.block(group, [frame, opening.height, wall.thickness + .02], [frame / 2, opening.height / 2, 0]);
     this.block(group, [frame, opening.height, wall.thickness + .02], [opening.width - frame / 2, opening.height / 2, 0]);

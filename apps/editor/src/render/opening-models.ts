@@ -1,24 +1,16 @@
 import * as THREE from 'three';
-import manifest from '../../../../catalog/openings/manifest.json';
 import type { EntityMetadata, Opening } from '../contracts';
+import { openingModelEntry, type OpeningModelEntry } from '../core/opening-catalog';
 import type { OpeningProjection } from './structure';
 
-/** One door or window model from catalog/openings (see its README for the frame and the moving parts). */
-export interface OpeningModelEntry {
-  file: string; kind: string; mechanism: string;
-  opening_m: { width: number; height: number };
-  moving: Record<string, { point_m: number[]; motion: string }>;
-}
+export type { OpeningModelEntry } from '../core/opening-catalog';
 
 const urls = import.meta.glob('../../../../catalog/openings/*.glb', { query: '?url', import: 'default', eager: true }) as Record<string, string>;
-const PREFIX = 'extra:openings:';
 
 /** The model an opening's assetId names, or undefined when it names none (the procedural opening stays). */
 export function openingModel(assetId: string | undefined): { url: string; entry: OpeningModelEntry } | undefined {
-  if (!assetId?.startsWith(PREFIX)) return undefined;
-  const file = `${assetId.slice(PREFIX.length)}.glb`;
-  const entry = (manifest as unknown as OpeningModelEntry[]).find(item => item.file === file);
-  const url = Object.entries(urls).find(([path]) => path.endsWith(`/${file}`))?.[1];
+  const entry = openingModelEntry(assetId);
+  const url = entry && Object.entries(urls).find(([path]) => path.endsWith(`/${entry.file}`))?.[1];
   return entry && url ? { url, entry } : undefined;
 }
 

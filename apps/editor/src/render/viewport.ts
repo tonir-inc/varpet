@@ -8,7 +8,7 @@ import { snapWallEndpoint } from '../core/wall-snapping';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import type { BuildingComponent, CatalogAsset, ComponentTransformPatch, ObjectPatch, SceneDocument, SceneObject, ToolMode, Vec3, ViewMode, Viewport, ViewportCallbacks, ViewportLayer, WallMode } from '../contracts';
+import type { BuildingComponent, CatalogAsset, ComponentTransformPatch, ObjectPatch, Opening, SceneDocument, SceneObject, ToolMode, Vec3, ViewMode, Viewport, ViewportCallbacks, ViewportLayer, WallMode } from '../contracts';
 import { AssetLoader, disposeObject, makeFurniture, poseWallDecoration } from './assets';
 import { makeStructure, type StructureProjection } from './structure';
 import { installComponentModel, LightingPreview, makeServices, type ServiceProjection } from './services';
@@ -976,16 +976,21 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   /** Openings with a catalog model show it once loaded; until then, or if it fails, the procedural opening stays. */
   function loadOpeningModels(projection: StructureProjection, scene: SceneDocument): void {
     for (const wall of scene.walls) for (const opening of wall.openings) {
-      const found = openingModel(opening.assetId);
-      if (!found) continue;
-      void loader.loadAuthored(found.url).then(model => {
-        const target = projection.openings.get(opening.id);
-        if (disposed || structure !== projection || !target) { disposeObject(model); return; }
-        installOpeningModel(target, opening, scene.project?.metadata?.[opening.id] ?? {}, found.entry, model);
-        shadowCache.invalidate(); requestRender();
-      }).catch(error => {
-        if (!disposed && structure === projection) callbacks.onError(`Could not load the ${opening.kind} model; showing it as drawn. ${error instanceof Error ? error.message : ''}`);
-      });
+      const found = openingModel(opening.assetId), target = projection.openings.get(opening.id);
+      if (!found || !target) continue;
+      let token = 0;
+      const install = (shape: Opening) => {
+        const mine = ++token;
+        void loader.loadAuthored(found.url).then(model => {
+          // A later resize preview superseded this load, or the structure was replaced.
+          if (disposed || structure !== projection || mine !== token) { disposeObject(model); return; }
+          installOpeningModel(target, shape, scene.project?.metadata?.[opening.id] ?? {}, found.entry, model);
+          shadowCache.invalidate(); requestRender();
+        }).catch(error => {
+          if (!disposed && structure === projection) callbacks.onError(`Could not load the ${opening.kind} model; showing it as drawn. ${error instanceof Error ? error.message : ''}`);
+        });
+      };
+      target.rebuilt = install; install(opening);
     }
   }
 

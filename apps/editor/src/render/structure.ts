@@ -1,3 +1,4 @@
+import { openingMechanism } from '../core/opening-catalog';
 import { roomCeilingHeight } from '../core/heights';
 import * as THREE from 'three';
 import type { EntityMetadata, Opening, Room, SceneDocument, Wall, WallMode } from '../contracts';
@@ -21,6 +22,8 @@ export interface OpeningProjection {
   fixed: boolean;
   setAngle(angle: number): void;
   setCollision(collision: boolean): void;
+  /** Called after a resize preview redraws the opening procedurally, so a catalog model can be drawn again. */
+  rebuilt?(opening: Opening): void;
 }
 export interface StructureProjection {
   group: THREE.Group;
@@ -127,7 +130,7 @@ function makeOpening(wall: Wall, opening: Opening, metadata: EntityMetadata, ele
   group.position.set(opening.offset, opening.sill + elevation, 0);
   const frame = Math.min(metadata.frameWidth ?? 0.045, opening.width / 5, opening.height / 5);
   const width = Math.max(0.01, opening.width - frame * 2); const bottom = opening.kind === 'window' ? frame : Math.min(metadata.threshold ?? 0, opening.height / 4); const height = Math.max(0.01, opening.height - frame - bottom);
-  const thickness = metadata.leafThickness ?? 0.035; const mechanism = metadata.mechanism ?? (opening.kind === 'door' ? 'hinged' : 'fixed');
+  const thickness = metadata.leafThickness ?? 0.035; const mechanism = openingMechanism(opening, metadata);
   const fixed = mechanism === 'fixed'; const right = metadata.hinge === 'right'; const swing = metadata.swing ?? 1;
   const trim = new THREE.MeshStandardMaterial({ color: '#ece7db', roughness: 0.65 });
   const leafMaterial = opening.kind === 'window'
@@ -334,7 +337,7 @@ export function makeStructure(document: SceneDocument, reveal?: FinishReveal): S
         }
         if (next.offset === current.offset && next.sill === current.sill && next.width === current.width && next.height === current.height) return;
         openingPreviews.set(opening.id, next);
-        if (next.width !== current.width || next.height !== current.height) makeOpening(wall, next, metadata[opening.id] ?? {}, elevation, projection);
+        if (next.width !== current.width || next.height !== current.height) { makeOpening(wall, next, metadata[opening.id] ?? {}, elevation, projection); projection.rebuilt?.(next); }
         else projection.group.position.set(next.offset, next.sill + elevation, 0);
         refreshWall();
       });

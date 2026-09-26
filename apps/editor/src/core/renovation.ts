@@ -1,3 +1,4 @@
+import { openingMechanism } from './opening-catalog';
 import { roomCeilingHeight } from './heights';
 import type { BuildingComponent, CatalogAsset, EntityMetadata, Operation, ProjectAnalysis, RenovationOperation, RenovationProject, RenovationSnapshot, SceneDocument, Vec2, Vec3, Wall } from '../contracts';
 
@@ -379,9 +380,10 @@ export function analyzeProject(scene: SceneDocument, catalog: CatalogAsset[]): P
       if (!meta.mechanism) issue(`opening-type:${opening.id}`, opening.id, 'Opening mechanism not confirmed', 'Choose the installed door/window mechanism or record the unresolved alternatives. The preview uses a temporary default.', 'info');
       if (opening.kind !== 'door') continue;
       if (opening.width - (meta.frameWidth ?? 0.05) * 2 < 0.8) issue(`clearance:${opening.id}`, opening.id, 'Narrow door passage', 'The approximate clear opening is below 0.8 m. Check the intended route and applicable access requirements.');
-      if (['sliding', 'pocket', 'fixed'].includes(meta.mechanism ?? 'hinged')) continue;
+      const mechanism = openingMechanism(opening, meta);
+      if (['sliding', 'pocket', 'fixed'].includes(mechanism)) continue;
       const frame = Math.min(meta.frameWidth ?? 0.045, opening.width / 5, opening.height / 5);
-      const leafCount = meta.mechanism === 'double' ? 2 : 1, leafWidth = Math.max(0.01, opening.width - frame * 2) / leafCount;
+      const leafCount = mechanism === 'double' ? 2 : 1, leafWidth = Math.max(0.01, opening.width - frame * 2) / leafCount;
       const sweeps: Vec2[][] = [];
       for (let leaf = 0; leaf < leafCount; leaf++) {
         const right = leafCount === 2 ? leaf === 1 : meta.hinge === 'right';
