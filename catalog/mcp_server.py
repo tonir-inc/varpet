@@ -253,7 +253,7 @@ try:
     def model_file(request: Request) -> Response:
         """Optimized GLBs (optimize_models.py). Immutable per id, so browsers cache them for a year."""
         name = request.path_params["name"]
-        if not re.fullmatch(r"[A-Za-z0-9_-]{1,40}\.glb", name) or not os.path.isfile(os.path.join(MODELS_DIR, name)):
+        if not re.fullmatch(r"[A-Za-z0-9_-]{1,120}\.glb", name) or not os.path.isfile(os.path.join(MODELS_DIR, name)):
             return _cors(request, Response(status_code=404))
         return _cors(request, FileResponse(os.path.join(MODELS_DIR, name), media_type="model/gltf-binary",
                                            headers={"Cache-Control": "public, max-age=31536000, immutable"}))
@@ -263,7 +263,7 @@ try:
         """Rendered previews of the same GLB the editor places (render_previews.py)."""
         name = request.path_params["name"]
         path = os.path.join(MODELS_DIR, "previews", name)
-        if not re.fullmatch(r"[A-Za-z0-9_-]{1,40}\.webp", name) or not os.path.isfile(path):
+        if not re.fullmatch(r"[A-Za-z0-9_-]{1,120}\.webp", name) or not os.path.isfile(path):
             return _cors(request, Response(status_code=404))
         return _cors(request, FileResponse(path, media_type="image/webp",
                                            headers={"Cache-Control": "public, max-age=31536000, immutable"}))
@@ -271,13 +271,19 @@ except ImportError:
     pass
 
 
+def file_stem(item_id: str) -> str:
+    """Map catalog ids to the stems used by local models and previews."""
+    if item_id.startswith("abo:"):
+        return item_id.split(":", 1)[1]
+    return item_id.replace(":", "-")
+
+
 def _preview_image(item_id, preview_url, photo_url, deadline):
     """Return the image and its source: render, photo, or missing."""
     import io
     import urllib.request
     from PIL import Image as PILImage
-    asin = item_id.split(":", 1)[-1]
-    local = os.path.join(MODELS_DIR, "previews", f"{asin}.webp")
+    local = os.path.join(MODELS_DIR, "previews", f"{file_stem(item_id)}.webp")
     if os.path.isfile(local):
         try:
             return PILImage.open(local).convert("RGB"), "render"
