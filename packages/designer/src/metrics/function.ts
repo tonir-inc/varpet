@@ -29,14 +29,17 @@ function edge(item: Item, side: Side): { a: Vec2; b: Vec2; outward: Vec2 } {
   return {a,b,outward:[(b[1]-a[1])/length,-(b[0]-a[0])/length]};
 }
 
+/** Wall solids by item height and door swings: unchanged while only furniture moves, so callers may reuse them. */
+export interface ShellGeometry { solids: (height: number) => Vec2[][]; swings: Vec2[][] }
+
 /** Sweep the entire edge, including its corners. A centre ray misses offset obstructions. */
-function clearance(scene: Scene, item: Item, side: Side, wallsOnly = false): number {
+function clearance(scene: Scene, item: Item, side: Side, wallsOnly = false, shell?: ShellGeometry): number {
   const polygon = scene.rooms.find(room => room.id === item.room_id)!.polygon;
   const {a,b,outward:n} = edge(item,side);
-  const obstacles = [...wallSolidPolygons(scene,item.size[2]).map(s=>s.polygon), ...(wallsOnly ? [] : [
+  const obstacles = [...(shell?.solids(item.size[2]) ?? wallSolidPolygons(scene,item.size[2]).map(s=>s.polygon)), ...(wallsOnly ? [] : [
     ...[...scene.items,...scene.fixed].filter(other => other.id !== item.id && other.room_id === item.room_id && !other.structure && !isFloorRug(other) && onFloor(other)).map(itemPolygon),
     // A door owned by the adjacent room may swing into this access strip.
-    ...scene.openings.map(opening=>physicalDoorSwingPolygon(scene,opening)).filter((p): p is Vec2[] => p !== null),
+    ...(shell?.swings ?? scene.openings.map(opening=>physicalDoorSwingPolygon(scene,opening)).filter((p): p is Vec2[] => p !== null)),
   ])];
   let low = 0, high = Math.max(...polygon.map(point=>Math.hypot(point[0]-item.pos[0],point[1]-item.pos[1]))) + Math.max(...item.size) + 1;
   for (let iteration=0;iteration<45;iteration++) {
@@ -80,14 +83,14 @@ export function functionClearances(input:Scene):FunctionClearance[] {
 }
 
 /** One item's function clearances in an already parsed scene (the same rules as functionClearances). */
-export function itemFunctionClearances(scene:Scene,item:Item):FunctionClearance[] {
+export function itemFunctionClearances(scene:Scene,item:Item,shell?:ShellGeometry):FunctionClearance[] {
   const metrics:FunctionClearance[]=[];
   {
     const kind=item.kind.toLowerCase().replace(/[ -]/g,'_');
-    if(kind==='bed') for(const side of ['left','right'] as const) metrics.push(result(item,side,'bed_side',clearance(scene,item,side),0.6));
-    if(['chair','desk_chair','dining_chair','office_chair'].includes(kind)) metrics.push(result(item,'back','chair_pullout',clearance(scene,item,'back'),0.6));
-    if(['wardrobe','chest','chest_of_drawers','dresser'].includes(kind)) metrics.push(result(item,'front','storage_front',clearance(scene,item,'front'),0.9));
-    if(['table','dining_table'].includes(kind)) for(const side of ['left','right','front','back'] as const) metrics.push(result(item,side,'table_wall',clearance(scene,item,side,true),0.9));
+    if(kind==='bed') for(const side of ['left','right'] as const) metrics.push(result(item,side,'bed_side',clearance(scene,item,side,false,shell),0.6));
+    if(['chair','desk_chair','dining_chair','office_chair'].includes(kind)) metrics.push(result(item,'back','chair_pullout',clearance(scene,item,'back',false,shell),0.6));
+    if(['wardrobe','chest','chest_of_drawers','dresser'].includes(kind)) metrics.push(result(item,'front','storage_front',clearance(scene,item,'front',false,shell),0.9));
+    if(['table','dining_table'].includes(kind)) for(const side of ['left','right','front','back'] as const) metrics.push(result(item,side,'table_wall',clearance(scene,item,side,true,shell),0.9));
     if(kind==='sofa') {
       const candidates=scene.items.filter(other=>other.room_id===item.room_id&&other.kind.toLowerCase().replace(/[ -]/g,'_')==='coffee_table')
         .map(table=>({table,gap:coffeeGap(item,table)})).filter((candidate):candidate is {table:Item;gap:number}=>candidate.gap!==undefined)

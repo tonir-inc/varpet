@@ -6,7 +6,7 @@ import { z } from 'zod';
 import type { CatalogAsset } from '../../../apps/editor/src/contracts.js';
 import { applyOps, parseOps, parseScene, wallOutward } from './adapter.js';
 import { checkLocalLayout, compareLayoutErrors, localGeometryErrors, outsidePoint, sourceFloorPolygon } from './local-checks.js';
-import { functionClearances, itemFunctionClearances, type FunctionClearance } from './metrics/function.js';
+import { functionClearances, itemFunctionClearances, type FunctionClearance, type ShellGeometry } from './metrics/function.js';
 import { itemFront, itemPolygon, physicalDoorSwingPolygon, spaceMetrics, polygonsOverlap, isFloorRug, rasterizeRoom } from './metrics/space.js';
 import { wallSolidPolygons } from './wall-geometry.js';
 import { strategyMetrics } from './metrics/strategy.js';
@@ -83,9 +83,9 @@ function deficitsPreserved(before:Map<string,number>,after:Scene,catalog:readonl
   return true;
 }
 /** The placed item's own part of deficitsPreserved, cheap enough to run on every candidate pose. */
-function ownFunctionWorsens(after:Scene,itemId:string,before:Map<string,number>,catalog:readonly CatalogAsset[]):boolean {
+function ownFunctionWorsens(after:Scene,itemId:string,before:Map<string,number>,catalog:readonly CatalogAsset[],shell:ShellGeometry):boolean {
   const typed=typedScene(after,catalog),item=typed.items.find(i=>i.id===itemId);
-  return !!item&&itemFunctionClearances(typed,item).some(c=>Math.max(c.deficit_m,c.excess_m??0)>(before.get(deficitKey(c))??0)+1e-6);
+  return !!item&&itemFunctionClearances(typed,item,shell).some(c=>Math.max(c.deficit_m,c.excess_m??0)>(before.get(deficitKey(c))??0)+1e-6);
 }
 function windows(scene:Scene,room:string) {
   return scene.openings.filter(o=>o.kind==='window').flatMap(o=>{
@@ -193,6 +193,7 @@ function generateSlots(scene:Scene,catalog:readonly CatalogAsset[],query:SlotQue
   const obstacles=[...scene.items,...scene.fixed].filter(i=>i.id!==base.id&&!(base.group_id&&i.group_id===base.group_id)&&!isFloorRug(i)&&onFloor(i)).map(i=>({room:i.room_id,polygon:itemPolygon(i)}));
   const swings=scene.openings.map(o=>physicalDoorSwingPolygon(scene,o)).filter((p):p is Vec2[]=>p!==null);
   const solids=new Map<number,Vec2[][]>();
+  const shell:ShellGeometry={swings,solids:height=>{if(!solids.has(height))solids.set(height,wallSolidPolygons(scene,height).map(s=>s.polygon));return solids.get(height)!;}};
   const cheap:{item:Item;op:Op;after:Scene;score:number}[]=[];
   const seatAnchors=typedScene(scene,catalog).items.filter(i=>i.room_id===room.id&&i.id!==base.id&&onFloor(i)&&['sofa','table','coffee_table','desk','dining_table'].includes(i.kind));
   for(const item of poses){
@@ -208,9 +209,6 @@ function generateSlots(scene:Scene,catalog:readonly CatalogAsset[],query:SlotQue
     if(moved.some(i=>windowBlocked(after,i)))continue;
     if(query.sideReserve!==undefined&&functionClearances(after).some(c=>c.item_id===item.id&&c.function==='bed_side'&&c.clearance_m<query.sideReserve!-1e-6))continue;
     if(query.nearWindow&&!checkRequest(after,after,[],{preferences:[{type:'near_window',item_id:item.id,max_distance_m:1.5}]},0).ok)continue;
-    // deficitsPreserved rejects any pose whose own function clearance worsens (a chair backed against a wall has
-    // no pull-out room). Rejecting those here keeps the bounded full checks for poses that can pass.
-    if(ownFunctionWorsens(after,item.id,deficits,catalog))continue;
     const edge=Math.min(item.pos[0]-box.minX,box.maxX-item.pos[0],item.pos[1]-box.minY,box.maxY-item.pos[1]);
     const distance=spans.length?Math.min(...spans.map(w=>Math.hypot(item.pos[0]-(w.a[0]+w.b[0])/2,item.pos[1]-(w.a[1]+w.b[1])/2))):10;
     const travel=owned?Math.hypot(item.pos[0]-owned.pos[0],item.pos[1]-owned.pos[1]):0;
@@ -250,6 +248,9 @@ function generateSlots(scene:Scene,catalog:readonly CatalogAsset[],query:SlotQue
     cheap.push({item,op,after,score:owned&&!query.openFloor?-travel:purchaseRank-(query.nearWindow?distance:0)});
   }
   cheap.sort((a,b)=>b.score-a.score||JSON.stringify(a.op).localeCompare(JSON.stringify(b.op)));
+  // deficitsPreserved rejects any pose whose own function clearance worsens (a chair backed against a wall has no
+  // pull-out room). Skipping those without spending a check keeps the bounded full checks for poses that can pass.
+  const worsens=(c:{item:Item;after:Scene})=>ownFunctionWorsens(c.after,c.item.id,deficits,catalog,shell);
   if(query.openFloor){
     const before=coarseOpenFloor(scene,room);
     for(const c of cheap)c.score=coarseOpenFloor(c.after,room)-before;
@@ -264,12 +265,18 @@ function generateSlots(scene:Scene,catalog:readonly CatalogAsset[],query:SlotQue
         const c=pool[i]!,distance=Math.min(...ranked.map(p=>Math.hypot(c.item.pos[0]-p.item.pos[0],c.item.pos[1]-p.item.pos[1])+Math.abs(Math.sin((c.item.rot-p.item.rot)*Math.PI/360))));
         const merit=distance+.1*c.score;if(merit>best){best=merit;index=i;}
       }}
-      ranked.push(pool.splice(index,1)[0]!);
+      const picked=pool.splice(index,1)[0]!;
+      if(!worsens(picked))ranked.push(picked);
     }
     cheap.push(...ranked);
   }
   const output:Candidate[]=[];
-  for(const {item,op,after} of cheap.slice(0,query.maxChecks??24)){
+  let checks=0;
+  for(const candidate of cheap){
+    if(checks>=(query.maxChecks??24))break;
+    if(!query.diverse&&worsens(candidate))continue;
+    checks++;
+    const {item,op,after}=candidate;
     if(compareLayoutErrors(previous,localGeometryErrors(after)).errors.length)continue;
     const current=checkLocalLayout(after);
     if(compareLayoutErrors(baseline.errors,current.errors).errors.length||!deficitsPreserved(deficits,after,catalog))continue;
