@@ -31,13 +31,18 @@ export function isDescendant(scene: SceneDocument, id: string, ancestor: string)
   }
   return false;
 }
+/** Catalog beds are frames: decor on a bed sits where a mattress top would be (0.55 m), but a mattress itself
+ * lies on the slat deck, about 0.3 m up. */
+const BED_TOP = .55, BED_DECK = .3;
+const isMattress = (asset: CatalogAsset | undefined) => asset?.kind === 'decor' && /\bmattress\b/i.test(asset.name);
 export const headlessSurface: FurnitureSurfaceResolver = (scene, catalog, object, supportId, ceiling = Infinity) => {
   let hit: SurfaceHit | null = null;
+  const bedLevel = isMattress(catalog.find(a => a.id === object.assetId)) ? BED_DECK : BED_TOP;
   for (const support of scene.objects) {
     if (support.id === object.id || (supportId && support.id !== supportId) || isDescendant(scene, support.id, object.id) || scene.project?.metadata[support.id]?.phase === 'remove') continue;
     const asset = catalog.find(a => a.id === support.assetId);
     if (!asset || wallDecoration(asset) || support.hangsFrom || asset.kind === 'rug' || !supportContains(support, asset, object)) continue;
-    const height = asset.kind === 'sofa' || asset.kind === 'chair' ? Math.min(.45, asset.dimensions[1]) : asset.kind === 'bed' ? Math.min(.55, asset.dimensions[1]) : asset.dimensions[1];
+    const height = asset.kind === 'sofa' || asset.kind === 'chair' ? Math.min(.45, asset.dimensions[1]) : asset.kind === 'bed' ? Math.min(bedLevel, asset.dimensions[1]) : asset.dimensions[1];
     const y = support.position[1] + height * support.scale[1];
     if (y <= ceiling + .001 && (!hit || y > hit.y)) hit = { id: support.id, y };
   }
