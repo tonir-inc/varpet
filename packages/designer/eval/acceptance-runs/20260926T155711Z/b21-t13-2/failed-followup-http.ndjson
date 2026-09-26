@@ -1,0 +1,44 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Understanding the change you want"}
+{"type": "tool", "name": "set_intent", "phase": "start", "summary": "Understanding your brief", "callId": "exec-dd308f3b-7489-4bca-b510-1ef586aa9670"}
+{"type": "tool", "name": "set_intent", "phase": "end", "summary": "Understanding your brief", "callId": "exec-dd308f3b-7489-4bca-b510-1ef586aa9670"}
+{"type": "progress", "message": "Checking your proposed change"}
+{"type": "tool", "name": "propose", "phase": "start", "summary": "Checking your proposed change", "callId": "exec-60c1e396-0152-433a-be43-1203344fe5ca"}
+{"type": "tool", "name": "propose", "phase": "error", "summary": "Checking your proposed change did not complete", "callId": "exec-60c1e396-0152-433a-be43-1203344fe5ca"}
+{"type": "progress", "message": "Checking your proposed change"}
+{"type": "progress", "message": "Checking your proposed change"}
+{"type": "progress", "message": "Checking your proposed change"}
+{"type": "progress", "message": "Checking your design"}
+{"type": "tool", "name": "show_candidates", "phase": "start", "summary": "Comparing furniture options", "callId": "exec-8fa7c834-7d4b-46d5-babe-85025cc5fe3e"}
+{"type": "progress", "message": "Checking your design"}
+{"type": "tool", "name": "show_candidates", "phase": "end", "summary": "Comparing furniture options", "callId": "exec-8fa7c834-7d4b-46d5-babe-85025cc5fe3e"}
+{"type": "progress", "message": "Checking your design"}
+{"type": "progress", "message": "Checking your proposed change"}
+{"type": "tool", "name": "propose", "phase": "start", "summary": "Checking your proposed change", "callId": "exec-8a533956-4553-4eb2-aed9-806b2facf4be"}
+{"type": "tool", "name": "propose", "phase": "error", "summary": "Checking your proposed change did not complete", "callId": "exec-8a533956-4553-4eb2-aed9-806b2facf4be"}
+{"type": "progress", "message": "Checking your proposed change"}
+{"type": "progress", "message": "Checking your proposed change"}
+{"type": "progress", "message": "Checking your proposed change"}
+{"type": "tool", "name": "propose", "phase": "start", "summary": "Checking your proposed change", "callId": "exec-be1a5020-9a9b-45b8-95cd-4bdaa4658149"}
+{"type": "tool", "name": "propose", "phase": "error", "summary": "Checking your proposed change did not complete", "callId": "exec-be1a5020-9a9b-45b8-95cd-4bdaa4658149"}
+{"type": "progress", "message": "Checking your proposed change"}
+{"type": "progress", "message": "Checking your proposed change"}
+{"type": "progress", "message": "Checking your proposed change"}
+{"type": "progress", "message": "Checking your proposed change"}
+{"type": "tool", "name": "propose", "phase": "start", "summary": "Checking your proposed change", "callId": "exec-6bfd29e6-4dba-402e-8f2c-db35a8632dc6"}
+{"type": "tool", "name": "propose", "phase": "error", "summary": "Checking your proposed change did not complete", "callId": "exec-6bfd29e6-4dba-402e-8f2c-db35a8632dc6"}
+{"type": "progress", "message": "Writing your answer"}
+{"type": "message", "message": "I tried the bedroom alternative, but couldn’t get a checked layout with this double bed: the options tested either restricted balcony access or fell short of minimum bedside clearance.\n\nNothing has changed. A narrower double-bed model would be the next option to investigate.", "conversationId": "811ee4fbd67446ad93003e6c2fdc09f6"}

@@ -1,0 +1,32 @@
+{"stage": "request", "flat": "b21-t13", "repeat": 3, "key": "living"}
+{"flat": "b21-t13", "key": "living", "pass": false, "seconds": 1.483, "tokens": 0, "failures": ["no_applied_proposal", "living_sofa_missing", "living_rug_missing", "living_coffee_table_missing", "living_lamp_missing", "total_price_not_shown"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 3, "key": "cozier"}
+{"flat": "b21-t13", "key": "cozier", "pass": false, "seconds": 55.79, "tokens": 40733, "failures": ["no_applied_proposal", "no_measured_warmth_added"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 3, "key": "why"}
+{"flat": "b21-t13", "key": "why", "pass": false, "seconds": 9.593, "tokens": 18424, "failures": ["no_actual_layout_to_explain", "no_checkable_layout_numbers", "placement_numbers_not_verified_against_scene", "actual_placement_not_explained"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 3, "key": "quote"}
+{"flat": "b21-t13", "key": "quote", "pass": false, "seconds": 10.454, "tokens": 23140, "failures": ["no_furniture_to_quote", "total_missing_or_wrong"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 3, "key": "paint"}
+{"flat": "b21-t13", "key": "paint", "pass": true, "seconds": 2.456, "tokens": 0, "failures": []}
+{"stage": "request", "flat": "b21-t13", "repeat": 3, "key": "red"}
+{"flat": "b21-t13", "key": "red", "pass": false, "seconds": 31.578, "tokens": 76457, "failures": ["requested_wall_colour_coverage_incomplete"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 3, "key": "bigger-furnished"}
+{"flat": "b21-t13", "key": "bigger-furnished", "pass": false, "seconds": 26.045, "tokens": 55933, "failures": ["no_applied_proposal", "furnished_prerequisite_missing", "no_measured_open_rectangle_improvement", "golden_furnishing_prerequisite_missing"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 3, "key": "bigger-empty"}
+{"flat": "b21-t13", "key": "bigger-empty", "pass": false, "seconds": 26.457, "tokens": 56864, "failures": ["empty_room_not_honestly_explained"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 3, "key": "sofa"}
+{"flat": "b21-t13", "key": "sofa", "pass": false, "seconds": 14.998, "tokens": 43158, "failures": ["no_applied_proposal", "existing_sofa_not_moved_to_face_window", "golden_furnishing_prerequisite_missing"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 3, "key": "armchair"}
+{"flat": "b21-t13", "key": "armchair", "pass": false, "seconds": 69.937, "tokens": 134631, "failures": ["requested_new_piece_not_within_1.5m_of_window"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 3, "key": "desk"}
+{"flat": "b21-t13", "key": "desk", "pass": false, "seconds": 1.474, "tokens": 0, "failures": ["no_applied_proposal", "requested_new_piece_not_within_1.5m_of_window"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 3, "key": "bedroom"}
+{"flat": "b21-t13", "key": "bedroom", "pass": false, "seconds": 1.44, "tokens": 0, "failures": ["no_applied_proposal", "double_bed_missing", "two_nightstands_missing", "wardrobe_missing"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 3, "key": "advice"}
+{"flat": "b21-t13", "key": "advice", "pass": true, "seconds": 18.444, "tokens": 13567, "failures": []}
+{"stage": "request", "flat": "b21-t13", "repeat": 3, "key": "structural"}
+{"flat": "b21-t13", "key": "structural", "pass": true, "seconds": 0.052, "tokens": 0, "failures": []}
+{"stage": "request", "flat": "b21-t13", "repeat": 3, "key": "impossible"}
+{"flat": "b21-t13", "key": "impossible", "pass": false, "seconds": 52.846, "tokens": 82210, "failures": ["honest_no_over_10_seconds"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 3, "key": "failed-followup"}
+{"flat": "b21-t13", "key": "failed-followup", "pass": false, "seconds": 85.835, "tokens": 246197, "failures": ["failed_followup_not_safe_relevant_answer"]}

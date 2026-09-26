@@ -1,0 +1,26 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Understanding the change you want"}
+{"type": "tool", "name": "set_intent", "phase": "start", "summary": "Understanding your brief", "callId": "exec-f796e1f1-1f15-4456-89ac-c557b640e957"}
+{"type": "tool", "name": "set_intent", "phase": "end", "summary": "Understanding your brief", "callId": "exec-f796e1f1-1f15-4456-89ac-c557b640e957"}
+{"type": "progress", "message": "Looking for suitable furniture"}
+{"type": "tool", "name": "search_catalog", "phase": "start", "summary": "Finding suitable furniture", "callId": "exec-6fc65dce-9e62-475f-8e9e-774875dc7bab"}
+{"type": "tool", "name": "search_catalog", "phase": "end", "summary": "Finding suitable furniture", "refs": {"results": ["abo:B07B4D49G2", "abo:B07DBHGHRV", "abo:B07B4GXYDG", "abo:B073G856FB", "abo:B07B4MTFRH", "abo:B0719WQH8S", "abo:B07DBDX1P2", "abo:B07DBDR9V6"]}, "callId": "exec-6fc65dce-9e62-475f-8e9e-774875dc7bab"}
+{"type": "tool", "name": "show_candidates", "phase": "end", "summary": "Comparing furniture options", "refs": {"results": ["abo:B07B4D49G2", "abo:B07DBHGHRV", "abo:B07B4GXYDG", "abo:B073G856FB", "abo:B07B4MTFRH", "abo:B0719WQH8S", "abo:B07DBDX1P2", "abo:B07DBDR9V6"]}, "callId": "exec-6fc65dce-9e62-475f-8e9e-774875dc7bab"}
+{"type": "progress", "message": "Looking for suitable furniture"}
+{"type": "progress", "message": "Checking your design"}
+{"type": "tool", "name": "show_candidates", "phase": "start", "summary": "Comparing furniture options", "callId": "exec-a1be9ead-dc58-4075-b506-c0fe7dc9900e"}
+{"type": "tool", "name": "show_candidates", "phase": "end", "summary": "Comparing furniture options", "callId": "exec-a1be9ead-dc58-4075-b506-c0fe7dc9900e"}
+{"type": "progress", "message": "Checking your design"}
+{"type": "progress", "message": "Checking your proposed change"}
+{"type": "tool", "name": "propose", "phase": "start", "summary": "Checking your proposed change", "callId": "exec-e826be79-f305-4abd-b79e-fce14feedc21"}
+{"type": "tool", "name": "propose", "phase": "error", "summary": "Checking your proposed change did not complete", "callId": "exec-e826be79-f305-4abd-b79e-fce14feedc21"}
+{"type": "progress", "message": "Checking your proposed change"}
+{"type": "progress", "message": "Checking your proposed change"}
+{"type": "tool", "name": "propose", "phase": "start", "summary": "Checking your proposed change", "callId": "exec-accc951b-06fc-4997-88c8-c1c2e9a72c7c"}
+{"type": "tool", "name": "propose", "phase": "error", "summary": "Checking your proposed change did not complete", "callId": "exec-accc951b-06fc-4997-88c8-c1c2e9a72c7c"}
+{"type": "progress", "message": "Writing your answer"}
+{"type": "message", "message": "I selected a denim-blue armchair for the living-room window, but **neither placement passed the access check**: the checker couldn’t confirm a path from the bedroom door to the chair.\n\nNothing has been applied. The catalog lists **78,000 AMD**, marked as a mock price—not a shop quote. The doorway geometry needs verification before I can offer a checked preview.", "conversationId": "4619fac3e0124262b6ce73082d9e01c0"}

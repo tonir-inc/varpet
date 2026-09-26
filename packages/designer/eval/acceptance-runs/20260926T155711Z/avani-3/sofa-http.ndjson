@@ -1,0 +1,10 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Understanding the change you want"}
+{"type": "tool", "name": "set_intent", "phase": "start", "summary": "Understanding your brief", "callId": "exec-b1a95a13-b4bb-4f2d-bb14-113b338d9564"}
+{"type": "tool", "name": "set_intent", "phase": "end", "summary": "Understanding your brief", "callId": "exec-b1a95a13-b4bb-4f2d-bb14-113b338d9564"}
+{"type": "progress", "message": "Writing your answer"}
+{"type": "message", "message": "The supplied scene contains no furniture, so there’s no sofa I can move yet. Add your sofa to the scene, and I can prepare a checked preview with it facing the window.", "conversationId": "efd1fdce5a2447fab22385231faad900"}

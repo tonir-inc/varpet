@@ -1,0 +1,199 @@
+
+> varpet@ acceptance /Users/ashotarushanyan/AshProjects/varpet-bench
+> python3 -u packages/designer/eval/acceptance.py
+
+{"stage": "request", "flat": "avani", "repeat": 1, "key": "living"}
+{"flat": "avani", "key": "living", "pass": false, "seconds": 1.767, "tokens": 0, "failures": ["no_applied_proposal", "living_sofa_missing", "living_rug_missing", "living_coffee_table_missing", "living_lamp_missing", "total_price_not_shown"]}
+{"stage": "request", "flat": "avani", "repeat": 1, "key": "cozier"}
+{"stage": "request", "flat": "b21-t13", "repeat": 1, "key": "living"}
+{"flat": "b21-t13", "key": "living", "pass": false, "seconds": 2.269, "tokens": 0, "failures": ["no_applied_proposal", "living_sofa_missing", "living_rug_missing", "living_coffee_table_missing", "living_lamp_missing", "total_price_not_shown"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 1, "key": "cozier"}
+{"flat": "avani", "key": "cozier", "pass": false, "seconds": 17.814, "tokens": 32950, "failures": ["no_applied_proposal", "no_measured_warmth_added"]}
+{"stage": "request", "flat": "avani", "repeat": 1, "key": "why"}
+{"flat": "b21-t13", "key": "cozier", "pass": false, "seconds": 18.561, "tokens": 40754, "failures": ["no_applied_proposal", "no_measured_warmth_added"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 1, "key": "why"}
+{"flat": "avani", "key": "why", "pass": false, "seconds": 9.364, "tokens": 13176, "failures": ["no_actual_layout_to_explain", "no_checkable_layout_numbers", "placement_numbers_not_verified_against_scene", "actual_placement_not_explained"]}
+{"stage": "request", "flat": "avani", "repeat": 1, "key": "quote"}
+{"flat": "b21-t13", "key": "why", "pass": false, "seconds": 8.687, "tokens": 18420, "failures": ["no_actual_layout_to_explain", "no_checkable_layout_numbers", "placement_numbers_not_verified_against_scene"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 1, "key": "quote"}
+{"flat": "avani", "key": "quote", "pass": false, "seconds": 11.202, "tokens": 15206, "failures": ["no_furniture_to_quote", "total_missing_or_wrong"]}
+{"flat": "b21-t13", "key": "quote", "pass": false, "seconds": 8.914, "tokens": 23136, "failures": ["no_furniture_to_quote", "total_missing_or_wrong"]}
+{"stage": "request", "flat": "avani", "repeat": 1, "key": "paint"}
+{"stage": "request", "flat": "b21-t13", "repeat": 1, "key": "paint"}
+{"flat": "avani", "key": "paint", "pass": true, "seconds": 3.88, "tokens": 0, "failures": []}
+{"flat": "b21-t13", "key": "paint", "pass": true, "seconds": 3.745, "tokens": 0, "failures": []}
+{"stage": "request", "flat": "avani", "repeat": 1, "key": "red"}
+{"stage": "request", "flat": "b21-t13", "repeat": 1, "key": "red"}
+{"flat": "b21-t13", "key": "red", "pass": false, "seconds": 25.196, "tokens": 71620, "failures": ["requested_wall_colour_coverage_incomplete"]}
+{"flat": "avani", "key": "red", "pass": true, "seconds": 26.805, "tokens": 61663, "failures": []}
+{"stage": "request", "flat": "b21-t13", "repeat": 1, "key": "bigger-furnished"}
+{"stage": "request", "flat": "avani", "repeat": 1, "key": "bigger-furnished"}
+{"flat": "b21-t13", "key": "bigger-furnished", "pass": false, "seconds": 22.796, "tokens": 58800, "failures": ["no_applied_proposal", "furnished_prerequisite_missing", "no_measured_open_rectangle_improvement", "golden_furnishing_prerequisite_missing"]}
+{"flat": "avani", "key": "bigger-furnished", "pass": false, "seconds": 21.33, "tokens": 49061, "failures": ["no_applied_proposal", "furnished_prerequisite_missing", "no_measured_open_rectangle_improvement", "golden_furnishing_prerequisite_missing"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 1, "key": "bigger-empty"}
+{"stage": "request", "flat": "avani", "repeat": 1, "key": "bigger-empty"}
+{"flat": "avani", "key": "bigger-empty", "pass": false, "seconds": 21.042, "tokens": 49031, "failures": ["empty_room_not_honestly_explained"]}
+{"stage": "request", "flat": "avani", "repeat": 1, "key": "sofa"}
+{"flat": "b21-t13", "key": "bigger-empty", "pass": false, "seconds": 27.656, "tokens": 55935, "failures": ["empty_room_not_honestly_explained"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 1, "key": "sofa"}
+{"flat": "avani", "key": "sofa", "pass": false, "seconds": 16.133, "tokens": 33380, "failures": ["no_applied_proposal", "existing_sofa_not_moved_to_face_window", "golden_furnishing_prerequisite_missing"]}
+{"stage": "request", "flat": "avani", "repeat": 1, "key": "armchair"}
+{"flat": "b21-t13", "key": "sofa", "pass": false, "seconds": 21.083, "tokens": 28756, "failures": ["no_applied_proposal", "existing_sofa_not_moved_to_face_window", "golden_furnishing_prerequisite_missing"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 1, "key": "armchair"}
+{"flat": "avani", "key": "armchair", "pass": true, "seconds": 39.441, "tokens": 83194, "failures": []}
+{"stage": "request", "flat": "avani", "repeat": 1, "key": "desk"}
+{"flat": "b21-t13", "key": "armchair", "pass": false, "seconds": 43.666, "tokens": 100942, "failures": ["no_applied_proposal", "requested_new_piece_not_within_1.5m_of_window"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 1, "key": "desk"}
+{"flat": "avani", "key": "desk", "pass": true, "seconds": 56.973, "tokens": 83336, "failures": []}
+{"stage": "request", "flat": "avani", "repeat": 1, "key": "bedroom"}
+{"flat": "avani", "key": "bedroom", "pass": false, "seconds": 1.462, "tokens": 0, "failures": ["no_applied_proposal", "double_bed_missing", "two_nightstands_missing", "wardrobe_missing"]}
+{"stage": "request", "flat": "avani", "repeat": 1, "key": "advice"}
+{"flat": "avani", "key": "advice", "pass": true, "seconds": 12.862, "tokens": 10848, "failures": []}
+{"stage": "request", "flat": "avani", "repeat": 1, "key": "structural"}
+{"flat": "avani", "key": "structural", "pass": true, "seconds": 0.091, "tokens": 0, "failures": []}
+{"flat": "b21-t13", "key": "desk", "pass": false, "seconds": 69.548, "tokens": 131735, "failures": ["requested_new_piece_not_within_1.5m_of_window"]}
+{"stage": "request", "flat": "avani", "repeat": 1, "key": "impossible"}
+{"stage": "request", "flat": "b21-t13", "repeat": 1, "key": "bedroom"}
+{"flat": "b21-t13", "key": "bedroom", "pass": false, "seconds": 1.786, "tokens": 0, "failures": ["no_applied_proposal", "double_bed_missing", "two_nightstands_missing", "wardrobe_missing"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 1, "key": "advice"}
+{"flat": "b21-t13", "key": "advice", "pass": true, "seconds": 29.706, "tokens": 13558, "failures": []}
+{"stage": "request", "flat": "b21-t13", "repeat": 1, "key": "structural"}
+{"flat": "b21-t13", "key": "structural", "pass": true, "seconds": 0.062, "tokens": 0, "failures": []}
+{"stage": "request", "flat": "b21-t13", "repeat": 1, "key": "impossible"}
+{"flat": "avani", "key": "impossible", "pass": false, "seconds": 61.829, "tokens": 66295, "failures": ["no_honest_refusal", "honest_no_over_10_seconds"]}
+{"stage": "request", "flat": "avani", "repeat": 1, "key": "failed-followup"}
+{"flat": "b21-t13", "key": "impossible", "pass": false, "seconds": 33.437, "tokens": 79843, "failures": ["honest_no_over_10_seconds", "no_bathroom_feasibility_reason"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 1, "key": "failed-followup"}
+{"flat": "avani", "key": "failed-followup", "pass": false, "seconds": 42.213, "tokens": 84923, "failures": ["failed_followup_not_safe_relevant_answer"]}
+{"stage": "request", "flat": "avani", "repeat": 2, "key": "living"}
+{"flat": "avani", "key": "living", "pass": false, "seconds": 1.554, "tokens": 0, "failures": ["no_applied_proposal", "living_sofa_missing", "living_rug_missing", "living_coffee_table_missing", "living_lamp_missing", "total_price_not_shown"]}
+{"stage": "request", "flat": "avani", "repeat": 2, "key": "cozier"}
+{"flat": "avani", "key": "cozier", "pass": false, "seconds": 21.77, "tokens": 32690, "failures": ["no_applied_proposal", "no_measured_warmth_added"]}
+{"stage": "request", "flat": "avani", "repeat": 2, "key": "why"}
+{"flat": "avani", "key": "why", "pass": false, "seconds": 10.797, "tokens": 13052, "failures": ["no_actual_layout_to_explain", "no_checkable_layout_numbers", "placement_numbers_not_verified_against_scene", "actual_placement_not_explained"]}
+{"stage": "request", "flat": "avani", "repeat": 2, "key": "quote"}
+{"flat": "avani", "key": "quote", "pass": false, "seconds": 8.712, "tokens": 15067, "failures": ["no_furniture_to_quote", "total_missing_or_wrong"]}
+{"stage": "request", "flat": "avani", "repeat": 2, "key": "paint"}
+{"flat": "b21-t13", "key": "failed-followup", "pass": false, "seconds": 93.761, "tokens": 232778, "failures": ["failed_followup_not_safe_relevant_answer"]}
+{"flat": "avani", "key": "paint", "pass": true, "seconds": 2.924, "tokens": 0, "failures": []}
+{"stage": "request", "flat": "avani", "repeat": 2, "key": "red"}
+{"stage": "request", "flat": "b21-t13", "repeat": 2, "key": "living"}
+{"flat": "b21-t13", "key": "living", "pass": false, "seconds": 1.647, "tokens": 0, "failures": ["no_applied_proposal", "living_sofa_missing", "living_rug_missing", "living_coffee_table_missing", "living_lamp_missing", "total_price_not_shown"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 2, "key": "cozier"}
+{"flat": "b21-t13", "key": "cozier", "pass": false, "seconds": 16.799, "tokens": 40686, "failures": ["no_applied_proposal", "no_measured_warmth_added"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 2, "key": "why"}
+
+{"flat": "avani", "key": "red", "pass": true, "seconds": 33.764, "tokens": 61648, "failures": []}
+{"stage": "request", "flat": "avani", "repeat": 2, "key": "bigger-furnished"}
+{"flat": "b21-t13", "key": "why", "pass": false, "seconds": 9.927, "tokens": 18401, "failures": ["no_actual_layout_to_explain", "no_checkable_layout_numbers", "placement_numbers_not_verified_against_scene", "actual_placement_not_explained"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 2, "key": "quote"}
+{"flat": "b21-t13", "key": "quote", "pass": false, "seconds": 9.595, "tokens": 23108, "failures": ["no_furniture_to_quote", "total_missing_or_wrong"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 2, "key": "paint"}
+{"flat": "avani", "key": "bigger-furnished", "pass": false, "seconds": 21.661, "tokens": 50492, "failures": ["no_applied_proposal", "furnished_prerequisite_missing", "no_measured_open_rectangle_improvement", "golden_furnishing_prerequisite_missing"]}
+{"flat": "b21-t13", "key": "paint", "pass": true, "seconds": 2.662, "tokens": 0, "failures": []}
+{"stage": "request", "flat": "avani", "repeat": 2, "key": "bigger-empty"}
+{"stage": "request", "flat": "b21-t13", "repeat": 2, "key": "red"}
+{"flat": "avani", "key": "bigger-empty", "pass": false, "seconds": 23.25, "tokens": 48999, "failures": ["empty_room_not_honestly_explained"]}
+{"stage": "request", "flat": "avani", "repeat": 2, "key": "sofa"}
+{"flat": "b21-t13", "key": "red", "pass": false, "seconds": 27.653, "tokens": 71842, "failures": ["requested_wall_colour_coverage_incomplete"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 2, "key": "bigger-furnished"}
+{"flat": "avani", "key": "sofa", "pass": false, "seconds": 16.03, "tokens": 33617, "failures": ["no_applied_proposal", "existing_sofa_not_moved_to_face_window", "golden_furnishing_prerequisite_missing"]}
+{"stage": "request", "flat": "avani", "repeat": 2, "key": "armchair"}
+{"flat": "b21-t13", "key": "bigger-furnished", "pass": false, "seconds": 24.376, "tokens": 57488, "failures": ["no_applied_proposal", "furnished_prerequisite_missing", "no_measured_open_rectangle_improvement", "golden_furnishing_prerequisite_missing"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 2, "key": "bigger-empty"}
+{"flat": "b21-t13", "key": "bigger-empty", "pass": false, "seconds": 22.326, "tokens": 58908, "failures": ["empty_room_not_honestly_explained"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 2, "key": "sofa"}
+{"flat": "b21-t13", "key": "sofa", "pass": false, "seconds": 19.908, "tokens": 27549, "failures": ["no_applied_proposal", "existing_sofa_not_moved_to_face_window", "golden_furnishing_prerequisite_missing"]}
+{"flat": "avani", "key": "armchair", "pass": true, "seconds": 63.097, "tokens": 83284, "failures": []}
+{"stage": "request", "flat": "b21-t13", "repeat": 2, "key": "armchair"}
+{"stage": "request", "flat": "avani", "repeat": 2, "key": "desk"}
+{"flat": "avani", "key": "desk", "pass": true, "seconds": 48.493, "tokens": 83297, "failures": []}
+{"stage": "request", "flat": "avani", "repeat": 2, "key": "bedroom"}
+{"flat": "avani", "key": "bedroom", "pass": false, "seconds": 1.473, "tokens": 0, "failures": ["no_applied_proposal", "double_bed_missing", "two_nightstands_missing", "wardrobe_missing"]}
+{"stage": "request", "flat": "avani", "repeat": 2, "key": "advice"}
+{"flat": "avani", "key": "advice", "pass": true, "seconds": 14.306, "tokens": 10857, "failures": []}
+{"flat": "b21-t13", "key": "armchair", "pass": false, "seconds": 66.689, "tokens": 134407, "failures": ["requested_new_piece_not_within_1.5m_of_window"]}
+{"stage": "request", "flat": "avani", "repeat": 2, "key": "structural"}
+{"stage": "request", "flat": "b21-t13", "repeat": 2, "key": "desk"}
+{"flat": "avani", "key": "structural", "pass": true, "seconds": 0.14, "tokens": 0, "failures": []}
+{"stage": "request", "flat": "avani", "repeat": 2, "key": "impossible"}
+{"flat": "avani", "key": "impossible", "pass": false, "seconds": 31.439, "tokens": 66133, "failures": ["honest_no_over_10_seconds"]}
+{"stage": "request", "flat": "avani", "repeat": 2, "key": "failed-followup"}
+{"flat": "avani", "key": "failed-followup", "pass": false, "seconds": 38.996, "tokens": 84538, "failures": ["failed_followup_not_safe_relevant_answer"]}
+{"flat": "b21-t13", "key": "desk", "pass": false, "seconds": 80.088, "tokens": 151958, "failures": ["requested_new_piece_not_within_1.5m_of_window"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 2, "key": "bedroom"}
+{"flat": "b21-t13", "key": "bedroom", "pass": false, "seconds": 2.516, "tokens": 0, "failures": ["no_applied_proposal", "double_bed_missing", "two_nightstands_missing", "wardrobe_missing"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 2, "key": "advice"}
+{"stage": "request", "flat": "avani", "repeat": 3, "key": "living"}
+{"flat": "avani", "key": "living", "pass": false, "seconds": 1.802, "tokens": 0, "failures": ["no_applied_proposal", "living_sofa_missing", "living_rug_missing", "living_coffee_table_missing", "living_lamp_missing", "total_price_not_shown"]}
+{"stage": "request", "flat": "avani", "repeat": 3, "key": "cozier"}
+{"flat": "b21-t13", "key": "advice", "pass": true, "seconds": 13.434, "tokens": 13561, "failures": []}
+{"stage": "request", "flat": "b21-t13", "repeat": 2, "key": "structural"}
+{"flat": "b21-t13", "key": "structural", "pass": true, "seconds": 0.129, "tokens": 0, "failures": []}
+{"stage": "request", "flat": "b21-t13", "repeat": 2, "key": "impossible"}
+{"flat": "avani", "key": "cozier", "pass": false, "seconds": 16.136, "tokens": 32715, "failures": ["no_applied_proposal", "no_measured_warmth_added"]}
+{"stage": "request", "flat": "avani", "repeat": 3, "key": "why"}
+{"flat": "avani", "key": "why", "pass": false, "seconds": 20.591, "tokens": 13048, "failures": ["no_actual_layout_to_explain", "no_checkable_layout_numbers", "placement_numbers_not_verified_against_scene"]}
+{"stage": "request", "flat": "avani", "repeat": 3, "key": "quote"}
+{"flat": "b21-t13", "key": "impossible", "pass": false, "seconds": 37.919, "tokens": 79923, "failures": ["honest_no_over_10_seconds"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 2, "key": "failed-followup"}
+{"flat": "avani", "key": "quote", "pass": false, "seconds": 11.345, "tokens": 15078, "failures": ["no_furniture_to_quote"]}
+{"stage": "request", "flat": "avani", "repeat": 3, "key": "paint"}
+{"flat": "avani", "key": "paint", "pass": true, "seconds": 2.471, "tokens": 0, "failures": []}
+{"stage": "request", "flat": "avani", "repeat": 3, "key": "red"}
+{"flat": "avani", "key": "red", "pass": true, "seconds": 97.359, "tokens": 61591, "failures": []}
+{"stage": "request", "flat": "avani", "repeat": 3, "key": "bigger-furnished"}
+{"flat": "b21-t13", "key": "failed-followup", "pass": true, "seconds": 134.623, "tokens": 170877, "failures": []}
+{"flat": "avani", "key": "bigger-furnished", "pass": false, "seconds": 25.637, "tokens": 49042, "failures": ["no_applied_proposal", "furnished_prerequisite_missing", "no_measured_open_rectangle_improvement", "golden_furnishing_prerequisite_missing"]}
+{"stage": "request", "flat": "avani", "repeat": 3, "key": "bigger-empty"}
+{"stage": "request", "flat": "b21-t13", "repeat": 3, "key": "living"}
+{"flat": "b21-t13", "key": "living", "pass": false, "seconds": 1.483, "tokens": 0, "failures": ["no_applied_proposal", "living_sofa_missing", "living_rug_missing", "living_coffee_table_missing", "living_lamp_missing", "total_price_not_shown"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 3, "key": "cozier"}
+{"flat": "b21-t13", "key": "cozier", "pass": false, "seconds": 55.79, "tokens": 40733, "failures": ["no_applied_proposal", "no_measured_warmth_added"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 3, "key": "why"}
+{"flat": "avani", "key": "bigger-empty", "pass": false, "seconds": 75.899, "tokens": 49003, "failures": ["empty_room_not_honestly_explained"]}
+{"stage": "request", "flat": "avani", "repeat": 3, "key": "sofa"}
+{"flat": "b21-t13", "key": "why", "pass": false, "seconds": 9.593, "tokens": 18424, "failures": ["no_actual_layout_to_explain", "no_checkable_layout_numbers", "placement_numbers_not_verified_against_scene", "actual_placement_not_explained"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 3, "key": "quote"}
+{"flat": "b21-t13", "key": "quote", "pass": false, "seconds": 10.454, "tokens": 23140, "failures": ["no_furniture_to_quote", "total_missing_or_wrong"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 3, "key": "paint"}
+{"flat": "avani", "key": "sofa", "pass": false, "seconds": 17.055, "tokens": 34034, "failures": ["no_applied_proposal", "existing_sofa_not_moved_to_face_window", "golden_furnishing_prerequisite_missing"]}
+{"flat": "b21-t13", "key": "paint", "pass": true, "seconds": 2.456, "tokens": 0, "failures": []}
+{"stage": "request", "flat": "avani", "repeat": 3, "key": "armchair"}
+{"stage": "request", "flat": "b21-t13", "repeat": 3, "key": "red"}
+{"flat": "b21-t13", "key": "red", "pass": false, "seconds": 31.578, "tokens": 76457, "failures": ["requested_wall_colour_coverage_incomplete"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 3, "key": "bigger-furnished"}
+{"flat": "avani", "key": "armchair", "pass": true, "seconds": 48.119, "tokens": 83246, "failures": []}
+{"stage": "request", "flat": "avani", "repeat": 3, "key": "desk"}
+{"flat": "b21-t13", "key": "bigger-furnished", "pass": false, "seconds": 26.045, "tokens": 55933, "failures": ["no_applied_proposal", "furnished_prerequisite_missing", "no_measured_open_rectangle_improvement", "golden_furnishing_prerequisite_missing"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 3, "key": "bigger-empty"}
+{"flat": "b21-t13", "key": "bigger-empty", "pass": false, "seconds": 26.457, "tokens": 56864, "failures": ["empty_room_not_honestly_explained"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 3, "key": "sofa"}
+{"flat": "avani", "key": "desk", "pass": true, "seconds": 41.31, "tokens": 82329, "failures": []}
+{"stage": "request", "flat": "avani", "repeat": 3, "key": "bedroom"}
+{"flat": "avani", "key": "bedroom", "pass": false, "seconds": 1.456, "tokens": 0, "failures": ["no_applied_proposal", "double_bed_missing", "two_nightstands_missing", "wardrobe_missing"]}
+{"stage": "request", "flat": "avani", "repeat": 3, "key": "advice"}
+{"flat": "b21-t13", "key": "sofa", "pass": false, "seconds": 14.998, "tokens": 43158, "failures": ["no_applied_proposal", "existing_sofa_not_moved_to_face_window", "golden_furnishing_prerequisite_missing"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 3, "key": "armchair"}
+{"flat": "avani", "key": "advice", "pass": true, "seconds": 11.759, "tokens": 10863, "failures": []}
+{"stage": "request", "flat": "avani", "repeat": 3, "key": "structural"}
+{"flat": "avani", "key": "structural", "pass": true, "seconds": 0.091, "tokens": 0, "failures": []}
+{"stage": "request", "flat": "avani", "repeat": 3, "key": "impossible"}
+{"flat": "avani", "key": "impossible", "pass": false, "seconds": 32.257, "tokens": 66135, "failures": ["honest_no_over_10_seconds"]}
+{"stage": "request", "flat": "avani", "repeat": 3, "key": "failed-followup"}
+{"flat": "b21-t13", "key": "armchair", "pass": false, "seconds": 69.937, "tokens": 134631, "failures": ["requested_new_piece_not_within_1.5m_of_window"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 3, "key": "desk"}
+{"flat": "b21-t13", "key": "desk", "pass": false, "seconds": 1.474, "tokens": 0, "failures": ["no_applied_proposal", "requested_new_piece_not_within_1.5m_of_window"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 3, "key": "bedroom"}
+{"flat": "b21-t13", "key": "bedroom", "pass": false, "seconds": 1.44, "tokens": 0, "failures": ["no_applied_proposal", "double_bed_missing", "two_nightstands_missing", "wardrobe_missing"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 3, "key": "advice"}
+{"flat": "avani", "key": "failed-followup", "pass": false, "seconds": 44.169, "tokens": 84541, "failures": ["failed_followup_not_safe_relevant_answer"]}
+{"flat": "b21-t13", "key": "advice", "pass": true, "seconds": 18.444, "tokens": 13567, "failures": []}
+{"stage": "request", "flat": "b21-t13", "repeat": 3, "key": "structural"}
+{"flat": "b21-t13", "key": "structural", "pass": true, "seconds": 0.052, "tokens": 0, "failures": []}
+{"stage": "request", "flat": "b21-t13", "repeat": 3, "key": "impossible"}
+{"flat": "b21-t13", "key": "impossible", "pass": false, "seconds": 52.846, "tokens": 82210, "failures": ["honest_no_over_10_seconds"]}
+{"stage": "request", "flat": "b21-t13", "repeat": 3, "key": "failed-followup"}
+{"flat": "b21-t13", "key": "failed-followup", "pass": false, "seconds": 85.835, "tokens": 246197, "failures": ["failed_followup_not_safe_relevant_answer"]}
+{"output": "/Users/ashotarushanyan/AshProjects/varpet-bench/packages/designer/eval/acceptance-runs/20260926T155711Z", "passed": 34, "total": 114, "batch_stopped": false}
+ ELIFECYCLE  Command failed with exit code 1.

@@ -1,0 +1,32 @@
+{"stage": "request", "flat": "avani", "repeat": 1, "key": "living"}
+{"flat": "avani", "key": "living", "pass": false, "seconds": 1.767, "tokens": 0, "failures": ["no_applied_proposal", "living_sofa_missing", "living_rug_missing", "living_coffee_table_missing", "living_lamp_missing", "total_price_not_shown"]}
+{"stage": "request", "flat": "avani", "repeat": 1, "key": "cozier"}
+{"flat": "avani", "key": "cozier", "pass": false, "seconds": 17.814, "tokens": 32950, "failures": ["no_applied_proposal", "no_measured_warmth_added"]}
+{"stage": "request", "flat": "avani", "repeat": 1, "key": "why"}
+{"flat": "avani", "key": "why", "pass": false, "seconds": 9.364, "tokens": 13176, "failures": ["no_actual_layout_to_explain", "no_checkable_layout_numbers", "placement_numbers_not_verified_against_scene", "actual_placement_not_explained"]}
+{"stage": "request", "flat": "avani", "repeat": 1, "key": "quote"}
+{"flat": "avani", "key": "quote", "pass": false, "seconds": 11.202, "tokens": 15206, "failures": ["no_furniture_to_quote", "total_missing_or_wrong"]}
+{"stage": "request", "flat": "avani", "repeat": 1, "key": "paint"}
+{"flat": "avani", "key": "paint", "pass": true, "seconds": 3.88, "tokens": 0, "failures": []}
+{"stage": "request", "flat": "avani", "repeat": 1, "key": "red"}
+{"flat": "avani", "key": "red", "pass": true, "seconds": 26.805, "tokens": 61663, "failures": []}
+{"stage": "request", "flat": "avani", "repeat": 1, "key": "bigger-furnished"}
+{"flat": "avani", "key": "bigger-furnished", "pass": false, "seconds": 21.33, "tokens": 49061, "failures": ["no_applied_proposal", "furnished_prerequisite_missing", "no_measured_open_rectangle_improvement", "golden_furnishing_prerequisite_missing"]}
+{"stage": "request", "flat": "avani", "repeat": 1, "key": "bigger-empty"}
+{"flat": "avani", "key": "bigger-empty", "pass": false, "seconds": 21.042, "tokens": 49031, "failures": ["empty_room_not_honestly_explained"]}
+{"stage": "request", "flat": "avani", "repeat": 1, "key": "sofa"}
+{"flat": "avani", "key": "sofa", "pass": false, "seconds": 16.133, "tokens": 33380, "failures": ["no_applied_proposal", "existing_sofa_not_moved_to_face_window", "golden_furnishing_prerequisite_missing"]}
+{"stage": "request", "flat": "avani", "repeat": 1, "key": "armchair"}
+{"flat": "avani", "key": "armchair", "pass": true, "seconds": 39.441, "tokens": 83194, "failures": []}
+{"stage": "request", "flat": "avani", "repeat": 1, "key": "desk"}
+{"flat": "avani", "key": "desk", "pass": true, "seconds": 56.973, "tokens": 83336, "failures": []}
+{"stage": "request", "flat": "avani", "repeat": 1, "key": "bedroom"}
+{"flat": "avani", "key": "bedroom", "pass": false, "seconds": 1.462, "tokens": 0, "failures": ["no_applied_proposal", "double_bed_missing", "two_nightstands_missing", "wardrobe_missing"]}
+{"stage": "request", "flat": "avani", "repeat": 1, "key": "advice"}
+{"flat": "avani", "key": "advice", "pass": true, "seconds": 12.862, "tokens": 10848, "failures": []}
+{"stage": "request", "flat": "avani", "repeat": 1, "key": "structural"}
+{"flat": "avani", "key": "structural", "pass": true, "seconds": 0.091, "tokens": 0, "failures": []}
+{"stage": "request", "flat": "avani", "repeat": 1, "key": "impossible"}
+{"flat": "avani", "key": "impossible", "pass": false, "seconds": 61.829, "tokens": 66295, "failures": ["no_honest_refusal", "honest_no_over_10_seconds"]}
+{"stage": "request", "flat": "avani", "repeat": 1, "key": "failed-followup"}
+{"flat": "avani", "key": "failed-followup", "pass": false, "seconds": 42.213, "tokens": 84923, "failures": ["failed_followup_not_safe_relevant_answer"]}

@@ -1,0 +1,24 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "./server/sharing" without a file extension (vite.config.ts:4:31). Add the file extension
+  - import "../src/contracts" without a file extension (server/sharing.ts:8:50). Add the file extension
+  - import "../src/core/validation" without a file extension (server/sharing.ts:9:41). Add the file extension
+  - import "../contracts" without a file extension (src/core/validation.ts:1:132). Add the file extension
+  - import "./geometry" without a file extension (src/core/validation.ts:3:35). Add the file extension
+  - import "./opening-collision" without a file extension (src/core/validation.ts:4:61). Add the file extension
+  - import "./ceiling-design" without a file extension (src/core/validation.ts:5:57). Add the file extension
+  - import "./heights" without a file extension (src/core/validation.ts:6:32). Add the file extension
+  - import "../contracts" without a file extension (src/core/heights.ts:1:59). Add the file extension
+  - import "../contracts" without a file extension (src/core/geometry.ts:1:73). Add the file extension
+  - import "../contracts" without a file extension (src/core/ceiling-design.ts:1:94). Add the file extension
+  - import "../contracts" without a file extension (src/core/opening-collision.ts:1:57). Add the file extension
+  - import "./wall-surfaces" without a file extension (src/core/heights.ts:2:34). Add the file extension
+  - import "./heights" without a file extension (src/core/ceiling-design.ts:2:51). Add the file extension
+  - import "./geometry" without a file extension (src/core/opening-collision.ts:2:28). Add the file extension
+  - import "../contracts" without a file extension (src/core/wall-surfaces.ts:1:55). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+(node:83136) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+  VITE v8.3.1  ready in 280 ms
+
+  ➜  Local:   http://127.0.0.1:53220/

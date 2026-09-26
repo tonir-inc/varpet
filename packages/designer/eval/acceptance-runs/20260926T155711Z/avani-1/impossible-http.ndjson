@@ -1,0 +1,26 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Understanding the change you want"}
+{"type": "tool", "name": "set_intent", "phase": "start", "summary": "Understanding your brief", "callId": "exec-cd6d35de-13bd-4582-b158-580f46a2a4dd"}
+{"type": "tool", "name": "set_intent", "phase": "end", "summary": "Understanding your brief", "callId": "exec-cd6d35de-13bd-4582-b158-580f46a2a4dd"}
+{"type": "progress", "message": "Looking for suitable furniture"}
+{"type": "tool", "name": "search_catalog", "phase": "start", "summary": "Finding suitable furniture", "callId": "exec-7faaf9e5-330b-47b5-a698-62400e5c2bf1"}
+{"type": "progress", "message": "Looking for suitable furniture"}
+{"type": "tool", "name": "search_catalog", "phase": "end", "summary": "Finding suitable furniture", "refs": {"results": ["abo:B07B4W31C3", "abo:B07K7NXVXR", "abo:B07B51H792", "abo:B07B4YXNNG", "abo:B07B4W5TZF", "abo:B07BBWMPJM", "abo:B07B4VXZZX", "abo:B086TGFT35"]}, "callId": "exec-7faaf9e5-330b-47b5-a698-62400e5c2bf1"}
+{"type": "tool", "name": "show_candidates", "phase": "end", "summary": "Comparing furniture options", "refs": {"results": ["abo:B07B4W31C3", "abo:B07K7NXVXR", "abo:B07B51H792", "abo:B07B4YXNNG", "abo:B07B4W5TZF", "abo:B07BBWMPJM", "abo:B07B4VXZZX", "abo:B086TGFT35"]}, "callId": "exec-7faaf9e5-330b-47b5-a698-62400e5c2bf1"}
+{"type": "progress", "message": "Checking your design"}
+{"type": "tool", "name": "show_candidates", "phase": "start", "summary": "Comparing furniture options", "callId": "exec-b17f223b-cac3-45c5-9f5a-2388a13541cf"}
+{"type": "tool", "name": "show_candidates", "phase": "end", "summary": "Comparing furniture options", "callId": "exec-b17f223b-cac3-45c5-9f5a-2388a13541cf"}
+{"type": "progress", "message": "Checking your design"}
+{"type": "progress", "message": "Checking your proposed change"}
+{"type": "tool", "name": "propose", "phase": "start", "summary": "Checking your proposed change", "callId": "exec-5a93f63c-5164-4630-bda5-08e478f5a1bb"}
+{"type": "tool", "name": "propose", "phase": "error", "summary": "Checking your proposed change did not complete", "callId": "exec-5a93f63c-5164-4630-bda5-08e478f5a1bb"}
+{"type": "progress", "message": "Writing your answer"}
+{"type": "message", "message": "I couldn’t create a valid bathroom preview: the compact double bed checked intersects both side walls and leaves **no bedside clearance**, against the required 60 cm on each side. Nothing has changed.\n\nWould you like me to try a double bed in the bedroom instead?", "conversationId": "6cafa2c205f2465ab0a4e9f1f4e0b759"}

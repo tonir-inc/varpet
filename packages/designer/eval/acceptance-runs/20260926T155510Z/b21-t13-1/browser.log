@@ -1,0 +1,21 @@
+Editor import did not preserve the requested scene
+Traceback (most recent call last):
+  File "/Users/ashotarushanyan/AshProjects/varpet-bench/packages/designer/eval/acceptance_browser.py", line 138, in <module>
+    p=argparse.ArgumentParser();p.add_argument('--port',type=grade.port,required=True);p.add_argument('--flat',required=True);p.add_argument('--repeat',type=int,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--events',type=Path,required=True);p.add_argument('--chrome',default='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome');p.add_argument('--tier1-only',action='store_true');args=p.parse_args();asyncio.run(main(args))
+                                                                                                                                                                                                                                                                                                                                                                                                                                                               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ashotarushanyan/.local/share/uv/python/cpython-3.11.14-macos-aarch64-none/lib/python3.11/asyncio/runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/Users/ashotarushanyan/.local/share/uv/python/cpython-3.11.14-macos-aarch64-none/lib/python3.11/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ashotarushanyan/.local/share/uv/python/cpython-3.11.14-macos-aarch64-none/lib/python3.11/asyncio/base_events.py", line 654, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/Users/ashotarushanyan/AshProjects/varpet-bench/packages/designer/eval/acceptance_browser.py", line 116, in main
+    if args.flat!='avani':await import_scene(json.loads((HERE/'komitas'/f'{args.flat}.scene.json').read_text()))
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ashotarushanyan/AshProjects/varpet-bench/packages/designer/eval/acceptance_browser.py", line 56, in import_scene
+    if got!=scene:raise RuntimeError('Editor import did not preserve the requested scene')
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Editor import did not preserve the requested scene

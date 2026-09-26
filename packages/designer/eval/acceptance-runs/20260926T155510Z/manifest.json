@@ -1,0 +1,13 @@
+{
+  "started_at": "2026-09-26T15:55:10.007920+00:00",
+  "source": "484b37f9d4f1b2490ae41029275aa64c948d8497",
+  "runs": 3,
+  "tier1_runs": 3,
+  "tier1_only": false,
+  "flats": [
+    "b21-t13",
+    "avani"
+  ],
+  "editor_port": 53220,
+  "service_port": 53221
+}

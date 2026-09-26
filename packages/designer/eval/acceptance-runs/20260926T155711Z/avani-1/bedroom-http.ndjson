@@ -1,0 +1,4 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "message", "message": "No bed with a usable catalog identity is available. Choose another available furniture kind or load a catalog containing a bed.", "conversationId": "51de98bd16f04232bbe3c906d098030a"}

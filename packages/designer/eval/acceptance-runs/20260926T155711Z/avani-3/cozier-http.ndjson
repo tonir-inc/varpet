@@ -1,0 +1,10 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Preparing a question"}
+{"type": "tool", "name": "ask", "phase": "start", "summary": "Preparing a question", "callId": "exec-72f129b8-bfa1-4e1c-89b4-a478ffc29f45"}
+{"type": "tool", "name": "ask", "phase": "end", "summary": "Preparing a question", "callId": "exec-72f129b8-bfa1-4e1c-89b4-a478ffc29f45"}
+{"type": "progress", "message": "Writing your answer"}
+{"type": "question", "conversationId": "35775cc59ee246a68cd8b7be11ad4000", "question": "What would you like to make cozier first?", "options": ["Furnish the living room with inviting seating, a rug and lamps", "Create a cozy furnished bedroom", "Try warmer wall colours"]}

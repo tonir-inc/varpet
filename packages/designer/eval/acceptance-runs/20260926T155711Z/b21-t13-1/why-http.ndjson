@@ -1,0 +1,71 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Writing your answer"}
+{"type": "message_delta", "delta": "I haven’t"}
+{"type": "message_delta", "delta": " proposed"}
+{"type": "message_delta", "delta": " or"}
+{"type": "message_delta", "delta": " changed"}
+{"type": "message_delta", "delta": " a"}
+{"type": "message_delta", "delta": " layout"}
+{"type": "message_delta", "delta": " yet"}
+{"type": "message_delta", "delta": "—the"}
+{"type": "message_delta", "delta": " supplied"}
+{"type": "message_delta", "delta": " scene"}
+{"type": "message_delta", "delta": " still"}
+{"type": "message_delta", "delta": " has"}
+{"type": "message_delta", "delta": " no"}
+{"type": "message_delta", "delta": " furniture"}
+{"type": "message_delta", "delta": "."}
+{"type": "message_delta", "delta": " My"}
+{"type": "message_delta", "delta": " last"}
+{"type": "message_delta", "delta": " message"}
+{"type": "message_delta", "delta": " offered"}
+{"type": "message_delta", "delta": " three"}
+{"type": "message_delta", "delta": " directions"}
+{"type": "message_delta", "delta": " for"}
+{"type": "message_delta", "delta": " making"}
+{"type": "message_delta", "delta": " it"}
+{"type": "message_delta", "delta": " co"}
+{"type": "message_delta", "delta": "zier"}
+{"type": "message_delta", "delta": ".\n\n"}
+{"type": "message_delta", "delta": "The"}
+{"type": "message_delta", "delta": " living"}
+{"type": "message_delta", "delta": "-room"}
+{"type": "message_delta", "delta": " idea"}
+{"type": "message_delta", "delta": " uses"}
+{"type": "message_delta", "delta": " **"}
+{"type": "message_delta", "delta": "comfortable"}
+{"type": "message_delta", "delta": " seating"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": " a"}
+{"type": "message_delta", "delta": " rug"}
+{"type": "message_delta", "delta": " to"}
+{"type": "message_delta", "delta": " bring"}
+{"type": "message_delta", "delta": " the"}
+{"type": "message_delta", "delta": " seating"}
+{"type": "message_delta", "delta": " area"}
+{"type": "message_delta", "delta": " together"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": " and"}
+{"type": "message_delta", "delta": " lamps"}
+{"type": "message_delta", "delta": " for"}
+{"type": "message_delta", "delta": " softer"}
+{"type": "message_delta", "delta": " light"}
+{"type": "message_delta", "delta": "**"}
+{"type": "message_delta", "delta": "."}
+{"type": "message_delta", "delta": " That"}
+{"type": "message_delta", "delta": "’s"}
+{"type": "message_delta", "delta": " a"}
+{"type": "message_delta", "delta": " design"}
+{"type": "message_delta", "delta": " direction"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": " not"}
+{"type": "message_delta", "delta": " a"}
+{"type": "message_delta", "delta": " checked"}
+{"type": "message_delta", "delta": " furniture"}
+{"type": "message_delta", "delta": " arrangement"}
+{"type": "message_delta", "delta": " yet"}
+{"type": "message_delta", "delta": "."}
+{"type": "message", "message": "I haven’t proposed or changed a layout yet—the supplied scene still has no furniture. My last message offered three directions for making it cozier.\n\nThe living-room idea uses **comfortable seating, a rug to bring the seating area together, and lamps for softer light**. That’s a design direction, not a checked furniture arrangement yet.", "conversationId": "943a9df5cc6c4cb4bc5b3499ea702af8"}

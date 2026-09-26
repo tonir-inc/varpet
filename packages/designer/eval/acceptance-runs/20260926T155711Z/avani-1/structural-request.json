@@ -1,0 +1,860 @@
+{
+  "scene": {
+    "format": "varpet.editor",
+    "version": 2,
+    "id": "5667fc22-8264-4e1a-bb1e-8b3f015daf79",
+    "name": "The Avani Apartment",
+    "units": "m",
+    "upAxis": "Y",
+    "rooms": [
+      {
+        "id": "room-living",
+        "name": "Living & dining",
+        "color": "#ddcfb9",
+        "polygon": [
+          [
+            -5,
+            -4
+          ],
+          [
+            0.6,
+            -4
+          ],
+          [
+            0.6,
+            4
+          ],
+          [
+            -5,
+            4
+          ]
+        ]
+      },
+      {
+        "id": "room-kitchen",
+        "name": "Kitchen",
+        "color": "#e5ddcc",
+        "polygon": [
+          [
+            0.6,
+            -4
+          ],
+          [
+            3.4,
+            -4
+          ],
+          [
+            3.4,
+            0.4
+          ],
+          [
+            0.6,
+            0.4
+          ]
+        ]
+      },
+      {
+        "id": "room-bath",
+        "name": "Bathroom",
+        "color": "#cbd3c8",
+        "polygon": [
+          [
+            3.4,
+            -4
+          ],
+          [
+            5,
+            -4
+          ],
+          [
+            5,
+            0.4
+          ],
+          [
+            3.4,
+            0.4
+          ]
+        ]
+      },
+      {
+        "id": "room-bedroom",
+        "name": "Bedroom",
+        "color": "#d9c6ad",
+        "polygon": [
+          [
+            0.6,
+            0.4
+          ],
+          [
+            5,
+            0.4
+          ],
+          [
+            5,
+            4
+          ],
+          [
+            0.6,
+            4
+          ]
+        ]
+      }
+    ],
+    "walls": [
+      {
+        "id": "wall-west",
+        "start": [
+          -5,
+          -4
+        ],
+        "end": [
+          -5,
+          4
+        ],
+        "height": 2.7,
+        "thickness": 0.16,
+        "color": "#f0ebe1",
+        "openings": [
+          {
+            "id": "window-west",
+            "kind": "window",
+            "offset": 4.5,
+            "width": 2.4,
+            "height": 1.45,
+            "sill": 0.85
+          }
+        ]
+      },
+      {
+        "id": "wall-east",
+        "start": [
+          5,
+          -4
+        ],
+        "end": [
+          5,
+          0.4
+        ],
+        "height": 2.7,
+        "thickness": 0.16,
+        "color": "#f0ebe1",
+        "openings": [
+          {
+            "id": "window-bath",
+            "kind": "window",
+            "offset": 1.2,
+            "width": 1,
+            "height": 0.8,
+            "sill": 1.5
+          }
+        ]
+      },
+      {
+        "id": "wall-east:section-1wcj16j",
+        "start": [
+          5,
+          0.4
+        ],
+        "end": [
+          5,
+          4
+        ],
+        "height": 2.7,
+        "thickness": 0.16,
+        "color": "#f0ebe1",
+        "openings": [
+          {
+            "id": "window-bedroom",
+            "kind": "window",
+            "offset": 1.0999999999999996,
+            "width": 1.7,
+            "height": 1.45,
+            "sill": 0.85
+          }
+        ]
+      },
+      {
+        "id": "wall-south",
+        "start": [
+          -5,
+          -4
+        ],
+        "end": [
+          0.6,
+          -4
+        ],
+        "height": 2.7,
+        "thickness": 0.16,
+        "color": "#f0ebe1",
+        "openings": [
+          {
+            "id": "door-entry",
+            "kind": "door",
+            "offset": 0.7,
+            "width": 1.05,
+            "height": 2.2,
+            "sill": 0
+          }
+        ]
+      },
+      {
+        "id": "wall-south:section-mfp1zm",
+        "start": [
+          0.6,
+          -4
+        ],
+        "end": [
+          3.4,
+          -4
+        ],
+        "height": 2.7,
+        "thickness": 0.16,
+        "color": "#f0ebe1",
+        "openings": [
+          {
+            "id": "window-kitchen",
+            "kind": "window",
+            "offset": 0.40000000000000036,
+            "width": 1.8,
+            "height": 1.2,
+            "sill": 1.15
+          }
+        ]
+      },
+      {
+        "id": "wall-south:section-wrqe3v",
+        "start": [
+          3.4,
+          -4
+        ],
+        "end": [
+          5,
+          -4
+        ],
+        "height": 2.7,
+        "thickness": 0.16,
+        "color": "#f0ebe1",
+        "openings": []
+      },
+      {
+        "id": "wall-north",
+        "start": [
+          -5,
+          4
+        ],
+        "end": [
+          0.6,
+          4
+        ],
+        "height": 2.7,
+        "thickness": 0.16,
+        "color": "#f0ebe1",
+        "openings": [
+          {
+            "id": "window-living",
+            "kind": "window",
+            "offset": 0.9,
+            "width": 2.7,
+            "height": 1.45,
+            "sill": 0.85
+          }
+        ]
+      },
+      {
+        "id": "wall-north:section-1bz51as",
+        "start": [
+          0.6,
+          4
+        ],
+        "end": [
+          5,
+          4
+        ],
+        "height": 2.7,
+        "thickness": 0.16,
+        "color": "#f0ebe1",
+        "openings": []
+      },
+      {
+        "id": "wall-spine",
+        "start": [
+          0.6,
+          -4
+        ],
+        "end": [
+          0.6,
+          0.4
+        ],
+        "height": 2.7,
+        "thickness": 0.16,
+        "color": "#f0ebe1",
+        "openings": [
+          {
+            "id": "door-kitchen",
+            "kind": "door",
+            "offset": 1.9,
+            "width": 1.1,
+            "height": 2.2,
+            "sill": 0
+          }
+        ]
+      },
+      {
+        "id": "wall-spine:section-tfjdn7",
+        "start": [
+          0.6,
+          0.4
+        ],
+        "end": [
+          0.6,
+          4
+        ],
+        "height": 2.7,
+        "thickness": 0.16,
+        "color": "#f0ebe1",
+        "openings": [
+          {
+            "id": "door-bedroom",
+            "kind": "door",
+            "offset": 0.5999999999999996,
+            "width": 1.1,
+            "height": 2.2,
+            "sill": 0
+          }
+        ]
+      },
+      {
+        "id": "wall-bedroom",
+        "start": [
+          0.6,
+          0.4
+        ],
+        "end": [
+          3.4,
+          0.4
+        ],
+        "height": 2.7,
+        "thickness": 0.16,
+        "color": "#f0ebe1",
+        "openings": []
+      },
+      {
+        "id": "wall-bedroom:section-1wuotw",
+        "start": [
+          3.4,
+          0.4
+        ],
+        "end": [
+          5,
+          0.4
+        ],
+        "height": 2.7,
+        "thickness": 0.16,
+        "color": "#f0ebe1",
+        "openings": []
+      },
+      {
+        "id": "wall-bath",
+        "start": [
+          3.4,
+          -4
+        ],
+        "end": [
+          3.4,
+          0.4
+        ],
+        "height": 2.7,
+        "thickness": 0.16,
+        "color": "#f0ebe1",
+        "openings": [
+          {
+            "id": "door-bath",
+            "kind": "door",
+            "offset": 3.15,
+            "width": 0.9,
+            "height": 2.15,
+            "sill": 0
+          }
+        ]
+      }
+    ],
+    "objects": [],
+    "project": {
+      "mode": "correct",
+      "currency": "AMD",
+      "metadata": {
+        "wall-west": {
+          "structuralRole": "unknown",
+          "phase": "existing",
+          "review": "unreviewed"
+        },
+        "wall-east": {
+          "structuralRole": "unknown",
+          "phase": "existing",
+          "review": "unreviewed"
+        },
+        "wall-south": {
+          "structuralRole": "unknown",
+          "phase": "existing",
+          "review": "unreviewed"
+        },
+        "wall-north": {
+          "structuralRole": "unknown",
+          "phase": "existing",
+          "review": "unreviewed"
+        },
+        "wall-spine": {
+          "structuralRole": "unknown",
+          "phase": "existing",
+          "review": "unreviewed"
+        },
+        "wall-bedroom": {
+          "structuralRole": "unknown",
+          "phase": "existing",
+          "review": "unreviewed"
+        },
+        "wall-bath": {
+          "structuralRole": "unknown",
+          "phase": "existing",
+          "review": "unreviewed"
+        },
+        "room-living": {
+          "zone": "interior",
+          "phase": "existing"
+        },
+        "room-kitchen": {
+          "zone": "interior",
+          "phase": "existing"
+        },
+        "room-bath": {
+          "zone": "interior",
+          "phase": "existing"
+        },
+        "room-bedroom": {
+          "zone": "interior",
+          "phase": "existing"
+        },
+        "wall-east:section-1wcj16j": {
+          "structuralRole": "unknown",
+          "phase": "existing",
+          "review": "unreviewed"
+        },
+        "wall-south:section-mfp1zm": {
+          "structuralRole": "unknown",
+          "phase": "existing",
+          "review": "unreviewed"
+        },
+        "wall-south:section-wrqe3v": {
+          "structuralRole": "unknown",
+          "phase": "existing",
+          "review": "unreviewed"
+        },
+        "wall-north:section-1bz51as": {
+          "structuralRole": "unknown",
+          "phase": "existing",
+          "review": "unreviewed"
+        },
+        "wall-spine:section-tfjdn7": {
+          "structuralRole": "unknown",
+          "phase": "existing",
+          "review": "unreviewed"
+        },
+        "wall-bedroom:section-1wuotw": {
+          "structuralRole": "unknown",
+          "phase": "existing",
+          "review": "unreviewed"
+        }
+      },
+      "components": [],
+      "routes": [],
+      "sources": [],
+      "assumptions": [],
+      "materials": [],
+      "finishes": [],
+      "tasks": [],
+      "options": []
+    }
+  },
+  "revision": 14,
+  "request": "Knock down the wall between the kitchen and the living room",
+  "events": true,
+  "keep": [],
+  "northDeg": 0,
+  "catalog": [
+    {
+      "id": "abo:B003PBOMJ6",
+      "name": "kovalenthor Console Table - Black, for Entryway for Living Room (Grey)",
+      "kind": "table",
+      "category": "table",
+      "dimensions": [
+        0.3599,
+        0.7399,
+        0.3599
+      ],
+      "color": "#ba8a5e",
+      "price": 59000,
+      "source": {
+        "type": "gltf",
+        "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/6/B003PBOMJ6.glb"
+      }
+    },
+    {
+      "id": "abo:B0075URYK2",
+      "name": "Vida Design Corona Chest Of Drawers, 4 Drawers, Solid Pine Wood",
+      "kind": "dresser",
+      "category": "dresser",
+      "dimensions": [
+        0.9149,
+        1.3,
+        0.4849
+      ],
+      "color": "#d4ba91",
+      "price": 157000,
+      "source": {
+        "type": "gltf",
+        "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/2/B0075URYK2.glb"
+      }
+    },
+    {
+      "id": "abo:B007IHF36E",
+      "name": "Amazon Brand - Movian Corona Sideboard, 3 Door 3 Drawer, Solid Pine Wood ,Waxed, 76 x 125 x 40 cm",
+      "kind": "cabinet",
+      "category": "cabinet",
+      "dimensions": [
+        1.3208,
+        0.8103,
+        0.4318
+      ],
+      "color": "#c7a174",
+      "price": 152000,
+      "source": {
+        "type": "gltf",
+        "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/E/B007IHF36E.glb"
+      }
+    },
+    {
+      "id": "abo:B00838756S",
+      "name": "Vida Designs Corona Merchant Chest Of Drawers, 9 Drawer, Solid Pine Wood",
+      "kind": "dresser",
+      "category": "dresser",
+      "dimensions": [
+        0.99,
+        0.74,
+        0.41
+      ],
+      "color": "#c8a57a",
+      "price": 151000,
+      "source": {
+        "type": "gltf",
+        "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/S/B00838756S.glb"
+      }
+    },
+    {
+      "id": "abo:B008RLJR2G",
+      "name": "Amazon Brand - Movian Corona TV Cabinet, Straight Unit, Stand With Shelf and Media Storage, Solid Pine Wood",
+      "kind": "shelf",
+      "category": "shelf",
+      "dimensions": [
+        0.8509,
+        0.7874,
+        0.43
+      ],
+      "color": "#40403f",
+      "price": 68000,
+      "source": {
+        "type": "gltf",
+        "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/G/B008RLJR2G.glb"
+      }
+    },
+    {
+      "id": "abo:B009S7IZWG",
+      "name": "Amazon Brand - Movian Corona Sideboard, 1 Door 4 Drawer, Solid Pine Wood, 76 x 86 x 40 cm",
+      "kind": "cabinet",
+      "category": "cabinet",
+      "dimensions": [
+        0.915,
+        0.835,
+        0.44
+      ],
+      "color": "#c9a87d",
+      "price": 130000,
+      "source": {
+        "type": "gltf",
+        "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/G/B009S7IZWG.glb"
+      }
+    },
+    {
+      "id": "abo:B00BBDF500",
+      "name": "Amazon Brand - Movian Corona Console Table, 2 Drawer With Shelf, Solid Pine Wood, 70 x 83 x 31 cm",
+      "kind": "table",
+      "category": "table",
+      "dimensions": [
+        0.8999,
+        0.728,
+        0.3399
+      ],
+      "color": "#092823",
+      "price": 65000,
+      "source": {
+        "type": "gltf",
+        "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/0/B00BBDF500.glb"
+      }
+    },
+    {
+      "id": "abo:B00EUL2B16",
+      "name": "Ashley Furniture Signature Design - Leahlyn Dining Upholstered Side Chair - Pierced Splat Back - Set of 2 - Medium Brown",
+      "kind": "chair",
+      "category": "chair",
+      "dimensions": [
+        0.4572,
+        0.9652,
+        0.5842
+      ],
+      "color": "#493126",
+      "price": 52000,
+      "source": {
+        "type": "gltf",
+        "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/6/B00EUL2B16.glb"
+      }
+    },
+    {
+      "id": "abo:B00IFHPVEU",
+      "name": "AmazonBasics Leather-Padded, Adjustable, Swivel Office Desk Chair with Armrest, Black",
+      "kind": "chair",
+      "category": "chair",
+      "dimensions": [
+        0.5758,
+        0.9979,
+        0.6414
+      ],
+      "color": "#434043",
+      "price": 58000,
+      "source": {
+        "type": "gltf",
+        "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/U/B00IFHPVEU.glb"
+      }
+    },
+    {
+      "id": "abo:B00IIFW2L4",
+      "name": "AmazonBasics Mesh, Mid-Back, Adjustable, Swivel Office Desk Chair with Armrests, Black",
+      "kind": "chair",
+      "category": "chair",
+      "dimensions": [
+        0.6101,
+        1.0259,
+        0.6402
+      ],
+      "color": "#282524",
+      "price": 59000,
+      "source": {
+        "type": "gltf",
+        "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/4/B00IIFW2L4.glb"
+      }
+    },
+    {
+      "id": "abo:B00OGP5S98",
+      "name": "Home Corona 2 unità da 1 TV a schermo Piatto, supporto/ripostigli",
+      "kind": "table",
+      "category": "table",
+      "dimensions": [
+        1.2,
+        0.51,
+        0.4
+      ],
+      "color": "#6d5e51",
+      "price": 71000,
+      "source": {
+        "type": "gltf",
+        "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/8/B00OGP5S98.glb"
+      }
+    },
+    {
+      "id": "abo:B00TOAN7YI",
+      "name": "Germania Wardrobe Panel",
+      "kind": "wardrobe",
+      "category": "wardrobe",
+      "dimensions": [
+        0.9,
+        1.2,
+        0.3602
+      ],
+      "color": "#e5e6ea",
+      "price": 177000,
+      "source": {
+        "type": "gltf",
+        "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/I/B00TOAN7YI.glb"
+      }
+    },
+    {
+      "id": "abo:B00WRDRRWW",
+      "name": "AmazonBasics Laptop Desk Stand for PC and Macbook - Black",
+      "kind": "desk",
+      "category": "desk",
+      "dimensions": [
+        0.2555,
+        0.1549,
+        0.2363
+      ],
+      "color": "#393533",
+      "price": 69000,
+      "source": {
+        "type": "gltf",
+        "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/W/B00WRDRRWW.glb"
+      }
+    },
+    {
+      "id": "abo:B00XBC3BF0",
+      "name": "AmazonBasics High-Back, Leather Executive, Swivel, Adjustable Office Desk Chair with Casters, Black",
+      "kind": "chair",
+      "category": "chair",
+      "dimensions": [
+        0.6629,
+        1.155,
+        0.7391
+      ],
+      "color": "#1e1b1b",
+      "price": 65000,
+      "source": {
+        "type": "gltf",
+        "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/0/B00XBC3BF0.glb"
+      }
+    },
+    {
+      "id": "abo:B00XBC3J84",
+      "name": "AmazonBasics Upholstered, Low-Back, Adjustable, Swivel Office Desk Chair, Black",
+      "kind": "chair",
+      "category": "chair",
+      "dimensions": [
+        0.6475,
+        0.9591,
+        0.6464
+      ],
+      "color": "#2d2a2a",
+      "price": 61000,
+      "source": {
+        "type": "gltf",
+        "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/4/B00XBC3J84.glb"
+      }
+    },
+    {
+      "id": "abo:B010QZCT5W",
+      "name": "AmazonBasics Premium Wall Mount Computer Monitor and TV Stand - Lift Engine Arm Mount, Aluminum - Black",
+      "kind": "cabinet",
+      "category": "cabinet",
+      "dimensions": [
+        0.1151,
+        0.4665,
+        0.4953
+      ],
+      "color": "#747474",
+      "price": 85000,
+      "source": {
+        "type": "gltf",
+        "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/W/B010QZCT5W.glb"
+      }
+    },
+    {
+      "id": "abo:B013OWRNDC",
+      "name": "Amazon Brand - Movian Corona 3 Drawer Bedside Chest Distressed Waxed Solid Pine Table, Wood",
+      "kind": "cabinet",
+      "category": "nightstand",
+      "dimensions": [
+        0.6599,
+        0.8128,
+        0.4999
+      ],
+      "color": "#cba474",
+      "price": 42000,
+      "source": {
+        "type": "gltf",
+        "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/C/B013OWRNDC.glb"
+      }
+    },
+    {
+      "id": "abo:B013P2DRJK",
+      "name": "Amazon Brand - Movian Corona Magazine Table, 1 Drawer, Solid Pine Wood, 51.5 x 54 x 38 cm",
+      "kind": "table",
+      "category": "table",
+      "dimensions": [
+        0.53,
+        0.515,
+        0.38
+      ],
+      "color": "#c8a070",
+      "price": 61000,
+      "source": {
+        "type": "gltf",
+        "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/K/B013P2DRJK.glb"
+      }
+    },
+    {
+      "id": "abo:B015IPNVFW",
+      "name": "Solutions 14840 203 Revolving Door Wardrobe with 6 Doors, Arctic White/Front Varnished White with Three Schubkästen",
+      "kind": "wardrobe",
+      "category": "wardrobe",
+      "dimensions": [
+        3,
+        2.36,
+        0.5799
+      ],
+      "color": "#e5e4e3",
+      "price": 295000,
+      "source": {
+        "type": "gltf",
+        "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/W/B015IPNVFW.glb"
+      }
+    },
+    {
+      "id": "abo:B016ID2V5O",
+      "name": "AmazonBasics High-Back Executive Chair - Black",
+      "kind": "chair",
+      "category": "chair",
+      "dimensions": [
+        0.7,
+        1.145,
+        0.78
+      ],
+      "color": "#403d41",
+      "price": 69000,
+      "source": {
+        "type": "gltf",
+        "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/O/B016ID2V5O.glb"
+      }
+    },
+    {
+      "id": "abo:B0719WQH8S",
+      "name": "Amazon Brand – Rivet Revolve Modern Upholstered Armchair with Tapered Legs, 33\"W, Denim Blue",
+      "kind": "chair",
+      "category": "chair",
+      "dimensions": [
+        0.8545,
+        0.9216,
+        0.8199
+      ],
+      "color": "#303d46",
+      "price": 78000,
+      "source": {
+        "type": "gltf",
+        "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/S/B0719WQH8S.glb"
+      }
+    },
+    {
+      "id": "abo:B075ZBW1SN",
+      "name": "Amazon Brand – Rivet Ventura Mid-Century Small Reversible Writing Home Office Computer Desk with File Drawer, 50\"W, Cher",
+      "kind": "desk",
+      "category": "desk",
+      "dimensions": [
+        1.2767,
+        0.7576,
+        0.6122
+      ],
+      "color": "#2f221e",
+      "price": 109000,
+      "source": {
+        "type": "gltf",
+        "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/N/B075ZBW1SN.glb"
+      }
+    }
+  ],
+  "catalogCurrency": "AMD"
+}

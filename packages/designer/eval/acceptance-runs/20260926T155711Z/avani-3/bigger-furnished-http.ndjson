@@ -1,0 +1,15 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Understanding the change you want"}
+{"type": "tool", "name": "set_intent", "phase": "start", "summary": "Understanding your brief", "callId": "exec-410ba4a9-0577-4d58-9093-7dfcd7ab6676"}
+{"type": "tool", "name": "set_intent", "phase": "end", "summary": "Understanding your brief", "callId": "exec-410ba4a9-0577-4d58-9093-7dfcd7ab6676"}
+{"type": "progress", "message": "Checking your proposed change"}
+{"type": "tool", "name": "propose", "phase": "start", "summary": "Checking your proposed change", "callId": "exec-da499e27-2fdd-470e-984b-93c6d32e2695"}
+{"type": "tool", "name": "propose", "phase": "end", "summary": "Checking your proposed change", "refs": {"proposalId": "proposal-1", "ok": true}, "callId": "exec-da499e27-2fdd-470e-984b-93c6d32e2695"}
+{"type": "progress", "message": "Writing your answer"}
+{"type": "progress", "message": "Preparing the checked layout preview"}
+{"type": "error", "message": "Editor proposals require 1–100 operations"}

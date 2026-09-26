@@ -1,0 +1,10 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Preparing a question"}
+{"type": "tool", "name": "ask", "phase": "start", "summary": "Preparing a question", "callId": "exec-0ffed0e3-519d-48a7-aee0-0e5cd2d6ce9b"}
+{"type": "tool", "name": "ask", "phase": "end", "summary": "Preparing a question", "callId": "exec-0ffed0e3-519d-48a7-aee0-0e5cd2d6ce9b"}
+{"type": "progress", "message": "Writing your answer"}
+{"type": "question", "conversationId": "26a84d4751d84630a1753cd792e1415d", "question": "The supplied scene contains no sofa or other furniture. Could you add your sofa to the scene so I can check a move that faces the window?", "options": []}

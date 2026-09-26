@@ -1,0 +1,6 @@
+{
+  "packages/designer/eval/komitas/b21-t13.scene.json": "cbe469bd11a42bb26188778dabc834f05b47c5f08b9b3f07a841d258bb16426e",
+  "apps/editor/src/core/demo.ts": "63f3fe775a6e9e4e78956731a4b2e948bb39fb6ea677c97fb09fd36a0c2375cd",
+  "apps/editor/src/core/initial-scene.ts": "0552c5bad659188cfade9539c3377efc7d77e9613884e5671a46e24a1c782556",
+  "apps/editor/src/portal/templates.ts": "9fecf7d2b116c28a31e34b7353fa58b4fd485446659da8e99364596ec9ec8fce"
+}
