@@ -3,7 +3,7 @@ import math
 
 import kit
 import kit_shapes as ks
-from parts import (BLACK, BRASS, OAK, OAK_LIGHT, WALNUT, along, bent_tube, circle, d_shape, extrude,
+from parts import (BLACK, BRASS, OAK, OAK_LIGHT, WALNUT, along, cap_top, bent_tube, circle, d_shape, extrude,
                    lerp, pad, puffy_round, ring, rod, rounded_rect, shell, shell_point, slab, sq_rod,
                    superellipse, uv_scale, dished_seat, radial_uv, top_uv)
 
@@ -86,7 +86,7 @@ def mcm_stool(seat_h, back=False):
     pad_t, pan_t = 0.055, 0.02
     pan_z = seat_h - pad_t - pan_t - 0.008
     kit.cylinder(0.185, pan_t, (0, 0, pan_z), "walnut", WALNUT, verts=64, bevel=0.005, name="pan")
-    puffy_round(0.19, pad_t, (0, 0, pan_z + pan_t), "leather-brown", LEATHER, crown=0.008, name="cushion")
+    cap_top(puffy_round(0.19, pad_t, (0, 0, pan_z + pan_t), "leather-brown", LEATHER, crown=0.008, name="cushion"))
     tops, bots = [], []
     for k in range(4):
         x0, y0 = diag(0.11, k)

@@ -255,3 +255,20 @@ def disc(R, t, z, spec, tint=None, edge="round", e=None, roughness=None, steps=9
 def slab_uv(outline, z0, t, spec, tint=None, bevel=0.005, segments=3, roughness=None, name="top"):
     """Extruded outline with planar top/side UVs (no cube-projection diagonal seams on round outlines)."""
     return top_uv(extrude(outline, z0, t, spec, tint, bevel, roughness, segments=segments, name=name), spec, tint)
+
+
+def cap_top(obj):
+    """Close the pin-hole a lathe leaves at r~0 on its top ring, so a ray down the vertical axis hits the top."""
+    import bmesh as _bm
+    bm = _bm.new()
+    bm.from_mesh(obj.data)
+    zmax = max(v.co.z for v in bm.verts)
+    ring = [v for v in bm.verts if abs(v.co.z - zmax) < 1e-6 and v.co.xy.length < 0.002]
+    if len(ring) >= 3:
+        ring.sort(key=lambda v: math.atan2(v.co.y, v.co.x))
+        f = bm.faces.new(ring)
+        if f.normal.z < 0:
+            f.normal_flip()
+        bm.to_mesh(obj.data)
+    bm.free()
+    return obj

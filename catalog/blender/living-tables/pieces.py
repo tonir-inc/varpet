@@ -3,7 +3,7 @@ import math
 
 import kit
 import kit_shapes as ks
-from parts import (BLACK, BRASS, OAK, OAK_LIGHT, TRAV, WALNUT, along, circle, disc, lathe_uv, rod, rounded_rect,
+from parts import (BLACK, BRASS, OAK, OAK_LIGHT, TRAV, WALNUT, along, cap_top, circle, disc, lathe_uv, rod, rounded_rect,
                    slab_uv, sq_rod, stadium, superellipse)
 
 REGISTRY = {}
@@ -140,7 +140,7 @@ def mushroom():
     prof = [(0.001, 0), (0.16, 0), (0.166, 0.006), (0.166, 0.03), (0.15, 0.045), (0.11, 0.07), (0.088, 0.11),
             (0.08, 0.2), (0.08, 0.34), (0.09, 0.39), (0.13, 0.43), (0.19, 0.455), (0.225, 0.47), (0.24, 0.487),
             (0.24, 0.5), (0.232, 0.51), (0.2, 0.516), (0.1, 0.52), (0.001, 0.521)]
-    lathe_uv(prof, "travertine", TRAV, steps=96, roughness=0.5, swap=True, name="mushroom")
+    cap_top(lathe_uv(prof, "travertine", TRAV, steps=96, roughness=0.5, swap=True, name="mushroom"))
 
 
 @piece("oak-tripod-tray-side-table-45", "Scandinavian rift-oak tripod side table with lipped tray top and lower shelf, 45 cm",

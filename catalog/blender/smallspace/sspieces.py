@@ -87,6 +87,8 @@ def ext_table(open_):
         for i in range(nl):
             y0 = -yb + half + i * leaf
             kit.box((w, leaf - GAP, t), (0, y0 + leaf / 2, zt), RIFT, OAK_LIGHT, bevel=0.003)
+        for i in range(nl + 1):  # joint splines 1.5 mm under the top: seams still read, no slot on the centre line
+            kit.box((w - 0.01, GAP + 0.002, t - 0.0015), (0, -yb + half + i * leaf, zt), RIFT, OAK_LIGHT)
     lx = w / 2 - 0.045
     ah = 0.08
     for sy in (-1, 1):

@@ -3,7 +3,7 @@ import math
 
 import kit
 import kit_shapes as ks
-from parts import (BLACK, BRASS, GAP, LACQUER, OAK, OAK_LIGHT, REVEAL, WALNUT, bar_pull, carcass, drawer_grid,
+from parts import (BLACK, BRASS, GAP, LACQUER, OAK, OAK_LIGHT, REVEAL, WALNUT, bar_pull, cap_top, carcass, drawer_grid,
                    finger_lip, front, knob, leather_tab, plinth, rod, sq, taper_legs)
 
 REGISTRY = {}
@@ -285,4 +285,4 @@ def vanity_stool():
     t, crown = 0.1, 0.02
     prof = [(0.001, 0), (R - 0.02, 0), (R - 0.005, 0.006), (R, 0.025), (R + 0.004, t * 0.55), (R - 0.004, t - 0.008),
             (R - 0.03, t + crown * 0.35), (R * 0.6, t + crown * 0.85), (R * 0.3, t + crown), (0.001, t + crown)]
-    kit.lathe(prof, "boucle", "#ece2d3", at=(0, 0, legs_h), steps=64, name="seat")
+    cap_top(kit.lathe(prof, "boucle", "#ece2d3", at=(0, 0, legs_h), steps=64, name="seat"))

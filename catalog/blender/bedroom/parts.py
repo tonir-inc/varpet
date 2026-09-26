@@ -151,3 +151,20 @@ def bake_modifiers():
                     bpy.ops.object.modifier_apply(modifier=mod.name)
                 except RuntimeError:
                     o.modifiers.remove(mod)
+
+
+def cap_top(obj):
+    """Close the pin-hole a lathe leaves at r~0 on its top ring, so a ray down the vertical axis hits the top."""
+    import bmesh as _bm
+    bm = _bm.new()
+    bm.from_mesh(obj.data)
+    zmax = max(v.co.z for v in bm.verts)
+    ring = [v for v in bm.verts if abs(v.co.z - zmax) < 1e-6 and v.co.xy.length < 0.002]
+    if len(ring) >= 3:
+        ring.sort(key=lambda v: math.atan2(v.co.y, v.co.x))
+        f = bm.faces.new(ring)
+        if f.normal.z < 0:
+            f.normal_flip()
+        bm.to_mesh(obj.data)
+    bm.free()
+    return obj
