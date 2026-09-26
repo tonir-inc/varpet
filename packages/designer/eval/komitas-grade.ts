@@ -87,7 +87,7 @@ export function grade(kind:string,before:any,after:any,catalog:any[],reply:any,a
   let requestMatch=false;
   if(kind==='structural') {
     const text=reply.message??'';
-    requestMatch=reply.type==='decline'&&/can.?t|cannot|unable|not (?:able|remove|demolish|knock)|outside (?:my|the) scope/i.test(text)&&!/\bidiot|stupid\b/i.test(text)&&JSON.stringify(before)===JSON.stringify(after);
+    requestMatch=reply.type==='decline'&&/can.?t|cannot|unable|not (?:able|remove|demolish|knock|wall (?:demolition|removal))|outside (?:my|the) scope/i.test(text)&&!/\bidiot|stupid\b/i.test(text)&&JSON.stringify(before)===JSON.stringify(after);
   } else if(reply.type==='proposal'&&accepted) {
     if(kind==='living')requestMatch=!!room&&count('sofa')>=1&&count('table')+count('coffee_table')>=1;
     if(kind==='bedroom')requestMatch=!!room&&inRoom.some(i=>i.semantic==='bed'&&i.size[0]>=1.35&&i.size[1]>=1.8)&&count('nightstand')===2&&count('wardrobe')===1&&count('bed')===1;

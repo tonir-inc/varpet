@@ -4,41 +4,48 @@ import json
 from pathlib import Path
 from collections import Counter
 from statistics import median
+from math import ceil
 
 HERE=Path(__file__).resolve().parent
 parser=argparse.ArgumentParser()
 parser.add_argument('--runs',type=Path,default=HERE/'komitas-runs')
 parser.add_argument('--output',type=Path,default=HERE/'komitas.md')
 args=parser.parse_args()
+cohort_path=HERE/'komitas-live-cohort.json'
+cohort=json.loads(cohort_path.read_text()) if cohort_path.exists() else None
 runs=[(p,json.loads(p.read_text())) for p in sorted(args.runs.glob('*/run.json'))]
+if cohort:runs=[(p,r) for p,r in runs if r['id']=='avani' or r['id'] in cohort['ids']]
 komitas=sorted([(p,r) for p,r in runs if r['id']!='avani'],key=lambda pair:pair[1]['started_at'])
 latest={}
 for p,r in komitas:latest[r['id']]=(p,r)
 rows=[row for p,r in latest.values() for row in r['rows']]
 intake_path=HERE/'komitas-intake.json'
 intake=json.loads(intake_path.read_text()) if intake_path.exists() else None
+target=len(cohort['ids']) if cohort else 10
 fmt=lambda value:'—' if value is None else f'{value:,.3f}' if isinstance(value,float) else str(value)
-text=['# Komitas Park: sequential customer benchmark','',f'Measured: {len(latest)}/10 flats started, {sum(bool(r.get("finished_at")) for _,r in latest.values())}/10 completed. Avani calibration is excluded from Komitas rates.','',
-'Implemented runner (measured on Avani; Komitas blocked at input): gpt-6-astra / low / without-place / compact-base, text only. Live HTTP service, catalog MCP at localhost:8765, catalogCurrency AMD, northDeg 0. One real SDK conversation per flat; every EditorStore-accepted proposal is applied before the next request, including proposals that fail the independent rubric. Errors and questions leave the scene unchanged. Raw SDK events and HTTP replies are saved per turn. No synthetic answers or catalog stubs.','',
+text=['# Komitas Park: sequential customer benchmark','',f'Measured: {len(latest)}/{target} flats started, {sum(bool(r.get("finished_at")) for _,r in latest.values())}/{target} completed. Avani calibration is excluded from Komitas rates.','',
+'Production run: gpt-6-astra / low / without-place / compact-base; no room snapshots attached. Live HTTP service, catalog MCP at localhost:8765, catalogCurrency AMD, northDeg 0. One real SDK conversation per flat; every EditorStore-accepted proposal is applied before the next request, including proposals that fail the independent rubric. Errors and questions leave the scene unchanged. Raw SDK events and HTTP replies are saved per turn. No synthetic answers or catalog stubs.','',
 'Assumed rubric (declared before Komitas runs): living means at least a sofa and a table; bedroom means exactly one double bed ≥1.35 ×1.8 m, two nightstands and one wardrobe. Catalog titles and broad kinds determine subtypes, not model-supplied names. Desk must be newly added and its footprint within 1.5 m of a same-room window span. Sofa must change pose and face a window span within 15°. Warm white means RGB R≥230, G≥220, B≥205, R≥G≥B, 3≤R−B≤35 on all bedroom wall faces, with a real colour change. Kids applies to ground-truth marketed 3+ room flats (fallback: named living/bedrooms, not counting kitchen/bath); unresolved target roles fail rather than skip; it requires bed, desk and storage in that room and added cost ≤300,000 ֏. These proxies do not claim human taste assessment.','',
 'Clearance rule: zero new/worsened measured preferred-clearance deficits, excess sofa/coffee gaps, or walkways below 0.75 m; unchanged pre-existing failures are retained as baseline. The local designer metrics, not the unavailable engine check API, supply these measurements. Pass requires request match, editor acceptance for a proposal, and zero new/worsened failures. Honest but unverified impossibility declines are unresolved. Catalog prices are mock whole AMD prices, not shop quotations.','',
 '## Measured summary','', '| Request | Pass / attempts | Request match | Editor accepts / proposals | Median / max seconds | Median / max tokens |','|---|---:|---:|---:|---:|---:|']
 for kind in ['living','bedroom','sofa','desk','paint','kids','structural']:
  group=[r for r in rows if r['kind']==kind]
  if not group:
-  planned=sum(1 for row in intake['rows'] if kind!='kids' or row['kids_required']) if intake else 0
+  planned=sum(1 for row in intake['rows'] if (not cohort or row['id'] in cohort['ids']) and (kind!='kids' or row['kids_required'])) if intake else 0
   text.append(f'| {kind} | N/A — 0/{planned} attempted | N/A | N/A | N/A | N/A |')
   continue
  times=[r['seconds'] for r in group];tokens=[r['tokens'] for r in group if r.get('tokens') is not None]
  text.append(f'| {kind} | {sum(r["pass"] for r in group)}/{len(group)} | {sum(r["request_match"] for r in group)}/{len(group)} | {sum(r.get("editor_accepted") is True for r in group)}/{sum(r["outcome"]=="proposal" for r in group)} | {median(times):.3f} / {max(times):.3f} | {fmt(median(tokens) if tokens else None)} / {fmt(max(tokens) if tokens else None)} |')
 if rows:
  times=[r['seconds'] for r in rows];tokens=[r['tokens'] for r in rows if r.get('tokens') is not None]
- text+=['',f'Overall: {sum(r["pass"] for r in rows)}/{len(rows)} passes; editor accepts {sum(r.get("editor_accepted") is True for r in rows)}/{sum(r["outcome"]=="proposal" for r in rows)} proposals. Median/max seconds {median(times):.3f}/{max(times):.3f}; token telemetry {len(tokens)}/{len(rows)} turns.']
+ text+=['',f'Overall: {sum(r["pass"] for r in rows)}/{len(rows)} passes; editor accepts {sum(r.get("editor_accepted") is True for r in rows)}/{sum(r["outcome"]=="proposal" for r in rows)} proposals. Median/p90/max seconds {median(times):.3f}/{sorted(times)[ceil(.9*len(times))-1]:.3f}/{max(times):.3f} (nearest-rank p90); median/max tokens {fmt(median(tokens) if tokens else None)}/{fmt(max(tokens) if tokens else None)}; token telemetry {len(tokens)}/{len(rows)} turns.']
 text+=['','Failure causes (one turn can have multiple causes):']
 causes=Counter(cause for row in rows for cause in row.get('reasons',[]))
 text += [f'- {cause}: {count}' for cause,count in causes.most_common()] or ['- No Komitas requests measured yet.']
+findings=HERE/'komitas-findings.md'
+if findings.exists():text+=['',findings.read_text().strip()]
 if intake:
- text+=['','## Blocked before designer execution','',
+ text+=['','## Historical input blocker — superseded for this six-flat cohort','',
  f'Historical input preflight at {intake["measured_at"]}: {len(intake["rows"])} diagnostic drafts; {sum(r["editor"]["ok"] for r in intake["rows"])}/{len(intake["rows"])} accepted by EditorStore; {sum(r["bridge_accepted"] for r in intake["rows"])}/{len(intake["rows"])} accepted by the bridge; {sum(r["accepted_scene_published"] for r in intake["rows"])} accepted scene files published. Existing architect screenshots show diagnostic empty drafts. Current designer progress is in the measured summary above.','',
  f'Preflight source `{intake["source"]}`, at {intake["measured_at"]}. Raw local checks: [komitas-intake.json](komitas-intake.json). Upstream live generation and owner handoffs: [SERVICE report](komitas-architect.md). These are input failures, not failed model responses. No model calls were spent on rejected inputs.','',
  '| Flat | Developer rooms | Kids turn required | Editor | Bridge | First blocker |',
@@ -48,8 +55,8 @@ if intake:
   text.append(f'| {row["id"]} | {row["ground_truth"]["rooms"]} | {row["kids_required"]} | {row["editor"]["ok"]} | {row["bridge_accepted"]} | {blocker.replace("|","/")} |')
  counts=Counter(row['cause'] for row in intake['rows'])
  text+=['','Top input causes: '+ '; '.join(f'{cause}: {count}/10' for cause,count in counts.most_common())+'.',
- 'No designer-side production change was made: the boundary failures involve mismatched inside-face geometry, junctions and structural columns. A tolerance-only bridge prototype was already withheld by SERVICE after exposing inconsistent downstream wall orientation; this requires coordinated geometry/contract work, not a small eval-side repair. The polygon and opening failures belong upstream. Source drafts, fixtures and validation rules were preserved.','',
- 'Input handoff: publish repaired accepted `komitas/<id>.scene.json` files; the runner consumes the existing ground-truth array, including its two marketed one-room entries even when the trace contains extra habitable rooms. Run each arriving scene with the batch command below.']
+ 'Historical finding: the original boundary failures involved mismatched inside-face geometry, junctions and structural columns. SERVICE subsequently recovered six inputs with the 53 mm reconciliation contract and preserved fixed obstacles ([recovery evidence](komitas-unlock.md), source 48b51d4). The other four remain upstream failures and are outside this resumed six-flat request. This eval does not edit source geometry or production validation.','',
+ 'The frozen six-flat cohort and source input hashes are in [komitas-live-cohort.json](komitas-live-cohort.json). Ground truth makes only b25-t72 and b30-t35 eligible for the kids turn: 38 planned turns total. Marketed room counts remain unchanged, including the two one-room entries whose traces contain extra habitable rooms.']
 for path,run in runs:
  text+=['',f'## {run["id"]} — {"complete" if run.get("finished_at") else "in progress"}', '',f'Source `{run["source"]}`; raw transcripts and scene snapshots: [`{path.parent.name}/`](komitas-runs/{path.parent.name}/).', '', '| Request | Outcome | Pass | Editor | Seconds | Tokens | New failures | Added pieces | ֏ | Description / failure |','|---|---|---|---|---:|---:|---:|---:|---:|---|']
  for row in run['rows']:
@@ -62,7 +69,9 @@ for path,run in runs:
  capture=HERE/'komitas'/f'{run["id"]}-capture.json'
  manifest=json.loads(capture.read_text()) if capture.exists() else {}
  state=Path(manifest.get('state',''))
- if not state.is_absolute():state=HERE.parents[2]/state
+ # Capture evidence moves with its run directory, even in another checkout.
+ if 'komitas-runs' in state.parts:state=args.runs.joinpath(*state.parts[state.parts.index('komitas-runs')+1:])
+ elif not state.is_absolute():state=HERE.parents[2]/state
  complete=manifest.get('complete') is True and state.resolve()==(path.parent/'final.json').resolve() and all((HERE/'komitas'/f'{run["id"]}-furnished-{suffix}.png').exists() for suffix in ('top','3d')) and not manifest.get('page_errors') and not manifest.get('failed_requests')
  text+=['',f'Capture status: {"recorded without reported errors" if complete else "INCOMPLETE"}. Screenshots: [top](komitas/{run["id"]}-furnished-top.png), [3D](komitas/{run["id"]}-furnished-3d.png). Capture metadata lists rendering/download errors.']
 text+=['','Measured Avani finding: the shared catalog snapshot has 877 assets, zero table-kind desk/workstation titles, zero cabinet-kind wardrobe/armoire titles, and six table/cabinet nightstand titles. Paint changes connected wall sources beyond bedroom faces; the paint grade checks bedroom coverage only, and this spillover remains a product limitation.','', '## Reproduce','', '```sh', 'uv run --no-project --with openai-codex==0.157.1 python -u packages/designer/eval/komitas-service.py --output /tmp/varpet-komitas-events --port 8794 < /dev/null', 'pnpm --filter @varpet/designer exec tsx eval/komitas-run.ts --scene packages/designer/eval/komitas/ID.scene.json --truth packages/designer/eval/komitas/ground-truth.json --output packages/designer/eval/komitas-runs/ID-attempt1', 'python3 packages/designer/eval/komitas-batch.py packages/designer/eval/komitas/*.scene.json --truth packages/designer/eval/komitas/ground-truth.json --jobs 4 --port 5197', 'python3 packages/designer/eval/komitas-report.py', '```', '', 'Screenshots use `komitas-capture.py --state <final.json> --id ID --port 5197`, with the editor Vite server on 5197. Production UI files are unchanged. Service instrumentation only records events/usage and preserves the real conversation ID in error replies. SDK stdin is closed; the service kills the process tree after 180 s without model output; usage-limit detection cancels active requests and stops the batch. Missing token telemetry is reported as unknown, never estimated.']
@@ -70,4 +79,4 @@ if intake and not rows and not list((HERE/'komitas').glob('*.scene.json')):
  planned=sum(7 if row['kids_required'] else 6 for row in intake['rows'])
  text.insert(4,f'**Blocked:** no accepted Komitas inputs are published. All {planned} planned customer turns are unrun; designer rates, proposal acceptance and latency are N/A. Final furnished Komitas screenshots could not be produced. See the input audit below.\n')
 args.output.write_text('\n'.join(text)+'\n')
-print(f'{len(latest)}/10 flats; {sum(r["pass"] for r in rows)}/{len(rows)} requests pass; {args.output}')
+print(f'{len(latest)}/{target} flats; {sum(r["pass"] for r in rows)}/{len(rows)} requests pass; {args.output}')

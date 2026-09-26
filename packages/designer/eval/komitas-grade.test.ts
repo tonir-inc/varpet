@@ -51,3 +51,6 @@ test('published ground-truth array controls eligibility despite differing traced
   expect(flatContext({rooms:[{name:'Living'},{name:'Bedroom 1'},{name:'Bedroom 2'}]},row).kids_required).toBe(false);
   expect(()=>groundTruthForFlat([{id:'other',rooms:3}],'missing')).toThrow('Missing ground truth');
 });
+test('explicit noun-form demolition refusal passes the same structural rubric',()=>{
+  expect(grade('structural',demoScene,demoScene,localCatalog,{type:'decline',message:'I can preview furniture layouts and wall colours, but not wall demolition; a structural engineer must assess any removal.'},null).pass).toBe(true);
+});
