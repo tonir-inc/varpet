@@ -6,6 +6,13 @@ const EPS = 1e-8;
 const rounded = (value: number) => Math.round(value * 1e10) / 1e10;
 const cross = (a: Vec2, b: Vec2, p: Vec2) => (b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0]);
 
+/** Declared rugs are floor coverings, not solid obstacles or access destinations.
+ * This matches editor overlap semantics; it does not measure door under-clearance.
+ * Other low objects remain solid regardless of their height. */
+export function isFloorRug(item: Pick<Item, 'kind'>): boolean {
+  return item.kind.trim().toLowerCase() === 'rug';
+}
+
 export function pointInPolygon(point: Vec2, polygon: readonly Vec2[]): boolean {
   let inside = false;
   for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
@@ -97,7 +104,7 @@ export function doorSwingPolygon(scene: Scene, opening: Opening): Vec2[] | null 
 }
 
 function obstaclesForRoom(scene: Scene, room: Room): Obstacle[] {
-  const obstacles: Obstacle[] = [...scene.items, ...scene.fixed].filter(i => i.room_id === room.id).map(item => ({ polygon: itemPolygon(item) }));
+  const obstacles: Obstacle[] = [...scene.items, ...scene.fixed].filter(i => i.room_id === room.id && !isFloorRug(i)).map(item => ({ polygon: itemPolygon(item) }));
   for (const opening of scene.openings) {
     // The room tag belongs to the wall, not the physical space swept by its leaf.
     // Raster clipping below reserves only the portion actually inside this room.
@@ -331,7 +338,7 @@ function endpoints(scene: Scene, room: Room, grid: RoutingGrid): { doors: Endpoi
     const entry = swing ? turningDoorApproach(scene, room, grid, obstacles, point, intoRoom, opening) : approach(grid, room, obstacles, point, intoRoom, 0.45);
     doors.push({ id: `door:${opening.id}`, point, ...entry, aperture: Math.min(opening.width, entry.aperture), narrowest: opening.width <= entry.aperture ? point : entry.narrowest });
   }
-  for (const item of scene.items.filter(i => i.room_id === room.id)) {
+  for (const item of scene.items.filter(i => i.room_id === room.id && !isFloorRug(i))) {
     const point = itemFront(item), radians = item.rot * Math.PI / 180;
     items.push({ id: `item:${item.id}`, point, ...approach(grid, room, obstacles, point, [Math.sin(radians), -Math.cos(radians)], 0.45) });
   }

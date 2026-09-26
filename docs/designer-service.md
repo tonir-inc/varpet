@@ -27,6 +27,10 @@ Three pieces meet here. Each is built by a different session; this file is what 
 ```
 
 `keep`, `doorSwings` and `northDeg` are optional until the editor carries them (asked of the editor owner).
+`catalog` may carry the editor store's immutable `CatalogAsset[]`; when absent, the bridge uses the
+editor's local demo catalog. Unknown asset IDs fail rather than acquiring invented dimensions.
+`catalogCurrency: "AMD"` explicitly confirms purchase-price units. Without it, owned furniture can
+be rearranged, but unlabelled editor prices are not treated as dram quotations.
 
 Response: `Content-Type: application/x-ndjson`, one JSON object per line. Zero or more progress lines, then
 exactly one final line:
@@ -52,6 +56,26 @@ packages/designer/node_modules/.bin/tsx packages/designer/src/editor-bridge.ts t
 ```
 
 Exit 0 on success; non-zero with one line on stderr otherwise.
+Both commands accept `--catalog catalog.json`, `--currency AMD`, `--keep`, `--north` and `--swings`.
+The service passes identical extras to both conversions so the accepted proposal's scene fingerprint
+must match the supplied snapshot. The translator checks the resulting command with the editor's store.
+
+## Browser adapter
+
+`createDesignerHttpAdapter` in `apps/editor/src/adapters/designer-http.ts` implements the existing
+`DesignerAdapter`. Configure `request`, `catalog`, the optional extras above, `onProgress(message)`
+and `onConversationId(id)` when constructing it; call `propose(scene, revision, signal)` as before.
+It returns a preview without applying it. The editor owner still wires the adapter and request UI.
+`DesignerQuestionError` and `DesignerDeclineError` preserve non-proposal outcomes for the UI.
+Aborting the supplied signal cancels the HTTP stream and the service's worker processes.
+
+Derived coordinate mapping: editor `[x, y, z]` maps to designer `[x, -z]`; rotation radians about +Y
+map to counterclockwise degrees; dimensions `[width, height, depth]` multiplied by object scale map
+to `[width, depth, height]`. Existing poses and scale survive the reverse conversion.
+Grouped, locked and retained objects become keeps. Unsupported elevations, building components,
+service routes, renovation removal/replacement phases and furniture spanning rooms fail explicitly.
+Assumed: rugs are floor coverings, so they retain containment and request checks but do not block
+usable floor, furniture or door sweeps. This does not measure real door under-clearance.
 
 ## How the service gets the proposal
 
@@ -61,7 +85,13 @@ request, points `VARPET_SCENE` at the converted scene, runs the Designer thread,
 with a proposal it runs `to-command` and returns the `AgentProposal`. A question or decline from the
 thread comes back as the matching final line.
 
-## Until the other side lands
+## Verification
 
-Each piece tests against a fake of the other: the service with a stub bridge and a stub thread; the
-adapter with a stub server that replays a recorded NDJSON stream.
+The HTTP unit tests exercise progress and disconnect cancellation with real sockets and subprocesses.
+`packages/designer/test/editor-service-e2e.test.ts` connects the real browser adapter, HTTP service,
+bridge CLI, MCP proposal gate and proposal persistence to the editor's own `validateScene` and
+`EditorStore`. Only model reasoning is replaced with a deterministic worker; it does not measure
+live model latency or browser rendering. The store still requires approval and rejects stale edits.
+Measured 2026-09-26: all 20 objects and all openings in the editor demo convert, but a single-chair
+move still fails the designer's whole-scene walkway gate because the baseline has 29 hard walkway
+failures (including 0.15 m dining access). Conversion does not waive existing clearance requirements.

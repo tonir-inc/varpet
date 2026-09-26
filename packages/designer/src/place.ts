@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { applyOps, wallCompass, wallOutward } from './adapter.js';
 import { checkLocalLayout, localGeometryErrors } from './local-checks.js';
-import { itemPolygon, polygonsOverlap } from './metrics/space.js';
+import { itemPolygon, isFloorRug, polygonsOverlap } from './metrics/space.js';
 import type { Item, Op, Room, Scene, Vec2, Wall } from './scene.js';
 
 const EPS = 1e-7, STEP = 0.05, RAD = Math.PI / 180;
@@ -98,7 +98,7 @@ function rayDistance(origin: Vec2, direction: Vec2, polygon: Vec2[]): number {
 }
 
 function clearances(scene: Scene, item: Item, room: Room, walkway_m: number | null): PlacementCandidate['clearances'] {
-  const polygons = [room.polygon, ...[...scene.items, ...scene.fixed].filter(other => other.id !== item.id && other.room_id === room.id).map(itemPolygon)];
+  const polygons = [room.polygon, ...[...scene.items, ...scene.fixed].filter(other => other.id !== item.id && other.room_id === room.id && !isFloorRug(other)).map(itemPolygon)];
   const measure = (direction: Vec2, halfSize: number) => {
     const origin = add(item.pos, scale(direction, halfSize));
     return rounded(Math.min(...polygons.map(polygon => rayDistance(origin, direction, polygon))));
