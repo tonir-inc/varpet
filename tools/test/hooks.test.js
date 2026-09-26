@@ -57,3 +57,15 @@ test('a test file that is not committed yet (the agent\'s own draft) may be fixe
   assert.equal(guard(patch(`*** Delete File: ${draft}`)), false);
   assert.equal(guard(patch(`*** Update File: ${THIS}\n@@\n-  assert.equal(1, 1);\n+  // gone`)), true);
 });
+
+test('if git cannot answer, an uncommitted-looking test is treated as committed (fail closed)', () => {
+  const draft = `${ROOT}packages/designer/test/draft-not-committed.test.ts`;
+  const ev = patch(`*** Update File: ${draft}\n@@\n-  expect(x).toBe(1);\n+  expect(x).toBe(2);`);
+  const r = spawnSync(process.execPath, [GUARD], { input: JSON.stringify(ev), encoding: 'utf8', env: { PATH: '/nonexistent' } });
+  assert.equal(JSON.parse(r.stdout || '{}').hookSpecificOutput?.permissionDecision, 'deny');
+});
+
+test('changing an expect() in a committed vitest file is denied like an assert', () => {
+  const committedTest = `${ROOT}packages/designer/test/summary.test.ts`;
+  assert.equal(guard(patch(`*** Update File: ${committedTest}\n@@\n-    expect(summary.rooms).toHaveLength(1);\n+    expect(summary.rooms).toHaveLength(2);`)), true);
+});

@@ -30,7 +30,13 @@ const TEST_DIRS = ['packages/engine/test', 'packages/agent-tools/test', 'apps/ed
 const CHECKS_FILE = ''; // varpet: the engine's checks source once it exists; removing a check from it is denied
 const exists = (c) => existsSync(resolve(REPO, c));
 // a test is contract once it is COMMITTED; a test the agent wrote in this change is its own draft and may be fixed
-const committed = (c) => spawnSync('git', ['-C', REPO, 'cat-file', '-e', `HEAD:${c}`], { timeout: 5000 }).status === 0;
+const committed = (c) => {
+  // fail CLOSED: only git's own answer "this path is not in HEAD" makes a test an uncommitted draft;
+  // git missing, timing out, or failing any other way means "treat it as committed" (locked)
+  const r = spawnSync('git', ['-C', REPO, 'cat-file', '-e', `HEAD:${c}`], { encoding: 'utf8', timeout: 5000 });
+  if (r.status === 0) return true;
+  return !(r.status === 128 && /does not exist in 'HEAD'|exists on disk, but not in 'HEAD'/.test(r.stderr || ''));
+};
 const TEST_HOMES = []; // directories that HOLD test files among sources: the files count individually, the directory as a whole is protected from removal
 const SKIP_MARK = /\.(skip|only)\(|\bxit\(|\bxtest\(/;
 const TAUTOLOGY = /assert(?:\.ok)?\(\s*(?:true|1|-?\d+|'[^']*'|"[^"]*")\s*[,)]|assert\.(?:equal|strictEqual|deepEqual|deepStrictEqual|notEqual)\(\s*([^,()]+?)\s*,\s*\1\s*[,)]|expect\(\s*true\s*\)\.toBe\(\s*true\s*\)/;
@@ -114,7 +120,7 @@ process.stdin.on('data', (d) => (raw += d)).on('end', () => {
     const c = canon(file);
     if (isTestFile(c) && committed(c)) {
       if (count(added, TEST_CALL) < count(removed, TEST_CALL)) deny(`${label} removes a test from "${c}".`);
-      if (/\bassert\b/.test(String(removed || ''))) deny(`${label} changes or removes an existing assertion in "${c}"; existing tests are the contract, a person changes them in a reviewed commit. Add a new test instead.`);
+      if (/\bassert\b|\bexpect\s*\(/.test(String(removed || ''))) deny(`${label} changes or removes an existing assertion in "${c}"; existing tests are the contract, a person changes them in a reviewed commit. Add a new test instead.`);
       if (TAUTOLOGY.test(added)) deny(`${label} adds an assertion that cannot fail to "${c}".`);
       if (SKIP_MARK.test(added)) deny(`${label} adds a skip/only marker to "${c}".`);
     }
