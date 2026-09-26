@@ -29,11 +29,12 @@ per lane (`catalog/data/extra/bpy-<lane>/`). How to build: `catalog/blender/READ
 | Kitchen countertop items (kettles, coffee, toasters, mixer, jars, microwave) | bpy-countertop | 16 |
 | Potted plants (fiddle leaf, olive, monstera, palms, bonsai, succulents) | bpy-plants | 13 |
 | Cushion sets, throws, bed runner, floor cushion, sheepskin | bpy-soft | 17 |
+| Floating shelves, clocks, peg rail, wall art panels, 6 pegboards with accessory sets | bpy-wall | 22 |
 
 ## In progress
 | Family | Lane |
 |---|---|
-| Floating shelves, clocks, peg rails, wall art panels, pegboards with accessory sets | wall |
+
 | Laundry, cleaning and home fitness | utility |
 | Fridges, ranges, washer/dryer, dishwashers, wine cooler | appliances |
 | Fitted kitchen base units, sink base, tall pantry, 240 cm run, islands | kitchen-fitted |
