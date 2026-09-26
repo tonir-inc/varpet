@@ -4,6 +4,8 @@ import { applyOps, parseOps, parseScene } from './adapter.js';
 import { checkLayout, scoreLayout, type LayoutIssue } from './layout.js';
 import { checkRequest, intentSchema, type Intent, type RequestError } from './request.js';
 import type { Op, Scene } from './scene.js';
+import { functionClearanceRegressions } from './proposal-clearances.js';
+import { functionClearances, type FunctionClearance } from './metrics/function.js';
 
 const rationaleSchema=z.string().trim().min(1).max(4000).refine(text=>! /\n\s*\n/.test(text),'Use one paragraph for the rationale');
 type SessionIssue={check:string;message:string};
@@ -64,6 +66,16 @@ export class DesignerSession {
         message: 'Colour is a visual finish proposal. Paint, refinishing and labour are unquoted; the purchase total counts furniture only.',
       }];
       if(!checks.ok) return {ok:false,errors:checks.errors};
+      // Preserve sleeping/storage access and reach when placing a coffee table.
+      // Generic chair pull-out/table-wall preferences stay advisory: a lounge
+      // chair may be deliberately placed against a wall. An explicitly moved
+      // sofa can leave its old table behind; table reach remains a warning until
+      // that table is itself placed. Existing hard circulation gates still apply.
+      const placed=new Set(ops.flatMap(op=>op.type==='add'?[op.item.id]:op.type==='move'?[op.id]:[]));
+      const enforced=(metric:FunctionClearance)=>metric.function==='bed_side'||metric.function==='storage_front'
+        ||(metric.function==='sofa_coffee'&&placed.has(metric.other_item_id!));
+      const regressions=functionClearanceRegressions(functionClearances(this.scene).filter(enforced),checks.metrics!.function_clearances.filter(enforced));
+      if(regressions.length) return {ok:false,errors:regressions};
       const after=applyOps(this.scene,ops);
       const request=checkRequest(this.scene,after,ops,this.intent,checks.price.cost_dram,this.customerRequests);
       if(!request.ok) return {ok:false,errors:request.errors};

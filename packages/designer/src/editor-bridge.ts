@@ -14,6 +14,7 @@ import { outsidePoint } from './local-checks.js';
 import type { Opening, Scene, Vec2 } from './scene.js';
 import { snapRoomFaces, reconciledWall } from './reconcile-geometry.js';
 import { DesignerSession } from './session.js';
+import { catalogFunction } from './catalog-function.js';
 
 export interface EditorBridgeOptions {
   customerRequests?: readonly string[];
@@ -30,7 +31,6 @@ export interface EditorBridgeOptions {
 }
 
 const EPS = 1e-7;
-const kinds: Record<AssetKind, string> = { sofa: 'sofa', chair: 'chair', table: 'table', desk: 'desk', bed: 'bed', cabinet: 'cabinet', wardrobe: 'wardrobe', dresser: 'dresser', lamp: 'lamp', plant: 'plant', rug: 'rug', shelf: 'shelf' };
 /** Legacy catalog subtypes may share editor render kinds; native kinds retain exact semantics. */
 export const editorKindOf: Record<string, AssetKind> = { desk: 'table', dresser: 'cabinet', wardrobe: 'cabinet', nightstand: 'cabinet', stool: 'chair', ottoman: 'chair', bench: 'chair' };
 const swings = { 'in-left': 'inward-left', 'in-right': 'inward-right', 'out-left': 'outward-left', 'out-right': 'outward-right' } as const;
@@ -144,7 +144,8 @@ function addServiceObstacles(editor: SceneDocument, scene: Scene): void {
   }
 }
 
-/** Convert a validated editor snapshot without inferring orientation, currency, or furniture function. */
+/** Convert a validated snapshot; functional subtypes require catalog evidence,
+ * while orientation and currency must be supplied explicitly. */
 export function editorToDesigner(input: unknown, options: EditorBridgeOptions = {}): Scene {
   const catalog = options.catalog ?? localCatalog;
   let editor = validatedEditor(input, catalog);
@@ -183,7 +184,7 @@ export function editorToDesigner(input: unknown, options: EditorBridgeOptions = 
     const rooms = scene.rooms.filter(room => outsidePoint(footprint, room.polygon) === undefined);
     if (rooms.length !== 1) throw new Error(`Object ${object.id} must fit in exactly one room; spanning or overlapping room ownership is unsupported`);
     const metadata = editor.project?.metadata[object.id];
-    scene.items.push({ id: object.id, name: object.name, room_id: rooms[0]!.id, kind: kinds[asset.kind], pos: [object.position[0], -object.position[2]], rot: object.rotation * 180 / Math.PI,
+    scene.items.push({ id: object.id, name: object.name, room_id: rooms[0]!.id, kind: catalogFunction(asset), pos: [object.position[0], -object.position[2]], rot: object.rotation * 180 / Math.PI,
       size: [asset.dimensions[0] * object.scale[0], asset.dimensions[2] * object.scale[2], asset.dimensions[1] * object.scale[1]],
       keep: (options.keep ?? []).includes(object.id) || (object.groupId !== undefined && options.groupPolicy !== 'move-together') || metadata?.locked === true || metadata?.phase === 'retain', sku: asset.id,
       color: object.color ?? asset.color, ...(object.groupId !== undefined && options.groupPolicy === 'move-together' ? { group_id: object.groupId } : {}) });
@@ -208,7 +209,7 @@ export function proposalToEditor(input: unknown, editorInput: unknown, revision:
     if (!asset) throw new Error(`Addition ${op.item.id} needs a real catalog asset ID in sku`);
     if (options.catalogCurrency !== 'AMD') throw new Error('Purchases require explicit catalogCurrency AMD; catalog currency is otherwise unknown');
     if (!Number.isSafeInteger(asset.price) || op.item.price !== asset.price) throw new Error(`Addition ${op.item.id} must carry the exact catalog price in AMD`);
-    if ((op.item.kind !== asset.kind && editorKindOf[op.item.kind] !== asset.kind) || op.item.size.some((size, index) => Math.abs(size - [asset.dimensions[0], asset.dimensions[2], asset.dimensions[1]][index]!) > EPS)) throw new Error(`Addition ${op.item.id} does not match catalog asset kind and dimensions`);
+    if ((op.item.kind !== asset.kind && op.item.kind !== catalogFunction(asset) && editorKindOf[op.item.kind] !== asset.kind) || op.item.size.some((size, index) => Math.abs(size - [asset.dimensions[0], asset.dimensions[2], asset.dimensions[1]][index]!) > EPS)) throw new Error(`Addition ${op.item.id} does not match catalog asset kind and dimensions`);
   }
   const session = new DesignerSession(scene,options.customerRequests);
   session.setIntent(candidate.intent);

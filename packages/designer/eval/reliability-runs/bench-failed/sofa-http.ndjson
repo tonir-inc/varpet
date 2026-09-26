@@ -1,0 +1,8 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Preparing a question"}
+{"type": "progress", "message": "Writing your answer"}
+{"type": "question", "conversationId": "e83ddf4c847e42b59444dd454bbb270c", "question": "Which living-room window should the sofa face? It currently points toward the bottom-wall window, with the armchair between them.", "options": ["The window on the left wall", "The window on the bottom wall, with a clearer view"]}
