@@ -51,3 +51,33 @@ Fresh review's final verdict was APPROVE. Its low-severity evidence-link note wa
 Further push race: main advanced to `0a18e32`, then `d09f870`. After the first of those rebases the same full command sequence again passed: 407 designer TS tests, 122 harness tests, 39 eval tests, 12 showcase, 7 tools, editor 6 + 67 plus all check scripts; four typecheck scripts and explicit eval tsc passed. The explicit Python run was 39 tests in 3.262s. Every push retry repeats the root and eval checks before attempting the non-forced push; benchmark source and measurements remain unchanged.
 
 A later full run on `4d0cc3d` exposed an eval cleanup failure: `os.killpg` raised `PermissionError` in the usage-limit test. The original child state was not captured; a new deterministic regression reproduces the lost batch-stop exception when the child has exited; `terminate_group` now tolerates that error only after confirming the leader has exited, and still propagates permission failures for live leaders. Six targeted batch tests pass, including both branches. No existing test was weakened and no model evidence changed. The full root/eval checks are rerun before the next push.
+
+Final green verification at 2026-09-26T13:39:24.242777+00:00, rebased on `0b4cf4a`:
+```text
+VITEST_MAX_WORKERS=1 pnpm test: exit 0
+packages/engine test: Done
+apps/showcase test: ℹ tests 12
+apps/showcase test: Done
+packages/designer test:  Test Files  81 passed (81)
+packages/designer test:       Tests  407 passed (407)
+packages/designer test: Ran 122 tests in 20.443s
+packages/designer test: Ran 41 tests in 3.670s
+packages/designer test: Done
+apps/editor test: ℹ tests 24
+apps/editor test: ℹ tests 122
+apps/editor test: Done
+pnpm typecheck: exit 0, all four package scripts Done
+Explicit eval TypeScript check: exit 0
+............EVAL_USAGE_LIMIT
+..{"flat": "sample", "exit_code": 9}
+.{"flat": "sample", "exit_code": 3}
+..''
+.usage limit reached
+.usage limit reached
+......................
+----------------------------------------------------------------------
+Ran 41 tests in 4.712s
+
+OK
+```
+The latest fresh review approved the cleanup code; its CONCERN about incomplete full verification is resolved by this green run. Earlier two-worker and one-worker retries hit unchanged test timeouts while measured host load reached 161; no timeout or assertion was changed.
