@@ -25,3 +25,5 @@ serve.py:158-161 sends Access-Control-Allow-Origin: * with POST and Content-Type
 
 
 **Notes**
+
+- 2026-09-26T21:10:39.194385Z: bughunt-security: narrowing CORS alone will NOT fix this. serve.py:203-228 never checks Content-Type or Origin, so a CORS-simple request (Content-Type: text/plain, no preflight) still starts the run even though the attacker can't read the reply. For example, a hidden <form enctype=text/plain> or fetch(...,{mode:'no-cors'}) from any site: curl -si -X POST http://127.0.0.1:8788/plan-check -H 'Origin: https://evil.example' -H 'Content-Type: text/plain' -d '{"photos":[]}' parses the body (400 'send a plan image' + ACAO *). I did not send /flat; it takes the same code path. Fix pattern already in repo: designer_service.py:501-503 headers_origin_allowed (reject any Origin that isn't localhost). Also: there's no concurrency cap on /flat. Error lines leak absolute run paths ('Files: {folder}', serve.py:73,134). Browsers with local-network-access prompts (recent Chrome) may ask the user first; Safari/Firefox don't.
