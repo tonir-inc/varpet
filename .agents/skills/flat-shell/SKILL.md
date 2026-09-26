@@ -24,6 +24,25 @@ Write `shell.json`. Code checks it and sends faults back once.
 - `printed`: copy the numbers the plan prints for each room (dimensions or area). Do not compute them from your polygon; code compares the two.
 - `color`: room = floor colour in the photos; wall = wall paint colour in the photos.
 
+## Fixtures (`components`)
+Everything built in: toilets, showers, baths, basins/sinks, kitchen worktops and base/wall cabinets, appliances
+(oven, fridge, washing machine, hob), radiators, balcony railings. Plans draw most of them; photos confirm them.
+```json
+"components": [{"id": "wc", "name": "Toilet", "kind": "toilet", "roomId": "bath", "position": [x, 0, z],
+                "dimensions": [0.38, 0.8, 0.68], "rotation": 3.14159, "color": "#f4f4f2", "phase": "existing"}]
+```
+- `kind`: sink, toilet, shower, bath, cabinet, worktop, appliance, radiator, railing.
+- `position`: [x, y, z] metres; x, z the footprint centre, y the bottom (0 on the floor, e.g. 1.4 for a wall cabinet).
+- `dimensions`: [width, height, depth] metres. `rotation`: radians about the vertical, 0 = front faces +z.
+- A kitchen run is a `cabinet` (base units) plus a `worktop` on top plus `cabinet`s on the wall above; one
+  component per run, not per door. Appliances that sit in the run replace that stretch of cabinet.
+- Wall-mounted (wall cabinets, radiators, basins on a wall): add `"host": {"wallId", "offset" (metres from the
+  wall start to the centre), "elevation" (bottom height), "side"}`. side 1 is the face in the direction
+  (-dz, dx), where (dx, dz) runs from the wall's start to its end: a wall running +x has side 1 on its +z face
+  (lower on the plan); a wall running +z has side 1 on its -x face. -1 is the other face.
+  For a hosted fixture the editor places it on that face; its rotation then adds to the wall's direction.
+- Keep 0.5 m clear in front of every door. Fixtures sit inside their room and never inside a wall.
+
 ## Reading the plan (measured on real developer plans; each rule is a mistake a first read made)
 1. **Scale** from three or more printed dimensions that agree. Zoom by cropping the image (`sips` on macOS, or Python) into this folder; do not guess small text.
 2. **A wall exists only where a filled, thick or hatched band is drawn, and only over that stretch.** Thin lines with ticks, arrows and a number are dimension lines, never walls. A wall must not run past where its band ends: that closes doorways and seals rooms.

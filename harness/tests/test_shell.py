@@ -2,7 +2,10 @@ import json
 import subprocess
 import sys
 
-from varpet_harness.shell import Opening, Shell, Wall, check, check_file, tidy
+import pytest
+from pydantic import ValidationError
+
+from varpet_harness.shell import Component, Opening, Shell, Wall, check, check_file, tidy, to_editor
 
 WHITE, OAK = "#f2f0eb", "#b08a5a"
 
@@ -105,6 +108,92 @@ def test_wall_overshooting_a_corner_is_trimmed_to_it(tmp_path):
     fixed = Shell.model_validate_json(path.read_text()).walls[4]
     assert abs(fixed.start[1]) < 1e-6 and abs(fixed.end[1] - 4) < 1e-6
     assert abs(fixed.openings[0].offset - 1.47) < 1e-6  # the door stayed where it was
+
+
+def fixture(i, kind, pos, dims, room="bed", host=None, **extra):
+    body = {"id": i, "name": i, "kind": kind, "position": pos, "dimensions": dims, "color": WHITE, "roomId": room}
+    if host:
+        body["host"] = host
+    return Component.model_validate({**body, **extra})
+
+
+def bathroom():
+    """The 3 x 4 m east room fitted as a bathroom: wall-hung toilet and basin on the north wall, a shower tray in the far corner."""
+    s = flat()
+    s.components = [
+        fixture("wc", "toilet", [0, 0, 0], [0.38, 0.4, 0.65], host={"wallId": "w-n", "offset": 6.0, "elevation": 0, "side": 1}),
+        fixture("basin", "sink", [0, 0, 0], [0.6, 0.2, 0.45], host={"wallId": "w-n", "offset": 7.2, "elevation": 0.8, "side": 1}),
+        fixture("shower", "shower", [7.43, 0, 3.48], [0.9, 2.0, 0.9]),
+    ]
+    return s
+
+
+def component_faults(s):
+    return [f for f in check(s) if "component" in f or "components" in f]
+
+
+def test_bathroom_fixtures_pass_and_reach_the_editor():
+    s = tidy(bathroom())
+    assert check(s) == []
+    out = to_editor(s)["components"]
+    wc = next(c for c in out if c["id"] == "wc")
+    assert wc["phase"] == "existing" and "notes" not in wc
+    assert wc["position"] == pytest.approx((6.0, 0.0, (0.12 + 0.65) / 2))  # on the wall face, where the editor draws it
+
+
+def test_only_fixture_kinds_are_allowed():
+    with pytest.raises(ValidationError):
+        fixture("lamp", "light", [6, 2.5, 2], [0.3, 0.1, 0.3])
+
+
+def test_fixture_leaving_its_room():
+    s = bathroom()
+    s.components[2].roomId = "living"
+    f = component_faults(s)
+    assert [x["check"] for x in f] == ["component"] and f[0]["room"] == "living"
+
+
+def test_free_fixture_in_a_wall_body():
+    s = bathroom()
+    s.components.append(fixture("rad", "radiator", [6.8, 0.15, 1.0], [0.8, 0.6, 0.1]))
+    s.components[-1].position = (7.95, 0.15, 1.0)
+    s.components[-1].rotation = 1.5707963
+    f = component_faults(s)
+    assert any(x.get("wall") == "w-e" and "wall body" in x["detail"] for x in f)
+
+
+def test_hosted_fixture_past_its_wall_or_on_a_missing_wall():
+    s = bathroom()
+    s.components[0].host.offset = 7.9
+    assert any("beyond its host wall" in x["detail"] for x in component_faults(s))
+    s = bathroom()
+    s.components[1].host.elevation = 2.6
+    assert any("beyond its host wall" in x["detail"] for x in component_faults(s))
+    s = bathroom()
+    s.components[0].host.wallId = "nope"
+    assert any("missing host wall" in x["detail"] for x in component_faults(s))
+
+
+def test_fixture_blocking_a_door():
+    s = bathroom()
+    s.components.append(fixture("wm", "appliance", [5.4, 0, 1.9], [0.6, 0.85, 0.6]))
+    assert [x["check"] for x in component_faults(s)] == ["door"]
+
+
+def test_overlapping_fixtures_collide_unless_stacked():
+    s = bathroom()
+    s.components.append(fixture("tray", "bath", [7.2, 0, 3.2], [1.0, 0.5, 0.7]))
+    assert any(x.get("components") == ["shower", "tray"] for x in component_faults(s))
+    s = bathroom()
+    s.components += [fixture("run", "worktop", [6.2, 0, 3.6], [1.2, 0.9, 0.6]),
+                     fixture("wall-unit", "cabinet", [6.2, 1.5, 3.75], [1.2, 0.7, 0.3])]
+    assert check(s) == []
+
+
+def test_component_ids_share_the_id_space():
+    s = bathroom()
+    s.components[2].id = "d1"
+    assert "ids" in kinds(check(s))
 
 
 def test_door_recesses_flatten_to_the_editor_point_limit():

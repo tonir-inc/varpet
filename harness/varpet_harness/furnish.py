@@ -28,6 +28,7 @@ from .shell import Shell
 
 INSIDE_TOL_M = 0.03  # a footprint may overhang its room by this much
 OVERLAP_M2 = 0.02  # footprints overlapping more than this collide
+IN_WALL_M2 = 1e-4  # any real overlap with a wall body; the editor's own check is exact (a 2 cm mirror counts)
 DOOR_CLEAR_M = 0.5  # keep this much floor free in front of and behind every door
 UNDER = {"rug"}  # pieces other furniture may stand on
 
@@ -88,7 +89,7 @@ def check(f: Furnished, shell: Shell, sizes: dict[str, tuple[float, float, float
         line = LineString([w.start, w.end])
         body = line.buffer(w.thickness / 2, cap_style="flat")
         for key, fp in feet.items():
-            if not _is_under(key.split("#")[0]) and fp.intersection(body).area > OVERLAP_M2:
+            if not _is_under(key.split("#")[0]) and fp.intersection(body).area > IN_WALL_M2:
                 faults.append({"check": "wall", "placement": key, "wall": w.id, "detail": "footprint is inside a wall"})
         for o in w.openings:
             if o.kind != "door":

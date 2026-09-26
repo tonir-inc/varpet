@@ -12,6 +12,7 @@ else <workdir>/faults.json), the same contract as the piece compiler.
 from __future__ import annotations
 
 import itertools
+import math
 import json
 import sys
 from pathlib import Path
@@ -32,6 +33,12 @@ CLAMP_M = 0.02  # overshoot tidy() treats as rounding
 JUNCTION_M = 0.35  # a joining wall end this wide in an opening is a junction, not a mistake
 SNAP_M = 0.08  # wall ends this close to a corner or crossing are the same point
 SLIVER_M = 0.05  # the editor splits walls at every crossing and rejects shorter sections
+INSIDE_TOL_M = 0.03  # a component footprint may overhang its room by this much
+WALL_HIT_M2 = 1e-4  # a free component may touch a wall body by this much
+OVERLAP_M2 = 0.02  # component footprints overlapping more than this collide
+DOOR_CLEAR_M = 0.5  # floor kept free in front of and behind every door (furnish.py)
+Vec3 = tuple[float, float, float]
+ComponentKind = Literal["sink", "toilet", "shower", "bath", "cabinet", "worktop", "appliance", "radiator", "railing"]
 POINTS_MAX = 32  # the editor's polygon limit (validation.ts)
 JOG_M = 0.08  # a notch this shallow (a door recess in a thick wall) flattens first when a room has too many points
 SIMPLIFY_M = (0.01, 0.02, 0.03, 0.05)  # then Douglas-Peucker, never as far as ON_EDGE_M
@@ -70,6 +77,38 @@ class Room(BaseModel):
     color: str = Field(pattern=HEX, description="floor colour seen in the photos")
 
 
+class ComponentHost(BaseModel):
+    """apps/editor/src/renovation-contracts.ts ComponentHost."""
+
+    model_config = ConfigDict(extra="forbid")
+    wallId: str
+    offset: float = Field(ge=0, le=100, description="metres from wall.start to the component's centre")
+    elevation: float = Field(ge=-10, le=20, description="metres from the wall base to the component's bottom")
+    side: Literal[1, -1] = Field(description="1 = the face on the (-dz, dx) normal of start->end (+z for a +x wall), -1 = the other")
+
+
+class Component(BaseModel):
+    """A built fixture, the editor's BuildingComponent (renovation-contracts.ts) restricted to fixtures.
+
+    position is [x, y, z] m: footprint centre in x/z, y = bottom. dimensions is
+    [width along local x, height, depth along local z] m. rotation is radians
+    about +Y (editor footprint: local x -> (cos r, -sin r)). With a host the editor
+    ignores position and places it on the wall face; rotation then adds to the wall's yaw."""
+
+    model_config = ConfigDict(extra="forbid")
+    id: str = Field(min_length=1, max_length=100)
+    name: str = Field(min_length=1, max_length=120, pattern=r"\S")
+    kind: ComponentKind
+    position: Vec3
+    dimensions: Vec3
+    rotation: float = 0.0
+    color: str = Field(pattern=HEX)
+    phase: Literal["existing"] = "existing"
+    host: ComponentHost | None = None
+    roomId: str
+    notes: str | None = None
+
+
 class Printed(BaseModel):
     """What the plan itself prints for a room; checked against the traced polygon."""
 
@@ -84,6 +123,7 @@ class Shell(BaseModel):
     walls: list[Wall] = Field(min_length=1)
     notes: list[str] = Field(description="what was printed, measured off the image, or guessed")
     printed: dict[str, Printed] = Field(default={}, description="room id -> numbers printed on the plan")
+    components: list[Component] = Field(default=[], description="built fixtures, the editor's BuildingComponent")
 
 
 def _len(w: Wall) -> float:
@@ -92,13 +132,14 @@ def _len(w: Wall) -> float:
 
 def check(shell: Shell) -> list[dict]:
     faults: list[dict] = []
-    ids = [r.id for r in shell.rooms] + [w.id for w in shell.walls] + [o.id for w in shell.walls for o in w.openings]
+    ids = ([r.id for r in shell.rooms] + [w.id for w in shell.walls] + [o.id for w in shell.walls for o in w.openings]
+           + [c.id for c in shell.components])
     dupes = sorted({i for i in ids if ids.count(i) > 1})
     if dupes:
-        faults.append({"check": "ids", "detail": f"duplicate ids {dupes}; ids are unique across rooms, walls and openings"})
+        faults.append({"check": "ids", "detail": f"duplicate ids {dupes}; ids are unique across rooms, walls, openings and components"})
     # The editor's own limits (apps/editor/src/core/validation.ts)
-    if len(shell.rooms) > 32 or len(shell.walls) > 160:
-        faults.append({"check": "limits", "detail": "at most 32 rooms and 160 walls"})
+    if len(shell.rooms) > 32 or len(shell.walls) > 160 or len(shell.components) > 500:
+        faults.append({"check": "limits", "detail": "at most 32 rooms, 160 walls and 500 components"})
     for r in shell.rooms:
         if len(r.polygon) > POINTS_MAX:
             faults.append({"check": "limits", "room": r.id, "detail": f"at most {POINTS_MAX} polygon points"})
@@ -150,6 +191,7 @@ def check(shell: Shell) -> list[dict]:
 
     faults += _reachable(shell, polys)
     faults += _slivers(shell)
+    faults += _components(shell, polys)
 
     for rid, pr in shell.printed.items():
         poly = polys.get(rid)
@@ -214,7 +256,6 @@ def _through_doors(shell: Shell, polys: dict[str, Polygon]) -> list[tuple[str, s
     return pairs
 
 
-
 def _obstacles(shell: Shell, host: Wall, o: Opening) -> list[tuple[str, float, float]]:
     """Solid parts of other walls inside the host's thickness over the opening's height, as
     (wall id, start, end) along the host. Mirrors openingWallObstacles in the editor."""
@@ -257,15 +298,101 @@ def _blocked(shell: Shell, host: Wall, o: Opening) -> list[tuple[str, float, flo
     return [(wid, s, e) for wid, s, e in _obstacles(shell, host, o) if min(b, e) - max(a, s) > EDITOR_EPS]
 
 
+def _host_pose(shell: Shell, c: Component) -> tuple[tuple[float, float, float], float]:
+    """World position and yaw, as componentPosition/componentRotation in apps/editor/src/core/geometry.ts."""
+    wall = next((w for w in shell.walls if c.host and w.id == c.host.wallId), None)
+    if wall is None:
+        return c.position, c.rotation
+    length = _len(wall)
+    dx, dz = (wall.end[0] - wall.start[0]) / length, (wall.end[1] - wall.start[1]) / length
+    across = c.host.side * (wall.thickness + c.dimensions[2]) / 2
+    pos = (wall.start[0] + dx * c.host.offset - dz * across, c.host.elevation, wall.start[1] + dz * c.host.offset + dx * across)
+    yaw = -math.atan2(dz, dx) + (math.pi if c.host.side == -1 else 0.0) + c.rotation
+    return pos, yaw
+
+
+def _footprint(shell: Shell, c: Component) -> Polygon:
+    """footprint() in apps/editor/src/core/renovation.ts."""
+    (px, _, pz), r = _host_pose(shell, c)
+    w, d = c.dimensions[0] / 2, c.dimensions[2] / 2
+    return Polygon([(px + math.cos(r) * x * w + math.sin(r) * z * d, pz - math.sin(r) * x * w + math.cos(r) * z * d)
+                    for x, z in ((-1, -1), (1, -1), (1, 1), (-1, 1))])
+
+
+def _wall_body(w: Wall) -> Polygon:
+    return LineString([w.start, w.end]).buffer(w.thickness / 2, cap_style="flat")
+
+
+def _components(shell: Shell, polys: dict[str, Polygon]) -> list[dict]:
+    faults: list[dict] = []
+    walls = {w.id: w for w in shell.walls}
+    feet: dict[str, Polygon] = {}
+    spans: dict[str, tuple[float, float]] = {}
+    for c in shell.components:
+        # validateProject in apps/editor/src/core/validation.ts
+        if not all(-100 <= v <= 100 for v in c.position) or not all(0.01 <= v <= 30 for v in c.dimensions) \
+                or abs(c.rotation) > math.pi * 100:
+            faults.append({"check": "component", "component": c.id, "detail": "invalid geometry: position within +-100 m, each dimension 0.01..30 m"})
+            continue
+        if c.roomId not in {r.id for r in shell.rooms}:
+            faults.append({"check": "component", "component": c.id, "detail": f"references missing room {c.roomId}"})
+        host = walls.get(c.host.wallId) if c.host else None
+        if c.host:
+            if host is None:
+                faults.append({"check": "component", "component": c.id, "detail": f"references missing host wall {c.host.wallId}"})
+                continue
+            half, length = c.dimensions[0] / 2, _len(host)
+            if c.host.offset < half - EDITOR_EPS or c.host.offset + half > length + EDITOR_EPS \
+                    or c.host.elevation < -EDITOR_EPS or c.host.elevation + c.dimensions[1] > host.height + EDITOR_EPS:
+                faults.append({"check": "component", "component": c.id, "wall": host.id,
+                               "detail": f"extends beyond its host wall (offset {c.host.offset:.2f} m is the centre; wall is {length:.2f} m long, {host.height} m tall)"})
+        fp = _footprint(shell, c)
+        feet[c.id] = fp
+        base = _host_pose(shell, c)[0][1]
+        spans[c.id] = (base, base + c.dimensions[1])
+        room = polys.get(c.roomId)
+        if room is not None and not room.buffer(INSIDE_TOL_M).contains(fp):
+            out = fp.difference(room).area
+            faults.append({"check": "component", "component": c.id, "room": c.roomId,
+                           "detail": f"footprint leaves its room by {out:.2f} m2"})
+        for w in shell.walls:
+            if host is not None and w.id == host.id:
+                continue
+            hit = fp.intersection(_wall_body(w)).area
+            if hit > WALL_HIT_M2:
+                faults.append({"check": "component", "component": c.id, "wall": w.id,
+                               "detail": f"runs {hit:.3f} m2 into the wall body; set host to mount it on a wall"})
+        for w in shell.walls:
+            line = LineString([w.start, w.end])
+            for o in w.openings:
+                if o.kind != "door" or spans[c.id][0] >= o.sill + o.height:
+                    continue
+                zone = LineString([line.interpolate(o.offset), line.interpolate(o.offset + o.width)]).buffer(DOOR_CLEAR_M, cap_style="flat")
+                if fp.intersection(zone).area > OVERLAP_M2:
+                    faults.append({"check": "door", "component": c.id, "door": o.id, "detail": "blocks the doorway"})
+    for a, b in itertools.combinations(feet, 2):
+        (la, ha), (lb, hb) = spans[a], spans[b]
+        if min(ha, hb) <= max(la, lb):
+            continue  # one above the other, e.g. a wall cabinet over a worktop
+        overlap = feet[a].intersection(feet[b]).area
+        if overlap > OVERLAP_M2:
+            faults.append({"check": "component", "components": [a, b], "area_m2": round(overlap, 3), "detail": "footprints overlap"})
+    return faults
+
+
 def _door_segment(w: Wall, o: Opening) -> LineString:
     line = LineString([w.start, w.end])
     return LineString([line.interpolate(o.offset), line.interpolate(o.offset + o.width)])
 
 
 def to_editor(shell: Shell) -> dict:
-    """Exactly what StructureAdapter.reconstruct returns: our `printed` block stays behind."""
-    return {"rooms": [r.model_dump() for r in shell.rooms], "walls": [w.model_dump() for w in shell.walls],
-            "notes": shell.notes}
+    """Exactly what StructureAdapter.reconstruct returns, plus the project's components
+    (BuildingComponent, unset optionals left out) when there are any: `printed` stays behind."""
+    out = {"rooms": [r.model_dump() for r in shell.rooms], "walls": [w.model_dump() for w in shell.walls],
+           "notes": shell.notes}
+    if shell.components:
+        out["components"] = [c.model_dump(exclude_none=True) for c in shell.components]
+    return out
 
 
 def _crossing(a: Wall, b: Wall) -> tuple[float, float, float, float] | None:
@@ -427,7 +554,6 @@ def _unoverlap(w: Wall) -> None:
     w.openings = kept
 
 
-
 def tidy(shell: Shell) -> Shell:
     """Mechanical fixes in code, not a model turn: drop collinear and near-duplicate
     polygon points (within 1 cm) and keep rooms under the editor's 32 points."""
@@ -450,8 +576,10 @@ def tidy(shell: Shell) -> Shell:
         _unoverlap(w)
     for w in shell.walls:
         _clear(shell, w)
+    for c in shell.components:  # a mounted component's position is where the editor will draw it
+        if c.host and any(w.id == c.host.wallId for w in shell.walls):
+            c.position = tuple(round(v, 4) for v in _host_pose(shell, c)[0])
     return shell
-
 
 
 def check_file(path: Path, workdir: Path) -> list[dict]:

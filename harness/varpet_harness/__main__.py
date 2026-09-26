@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import json
 import os
 import shlex
 import time
@@ -66,6 +67,23 @@ async def _flat(args) -> int:
     return 0 if all(r.status == "ok" for r in report.results.values()) else 1
 
 
+async def _architect(args) -> int:
+    from openai_codex import AsyncCodex
+
+    from .session import run_session
+
+    run_dir = Path(args.runs) / f"{args.name}-{time.strftime('%Y%m%d-%H%M%S')}"
+    codex = AsyncCodex()
+    try:
+        report = await run_session(codex, REPO, args.name, args.plan, args.photos, run_dir,
+                                   shlex.split(args.compile) if args.compile else None, model=args.model,
+                                   lanes=args.lanes, review=not args.no_review)
+    finally:
+        await codex.close()
+    print(json.dumps(report.__dict__, indent=1))
+    return 0
+
+
 def main() -> None:
     p = argparse.ArgumentParser(prog="varpet-harness")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -88,6 +106,15 @@ def main() -> None:
     flat.add_argument("--model", default="gpt-6-astra")
     flat.add_argument("--lanes", type=int, default=6)
     flat.add_argument("--runs", default=str(RUNS))
+    arch = sub.add_parser("architect", help="one architect session for a whole flat: read, build, place, look")
+    arch.add_argument("name")
+    arch.add_argument("--plan", required=True)
+    arch.add_argument("--photos", nargs="*", default=[])
+    arch.add_argument("--compile", default=DEFAULT_COMPILE)
+    arch.add_argument("--no-review", action="store_true")
+    arch.add_argument("--model", default="gpt-6-astra")
+    arch.add_argument("--lanes", type=int, default=6)
+    arch.add_argument("--runs", default=str(RUNS))
     srv = sub.add_parser("serve", help="the architect as a local service for the editor")
     srv.add_argument("--port", type=int, default=8788)
     srv.add_argument("--runs", default=str(RUNS))
@@ -97,6 +124,8 @@ def main() -> None:
 
         serve(REPO, Path(args.runs), args.port)
         return
+    if args.cmd == "architect":
+        raise SystemExit(asyncio.run(_architect(args)))
     raise SystemExit(asyncio.run(_run(args) if args.cmd == "run" else _flat(args)))
 
 
