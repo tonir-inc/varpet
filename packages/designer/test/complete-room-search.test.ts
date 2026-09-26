@@ -34,14 +34,16 @@ test('later role failure retries a different checked anchor instead of returning
  const slots=vi.spyOn(SceneAnalysisCache.prototype,'slots').mockImplementation((_scene,assets,q)=>q.catalogId==='sofa'?[.5,3].map((y,i)=>({id:'anchor'+i,catalog_ids:['sofa'],ops:[{type:'add',item:{id:'anchor',room_id:'r',kind:'sofa',name:'sofa',pos:[4,y],rot:0,size:sizes.sofa!,sku:'sofa',price:100,keep:false}}],score:2-i,scores:{daylight:0,zoning:0,facing:0,open_floor:0},description:'Checked anchor candidate'})):[]);
  try{const plan=await planIncrementally(scene,{room_id:'r',program:'living',style:'Scandinavian'},query);expect(plan.complete).toBe(true);expect(plan.ops.find(o=>o.type==='add'&&o.item.kind==='sofa')).toMatchObject({item:{pos:[4,3]}});}finally{slots.mockRestore();}
 });
-test('room placement accepts an 0.80 m secondary route and refuses a new 0.70 m route',async()=>{
+// A narrow entry door is the shell's bottleneck, not a furniture regression: rooms behind 0.70-0.75 m doors must still
+// furnish (imported flats have ~0.75 m doors; bed116 QA). Furniture-made bottlenecks stay covered by bed116-regression.test.ts.
+test('room placement furnishes behind 0.80 m and 0.70 m entry doors',async()=>{
  const sizes:Record<string,[number,number,number]>={sofa:[2,.9,.8],rug:[3,2,.02],table:[.45,.45,.4],lamp:[.2,.2,1.4],shelf:[1,.3,1.2]};
  const query=async(p:{kind?:string})=>({results:sizes[p.kind!]? [{id:p.kind,kind:p.kind,name:p.kind,size_m:sizes[p.kind!],price:100,currency:'AMD',styles:['Scandinavian'],colors_image:['beige']}]:[]});
  for(const width of [.8,.7]){
   const input:Scene={...scene,walls:[{id:'south',room_id:'r',a:[0,0],b:[8,0]}],openings:[{id:'entry',wall_id:'south',kind:'passage',offset:4,width,height:2,sill:0}]};
   const plan=await planIncrementally(input,{room_id:'r',program:'living',style:'Scandinavian'},query);
   if(width===.8){expect(plan.complete).toBe(true);expect(plan.reason).toContain('Secondary access');const checker=new DesignerSession(input);checker.setIntent(plan.intent);const result=checker.propose(plan.ops,plan.reason);expect(result.ok).toBe(true);if(result.ok)expect(result.proposal.checks.metrics!.space.rooms[0]!.walkways.every(w=>w.reachable&&w.width_m>=.75)).toBe(true);}
-  else {expect(plan.complete).toBe(false);expect(plan.ops).toHaveLength(0);}
+  else {expect(plan.complete).toBe(true);expect(plan.ops.length).toBeGreaterThan(0);}
  }
 },60000);
 test('budget reserves only missing roles when the rest of the program is already owned',async()=>{

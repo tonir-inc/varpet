@@ -291,16 +291,16 @@ targets. The anchor has the largest target; minimum essential prices are reserve
 There is no text-model inference or image fetch in `room_kit`.
 
 Sizing constants in `catalog/room_kit.py`: sofa width <= 80% of longest wall; bed has 0.6 m clearance
-on both sides and foot where possible (noted fallback permits less); rug sides are 50–75% of room
+on at least one long side and at the foot, including the nightstand span; rug sides are 50–75% of room
 sides and larger than the coffee table; coffee-table width is 1/2–2/3 of sofa width; side/nightstand
-height is within 0.25 m of sofa/bed catalog height (an approximate arm/deck proxy). Supported items
+height is within 0.25 m of the sofa/bed height capped at 0.65 m (headboards and backrests are not support heights). Supported items
 are strictly smaller in both horizontal dimensions, allowing 90° rotation, with aggregate footprint
-<= 80% of the support top. Floor footprints, **including rugs**, sum to <= 45% of room area. This can
-omit a bedroom rug that could physically fit underneath a bed. Wall space still needs checking.
+<= 80% of the support top. Furniture floor footprints, **excluding overlapping rugs**, sum to <= 45% of room area.
+Balconies use <= 35% and a 0.6 m walkway strip along the long side; furniture must fit outside that strip. Wall space still needs checking.
 Catalog models are never resized.
 
 Designer flow:
-1. Call `room_kit`, read omissions, then `show_kit(kit=<returned kit array>)`. It reuses `show_candidates`
+1. Call `room_kit`, read omissions, then `show_kit(kit=<returned kit array>)`, or call `show_kit` directly with the same room arguments. It reuses `show_candidates`
    for one numbered exact-model image and role/ID/placement legend (maximum 16 entries). Blank tiles
    remain unknown; inspect alternatives with `show_candidates` as needed.
 2. Place the anchor first, then other floor/wall pieces, checking the updated room, doors and walkways.

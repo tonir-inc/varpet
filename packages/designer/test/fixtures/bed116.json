@@ -1,0 +1,225 @@
+{
+  "rooms": [
+    {
+      "id": "bed116",
+      "name": "Bedroom 116",
+      "polygon": [
+        [
+          16.739135,
+          -2.5603849999999997
+        ],
+        [
+          20.374395,
+          -2.560385
+        ],
+        [
+          20.374395,
+          -6.340574999999999
+        ],
+        [
+          16.739135,
+          -6.340574999999999
+        ]
+      ]
+    }
+  ],
+  "walls": [
+    {
+      "id": "east-lower::bed116::0",
+      "room_id": "bed116",
+      "a": [
+        16.66667,
+        -4.42029
+      ],
+      "b": [
+        16.66667,
+        -6.41304
+      ],
+      "color": "#f0eee8",
+      "source_id": "east-lower",
+      "keep": false,
+      "thickness": 0.14493,
+      "height": 2.6
+    },
+    {
+      "id": "east:section-13ja84p",
+      "room_id": "bed116",
+      "a": [
+        20.44686,
+        -2.48792
+      ],
+      "b": [
+        20.44686,
+        -6.41304
+      ],
+      "color": "#f0eee8",
+      "source_id": "east:section-13ja84p",
+      "keep": false,
+      "thickness": 0.14493,
+      "height": 2.6
+    },
+    {
+      "id": "southeast",
+      "room_id": "bed116",
+      "a": [
+        16.66667,
+        -6.41304
+      ],
+      "b": [
+        20.44686,
+        -6.41304
+      ],
+      "color": "#f0eee8",
+      "source_id": "southeast",
+      "keep": false,
+      "thickness": 0.14493,
+      "height": 2.6
+    },
+    {
+      "id": "closet117-west:section-1bg9rq9::bed116::2",
+      "room_id": "bed116",
+      "a": [
+        16.66667,
+        -2.48792
+      ],
+      "b": [
+        16.66667,
+        -3.45411
+      ],
+      "color": "#f0eee8",
+      "source_id": "closet117-west:section-1bg9rq9",
+      "keep": false,
+      "thickness": 0.14493,
+      "height": 2.6
+    },
+    {
+      "id": "closets-east-south::bed116::1",
+      "room_id": "bed116",
+      "a": [
+        16.66667,
+        -2.48792
+      ],
+      "b": [
+        17.7657,
+        -2.48792
+      ],
+      "color": "#f0eee8",
+      "source_id": "closets-east-south",
+      "keep": false,
+      "thickness": 0.14493,
+      "height": 2.6
+    },
+    {
+      "id": "closets-east-south:section-kneavw::closet118::0",
+      "room_id": "bed116",
+      "a": [
+        20.44686,
+        -2.48792
+      ],
+      "b": [
+        17.7657,
+        -2.48792
+      ],
+      "color": "#f0eee8",
+      "source_id": "closets-east-south:section-kneavw",
+      "keep": false,
+      "thickness": 0.14493,
+      "height": 2.6
+    },
+    {
+      "id": "closets-east-south:section-kneavw::bed116::1",
+      "room_id": "bed116",
+      "a": [
+        17.7657,
+        -2.48792
+      ],
+      "b": [
+        20.44686,
+        -2.48792
+      ],
+      "color": "#f0eee8",
+      "source_id": "closets-east-south:section-kneavw",
+      "keep": false,
+      "thickness": 0.14493,
+      "height": 2.6
+    },
+    {
+      "id": "bed116-hall::hall::0",
+      "room_id": "bed116",
+      "a": [
+        16.66667,
+        -4.42029
+      ],
+      "b": [
+        16.66667,
+        -3.45411
+      ],
+      "color": "#f0eee8",
+      "source_id": "bed116-hall",
+      "keep": false,
+      "thickness": 0.14493,
+      "height": 2.6
+    },
+    {
+      "id": "bed116-hall::bed116::1",
+      "room_id": "bed116",
+      "a": [
+        16.66667,
+        -3.45411
+      ],
+      "b": [
+        16.66667,
+        -4.42029
+      ],
+      "color": "#f0eee8",
+      "source_id": "bed116-hall",
+      "keep": false,
+      "thickness": 0.14493,
+      "height": 2.6
+    }
+  ],
+  "openings": [
+    {
+      "id": "ED118",
+      "wall_id": "closets-east-south:section-kneavw::closet118::0",
+      "kind": "door",
+      "offset": 0.6884000000000011,
+      "width": 0.74879,
+      "height": 2.032,
+      "sill": 0
+    },
+    {
+      "id": "ED116",
+      "wall_id": "bed116-hall::hall::0",
+      "kind": "door",
+      "offset": 0.07248500000000024,
+      "width": 0.8212099999999991,
+      "height": 2.032,
+      "sill": 0
+    }
+  ],
+  "items": [],
+  "fixed": [
+    {
+      "id": "structure:heater-bed116",
+      "room_id": "bed116",
+      "kind": "structural_obstacle",
+      "name": "Bedroom 116 wall heater",
+      "pos": [
+        16.789134999999998,
+        -2.9710099999999997
+      ],
+      "rot": 90,
+      "size": [
+        0.39,
+        0.1,
+        0.58
+      ],
+      "keep": true,
+      "structure": {
+        "wall_id": "heater-bed116",
+        "bottom_m": 0.22
+      }
+    }
+  ]
+}

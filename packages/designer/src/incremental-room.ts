@@ -3,7 +3,7 @@ import {roomPrograms} from '../knowledge/room-programs.js';
 import {roomCatalog} from './room-catalog.js';
 import {localGeometryErrors,compareLayoutErrors,outsidePoint} from './local-checks.js';
 import {functionClearances} from './metrics/function.js';
-import {spaceMetrics,itemPolygon} from './metrics/space.js';
+import {spaceMetrics,itemPolygon,walkwayRegressions} from './metrics/space.js';
 import {functionClearanceRegressions} from './proposal-clearances.js';
 import {SceneAnalysisCache} from './fast-path.js';
 import {applyOps} from './adapter.js';
@@ -96,7 +96,7 @@ export function* pieceOps(scene:Scene,p:CatalogProduct,roomId:string,cache:Scene
 }
 
 /** Probe stands at both bedsides (0.60 m out, at the head) and measure each one's route from the doors.
- * A bed pose whose second side can only be reached through a gap narrower than 0.75 m cannot take its
+ * Prefer 0.75 m access to the second side of a bed when placing its
  * second nightstand, however the stand is turned; try the poses with both sides reachable first. */
 export function bedsideAccess(scene:Scene,op:Op,roomId:string):number{
  if(op.type!=='add')return 0;
@@ -180,8 +180,7 @@ export async function planIncrementally(scene:Scene,request:RoomPlanRequest,quer
   return [o.offset,o.offset+o.width/2,o.offset+o.width].map(d=>[wall.a[0]+dx*d/length,wall.a[1]+dy*d/length] as Vec2);
  });
  const baselineGeometry=localGeometryErrors(scene),baselineFunctions=functionClearances(scene);
- // Keep all existing proposal checks. New access routes must also be at least 0.75 m.
- // Existing shell bottlenecks may be retained only under the unchanged baseline rule.
+ // Keep proposal checks and reject hard or worsened preferred-access deficits.
  const failures:{attempt:number;role:string;sku:string;errors:unknown[]}[]=[],attempts:unknown[]=[];
  const deadline=performance.now()+30000;let attempt=0;
  const allocated=new Set<string>();
@@ -201,8 +200,8 @@ export async function planIncrementally(scene:Scene,request:RoomPlanRequest,quer
   if(!checked.ok){if(failures.filter(f=>f.attempt===attempt&&f.role===role).length<5)failures.push({attempt,role,sku,errors:checked.errors.slice(0,3)});return undefined;}
   const paths=checked.proposal.checks.metrics!.space.rooms.find(r=>r.room_id===request.room_id)!.walkways;
   const newRoutes=paths.filter(p=>[p.from,p.to].some(id=>id.startsWith('item:')&&placed.has(id.slice(5))));
-  const narrow=newRoutes.filter(p=>!p.reachable||p.width_m<.75-1e-6);
-  if(narrow.length){if(failures.filter(f=>f.attempt===attempt&&f.role===role).length<5)failures.push({attempt,role,sku,errors:narrow.map(p=>({check:'secondary_access',from:p.from,to:p.to,width_m:p.width_m,minimum_m:.75}))});return undefined;}
+  const narrow=walkwayRegressions(scene,after,checked.proposal.checks.metrics!.space);
+  if(narrow.length){if(failures.filter(f=>f.attempt===attempt&&f.role===role).length<5)failures.push({attempt,role,sku,errors:narrow.map(p=>({check:'secondary_access',from:p.from,to:p.to,width_m:p.width_m,minimum_m:.6,preferred_m:.75}))});return undefined;}
   return {after,paths:newRoutes};
  };
  type Variant={ops:Op[];products:CatalogProduct[];missing:string[];complete:boolean;composition:ReturnType<typeof scoreComposition>;paths:{width_m:number}[]};
@@ -317,7 +316,7 @@ export async function planIncrementally(scene:Scene,request:RoomPlanRequest,quer
  const fillNote=!fill?'':fill.added.length?` Filled the room further: added ${phrase(count(fill.added.map(a=>a.kind)))}. ${{well_furnished:'The room is now well furnished.',nothing_more_fits:'Nothing more passes the access and clearance checks.',budget:'The budget is spent.',time:'Stopped at the search time bound; more may fit.'}[fill.stopped]}`
   :` Nothing more could be added: ${fill.stopped==='budget'?'the budget is spent':fill.stopped==='time'?'the search time bound was reached':fill.stopped==='well_furnished'?'the room already holds every optional piece':'no further piece passes the access and clearance checks'}.`;
  const minPath=paths.length?Math.min(...paths.map(p=>p.width_m)):undefined;
- const accessNote=minPath!==undefined&&minPath<.9?` Secondary access is ${minPath.toFixed(2)} m: acceptable at 0.75 m minimum, below the comfortable 0.90 m target.`:'';
+ const accessNote=minPath!==undefined&&minPath<.9?` Secondary access is ${minPath.toFixed(2)} m: acceptable at 0.60 m minimum (0.75 m preferred), below the comfortable 0.90 m target.`:'';
  const budgetNote=request.budget!==undefined&&requiredMinimum>request.budget?` The cheapest currently found full program totals ${requiredMinimum} AMD, above the ${request.budget} AMD budget; this is a catalog-search bound, not proof about all products.`:'';
  const overrideNote=outdoor&&requestedProgram!=='balcony'?` Furnished as an outdoor balcony, not as a ${requestedProgram} room: compact pieces, ${RAILING_CLEARANCE_M*100} cm kept clear of the railing.`:'';
  // The customer reads this text; role and check codes stay in missing/evidence for the model and eval.

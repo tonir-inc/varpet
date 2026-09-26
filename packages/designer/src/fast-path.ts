@@ -7,7 +7,7 @@ import type { CatalogAsset } from '../../../apps/editor/src/contracts.js';
 import { applyOps, parseOps, parseScene, wallOutward } from './adapter.js';
 import { checkLocalLayout, compareLayoutErrors, localGeometryErrors, outsidePoint, sourceFloorPolygon } from './local-checks.js';
 import { functionClearances, itemFunctionClearances, type FunctionClearance, type ShellGeometry } from './metrics/function.js';
-import { itemFront, itemPolygon, physicalDoorSwingPolygon, spaceMetrics, polygonsOverlap, isFloorRug, rasterizeRoom } from './metrics/space.js';
+import { itemFront, itemPolygon, physicalDoorSwingPolygon, spaceMetrics, polygonsOverlap, isFloorRug, rasterizeRoom, walkwayRegressions } from './metrics/space.js';
 import { wallSolidPolygons } from './wall-geometry.js';
 import { strategyMetrics } from './metrics/strategy.js';
 import { sun } from './metrics/sun.js';
@@ -15,7 +15,7 @@ import { checkRequest, type Intent } from './request.js';
 import { DesignerSession } from './session.js';
 import { onFloor, type Item, type Op, type Scene, type Vec2 } from './scene.js';
 
-export const FAST_VERSION = 'slots-v6';
+export const FAST_VERSION = 'slots-v7';
 const hash = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 export const sceneFingerprint = (scene: Scene, catalog: readonly CatalogAsset[] = []) => hash([FAST_VERSION, parseScene(scene), catalog]);
 type ClassId = 'furnish.living'|'furnish.bedroom'|'furnish.kids'|'add.one'|'add.desk-window'|'move.face-window'|'move.group'|'rearrange.open-floor'|'appearance.walls'|'scope.structural'|'feasibility.area';
@@ -75,7 +75,6 @@ const deficitKey=(c:FunctionClearance)=>`f:${c.item_id}:${c.function}:${c.side}:
 function deficitMap(scene:Scene,catalog:readonly CatalogAsset[]) {
   const result=new Map<string,number>();
   for(const c of functionClearances(typedScene(scene,catalog))) result.set(deficitKey(c),Math.max(c.deficit_m,c.excess_m??0));
-  for(const r of spaceMetrics(scene).rooms) for(const p of r.walkways) result.set(`w:${r.room_id}:${[p.from,p.to].sort().join(':')}`,p.reachable?Math.max(0,.75-p.width_m):.75);
   return result;
 }
 function deficitsPreserved(before:Map<string,number>,after:Scene,catalog:readonly CatalogAsset[]):boolean {
@@ -231,7 +230,7 @@ function generateSlots(scene:Scene,catalog:readonly CatalogAsset[],query:SlotQue
         }));
       }
     }
-    // A chair needs an open approach to its seat (the walkway check wants 0.75 m in front) and reads as part of
+    // A chair needs an open approach to its seat (the walkway check prefers 0.75 m in front) and reads as part of
     // the room when it faces the sofa or table it serves. Edge-first ranking spent the whole budget on chairs
     // tucked sideways along walls, whose approach is narrower than that.
     if(SEATS.includes(semantic)){
@@ -279,12 +278,13 @@ function generateSlots(scene:Scene,catalog:readonly CatalogAsset[],query:SlotQue
     const {item,op,after}=candidate;
     if(compareLayoutErrors(previous,localGeometryErrors(after)).errors.length)continue;
     const current=checkLocalLayout(after);
-    if(compareLayoutErrors(baseline.errors,current.errors).errors.length||!deficitsPreserved(deficits,after,catalog))continue;
+    if(compareLayoutErrors(baseline.errors,current.errors).errors.length||!deficitsPreserved(deficits,after,catalog)||walkwayRegressions(scene,after,current.metrics).length)continue;
     const open_floor=(current.metrics.rooms.find(r=>r.room_id===room.id)?.largest_free_rectangle?.area_m2??0)-beforeFloor;
     if(query.openFloor&&open_floor<.1-1e-6)continue;
     const strategy=strategyMetrics(after),zoning=Math.hypot(item.pos[0]-center[0],item.pos[1]-center[1]);
     const daylight=query.nearWindow?1/(1+Math.min(...spans.map(w=>Math.hypot(item.pos[0]-(w.a[0]+w.b[0])/2,item.pos[1]-(w.a[1]+w.b[1])/2)))):strategy.daylight_for_work.score;
-    const facing=query.faceWindow?1:strategy.social_living.score,score=(query.openFloor?10:1)*open_floor+daylight+facing+.1*zoning;
+    const circulation=current.metrics.rooms.find(r=>r.room_id===room.id)?.walkways.reduce((sum,p)=>sum+Math.max(0,.75-p.width_m),0)??0;
+    const facing=query.faceWindow?1:strategy.social_living.score,score=(query.openFloor?10:1)*open_floor+daylight+facing+.1*zoning-circulation;
     output.push({id:`slot-${hash([op]).slice(0,16)}`,catalog_ids:asset?[asset.id]:[],ops:[op],scores:{daylight,zoning,facing,open_floor},score,description:`${owned?'Move':'Add'} ${base.name}; largest open rectangle ${open_floor>=0?'+':''}${open_floor.toFixed(2)} m²; no worsened access deficits.`});
     if(output.length>=(query.limit??6))break;
   }

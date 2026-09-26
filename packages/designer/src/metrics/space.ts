@@ -335,7 +335,7 @@ function openingOnBoundary(room: Room, point: Vec2, along: Vec2, width: number):
   return covered >= width - EPS;
 }
 
-function endpoints(scene: Scene, room: Room, grid: RoutingGrid): { doors: Endpoint[]; items: Endpoint[] } {
+function endpoints(scene: Scene, room: Room, grid: RoutingGrid, endpointItems = scene.items): { doors: Endpoint[]; items: Endpoint[] } {
   const obstacles = obstaclesForRoom(scene, room), doors: Endpoint[] = [], items: Endpoint[] = [];
   for (const opening of scene.openings) {
     if (opening.kind === 'window') continue;
@@ -358,7 +358,7 @@ function endpoints(scene: Scene, room: Room, grid: RoutingGrid): { doors: Endpoi
     const entry = swing ? turningDoorApproach(scene, room, grid, obstacles, point, intoRoom, opening) : approach(grid, room, obstacles, point, intoRoom, 0.45);
     doors.push({ id: `door:${opening.id}`, point, ...entry, aperture: Math.min(opening.width, entry.aperture), narrowest: opening.width <= entry.aperture ? point : entry.narrowest });
   }
-  const floorItems = scene.items.filter(i => i.room_id === room.id && !i.structure && !isFloorRug(i) && onFloor(i));
+  const floorItems = endpointItems.filter(i => i.room_id === room.id && !i.structure && !isFloorRug(i) && onFloor(i));
   const pulledUp = new Map<string, { seat: Item; endpoint: Endpoint }[]>();
   for (const item of floorItems) {
     const radians = item.rot * Math.PI / 180, front: Vec2 = [Math.sin(radians), -Math.cos(radians)], surface = workSurface(item, floorItems);
@@ -501,4 +501,30 @@ export function spaceMetrics(scene: Scene, ops: readonly Op[] = []): SpaceMetric
   if (metricCache.size >= 32) metricCache.delete(metricCache.keys().next().value!);
   metricCache.set(key,structuredClone(result));
   return result;
+}
+
+/** Reject hard failures and preference shortfalls caused by the placement. For a new
+ * destination, measure the same approach with its item removed as an obstacle. */
+export function walkwayRegressions(before: Scene, after: Scene, measured = spaceMetrics(after)): Walkway[] {
+  const previous = spaceMetrics(before);
+  const rejected: Walkway[] = [];
+  for (const room of measured.rooms) for (const path of room.walkways) {
+    let baseline = previous.rooms.find(r => r.room_id === room.room_id)?.walkways.find(p => p.from === path.from && p.to === path.to);
+    // Unchanged existing violations elsewhere must not veto an unrelated placement.
+    if (baseline && (!baseline.reachable || path.reachable) && path.width_m >= baseline.width_m - 1e-6) continue;
+    if (!path.reachable || path.width_m < .6 - 1e-6) { rejected.push(path); continue; }
+    if (path.width_m >= .75 - 1e-6) continue;
+    if (!baseline) {
+      // New route: compare with the bare shell, so only doors and walls (never other furniture) can lower
+      // the 0.75 m preference; e.g. a 0.749 m doorway allows 0.749 m, a 0.9 m door still requires 0.75 m.
+      const empty = {...after, items: []};
+      const geometry = empty.rooms.find(r => r.id === room.room_id)!;
+      const grid = routingGrid(rasterizeRoom(empty, geometry));
+      const ends = endpoints(empty, geometry, grid, after.items);
+      const from = ends.doors.find(e => e.id === path.from), to = ends.items.find(e => e.id === path.to);
+      if (from && to) baseline = walkway(grid, from, to);
+    }
+    if (!baseline || path.width_m < baseline.width_m - 1e-6) rejected.push(path);
+  }
+  return rejected;
 }
