@@ -12,6 +12,7 @@ from mcp.server.mcpserver import MCPServer
 
 from colors import PALETTE
 from search import Query, fits, search
+from select_editor_set import EDITOR_KIND_OF
 
 server = MCPServer(
     "varpet-catalog",
@@ -127,7 +128,14 @@ def check_fit(item_id: str, max_w: float, max_d: float, max_h: float, allow_rota
 # Any local dev server: each editor or Codex session picks its own port.
 EDITOR_ORIGIN = re.compile(r"^http://(localhost|127\.0\.0\.1)(:\d{1,5})?$")
 CATEGORY = {"sofa": "Living", "chair": "Living", "table": "Living", "bed": "Bedroom", "cabinet": "Storage",
-            "shelf": "Storage", "lamp": "Lighting", "rug": "Textiles"}
+            "shelf": "Storage", "lamp": "Lighting", "rug": "Textiles", "desk": "Office",
+            "dresser": "Bedroom", "wardrobe": "Bedroom", "nightstand": "Bedroom",
+            "stool": "Living", "ottoman": "Living", "bench": "Living"}
+
+
+def editor_kind(kind: str) -> str:
+    """Map catalog subtypes only at the editor boundary; search keeps the real kind."""
+    return EDITOR_KIND_OF.get(kind, kind)
 
 
 def _cors(request, response):
@@ -149,7 +157,7 @@ def editor_assets(models: str = "original"):
     out = []
     for iid, name, kind, s, cimg, price, glb in rows:
         colour = (cimg or [{}])[0].get("hex") or "#9a9a9a"
-        out.append({"id": iid, "name": (name or iid)[:80], "category": CATEGORY.get(kind, "Other"), "kind": kind,
+        out.append({"id": iid, "name": (name or iid)[:80], "category": CATEGORY.get(kind, "Other"), "kind": editor_kind(kind),
                     "dimensions": [s[0], s[2], s[1]], "color": colour, "price": price,
                     "source": {"type": "gltf", "url": glb}})
     return out

@@ -47,7 +47,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--workers", type=int, default=6)
     ap.add_argument("--upload", action="store_true")
-    ap.add_argument("--switch", action="store_true", help="point glb_url at the VM copies")
+    ap.add_argument("--switch", action="store_true", help="record the VM copies in glb_web_url (glb_url stays the S3 original)")
     a = ap.parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
     RAW.mkdir(parents=True, exist_ok=True)
@@ -70,7 +70,7 @@ def main():
         print("uploaded")
     if a.switch:
         with psycopg.connect(os.environ["VARPET_DB_URL"]) as c, c.cursor() as cur:
-            cur.executemany("update item set glb_url = %s where id = %s",
+            cur.executemany("update item set glb_web_url = %s where id = %s",
                             [(f"{BASE}/{iid.split(':', 1)[1]}.glb", iid) for iid in done])
         print("switched", len(done), "items to", BASE)
 
