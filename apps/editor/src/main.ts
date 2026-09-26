@@ -1187,6 +1187,14 @@ window.addEventListener('pagehide', event => { if (!event.persisted) { designerP
 
 const modal=$<HTMLDialogElement>('#modal');
 if (architectLive && new URLSearchParams(location.search).has('architect')) queueMicrotask(replayMode ? () => void replayArchitect() : openArchitect);
+/** ?open=/demo-flats/<name>.json loads a saved design shipped with the editor (designer demo exports); same origin only. */
+const openDocument = new URLSearchParams(location.search).get('open');
+if (openDocument && /^\/demo-flats\/[\w-]+\.json$/.test(openDocument)) queueMicrotask(async () => {
+  try {
+    const scene = await parseDatabaseScene(await (await fetch(openDocument, { cache: 'no-store' })).text());
+    if (run([{ type: 'replace-scene', scene }], 'Open saved design')) { select(null); focusView(); refresh(); }
+  } catch (error) { notify(error instanceof Error ? error.message : String(error), true); }
+});
 const sharingUI = mountSharing($<HTMLButtonElement>('#share'), {
   async createLink(access) {
     if (accountSaving) throw new Error('Wait for your apartment to finish saving, then try again.');
