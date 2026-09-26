@@ -37,6 +37,8 @@ def write_report(output,manifest):
  lines=['# Demo acceptance baseline',f"\nMeasured {manifest['started_at']} UTC; source `{manifest['source']}`. Fast path **ON**, production service defaults, real catalog `localhost:8765/mcp`, AMD, north 0. Two real editor browser sessions maximum; private ports {manifest['editor_port']}/{manifest['service_port']}. No designer fixes or response stubs.",
  f"\nKomitas **{manifest['flats'][0]}** is fixed before testing, not selected post hoc for a higher score. Avani is the actual editor portal template built from `demo.ts` via `createInitialScene` (empty furniture, production behavior). This baseline starts from pre-built shells; it does not test plan reconstruction.",
  '\n## Results', '', '| Flat / tier | Automated passes | Median / max seconds | Median / max tokens | Target |','|---|---:|---:|---:|---|']
+ comparison=output/'comparison.md'
+ if comparison.exists():lines[3:3]=['\n'+comparison.read_text()]
  for flat in manifest['flats']:
   for tier in (1,2):
    group=[r for r in rows if r['flat']==flat and r['tier']==tier]
