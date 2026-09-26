@@ -9,6 +9,9 @@ export type FurnitureSurfaceResolver = (scene: SceneDocument, catalog: CatalogAs
 export function canRestOnFurniture(asset: CatalogAsset): boolean {
   if (wallDecoration(asset) || hangsFromCeiling(asset)) return false;
   if (['decor', 'plant', 'lamp'].includes(asset.kind)) return true;
+  // A flat-screen TV stands on a TV unit; catalog sets reach 1.23 m wide (55").
+  const [width, height, depth] = asset.dimensions;
+  if (asset.kind === 'tv') return width <= 2 && height <= 1.3 && depth <= .5;
   return ['microwave', 'monitor', 'computer', 'laptop', 'speaker', 'printer', 'game_console', 'fan'].includes(asset.kind)
     && asset.dimensions.every(size => size <= 1);
 }

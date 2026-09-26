@@ -217,8 +217,9 @@ Overlap checks compare vertical extents, so art above a sofa does not overlap it
 
 Placed furniture has optional `restsOn?: string`, the supporting furniture's scene ID.
 `position[1]` is always the item's world-space base height. Existing documents need no
-migration. `decor`, `plant`, `lamp`, and small countertop electronics/appliances may rest
-on furniture; sofas, beds, tables, desks and storage furniture never stack. Wall art and
+migration. `decor`, `plant`, `lamp`, small countertop electronics/appliances and flat-screen
+`tv`s (up to 2 m wide, 1.3 m high, 0.5 m deep) may rest on furniture; sofas, beds, tables,
+desks and storage furniture never stack. Wall art and
 mirrors retain their wall placement. These are furniture `add` / `update` operations
 from `contracts.ts`, not renovation `upsert-component` operations:
 
