@@ -1,0 +1,1388 @@
+[
+  {
+    "arm": "before",
+    "id": "minimal-empty",
+    "pass": false,
+    "two_turn_sequence": true,
+    "capture_complete": true,
+    "score": 68,
+    "issues": [
+      {
+        "code": "light",
+        "item_ids": [],
+        "message": "Needs 1 light (lamp)."
+      },
+      {
+        "code": "focal_point",
+        "item_ids": [],
+        "message": "Needs 1 focal point (shelf or tv_unit or cabinet)."
+      },
+      {
+        "code": "seat_facing",
+        "item_ids": [
+          "cozy-sofa"
+        ],
+        "message": "Every seat must face a focal point or another seat."
+      },
+      {
+        "code": "seat_table",
+        "item_ids": [
+          "cozy-sofa"
+        ],
+        "message": "Each seat needs a usable table within 0.60 m of its edge."
+      },
+      {
+        "code": "seat_light",
+        "item_ids": [
+          "cozy-sofa"
+        ],
+        "message": "Each seat needs a reading lamp within 0.90 m of its edge."
+      }
+    ],
+    "independent": {
+      "editor_accepted": true,
+      "seating": true,
+      "removed_kinds": true,
+      "rug": true,
+      "lighting": false,
+      "table": true,
+      "focal": false
+    },
+    "seconds": 96.2884565,
+    "tokens": 120209,
+    "screenshot": "before/minimal-empty-furnished-3d.png"
+  },
+  {
+    "arm": "before",
+    "id": "cozy-empty",
+    "pass": false,
+    "two_turn_sequence": true,
+    "capture_complete": true,
+    "score": 0,
+    "issues": [
+      {
+        "code": "seating_anchor",
+        "item_ids": [],
+        "message": "Needs 1 seating anchor (sofa)."
+      },
+      {
+        "code": "rug",
+        "item_ids": [],
+        "message": "Needs 1 rug (rug)."
+      },
+      {
+        "code": "light",
+        "item_ids": [],
+        "message": "Needs 1 light (lamp)."
+      },
+      {
+        "code": "table",
+        "item_ids": [],
+        "message": "Needs 1 table (table or coffee_table or side_table)."
+      },
+      {
+        "code": "focal_point",
+        "item_ids": [],
+        "message": "Needs 1 focal point (shelf or tv_unit or cabinet)."
+      },
+      {
+        "code": "seat_facing",
+        "item_ids": [],
+        "message": "Every seat must face a focal point or another seat."
+      },
+      {
+        "code": "conversation_distance",
+        "item_ids": [],
+        "message": "Seats need a conversation partner within 3 m."
+      },
+      {
+        "code": "rug_anchor",
+        "item_ids": [],
+        "message": "One rug must reach under both front legs of every seat in the group."
+      },
+      {
+        "code": "seat_table",
+        "item_ids": [],
+        "message": "Each seat needs a usable table within 0.60 m of its edge."
+      },
+      {
+        "code": "seat_light",
+        "item_ids": [],
+        "message": "Each seat needs a reading lamp within 0.90 m of its edge."
+      },
+      {
+        "code": "style_unknown",
+        "item_ids": [],
+        "message": "Style/color evidence is missing; unknown is not a style match."
+      },
+      {
+        "code": "style_consistency",
+        "item_ids": [],
+        "message": "Use compatible role-specific styles and an image-derived palette, or a shared style family."
+      }
+    ],
+    "independent": {
+      "editor_accepted": false,
+      "seating": false,
+      "removed_kinds": true,
+      "rug": false,
+      "lighting": false,
+      "table": false,
+      "focal": false
+    },
+    "seconds": 28.120432292,
+    "tokens": 38217,
+    "screenshot": "before/cozy-empty-furnished-3d.png"
+  },
+  {
+    "arm": "before",
+    "id": "scandi-empty",
+    "pass": false,
+    "two_turn_sequence": true,
+    "capture_complete": true,
+    "score": 58,
+    "issues": [
+      {
+        "code": "rug",
+        "item_ids": [],
+        "message": "Needs 1 rug (rug)."
+      },
+      {
+        "code": "light",
+        "item_ids": [],
+        "message": "Needs 1 light (lamp)."
+      },
+      {
+        "code": "seat_facing",
+        "item_ids": [
+          "scandi-sofa"
+        ],
+        "message": "Every seat must face a focal point or another seat."
+      },
+      {
+        "code": "rug_anchor",
+        "item_ids": [
+          "scandi-sofa"
+        ],
+        "message": "One rug must reach under both front legs of every seat in the group."
+      },
+      {
+        "code": "seat_table",
+        "item_ids": [
+          "scandi-sofa"
+        ],
+        "message": "Each seat needs a usable table within 0.60 m of its edge."
+      },
+      {
+        "code": "seat_light",
+        "item_ids": [
+          "scandi-sofa"
+        ],
+        "message": "Each seat needs a reading lamp within 0.90 m of its edge."
+      }
+    ],
+    "independent": {
+      "editor_accepted": true,
+      "seating": true,
+      "removed_kinds": true,
+      "rug": false,
+      "lighting": false,
+      "table": true,
+      "focal": true
+    },
+    "seconds": 64.292976792,
+    "tokens": 73908,
+    "screenshot": "before/scandi-empty-furnished-3d.png"
+  },
+  {
+    "arm": "before",
+    "id": "modern-empty",
+    "pass": false,
+    "two_turn_sequence": true,
+    "capture_complete": true,
+    "score": 68,
+    "issues": [
+      {
+        "code": "rug",
+        "item_ids": [],
+        "message": "Needs 1 rug (rug)."
+      },
+      {
+        "code": "light",
+        "item_ids": [],
+        "message": "Needs 1 light (lamp)."
+      },
+      {
+        "code": "rug_anchor",
+        "item_ids": [
+          "living-sofa"
+        ],
+        "message": "One rug must reach under both front legs of every seat in the group."
+      },
+      {
+        "code": "seat_table",
+        "item_ids": [
+          "living-sofa"
+        ],
+        "message": "Each seat needs a usable table within 0.60 m of its edge."
+      },
+      {
+        "code": "seat_light",
+        "item_ids": [
+          "living-sofa"
+        ],
+        "message": "Each seat needs a reading lamp within 0.90 m of its edge."
+      }
+    ],
+    "independent": {
+      "editor_accepted": true,
+      "seating": true,
+      "removed_kinds": true,
+      "rug": false,
+      "lighting": false,
+      "table": true,
+      "focal": true
+    },
+    "seconds": 70.400533042,
+    "tokens": 93518,
+    "screenshot": "before/modern-empty-furnished-3d.png"
+  },
+  {
+    "arm": "before",
+    "id": "classic-empty",
+    "pass": false,
+    "two_turn_sequence": true,
+    "capture_complete": true,
+    "score": 58,
+    "issues": [
+      {
+        "code": "rug",
+        "item_ids": [],
+        "message": "Needs 1 rug (rug)."
+      },
+      {
+        "code": "light",
+        "item_ids": [],
+        "message": "Needs 1 light (lamp)."
+      },
+      {
+        "code": "rug_anchor",
+        "item_ids": [
+          "classic-sofa",
+          "classic-chair"
+        ],
+        "message": "One rug must reach under both front legs of every seat in the group."
+      },
+      {
+        "code": "seat_table",
+        "item_ids": [
+          "classic-sofa",
+          "classic-chair"
+        ],
+        "message": "Each seat needs a usable table within 0.60 m of its edge."
+      },
+      {
+        "code": "seat_light",
+        "item_ids": [
+          "classic-sofa",
+          "classic-chair"
+        ],
+        "message": "Each seat needs a reading lamp within 0.90 m of its edge."
+      },
+      {
+        "code": "style_consistency",
+        "item_ids": [
+          "classic-table"
+        ],
+        "message": "Use compatible role-specific styles and an image-derived palette, or a shared style family."
+      }
+    ],
+    "independent": {
+      "editor_accepted": true,
+      "seating": true,
+      "removed_kinds": true,
+      "rug": false,
+      "lighting": false,
+      "table": true,
+      "focal": true
+    },
+    "seconds": 70.798608458,
+    "tokens": 109553,
+    "screenshot": "before/classic-empty-furnished-3d.png"
+  },
+  {
+    "arm": "before",
+    "id": "japandi-empty",
+    "pass": false,
+    "two_turn_sequence": true,
+    "capture_complete": true,
+    "score": 58,
+    "issues": [
+      {
+        "code": "rug",
+        "item_ids": [],
+        "message": "Needs 1 rug (rug)."
+      },
+      {
+        "code": "light",
+        "item_ids": [],
+        "message": "Needs 1 light (lamp)."
+      },
+      {
+        "code": "seat_facing",
+        "item_ids": [
+          "japandi-sofa"
+        ],
+        "message": "Every seat must face a focal point or another seat."
+      },
+      {
+        "code": "rug_anchor",
+        "item_ids": [
+          "japandi-sofa"
+        ],
+        "message": "One rug must reach under both front legs of every seat in the group."
+      },
+      {
+        "code": "seat_table",
+        "item_ids": [
+          "japandi-sofa"
+        ],
+        "message": "Each seat needs a usable table within 0.60 m of its edge."
+      },
+      {
+        "code": "seat_light",
+        "item_ids": [
+          "japandi-sofa"
+        ],
+        "message": "Each seat needs a reading lamp within 0.90 m of its edge."
+      }
+    ],
+    "independent": {
+      "editor_accepted": true,
+      "seating": true,
+      "removed_kinds": true,
+      "rug": false,
+      "lighting": false,
+      "table": true,
+      "focal": true
+    },
+    "seconds": 69.19020325,
+    "tokens": 112084,
+    "screenshot": "before/japandi-empty-furnished-3d.png"
+  },
+  {
+    "arm": "before",
+    "id": "industrial-empty",
+    "pass": false,
+    "two_turn_sequence": true,
+    "capture_complete": true,
+    "score": 71,
+    "issues": [
+      {
+        "code": "rug",
+        "item_ids": [],
+        "message": "Needs 1 rug (rug)."
+      },
+      {
+        "code": "light",
+        "item_ids": [],
+        "message": "Needs 1 light (lamp)."
+      },
+      {
+        "code": "rug_anchor",
+        "item_ids": [
+          "abo:B075X43FDW"
+        ],
+        "message": "One rug must reach under both front legs of every seat in the group."
+      },
+      {
+        "code": "seat_table",
+        "item_ids": [
+          "abo:B075X43FDW"
+        ],
+        "message": "Each seat needs a usable table within 0.60 m of its edge."
+      },
+      {
+        "code": "seat_light",
+        "item_ids": [
+          "abo:B075X43FDW"
+        ],
+        "message": "Each seat needs a reading lamp within 0.90 m of its edge."
+      }
+    ],
+    "independent": {
+      "editor_accepted": true,
+      "seating": true,
+      "removed_kinds": true,
+      "rug": false,
+      "lighting": false,
+      "table": true,
+      "focal": true
+    },
+    "seconds": 86.10861187500001,
+    "tokens": 104480,
+    "screenshot": "before/industrial-empty-furnished-3d.png"
+  },
+  {
+    "arm": "before",
+    "id": "boho-empty",
+    "pass": false,
+    "two_turn_sequence": true,
+    "capture_complete": true,
+    "score": 57,
+    "issues": [
+      {
+        "code": "light",
+        "item_ids": [],
+        "message": "Needs 1 light (lamp)."
+      },
+      {
+        "code": "rug_anchor",
+        "item_ids": [
+          "B073G82B5L",
+          "B07QJXN6WJ"
+        ],
+        "message": "One rug must reach under both front legs of every seat in the group."
+      },
+      {
+        "code": "seat_table",
+        "item_ids": [
+          "B073G82B5L",
+          "B07QJXN6WJ"
+        ],
+        "message": "Each seat needs a usable table within 0.60 m of its edge."
+      },
+      {
+        "code": "seat_light",
+        "item_ids": [
+          "B073G82B5L",
+          "B07QJXN6WJ"
+        ],
+        "message": "Each seat needs a reading lamp within 0.90 m of its edge."
+      },
+      {
+        "code": "style_consistency",
+        "item_ids": [
+          "B073G82B5L",
+          "B07GFG6JMM",
+          "B075Z8HXVK",
+          "B07PNHSR4G"
+        ],
+        "message": "Use compatible role-specific styles and an image-derived palette, or a shared style family."
+      },
+      {
+        "code": "style_signature",
+        "item_ids": [],
+        "message": "Keep the non-excluded signature pieces and at least one item with the requested style identity; a neutral supporting set alone is insufficient."
+      }
+    ],
+    "independent": {
+      "editor_accepted": true,
+      "seating": false,
+      "removed_kinds": true,
+      "rug": true,
+      "lighting": false,
+      "table": true,
+      "focal": true
+    },
+    "seconds": 63.800797374999995,
+    "tokens": 79886,
+    "screenshot": "before/boho-empty-furnished-3d.png"
+  },
+  {
+    "arm": "before",
+    "id": "minimal-furnished",
+    "pass": false,
+    "two_turn_sequence": true,
+    "capture_complete": true,
+    "score": 63,
+    "issues": [
+      {
+        "code": "rug_anchor",
+        "item_ids": [
+          "sofa",
+          "lounge-chair",
+          "dining-chair-north",
+          "dining-chair-south",
+          "dining-chair-west",
+          "dining-chair-east"
+        ],
+        "message": "One rug must reach under both front legs of every seat in the group."
+      },
+      {
+        "code": "seat_table",
+        "item_ids": [
+          "sofa",
+          "lounge-chair",
+          "dining-chair-north",
+          "dining-chair-south",
+          "dining-chair-west",
+          "dining-chair-east"
+        ],
+        "message": "Each seat needs a usable table within 0.60 m of its edge."
+      },
+      {
+        "code": "seat_light",
+        "item_ids": [
+          "sofa",
+          "lounge-chair",
+          "dining-chair-north",
+          "dining-chair-south",
+          "dining-chair-west",
+          "dining-chair-east"
+        ],
+        "message": "Each seat needs a reading lamp within 0.90 m of its edge."
+      },
+      {
+        "code": "style_unknown",
+        "item_ids": [
+          "living-rug",
+          "sofa",
+          "coffee-table",
+          "lounge-chair",
+          "floor-lamp",
+          "media-console",
+          "dining-table",
+          "dining-chair-north",
+          "dining-chair-south",
+          "dining-chair-west",
+          "dining-chair-east",
+          "living-olive"
+        ],
+        "message": "Style/color evidence is missing; unknown is not a style match."
+      },
+      {
+        "code": "style_consistency",
+        "item_ids": [],
+        "message": "Use compatible role-specific styles and an image-derived palette, or a shared style family."
+      }
+    ],
+    "independent": {
+      "editor_accepted": false,
+      "seating": true,
+      "removed_kinds": true,
+      "rug": true,
+      "lighting": false,
+      "table": true,
+      "focal": true
+    },
+    "seconds": 18.87970083300001,
+    "tokens": 31452,
+    "screenshot": "before/minimal-furnished-furnished-3d.png"
+  },
+  {
+    "arm": "before",
+    "id": "scandi-furnished",
+    "pass": false,
+    "two_turn_sequence": true,
+    "capture_complete": true,
+    "score": 63,
+    "issues": [
+      {
+        "code": "rug_anchor",
+        "item_ids": [
+          "sofa",
+          "lounge-chair",
+          "dining-chair-north",
+          "dining-chair-south",
+          "dining-chair-west",
+          "dining-chair-east"
+        ],
+        "message": "One rug must reach under both front legs of every seat in the group."
+      },
+      {
+        "code": "seat_table",
+        "item_ids": [
+          "sofa",
+          "lounge-chair",
+          "dining-chair-north",
+          "dining-chair-south",
+          "dining-chair-west",
+          "dining-chair-east"
+        ],
+        "message": "Each seat needs a usable table within 0.60 m of its edge."
+      },
+      {
+        "code": "seat_light",
+        "item_ids": [
+          "sofa",
+          "lounge-chair",
+          "dining-chair-north",
+          "dining-chair-south",
+          "dining-chair-west",
+          "dining-chair-east"
+        ],
+        "message": "Each seat needs a reading lamp within 0.90 m of its edge."
+      },
+      {
+        "code": "style_unknown",
+        "item_ids": [
+          "living-rug",
+          "sofa",
+          "coffee-table",
+          "lounge-chair",
+          "floor-lamp",
+          "media-console",
+          "dining-table",
+          "dining-chair-north",
+          "dining-chair-south",
+          "dining-chair-west",
+          "dining-chair-east",
+          "living-olive"
+        ],
+        "message": "Style/color evidence is missing; unknown is not a style match."
+      },
+      {
+        "code": "style_consistency",
+        "item_ids": [],
+        "message": "Use compatible role-specific styles and an image-derived palette, or a shared style family."
+      }
+    ],
+    "independent": {
+      "editor_accepted": true,
+      "seating": true,
+      "removed_kinds": true,
+      "rug": true,
+      "lighting": false,
+      "table": true,
+      "focal": true
+    },
+    "seconds": 31.914539583000007,
+    "tokens": 62241,
+    "screenshot": "before/scandi-furnished-furnished-3d.png"
+  },
+  {
+    "arm": "before",
+    "id": "modern-furnished",
+    "pass": false,
+    "two_turn_sequence": true,
+    "capture_complete": true,
+    "score": 63,
+    "issues": [
+      {
+        "code": "rug_anchor",
+        "item_ids": [
+          "sofa",
+          "lounge-chair",
+          "dining-chair-north",
+          "dining-chair-south",
+          "dining-chair-west",
+          "dining-chair-east"
+        ],
+        "message": "One rug must reach under both front legs of every seat in the group."
+      },
+      {
+        "code": "seat_table",
+        "item_ids": [
+          "sofa",
+          "lounge-chair",
+          "dining-chair-north",
+          "dining-chair-south",
+          "dining-chair-west",
+          "dining-chair-east"
+        ],
+        "message": "Each seat needs a usable table within 0.60 m of its edge."
+      },
+      {
+        "code": "seat_light",
+        "item_ids": [
+          "sofa",
+          "lounge-chair",
+          "dining-chair-north",
+          "dining-chair-south",
+          "dining-chair-west",
+          "dining-chair-east"
+        ],
+        "message": "Each seat needs a reading lamp within 0.90 m of its edge."
+      },
+      {
+        "code": "style_unknown",
+        "item_ids": [
+          "living-rug",
+          "sofa",
+          "coffee-table",
+          "lounge-chair",
+          "floor-lamp",
+          "media-console",
+          "dining-table",
+          "dining-chair-north",
+          "dining-chair-south",
+          "dining-chair-west",
+          "dining-chair-east",
+          "living-olive"
+        ],
+        "message": "Style/color evidence is missing; unknown is not a style match."
+      },
+      {
+        "code": "style_consistency",
+        "item_ids": [],
+        "message": "Use compatible role-specific styles and an image-derived palette, or a shared style family."
+      }
+    ],
+    "independent": {
+      "editor_accepted": false,
+      "seating": true,
+      "removed_kinds": true,
+      "rug": true,
+      "lighting": false,
+      "table": true,
+      "focal": true
+    },
+    "seconds": 21.090723541999992,
+    "tokens": 31340,
+    "screenshot": "before/modern-furnished-furnished-3d.png"
+  },
+  {
+    "arm": "before",
+    "id": "japandi-furnished",
+    "pass": false,
+    "two_turn_sequence": true,
+    "capture_complete": true,
+    "score": 63,
+    "issues": [
+      {
+        "code": "rug_anchor",
+        "item_ids": [
+          "sofa",
+          "lounge-chair",
+          "dining-chair-north",
+          "dining-chair-south",
+          "dining-chair-west",
+          "dining-chair-east"
+        ],
+        "message": "One rug must reach under both front legs of every seat in the group."
+      },
+      {
+        "code": "seat_table",
+        "item_ids": [
+          "sofa",
+          "lounge-chair",
+          "dining-chair-north",
+          "dining-chair-south",
+          "dining-chair-west",
+          "dining-chair-east"
+        ],
+        "message": "Each seat needs a usable table within 0.60 m of its edge."
+      },
+      {
+        "code": "seat_light",
+        "item_ids": [
+          "sofa",
+          "lounge-chair",
+          "dining-chair-north",
+          "dining-chair-south",
+          "dining-chair-west",
+          "dining-chair-east"
+        ],
+        "message": "Each seat needs a reading lamp within 0.90 m of its edge."
+      },
+      {
+        "code": "style_unknown",
+        "item_ids": [
+          "living-rug",
+          "sofa",
+          "coffee-table",
+          "lounge-chair",
+          "floor-lamp",
+          "media-console",
+          "dining-table",
+          "dining-chair-north",
+          "dining-chair-south",
+          "dining-chair-west",
+          "dining-chair-east",
+          "living-olive"
+        ],
+        "message": "Style/color evidence is missing; unknown is not a style match."
+      },
+      {
+        "code": "style_consistency",
+        "item_ids": [],
+        "message": "Use compatible role-specific styles and an image-derived palette, or a shared style family."
+      }
+    ],
+    "independent": {
+      "editor_accepted": true,
+      "seating": true,
+      "removed_kinds": true,
+      "rug": true,
+      "lighting": false,
+      "table": true,
+      "focal": true
+    },
+    "seconds": 43.55395624999999,
+    "tokens": 62929,
+    "screenshot": "before/japandi-furnished-furnished-3d.png"
+  },
+  {
+    "arm": "before",
+    "id": "ashot",
+    "pass": false,
+    "two_turn_sequence": true,
+    "capture_complete": true,
+    "score": 63,
+    "issues": [
+      {
+        "code": "rug",
+        "item_ids": [],
+        "message": "Needs 1 rug (rug)."
+      },
+      {
+        "code": "focal_point",
+        "item_ids": [],
+        "message": "Needs 1 focal point (shelf or tv_unit or cabinet)."
+      },
+      {
+        "code": "rug_anchor",
+        "item_ids": [
+          "chair-west",
+          "chair-east"
+        ],
+        "message": "One rug must reach under both front legs of every seat in the group."
+      },
+      {
+        "code": "seat_light",
+        "item_ids": [
+          "chair-west",
+          "chair-east"
+        ],
+        "message": "Each seat needs a reading lamp within 0.90 m of its edge."
+      },
+      {
+        "code": "style_consistency",
+        "item_ids": [
+          "chair-west",
+          "chair-east",
+          "side-table"
+        ],
+        "message": "Use compatible role-specific styles and an image-derived palette, or a shared style family."
+      }
+    ],
+    "independent": {
+      "editor_accepted": true,
+      "seating": true,
+      "removed_kinds": true,
+      "rug": false,
+      "lighting": false,
+      "table": true,
+      "focal": false
+    },
+    "seconds": 99.16543487599998,
+    "tokens": 185820,
+    "screenshot": "before/ashot-furnished-3d.png"
+  },
+  {
+    "arm": "after-styles",
+    "id": "minimal-empty",
+    "pass": true,
+    "two_turn_sequence": true,
+    "capture_complete": true,
+    "score": 100,
+    "issues": [],
+    "independent": {
+      "editor_accepted": true,
+      "seating": true,
+      "removed_kinds": true,
+      "rug": true,
+      "lighting": true,
+      "table": true,
+      "focal": true
+    },
+    "seconds": 58.773453625,
+    "tokens": 60791,
+    "screenshot": "after-styles/minimal-empty-furnished-3d.png"
+  },
+  {
+    "arm": "after-styles",
+    "id": "cozy-empty",
+    "pass": true,
+    "two_turn_sequence": true,
+    "capture_complete": true,
+    "score": 100,
+    "issues": [],
+    "independent": {
+      "editor_accepted": true,
+      "seating": true,
+      "removed_kinds": true,
+      "rug": true,
+      "lighting": true,
+      "table": true,
+      "focal": true
+    },
+    "seconds": 59.438206792,
+    "tokens": 60918,
+    "screenshot": "after-styles/cozy-empty-furnished-3d.png"
+  },
+  {
+    "arm": "after-styles",
+    "id": "scandi-empty",
+    "pass": true,
+    "two_turn_sequence": true,
+    "capture_complete": true,
+    "score": 100,
+    "issues": [],
+    "independent": {
+      "editor_accepted": true,
+      "seating": true,
+      "removed_kinds": true,
+      "rug": true,
+      "lighting": true,
+      "table": true,
+      "focal": true
+    },
+    "seconds": 37.023905042,
+    "tokens": 60260,
+    "screenshot": "after-styles/scandi-empty-furnished-3d.png"
+  },
+  {
+    "arm": "after-styles",
+    "id": "modern-empty",
+    "pass": true,
+    "two_turn_sequence": true,
+    "capture_complete": true,
+    "score": 100,
+    "issues": [],
+    "independent": {
+      "editor_accepted": true,
+      "seating": true,
+      "removed_kinds": true,
+      "rug": true,
+      "lighting": true,
+      "table": true,
+      "focal": true
+    },
+    "seconds": 36.564084625000014,
+    "tokens": 60216,
+    "screenshot": "after-styles/modern-empty-furnished-3d.png"
+  },
+  {
+    "arm": "after-styles",
+    "id": "classic-empty",
+    "pass": false,
+    "two_turn_sequence": true,
+    "capture_complete": true,
+    "score": 0,
+    "issues": [
+      {
+        "code": "seating_anchor",
+        "item_ids": [],
+        "message": "Needs 1 seating anchor (sofa)."
+      },
+      {
+        "code": "rug",
+        "item_ids": [],
+        "message": "Needs 1 rug (rug)."
+      },
+      {
+        "code": "light",
+        "item_ids": [],
+        "message": "Needs 1 light (lamp)."
+      },
+      {
+        "code": "table",
+        "item_ids": [],
+        "message": "Needs 1 table (table or coffee_table or side_table)."
+      },
+      {
+        "code": "focal_point",
+        "item_ids": [],
+        "message": "Needs 1 focal point (shelf or tv_unit or cabinet)."
+      },
+      {
+        "code": "seat_facing",
+        "item_ids": [],
+        "message": "Every seat must face a focal point or another seat."
+      },
+      {
+        "code": "conversation_distance",
+        "item_ids": [],
+        "message": "Seats need a conversation partner within 3 m."
+      },
+      {
+        "code": "rug_anchor",
+        "item_ids": [],
+        "message": "One rug must reach under both front legs of every seat in the group."
+      },
+      {
+        "code": "seat_table",
+        "item_ids": [],
+        "message": "Each seat needs a usable table within 0.60 m of its edge."
+      },
+      {
+        "code": "seat_light",
+        "item_ids": [],
+        "message": "Each seat needs a reading lamp within 0.90 m of its edge."
+      },
+      {
+        "code": "style_unknown",
+        "item_ids": [],
+        "message": "Style/color evidence is missing; unknown is not a style match."
+      },
+      {
+        "code": "style_consistency",
+        "item_ids": [],
+        "message": "Use compatible role-specific styles and an image-derived palette, or a shared style family."
+      }
+    ],
+    "independent": {
+      "editor_accepted": false,
+      "seating": false,
+      "removed_kinds": true,
+      "rug": false,
+      "lighting": false,
+      "table": false,
+      "focal": false
+    },
+    "seconds": 64.881811583,
+    "tokens": 40352,
+    "screenshot": "after-styles/classic-empty-furnished-3d.png"
+  },
+  {
+    "arm": "after-styles",
+    "id": "japandi-empty",
+    "pass": false,
+    "two_turn_sequence": true,
+    "capture_complete": true,
+    "score": 0,
+    "issues": [
+      {
+        "code": "seating_anchor",
+        "item_ids": [],
+        "message": "Needs 1 seating anchor (sofa)."
+      },
+      {
+        "code": "rug",
+        "item_ids": [],
+        "message": "Needs 1 rug (rug)."
+      },
+      {
+        "code": "light",
+        "item_ids": [],
+        "message": "Needs 1 light (lamp)."
+      },
+      {
+        "code": "table",
+        "item_ids": [],
+        "message": "Needs 1 table (table or coffee_table or side_table)."
+      },
+      {
+        "code": "focal_point",
+        "item_ids": [],
+        "message": "Needs 1 focal point (shelf or tv_unit or cabinet)."
+      },
+      {
+        "code": "seat_facing",
+        "item_ids": [],
+        "message": "Every seat must face a focal point or another seat."
+      },
+      {
+        "code": "conversation_distance",
+        "item_ids": [],
+        "message": "Seats need a conversation partner within 3 m."
+      },
+      {
+        "code": "rug_anchor",
+        "item_ids": [],
+        "message": "One rug must reach under both front legs of every seat in the group."
+      },
+      {
+        "code": "seat_table",
+        "item_ids": [],
+        "message": "Each seat needs a usable table within 0.60 m of its edge."
+      },
+      {
+        "code": "seat_light",
+        "item_ids": [],
+        "message": "Each seat needs a reading lamp within 0.90 m of its edge."
+      },
+      {
+        "code": "style_unknown",
+        "item_ids": [],
+        "message": "Style/color evidence is missing; unknown is not a style match."
+      },
+      {
+        "code": "style_consistency",
+        "item_ids": [],
+        "message": "Use compatible role-specific styles and an image-derived palette, or a shared style family."
+      }
+    ],
+    "independent": {
+      "editor_accepted": false,
+      "seating": false,
+      "removed_kinds": true,
+      "rug": false,
+      "lighting": false,
+      "table": false,
+      "focal": false
+    },
+    "seconds": 66.176116584,
+    "tokens": 40186,
+    "screenshot": "after-styles/japandi-empty-furnished-3d.png"
+  },
+  {
+    "arm": "after-styles",
+    "id": "industrial-empty",
+    "pass": true,
+    "two_turn_sequence": true,
+    "capture_complete": true,
+    "score": 100,
+    "issues": [],
+    "independent": {
+      "editor_accepted": true,
+      "seating": true,
+      "removed_kinds": true,
+      "rug": true,
+      "lighting": true,
+      "table": true,
+      "focal": true
+    },
+    "seconds": 35.88380137500001,
+    "tokens": 60725,
+    "screenshot": "after-styles/industrial-empty-furnished-3d.png"
+  },
+  {
+    "arm": "after-styles",
+    "id": "boho-empty",
+    "pass": true,
+    "two_turn_sequence": true,
+    "capture_complete": true,
+    "score": 100,
+    "issues": [],
+    "independent": {
+      "editor_accepted": true,
+      "seating": true,
+      "removed_kinds": true,
+      "rug": true,
+      "lighting": true,
+      "table": true,
+      "focal": true
+    },
+    "seconds": 37.12121858299998,
+    "tokens": 60736,
+    "screenshot": "after-styles/boho-empty-furnished-3d.png"
+  },
+  {
+    "arm": "after-styles",
+    "id": "minimal-furnished",
+    "pass": false,
+    "two_turn_sequence": true,
+    "capture_complete": true,
+    "score": 63,
+    "issues": [
+      {
+        "code": "rug_anchor",
+        "item_ids": [
+          "sofa",
+          "lounge-chair",
+          "dining-chair-north",
+          "dining-chair-south",
+          "dining-chair-west",
+          "dining-chair-east"
+        ],
+        "message": "One rug must reach under both front legs of every seat in the group."
+      },
+      {
+        "code": "seat_table",
+        "item_ids": [
+          "sofa",
+          "lounge-chair",
+          "dining-chair-north",
+          "dining-chair-south",
+          "dining-chair-west",
+          "dining-chair-east"
+        ],
+        "message": "Each seat needs a usable table within 0.60 m of its edge."
+      },
+      {
+        "code": "seat_light",
+        "item_ids": [
+          "sofa",
+          "lounge-chair",
+          "dining-chair-north",
+          "dining-chair-south",
+          "dining-chair-west",
+          "dining-chair-east"
+        ],
+        "message": "Each seat needs a reading lamp within 0.90 m of its edge."
+      },
+      {
+        "code": "style_unknown",
+        "item_ids": [
+          "living-rug",
+          "sofa",
+          "coffee-table",
+          "lounge-chair",
+          "floor-lamp",
+          "media-console",
+          "dining-table",
+          "dining-chair-north",
+          "dining-chair-south",
+          "dining-chair-west",
+          "dining-chair-east",
+          "living-olive"
+        ],
+        "message": "Style/color evidence is missing; unknown is not a style match."
+      },
+      {
+        "code": "style_consistency",
+        "item_ids": [],
+        "message": "Use compatible role-specific styles and an image-derived palette, or a shared style family."
+      }
+    ],
+    "independent": {
+      "editor_accepted": false,
+      "seating": true,
+      "removed_kinds": true,
+      "rug": true,
+      "lighting": false,
+      "table": true,
+      "focal": true
+    },
+    "seconds": 29.82712991700001,
+    "tokens": 37151,
+    "screenshot": "after-styles/minimal-furnished-furnished-3d.png"
+  },
+  {
+    "arm": "after-styles",
+    "id": "scandi-furnished",
+    "pass": false,
+    "two_turn_sequence": true,
+    "capture_complete": true,
+    "score": 63,
+    "issues": [
+      {
+        "code": "rug_anchor",
+        "item_ids": [
+          "sofa",
+          "lounge-chair",
+          "dining-chair-north",
+          "dining-chair-south",
+          "dining-chair-west",
+          "dining-chair-east"
+        ],
+        "message": "One rug must reach under both front legs of every seat in the group."
+      },
+      {
+        "code": "seat_table",
+        "item_ids": [
+          "sofa",
+          "lounge-chair",
+          "dining-chair-north",
+          "dining-chair-south",
+          "dining-chair-west",
+          "dining-chair-east"
+        ],
+        "message": "Each seat needs a usable table within 0.60 m of its edge."
+      },
+      {
+        "code": "seat_light",
+        "item_ids": [
+          "sofa",
+          "lounge-chair",
+          "dining-chair-north",
+          "dining-chair-south",
+          "dining-chair-west",
+          "dining-chair-east"
+        ],
+        "message": "Each seat needs a reading lamp within 0.90 m of its edge."
+      },
+      {
+        "code": "style_unknown",
+        "item_ids": [
+          "living-rug",
+          "sofa",
+          "coffee-table",
+          "lounge-chair",
+          "floor-lamp",
+          "media-console",
+          "dining-table",
+          "dining-chair-north",
+          "dining-chair-south",
+          "dining-chair-west",
+          "dining-chair-east",
+          "living-olive"
+        ],
+        "message": "Style/color evidence is missing; unknown is not a style match."
+      },
+      {
+        "code": "style_consistency",
+        "item_ids": [],
+        "message": "Use compatible role-specific styles and an image-derived palette, or a shared style family."
+      }
+    ],
+    "independent": {
+      "editor_accepted": false,
+      "seating": true,
+      "removed_kinds": true,
+      "rug": true,
+      "lighting": false,
+      "table": true,
+      "focal": true
+    },
+    "seconds": 59.680052874999994,
+    "tokens": 78948,
+    "screenshot": "after-styles/scandi-furnished-furnished-3d.png"
+  },
+  {
+    "arm": "after-styles",
+    "id": "modern-furnished",
+    "pass": true,
+    "two_turn_sequence": true,
+    "capture_complete": true,
+    "score": 100,
+    "issues": [],
+    "independent": {
+      "editor_accepted": true,
+      "seating": true,
+      "removed_kinds": true,
+      "rug": true,
+      "lighting": true,
+      "table": true,
+      "focal": true
+    },
+    "seconds": 40.68717262500001,
+    "tokens": 70919,
+    "screenshot": "after-styles/modern-furnished-furnished-3d.png"
+  },
+  {
+    "arm": "after-styles",
+    "id": "japandi-furnished",
+    "pass": true,
+    "two_turn_sequence": true,
+    "capture_complete": true,
+    "score": 100,
+    "issues": [],
+    "independent": {
+      "editor_accepted": true,
+      "seating": true,
+      "removed_kinds": true,
+      "rug": true,
+      "lighting": true,
+      "table": true,
+      "focal": true
+    },
+    "seconds": 37.512192334,
+    "tokens": 70778,
+    "screenshot": "after-styles/japandi-furnished-furnished-3d.png"
+  },
+  {
+    "arm": "after-styles",
+    "id": "ashot",
+    "pass": true,
+    "two_turn_sequence": true,
+    "capture_complete": true,
+    "score": 100,
+    "issues": [],
+    "independent": {
+      "editor_accepted": true,
+      "seating": true,
+      "removed_kinds": true,
+      "rug": true,
+      "lighting": true,
+      "table": true,
+      "focal": true
+    },
+    "seconds": 78.110691375,
+    "tokens": 187809,
+    "screenshot": "after-styles/ashot-furnished-3d.png"
+  }
+]

@@ -1,4 +1,51 @@
-# TASTE — living-room before/after, 26 September 2026
+# TASTE — style and real-kind evidence, 26 September 2026
+
+## Latest measured result: industrial and boho fixed; native room programs
+
+[measured, 2026-09-26, gpt-6-astra low] The complete 13-case living-room rerun is **0/13 baseline → 9/13 applied after** (`grades-styles.json`), with all 26 baseline/after screenshots verified. Industrial and boho now both pass at **100/100**. Four after results are conversational choices with unchanged scenes: empty classic, empty Japandi, furnished minimalist/cozy and furnished Scandinavian. They remain failures under the application rubric; this is not a 13/13 claim. The previous removal-only arm scored 10/13 with different failures. Chat choice behavior belongs to the chat lane and was not changed here.
+
+| Arm | Applied passes | Mean composition | Median s | p90 s | Tokens |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Baseline, regraded with current checks | 0/13 | 57.9 | 64.3 | 96.3 | 1,105,637 |
+| After style-role fixes | 9/13 | 78.9 | 40.7 | 66.2 | 889,789 |
+
+[measured] Ashot's exact two-turn case now removes the original couch **and adds no sofa**. Two facing chairs share a rug, side table, two floor lamps and shelving. Both turns applied; score **63 → 100**, total time **99.2 → 78.1 s**, after tokens **187,809**. Screenshot: [after-styles/ashot-furnished-3d.png](taste-runs/after-styles/ashot-furnished-3d.png). Compared with his logged chair row facing nothing, this supplies a conversation group and reachable light/table. [derived] Visual completeness is established; liking it still requires Ashot's judgment.
+
+[measured] Industrial now retains industrial table/shelving identity with compatible upholstery, rug and light: [industrial screenshot](taste-runs/after-styles/industrial-empty-furnished-3d.png). Boho retains a bohemian rug and rustic storage/table with neutral supporting pieces: [boho screenshot](taste-runs/after-styles/boho-empty-furnished-3d.png). Both real-catalog probes generated two candidates and all four passed EditorStore application. Product tags and image colours, not names, supply style evidence. Style priors are not customer preference votes.
+
+[measured provenance] The first ten requests used the style-fix working source `da49093` (rebased/pushed as `af7322c`). A push-time stash temporarily removed the active output directory; the three missing cases (modern-furnished, japandi-furnished, ashot) were resumed after the push on the rebased working tree. Raw records retain their service/runner labels. This is a complete mixed-source run, **not a frozen release comparison**; timestamps, raw HTTP replies and per-turn telemetry are retained. Baseline scenes were regraded, not rerun. The same fixed 13 requests and the original 877-item request catalog were retained. The new real-kind extension below uses the 900-item snapshot separately.
+
+[measured] Room programs now query `desk`, `wardrobe`, `dresser`, `nightstand`, `stool`, `ottoman` and `bench` directly. A separate code-driven real-catalog extension on Avani's empty bedroom shell passes **3/3**, with **6/6** candidates accepted through DesignerSession, proposal translation and EditorStore, including MAIN's new hard bed/storage clearance gate. The final probe ran on the `cd113f2` working tree with the reviewed clearance adaptation later committed as `b25e5bb`. All chosen products have confirmed sizes. These are catalog/planner/application probes, not three additional model conversations; the living-room denominator remains 13.
+
+| Program request | Confirmed real catalog kinds | Result / actual 3D screenshot |
+| --- | --- | --- |
+| Scandinavian bedroom with wardrobe | Bed, two nightstands, two lamps, wardrobe | Two storage-position alternatives; [bedroom-wardrobe](taste-runs/native-kinds/bedroom-wardrobe-furnished-3d.png) |
+| Modern bedroom with dresser | Bed, two nightstands, two lamps, dresser | Two storage-position alternatives; [bedroom-dresser](taste-runs/native-kinds/bedroom-dresser-furnished-3d.png) |
+| Modern office with desk | Desk, chair, lamp, shelf | Two work zones; [office-desk](taste-runs/native-kinds/office-desk-furnished-3d.png) |
+
+[derived scope] The office case renames the existing bedroom shell; walls, openings and dimensions are unchanged. Entry programs search bench/stool/ottoman alternatives but do not yet generate automatic entry layouts. The current remote editor export still aliases desk→table and wardrobe/dresser/nightstand→cabinet, despite preserving their real kinds in catalog search. The probe records both `kinds` and `render_kinds`, so it does not claim native export migration. Stepdav's native desk/wardrobe/dresser editor roundtrip contract tests pass separately. The screenshots load the real SKU GLBs; aliasing does not substitute a generic box.
+
+[measured] Bedrooms prefer native nightstands and the explicitly requested storage kind, consider up to four sized product variants, reject shallow wardrobe panels, and keep headboards on solid walls. Office checks enforce facing and reach. Explicit anchor-role exclusions decline rather than being silently restored; an explicit desk request cannot fall back to a table. All seven new kinds stay distinct in the removed-kind policy. Legacy table/cabinet fallbacks remain available only where the request allows them. [assumed] Wardrobe size minima and furniture reach distances are design priors. Existing physical gates were not relaxed. The later MAIN hard bed/storage-access gate rejected the first native probe after rebase. The final placement leaves 0.65 m beside beds and 0.9 m in front of storage; its taste priors allow 0.7 m nightstand reach and a 0.9 m upper-bed light zone. Lamps at 0.85 m below the head keep nightstand approaches clear. This is an explicit change to assumed reach priors, not a change to physical checks or measured human comfort. A new Avani regression checks both candidates through the authoritative proposal gate.
+
+## Verification and reproduction
+
+[measured] Production commits: `9363b45` removal policy; `dda6c4e` corrected removal eval; `af7322c` industrial/boho (`da49093` rebased); `d9eca46` evidence/process cleanup; `cd113f2` native room programs; `b25e5bb` adapts bedroom geometry to MAIN's new proposal-clearance gate. New native tests: `native-room-programs.test.ts`, `native-kind-removal.test.ts`, `native-avani-proposal.test.ts` and `bedroom-reach.test.ts`. Existing tests, fixtures and schema were not changed. Read-only reviewer `/root/taste_review`: **APPROVE**; the later MAIN clearance-gate integration received a follow-up review.
+
+[measured] Per Ashot's 17:50 push rule, the previously green full untargeted suite was not repeated after each rebase. After the native rebase: **14 designer test files / 97 tests passed**, and root **`pnpm typecheck` passed**. Earlier full-root proof remains **83 designer files / 415 tests, Python 123 + 38, showcase 12, editor 24 + 122**, plus all editor assertion scripts, exit 0. Logs live in `taste-runs/verification/`; the latest area counts include native editor kind preservation. No claim is made that today's later changes in unrelated lanes received a new full-root test from this session.
+
+[measured definition of done, 7/7 under the user-authorized push rule] Task commands and captures are recorded; prior full-root and current area/typecheck evidence are retained; behavior regressions were added; no protected contracts or existing tests were weakened; read-only review approved; assumptions and uncovered entry/native-export/HTTP cases are stated; only TASTE-owned production files were edited. FAST recipe files, chat reply types and MAIN's proposal text were untouched.
+
+```sh
+# Service must run the recorded model/profile and real catalog configuration.
+pnpm --filter @varpet/designer exec tsx eval/taste-live.ts --output <arm> --service <url> --service-source <commit> --catalog <editor-catalog.json>
+python3 packages/designer/eval/taste-telemetry.py <arm> <service-events>
+uv run --with playwright python packages/designer/eval/taste-capture.py <arm> --port <frozen-renderer-port> --cache <glb-cache>
+TASTE_GRADES_FILE=grades-styles.json pnpm --filter @varpet/designer exec tsx eval/taste-grade.ts <absolute-taste-runs> after-styles --require-captures
+VARPET_CATALOG_URL=http://localhost:8765/mcp pnpm --filter @varpet/designer exec tsx eval/taste-native.ts <output> <900-item-editor-catalog.json>
+```
+
+The preserved history below documents why the previous sofa result was withdrawn; it is not the current result.
+
 
 ## Correction: removed sofas stay removed
 

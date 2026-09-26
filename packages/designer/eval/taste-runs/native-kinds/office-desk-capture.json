@@ -1,0 +1,26 @@
+{
+  "captured_at": "2026-09-26T14:20:15Z",
+  "state": "packages/designer/eval/taste-runs/native-kinds/office-desk.json",
+  "renderer": "apps/editor/src/render/viewport.ts",
+  "expected": [
+    "abo:B082YNV6F7",
+    "abo:B075Z8769G",
+    "abo:B0825D873D",
+    "abo:B07PSZHDMW"
+  ],
+  "loaded": [
+    "abo:B082XLB716",
+    "abo:B082XLB716",
+    "abo:B07K7NXVXR",
+    "abo:B079X4CP3F",
+    "abo:B079VKDKC1",
+    "abo:B079VKDKC1",
+    "abo:B07GFS1R5B",
+    "abo:B075Z8769G",
+    "abo:B0825D873D",
+    "abo:B082YNV6F7",
+    "abo:B07PSZHDMW"
+  ],
+  "errors": [],
+  "complete": true
+}

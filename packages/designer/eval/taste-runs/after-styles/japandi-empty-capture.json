@@ -1,0 +1,33 @@
+{
+  "captured_at": "2026-09-26T14:03:27Z",
+  "state": "packages/designer/eval/taste-runs/after-styles/japandi-empty.json",
+  "renderer": "apps/editor/src/render/viewport.ts",
+  "expected": [],
+  "loaded": [
+    "abo:B075X4T5R9",
+    "abo:B075X4T5R9",
+    "abo:B07QGG3PVY",
+    "abo:B07B7J8J9M",
+    "abo:B07PPNNCM2",
+    "abo:B082XMFBY2",
+    "abo:B082XMFBY2",
+    "abo:B07B4DB8K9",
+    "abo:B0824F7ZLF",
+    "abo:B0824F7ZLF",
+    "abo:B075Z9KXZ1",
+    "abo:B074KLN3HX",
+    "abo:B082VMWB4G",
+    "abo:B07B4YY9GB",
+    "abo:B07B4DB8K9",
+    "abo:B082VMWB4G",
+    "abo:B07QGG3PVY",
+    "abo:B0824F7ZLF",
+    "abo:B0824F7ZLF",
+    "abo:B072ZMT5R7",
+    "abo:B07PSZHDNK",
+    "abo:B07QB8FYS9",
+    "abo:B07QTB45S5"
+  ],
+  "errors": [],
+  "complete": true
+}

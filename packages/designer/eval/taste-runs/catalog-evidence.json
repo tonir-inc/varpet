@@ -16312,5 +16312,108 @@
       "price": 66000
     },
     "style_evidence": "search_furniture.style_astra (inferred)"
+  },
+  "abo:B075Z9KXZ1": {
+    "id": "abo:B075Z9KXZ1",
+    "source": "abo",
+    "source_id": "B075Z9KXZ1",
+    "kind": "table",
+    "name": "Amazon Brand – Stone & Beam Miramar Elm Wood Cutout Side End Table, 19.7\"D, Natural",
+    "brand": "Stone & Beam",
+    "size_m": [
+      0.5274,
+      0.5274,
+      0.5506
+    ],
+    "fit_size_m": [
+      0.5274,
+      0.5274,
+      0.5506
+    ],
+    "size_status": "confirmed",
+    "size_evidence": {
+      "from": "mesh",
+      "listing_m": [
+        0.5004,
+        0.5004,
+        0.5512
+      ],
+      "wd_swapped": false,
+      "mesh_minus_listing_m": [
+        0.027,
+        0.027,
+        -0.001
+      ]
+    },
+    "price": 64000,
+    "currency": "AMD",
+    "price_source": "mock",
+    "color_std": [],
+    "colors_img": [
+      {
+        "hex": "#917357",
+        "lab": [
+          50.7,
+          7.9,
+          19.7
+        ],
+        "name": "brown",
+        "share": 0.416
+      },
+      {
+        "hex": "#77593e",
+        "lab": [
+          40.4,
+          8.5,
+          20.5
+        ],
+        "name": "brown",
+        "share": 0.234
+      },
+      {
+        "hex": "#fcfbfa",
+        "lab": [
+          98.9,
+          0.1,
+          0.5
+        ],
+        "name": "white",
+        "share": 0.227
+      },
+      {
+        "hex": "#aa8e74",
+        "lab": [
+          61,
+          6.9,
+          17.9
+        ],
+        "name": "beige",
+        "share": 0.124
+      }
+    ],
+    "materials": [
+      "Elm"
+    ],
+    "styles": [
+      "Side Table"
+    ],
+    "glb_url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/1/B075Z9KXZ1.glb",
+    "main_image_url": "https://amazon-berkeley-objects.s3.amazonaws.com/images/small/92/923e896e.jpg",
+    "preview_url": "http://100.107.246.46:8765/previews/B075Z9KXZ1.webp",
+    "image_urls": [
+      "https://amazon-berkeley-objects.s3.amazonaws.com/images/small/92/923e896e.jpg",
+      "https://amazon-berkeley-objects.s3.amazonaws.com/images/small/aa/aada5179.jpg",
+      "https://amazon-berkeley-objects.s3.amazonaws.com/images/small/36/3662f9db.jpg",
+      "https://amazon-berkeley-objects.s3.amazonaws.com/images/small/58/583968fd.jpg",
+      "https://amazon-berkeley-objects.s3.amazonaws.com/images/small/bc/bc0f993d.jpg",
+      "https://amazon-berkeley-objects.s3.amazonaws.com/images/small/ab/ab93e5c8.jpg",
+      "https://amazon-berkeley-objects.s3.amazonaws.com/images/small/06/0647be27.jpg"
+    ],
+    "license": "CC BY 4.0 (Amazon Berkeley Objects)",
+    "wd_swapped": false,
+    "styles_inferred": [
+      "rustic"
+    ],
+    "style_evidence": "search_furniture.style_astra (inferred)"
   }
 }

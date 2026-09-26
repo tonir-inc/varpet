@@ -29,7 +29,7 @@ with sync_playwright() as p:
     page.goto(f'http://127.0.0.1:{args.port}/@fs{Path(__file__).resolve().parent}/komitas-view.html?state=/@fs{state.resolve()}',wait_until='domcontentloaded',timeout=120000)
     initialized=True
    page.wait_for_function('window.captureReady===true && window.capturePending===0 && window.captureExpected.every(id=>window.captureLoaded.includes(id))',timeout=120000)
-   page.evaluate("()=>{evalViewport.setView('perspective');evalViewport.focus('room-living');}")
+   page.evaluate("room=>{evalViewport.setView('perspective');evalViewport.focus(room);}",data.get('focus_room','room-living'))
    page.wait_for_timeout(1200)
    page.screenshot(path=str(target))
    errors+=page.evaluate('window.captureErrors')

@@ -6,7 +6,7 @@ import {EditorStore} from '../../../apps/editor/src/core/store.js';
 import {tasteCases} from './taste-cases.js';
 const arg=(k:string,d:string)=>process.argv.includes(k)?process.argv[process.argv.indexOf(k)+1]!:d;
 const output=resolve(arg('--output','eval/taste-runs/before')),endpoint=arg('--service','http://127.0.0.1:8804');
-const catalogPayload=JSON.parse(readFileSync(new URL('./taste-runs/input-catalog.json',import.meta.url),'utf8'));
+const catalogPayload=JSON.parse(readFileSync(arg('--catalog',new URL('./taste-runs/input-catalog.json',import.meta.url).pathname),'utf8'));
 const remote=catalogPayload.assets??catalogPayload;
 const catalog=[...localCatalog,...remote.filter((a:any)=>!localCatalog.some(b=>b.id===a.id))];
 mkdirSync(output,{recursive:true});
