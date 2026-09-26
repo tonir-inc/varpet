@@ -2,10 +2,11 @@
 id: "20260926T195100Z-catalog-catalog-search-slows-to-6-8-s-under-concurrent-r-cc806a99e9d642e1995aebc3b544df74"
 lane: "catalog"
 severity: "blocker"
-status: "open"
+status: "fixed"
 title: "Catalog search slows to 6-8 s under concurrent requests; designer times out ('fetch failed')"
 reported_by: "Sergey"
 created: "2026-09-26T19:51:00.020220Z"
+fixed_in: "c63d127"
 ---
 
 **Steps**
@@ -25,3 +26,5 @@ Sequential: search 0.07-1.5 s, show_candidates 0.03-0.06 s, no missing previews.
 ![Screenshot 1](img/20260926T195100Z-catalog-catalog-search-slows-to-6-8-s-under-concurrent-r-cc806a99e9d642e1995aebc3b544df74-1.png)
 
 **Notes**
+
+- 2026-09-26T19:56:20.474370Z: In-memory embedding matrix: single text search 0.22 s, 12 concurrent search+preview 2.5 s wall (was 6-8 s each). Deployed to VM and local.
