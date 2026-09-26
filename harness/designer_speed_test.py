@@ -160,6 +160,12 @@ class SpeedProfilesTests(unittest.TestCase):
         self.assertIsNone(profiles.base_instructions('full'))
         self.assertIsNone(profiles.base_instructions('compact'))
 
+    def test_compact_context_preserves_current_colour_group_and_baseline_contracts(self):
+        prompt = self.profiles().prompt('without-place', 'compact-base', designer.static_prefix())
+        for contract in ('set_intent.colors', '#RRGGBB', 'group_id', 'unquoted', 'baseline'):
+            self.assertIn(contract, prompt)
+        self.assertNotIn('Decline paint', prompt)
+
 
 if __name__ == '__main__':
     unittest.main()
