@@ -1,0 +1,21 @@
+{
+  "captured_at": "2026-09-26T12:38:48Z",
+  "state": "packages/designer/eval/taste-runs/before/boho-empty.json",
+  "renderer": "apps/editor/src/render/viewport.ts",
+  "expected": [
+    "abo:B073G82B5L",
+    "abo:B07QJXN6WJ",
+    "abo:B07GFG6JMM",
+    "abo:B075Z8HXVK",
+    "abo:B07PNHSR4G"
+  ],
+  "loaded": [
+    "abo:B07GFG6JMM",
+    "abo:B07PNHSR4G",
+    "abo:B073G82B5L",
+    "abo:B075Z8HXVK",
+    "abo:B07QJXN6WJ"
+  ],
+  "errors": [],
+  "complete": true
+}

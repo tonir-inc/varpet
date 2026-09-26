@@ -1,0 +1,24 @@
+{
+  "captured_at": "2026-09-26T13:06:06Z",
+  "state": "packages/designer/eval/taste-runs/after-retry/ashot.json",
+  "renderer": "apps/editor/src/render/viewport.ts",
+  "expected": [
+    "abo:B07B4DB8K9",
+    "abo:B0723H97GH",
+    "abo:B072ZMT5R7",
+    "abo:B07QGG3PVY",
+    "abo:B0824F7ZLF",
+    "abo:B07PSZHDNK"
+  ],
+  "loaded": [
+    "abo:B072ZMT5R7",
+    "abo:B0723H97GH",
+    "abo:B07B4DB8K9",
+    "abo:B07QGG3PVY",
+    "abo:B0824F7ZLF",
+    "abo:B0824F7ZLF",
+    "abo:B07PSZHDNK"
+  ],
+  "errors": [],
+  "complete": true
+}

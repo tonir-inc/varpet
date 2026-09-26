@@ -1,0 +1,19 @@
+{
+  "captured_at": "2026-09-26T12:39:58Z",
+  "state": "packages/designer/eval/taste-runs/before/classic-empty.json",
+  "renderer": "apps/editor/src/render/viewport.ts",
+  "expected": [
+    "abo:B072M1W86Y",
+    "abo:B085FHVGWV",
+    "abo:B07GFG6JMM",
+    "abo:B07DBDX23M"
+  ],
+  "loaded": [
+    "abo:B07GFG6JMM",
+    "abo:B07DBDX23M",
+    "abo:B072M1W86Y",
+    "abo:B085FHVGWV"
+  ],
+  "errors": [],
+  "complete": true
+}

@@ -1,0 +1,115 @@
+[
+  {
+    "timestamp": "2026-09-26T12:33:59.927076+00:00",
+    "kind": "turn_telemetry",
+    "conversation_id": "c864d18494cb4800a5937b5aff1c91cb",
+    "usage": {
+      "cacheWriteInputTokens": 0,
+      "cachedInputTokens": 34432,
+      "inputTokens": 61641,
+      "outputTokens": 600,
+      "reasoningOutputTokens": 46,
+      "totalTokens": 62241
+    },
+    "model": "gpt-6-astra",
+    "effort": "low",
+    "profile": {
+      "placement": "without-place",
+      "context": "compact-base"
+    },
+    "usage_limited": false,
+    "processes": [
+      {
+        "stage": "to-designer",
+        "seconds": 0.24710629199398682,
+        "returncode": 0
+      },
+      {
+        "stage": "worker",
+        "seconds": 30.75750758301001,
+        "returncode": 0
+      },
+      {
+        "stage": "to-command",
+        "seconds": 0.8480075419647619,
+        "returncode": 0
+      }
+    ],
+    "tools": [
+      {
+        "tool": "set_intent",
+        "arguments": {
+          "room_id": "room-living",
+          "add": [],
+          "remove": [],
+          "move": [],
+          "preferences": [],
+          "colors": [
+            {
+              "target": "wall",
+              "id": "wall-west",
+              "color": "#F5F3ED"
+            },
+            {
+              "target": "item",
+              "id": "living-rug",
+              "color": "#E6DFD2"
+            },
+            {
+              "target": "item",
+              "id": "lounge-chair",
+              "color": "#DED8CC"
+            },
+            {
+              "target": "item",
+              "id": "coffee-table",
+              "color": "#C6AA82"
+            },
+            {
+              "target": "item",
+              "id": "floor-lamp",
+              "color": "#414542"
+            },
+            {
+              "target": "item",
+              "id": "dining-table",
+              "color": "#C6AA82"
+            },
+            {
+              "target": "item",
+              "id": "dining-chair-north",
+              "color": "#C6AA82"
+            },
+            {
+              "target": "item",
+              "id": "dining-chair-south",
+              "color": "#C6AA82"
+            },
+            {
+              "target": "item",
+              "id": "dining-chair-west",
+              "color": "#C6AA82"
+            },
+            {
+              "target": "item",
+              "id": "dining-chair-east",
+              "color": "#C6AA82"
+            }
+          ]
+        },
+        "durationMs": 5,
+        "status": "completed",
+        "result": {
+          "_meta": null,
+          "content": [
+            {
+              "type": "text",
+              "text": "{\"room_id\":\"room-living\",\"add\":[],\"remove\":[],\"move\":[],\"preferences\":[],\"colors\":[{\"target\":\"wall\",\"id\":\"wall-west\",\"color\":\"#f5f3ed\"},{\"target\":\"item\",\"id\":\"living-rug\",\"color\":\"#e6dfd2\"},{\"target\":\"item\",\"id\":\"lounge-chair\",\"color\":\"#ded8cc\"},{\"target\":\"item\",\"id\":\"coffee-table\",\"color\":\"#c6aa82\"},{\"target\":\"item\",\"id\":\"floor-lamp\",\"color\":\"#414542\"},{\"target\":\"item\",\"id\":\"dining-table\",\"color\":\"#c6aa82\"},{\"target\":\"item\",\"id\":\"dining-chair-north\",\"color\":\"#c6aa82\"},{\"target\":\"item\",\"id\":\"dining-chair-south\",\"color\":\"#c6aa82\"},{\"target\":\"item\",\"id\":\"dining-chair-west\",\"color\":\"#c6aa82\"},{\"target\":\"item\",\"id\":\"dining-chair-east\",\"color\":\"#c6aa82\"}]}"
+            }
+          ],
+          "structuredContent": null
+        }
+      }
+    ]
+  }
+]

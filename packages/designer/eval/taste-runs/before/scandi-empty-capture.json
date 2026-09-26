@@ -1,0 +1,17 @@
+{
+  "captured_at": "2026-09-26T12:43:21Z",
+  "state": "packages/designer/eval/taste-runs/before/scandi-empty.json",
+  "renderer": "apps/editor/src/render/viewport.ts",
+  "expected": [
+    "abo:B07VPNXK6Q",
+    "abo:B07GFG6JMM",
+    "abo:B07VHNMRY8"
+  ],
+  "loaded": [
+    "abo:B07GFG6JMM",
+    "abo:B07VHNMRY8",
+    "abo:B07VPNXK6Q"
+  ],
+  "errors": [],
+  "complete": true
+}

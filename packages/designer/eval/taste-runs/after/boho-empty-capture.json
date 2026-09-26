@@ -1,0 +1,9 @@
+{
+  "captured_at": "2026-09-26T12:45:23Z",
+  "state": "packages/designer/eval/taste-runs/after/boho-empty.json",
+  "renderer": "apps/editor/src/render/viewport.ts",
+  "expected": [],
+  "loaded": [],
+  "errors": [],
+  "complete": true
+}

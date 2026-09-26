@@ -1,0 +1,9 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "decline", "conversationId": "a0395144ccd04844a54a5bffa164173d", "message": "I couldn’t create a complete cozy hygge preview: the catalog currently lacks compatible, sized rugs and chairs. I won’t substitute invented products or present a partial room as finished.\n\nNothing has changed. Your budget remains unconfirmed; an exact total awaits a complete catalog set."}

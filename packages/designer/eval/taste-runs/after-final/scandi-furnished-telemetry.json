@@ -1,0 +1,85 @@
+[
+  {
+    "timestamp": "2026-09-26T12:49:10.917956+00:00",
+    "kind": "turn_telemetry",
+    "conversation_id": "d42ed86103a14edcb91a62b83dceecc1",
+    "usage": {
+      "cacheWriteInputTokens": 0,
+      "cachedInputTokens": 24448,
+      "inputTokens": 33032,
+      "outputTokens": 215,
+      "reasoningOutputTokens": 0,
+      "totalTokens": 33247
+    },
+    "model": "gpt-6-astra",
+    "effort": "low",
+    "profile": {
+      "placement": "without-place",
+      "context": "compact-base"
+    },
+    "usage_limited": false,
+    "processes": [
+      {
+        "stage": "to-designer",
+        "seconds": 0.2869245830224827,
+        "returncode": 0
+      },
+      {
+        "stage": "worker",
+        "seconds": 41.55976508295862,
+        "returncode": 0
+      }
+    ],
+    "tools": [
+      {
+        "tool": "set_intent",
+        "arguments": {
+          "room_id": "room-living",
+          "keeps": [
+            "kitchen-sideboard",
+            "kitchen-island",
+            "bathroom-vanity",
+            "bathroom-fern",
+            "bedroom-rug",
+            "bed",
+            "bedside-table",
+            "bedroom-wardrobe"
+          ]
+        },
+        "durationMs": 12,
+        "status": "completed",
+        "result": {
+          "_meta": null,
+          "content": [
+            {
+              "type": "text",
+              "text": "{\"room_id\":\"room-living\",\"keeps\":[\"kitchen-sideboard\",\"kitchen-island\",\"bathroom-vanity\",\"bathroom-fern\",\"bedroom-rug\",\"bed\",\"bedside-table\",\"bedroom-wardrobe\"]}"
+            }
+          ],
+          "structuredContent": null
+        }
+      },
+      {
+        "tool": "search_catalog",
+        "arguments": {
+          "room_id": "room-living",
+          "style_request": "Remake the living room in Scandinavian style",
+          "remake": true,
+          "excluded_roles": []
+        },
+        "durationMs": 22289,
+        "status": "completed",
+        "result": {
+          "_meta": null,
+          "content": [
+            {
+              "type": "text",
+              "text": "{\"knowledge\":{\"program\":{\"search_kinds\":[\"sofa\",\"chair\",\"rug\",\"lamp\",\"table\",\"shelf\"],\"essentials\":[{\"role\":\"seating_anchor\",\"kinds\":[\"sofa\"],\"count\":1},{\"role\":\"rug\",\"kinds\":[\"rug\"],\"count\":1},{\"role\":\"light\",\"kinds\":[\"lamp\"],\"count\":1},{\"role\":\"table\",\"kinds\":[\"table\",\"coffee_table\",\"side_table\"],\"count\":1},{\"role\":\"focal_point\",\"kinds\":[\"shelf\",\"tv_unit\",\"cabinet\"],\"count\":1}],\"relations\":[\"seats_face_focal_point_or_each_other\",\"conversation_within_3m\",\"rug_under_front_legs\",\"table_and_light_within_reach\",\"keep_circulation_clear\"]},\"styles\":[{\"id\":\"scandinavian\",\"aliases\":[\"scandinavian\",\"scandi\",\"nordic\"],\"catalog_styles\":[\"Scandinavian\",\"Mid-Century Modern\",\"Modern\"],\"colors\":[\"white\",\"beige\",\"grey\",\"brown\",\"green\"],\"piece_count\":{\"living\":[6,9],\"bedroom\":[5,8]},\"anchor\":\"Light upholstered sofa with visible wood legs\",\"materials\":[\"pale oak\",\"ash\",\"wool\"],\"textiles\":[\"light woven rug\",\"linen upholstery\"],\"lighting\":[\"soft shaded floor lamp\",\"daylight with low furniture\"]}]},\"missing_kinds\":[\"chair\"],\"unavailable_kinds\":[\"chair\"],\"reason\":\"Catalog lacks a compatible, sized full living-room set; missing roles or dimensions must be resolved, not silently omitted.\",\"selected_id\":null,\"candidates\":[]}"
+            }
+          ],
+          "structuredContent": null
+        }
+      }
+    ]
+  }
+]

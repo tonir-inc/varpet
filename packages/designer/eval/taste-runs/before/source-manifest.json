@@ -1,0 +1,13 @@
+{
+  "service_checkout": "/tmp/varpet-taste-before",
+  "service_revision": "8dd936e716a6a67c0e525451e0d9a3a7907dfccf",
+  "model": "gpt-6-astra",
+  "effort": "low",
+  "profile": {
+    "placement": "without-place",
+    "context": "compact-base"
+  },
+  "source_basis": "Service launched from this explicit checkout/revision; runner revision alone is not service provenance.",
+  "render_source": "8dd936e (renderer files identical to ef6c2f9)",
+  "input_catalog": "../input-catalog.json"
+}

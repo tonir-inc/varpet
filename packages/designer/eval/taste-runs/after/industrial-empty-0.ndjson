@@ -1,0 +1,10 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "decline", "conversationId": "172bc685fcbe47178e50aafe2e585132", "message": "I couldn’t generate a complete industrial layout that passed the placement checks, so no furniture preview has been created. The catalog has the required pieces, but the tool didn’t identify the specific obstruction.\n\nThe intended set is a substantial sofa, textured rug, metal reading lamp, table and shelving. Your budget remains unconfirmed; there’s no checked total to quote yet."}

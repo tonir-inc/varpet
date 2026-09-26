@@ -1,0 +1,9 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "question", "conversationId": "91cf7b4fc41e40cbac243e3961ca1c29", "question": "Should the Scandinavian remake retain your existing furniture, or replace the living-room seating and furnishings while keeping the dining set?", "options": ["Retain all existing furniture; refresh colours and layout", "Replace living-room furnishings; keep the dining set"]}
