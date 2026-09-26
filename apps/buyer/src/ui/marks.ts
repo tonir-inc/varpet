@@ -66,7 +66,7 @@ export function createRoomMarks(svg: SVGSVGElement, cards: HTMLElement, viewport
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   let cloudShownAt = 0, cloudKey = '';
   const finished = new Map<string, number>();
-  svg.innerHTML = `<defs><pattern id="bp-hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="7" stroke="#2F44C8" stroke-width="1.6"/></pattern></defs><g class="layer"></g>`;
+  svg.innerHTML = `<defs><pattern id="bp-hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="7" stroke="#0C6A55" stroke-width="1.6"/></pattern></defs><g class="layer"></g>`;
   const layer = svg.querySelector('g.layer')!;
 
   const draw = () => {
@@ -89,7 +89,11 @@ export function createRoomMarks(svg: SVGSVGElement, cards: HTMLElement, viewport
     if (ring.length >= 3) {
       const cx = ring.reduce((s, p) => s + p[0], 0) / ring.length, cy = ring.reduce((s, p) => s + p[1], 0) / ring.length;
       const grown = ring.map(([x, y]): P => { const dx = x - cx, dy = y - cy, l = Math.hypot(dx, dy) || 1; return [x + dx / l * 18, y + dy / l * 18]; });
-      const path = el('path', { class: 'mark-cloud', d: cloudPath(grown) }) as SVGPathElement;
+      // Folio marks a changed area with a thin dashed frame and four corner brackets, not a cloud.
+      const xs = grown.map(p => p[0]), ys = grown.map(p => p[1]);
+      const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)], c = 18;
+      el('rect', { class: 'mark-frame', x: x0, y: y0, width: x1 - x0, height: y1 - y0 });
+      const path = el('path', { class: 'mark-cloud', d: `M${x0} ${y0 + c}V${y0}H${x0 + c}M${x1 - c} ${y0}H${x1}V${y0 + c}M${x1} ${y1 - c}V${y1}H${x1 - c}M${x0 + c} ${y1}H${x0}V${y1 - c}` }) as SVGPathElement;
       const k = reduced ? 1 : Math.min(1, (wall - cloudShownAt) / 1400);
       if (k < 1) { const len = path.getTotalLength(); path.style.strokeDasharray = `${len}`; path.style.strokeDashoffset = `${len * (1 - (1 - (1 - k) ** 3))}`; moving = true; }
     }
