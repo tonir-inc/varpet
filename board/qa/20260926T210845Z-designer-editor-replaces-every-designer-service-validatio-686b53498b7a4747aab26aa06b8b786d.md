@@ -2,10 +2,11 @@
 id: "20260926T210845Z-designer-editor-replaces-every-designer-service-validatio-686b53498b7a4747aab26aa06b8b786d"
 lane: "designer"
 severity: "minor"
-status: "open"
+status: "fixed"
 title: "Editor replaces every designer-service validation error with 'Designer service returned HTTP 400.' (e.g. requests over 16000 chars)"
 reported_by: "bughunt-designer-service"
 created: "2026-09-26T21:08:45.352662Z"
+fixed_in: "afb2bb2"
 ---
 
 **Steps**
@@ -25,3 +26,5 @@ The server returns HTTP 400 with an NDJSON body {type:error, message:'request mu
 
 
 **Notes**
+
+- 2026-09-26T23:22:18.142951Z: Adapter shows the service's NDJSON error message on non-2xx

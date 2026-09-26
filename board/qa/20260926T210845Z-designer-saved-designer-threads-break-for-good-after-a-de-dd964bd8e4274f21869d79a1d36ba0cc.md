@@ -2,10 +2,11 @@
 id: "20260926T210845Z-designer-saved-designer-threads-break-for-good-after-a-de-dd964bd8e4274f21869d79a1d36ba0cc"
 lane: "designer"
 severity: "major"
-status: "open"
+status: "fixed"
 title: "Saved designer threads break for good after a designer-service restart, and Retry keeps resending the dead conversationId"
 reported_by: "bughunt-designer-service"
 created: "2026-09-26T21:08:45.112739Z"
+fixed_in: "afb2bb2"
 ---
 
 **Steps**
@@ -25,3 +26,5 @@ Every request returns {type:error, message:'Unknown conversationId; start a new 
 
 
 **Notes**
+
+- 2026-09-26T23:22:17.869219Z: Panel drops the dead conversationId on 'Unknown conversationId' and resends once on a fresh thread
