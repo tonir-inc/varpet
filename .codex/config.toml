@@ -25,20 +25,6 @@ args = ["mcp-for-blender"]
 default_tools_approval_mode = "approve"
 startup_timeout_sec = 30
 
-# Global servers not used in this repository (they exist on some teammates' machines).
-[mcp_servers.atlassian]
-enabled = false
-[mcp_servers.aws-knowledge]
-enabled = false
-[mcp_servers.cf-docs]
-enabled = false
-[mcp_servers.cloudflare-api]
-enabled = false
-[mcp_servers.edgar]
-enabled = false
-[mcp_servers.voicemode]
-enabled = false
-
 # Plugins that bring their own servers (Telegram; Datadog's shows up as "mcp").
 [plugins."telegram@claude-plugins-official"]
 enabled = false
