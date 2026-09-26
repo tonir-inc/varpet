@@ -1,0 +1,80 @@
+{
+  "classification": "measured tool durations; medians derived",
+  "note": "Tool durations are sums per request and may overlap; do not subtract them to claim measured model latency. Plan catalog timing includes parallel queries; placement includes geometry/checks. No matching plan timing exists in the legacy before path. Per-request details are in report.json.",
+  "summary": {
+    "before": {
+      "living": {
+        "request_count": 9,
+        "median_summed_tool_seconds": 6.754,
+        "catalog_plan_seconds_median": null,
+        "placement_plan_seconds_median": null,
+        "plan_timing_count": 0
+      },
+      "bedroom": {
+        "request_count": 9,
+        "median_summed_tool_seconds": 10.22,
+        "catalog_plan_seconds_median": null,
+        "placement_plan_seconds_median": null,
+        "plan_timing_count": 0
+      },
+      "kids": {
+        "request_count": 9,
+        "median_summed_tool_seconds": 10.795,
+        "catalog_plan_seconds_median": null,
+        "placement_plan_seconds_median": null,
+        "plan_timing_count": 0
+      },
+      "cozier": {
+        "request_count": 9,
+        "median_summed_tool_seconds": 4.396,
+        "catalog_plan_seconds_median": null,
+        "placement_plan_seconds_median": null,
+        "plan_timing_count": 0
+      },
+      "why": {
+        "request_count": 9,
+        "median_summed_tool_seconds": 0,
+        "catalog_plan_seconds_median": null,
+        "placement_plan_seconds_median": null,
+        "plan_timing_count": 0
+      }
+    },
+    "after": {
+      "living": {
+        "request_count": 9,
+        "median_summed_tool_seconds": 16.12,
+        "catalog_plan_seconds_median": 4.903,
+        "placement_plan_seconds_median": 12.534,
+        "plan_timing_count": 6
+      },
+      "bedroom": {
+        "request_count": 9,
+        "median_summed_tool_seconds": 16.832,
+        "catalog_plan_seconds_median": 5.546,
+        "placement_plan_seconds_median": 13.271,
+        "plan_timing_count": 6
+      },
+      "kids": {
+        "request_count": 9,
+        "median_summed_tool_seconds": 17.964,
+        "catalog_plan_seconds_median": 9.578,
+        "placement_plan_seconds_median": 6.35,
+        "plan_timing_count": 9
+      },
+      "cozier": {
+        "request_count": 9,
+        "median_summed_tool_seconds": 2.036,
+        "catalog_plan_seconds_median": null,
+        "placement_plan_seconds_median": null,
+        "plan_timing_count": 0
+      },
+      "why": {
+        "request_count": 9,
+        "median_summed_tool_seconds": 0.139,
+        "catalog_plan_seconds_median": null,
+        "placement_plan_seconds_median": null,
+        "plan_timing_count": 0
+      }
+    }
+  }
+}

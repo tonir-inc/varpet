@@ -1,0 +1,33 @@
+{
+  "date": "2026-09-26",
+  "service": "http://127.0.0.1:8817",
+  "editor": "http://127.0.0.1:8812",
+  "catalog": "http://localhost:8765/editor/assets",
+  "observations": [
+    {
+      "event_file": "portal-33e7641c8e814f80add8bf5f9cec7e1e.events.jsonl",
+      "scene_name": "M6-12-54 \u00b7 two balconies \u00b7 plan estimate",
+      "request": "Furnish the living room",
+      "applied_in_browser": true,
+      "observed_revision": 1,
+      "note": "Measured via Chrome accessibility: Applied and Revision 1; partial receipt visible."
+    },
+    {
+      "event_file": "portal-47a9753a14d94c0c8b6b91c621df6943.events.jsonl",
+      "scene_name": "M6-12-54 \u00b7 two balconies \u00b7 plan estimate",
+      "request": "Furnish the living room",
+      "applied_in_browser": false,
+      "observed_revision": null,
+      "note": "Development-server rebase reload interrupted this diagnostic; excluded"
+    },
+    {
+      "event_file": "portal-b044faeaa80946d68d6e1c944b8f576d.events.jsonl",
+      "scene_name": "The Avani Apartment",
+      "request": "Furnish the living room",
+      "applied_in_browser": true,
+      "observed_revision": 1,
+      "note": "Measured via Chrome accessibility: Applied and Revision 1; partial receipt visible."
+    }
+  ],
+  "limitations": "Additional smoke checks, not part of repeated cohort timing. Earlier wrong catalog environment diagnostics excluded. Balcony retained existing blocked walkway metric and missing table/light/focal roles."
+}
