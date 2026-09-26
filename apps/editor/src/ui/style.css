@@ -660,3 +660,9 @@ dialog::backdrop { background: var(--scrim); backdrop-filter: none; }
   border-radius: var(--radius-sm); background: var(--surface); color: var(--ink); text-shadow: none;
 }
 .skybox-active .canvas-label span, .skybox-active .canvas-label > svg { color: var(--ink); }
+@media (max-width: 600px) {
+  /* The camera and quality controls wrap into two rows at phone widths. */
+  .skybox-control { top: 112px; }
+  .canvas-label { top: 112px; }
+  .viewport-shell .right-panel { top: 160px; }
+}

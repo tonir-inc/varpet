@@ -57,9 +57,10 @@ JSON/revision/history. No browser console errors were reported.
 
 The actual application selector was exercised at 1440×900, 1280×800 and 390×844. Before/after screenshots
 were captured in the task conversation. Sky selection remains reachable with Properties open: measured
-selector bottom 146 px vs inspector top 156 px at desktop, and 142 px vs 156 px at phone width.
-Bright-background label contrast was corrected after the visual check. Existing narrow-layout toolbar
-clipping predates this task; the new sky selector remains fully accessible.
+selector bottom 154 px vs inspector top 164 px at desktop, and 202 px vs 212 px at phone width.
+Bright-background label contrast was corrected after the visual check. After rebasing onto the latest
+UI work, the phone Sky row was placed below the newly wrapped camera/quality toolbar and rechecked.
+Untargeted tests and typecheck passed again after that integration.
 
 Fresh-context reviewer: **APPROVE**, including a follow-up confirming the Properties overlap fix.
 Notion tools were unavailable; the behavior and measured checks are recorded here.
