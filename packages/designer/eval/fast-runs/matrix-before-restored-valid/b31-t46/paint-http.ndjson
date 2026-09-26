@@ -1,8 +1,0 @@
-{"type": "progress", "message": "Starting the designer"}
-{"type": "progress", "message": "Reading the room layout"}
-{"type": "progress", "message": "Designer is checking the furniture layout"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "question", "conversationId": "e2bacd5bbc254113bfacf77c445af526", "question": "Which bedroom should get the warm-white wall preview?", "options": ["Bedroom 1 — with balcony access", "Bedroom 2 — without balcony access", "Both bedrooms"]}

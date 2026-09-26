@@ -1,9 +1,0 @@
-{"type": "progress", "message": "Starting the designer"}
-{"type": "progress", "message": "Reading the room layout"}
-{"type": "progress", "message": "Designer is checking the furniture layout"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "question", "conversationId": "f2a5f97707174381a73711853cbf5227", "question": "The catalog search returned no dedicated desk. Would you like a preview using the Rivet walnut dining table as a work surface by the living-room window (93,000 AMD, mock catalog price), or keep the request limited to a dedicated desk?", "options": ["Preview the table as a work surface", "Dedicated desk only"]}

@@ -1,5 +1,0 @@
-{"type": "progress", "message": "Starting the designer"}
-{"type": "progress", "message": "Reading the room layout"}
-{"type": "progress", "message": "Designer is checking the furniture layout"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "decline", "conversationId": "8ffcf48d66324849a67f5e96a412e9fb", "message": "I can preview furniture layouts and wall colours, but not wall demolition; a qualified structural professional must assess whether removal is safe. I can instead rearrange furniture to improve flow between the kitchen and living room."}

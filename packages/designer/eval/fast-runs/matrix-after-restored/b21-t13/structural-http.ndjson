@@ -1,5 +1,0 @@
-{"type": "progress", "message": "Starting the designer"}
-{"type": "progress", "message": "Reading the room layout"}
-{"type": "progress", "message": "Designer is checking the furniture layout"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "decline", "conversationId": "e19376ca23c241439d5cba80197634c2", "message": "I cannot demolish structural walls. I can rearrange the furniture; consult a structural engineer about changing walls."}

@@ -1,9 +1,0 @@
-{"type": "progress", "message": "Starting the designer"}
-{"type": "progress", "message": "Reading the room layout"}
-{"type": "progress", "message": "Designer is checking the furniture layout"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "decline", "conversationId": "c60d3a6ceca14adca701c22a37d6d866", "message": "The catalog is unavailable, so I can’t create a priced purchase preview without inventing products.\n\nThe scope remains one simple, upholstered reading armchair and one bookshelf in the living room, leaving every other room empty. Budget is unconfirmed. The supplied plan contains no drawn furniture to reference.\n\nNo changes have been made; any eventual preview will require your acceptance."}

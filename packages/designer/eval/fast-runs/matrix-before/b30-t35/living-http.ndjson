@@ -1,4 +1,0 @@
-{"type": "progress", "message": "Starting the designer"}
-{"type": "progress", "message": "Reading the room layout"}
-{"type": "progress", "message": "Designer is checking the furniture layout"}
-{"type": "error", "message": "RuntimeError: Expected only interior-design-rules, got ['interior-design-rules', 'interior-design-rules']", "conversationId": "886a4754e8c44d0fb1e189d92d6ab43c"}

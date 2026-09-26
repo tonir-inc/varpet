@@ -1,4 +1,0 @@
-{"type": "progress", "message": "Starting the designer"}
-{"type": "progress", "message": "Reading the room layout"}
-{"type": "progress", "message": "Designer is checking the furniture layout"}
-{"type": "error", "message": "File \"/Users/ashotarushanyan/AshProjects/varpet-fast/harness/designer.py\", line 36\n    <<<<<<< ours\n    ^^\nSyntaxError: invalid syntax", "conversationId": "e2bacd5bbc254113bfacf77c445af526"}

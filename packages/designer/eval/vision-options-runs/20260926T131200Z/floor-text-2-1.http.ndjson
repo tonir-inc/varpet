@@ -1,6 +1,0 @@
-{"type": "progress", "message": "Starting the designer"}
-{"type": "progress", "message": "Reading the room layout"}
-{"type": "progress", "message": "Designer is checking the furniture layout"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "decline", "conversationId": "a17ab371590b480cae17494a171a8220", "message": "The sage-green sofa works well with the **sand-coloured rug**, but the floor’s colour/material isn’t included in the supplied scene, so I can’t confirm that pairing.\n\nThe palette is earthy and balanced: muted sage, warm cream walls, sandy beige, brown wood tones, terracotta and brass. The sofa adds a gentle cool contrast to those warmer shades.\n\nOne optional improvement: a slightly lighter cream rug would give the sofa more definition while keeping the palette calm. Nothing has been changed."}

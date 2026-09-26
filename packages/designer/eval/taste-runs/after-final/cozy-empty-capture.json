@@ -1,7 +1,0 @@
-{
-  "state": "packages/designer/eval/taste-runs/after-final/cozy-empty.json",
-  "errors": [
-    "Page.goto: Timeout 120000ms exceeded.\nCall log:\n  - navigating to \"http://127.0.0.1:5199/@fs/Users/ashotarushanyan/AshProjects/varpet-quality/packages/designer/eval/komitas-view.html?state=/@fs/Users/ashotarushanyan/AshProjects/varpet-quality/packages/designer/eval/taste-runs/after-final/cozy-empty.json\", waiting until \"networkidle\"\n"
-  ],
-  "complete": false
-}

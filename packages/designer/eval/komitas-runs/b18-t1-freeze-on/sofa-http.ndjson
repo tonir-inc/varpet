@@ -1,8 +1,0 @@
-{"type": "progress", "message": "Starting the designer"}
-{"type": "progress", "message": "Reading the room layout"}
-{"type": "progress", "message": "Thinking about your request"}
-{"type": "progress", "message": "Thinking about your request"}
-{"type": "progress", "message": "Thinking about your request"}
-{"type": "progress", "message": "Understanding the change you want"}
-{"type": "progress", "message": "Writing your answer"}
-{"type": "message", "message": "The supplied scene has **no sofa or other furniture**, so I can’t preview the move yet. Please add your existing sofa in the editor or share the updated scene; then I can position it facing a window and check the clearances.", "conversationId": "4ca2c3eab4474047a6dc622a2e02b46a"}

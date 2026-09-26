@@ -1,5 +1,0 @@
-{"type": "progress", "message": "Starting the designer"}
-{"type": "progress", "message": "Reading the room layout"}
-{"type": "progress", "message": "Designer is checking the furniture layout"}
-{"type": "progress", "message": "Preparing the checked layout preview"}
-{"type": "error", "message": "[Errno 32] Broken pipe", "conversationId": "0be11e96a55e44c1858c3b4d5c8ce92b"}

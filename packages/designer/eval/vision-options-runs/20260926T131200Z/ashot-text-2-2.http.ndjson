@@ -1,8 +1,0 @@
-{"type": "progress", "message": "Starting the designer"}
-{"type": "progress", "message": "Reading the room layout"}
-{"type": "progress", "message": "Designer is checking the furniture layout"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "decline", "conversationId": "92df5d68bff744a786295062a515fa2b", "message": "The supplied scene shows one lounge chair plus four dining chairs. I’d replace the lounge chair with simple upholstered seating facing the sofa around the rug and coffee table—not lined along a wall.\n\nHowever, the catalog is unavailable, so I can’t verify replacement dimensions, prices or a checked purchase preview. Nothing has changed; all other rooms remain untouched. Your budget remains unconfirmed."}

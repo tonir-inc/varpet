@@ -1,4 +1,0 @@
-{"type": "progress", "message": "Starting the designer"}
-{"type": "progress", "message": "Reading the room layout"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "error", "message": "[Errno 2] No such file or directory: '/Users/ashotarushanyan/.agents/skills/interior-design-rules/SKILL.md'", "conversationId": "9bd6307dec574058b4219f7c57c95061"}

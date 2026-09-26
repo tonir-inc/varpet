@@ -1,8 +1,0 @@
-{"type": "progress", "message": "Starting the designer"}
-{"type": "progress", "message": "Reading the room layout"}
-{"type": "progress", "message": "Designer is checking the furniture layout"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "question", "conversationId": "b994d61514474210bac74ea126ab4c4c", "question": "How would you like to modernize the living room?", "options": ["Rearrange existing furniture only—no purchase cost", "Keep the furniture and propose modern neutral colours—finish costs unquoted", "Replace selected furniture with modern pieces—budget to be confirmed"]}

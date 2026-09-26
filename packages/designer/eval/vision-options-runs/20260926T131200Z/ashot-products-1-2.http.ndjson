@@ -1,8 +1,0 @@
-{"type": "progress", "message": "Starting the designer"}
-{"type": "progress", "message": "Reading the room layout"}
-{"type": "progress", "message": "Designer is checking the furniture layout"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "decline", "conversationId": "77b4127bba2b41a1a5ef293a5eba786b", "message": "The catalog is currently unavailable, so I can’t show and inspect replacement seating or provide a verified price. I haven’t selected products or changed anything.\n\nThe intended revision is a simple neutral upholstered chair facing the sofa, with a reachable table and lamp—not a wall-lined arrangement. Other rooms will remain untouched. A checked purchase preview must wait until catalog access returns."}

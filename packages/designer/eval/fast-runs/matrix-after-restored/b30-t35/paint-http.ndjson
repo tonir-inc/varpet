@@ -1,7 +1,0 @@
-{"type": "progress", "message": "Starting the designer"}
-{"type": "progress", "message": "Reading the room layout"}
-{"type": "progress", "message": "Designer is checking the furniture layout"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "question", "conversationId": "55bfd37b8f8a4fc59f12a2f0ec82f7a8", "question": "Which bedroom should receive the warm-white paint preview: Bedroom 1 (right, side window) or Bedroom 2 (left, balcony access)? The paint tool also recolours both faces and all segments of each shared wall.", "options": ["Bedroom 1 — right, side window", "Bedroom 2 — left, balcony access"]}

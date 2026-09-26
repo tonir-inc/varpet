@@ -1,6 +1,0 @@
-{"type": "progress", "message": "Starting the designer"}
-{"type": "progress", "message": "Reading the room layout"}
-{"type": "progress", "message": "Designer is checking the furniture layout"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "decline", "conversationId": "b5ad29816c4445919bb8f157e6dcb98e", "message": "Yes—the muted sage sofa works well with the floor’s warm taupe appearance in this render. The beige rug and cream walls soften the contrast, while brown wood, brass and the terracotta chair create a cohesive, earthy palette. The rendered sunlight makes the sofa look more golden on one side.\n\nOne optional small improvement: a slightly lighter cream colour for the existing rug would help the sofa stand out more clearly against the floor.\n\nNothing has been changed."}

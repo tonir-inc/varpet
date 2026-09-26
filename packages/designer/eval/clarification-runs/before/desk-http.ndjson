@@ -1,8 +1,0 @@
-{"type": "progress", "message": "Starting the designer"}
-{"type": "progress", "message": "Reading the room layout"}
-{"type": "progress", "message": "Thinking about your request"}
-{"type": "progress", "message": "Thinking about your request"}
-{"type": "progress", "message": "Thinking about your request"}
-{"type": "progress", "message": "Preparing a question"}
-{"type": "progress", "message": "Writing your answer"}
-{"type": "question", "conversationId": "2763c345374d436ca25ae28cf4750c11", "question": "Which room would you like the desk in? I’d suggest the living room, beside its window with daylight coming from the side.", "options": ["Living room", "Bedroom 1", "Bedroom 2"]}

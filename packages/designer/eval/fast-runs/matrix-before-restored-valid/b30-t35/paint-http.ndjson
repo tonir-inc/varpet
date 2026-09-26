@@ -1,8 +1,0 @@
-{"type": "progress", "message": "Starting the designer"}
-{"type": "progress", "message": "Reading the room layout"}
-{"type": "progress", "message": "Designer is checking the furniture layout"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "question", "conversationId": "0e195d7dea9f44229355189464a09325", "question": "Which bedroom should receive the warm-white paint preview: Bedroom 1 (upper right) or Bedroom 2 (left, with a balcony door)? Shared walls will change on both faces and all linked segments, including those in adjacent rooms.", "options": ["Bedroom 1", "Bedroom 2"]}

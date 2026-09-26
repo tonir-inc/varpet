@@ -1,6 +1,0 @@
-{"type": "progress", "message": "Starting the designer"}
-{"type": "progress", "message": "Reading the room layout"}
-{"type": "progress", "message": "Designer is checking the furniture layout"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "decline", "conversationId": "c596ddd245254c15a5e0a5e736d91869", "message": "The sofa’s muted sage green suits the supplied palette: sandy beige rug, warm cream walls, brown wood tones and terracotta seating create a balanced, earthy combination. However, no room image or floor finish is supplied, so I can’t confirm the sofa–floor match itself.\n\nOne optional small improvement: a slightly warmer cream rug colour could soften the contrast around the sofa. Nothing has been changed."}

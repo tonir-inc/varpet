@@ -1,7 +1,0 @@
-{"type": "progress", "message": "Starting the designer"}
-{"type": "progress", "message": "Reading the room layout"}
-{"type": "progress", "message": "Designer is checking the furniture layout"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "decline", "conversationId": "ec3e0e2306064ecda5290df49650b82f", "message": "I couldn’t generate a complete checked purchase preview: the catalog search returned no bedroom composition meeting solid-wall headboard placement and reachable bedside essentials.\n\nNothing has changed. Budget remains unconfirmed, and no purchase total is available. I haven’t substituted an incomplete set or unchecked layout."}

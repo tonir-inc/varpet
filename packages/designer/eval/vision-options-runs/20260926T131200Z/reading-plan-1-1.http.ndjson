@@ -1,7 +1,0 @@
-{"type": "progress", "message": "Starting the designer"}
-{"type": "progress", "message": "Reading the room layout"}
-{"type": "progress", "message": "Designer is checking the furniture layout"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "decline", "conversationId": "9a0f9bc49e2c4c05ae915c2fa48e16a2", "message": "The catalog is unavailable, so I can’t create a verified purchase preview or quote an exact cost.\n\nThe intended layout is one simple upholstered armchair with a nearby bookshelf in the living room, taking inspiration from the plan’s seating area. The rest of the apartment stays empty. Budget remains unconfirmed; nothing has been changed."}

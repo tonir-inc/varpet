@@ -1,6 +1,0 @@
-{"type": "progress", "message": "Starting the designer"}
-{"type": "progress", "message": "Reading the room layout"}
-{"type": "progress", "message": "Designer is checking the furniture layout"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "decline", "conversationId": "c6adf4bb178442288b1ebca27dd9a996", "message": "Yes—the sage sofa works well with the floor’s warm, pale beige appearance in the render. Its muted green offers gentle contrast without looking stark, while the sandy rug helps connect the two.\n\nNo adjustment is necessary. If you wanted a slightly warmer pairing, a more olive-leaning sage, such as **#8D987E**, would echo the floor’s golden tones.\n\nNothing has been changed."}

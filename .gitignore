@@ -24,3 +24,14 @@ catalog/texgen/contact.png
 
 # replay media from real listings (copyrighted, local only)
 apps/editor/public/architect-replay/
+
+# Designer eval runs: raw transcripts, captures and screenshots stay local (history and tag pre-folio-ui keep the old ones).
+# Tracked: reports (*.md), what the showcase loads (komitas-runs/*/run.json, final.json) and what tests read.
+packages/designer/eval/*-runs/**/*.*
+packages/designer/eval/taste-komitas-results/*.tar.gz
+!packages/designer/eval/*-runs/**/*.md
+!packages/designer/eval/komitas-runs/*/run.json
+!packages/designer/eval/komitas-runs/*/final.json
+!packages/designer/eval/komitas-runs/avani-check/*
+!packages/designer/eval/chain-runs/20260926/architect-browser.json
+!packages/designer/eval/fast-runs/matrix-after-restored/*/initial.json

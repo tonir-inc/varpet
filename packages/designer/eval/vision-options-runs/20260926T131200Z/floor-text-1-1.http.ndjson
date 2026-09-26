@@ -1,7 +1,0 @@
-{"type": "progress", "message": "Starting the designer"}
-{"type": "progress", "message": "Reading the room layout"}
-{"type": "progress", "message": "Designer is checking the furniture layout"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "decline", "conversationId": "bbc21e90945c429ea0641e6f1b93c639", "message": "The sage sofa fits the room’s earthy palette, but the supplied scene doesn’t show the floor’s colour or material, so I can’t confirm that pairing specifically.\n\nWarm ivory walls and a sandy beige rug soften the sage; walnut and oak tones add warmth, while terracotta and brass provide gentle accents. If the floor is warm wood or a neutral beige, the sofa should complement it well.\n\nOne optional small improvement: a slightly lighter cream rug colour could give the sofa more definition. Nothing has been changed."}

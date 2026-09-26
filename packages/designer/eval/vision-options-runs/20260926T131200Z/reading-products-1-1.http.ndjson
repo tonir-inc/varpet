@@ -1,8 +1,0 @@
-{"type": "progress", "message": "Starting the designer"}
-{"type": "progress", "message": "Reading the room layout"}
-{"type": "progress", "message": "Designer is checking the furniture layout"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "decline", "conversationId": "2094d5ce55fe4502a781cd070e53dc30", "message": "The catalog is unavailable, so I can’t show product renders, verify prices, or create a checked purchase preview without inventing products.\n\nYour scope is recorded: one simple, comfortable armchair and one bookshelf in the living room; all other rooms stay empty. Budget remains unconfirmed. Nothing has been changed or purchased."}

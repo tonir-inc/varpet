@@ -1,8 +1,0 @@
-{"type": "progress", "message": "Starting the designer"}
-{"type": "progress", "message": "Reading the room layout"}
-{"type": "progress", "message": "Thinking about your request"}
-{"type": "progress", "message": "Thinking about your request"}
-{"type": "progress", "message": "Thinking about your request"}
-{"type": "progress", "message": "Preparing a question"}
-{"type": "progress", "message": "Writing your answer"}
-{"type": "question", "conversationId": "23fdfed0f67b4317a7f8c18a527adaa2", "question": "What would you like to start with?", "options": ["Furnish the living room for a cozy feel", "Furnish the living room in a clean, minimalist style", "Refresh the living room wall colours"]}

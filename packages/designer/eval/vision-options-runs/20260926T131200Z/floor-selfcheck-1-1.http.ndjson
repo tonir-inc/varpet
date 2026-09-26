@@ -1,7 +1,0 @@
-{"type": "progress", "message": "Starting the designer"}
-{"type": "progress", "message": "Reading the room layout"}
-{"type": "progress", "message": "Designer is checking the furniture layout"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "decline", "conversationId": "eb5f9b4fa0ae4538a2d5e8cc727d83f4", "message": "The sage-green sofa suits the room’s earthy palette: warm cream walls, a beige rug, walnut and oak furniture, terracotta seating and brass accents. Its muted green adds gentle contrast without feeling harsh.\n\nI can’t confirm the floor match directly: no render or floor finish is included here. If it’s warm-toned wood, sage would generally complement it well.\n\nOne optional small improvement: a slightly warmer cream rug could soften the transition between sofa and floor. Nothing has been changed."}

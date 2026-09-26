@@ -1,9 +1,0 @@
-{"type": "progress", "message": "Starting the designer"}
-{"type": "progress", "message": "Reading the room layout"}
-{"type": "progress", "message": "Designer is checking the furniture layout"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "decline", "conversationId": "af308ebde33b421da33392b53f11ba1b", "message": "The catalog is missing a compatible, sized sofa, so I can’t yet produce a complete boho living-room preview. The intended scheme pairs relaxed seating with a woven accent chair, patterned rug, table, shelving and warm lamp lighting.\n\nNo changes have been made. Your budget remains unconfirmed; an exact total needs a complete catalog set."}

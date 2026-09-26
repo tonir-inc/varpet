@@ -1,9 +1,0 @@
-{"type": "progress", "message": "Starting the designer"}
-{"type": "progress", "message": "Reading the room layout"}
-{"type": "progress", "message": "Designer is checking the furniture layout"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "question", "conversationId": "8ffcf48d66324849a67f5e96a412e9fb", "question": "The catalog search returned no dedicated desk. Would you prefer a dining-table alternative as your work surface, or provide a desk’s dimensions for a placement plan? Your budget is still unconfirmed.", "options": ["Preview a table as a work surface", "I’ll provide desk dimensions"]}

@@ -1,7 +1,0 @@
-{"type": "progress", "message": "Starting the designer"}
-{"type": "progress", "message": "Reading the room layout"}
-{"type": "progress", "message": "Designer is checking the furniture layout"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "decline", "conversationId": "7cc31d5d69f44e5286e34bdadeb1236a", "message": "I can preview furniture layouts and wall colours, but not wall demolition; that needs an architect or structural engineer’s assessment. This plan also shows no shared kitchen–living-room wall.\n\nI can instead propose coordinated colours and furniture placement to make the spaces feel more connected."}

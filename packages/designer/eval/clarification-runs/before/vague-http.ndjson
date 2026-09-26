@@ -1,8 +1,0 @@
-{"type": "progress", "message": "Starting the designer"}
-{"type": "progress", "message": "Reading the room layout"}
-{"type": "progress", "message": "Thinking about your request"}
-{"type": "progress", "message": "Thinking about your request"}
-{"type": "progress", "message": "Thinking about your request"}
-{"type": "progress", "message": "Preparing a question"}
-{"type": "progress", "message": "Writing your answer"}
-{"type": "question", "conversationId": "be98c93758614fb3a713a5f40f3db515", "question": "Your plan is currently unfurnished. Which direction would you like to start with?", "options": ["Furnish the living room in a warm, cozy style", "Furnish the living room in a clean, minimalist style", "Furnish a bedroom for sleep and storage", "Refresh wall colours only"]}

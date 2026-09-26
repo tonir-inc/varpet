@@ -1,6 +1,0 @@
-[
-  {
-    "call_id": "call_BeUAxB4aCYKqNUIVHfJxDoTd",
-    "input": "const r=await tools.mcp__varpet_designer__show_candidates({item_ids:[\"abo:B01FK3FWNG\",\"abo:B074L4976T\",\"abo:B075X41RLD\",\"abo:B075Z7HQK5\",\"abo:B075Z8KXDK\",\"abo:B075Z93NHP\"]});for(const c of r.content??[]) {if(c.type===\"image\") image(c);else if(c.type===\"text\")text(c.text);}\n"
-  }
-]

@@ -1,9 +1,0 @@
-{"type": "progress", "message": "Starting the designer"}
-{"type": "progress", "message": "Reading the room layout"}
-{"type": "progress", "message": "Designer is checking the furniture layout"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "decline", "conversationId": "6a4024ba3b084bf383dd01e1e6bb48eb", "message": "I couldn’t create a complete checked preview: the catalog lacks compatible, dimensioned tables and shelving needed for a useful, cozy seating arrangement.\n\nNothing has changed. The plan is a simple upholstered sofa, quiet rug, reachable lamp and table, and a coordinated focal/storage piece—not lined-up chairs. Other rooms stay untouched. Budget remains unconfirmed; no complete price is available yet."}

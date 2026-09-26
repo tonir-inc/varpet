@@ -1,6 +1,0 @@
-{"type": "progress", "message": "Starting the designer"}
-{"type": "progress", "message": "Reading the room layout"}
-{"type": "progress", "message": "Designer is checking the furniture layout"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "decline", "conversationId": "90dfd8f8120b4c3ea3dbebf9de3ddeb3", "message": "Which bedroom should I preview in **warm white**: Bedroom 1, Bedroom 2 with balcony access, or both?\n\nWall colours affect both faces and all linked wall segments, so some adjoining-room surfaces will also change. Paint and labour costs are unquoted."}

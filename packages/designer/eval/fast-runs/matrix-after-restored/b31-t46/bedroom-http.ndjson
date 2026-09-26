@@ -1,4 +1,0 @@
-{"type": "progress", "message": "Starting the designer"}
-{"type": "progress", "message": "Reading the room layout"}
-{"type": "progress", "message": "Designer is still working"}
-{"type": "error", "message": "[Errno 17] File exists: '/var/folders/gm/0bvd7yfn75398h953rj6qh0c0000gn/T/varpet-designer-service-_8btnt36/9bd6307dec574058b4219f7c57c95061/runtime/codex-home'", "conversationId": "9bd6307dec574058b4219f7c57c95061"}
