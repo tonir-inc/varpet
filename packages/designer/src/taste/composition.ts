@@ -75,8 +75,8 @@ export function scoreComposition(scene:Scene,roomId:string,options:TasteOptions)
     });
    });
   }),2,'Place the headboard against a solid wall, clear of windows and doors.',beds.map(b=>b.id));
-  check('nightstand_each_open_side',beds.length>0&&beds.every(b=>[-1,1].every(side=>items.some(t=>t!==b&&['table','nightstand','cabinet'].includes(t.kind)&&side*local(b,t.pos)[0]>b.size[0]/2&&edgeGap(b,t)<=.6&&local(b,t.pos)[1]>0))),1,'Provide a nightstand beside each side of the headboard.');
-  check('light_each_bedside',beds.length>0&&beds.every(b=>[-1,1].every(side=>items.some(t=>t.kind==='lamp'&&side*local(b,t.pos)[0]>0&&edgeGap(b,t)<=.9+EPS&&local(b,t.pos)[1]>=b.size[1]/2-.6-EPS))),1,'Provide reachable light at both bedsides.');
+  check('nightstand_each_open_side',beds.length>0&&beds.every(b=>[-1,1].every(side=>items.some(t=>t!==b&&['table','nightstand','cabinet'].includes(t.kind)&&side*local(b,t.pos)[0]>b.size[0]/2&&edgeGap(b,t)<=.7+EPS&&local(b,t.pos)[1]>0))),1,'Provide a nightstand beside each side of the headboard.');
+  check('light_each_bedside',beds.length>0&&beds.every(b=>[-1,1].every(side=>items.some(t=>t.kind==='lamp'&&side*local(b,t.pos)[0]>0&&edgeGap(b,t)<=.9+EPS&&local(b,t.pos)[1]>=b.size[1]/2-.9-EPS))),1,'Provide reachable light at both bedsides.');
  }
  if(options.styles?.length){
   const ids=options.styles,palette=stylePalette(ids),records=items.map(i=>({i,meta:(()=>{const m=options.catalog?.[i.sku??i.id];return m?{...m,styles:[...m.styles,...m.styles_inferred??[]]}:undefined;})()}));

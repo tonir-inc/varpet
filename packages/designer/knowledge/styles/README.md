@@ -39,10 +39,12 @@ that kind; a removed kind cannot be restored. Offices search `desk` first, with 
 fallback only when no desk is explicitly required. Entry programs search `bench`, `stool`, `ottoman`
 and chair alternatives. Explicitly excluded office anchor roles currently decline automatic composition.
 The native catalog aliases remain distinct in request-policy checks. Bedroom product variants are
-bounded; equivalent same-bed/orientation poses within 0.25 m do not count as a second candidate.
+bounded; equivalent same-product/orientation poses within 0.25 m do not count as a second candidate.
 [assumed] Wardrobes at least 1.4 m high and 0.4 m deep are a proxy for freestanding clothes storage,
-excluding shallow wardrobe panels; installation metadata is not verified. Floor lamps stay within
-0.9 m lateral reach and 0.6 m longitudinally from the head. Existing physical gates remain mandatory.
+excluding shallow wardrobe panels; installation metadata is not verified. Nightstands allow up to 0.7 m edge reach (placed at 0.65 m to preserve the 0.6 m access strip); floor
+lamps stay within 0.9 m lateral reach and 0.9 m longitudinally from the head. Bedside and storage
+function-clearance regressions are checked before candidates are returned, matching the proposal gate.
+These reach limits are assumed design priors; existing physical gates remain mandatory.
 [measured] The current 900-asset editor export still maps desk→table and wardrobe/dresser/nightstand→cabinet.
 Real SKU kinds are retained in planner evidence; native desk/wardrobe/dresser editor contract support
 is tested separately. Entry seating kinds use existing chair aliases. Do not infer real types from names.
