@@ -6,5 +6,7 @@
   "default_color": "#5c5c5e",
   "metal": 1.0,
   "source": "ambientcg:Metal046A",
-  "license": "CC0"
+  "license": "CC0",
+  "clearcoat": 0.2,
+  "clearcoat_roughness": 0.4
 }

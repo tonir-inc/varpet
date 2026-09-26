@@ -57,4 +57,20 @@ def tag(data: bytes, piece: dict, parts: dict[str, dict]) -> bytes:
     doc["nodes"].append(root)
     scene["nodes"] = [len(doc["nodes"]) - 1]
     doc["asset"]["generator"] = "varpet partdsl (trimesh)"
+    _clearcoat(doc)
     return write(doc, binary)
+
+
+def _clearcoat(doc: dict) -> None:
+    from .materials import library
+
+    used = False
+    for mat in doc.get("materials", []):
+        name = mat.get("name", "")
+        finish = library().get(name.removeprefix("finish:")) if name.startswith("finish:") else None
+        if finish and finish.clearcoat > 0:
+            mat.setdefault("extensions", {})["KHR_materials_clearcoat"] = {
+                "clearcoatFactor": finish.clearcoat, "clearcoatRoughnessFactor": finish.clearcoat_roughness}
+            used = True
+    if used and "KHR_materials_clearcoat" not in doc.setdefault("extensionsUsed", []):
+        doc["extensionsUsed"].append("KHR_materials_clearcoat")

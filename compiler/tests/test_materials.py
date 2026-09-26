@@ -19,7 +19,13 @@ def lib(tmp_path, monkeypatch):
         arr = rng.integers(150, 250, (64, 64, 3 if mode == "RGB" else 1), dtype=np.uint8).squeeze()
         Image.fromarray(arr).convert(mode).save(d / name)
     (d / "material.json").write_text(json.dumps({"id": "testwood", "family": "wood", "tile_m": 0.5,
-                                                 "grain": True, "default_color": "#a57c52"}))
+                                                 "grain": True, "default_color": "#a57c52", "clearcoat": 0.25}))
+    matte = tmp_path / "lib" / "testfelt"
+    matte.mkdir()
+    for f in ("basecolor.jpg", "normal.jpg", "roughness.jpg"):
+        (matte / f).write_bytes((d / f).read_bytes())
+    (matte / "material.json").write_text(json.dumps({"id": "testfelt", "family": "fabric", "tile_m": 0.2,
+                                                     "default_color": "#888888"}))
     monkeypatch.setattr(materials, "LIBRARY", tmp_path / "lib")
     for f in (materials.library, materials._maps, materials.pbr):
         f.cache_clear()
@@ -59,3 +65,17 @@ def test_grain_runs_along_axis():
     normals = np.array([[0, 1.0, 0]] * 3)  # face in the x-z plane
     assert materials.box_uv(verts, normals, 1.0, grain=0)[1].tolist() == [1.0, 0.0]
     assert materials.box_uv(verts, normals, 1.0, grain=2)[1].tolist() == [0.0, 1.0]
+
+
+def test_clearcoat_only_on_glossy_finishes(tmp_path, lib):
+    from partdsl import glb
+
+    prog = json.loads(CHAIR.read_text())
+    prog["materials"] = {"oak": {"finish": "testwood"}, "linen": {"finish": "testfelt"}}
+    f = tmp_path / "p.json"
+    f.write_text(json.dumps(prog))
+    assert compile_file(f, tmp_path / "out") == []
+    doc, _ = glb.read((tmp_path / "out" / "piece.glb").read_bytes())
+    coats = {m["name"]: m.get("extensions", {}).get("KHR_materials_clearcoat") for m in doc["materials"]}
+    assert coats["finish:testwood"]["clearcoatFactor"] == 0.25 and coats["finish:testfelt"] is None
+    assert doc["extensionsUsed"] == ["KHR_materials_clearcoat"]

@@ -6,5 +6,7 @@
   "default_color": "#9c8159",
   "metal": 0.0,
   "source": "ambientcg:Wicker011A",
-  "license": "CC0"
+  "license": "CC0",
+  "clearcoat": 0.1,
+  "clearcoat_roughness": 0.5
 }

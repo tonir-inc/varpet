@@ -31,6 +31,8 @@ class Finish:
     default_color: str
     metal: float
     path: Path
+    clearcoat: float = 0.0  # KHR_materials_clearcoat: lacquer, gloss laminate, polished stone
+    clearcoat_roughness: float = 0.3
 
 
 @cache
@@ -39,7 +41,8 @@ def library() -> dict[str, Finish]:
     for meta in sorted(LIBRARY.glob("*/material.json")):
         m = json.loads(meta.read_text())
         out[m["id"]] = Finish(m["id"], m["family"], float(m["tile_m"]), bool(m.get("grain")),
-                              m["default_color"], float(m.get("metal", 0)), meta.parent)
+                              m["default_color"], float(m.get("metal", 0)), meta.parent,
+                              float(m.get("clearcoat", 0)), float(m.get("clearcoat_roughness", 0.3)))
     return out
 
 
@@ -83,7 +86,7 @@ def pbr(finish_id: str | None, tint: str | None, kind: str, roughness: float | N
     mr = np.zeros((*rough.shape, 3))
     mr[..., 1] = rough if roughness is None else rough / max(rough.mean(), 1.0) * roughness * 255
     mr[..., 2] = f.metal * 255
-    return PBRMaterial(baseColorTexture=_jpeg(tinted), normalTexture=normal,
+    return PBRMaterial(name=f"finish:{finish_id}", baseColorTexture=_jpeg(tinted), normalTexture=normal,
                        metallicRoughnessTexture=_jpeg(mr), metallicFactor=1.0, roughnessFactor=1.0)
 
 

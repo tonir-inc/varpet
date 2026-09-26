@@ -6,5 +6,7 @@
   "default_color": "#ac957d",
   "metal": 0.0,
   "source": "polyhaven:ash_veneer",
-  "license": "CC0"
+  "license": "CC0",
+  "clearcoat": 0.2,
+  "clearcoat_roughness": 0.4
 }

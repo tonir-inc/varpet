@@ -6,5 +6,7 @@
   "default_color": "#aa8a72",
   "metal": 0.0,
   "source": "polyhaven:walnut_veneer_02",
-  "license": "CC0"
+  "license": "CC0",
+  "clearcoat": 0.25,
+  "clearcoat_roughness": 0.35
 }

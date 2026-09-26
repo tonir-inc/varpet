@@ -6,5 +6,7 @@
   "default_color": "#512e11",
   "metal": 0.0,
   "source": "polyhaven:brown_leather",
-  "license": "CC0"
+  "license": "CC0",
+  "clearcoat": 0.3,
+  "clearcoat_roughness": 0.45
 }
