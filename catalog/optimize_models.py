@@ -47,6 +47,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--workers", type=int, default=6)
     ap.add_argument("--upload", action="store_true")
+    ap.add_argument("--all", action="store_true", help="every ABO item, not only the editor set")
     ap.add_argument("--switch", action="store_true", help="record the VM copies in glb_web_url (glb_url stays the S3 original)")
     a = ap.parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
@@ -54,7 +55,8 @@ def main():
     with psycopg.connect(os.environ["VARPET_DB_URL"]) as c:
         c.execute("alter table item add column if not exists glb_original_url text")
         c.execute("update item set glb_original_url = glb_url where glb_original_url is null")
-        rows = c.execute("select id, glb_original_url from item where editor_set order by id").fetchall()
+        scope = "source = 'abo'" if a.all else "editor_set"
+        rows = c.execute(f"select id, glb_original_url from item where {scope} order by editor_set desc, id").fetchall()
     done, failed, total = [], [], 0
     with ThreadPoolExecutor(a.workers) as pool:
         for i, (iid, size, err) in enumerate(pool.map(optimize, rows), 1):
