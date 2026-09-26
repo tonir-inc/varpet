@@ -1,0 +1,60 @@
+{
+  "classification": "measured",
+  "recorded_at": "2026-09-26T17:27:48.330857+00:00",
+  "report_status": "complete",
+  "requests": {
+    "before": 45,
+    "after": 45,
+    "robustness": 40
+  },
+  "product_sources": {
+    "before": [
+      "e5751fe11e0ae6f7cf340548fa6622123b9b67bb"
+    ],
+    "after": [
+      "8e336591d9d60aa56a3a71cd05074e264dd9f515"
+    ],
+    "robustness": [
+      "8e336591d9d60aa56a3a71cd05074e264dd9f515"
+    ]
+  },
+  "after_rebased_equivalent": "af7f9a2",
+  "runner_and_grading_checkout": "02c907be7fa0e702be8802c45ccc8dce01cab7e4",
+  "model": "gpt-6-astra",
+  "effort": "low",
+  "placement": "without-place",
+  "context": "compact-base",
+  "fast_path_env": "0",
+  "primary_concurrency": 2,
+  "limitations": [
+    "Live catalog search inventory and shared laptop load were not frozen.",
+    "Primary HTTP runs use real bridge and EditorStore acceptance; only extra smoke checks were browser-driven.",
+    "Browser checks and verification jobs overlap robustness only.",
+    "Complete-room and latency targets remain unmet."
+  ],
+  "grader_files_sha256": {
+    "packages/designer/eval/acceptance_grade.py": "9622f4c6e4e707204ef575c1771896aca79142242d74170f985b4890ce300a2e",
+    "packages/designer/eval/acceptance_access.py": "53209946911cf2b07438f82f997664883dc9056a6b6ac1c3c1feb1ac39e166c8",
+    "packages/designer/eval/komitas-grade.ts": "ec3a55cecb9c6b3c970f1968b0b380803d64562e9059aaf6e4e379c1a1672592",
+    "packages/designer/eval/taste-komitas-grade.ts": "fe0389aaf0a16d0ec16467088d7b5745ae4cc676d0b892113a1c18824b6d174e"
+  },
+  "files_sha256": {
+    "README.md": "836746c579fc088fa1cf70c3cbbd7d305bc56dff8d2d1063973e11c06247dfaf",
+    "after-runtime.tar.gz": "b1e0cd8ee1abddcfd36dfa38aaf4bad6ab891a518ce14335ca12f12d365322b6",
+    "after.tar.xz": "5a2ec4db2d93083c09789c3d3530fcbfc9e392b374202979f09ff60ff6472ddf",
+    "before.tar.xz": "7f2623ecf81783642a0a568aaa8e1c55d2eafdcf65e6ba02b5717b56921dbfac",
+    "changed-files.txt": "77c85257bd4b085a5605644265af12ecb538d33cbb2316cdfee874f92bf489c3",
+    "designer-tests.log": "055878a05f9e04029dfbefdd56691f7535d907765c9507166eeb9072b1a65cbb",
+    "final-review.txt": "ea55a9e6fc6bbabb1011ba75411b0048f7067df8bdc76e2a5c16ed5e8c88ef47",
+    "full-test.log": "ba9685500d40c24471f75f17ebeb2b232eabd8698868e130a340866cf7ed6925",
+    "initial-catalog.json": "33b4cd71d256874ae098fc6f3db49c70dfb5ae79aa25130487b99ec2bdcf4197",
+    "portal-ui.json": "199b8cff1eb3d374d34fc4011711166012e19718cdd8063d017603e577c7f113",
+    "portal-ui.tar.xz": "c658209599a93fc862c635febd78f83df10b291e5f043e766c5b8f450df59243",
+    "primary-audit.json": "05c0abdc3d4ab8e09da38682c37991869cf72fe73edb6080a0125bad487bd2e6",
+    "report.json": "b5e1233257e6dd82141b1bc3cadccae56a7192cfda915a0e8e85c84d1422fb5e",
+    "review.txt": "4127a447d11670222b8ace440f351a21ec8be3891ed28bb7f981d87ca9372f06",
+    "robustness.tar.xz": "018f6e34a2ec20fe0e79d443fad3082c7838d52c8009d58fc033fcb255e4fd8e",
+    "timing.json": "2825926c27aed961ed7995a5adf53715fbafb19e040fade416abe0c1ba7845ba",
+    "typecheck.log": "26eb781738de155f2c0e74d00a98f14605819534cfe006dadc0c027f4882262d"
+  }
+}

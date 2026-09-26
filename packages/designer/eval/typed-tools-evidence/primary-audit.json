@@ -1,0 +1,39 @@
+{
+  "classification": "measured",
+  "requests": 45,
+  "completed_calls": 98,
+  "exec_calls": 0,
+  "non_mcp_calls": 0,
+  "model_mode_audits": 45,
+  "receipts": {
+    "plan_room": {
+      "calls": 27,
+      "max_text_characters": 1461
+    },
+    "propose": {
+      "calls": 31,
+      "max_text_characters": 1023
+    },
+    "inspect_layout": {
+      "calls": 9,
+      "max_text_characters": 1074
+    },
+    "search_catalog": {
+      "calls": 18,
+      "max_text_characters": 1266
+    },
+    "paint": {
+      "calls": 9,
+      "max_text_characters": 103
+    },
+    "show_candidates": {
+      "calls": 1,
+      "max_text_characters": 194
+    },
+    "place": {
+      "calls": 3,
+      "max_text_characters": 103
+    }
+  },
+  "note": "Image bytes are excluded from compact textual receipts. Before cohort also happened to contain no exec calls; explicit direct-only configuration plus private metadata override is the after guarantee."
+}
