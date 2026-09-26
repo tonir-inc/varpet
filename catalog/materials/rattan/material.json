@@ -1,0 +1,10 @@
+{
+  "id": "rattan",
+  "family": "wood",
+  "tile_m": 0.4,
+  "grain": true,
+  "default_color": "#9c8159",
+  "metal": 0.0,
+  "source": "ambientcg:Wicker011A",
+  "license": "CC0"
+}

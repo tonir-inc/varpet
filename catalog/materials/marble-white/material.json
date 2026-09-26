@@ -1,0 +1,10 @@
+{
+  "id": "marble-white",
+  "family": "stone",
+  "tile_m": 1.2,
+  "grain": false,
+  "default_color": "#e6e3de",
+  "metal": 0.0,
+  "source": "procedural",
+  "license": "CC0"
+}

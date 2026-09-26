@@ -1,0 +1,10 @@
+{
+  "id": "ash-light",
+  "family": "wood",
+  "tile_m": 1.0,
+  "grain": true,
+  "default_color": "#ac957d",
+  "metal": 0.0,
+  "source": "polyhaven:ash_veneer",
+  "license": "CC0"
+}

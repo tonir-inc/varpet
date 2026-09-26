@@ -1,0 +1,10 @@
+{
+  "id": "linen",
+  "family": "fabric",
+  "tile_m": 0.08,
+  "grain": false,
+  "default_color": "#c8bca8",
+  "metal": 0.0,
+  "source": "procedural",
+  "license": "CC0"
+}
