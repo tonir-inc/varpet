@@ -97,12 +97,23 @@ Metres; x runs right on the plan, z runs down. A wall is its centreline; an open
 When it is written, call submit_shell and fix what it reports until it answers ok.
 {furnish}"""
 
+SVG_PROMPT = """Here is a floor plan of a flat: {plan} (the attached image, {w} x {h} pixels){photo_clause}. Trace it as a labelled SVG in the image's own pixel coordinates and write it to trace.svg in this folder, starting `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}">`. Only polygon and line elements, absolute pixel coordinates, no transforms or groups, an id on every element.
+
+- Each straight stretch of wall: `<polygon class="wall main" points="4 corners">` covering exactly its band; `class="wall secondary"` for thin partitions.
+- Each door and each window: `<line class="door" .../>` or `<line class="window" .../>` across its gap.
+- Each room: `<polygon class="room" data-name="Kitchen" data-printed="7.2 m2" points="...">` along its inside faces; data-printed copies what the plan prints for it ("14.3 m2" or "5.0 x 4.7 m"); a balcony adds data-kind="balcony".
+- Each fixture (toilet, shower, bath, sink, kitchen cabinets and worktop, appliances, radiator, railing): `<polygon class="fixture" data-kind="toilet" data-name="Toilet" points="4 corners">`.
+- Each dimension the plan prints: `<line class="dimension" data-m="5.0" .../>` laid exactly over its dimension line. This sets the scale.
+
+When it is written, call submit_trace and fix what it reports until it answers ok.
+{furnish}"""
+
 FURNISH = """
 Then build_pieces with every movable piece of furniture the photos show (builders make them while you wait;
 code builds the kitchen and other fitted units itself), wait_for_pieces, place them into furnish/placements.json
 and submit_placements until it answers ok. render_top_view shows your result to compare with the photos."""
 
-BARE = """There are no photos, so there is no furniture: you are done when submit_shell answers ok."""
+BARE = """There are no photos, so there is no furniture: you are done when the check answers ok."""
 
 PIECE_SCHEMA = {
     "type": "object", "additionalProperties": False, "required": ["id", "brief", "size", "size_source", "count", "refs"],
@@ -280,10 +291,13 @@ class _Architect:
         self.placed = False
         self.looks = 0
         self.area_feedback = False
+        self.mode = "json"
 
     def tools(self, furnish: bool, look: bool) -> list[Tool]:
         tools = [Tool("submit_shell", "Check shell/shell.json and show it to the people watching. Call it after the "
-                      "walls, again after the fixtures. Answers ok or the faults to fix.", self.submit_shell)]
+                      "walls, again after the fixtures. Answers ok or the faults to fix.", self.submit_shell),
+                 Tool("submit_trace", "Turn trace.svg into the flat in metres, check it and show it. Answers ok or the "
+                      "faults to fix; they name your SVG element ids.", self.submit_trace)]
         if furnish:
             tools += [
                 Tool("build_pieces", "Start builders on the movable furniture the photos show (sofas, beds, tables, "
@@ -298,6 +312,16 @@ class _Architect:
             tools.append(Tool("render_top_view", "A top-down picture of your result: rooms, walls (doors red, windows "
                               "blue), fixtures grey, each piece with an arrow toward its front.", self.render_top_view))
         return tools
+
+    async def submit_trace(self, args: dict) -> str:
+        from .trace import TraceError, to_shell
+
+        try:
+            shell = to_shell((self.run_dir / "trace.svg").read_text())
+        except (OSError, TraceError, ValueError) as e:
+            return f"trace.svg: {e}"
+        (self.run_dir / "shell" / "shell.json").write_text(json.dumps(shell, indent=1))
+        return f"{shell['notes'][0]}\n" + await self.submit_shell(args) + _area_table(self.run_dir)
 
     async def submit_shell(self, args: dict) -> str:
         from .shell import Shell, check_file
@@ -449,9 +473,18 @@ class _Architect:
         from .shell import check_file as check_shell
 
         shell = self.run_dir / "shell" / "shell.json"
+        if self.mode == "svg":  # the trace is the source: shell.json is always derived from it
+            from .trace import TraceError, to_shell
+
+            try:
+                shell.write_text(json.dumps(to_shell((self.run_dir / "trace.svg").read_text()), indent=1))
+            except (OSError, TraceError, ValueError) as e:
+                return f"Code read trace.svg and could not use it: {e}. Fix trace.svg, then submit_trace."
         faults = check_shell(shell, shell.parent) if shell.exists() else [{"check": "file", "detail": "shell/shell.json was not written"}]
         if faults:
-            return "Code checked shell/shell.json and found faults. Fix them, then submit_shell:\n" + json.dumps(faults, indent=1)
+            where, tool = ("trace.svg", "submit_trace") if self.mode == "svg" else ("shell/shell.json", "submit_shell")
+            return (f"Code checked the flat (shell/shell.json) and found faults. Fix them in {where}, then {tool}:\n"
+                    + json.dumps(faults, indent=1))
         placements = self.run_dir / "furnish" / "placements.json"
         if furnish and self.builds:
             faults = check_placements(placements, placements.parent) if placements.exists() else \
@@ -467,7 +500,7 @@ async def run_session(codex: AsyncCodex, repo: Path, flat: str, plan: str, photo
                       review: bool = True, progress=print, emit=None,
                       base_url: str = "http://127.0.0.1:8788",
                       area_feedback: bool = False, prompt: str | None = None, offer: set[str] | None = None,
-                      fix_turns: int = FIX_TURNS) -> SessionReport:
+                      fix_turns: int = FIX_TURNS, mode: str = "json") -> SessionReport:
     """One architect thread, one turn, tools for every step. emit(event) receives intermediate results
     for a live preview: shell, pieces, piece, placements, activity."""
     t0 = time.monotonic()
@@ -480,9 +513,12 @@ async def run_session(codex: AsyncCodex, repo: Path, flat: str, plan: str, photo
     runner = CodexRunner(codex, repo, model=model, compile_cmd=compile_cmd, progress=progress, activity=activity)
     arch = _Architect(repo, run_dir, flat, plan, runner, lanes, report, progress, emit, base_url)
     arch.area_feedback = area_feedback
+    arch.mode = mode
     arch.photos = [str((repo / p).resolve()) for p in photos]
     furnish = bool(photos)
-    tools = [t for t in arch.tools(furnish, look=furnish and review) if offer is None or t.name in offer]
+    offer = offer if offer is not None else {"json": None, "svg": None}[mode]
+    drop = "submit_shell" if mode == "svg" else "submit_trace"
+    tools = [t for t in arch.tools(furnish, look=furnish and review) if t.name != drop and (offer is None or t.name in offer)]
     thread = await start_thread(codex, tools, model=model, cwd=str(run_dir),
                                 config=thread_config(), name=f"architect {flat}")
     if activity:
@@ -497,8 +533,13 @@ async def run_session(codex: AsyncCodex, repo: Path, flat: str, plan: str, photo
     try:
         progress("architect: reading the plan and photos")
         abs_photos = [str((repo / p).resolve()) for p in photos]
-        text = (prompt or ARCHITECT_PROMPT).format(
-            plan=(repo / plan).resolve(), furnish=FURNISH if furnish else BARE,
+        w = h = 0
+        if mode == "svg":
+            from PIL import Image
+
+            w, h = Image.open((repo / plan).resolve()).size
+        text = (prompt or (SVG_PROMPT if mode == "svg" else ARCHITECT_PROMPT)).format(
+            plan=(repo / plan).resolve(), furnish=FURNISH if furnish else BARE, w=w, h=h,
             photo_clause="".join(f"; photo {i + 1}: {p}" for i, p in enumerate(abs_photos)) + (" (attached after it)" if abs_photos else ""))
         images = [LocalImageInput(path=str((repo / plan).resolve()))] + [LocalImageInput(path=p) for p in abs_photos]
         await turn([TextInput(text), *images])
@@ -506,7 +547,7 @@ async def run_session(codex: AsyncCodex, repo: Path, flat: str, plan: str, photo
             left = await asyncio.to_thread(arch.unfinished, furnish)
             if left is None:
                 break
-            progress("architect: fixing shell" if "shell.json" in left.split("\n", 1)[0] else "architect: fixing furnish")
+            progress("architect: fixing furnish" if "placements" in left.split("\n", 1)[0] else "architect: fixing shell")
             await turn([TextInput(left)])
         if arch.photos and arch.shown:
             await arch.build_fixtures()  # a shell that only passed in the backstop turn still gets its kitchen
