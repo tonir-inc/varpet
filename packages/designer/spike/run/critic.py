@@ -58,13 +58,19 @@ Check, in order:
    hung on a wall, at eye height, facing the main seating (never on the floor). Coffee table within reach of
    the sofa. A lamp and side table by each reading seat and each side of a bed. Bedside tables beside the bed
    head. Art and mirrors centred over the piece they belong to, at a sensible height, not floating mid-wall.
-   Rugs under the group they anchor. Curtains at windows.
+   Rugs under the group they anchor. Curtains or blinds at bedroom windows. Art or mirrors partly hidden
+   behind a headboard, wardrobe or other tall piece.
 3. Scale and proportion: pieces sized to the room and to each other (tiny rug, huge sofa, art too small or
    too wide for its wall or piece).
 4. Coverage: dead empty zones or corners that make the room feel unfinished; crowding; blocked doors,
    windows or walkways (~0.8 m main paths).
 5. Style coherence with the brief (and its picture, if described): one palette and material story.
-6. Render sanity: objects floating, sunk into the floor, clipped into walls or other furniture, duplicated.
+6. Render sanity: objects floating, sunk into the floor, clipped into walls or other furniture, duplicated;
+   a bed that shows a bare mattress with no bedding or pillows.
+
+Walls, doors, windows and the fixed fittings listed with the room (kitchen runs, toilets, basins, showers) are
+the flat's; the designer cannot move them. Report a fault in them (e.g. a unit facing the wall) as severity
+minor with the issue starting "flat:", so the team can fix the flat; a designer piece blocking them is normal.
 
 Severity: blocker = a need from the brief is unmet or unusable (fewer seats than asked, TV on the floor, bed
 or wardrobe blocking a door, desk with no chair). major = a relation or scale error the customer would notice
@@ -148,7 +154,16 @@ def render_room(workspace: Path, room_id: str, out: Path, draft: dict) -> dict:
     return {"images": images, "notes": notes}
 
 
-def _prompt(brief: str, room: dict, draft: dict, shots: dict, context: str | None = None) -> str:
+def _fixed(workspace: Path, room_id: str) -> list[str]:
+    """Named fixed fittings of a room (not bare wall stubs)."""
+    scene = json.loads((workspace / "scene.json").read_text())
+    return sorted({f.get("name") or f.get("kind") for f in scene.get("fixed") or []
+                   if f.get("room_id") == room_id and not str(f.get("name", "")).startswith("Fixed wall")
+                   and "switch" not in str(f.get("name", "")).lower()})
+
+
+def _prompt(brief: str, room: dict, draft: dict, shots: dict, context: str | None = None,
+            fixed: list[str] | None = None) -> str:
     items = [i for i in draft.get("items") or [] if isinstance(i, dict) and i.get("room_id") == room["id"]]
     lines = [f"- {i.get('id')} | {i.get('kind')} | {i.get('name')} | "
              f"{'x'.join(f'{float(n):.2f}' for n in i.get('size') or [])} m"
@@ -158,6 +173,7 @@ def _prompt(brief: str, room: dict, draft: dict, shots: dict, context: str | Non
     notes = "\n".join(f"- {note}" for note in shots["notes"]) or "- none"
     return (f"Customer brief:\n{brief.strip()}\n\nRoom under review: {room['id']} ({room.get('name') or room['id']}), "
             f"{_size(room)}.\nPictures attached in order: {pictures}.\nRender notes:\n{notes}\n\n"
+            f"Fixed fittings (the flat's): {', '.join(fixed or []) or 'none'}.\n"
             f"Pieces in this room (id | kind | name | w x d x h):\n" + ("\n".join(lines) or "- (none)")
             + (f"\n\nThe designer's answer to the previous review (re-raise an issue only if the pictures show it is still "
                f"wrong and the reason given does not hold):\n{context.strip()}" if context else "")
@@ -236,7 +252,7 @@ def critique(workspace: Path | str, brief: str, rooms: list[str] | None = None, 
                                                 sandbox=Sandbox("read-only"), cwd=str(workspace),
                                                 developer_instructions=RUBRIC, ephemeral=True)
                     inputs = [LocalImageInput(path=i["path"]) for i in shots[room_id]["images"]]
-                    inputs.append(TextInput(text=_prompt(brief, scene_rooms[room_id], draft, shots[room_id], context)))
+                    inputs.append(TextInput(text=_prompt(brief, scene_rooms[room_id], draft, shots[room_id], context, _fixed(workspace, room_id))))
                     result = thread.run(inputs, effort=ReasoningEffort(EFFORT), approval_mode=ApprovalMode.deny_all,
                                         output_schema=SCHEMA)
                     entry["raw"] = result.final_response
