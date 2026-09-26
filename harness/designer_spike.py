@@ -688,7 +688,9 @@ def propose(conversation, conversation_id: str, body: dict, cancel: threading.Ev
         progress("Planning the flat" if first else "Thinking about your follow-up")
         observer = Progress(state.rooms, progress, state.workspace)
         watcher = DraftWatcher(state, progress, body, turn,
-                               partials=os.environ.get("VARPET_SPIKE_PARTIALS", "1") != "0").start()
+                               # Room-by-room previews on the first design only: a follow-up edits a whole design, and a
+                               # snapshot of some rooms would preview the others' design pieces as deleted.
+                               partials=first and os.environ.get("VARPET_SPIKE_PARTIALS", "1") != "0").start()
         result = _run_turn(state, turn_input, cancel, observer, timeout)
         watcher.stop()
         lap("designer")
