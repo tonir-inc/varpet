@@ -1,5 +1,7 @@
 import './ui/style.css';
 import './ui/motion.css';
+import './ui/designer-panel.css';
+import { mountDesignerPanel, designerHttpAdapter } from './ui/designer-panel';
 import type { AgentProposal, CatalogAsset, EditCommand, ObjectPatch, Operation, SceneDocument, SceneObject, ToolMode, ViewMode, ViewportLayer, WallMode } from './contracts';
 import { demoScene, localCatalog } from './core/demo';
 import { EditorStore } from './core/store';
@@ -7,7 +9,7 @@ import { expandFurnitureSelection, furnitureMembers } from './core/grouping';
 import { validateScene } from './core/validation';
 import { OPENING_MOVE_SNAP } from './core/opening-move';
 import { loadLocal, parseScene, saveLocal, serializeScene } from './core/persistence';
-import { catalogAdapter, designerAdapter, structureAdapter } from './adapters/mock';
+import { catalogAdapter, designerAdapter as mockDesignerAdapter, structureAdapter } from './adapters/mock';
 import { createViewport } from './render/viewport';
 import { createFloorPlan } from './render/floor-plan';
 import { createCatalogPreviews } from './render/catalog-previews';
@@ -90,6 +92,7 @@ const escape = (s: string) => s.replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&l
 const uid = () => crypto.randomUUID();
 let catalog: CatalogAsset[] = localCatalog;
 const store = new EditorStore(demoScene, catalog);
+const designerAdapter = import.meta.env.VITE_DESIGNER_URL ? designerHttpAdapter : mockDesignerAdapter;
 let selectedId: string | null = null;
 let selectedFurnitureIds: string[] = [];
 let tool: ToolMode = 'select';
@@ -573,6 +576,15 @@ function refresh(){
   renderViewportHints();
 }
 store.subscribe(refresh);
+const designerHost = document.createElement('section');
+$('#proposal').before(designerHost);
+const designerPanel = mountDesignerPanel(designerHost, {
+  live: Boolean(import.meta.env.VITE_DESIGNER_URL), snapshot: () => ({ scene: store.scene, revision: store.revision }),
+  subscribe: listener => store.subscribe(listener), canRequest: () => !busy && !previewMode,
+  onBusyChange: waiting => { busy = waiting; $<HTMLButtonElement>('#suggest').disabled = waiting; },
+  onProposal: proposal => { pending = proposal; switchPanel('assistant'); renderProposal(); },
+});
+window.addEventListener('beforeunload', () => designerPanel.dispose());
 
 const modal=$<HTMLDialogElement>('#modal');
 function showModal(title:string,body:string){$('#modal-content').innerHTML=`<div class="modal-heading"><h2>${title}</h2><button id="close-modal" class="icon-button" aria-label="Close dialog">${icon('close')}</button></div>${body}`;$('#close-modal').onclick=()=>modal.close();modal.showModal();}
