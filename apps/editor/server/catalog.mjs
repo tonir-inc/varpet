@@ -1,3 +1,5 @@
+import { Readable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 
@@ -60,6 +62,26 @@ function send(response, status, data) {
   response.end(JSON.stringify(data));
 }
 
+const MODEL = /^\/api\/catalog\/models\/([A-Za-z0-9_-]{1,40}\.glb)$/;
+const MODEL_TIMEOUT_MS = 60_000;
+
+/** The catalog's 1024 px copy of a model (optimize_models.py), relayed so the browser never needs the tailnet.
+ * No copy is an uncached 404, and the asset loader falls back to the S3 original. */
+async function relayModel(settings, name, response) {
+  let upstream = null;
+  try {
+    upstream = await settings.fetch(new URL(`/models/${name}`, settings.url), { method: 'GET', signal: AbortSignal.timeout(MODEL_TIMEOUT_MS) });
+  } catch { /* 502 below */ }
+  if (!upstream?.ok || !upstream.body) {
+    response.writeHead(upstream?.status === 404 ? 404 : 502, { 'Cache-Control': 'no-store' });
+    return response.end();
+  }
+  const length = upstream.headers.get('content-length');
+  response.writeHead(200, { 'Content-Type': 'model/gltf-binary', 'Cache-Control': 'public, max-age=31536000, immutable',
+    ...(length ? { 'Content-Length': length } : {}) });
+  await pipeline(Readable.fromWeb(upstream.body), response).catch(() => response.destroy());
+}
+
 /** Server-only URL; never exposed through Vite's client environment or bundled source. */
 export function createCatalogMiddleware(options = {}) {
   const url = new URL(options.url || DEFAULT_CATALOG_URL);
@@ -69,6 +91,15 @@ export function createCatalogMiddleware(options = {}) {
   const settings = { url, timeoutMs, fetch: options.fetch ?? globalThis.fetch };
   return async (request, response, next) => {
     const path = new URL(request.url ?? '/', 'http://localhost');
+    if (path.pathname.startsWith('/api/catalog/models/')) {
+      if (request.method !== 'GET') {
+        response.setHeader('Allow', 'GET');
+        return send(response, 405, { reason: 'Model files only support GET.' });
+      }
+      const model = MODEL.exec(path.pathname);
+      if (!model) { response.writeHead(404, { 'Cache-Control': 'no-store' }); return response.end(); }
+      return relayModel(settings, model[1], response);
+    }
     if (!['/api/catalog/search', '/api/catalog/items', '/api/catalog/vocab'].includes(path.pathname)) return next();
     if (request.method !== 'GET') {
       response.setHeader('Allow', 'GET');
@@ -77,7 +108,9 @@ export function createCatalogMiddleware(options = {}) {
     const text = path.searchParams.get('text')?.trim();
     const kind = path.searchParams.get('kind')?.trim();
     const ids = [...new Set((path.searchParams.get('ids') ?? '').split(',').map(id => id.trim()).filter(Boolean))];
-    if ((path.pathname.endsWith('/search') && ((text?.length ?? 0) > 1000 || (kind?.length ?? 0) > 100))
+    const offsetText = path.searchParams.get('offset') ?? '0';
+    const offset = /^\d{1,6}$/.test(offsetText) ? Number(offsetText) : -1;
+    if ((path.pathname.endsWith('/search') && ((text?.length ?? 0) > 1000 || (kind?.length ?? 0) > 100 || offset < 0 || offset > 100_000))
       || (path.pathname.endsWith('/items') && (!ids.length || ids.length > 100 || ids.some(id => id.length > 256)))) {
       return send(response, 400, { reason: 'Invalid catalog query.' });
     }
@@ -88,7 +121,7 @@ export function createCatalogMiddleware(options = {}) {
           const rows = await Promise.all(ids.map(id => item(read, id, true)));
           return { results: rows.filter(Boolean), missing_ids: ids.filter((_, index) => !rows[index]) };
         }
-        const search = await read('search_furniture', { ...(text ? { text } : {}), ...(kind ? { kind } : {}), limit: 20 });
+        const search = await read('search_furniture', { ...(text ? { text } : {}), ...(kind ? { kind } : {}), limit: 20, ...(offset ? { offset } : {}) });
         if (!Array.isArray(search.results)) throw new Error('Catalog search returned no list');
         const results = await Promise.all(search.results.slice(0, 20).map(async raw => {
           if (!object(raw) || typeof raw.id !== 'string' || !raw.id) throw new Error('Invalid catalog search record');

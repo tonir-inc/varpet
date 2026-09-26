@@ -4,12 +4,14 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import type { AgentProposal, AssetKind, CatalogAsset, Operation, SceneDocument, Wall as EditorWall } from '../../../apps/editor/src/contracts.js';
 import { componentPosition, componentRotation } from '../../../apps/editor/src/core/geometry.js';
+import { catalogProduct } from '../../../apps/editor/src/adapters/database-catalog.js';
 import { localCatalog } from '../../../apps/editor/src/core/demo.js';
 import { buildFinishOperations, type FinishPreset } from '../../../apps/editor/src/core/finish-presets.js';
 import { applyRenovationOperation, isRenovationOperation } from '../../../apps/editor/src/core/renovation.js';
 import { EditorStore } from '../../../apps/editor/src/core/store.js';
 import { isRecord, objectFootprint, placementIssues, validateScene } from '../../../apps/editor/src/core/validation.js';
 import { parseOps, parseScene } from './adapter.js';
+import { catalogItems } from './catalog.js';
 import { outsidePoint } from './local-checks.js';
 import type { Opening, Scene, Vec2 } from './scene.js';
 import { snapRoomFaces, reconciledWall } from './reconcile-geometry.js';
@@ -251,6 +253,22 @@ export function proposalToEditor(input: unknown, editorInput: unknown, revision:
   return proposal;
 }
 
+/** Requests carry only the products their scene uses. Purchases the designer found in the catalog are fetched
+ * by id and converted exactly as the editor converts them, so proposalToEditor's checks compare like with like. */
+export async function withProposalAssets(input: unknown, catalog: CatalogAsset[], fetchItems: (ids: string[]) => Promise<unknown[]> = catalogItems): Promise<CatalogAsset[]> {
+  const candidate = isRecord(input) && input.ok === true ? input.proposal : input;
+  const ops: unknown[] = isRecord(candidate) && Array.isArray(candidate.ops) ? candidate.ops : [];
+  const known = new Set(catalog.map(asset => asset.id));
+  const missing = [...new Set(ops.flatMap(op => isRecord(op) && op.type === 'add' && isRecord(op.item) && typeof op.item.sku === 'string'
+    && !known.has(op.item.sku) ? [op.item.sku] : []))];
+  if (!missing.length) return catalog;
+  let records: unknown[];
+  try { records = await fetchItems(missing); }
+  catch { throw new Error('Catalog unavailable: the proposed products could not be fetched'); }
+  const fetched = records.map(catalogProduct).flatMap(product => product && missing.includes(product.asset.id) ? [product.asset] : []);
+  return [...catalog, ...fetched];
+}
+
 async function jsonFile(path: string): Promise<unknown> { return JSON.parse(await readFile(path, 'utf8')); }
 async function main(args: string[]): Promise<void> {
   const mode = args.shift(), count = mode === 'to-designer' ? 2 : mode === 'to-command' ? 4 : 0;
@@ -270,6 +288,7 @@ async function main(args: string[]): Promise<void> {
     else throw new Error(`Unknown option ${flag}`);
   }
   if(customAssets.length){const catalog=options.catalog??localCatalog;if(customAssets.some(asset=>catalog.some(existing=>existing.id===asset.id)))throw new Error('A custom slot cannot replace an existing catalog asset');options.catalog=[...catalog,...customAssets];}
+  if (mode === 'to-command') options.catalog = await withProposalAssets(await jsonFile(paths[0]!), options.catalog ?? localCatalog);
   const output = mode === 'to-designer' ? editorToDesigner(await jsonFile(paths[0]!), options) : proposalToEditor(await jsonFile(paths[0]!), await jsonFile(paths[1]!), Number(paths[2]), options);
   await writeFile(paths.at(-1)!, `${JSON.stringify(output, null, 2)}\n`, 'utf8');
 }

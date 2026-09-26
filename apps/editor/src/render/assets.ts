@@ -239,6 +239,15 @@ export function disposeObject(root: THREE.Object3D): void {
   root.removeFromParent();
 }
 
+const ABO_ORIGINAL = /^https:\/\/amazon-berkeley-objects\.s3\.amazonaws\.com\/3dmodels\/original\/(?:[A-Za-z0-9_-]+\/)*([A-Za-z0-9_-]{1,40})\.glb$/;
+
+/** ABO originals carry up to 54 MB of 4K textures. The editor server relays the catalog's 1024 px copy
+ * (named by the same ASIN), so product records keep the original URL as their identity. */
+export function lightModelUrl(url: string): string | undefined {
+  const asin = ABO_ORIGINAL.exec(url)?.[1];
+  return asin ? `/api/catalog/models/${asin}.glb` : undefined;
+}
+
 interface ModelSource {
   promise: Promise<THREE.Group>;
   group?: THREE.Group;
@@ -271,7 +280,10 @@ export class AssetLoader {
     if (!url || !Number.isFinite(rotation)) throw new Error('Invalid model URL or orientation.');
     let source = this.cache.get(url);
     if (!source) {
-      const promise = this.loader.loadAsync(url).then(gltf => {
+      const light = lightModelUrl(url);
+      // No light copy (or no editor server): the original still loads.
+      const download = light ? this.loader.loadAsync(light).catch(() => this.loader.loadAsync(url)) : this.loader.loadAsync(url);
+      const promise = download.then(gltf => {
         if (this.disposed) { disposeObject(gltf.scene); throw new Error('Asset loader disposed.'); }
         entry.group = gltf.scene;
         return gltf.scene;

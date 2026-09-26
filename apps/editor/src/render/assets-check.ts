@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import { GLTFLoader, type GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import type { CatalogAsset } from '../contracts';
-import { AssetLoader, disposeObject, makeAssetPlaceholder, makeFurniture } from './assets';
+import { AssetLoader, disposeObject, lightModelUrl, makeAssetPlaceholder, makeFurniture } from './assets';
 
 let checks = 0;
 function assert(condition: unknown, message: string): void {
@@ -111,6 +111,29 @@ try {
   finish({ scene: lateScene } as GLTF);
   await interrupted.then(() => { throw new Error('Disposed loader returned a stale model'); }, () => {});
   assert(lateDisposals === 1, 'A source arriving after disposal releases its resources exactly once');
+
+  const abo = 'https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/D/B0718WYQ8D.glb';
+  assert(lightModelUrl(abo) === '/api/catalog/models/B0718WYQ8D.glb', 'An ABO original maps to its relayed light copy');
+  assert(lightModelUrl('https://models.example/chair.glb') === undefined && lightModelUrl(`${abo}?x=1`) === undefined,
+    'Other model URLs load as given');
+  const lightRequests: string[] = [];
+  let lightMissing = true;
+  GLTFLoader.prototype.loadAsync = async function(url: string): Promise<GLTF> {
+    lightRequests.push(url);
+    if (lightMissing && url.startsWith('/api/')) throw new Error('404');
+    return { scene: new THREE.Group().add(new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshStandardMaterial())) } as GLTF;
+  };
+  const aboAsset = { ...asset, source: { type: 'gltf' as const, url: `${abo}#varpet-rotate-y=90` } };
+  const fallbackLoader = new AssetLoader();
+  await fallbackLoader.load(aboAsset).then(disposeObject);
+  assert(lightRequests.join() === `/api/catalog/models/B0718WYQ8D.glb,${abo}`, 'A missing light copy falls back to the original');
+  await fallbackLoader.load(aboAsset).then(disposeObject);
+  assert(lightRequests.length === 2, 'The fallback source is cached under the product URL');
+  lightMissing = false;
+  const lightLoader = new AssetLoader();
+  await lightLoader.load(aboAsset).then(disposeObject);
+  assert(lightRequests.length === 3 && lightRequests[2] === '/api/catalog/models/B0718WYQ8D.glb', 'An available light copy replaces the original download');
+  fallbackLoader.dispose(); lightLoader.dispose();
 } finally {
   GLTFLoader.prototype.loadAsync = originalLoad;
 }

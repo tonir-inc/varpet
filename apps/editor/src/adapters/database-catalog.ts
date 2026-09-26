@@ -71,8 +71,10 @@ function products(body: Record<string, unknown>): { products: CatalogProduct[]; 
 }
 
 export const databaseCatalog = {
-  async search(text = '', kind = '', signal?: AbortSignal) {
-    return products(await request(`search?${new URLSearchParams({ text, kind })}`, signal));
+  /** One ranked page of 20; nextOffset is where the following page starts, or null at the end. */
+  async search(text = '', kind = '', signal?: AbortSignal, offset = 0) {
+    const body = await request(`search?${new URLSearchParams({ text, kind, ...(offset ? { offset: String(offset) } : {}) })}`, signal);
+    return { ...products(body), nextOffset: typeof body.next_offset === 'number' ? body.next_offset : null };
   },
   async resolve(ids: string[], signal?: AbortSignal): Promise<CatalogProduct[]> {
     const result: CatalogProduct[] = [];

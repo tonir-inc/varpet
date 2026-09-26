@@ -21,6 +21,8 @@ export interface DesignerHttpOptions {
   catalog?:CatalogAsset[];
   /** Explicit catalog price provenance; omitted by default. */
   catalogCurrency?:'AMD';
+  /** Requests carry only the scene's products; purchases the designer found in the catalog are looked up by id. */
+  resolveAssets?:(ids:string[],signal?:AbortSignal)=>Promise<CatalogAsset[]>;
   onProgress?:(message:string)=>void;
   onMessageDelta?:(delta:string)=>void;
   onConversationId?:(conversationId:string)=>void;
@@ -40,7 +42,7 @@ export type DesignerReply=
   | {type:'message';conversationId:string;message:string;suggestions?:string[]}
   | {type:'decline';conversationId:string;message:string}
   | {type:'error';message:string};
-export interface AskDesignerOptions {onEvent?:(event:DesignerEvent)=>void;vision?:VisionCaptureOptions;baseUrl?:string;onProgress?:(message:string)=>void;onMessageDelta?:(delta:string)=>void;signal?:AbortSignal}
+export interface AskDesignerOptions {onEvent?:(event:DesignerEvent)=>void;vision?:VisionCaptureOptions;baseUrl?:string;onProgress?:(message:string)=>void;onMessageDelta?:(delta:string)=>void;signal?:AbortSignal;resolveAssets?:DesignerHttpOptions['resolveAssets']}
 export class DesignerServiceError extends Error {
   readonly name='DesignerServiceError';
   constructor(message:string,readonly code:'http'|'protocol'|'validation'|'service',readonly status?:number){super(message);}
@@ -96,6 +98,17 @@ function appearanceMaterial(value:unknown):Json{
   text(material.id,'Material ID',100);
   if(material.unit!=='m2'||material.unitCost!==0||material.thickness!==.0002||material.wastePercent!==0)fail('Designer wall finishes require a conceptual paint material without a quoted cost.','validation');
   return material;
+}
+async function proposedCatalog(value:unknown,catalog:CatalogAsset[],resolve:DesignerHttpOptions['resolveAssets'],signal?:AbortSignal):Promise<CatalogAsset[]>{
+  const plain=(item:unknown):item is Record<string,unknown>=>item!==null&&typeof item==='object'&&!Array.isArray(item);
+  const operations=plain(value)&&plain(value.command)&&Array.isArray(value.command.operations)?value.command.operations:[];
+  const known=new Set(catalog.map(asset=>asset.id));
+  const missing=[...new Set(operations.flatMap(op=>plain(op)&&op.type==='add'&&plain(op.object)&&typeof op.object.assetId==='string'&&!known.has(op.object.assetId)?[op.object.assetId]:[]))];
+  if(!missing.length||!resolve)return catalog;
+  let assets:CatalogAsset[];
+  try{assets=await resolve(missing,signal);}
+  catch(error){if(signal?.aborted)throw error;throw new DesignerServiceError('The proposed furniture could not be loaded from the catalog. Try again.','service');}
+  return [...catalog,...assets.filter(asset=>missing.includes(asset.id))];
 }
 function proposalFrom(value:unknown,revision:number,snapshot:SceneDocument,catalog:CatalogAsset[],keep:readonly string[]=[]):AgentProposal{
   const proposal=record(value,'Proposal');keys(proposal,['id','title','description','command'],'Proposal');
@@ -167,7 +180,7 @@ export function createDesignerHttpAdapter(options:DesignerHttpOptions={}):Design
     northDeg:options.northDeg,doorSwings:options.doorSwings===undefined?undefined:structuredClone(options.doorSwings),
     conversationId:options.conversationId,catalog:options.catalog===undefined?undefined:structuredClone(options.catalog),
     vision:options.vision===undefined?undefined:structuredClone(options.vision),
-    catalogCurrency:options.catalogCurrency,onProgress:options.onProgress,onMessageDelta:options.onMessageDelta,onConversationId:options.onConversationId,onMetrics:options.onMetrics,onNotes:options.onNotes,
+    catalogCurrency:options.catalogCurrency,resolveAssets:options.resolveAssets,onProgress:options.onProgress,onMessageDelta:options.onMessageDelta,onConversationId:options.onConversationId,onMetrics:options.onMetrics,onNotes:options.onNotes,
     fetch:options.fetch??globalThis.fetch.bind(globalThis),
   };
   return {async propose(scene,revision,signal){
@@ -271,7 +284,7 @@ export function createDesignerHttpAdapter(options:DesignerHttpOptions={}):Design
         }
         const merged=[...catalog,...(assets??[]).filter(asset=>!catalog.some(existing=>existing.id===asset.id))];
         if(new Set(assets?.map(asset=>asset.id)).size!==(assets?.length??0))fail('Duplicate private assets.');
-        proposal=proposalFrom(final.proposal,revision,snapshot,merged,configured.keep);
+        proposal=proposalFrom(final.proposal,revision,snapshot,await proposedCatalog(final.proposal,merged,configured.resolveAssets,signal),configured.keep);
       }else if(final.type==='question'){
         keys(final,['type','conversationId','question','options'],'Question response');question=text(final.question,'Question',1000);
         if(final.options!==undefined){
@@ -319,7 +332,7 @@ export async function askDesigner(req:DesignerRequest,opts:AskDesignerOptions={}
     const adapter=createDesignerHttpAdapter({
       events:req.events,onEvent:opts.onEvent,onAssets:value=>{assets=value;},
       vision,url:serviceUrl(opts.baseUrl),request:req.request,conversationId:req.conversationId,
-      keep:req.keep,doorSwings:req.doorSwings,northDeg:req.northDeg,catalog:req.catalog,catalogCurrency:req.catalogCurrency,
+      keep:req.keep,doorSwings:req.doorSwings,northDeg:req.northDeg,catalog:req.catalog,catalogCurrency:req.catalogCurrency,resolveAssets:opts.resolveAssets,
       onProgress:opts.onProgress,onMessageDelta:opts.onMessageDelta,onConversationId:id=>{conversationId=id;},onMetrics:value=>{metrics=value;},onNotes:value=>{notes=value;},
     });
     const proposal=await adapter.propose(req.scene,req.revision,opts.signal);

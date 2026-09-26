@@ -12,8 +12,8 @@ import './ui/walkthrough.css';
 import './ui/designer-panel.css';
 import { mountDesignerPanel, previewDesignerProposal } from './ui/designer-panel';
 import { askDesigner } from './adapters/designer-http';
-import { DesignerProposalCatalog, mergeDesignerProducts } from './core/designer-catalog';
-import { createCatalogHttpAdapter, CATALOG_CURRENCY } from './adapters/catalog-http';
+import { DesignerProposalCatalog } from './core/designer-catalog';
+import { CATALOG_CURRENCY } from './adapters/catalog-http';
 import type { AgentProposal, CatalogAsset, EditCommand, ObjectPatch, Operation, SceneDocument, SceneObject, ToolMode, ViewMode, ViewportLayer, WallMode } from './contracts';
 import { createInitialScene } from './core/initial-scene';
 import { databaseCatalog, catalogKinds, resolveSceneProducts, retainRegisteredProducts, type CatalogProduct } from './adapters/database-catalog';
@@ -145,6 +145,9 @@ let catalogResults: CatalogProduct[] = [];
 let catalogLoading = false;
 let catalogError = '';
 let catalogExcluded = 0;
+let catalogNextOffset: number | null = null;
+// Browsing stays well inside the store's 1000 retained products.
+const CATALOG_BROWSE_LIMIT = 400;
 let catalogRequest: AbortController | undefined;
 let catalogSearchTimer: ReturnType<typeof setTimeout>;
 function registerProducts(products: CatalogProduct[]) {
@@ -641,16 +644,21 @@ async function refreshBuiltPieces() {
     builtError = error instanceof Error ? error.message : 'Built furniture unavailable.';
   } finally { builtLoading = false; renderAssets(); }
 }
-async function searchDatabase() {
+async function searchDatabase(more = false) {
   clearTimeout(catalogSearchTimer);
   catalogRequest?.abort();
   const request = new AbortController(); catalogRequest = request;
-  catalogLoading = true; catalogError = ''; catalogResults = []; catalogExcluded = 0; renderAssets();
+  const offset = more ? catalogNextOffset ?? 0 : 0;
+  catalogLoading = true; catalogError = ''; catalogNextOffset = null;
+  if (!offset) { catalogResults = []; catalogExcluded = 0; }
+  renderAssets();
   try {
-    const result = assetCategory === BUILT_CATEGORY ? { products: [], excluded: 0 } : await databaseCatalog.search($<HTMLInputElement>('#asset-search').value.trim(), assetCategory, request.signal);
+    const result = assetCategory === BUILT_CATEGORY ? { products: [], excluded: 0, nextOffset: null } : await databaseCatalog.search($<HTMLInputElement>('#asset-search').value.trim(), assetCategory, request.signal, offset);
     if (request.signal.aborted) return;
-    registerProducts(result.products);
-    catalogResults = result.products; catalogExcluded = result.excluded;
+    const page = result.products.filter(product => !catalogResults.some(shown => shown.asset.id === product.asset.id));
+    registerProducts(page);
+    catalogResults = [...catalogResults, ...page]; catalogExcluded += result.excluded;
+    catalogNextOffset = catalogResults.length < CATALOG_BROWSE_LIMIT ? result.nextOffset : null;
     renderInspector();
   } catch (error) {
     if (request.signal.aborted) return;
@@ -671,7 +679,9 @@ function renderAssets(){
   $('#catalog-retry').hidden = !errors;
   $('#asset-list').setAttribute('aria-busy', String(loading));
   $('#asset-list').innerHTML = results.length ? results.map(({asset:a,sizeStatus})=>`<button class="asset-card" data-asset="${escape(a.id)}" aria-label="Add ${escape(a.name)}"><div class="asset-preview" data-preview="${escape(a.id)}">${icon('box')}</div><span class="asset-add" aria-hidden="true">+</span><strong class="asset-title">${escape(a.name)}</strong><span class="asset-meta"><span>${a.dimensions[0].toFixed(2)} × ${a.dimensions[2].toFixed(2)} m · ${escape(sizeStatus)}</span></span><span class="asset-price">${escape(priceLabel(a))}</span></button>`).join('') : `<p class="empty-message">${loading ? 'Loading furniture…' : errors ? 'Check the furniture connections, then retry.' : 'No matching 3D furniture. Try a different search or category.'}</p>`;
+  if(results.length&&catalogNextOffset!==null&&!loading)$('#asset-list').insertAdjacentHTML('beforeend','<button id="catalog-more" class="button full">Show more furniture</button>');
   $('#asset-list').querySelectorAll<HTMLButtonElement>('[data-asset]').forEach(b=>b.onclick=()=>{const asset=catalog.find(a=>a.id===b.dataset.asset);if(asset)addAsset(asset);});
+  document.querySelector<HTMLButtonElement>('#catalog-more')?.addEventListener('click',()=>void searchDatabase(true));
   catalogPreviews.setAssets(results.map(product => product.asset));
 }
 function switchPanel(panel:Panel, toggle=false){
@@ -911,19 +921,15 @@ const designerHost = document.createElement('section');
 if(designerLive){$('.workspace').classList.add('designer-workspace');$('.left-panel').before(designerHost);}else $('#proposal').before(designerHost);
 const designerPanel = mountDesignerPanel(designerHost, {
   ask: designerLive ? async (request, options) => {
-    const currentProducts = structuredClone([...catalogProducts.values()]);
-    let remote: CatalogAsset[] = [];
-    const catalogUrl = import.meta.env.VITE_CATALOG_ASSETS_URL;
-    if(catalogUrl){
-      options?.onProgress?.('Loading furniture options…');
-      try { remote = await createCatalogHttpAdapter({ url: catalogUrl }).list(options?.signal); }
-      catch(error){
-        if(options?.signal?.aborted)throw error;
-        options?.onProgress?.('Catalog unavailable; using the furniture already loaded.');
-      }
-    }
-    const products = mergeDesignerProducts(currentProducts, remote);
-    const reply = await askDesigner({ ...request, catalog: products.map(product => product.asset), catalogCurrency: CATALOG_CURRENCY }, options);
+    // The request carries the products this scene already uses; the designer searches the catalog itself,
+    // and purchases it proposes are fetched by id through the same lookup as saved projects.
+    const products = structuredClone([...catalogProducts.values()]);
+    const reply = await askDesigner({ ...request, catalog: products.map(product => product.asset), catalogCurrency: CATALOG_CURRENCY }, { ...options,
+      resolveAssets: async (ids, signal) => {
+        const found = await databaseCatalog.resolve(ids, signal);
+        products.push(...found);
+        return found.map(product => product.asset);
+      } });
     if (reply.type === 'proposal' && !options?.signal?.aborted && request.revision === store.revision) {
       const customProducts = (reply.assets ?? []).map(asset => ({ asset, attribution: 'Custom piece for this flat', priceSource: 'sample custom estimate; workshop confirms', sizeStatus: 'reserved layout size' }));
       designerCatalog.remember(reply.proposal, [...products, ...customProducts]);

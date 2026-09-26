@@ -92,12 +92,14 @@ function toolPayload(result: Awaited<ReturnType<Client['callTool']>>): Record<st
   throw new Error('Catalog returned no structured result');
 }
 
-/** One read-only MCP session with one wall deadline for connect, search and provenance. */
-export function createHttpCatalogQuery(options: HttpCatalogOptions = {}): CatalogQuery {
+type CatalogCall = (name: string, args: Record<string, unknown>) => Promise<Record<string, unknown>>;
+
+/** One read-only MCP session per call of the returned function, with one wall deadline for everything in it. */
+function catalogSession(options: HttpCatalogOptions) {
   const url = new URL(options.url ?? DEFAULT_CATALOG_URL), timeoutMs = options.timeoutMs ?? 20_000;
   if (!['http:', 'https:'].includes(url.protocol)) throw new Error('Catalog URL must use HTTP or HTTPS');
   if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) throw new Error('Catalog timeout must be positive and finite');
-  return async input => {
+  return async <T>(work: (call: CatalogCall) => Promise<T>): Promise<T> => {
     const controller = new AbortController();
     const fetch = options.fetch ?? globalThis.fetch;
     const transport = new StreamableHTTPClientTransport(url, {
@@ -112,24 +114,11 @@ export function createHttpCatalogQuery(options: HttpCatalogOptions = {}): Catalo
       timer = setTimeout(() => { controller.abort(); reject(new Error('Catalog request timed out')); }, timeoutMs);
     });
     const requestOptions = { signal: controller.signal, timeout: timeoutMs, maxTotalTimeout: timeoutMs };
-    const search = async () => {
+    const run = async () => {
       await client.connect(transport, requestOptions);
-      const response = toolPayload(await client.callTool({ name: 'search_furniture', arguments: input }, undefined, requestOptions));
-      if (!Array.isArray(response.results)) throw new Error('Catalog search returned no result list');
-      const results = await Promise.all(response.results.slice(0, input.limit ?? 10).map(async raw => {
-        if (!object(raw) || typeof raw.id !== 'string' || !raw.id) return raw;
-        // search_furniture supplies ranked fit dimensions; get_item supplies the
-        // actual currency and provenance. Neither is inferred from the endpoint.
-        const detail = toolPayload(await client.callTool({ name: 'get_item', arguments: { item_id: raw.id } }, undefined, requestOptions));
-        if (detail.id !== raw.id) throw new Error('Catalog detail identity does not match search');
-        return { ...raw, ...detail, size_m: detail.fit_size_m ?? raw.size_m ?? detail.size_m,
-          colors_listing: raw.colors_listing, colors_image: raw.colors_image,
-          currency: detail.currency, source: detail.source, price_source: detail.price_source,
-          size_evidence: detail.size_evidence };
-      }));
-      return { ...response, results };
+      return work(async (name, args) => toolPayload(await client.callTool({ name, arguments: args }, undefined, requestOptions)));
     };
-    try { return await Promise.race([search(), expired]); }
+    try { return await Promise.race([run(), expired]); }
     finally {
       clearTimeout(timer!);
       controller.abort();
@@ -138,6 +127,45 @@ export function createHttpCatalogQuery(options: HttpCatalogOptions = {}): Catalo
     }
   };
 }
+
+/** One read-only MCP session with one wall deadline for connect, search and provenance. */
+export function createHttpCatalogQuery(options: HttpCatalogOptions = {}): CatalogQuery {
+  const session = catalogSession(options);
+  return input => session(async call => {
+    const response = await call('search_furniture', input);
+    if (!Array.isArray(response.results)) throw new Error('Catalog search returned no result list');
+    const results = await Promise.all(response.results.slice(0, input.limit ?? 10).map(async raw => {
+      if (!object(raw) || typeof raw.id !== 'string' || !raw.id) return raw;
+      // search_furniture supplies ranked fit dimensions; get_item supplies the
+      // actual currency and provenance. Neither is inferred from the endpoint.
+      const detail = await call('get_item', { item_id: raw.id });
+      if (detail.id !== raw.id) throw new Error('Catalog detail identity does not match search');
+      return { ...raw, ...detail, size_m: detail.fit_size_m ?? raw.size_m ?? detail.size_m,
+        colors_listing: raw.colors_listing, colors_image: raw.colors_image,
+        currency: detail.currency, source: detail.source, price_source: detail.price_source,
+        size_evidence: detail.size_evidence };
+    }));
+    return { ...response, results };
+  });
+}
+
+/** get_item records by id over one session; ids the catalog does not have are left out. */
+export function createHttpCatalogItems(options: HttpCatalogOptions = {}): (ids: string[]) => Promise<Record<string, unknown>[]> {
+  const session = catalogSession(options);
+  return ids => session(async call => {
+    const found: Record<string, unknown>[] = [];
+    for (const id of new Set(ids)) {
+      const detail = await call('get_item', { item_id: id });
+      if (typeof detail.error === 'string') continue;
+      if (detail.id !== id) throw new Error('Catalog detail identity does not match the requested id');
+      found.push(detail);
+    }
+    return found;
+  });
+}
+
+/** Products by id from the configured catalog service (VARPET_CATALOG_URL, else the documented endpoint). */
+export const catalogItems = (ids: string[]) => createHttpCatalogItems({ url: process.env.VARPET_CATALOG_URL || undefined })(ids);
 
 const queryCatalog: CatalogQuery = input => {
   if(process.env.VARPET_CATALOG_PROXY)return proxyCatalogQuery()(input);

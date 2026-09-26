@@ -127,3 +127,64 @@ test('invalid or mutating requests never call the catalog and unrelated routes p
   assert.equal((await fetch(`${url}/unrelated`)).status, 404);
   assert.deepEqual(stub.calls, []);
 });
+
+function models(files) {
+  const calls = [];
+  const fetch = async (url, init) => {
+    calls.push({ url: String(url), method: init?.method });
+    if (files === 'down') throw new Error('connect ECONNREFUSED 100.107.246.46');
+    const body = files[new URL(url).pathname];
+    return body ? new Response(body, { headers: { 'Content-Type': 'model/gltf-binary', 'Content-Length': String(body.length) } })
+      : new Response(null, { status: 404 });
+  };
+  return { fetch, calls };
+}
+
+test('light model files are relayed from the catalog service with a one-year cache', async t => {
+  const glb = new Uint8Array([0x67, 0x6c, 0x54, 0x46, 2, 0, 0, 0]);
+  const stub = models({ '/models/B0718WYQ8D.glb': glb });
+  const url = await editor(t, { fetch: stub.fetch, url: 'http://catalog.test/custom' });
+  const response = await fetch(`${url}/api/catalog/models/B0718WYQ8D.glb`);
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('content-type'), 'model/gltf-binary');
+  assert.equal(response.headers.get('cache-control'), 'public, max-age=31536000, immutable');
+  assert.deepEqual(new Uint8Array(await response.arrayBuffer()), glb);
+  assert.deepEqual(stub.calls, [{ url: 'http://catalog.test/models/B0718WYQ8D.glb', method: 'GET' }]);
+});
+
+test('a model without a light copy is an uncached 404 so the browser falls back to the original', async t => {
+  const stub = models({});
+  const url = await editor(t, { fetch: stub.fetch });
+  const missing = await fetch(`${url}/api/catalog/models/B000000000.glb`);
+  assert.equal(missing.status, 404);
+  assert.equal(missing.headers.get('cache-control'), 'no-store');
+  const down = await editor(t, { fetch: models('down').fetch });
+  const failed = await fetch(`${down}/api/catalog/models/B000000000.glb`);
+  assert.equal(failed.status, 502);
+  assert.equal(failed.headers.get('cache-control'), 'no-store');
+});
+
+test('model routes accept only GET of a plain .glb name and never reach the catalog otherwise', async t => {
+  const stub = models({});
+  const url = await editor(t, { fetch: stub.fetch });
+  for (const name of ['..%2Fsecret.glb', 'B0718WYQ8D.gltf', 'a.b.glb', `${'x'.repeat(41)}.glb`]) {
+    assert.equal((await fetch(`${url}/api/catalog/models/${name}`)).status, 404, name);
+  }
+  assert.equal((await fetch(`${url}/api/catalog/models/B0718WYQ8D.glb`, { method: 'POST' })).status, 405);
+  assert.deepEqual(stub.calls, []);
+});
+
+test('search pages forward an offset and return where the next page starts', async t => {
+  const stub = remote({ search: { results: [searchRow], candidates: 45, next_offset: 40, nearest_misses: [] } });
+  const url = await editor(t, { fetch: stub.fetch });
+  const response = await fetch(`${url}/api/catalog/search?text=sofa&offset=20`);
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.next_offset, 40);
+  assert.equal(body.candidates, 45);
+  const search = stub.calls.find(call => call.params?.name === 'search_furniture');
+  assert.deepEqual(search.params.arguments, { text: 'sofa', limit: 20, offset: 20 });
+  for (const bad of ['-1', '1.5', 'x', '100001']) {
+    assert.equal((await fetch(`${url}/api/catalog/search?text=sofa&offset=${bad}`)).status, 400, bad);
+  }
+});

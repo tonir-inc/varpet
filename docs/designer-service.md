@@ -27,8 +27,11 @@ Three pieces meet here. Each is built by a different session; this file is what 
 ```
 
 `keep`, `doorSwings` and `northDeg` are optional until the editor carries them (asked of the editor owner).
-`catalog` carries the exact `CatalogAsset[]` captured for this request. The editor registers database
-assets dynamically; an existing registered ID retains its identity while the scene or undo history uses
+`catalog` carries the exact `CatalogAsset[]` the scene already uses (owned furniture, history). It is not
+the set the designer may buy from: a purchase the designer found in the catalog is fetched by id when the
+proposal is translated (`withProposalAssets` in the bridge CLI, `resolveAssets` in the editor adapter) and
+converted with the editor's `catalogProduct`, so both sides check the same record. The editor registers
+database assets dynamically; an existing registered ID retains its identity while the scene or undo history uses
 it. Legacy callers that omit `catalog` still get the bridge's local demo catalog; the current editor
 passes its database catalog explicitly, including an empty array. Unknown asset IDs fail rather than
 acquiring invented dimensions.
@@ -175,12 +178,12 @@ Aborting the supplied signal cancels the HTTP stream and the service's worker pr
 [measured source, editor main `223cd22`] The editor starts with an empty v2 apartment and resolves
 real furniture through same-origin `/api/catalog/search` and `/api/catalog/items`. It registers returned
 assets with `EditorStore.registerCatalogAssets`; there is no demo-catalog fallback in current startup.
-Chat requests carry the captured catalog and `catalogCurrency: CATALOG_CURRENCY` (`AMD`).
-`VITE_CATALOG_ASSETS_URL=http://localhost:8765/editor/assets` additionally enables full-set discovery
-for a designer request. Existing registered identities take precedence; proposal additions are retained
-by `DesignerProposalCatalog` and registered before preview or approval. Without that optional URL,
-discovery is limited to the editor's currently retained database products. The designer MCP search may
-find a SKU outside that snapshot, which the bridge correctly refuses as unknown.
+Chat requests carry the scene's products and `catalogCurrency: CATALOG_CURRENCY` (`AMD`). The designer
+searches the catalog itself (every placeable product, see docs/catalog.md). Additions outside the request
+are fetched by id: the bridge through the catalog MCP `get_item`, the editor through `/api/catalog/items`.
+Existing registered identities take precedence; proposal additions are retained by `DesignerProposalCatalog`
+and registered before preview or approval. A SKU the catalog cannot supply is still refused as unknown.
+The old `VITE_CATALOG_ASSETS_URL` bulk discovery is gone.
 Point the designer service's `VARPET_CATALOG_URL` at the same catalog service's `/mcp` route.
 The remote catalog has real product records but its current AMD prices are mock prices, not shop quotes.
 

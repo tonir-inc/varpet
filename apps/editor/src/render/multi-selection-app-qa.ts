@@ -6,7 +6,7 @@ const lines: string[] = [];
 const tick = () => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
 const assert = (condition: unknown, label: string) => { if (!condition) throw new Error(label); lines.push(`PASS ${label}`); output.textContent = lines.join('\n'); };
 const products = localCatalog.map(asset => ({ asset, priceSource: 'QA', sizeStatus: 'QA', attribution: 'Synthetic test furniture' }));
-databaseCatalog.search = async () => ({ products, excluded: 0 });
+databaseCatalog.search = async () => ({ products, excluded: 0, nextOffset: null });
 databaseCatalog.resolve = async ids => products.filter(product => ids.includes(product.asset.id));
 const click = (selector: string, shiftKey = false) => {
   const element = document.querySelector<HTMLElement>(selector);
