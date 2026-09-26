@@ -9,7 +9,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import type { BuildingComponent, CatalogAsset, ComponentTransformPatch, ObjectPatch, SceneDocument, SceneObject, ToolMode, Vec3, ViewMode, Viewport, ViewportCallbacks, ViewportLayer, WallMode } from '../contracts';
 import { AssetLoader, disposeObject, makeFurniture } from './assets';
 import { makeStructure, type StructureProjection } from './structure';
-import { LightingPreview, makeServices, type ServiceProjection } from './services';
+import { installComponentModel, LightingPreview, makeServices, type ServiceProjection } from './services';
 import { label3d } from './annotations';
 import { createWallMove } from './wall-move';
 import type { SceneNormalizer } from '../core/store';
@@ -898,6 +898,21 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     comparison.visible = comparisonEnabled; world.add(comparison);
   }
 
+  /** Components with a catalog asset show its model once loaded; until then, or if it fails, the procedural shape stays. */
+  function loadComponentModels(projection: ServiceProjection, scene: SceneDocument, catalogById: ReadonlyMap<string, CatalogAsset>): void {
+    for (const component of scene.project?.components ?? []) {
+      const asset = component.assetId ? catalogById.get(component.assetId) : undefined;
+      if (!asset) continue;
+      void loader.load({ ...asset, dimensions: component.dimensions }).then(model => {
+        const group = projection.components.get(component.id);
+        if (disposed || services !== projection || !group) { disposeObject(model); return; }
+        installComponentModel(group, component, model); shadowCache.invalidate(); requestRender();
+      }).catch(error => {
+        if (!disposed && services === projection) callbacks.onError(`Could not load ${asset.name}; showing ${component.name} as drawn. ${error instanceof Error ? error.message : ''}`);
+      });
+    }
+  }
+
   function setScene(next: SceneDocument, catalog: CatalogAsset[]): void {
     // A replacement or catalog refresh invalidates the library gesture's snapshot.
     furnitureDrop.cancel();
@@ -937,12 +952,14 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       studioFog.near = Math.max(40, size.length() * 3);
       studioFog.far = Math.max(125, size.length() * 10);
     }
-    const nextServiceKey = JSON.stringify([next.project?.components, next.project?.routes, next.walls, next.project?.finishes, next.project?.materials]);
+    const catalogById = new Map(catalog.map(asset => [asset.id, asset]));
+    const componentAssets = (next.project?.components ?? []).map(component => component.assetId ? catalogById.get(component.assetId) ?? null : null);
+    const nextServiceKey = JSON.stringify([next.project?.components, next.project?.routes, next.walls, next.project?.finishes, next.project?.materials, componentAssets]);
     if (serviceKey !== nextServiceKey) {
       if (services) disposeObject(services.group);
       services = makeServices(next); serviceKey = nextServiceKey; world.add(services.group);
+      loadComponentModels(services, next, catalogById);
     }
-    const catalogById = new Map(catalog.map(asset => [asset.id, asset]));
     const existingIds = new Set(next.objects.map(object => object.id));
     for (const [id, record] of rendered) if (!existingIds.has(id)) {
       placementMotion.stop(id);

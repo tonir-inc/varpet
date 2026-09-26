@@ -321,6 +321,7 @@ export function createRenovationUI(container: HTMLElement, config: RenovationUIO
         const kind=text(fd,'kind') as ComponentKind;
         const component: BuildingComponent={id:id || uid(),name:required(fd,'name'),kind,position:[numeric(fd,'x'),numeric(fd,'y'),numeric(fd,'z')],dimensions:[numeric(fd,'width'),numeric(fd,'height'),numeric(fd,'depth')],rotation:numeric(fd,'rotation')*Math.PI/180,color:text(fd,'color'),phase:text(fd,'phase') as RenovationPhase,price:numeric(fd,'price'),notes:text(fd,'notes')};
         if(text(fd,'roomId')) component.roomId=text(fd,'roomId');
+        const assetId=id?p().components.find(c=>c.id===id)?.assetId:undefined; if(assetId) component.assetId=assetId;
         if(text(fd,'host-wall')) component.host={wallId:text(fd,'host-wall'),offset:numeric(fd,'host-offset'),elevation:numeric(fd,'host-elevation'),side:numeric(fd,'host-side') as 1|-1};
         if(fd.has('clear-enabled')) component.clearance=[numeric(fd,'clear-width'),numeric(fd,'clear-height'),numeric(fd,'clear-depth')];
         if(kind==='light') component.light={brightness:numeric(fd,'brightness'),temperature:numeric(fd,'temperature'),enabled:fd.has('light-enabled'),group:text(fd,'group')};

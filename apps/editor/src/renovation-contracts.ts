@@ -51,6 +51,8 @@ export interface BuildingComponent {
   light?: { brightness: number; temperature: number; enabled: boolean; group?: string };
   control?: { type: 'single' | 'two-way' | 'dimmer' | 'multi-gang'; targets: string[]; gangs: number };
   clearance?: Vec3;
+  /** Catalog asset drawn in place of the procedural shape, fitted to `dimensions`. Unknown ids fall back to the procedural shape. */
+  assetId?: string;
 }
 export type ServiceSystem = 'electrical' | 'water-hot' | 'water-cold' | 'waste' | 'ventilation' | 'heating' | 'gas' | 'data';
 export interface ServiceRoute {

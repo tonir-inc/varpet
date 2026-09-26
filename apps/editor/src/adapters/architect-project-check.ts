@@ -33,4 +33,15 @@ rejects(() => architectProject(v1, [{ ...toilet, position: [5, 0, 5] }], [asset]
 rejects(() => architectProject(v1, [{ ...toilet, kind: 'bidet' as BuildingComponent['kind'] }], [asset]), 'Component “toilet-1” has invalid geometry or properties.', 'an unknown kind is rejected with the editor message');
 rejects(() => architectProject(v1, [{ ...toilet, roomId: 'kitchen' }], [asset]), 'Component “toilet-1” references a missing room.', 'a missing room is rejected with the editor message');
 rejects(() => architectProject(v1, [toilet], []), 'Cannot open scene', 'furniture without its built piece is rejected');
+
+// A fixture can carry its built model; the editor draws that GLB in place of the procedural shape.
+const toiletAsset: CatalogAsset = { id: 'built-tiny-toilet', name: 'Built toilet', category: 'Built from your photos', kind: 'toilet', dimensions: [0.4, 0.78, 0.62], color: '#ffffff', price: 0, source: { type: 'gltf', url: 'http://127.0.0.1:8788/files/tiny/toilet/piece.glb' } };
+const modelled = architectProject(v1, [{ ...toilet, assetId: toiletAsset.id }], [asset, toiletAsset]);
+assert(modelled.project!.components[0]!.assetId === toiletAsset.id, 'the fixture keeps its built model');
+const modelledReopened = parseScene(serializeScene(modelled), [asset, toiletAsset]);
+assert(createApartmentStore(modelledReopened, [asset, toiletAsset]).scene.project?.components[0]?.assetId === toiletAsset.id, 'the saved file keeps the fixture model');
+const unknown = architectProject(v1, [{ ...toilet, assetId: 'not-in-catalog' }], [asset]);
+assert(unknown.project!.components[0]!.assetId === 'not-in-catalog', 'an unknown fixture model still opens (drawn procedurally)');
+rejects(() => architectProject(v1, [{ ...toilet, assetId: ' ' }], [asset]), 'Component “toilet-1” has invalid geometry or properties.', 'a blank fixture model id is rejected');
+rejects(() => architectProject(v1, [{ ...toilet, assetId: 7 as unknown as string }], [asset]), 'Component “toilet-1” has invalid geometry or properties.', 'a non-string fixture model id is rejected');
 console.log('architect project check passed');

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { BuildingComponent, SceneDocument, ServiceSystem } from '../contracts';
 import { componentPosition } from '../core/renovation';
+import { disposeObject } from './assets';
 
 export interface ServiceProjection {
   group: THREE.Group;
@@ -198,6 +199,20 @@ function makeComponent(component: BuildingComponent): THREE.Group {
     clearance.position.set(0, component.clearance[1] / 2, (d + component.clearance[2]) / 2); clearance.computeLineDistances(); clearance.visible = false; group.add(clearance); group.userData.clearance = clearance;
   }
   return group;
+}
+
+/**
+ * Swap a component's procedural shape for its catalog model (already fitted to the component's
+ * dimensions, floor-centred). The group keeps its pose, entity id and clearance helper, so selection,
+ * transform and layers behave exactly as for the procedural shape.
+ */
+export function installComponentModel(projection: THREE.Group, component: BuildingComponent, model: THREE.Group): void {
+  const clearance = projection.userData.clearance as THREE.Object3D | undefined;
+  for (const child of [...projection.children]) if (child !== clearance && !(child instanceof THREE.Light)) disposeObject(child);
+  delete projection.userData.toggles; delete projection.userData.emission;
+  model.userData.componentModel = true;
+  if (component.phase === 'remove') model.traverse(object => { if (object instanceof THREE.Mesh) for (const mat of Array.isArray(object.material) ? object.material : [object.material]) { mat.transparent = true; mat.opacity = 0.3; } });
+  projection.add(model);
 }
 
 export function makeServices(document: SceneDocument): ServiceProjection {
