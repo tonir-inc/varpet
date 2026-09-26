@@ -1,0 +1,6 @@
+{
+  "name": "@varpet/showcase", "version": "0.0.0", "private": true, "type": "module",
+  "scripts": { "dev": "vite --host 127.0.0.1 --port 5191", "build": "vite build", "preview": "vite preview --host 127.0.0.1 --port 5191", "typecheck": "tsc -p .", "test": "node --test tests/*.test.mjs", "export": "node scripts/export.mjs" },
+  "dependencies": { "three": "^0.186.1" },
+  "devDependencies": { "@types/three": "^0.186.0", "typescript": "^7.0.2", "vite": "^8.3.1", "playwright": "^1.56.0" }
+}
