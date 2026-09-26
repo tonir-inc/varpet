@@ -114,6 +114,7 @@ def make_workspace(case: dict, out: Path, cli: Path) -> tuple[Path, list[dict]]:
     if case.get("budget_dram"):
         (out / "budget.json").write_text(json.dumps({"budget_dram": int(case["budget_dram"])}) + "\n")
     (out / "draft.json").write_text('{"items": []}\n')
+    (out / "brief.txt").write_text(case["request"] + "\n")
     link_tools(out, cli)
     suffix = None
     if case.get("image"):
@@ -303,6 +304,7 @@ def run_thread(workspace: Path, case: dict, args, events_path: Path, result: dic
                 if last["status"] != "completed":
                     break
                 brief += f"\nCustomer follow-up: {answer}"
+                (workspace / "brief.txt").write_text(brief + "\n")
                 last = session.turn(followup_text(answer), f"followup-{n}")
             result["critic"] = critic_loop(session, workspace, brief, args, last)
         finally:
@@ -322,9 +324,10 @@ def critic_loop(session: Session, workspace: Path, brief: str, args, last: dict)
         record["skipped"] = "designer asked a question"
         return record
     critic = critic_module()
+    reply = None
     for n in range(1, args.critic_rounds + 1):
         began = time.monotonic()
-        issues = critic.critique(workspace, brief, None, n)
+        issues = critic.critique(workspace, brief, None, n, context=reply)
         round_record = {"round": n, "issues": issues, "critic_seconds": round(time.monotonic() - began, 1)}
         try:
             detail = json.loads((workspace / "critic" / f"round-{n}" / "critic.json").read_text())
@@ -338,6 +341,7 @@ def critic_loop(session: Session, workspace: Path, brief: str, args, last: dict)
             break
         fix = session.turn(critic.feedback(serious), f"critic-fix-{n}")
         round_record["fix"] = {k: fix[k] for k in ("status", "seconds", "final_message")}
+        reply = fix["final_message"]
         if fix["status"] != "completed":
             break
     return record

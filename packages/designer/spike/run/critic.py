@@ -7,6 +7,7 @@ looks only at the pictures (plus the brief and the room's piece list) and return
       brief:     the customer's request (and any follow-ups) as plain text
       rooms:     room ids to review; empty/None = every room with draft items
       round:     1-based; renders go to <workspace>/critic/round-<n>/
+      context:   optional keyword, the designer's reply to the previous round
     Each issue: {room, severity: "blocker"|"major"|"minor", issue, evidence, fix}.
     serious(issues) keeps blocker+major; feedback(issues) is the follow-up text for the designer thread.
     Details of the last call (images, seconds, usage, raw replies) are in <workspace>/critic/round-<n>/critic.json.
@@ -147,7 +148,7 @@ def render_room(workspace: Path, room_id: str, out: Path, draft: dict) -> dict:
     return {"images": images, "notes": notes}
 
 
-def _prompt(brief: str, room: dict, draft: dict, shots: dict) -> str:
+def _prompt(brief: str, room: dict, draft: dict, shots: dict, context: str | None = None) -> str:
     items = [i for i in draft.get("items") or [] if isinstance(i, dict) and i.get("room_id") == room["id"]]
     lines = [f"- {i.get('id')} | {i.get('kind')} | {i.get('name')} | "
              f"{'x'.join(f'{float(n):.2f}' for n in i.get('size') or [])} m"
@@ -158,6 +159,8 @@ def _prompt(brief: str, room: dict, draft: dict, shots: dict) -> str:
     return (f"Customer brief:\n{brief.strip()}\n\nRoom under review: {room['id']} ({room.get('name') or room['id']}), "
             f"{_size(room)}.\nPictures attached in order: {pictures}.\nRender notes:\n{notes}\n\n"
             f"Pieces in this room (id | kind | name | w x d x h):\n" + ("\n".join(lines) or "- (none)")
+            + (f"\n\nThe designer's answer to the previous review (re-raise an issue only if the pictures show it is still "
+               f"wrong and the reason given does not hold):\n{context.strip()}" if context else "")
             + "\n\nReview this room now and answer with the JSON object only.")
 
 
@@ -196,8 +199,10 @@ def _config(extra: dict) -> dict:
     return config
 
 
-def critique(workspace: Path | str, brief: str, rooms: list[str] | None = None, round: int = 1) -> list[dict]:
-    """Render each room and review it in a fresh tool-less Codex thread; returns the issues (see module doc)."""
+def critique(workspace: Path | str, brief: str, rooms: list[str] | None = None, round: int = 1,
+             context: str | None = None) -> list[dict]:
+    """Render each room and review it in a fresh tool-less Codex thread; returns the issues (see module doc).
+    context: the designer's reply to the previous round, if any."""
     from openai_codex import ApprovalMode, Codex, CodexConfig, LocalImageInput, Sandbox, TextInput
     from openai_codex.generated.v2_all import ReasoningEffort
     workspace = Path(workspace).resolve()
@@ -231,7 +236,7 @@ def critique(workspace: Path | str, brief: str, rooms: list[str] | None = None, 
                                                 sandbox=Sandbox("read-only"), cwd=str(workspace),
                                                 developer_instructions=RUBRIC, ephemeral=True)
                     inputs = [LocalImageInput(path=i["path"]) for i in shots[room_id]["images"]]
-                    inputs.append(TextInput(text=_prompt(brief, scene_rooms[room_id], draft, shots[room_id])))
+                    inputs.append(TextInput(text=_prompt(brief, scene_rooms[room_id], draft, shots[room_id], context)))
                     result = thread.run(inputs, effort=ReasoningEffort(EFFORT), approval_mode=ApprovalMode.deny_all,
                                         output_schema=SCHEMA)
                     entry["raw"] = result.final_response

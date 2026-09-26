@@ -35,8 +35,9 @@ furnish them with what the catalog offers for them (bath storage stands on the f
   Each item: `id`, `room_id`, `kind`, `name`, `pos` [x, y], `rot`, `size` [w, d, h], `keep: false`,
   `sku`, `price`, `vendor`, `color` (optional). Copy `sku`, `name`, `size`, `price`, `vendor` exactly
   from the catalog result. Every item needs a price. Only wall art, mirrors, clocks and curtains/blinds hang:
-  add `wall_id` + `height_m` (centre height above the floor) with `pos` flush on that wall (a curtain goes on the
-  window's wall, centred on the window). Shelves, cabinets and everything else stand on the floor. Items
+  add `wall_id` + `height_m` (centre height; the editor sets the final one) with `pos` flush on that wall. A curtain or blind is at
+  least as wide as its window and takes `pos`, `rot`, `wall_id` and `height_m` from `./varpet at-window <room>
+  <window> <w> <d> <h>` (JSON); bedrooms want one on every window. Shelves, cabinets and everything else stand on the floor. Items
   standing on another item (vase, books, table lamp, cushion, throw) add `on: "<support id>"` with `pos` inside
   the support's footprint. No other keys (extra keys fail the whole check).
   Finish: `{room_id, surface: "floor"|"walls"|"wall"|"ceiling", wall_id (only for "wall"), material, color}`;
@@ -55,6 +56,7 @@ furnish them with what the catalog offers for them (bath storage stands on the f
   - `./varpet render-plan plan.png [--room room-living]` labelled top-down plan
   - `./varpet render-view view.png --room room-living [--camera overview|eye|eye2] [--time day|evening]`
     3D picture of the room (overview = cutaway from above; eye = standing in a corner; evening = lights on)
+  - `./varpet at-window room-bedroom window-bedroom 2.1 0.13 2.6` placement of a curtain/blind of that size
   - `./varpet materials` finish materials; `./varpet swatches swatches.png` a picture of them
 - Everything you need is in this prompt and in `./varpet` output. Do not read `AGENTS.md` (it is this prompt),
   `cli.ts`, `lib/`, `scene.json`, `source.json` or `events.jsonl`: every file you print stays in your context
@@ -71,7 +73,7 @@ furnish them with what the catalog offers for them (bath storage stands on the f
   item's centre sits t/2 + depth/2 + 0.01 inside the line, front into the room: rot 0 against a top wall
   (y = max), 180 against a bottom wall, 90 against a left wall, 270 against a right wall. A wall-hung item
   uses the same rot, centre t/2 + depth/2 inside the line. `pos` is the footprint centre; `size` is before
-  rotation. `lib/scene.ts` has helpers (`againstWall`, `onWall`, `facing`, `centerOf`) for a node script.
+  rotation.
 - Use `view_image` on every PNG you make (plans, views, product sheets{image_tool_note}). Looking is the point.
 
 ## How to work (few, full steps: every step re-reads the whole conversation)
@@ -86,17 +88,19 @@ Put several commands in one shell call wherever you can, and do not take a step 
    the style, material and colour story. Design a finished, lived-in room, not a minimum: after the anchors
    (sofa, bed, table) add the layer that makes it a home: side tables, an accent chair or bench, storage and
    display (sideboard, shelves), plants, table and floor lamps, textiles, curtains, and wall decor (art,
-   mirrors). Hang art centred above the sofa, bed or sideboard (bottom ~20-30 cm above it, about 2/3 of its
-   width); put a mirror near the entry; dress sideboards, shelves and coffee tables with a few small pieces
+   mirrors). Hang art centred over the sofa, bed or sideboard, about 2/3 of its width
+   (the editor sets hanging heights); put a mirror near the entry, 0.2 m clear of wall ends and openings; dress sideboards, shelves and coffee tables with a few small pieces
    (`on`). A furnished living room usually has 12-20 pieces, a bedroom 8-14. Every piece needs a reason and a
    clear walkway; fill the room, do not crowd it.
 4. Write `draft.json` with one script and end the same shell call with `./varpet check`. Light every room in
    layers: ambient (ceiling design), task (pendant over the table, lamp by the reading chair or bed) and
    accent (a lamp or sconce for a corner or the focal wall). Fix every problem and re-check (checks are cheap,
    renders are not) until it says OK before you render.
-   Things that work together sit together: dining and desk chairs at the table edge or slid under it,
-   the TV on a media unit (or hung) facing the sofa, the coffee table within reach of the sofa, a lamp
-   and side table by each reading seat. The `chair_pullout` warning is about free space behind a chair,
+   Things that work together sit together (the check enforces most): dining and desk chairs at the table edge
+   or slid under it; the TV on a media unit (or hung) facing the sofa; the coffee table 0.35-0.5 m from the sofa
+   front; the rug under the sofa's front legs; a nightstand and a light on each open side of a bed; every lamp
+   serving a seat, bed or desk, table lamps `on` a surface, floor lamps 1.5 m apart; art not hidden behind
+   tall pieces; a dining table in a living & dining room. The `chair_pullout` warning is about free space behind a chair,
    never a reason to move it away from its table.
 5. Render round, one shell call: `./varpet render-plan plan.png --room <room>; ./varpet render-view view.png
    --room <room>` (the cutaway overview shows the whole room), then view both. LOOK at what the pictures show, not at what you meant to place,
