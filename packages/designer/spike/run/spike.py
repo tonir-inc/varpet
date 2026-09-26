@@ -182,72 +182,178 @@ def disable_skills(codex, workspace: str) -> list[str]:
     return [skill.name for entry in audited.data for skill in entry.skills if skill.enabled]
 
 
-def run_thread(workspace: Path, case: dict, args, events_path: Path) -> dict:
-    from openai_codex import Codex, CodexConfig, ApprovalMode, Sandbox, LocalImageInput, TextInput
-    from openai_codex.generated.v2_all import ReasoningEffort
-    home, extra = private_home(args.tool_mode)
-    config = codex_config(args.effort, args.sandbox, not args.no_network, extra)
-    sandbox = Sandbox(args.sandbox)
-    instructions = (workspace / "AGENTS.md").read_text()
-    text = f"Customer request: {case['request']}\nWork in this directory as your instructions describe."
-    turn_input = text
-    if case.get("image"):
-        turn_input = [LocalImageInput(path=str(SPIKE / case["image"])), TextInput(text=text)]
-    record = {"tool_mode": args.tool_mode, "original_tool_mode": extra.get("original_tool_mode"),
-              "sandbox": args.sandbox, "network": not args.no_network, "config": config}
-    counts, commands, images, tools = Counter(), [], [], []
-    usage = final = completed = None
-    started = time.monotonic()
-    sdk = CodexConfig(cwd=str(workspace), env={"CODEX_HOME": str(home)},
-                      config_overrides=tuple(k + "=" + toml(v) for k, v in config.items()))
-    try:
-        with Codex(sdk) as codex, events_path.open("w") as log:
-            record["skills_enabled"] = disable_skills(codex, str(workspace))
-            thread = codex.thread_start(model=MODEL, approval_mode=ApprovalMode.deny_all, sandbox=sandbox,
-                                        cwd=str(workspace), developer_instructions=instructions)
-            record["thread_id"] = thread.id
-            # No per-turn sandbox: the SDK's turn preset sends workspaceWrite with networkAccess=false,
-            # overriding sandbox_workspace_write.network_access from the config.
-            handle = thread.turn(turn_input, effort=ReasoningEffort(args.effort),
-                                 approval_mode=ApprovalMode.deny_all)
-            timer = threading.Timer(args.timeout, handle.interrupt)
-            timer.start()
-            try:
-                for event in handle.stream():
-                    payload = event.payload.model_dump(mode="json", by_alias=True)
-                    log.write(json.dumps({"t": round(time.monotonic() - started, 3), "method": event.method,
-                                          "payload": payload}, ensure_ascii=False) + "\n")
-                    if event.method == "item/completed":
-                        item = payload.get("item", {})
-                        kind = item.get("type")
-                        counts[kind] += 1
-                        if kind == "commandExecution":
-                            commands.append({"command": item.get("command"), "exit": item.get("exitCode"),
-                                             "ms": item.get("durationMs")})
-                        elif kind == "imageView":
-                            images.append(item.get("path"))
-                        elif kind in ("mcpToolCall", "dynamicToolCall"):
-                            tools.append(item.get("tool"))
-                        elif kind == "agentMessage" and item.get("phase") in (None, "final_answer"):
-                            final = item.get("text")
-                    elif event.method == "thread/tokenUsage/updated":
-                        usage = payload.get("tokenUsage", {}).get("total")
-                    elif event.method == "turn/completed":
-                        completed = payload.get("turn", {})
-            finally:
-                timer.cancel()
-    finally:
-        shutil.rmtree(home, ignore_errors=True)
-    seconds = time.monotonic() - started
-    status = (completed or {}).get("status", "missing_completion")
-    if seconds >= args.timeout:
-        status = "timeout"
-    ignored = {"agentMessage", "reasoning", "userMessage", None}
-    return {**record, "status": status, "error": (completed or {}).get("error"), "wall_seconds": round(seconds, 1),
-            "usage": usage, "tool_calls": {"total": sum(n for k, n in counts.items() if k not in ignored),
-                                           "by_type": dict(counts), "commands": commands,
-                                           "images_viewed": images, "tools": tools},
-            "final_message": final}
+def turn_text(case: dict) -> str:
+    return f"Customer request: {case['request']}\nWork in this directory as your instructions describe."
+
+
+def followup_text(answer: str) -> str:
+    return (f"Customer follow-up: {answer}\nContinue the design as your instructions describe, following this answer; "
+            "if you already designed, change only what this asks and keep everything else.")
+
+
+def is_question(final: str | None, workspace: Path) -> bool:
+    """The designer stopped to ask the customer (empty draft, a question as its final message)."""
+    draft, _ = read_draft(workspace)
+    items = (draft or {}).get("items", []) if isinstance(draft, dict) else []
+    return not items and bool(final and "?" in final)
+
+
+class Session:
+    """One designer thread kept open across turns (initial request, scripted follow-ups, critic fixes)."""
+
+    def __init__(self, workspace: Path, args, events_path: Path):
+        self.workspace, self.args, self.events_path = workspace, args, events_path
+        self.home, self.extra = private_home(args.tool_mode)
+        self.config = codex_config(args.effort, args.sandbox, not args.no_network, self.extra)
+        self.counts, self.commands, self.images, self.tools = Counter(), [], [], []
+        self.usage = None
+        self.turns: list[dict] = []
+        self.started = time.monotonic()
+
+    def __enter__(self):
+        from openai_codex import Codex, CodexConfig, ApprovalMode, Sandbox
+        sdk = CodexConfig(cwd=str(self.workspace), env={"CODEX_HOME": str(self.home)},
+                          config_overrides=tuple(k + "=" + toml(v) for k, v in self.config.items()))
+        self.codex = Codex(sdk).__enter__()
+        self.log = self.events_path.open("w")
+        self.skills_enabled = disable_skills(self.codex, str(self.workspace))
+        self.thread = self.codex.thread_start(model=MODEL, approval_mode=ApprovalMode.deny_all,
+                                              sandbox=Sandbox(self.args.sandbox), cwd=str(self.workspace),
+                                              developer_instructions=(self.workspace / "AGENTS.md").read_text())
+        return self
+
+    def __exit__(self, *exc):
+        try:
+            self.log.close()
+            self.codex.__exit__(*exc)
+        finally:
+            shutil.rmtree(self.home, ignore_errors=True)
+
+    def turn(self, turn_input, label: str) -> dict:
+        from openai_codex import ApprovalMode
+        from openai_codex.generated.v2_all import ReasoningEffort
+        final = completed = None
+        began = time.monotonic()
+        # No per-turn sandbox: the SDK's turn preset sends workspaceWrite with networkAccess=false,
+        # overriding sandbox_workspace_write.network_access from the config.
+        handle = self.thread.turn(turn_input, effort=ReasoningEffort(self.args.effort),
+                                  approval_mode=ApprovalMode.deny_all)
+        timer = threading.Timer(self.args.timeout, handle.interrupt)
+        timer.start()
+        try:
+            for event in handle.stream():
+                payload = event.payload.model_dump(mode="json", by_alias=True)
+                self.log.write(json.dumps({"t": round(time.monotonic() - self.started, 3), "turn": label,
+                                           "method": event.method, "payload": payload}, ensure_ascii=False) + "\n")
+                if event.method == "item/completed":
+                    item = payload.get("item", {})
+                    kind = item.get("type")
+                    self.counts[kind] += 1
+                    if kind == "commandExecution":
+                        self.commands.append({"command": item.get("command"), "exit": item.get("exitCode"),
+                                              "ms": item.get("durationMs")})
+                    elif kind == "imageView":
+                        self.images.append(item.get("path"))
+                    elif kind in ("mcpToolCall", "dynamicToolCall"):
+                        self.tools.append(item.get("tool"))
+                    elif kind == "agentMessage" and item.get("phase") in (None, "final_answer"):
+                        final = item.get("text")
+                elif event.method == "thread/tokenUsage/updated":
+                    self.usage = payload.get("tokenUsage", {}).get("total")
+                elif event.method == "turn/completed":
+                    completed = payload.get("turn", {})
+        finally:
+            timer.cancel()
+        seconds = time.monotonic() - began
+        status = (completed or {}).get("status", "missing_completion")
+        if seconds >= self.args.timeout:
+            status = "timeout"
+        record = {"label": label, "status": status, "error": (completed or {}).get("error"),
+                  "seconds": round(seconds, 1), "final_message": final,
+                  "tokens_total": (self.usage or {}).get("totalTokens")}
+        self.turns.append(record)
+        return record
+
+    def summary(self) -> dict:
+        ignored = {"agentMessage", "reasoning", "userMessage", None}
+        last = self.turns[-1] if self.turns else {}
+        return {"tool_mode": self.args.tool_mode, "original_tool_mode": self.extra.get("original_tool_mode"),
+                "sandbox": self.args.sandbox, "network": not self.args.no_network, "config": self.config,
+                "skills_enabled": getattr(self, "skills_enabled", None), "thread_id": getattr(self, "thread", None) and self.thread.id,
+                "status": last.get("status", "missing_completion"), "error": last.get("error"),
+                "wall_seconds": round(time.monotonic() - self.started, 1), "usage": self.usage, "turns": self.turns,
+                "tool_calls": {"total": sum(n for k, n in self.counts.items() if k not in ignored),
+                               "by_type": dict(self.counts), "commands": self.commands,
+                               "images_viewed": self.images, "tools": self.tools},
+                "final_message": last.get("final_message")}
+
+
+def run_thread(workspace: Path, case: dict, args, events_path: Path, result: dict) -> None:
+    """Initial turn, each --followup, then up to --critic-rounds of independent critique + fix turns.
+    Updates `result` as it goes so a crash still leaves what ran."""
+    from openai_codex import LocalImageInput, TextInput
+    first = turn_text(case)
+    turn_input = [LocalImageInput(path=str(SPIKE / case["image"])), TextInput(text=first)] if case.get("image") else first
+    brief = case["request"]
+    with Session(workspace, args, events_path) as session:
+        try:
+            last = session.turn(turn_input, "request")
+            result["question"] = last["final_message"] if is_question(last["final_message"], workspace) else None
+            for n, answer in enumerate(args.followup or [], 1):
+                if last["status"] != "completed":
+                    break
+                brief += f"\nCustomer follow-up: {answer}"
+                last = session.turn(followup_text(answer), f"followup-{n}")
+            result["critic"] = critic_loop(session, workspace, brief, args, last)
+        finally:
+            result.update(session.summary())
+
+
+def critic_loop(session: Session, workspace: Path, brief: str, args, last: dict) -> dict:
+    """critique -> fix turn, at most args.critic_rounds times; skipped for a question or a failed turn."""
+    record = {"rounds": [], "skipped": None}
+    if args.no_critic or args.critic_rounds <= 0:
+        record["skipped"] = "disabled"
+        return record
+    if last["status"] != "completed":
+        record["skipped"] = f"designer turn {last['status']}"
+        return record
+    if is_question(last["final_message"], workspace):
+        record["skipped"] = "designer asked a question"
+        return record
+    critic = critic_module()
+    for n in range(1, args.critic_rounds + 1):
+        began = time.monotonic()
+        issues = critic.critique(workspace, brief, None, n)
+        round_record = {"round": n, "issues": issues, "critic_seconds": round(time.monotonic() - began, 1)}
+        try:
+            detail = json.loads((workspace / "critic" / f"round-{n}" / "critic.json").read_text())
+            round_record["critic_tokens"] = sum(((room.get("usage") or {}).get("total") or {}).get("totalTokens") or 0
+                                                for room in detail.get("rooms", {}).values())
+        except (OSError, ValueError):
+            pass
+        record["rounds"].append(round_record)
+        serious = critic.serious(issues)
+        if not serious:
+            break
+        fix = session.turn(critic.feedback(serious), f"critic-fix-{n}")
+        round_record["fix"] = {k: fix[k] for k in ("status", "seconds", "final_message")}
+        if fix["status"] != "completed":
+            break
+    return record
+
+
+_critic = None
+
+
+def critic_module():
+    global _critic
+    if _critic is None:
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("varpet_spike_critic", RUN / "critic.py")
+        _critic = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(_critic)
+    return _critic
 
 
 def varpet(workspace: Path, *argv: str) -> dict:
@@ -324,6 +430,9 @@ def main() -> int:
     parser.add_argument("--timeout", type=float, default=1500.0, help="wall seconds before the turn is interrupted")
     parser.add_argument("--cli", type=Path, default=SPIKE / "cli.ts", help="CLI to expose (stub for plumbing tests)")
     parser.add_argument("--no-render", action="store_true", help="skip the final check/render report")
+    parser.add_argument("--followup", action="append", help="a scripted customer answer sent as the next turn on the same thread (repeatable)")
+    parser.add_argument("--critic-rounds", type=int, default=2, help="independent critic rounds after the design (default 2)")
+    parser.add_argument("--no-critic", action="store_true", help="skip the critic")
     args = parser.parse_args()
     case = load_case(args.case, args.cases)
     if not args.cli.exists():
@@ -338,7 +447,7 @@ def main() -> int:
     if not args.no_render:
         result["warmup"] = warm_renderer(workspace, scope(case, rooms)[0])
     try:
-        result.update(run_thread(workspace, case, args, workspace / "events.jsonl"))
+        run_thread(workspace, case, args, workspace / "events.jsonl", result)
     except Exception as error:  # record, then still report what the workspace holds
         result.update(status="error", error=f"{type(error).__name__}: {error}")
     draft, draft_error = read_draft(workspace)
@@ -350,7 +459,11 @@ def main() -> int:
         result["report"] = final_report(workspace, case)
     (workspace / "result.json").write_text(json.dumps(result, indent=2, ensure_ascii=False))
     usage = result.get("usage") or {}
+    critic = result.get("critic") or {}
     print(json.dumps({k: result.get(k) for k in ("status", "error", "wall_seconds", "item_count", "total_price")}
+                     | {"question": bool(result.get("question")), "turns": [(t["label"], t["seconds"]) for t in result.get("turns") or []],
+                        "critic": [(r["round"], len(r["issues"]), len([i for i in r["issues"] if i["severity"] in ("blocker", "major")]))
+                                   for r in critic.get("rounds") or []] or critic.get("skipped")}
                      | {"tokens": {k: usage.get(k) for k in ("inputTokens", "cachedInputTokens", "outputTokens",
                                                               "reasoningOutputTokens")},
                         "tool_calls": (result.get("tool_calls") or {}).get("by_type")}, indent=1), flush=True)
