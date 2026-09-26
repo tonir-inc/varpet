@@ -1,0 +1,108 @@
+{
+  "currency": "AMD",
+  "price_source": "mock",
+  "assets": [
+    {
+      "id": "abo:B07GFW9GFX",
+      "name": "Movian Indre Bedroom Furniture",
+      "category": "Storage",
+      "kind": "cabinet",
+      "dimensions": [
+        1.2898,
+        1.9098,
+        0.5098
+      ],
+      "color": "#9f9587",
+      "price": 163000,
+      "source": {
+        "type": "gltf",
+        "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/X/B07GFW9GFX.glb"
+      }
+    },
+    {
+      "id": "abo:B07JVNB871",
+      "name": "amazon Brand Movian City Club Module Corner Armchair",
+      "category": "Living",
+      "kind": "chair",
+      "dimensions": [
+        0.684,
+        0.66,
+        0.6849
+      ],
+      "color": "#628086",
+      "price": 64000,
+      "source": {
+        "type": "gltf",
+        "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/1/B07JVNB871.glb"
+      }
+    },
+    {
+      "id": "abo:B075X4F5CS",
+      "name": "Amazon Brand – Rivet Lawson Modern Angled Sofa, 78\"W, Smoke",
+      "category": "Living",
+      "kind": "sofa",
+      "dimensions": [
+        2.0018,
+        0.9068,
+        0.8431
+      ],
+      "color": "#49413f",
+      "price": 273000,
+      "source": {
+        "type": "gltf",
+        "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/S/B075X4F5CS.glb"
+      }
+    },
+    {
+      "id": "abo:B075YPTG8S",
+      "name": "Amazon Brand – Rivet Industrial Mid-Century Modern Hairpin Dining Table, 70.9\"L,",
+      "category": "Living",
+      "kind": "table",
+      "dimensions": [
+        1.7913,
+        0.7533,
+        0.8828
+      ],
+      "color": "#795238",
+      "price": 111000,
+      "source": {
+        "type": "gltf",
+        "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/S/B075YPTG8S.glb"
+      }
+    },
+    {
+      "id": "abo:B079HXWXXD",
+      "name": "Amazon Brand - Movian Havel 1-Drawer Desk with Storage Compartment, 50 x 100 x 7",
+      "category": "Office",
+      "kind": "table",
+      "dimensions": [
+        0.9789,
+        0.723,
+        0.4914
+      ],
+      "color": "#e3e2e6",
+      "price": 92000,
+      "source": {
+        "type": "gltf",
+        "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/D/B079HXWXXD.glb"
+      }
+    },
+    {
+      "id": "abo:B07GFRKNNH",
+      "name": "Amazon Brand - Movian Havel 2-Drawer Bedside Table, 35 x 43 x 45cm, Dark Grey/Wh",
+      "category": "Bedroom",
+      "kind": "cabinet",
+      "dimensions": [
+        0.4268,
+        0.4478,
+        0.347
+      ],
+      "color": "#282827",
+      "price": 34000,
+      "source": {
+        "type": "gltf",
+        "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/H/B07GFRKNNH.glb"
+      }
+    }
+  ]
+}

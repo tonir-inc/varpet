@@ -1,0 +1,6688 @@
+{
+  "source_commit": "98155b5",
+  "search_grid_m": 0.1,
+  "catalog_refresh_seconds": 0,
+  "id": "b28-t31",
+  "model": "gpt-6-astra, high (interactive vision)",
+  "started_at": "2026-09-26T14:06:37.110Z",
+  "seconds": 12.678,
+  "tokens": null,
+  "token_note": "Placement uses no model calls. Interactive vision/development tokens are shared across flats and reported separately.",
+  "alignment": {
+    "origin_px": [
+      549,
+      298
+    ],
+    "pixels_per_metre": 57,
+    "axes": "x right; editor z down",
+    "basis": "derived from matched bathroom/bedroom and facade inner corners"
+  },
+  "door_swings": {
+    "entrance": "in-left",
+    "bathroom_door": "in-right",
+    "bedroom_door": "out-left",
+    "balcony_door": "in-right"
+  },
+  "door_swing_basis": "Hinge jamb and opening side read from enlarged plan crops; exact physical jamb is selected before choosing the sweep side. Small balcony leaf angles are extended to full 90-degree sweeps.",
+  "drawn": 32,
+  "placed": 8,
+  "cost_amd": 835000,
+  "editor_acceptance": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "revision": 1
+  },
+  "proposal": {
+    "id": "proposal-1",
+    "base_scene_fingerprint": "ac51b899a39accf7d99ddb711d8454fd1de50c340471324b1c0851fee1cc0704",
+    "ops": [
+      {
+        "type": "add",
+        "item": {
+          "id": "drawn-i1",
+          "room_id": "living",
+          "kind": "sofa",
+          "name": "Three-seat sofa on the west wall",
+          "pos": [
+            0.692807017543859,
+            -7.114912280701754
+          ],
+          "rot": 90,
+          "size": [
+            2.0018,
+            0.8431,
+            0.9068
+          ],
+          "keep": false,
+          "sku": "abo:B075X4F5CS",
+          "price": 273000
+        }
+      },
+      {
+        "type": "add",
+        "item": {
+          "id": "drawn-i23",
+          "room_id": "bedroom",
+          "kind": "cabinet",
+          "name": "Wardrobe on the bathroom partition",
+          "pos": [
+            5.741052631578947,
+            -5.155614035087719
+          ],
+          "rot": 0,
+          "size": [
+            1.2898,
+            0.5098,
+            1.9098
+          ],
+          "keep": false,
+          "sku": "abo:B07GFW9GFX",
+          "price": 163000
+        }
+      },
+      {
+        "type": "add",
+        "item": {
+          "id": "drawn-i6",
+          "room_id": "living",
+          "kind": "table",
+          "name": "Dining table",
+          "pos": [
+            1.3726315789473686,
+            -9.564210526315788
+          ],
+          "rot": 180,
+          "size": [
+            1.7913,
+            0.8828,
+            0.7533
+          ],
+          "keep": false,
+          "sku": "abo:B075YPTG8S",
+          "price": 111000
+        }
+      },
+      {
+        "type": "add",
+        "item": {
+          "id": "drawn-i24",
+          "room_id": "bedroom",
+          "kind": "table",
+          "name": "Desk on the partition",
+          "pos": [
+            4.0815789473684205,
+            -9.34421052631579
+          ],
+          "rot": 90,
+          "size": [
+            0.9789,
+            0.4914,
+            0.723
+          ],
+          "keep": false,
+          "sku": "abo:B079HXWXXD",
+          "price": 92000
+        }
+      },
+      {
+        "type": "add",
+        "item": {
+          "id": "drawn-i3",
+          "room_id": "living",
+          "kind": "chair",
+          "name": "Armchair north",
+          "pos": [
+            1.502456140350877,
+            -5.765438596491228
+          ],
+          "rot": 0,
+          "size": [
+            0.684,
+            0.6849,
+            0.66
+          ],
+          "keep": false,
+          "sku": "abo:B07JVNB871",
+          "price": 64000
+        }
+      },
+      {
+        "type": "add",
+        "item": {
+          "id": "drawn-i4",
+          "room_id": "living",
+          "kind": "chair",
+          "name": "Armchair south",
+          "pos": [
+            1.502456140350877,
+            -8.15456140350877
+          ],
+          "rot": 180,
+          "size": [
+            0.684,
+            0.6849,
+            0.66
+          ],
+          "keep": false,
+          "sku": "abo:B07JVNB871",
+          "price": 64000
+        }
+      },
+      {
+        "type": "add",
+        "item": {
+          "id": "drawn-i21",
+          "room_id": "bedroom",
+          "kind": "nightstand",
+          "name": "Nightstand north",
+          "pos": [
+            6.1808771929824555,
+            -6.175263157894737
+          ],
+          "rot": 270,
+          "size": [
+            0.4268,
+            0.347,
+            0.4478
+          ],
+          "keep": false,
+          "sku": "abo:B07GFRKNNH",
+          "price": 34000
+        }
+      },
+      {
+        "type": "add",
+        "item": {
+          "id": "drawn-i22",
+          "room_id": "bedroom",
+          "kind": "nightstand",
+          "name": "Nightstand south",
+          "pos": [
+            6.1808771929824555,
+            -8.534561403508771
+          ],
+          "rot": 270,
+          "size": [
+            0.4268,
+            0.347,
+            0.4478
+          ],
+          "keep": false,
+          "sku": "abo:B07GFRKNNH",
+          "price": 34000
+        }
+      }
+    ],
+    "rationale": "Place the developer-drawn furniture using real catalog products, keeping their original room and orientation with checked local nudges. Missing fixture, television and blocked furniture instances are listed in the audit.",
+    "intent": {
+      "add": [
+        {
+          "kinds": [
+            "sofa"
+          ],
+          "count": 1
+        },
+        {
+          "kinds": [
+            "cabinet"
+          ],
+          "count": 1
+        },
+        {
+          "kinds": [
+            "table"
+          ],
+          "count": 1
+        },
+        {
+          "kinds": [
+            "table"
+          ],
+          "count": 1
+        },
+        {
+          "kinds": [
+            "chair"
+          ],
+          "count": 1
+        },
+        {
+          "kinds": [
+            "chair"
+          ],
+          "count": 1
+        },
+        {
+          "kinds": [
+            "nightstand"
+          ],
+          "count": 1
+        },
+        {
+          "kinds": [
+            "nightstand"
+          ],
+          "count": 1
+        }
+      ]
+    },
+    "checks": {
+      "ok": true,
+      "errors": [
+        {
+          "check": "function_clearance",
+          "severity": "soft",
+          "item_ids": [
+            "drawn-i6"
+          ],
+          "at": [
+            0.4769815789473687,
+            -9.564210526315788
+          ],
+          "deficit_m": 0.616018,
+          "message": "drawn-i6 table_wall right: 0.28 m; preferred 0.90 m minimum"
+        },
+        {
+          "check": "function_clearance",
+          "severity": "soft",
+          "item_ids": [
+            "drawn-i6"
+          ],
+          "at": [
+            1.3726315789473686,
+            -10.005610526315788
+          ],
+          "deficit_m": 0.554761,
+          "message": "drawn-i6 table_wall back: 0.35 m; preferred 0.90 m minimum"
+        },
+        {
+          "check": "function_clearance",
+          "severity": "soft",
+          "item_ids": [
+            "drawn-i24"
+          ],
+          "at": [
+            4.0815789473684205,
+            -9.83366052631579
+          ],
+          "deficit_m": 0.681011,
+          "message": "drawn-i24 table_wall left: 0.22 m; preferred 0.90 m minimum"
+        },
+        {
+          "check": "function_clearance",
+          "severity": "soft",
+          "item_ids": [
+            "drawn-i24"
+          ],
+          "at": [
+            3.8358789473684207,
+            -9.34421052631579
+          ],
+          "deficit_m": 0.800921,
+          "message": "drawn-i24 table_wall back: 0.10 m; preferred 0.90 m minimum"
+        },
+        {
+          "check": "walkway",
+          "severity": "soft",
+          "item_ids": [
+            "drawn-i1"
+          ],
+          "at": [
+            1.893,
+            -7.461
+          ],
+          "deficit_m": 0.050000000000000044,
+          "message": "door:balcony_door to item:drawn-i1: 0.70 m path; 0.75 m preferred, 0.90 m good"
+        },
+        {
+          "check": "walkway",
+          "severity": "soft",
+          "item_ids": [
+            "drawn-i6"
+          ],
+          "at": [
+            2.293,
+            -8.811
+          ],
+          "deficit_m": 0.15000000000000002,
+          "message": "door:balcony_door to item:drawn-i6: 0.60 m path; 0.75 m preferred, 0.90 m good"
+        },
+        {
+          "check": "walkway",
+          "severity": "soft",
+          "item_ids": [
+            "drawn-i3"
+          ],
+          "at": [
+            1.893,
+            -7.461
+          ],
+          "deficit_m": 0.050000000000000044,
+          "message": "door:balcony_door to item:drawn-i3: 0.70 m path; 0.75 m preferred, 0.90 m good"
+        },
+        {
+          "check": "walkway",
+          "severity": "soft",
+          "item_ids": [
+            "drawn-i4"
+          ],
+          "at": [
+            1.893,
+            -7.461
+          ],
+          "deficit_m": 0.050000000000000044,
+          "message": "door:balcony_door to item:drawn-i4: 0.70 m path; 0.75 m preferred, 0.90 m good"
+        },
+        {
+          "check": "walkway",
+          "severity": "soft",
+          "item_ids": [
+            "drawn-i23"
+          ],
+          "at": [
+            5.7368,
+            -5.739
+          ],
+          "deficit_m": 0.13967221919999995,
+          "message": "door:bedroom_door to item:drawn-i23: 0.61 m path; 0.75 m preferred, 0.90 m good"
+        }
+      ],
+      "notes": [
+        {
+          "check": "walkway",
+          "room_id": "hall",
+          "walkway": {
+            "from": "door:entrance",
+            "to": "door:bedroom_door",
+            "reachable": true
+          },
+          "item_ids": [],
+          "at": [
+            4.17505,
+            -3.1719
+          ],
+          "deficit_m": 0.25,
+          "message": "Pre-existing, not worsened: door:entrance to door:bedroom_door: 0.35 m path; minimum 0.60 m",
+          "severity": "soft",
+          "baseline": true
+        },
+        {
+          "check": "walkway",
+          "room_id": "hall",
+          "walkway": {
+            "from": "door:bathroom_door",
+            "to": "door:bedroom_door",
+            "reachable": true
+          },
+          "item_ids": [],
+          "at": [
+            4.17505,
+            -3.6219
+          ],
+          "deficit_m": 0.25,
+          "message": "Pre-existing, not worsened: door:bathroom_door to door:bedroom_door: 0.35 m path; minimum 0.60 m",
+          "severity": "soft",
+          "baseline": true
+        },
+        {
+          "check": "geometry_reconciliation",
+          "severity": "soft",
+          "item_ids": [],
+          "at": [
+            0,
+            0
+          ],
+          "location_unknown": true,
+          "message": "Layout checks use room-face corrections up to 53 mm and retain 4 walls as fixed structure. Original editor geometry is retained; dimensions need on-site confirmation. "
+        }
+      ],
+      "checks": [
+        {
+          "check": "operations",
+          "status": "passed"
+        },
+        {
+          "check": "containment",
+          "status": "passed"
+        },
+        {
+          "check": "collision",
+          "status": "passed"
+        },
+        {
+          "check": "door_swing",
+          "status": "passed"
+        },
+        {
+          "check": "walkway",
+          "status": "warning"
+        },
+        {
+          "check": "price",
+          "status": "passed"
+        },
+        {
+          "check": "function_clearance",
+          "status": "warning"
+        },
+        {
+          "check": "engine",
+          "status": "unavailable",
+          "reason": "Engine scene, check and price APIs are unavailable; local temporary-scene checks run instead."
+        }
+      ],
+      "price": {
+        "cost_dram": 835000,
+        "currency": "AMD",
+        "basis": "incremental_purchases",
+        "errors": []
+      },
+      "metrics": {
+        "space": {
+          "rooms": [
+            {
+              "room_id": "hall",
+              "free_area_m2": 7.905,
+              "largest_free_rectangle": {
+                "x": 2.00005,
+                "y": -3.1719,
+                "width": 1.95,
+                "depth": 2.15,
+                "area_m2": 4.1925
+              },
+              "walkways": [
+                {
+                  "from": "door:entrance",
+                  "to": "door:bathroom_door",
+                  "reachable": true,
+                  "width_m": 0.7544,
+                  "status": "adequate",
+                  "narrowest": [
+                    5.0702,
+                    -3.5351
+                  ],
+                  "path": [
+                    [
+                      2.6929499999999997,
+                      -0.15784999999999988
+                    ],
+                    [
+                      2.70005,
+                      -0.5969
+                    ],
+                    [
+                      2.70005,
+                      -1.4219
+                    ],
+                    [
+                      2.70005,
+                      -1.4219
+                    ],
+                    [
+                      2.87505,
+                      -1.4219
+                    ],
+                    [
+                      2.87505,
+                      -1.4469
+                    ],
+                    [
+                      3.00005,
+                      -1.4469
+                    ],
+                    [
+                      3.00005,
+                      -1.4969
+                    ],
+                    [
+                      3.02505,
+                      -1.4969
+                    ],
+                    [
+                      3.02505,
+                      -1.5219
+                    ],
+                    [
+                      3.05005,
+                      -1.5219
+                    ],
+                    [
+                      3.05005,
+                      -1.5469
+                    ],
+                    [
+                      3.07505,
+                      -1.5469
+                    ],
+                    [
+                      3.07505,
+                      -1.5969
+                    ],
+                    [
+                      3.12505,
+                      -1.5969
+                    ],
+                    [
+                      3.12505,
+                      -1.6969
+                    ],
+                    [
+                      3.15005,
+                      -1.6969
+                    ],
+                    [
+                      3.15005,
+                      -1.7219
+                    ],
+                    [
+                      3.17505,
+                      -1.7219
+                    ],
+                    [
+                      3.17505,
+                      -1.7469
+                    ],
+                    [
+                      3.25005,
+                      -1.7469
+                    ],
+                    [
+                      3.25005,
+                      -1.7719
+                    ],
+                    [
+                      3.27505,
+                      -1.7719
+                    ],
+                    [
+                      3.27505,
+                      -1.8719
+                    ],
+                    [
+                      3.30005,
+                      -1.8719
+                    ],
+                    [
+                      3.30005,
+                      -1.9469
+                    ],
+                    [
+                      3.32505,
+                      -1.9469
+                    ],
+                    [
+                      3.32505,
+                      -2.0969
+                    ],
+                    [
+                      3.35005,
+                      -2.0969
+                    ],
+                    [
+                      3.35005,
+                      -2.1719
+                    ],
+                    [
+                      3.37505,
+                      -2.1719
+                    ],
+                    [
+                      3.37505,
+                      -2.1969
+                    ],
+                    [
+                      3.40005,
+                      -2.1969
+                    ],
+                    [
+                      3.40005,
+                      -2.2219
+                    ],
+                    [
+                      3.45005,
+                      -2.2219
+                    ],
+                    [
+                      3.45005,
+                      -2.2469
+                    ],
+                    [
+                      3.47505,
+                      -2.2469
+                    ],
+                    [
+                      3.47505,
+                      -2.2719
+                    ],
+                    [
+                      3.50005,
+                      -2.2719
+                    ],
+                    [
+                      3.50005,
+                      -2.2969
+                    ],
+                    [
+                      3.55005,
+                      -2.2969
+                    ],
+                    [
+                      3.55005,
+                      -2.3469
+                    ],
+                    [
+                      3.57505,
+                      -2.3469
+                    ],
+                    [
+                      3.57505,
+                      -2.3719
+                    ],
+                    [
+                      3.62505,
+                      -2.3719
+                    ],
+                    [
+                      3.62505,
+                      -2.3969
+                    ],
+                    [
+                      3.67505,
+                      -2.3969
+                    ],
+                    [
+                      3.67505,
+                      -2.4219
+                    ],
+                    [
+                      3.70005,
+                      -2.4219
+                    ],
+                    [
+                      3.70005,
+                      -2.4469
+                    ],
+                    [
+                      3.75005,
+                      -2.4469
+                    ],
+                    [
+                      3.75005,
+                      -2.4719
+                    ],
+                    [
+                      3.80005,
+                      -2.4719
+                    ],
+                    [
+                      3.80005,
+                      -2.4969
+                    ],
+                    [
+                      3.87505,
+                      -2.4969
+                    ],
+                    [
+                      3.87505,
+                      -2.5219
+                    ],
+                    [
+                      4.25005,
+                      -2.5219
+                    ],
+                    [
+                      4.25005,
+                      -2.5719
+                    ],
+                    [
+                      4.27505,
+                      -2.5719
+                    ],
+                    [
+                      4.27505,
+                      -2.5969
+                    ],
+                    [
+                      4.37505,
+                      -2.5969
+                    ],
+                    [
+                      4.37505,
+                      -2.6469
+                    ],
+                    [
+                      4.47505,
+                      -2.6469
+                    ],
+                    [
+                      4.47505,
+                      -2.6719
+                    ],
+                    [
+                      4.50005,
+                      -2.6719
+                    ],
+                    [
+                      4.50005,
+                      -2.7719
+                    ],
+                    [
+                      4.52505,
+                      -2.7719
+                    ],
+                    [
+                      4.52505,
+                      -2.7969
+                    ],
+                    [
+                      4.55005,
+                      -2.7969
+                    ],
+                    [
+                      4.55005,
+                      -2.8219
+                    ],
+                    [
+                      4.62505,
+                      -2.8219
+                    ],
+                    [
+                      4.62505,
+                      -2.8219
+                    ],
+                    [
+                      4.62505,
+                      -3.5469
+                    ],
+                    [
+                      5.0702,
+                      -3.5351
+                    ]
+                  ]
+                },
+                {
+                  "from": "door:entrance",
+                  "to": "door:bedroom_door",
+                  "reachable": true,
+                  "width_m": 0.35,
+                  "status": "fail",
+                  "narrowest": [
+                    4.17505,
+                    -3.1719
+                  ],
+                  "path": [
+                    [
+                      2.6929499999999997,
+                      -0.15784999999999988
+                    ],
+                    [
+                      2.70005,
+                      -0.5969
+                    ],
+                    [
+                      2.70005,
+                      -1.4219
+                    ],
+                    [
+                      2.70005,
+                      -1.4219
+                    ],
+                    [
+                      2.87505,
+                      -1.4219
+                    ],
+                    [
+                      2.87505,
+                      -1.4469
+                    ],
+                    [
+                      2.92505,
+                      -1.4469
+                    ],
+                    [
+                      2.92505,
+                      -1.4719
+                    ],
+                    [
+                      3.00005,
+                      -1.4719
+                    ],
+                    [
+                      3.00005,
+                      -1.4969
+                    ],
+                    [
+                      3.05005,
+                      -1.4969
+                    ],
+                    [
+                      3.05005,
+                      -1.5469
+                    ],
+                    [
+                      3.07505,
+                      -1.5469
+                    ],
+                    [
+                      3.07505,
+                      -1.5719
+                    ],
+                    [
+                      3.15005,
+                      -1.5719
+                    ],
+                    [
+                      3.15005,
+                      -1.5969
+                    ],
+                    [
+                      3.17505,
+                      -1.5969
+                    ],
+                    [
+                      3.17505,
+                      -2.0219
+                    ],
+                    [
+                      3.20005,
+                      -2.0219
+                    ],
+                    [
+                      3.20005,
+                      -2.0969
+                    ],
+                    [
+                      3.22505,
+                      -2.0969
+                    ],
+                    [
+                      3.22505,
+                      -2.1219
+                    ],
+                    [
+                      3.25005,
+                      -2.1219
+                    ],
+                    [
+                      3.25005,
+                      -2.1969
+                    ],
+                    [
+                      3.27505,
+                      -2.1969
+                    ],
+                    [
+                      3.27505,
+                      -2.2969
+                    ],
+                    [
+                      3.30005,
+                      -2.2969
+                    ],
+                    [
+                      3.30005,
+                      -2.3219
+                    ],
+                    [
+                      3.32505,
+                      -2.3219
+                    ],
+                    [
+                      3.32505,
+                      -2.3469
+                    ],
+                    [
+                      3.35005,
+                      -2.3469
+                    ],
+                    [
+                      3.35005,
+                      -2.3719
+                    ],
+                    [
+                      3.37505,
+                      -2.3719
+                    ],
+                    [
+                      3.37505,
+                      -2.3969
+                    ],
+                    [
+                      3.45005,
+                      -2.3969
+                    ],
+                    [
+                      3.45005,
+                      -2.4469
+                    ],
+                    [
+                      3.47505,
+                      -2.4469
+                    ],
+                    [
+                      3.47505,
+                      -2.4719
+                    ],
+                    [
+                      3.57505,
+                      -2.4719
+                    ],
+                    [
+                      3.57505,
+                      -2.4969
+                    ],
+                    [
+                      3.67505,
+                      -2.4969
+                    ],
+                    [
+                      3.67505,
+                      -2.5219
+                    ],
+                    [
+                      3.80005,
+                      -2.5219
+                    ],
+                    [
+                      3.80005,
+                      -2.5469
+                    ],
+                    [
+                      3.90005,
+                      -2.5469
+                    ],
+                    [
+                      3.90005,
+                      -2.5969
+                    ],
+                    [
+                      3.95005,
+                      -2.5969
+                    ],
+                    [
+                      3.95005,
+                      -2.6719
+                    ],
+                    [
+                      3.97505,
+                      -2.6719
+                    ],
+                    [
+                      3.97505,
+                      -2.6969
+                    ],
+                    [
+                      4.05005,
+                      -2.6969
+                    ],
+                    [
+                      4.05005,
+                      -2.7469
+                    ],
+                    [
+                      4.17505,
+                      -2.7469
+                    ],
+                    [
+                      4.17505,
+                      -4.1719
+                    ],
+                    [
+                      4.22505,
+                      -4.1719
+                    ],
+                    [
+                      4.22505,
+                      -4.1969
+                    ],
+                    [
+                      4.25005,
+                      -4.1969
+                    ],
+                    [
+                      4.25005,
+                      -4.2219
+                    ],
+                    [
+                      4.27505,
+                      -4.2219
+                    ],
+                    [
+                      4.27505,
+                      -4.2469
+                    ],
+                    [
+                      4.40005,
+                      -4.2469
+                    ],
+                    [
+                      4.40005,
+                      -4.3469
+                    ],
+                    [
+                      4.42505,
+                      -4.3469
+                    ],
+                    [
+                      4.4298,
+                      -4.7719000000000005
+                    ]
+                  ]
+                },
+                {
+                  "from": "door:bathroom_door",
+                  "to": "door:bedroom_door",
+                  "reachable": true,
+                  "width_m": 0.35,
+                  "status": "fail",
+                  "narrowest": [
+                    4.17505,
+                    -3.6219
+                  ],
+                  "path": [
+                    [
+                      5.0702,
+                      -3.5351
+                    ],
+                    [
+                      4.62505,
+                      -3.5469
+                    ],
+                    [
+                      4.62505,
+                      -2.8219
+                    ],
+                    [
+                      4.62505,
+                      -2.8219
+                    ],
+                    [
+                      4.45005,
+                      -2.8219
+                    ],
+                    [
+                      4.45005,
+                      -2.8969
+                    ],
+                    [
+                      4.42505,
+                      -2.8969
+                    ],
+                    [
+                      4.42505,
+                      -2.9469
+                    ],
+                    [
+                      4.35005,
+                      -2.9469
+                    ],
+                    [
+                      4.35005,
+                      -3.0719
+                    ],
+                    [
+                      4.32505,
+                      -3.0719
+                    ],
+                    [
+                      4.32505,
+                      -3.1719
+                    ],
+                    [
+                      4.30005,
+                      -3.1719
+                    ],
+                    [
+                      4.30005,
+                      -3.2219
+                    ],
+                    [
+                      4.27505,
+                      -3.2219
+                    ],
+                    [
+                      4.27505,
+                      -3.2719
+                    ],
+                    [
+                      4.25005,
+                      -3.2719
+                    ],
+                    [
+                      4.25005,
+                      -3.3469
+                    ],
+                    [
+                      4.22505,
+                      -3.3469
+                    ],
+                    [
+                      4.22505,
+                      -3.4719
+                    ],
+                    [
+                      4.20005,
+                      -3.4719
+                    ],
+                    [
+                      4.20005,
+                      -3.6219
+                    ],
+                    [
+                      4.17505,
+                      -3.6219
+                    ],
+                    [
+                      4.17505,
+                      -4.1469
+                    ],
+                    [
+                      4.20005,
+                      -4.1469
+                    ],
+                    [
+                      4.20005,
+                      -4.1719
+                    ],
+                    [
+                      4.22505,
+                      -4.1719
+                    ],
+                    [
+                      4.22505,
+                      -4.2219
+                    ],
+                    [
+                      4.27505,
+                      -4.2219
+                    ],
+                    [
+                      4.27505,
+                      -4.2469
+                    ],
+                    [
+                      4.40005,
+                      -4.2469
+                    ],
+                    [
+                      4.40005,
+                      -4.3219
+                    ],
+                    [
+                      4.42505,
+                      -4.3219
+                    ],
+                    [
+                      4.42505,
+                      -4.3469
+                    ],
+                    [
+                      4.4298,
+                      -4.7719000000000005
+                    ]
+                  ]
+                }
+              ]
+            },
+            {
+              "room_id": "living",
+              "free_area_m2": 18.6325,
+              "largest_free_rectangle": {
+                "x": 1.893,
+                "y": -9.111,
+                "width": 1.5,
+                "depth": 5.3,
+                "area_m2": 7.95
+              },
+              "walkways": [
+                {
+                  "from": "door:balcony_door",
+                  "to": "item:drawn-i1",
+                  "reachable": true,
+                  "width_m": 0.7,
+                  "status": "warn",
+                  "narrowest": [
+                    1.893,
+                    -7.461
+                  ],
+                  "path": [
+                    [
+                      2.692995,
+                      -10.4912
+                    ],
+                    [
+                      2.693,
+                      -10.211
+                    ],
+                    [
+                      2.693,
+                      -9.361
+                    ],
+                    [
+                      2.693,
+                      -9.361
+                    ],
+                    [
+                      2.693,
+                      -8.286
+                    ],
+                    [
+                      2.668,
+                      -8.286
+                    ],
+                    [
+                      2.668,
+                      -8.236
+                    ],
+                    [
+                      2.643,
+                      -8.236
+                    ],
+                    [
+                      2.643,
+                      -8.211
+                    ],
+                    [
+                      2.618,
+                      -8.211
+                    ],
+                    [
+                      2.618,
+                      -8.186
+                    ],
+                    [
+                      2.518,
+                      -8.186
+                    ],
+                    [
+                      2.518,
+                      -8.136
+                    ],
+                    [
+                      2.493,
+                      -8.136
+                    ],
+                    [
+                      2.493,
+                      -7.986
+                    ],
+                    [
+                      2.468,
+                      -7.986
+                    ],
+                    [
+                      2.468,
+                      -7.886
+                    ],
+                    [
+                      2.318,
+                      -7.886
+                    ],
+                    [
+                      2.318,
+                      -7.786
+                    ],
+                    [
+                      2.268,
+                      -7.786
+                    ],
+                    [
+                      2.268,
+                      -7.761
+                    ],
+                    [
+                      2.243,
+                      -7.761
+                    ],
+                    [
+                      2.243,
+                      -7.661
+                    ],
+                    [
+                      2.218,
+                      -7.661
+                    ],
+                    [
+                      2.218,
+                      -7.611
+                    ],
+                    [
+                      2.193,
+                      -7.611
+                    ],
+                    [
+                      2.193,
+                      -7.486
+                    ],
+                    [
+                      2.043,
+                      -7.486
+                    ],
+                    [
+                      2.043,
+                      -7.461
+                    ],
+                    [
+                      1.818,
+                      -7.461
+                    ],
+                    [
+                      1.818,
+                      -7.386
+                    ],
+                    [
+                      1.743,
+                      -7.386
+                    ],
+                    [
+                      1.743,
+                      -7.261
+                    ],
+                    [
+                      1.693,
+                      -7.261
+                    ],
+                    [
+                      1.693,
+                      -7.211
+                    ],
+                    [
+                      1.643,
+                      -7.211
+                    ],
+                    [
+                      1.643,
+                      -7.111
+                    ],
+                    [
+                      1.568,
+                      -7.111
+                    ],
+                    [
+                      1.1143570175438589,
+                      -7.114912280701754
+                    ]
+                  ]
+                },
+                {
+                  "from": "door:balcony_door",
+                  "to": "item:drawn-i6",
+                  "reachable": true,
+                  "width_m": 0.6,
+                  "status": "warn",
+                  "narrowest": [
+                    2.293,
+                    -8.811
+                  ],
+                  "path": [
+                    [
+                      2.692995,
+                      -10.4912
+                    ],
+                    [
+                      2.693,
+                      -10.211
+                    ],
+                    [
+                      2.693,
+                      -9.361
+                    ],
+                    [
+                      2.693,
+                      -9.361
+                    ],
+                    [
+                      2.693,
+                      -9.011
+                    ],
+                    [
+                      2.668,
+                      -9.011
+                    ],
+                    [
+                      2.668,
+                      -8.986
+                    ],
+                    [
+                      2.643,
+                      -8.986
+                    ],
+                    [
+                      2.643,
+                      -8.961
+                    ],
+                    [
+                      2.618,
+                      -8.961
+                    ],
+                    [
+                      2.618,
+                      -8.911
+                    ],
+                    [
+                      2.593,
+                      -8.911
+                    ],
+                    [
+                      2.593,
+                      -8.861
+                    ],
+                    [
+                      2.543,
+                      -8.861
+                    ],
+                    [
+                      2.543,
+                      -8.836
+                    ],
+                    [
+                      2.518,
+                      -8.836
+                    ],
+                    [
+                      2.518,
+                      -8.811
+                    ],
+                    [
+                      1.368,
+                      -8.811
+                    ],
+                    [
+                      1.3726315789473686,
+                      -9.122810526315789
+                    ]
+                  ]
+                },
+                {
+                  "from": "door:balcony_door",
+                  "to": "item:drawn-i3",
+                  "reachable": true,
+                  "width_m": 0.7,
+                  "status": "warn",
+                  "narrowest": [
+                    1.893,
+                    -7.461
+                  ],
+                  "path": [
+                    [
+                      2.692995,
+                      -10.4912
+                    ],
+                    [
+                      2.693,
+                      -10.211
+                    ],
+                    [
+                      2.693,
+                      -9.361
+                    ],
+                    [
+                      2.693,
+                      -9.361
+                    ],
+                    [
+                      2.693,
+                      -8.286
+                    ],
+                    [
+                      2.668,
+                      -8.286
+                    ],
+                    [
+                      2.668,
+                      -8.236
+                    ],
+                    [
+                      2.643,
+                      -8.236
+                    ],
+                    [
+                      2.643,
+                      -8.211
+                    ],
+                    [
+                      2.618,
+                      -8.211
+                    ],
+                    [
+                      2.618,
+                      -8.186
+                    ],
+                    [
+                      2.518,
+                      -8.186
+                    ],
+                    [
+                      2.518,
+                      -8.136
+                    ],
+                    [
+                      2.493,
+                      -8.136
+                    ],
+                    [
+                      2.493,
+                      -7.986
+                    ],
+                    [
+                      2.468,
+                      -7.986
+                    ],
+                    [
+                      2.468,
+                      -7.886
+                    ],
+                    [
+                      2.318,
+                      -7.886
+                    ],
+                    [
+                      2.318,
+                      -7.786
+                    ],
+                    [
+                      2.268,
+                      -7.786
+                    ],
+                    [
+                      2.268,
+                      -7.761
+                    ],
+                    [
+                      2.243,
+                      -7.761
+                    ],
+                    [
+                      2.243,
+                      -7.661
+                    ],
+                    [
+                      2.218,
+                      -7.661
+                    ],
+                    [
+                      2.218,
+                      -7.611
+                    ],
+                    [
+                      2.193,
+                      -7.611
+                    ],
+                    [
+                      2.193,
+                      -7.486
+                    ],
+                    [
+                      2.043,
+                      -7.486
+                    ],
+                    [
+                      2.043,
+                      -7.461
+                    ],
+                    [
+                      1.818,
+                      -7.461
+                    ],
+                    [
+                      1.818,
+                      -7.386
+                    ],
+                    [
+                      1.793,
+                      -7.386
+                    ],
+                    [
+                      1.793,
+                      -7.211
+                    ],
+                    [
+                      1.768,
+                      -7.211
+                    ],
+                    [
+                      1.768,
+                      -7.161
+                    ],
+                    [
+                      1.718,
+                      -7.161
+                    ],
+                    [
+                      1.718,
+                      -7.086
+                    ],
+                    [
+                      1.693,
+                      -7.086
+                    ],
+                    [
+                      1.693,
+                      -6.736
+                    ],
+                    [
+                      1.668,
+                      -6.736
+                    ],
+                    [
+                      1.668,
+                      -6.686
+                    ],
+                    [
+                      1.643,
+                      -6.686
+                    ],
+                    [
+                      1.643,
+                      -6.661
+                    ],
+                    [
+                      1.618,
+                      -6.661
+                    ],
+                    [
+                      1.618,
+                      -6.611
+                    ],
+                    [
+                      1.518,
+                      -6.611
+                    ],
+                    [
+                      1.518,
+                      -6.461
+                    ],
+                    [
+                      1.493,
+                      -6.461
+                    ],
+                    [
+                      1.502456140350877,
+                      -6.107888596491228
+                    ]
+                  ]
+                },
+                {
+                  "from": "door:balcony_door",
+                  "to": "item:drawn-i4",
+                  "reachable": true,
+                  "width_m": 0.7,
+                  "status": "warn",
+                  "narrowest": [
+                    1.893,
+                    -7.461
+                  ],
+                  "path": [
+                    [
+                      2.692995,
+                      -10.4912
+                    ],
+                    [
+                      2.693,
+                      -10.211
+                    ],
+                    [
+                      2.693,
+                      -9.361
+                    ],
+                    [
+                      2.693,
+                      -9.361
+                    ],
+                    [
+                      2.693,
+                      -8.286
+                    ],
+                    [
+                      2.668,
+                      -8.286
+                    ],
+                    [
+                      2.668,
+                      -8.236
+                    ],
+                    [
+                      2.643,
+                      -8.236
+                    ],
+                    [
+                      2.643,
+                      -8.211
+                    ],
+                    [
+                      2.618,
+                      -8.211
+                    ],
+                    [
+                      2.618,
+                      -8.186
+                    ],
+                    [
+                      2.518,
+                      -8.186
+                    ],
+                    [
+                      2.518,
+                      -8.136
+                    ],
+                    [
+                      2.493,
+                      -8.136
+                    ],
+                    [
+                      2.493,
+                      -7.986
+                    ],
+                    [
+                      2.468,
+                      -7.986
+                    ],
+                    [
+                      2.468,
+                      -7.886
+                    ],
+                    [
+                      2.318,
+                      -7.886
+                    ],
+                    [
+                      2.318,
+                      -7.786
+                    ],
+                    [
+                      2.268,
+                      -7.786
+                    ],
+                    [
+                      2.268,
+                      -7.761
+                    ],
+                    [
+                      2.243,
+                      -7.761
+                    ],
+                    [
+                      2.243,
+                      -7.661
+                    ],
+                    [
+                      2.218,
+                      -7.661
+                    ],
+                    [
+                      2.218,
+                      -7.611
+                    ],
+                    [
+                      2.193,
+                      -7.611
+                    ],
+                    [
+                      2.193,
+                      -7.486
+                    ],
+                    [
+                      2.043,
+                      -7.486
+                    ],
+                    [
+                      2.043,
+                      -7.461
+                    ],
+                    [
+                      1.493,
+                      -7.461
+                    ],
+                    [
+                      1.502456140350877,
+                      -7.81211140350877
+                    ]
+                  ]
+                }
+              ]
+            },
+            {
+              "room_id": "kitchen",
+              "free_area_m2": 3.74,
+              "largest_free_rectangle": {
+                "x": 0.193,
+                "y": -2.83,
+                "width": 1.7,
+                "depth": 2.2,
+                "area_m2": 3.74
+              },
+              "walkways": []
+            },
+            {
+              "room_id": "bedroom",
+              "free_area_m2": 11.7325,
+              "largest_free_rectangle": {
+                "x": 4.3368,
+                "y": -10.014,
+                "width": 1.65,
+                "depth": 4.35,
+                "area_m2": 7.1775
+              },
+              "walkways": [
+                {
+                  "from": "door:bedroom_door",
+                  "to": "item:drawn-i23",
+                  "reachable": true,
+                  "width_m": 0.6103277808,
+                  "status": "warn",
+                  "narrowest": [
+                    5.7368,
+                    -5.739
+                  ],
+                  "path": [
+                    [
+                      4.4298,
+                      -4.8333
+                    ],
+                    [
+                      4.4368,
+                      -5.289
+                    ],
+                    [
+                      4.4368,
+                      -6.089
+                    ],
+                    [
+                      4.4368,
+                      -6.089
+                    ],
+                    [
+                      5.3368,
+                      -6.089
+                    ],
+                    [
+                      5.3368,
+                      -6.064
+                    ],
+                    [
+                      5.3618,
+                      -6.064
+                    ],
+                    [
+                      5.3618,
+                      -6.039
+                    ],
+                    [
+                      5.3868,
+                      -6.039
+                    ],
+                    [
+                      5.3868,
+                      -5.939
+                    ],
+                    [
+                      5.4368,
+                      -5.939
+                    ],
+                    [
+                      5.4368,
+                      -5.839
+                    ],
+                    [
+                      5.5868,
+                      -5.839
+                    ],
+                    [
+                      5.5868,
+                      -5.814
+                    ],
+                    [
+                      5.6118,
+                      -5.814
+                    ],
+                    [
+                      5.6118,
+                      -5.789
+                    ],
+                    [
+                      5.6368,
+                      -5.789
+                    ],
+                    [
+                      5.6368,
+                      -5.764
+                    ],
+                    [
+                      5.6868,
+                      -5.764
+                    ],
+                    [
+                      5.6868,
+                      -5.739
+                    ],
+                    [
+                      5.7368,
+                      -5.739
+                    ],
+                    [
+                      5.741052631578947,
+                      -5.410514035087719
+                    ]
+                  ]
+                },
+                {
+                  "from": "door:bedroom_door",
+                  "to": "item:drawn-i24",
+                  "reachable": true,
+                  "width_m": 0.85,
+                  "status": "adequate",
+                  "narrowest": [
+                    4.4368,
+                    -6.089
+                  ],
+                  "path": [
+                    [
+                      4.4298,
+                      -4.8333
+                    ],
+                    [
+                      4.4368,
+                      -5.289
+                    ],
+                    [
+                      4.4368,
+                      -6.089
+                    ],
+                    [
+                      4.4368,
+                      -6.089
+                    ],
+                    [
+                      4.4368,
+                      -7.414
+                    ],
+                    [
+                      4.4618,
+                      -7.414
+                    ],
+                    [
+                      4.4618,
+                      -7.439
+                    ],
+                    [
+                      4.4868,
+                      -7.439
+                    ],
+                    [
+                      4.4868,
+                      -7.489
+                    ],
+                    [
+                      4.5118,
+                      -7.489
+                    ],
+                    [
+                      4.5118,
+                      -7.514
+                    ],
+                    [
+                      4.5368,
+                      -7.514
+                    ],
+                    [
+                      4.5368,
+                      -7.589
+                    ],
+                    [
+                      4.5618,
+                      -7.589
+                    ],
+                    [
+                      4.5618,
+                      -7.664
+                    ],
+                    [
+                      4.5868,
+                      -7.664
+                    ],
+                    [
+                      4.5868,
+                      -7.764
+                    ],
+                    [
+                      4.6118,
+                      -7.764
+                    ],
+                    [
+                      4.6118,
+                      -7.839
+                    ],
+                    [
+                      4.6368,
+                      -7.839
+                    ],
+                    [
+                      4.6368,
+                      -8.389
+                    ],
+                    [
+                      4.6618,
+                      -8.389
+                    ],
+                    [
+                      4.6618,
+                      -8.539
+                    ],
+                    [
+                      4.7618,
+                      -8.539
+                    ],
+                    [
+                      4.7618,
+                      -9.289
+                    ],
+                    [
+                      4.7868,
+                      -9.289
+                    ],
+                    [
+                      4.7868,
+                      -9.339
+                    ],
+                    [
+                      4.327278947368421,
+                      -9.34421052631579
+                    ]
+                  ]
+                },
+                {
+                  "from": "door:bedroom_door",
+                  "to": "item:drawn-i21",
+                  "reachable": true,
+                  "width_m": 0.85,
+                  "status": "adequate",
+                  "narrowest": [
+                    4.4368,
+                    -6.089
+                  ],
+                  "path": [
+                    [
+                      4.4298,
+                      -4.8333
+                    ],
+                    [
+                      4.4368,
+                      -5.289
+                    ],
+                    [
+                      4.4368,
+                      -6.089
+                    ],
+                    [
+                      4.4368,
+                      -6.089
+                    ],
+                    [
+                      5.5118,
+                      -6.089
+                    ],
+                    [
+                      5.5118,
+                      -6.139
+                    ],
+                    [
+                      5.5618,
+                      -6.139
+                    ],
+                    [
+                      5.5618,
+                      -6.164
+                    ],
+                    [
+                      6.007377192982456,
+                      -6.175263157894737
+                    ]
+                  ]
+                },
+                {
+                  "from": "door:bedroom_door",
+                  "to": "item:drawn-i22",
+                  "reachable": true,
+                  "width_m": 0.85,
+                  "status": "adequate",
+                  "narrowest": [
+                    4.4368,
+                    -6.089
+                  ],
+                  "path": [
+                    [
+                      4.4298,
+                      -4.8333
+                    ],
+                    [
+                      4.4368,
+                      -5.289
+                    ],
+                    [
+                      4.4368,
+                      -6.089
+                    ],
+                    [
+                      4.4368,
+                      -6.089
+                    ],
+                    [
+                      4.4868,
+                      -6.089
+                    ],
+                    [
+                      4.4868,
+                      -6.139
+                    ],
+                    [
+                      4.5368,
+                      -6.139
+                    ],
+                    [
+                      4.5368,
+                      -6.289
+                    ],
+                    [
+                      4.5618,
+                      -6.289
+                    ],
+                    [
+                      4.5618,
+                      -6.464
+                    ],
+                    [
+                      4.5868,
+                      -6.464
+                    ],
+                    [
+                      4.5868,
+                      -6.514
+                    ],
+                    [
+                      4.6118,
+                      -6.514
+                    ],
+                    [
+                      4.6118,
+                      -6.564
+                    ],
+                    [
+                      4.6368,
+                      -6.564
+                    ],
+                    [
+                      4.6368,
+                      -6.639
+                    ],
+                    [
+                      4.6868,
+                      -6.639
+                    ],
+                    [
+                      4.6868,
+                      -6.664
+                    ],
+                    [
+                      4.7118,
+                      -6.664
+                    ],
+                    [
+                      4.7118,
+                      -6.689
+                    ],
+                    [
+                      4.7368,
+                      -6.689
+                    ],
+                    [
+                      4.7368,
+                      -6.739
+                    ],
+                    [
+                      4.7868,
+                      -6.739
+                    ],
+                    [
+                      4.7868,
+                      -6.764
+                    ],
+                    [
+                      4.8118,
+                      -6.764
+                    ],
+                    [
+                      4.8118,
+                      -6.864
+                    ],
+                    [
+                      4.8368,
+                      -6.864
+                    ],
+                    [
+                      4.8368,
+                      -6.914
+                    ],
+                    [
+                      4.8618,
+                      -6.914
+                    ],
+                    [
+                      4.8618,
+                      -6.989
+                    ],
+                    [
+                      4.8868,
+                      -6.989
+                    ],
+                    [
+                      4.8868,
+                      -7.039
+                    ],
+                    [
+                      4.9618,
+                      -7.039
+                    ],
+                    [
+                      4.9618,
+                      -7.214
+                    ],
+                    [
+                      4.9868,
+                      -7.214
+                    ],
+                    [
+                      4.9868,
+                      -7.239
+                    ],
+                    [
+                      5.0118,
+                      -7.239
+                    ],
+                    [
+                      5.0118,
+                      -7.289
+                    ],
+                    [
+                      5.0368,
+                      -7.289
+                    ],
+                    [
+                      5.0368,
+                      -7.489
+                    ],
+                    [
+                      5.0618,
+                      -7.489
+                    ],
+                    [
+                      5.0618,
+                      -7.614
+                    ],
+                    [
+                      5.0868,
+                      -7.614
+                    ],
+                    [
+                      5.0868,
+                      -7.664
+                    ],
+                    [
+                      5.1118,
+                      -7.664
+                    ],
+                    [
+                      5.1118,
+                      -7.764
+                    ],
+                    [
+                      5.1368,
+                      -7.764
+                    ],
+                    [
+                      5.1368,
+                      -7.839
+                    ],
+                    [
+                      5.1868,
+                      -7.839
+                    ],
+                    [
+                      5.1868,
+                      -7.939
+                    ],
+                    [
+                      5.2368,
+                      -7.939
+                    ],
+                    [
+                      5.2368,
+                      -7.964
+                    ],
+                    [
+                      5.3118,
+                      -7.964
+                    ],
+                    [
+                      5.3118,
+                      -8.064
+                    ],
+                    [
+                      5.3368,
+                      -8.064
+                    ],
+                    [
+                      5.3368,
+                      -8.164
+                    ],
+                    [
+                      5.4118,
+                      -8.164
+                    ],
+                    [
+                      5.4118,
+                      -8.264
+                    ],
+                    [
+                      5.4368,
+                      -8.264
+                    ],
+                    [
+                      5.4368,
+                      -8.389
+                    ],
+                    [
+                      5.4618,
+                      -8.389
+                    ],
+                    [
+                      5.4618,
+                      -8.414
+                    ],
+                    [
+                      5.5368,
+                      -8.414
+                    ],
+                    [
+                      5.5368,
+                      -8.464
+                    ],
+                    [
+                      5.5618,
+                      -8.464
+                    ],
+                    [
+                      5.5618,
+                      -8.539
+                    ],
+                    [
+                      6.007377192982456,
+                      -8.534561403508771
+                    ]
+                  ]
+                }
+              ]
+            },
+            {
+              "room_id": "bathroom",
+              "free_area_m2": 2.8875,
+              "largest_free_rectangle": {
+                "x": 5.2316,
+                "y": -4.7719,
+                "width": 1.15,
+                "depth": 2.45,
+                "area_m2": 2.8175
+              },
+              "walkways": []
+            },
+            {
+              "room_id": "balcony",
+              "free_area_m2": 5.7375,
+              "largest_free_rectangle": {
+                "x": 0.193,
+                "y": -12.33335,
+                "width": 2.8,
+                "depth": 1.7,
+                "area_m2": 4.76
+              },
+              "walkways": []
+            }
+          ],
+          "free_area_m2": 50.635
+        },
+        "daylight": {
+          "status": "unknown",
+          "reason": "Direct sun is unknown: set north_deg from the plan north arrow first",
+          "location": {
+            "latitude": 40.18,
+            "longitude": 44.51,
+            "utc_offset_hours": 4
+          },
+          "assumptions": [
+            "Calculated clear-sky potential direct sun, with a fixed 15 degree obstruction horizon and at most 85 degree incidence.",
+            "Intervals use one-minute midpoint samples in fixed UTC+4; noon refers to solar noon.",
+            "Floor polygons are unoccluded full-window projections; not clipped to walls or furniture.",
+            "Default seasonal dates use fixed reference year 2026."
+          ],
+          "windows": []
+        },
+        "function_clearances": [
+          {
+            "item_id": "drawn-i6",
+            "function": "table_wall",
+            "side": "left",
+            "clearance_m": 1.152718,
+            "minimum_m": 0.9,
+            "deficit_m": 0,
+            "status": "good",
+            "at": [
+              2.2682815789473687,
+              -9.564210526315788
+            ]
+          },
+          {
+            "item_id": "drawn-i6",
+            "function": "table_wall",
+            "side": "right",
+            "clearance_m": 0.283982,
+            "minimum_m": 0.9,
+            "deficit_m": 0.616018,
+            "status": "warn",
+            "at": [
+              0.4769815789473687,
+              -9.564210526315788
+            ]
+          },
+          {
+            "item_id": "drawn-i6",
+            "function": "table_wall",
+            "side": "front",
+            "clearance_m": 5.824611,
+            "minimum_m": 0.9,
+            "deficit_m": 0,
+            "status": "good",
+            "at": [
+              1.3726315789473686,
+              -9.122810526315789
+            ]
+          },
+          {
+            "item_id": "drawn-i6",
+            "function": "table_wall",
+            "side": "back",
+            "clearance_m": 0.345239,
+            "minimum_m": 0.9,
+            "deficit_m": 0.554761,
+            "status": "warn",
+            "at": [
+              1.3726315789473686,
+              -10.005610526315788
+            ]
+          },
+          {
+            "item_id": "drawn-i24",
+            "function": "table_wall",
+            "side": "left",
+            "clearance_m": 0.218989,
+            "minimum_m": 0.9,
+            "deficit_m": 0.681011,
+            "status": "warn",
+            "at": [
+              4.0815789473684205,
+              -9.83366052631579
+            ]
+          },
+          {
+            "item_id": "drawn-i24",
+            "function": "table_wall",
+            "side": "right",
+            "clearance_m": 3.960061,
+            "minimum_m": 0.9,
+            "deficit_m": 0,
+            "status": "good",
+            "at": [
+              4.0815789473684205,
+              -8.85476052631579
+            ]
+          },
+          {
+            "item_id": "drawn-i24",
+            "function": "table_wall",
+            "side": "front",
+            "clearance_m": 2.076271,
+            "minimum_m": 0.9,
+            "deficit_m": 0,
+            "status": "good",
+            "at": [
+              4.327278947368421,
+              -9.34421052631579
+            ]
+          },
+          {
+            "item_id": "drawn-i24",
+            "function": "table_wall",
+            "side": "back",
+            "clearance_m": 0.099079,
+            "minimum_m": 0.9,
+            "deficit_m": 0.800921,
+            "status": "warn",
+            "at": [
+              3.8358789473684207,
+              -9.34421052631579
+            ]
+          },
+          {
+            "item_id": "drawn-i3",
+            "function": "chair_pullout",
+            "side": "back",
+            "clearance_m": 2.592989,
+            "minimum_m": 0.6,
+            "deficit_m": 0,
+            "status": "good",
+            "at": [
+              1.502456140350877,
+              -5.422988596491227
+            ]
+          },
+          {
+            "item_id": "drawn-i4",
+            "function": "chair_pullout",
+            "side": "back",
+            "clearance_m": 0.625799,
+            "minimum_m": 0.6,
+            "deficit_m": 0,
+            "status": "good",
+            "at": [
+              1.502456140350877,
+              -8.49701140350877
+            ]
+          }
+        ],
+        "cost_dram": 835000,
+        "daylight_for_work": {
+          "score": 0,
+          "desks": [],
+          "basis": "Geometry proxy in [0,1]: each desk uses its best same-room full window span, side alignment / (1 + footprint distance / 1.5 m), averaged over desks. Alignment is 1 for side light and 0 ahead/behind. Missing windows are unknown (null details, zero contribution); no desks scores 0. Does not measure illuminance, glare, obstruction, or sun hours."
+        },
+        "social_living": {
+          "score": 0.641978,
+          "seating_pairs_within_3m": 3,
+          "mean_facing_alignment": 0.641978,
+          "basis": "Geometry proxy in [0,1]: mutual positive facing alignment of seating centres within 3 m, averaged over all same-room seating pairs (distant pairs contribute 0). Work chairs excluded. No pairs scores 0. Does not measure comfort, sight-line obstruction, or conversation quality."
+        }
+      }
+    },
+    "request_check": {
+      "ok": true,
+      "errors": [],
+      "budget": {
+        "status": "skipped",
+        "cost_dram": 835000
+      }
+    },
+    "score": {
+      "before": {
+        "space": {
+          "rooms": [
+            {
+              "room_id": "hall",
+              "free_area_m2": 7.905,
+              "largest_free_rectangle": {
+                "x": 2.00005,
+                "y": -3.1719,
+                "width": 1.95,
+                "depth": 2.15,
+                "area_m2": 4.1925
+              },
+              "walkways": [
+                {
+                  "from": "door:entrance",
+                  "to": "door:bathroom_door",
+                  "reachable": true,
+                  "width_m": 0.7544,
+                  "status": "adequate",
+                  "narrowest": [
+                    5.0702,
+                    -3.5351
+                  ],
+                  "path": [
+                    [
+                      2.6929499999999997,
+                      -0.15784999999999988
+                    ],
+                    [
+                      2.70005,
+                      -0.5969
+                    ],
+                    [
+                      2.70005,
+                      -1.4219
+                    ],
+                    [
+                      2.70005,
+                      -1.4219
+                    ],
+                    [
+                      2.87505,
+                      -1.4219
+                    ],
+                    [
+                      2.87505,
+                      -1.4469
+                    ],
+                    [
+                      3.00005,
+                      -1.4469
+                    ],
+                    [
+                      3.00005,
+                      -1.4969
+                    ],
+                    [
+                      3.02505,
+                      -1.4969
+                    ],
+                    [
+                      3.02505,
+                      -1.5219
+                    ],
+                    [
+                      3.05005,
+                      -1.5219
+                    ],
+                    [
+                      3.05005,
+                      -1.5469
+                    ],
+                    [
+                      3.07505,
+                      -1.5469
+                    ],
+                    [
+                      3.07505,
+                      -1.5969
+                    ],
+                    [
+                      3.12505,
+                      -1.5969
+                    ],
+                    [
+                      3.12505,
+                      -1.6969
+                    ],
+                    [
+                      3.15005,
+                      -1.6969
+                    ],
+                    [
+                      3.15005,
+                      -1.7219
+                    ],
+                    [
+                      3.17505,
+                      -1.7219
+                    ],
+                    [
+                      3.17505,
+                      -1.7469
+                    ],
+                    [
+                      3.25005,
+                      -1.7469
+                    ],
+                    [
+                      3.25005,
+                      -1.7719
+                    ],
+                    [
+                      3.27505,
+                      -1.7719
+                    ],
+                    [
+                      3.27505,
+                      -1.8719
+                    ],
+                    [
+                      3.30005,
+                      -1.8719
+                    ],
+                    [
+                      3.30005,
+                      -1.9469
+                    ],
+                    [
+                      3.32505,
+                      -1.9469
+                    ],
+                    [
+                      3.32505,
+                      -2.0969
+                    ],
+                    [
+                      3.35005,
+                      -2.0969
+                    ],
+                    [
+                      3.35005,
+                      -2.1719
+                    ],
+                    [
+                      3.37505,
+                      -2.1719
+                    ],
+                    [
+                      3.37505,
+                      -2.1969
+                    ],
+                    [
+                      3.40005,
+                      -2.1969
+                    ],
+                    [
+                      3.40005,
+                      -2.2219
+                    ],
+                    [
+                      3.45005,
+                      -2.2219
+                    ],
+                    [
+                      3.45005,
+                      -2.2469
+                    ],
+                    [
+                      3.47505,
+                      -2.2469
+                    ],
+                    [
+                      3.47505,
+                      -2.2719
+                    ],
+                    [
+                      3.50005,
+                      -2.2719
+                    ],
+                    [
+                      3.50005,
+                      -2.2969
+                    ],
+                    [
+                      3.55005,
+                      -2.2969
+                    ],
+                    [
+                      3.55005,
+                      -2.3469
+                    ],
+                    [
+                      3.57505,
+                      -2.3469
+                    ],
+                    [
+                      3.57505,
+                      -2.3719
+                    ],
+                    [
+                      3.62505,
+                      -2.3719
+                    ],
+                    [
+                      3.62505,
+                      -2.3969
+                    ],
+                    [
+                      3.67505,
+                      -2.3969
+                    ],
+                    [
+                      3.67505,
+                      -2.4219
+                    ],
+                    [
+                      3.70005,
+                      -2.4219
+                    ],
+                    [
+                      3.70005,
+                      -2.4469
+                    ],
+                    [
+                      3.75005,
+                      -2.4469
+                    ],
+                    [
+                      3.75005,
+                      -2.4719
+                    ],
+                    [
+                      3.80005,
+                      -2.4719
+                    ],
+                    [
+                      3.80005,
+                      -2.4969
+                    ],
+                    [
+                      3.87505,
+                      -2.4969
+                    ],
+                    [
+                      3.87505,
+                      -2.5219
+                    ],
+                    [
+                      4.25005,
+                      -2.5219
+                    ],
+                    [
+                      4.25005,
+                      -2.5719
+                    ],
+                    [
+                      4.27505,
+                      -2.5719
+                    ],
+                    [
+                      4.27505,
+                      -2.5969
+                    ],
+                    [
+                      4.37505,
+                      -2.5969
+                    ],
+                    [
+                      4.37505,
+                      -2.6469
+                    ],
+                    [
+                      4.47505,
+                      -2.6469
+                    ],
+                    [
+                      4.47505,
+                      -2.6719
+                    ],
+                    [
+                      4.50005,
+                      -2.6719
+                    ],
+                    [
+                      4.50005,
+                      -2.7719
+                    ],
+                    [
+                      4.52505,
+                      -2.7719
+                    ],
+                    [
+                      4.52505,
+                      -2.7969
+                    ],
+                    [
+                      4.55005,
+                      -2.7969
+                    ],
+                    [
+                      4.55005,
+                      -2.8219
+                    ],
+                    [
+                      4.62505,
+                      -2.8219
+                    ],
+                    [
+                      4.62505,
+                      -2.8219
+                    ],
+                    [
+                      4.62505,
+                      -3.5469
+                    ],
+                    [
+                      5.0702,
+                      -3.5351
+                    ]
+                  ]
+                },
+                {
+                  "from": "door:entrance",
+                  "to": "door:bedroom_door",
+                  "reachable": true,
+                  "width_m": 0.35,
+                  "status": "fail",
+                  "narrowest": [
+                    4.17505,
+                    -3.1719
+                  ],
+                  "path": [
+                    [
+                      2.6929499999999997,
+                      -0.15784999999999988
+                    ],
+                    [
+                      2.70005,
+                      -0.5969
+                    ],
+                    [
+                      2.70005,
+                      -1.4219
+                    ],
+                    [
+                      2.70005,
+                      -1.4219
+                    ],
+                    [
+                      2.87505,
+                      -1.4219
+                    ],
+                    [
+                      2.87505,
+                      -1.4469
+                    ],
+                    [
+                      2.92505,
+                      -1.4469
+                    ],
+                    [
+                      2.92505,
+                      -1.4719
+                    ],
+                    [
+                      3.00005,
+                      -1.4719
+                    ],
+                    [
+                      3.00005,
+                      -1.4969
+                    ],
+                    [
+                      3.05005,
+                      -1.4969
+                    ],
+                    [
+                      3.05005,
+                      -1.5469
+                    ],
+                    [
+                      3.07505,
+                      -1.5469
+                    ],
+                    [
+                      3.07505,
+                      -1.5719
+                    ],
+                    [
+                      3.15005,
+                      -1.5719
+                    ],
+                    [
+                      3.15005,
+                      -1.5969
+                    ],
+                    [
+                      3.17505,
+                      -1.5969
+                    ],
+                    [
+                      3.17505,
+                      -2.0219
+                    ],
+                    [
+                      3.20005,
+                      -2.0219
+                    ],
+                    [
+                      3.20005,
+                      -2.0969
+                    ],
+                    [
+                      3.22505,
+                      -2.0969
+                    ],
+                    [
+                      3.22505,
+                      -2.1219
+                    ],
+                    [
+                      3.25005,
+                      -2.1219
+                    ],
+                    [
+                      3.25005,
+                      -2.1969
+                    ],
+                    [
+                      3.27505,
+                      -2.1969
+                    ],
+                    [
+                      3.27505,
+                      -2.2969
+                    ],
+                    [
+                      3.30005,
+                      -2.2969
+                    ],
+                    [
+                      3.30005,
+                      -2.3219
+                    ],
+                    [
+                      3.32505,
+                      -2.3219
+                    ],
+                    [
+                      3.32505,
+                      -2.3469
+                    ],
+                    [
+                      3.35005,
+                      -2.3469
+                    ],
+                    [
+                      3.35005,
+                      -2.3719
+                    ],
+                    [
+                      3.37505,
+                      -2.3719
+                    ],
+                    [
+                      3.37505,
+                      -2.3969
+                    ],
+                    [
+                      3.45005,
+                      -2.3969
+                    ],
+                    [
+                      3.45005,
+                      -2.4469
+                    ],
+                    [
+                      3.47505,
+                      -2.4469
+                    ],
+                    [
+                      3.47505,
+                      -2.4719
+                    ],
+                    [
+                      3.57505,
+                      -2.4719
+                    ],
+                    [
+                      3.57505,
+                      -2.4969
+                    ],
+                    [
+                      3.67505,
+                      -2.4969
+                    ],
+                    [
+                      3.67505,
+                      -2.5219
+                    ],
+                    [
+                      3.80005,
+                      -2.5219
+                    ],
+                    [
+                      3.80005,
+                      -2.5469
+                    ],
+                    [
+                      3.90005,
+                      -2.5469
+                    ],
+                    [
+                      3.90005,
+                      -2.5969
+                    ],
+                    [
+                      3.95005,
+                      -2.5969
+                    ],
+                    [
+                      3.95005,
+                      -2.6719
+                    ],
+                    [
+                      3.97505,
+                      -2.6719
+                    ],
+                    [
+                      3.97505,
+                      -2.6969
+                    ],
+                    [
+                      4.05005,
+                      -2.6969
+                    ],
+                    [
+                      4.05005,
+                      -2.7469
+                    ],
+                    [
+                      4.17505,
+                      -2.7469
+                    ],
+                    [
+                      4.17505,
+                      -4.1719
+                    ],
+                    [
+                      4.22505,
+                      -4.1719
+                    ],
+                    [
+                      4.22505,
+                      -4.1969
+                    ],
+                    [
+                      4.25005,
+                      -4.1969
+                    ],
+                    [
+                      4.25005,
+                      -4.2219
+                    ],
+                    [
+                      4.27505,
+                      -4.2219
+                    ],
+                    [
+                      4.27505,
+                      -4.2469
+                    ],
+                    [
+                      4.40005,
+                      -4.2469
+                    ],
+                    [
+                      4.40005,
+                      -4.3469
+                    ],
+                    [
+                      4.42505,
+                      -4.3469
+                    ],
+                    [
+                      4.4298,
+                      -4.7719000000000005
+                    ]
+                  ]
+                },
+                {
+                  "from": "door:bathroom_door",
+                  "to": "door:bedroom_door",
+                  "reachable": true,
+                  "width_m": 0.35,
+                  "status": "fail",
+                  "narrowest": [
+                    4.17505,
+                    -3.6219
+                  ],
+                  "path": [
+                    [
+                      5.0702,
+                      -3.5351
+                    ],
+                    [
+                      4.62505,
+                      -3.5469
+                    ],
+                    [
+                      4.62505,
+                      -2.8219
+                    ],
+                    [
+                      4.62505,
+                      -2.8219
+                    ],
+                    [
+                      4.45005,
+                      -2.8219
+                    ],
+                    [
+                      4.45005,
+                      -2.8969
+                    ],
+                    [
+                      4.42505,
+                      -2.8969
+                    ],
+                    [
+                      4.42505,
+                      -2.9469
+                    ],
+                    [
+                      4.35005,
+                      -2.9469
+                    ],
+                    [
+                      4.35005,
+                      -3.0719
+                    ],
+                    [
+                      4.32505,
+                      -3.0719
+                    ],
+                    [
+                      4.32505,
+                      -3.1719
+                    ],
+                    [
+                      4.30005,
+                      -3.1719
+                    ],
+                    [
+                      4.30005,
+                      -3.2219
+                    ],
+                    [
+                      4.27505,
+                      -3.2219
+                    ],
+                    [
+                      4.27505,
+                      -3.2719
+                    ],
+                    [
+                      4.25005,
+                      -3.2719
+                    ],
+                    [
+                      4.25005,
+                      -3.3469
+                    ],
+                    [
+                      4.22505,
+                      -3.3469
+                    ],
+                    [
+                      4.22505,
+                      -3.4719
+                    ],
+                    [
+                      4.20005,
+                      -3.4719
+                    ],
+                    [
+                      4.20005,
+                      -3.6219
+                    ],
+                    [
+                      4.17505,
+                      -3.6219
+                    ],
+                    [
+                      4.17505,
+                      -4.1469
+                    ],
+                    [
+                      4.20005,
+                      -4.1469
+                    ],
+                    [
+                      4.20005,
+                      -4.1719
+                    ],
+                    [
+                      4.22505,
+                      -4.1719
+                    ],
+                    [
+                      4.22505,
+                      -4.2219
+                    ],
+                    [
+                      4.27505,
+                      -4.2219
+                    ],
+                    [
+                      4.27505,
+                      -4.2469
+                    ],
+                    [
+                      4.40005,
+                      -4.2469
+                    ],
+                    [
+                      4.40005,
+                      -4.3219
+                    ],
+                    [
+                      4.42505,
+                      -4.3219
+                    ],
+                    [
+                      4.42505,
+                      -4.3469
+                    ],
+                    [
+                      4.4298,
+                      -4.7719000000000005
+                    ]
+                  ]
+                }
+              ]
+            },
+            {
+              "room_id": "living",
+              "free_area_m2": 23.1925,
+              "largest_free_rectangle": {
+                "x": 0.193,
+                "y": -9.661,
+                "width": 3.2,
+                "depth": 5.85,
+                "area_m2": 18.72
+              },
+              "walkways": []
+            },
+            {
+              "room_id": "kitchen",
+              "free_area_m2": 3.74,
+              "largest_free_rectangle": {
+                "x": 0.193,
+                "y": -2.83,
+                "width": 1.7,
+                "depth": 2.2,
+                "area_m2": 3.74
+              },
+              "walkways": []
+            },
+            {
+              "room_id": "bedroom",
+              "free_area_m2": 13.34,
+              "largest_free_rectangle": {
+                "x": 3.7368,
+                "y": -10.014,
+                "width": 2.65,
+                "depth": 4.3,
+                "area_m2": 11.395
+              },
+              "walkways": []
+            },
+            {
+              "room_id": "bathroom",
+              "free_area_m2": 2.8875,
+              "largest_free_rectangle": {
+                "x": 5.2316,
+                "y": -4.7719,
+                "width": 1.15,
+                "depth": 2.45,
+                "area_m2": 2.8175
+              },
+              "walkways": []
+            },
+            {
+              "room_id": "balcony",
+              "free_area_m2": 5.7375,
+              "largest_free_rectangle": {
+                "x": 0.193,
+                "y": -12.33335,
+                "width": 2.8,
+                "depth": 1.7,
+                "area_m2": 4.76
+              },
+              "walkways": []
+            }
+          ],
+          "free_area_m2": 56.8025
+        },
+        "daylight": {
+          "status": "unknown",
+          "reason": "Direct sun is unknown: set north_deg from the plan north arrow first",
+          "location": {
+            "latitude": 40.18,
+            "longitude": 44.51,
+            "utc_offset_hours": 4
+          },
+          "assumptions": [
+            "Calculated clear-sky potential direct sun, with a fixed 15 degree obstruction horizon and at most 85 degree incidence.",
+            "Intervals use one-minute midpoint samples in fixed UTC+4; noon refers to solar noon.",
+            "Floor polygons are unoccluded full-window projections; not clipped to walls or furniture.",
+            "Default seasonal dates use fixed reference year 2026."
+          ],
+          "windows": []
+        },
+        "function_clearances": [],
+        "cost_dram": 0,
+        "daylight_for_work": {
+          "score": 0,
+          "desks": [],
+          "basis": "Geometry proxy in [0,1]: each desk uses its best same-room full window span, side alignment / (1 + footprint distance / 1.5 m), averaged over desks. Alignment is 1 for side light and 0 ahead/behind. Missing windows are unknown (null details, zero contribution); no desks scores 0. Does not measure illuminance, glare, obstruction, or sun hours."
+        },
+        "social_living": {
+          "score": 0,
+          "seating_pairs_within_3m": 0,
+          "mean_facing_alignment": 0,
+          "basis": "Geometry proxy in [0,1]: mutual positive facing alignment of seating centres within 3 m, averaged over all same-room seating pairs (distant pairs contribute 0). Work chairs excluded. No pairs scores 0. Does not measure comfort, sight-line obstruction, or conversation quality."
+        }
+      },
+      "after": {
+        "space": {
+          "rooms": [
+            {
+              "room_id": "hall",
+              "free_area_m2": 7.905,
+              "largest_free_rectangle": {
+                "x": 2.00005,
+                "y": -3.1719,
+                "width": 1.95,
+                "depth": 2.15,
+                "area_m2": 4.1925
+              },
+              "walkways": [
+                {
+                  "from": "door:entrance",
+                  "to": "door:bathroom_door",
+                  "reachable": true,
+                  "width_m": 0.7544,
+                  "status": "adequate",
+                  "narrowest": [
+                    5.0702,
+                    -3.5351
+                  ],
+                  "path": [
+                    [
+                      2.6929499999999997,
+                      -0.15784999999999988
+                    ],
+                    [
+                      2.70005,
+                      -0.5969
+                    ],
+                    [
+                      2.70005,
+                      -1.4219
+                    ],
+                    [
+                      2.70005,
+                      -1.4219
+                    ],
+                    [
+                      2.87505,
+                      -1.4219
+                    ],
+                    [
+                      2.87505,
+                      -1.4469
+                    ],
+                    [
+                      3.00005,
+                      -1.4469
+                    ],
+                    [
+                      3.00005,
+                      -1.4969
+                    ],
+                    [
+                      3.02505,
+                      -1.4969
+                    ],
+                    [
+                      3.02505,
+                      -1.5219
+                    ],
+                    [
+                      3.05005,
+                      -1.5219
+                    ],
+                    [
+                      3.05005,
+                      -1.5469
+                    ],
+                    [
+                      3.07505,
+                      -1.5469
+                    ],
+                    [
+                      3.07505,
+                      -1.5969
+                    ],
+                    [
+                      3.12505,
+                      -1.5969
+                    ],
+                    [
+                      3.12505,
+                      -1.6969
+                    ],
+                    [
+                      3.15005,
+                      -1.6969
+                    ],
+                    [
+                      3.15005,
+                      -1.7219
+                    ],
+                    [
+                      3.17505,
+                      -1.7219
+                    ],
+                    [
+                      3.17505,
+                      -1.7469
+                    ],
+                    [
+                      3.25005,
+                      -1.7469
+                    ],
+                    [
+                      3.25005,
+                      -1.7719
+                    ],
+                    [
+                      3.27505,
+                      -1.7719
+                    ],
+                    [
+                      3.27505,
+                      -1.8719
+                    ],
+                    [
+                      3.30005,
+                      -1.8719
+                    ],
+                    [
+                      3.30005,
+                      -1.9469
+                    ],
+                    [
+                      3.32505,
+                      -1.9469
+                    ],
+                    [
+                      3.32505,
+                      -2.0969
+                    ],
+                    [
+                      3.35005,
+                      -2.0969
+                    ],
+                    [
+                      3.35005,
+                      -2.1719
+                    ],
+                    [
+                      3.37505,
+                      -2.1719
+                    ],
+                    [
+                      3.37505,
+                      -2.1969
+                    ],
+                    [
+                      3.40005,
+                      -2.1969
+                    ],
+                    [
+                      3.40005,
+                      -2.2219
+                    ],
+                    [
+                      3.45005,
+                      -2.2219
+                    ],
+                    [
+                      3.45005,
+                      -2.2469
+                    ],
+                    [
+                      3.47505,
+                      -2.2469
+                    ],
+                    [
+                      3.47505,
+                      -2.2719
+                    ],
+                    [
+                      3.50005,
+                      -2.2719
+                    ],
+                    [
+                      3.50005,
+                      -2.2969
+                    ],
+                    [
+                      3.55005,
+                      -2.2969
+                    ],
+                    [
+                      3.55005,
+                      -2.3469
+                    ],
+                    [
+                      3.57505,
+                      -2.3469
+                    ],
+                    [
+                      3.57505,
+                      -2.3719
+                    ],
+                    [
+                      3.62505,
+                      -2.3719
+                    ],
+                    [
+                      3.62505,
+                      -2.3969
+                    ],
+                    [
+                      3.67505,
+                      -2.3969
+                    ],
+                    [
+                      3.67505,
+                      -2.4219
+                    ],
+                    [
+                      3.70005,
+                      -2.4219
+                    ],
+                    [
+                      3.70005,
+                      -2.4469
+                    ],
+                    [
+                      3.75005,
+                      -2.4469
+                    ],
+                    [
+                      3.75005,
+                      -2.4719
+                    ],
+                    [
+                      3.80005,
+                      -2.4719
+                    ],
+                    [
+                      3.80005,
+                      -2.4969
+                    ],
+                    [
+                      3.87505,
+                      -2.4969
+                    ],
+                    [
+                      3.87505,
+                      -2.5219
+                    ],
+                    [
+                      4.25005,
+                      -2.5219
+                    ],
+                    [
+                      4.25005,
+                      -2.5719
+                    ],
+                    [
+                      4.27505,
+                      -2.5719
+                    ],
+                    [
+                      4.27505,
+                      -2.5969
+                    ],
+                    [
+                      4.37505,
+                      -2.5969
+                    ],
+                    [
+                      4.37505,
+                      -2.6469
+                    ],
+                    [
+                      4.47505,
+                      -2.6469
+                    ],
+                    [
+                      4.47505,
+                      -2.6719
+                    ],
+                    [
+                      4.50005,
+                      -2.6719
+                    ],
+                    [
+                      4.50005,
+                      -2.7719
+                    ],
+                    [
+                      4.52505,
+                      -2.7719
+                    ],
+                    [
+                      4.52505,
+                      -2.7969
+                    ],
+                    [
+                      4.55005,
+                      -2.7969
+                    ],
+                    [
+                      4.55005,
+                      -2.8219
+                    ],
+                    [
+                      4.62505,
+                      -2.8219
+                    ],
+                    [
+                      4.62505,
+                      -2.8219
+                    ],
+                    [
+                      4.62505,
+                      -3.5469
+                    ],
+                    [
+                      5.0702,
+                      -3.5351
+                    ]
+                  ]
+                },
+                {
+                  "from": "door:entrance",
+                  "to": "door:bedroom_door",
+                  "reachable": true,
+                  "width_m": 0.35,
+                  "status": "fail",
+                  "narrowest": [
+                    4.17505,
+                    -3.1719
+                  ],
+                  "path": [
+                    [
+                      2.6929499999999997,
+                      -0.15784999999999988
+                    ],
+                    [
+                      2.70005,
+                      -0.5969
+                    ],
+                    [
+                      2.70005,
+                      -1.4219
+                    ],
+                    [
+                      2.70005,
+                      -1.4219
+                    ],
+                    [
+                      2.87505,
+                      -1.4219
+                    ],
+                    [
+                      2.87505,
+                      -1.4469
+                    ],
+                    [
+                      2.92505,
+                      -1.4469
+                    ],
+                    [
+                      2.92505,
+                      -1.4719
+                    ],
+                    [
+                      3.00005,
+                      -1.4719
+                    ],
+                    [
+                      3.00005,
+                      -1.4969
+                    ],
+                    [
+                      3.05005,
+                      -1.4969
+                    ],
+                    [
+                      3.05005,
+                      -1.5469
+                    ],
+                    [
+                      3.07505,
+                      -1.5469
+                    ],
+                    [
+                      3.07505,
+                      -1.5719
+                    ],
+                    [
+                      3.15005,
+                      -1.5719
+                    ],
+                    [
+                      3.15005,
+                      -1.5969
+                    ],
+                    [
+                      3.17505,
+                      -1.5969
+                    ],
+                    [
+                      3.17505,
+                      -2.0219
+                    ],
+                    [
+                      3.20005,
+                      -2.0219
+                    ],
+                    [
+                      3.20005,
+                      -2.0969
+                    ],
+                    [
+                      3.22505,
+                      -2.0969
+                    ],
+                    [
+                      3.22505,
+                      -2.1219
+                    ],
+                    [
+                      3.25005,
+                      -2.1219
+                    ],
+                    [
+                      3.25005,
+                      -2.1969
+                    ],
+                    [
+                      3.27505,
+                      -2.1969
+                    ],
+                    [
+                      3.27505,
+                      -2.2969
+                    ],
+                    [
+                      3.30005,
+                      -2.2969
+                    ],
+                    [
+                      3.30005,
+                      -2.3219
+                    ],
+                    [
+                      3.32505,
+                      -2.3219
+                    ],
+                    [
+                      3.32505,
+                      -2.3469
+                    ],
+                    [
+                      3.35005,
+                      -2.3469
+                    ],
+                    [
+                      3.35005,
+                      -2.3719
+                    ],
+                    [
+                      3.37505,
+                      -2.3719
+                    ],
+                    [
+                      3.37505,
+                      -2.3969
+                    ],
+                    [
+                      3.45005,
+                      -2.3969
+                    ],
+                    [
+                      3.45005,
+                      -2.4469
+                    ],
+                    [
+                      3.47505,
+                      -2.4469
+                    ],
+                    [
+                      3.47505,
+                      -2.4719
+                    ],
+                    [
+                      3.57505,
+                      -2.4719
+                    ],
+                    [
+                      3.57505,
+                      -2.4969
+                    ],
+                    [
+                      3.67505,
+                      -2.4969
+                    ],
+                    [
+                      3.67505,
+                      -2.5219
+                    ],
+                    [
+                      3.80005,
+                      -2.5219
+                    ],
+                    [
+                      3.80005,
+                      -2.5469
+                    ],
+                    [
+                      3.90005,
+                      -2.5469
+                    ],
+                    [
+                      3.90005,
+                      -2.5969
+                    ],
+                    [
+                      3.95005,
+                      -2.5969
+                    ],
+                    [
+                      3.95005,
+                      -2.6719
+                    ],
+                    [
+                      3.97505,
+                      -2.6719
+                    ],
+                    [
+                      3.97505,
+                      -2.6969
+                    ],
+                    [
+                      4.05005,
+                      -2.6969
+                    ],
+                    [
+                      4.05005,
+                      -2.7469
+                    ],
+                    [
+                      4.17505,
+                      -2.7469
+                    ],
+                    [
+                      4.17505,
+                      -4.1719
+                    ],
+                    [
+                      4.22505,
+                      -4.1719
+                    ],
+                    [
+                      4.22505,
+                      -4.1969
+                    ],
+                    [
+                      4.25005,
+                      -4.1969
+                    ],
+                    [
+                      4.25005,
+                      -4.2219
+                    ],
+                    [
+                      4.27505,
+                      -4.2219
+                    ],
+                    [
+                      4.27505,
+                      -4.2469
+                    ],
+                    [
+                      4.40005,
+                      -4.2469
+                    ],
+                    [
+                      4.40005,
+                      -4.3469
+                    ],
+                    [
+                      4.42505,
+                      -4.3469
+                    ],
+                    [
+                      4.4298,
+                      -4.7719000000000005
+                    ]
+                  ]
+                },
+                {
+                  "from": "door:bathroom_door",
+                  "to": "door:bedroom_door",
+                  "reachable": true,
+                  "width_m": 0.35,
+                  "status": "fail",
+                  "narrowest": [
+                    4.17505,
+                    -3.6219
+                  ],
+                  "path": [
+                    [
+                      5.0702,
+                      -3.5351
+                    ],
+                    [
+                      4.62505,
+                      -3.5469
+                    ],
+                    [
+                      4.62505,
+                      -2.8219
+                    ],
+                    [
+                      4.62505,
+                      -2.8219
+                    ],
+                    [
+                      4.45005,
+                      -2.8219
+                    ],
+                    [
+                      4.45005,
+                      -2.8969
+                    ],
+                    [
+                      4.42505,
+                      -2.8969
+                    ],
+                    [
+                      4.42505,
+                      -2.9469
+                    ],
+                    [
+                      4.35005,
+                      -2.9469
+                    ],
+                    [
+                      4.35005,
+                      -3.0719
+                    ],
+                    [
+                      4.32505,
+                      -3.0719
+                    ],
+                    [
+                      4.32505,
+                      -3.1719
+                    ],
+                    [
+                      4.30005,
+                      -3.1719
+                    ],
+                    [
+                      4.30005,
+                      -3.2219
+                    ],
+                    [
+                      4.27505,
+                      -3.2219
+                    ],
+                    [
+                      4.27505,
+                      -3.2719
+                    ],
+                    [
+                      4.25005,
+                      -3.2719
+                    ],
+                    [
+                      4.25005,
+                      -3.3469
+                    ],
+                    [
+                      4.22505,
+                      -3.3469
+                    ],
+                    [
+                      4.22505,
+                      -3.4719
+                    ],
+                    [
+                      4.20005,
+                      -3.4719
+                    ],
+                    [
+                      4.20005,
+                      -3.6219
+                    ],
+                    [
+                      4.17505,
+                      -3.6219
+                    ],
+                    [
+                      4.17505,
+                      -4.1469
+                    ],
+                    [
+                      4.20005,
+                      -4.1469
+                    ],
+                    [
+                      4.20005,
+                      -4.1719
+                    ],
+                    [
+                      4.22505,
+                      -4.1719
+                    ],
+                    [
+                      4.22505,
+                      -4.2219
+                    ],
+                    [
+                      4.27505,
+                      -4.2219
+                    ],
+                    [
+                      4.27505,
+                      -4.2469
+                    ],
+                    [
+                      4.40005,
+                      -4.2469
+                    ],
+                    [
+                      4.40005,
+                      -4.3219
+                    ],
+                    [
+                      4.42505,
+                      -4.3219
+                    ],
+                    [
+                      4.42505,
+                      -4.3469
+                    ],
+                    [
+                      4.4298,
+                      -4.7719000000000005
+                    ]
+                  ]
+                }
+              ]
+            },
+            {
+              "room_id": "living",
+              "free_area_m2": 18.6325,
+              "largest_free_rectangle": {
+                "x": 1.893,
+                "y": -9.111,
+                "width": 1.5,
+                "depth": 5.3,
+                "area_m2": 7.95
+              },
+              "walkways": [
+                {
+                  "from": "door:balcony_door",
+                  "to": "item:drawn-i1",
+                  "reachable": true,
+                  "width_m": 0.7,
+                  "status": "warn",
+                  "narrowest": [
+                    1.893,
+                    -7.461
+                  ],
+                  "path": [
+                    [
+                      2.692995,
+                      -10.4912
+                    ],
+                    [
+                      2.693,
+                      -10.211
+                    ],
+                    [
+                      2.693,
+                      -9.361
+                    ],
+                    [
+                      2.693,
+                      -9.361
+                    ],
+                    [
+                      2.693,
+                      -8.286
+                    ],
+                    [
+                      2.668,
+                      -8.286
+                    ],
+                    [
+                      2.668,
+                      -8.236
+                    ],
+                    [
+                      2.643,
+                      -8.236
+                    ],
+                    [
+                      2.643,
+                      -8.211
+                    ],
+                    [
+                      2.618,
+                      -8.211
+                    ],
+                    [
+                      2.618,
+                      -8.186
+                    ],
+                    [
+                      2.518,
+                      -8.186
+                    ],
+                    [
+                      2.518,
+                      -8.136
+                    ],
+                    [
+                      2.493,
+                      -8.136
+                    ],
+                    [
+                      2.493,
+                      -7.986
+                    ],
+                    [
+                      2.468,
+                      -7.986
+                    ],
+                    [
+                      2.468,
+                      -7.886
+                    ],
+                    [
+                      2.318,
+                      -7.886
+                    ],
+                    [
+                      2.318,
+                      -7.786
+                    ],
+                    [
+                      2.268,
+                      -7.786
+                    ],
+                    [
+                      2.268,
+                      -7.761
+                    ],
+                    [
+                      2.243,
+                      -7.761
+                    ],
+                    [
+                      2.243,
+                      -7.661
+                    ],
+                    [
+                      2.218,
+                      -7.661
+                    ],
+                    [
+                      2.218,
+                      -7.611
+                    ],
+                    [
+                      2.193,
+                      -7.611
+                    ],
+                    [
+                      2.193,
+                      -7.486
+                    ],
+                    [
+                      2.043,
+                      -7.486
+                    ],
+                    [
+                      2.043,
+                      -7.461
+                    ],
+                    [
+                      1.818,
+                      -7.461
+                    ],
+                    [
+                      1.818,
+                      -7.386
+                    ],
+                    [
+                      1.743,
+                      -7.386
+                    ],
+                    [
+                      1.743,
+                      -7.261
+                    ],
+                    [
+                      1.693,
+                      -7.261
+                    ],
+                    [
+                      1.693,
+                      -7.211
+                    ],
+                    [
+                      1.643,
+                      -7.211
+                    ],
+                    [
+                      1.643,
+                      -7.111
+                    ],
+                    [
+                      1.568,
+                      -7.111
+                    ],
+                    [
+                      1.1143570175438589,
+                      -7.114912280701754
+                    ]
+                  ]
+                },
+                {
+                  "from": "door:balcony_door",
+                  "to": "item:drawn-i6",
+                  "reachable": true,
+                  "width_m": 0.6,
+                  "status": "warn",
+                  "narrowest": [
+                    2.293,
+                    -8.811
+                  ],
+                  "path": [
+                    [
+                      2.692995,
+                      -10.4912
+                    ],
+                    [
+                      2.693,
+                      -10.211
+                    ],
+                    [
+                      2.693,
+                      -9.361
+                    ],
+                    [
+                      2.693,
+                      -9.361
+                    ],
+                    [
+                      2.693,
+                      -9.011
+                    ],
+                    [
+                      2.668,
+                      -9.011
+                    ],
+                    [
+                      2.668,
+                      -8.986
+                    ],
+                    [
+                      2.643,
+                      -8.986
+                    ],
+                    [
+                      2.643,
+                      -8.961
+                    ],
+                    [
+                      2.618,
+                      -8.961
+                    ],
+                    [
+                      2.618,
+                      -8.911
+                    ],
+                    [
+                      2.593,
+                      -8.911
+                    ],
+                    [
+                      2.593,
+                      -8.861
+                    ],
+                    [
+                      2.543,
+                      -8.861
+                    ],
+                    [
+                      2.543,
+                      -8.836
+                    ],
+                    [
+                      2.518,
+                      -8.836
+                    ],
+                    [
+                      2.518,
+                      -8.811
+                    ],
+                    [
+                      1.368,
+                      -8.811
+                    ],
+                    [
+                      1.3726315789473686,
+                      -9.122810526315789
+                    ]
+                  ]
+                },
+                {
+                  "from": "door:balcony_door",
+                  "to": "item:drawn-i3",
+                  "reachable": true,
+                  "width_m": 0.7,
+                  "status": "warn",
+                  "narrowest": [
+                    1.893,
+                    -7.461
+                  ],
+                  "path": [
+                    [
+                      2.692995,
+                      -10.4912
+                    ],
+                    [
+                      2.693,
+                      -10.211
+                    ],
+                    [
+                      2.693,
+                      -9.361
+                    ],
+                    [
+                      2.693,
+                      -9.361
+                    ],
+                    [
+                      2.693,
+                      -8.286
+                    ],
+                    [
+                      2.668,
+                      -8.286
+                    ],
+                    [
+                      2.668,
+                      -8.236
+                    ],
+                    [
+                      2.643,
+                      -8.236
+                    ],
+                    [
+                      2.643,
+                      -8.211
+                    ],
+                    [
+                      2.618,
+                      -8.211
+                    ],
+                    [
+                      2.618,
+                      -8.186
+                    ],
+                    [
+                      2.518,
+                      -8.186
+                    ],
+                    [
+                      2.518,
+                      -8.136
+                    ],
+                    [
+                      2.493,
+                      -8.136
+                    ],
+                    [
+                      2.493,
+                      -7.986
+                    ],
+                    [
+                      2.468,
+                      -7.986
+                    ],
+                    [
+                      2.468,
+                      -7.886
+                    ],
+                    [
+                      2.318,
+                      -7.886
+                    ],
+                    [
+                      2.318,
+                      -7.786
+                    ],
+                    [
+                      2.268,
+                      -7.786
+                    ],
+                    [
+                      2.268,
+                      -7.761
+                    ],
+                    [
+                      2.243,
+                      -7.761
+                    ],
+                    [
+                      2.243,
+                      -7.661
+                    ],
+                    [
+                      2.218,
+                      -7.661
+                    ],
+                    [
+                      2.218,
+                      -7.611
+                    ],
+                    [
+                      2.193,
+                      -7.611
+                    ],
+                    [
+                      2.193,
+                      -7.486
+                    ],
+                    [
+                      2.043,
+                      -7.486
+                    ],
+                    [
+                      2.043,
+                      -7.461
+                    ],
+                    [
+                      1.818,
+                      -7.461
+                    ],
+                    [
+                      1.818,
+                      -7.386
+                    ],
+                    [
+                      1.793,
+                      -7.386
+                    ],
+                    [
+                      1.793,
+                      -7.211
+                    ],
+                    [
+                      1.768,
+                      -7.211
+                    ],
+                    [
+                      1.768,
+                      -7.161
+                    ],
+                    [
+                      1.718,
+                      -7.161
+                    ],
+                    [
+                      1.718,
+                      -7.086
+                    ],
+                    [
+                      1.693,
+                      -7.086
+                    ],
+                    [
+                      1.693,
+                      -6.736
+                    ],
+                    [
+                      1.668,
+                      -6.736
+                    ],
+                    [
+                      1.668,
+                      -6.686
+                    ],
+                    [
+                      1.643,
+                      -6.686
+                    ],
+                    [
+                      1.643,
+                      -6.661
+                    ],
+                    [
+                      1.618,
+                      -6.661
+                    ],
+                    [
+                      1.618,
+                      -6.611
+                    ],
+                    [
+                      1.518,
+                      -6.611
+                    ],
+                    [
+                      1.518,
+                      -6.461
+                    ],
+                    [
+                      1.493,
+                      -6.461
+                    ],
+                    [
+                      1.502456140350877,
+                      -6.107888596491228
+                    ]
+                  ]
+                },
+                {
+                  "from": "door:balcony_door",
+                  "to": "item:drawn-i4",
+                  "reachable": true,
+                  "width_m": 0.7,
+                  "status": "warn",
+                  "narrowest": [
+                    1.893,
+                    -7.461
+                  ],
+                  "path": [
+                    [
+                      2.692995,
+                      -10.4912
+                    ],
+                    [
+                      2.693,
+                      -10.211
+                    ],
+                    [
+                      2.693,
+                      -9.361
+                    ],
+                    [
+                      2.693,
+                      -9.361
+                    ],
+                    [
+                      2.693,
+                      -8.286
+                    ],
+                    [
+                      2.668,
+                      -8.286
+                    ],
+                    [
+                      2.668,
+                      -8.236
+                    ],
+                    [
+                      2.643,
+                      -8.236
+                    ],
+                    [
+                      2.643,
+                      -8.211
+                    ],
+                    [
+                      2.618,
+                      -8.211
+                    ],
+                    [
+                      2.618,
+                      -8.186
+                    ],
+                    [
+                      2.518,
+                      -8.186
+                    ],
+                    [
+                      2.518,
+                      -8.136
+                    ],
+                    [
+                      2.493,
+                      -8.136
+                    ],
+                    [
+                      2.493,
+                      -7.986
+                    ],
+                    [
+                      2.468,
+                      -7.986
+                    ],
+                    [
+                      2.468,
+                      -7.886
+                    ],
+                    [
+                      2.318,
+                      -7.886
+                    ],
+                    [
+                      2.318,
+                      -7.786
+                    ],
+                    [
+                      2.268,
+                      -7.786
+                    ],
+                    [
+                      2.268,
+                      -7.761
+                    ],
+                    [
+                      2.243,
+                      -7.761
+                    ],
+                    [
+                      2.243,
+                      -7.661
+                    ],
+                    [
+                      2.218,
+                      -7.661
+                    ],
+                    [
+                      2.218,
+                      -7.611
+                    ],
+                    [
+                      2.193,
+                      -7.611
+                    ],
+                    [
+                      2.193,
+                      -7.486
+                    ],
+                    [
+                      2.043,
+                      -7.486
+                    ],
+                    [
+                      2.043,
+                      -7.461
+                    ],
+                    [
+                      1.493,
+                      -7.461
+                    ],
+                    [
+                      1.502456140350877,
+                      -7.81211140350877
+                    ]
+                  ]
+                }
+              ]
+            },
+            {
+              "room_id": "kitchen",
+              "free_area_m2": 3.74,
+              "largest_free_rectangle": {
+                "x": 0.193,
+                "y": -2.83,
+                "width": 1.7,
+                "depth": 2.2,
+                "area_m2": 3.74
+              },
+              "walkways": []
+            },
+            {
+              "room_id": "bedroom",
+              "free_area_m2": 11.7325,
+              "largest_free_rectangle": {
+                "x": 4.3368,
+                "y": -10.014,
+                "width": 1.65,
+                "depth": 4.35,
+                "area_m2": 7.1775
+              },
+              "walkways": [
+                {
+                  "from": "door:bedroom_door",
+                  "to": "item:drawn-i23",
+                  "reachable": true,
+                  "width_m": 0.6103277808,
+                  "status": "warn",
+                  "narrowest": [
+                    5.7368,
+                    -5.739
+                  ],
+                  "path": [
+                    [
+                      4.4298,
+                      -4.8333
+                    ],
+                    [
+                      4.4368,
+                      -5.289
+                    ],
+                    [
+                      4.4368,
+                      -6.089
+                    ],
+                    [
+                      4.4368,
+                      -6.089
+                    ],
+                    [
+                      5.3368,
+                      -6.089
+                    ],
+                    [
+                      5.3368,
+                      -6.064
+                    ],
+                    [
+                      5.3618,
+                      -6.064
+                    ],
+                    [
+                      5.3618,
+                      -6.039
+                    ],
+                    [
+                      5.3868,
+                      -6.039
+                    ],
+                    [
+                      5.3868,
+                      -5.939
+                    ],
+                    [
+                      5.4368,
+                      -5.939
+                    ],
+                    [
+                      5.4368,
+                      -5.839
+                    ],
+                    [
+                      5.5868,
+                      -5.839
+                    ],
+                    [
+                      5.5868,
+                      -5.814
+                    ],
+                    [
+                      5.6118,
+                      -5.814
+                    ],
+                    [
+                      5.6118,
+                      -5.789
+                    ],
+                    [
+                      5.6368,
+                      -5.789
+                    ],
+                    [
+                      5.6368,
+                      -5.764
+                    ],
+                    [
+                      5.6868,
+                      -5.764
+                    ],
+                    [
+                      5.6868,
+                      -5.739
+                    ],
+                    [
+                      5.7368,
+                      -5.739
+                    ],
+                    [
+                      5.741052631578947,
+                      -5.410514035087719
+                    ]
+                  ]
+                },
+                {
+                  "from": "door:bedroom_door",
+                  "to": "item:drawn-i24",
+                  "reachable": true,
+                  "width_m": 0.85,
+                  "status": "adequate",
+                  "narrowest": [
+                    4.4368,
+                    -6.089
+                  ],
+                  "path": [
+                    [
+                      4.4298,
+                      -4.8333
+                    ],
+                    [
+                      4.4368,
+                      -5.289
+                    ],
+                    [
+                      4.4368,
+                      -6.089
+                    ],
+                    [
+                      4.4368,
+                      -6.089
+                    ],
+                    [
+                      4.4368,
+                      -7.414
+                    ],
+                    [
+                      4.4618,
+                      -7.414
+                    ],
+                    [
+                      4.4618,
+                      -7.439
+                    ],
+                    [
+                      4.4868,
+                      -7.439
+                    ],
+                    [
+                      4.4868,
+                      -7.489
+                    ],
+                    [
+                      4.5118,
+                      -7.489
+                    ],
+                    [
+                      4.5118,
+                      -7.514
+                    ],
+                    [
+                      4.5368,
+                      -7.514
+                    ],
+                    [
+                      4.5368,
+                      -7.589
+                    ],
+                    [
+                      4.5618,
+                      -7.589
+                    ],
+                    [
+                      4.5618,
+                      -7.664
+                    ],
+                    [
+                      4.5868,
+                      -7.664
+                    ],
+                    [
+                      4.5868,
+                      -7.764
+                    ],
+                    [
+                      4.6118,
+                      -7.764
+                    ],
+                    [
+                      4.6118,
+                      -7.839
+                    ],
+                    [
+                      4.6368,
+                      -7.839
+                    ],
+                    [
+                      4.6368,
+                      -8.389
+                    ],
+                    [
+                      4.6618,
+                      -8.389
+                    ],
+                    [
+                      4.6618,
+                      -8.539
+                    ],
+                    [
+                      4.7618,
+                      -8.539
+                    ],
+                    [
+                      4.7618,
+                      -9.289
+                    ],
+                    [
+                      4.7868,
+                      -9.289
+                    ],
+                    [
+                      4.7868,
+                      -9.339
+                    ],
+                    [
+                      4.327278947368421,
+                      -9.34421052631579
+                    ]
+                  ]
+                },
+                {
+                  "from": "door:bedroom_door",
+                  "to": "item:drawn-i21",
+                  "reachable": true,
+                  "width_m": 0.85,
+                  "status": "adequate",
+                  "narrowest": [
+                    4.4368,
+                    -6.089
+                  ],
+                  "path": [
+                    [
+                      4.4298,
+                      -4.8333
+                    ],
+                    [
+                      4.4368,
+                      -5.289
+                    ],
+                    [
+                      4.4368,
+                      -6.089
+                    ],
+                    [
+                      4.4368,
+                      -6.089
+                    ],
+                    [
+                      5.5118,
+                      -6.089
+                    ],
+                    [
+                      5.5118,
+                      -6.139
+                    ],
+                    [
+                      5.5618,
+                      -6.139
+                    ],
+                    [
+                      5.5618,
+                      -6.164
+                    ],
+                    [
+                      6.007377192982456,
+                      -6.175263157894737
+                    ]
+                  ]
+                },
+                {
+                  "from": "door:bedroom_door",
+                  "to": "item:drawn-i22",
+                  "reachable": true,
+                  "width_m": 0.85,
+                  "status": "adequate",
+                  "narrowest": [
+                    4.4368,
+                    -6.089
+                  ],
+                  "path": [
+                    [
+                      4.4298,
+                      -4.8333
+                    ],
+                    [
+                      4.4368,
+                      -5.289
+                    ],
+                    [
+                      4.4368,
+                      -6.089
+                    ],
+                    [
+                      4.4368,
+                      -6.089
+                    ],
+                    [
+                      4.4868,
+                      -6.089
+                    ],
+                    [
+                      4.4868,
+                      -6.139
+                    ],
+                    [
+                      4.5368,
+                      -6.139
+                    ],
+                    [
+                      4.5368,
+                      -6.289
+                    ],
+                    [
+                      4.5618,
+                      -6.289
+                    ],
+                    [
+                      4.5618,
+                      -6.464
+                    ],
+                    [
+                      4.5868,
+                      -6.464
+                    ],
+                    [
+                      4.5868,
+                      -6.514
+                    ],
+                    [
+                      4.6118,
+                      -6.514
+                    ],
+                    [
+                      4.6118,
+                      -6.564
+                    ],
+                    [
+                      4.6368,
+                      -6.564
+                    ],
+                    [
+                      4.6368,
+                      -6.639
+                    ],
+                    [
+                      4.6868,
+                      -6.639
+                    ],
+                    [
+                      4.6868,
+                      -6.664
+                    ],
+                    [
+                      4.7118,
+                      -6.664
+                    ],
+                    [
+                      4.7118,
+                      -6.689
+                    ],
+                    [
+                      4.7368,
+                      -6.689
+                    ],
+                    [
+                      4.7368,
+                      -6.739
+                    ],
+                    [
+                      4.7868,
+                      -6.739
+                    ],
+                    [
+                      4.7868,
+                      -6.764
+                    ],
+                    [
+                      4.8118,
+                      -6.764
+                    ],
+                    [
+                      4.8118,
+                      -6.864
+                    ],
+                    [
+                      4.8368,
+                      -6.864
+                    ],
+                    [
+                      4.8368,
+                      -6.914
+                    ],
+                    [
+                      4.8618,
+                      -6.914
+                    ],
+                    [
+                      4.8618,
+                      -6.989
+                    ],
+                    [
+                      4.8868,
+                      -6.989
+                    ],
+                    [
+                      4.8868,
+                      -7.039
+                    ],
+                    [
+                      4.9618,
+                      -7.039
+                    ],
+                    [
+                      4.9618,
+                      -7.214
+                    ],
+                    [
+                      4.9868,
+                      -7.214
+                    ],
+                    [
+                      4.9868,
+                      -7.239
+                    ],
+                    [
+                      5.0118,
+                      -7.239
+                    ],
+                    [
+                      5.0118,
+                      -7.289
+                    ],
+                    [
+                      5.0368,
+                      -7.289
+                    ],
+                    [
+                      5.0368,
+                      -7.489
+                    ],
+                    [
+                      5.0618,
+                      -7.489
+                    ],
+                    [
+                      5.0618,
+                      -7.614
+                    ],
+                    [
+                      5.0868,
+                      -7.614
+                    ],
+                    [
+                      5.0868,
+                      -7.664
+                    ],
+                    [
+                      5.1118,
+                      -7.664
+                    ],
+                    [
+                      5.1118,
+                      -7.764
+                    ],
+                    [
+                      5.1368,
+                      -7.764
+                    ],
+                    [
+                      5.1368,
+                      -7.839
+                    ],
+                    [
+                      5.1868,
+                      -7.839
+                    ],
+                    [
+                      5.1868,
+                      -7.939
+                    ],
+                    [
+                      5.2368,
+                      -7.939
+                    ],
+                    [
+                      5.2368,
+                      -7.964
+                    ],
+                    [
+                      5.3118,
+                      -7.964
+                    ],
+                    [
+                      5.3118,
+                      -8.064
+                    ],
+                    [
+                      5.3368,
+                      -8.064
+                    ],
+                    [
+                      5.3368,
+                      -8.164
+                    ],
+                    [
+                      5.4118,
+                      -8.164
+                    ],
+                    [
+                      5.4118,
+                      -8.264
+                    ],
+                    [
+                      5.4368,
+                      -8.264
+                    ],
+                    [
+                      5.4368,
+                      -8.389
+                    ],
+                    [
+                      5.4618,
+                      -8.389
+                    ],
+                    [
+                      5.4618,
+                      -8.414
+                    ],
+                    [
+                      5.5368,
+                      -8.414
+                    ],
+                    [
+                      5.5368,
+                      -8.464
+                    ],
+                    [
+                      5.5618,
+                      -8.464
+                    ],
+                    [
+                      5.5618,
+                      -8.539
+                    ],
+                    [
+                      6.007377192982456,
+                      -8.534561403508771
+                    ]
+                  ]
+                }
+              ]
+            },
+            {
+              "room_id": "bathroom",
+              "free_area_m2": 2.8875,
+              "largest_free_rectangle": {
+                "x": 5.2316,
+                "y": -4.7719,
+                "width": 1.15,
+                "depth": 2.45,
+                "area_m2": 2.8175
+              },
+              "walkways": []
+            },
+            {
+              "room_id": "balcony",
+              "free_area_m2": 5.7375,
+              "largest_free_rectangle": {
+                "x": 0.193,
+                "y": -12.33335,
+                "width": 2.8,
+                "depth": 1.7,
+                "area_m2": 4.76
+              },
+              "walkways": []
+            }
+          ],
+          "free_area_m2": 50.635
+        },
+        "daylight": {
+          "status": "unknown",
+          "reason": "Direct sun is unknown: set north_deg from the plan north arrow first",
+          "location": {
+            "latitude": 40.18,
+            "longitude": 44.51,
+            "utc_offset_hours": 4
+          },
+          "assumptions": [
+            "Calculated clear-sky potential direct sun, with a fixed 15 degree obstruction horizon and at most 85 degree incidence.",
+            "Intervals use one-minute midpoint samples in fixed UTC+4; noon refers to solar noon.",
+            "Floor polygons are unoccluded full-window projections; not clipped to walls or furniture.",
+            "Default seasonal dates use fixed reference year 2026."
+          ],
+          "windows": []
+        },
+        "function_clearances": [
+          {
+            "item_id": "drawn-i6",
+            "function": "table_wall",
+            "side": "left",
+            "clearance_m": 1.152718,
+            "minimum_m": 0.9,
+            "deficit_m": 0,
+            "status": "good",
+            "at": [
+              2.2682815789473687,
+              -9.564210526315788
+            ]
+          },
+          {
+            "item_id": "drawn-i6",
+            "function": "table_wall",
+            "side": "right",
+            "clearance_m": 0.283982,
+            "minimum_m": 0.9,
+            "deficit_m": 0.616018,
+            "status": "warn",
+            "at": [
+              0.4769815789473687,
+              -9.564210526315788
+            ]
+          },
+          {
+            "item_id": "drawn-i6",
+            "function": "table_wall",
+            "side": "front",
+            "clearance_m": 5.824611,
+            "minimum_m": 0.9,
+            "deficit_m": 0,
+            "status": "good",
+            "at": [
+              1.3726315789473686,
+              -9.122810526315789
+            ]
+          },
+          {
+            "item_id": "drawn-i6",
+            "function": "table_wall",
+            "side": "back",
+            "clearance_m": 0.345239,
+            "minimum_m": 0.9,
+            "deficit_m": 0.554761,
+            "status": "warn",
+            "at": [
+              1.3726315789473686,
+              -10.005610526315788
+            ]
+          },
+          {
+            "item_id": "drawn-i24",
+            "function": "table_wall",
+            "side": "left",
+            "clearance_m": 0.218989,
+            "minimum_m": 0.9,
+            "deficit_m": 0.681011,
+            "status": "warn",
+            "at": [
+              4.0815789473684205,
+              -9.83366052631579
+            ]
+          },
+          {
+            "item_id": "drawn-i24",
+            "function": "table_wall",
+            "side": "right",
+            "clearance_m": 3.960061,
+            "minimum_m": 0.9,
+            "deficit_m": 0,
+            "status": "good",
+            "at": [
+              4.0815789473684205,
+              -8.85476052631579
+            ]
+          },
+          {
+            "item_id": "drawn-i24",
+            "function": "table_wall",
+            "side": "front",
+            "clearance_m": 2.076271,
+            "minimum_m": 0.9,
+            "deficit_m": 0,
+            "status": "good",
+            "at": [
+              4.327278947368421,
+              -9.34421052631579
+            ]
+          },
+          {
+            "item_id": "drawn-i24",
+            "function": "table_wall",
+            "side": "back",
+            "clearance_m": 0.099079,
+            "minimum_m": 0.9,
+            "deficit_m": 0.800921,
+            "status": "warn",
+            "at": [
+              3.8358789473684207,
+              -9.34421052631579
+            ]
+          },
+          {
+            "item_id": "drawn-i3",
+            "function": "chair_pullout",
+            "side": "back",
+            "clearance_m": 2.592989,
+            "minimum_m": 0.6,
+            "deficit_m": 0,
+            "status": "good",
+            "at": [
+              1.502456140350877,
+              -5.422988596491227
+            ]
+          },
+          {
+            "item_id": "drawn-i4",
+            "function": "chair_pullout",
+            "side": "back",
+            "clearance_m": 0.625799,
+            "minimum_m": 0.6,
+            "deficit_m": 0,
+            "status": "good",
+            "at": [
+              1.502456140350877,
+              -8.49701140350877
+            ]
+          }
+        ],
+        "cost_dram": 835000,
+        "daylight_for_work": {
+          "score": 0,
+          "desks": [],
+          "basis": "Geometry proxy in [0,1]: each desk uses its best same-room full window span, side alignment / (1 + footprint distance / 1.5 m), averaged over desks. Alignment is 1 for side light and 0 ahead/behind. Missing windows are unknown (null details, zero contribution); no desks scores 0. Does not measure illuminance, glare, obstruction, or sun hours."
+        },
+        "social_living": {
+          "score": 0.641978,
+          "seating_pairs_within_3m": 3,
+          "mean_facing_alignment": 0.641978,
+          "basis": "Geometry proxy in [0,1]: mutual positive facing alignment of seating centres within 3 m, averaged over all same-room seating pairs (distant pairs contribute 0). Work chairs excluded. No pairs scores 0. Does not measure comfort, sight-line obstruction, or conversation quality."
+        }
+      },
+      "cost_dram": 835000,
+      "price": {
+        "cost_dram": 835000,
+        "currency": "AMD",
+        "basis": "incremental_purchases",
+        "errors": []
+      }
+    },
+    "requires_user_acceptance": true,
+    "application_status": "not_applied",
+    "validation_scope": "temporary_designer_scene"
+  },
+  "items": [
+    {
+      "id": "i20",
+      "role": "bed",
+      "name": "Double bed, head to the east wall",
+      "center_px": [
+        857.44,
+        714.38
+      ],
+      "footprint_px": [
+        103.13,
+        113.96
+      ],
+      "rotation": 270,
+      "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+      "drawn_position": [
+        5.411228070175439,
+        -7.304912280701754
+      ],
+      "drawn_size_m": [
+        1.809298245614035,
+        1.999298245614035
+      ],
+      "room_id": "bedroom",
+      "status": "not_placed",
+      "attempts": 1,
+      "access_repair_attempts": 226,
+      "access_repair_previous": {
+        "sku": "abo:B07GFDZW5W",
+        "position": [
+          5.411228070175439,
+          -7.304912280701754
+        ]
+      },
+      "reason": "No tried candidate passed the combined geometry, editor, route and native access checks within 0.60 m on a 10 cm grid at the drawn heading",
+      "access_repair_errors": [
+        {
+          "item_id": "drawn-i20",
+          "function": "bed_side",
+          "side": "left",
+          "clearance_m": 0.105249,
+          "minimum_m": 0.6,
+          "deficit_m": 0.494751,
+          "status": "warn",
+          "at": [
+            5.411228070175439,
+            -6.493912280701754
+          ]
+        },
+        {
+          "item_id": "drawn-i20",
+          "function": "bed_side",
+          "side": "right",
+          "clearance_m": 0.205249,
+          "minimum_m": 0.6,
+          "deficit_m": 0.394751,
+          "status": "warn",
+          "at": [
+            5.411228070175439,
+            -8.115912280701755
+          ]
+        }
+      ]
+    },
+    {
+      "id": "i1",
+      "role": "sofa",
+      "name": "Three-seat sofa on the west wall",
+      "center_px": [
+        582.79,
+        703.55
+      ],
+      "footprint_px": [
+        124.22,
+        43.3
+      ],
+      "rotation": 90,
+      "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+      "drawn_position": [
+        0.592807017543859,
+        -7.114912280701754
+      ],
+      "drawn_size_m": [
+        2.179298245614035,
+        0.7596491228070175
+      ],
+      "room_id": "living",
+      "status": "placed",
+      "sku": "abo:B075X4F5CS",
+      "catalog_name": "Amazon Brand – Rivet Lawson Modern Angled Sofa, 78\"W, Smoke",
+      "price_amd": 273000,
+      "placed_position": [
+        0.692807017543859,
+        -7.114912280701754
+      ],
+      "placed_rotation": 90,
+      "placed_size_m": [
+        2.0018,
+        0.8431,
+        0.9068
+      ],
+      "nudge_m": 0.1,
+      "attempts": 5
+    },
+    {
+      "id": "i23",
+      "role": "wardrobe",
+      "name": "Wardrobe on the bathroom partition",
+      "center_px": [
+        876.24,
+        591.87
+      ],
+      "footprint_px": [
+        75.78,
+        31.34
+      ],
+      "rotation": 0,
+      "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+      "drawn_position": [
+        5.741052631578947,
+        -5.155614035087719
+      ],
+      "drawn_size_m": [
+        1.3294736842105264,
+        0.5498245614035088
+      ],
+      "room_id": "bedroom",
+      "status": "placed",
+      "sku": "abo:B07GFW9GFX",
+      "catalog_name": "Movian Indre Bedroom Furniture",
+      "price_amd": 163000,
+      "placed_position": [
+        5.741052631578947,
+        -5.155614035087719
+      ],
+      "placed_rotation": 0,
+      "placed_size_m": [
+        1.2898,
+        0.5098,
+        1.9098
+      ],
+      "nudge_m": 0,
+      "attempts": 1
+    },
+    {
+      "id": "i27",
+      "role": "wardrobe",
+      "name": "Hall built-in wardrobe by the entrance",
+      "center_px": [
+        760.57,
+        360.53
+      ],
+      "footprint_px": [
+        99.72,
+        31.34
+      ],
+      "rotation": 270,
+      "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+      "drawn_position": [
+        3.7117543859649134,
+        -1.0970175438596486
+      ],
+      "drawn_size_m": [
+        1.7494736842105263,
+        0.5498245614035088
+      ],
+      "room_id": "hall",
+      "status": "not_placed",
+      "reason": "No legal pose within 0.60 m on a 10 cm grid, preserving room and any drawn heading",
+      "rejections": {
+        "walkway": 73,
+        "inside": 132,
+        "wall_collision": 174,
+        "door_swing": 28
+      },
+      "attempts": 226
+    },
+    {
+      "id": "i6",
+      "role": "table",
+      "name": "Dining table",
+      "center_px": [
+        627.24,
+        843.16
+      ],
+      "footprint_px": [
+        96.87,
+        45.01
+      ],
+      "rotation": 180,
+      "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+      "drawn_position": [
+        1.3726315789473686,
+        -9.564210526315788
+      ],
+      "drawn_size_m": [
+        1.6994736842105265,
+        0.7896491228070175
+      ],
+      "room_id": "living",
+      "status": "placed",
+      "sku": "abo:B075YPTG8S",
+      "catalog_name": "Amazon Brand – Rivet Industrial Mid-Century Modern Hairpin Dining Table, 70.9\"L,",
+      "price_amd": 111000,
+      "placed_position": [
+        1.3726315789473686,
+        -9.564210526315788
+      ],
+      "placed_rotation": 180,
+      "placed_size_m": [
+        1.7913,
+        0.8828,
+        0.7533
+      ],
+      "nudge_m": 0,
+      "attempts": 1
+    },
+    {
+      "id": "i24",
+      "role": "desk",
+      "name": "Desk on the partition",
+      "center_px": [
+        781.65,
+        830.62
+      ],
+      "footprint_px": [
+        76.92,
+        39.89
+      ],
+      "rotation": 90,
+      "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+      "drawn_position": [
+        4.0815789473684205,
+        -9.34421052631579
+      ],
+      "drawn_size_m": [
+        1.3494736842105264,
+        0.6998245614035088
+      ],
+      "room_id": "bedroom",
+      "status": "placed",
+      "sku": "abo:B079HXWXXD",
+      "catalog_name": "Amazon Brand - Movian Havel 1-Drawer Desk with Storage Compartment, 50 x 100 x 7",
+      "price_amd": 92000,
+      "placed_position": [
+        4.0815789473684205,
+        -9.34421052631579
+      ],
+      "placed_rotation": 90,
+      "placed_size_m": [
+        0.9789,
+        0.4914,
+        0.723
+      ],
+      "nudge_m": 0,
+      "attempts": 1
+    },
+    {
+      "id": "i3",
+      "role": "armchair",
+      "name": "Armchair north",
+      "center_px": [
+        634.64,
+        626.63
+      ],
+      "footprint_px": [
+        41.03,
+        39.89
+      ],
+      "rotation": 0,
+      "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+      "drawn_position": [
+        1.502456140350877,
+        -5.765438596491228
+      ],
+      "drawn_size_m": [
+        0.7198245614035088,
+        0.6998245614035088
+      ],
+      "room_id": "living",
+      "status": "placed",
+      "sku": "abo:B07JVNB871",
+      "catalog_name": "amazon Brand Movian City Club Module Corner Armchair",
+      "price_amd": 64000,
+      "placed_position": [
+        1.502456140350877,
+        -5.765438596491228
+      ],
+      "placed_rotation": 0,
+      "placed_size_m": [
+        0.684,
+        0.6849,
+        0.66
+      ],
+      "nudge_m": 0,
+      "attempts": 1
+    },
+    {
+      "id": "i4",
+      "role": "armchair",
+      "name": "Armchair south",
+      "center_px": [
+        634.64,
+        779.91
+      ],
+      "footprint_px": [
+        41.03,
+        39.89
+      ],
+      "rotation": 180,
+      "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+      "drawn_position": [
+        1.502456140350877,
+        -8.454561403508771
+      ],
+      "drawn_size_m": [
+        0.7198245614035088,
+        0.6998245614035088
+      ],
+      "room_id": "living",
+      "status": "placed",
+      "sku": "abo:B07JVNB871",
+      "catalog_name": "amazon Brand Movian City Club Module Corner Armchair",
+      "price_amd": 64000,
+      "placed_position": [
+        1.502456140350877,
+        -8.15456140350877
+      ],
+      "placed_rotation": 180,
+      "placed_size_m": [
+        0.684,
+        0.6849,
+        0.66
+      ],
+      "nudge_m": 0.30000000000000004,
+      "attempts": 28
+    },
+    {
+      "id": "i2",
+      "role": "coffee_table",
+      "name": "Coffee table",
+      "center_px": [
+        635.78,
+        702.98
+      ],
+      "footprint_px": [
+        74.07,
+        30.2
+      ],
+      "rotation": 90,
+      "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+      "drawn_position": [
+        1.5224561403508767,
+        -7.104912280701755
+      ],
+      "drawn_size_m": [
+        1.2994736842105261,
+        0.5298245614035088
+      ],
+      "room_id": "living",
+      "status": "not_placed",
+      "reason": "No legal pose within 0.60 m on a 10 cm grid, preserving room and any drawn heading",
+      "rejections": {
+        "walkway": 78,
+        "overlap": 181
+      },
+      "attempts": 226
+    },
+    {
+      "id": "i21",
+      "role": "nightstand",
+      "name": "Nightstand north",
+      "center_px": [
+        901.31,
+        649.99
+      ],
+      "footprint_px": [
+        24.5,
+        26.21
+      ],
+      "rotation": 270,
+      "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+      "drawn_position": [
+        6.1808771929824555,
+        -6.175263157894737
+      ],
+      "drawn_size_m": [
+        0.4298245614035088,
+        0.4598245614035088
+      ],
+      "room_id": "bedroom",
+      "status": "placed",
+      "sku": "abo:B07GFRKNNH",
+      "catalog_name": "Amazon Brand - Movian Havel 2-Drawer Bedside Table, 35 x 43 x 45cm, Dark Grey/Wh",
+      "price_amd": 34000,
+      "placed_position": [
+        6.1808771929824555,
+        -6.175263157894737
+      ],
+      "placed_rotation": 270,
+      "placed_size_m": [
+        0.4268,
+        0.347,
+        0.4478
+      ],
+      "nudge_m": 0,
+      "attempts": 1
+    },
+    {
+      "id": "i22",
+      "role": "nightstand",
+      "name": "Nightstand south",
+      "center_px": [
+        901.31,
+        778.77
+      ],
+      "footprint_px": [
+        25.64,
+        26.21
+      ],
+      "rotation": 270,
+      "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+      "drawn_position": [
+        6.1808771929824555,
+        -8.434561403508772
+      ],
+      "drawn_size_m": [
+        0.4498245614035088,
+        0.4598245614035088
+      ],
+      "room_id": "bedroom",
+      "status": "placed",
+      "sku": "abo:B07GFRKNNH",
+      "catalog_name": "Amazon Brand - Movian Havel 2-Drawer Bedside Table, 35 x 43 x 45cm, Dark Grey/Wh",
+      "price_amd": 34000,
+      "placed_position": [
+        6.1808771929824555,
+        -8.534561403508771
+      ],
+      "placed_rotation": 270,
+      "placed_size_m": [
+        0.4268,
+        0.347,
+        0.4478
+      ],
+      "nudge_m": 0.1,
+      "attempts": 3
+    },
+    {
+      "id": "i7",
+      "role": "chair",
+      "name": "Dining chair",
+      "center_px": [
+        598.18,
+        821.5
+      ],
+      "footprint_px": [
+        22.79,
+        22.79
+      ],
+      "rotation": 0,
+      "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+      "circular_symbol": true,
+      "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+      "drawn_position": [
+        0.8628070175438588,
+        -9.18421052631579
+      ],
+      "drawn_size_m": [
+        0.39982456140350875,
+        0.39982456140350875
+      ],
+      "room_id": "living",
+      "status": "not_placed",
+      "reason": "No legal pose within 0.60 m on a 10 cm grid, preserving room and any drawn heading",
+      "rejections": {
+        "overlap": 374,
+        "walkway": 76,
+        "inside": 32,
+        "wall_collision": 32
+      },
+      "attempts": 452
+    },
+    {
+      "id": "i8",
+      "role": "chair",
+      "name": "Dining chair",
+      "center_px": [
+        627.81,
+        821.5
+      ],
+      "footprint_px": [
+        22.79,
+        22.79
+      ],
+      "rotation": 0,
+      "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+      "circular_symbol": true,
+      "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+      "drawn_position": [
+        1.3826315789473675,
+        -9.18421052631579
+      ],
+      "drawn_size_m": [
+        0.39982456140350875,
+        0.39982456140350875
+      ],
+      "room_id": "living",
+      "status": "not_placed",
+      "reason": "No legal pose within 0.60 m on a 10 cm grid, preserving room and any drawn heading",
+      "rejections": {
+        "overlap": 394,
+        "walkway": 58
+      },
+      "attempts": 452
+    },
+    {
+      "id": "i9",
+      "role": "chair",
+      "name": "Dining chair",
+      "center_px": [
+        656.87,
+        821.5
+      ],
+      "footprint_px": [
+        22.79,
+        22.79
+      ],
+      "rotation": 0,
+      "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+      "circular_symbol": true,
+      "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+      "drawn_position": [
+        1.8924561403508773,
+        -9.18421052631579
+      ],
+      "drawn_size_m": [
+        0.39982456140350875,
+        0.39982456140350875
+      ],
+      "room_id": "living",
+      "status": "not_placed",
+      "reason": "No legal pose within 0.60 m on a 10 cm grid, preserving room and any drawn heading",
+      "rejections": {
+        "overlap": 386,
+        "walkway": 66
+      },
+      "attempts": 452
+    },
+    {
+      "id": "i10",
+      "role": "chair",
+      "name": "Dining chair",
+      "center_px": [
+        598.18,
+        866.52
+      ],
+      "footprint_px": [
+        22.79,
+        22.79
+      ],
+      "rotation": 180,
+      "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+      "circular_symbol": true,
+      "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+      "drawn_position": [
+        0.8628070175438588,
+        -9.974035087719297
+      ],
+      "drawn_size_m": [
+        0.39982456140350875,
+        0.39982456140350875
+      ],
+      "room_id": "living",
+      "status": "not_placed",
+      "reason": "No legal pose within 0.60 m on a 10 cm grid, preserving room and any drawn heading",
+      "rejections": {
+        "overlap": 340,
+        "inside": 180,
+        "wall_collision": 188
+      },
+      "attempts": 452
+    },
+    {
+      "id": "i11",
+      "role": "chair",
+      "name": "Dining chair",
+      "center_px": [
+        627.81,
+        866.52
+      ],
+      "footprint_px": [
+        22.79,
+        22.79
+      ],
+      "rotation": 180,
+      "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+      "circular_symbol": true,
+      "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+      "drawn_position": [
+        1.3826315789473675,
+        -9.974035087719297
+      ],
+      "drawn_size_m": [
+        0.39982456140350875,
+        0.39982456140350875
+      ],
+      "room_id": "living",
+      "status": "not_placed",
+      "reason": "No legal pose within 0.60 m on a 10 cm grid, preserving room and any drawn heading",
+      "rejections": {
+        "overlap": 340,
+        "inside": 156,
+        "wall_collision": 156
+      },
+      "attempts": 452
+    },
+    {
+      "id": "i12",
+      "role": "chair",
+      "name": "Dining chair",
+      "center_px": [
+        656.87,
+        866.52
+      ],
+      "footprint_px": [
+        22.79,
+        22.79
+      ],
+      "rotation": 180,
+      "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+      "circular_symbol": true,
+      "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+      "drawn_position": [
+        1.8924561403508773,
+        -9.974035087719297
+      ],
+      "drawn_size_m": [
+        0.39982456140350875,
+        0.39982456140350875
+      ],
+      "room_id": "living",
+      "status": "not_placed",
+      "reason": "No legal pose within 0.60 m on a 10 cm grid, preserving room and any drawn heading",
+      "rejections": {
+        "overlap": 338,
+        "inside": 156,
+        "wall_collision": 156,
+        "door_swing": 106
+      },
+      "attempts": 452
+    },
+    {
+      "id": "i13",
+      "role": "chair",
+      "name": "Dining chair (west end)",
+      "center_px": [
+        578.8,
+        843.16
+      ],
+      "footprint_px": [
+        22.79,
+        22.79
+      ],
+      "rotation": 90,
+      "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+      "circular_symbol": true,
+      "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+      "drawn_position": [
+        0.5228070175438588,
+        -9.564210526315788
+      ],
+      "drawn_size_m": [
+        0.39982456140350875,
+        0.39982456140350875
+      ],
+      "room_id": "living",
+      "status": "not_placed",
+      "reason": "No legal pose within 0.60 m on a 10 cm grid, preserving room and any drawn heading",
+      "rejections": {
+        "overlap": 340,
+        "inside": 182,
+        "wall_collision": 182
+      },
+      "attempts": 452
+    },
+    {
+      "id": "i14",
+      "role": "chair",
+      "name": "Dining chair (east end)",
+      "center_px": [
+        675.67,
+        843.16
+      ],
+      "footprint_px": [
+        22.79,
+        22.79
+      ],
+      "rotation": 270,
+      "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+      "circular_symbol": true,
+      "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+      "drawn_position": [
+        2.2222807017543853,
+        -9.564210526315788
+      ],
+      "drawn_size_m": [
+        0.39982456140350875,
+        0.39982456140350875
+      ],
+      "room_id": "living",
+      "status": "not_placed",
+      "reason": "No legal pose within 0.60 m on a 10 cm grid, preserving room and any drawn heading",
+      "rejections": {
+        "overlap": 340,
+        "door_swing": 122,
+        "walkway": 48,
+        "inside": 4,
+        "wall_collision": 4
+      },
+      "attempts": 452
+    },
+    {
+      "id": "i25",
+      "role": "chair",
+      "name": "Desk chair",
+      "center_px": [
+        803.87,
+        845.43
+      ],
+      "footprint_px": [
+        31.34,
+        34.19
+      ],
+      "rotation": 270,
+      "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+      "drawn_position": [
+        4.47140350877193,
+        -9.604035087719298
+      ],
+      "drawn_size_m": [
+        0.5498245614035088,
+        0.5998245614035087
+      ],
+      "room_id": "bedroom",
+      "status": "not_placed",
+      "reason": "No legal pose within 0.60 m on a 10 cm grid, preserving room and any drawn heading",
+      "rejections": {
+        "overlap": 136,
+        "walkway": 60,
+        "inside": 70,
+        "wall_collision": 78
+      },
+      "attempts": 226
+    },
+    {
+      "id": "i5",
+      "role": "television",
+      "name": "Television shown as a thin wall-side symbol",
+      "center_px": [
+        751.45,
+        702.98
+      ],
+      "footprint_px": [
+        67.24,
+        6.84
+      ],
+      "rotation": 270,
+      "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+      "drawn_position": [
+        3.551754385964913,
+        -7.104912280701755
+      ],
+      "drawn_size_m": [
+        1.1796491228070174,
+        0.12
+      ],
+      "room_id": "living",
+      "status": "not_placed",
+      "reason": "Catalog has media cabinets but no television product; a cabinet would invent a different drawn item"
+    },
+    {
+      "id": "i15",
+      "role": "kitchen_base",
+      "name": "Kitchen base run along the north wall (hob)",
+      "center_px": [
+        608.43,
+        347.71
+      ],
+      "footprint_px": [
+        96.87,
+        37.04
+      ],
+      "rotation": 0,
+      "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+      "drawn_position": [
+        1.0426315789473675,
+        -0.8721052631578944
+      ],
+      "drawn_size_m": [
+        1.6994736842105265,
+        0.6498245614035087
+      ],
+      "room_id": "kitchen",
+      "status": "not_placed",
+      "reason": "No corresponding kitchen, sanitary or appliance product in the editor catalog"
+    },
+    {
+      "id": "i16",
+      "role": "kitchen_base",
+      "name": "Kitchen base run along the west wall (sink)",
+      "center_px": [
+        577.09,
+        408.4
+      ],
+      "footprint_px": [
+        84.33,
+        34.19
+      ],
+      "rotation": 90,
+      "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+      "drawn_position": [
+        0.4928070175438602,
+        -1.9368421052631575
+      ],
+      "drawn_size_m": [
+        1.4794736842105263,
+        0.5998245614035087
+      ],
+      "room_id": "kitchen",
+      "status": "not_placed",
+      "reason": "No corresponding kitchen, sanitary or appliance product in the editor catalog"
+    },
+    {
+      "id": "i17",
+      "role": "kitchen_tall",
+      "name": "Fridge (drawn in appliance cyan)",
+      "center_px": [
+        577.09,
+        467.66
+      ],
+      "footprint_px": [
+        34.76,
+        34.19
+      ],
+      "rotation": 90,
+      "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+      "drawn_position": [
+        0.4928070175438602,
+        -2.976491228070176
+      ],
+      "drawn_size_m": [
+        0.6098245614035087,
+        0.5998245614035087
+      ],
+      "room_id": "living",
+      "status": "not_placed",
+      "reason": "No corresponding kitchen, sanitary or appliance product in the editor catalog"
+    },
+    {
+      "id": "i18",
+      "role": "sink",
+      "name": "Kitchen sink with drainer",
+      "center_px": [
+        578.23,
+        369.08
+      ],
+      "footprint_px": [
+        47.86,
+        28.49
+      ],
+      "rotation": 90,
+      "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+      "drawn_position": [
+        0.5128070175438599,
+        -1.247017543859649
+      ],
+      "drawn_size_m": [
+        0.8396491228070175,
+        0.4998245614035087
+      ],
+      "room_id": "kitchen",
+      "status": "not_placed",
+      "reason": "No corresponding kitchen, sanitary or appliance product in the editor catalog"
+    },
+    {
+      "id": "i19",
+      "role": "hob",
+      "name": "Four-ring hob",
+      "center_px": [
+        625.53,
+        349.71
+      ],
+      "footprint_px": [
+        35.33,
+        33.05
+      ],
+      "rotation": 0,
+      "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+      "drawn_position": [
+        1.342631578947368,
+        -0.90719298245614
+      ],
+      "drawn_size_m": [
+        0.6198245614035087,
+        0.5798245614035087
+      ],
+      "room_id": "kitchen",
+      "status": "not_placed",
+      "reason": "No corresponding kitchen, sanitary or appliance product in the editor catalog"
+    },
+    {
+      "id": "i26",
+      "role": "television",
+      "name": "Television shown as a thin wall-side symbol",
+      "center_px": [
+        766.27,
+        714.38
+      ],
+      "footprint_px": [
+        67.81,
+        5.7
+      ],
+      "rotation": 90,
+      "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+      "drawn_position": [
+        3.811754385964912,
+        -7.304912280701754
+      ],
+      "drawn_size_m": [
+        1.1896491228070176,
+        0.1
+      ],
+      "room_id": "bedroom",
+      "status": "not_placed",
+      "reason": "Catalog has media cabinets but no television product; a cabinet would invent a different drawn item"
+    },
+    {
+      "id": "i28",
+      "role": "wc",
+      "name": "Toilet",
+      "center_px": [
+        865.41,
+        444.3
+      ],
+      "footprint_px": [
+        21.65,
+        33.05
+      ],
+      "rotation": 0,
+      "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+      "drawn_position": [
+        5.551052631578947,
+        -2.566666666666667
+      ],
+      "drawn_size_m": [
+        0.37982456140350873,
+        0.5798245614035087
+      ],
+      "room_id": "bathroom",
+      "status": "not_placed",
+      "reason": "No corresponding kitchen, sanitary or appliance product in the editor catalog"
+    },
+    {
+      "id": "i29",
+      "role": "utility_box",
+      "name": "Blue X sanitary utility box; washer versus tray uncertain",
+      "center_px": [
+        900.74,
+        445.43
+      ],
+      "footprint_px": [
+        27.92,
+        32.48
+      ],
+      "rotation": 0,
+      "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+      "drawn_position": [
+        6.170877192982457,
+        -2.5864912280701757
+      ],
+      "drawn_size_m": [
+        0.48982456140350883,
+        0.5698245614035087
+      ],
+      "room_id": "bathroom",
+      "status": "not_placed",
+      "reason": "No corresponding kitchen, sanitary or appliance product in the editor catalog"
+    },
+    {
+      "id": "i30",
+      "role": "basin",
+      "name": "Wash basin on the east wall",
+      "center_px": [
+        904.73,
+        497.86
+      ],
+      "footprint_px": [
+        25.64,
+        17.66
+      ],
+      "rotation": 270,
+      "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+      "drawn_position": [
+        6.240877192982456,
+        -3.5063157894736845
+      ],
+      "drawn_size_m": [
+        0.4498245614035088,
+        0.3098245614035088
+      ],
+      "room_id": "bathroom",
+      "status": "not_placed",
+      "reason": "No corresponding kitchen, sanitary or appliance product in the editor catalog"
+    },
+    {
+      "id": "i31",
+      "role": "appliance",
+      "name": "Service unit (blue X on the plan, likely AC)",
+      "center_px": [
+        578.8,
+        955.41
+      ],
+      "footprint_px": [
+        45.58,
+        25.64
+      ],
+      "rotation": 90,
+      "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+      "drawn_position": [
+        0.5228070175438588,
+        -11.533508771929824
+      ],
+      "drawn_size_m": [
+        0.7996491228070175,
+        0.4498245614035088
+      ],
+      "room_id": "balcony",
+      "status": "not_placed",
+      "reason": "No corresponding kitchen, sanitary or appliance product in the editor catalog"
+    },
+    {
+      "id": "i32",
+      "role": "shower",
+      "name": "Walk-in shower zone below glass screen and wall mixer",
+      "center_px": [
+        879,
+        546
+      ],
+      "footprint_px": [
+        72,
+        42
+      ],
+      "rotation": 180,
+      "reading": "vision re-read of original plan and enlarged bathroom crop",
+      "drawn_position": [
+        5.7894736842105265,
+        -4.350877192982456
+      ],
+      "drawn_size_m": [
+        1.263157894736842,
+        0.7368421052631579
+      ],
+      "room_id": "bathroom",
+      "status": "not_placed",
+      "reason": "No corresponding kitchen, sanitary or appliance product in the editor catalog"
+    }
+  ],
+  "input_snapshot": "../komitas-drawn-inputs/b28-t31.scene.json",
+  "catalog_refresh_grid_m": 0.1,
+  "placement_model_tokens": 0,
+  "completed_at": "2026-09-26T14:15:34.410Z",
+  "initial_placement_completed_at": "2026-09-26T14:06:49.788Z",
+  "timing_scope": "seconds measures the initial deterministic checked placement search, excluding shared vision, later finalization and screenshots",
+  "finalization_seconds": 0.363,
+  "access_repair_seconds": 1.836,
+  "access_repair_main": "5d332f8",
+  "access_repair_grid_m": 0.1,
+  "access_repair_note": "Rechecked after new main access guards; preserve catalog functional subtypes, retry rejected pieces from the original drawn center within 0.60 m, then regenerate all final artifacts."
+}

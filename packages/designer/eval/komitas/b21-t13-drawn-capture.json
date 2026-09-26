@@ -1,0 +1,25 @@
+{
+  "captured_at": "2026-09-26T14:15:23.394960+00:00",
+  "state": "/Users/ashotarushanyan/AshProjects/varpet-drawn/packages/designer/eval/komitas-drawn-tmp/b21-t13.state.json",
+  "browser": "153.0.8010.12",
+  "page_errors": [],
+  "failed_requests": [],
+  "loaded_assets": [
+    "abo:B079HXWXXD",
+    "abo:B07GFW9GFX",
+    "abo:B073G94FRB",
+    "abo:B07MF1V33V",
+    "abo:B075X4F5CS"
+  ],
+  "expected_gltf_assets": [
+    "abo:B075X4F5CS",
+    "abo:B07GFW9GFX",
+    "abo:B07MF1V33V",
+    "abo:B079HXWXXD",
+    "abo:B073G94FRB"
+  ],
+  "complete": true,
+  "renderer": "apps/editor/src/render/viewport.ts",
+  "port": 5193,
+  "renderer_commit": "cd113f2"
+}

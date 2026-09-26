@@ -1,0 +1,3699 @@
+{
+  "model": "gpt-6-astra, high (interactive vision)",
+  "flats": [
+    {
+      "id": "b20-t11",
+      "alignment": {
+        "origin_px": [
+          523,
+          336
+        ],
+        "pixels_per_metre": 56.8,
+        "axes": "x right; editor z down",
+        "basis": "architect shell notes"
+      },
+      "items": [
+        {
+          "id": "i1",
+          "role": "sofa",
+          "name": "sofa",
+          "center_px": [
+            780,
+            371
+          ],
+          "footprint_px": [
+            123,
+            44
+          ],
+          "rotation": 0,
+          "reading": "vision of original developer plan",
+          "room_id": "living"
+        },
+        {
+          "id": "i2",
+          "role": "armchair",
+          "name": "armchair",
+          "center_px": [
+            703,
+            422
+          ],
+          "footprint_px": [
+            40,
+            40
+          ],
+          "rotation": 90,
+          "reading": "vision of original developer plan",
+          "room_id": "living"
+        },
+        {
+          "id": "i3",
+          "role": "armchair",
+          "name": "armchair",
+          "center_px": [
+            854,
+            422
+          ],
+          "footprint_px": [
+            40,
+            40
+          ],
+          "rotation": 270,
+          "reading": "vision of original developer plan",
+          "room_id": "living"
+        },
+        {
+          "id": "i4",
+          "role": "coffee_table",
+          "name": "coffee table",
+          "center_px": [
+            779,
+            423
+          ],
+          "footprint_px": [
+            74,
+            30
+          ],
+          "rotation": 0,
+          "reading": "vision of original developer plan",
+          "room_id": "living"
+        },
+        {
+          "id": "i5",
+          "role": "television",
+          "name": "Television shown as a thin wall-side symbol",
+          "center_px": [
+            779,
+            610
+          ],
+          "footprint_px": [
+            68,
+            10
+          ],
+          "rotation": 180,
+          "reading": "vision of original developer plan",
+          "room_id": "living"
+        },
+        {
+          "id": "i6",
+          "role": "table",
+          "name": "table",
+          "center_px": [
+            622,
+            551
+          ],
+          "footprint_px": [
+            97,
+            46
+          ],
+          "rotation": 0,
+          "reading": "vision of original developer plan",
+          "room_id": "living"
+        },
+        {
+          "id": "i7",
+          "role": "chair",
+          "name": "chair",
+          "center_px": [
+            593,
+            528
+          ],
+          "footprint_px": [
+            23,
+            23
+          ],
+          "rotation": 0,
+          "reading": "vision of original developer plan",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i8",
+          "role": "chair",
+          "name": "chair",
+          "center_px": [
+            593,
+            574
+          ],
+          "footprint_px": [
+            23,
+            23
+          ],
+          "rotation": 180,
+          "reading": "vision of original developer plan",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i9",
+          "role": "chair",
+          "name": "chair",
+          "center_px": [
+            622,
+            528
+          ],
+          "footprint_px": [
+            23,
+            23
+          ],
+          "rotation": 0,
+          "reading": "vision of original developer plan",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i10",
+          "role": "chair",
+          "name": "chair",
+          "center_px": [
+            622,
+            574
+          ],
+          "footprint_px": [
+            23,
+            23
+          ],
+          "rotation": 180,
+          "reading": "vision of original developer plan",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i11",
+          "role": "chair",
+          "name": "chair",
+          "center_px": [
+            651,
+            528
+          ],
+          "footprint_px": [
+            23,
+            23
+          ],
+          "rotation": 0,
+          "reading": "vision of original developer plan",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i12",
+          "role": "chair",
+          "name": "chair",
+          "center_px": [
+            651,
+            574
+          ],
+          "footprint_px": [
+            23,
+            23
+          ],
+          "rotation": 180,
+          "reading": "vision of original developer plan",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i13",
+          "role": "chair",
+          "name": "chair",
+          "center_px": [
+            574,
+            551
+          ],
+          "footprint_px": [
+            23,
+            23
+          ],
+          "rotation": 90,
+          "reading": "vision of original developer plan",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i14",
+          "role": "chair",
+          "name": "chair",
+          "center_px": [
+            671,
+            551
+          ],
+          "footprint_px": [
+            23,
+            23
+          ],
+          "rotation": 270,
+          "reading": "vision of original developer plan",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i15",
+          "role": "bed",
+          "name": "bed",
+          "center_px": [
+            766,
+            697
+          ],
+          "footprint_px": [
+            103,
+            114
+          ],
+          "rotation": 270,
+          "reading": "vision of original developer plan",
+          "room_id": "bedroom"
+        },
+        {
+          "id": "i16",
+          "role": "nightstand",
+          "name": "nightstand",
+          "center_px": [
+            810,
+            632
+          ],
+          "footprint_px": [
+            26,
+            25
+          ],
+          "rotation": 270,
+          "reading": "vision of original developer plan",
+          "room_id": "bedroom"
+        },
+        {
+          "id": "i17",
+          "role": "nightstand",
+          "name": "nightstand",
+          "center_px": [
+            810,
+            759
+          ],
+          "footprint_px": [
+            26,
+            25
+          ],
+          "rotation": 270,
+          "reading": "vision of original developer plan",
+          "room_id": "bedroom"
+        },
+        {
+          "id": "i18",
+          "role": "wardrobe",
+          "name": "wardrobe",
+          "center_px": [
+            593,
+            638
+          ],
+          "footprint_px": [
+            115,
+            35
+          ],
+          "rotation": 0,
+          "reading": "vision of original developer plan",
+          "room_id": "bedroom"
+        },
+        {
+          "id": "i19",
+          "role": "desk",
+          "name": "desk",
+          "center_px": [
+            555,
+            797
+          ],
+          "footprint_px": [
+            77,
+            40
+          ],
+          "rotation": 90,
+          "reading": "vision of original developer plan",
+          "room_id": "bedroom"
+        },
+        {
+          "id": "i20",
+          "role": "chair",
+          "name": "chair",
+          "center_px": [
+            577,
+            810
+          ],
+          "footprint_px": [
+            30,
+            31
+          ],
+          "rotation": 270,
+          "reading": "vision of original developer plan",
+          "room_id": "bedroom"
+        },
+        {
+          "id": "i21",
+          "role": "wardrobe",
+          "name": "wardrobe",
+          "center_px": [
+            989,
+            797
+          ],
+          "footprint_px": [
+            79,
+            34
+          ],
+          "rotation": 270,
+          "reading": "vision of original developer plan",
+          "room_id": "hall"
+        },
+        {
+          "id": "i22",
+          "role": "kitchen_base",
+          "name": "kitchen base",
+          "center_px": [
+            980,
+            467
+          ],
+          "footprint_px": [
+            168,
+            34
+          ],
+          "rotation": 270,
+          "reading": "vision of original developer plan",
+          "room_id": "kitchen"
+        },
+        {
+          "id": "i23",
+          "role": "kitchen_base",
+          "name": "kitchen base",
+          "center_px": [
+            940,
+            566
+          ],
+          "footprint_px": [
+            60,
+            34
+          ],
+          "rotation": 0,
+          "reading": "vision of original developer plan",
+          "room_id": "kitchen"
+        },
+        {
+          "id": "i24",
+          "role": "kitchen_tall",
+          "name": "kitchen tall",
+          "center_px": [
+            971,
+            365
+          ],
+          "footprint_px": [
+            34,
+            34
+          ],
+          "rotation": 270,
+          "reading": "vision of original developer plan",
+          "room_id": "kitchen"
+        },
+        {
+          "id": "i25",
+          "role": "sink",
+          "name": "sink",
+          "center_px": [
+            986,
+            526
+          ],
+          "footprint_px": [
+            48,
+            29
+          ],
+          "rotation": 270,
+          "reading": "vision of original developer plan",
+          "room_id": "kitchen"
+        },
+        {
+          "id": "i26",
+          "role": "hob",
+          "name": "hob",
+          "center_px": [
+            940,
+            566
+          ],
+          "footprint_px": [
+            32,
+            31
+          ],
+          "rotation": 0,
+          "reading": "vision of original developer plan",
+          "room_id": "kitchen"
+        },
+        {
+          "id": "i27",
+          "role": "wc",
+          "name": "wc",
+          "center_px": [
+            937,
+            644
+          ],
+          "footprint_px": [
+            22,
+            34
+          ],
+          "rotation": 0,
+          "reading": "vision of original developer plan",
+          "room_id": "bathroom"
+        },
+        {
+          "id": "i28",
+          "role": "shower",
+          "name": "shower",
+          "center_px": [
+            960,
+            725
+          ],
+          "footprint_px": [
+            90,
+            43
+          ],
+          "rotation": 180,
+          "reading": "vision of original developer plan",
+          "room_id": "bathroom"
+        },
+        {
+          "id": "i29",
+          "role": "washer",
+          "name": "washer",
+          "center_px": [
+            989,
+            637
+          ],
+          "footprint_px": [
+            34,
+            30
+          ],
+          "rotation": 0,
+          "reading": "vision of original developer plan",
+          "room_id": "bathroom"
+        },
+        {
+          "id": "i30",
+          "role": "basin",
+          "name": "basin",
+          "center_px": [
+            997,
+            678
+          ],
+          "footprint_px": [
+            26,
+            20
+          ],
+          "rotation": 270,
+          "reading": "vision of original developer plan",
+          "room_id": "bathroom"
+        },
+        {
+          "id": "i31",
+          "role": "appliance",
+          "name": "appliance",
+          "center_px": [
+            653,
+            393
+          ],
+          "footprint_px": [
+            45,
+            26
+          ],
+          "rotation": 270,
+          "reading": "vision of original developer plan",
+          "room_id": "balcony"
+        }
+      ],
+      "source_image": {
+        "local_basename": "b20-t11.png",
+        "sha256": "14e9d953ca722c28a3bf8a0b6fba61944c76a9eae8367c034fca66fd6196a8a9",
+        "committed": false
+      }
+    },
+    {
+      "id": "b21-t13",
+      "alignment": {
+        "origin_px": [
+          444,
+          376
+        ],
+        "pixels_per_metre": 57,
+        "axes": "x right; editor z down",
+        "basis": "derived from matched bathroom/bedroom and facade inner corners"
+      },
+      "items": [
+        {
+          "id": "i1",
+          "role": "kitchen_base",
+          "name": "Kitchen base run on the north wall (hob + sink)",
+          "center_px": [
+            661.9,
+            410.92
+          ],
+          "footprint_px": [
+            74.71,
+            34.48
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "living"
+        },
+        {
+          "id": "i2",
+          "role": "hob",
+          "name": "Hob",
+          "center_px": [
+            643.51,
+            410.92
+          ],
+          "footprint_px": [
+            31.61,
+            28.74
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "living"
+        },
+        {
+          "id": "i3",
+          "role": "sink",
+          "name": "Kitchen sink",
+          "center_px": [
+            680.86,
+            410.92
+          ],
+          "footprint_px": [
+            28.74,
+            28.74
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "living"
+        },
+        {
+          "id": "i4",
+          "role": "kitchen_tall",
+          "name": "Fridge (cyan box) east of the sink",
+          "center_px": [
+            716.49,
+            410.92
+          ],
+          "footprint_px": [
+            33.33,
+            34.48
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "living"
+        },
+        {
+          "id": "i5",
+          "role": "sofa",
+          "name": "Three-seat sofa on the north wall",
+          "center_px": [
+            796.38,
+            414.37
+          ],
+          "footprint_px": [
+            122.41,
+            42.53
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "living"
+        },
+        {
+          "id": "i6",
+          "role": "coffee_table",
+          "name": "Coffee table",
+          "center_px": [
+            795.8,
+            467.24
+          ],
+          "footprint_px": [
+            73.56,
+            29.89
+          ],
+          "rotation": 180,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "living"
+        },
+        {
+          "id": "i7",
+          "role": "television",
+          "name": "Television shown as a thin wall-side symbol",
+          "center_px": [
+            811.9,
+            578.74
+          ],
+          "footprint_px": [
+            67.82,
+            14.37
+          ],
+          "rotation": 180,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "living"
+        },
+        {
+          "id": "i8",
+          "role": "table",
+          "name": "Dining table (6 seats)",
+          "center_px": [
+            895.23,
+            466.09
+          ],
+          "footprint_px": [
+            44.83,
+            67.24
+          ],
+          "rotation": 180,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "living"
+        },
+        {
+          "id": "i9",
+          "role": "chair",
+          "name": "Dining chair west, north",
+          "center_px": [
+            872.24,
+            447.7
+          ],
+          "footprint_px": [
+            22.99,
+            22.99
+          ],
+          "rotation": 90,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i10",
+          "role": "chair",
+          "name": "Dining chair west, south",
+          "center_px": [
+            872.24,
+            477.59
+          ],
+          "footprint_px": [
+            22.99,
+            22.99
+          ],
+          "rotation": 90,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i11",
+          "role": "chair",
+          "name": "Dining chair east, north",
+          "center_px": [
+            914.77,
+            447.7
+          ],
+          "footprint_px": [
+            22.99,
+            22.99
+          ],
+          "rotation": 270,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i12",
+          "role": "chair",
+          "name": "Dining chair east, south",
+          "center_px": [
+            914.77,
+            477.59
+          ],
+          "footprint_px": [
+            22.99,
+            22.99
+          ],
+          "rotation": 270,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i13",
+          "role": "chair",
+          "name": "Dining chair at the north end",
+          "center_px": [
+            895.23,
+            429.89
+          ],
+          "footprint_px": [
+            22.99,
+            22.99
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i14",
+          "role": "chair",
+          "name": "Dining chair at the south end",
+          "center_px": [
+            895.23,
+            500.0
+          ],
+          "footprint_px": [
+            22.99,
+            22.99
+          ],
+          "rotation": 180,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i15",
+          "role": "wardrobe",
+          "name": "Built-in wardrobe in the entrance niche",
+          "center_px": [
+            671.95,
+            603.45
+          ],
+          "footprint_px": [
+            54.6,
+            34.48
+          ],
+          "rotation": 180,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "hall"
+        },
+        {
+          "id": "i16",
+          "role": "bed",
+          "name": "Double bed, head to the south wall",
+          "center_px": [
+            804.43,
+            686.78
+          ],
+          "footprint_px": [
+            103.45,
+            114.94
+          ],
+          "rotation": 180,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bed"
+        },
+        {
+          "id": "i17",
+          "role": "nightstand",
+          "name": "Nightstand west of the bed",
+          "center_px": [
+            741.21,
+            731.61
+          ],
+          "footprint_px": [
+            22.99,
+            25.86
+          ],
+          "rotation": 180,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bed"
+        },
+        {
+          "id": "i18",
+          "role": "wardrobe",
+          "name": "Wardrobe on the south wall east of the column",
+          "center_px": [
+            948.1,
+            732.76
+          ],
+          "footprint_px": [
+            111.49,
+            34.48
+          ],
+          "rotation": 180,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bed"
+        },
+        {
+          "id": "i19",
+          "role": "desk",
+          "name": "Desk under the east window",
+          "center_px": [
+            984.31,
+            677.01
+          ],
+          "footprint_px": [
+            75.86,
+            39.08
+          ],
+          "rotation": 270,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bed"
+        },
+        {
+          "id": "i20",
+          "role": "chair",
+          "name": "Desk chair",
+          "center_px": [
+            962.47,
+            664.37
+          ],
+          "footprint_px": [
+            29.89,
+            31.03
+          ],
+          "rotation": 90,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bed"
+        },
+        {
+          "id": "i21",
+          "role": "television",
+          "name": "Television shown as a thin wall-side symbol",
+          "center_px": [
+            811.9,
+            602.3
+          ],
+          "footprint_px": [
+            67.82,
+            14.37
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bed"
+        },
+        {
+          "id": "i22",
+          "role": "wc",
+          "name": "WC on the west wall",
+          "center_px": [
+            473.97,
+            478.74
+          ],
+          "footprint_px": [
+            21.84,
+            34.48
+          ],
+          "rotation": 90,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bath"
+        },
+        {
+          "id": "i23",
+          "role": "shower",
+          "name": "Walk-in shower in the north-west corner (head on the west wall, glass screen)",
+          "center_px": [
+            489.48,
+            433.33
+          ],
+          "footprint_px": [
+            65.52,
+            45.98
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bath"
+        },
+        {
+          "id": "i24",
+          "role": "washer",
+          "name": "Washing machine (boxed X) beside the shower screen, under the column",
+          "center_px": [
+            537.76,
+            429.31
+          ],
+          "footprint_px": [
+            30.46,
+            35.06
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bath"
+        },
+        {
+          "id": "i25",
+          "role": "basin",
+          "name": "Wash basin on the north wall",
+          "center_px": [
+            577.41,
+            406.9
+          ],
+          "footprint_px": [
+            28.74,
+            24.14
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bath"
+        },
+        {
+          "id": "i26",
+          "role": "appliance",
+          "name": "Blue X box at the balcony north end",
+          "center_px": [
+            977.41,
+            405.17
+          ],
+          "footprint_px": [
+            44.83,
+            22.99
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "balcony"
+        }
+      ],
+      "source_image": {
+        "local_basename": "b21-t13.png",
+        "sha256": "e9288089fd6b4063fecf60fe673efb62e5a96ac829ce9cb4edd0a82908431859",
+        "committed": false
+      }
+    },
+    {
+      "id": "b25-t72",
+      "alignment": {
+        "origin_px": [
+          338,
+          232
+        ],
+        "pixels_per_metre": 57.5,
+        "axes": "x right; editor z down",
+        "basis": "architect shell notes"
+      },
+      "items": [
+        {
+          "id": "i1",
+          "role": "wardrobe",
+          "name": "wardrobe",
+          "center_px": [
+            396,
+            341
+          ],
+          "footprint_px": [
+            104,
+            34
+          ],
+          "rotation": 0,
+          "reading": "vision of original developer plan",
+          "room_id": "hall"
+        },
+        {
+          "id": "i2",
+          "role": "sofa",
+          "name": "sofa",
+          "center_px": [
+            368,
+            425
+          ],
+          "footprint_px": [
+            124,
+            43
+          ],
+          "rotation": 90,
+          "reading": "vision of original developer plan",
+          "room_id": "hall"
+        },
+        {
+          "id": "i3",
+          "role": "coffee_table",
+          "name": "coffee table",
+          "center_px": [
+            417,
+            429
+          ],
+          "footprint_px": [
+            80,
+            29
+          ],
+          "rotation": 90,
+          "reading": "vision of original developer plan",
+          "room_id": "hall"
+        },
+        {
+          "id": "i4",
+          "role": "sofa",
+          "name": "sofa",
+          "center_px": [
+            941,
+            612
+          ],
+          "footprint_px": [
+            125,
+            43
+          ],
+          "rotation": 315,
+          "reading": "vision of original developer plan",
+          "room_id": "living"
+        },
+        {
+          "id": "i5",
+          "role": "armchair",
+          "name": "armchair",
+          "center_px": [
+            857,
+            581
+          ],
+          "footprint_px": [
+            41,
+            40
+          ],
+          "rotation": 45,
+          "reading": "vision of original developer plan",
+          "room_id": "living"
+        },
+        {
+          "id": "i6",
+          "role": "armchair",
+          "name": "armchair",
+          "center_px": [
+            971,
+            695
+          ],
+          "footprint_px": [
+            41,
+            40
+          ],
+          "rotation": 225,
+          "reading": "vision of original developer plan",
+          "room_id": "living"
+        },
+        {
+          "id": "i7",
+          "role": "television",
+          "name": "Television shown as a thin wall-side symbol",
+          "center_px": [
+            827,
+            730
+          ],
+          "footprint_px": [
+            69,
+            14
+          ],
+          "rotation": 135,
+          "reading": "vision of original developer plan",
+          "room_id": "living"
+        },
+        {
+          "id": "i8",
+          "role": "coffee_table",
+          "name": "coffee table",
+          "center_px": [
+            915,
+            638
+          ],
+          "footprint_px": [
+            75,
+            30
+          ],
+          "rotation": 315,
+          "reading": "vision of original developer plan",
+          "room_id": "living"
+        },
+        {
+          "id": "i9",
+          "role": "table",
+          "name": "table",
+          "center_px": [
+            1016,
+            804
+          ],
+          "footprint_px": [
+            98,
+            46
+          ],
+          "rotation": 315,
+          "reading": "vision of original developer plan",
+          "room_id": "living"
+        },
+        {
+          "id": "i10",
+          "role": "chair",
+          "name": "chair",
+          "center_px": [
+            1001,
+            786
+          ],
+          "footprint_px": [
+            24,
+            24
+          ],
+          "rotation": 315,
+          "reading": "vision of original developer plan",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i11",
+          "role": "chair",
+          "name": "chair",
+          "center_px": [
+            1022,
+            766
+          ],
+          "footprint_px": [
+            24,
+            24
+          ],
+          "rotation": 315,
+          "reading": "vision of original developer plan",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i12",
+          "role": "chair",
+          "name": "chair",
+          "center_px": [
+            981,
+            807
+          ],
+          "footprint_px": [
+            24,
+            24
+          ],
+          "rotation": 315,
+          "reading": "vision of original developer plan",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i13",
+          "role": "chair",
+          "name": "chair",
+          "center_px": [
+            1012,
+            838
+          ],
+          "footprint_px": [
+            24,
+            24
+          ],
+          "rotation": 135,
+          "reading": "vision of original developer plan",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i14",
+          "role": "chair",
+          "name": "chair",
+          "center_px": [
+            1033,
+            817
+          ],
+          "footprint_px": [
+            24,
+            24
+          ],
+          "rotation": 135,
+          "reading": "vision of original developer plan",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i15",
+          "role": "chair",
+          "name": "chair",
+          "center_px": [
+            1054,
+            796
+          ],
+          "footprint_px": [
+            24,
+            24
+          ],
+          "rotation": 135,
+          "reading": "vision of original developer plan",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i16",
+          "role": "chair",
+          "name": "chair",
+          "center_px": [
+            983,
+            837
+          ],
+          "footprint_px": [
+            24,
+            24
+          ],
+          "rotation": 45,
+          "reading": "vision of original developer plan",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i17",
+          "role": "chair",
+          "name": "chair",
+          "center_px": [
+            1050,
+            768
+          ],
+          "footprint_px": [
+            24,
+            24
+          ],
+          "rotation": 225,
+          "reading": "vision of original developer plan",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i18",
+          "role": "bed",
+          "name": "bed",
+          "center_px": [
+            760,
+            933
+          ],
+          "footprint_px": [
+            103,
+            114
+          ],
+          "rotation": 90,
+          "reading": "vision of original developer plan",
+          "room_id": "bed4"
+        },
+        {
+          "id": "i19",
+          "role": "nightstand",
+          "name": "nightstand",
+          "center_px": [
+            719,
+            870
+          ],
+          "footprint_px": [
+            26,
+            25
+          ],
+          "rotation": 90,
+          "reading": "vision of original developer plan",
+          "room_id": "bed4"
+        },
+        {
+          "id": "i20",
+          "role": "nightstand",
+          "name": "nightstand",
+          "center_px": [
+            719,
+            998
+          ],
+          "footprint_px": [
+            26,
+            25
+          ],
+          "rotation": 90,
+          "reading": "vision of original developer plan",
+          "room_id": "bed4"
+        },
+        {
+          "id": "i21",
+          "role": "wardrobe",
+          "name": "wardrobe",
+          "center_px": [
+            721,
+            797
+          ],
+          "footprint_px": [
+            122,
+            34
+          ],
+          "rotation": 90,
+          "reading": "vision of original developer plan",
+          "room_id": "bed4"
+        },
+        {
+          "id": "i22",
+          "role": "desk",
+          "name": "desk",
+          "center_px": [
+            854,
+            821
+          ],
+          "footprint_px": [
+            77,
+            40
+          ],
+          "rotation": 270,
+          "reading": "vision of original developer plan",
+          "room_id": "bed4"
+        },
+        {
+          "id": "i23",
+          "role": "chair",
+          "name": "chair",
+          "center_px": [
+            833,
+            809
+          ],
+          "footprint_px": [
+            30,
+            31
+          ],
+          "rotation": 90,
+          "reading": "vision of original developer plan",
+          "room_id": "bed4"
+        },
+        {
+          "id": "i24",
+          "role": "bed",
+          "name": "bed",
+          "center_px": [
+            596,
+            803
+          ],
+          "footprint_px": [
+            103,
+            114
+          ],
+          "rotation": 90,
+          "reading": "vision of original developer plan",
+          "room_id": "bed5"
+        },
+        {
+          "id": "i25",
+          "role": "nightstand",
+          "name": "nightstand",
+          "center_px": [
+            554,
+            739
+          ],
+          "footprint_px": [
+            26,
+            25
+          ],
+          "rotation": 90,
+          "reading": "vision of original developer plan",
+          "room_id": "bed5"
+        },
+        {
+          "id": "i26",
+          "role": "nightstand",
+          "name": "nightstand",
+          "center_px": [
+            554,
+            867
+          ],
+          "footprint_px": [
+            26,
+            25
+          ],
+          "rotation": 90,
+          "reading": "vision of original developer plan",
+          "room_id": "bed5"
+        },
+        {
+          "id": "i27",
+          "role": "wardrobe",
+          "name": "wardrobe",
+          "center_px": [
+            541,
+            962
+          ],
+          "footprint_px": [
+            96,
+            34
+          ],
+          "rotation": 90,
+          "reading": "vision of original developer plan",
+          "room_id": "bed5"
+        },
+        {
+          "id": "i28",
+          "role": "desk",
+          "name": "desk",
+          "center_px": [
+            658,
+            990
+          ],
+          "footprint_px": [
+            77,
+            34
+          ],
+          "rotation": 180,
+          "reading": "vision of original developer plan",
+          "room_id": "bed5"
+        },
+        {
+          "id": "i29",
+          "role": "chair",
+          "name": "chair",
+          "center_px": [
+            646,
+            967
+          ],
+          "footprint_px": [
+            30,
+            31
+          ],
+          "rotation": 0,
+          "reading": "vision of original developer plan",
+          "room_id": "bed5"
+        },
+        {
+          "id": "i30",
+          "role": "bed",
+          "name": "bed",
+          "center_px": [
+            402,
+            673
+          ],
+          "footprint_px": [
+            103,
+            114
+          ],
+          "rotation": 90,
+          "reading": "vision of original developer plan",
+          "room_id": "bed6"
+        },
+        {
+          "id": "i31",
+          "role": "nightstand",
+          "name": "nightstand",
+          "center_px": [
+            359,
+            610
+          ],
+          "footprint_px": [
+            26,
+            25
+          ],
+          "rotation": 90,
+          "reading": "vision of original developer plan",
+          "room_id": "bed6"
+        },
+        {
+          "id": "i32",
+          "role": "nightstand",
+          "name": "nightstand",
+          "center_px": [
+            359,
+            738
+          ],
+          "footprint_px": [
+            26,
+            25
+          ],
+          "rotation": 90,
+          "reading": "vision of original developer plan",
+          "room_id": "bed6"
+        },
+        {
+          "id": "i33",
+          "role": "wardrobe",
+          "name": "wardrobe",
+          "center_px": [
+            362,
+            549
+          ],
+          "footprint_px": [
+            110,
+            34
+          ],
+          "rotation": 90,
+          "reading": "vision of original developer plan",
+          "room_id": "bed6"
+        },
+        {
+          "id": "i34",
+          "role": "desk",
+          "name": "desk",
+          "center_px": [
+            489,
+            789
+          ],
+          "footprint_px": [
+            77,
+            40
+          ],
+          "rotation": 270,
+          "reading": "vision of original developer plan",
+          "room_id": "bed6"
+        },
+        {
+          "id": "i35",
+          "role": "chair",
+          "name": "chair",
+          "center_px": [
+            481,
+            786
+          ],
+          "footprint_px": [
+            30,
+            31
+          ],
+          "rotation": 90,
+          "reading": "vision of original developer plan",
+          "room_id": "bed6"
+        },
+        {
+          "id": "i36",
+          "role": "kitchen_base",
+          "name": "kitchen base",
+          "center_px": [
+            793,
+            436
+          ],
+          "footprint_px": [
+            170,
+            34
+          ],
+          "rotation": 315,
+          "reading": "vision of original developer plan",
+          "room_id": "kitchen"
+        },
+        {
+          "id": "i37",
+          "role": "kitchen_base",
+          "name": "kitchen base",
+          "center_px": [
+            704,
+            466
+          ],
+          "footprint_px": [
+            110,
+            34
+          ],
+          "rotation": 45,
+          "reading": "vision of original developer plan",
+          "room_id": "kitchen"
+        },
+        {
+          "id": "i38",
+          "role": "sink",
+          "name": "sink",
+          "center_px": [
+            685,
+            427
+          ],
+          "footprint_px": [
+            49,
+            29
+          ],
+          "rotation": 45,
+          "reading": "vision of original developer plan",
+          "room_id": "kitchen"
+        },
+        {
+          "id": "i39",
+          "role": "hob",
+          "name": "hob",
+          "center_px": [
+            755,
+            402
+          ],
+          "footprint_px": [
+            32,
+            31
+          ],
+          "rotation": 315,
+          "reading": "vision of original developer plan",
+          "room_id": "kitchen"
+        },
+        {
+          "id": "i40",
+          "role": "kitchen_tall",
+          "name": "kitchen tall",
+          "center_px": [
+            854,
+            503
+          ],
+          "footprint_px": [
+            35,
+            35
+          ],
+          "rotation": 315,
+          "reading": "vision of original developer plan",
+          "room_id": "living"
+        },
+        {
+          "id": "i41",
+          "role": "shower",
+          "name": "shower",
+          "center_px": [
+            562,
+            562
+          ],
+          "footprint_px": [
+            69,
+            49
+          ],
+          "rotation": 0,
+          "reading": "vision of original developer plan",
+          "room_id": "bath7"
+        },
+        {
+          "id": "i42",
+          "role": "washer",
+          "name": "washer",
+          "center_px": [
+            615,
+            552
+          ],
+          "footprint_px": [
+            34,
+            30
+          ],
+          "rotation": 0,
+          "reading": "vision of original developer plan",
+          "room_id": "bath7"
+        },
+        {
+          "id": "i43",
+          "role": "wc",
+          "name": "wc",
+          "center_px": [
+            551,
+            650
+          ],
+          "footprint_px": [
+            22,
+            34
+          ],
+          "rotation": 180,
+          "reading": "vision of original developer plan",
+          "room_id": "bath7"
+        },
+        {
+          "id": "i44",
+          "role": "basin",
+          "name": "basin",
+          "center_px": [
+            609,
+            660
+          ],
+          "footprint_px": [
+            27,
+            20
+          ],
+          "rotation": 180,
+          "reading": "vision of original developer plan",
+          "room_id": "bath7"
+        },
+        {
+          "id": "i45",
+          "role": "shower",
+          "name": "shower",
+          "center_px": [
+            611,
+            282
+          ],
+          "footprint_px": [
+            69,
+            49
+          ],
+          "rotation": 315,
+          "reading": "vision of original developer plan",
+          "room_id": "bath8"
+        },
+        {
+          "id": "i46",
+          "role": "wc",
+          "name": "wc",
+          "center_px": [
+            679,
+            327
+          ],
+          "footprint_px": [
+            22,
+            34
+          ],
+          "rotation": 315,
+          "reading": "vision of original developer plan",
+          "room_id": "bath8"
+        },
+        {
+          "id": "i47",
+          "role": "basin",
+          "name": "basin",
+          "center_px": [
+            660,
+            296
+          ],
+          "footprint_px": [
+            27,
+            20
+          ],
+          "rotation": 315,
+          "reading": "vision of original developer plan",
+          "room_id": "bath8"
+        },
+        {
+          "id": "i48",
+          "role": "appliance",
+          "name": "appliance",
+          "center_px": [
+            505,
+            850
+          ],
+          "footprint_px": [
+            45,
+            26
+          ],
+          "rotation": 270,
+          "reading": "vision of original developer plan",
+          "room_id": "balcony9"
+        },
+        {
+          "id": "i49",
+          "role": "appliance",
+          "name": "appliance",
+          "center_px": [
+            892,
+            989
+          ],
+          "footprint_px": [
+            45,
+            26
+          ],
+          "rotation": 90,
+          "reading": "vision of original developer plan",
+          "room_id": "balcony10"
+        }
+      ],
+      "source_image": {
+        "local_basename": "b25-t72.jpg",
+        "sha256": "adaea1d62d7ad14138f3825e24deac163c435896aa93bf60d8bd7d715e10a58f",
+        "committed": false
+      }
+    },
+    {
+      "id": "b28-t31",
+      "alignment": {
+        "origin_px": [
+          549,
+          298
+        ],
+        "pixels_per_metre": 57,
+        "axes": "x right; editor z down",
+        "basis": "derived from matched bathroom/bedroom and facade inner corners"
+      },
+      "items": [
+        {
+          "id": "i1",
+          "role": "sofa",
+          "name": "Three-seat sofa on the west wall",
+          "center_px": [
+            582.79,
+            703.55
+          ],
+          "footprint_px": [
+            124.22,
+            43.3
+          ],
+          "rotation": 90,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "living"
+        },
+        {
+          "id": "i2",
+          "role": "coffee_table",
+          "name": "Coffee table",
+          "center_px": [
+            635.78,
+            702.98
+          ],
+          "footprint_px": [
+            74.07,
+            30.2
+          ],
+          "rotation": 90,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "living"
+        },
+        {
+          "id": "i3",
+          "role": "armchair",
+          "name": "Armchair north",
+          "center_px": [
+            634.64,
+            626.63
+          ],
+          "footprint_px": [
+            41.03,
+            39.89
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "living"
+        },
+        {
+          "id": "i4",
+          "role": "armchair",
+          "name": "Armchair south",
+          "center_px": [
+            634.64,
+            779.91
+          ],
+          "footprint_px": [
+            41.03,
+            39.89
+          ],
+          "rotation": 180,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "living"
+        },
+        {
+          "id": "i5",
+          "role": "television",
+          "name": "Television shown as a thin wall-side symbol",
+          "center_px": [
+            751.45,
+            702.98
+          ],
+          "footprint_px": [
+            67.24,
+            6.84
+          ],
+          "rotation": 270,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "living"
+        },
+        {
+          "id": "i6",
+          "role": "table",
+          "name": "Dining table",
+          "center_px": [
+            627.24,
+            843.16
+          ],
+          "footprint_px": [
+            96.87,
+            45.01
+          ],
+          "rotation": 180,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "living"
+        },
+        {
+          "id": "i7",
+          "role": "chair",
+          "name": "Dining chair",
+          "center_px": [
+            598.18,
+            821.5
+          ],
+          "footprint_px": [
+            22.79,
+            22.79
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i8",
+          "role": "chair",
+          "name": "Dining chair",
+          "center_px": [
+            627.81,
+            821.5
+          ],
+          "footprint_px": [
+            22.79,
+            22.79
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i9",
+          "role": "chair",
+          "name": "Dining chair",
+          "center_px": [
+            656.87,
+            821.5
+          ],
+          "footprint_px": [
+            22.79,
+            22.79
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i10",
+          "role": "chair",
+          "name": "Dining chair",
+          "center_px": [
+            598.18,
+            866.52
+          ],
+          "footprint_px": [
+            22.79,
+            22.79
+          ],
+          "rotation": 180,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i11",
+          "role": "chair",
+          "name": "Dining chair",
+          "center_px": [
+            627.81,
+            866.52
+          ],
+          "footprint_px": [
+            22.79,
+            22.79
+          ],
+          "rotation": 180,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i12",
+          "role": "chair",
+          "name": "Dining chair",
+          "center_px": [
+            656.87,
+            866.52
+          ],
+          "footprint_px": [
+            22.79,
+            22.79
+          ],
+          "rotation": 180,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i13",
+          "role": "chair",
+          "name": "Dining chair (west end)",
+          "center_px": [
+            578.8,
+            843.16
+          ],
+          "footprint_px": [
+            22.79,
+            22.79
+          ],
+          "rotation": 90,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i14",
+          "role": "chair",
+          "name": "Dining chair (east end)",
+          "center_px": [
+            675.67,
+            843.16
+          ],
+          "footprint_px": [
+            22.79,
+            22.79
+          ],
+          "rotation": 270,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i15",
+          "role": "kitchen_base",
+          "name": "Kitchen base run along the north wall (hob)",
+          "center_px": [
+            608.43,
+            347.71
+          ],
+          "footprint_px": [
+            96.87,
+            37.04
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "kitchen"
+        },
+        {
+          "id": "i16",
+          "role": "kitchen_base",
+          "name": "Kitchen base run along the west wall (sink)",
+          "center_px": [
+            577.09,
+            408.4
+          ],
+          "footprint_px": [
+            84.33,
+            34.19
+          ],
+          "rotation": 90,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "kitchen"
+        },
+        {
+          "id": "i17",
+          "role": "kitchen_tall",
+          "name": "Fridge (drawn in appliance cyan)",
+          "center_px": [
+            577.09,
+            467.66
+          ],
+          "footprint_px": [
+            34.76,
+            34.19
+          ],
+          "rotation": 90,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "living"
+        },
+        {
+          "id": "i18",
+          "role": "sink",
+          "name": "Kitchen sink with drainer",
+          "center_px": [
+            578.23,
+            369.08
+          ],
+          "footprint_px": [
+            47.86,
+            28.49
+          ],
+          "rotation": 90,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "kitchen"
+        },
+        {
+          "id": "i19",
+          "role": "hob",
+          "name": "Four-ring hob",
+          "center_px": [
+            625.53,
+            349.71
+          ],
+          "footprint_px": [
+            35.33,
+            33.05
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "kitchen"
+        },
+        {
+          "id": "i20",
+          "role": "bed",
+          "name": "Double bed, head to the east wall",
+          "center_px": [
+            857.44,
+            714.38
+          ],
+          "footprint_px": [
+            103.13,
+            113.96
+          ],
+          "rotation": 270,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bedroom"
+        },
+        {
+          "id": "i21",
+          "role": "nightstand",
+          "name": "Nightstand north",
+          "center_px": [
+            901.31,
+            649.99
+          ],
+          "footprint_px": [
+            24.5,
+            26.21
+          ],
+          "rotation": 270,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bedroom"
+        },
+        {
+          "id": "i22",
+          "role": "nightstand",
+          "name": "Nightstand south",
+          "center_px": [
+            901.31,
+            778.77
+          ],
+          "footprint_px": [
+            25.64,
+            26.21
+          ],
+          "rotation": 270,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bedroom"
+        },
+        {
+          "id": "i23",
+          "role": "wardrobe",
+          "name": "Wardrobe on the bathroom partition",
+          "center_px": [
+            876.24,
+            591.87
+          ],
+          "footprint_px": [
+            75.78,
+            31.34
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bedroom"
+        },
+        {
+          "id": "i24",
+          "role": "desk",
+          "name": "Desk on the partition",
+          "center_px": [
+            781.65,
+            830.62
+          ],
+          "footprint_px": [
+            76.92,
+            39.89
+          ],
+          "rotation": 90,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bedroom"
+        },
+        {
+          "id": "i25",
+          "role": "chair",
+          "name": "Desk chair",
+          "center_px": [
+            803.87,
+            845.43
+          ],
+          "footprint_px": [
+            31.34,
+            34.19
+          ],
+          "rotation": 270,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bedroom"
+        },
+        {
+          "id": "i26",
+          "role": "television",
+          "name": "Television shown as a thin wall-side symbol",
+          "center_px": [
+            766.27,
+            714.38
+          ],
+          "footprint_px": [
+            67.81,
+            5.7
+          ],
+          "rotation": 90,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bedroom"
+        },
+        {
+          "id": "i27",
+          "role": "wardrobe",
+          "name": "Hall built-in wardrobe by the entrance",
+          "center_px": [
+            760.57,
+            360.53
+          ],
+          "footprint_px": [
+            99.72,
+            31.34
+          ],
+          "rotation": 270,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "hall"
+        },
+        {
+          "id": "i28",
+          "role": "wc",
+          "name": "Toilet",
+          "center_px": [
+            865.41,
+            444.3
+          ],
+          "footprint_px": [
+            21.65,
+            33.05
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bathroom"
+        },
+        {
+          "id": "i29",
+          "role": "utility_box",
+          "name": "Blue X sanitary utility box; washer versus tray uncertain",
+          "center_px": [
+            900.74,
+            445.43
+          ],
+          "footprint_px": [
+            27.92,
+            32.48
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bathroom"
+        },
+        {
+          "id": "i30",
+          "role": "basin",
+          "name": "Wash basin on the east wall",
+          "center_px": [
+            904.73,
+            497.86
+          ],
+          "footprint_px": [
+            25.64,
+            17.66
+          ],
+          "rotation": 270,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bathroom"
+        },
+        {
+          "id": "i31",
+          "role": "appliance",
+          "name": "Service unit (blue X on the plan, likely AC)",
+          "center_px": [
+            578.8,
+            955.41
+          ],
+          "footprint_px": [
+            45.58,
+            25.64
+          ],
+          "rotation": 90,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "balcony"
+        },
+        {
+          "id": "i32",
+          "role": "shower",
+          "name": "Walk-in shower zone below glass screen and wall mixer",
+          "center_px": [
+            879,
+            546
+          ],
+          "footprint_px": [
+            72,
+            42
+          ],
+          "rotation": 180,
+          "reading": "vision re-read of original plan and enlarged bathroom crop",
+          "room_id": "bathroom"
+        }
+      ],
+      "source_image": {
+        "local_basename": "b28-t31.png",
+        "sha256": "ed215bcff09b0cd930754a30c2a87138b9389bcb7e39ef4d6a2739309d45e87f",
+        "committed": false
+      }
+    },
+    {
+      "id": "b30-t35",
+      "alignment": {
+        "origin_px": [
+          540,
+          244
+        ],
+        "pixels_per_metre": 57.8,
+        "axes": "x right; editor z down",
+        "basis": "architect shell notes"
+      },
+      "items": [
+        {
+          "id": "i1",
+          "role": "sofa",
+          "name": "Three-seat sofa on the east wall",
+          "center_px": [
+            970.93,
+            777.04
+          ],
+          "footprint_px": [
+            117.28,
+            42.49
+          ],
+          "rotation": 270,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "living"
+        },
+        {
+          "id": "i2",
+          "role": "coffee_table",
+          "name": "Coffee table",
+          "center_px": [
+            913.71,
+            779.3
+          ],
+          "footprint_px": [
+            73.65,
+            30.03
+          ],
+          "rotation": 270,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "living"
+        },
+        {
+          "id": "i3",
+          "role": "armchair",
+          "name": "Armchair north of the sofa",
+          "center_px": [
+            914.84,
+            703.95
+          ],
+          "footprint_px": [
+            40.79,
+            37.39
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "living"
+        },
+        {
+          "id": "i4",
+          "role": "television",
+          "name": "Television shown as a thin wall-side symbol",
+          "center_px": [
+            713.14,
+            768.54
+          ],
+          "footprint_px": [
+            67.42,
+            8.5
+          ],
+          "rotation": 90,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "living"
+        },
+        {
+          "id": "i5",
+          "role": "table",
+          "name": "Dining table",
+          "center_px": [
+            796.99,
+            948.99
+          ],
+          "footprint_px": [
+            96.32,
+            44.76
+          ],
+          "rotation": 180,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "living"
+        },
+        {
+          "id": "i6",
+          "role": "chair",
+          "name": "Dining chair north 1",
+          "center_px": [
+            769.23,
+            922.65
+          ],
+          "footprint_px": [
+            23.8,
+            23.8
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i7",
+          "role": "chair",
+          "name": "Dining chair north 2",
+          "center_px": [
+            797.56,
+            922.65
+          ],
+          "footprint_px": [
+            23.8,
+            23.8
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i8",
+          "role": "chair",
+          "name": "Dining chair north 3",
+          "center_px": [
+            825.89,
+            922.65
+          ],
+          "footprint_px": [
+            23.8,
+            23.8
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i9",
+          "role": "chair",
+          "name": "Dining chair south 1",
+          "center_px": [
+            769.23,
+            973.64
+          ],
+          "footprint_px": [
+            23.8,
+            23.8
+          ],
+          "rotation": 180,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i10",
+          "role": "chair",
+          "name": "Dining chair south 2",
+          "center_px": [
+            797.56,
+            973.64
+          ],
+          "footprint_px": [
+            23.8,
+            23.8
+          ],
+          "rotation": 180,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i11",
+          "role": "chair",
+          "name": "Dining chair south 3",
+          "center_px": [
+            825.89,
+            973.64
+          ],
+          "footprint_px": [
+            23.8,
+            23.8
+          ],
+          "rotation": 180,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i12",
+          "role": "chair",
+          "name": "Dining chair west end",
+          "center_px": [
+            738.63,
+            948.99
+          ],
+          "footprint_px": [
+            23.8,
+            23.8
+          ],
+          "rotation": 90,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i13",
+          "role": "chair",
+          "name": "Dining chair east end",
+          "center_px": [
+            851.95,
+            948.99
+          ],
+          "footprint_px": [
+            23.8,
+            23.8
+          ],
+          "rotation": 270,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i14",
+          "role": "kitchen_base",
+          "name": "Kitchen base run on the east wall (hob, sink)",
+          "center_px": [
+            752.8,
+            380.44
+          ],
+          "footprint_px": [
+            190.93,
+            33.99
+          ],
+          "rotation": 270,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "kitchen"
+        },
+        {
+          "id": "i15",
+          "role": "kitchen_tall",
+          "name": "Tall unit / fridge at the south end of the run",
+          "center_px": [
+            752.23,
+            493.18
+          ],
+          "footprint_px": [
+            33.99,
+            35.13
+          ],
+          "rotation": 270,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "kitchen"
+        },
+        {
+          "id": "i16",
+          "role": "hob",
+          "name": "Hob",
+          "center_px": [
+            752.8,
+            340.21
+          ],
+          "footprint_px": [
+            33.99,
+            29.46
+          ],
+          "rotation": 270,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "kitchen"
+        },
+        {
+          "id": "i17",
+          "role": "sink",
+          "name": "Kitchen sink with drainer",
+          "center_px": [
+            752.8,
+            411.6
+          ],
+          "footprint_px": [
+            45.33,
+            25.5
+          ],
+          "rotation": 270,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "kitchen"
+        },
+        {
+          "id": "i18",
+          "role": "wardrobe",
+          "name": "Hall wardrobe on the north wall",
+          "center_px": [
+            706.91,
+            267.12
+          ],
+          "footprint_px": [
+            56.66,
+            31.16
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "kitchen"
+        },
+        {
+          "id": "i19",
+          "role": "bed",
+          "name": "Double bed, head on the living-room partition",
+          "center_px": [
+            885.94,
+            620.1
+          ],
+          "footprint_px": [
+            102.55,
+            112.18
+          ],
+          "rotation": 180,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bedroom_1"
+        },
+        {
+          "id": "i20",
+          "role": "nightstand",
+          "name": "Nightstand west",
+          "center_px": [
+            821.35,
+            663.72
+          ],
+          "footprint_px": [
+            26.06,
+            24.93
+          ],
+          "rotation": 180,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bedroom_1"
+        },
+        {
+          "id": "i21",
+          "role": "nightstand",
+          "name": "Nightstand east",
+          "center_px": [
+            950.53,
+            663.72
+          ],
+          "footprint_px": [
+            26.06,
+            24.93
+          ],
+          "rotation": 180,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bedroom_1"
+        },
+        {
+          "id": "i22",
+          "role": "wardrobe",
+          "name": "Wardrobe on the west partition",
+          "center_px": [
+            793.03,
+            613.86
+          ],
+          "footprint_px": [
+            72.52,
+            33.99
+          ],
+          "rotation": 90,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bedroom_1"
+        },
+        {
+          "id": "i23",
+          "role": "bed",
+          "name": "Double bed, head on the west wall",
+          "center_px": [
+            602.66,
+            733.98
+          ],
+          "footprint_px": [
+            102.55,
+            113.31
+          ],
+          "rotation": 90,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bedroom_2"
+        },
+        {
+          "id": "i24",
+          "role": "nightstand",
+          "name": "Nightstand north",
+          "center_px": [
+            559.6,
+            669.95
+          ],
+          "footprint_px": [
+            24.93,
+            23.8
+          ],
+          "rotation": 90,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bedroom_2"
+        },
+        {
+          "id": "i25",
+          "role": "nightstand",
+          "name": "Nightstand south",
+          "center_px": [
+            559.6,
+            797.43
+          ],
+          "footprint_px": [
+            24.93,
+            23.8
+          ],
+          "rotation": 90,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bedroom_2"
+        },
+        {
+          "id": "i26",
+          "role": "wardrobe",
+          "name": "Wardrobe on the north partition",
+          "center_px": [
+            590.19,
+            626.33
+          ],
+          "footprint_px": [
+            87.82,
+            32.29
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bedroom_2"
+        },
+        {
+          "id": "i27",
+          "role": "desk",
+          "name": "Desk under the balcony window",
+          "center_px": [
+            586.23,
+            860.32
+          ],
+          "footprint_px": [
+            77.05,
+            30.03
+          ],
+          "rotation": 180,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bedroom_2"
+        },
+        {
+          "id": "i28",
+          "role": "chair",
+          "name": "Desk chair",
+          "center_px": [
+            598.69,
+            833.69
+          ],
+          "footprint_px": [
+            28.33,
+            28.33
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bedroom_2"
+        },
+        {
+          "id": "i29",
+          "role": "television",
+          "name": "Television shown as a thin wall-side symbol",
+          "center_px": [
+            694.44,
+            733.41
+          ],
+          "footprint_px": [
+            67.42,
+            8.5
+          ],
+          "rotation": 270,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bedroom_2"
+        },
+        {
+          "id": "i30",
+          "role": "shower",
+          "name": "Walk-in shower with glass screen (south end)",
+          "center_px": [
+            579.99,
+            580.15
+          ],
+          "footprint_px": [
+            67.99,
+            48.16
+          ],
+          "rotation": 180,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bathroom"
+        },
+        {
+          "id": "i31",
+          "role": "wc",
+          "name": "Toilet",
+          "center_px": [
+            612.29,
+            489.78
+          ],
+          "footprint_px": [
+            22.1,
+            32.29
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bathroom"
+        },
+        {
+          "id": "i32",
+          "role": "basin",
+          "name": "Wash basin on the west wall",
+          "center_px": [
+            556.2,
+            531.71
+          ],
+          "footprint_px": [
+            26.06,
+            18.7
+          ],
+          "rotation": 90,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bathroom"
+        },
+        {
+          "id": "i33",
+          "role": "washer",
+          "name": "Washing machine (X box, NW corner)",
+          "center_px": [
+            563.56,
+            487.52
+          ],
+          "footprint_px": [
+            33.43,
+            27.2
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bathroom"
+        },
+        {
+          "id": "i34",
+          "role": "wc",
+          "name": "Toilet",
+          "center_px": [
+            568.66,
+            433.69
+          ],
+          "footprint_px": [
+            22.66,
+            32.86
+          ],
+          "rotation": 180,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "wc"
+        },
+        {
+          "id": "i35",
+          "role": "basin",
+          "name": "Wash basin",
+          "center_px": [
+            610.02,
+            441.63
+          ],
+          "footprint_px": [
+            26.06,
+            19.26
+          ],
+          "rotation": 180,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "wc"
+        },
+        {
+          "id": "i36",
+          "role": "appliance",
+          "name": "Blue X box on the west parapet (AC outdoor unit spot)",
+          "center_px": [
+            565.55,
+            949.84
+          ],
+          "footprint_px": [
+            45.33,
+            26.06
+          ],
+          "rotation": 90,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "balcony"
+        }
+      ],
+      "source_image": {
+        "local_basename": "b30-t35.png",
+        "sha256": "5fd8dc40000dc24a8b5f5654e4d097a0c567e8cf271963bec4556b7349885ea8",
+        "committed": false
+      }
+    },
+    {
+      "id": "b31-t46",
+      "alignment": {
+        "origin_px": [
+          458,
+          334
+        ],
+        "pixels_per_metre": 57.14,
+        "axes": "x right; editor z down",
+        "basis": "architect shell notes"
+      },
+      "items": [
+        {
+          "id": "i1",
+          "role": "sofa",
+          "name": "Three-seat sofa on the east wall",
+          "center_px": [
+            1000.99,
+            668.48
+          ],
+          "footprint_px": [
+            122.94,
+            42.12
+          ],
+          "rotation": 270,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "living"
+        },
+        {
+          "id": "i2",
+          "role": "armchair",
+          "name": "Armchair north of the coffee table",
+          "center_px": [
+            944.98,
+            591.99
+          ],
+          "footprint_px": [
+            39.84,
+            39.84
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "living"
+        },
+        {
+          "id": "i3",
+          "role": "armchair",
+          "name": "Armchair south of the coffee table",
+          "center_px": [
+            944.98,
+            744.97
+          ],
+          "footprint_px": [
+            39.84,
+            39.84
+          ],
+          "rotation": 180,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "living"
+        },
+        {
+          "id": "i4",
+          "role": "coffee_table",
+          "name": "Coffee table",
+          "center_px": [
+            944.98,
+            667.51
+          ],
+          "footprint_px": [
+            75.13,
+            30.17
+          ],
+          "rotation": 90,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "living"
+        },
+        {
+          "id": "i5",
+          "role": "television",
+          "name": "Television shown as a thin wall-side symbol",
+          "center_px": [
+            833.09,
+            668.48
+          ],
+          "footprint_px": [
+            67.16,
+            14.23
+          ],
+          "rotation": 90,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "living"
+        },
+        {
+          "id": "i6",
+          "role": "table",
+          "name": "Dining table",
+          "center_px": [
+            919.48,
+            882.48
+          ],
+          "footprint_px": [
+            95.05,
+            44.96
+          ],
+          "rotation": 180,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "living"
+        },
+        {
+          "id": "i7",
+          "role": "chair",
+          "name": "Dining chair north 1",
+          "center_px": [
+            890.0,
+            860.0
+          ],
+          "footprint_px": [
+            23.9,
+            23.9
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i8",
+          "role": "chair",
+          "name": "Dining chair south 1",
+          "center_px": [
+            890.0,
+            905.02
+          ],
+          "footprint_px": [
+            23.9,
+            23.9
+          ],
+          "rotation": 180,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i9",
+          "role": "chair",
+          "name": "Dining chair north 2",
+          "center_px": [
+            918.52,
+            860.0
+          ],
+          "footprint_px": [
+            23.9,
+            23.9
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i10",
+          "role": "chair",
+          "name": "Dining chair south 2",
+          "center_px": [
+            918.52,
+            905.02
+          ],
+          "footprint_px": [
+            23.9,
+            23.9
+          ],
+          "rotation": 180,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i11",
+          "role": "chair",
+          "name": "Dining chair north 3",
+          "center_px": [
+            947.49,
+            860.0
+          ],
+          "footprint_px": [
+            23.9,
+            23.9
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i12",
+          "role": "chair",
+          "name": "Dining chair south 3",
+          "center_px": [
+            947.49,
+            905.02
+          ],
+          "footprint_px": [
+            23.9,
+            23.9
+          ],
+          "rotation": 180,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i13",
+          "role": "chair",
+          "name": "Dining chair west end",
+          "center_px": [
+            870.02,
+            881.51
+          ],
+          "footprint_px": [
+            23.9,
+            23.9
+          ],
+          "rotation": 90,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i14",
+          "role": "chair",
+          "name": "Dining chair east end",
+          "center_px": [
+            967.52,
+            881.51
+          ],
+          "footprint_px": [
+            23.9,
+            23.9
+          ],
+          "rotation": 270,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "circular_symbol": true,
+          "heading_basis": "Circular dining seat: plan has no fixed facing; checked access heading may rotate.",
+          "room_id": "living"
+        },
+        {
+          "id": "i15",
+          "role": "kitchen_base",
+          "name": "Kitchen counter along the north wall",
+          "center_px": [
+            959.72,
+            373.2
+          ],
+          "footprint_px": [
+            130.34,
+            35.86
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "kitchen"
+        },
+        {
+          "id": "i16",
+          "role": "hob",
+          "name": "Hob (4 rings)",
+          "center_px": [
+            928.76,
+            373.77
+          ],
+          "footprint_px": [
+            32.44,
+            32.44
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "kitchen"
+        },
+        {
+          "id": "i17",
+          "role": "sink",
+          "name": "Sink with drainer",
+          "center_px": [
+            988.24,
+            373.77
+          ],
+          "footprint_px": [
+            48.38,
+            32.44
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "kitchen"
+        },
+        {
+          "id": "i18",
+          "role": "appliance",
+          "name": "Fridge (blue box on the east wall)",
+          "center_px": [
+            1007.47,
+            435.01
+          ],
+          "footprint_px": [
+            34.72,
+            34.72
+          ],
+          "rotation": 270,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "kitchen"
+        },
+        {
+          "id": "i19",
+          "role": "bed",
+          "name": "Double bed, head on the west wall",
+          "center_px": [
+            726.03,
+            668.48
+          ],
+          "footprint_px": [
+            103.02,
+            112.12
+          ],
+          "rotation": 90,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bedroom_1"
+        },
+        {
+          "id": "i20",
+          "role": "nightstand",
+          "name": "Nightstand north",
+          "center_px": [
+            681.01,
+            602.52
+          ],
+          "footprint_px": [
+            25.04,
+            27.89
+          ],
+          "rotation": 90,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bedroom_1"
+        },
+        {
+          "id": "i21",
+          "role": "nightstand",
+          "name": "Nightstand south",
+          "center_px": [
+            681.01,
+            732.51
+          ],
+          "footprint_px": [
+            25.04,
+            27.89
+          ],
+          "rotation": 90,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bedroom_1"
+        },
+        {
+          "id": "i22",
+          "role": "wardrobe",
+          "name": "Wardrobe on the north wall",
+          "center_px": [
+            709.52,
+            572.52
+          ],
+          "footprint_px": [
+            84.8,
+            34.72
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bedroom_1"
+        },
+        {
+          "id": "i23",
+          "role": "desk",
+          "name": "Desk on the west wall",
+          "center_px": [
+            687.5,
+            783.73
+          ],
+          "footprint_px": [
+            77.4,
+            39.84
+          ],
+          "rotation": 90,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bedroom_1"
+        },
+        {
+          "id": "i24",
+          "role": "chair",
+          "name": "Desk chair",
+          "center_px": [
+            708.73,
+            796.26
+          ],
+          "footprint_px": [
+            32.44,
+            32.44
+          ],
+          "rotation": 270,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bedroom_1"
+        },
+        {
+          "id": "i25",
+          "role": "television",
+          "name": "Television shown as a thin wall-side symbol",
+          "center_px": [
+            813.11,
+            668.48
+          ],
+          "footprint_px": [
+            67.16,
+            14.23
+          ],
+          "rotation": 270,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bedroom_1"
+        },
+        {
+          "id": "i26",
+          "role": "bed",
+          "name": "Double bed, head on the west wall",
+          "center_px": [
+            535.02,
+            722.49
+          ],
+          "footprint_px": [
+            104.72,
+            114.97
+          ],
+          "rotation": 90,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bedroom_2"
+        },
+        {
+          "id": "i27",
+          "role": "nightstand",
+          "name": "Nightstand north",
+          "center_px": [
+            491.25,
+            657.5
+          ],
+          "footprint_px": [
+            25.04,
+            27.32
+          ],
+          "rotation": 90,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bedroom_2"
+        },
+        {
+          "id": "i28",
+          "role": "nightstand",
+          "name": "Nightstand south",
+          "center_px": [
+            491.25,
+            787.49
+          ],
+          "footprint_px": [
+            25.04,
+            27.32
+          ],
+          "rotation": 90,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bedroom_2"
+        },
+        {
+          "id": "i29",
+          "role": "wardrobe",
+          "name": "Wardrobe on the north wall",
+          "center_px": [
+            526.26,
+            628.75
+          ],
+          "footprint_px": [
+            97.32,
+            32.44
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bedroom_2"
+        },
+        {
+          "id": "i30",
+          "role": "desk",
+          "name": "Desk under the south window",
+          "center_px": [
+            611.0,
+            822.49
+          ],
+          "footprint_px": [
+            76.84,
+            39.84
+          ],
+          "rotation": 180,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bedroom_2"
+        },
+        {
+          "id": "i31",
+          "role": "chair",
+          "name": "Desk chair",
+          "center_px": [
+            626.26,
+            802.52
+          ],
+          "footprint_px": [
+            32.44,
+            34.72
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bedroom_2"
+        },
+        {
+          "id": "i32",
+          "role": "television",
+          "name": "Television shown as a thin wall-side symbol",
+          "center_px": [
+            642.42,
+            722.49
+          ],
+          "footprint_px": [
+            70.01,
+            14.23
+          ],
+          "rotation": 270,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bedroom_2"
+        },
+        {
+          "id": "i33",
+          "role": "wardrobe",
+          "name": "Wardrobe on the north wall",
+          "center_px": [
+            638.78,
+            357.5
+          ],
+          "footprint_px": [
+            82.53,
+            25.04
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "hall"
+        },
+        {
+          "id": "i34",
+          "role": "wardrobe",
+          "name": "Wardrobe on the south (hatched) wall",
+          "center_px": [
+            623.75,
+            445.49
+          ],
+          "footprint_px": [
+            52.36,
+            40.98
+          ],
+          "rotation": 180,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "hall"
+        },
+        {
+          "id": "i35",
+          "role": "sofa",
+          "name": "Three-seat sofa on the south (hatched) wall",
+          "center_px": [
+            749.99,
+            444.24
+          ],
+          "footprint_px": [
+            120.09,
+            43.26
+          ],
+          "rotation": 180,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "hall"
+        },
+        {
+          "id": "i36",
+          "role": "television",
+          "name": "Television shown as a thin wall-side symbol",
+          "center_px": [
+            744.98,
+            353.0
+          ],
+          "footprint_px": [
+            70.01,
+            17.07
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "hall"
+        },
+        {
+          "id": "i37",
+          "role": "wc",
+          "name": "WC",
+          "center_px": [
+            508.27,
+            362.5
+          ],
+          "footprint_px": [
+            21.63,
+            33.01
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bathroom_1"
+        },
+        {
+          "id": "i38",
+          "role": "basin",
+          "name": "Basin",
+          "center_px": [
+            542.99,
+            354.99
+          ],
+          "footprint_px": [
+            26.18,
+            18.21
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bathroom_1"
+        },
+        {
+          "id": "i39",
+          "role": "shower",
+          "name": "Walk-in shower, glass screen, head on the west wall",
+          "center_px": [
+            521.02,
+            442.98
+          ],
+          "footprint_px": [
+            70.01,
+            46.1
+          ],
+          "rotation": 180,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bathroom_1"
+        },
+        {
+          "id": "i40",
+          "role": "washer",
+          "name": "Washing machine (blue X box)",
+          "center_px": [
+            573.72,
+            452.49
+          ],
+          "footprint_px": [
+            33.58,
+            26.75
+          ],
+          "rotation": 180,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bathroom_1"
+        },
+        {
+          "id": "i41",
+          "role": "wc",
+          "name": "WC",
+          "center_px": [
+            506.22,
+            503.03
+          ],
+          "footprint_px": [
+            22.77,
+            31.87
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bathroom_2"
+        },
+        {
+          "id": "i42",
+          "role": "basin",
+          "name": "Basin",
+          "center_px": [
+            559.27,
+            494.49
+          ],
+          "footprint_px": [
+            26.75,
+            14.8
+          ],
+          "rotation": 0,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bathroom_2"
+        },
+        {
+          "id": "i43",
+          "role": "shower",
+          "name": "Walk-in shower, glass screen, head on the west wall",
+          "center_px": [
+            516.98,
+            579.98
+          ],
+          "footprint_px": [
+            66.02,
+            51.79
+          ],
+          "rotation": 180,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "bathroom_2"
+        },
+        {
+          "id": "i44",
+          "role": "appliance",
+          "name": "AC outdoor unit (blue X box)",
+          "center_px": [
+            681.24,
+            875.03
+          ],
+          "footprint_px": [
+            42.69,
+            25.04
+          ],
+          "rotation": 180,
+          "reading": "vision re-read of source, corroborated by earlier Tonir inventory",
+          "room_id": "balcony"
+        }
+      ],
+      "source_image": {
+        "local_basename": "b31-t46.png",
+        "sha256": "bd3615d032bee4a4aec6c73ffa6566c32fb2276706a367b7e06a3c8c99dc0fa9",
+        "committed": false
+      }
+    }
+  ]
+}
