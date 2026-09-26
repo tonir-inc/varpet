@@ -1,41 +1,43 @@
-"""The architect session: one architect thread owns the whole flat.
+"""The architect session: one architect thread owns the whole flat, in one turn, with tools.
 
-The research loss came from an architect inside every piece's build loop. Here the
-architect stays for the whole flat but never builds pieces:
+The research loss came from an architect inside every piece's build loop; the old staged session
+lost minutes to a new turn per stage, where the model re-read its files before each fix. Here one
+prompt says what done is and the tools are the verbs (codex_tools: in-process dynamic tools):
 
-1. read   the plan and photos -> shell/shell.json (rooms, walls, fixtures) + pieces.json
-          code checks the shell; faults go back into the same thread
-2. build  one builder thread per piece, all in parallel (dispatch + CodexRunner)
-3. place  same architect thread: built sizes in, furnish/placements.json out, checked
-4. look   same thread: a top-down picture of the result next to the photos it already
-          has in context; it fixes what does not match; checked again
+  submit_shell       check shell/shell.json (tidy + faults) and show it; walls first, then fixtures
+  build_pieces       start the builders in the background; the architect goes on with the fixtures
+  wait_for_pieces    built sizes + the flat-furnish skill, just in time
+  submit_placements  check furnish/placements.json and show it
+  render_top_view    a top-down picture to compare with the photos
+
+With no photos only submit_shell is offered. After the turn code checks both files once more and
+sends at most FIX_TURNS turns back. Steps in report.json keep the old names for replay and evals.
 
 Run folder layout (what shell, furnish, pieces, review and export read):
-  graph.json, shell/shell.json, <piece>/program.json + piece.glb,
+  graph.json, pieces.json, shell/shell.json, <piece>/program.json + piece.glb,
   furnish/placements.json, review/top.png, report.json
 """
 
 from __future__ import annotations
 
+import asyncio
 import json
-import sys
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import get_args
 
-from openai_codex import ApprovalMode, AsyncCodex, LocalImageInput, Sandbox, TextInput
+from openai_codex import AsyncCodex, LocalImageInput, TextInput
 from pydantic import BaseModel, ConfigDict, Field
 
 from .architect import MAX_PIECE_PHOTOS, settle
-from .codex_runner import IMAGE_SUFFIXES, CodexRunner, _strip_frontmatter, _tokens, thread_config
+from .codex_runner import CodexRunner, _strip_frontmatter, _tokens, thread_config
+from .codex_tools import Tool, install, start_thread
 from .dispatch import dispatch
 from .graph import Graph, Job, SizeSource
 
-SHELL_CHECK = [sys.executable, "-m", "varpet_harness.shell"]
-FURNISH_CHECK = [sys.executable, "-m", "varpet_harness.furnish"]
-FIX_TURNS = 2
+FIX_TURNS = 1  # backstop turns after the architect says it is done
 MAX_SET = 4  # pieces one builder makes together
-REVIEW_ROUNDS = 2
 
 
 class PieceSpec(BaseModel):
@@ -71,45 +73,42 @@ def _skill(repo: Path, name: str) -> str:
     return _strip_frontmatter((repo / ".agents" / "skills" / name / "SKILL.md").read_text())
 
 
-READ_PROMPT = """You are the architect for the flat "{flat}". You stay for the whole flat: first you read it,
-later you place the furniture that builders make, then you check your result against the photos.
-
-Step 1a now: write shell/shell.json with the rooms and walls (doors and windows included), per the
-flat-shell skill below. Leave `components` out for now; fixtures come in the next step. Be quick and exact:
-people are watching the walls go up.
-
-Plan: {plan} (the first image). Photos, in the order attached after it:
-{photos}
+ARCHITECT_PROMPT = """You are the architect for the flat "{flat}". Rebuild it as it is today from the plan{and_photos}.
+People watch the flat appear, so work in this order and call each tool the moment its part is done:
+{steps}
+A tool that checks your work answers ok or lists faults: fix them and call it again until it answers ok.
+Work in this folder. Plan (the first image): {plan}{photo_list}
 
 # Skill: flat-shell
 {shell_skill}"""
 
-FIXTURES_PROMPT = """Step 1b. Your rooms and walls are checked. Now, in this folder:
-1. add `components` to shell/shell.json: every fixture the plan or photos show (toilet, shower, bath, sink,
-   kitchen worktop and cabinets, appliances, radiators), per the flat-shell skill. Fixtures are part of the flat,
-   not furniture. Keep the rooms and walls as they are.
-2. write pieces.json: {{"pieces": [{{"id", "brief", "size": [w, d, h], "size_source", "count", "refs", "set"}}]}}, one
-   entry per movable furniture piece (sofas, beds, tables, chairs, storage, rugs, mirrors, lamps) to be built from
-   the photos. Identical pieces are one entry with a count. size in metres; size_source: plan, photo (measured
-   against something of known size such as a 2.0 m door), scan or typical. refs: the paths of the photos that
-   show that piece best, best first, at most 3. brief: what it looks like, in one or two sentences.
-   set: give pieces that belong together the same short set name, so one builder makes them together with
-   matching materials: dining table + chairs, bed + bedside tables + bedside lamps, sofa + coffee table +
-   side table, desk + desk chair. At most 4 pieces per set. Pieces that match nothing get no set."""
+STEPS_FURNISHED = """1. Rooms and walls with their doors and windows into shell/shell.json, per the flat-shell skill below. submit_shell.
+2. build_pieces with every movable piece the photos show. Builders make them in parallel while you go on.
+3. The fixtures (`components`) into shell/shell.json: every one the plan or photos show. submit_shell.
+4. wait_for_pieces: it answers with the built sizes and the rules for placing them. Place them into
+   furnish/placements.json. submit_placements.
+5. render_top_view and compare it with the photos, piece by piece and fixture by fixture: which wall, what is
+   next to it, which way it faces. Fix what does not match and submit again."""
 
-PLACE_PROMPT = """Step 3. The builders finished. Place the pieces where the photos show them, per the flat-furnish skill
-below, into furnish/placements.json. The flat is your shell/shell.json (fixtures included: keep furniture off them).
+STEPS_BARE = """1. Rooms and walls with their doors and windows into shell/shell.json, per the flat-shell skill below. submit_shell.
+2. The fixtures (`components`) into shell/shell.json: every one the plan shows. submit_shell.
+There are no photos, so there is no furniture to build: you are done after step 2."""
 
-{brief}
-
-# Skill: flat-furnish
-{furnish_skill}"""
-
-LOOK_PROMPT = """Step 4. The attached picture is your result from above: rooms, walls (doors red, windows blue), fixtures
-in grey, each piece with an arrow toward its front. Compare it with the photos you saw in step 1, piece by piece
-and fixture by fixture: which wall is it against, what is next to it, which way does it face.
-If something is wrong, fix furnish/placements.json (and shell/shell.json components if a fixture is wrong) and
-say what you changed. If everything matches the photos, change nothing and answer exactly: MATCHES"""
+PIECE_SCHEMA = {
+    "type": "object", "additionalProperties": False, "required": ["id", "brief", "size", "size_source", "count", "refs"],
+    "properties": {
+        "id": {"type": "string", "description": "lowercase-with-hyphens"},
+        "brief": {"type": "string", "description": "what it looks like, in one or two sentences"},
+        "size": {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3, "description": "[w, d, h] metres"},
+        "size_source": {"type": "string", "enum": list(get_args(SizeSource)),
+                        "description": "photo: measured against something of known size such as a 2.0 m door"},
+        "count": {"type": "integer", "minimum": 1, "description": "identical pieces are one entry with a count"},
+        "refs": {"type": "array", "items": {"type": "string"}, "maxItems": 3,
+                 "description": "paths of the photos that show it best, best first"},
+        "set": {"type": "string", "description": "pieces that belong together share a set and one builder, at most 4: "
+                "dining table + chairs, bed + bedside tables + lamps, sofa + coffee table, desk + chair"},
+    },
+}
 
 
 def export_project(repo: Path, run_dir: Path, base_url: str = "http://127.0.0.1:8788") -> Path | None:
@@ -202,78 +201,70 @@ def _read_pieces(path: Path) -> Pieces:
     return Pieces.model_validate(data)
 
 
-def _fix_prompt(what: str, faults: str) -> str:
-    return f"Code checked {what} and found faults. Fix only these, keep the rest:\n{faults}"
+class _Architect:
+    """The tools of one architect thread and what they share. Files stay the medium (the model
+    computes geometry in Python); the tools are the verbs: check, show, build, wait, look."""
 
+    def __init__(self, repo: Path, run_dir: Path, flat: str, plan: str, runner: CodexRunner, lanes: int,
+                 report: SessionReport, progress, emit, base_url: str):
+        self.repo, self.run_dir, self.flat, self.plan, self.runner, self.lanes = repo, run_dir, flat, plan, runner, lanes
+        self.report, self.progress, self.emit, self.base_url = report, progress, emit, base_url
+        self.t0 = time.monotonic()
+        self.shown = False  # the walls are on screen
+        self.build: asyncio.Task | None = None
+        self.t_place: float | None = None
+        self.placed = False
+        self.looks = 0
 
-async def run_session(codex: AsyncCodex, repo: Path, flat: str, plan: str, photos: list[str], run_dir: Path,
-                      compile_cmd: list[str] | None, model: str = "gpt-6-astra", lanes: int = 6,
-                      review: bool = True, progress=print, emit=None,
-                      base_url: str = "http://127.0.0.1:8788") -> SessionReport:
-    """emit(event) receives intermediate results for a live preview: shell, pieces, piece, placements."""
-    t0 = time.monotonic()
-    run_dir.mkdir(parents=True, exist_ok=True)
-    for sub in ("shell", "furnish", "review"):
-        (run_dir / sub).mkdir(exist_ok=True)
-    report = SessionReport(flat=flat, run_dir=str(run_dir))
-    activity = (lambda who, kind, text: emit({"type": "activity", "who": who, "kind": kind, "text": text})) if emit else None
-    runner = CodexRunner(codex, repo, model=model, compile_cmd=compile_cmd, progress=progress, activity=activity)
-    me = Job(id="architect", kind="shell", brief="-", effort="medium")
-    thread = await codex.thread_start(approval_mode=ApprovalMode.deny_all, sandbox=Sandbox.workspace_write,
-                                      cwd=str(run_dir), model=model, config=thread_config())
-    await thread.set_name(f"architect {flat}")
+    def tools(self, furnish: bool, look: bool) -> list[Tool]:
+        tools = [Tool("submit_shell", "Check shell/shell.json and show it to the people watching. Call it after the "
+                      "walls, again after the fixtures. Answers ok or the faults to fix.", self.submit_shell)]
+        if furnish:
+            tools += [
+                Tool("build_pieces", "Start builders on the movable furniture the photos show (sofas, beds, tables, "
+                     "chairs, storage, rugs, mirrors, lamps; never fixtures). Returns at once; call it once.",
+                     self.build_pieces, {"pieces": {"type": "array", "items": PIECE_SCHEMA}}, ["pieces"]),
+                Tool("wait_for_pieces", "Wait for the builders. Answers with the built pieces, their sizes and the "
+                     "rules for placing them into furnish/placements.json.", self.wait_for_pieces),
+                Tool("submit_placements", "Check furnish/placements.json and show it. Answers ok or the faults to fix.",
+                     self.submit_placements),
+            ]
+        if look:
+            tools.append(Tool("render_top_view", "A top-down picture of your result: rooms, walls (doors red, windows "
+                              "blue), fixtures grey, each piece with an arrow toward its front.", self.render_top_view))
+        return tools
 
-    async def turn(items) -> None:
-        result = await runner._turn(thread, items, me)
-        report.tokens += _tokens(result)
-        report.architect_turns += 1
+    async def submit_shell(self, args: dict) -> str:
+        from .shell import Shell, check_file
 
-    async def checked(what: str, cmd: list[str], output: Path) -> str | None:
-        faults = CodexRunner._compile(cmd, output, output.parent) if output.exists() else f"{output.name} was not written"
-        for _ in range(FIX_TURNS):
-            if faults is None:
-                break
-            progress(f"architect: fixing {what}")
-            await turn([TextInput(_fix_prompt(what, faults))])
-            faults = CodexRunner._compile(cmd, output, output.parent) if output.exists() else f"{output.name} was not written"
-        return faults
+        faults = await asyncio.to_thread(check_file, self.run_dir / "shell" / "shell.json", self.run_dir / "shell")
+        if faults:
+            self.progress("architect: fixing shell")
+            return "faults:\n" + json.dumps(faults, indent=1)
+        _emit_shell(self.emit, self.run_dir)
+        if not self.shown:
+            self.shown = True
+            self.progress("architect: reading the fixtures and furniture")
+        shell = Shell.model_validate_json((self.run_dir / "shell" / "shell.json").read_text())
+        return f"ok: {len(shell.rooms)} rooms, {len(shell.walls)} walls, {len(shell.components)} fixtures"
 
-    try:
-        # 1. read the flat
-        t = time.monotonic()
-        progress("architect: reading the plan and photos")
-        abs_photos = [str((repo / p).resolve()) for p in photos]
-        images = [LocalImageInput(path=str((repo / plan).resolve()))] + [LocalImageInput(path=p) for p in abs_photos]
-        prompt = READ_PROMPT.format(flat=flat, plan=(repo / plan).resolve(),
-                                    photos="\n".join(f"{i + 1}: {p}" for i, p in enumerate(abs_photos)),
-                                    shell_skill=_skill(repo, "flat-shell"))
-        await turn([TextInput(prompt), *images])
-        shell_faults = await checked("shell/shell.json", SHELL_CHECK, run_dir / "shell" / "shell.json")
-        _emit_shell(emit, run_dir)  # the walls go up on screen now, fixtures follow
-        progress("architect: reading the fixtures and furniture")
-        await turn([TextInput(FIXTURES_PROMPT)])
-        shell_faults = await checked("shell/shell.json", SHELL_CHECK, run_dir / "shell" / "shell.json")
-        pieces = None
-        for attempt in range(FIX_TURNS + 1):
-            try:
-                pieces = _read_pieces(run_dir / "pieces.json")
-                break
-            except (ValueError, OSError) as e:
-                if attempt == FIX_TURNS:
-                    raise
-                progress("architect: fixing pieces.json")
-                await turn([TextInput(_fix_prompt("pieces.json", str(e)[:3000]))])
-        report.step("read", t, shell_ok=shell_faults is None, pieces=len(pieces.pieces))
-        _emit_shell(emit, run_dir)
-        if emit:
-            emit({"type": "pieces", "pieces": [{"id": p.id, "size": p.size, "count": p.count} for p in pieces.pieces]})
+    async def build_pieces(self, args: dict) -> str:
+        if self.build:
+            return "the builders are already at work; call wait_for_pieces"
+        (self.run_dir / "pieces.json").write_text(json.dumps({"pieces": args.get("pieces", [])}))
+        pieces = _read_pieces(self.run_dir / "pieces.json")  # a bad list comes back to the model as the error
+        self.report.step("read", self.t0, shell_ok=self.shown, pieces=len(pieces.pieces))
+        if self.emit:
+            self.emit({"type": "pieces", "pieces": [{"id": p.id, "size": p.size, "count": p.count} for p in pieces.pieces]})
+        self.build = asyncio.create_task(self._build(pieces))
+        return f"started {len(pieces.pieces)} pieces; go on and call wait_for_pieces when you need them"
 
-        # 2. build the pieces in parallel
+    async def _build(self, pieces: Pieces) -> list[str]:
         t = time.monotonic()
         jobs = [Job(id=p.id, kind="piece", brief=p.brief, size=p.size, size_source=p.size_source, count=p.count,
                     refs=p.refs[:MAX_PIECE_PHOTOS]) for p in pieces.pieces]
-        graph = settle(Graph(flat=flat, jobs=[*jobs, Job(id="shell", kind="shell", brief="read by the architect"),
-                                                 Job(id="furnish", kind="furnish", brief="placed by the architect")]), plan)
+        graph = settle(Graph(flat=self.flat, jobs=[*jobs, Job(id="shell", kind="shell", brief="read by the architect"),
+                                                   Job(id="furnish", kind="furnish", brief="placed by the architect")]), self.plan)
         pieces_by_id = {j.id: j for j in graph.jobs if j.kind == "piece"}
         groups: dict[str, list[Job]] = {}
         for spec in pieces.pieces:
@@ -283,48 +274,129 @@ async def run_session(codex: AsyncCodex, repo: Path, flat: str, plan: str, photo
             members = groups.pop(key)  # too big for one builder: split into chunks
             for i in range(0, len(members), MAX_SET):
                 groups[f"{key}-{i // MAX_SET + 1}"] = members[i : i + MAX_SET]
-        units = Graph(flat=flat, jobs=[Job(id=k, kind="piece", brief="set", size=v[0].size) for k, v in groups.items()])
-        progress(f"builders: {len(pieces_by_id)} pieces in {len(groups)} builders")
-        built = await dispatch(units, _GroupRunner(runner, groups, run_dir, emit, base_url), run_dir, lanes)
-        (run_dir / "graph.json").write_text(graph.model_dump_json(indent=1))  # dispatch wrote the build-only graph
-        report.tokens += built.tokens
-        ok = [pid for pid in pieces_by_id if (run_dir / pid / "piece.glb").exists()
-              and not (run_dir / pid / "faults.json").exists()]
-        report.step("build", t, built=len(ok), builders=len(groups), failed=sorted(set(pieces_by_id) - set(ok)))
+        units = Graph(flat=self.flat, jobs=[Job(id=k, kind="piece", brief="set", size=v[0].size) for k, v in groups.items()])
+        self.progress(f"builders: {len(pieces_by_id)} pieces in {len(groups)} builders")
+        built = await dispatch(units, _GroupRunner(self.runner, groups, self.run_dir, self.emit, self.base_url),
+                               self.run_dir, self.lanes)
+        (self.run_dir / "graph.json").write_text(graph.model_dump_json(indent=1))  # dispatch wrote the build-only graph
+        self.report.tokens += built.tokens
+        ok = [pid for pid in pieces_by_id if (self.run_dir / pid / "piece.glb").exists()
+              and not (self.run_dir / pid / "faults.json").exists()]
+        self.report.step("build", t, built=len(ok), builders=len(groups), failed=sorted(set(pieces_by_id) - set(ok)))
+        return sorted(set(pieces_by_id) - set(ok))
 
-        # 3. place them
-        t = time.monotonic()
-        from .furnish import brief as furnish_brief
+    async def wait_for_pieces(self, args: dict) -> str:
+        from .furnish import brief
 
-        if pieces.pieces:
-            progress("architect: placing the pieces")
-            await turn([TextInput(PLACE_PROMPT.format(brief=furnish_brief(run_dir), furnish_skill=_skill(repo, "flat-furnish")))])
-            place_faults = await checked("furnish/placements.json", FURNISH_CHECK, run_dir / "furnish" / "placements.json")
-        else:  # nothing to place: a model turn here only writes an empty list (67 s on 26 Sept)
-            (run_dir / "furnish" / "placements.json").write_text(json.dumps({"placements": [], "notes": ["no pieces"]}))
-            place_faults = None
-        report.step("place", t, ok=place_faults is None)
-        _emit_placements(emit, run_dir, base_url)
+        if not self.build:
+            return "nothing is being built; call build_pieces first"
+        failed = await self.build
+        self.progress("architect: placing the pieces")
+        self.t_place = time.monotonic()
+        note = f"\n\nThese failed and are not in the flat: {', '.join(failed)}" if failed else ""
+        return f"{brief(self.run_dir)}{note}\n\n# Skill: flat-furnish\n{_skill(self.repo, 'flat-furnish')}"
 
-        # 4. look at the result and fix
+    async def submit_placements(self, args: dict) -> str:
+        from .furnish import check_file
+
+        faults = await asyncio.to_thread(check_file, self.run_dir / "furnish" / "placements.json", self.run_dir / "furnish")
+        if faults:
+            self.progress("architect: fixing furnish")
+            return "faults:\n" + json.dumps(faults, indent=1)
+        if not self.placed:
+            self.placed = True
+            self.report.step("place", self.t_place or self.t0, ok=True)
+        _emit_placements(self.emit, self.run_dir, self.base_url)
+        return "ok"
+
+    async def render_top_view(self, args: dict) -> list[dict]:
+        import base64
+
+        from .review import render
+
+        self.looks += 1
+        self.progress("architect: checking its result against the photos")
+        out = await asyncio.to_thread(render, self.run_dir, self.run_dir / "review" / f"top-{self.looks}.png")
+        return [{"type": "inputImage", "imageUrl": "data:image/png;base64," + base64.b64encode(out.read_bytes()).decode()}]
+
+    def unfinished(self, furnish: bool) -> str | None:
+        """After the turn: the model decides when it is done, code decides whether it is."""
+        from .furnish import check_file as check_placements
+        from .shell import check_file as check_shell
+
+        shell = self.run_dir / "shell" / "shell.json"
+        faults = check_shell(shell, shell.parent) if shell.exists() else [{"check": "file", "detail": "shell/shell.json was not written"}]
+        if faults:
+            return "Code checked shell/shell.json and found faults. Fix them, then submit_shell:\n" + json.dumps(faults, indent=1)
+        placements = self.run_dir / "furnish" / "placements.json"
+        if furnish and self.build:
+            faults = check_placements(placements, placements.parent) if placements.exists() else \
+                [{"check": "file", "detail": "furnish/placements.json was not written"}]
+            if faults:
+                return ("Code checked furnish/placements.json and found faults. Fix them, then submit_placements "
+                        "(call wait_for_pieces if you have not):\n" + json.dumps(faults, indent=1))
+        return None
+
+
+async def run_session(codex: AsyncCodex, repo: Path, flat: str, plan: str, photos: list[str], run_dir: Path,
+                      compile_cmd: list[str] | None, model: str = "gpt-6-astra", lanes: int = 6,
+                      review: bool = True, progress=print, emit=None,
+                      base_url: str = "http://127.0.0.1:8788") -> SessionReport:
+    """One architect thread, one turn, tools for every step. emit(event) receives intermediate results
+    for a live preview: shell, pieces, piece, placements, activity."""
+    t0 = time.monotonic()
+    run_dir.mkdir(parents=True, exist_ok=True)
+    for sub in ("shell", "furnish", "review"):
+        (run_dir / sub).mkdir(exist_ok=True)
+    report = SessionReport(flat=flat, run_dir=str(run_dir))
+    activity = (lambda who, kind, text: emit({"type": "activity", "who": who, "kind": kind, "text": text})) if emit else None
+    router = install(codex)  # before the client starts: tool calls must not block its reader
+    runner = CodexRunner(codex, repo, model=model, compile_cmd=compile_cmd, progress=progress, activity=activity)
+    arch = _Architect(repo, run_dir, flat, plan, runner, lanes, report, progress, emit, base_url)
+    furnish = bool(photos)
+    thread = await start_thread(codex, arch.tools(furnish, look=furnish and review), model=model, cwd=str(run_dir),
+                                config=thread_config(), name=f"architect {flat}")
+    if activity:
+        router.on_call = lambda tid, name, args: tid == thread.id and activity("architect", "command", name)
+    me = Job(id="architect", kind="shell", brief="-", effort="medium")
+
+    async def turn(items) -> None:
+        result = await runner._turn(thread, items, me, paused=lambda: router.in_flight(thread.id))
+        report.tokens += _tokens(result)
+        report.architect_turns += 1
+
+    try:
+        progress("architect: reading the plan and photos")
+        abs_photos = [str((repo / p).resolve()) for p in photos]
+        prompt = ARCHITECT_PROMPT.format(
+            flat=flat, and_photos=" and photos" if photos else "", steps=STEPS_FURNISHED if furnish else STEPS_BARE,
+            plan=(repo / plan).resolve(),
+            photo_list="".join(f"\nPhoto {i + 1}: {p}" for i, p in enumerate(abs_photos)),
+            shell_skill=_skill(repo, "flat-shell"))
+        images = [LocalImageInput(path=str((repo / plan).resolve()))] + [LocalImageInput(path=p) for p in abs_photos]
+        await turn([TextInput(prompt), *images])
+        for _ in range(FIX_TURNS):
+            left = await asyncio.to_thread(arch.unfinished, furnish)
+            if left is None:
+                break
+            progress("architect: fixing shell" if "shell.json" in left.split("\n", 1)[0] else "architect: fixing furnish")
+            await turn([TextInput(left)])
+        if arch.build and not arch.build.done():
+            await arch.build  # never leave builders running behind the export
+        if not any(s["step"] == "read" for s in report.steps):
+            report.step("read", t0, shell_ok=arch.shown, pieces=0)
+        if not (run_dir / "graph.json").exists():  # nothing was built; render and export still read the graph
+            (run_dir / "graph.json").write_text(settle(Graph(flat=flat, jobs=[
+                Job(id="shell", kind="shell", brief="read by the architect"),
+                Job(id="furnish", kind="furnish", brief="placed by the architect")]), plan).model_dump_json(indent=1))
+        placements = run_dir / "furnish" / "placements.json"
+        if not placements.exists():
+            placements.write_text(json.dumps({"placements": [], "notes": ["no pieces"]}))
+        if arch.looks:
+            report.steps.append({"step": "look", "seconds": 0.0, "rounds": arch.looks})
         if review:
             from .review import render
 
-            # the look compares the result with the photos; with none it only says it cannot (89 s on 26 Sept)
-            for round_ in range(REVIEW_ROUNDS if photos else 0):
-                t = time.monotonic()
-                picture = render(run_dir, run_dir / "review" / f"top-{round_ + 1}.png")
-                progress(f"architect: checking its result against the photos (round {round_ + 1})")
-                before = (run_dir / "furnish" / "placements.json").read_text()
-                await turn([TextInput(LOOK_PROMPT), LocalImageInput(path=str(picture))])
-                changed = (run_dir / "furnish" / "placements.json").read_text() != before
-                shell_faults = CodexRunner._compile(SHELL_CHECK, run_dir / "shell" / "shell.json", run_dir / "shell")
-                place_faults = await checked("furnish/placements.json", FURNISH_CHECK, run_dir / "furnish" / "placements.json")
-                report.step("look", t, round=round_ + 1, changed=changed, ok=place_faults is None and shell_faults is None)
-                if changed:
-                    _emit_placements(emit, run_dir, base_url)
-                if not changed:
-                    break
             render(run_dir, run_dir / "review" / "top.png")
 
         # the finished flat as an editor project (checked by the editor's own code)
@@ -332,6 +404,8 @@ async def run_session(codex: AsyncCodex, repo: Path, flat: str, plan: str, photo
         project = export_project(repo, run_dir)
         report.step("export", t, project=str(project) if project else None)
     finally:
+        if arch.build and not arch.build.done():
+            arch.build.cancel()
         await codex.thread_archive(thread.id)
         report.seconds = round(time.monotonic() - t0, 1)
         (run_dir / "report.json").write_text(json.dumps(report.__dict__, indent=1))

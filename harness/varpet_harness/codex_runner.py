@@ -50,12 +50,21 @@ def thread_config(codex_home: Path = Path.home() / ".codex") -> dict:
     }
 
 
-async def quiet_guard(stream: AsyncIterator, stall: float) -> AsyncIterator:
-    """Pass events through; raise TimeoutError after `stall` seconds with none."""
+async def quiet_guard(stream: AsyncIterator, stall: float, paused=lambda: False) -> AsyncIterator:
+    """Pass events through; raise TimeoutError after `stall` seconds with none, unless paused()
+    (a tool call in flight: the thread is waiting on us, not stalled)."""
     it = aiter(stream)
     while True:
+        nxt = asyncio.ensure_future(anext(it))
+        while True:
+            done, _ = await asyncio.wait({nxt}, timeout=stall)
+            if done or not paused():
+                break
+        if not done:
+            nxt.cancel()
+            raise TimeoutError(f"no event for {stall:.0f} s")
         try:
-            event = await asyncio.wait_for(anext(it), stall)
+            event = nxt.result()
         except StopAsyncIteration:
             return
         yield event
@@ -217,14 +226,14 @@ class CodexRunner:
         lines += ["", "# Skill: part-dsl-draft", _strip_frontmatter(skill.read_text())]
         return [TextInput("\n".join(lines)), *(LocalImageInput(path=p) for p in photos)]
 
-    async def _turn(self, thread, items, job: Job) -> TurnResult:
+    async def _turn(self, thread, items, job: Job, paused=lambda: False) -> TurnResult:
         # Watchdog: no event for `stall` seconds -> interrupt, retry once. A limit stops the batch.
         for attempt in range(2):
             handle = await thread.turn(items, effort=job.effort)
             stream = handle.stream()
             try:
                 return await _collect_async_turn_result(
-                    quiet_guard(self._tap(stream, job), self.stall), turn_id=handle.id
+                    quiet_guard(self._tap(stream, job), self.stall, paused), turn_id=handle.id
                 )
             except TimeoutError:
                 await handle.interrupt()
