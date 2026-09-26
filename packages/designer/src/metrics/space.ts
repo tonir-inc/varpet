@@ -358,11 +358,41 @@ function endpoints(scene: Scene, room: Room, grid: RoutingGrid): { doors: Endpoi
     const entry = swing ? turningDoorApproach(scene, room, grid, obstacles, point, intoRoom, opening) : approach(grid, room, obstacles, point, intoRoom, 0.45);
     doors.push({ id: `door:${opening.id}`, point, ...entry, aperture: Math.min(opening.width, entry.aperture), narrowest: opening.width <= entry.aperture ? point : entry.narrowest });
   }
-  for (const item of scene.items.filter(i => i.room_id === room.id && !i.structure && !isFloorRug(i) && onFloor(i))) {
-    const point = itemFront(item), radians = item.rot * Math.PI / 180;
-    items.push({ id: `item:${item.id}`, point, ...approach(grid, room, obstacles, point, [Math.sin(radians), -Math.cos(radians)], 0.45) });
+  const floorItems = scene.items.filter(i => i.room_id === room.id && !i.structure && !isFloorRug(i) && onFloor(i));
+  const pulledUp = new Map<string, { seat: Item; endpoint: Endpoint }[]>();
+  for (const item of floorItems) {
+    const radians = item.rot * Math.PI / 180, front: Vec2 = [Math.sin(radians), -Math.cos(radians)], surface = workSurface(item, floorItems);
+    // A seat pulled up to a desk or table is reached from behind: it is drawn back to sit down.
+    const point = surface ? itemBack(item) : itemFront(item), endpoint: Endpoint = { id: `item:${item.id}`, point, ...approach(grid, room, obstacles, point, surface ? [-front[0], -front[1]] : front, 0.45) };
+    items.push(endpoint);
+    if (surface) pulledUp.set(surface.id, [...pulledUp.get(surface.id) ?? [], { seat: item, endpoint }]);
+  }
+  // The desk and the seat pulled up to its front are one work zone: the desk is used from that seat,
+  // so its access is the seat's access. Nothing else in front of a desk is exempt.
+  for (const [index, endpoint] of items.entries()) {
+    const surface = floorItems.find(i => `item:${i.id}` === endpoint.id)!, seats = pulledUp.get(surface.id)?.filter(s => polygonsOverlap(itemPolygon(s.seat), frontZone(surface)));
+    const best = seats?.filter(s => s.endpoint.node >= 0).sort((a, b) => b.endpoint.aperture - a.endpoint.aperture)[0];
+    if (best) items[index] = { ...best.endpoint, id: endpoint.id };
   }
   return { doors, items };
+}
+
+const SEAT_KINDS = new Set(['chair', 'office_chair', 'stool']), WORK_SURFACE_KINDS = new Set(['desk', 'table', 'dining_table']);
+const PULLED_UP_M = 0.5;
+function itemBack(item: Item): Vec2 {
+  const angle = item.rot * Math.PI / 180;
+  return [item.pos[0] - Math.sin(angle) * item.size[1] / 2, item.pos[1] + Math.cos(angle) * item.size[1] / 2];
+}
+/** The 0.45 m approach strip across an item's front edge. */
+function frontZone(item: Item): Vec2[] {
+  const angle = item.rot * Math.PI / 180, depth = 0.45, [x, y] = itemFront(item);
+  return itemPolygon({ ...item, pos: [x + Math.sin(angle) * depth / 2, y - Math.cos(angle) * depth / 2], size: [item.size[0], depth, item.size[2]] });
+}
+/** The desk or table a seat faces within 0.5 m of its front edge, if any. */
+export function workSurface(seat: Item, items: readonly Item[]): Item | undefined {
+  if (!SEAT_KINDS.has(seat.kind)) return undefined;
+  const radians = seat.rot * Math.PI / 180, front: Vec2 = [Math.sin(radians), -Math.cos(radians)], point = itemFront(seat);
+  return items.find(i => i.id !== seat.id && i.room_id === seat.room_id && WORK_SURFACE_KINDS.has(i.kind) && onFloor(i) && obstacleDistance(point, front, itemPolygon(i)) <= PULLED_UP_M);
 }
 
 interface QueueEntry { node: number; width: number; steps: number }

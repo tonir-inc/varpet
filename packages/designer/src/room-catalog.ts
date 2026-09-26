@@ -1,5 +1,6 @@
 import {searchCatalog,mapLimited,CATALOG_CONCURRENCY,type CatalogQuery,type CatalogInput} from './catalog.js';
 import {searchRoomCatalog} from './taste/catalog.js';
+import {roomPrograms} from '../knowledge/room-programs.js';
 import {resolveStyles,styleMatchesKind,stylePalette} from '../knowledge/styles/index.js';
 
 /** Supplemental searches change only fit/price bounds, never catalog sizes or IDs. */
@@ -31,6 +32,13 @@ export async function roomCatalog(program:string,style:string|undefined,budget:n
   {kind:'plant',text:'potted plant',max_w:.45,max_d:.45},
  ]:[];
  const extra=await mapLimited(requests,CATALOG_CONCURRENCY,async input=>({input,result:await searchCatalog({...input,limit:20,...explicit.length?{styles:ids}:{},...budget!==undefined?{price_max:Math.min(input.price_max??budget,budget)}:{}},query)}));
+ // Relevance ranking can hide cheaper qualifying products; under a budget, look once below each essential pool's cheapest price.
+ const knowledge=roomPrograms[program],cheaperKinds=budget===undefined||!knowledge?[]:[...new Set(knowledge.essentials.flatMap(e=>e.preferred_kinds??e.kinds))].filter(kind=>base.products[kind]?.length);
+ const cheaper=await mapLimited(cheaperKinds,CATALOG_CONCURRENCY,async kind=>{
+  const pool=base.products[kind]!,input:CatalogInput={kind,price_max:Math.min(...pool.map(p=>p.price))-1,max_w:Math.max(...pool.map(p=>p.size[0])),max_d:Math.max(...pool.map(p=>p.size[1]))};
+  return {input,result:await searchCatalog({...input,limit:20,...explicit.length?{styles:ids}:{}},query)};
+ });
+ extra.push(...cheaper.filter(c=>c.input.price_max!>0));
  const palette=stylePalette(ids);
  for(const {input,result} of extra){
   const pool=base.products[input.kind!]??=[];

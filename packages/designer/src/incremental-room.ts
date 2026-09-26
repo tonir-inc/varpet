@@ -3,6 +3,7 @@ import {roomPrograms} from '../knowledge/room-programs.js';
 import {roomCatalog} from './room-catalog.js';
 import {localGeometryErrors,compareLayoutErrors} from './local-checks.js';
 import {functionClearances} from './metrics/function.js';
+import {spaceMetrics} from './metrics/space.js';
 import {functionClearanceRegressions} from './proposal-clearances.js';
 import {SceneAnalysisCache} from './fast-path.js';
 import {applyOps} from './adapter.js';
@@ -45,7 +46,8 @@ export function* pieceOps(scene:Scene,p:CatalogProduct,roomId:string,cache:Scene
   }
   if(role==='focal_point')for(const gap of [2,1.5,2.5])related(0,-(anchor.size[1]+p.size[1])/2-gap,(anchor.rot+180)%360);
   if((role==='light'||role==='task_light')&&!tableLamp(p))for(const side of [1,-1])for(const gap of [.15,.45,.6])related(side*((anchor.size[0]+p.size[0])/2+gap),0);
-  if(role==='work_seat')related(0,-(anchor.size[1]+p.size[1])/2-.4,(anchor.rot+180)%360);
+  // A desk chair is pulled up to the desk front; the desk and chair are then one work zone reached from behind the chair.
+  if(role==='work_seat')for(const gap of [.05,.15,.3,.4])for(const x of [0,-.15,.15])related(x,-(anchor.size[1]+p.size[1])/2-gap,(anchor.rot+180)%360);
   if(role==='bistro_table')for(const gap of [.05,.15,.3]){for(const side of [1,-1])related(side*((anchor.size[0]+p.size[0])/2+gap),0);related(0,-(anchor.size[1]+p.size[1])/2-gap);}
   // Table lamps stand on furniture: the bedside stand on this side of the bed, or the desk top toward its back.
   if((role==='bedside_lights'||role==='task_light')&&canRestOn(p.kind,p.size)){
@@ -88,6 +90,23 @@ export function* pieceOps(scene:Scene,p:CatalogProduct,roomId:string,cache:Scene
   filtered.sort((a,b)=>alignment(b)-alignment(a));
  }
  yield* filtered;
+}
+
+/** Probe stands at both bedsides (0.60 m out, at the head) and measure each one's route from the doors.
+ * A bed pose whose second side can only be reached through a gap narrower than 0.75 m cannot take its
+ * second nightstand, however the stand is turned; try the poses with both sides reachable first. */
+export function bedsideAccess(scene:Scene,op:Op,roomId:string):number{
+ if(op.type!=='add')return 0;
+ const bed=op.item,t=bed.rot*Math.PI/180;
+ const probes:Item[]=[-1,1].map((side,i)=>{const x=side*(bed.size[0]/2+.6+.2),y=bed.size[1]/2-.2;return {id:`bedside-probe-${i}`,room_id:roomId,kind:'nightstand',name:'probe',keep:false,rot:bed.rot,size:[.4,.4,.55],pos:[bed.pos[0]+x*Math.cos(t)-y*Math.sin(t),bed.pos[1]+x*Math.sin(t)+y*Math.cos(t)]};});
+ let after:Scene;try{after=applyOps(scene,[op,...probes.map(item=>({type:'add' as const,item}))]);}catch{return 0;}
+ const walkways=spaceMetrics(after).rooms.find(r=>r.room_id===roomId)?.walkways??[];
+ return Math.min(...probes.map(p=>Math.max(0,...walkways.filter(w=>w.to===`item:${p.id}`&&w.reachable).map(w=>w.width_m))));
+}
+function* byBedsideAccess(scene:Scene,poses:Iterable<Op>,roomId:string):Generator<Op>{
+ const ranked=[...poses].slice(0,24).map((op,index)=>({op,index,reach:bedsideAccess(scene,op,roomId)}));
+ ranked.sort((a,b)=>Number(b.reach>=.75-1e-6)-Number(a.reach>=.75-1e-6)||a.index-b.index);
+ for(const {op} of ranked)yield op;
 }
 
 export async function planIncrementally(scene:Scene,request:RoomPlanRequest,query?:CatalogQuery,history:readonly string[]=[]):Promise<RoomPlan>{
@@ -140,7 +159,8 @@ export async function planIncrementally(scene:Scene,request:RoomPlanRequest,quer
  const ownedByRole=roles.map(role=>{const items=scene.items.filter(i=>!allocated.has(i.id)&&i.room_id===request.room_id&&role.kinds.includes(i.kind)&&qualifies(i.kind,i.size,role.role,i.name)).slice(0,role.count);items.forEach(i=>allocated.add(i.id));return items;});
  const minimumCost=(r:number)=>pools[r]!.length?Math.min(...pools[r]!.map(p=>p.price)):0;
  const requiredMinimum=roles.reduce((sum,r,i)=>sum+minimumCost(i)*(r.count-ownedByRole[i]!.length),0);
- const maxAttempts=request.budget!==undefined&&requiredMinimum>request.budget?1:12;
+ // Over budget the program cannot complete; a few anchor poses still find the best checked partial.
+ const maxAttempts=request.budget!==undefined&&requiredMinimum>request.budget?3:12;
  const evaluate=(ops:Op[],role:string,sku:string)=>{
   const after=applyOps(scene,ops),geometry=compareLayoutErrors(baselineGeometry,localGeometryErrors(after)).errors;
   const placed=new Set(ops.flatMap(o=>o.type==='add'?[o.item.id]:[]));
@@ -159,6 +179,17 @@ export async function planIncrementally(scene:Scene,request:RoomPlanRequest,quer
  type Variant={ops:Op[];products:CatalogProduct[];missing:string[];complete:boolean;composition:ReturnType<typeof scoreComposition>;paths:{width_m:number}[]};
  const build=(anchorOp?:Op,anchorProduct?:CatalogProduct,bedsideAngle=0):Variant=>{
   const ops:Op[]=[],chosen:CatalogProduct[]=[],missing:string[]=[];
+  // A desk is only useful if its chair can be pulled up to it: look one chair ahead before settling the desk.
+  const seatRole=roles.findIndex(r=>r.role==='work_seat');
+  const seatFits=(withDesk:Op[],deskItem:Item,spent:number)=>{
+   const state=applyOps(scene,withDesk);let checks=0;
+   for(const chair of pools[seatRole]!.filter(c=>c.price+spent<=(request.budget??Infinity)).slice(0,3))for(const op of pieceOps(state,chair,request.room_id,cache,'work_seat',deskItem,0,true)){
+    if(++checks>12)return false;
+    if(scoreComposition(applyOps(state,[op]),request.room_id,{program:request.program}).issues.some(i=>['work_seat_facing','work_reach'].includes(i.code)))continue;
+    if(evaluate([...withDesk,op],'work_seat',chair.sku))return true;
+   }
+   return false;
+  };
   let preview=scene,anchor:Item|undefined,desk:Item|undefined,cost=0,paths:{width_m:number}[]=[];
   for(let r=0;r<roles.length;r++){
    const role=roles[r]!;
@@ -166,18 +197,19 @@ export async function planIncrementally(scene:Scene,request:RoomPlanRequest,quer
    const existing=ownedByRole[r]!;
    for(let n=0;n<role.count;n++){
     if(existing[n]){anchor??=existing[n];if(role.role==='work_surface')desk=existing[n];continue;}
-    let selected:Op|undefined,product:CatalogProduct|undefined;
+    let selected:Op|undefined,product:CatalogProduct|undefined,fallback:{op:Op;p:CatalogProduct;paths:{width_m:number}[]}|undefined;
     const choices=r===0&&anchorProduct?[anchorProduct]:pools[r]!;
     // Reserve the cheapest known remaining roles whenever the full program can meet budget.
     const reserve=request.budget!==undefined&&requiredMinimum<=request.budget?minimumCost(r)*Math.max(0,role.count-Math.max(n+1,existing.length))+roles.slice(r+1).reduce((sum,rr,j)=>sum+minimumCost(r+j+1)*(rr.count-ownedByRole[r+j+1]!.length),0):0;
-    const roleDeadline=Math.min(deadline,performance.now()+2000);
+    // Slot generation for one product can take seconds on a loaded machine: a role always gets a few real checks.
+    const roleDeadline=Math.min(deadline,performance.now()+(role.role==='work_surface'&&seatRole>=0?6000:3000));let tried=0;const over=()=>performance.now()>roleDeadline&&tried>=3;
     for(const relatedOnly of anchor&&['nightstands','bedside_lights'].includes(role.role)?[true]:[true,false]){
     for(const p of choices.slice(0,10)){
      if(p.price+cost+reserve>(request.budget??Infinity))continue;
-     if(performance.now()>roleDeadline)break;
+     if(over())break;
      const candidates=r===0&&anchorOp?[anchorOp]:pieceOps(preview,p,request.room_id,cache,role.role,role.role==='work_seat'||role.role==='task_light'?desk??anchor:anchor,n,relatedOnly,bedsideAngle);
      for(const op of candidates){
-      if(performance.now()>roleDeadline)break;
+      if(over())break;
       if(anchor&&op.type==='add'&&['nightstands','bedside_lights'].includes(role.role)){
        // Reject a wrong-side generic slot immediately; it cannot be repaired by
        // placing the second bedside piece. Final QUALITY relationships still run.
@@ -190,15 +222,17 @@ export async function planIncrementally(scene:Scene,request:RoomPlanRequest,quer
       if(requireMedia&&role.role==='focal_point'&&anchor&&op.type==='add'&&!faces(anchor,op.item.pos))continue;
       const related:Record<string,string[]>={bistro_table:['table_beside_seat'],rug:['rug_anchor'],table:['seat_table'],light:['seat_light'],focal_point:['seat_facing'],work_seat:['work_seat_facing','work_reach'],task_light:['task_light_reach'],nightstands:n===role.count-1?['nightstand_each_open_side']:[],bedside_lights:n===role.count-1?['light_each_bedside']:[]};
       if(related[role.role]?.length){const c=scoreComposition(applyOps(preview,[op]),request.room_id,{program:request.program});if(c.issues.some(i=>related[role.role]!.includes(i.code)))continue;}
-      const checked=evaluate([...ops,op],role.role,p.sku);
+      tried++;const checked=evaluate([...ops,op],role.role,p.sku);
+      if(checked&&role.role==='work_surface'&&seatRole>=0&&!ownedByRole[seatRole]!.length&&op.type==='add'&&!seatFits([...ops,op],op.item,cost+p.price)){fallback??={op,p,paths:checked.paths};continue;}
       if(checked){selected=op;product=p;paths=checked.paths;break;}
      }
      if(selected)break;
     }
     if(selected)break;
     }
+    if(!selected&&fallback)({op:selected,p:product,paths}=fallback);
     if(selected&&product){ops.push(selected);chosen.push(product);cost+=product.price;preview=applyOps(scene,ops);if(selected.type==='add'){anchor??=selected.item;if(role.role==='work_surface')desk=selected.item;}}
-    else missing.push(`${role.role} ${n+1}/${role.count}: ${performance.now()>roleDeadline?'bounded search budget exhausted':'no checked fit in current catalog, budget and access constraints'}`);
+    else missing.push(`${role.role} ${n+1}/${role.count}: ${over()?'bounded search budget exhausted':'no checked fit in current catalog, budget and access constraints'}`);
    }
   }
   const composition=scoreComposition(preview,request.room_id,{program:request.program});
@@ -222,7 +256,8 @@ export async function planIncrementally(scene:Scene,request:RoomPlanRequest,quer
    // Preserve the single-bed fallback without weakening an explicit double-bed request.
    const groupDeadline=preferDouble&&!requiresDouble&&group===groups[0]?Math.min(deadline,performance.now()+15000):deadline;
    const attemptLimit=attempt+maxAttempts;
-   const anchors=group.filter(p=>p.price<=(request.budget??Infinity)).slice(0,4).map(p=>({p,poses:pieceOps(scene,p,request.room_id,cache,roles[0]!.role,undefined,0,false,0,media.length>0)}));
+   const bedside=roles.some(r=>r.role==='nightstands');
+   const anchors=group.filter(p=>p.price<=(request.budget??Infinity)).slice(0,4).map(p=>{const poses=pieceOps(scene,p,request.room_id,cache,roles[0]!.role,undefined,0,false,0,media.length>0);return {p,poses:bedside?byBedsideAccess(scene,poses,request.room_id):poses};});
    let active=true;
    while(active&&performance.now()<groupDeadline&&attempt<attemptLimit){
     active=false;
