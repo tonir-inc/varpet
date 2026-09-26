@@ -122,7 +122,7 @@ def test_code_sends_one_turn_back_when_the_architect_stops_with_faults(tmp_path,
         if n == 1:
             s.rooms[1].polygon = [(4, 0), (8, 0), (8, 4), (4, 4)]  # overlaps the living room; never submitted
         else:
-            assert text.startswith("Code checked shell/shell.json")
+            assert text.startswith("Code checked the flat")
         (run / "shell" / "shell.json").write_text(s.model_dump_json())
 
     report, *_ = session(tmp_path, monkeypatch, play, photos=())

@@ -9,7 +9,7 @@ with the commit that fills it.
 
 | Product | Needed for | Status |
 |---|---|---|
-| Mattress + bedding (single 90x200, double 140x200, queen 160x200, king 180x200) | every bed; all four flats render beds as bare slats | models + code in main (`catalog/tools/bedding_models.py`, 12 SKUs, kind `mattress`); DB import pending: `import_extra_groups.sh bedding` + deploy (needs VM key) |
+| Mattress + bedding (single 90x200, double 140x200, queen 160x200, king 180x200) | every bed; all four flats render beds as bare slats | live 27 Sept: 12 SKUs (kind `mattress`, 118–250k AMD) imported and embedded on mc-server |
 | Crib / cot | baby brief | missing |
 | Changing table | baby brief | missing |
 | Pet bed | baby brief (small dog) | missing |
@@ -28,7 +28,7 @@ with the commit that fills it.
 |---|---|---|
 | `bed` kind includes bare support frames, bed bases, box springs | bed renders as a metal skeleton (Balcony Bedroom 1 bug) | filtered out of search in 226858c; retagging at import still open |
 | `decor` kind contains sofas and armchairs at 16–23k AMD | wrong products offered as decor | missing fix |
-| Size filters (`max_w/d/h`) return larger products | model must re-check every size | fixed: one horizontal bound no longer passes items turned 90°; spike search also filters client-side (server half live after the next deploy) |
+| Size filters (`max_w/d/h`) return larger products | model must re-check every size | fixed: one horizontal bound no longer passes items turned 90°; spike search also filters client-side (server half deployed 27 Sept) |
 | Contact-sheet images blank for some `extra:` products | model cannot inspect them | missing fix |
 | No firmness / seat height for chairs, no open size for sofa beds | cannot design for an elderly user or verify a sofa bed | missing data |
 | Search timeouts and fetch failures under parallel load | retries, slower runs | improved 26 Sept (in-memory embeddings); still seen at 8 parallel runs |

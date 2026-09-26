@@ -28,3 +28,5 @@ Designer replies 'I can't place objects on top of furniture with the current pla
 **Notes**
 
 - 2026-09-26T20:34:26.658056Z: Designer places items on furniture: typed tool place_on(item or searched catalog_id, support_id), search_catalog offers TV-unit/table tops for TVs, table lamps and small decor; ops carry on:<id> to the editor (editor 650fcb7 lets TVs rest on furniture); restsOn scenes now import.
+
+- 2026-09-26T21:13:05.388094Z: Verified by bughunt-designer-tools (27 Sept): place_on stages TVs, lamps and decor on supports and proposalToEditor emits add with on. Implemented by the designer lane.
