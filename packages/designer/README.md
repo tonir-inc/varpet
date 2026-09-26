@@ -24,3 +24,20 @@ Assumed: solar defaults are the four seasonal dates in 2026, fixed UTC+4, a 15 d
 horizon, and one-minute sampling. Solar noon differs from civil noon. Floor patches include the
 full opening span and sill-to-head band; they are potential, unoccluded projections and are not
 clipped to walls or furniture. No north arrow produces an explicit unknown result.
+
+The placement API accepts one existing item ID or a sized item description, plus conjunctive
+relations and exclusions. It returns at most three checked preview ops. Search uses 5 cm position
+steps; a search that finds no candidates does not prove continuous geometric impossibility.
+Bare catalog SKUs are not resolved yet. Clearance reports describe the selected candidate, and
+every accepted candidate passes the same containment, overlap, swing and circulation checks.
+
+The blocked project registration, for a team-owned configuration update, is:
+
+```toml
+[mcp_servers.varpet-designer]
+command = "pnpm"
+args = ["--silent", "--filter", "@varpet/designer", "start", "--scene", "test/fixtures/bedroom.json"]
+default_tools_approval_mode = "approve"
+```
+
+This example explicitly loads the test bedroom. Real sessions should pass their scene path.

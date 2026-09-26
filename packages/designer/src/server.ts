@@ -7,6 +7,7 @@ import { parseScene, sceneSummary } from './adapter.js';
 import type { Scene } from './scene.js';
 import { sun } from './metrics/sun.js';
 import { spaceMetrics } from './metrics/space.js';
+import { place, placeInputSchema } from './place.js';
 
 export function result(data: unknown, isError = false) {
   return { content: [{ type: 'text' as const, text: typeof data === 'string' ? data : JSON.stringify(data) }], ...(isError ? { isError: true } : {}) };
@@ -37,7 +38,14 @@ export function createServer(input: Scene) {
     try { return result(sun(scene,options)); }
     catch (error) { return result(String(error),true); }
   });
-  for (const name of ['set_intent','search_catalog','place','check_layout','score_layout','propose','ask']) {
+  server.registerTool('place', {
+    description: 'Find up to three checked poses from spatial relations, with clearances. Accepts existing item IDs or a sized item description; no raw pose input. Returns preview ops without changing the scene.',
+    inputSchema: placeInputSchema,
+  }, request => {
+    try { return result(place(scene,request)); }
+    catch(error) { return result(String(error),true); }
+  });
+  for (const name of ['set_intent','search_catalog','check_layout','score_layout','propose','ask']) {
     server.registerTool(name, { description: `${name}: not implemented yet`, inputSchema: {} }, () => result(`${name}: not implemented yet`, true));
   }
   return server;

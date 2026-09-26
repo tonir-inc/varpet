@@ -74,23 +74,29 @@ function doorGeometry(scene: Scene, opening: Opening) {
   return { wall, along, inward, point };
 }
 
+/** Conservative interior sweep, shared by circulation and placement checks. */
+export function doorSwingPolygon(scene: Scene, opening: Opening): Vec2[] | null {
+  if (opening.kind !== 'door' || !opening.swing?.startsWith('inward')) return null;
+  const { wall, along, inward } = doorGeometry(scene, opening);
+  const right = opening.swing.endsWith('right');
+  const hinge: Vec2 = [wall.a[0] + along[0] * (opening.offset + (right ? opening.width : 0)), wall.a[1] + along[1] * (opening.offset + (right ? opening.width : 0))];
+  const direction = right ? -1 : 1;
+  // Circumscribed 5-degree arc: never underestimates a swept quarter circle.
+  const segments = 18, step = Math.PI / 2 / segments, radius = opening.width / Math.cos(step / 2);
+  const polygon: Vec2[] = [hinge];
+  for (let i = 0; i <= segments; i++) {
+    const theta = i * step;
+    polygon.push([hinge[0] + radius * (direction * along[0] * Math.cos(theta) + inward[0] * Math.sin(theta)), hinge[1] + radius * (direction * along[1] * Math.cos(theta) + inward[1] * Math.sin(theta))]);
+  }
+  return polygon;
+}
+
 function obstaclesForRoom(scene: Scene, room: Room): Obstacle[] {
   const obstacles: Obstacle[] = [...scene.items, ...scene.fixed].filter(i => i.room_id === room.id).map(item => ({ polygon: itemPolygon(item) }));
   for (const opening of scene.openings) {
-    if (opening.kind !== 'door' || !opening.swing?.startsWith('inward')) continue;
-    const { wall, along, inward } = doorGeometry(scene, opening);
-    if (wall.room_id !== room.id) continue;
-    const right = opening.swing.endsWith('right');
-    const hinge: Vec2 = [wall.a[0] + along[0] * (opening.offset + (right ? opening.width : 0)), wall.a[1] + along[1] * (opening.offset + (right ? opening.width : 0))];
-    const direction = right ? -1 : 1;
-    // Circumscribed 5-degree arc: never underestimates a swept quarter circle.
-    const segments = 18, step = Math.PI / 2 / segments, radius = opening.width / Math.cos(step / 2);
-    const polygon: Vec2[] = [hinge];
-    for (let i = 0; i <= segments; i++) {
-      const theta = i * step;
-      polygon.push([hinge[0] + radius * (direction * along[0] * Math.cos(theta) + inward[0] * Math.sin(theta)), hinge[1] + radius * (direction * along[1] * Math.cos(theta) + inward[1] * Math.sin(theta))]);
-    }
-    obstacles.push({ polygon, opening_id: opening.id });
+    if (scene.walls.find(wall => wall.id === opening.wall_id)?.room_id !== room.id) continue;
+    const polygon = doorSwingPolygon(scene, opening);
+    if (polygon) obstacles.push({ polygon, opening_id: opening.id });
   }
   return obstacles;
 }
