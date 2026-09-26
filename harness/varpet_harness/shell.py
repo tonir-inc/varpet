@@ -30,6 +30,8 @@ OPEN_MIN_M = 0.6  # an unwalled shared edge this long is a passage
 EDITOR_EPS = 1e-5  # apps/editor/src/core/validation.ts
 CLAMP_M = 0.02  # overshoot tidy() treats as rounding
 JUNCTION_M = 0.35  # a joining wall end this wide in an opening is a junction, not a mistake
+SNAP_M = 0.08  # wall ends this close to a corner or crossing are the same point
+SLIVER_M = 0.05  # the editor splits walls at every crossing and rejects shorter sections
 
 
 class Opening(BaseModel):
@@ -139,6 +141,7 @@ def check(shell: Shell) -> list[dict]:
                                "detail": f"wall {wid} runs through it between {s:.2f} and {e:.2f} m along {w.id}"})
 
     faults += _reachable(shell, polys)
+    faults += _slivers(shell)
 
     for rid, pr in shell.printed.items():
         poly = polys.get(rid)
@@ -232,9 +235,85 @@ def to_editor(shell: Shell) -> dict:
             "notes": shell.notes}
 
 
+def _crossing(a: Wall, b: Wall) -> tuple[float, float, float, float] | None:
+    """Where the lines of a and b cross: (x, z, t along a in 0..1, s along b in 0..1), or None if parallel."""
+    (ax, az), (bx, bz) = a.start, b.start
+    ux, uz = a.end[0] - ax, a.end[1] - az
+    vx, vz = b.end[0] - bx, b.end[1] - bz
+    den = ux * vz - uz * vx
+    if abs(den) < 1e-9 * max(_len(a) * _len(b), 1e-9):
+        return None
+    dx, dz = bx - ax, bz - az
+    t, s = (dx * vz - dz * vx) / den, (dx * uz - dz * ux) / den
+    return ax + ux * t, az + uz * t, t, s
+
+
+def _move_end(w: Wall, which: str, point: tuple[float, float]) -> None:
+    """Move a wall end; openings keep their place along the wall."""
+    if which == "start":
+        # Signed shift along the wall: extending backwards is negative
+        ux, uz = (w.end[0] - w.start[0]) / _len(w), (w.end[1] - w.start[1]) / _len(w)
+        shift = (point[0] - w.start[0]) * ux + (point[1] - w.start[1]) * uz
+        w.start = point
+        for o in w.openings:
+            o.offset = max(0.0, o.offset - shift)
+    else:
+        w.end = point
+
+
+def _snap_junctions(shell: Shell) -> None:
+    ends = [(w, k) for w in shell.walls for k in ("start", "end")]
+    # 1. ends within SNAP_M of each other become one exact point
+    for i, (w, k) in enumerate(ends):
+        p = getattr(w, k)
+        for w2, k2 in ends[i + 1 :]:
+            q = getattr(w2, k2)
+            if w2 is not w and 0 < LineString([p, q]).length <= SNAP_M:
+                _move_end(w2, k2, p)
+    # 2. an end within SNAP_M of where its wall crosses another wall moves onto the crossing
+    for w in shell.walls:
+        for other in shell.walls:
+            if other is w:
+                continue
+            hit = _crossing(w, other)
+            if hit is None:
+                continue
+            x, z, t, s = hit
+            lo, ho = -SNAP_M / _len(other), 1 + SNAP_M / _len(other)
+            if not lo <= s <= ho:
+                continue
+            for which, at in (("start", 0.0), ("end", 1.0)):
+                gap = abs(t - at) * _len(w)
+                if EDITOR_EPS < gap <= SNAP_M:
+                    _move_end(w, which, (x, z))
+
+
+def _slivers(shell: Shell) -> list[dict]:
+    """Crossings that would leave the editor a wall section under 5 cm."""
+    faults = []
+    for w in shell.walls:
+        for other in shell.walls:
+            if other is w:
+                continue
+            hit = _crossing(w, other)
+            if hit is None:
+                continue
+            _, _, t, s = hit
+            L, M = _len(w), _len(other)
+            if not (-1e-6 <= s * M <= M + 1e-6 and -1e-6 <= t * L <= L + 1e-6):
+                continue
+            near = min(t * L, (1 - t) * L)
+            if 1e-6 < near < SLIVER_M:
+                faults.append({"check": "junction", "wall": w.id, "other": other.id,
+                               "detail": f"{other.id} meets {w.id} {near * 100:.1f} cm from its end; meet at the end or at least 5 cm in"})
+                break
+    return faults
+
+
 def tidy(shell: Shell) -> Shell:
     """Mechanical fixes in code, not a model turn: drop collinear and near-duplicate
     polygon points (within 1 cm), which also keeps rooms under the editor's 32 points."""
+    _snap_junctions(shell)
     for r in shell.rooms:
         poly = Polygon(r.polygon)
         if poly.is_valid:

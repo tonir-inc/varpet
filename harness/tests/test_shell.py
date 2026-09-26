@@ -92,3 +92,16 @@ def test_door_at_a_junction_slides_clear(tmp_path):
     assert check_file(path, tmp_path) == []
     moved = Shell.model_validate_json(path.read_text()).walls[0].openings[0]
     assert moved.offset + moved.width <= 5 - 0.06 + 1e-3
+
+
+def test_wall_overshooting_a_corner_is_trimmed_to_it(tmp_path):
+    s = flat()
+    s.walls[4].start = (5.0, -0.03)  # the partition pokes 3 cm past the north wall
+    s.walls[4].end = (5.0, 4.02)
+    assert any(f["check"] == "junction" for f in check(s))
+    path = tmp_path / "shell.json"
+    path.write_text(s.model_dump_json())
+    assert check_file(path, tmp_path) == []
+    fixed = Shell.model_validate_json(path.read_text()).walls[4]
+    assert abs(fixed.start[1]) < 1e-6 and abs(fixed.end[1] - 4) < 1e-6
+    assert abs(fixed.openings[0].offset - 1.47) < 1e-6  # the door stayed where it was
