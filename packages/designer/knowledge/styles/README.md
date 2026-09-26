@@ -11,7 +11,7 @@ FAST recipes can import `styles`, `resolveStyles`, `stylePalette` from `./index.
 removing a particular couch does not exclude a replacement seating anchor.
 
 `src/taste/catalog.ts:searchRoomCatalog(program, styles, query?)` searches every program kind in
-parallel, filters metadata, and orders confirmed sizes first. Empty groups remain explicit gaps.
+bounded batches, filters metadata, and orders confirmed sizes first. Empty groups remain explicit gaps.
 `src/taste/composition.ts:scoreComposition(scene, roomId, options)` is pure grading;
 `rankCompositions` requires two candidates. Pass the catalog evidence keyed by SKU in options.
 Missing evidence cannot pass consistency. Physical checks remain separate and mandatory.
@@ -24,7 +24,7 @@ catalog's existing `style_astra` image annotations. The matcher accepts recogniz
 either source. Product-type tags such as "Floor Lamp" alone are not style evidence. Adjacent modern,
 Scandinavian and mid-century tags form one compatible family; arbitrary rustic/classic mixtures do not.
 Search uses two concurrent kind queries at a time to protect the shared service, then filters the
-returned image palette and style metadata. A backend unavailable response remains an unresolved gap.
+returned image palette and style metadata. An unavailable response gets one bounded retry; retried_kinds exposes it. A second unavailable response remains an unresolved gap.
 
 The existing `search_catalog` MCP tool accepts `room_id`, `style_request`, `remake`, `remove_ids` and
 `excluded_roles`. Living and bedroom recipes return two physically and composition-checked candidates.

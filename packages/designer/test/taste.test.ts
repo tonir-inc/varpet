@@ -76,3 +76,10 @@ test('room catalog queries bound concurrency to avoid flooding the shared servic
  await searchRoomCatalog('living',['minimalist'],async()=>{active++;peak=Math.max(peak,active);await new Promise(resolve=>setTimeout(resolve,2));active--;return {results:[]};});
  expect(peak).toBeLessThanOrEqual(2);
 });
+test('transient catalog outages get one bounded retry; persistent outages stay explicit',async()=>{
+ const calls:Record<string,number>={};
+ const recovered=await searchRoomCatalog('living',['minimalist'],async q=>{const n=calls[q.kind!]=(calls[q.kind!]??0)+1;if(n===1)throw new Error('temporary outage');return {results:[{id:q.kind,kind:q.kind,name:'item',size_m:[1,.5,.5],price:100,currency:'AMD',styles:['Modern'],colors_image:['beige']}]};});
+ expect(recovered.unavailable_kinds).toEqual([]);expect(Object.values(calls)).toEqual([2,2,2,2,2,2]);
+ let attempts=0;const unavailable=await searchRoomCatalog('living',['minimalist'],async()=>{attempts++;throw new Error('offline');});
+ expect(attempts).toBe(12);expect(unavailable.unavailable_kinds).toHaveLength(6);
+});

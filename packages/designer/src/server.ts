@@ -127,7 +127,7 @@ export function createServer(input: Scene, options:{catalogQuery?:CatalogQuery; 
         if(!room_id)throw new Error('Style requests require room_id');
         const plan=await designRoom(scene,{room_id,style_request,remake,remove_ids,excluded_roles},options.catalogQuery);
         styleCandidates=plan.candidates;
-        return result({knowledge:plan.knowledge,missing_kinds:plan.catalog.missing_kinds,unavailable_kinds:plan.catalog.unavailable_kinds,reason:plan.reason,selected_id:plan.selected_id,
+        return result({knowledge:plan.knowledge,missing_kinds:plan.catalog.missing_kinds,unavailable_kinds:plan.catalog.unavailable_kinds,retried_kinds:plan.catalog.retried_kinds,reason:plan.reason,selected_id:plan.selected_id,
           candidates:plan.candidates.map(c=>({id:c.id,intent:c.intent,composition:c.composition,items:c.ops.filter(op=>op.type==='add').map(op=>op.item),physical_checks_passed:c.checks.ok,cost_dram:c.checks.price.cost_dram}))});
       }catch(error){return result({ok:false,reason:String(error)},true);}
     }
