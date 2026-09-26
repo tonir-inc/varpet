@@ -65,7 +65,8 @@ must match the supplied snapshot. The translator checks the resulting command wi
 `createDesignerHttpAdapter` in `apps/editor/src/adapters/designer-http.ts` implements the existing
 `DesignerAdapter`. Configure `request`, `catalog`, the optional extras above, `onProgress(message)`
 and `onConversationId(id)` when constructing it; call `propose(scene, revision, signal)` as before.
-It returns a preview without applying it. The editor owner still wires the adapter and request UI.
+It returns a preview without applying it. The separate Designer panel session owns the chat UI and
+its wiring, using `askDesigner` and `designerHttpAdapter` described below.
 `DesignerQuestionError` and `DesignerDeclineError` preserve non-proposal outcomes for the UI.
 Aborting the supplied signal cancels the HTTP stream and the service's worker processes.
 

@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import type {AgentProposal,CatalogAsset,DesignerAdapter,SceneDocument} from '../contracts';
 import {localCatalog} from '../core/demo';
 import {EditorStore} from '../core/store';
@@ -15,8 +16,20 @@ export interface DesignerHttpOptions {
   catalogCurrency?:'AMD';
   onProgress?:(message:string)=>void;
   onConversationId?:(conversationId:string)=>void;
+  onMetrics?:(metrics:unknown)=>void;
   fetch?:typeof globalThis.fetch;
 }
+export interface DesignerRequest {
+  scene:SceneDocument;revision:number;request:string;conversationId?:string;
+  keep?:string[];doorSwings?:Record<string,DesignerDoorSwing>;northDeg?:number;
+  catalog?:CatalogAsset[];catalogCurrency?:'AMD';
+}
+export type DesignerReply=
+  | {type:'proposal';conversationId:string;proposal:AgentProposal;metrics?:unknown}
+  | {type:'question';conversationId:string;question:string;options:string[]}
+  | {type:'decline';conversationId:string;message:string}
+  | {type:'error';message:string};
+export interface AskDesignerOptions {baseUrl?:string;onProgress?:(message:string)=>void;signal?:AbortSignal}
 export class DesignerServiceError extends Error {
   readonly name='DesignerServiceError';
   constructor(message:string,readonly code:'http'|'protocol'|'validation'|'service',readonly status?:number){super(message);}
@@ -90,7 +103,7 @@ export function createDesignerHttpAdapter(options:DesignerHttpOptions={}):Design
     keep:options.keep===undefined?undefined:structuredClone(options.keep),
     northDeg:options.northDeg,doorSwings:options.doorSwings===undefined?undefined:structuredClone(options.doorSwings),
     conversationId:options.conversationId,catalog:options.catalog===undefined?undefined:structuredClone(options.catalog),
-    catalogCurrency:options.catalogCurrency,onProgress:options.onProgress,onConversationId:options.onConversationId,
+    catalogCurrency:options.catalogCurrency,onProgress:options.onProgress,onConversationId:options.onConversationId,onMetrics:options.onMetrics,
     fetch:options.fetch??globalThis.fetch.bind(globalThis),
   };
   return {async propose(scene,revision,signal){
@@ -174,7 +187,7 @@ export function createDesignerHttpAdapter(options:DesignerHttpOptions={}):Design
       }
       checkAbort(signal);
       if(conversationId)configured.onConversationId?.(conversationId);
-      if(proposal)return proposal;
+      if(proposal){if(final.metrics!==undefined)configured.onMetrics?.(structuredClone(final.metrics));return proposal;}
       if(final.type==='question')throw new DesignerQuestionError(question!,choices,conversationId);
       if(final.type==='decline')throw new DesignerDeclineError(message!,conversationId);
       throw new DesignerServiceError(message!,'service');
@@ -188,3 +201,42 @@ export function createDesignerHttpAdapter(options:DesignerHttpOptions={}):Design
     }
   }};
 }
+
+function serviceUrl(baseUrl?:string):string{
+  const env=import.meta.env as {VITE_DESIGNER_URL?:string}|undefined;
+  return (baseUrl??env?.VITE_DESIGNER_URL??'http://127.0.0.1:8787').replace(/\/+$/,'')+'/designer/propose';
+}
+
+/** Chat-facing wrapper; a canceled request rejects instead of becoming a chat error. */
+export async function askDesigner(req:DesignerRequest,opts:AskDesignerOptions={}):Promise<DesignerReply>{
+  let conversationId:string|undefined,metrics:unknown;
+  try{
+    checkAbort(opts.signal);
+    const adapter=createDesignerHttpAdapter({
+      url:serviceUrl(opts.baseUrl),request:req.request,conversationId:req.conversationId,
+      keep:req.keep,doorSwings:req.doorSwings,northDeg:req.northDeg,catalog:req.catalog,catalogCurrency:req.catalogCurrency,
+      onProgress:opts.onProgress,onConversationId:id=>{conversationId=id;},onMetrics:value=>{metrics=value;},
+    });
+    const proposal=await adapter.propose(req.scene,req.revision,opts.signal);
+    if(!conversationId)return {type:'error',message:'Designer response is missing its conversation ID.'};
+    return {type:'proposal',conversationId,proposal,...(metrics===undefined?{}:{metrics})};
+  }catch(error){
+    if(opts.signal?.aborted||(error instanceof Error&&error.name==='AbortError'))throw abortError();
+    if(error instanceof DesignerQuestionError){
+      if(!error.conversationId)return {type:'error',message:'Designer question is missing its conversation ID.'};
+      return {type:'question',conversationId:error.conversationId,question:error.question,options:error.options??[]};
+    }
+    if(error instanceof DesignerDeclineError){
+      if(!error.conversationId)return {type:'error',message:'Designer decline is missing its conversation ID.'};
+      return {type:'decline',conversationId:error.conversationId,message:error.message};
+    }
+    return {type:'error',message:error instanceof Error?error.message:'Designer request failed.'};
+  }
+}
+
+/** Existing Suggest workflow: a validated proposal with the default layout request. */
+export const designerHttpAdapter:DesignerAdapter={
+  async propose(scene,revision,signal){
+    return createDesignerHttpAdapter({url:serviceUrl()}).propose(scene,revision,signal);
+  },
+};
