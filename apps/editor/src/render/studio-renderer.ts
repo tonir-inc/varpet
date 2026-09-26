@@ -1,15 +1,15 @@
 import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { SelectionOutline } from './selection-outline';
+import { AdaptiveOcclusionPass } from './adaptive-occlusion';
 
 type StudioCamera = THREE.PerspectiveCamera | THREE.OrthographicCamera;
 
 /** Glass, cutaway ghosts and editor handles must never become solid AO occluders. */
-class ContactOcclusionPass extends GTAOPass {
+class ContactOcclusionPass extends AdaptiveOcclusionPass {
   private readonly hidden: THREE.Object3D[] = [];
   private readonly clearColor = new THREE.Color();
 
@@ -26,16 +26,6 @@ class ContactOcclusionPass extends GTAOPass {
       .replace('ao = clamp(ao / float(DIRECTIONS), 0., 1.);', `
         ao = ao / float(DIRECTIONS);
         ao = isnan(ao) || isinf(ao) ? 1.0 : clamp(ao, 0.0, 1.0);
-      `);
-    // Excluded scenery has no surface in the G-buffer. Explicitly keep its
-    // blend factor white rather than relying on denoiser discard precision.
-    this.blendMaterial.uniforms.tStudioDepth = { value: this.depthTexture };
-    this.blendMaterial.fragmentShader = this.blendMaterial.fragmentShader
-      .replace('uniform float intensity;', 'uniform float intensity;\nuniform sampler2D tStudioDepth;')
-      .replace('vec4 texel = texture2D( tDiffuse, vUv );', `
-        float surfaceDepth = texture2D(tStudioDepth, vUv).r;
-        if (surfaceDepth >= 0.999999) { gl_FragColor = vec4(1.0); return; }
-        vec4 texel = texture2D(tDiffuse, vUv);
       `);
   }
 
@@ -174,6 +164,11 @@ export class StudioRenderer {
     if (!this.disposed) this.selection.setSelection(objects);
   }
 
+  /** The viewport owns gesture/settle timing; only AO changes resolution. */
+  setInteracting(active: boolean): void {
+    if (!this.disposed) this.occlusion.setInteracting(active);
+  }
+
   /** Keep an eye-level room view neutral; the dollhouse keeps its studio grade. */
   setInterior(inside: boolean): void {
     this.interior = inside;
@@ -183,8 +178,7 @@ export class StudioRenderer {
   setQuality(quality: 'balanced' | 'high'): void {
     if (this.disposed) return;
     const high = quality === 'high';
-    this.occlusion.updateGtaoMaterial({ samples: high ? 32 : 16 });
-    this.occlusion.updatePdMaterial({ samples: high ? 32 : 16, radius: high ? 8 : 5 });
+    this.occlusion.setQuality(quality);
     const samples = Math.min(high ? 4 : 2, this.renderer.capabilities.maxSamples);
     for (const target of [this.composer.renderTarget1, this.composer.renderTarget2]) {
       if (target.samples !== samples) {

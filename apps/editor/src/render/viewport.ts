@@ -34,8 +34,9 @@ import { findWalkSpawn, moveWalkPosition } from '../core/walkthrough';
 import { WalkthroughControls } from './walkthrough-controls';
 import { configureInsideCamera } from './walkthrough-camera';
 import { InteriorDaylight } from './interior-daylight';
-import { DEFAULT_SUN, normalizeSun, fitSunShadow, type SunSettings } from './sunlight';
+import { DEFAULT_SUN, normalizeSun, fitSunShadow, effectiveSunlight, type SunSettings } from './sunlight';
 import { SunOccluders } from './sun-occluders';
+import { SceneShadowCache } from './shadow-cache';
 
 interface RenderObject { group: THREE.Group; pose: THREE.Group; visual: THREE.Group; signature: string; token: object; dimensions: [number, number, number]; opacity: number }
 interface DragSnapshot { members?: SceneObject[]; component?: BuildingComponent; id: string; position: THREE.Vector3; quaternion: THREE.Quaternion; scale: THREE.Vector3 }
@@ -92,6 +93,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   container.appendChild(renderer.domElement);
 
   const world = new THREE.Scene();
+  const shadowCache = new SceneShadowCache(world);
   world.background = new THREE.Color('#171d25');
   const studioFog = new THREE.Fog('#171d25', 40, 125);
   world.fog = studioFog;
@@ -131,6 +133,8 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   const sunlight = new THREE.DirectionalLight('#ffd296', 0.95);
   sunlight.name = 'Sun';
   let sunSettings: SunSettings = { ...DEFAULT_SUN };
+  let skySun = effectiveSunlight(sunSettings);
+  let skyUpdateTimer: ReturnType<typeof setTimeout> | undefined;
   sunlight.castShadow = true;
   sunlight.shadow.mapSize.set(2048, 2048);
   sunlight.shadow.camera.near = 0.5;
@@ -214,8 +218,14 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   let frame = 0;
   let disposed = false;
   let renderFailed = false;
-  const placementMotion = new PlacementMotion(furniture, () => { interiorDaylight.invalidateShadows(); requestRender(); });
-  const motion = new MotionTimeline(() => { interiorDaylight.invalidateShadows(); requestRender(); });
+  const placementMotion = new PlacementMotion(furniture, () => { shadowCache.invalidate(); requestRender(); });
+  const motion = new MotionTimeline(() => { shadowCache.invalidate(); requestRender(); });
+  const cameraMotion = new MotionTimeline(requestRender);
+  let settleTimer: ReturnType<typeof setTimeout> | undefined;
+  let interactionUntil = 0;
+  let interactionChanged = false;
+  let renderedCamera: THREE.Camera | undefined;
+  const cameraMatrix = new THREE.Matrix4(), cameraProjection = new THREE.Matrix4();
   const retiring = new Set<THREE.Group>();
   let initialized = false;
   let pointerStart: { x: number; y: number; pointerId: number; button: number } | null = null;
@@ -245,11 +255,12 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       && !documentState?.project?.metadata[selectedId ?? '']?.locked,
     snap: () => snapEnabled, wallMode: () => walls, topView: () => view === 'top',
     onStart() {
-      motion.cancel('camera');
+      cameraMotion.cancel('camera');
       pointerStart = null; suppressPick = true; orbit.enabled = false; endpointHandles.visible = false;
       renderer.domElement.style.cursor = 'grabbing'; callbacks.onInteraction(true);
     },
     onPreview(shell, mounted, previewScene) {
+      interactionChanged = true;
       if (previewScene ?? documentState) sunOccluders.setScene((previewScene ?? documentState)!);
       wallPreview = shell; wallPreviewServices = mounted;
       for (const [id, opening] of shell?.openings ?? []) {
@@ -318,10 +329,10 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     if (ceilingDesigns) ceilingDesigns.visible = (view === 'inside' || (layers.shell && layers.ceilings)) && !wallPreview;
     const inside = view === 'inside', evening = lightingMood === 'evening';
     sunOccluders.group.visible = inside || layers.shell;
-    interiorDaylight.setEnabled(inside && !evening); interiorDaylight.invalidateShadows();
+    interiorDaylight.setEnabled(inside && !evening); shadowCache.invalidate();
     // Sky selection is view state. Top stays neutral; the ceiling evening preview
     // takes precedence Inside and restores the selected sky when returning to day.
-    const sky = skyboxPreset !== 'studio' && view !== 'top' && !(inside && evening) ? skyboxes.get(skyboxPreset) : null;
+    const sky = skyboxPreset !== 'studio' && view !== 'top' && !(inside && evening) ? skyboxes.get(skyboxPreset, skySun) : null;
     stage.setSceneryVisible(!sky);
     world.background = sky?.background ?? (inside ? (evening ? eveningBackground : daylightBackground) : studioBackground);
     world.fog = inside || sky ? null : studioFog;
@@ -330,8 +341,8 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     ambient.intensity = inside ? (evening ? 0.16 : 0.32) : 0.25;
     ambient.color.set(inside ? '#e6efff' : '#bccce6');
     ambient.groundColor.set(inside ? '#b6a18b' : '#6c4930');
-    sunlight.color.set(sunSettings.elevation < 20 ? '#ffd09b' : '#fff1db');
-    sunlight.intensity = sunSettings.enabled && !evening ? 3.2 * sunSettings.intensity / 100 : 0;
+    const sun = effectiveSunlight(sunSettings, evening);
+    sunlight.color.set(sun.sunColor); sunlight.intensity = sun.sunIntensity;
     // Keep the studio readable without painting false pools of sunlight through walls.
     fill.visible = rim.visible = !inside; fill.intensity = 0.08; rim.intensity = 0.12;
     warmPool.visible = secondPool.visible = false;
@@ -379,11 +390,12 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       frame = 0;
       if (disposed) return;
       const now = performance.now(); const dt = Math.min((now - lastAnimation) / 1000, 0.06); lastAnimation = now;
-      let animating = motion.update(now);
-      let shadowsChanged = animating;
+      const geometryMoving = motion.update(now);
+      let animating = geometryMoving;
+      let shadowsChanged = geometryMoving;
+      if (cameraMotion.update(now)) animating = true;
       if (placementMotion.update(now)) { animating = true; shadowsChanged = true; }
       if (structure?.updateWalls(camera, view === 'inside' ? 'full' : walls, view === 'top', now, motion.reduced, selectedId ?? undefined)) { animating = true; shadowsChanged = true; }
-      interiorDaylight.updateMotion(shadowsChanged);
       if (walk.update(now)) animating = true;
       if (documentState && view === 'inside') {
         const occupied = ceilingDesignRoomAt(documentState, insideCamera.position.toArray());
@@ -391,7 +403,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
           ceilingRoomId = occupied;
           if (ceilingDesigns) disposeObject(ceilingDesigns);
           ceilingDesigns = makeCeilingDesigns(documentState, occupied); world.add(ceilingDesigns);
-          ceilingDesigns.visible = true;
+          ceilingDesigns.visible = true; shadowCache.invalidate();
         }
       }
       wallMove.render();
@@ -407,7 +419,21 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
         opening.setCollision(selectedId === id && collisionIssues.has(id));
       }
       if (selection && selectedId) { const chosen = entity(selectedId); if (chosen) selectionBounds(chosen, selection.box); }
-      if (shadowsChanged) interiorDaylight.invalidateShadows();
+      camera.updateMatrixWorld();
+      const cameraChanged = renderedCamera !== camera || !cameraMatrix.equals(camera.matrixWorld) || !cameraProjection.equals(camera.projectionMatrix);
+      renderedCamera = camera; cameraMatrix.copy(camera.matrixWorld); cameraProjection.copy(camera.projectionMatrix);
+      // Reduced-motion cutaways can switch occluders in a single camera frame.
+      if (cameraChanged && motion.reduced && view !== 'inside' && walls === 'cutaway') shadowCache.invalidate();
+      shadowCache.update(shadowsChanged);
+      if (motion.reduced) {
+        clearTimeout(settleTimer); settleTimer = undefined; interactionUntil = 0;
+      } else if (animating || cameraChanged || interactionChanged) {
+        interactionUntil = now + 140;
+        clearTimeout(settleTimer);
+        settleTimer = setTimeout(() => { settleTimer = undefined; requestRender(); }, 145);
+      }
+      interactionChanged = false;
+      studioRenderer.setInteracting(view !== 'top' && now < interactionUntil);
       if (animating) requestRender();
       stage.updateView(camera, view === 'top');
       // Resolve live roots, including wall-drag projections and loaded models.
@@ -461,7 +487,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     for (const [id, component] of services?.components ?? []) {
       const clearance = component.userData.clearance as THREE.Object3D | undefined; if (clearance) clearance.visible = layers.clearances;
     }
-    updateEndpointHandles(); updateOpeningHandle(); wallMove.refresh(); requestRender();
+    updateEndpointHandles(); updateOpeningHandle(); wallMove.refresh(); shadowCache.invalidate(); requestRender();
   }
 
   function applyTransform(group: THREE.Group, object: SceneObject): void {
@@ -485,7 +511,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       });
     }
     pendingModels.clear();
-    interiorDaylight.invalidateShadows();
+    shadowCache.invalidate();
     updateSelection(); requestRender();
   }
 
@@ -553,6 +579,9 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       if (releaseScale) record.visual.scale.copy(releaseScale);
       placementMotion.land(previous.id, record.visual, record.dimensions);
     }
+    // Cancellation, rejected edits and grouped/component restores may have no
+    // placement animation to refresh the maps after the preview was rendered.
+    shadowCache.invalidate();
     requestRender();
   }
 
@@ -562,7 +591,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     const group = rendered.get(selectedId)?.group ?? (component ? services?.components.get(selectedId) : undefined);
     if (!group || (!component && !furnitureTransformAllowed())) return;
     const members = !component && documentState ? furnitureMembers(documentState, selectedId) : undefined;
-    motion.finish(group); motion.cancel('camera');
+    motion.finish(group); cameraMotion.cancel('camera');
     for (const member of members ?? []) { const root = rendered.get(member.id)?.group; if (root) motion.finish(root); }
     drag = { members, component, id: selectedId, position: group.position.clone(), quaternion: group.quaternion.clone(), scale: group.scale.clone() };
     const record = rendered.get(selectedId);
@@ -613,7 +642,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
           const member = rendered.get(object.id)?.group; if (member) applyTransform(member, object);
         }
       }
-      updatePlacementFeedback();
+      updatePlacementFeedback(); shadowCache.invalidate(); interactionChanged = true;
     }
     requestRender();
   }
@@ -801,7 +830,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       callbacks.onError('No clear standing space was found. Inside view needs a room with at least 1.8 m headroom.'); return false;
     }
     finishDrag(true); finishEndpoint(true); finishOpening(true); wallMove.finish(true); walk.cancel();
-    motion.sample('camera'); motion.cancel('camera');
+    cameraMotion.sample('camera'); cameraMotion.cancel('camera');
     if (next === 'inside') {
       outsideView = { view, position: camera.position.clone(), quaternion: camera.quaternion.clone(), target: orbit.target.clone(), zoom: camera.zoom };
       previousDoorAngles = new Map(); view = next; camera = insideCamera;
@@ -852,7 +881,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
 
   function revealSelection(available: ScreenRect): void {
     if (disposed || view === 'inside' || drag || endpointDrag || openingDrag || wallMove.active || orbitWasActive) return;
-    motion.sample('camera'); motion.cancel('camera');
+    cameraMotion.sample('camera'); cameraMotion.cancel('camera');
     const chosen = selectedId ? entity(selectedId) : undefined;
     if (!chosen) return;
     const room = documentState?.rooms.find(item => item.id === selectedId);
@@ -869,7 +898,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       orbit.maxDistance = Math.max(65, distance * 2);
       framingCamera.far = Math.max(250, distance * 4);
       // Rooms get a deliberate dolly and pan; ordinary objects retain minimal reveal.
-      motion.animate('camera', 650, t => {
+      cameraMotion.animate('camera', 650, t => {
         framingCamera.position.lerpVectors(fromPosition, frame.position, t);
         orbit.target.lerpVectors(fromTarget, frame.target, t);
         framingCamera.zoom = fromZoom + (frame.zoom - fromZoom) * t;
@@ -882,7 +911,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     if (offset.lengthSq() < 1e-12) return;
     const fromPosition = camera.position.clone(), fromTarget = orbit.target.clone();
     const framingCamera = camera;
-    motion.animate('camera', MOTION.camera, t => {
+    cameraMotion.animate('camera', MOTION.camera, t => {
       framingCamera.position.copy(fromPosition).addScaledVector(offset, t);
       orbit.target.copy(fromTarget).addScaledVector(offset, t);
       orbit.update();
@@ -896,7 +925,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       else callbacks.onError('No clear standing space was found. Choose another room or adjust the layout.');
       return;
     }
-    motion.sample('camera');
+    cameraMotion.sample('camera');
     const fromPosition = camera.position.clone(), fromTarget = orbit.target.clone(), fromZoom = camera.zoom;
     const chosen = id ? entity(id) : undefined;
     if (chosen) {
@@ -935,7 +964,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     }
     const toPosition = camera.position.clone(), toTarget = orbit.target.clone(), toZoom = camera.zoom;
     const framingCamera = camera;
-    motion.animate('camera', animate ? MOTION.camera : 0, t => {
+    cameraMotion.animate('camera', animate ? MOTION.camera : 0, t => {
       framingCamera.position.lerpVectors(fromPosition, toPosition, t);
       orbit.target.lerpVectors(fromTarget, toTarget, t);
       framingCamera.zoom = fromZoom + (toZoom - fromZoom) * t;
@@ -977,7 +1006,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   function onPointerDown(event: PointerEvent): void {
     if (view === 'inside') return;
     // Navigation must stop before computing any captured shell gesture's ray.
-    motion.cancel('camera');
+    cameraMotion.cancel('camera');
     if (openingDrag || endpointDrag || wallMove.active) { event.stopImmediatePropagation(); return; }
     if (event.button === 0 && selectedId && openingHandle.visible && documentState) {
       pointerRay(event);
@@ -1026,7 +1055,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       const offset = constrainOpeningOffset(gesture.context, gesture.context.opening.offset + point.dot(gesture.axis) - gesture.startAlong, snapEnabled);
       if (Math.abs(offset - gesture.offset) > 1e-8) {
         gesture.offset = offset; structure?.previewOpeningOffset(gesture.context.opening.id, offset);
-        sunOccluders.previewOpeningOffset(gesture.context.opening.id, offset); interiorDaylight.invalidateShadows();
+        sunOccluders.previewOpeningOffset(gesture.context.opening.id, offset); shadowCache.invalidate(); interactionChanged = true;
         updateOpeningHandle(); requestRender();
       }
       return;
@@ -1054,13 +1083,13 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     // The preview never mutates the scene. Restore it before the checked command,
     // so cancellation, rejection and a no-op all leave the authoritative state visible.
     structure?.previewOpeningOffset(opening.id, opening.offset);
-    sunOccluders.previewOpeningOffset(opening.id, opening.offset); interiorDaylight.invalidateShadows();
+    sunOccluders.previewOpeningOffset(opening.id, opening.offset); shadowCache.invalidate();
     orbit.enabled = true; suppressPick = true; pointerStart = null; renderer.domElement.style.cursor = '';
     if (renderer.domElement.hasPointerCapture(gesture.pointerId)) renderer.domElement.releasePointerCapture(gesture.pointerId);
     callbacks.onInteraction(false);
     if (!cancel && gesture.moved && Math.abs(gesture.offset - opening.offset) > 1e-8) callbacks.onOpeningMove?.(opening.id, gesture.offset);
     if (queued && sceneGeneration === generation) setScene(queued.scene, queued.catalog);
-    updateOpeningHandle(); requestRender();
+    shadowCache.invalidate(); updateOpeningHandle(); requestRender();
   }
   function finishEndpoint(cancel: boolean): void {
     if (!endpointDrag) return; const drag = endpointDrag; endpointDrag = null; orbit.enabled = true;
@@ -1095,7 +1124,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     if (openingDrag?.pointerId === event.pointerId) finishOpening(true);
   }
   function onContextLoss(event: Event): void { event.preventDefault(); callbacks.onError('The graphics context was interrupted. Reload the page to restore the 3D view; saved scenes remain available.'); }
-  function onOrbitStart(): void { motion.cancel('camera'); if (!drag) { orbitWasActive = true; callbacks.onInteraction(true); } }
+  function onOrbitStart(): void { cameraMotion.cancel('camera'); if (!drag) { orbitWasActive = true; callbacks.onInteraction(true); } }
   function onOrbitEnd(): void { if (orbitWasActive) { orbitWasActive = false; callbacks.onInteraction(false); } }
   function endDrag(): void { finishDrag(false); }
 
@@ -1141,21 +1170,29 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       if (disposed || drag || !record) return;
       placementMotion.enter(id, record.visual, record.dimensions);
     },
-    setSelection(id, furnitureIds) { if (id !== selectedId) motion.cancel('camera'); if (wallMove.active && id !== selectedId) wallMove.finish(true); if (drag && id !== selectedId) finishDrag(true); if (endpointDrag) finishEndpoint(true); if (openingDrag && id !== selectedId) finishOpening(true); selectedId = id; selectedFurnitureIds = documentState ? expandFurnitureSelection(documentState, furnitureIds ?? (id ? [id] : [])) : []; renderer.domElement.style.cursor = ''; updateSelection(); },
+    setSelection(id, furnitureIds) { if (id !== selectedId) cameraMotion.cancel('camera'); if (wallMove.active && id !== selectedId) wallMove.finish(true); if (drag && id !== selectedId) finishDrag(true); if (endpointDrag) finishEndpoint(true); if (openingDrag && id !== selectedId) finishOpening(true); selectedId = id; selectedFurnitureIds = documentState ? expandFurnitureSelection(documentState, furnitureIds ?? (id ? [id] : [])) : []; renderer.domElement.style.cursor = ''; updateSelection(); },
     setTool,
     setView,
     getSun() { return { ...sunSettings, enabled: sunSettings.enabled && lightingMood !== 'evening' }; },
     setSun(patch) {
       sunSettings = normalizeSun(patch, sunSettings); lightingMood = 'day';
+      // Direct light follows the slider immediately. Cubemap/PMREM capture waits
+      // for a pause so dragging does not allocate six-face captures every frame.
+      clearTimeout(skyUpdateTimer);
+      skyUpdateTimer = setTimeout(() => {
+        skyUpdateTimer = undefined; skySun = effectiveSunlight(sunSettings);
+        if (!disposed) { applyLayers(); requestRender(); }
+      }, 150);
       if (structure) fitSunShadow(sunlight, structure.bounds.clone().union(new THREE.Box3().setFromObject(sunOccluders.group)), sunSettings);
       applyLayers(); callbacks.onSunChange?.({ ...sunSettings }); requestRender();
     },
-    setLightingMood(mood) { lightingMood = mood; applyLayers(); callbacks.onSunChange?.({ ...sunSettings, enabled: sunSettings.enabled && mood !== 'evening' }); requestRender(); },
+    setLightingMood(mood) { lightingMood = mood; clearTimeout(skyUpdateTimer); skyUpdateTimer = undefined; skySun = effectiveSunlight(sunSettings, mood === 'evening'); applyLayers(); callbacks.onSunChange?.({ ...sunSettings, enabled: sunSettings.enabled && mood !== 'evening' }); requestRender(); },
     setSkybox(preset) {
       if (disposed || !isSkyboxPreset(preset)) return false;
       if (preset === skyboxPreset) return true;
       try {
-        if (preset !== 'studio') skyboxes.get(preset);
+        skySun = effectiveSunlight(sunSettings, lightingMood === 'evening');
+        if (preset !== 'studio') skyboxes.get(preset, skySun);
       } catch {
         callbacks.onError('This sky could not be rendered. Choose another sky or reload the editor.');
         return false;
@@ -1183,7 +1220,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       walk.orient(); applyLayers(); requestRender(); return true;
     },
     setSnap(enabled) { snapEnabled = enabled; transform.setTranslationSnap(enabled ? 0.25 : null); transform.setRotationSnap(enabled ? Math.PI / 12 : null); transform.setScaleSnap(enabled ? 0.1 : null); requestRender(); },
-    setWalls(mode) { finishOpening(true); wallMove.finish(true); walls = mode; updateOpeningHandle(); wallMove.refresh(); renderer.domElement.style.cursor = ''; requestRender(); },
+    setWalls(mode) { finishOpening(true); wallMove.finish(true); walls = mode; shadowCache.invalidate(); updateOpeningHandle(); wallMove.refresh(); renderer.domElement.style.cursor = ''; requestRender(); },
     setQuality(mode) {
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, mode === 'high' ? 2 : 1.5));
       studioRenderer.setQuality(mode);
@@ -1211,7 +1248,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       finishInteraction.dispose();
       stopFinishTextureUpdates();
       walk.dispose();
-      cancelAnimationFrame(frame); resizeObserver.disconnect();
+      cancelAnimationFrame(frame); clearTimeout(settleTimer); clearTimeout(skyUpdateTimer); resizeObserver.disconnect();
       window.removeEventListener('blur', onPointerCancel);
       renderer.domElement.removeEventListener('pointerdown', onPointerDown, true);
       renderer.domElement.removeEventListener('pointerup', onPointerUp);
@@ -1224,7 +1261,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       orbit.removeEventListener('change', requestRender); orbit.removeEventListener('start', onOrbitStart); orbit.removeEventListener('end', onOrbitEnd);
       wallMove.dispose(); transform.dispose(); orbit.dispose();
       placementMotion.dispose();
-      motion.dispose();
+      motion.dispose(); cameraMotion.dispose();
       for (const group of retiring) disposeObject(group); retiring.clear();
       placementFeedback.dispose();
       if (selection) disposeObject(selection);

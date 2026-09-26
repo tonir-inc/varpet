@@ -18,6 +18,20 @@ export function sunDirection(settings: SunSettings): THREE.Vector3 {
   const azimuth = THREE.MathUtils.degToRad(settings.azimuth), elevation = THREE.MathUtils.degToRad(settings.elevation);
   return new THREE.Vector3(Math.sin(azimuth) * Math.cos(elevation), Math.sin(elevation), -Math.cos(azimuth) * Math.cos(elevation));
 }
+export interface SunLighting {
+  readonly sunDirection: readonly [number, number, number];
+  readonly sunColor: string;
+  readonly sunIntensity: number;
+}
+/** Shared by the visible sky and the direct light; weather presets never replace
+ * the person's manual solar settings. Evening temporarily suppresses both suns. */
+export function effectiveSunlight(settings: SunSettings, evening = false): SunLighting {
+  return {
+    sunDirection: sunDirection(settings).toArray(),
+    sunColor: settings.elevation < 20 ? '#ffd09b' : '#fff1db',
+    sunIntensity: settings.enabled && !evening ? 3.2 * settings.intensity / 100 : 0,
+  };
+}
 /** Fit in light space so long or off-origin apartments retain their shadows at every angle. */
 export function fitSunShadow(light: THREE.DirectionalLight, bounds: THREE.Box3, settings: SunSettings): void {
   if (bounds.isEmpty()) return;

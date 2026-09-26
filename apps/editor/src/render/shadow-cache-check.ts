@@ -1,0 +1,30 @@
+import * as THREE from 'three';
+import { SceneShadowCache } from './shadow-cache';
+
+const scene = new THREE.Scene();
+const sun = new THREE.DirectionalLight(); sun.castShadow = true; scene.add(sun);
+const ceiling = new THREE.SpotLight(); ceiling.castShadow = true; scene.add(ceiling);
+const windows = new THREE.Group(); windows.visible = false;
+const windowLight = new THREE.SpotLight(); windowLight.castShadow = true; windows.add(windowLight); scene.add(windows);
+const cache = new SceneShadowCache(scene);
+const lights = [sun, ceiling, windowLight];
+let count = 0;
+function check(ok: unknown, message: string) { count++; if (!ok) throw new Error(message); }
+const consume = () => { for (const light of lights) light.shadow.needsUpdate = false; };
+cache.update(false);
+check(lights.every(light => !light.shadow.autoUpdate && light.shadow.needsUpdate), 'Sun, ceiling and hidden window shadows initialize and then cache');
+consume(); cache.update(false);
+check(lights.every(light => !light.shadow.needsUpdate), 'Camera-only frames reuse shadows');
+cache.update(true);
+check(lights.every(light => light.shadow.needsUpdate), 'Moving casters refresh all affected light types');
+consume(); cache.update(false);
+check(lights.every(light => light.shadow.needsUpdate), 'Final animation frame refreshes even after motion ends');
+consume(); cache.update(false);
+check(lights.every(light => !light.shadow.needsUpdate), 'Settled frames return to cached shadows');
+cache.invalidate(); cache.update(false);
+check(lights.every(light => light.shadow.needsUpdate), 'Immediate edits and reduced motion can invalidate without active animation');
+consume(); const replacement = new THREE.SpotLight(); replacement.castShadow = true; scene.remove(ceiling); scene.add(replacement);
+cache.invalidate(); cache.update(false);
+check(!replacement.shadow.autoUpdate && replacement.shadow.needsUpdate, 'Replacement ceiling lights join the cache');
+check(!ceiling.shadow.needsUpdate, 'Disposed/detached lights are no longer updated');
+console.log(`Shadow cache checks passed (${count} assertions).`);

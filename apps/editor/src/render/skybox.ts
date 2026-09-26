@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { DEFAULT_SUN, effectiveSunlight, type SunLighting } from './sunlight';
 
 export const SKYBOX_PRESETS = [
   { id: 'studio', label: 'Studio' },
@@ -15,15 +16,15 @@ export function isSkyboxPreset(value: unknown): value is SkyboxPreset {
 }
 
 interface SkyboxTextures { background: THREE.CubeTexture; environment: THREE.Texture }
-interface CachedSkybox { textures: SkyboxTextures; background: THREE.WebGLCubeRenderTarget; environment: THREE.WebGLRenderTarget }
+interface CachedSkybox { key: string; textures: SkyboxTextures; background: THREE.WebGLCubeRenderTarget; environment: THREE.WebGLRenderTarget }
 
 const PALETTES = {
-  daylight: { zenith: '#729ecb', horizon: '#d5e2e8', nadir: '#a3b4c2', cloud: '#f1f3f1', coverage: 0.56, opacity: 0.58, sun: 0.22, sunHeight: 10 },
-  sunset: { zenith: '#667f9f', horizon: '#edb18c', nadir: '#a194a1', cloud: '#ead0c4', coverage: 0.57, opacity: 0.5, sun: 0.25, sunHeight: 1.6 },
-  overcast: { zenith: '#a5afb9', horizon: '#dce1e3', nadir: '#aab5bd', cloud: '#e5e9ea', coverage: 0.3, opacity: 0.72, sun: 0.03, sunHeight: 10 },
+  daylight: { zenith: '#729ecb', horizon: '#d5e2e8', nadir: '#a3b4c2', cloud: '#f1f3f1', coverage: 0.56, opacity: 0.58 },
+  sunset: { zenith: '#667f9f', horizon: '#edb18c', nadir: '#a194a1', cloud: '#ead0c4', coverage: 0.57, opacity: 0.5 },
+  overcast: { zenith: '#a5afb9', horizon: '#dce1e3', nadir: '#aab5bd', cloud: '#e5e9ea', coverage: 0.3, opacity: 0.72 },
 } satisfies Record<OutdoorPreset, object>;
 
-function makeSkyMaterial(preset: OutdoorPreset): THREE.ShaderMaterial {
+function makeSkyMaterial(preset: OutdoorPreset, lighting: SunLighting): THREE.ShaderMaterial {
   const palette = PALETTES[preset];
   return new THREE.ShaderMaterial({
     name: `Skybox ${preset} capture`,
@@ -38,8 +39,9 @@ function makeSkyMaterial(preset: OutdoorPreset): THREE.ShaderMaterial {
       cloudColor: { value: new THREE.Color(palette.cloud) },
       coverage: { value: palette.coverage },
       cloudOpacity: { value: palette.opacity },
-      sunStrength: { value: palette.sun },
-      sunDirection: { value: new THREE.Vector3(-7, palette.sunHeight, 7).normalize() },
+      sunIntensity: { value: lighting.sunIntensity },
+      sunColor: { value: new THREE.Color(lighting.sunColor) },
+      sunDirection: { value: new THREE.Vector3(...lighting.sunDirection) },
     },
     vertexShader: `
       varying vec3 skyDirection;
@@ -56,7 +58,8 @@ function makeSkyMaterial(preset: OutdoorPreset): THREE.ShaderMaterial {
       uniform vec3 cloudColor;
       uniform float coverage;
       uniform float cloudOpacity;
-      uniform float sunStrength;
+      uniform float sunIntensity;
+      uniform vec3 sunColor;
       uniform vec3 sunDirection;
 
       float hash(vec3 p) {
@@ -90,7 +93,9 @@ function makeSkyMaterial(preset: OutdoorPreset): THREE.ShaderMaterial {
         // Broad, capped sunlight aligns with the scene key; no HDR disk that
         // blooms or creates distracting point reflections on polished floors.
         float sun = pow(max(dot(direction, sunDirection), 0.0), 24.0);
-        color += vec3(1.0, 0.85, 0.68) * sun * sunStrength * (1.0 - cloudMask * 0.75);
+        // A fixed presentation scale bounds the broad glow; direction, color
+        // and relative energy come from the same sun as the scene's shadows.
+        color += sunColor * sun * sunIntensity * 0.07 * (1.0 - cloudMask * 0.75);
         // Store scene-linear radiance. The main renderer applies tone mapping
         // and display color conversion once when sampling this background.
         gl_FragColor = vec4(color, 1.0);
@@ -106,11 +111,12 @@ export class SkyboxResources {
 
   constructor(private readonly renderer: THREE.WebGLRenderer) {}
 
-  get(preset: OutdoorPreset): SkyboxTextures {
+  get(preset: OutdoorPreset, lighting = effectiveSunlight(DEFAULT_SUN)): SkyboxTextures {
     if (this.disposed) throw new Error('Skybox resources have been disposed');
     if (!Object.hasOwn(PALETTES, preset)) throw new Error('Unknown outdoor skybox');
     const cached = this.cache.get(preset);
-    if (cached) return cached.textures;
+    const key = JSON.stringify([lighting.sunDirection, lighting.sunColor, lighting.sunIntensity]);
+    if (cached?.key === key) return cached.textures;
 
     const renderer = this.renderer;
     const previous = {
@@ -125,7 +131,7 @@ export class SkyboxResources {
     });
     background.texture.name = `Skybox ${preset} background`;
     const geometry = new THREE.BoxGeometry(2, 2, 2);
-    const material = makeSkyMaterial(preset);
+    const material = makeSkyMaterial(preset, lighting);
     const capture = new THREE.Scene();
     capture.add(new THREE.Mesh(geometry, material));
     const generator = new THREE.PMREMGenerator(renderer);
@@ -137,7 +143,10 @@ export class SkyboxResources {
       environment = generator.fromCubemap(background.texture);
       environment.texture.name = `Skybox ${preset} environment`;
       const textures = { background: background.texture, environment: environment.texture };
-      this.cache.set(preset, { textures, background, environment });
+      // Keep at most one background/environment pair per preset, regardless of
+      // how many slider values are previewed. Failed captures retain the old pair.
+      this.cache.set(preset, { key, textures, background, environment });
+      cached?.background.dispose(); cached?.environment.dispose();
       return textures;
     } catch (error) {
       background.dispose();

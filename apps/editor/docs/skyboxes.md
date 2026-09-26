@@ -11,8 +11,7 @@ face-specific seams. The lower hemisphere is a soft gradient so downward orbit v
 Skies replace the gallery floor, curtains, inlays and contact shadow while preserving the pedestal and
 its framing bounds. They never enter the scene document, picking, quantities, or edit history.
 
-This is a presentation background, not a location/date-based sun simulation. Existing direct lights
-stay in place; the selected sky supplies background and material reflection lighting. The assumption
+This is a presentation background, not a location/date-based sun simulation. The sky glow and reflection capture share the adjustable Sun direction, color and strength. Sky selection preserves manual Sun settings. A slider drag updates direct lighting immediately and refreshes the sky capture after a 150 ms pause; the cache retains only the current capture for each preset. See [render performance verification](render-performance.md). The assumption
 for this task is that “add skyboxes” means selectable local presets. Custom HDR imports and saving a sky
 in the project document are outside this change.
 

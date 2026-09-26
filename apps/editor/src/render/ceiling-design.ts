@@ -5,6 +5,10 @@ import type { SceneDocument } from '../contracts';
 import { layoutCeilingDesign, type CeilingElement, type CeilingLayout } from '../core/ceiling-design';
 
 const LIGHT_BUDGET = 8;
+// WebGL2 guarantees sixteen fragment samplers. The current finish shader uses
+// four, environment/DFG use two, area lights use two, and sun/windows use five.
+// Reserve the remaining three for ceiling shadows, independently of illumination.
+const SHADOW_BUDGET = 3;
 let areaLightsInitialized = false;
 interface LightSource { element: CeilingElement; layout: CeilingLayout; group: THREE.Group; emission: THREE.MeshStandardMaterial }
 
@@ -75,14 +79,14 @@ function makeElement(element: CeilingElement, layout: CeilingLayout): { group: T
   return { group, emission };
 }
 
-function addLight(source: LightSource): void {
+function addLight(source: LightSource, castShadow: boolean): void {
   const { element, layout, group, emission } = source;
   const level = layout.design.brightness / 100;
   const color = lightColor(layout.design.temperature);
   if (element.kind === 'spot') {
     const light = new THREE.SpotLight(color, 65 * level, 9, 1.05, 0.7, 2);
     light.position.y = -0.006; light.target.position.y = -3;
-    light.castShadow = true; light.shadow.mapSize.set(256, 256);
+    light.castShadow = castShadow; light.shadow.mapSize.set(256, 256);
     light.shadow.camera.near = 0.025; light.shadow.camera.far = 9;
     light.shadow.bias = -0.0001; light.shadow.normalBias = 0.008; light.shadow.radius = 2;
     // The normal projection disposal visits materials, including shadow resources
@@ -130,6 +134,18 @@ export function makeCeilingDesigns(scene: SceneDocument, activeRoomId?: string):
   for (let index = 0; index < Math.max(0, ...remaining.map(sources => sources.length)); index++) {
     for (const sources of remaining) if (sources[index]) ordered.push(sources[index]!);
   }
-  for (const source of ordered.slice(0, LIGHT_BUDGET)) addLight(source);
+  const illuminated = ordered.slice(0, LIGHT_BUDGET);
+  const spots = illuminated.filter(source => source.element.kind === 'spot');
+  const shadowed = new Set<LightSource>();
+  for (const pool of [spots.filter(source => source.layout.roomId === activeRoomId), spots.filter(source => source.layout.roomId !== activeRoomId)]) {
+    const count = Math.min(pool.length, SHADOW_BUDGET - shadowed.size);
+    // Evenly sample the authored fixture order, spanning both ends of the room
+    // instead of spending every shadow map on the first row of downlights.
+    for (let index = 0; index < count; index++) {
+      const position = count === 1 ? Math.floor((pool.length - 1) / 2) : Math.round(index * (pool.length - 1) / (count - 1));
+      shadowed.add(pool[position]!);
+    }
+  }
+  for (const source of illuminated) addLight(source, shadowed.has(source));
   return projection;
 }
