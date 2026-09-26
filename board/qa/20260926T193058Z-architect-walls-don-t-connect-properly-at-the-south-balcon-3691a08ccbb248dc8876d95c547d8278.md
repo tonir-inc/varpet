@@ -2,10 +2,11 @@
 id: "20260926T193058Z-architect-walls-don-t-connect-properly-at-the-south-balcon-3691a08ccbb248dc8876d95c547d8278"
 lane: "architect"
 severity: "major"
-status: "open"
+status: "fixed"
 title: "Walls don't connect properly at the south balcony (misaligned, stepped wall segments)"
 reported_by: "Sergey"
 created: "2026-09-26T19:30:58.604203Z"
+fixed_in: "744dc18"
 ---
 
 **Steps**
@@ -25,3 +26,5 @@ Several short wall pieces along the balcony edge are offset and stepped, overlap
 ![Screenshot 1](img/20260926T193058Z-architect-walls-don-t-connect-properly-at-the-south-balcon-3691a08ccbb248dc8876d95c547d8278-1.png)
 
 **Notes**
+
+- 2026-09-26T20:07:51.089902Z: Not architect output: the hand-traced M6 template (apartments/m6-12-54/trace.mjs) ran pier tail, Bedroom 1 doorway wall and south return on parallel lines 9 cm apart (x=398 vs 407 px), pier stopped 15 cm short; editor never snaps, so stepped blocks. Now one 30 px facade line at x=402 with corner joins (0 near-miss endpoints). Also fixed editor wall-geometry.ts: a T host split by normalizeWallJunctions mitred against the branch and cut a V notch (south pier at the Bedroom 2/living partition, divider pier). Saved plan copies keep the old walls; create a new copy from the template.
