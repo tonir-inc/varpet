@@ -1,0 +1,21 @@
+{
+  "north_deg": 0,
+  "rooms": [{ "id": "bedroom", "name": "Bedroom", "polygon": [[0,0],[4,0],[4,3.5],[0,3.5]] }],
+  "walls": [
+    { "id": "south", "room_id": "bedroom", "a": [0,0], "b": [4,0] },
+    { "id": "east", "room_id": "bedroom", "a": [4,0], "b": [4,3.5] },
+    { "id": "north", "room_id": "bedroom", "a": [4,3.5], "b": [0,3.5] },
+    { "id": "west", "room_id": "bedroom", "a": [0,3.5], "b": [0,0] }
+  ],
+  "openings": [
+    { "id": "door", "wall_id": "south", "kind": "door", "offset": 0.15, "width": 0.9, "height": 2.1, "sill": 0, "swing": "inward-left" },
+    { "id": "window", "wall_id": "east", "kind": "window", "offset": 1.5, "width": 1.4, "height": 1.4, "sill": 0.8 }
+  ],
+  "items": [
+    { "id": "bed", "room_id": "bedroom", "kind": "bed", "name": "Bed", "pos": [1.5,2.35], "rot": 0, "size": [1.6,2,0.5], "keep": true },
+    { "id": "wardrobe", "room_id": "bedroom", "kind": "wardrobe", "name": "Wardrobe", "pos": [0.35,1.6], "rot": 90, "size": [1.2,0.6,2.2], "keep": false },
+    { "id": "desk", "room_id": "bedroom", "kind": "desk", "name": "Desk", "pos": [3.6,2.5], "rot": 90, "size": [1.2,0.6,0.75], "keep": false },
+    { "id": "chair", "room_id": "bedroom", "kind": "chair", "name": "Chair", "pos": [2.95,2.5], "rot": 270, "size": [0.5,0.5,0.9], "keep": false }
+  ],
+  "fixed": []
+}
