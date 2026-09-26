@@ -1,7 +1,7 @@
 import './inspector.css';
 import type { CatalogAsset, EntityMetadata, Operation, SceneDocument, SceneObject } from '../contracts';
 import { buildAssetReplacementOperations, buildOpeningTypeOperations, OPENING_TYPES } from '../core/inspector-edits';
-import { buildFinishOperations, FINISH_PRESETS, getPresetForMaterial } from '../core/finish-presets';
+import { buildFinishOperations, FINISH_DRAG_TYPE, FINISH_PRESETS, getPresetForMaterial, type FinishPreset } from '../core/finish-presets';
 import { icon } from './icons';
 
 interface InspectorOptions {
@@ -13,6 +13,8 @@ interface InspectorOptions {
   advanced(): void;
   getDoorAngle(id: string): number;
   testDoor(id: string, angle: number): void;
+  onFinishDragStart?(preset: FinishPreset): void;
+  onFinishDragEnd?(): void;
 }
 
 const esc = (value: string) => value.replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]!));
@@ -83,6 +85,7 @@ export function renderEntityInspector(container: HTMLElement, id: string, config
       const current = getPresetForMaterial(material);
       return `<section class="property-section"><div class="property-label">${label}<span>${esc(material?.name ?? 'Original')}</span></div><div class="inspector-swatches" role="group" aria-label="${label}">${FINISH_PRESETS.filter(p => p.category === (room ? 'floor' : 'wall')).map(preset => `<button type="button" data-finish="${preset.id}" data-surface="${surface}" title="${esc(preset.description)}" aria-label="${label}: ${esc(preset.name)}" aria-pressed="${current?.id === preset.id && material?.color.toLowerCase() === preset.color.toLowerCase()}" ${disabled}><span style="background:${preset.color}" aria-hidden="true"></span><span>${esc(preset.name)}</span></button>`).join('')}</div></section>`;
     }).join('');
+    if (config.onFinishDragStart && config.onFinishDragEnd && !disabled) body = `<p class="field-note">Drag a finish onto ${room ? 'a floor' : 'a wall face'}, or click to apply it here.</p>${body}`;
   } else if (component) {
     body = `<section class="property-section"><div class="property-label">Finish</div><div class="finish-row"><input id="component-color" type="color" aria-label="Component finish color" value="${esc(component.color)}" ${disabled}><span>${esc(component.color)}</span></div></section><div class="property-section"><div class="property-label">Dimensions <span>m</span></div><p class="field-note">${component.dimensions.map(d => Number(d.toFixed(3))).join(' × ')}</p></div>`;
   } else if (route) body = `<p class="field-note">${esc(pretty(route.system))} route · ${route.points.length} points</p>`;
@@ -126,9 +129,43 @@ export function renderEntityInspector(container: HTMLElement, id: string, config
       message.hidden = false; message.textContent = error instanceof Error ? error.message : 'Check the dimensions.';
     }
   };
-  container.querySelectorAll<HTMLButtonElement>('[data-finish]').forEach(button => button.onclick = () => {
+  container.querySelectorAll<HTMLButtonElement>('[data-finish]').forEach(button => {
     const preset = FINISH_PRESETS.find(p => p.id === button.dataset.finish)!;
-    commit(config, () => buildFinishOperations(config.getScene(),preset,id,button.dataset.surface as 'floor'|'wall-front'|'wall-back'), `Apply ${preset.name}`);
+    let dragging = false;
+    button.onclick = () => {
+      if (dragging || button.disabled) return;
+      commit(config, () => buildFinishOperations(config.getScene(),preset,id,button.dataset.surface as 'floor'|'wall-front'|'wall-back'), `Apply ${preset.name}`);
+    };
+    button.draggable = !button.disabled && !!config.onFinishDragStart && !!config.onFinishDragEnd;
+    button.ondragstart = event => {
+      if (!button.draggable || button.disabled || !event.dataTransfer) { event.preventDefault(); return; }
+      const abort = new AbortController();
+      const options = { capture: true, signal: abort.signal };
+      let dropTimer: ReturnType<typeof setTimeout> | undefined;
+      dragging = true;
+      const end = () => {
+        if (!dragging) return;
+        dragging = false;
+        clearTimeout(dropTimer);
+        abort.abort();
+        button.classList.remove('is-dragging');
+        config.onFinishDragEnd?.();
+      };
+      // A successful drop rebuilds Properties and detaches this button. Finish
+      // after the canvas drop handler, even when it stops event propagation.
+      window.addEventListener('drop', () => { dropTimer = setTimeout(end, 0); }, options);
+      window.addEventListener('dragend', end, options);
+      button.addEventListener('dragend', end, options);
+      window.addEventListener('blur', end, options);
+      window.addEventListener('keydown', event => { if (event.key === 'Escape') end(); }, options);
+      event.dataTransfer.effectAllowed = 'copy';
+      event.dataTransfer.setData(FINISH_DRAG_TYPE, preset.id);
+      event.dataTransfer.setData('text/plain', preset.id);
+      const swatch = button.firstElementChild as HTMLElement;
+      event.dataTransfer.setDragImage(swatch, swatch.clientWidth / 2, swatch.clientHeight / 2);
+      button.classList.add('is-dragging');
+      config.onFinishDragStart?.(preset);
+    };
   });
   const color = container.querySelector<HTMLInputElement>('#component-color');
   if (color && component) color.onchange = () => commit(config, () => {

@@ -24,4 +24,6 @@
 .inspector-swatches button > span:last-child { padding: 0 2px 2px; color: #c7bece; font-size: 10px; }
 .inspector-swatches button[aria-pressed="true"] { border-color: var(--accent); background: #40364d; }
 .inspector-swatches button:hover:not(:disabled) { border-color: #8d7eaa; }
+.inspector-swatches button[draggable="true"] { cursor: grab; user-select: none; }
+.inspector-swatches button.is-dragging { cursor: grabbing; opacity: .55; }
 .inspector-error { margin: 10px 0; color: #eba6ad; font-size: 11px; line-height: 1.5; }
