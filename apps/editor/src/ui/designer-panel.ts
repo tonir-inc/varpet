@@ -6,7 +6,7 @@ import { designerIcon, designerIconButton } from './designer-icons';
 export { designerMarkdown } from './designer-markdown';
 import { EditorStore } from '../core/store';
 import type { AgentProposal, CatalogAsset, SceneDocument } from '../contracts';
-import { askDesigner, type DesignerPreview, type DesignerRequest } from '../adapters/designer-http';
+import { askDesigner, type DesignerHealth, type DesignerPartial, type DesignerPreview, type DesignerRequest } from '../adapters/designer-http';
 type AskDesigner = typeof askDesigner;
 
 interface MetricRow { label: string; value: string }
@@ -18,8 +18,33 @@ interface History { version: 1; activeId: string; conversations: Conversation[] 
 const record = (value: unknown): Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
 const measured = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value) && value >= 0;
 
+const metres = (value: unknown) => measured(value) ? `${value.toFixed(2)} m` : undefined;
+const squareMetres = (value: unknown) => measured(value) ? `${value.toFixed(1)} m²` : 'Unknown';
+
+/** The spike designer's measurements: free floor and the narrowest walkway per designed room, budget used. */
+function spaceMetrics(score: Record<string, unknown>, space: Record<string, unknown>): MetricRow[] {
+  const rooms = (space.rooms as unknown[]).map(record).filter(room => room.designed === true);
+  const rows: MetricRow[] = [{ label: 'Open floor · before → after', value: `${squareMetres(space.free_before_m2).replace(' m²', '')} → ${squareMetres(space.free_after_m2)}` }];
+  const walkable = rooms.filter(room => measured(room.narrowest_m));
+  const narrowest = walkable.sort((a, b) => (a.narrowest_m as number) - (b.narrowest_m as number))[0];
+  const blocked = rooms.filter(room => measured(room.blocked) && (room.blocked as number) > 0);
+  rows.push({ label: 'Narrowest walkway', value: narrowest ? `${metres(narrowest.narrowest_m)} · ${String(narrowest.name)}${blocked.length ? ` · ${blocked.length} room${blocked.length === 1 ? '' : 's'} with a blocked path` : ''}` : rooms.length ? 'No walkway to measure' : 'Unknown' });
+  for (const room of rooms.slice(0, 8)) {
+    const walkway = metres(room.narrowest_m);
+    rows.push({ label: String(room.name ?? room.id), value: `${squareMetres(room.free_after_m2)} open${walkway ? ` · walkway ${walkway}` : ''}` });
+  }
+  const cost = measured(score.cost_dram) && Number.isSafeInteger(score.cost_dram) ? score.cost_dram : undefined;
+  const budget = measured(score.budget_dram) && Number.isSafeInteger(score.budget_dram) && score.budget_dram > 0 ? score.budget_dram : undefined;
+  rows.push(budget !== undefined
+    ? { label: 'Budget used', value: cost === undefined ? `Unknown of ${budget.toLocaleString('en-US')} ֏` : `${cost.toLocaleString('en-US')} of ${budget.toLocaleString('en-US')} ֏ (${Math.round(cost / budget * 100)}%)` }
+    : { label: 'Furniture total', value: cost === undefined ? 'Unknown' : `${cost.toLocaleString('en-US')} ֏ · no budget given` });
+  return rows;
+}
+
 /** Read the service's scoreLayout shape without inventing absent measurements. */
 function proposalMetrics(value: unknown): MetricRow[] {
+  const space = record(record(value).space);
+  if (Array.isArray(space.rooms)) return spaceMetrics(record(value), space);
   const score = record(value), before = record(record(score.before).space), after = record(record(score.after).space);
   const area = (value: unknown) => measured(value) ? value.toFixed(2) : 'Unknown';
   const rooms = after.rooms;
@@ -60,6 +85,10 @@ export interface DesignerPanelState {
   preview?: DesignerPreview;
   /** A message typed while the designer works; sent when the turn ends. */
   queued: string;
+  /** Checked rooms the designer has finished while it works on the rest: preview only. */
+  partial?: { proposal: AgentProposal; rooms: string[] };
+  /** The customer is looking at `partial` in the editor; newer partials and the final design replace it there. */
+  previewingPartial: boolean;
   conversationId?: string; keep: string[]; elapsedSeconds: number;
   northDeg?: number; northPersisted: boolean; northError: string;
   activeHistoryId: string; conversations: { id: string; title: string }[]; historyPersisted: boolean;
@@ -74,12 +103,27 @@ interface ConversationOptions {
   now?: () => number;
   history?: boolean;
   onResetReview?: () => void;
+  /** The service could not be reached: the host re-checks its health. */
+  onUnreachable?: () => void;
   onProposalAction?: (proposal: AgentProposal, action: ProposalAction) => { ok: boolean; message?: string };
+  /** Whether the editor still shows a proposal preview (the customer may have left it). */
+  isPreviewing?: () => boolean;
 }
+
+/** A turn without typed events still reads as steps: each new progress line closes the previous one. */
+export function progressStep(steps: DesignerStep[], message: string, at: number): DesignerStep[] {
+  const label = message.trim();
+  if (!label || steps.at(-1)?.label === label) return steps;
+  const next = steps.map(step => step.status === 'running' && step.key.startsWith('progress:') ? { ...step, status: 'done' as const, end: at } : { ...step });
+  next.push({ key: `progress:${next.length}:${label}`, label, status: 'running', at, timed: true });
+  return next.slice(-60);
+}
+const unreachable = /failed to fetch|networkerror|load failed|fetch failed|err_connection/i;
+export const DESIGNER_START_HINT = 'cd harness && uv run python designer_service.py';
 
 /** Owns chat state only. A proposal can only leave through the editor's review callback. */
 export function createDesignerConversation(options: ConversationOptions) {
-  const state: DesignerPanelState = { messages: [], draft: '', busy: false, progress: '', options: [], steps: [], queued: '', keep: [], elapsedSeconds: 0, northPersisted: false, northError: '', activeHistoryId: '', conversations: [], historyPersisted: false };
+  const state: DesignerPanelState = { messages: [], draft: '', busy: false, progress: '', options: [], steps: [], queued: '', previewingPartial: false, keep: [], elapsedSeconds: 0, northPersisted: false, northError: '', activeHistoryId: '', conversations: [], historyPersisted: false };
   let active: AbortController | undefined, disposed = false;
   const now = options.now ?? (() => performance.now());
   let started = 0, settingsScene = options.snapshot().scene.id;
@@ -160,12 +204,15 @@ export function createDesignerConversation(options: ConversationOptions) {
   /** The turn's steps travel with the reply that ended it, so a finished turn reads as one collapsed line. */
   const settleSteps = () => {
     const last = state.messages.at(-1);
+    // A progress line still running when the reply lands was the last thing the designer did: it finished.
+    const at = Math.max(0, (now() - started) / 1000);
+    state.steps = state.steps.map(step => step.status === 'running' && step.key.startsWith('progress:') ? { ...step, status: 'done', end: at } : step);
     if (state.steps.length && last?.role === 'designer') {
       const at = Math.max(0, (now() - started) / 1000);
       last.steps = { steps: finishDesignerSteps(state.steps, at), seconds: Math.floor(at) };
     }
     if (state.preview && last?.role === 'designer') last.preview = state.preview;
-    state.steps = []; delete state.preview;
+    state.steps = []; delete state.preview; delete state.partial;
   };
   const controller = {
     get state() { return structuredClone(state); },
@@ -204,6 +251,14 @@ export function createDesignerConversation(options: ConversationOptions) {
         if (action !== 'preview') message.status = action === 'apply' ? 'applied' : 'dismissed';
         publish(); return true;
       } catch (error) { reply(error instanceof Error ? error.message : 'The editor could not complete this action.'); publish(); return false; }
+    },
+    /** Look at the rooms finished so far while the designer continues. */
+    previewPartial() {
+      if (disposed || !state.partial) return false;
+      try {
+        const result = options.onProposalAction?.(structuredClone(state.partial.proposal), 'preview');
+        state.previewingPartial = result?.ok === true; publish(false); return state.previewingPartial;
+      } catch { state.previewingPartial = false; publish(false); return false; }
     },
     setNorth(input: string) {
       if (disposed || state.busy) return false;
@@ -244,18 +299,28 @@ export function createDesignerConversation(options: ConversationOptions) {
       if (options.canRequest?.() === false) { reply('Finish the current preview or request, then try again.'); publish(); return; }
       const { scene, revision, catalog, catalogCurrency } = options.snapshot();
       const abortController = new AbortController(); active = abortController;
+      let restart: string | undefined;
       state.keep = state.keep.filter(id => scene.objects.some(object => object.id === id));
       state.messages.push({ role: 'user', text: request });
-      started = now(); state.elapsedSeconds = 0; state.draft = ''; state.steps = []; delete state.preview;
+      started = now(); state.elapsedSeconds = 0; state.draft = ''; state.steps = []; delete state.preview; delete state.partial;
+      let typedEvents = false, autoPreview: string | undefined;
       state.busy = true; state.progress = 'Sending your request to the designer…'; state.options = []; publish();
       try {
         const result = await options.ask({ events: true, scene: structuredClone(scene), revision, request,
           ...(catalog === undefined ? {} : { catalog: structuredClone(catalog) }), ...(catalogCurrency === undefined ? {} : { catalogCurrency }),
           conversationId: state.conversationId, keep: [...state.keep], ...(state.northDeg === undefined ? {} : { northDeg: state.northDeg }) }, {
           signal: abortController.signal,
-          onProgress: message => { if (active === abortController && !disposed) { state.progress = message; publish(false); } },
+          onProgress: message => { if (active === abortController && !disposed) {
+            state.progress = message; if (!typedEvents) state.steps = progressStep(state.steps, message, (now() - started) / 1000); publish(false);
+          } },
           onPreview: preview => { if (active === abortController && !disposed) { state.preview = preview; publish(false); } },
+          onPartial: partial => { if (active === abortController && !disposed) {
+            state.partial = { proposal: structuredClone(partial.proposal), rooms: [...partial.rooms] };
+            // Already looking at the rooms so far: follow the designer as more rooms are finished.
+            if (state.previewingPartial && options.isPreviewing?.() !== false) controller.previewPartial(); else { state.previewingPartial = false; publish(false); }
+          } },
           onEvent: event => { if (active === abortController && !disposed) {
+            if (!typedEvents) { typedEvents = true; state.steps = []; }
             state.progress = designerEventProgress(event); state.steps = applyDesignerEvent(state.steps, event, (now() - started) / 1000); publish(false);
           } },
           onMessageDelta: delta => { if (active === abortController && !disposed) { state.draft = (state.draft + delta).slice(0, 4000); publish(false); } },
@@ -268,13 +333,19 @@ export function createDesignerConversation(options: ConversationOptions) {
             ...(result.notes === undefined ? {} : { notes: result.notes }) });
           else reply(`${result.proposal.title}\n${result.proposal.description}\nReview the proposed change below before applying it.`, proposalMetrics(result.metrics), result.notes);
           options.onProposal(result.proposal);
+          if (state.previewingPartial && options.isPreviewing?.() !== false && options.history) autoPreview = result.proposal.id;
         } else if (result.type === 'question') {
           reply(result.question); state.options = [...result.options];
           if (options.history) state.messages.at(-1)!.options = [...result.options];
+        } else if (result.type === 'error' && /unknown conversationid/i.test(result.message) && state.conversationId) {
+          // The service restarted and forgot this thread: say so and start a fresh one with the same words.
+          state.conversationId = undefined;
+          reply('The designer service restarted, so I am starting a fresh design thread for this request.');
+          restart = request;
         } else {
-          reply(result.message);
+          reply(result.type === 'error' && unreachable.test(result.message) ? `I can’t reach the designer service. Start it with \`${DESIGNER_START_HINT}\`, then press Retry.` : result.message);
           if (result.type === 'message') state.messages.at(-1)!.suggestions = result.suggestions ?? ['Show me another option', 'Make it warmer', 'What would it cost?'];
-          if (result.type === 'error') state.messages.at(-1)!.retryRequest = request;
+          if (result.type === 'error') { state.messages.at(-1)!.retryRequest = request; options.onUnreachable?.(); }
         }
       } catch (error) {
         if (disposed || active !== abortController) return;
@@ -282,10 +353,17 @@ export function createDesignerConversation(options: ConversationOptions) {
         state.messages.at(-1)!.retryRequest = request;
       } finally {
         if (!disposed && active === abortController) {
-          active = undefined; state.busy = false; state.progress = ''; state.draft = ''; settleSteps(); publish();
+          active = undefined; state.busy = false; state.progress = ''; state.draft = ''; state.previewingPartial = false; settleSteps(); publish();
+          if (autoPreview) controller.act(autoPreview, 'preview');
           // After publish, so the host has already seen the turn end and will accept the next request.
-          const next = state.queued;
-          if (next) { state.queued = ''; void controller.send(next); }
+          const next = restart ?? state.queued;
+          if (restart) {
+            const index = state.messages.map(message => message.role === 'user' && message.text === restart).lastIndexOf(true);
+            if (index >= 0) state.messages.splice(index, 1);
+            publish();
+          }
+          else if (next) state.queued = '';
+          if (next) void controller.send(next);
         }
       }
     },
@@ -354,6 +432,8 @@ export function previewDesignerProposal(scene: SceneDocument, revision: number, 
 
 interface MountOptions extends Omit<ConversationOptions, 'ask' | 'onChange'> {
   ask?: AskDesigner; live?: boolean;
+  /** Live mode: is the designer service reachable (and warm)? Polled; an offline service is said plainly. */
+  health?: () => Promise<DesignerHealth>;
   subscribe?: (listener: () => void) => () => void;
   onBusyChange?: (busy: boolean) => void;
 }
@@ -403,6 +483,7 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
   };
   host.classList.add('designer-column'); host.setAttribute('aria-label', 'Designer');
   host.innerHTML = `<header class="designer-chat-header"><h2 class="designer-title"><span class="designer-dot" aria-hidden="true"></span>Designer</h2>${live ? '' : '<span class="mock-label">Demo replay</span>'}<div class="designer-header-actions"></div></header>
+    <div class="designer-service-status" role="status" hidden></div>
     <div class="designer-chat-body"><div class="designer-history-bar"${live ? '' : ' hidden'}><details class="designer-history"><summary>Recent conversations</summary><div class="designer-history-list"></div></details></div>
     <div class="designer-chat-scroll"><div class="designer-greeting"><span class="designer-greeting-icon" aria-hidden="true">${designerIcon('sparkles', 22)}</span><h2>What would make this feel like home?</h2><p>Tell me what you have in mind. We can explore a change together, and you decide what to apply.</p></div>
       <details class="designer-starters" open><summary>${live ? 'Ideas for this flat' : 'Recorded examples'}</summary><div class="designer-examples"></div></details>
@@ -487,6 +568,14 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
     if (preview.caption) { const caption = document.createElement('figcaption'); caption.textContent = preview.caption; figure.append(caption); }
     return figure;
   };
+  const partialCard = (state: DesignerPanelState) => {
+    const card = document.createElement('div'); card.className = 'designer-partial';
+    const title = document.createElement('strong'); title.textContent = `Ready to look at: ${state.partial!.rooms.join(', ')}`;
+    const note = document.createElement('small'); note.textContent = state.previewingPartial ? 'Showing these rooms in the editor · the view follows as more rooms are done' : 'Checked · the designer keeps working on the rest';
+    card.append(title, note);
+    if (!state.previewingPartial || options.isPreviewing?.() === false) card.append(button('Preview these rooms', () => { controller.previewPartial(); }, 'button quiet designer-partial-preview'));
+    return card;
+  };
   // The turn in flight lives outside the message key: the clock ticks every second and must not rebuild the log.
   const liveTurn = document.createElement('div'); liveTurn.className = 'designer-progress designer-turn'; liveTurn.setAttribute('aria-live', 'off'); liveTurn.hidden = true;
   let liveKey = '';
@@ -501,8 +590,17 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
     if (!state.busy) { liveKey = ''; stage.textContent = ''; return; }
     const steps = liveSteps(state);
     const current = steps.map(step => step.status).lastIndexOf('running');
-    const key = JSON.stringify([steps.map(step => [step.key, step.label, step.status, step.end]), state.preview?.image.length ?? 0, state.preview?.caption]);
-    if (key !== liveKey) { liveKey = key; liveTurn.replaceChildren(stepList(steps, current), ...(state.preview ? [previewFigure(state.preview)] : [])); }
+    const key = JSON.stringify([steps.map(step => [step.key, step.label, step.status, step.end]), state.preview?.image.length ?? 0, state.preview?.caption, state.partial?.proposal.id, state.previewingPartial]);
+    if (key !== liveKey) {
+      liveKey = key;
+      // The last few steps stay readable; the earlier ones fold into a count.
+      const shown = 7, hidden = Math.max(0, steps.length - shown), parts: HTMLElement[] = [];
+      if (hidden) { const earlier = document.createElement('small'); earlier.className = 'designer-steps-earlier'; earlier.textContent = `${hidden} earlier step${hidden === 1 ? '' : 's'} done`; parts.push(earlier); }
+      parts.push(stepList(steps.slice(hidden), current - hidden));
+      if (state.partial) parts.push(partialCard(state));
+      if (state.preview) parts.push(previewFigure(state.preview));
+      liveTurn.replaceChildren(...parts);
+    }
     for (const time of liveTurn.querySelectorAll<HTMLElement>('.designer-step-time:not([data-end])')) time.textContent = designerClock(state.elapsedSeconds - Number(time.dataset.at));
     const elapsed = liveTurn.querySelector<HTMLElement>('.designer-elapsed');
     if (elapsed) elapsed.textContent = designerClock(state.elapsedSeconds);
@@ -658,7 +756,28 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
     previousBusy = state.busy;
     updateJump();
   };
-  const controller = createDesignerConversation({ ...options, storage, history: live, ask, onChange: render });
+  const statusLine = find<HTMLElement>('.designer-service-status');
+  let healthTimer: ReturnType<typeof setTimeout> | undefined, checking = false;
+  const showHealth = (health: DesignerHealth) => {
+    const warming = health.ok && health.warm && Object.values(health.warm).some(value => value === 'starting' || value === 'cold');
+    statusLine.hidden = health.ok && !warming;
+    statusLine.className = `designer-service-status ${health.ok ? 'designer-service-warming' : 'designer-service-offline'}`;
+    if (!health.ok) {
+      statusLine.innerHTML = '<strong>Designer offline</strong> · start the service: <code></code>';
+      statusLine.querySelector('code')!.textContent = DESIGNER_START_HINT;
+    } else if (warming) statusLine.textContent = `Designer warming up${health.warm?.renderer === 'starting' ? ' · starting the renderer' : health.warm?.codex === 'starting' ? ' · starting the model' : ''}…`;
+    host.dataset.designerService = !health.ok ? 'offline' : warming ? 'warming' : 'online';
+  };
+  const checkHealth = async () => {
+    if (!live || !options.health || checking) return;
+    checking = true; if (healthTimer !== undefined) clearTimeout(healthTimer);
+    let health: DesignerHealth = { ok: false };
+    try { health = await options.health(); } catch { /* unreachable */ } finally { checking = false; }
+    showHealth(health);
+    const warming = health.ok && health.warm && Object.values(health.warm).some(value => value !== 'ready' && value !== 'failed');
+    healthTimer = setTimeout(() => { void checkHealth(); }, !health.ok ? 3000 : warming ? 2000 : 20000);
+  };
+  const controller = createDesignerConversation({ ...options, storage, history: live, ask, onChange: render, onUnreachable: () => { void checkHealth(); } });
   const renderKeeps = () => {
     const list = find<HTMLElement>('.designer-keep-list'); list.replaceChildren();
     for (const object of options.snapshot().scene.objects) {
@@ -702,13 +821,13 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
   };
   input.onkeydown = event => { if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) { event.preventDefault(); form.requestSubmit(); } };
   input.oninput = () => grow();
-  render(controller.state); renderKeeps(); renderStarters();
+  render(controller.state); renderKeeps(); renderStarters(); void checkHealth();
   const unsubscribe = options.subscribe?.(() => { controller.refreshSettings(); renderKeeps(); renderStarters(); });
   return {
     controller,
     open() { setCollapsed(false); input.focus(); },
     /** The buyer's current focus (a selected piece), or null. Shown as a chip; prefixes what they type next. */
     setContext,
-    dispose() { if (ticker !== undefined) clearInterval(ticker); controller.dispose(); unsubscribe?.(); host.replaceChildren(); },
+    dispose() { if (ticker !== undefined) clearInterval(ticker); if (healthTimer !== undefined) clearTimeout(healthTimer); controller.dispose(); unsubscribe?.(); host.replaceChildren(); },
   };
 }

@@ -33,9 +33,14 @@ export interface DesignerHttpOptions {
   onNotes?:(notes:string)=>void;
   /** A small picture of the design in progress (the designer's own render), nonterminal. */
   onPreview?:(preview:DesignerPreview)=>void;
+  /** A checked proposal of the rooms finished so far while the designer works on the rest: preview only, nonterminal. */
+  onPartial?:(partial:DesignerPartial)=>void;
   fetch?:typeof globalThis.fetch;
 }
 export interface DesignerPreview {image:string;caption?:string}
+export interface DesignerPartial {proposal:AgentProposal;rooms:string[];metrics?:unknown}
+/** GET /designer/health: reachable, and what the service has warmed (spike engine). */
+export interface DesignerHealth {ok:boolean;engine?:string;warm?:{renderer?:string;codex?:string}}
 export interface DesignerRequest {
   image?:DesignerImage;
   vision?:DesignerVision;
@@ -49,7 +54,7 @@ export type DesignerReply=
   | {type:'message';conversationId:string;message:string;suggestions?:string[]}
   | {type:'decline';conversationId:string;message:string}
   | {type:'error';message:string};
-export interface AskDesignerOptions {onPreview?:(preview:DesignerPreview)=>void;onEvent?:(event:DesignerEvent)=>void;vision?:VisionCaptureOptions;baseUrl?:string;onProgress?:(message:string)=>void;onMessageDelta?:(delta:string)=>void;signal?:AbortSignal;resolveAssets?:DesignerHttpOptions['resolveAssets']}
+export interface AskDesignerOptions {onPartial?:(partial:DesignerPartial)=>void;onPreview?:(preview:DesignerPreview)=>void;onEvent?:(event:DesignerEvent)=>void;vision?:VisionCaptureOptions;baseUrl?:string;onProgress?:(message:string)=>void;onMessageDelta?:(delta:string)=>void;signal?:AbortSignal;resolveAssets?:DesignerHttpOptions['resolveAssets']}
 export class DesignerServiceError extends Error {
   readonly name='DesignerServiceError';
   constructor(message:string,readonly code:'http'|'protocol'|'validation'|'service',readonly status?:number){super(message);}
@@ -68,7 +73,8 @@ export class DesignerDeclineError extends Error {
   readonly type='decline';
   constructor(message:string,readonly conversationId?:string){super(message);}
 }
-const MAX_BYTES=4_000_000,MAX_LINE=1_048_576;
+// Requests stay at 4 MB; a response may carry previews and room-by-room partial proposals as well as the final one.
+const MAX_BYTES=4_000_000,MAX_RESPONSE_BYTES=16_000_000,MAX_LINE=1_048_576;
 type Json=Record<string,unknown>;
 function fail(message:string,code:'protocol'|'validation'='protocol'):never{throw new DesignerServiceError(message,code);}
 function record(value:unknown,label:string):Json{
@@ -158,6 +164,12 @@ function proposalFrom(value:unknown,revision:number,snapshot:SceneDocument,catal
       keys(patch,['color'],'Wall colour patch');
       if(typeof patch.color!=='string'||!/^#[0-9a-f]{6}$/i.test(patch.color))fail('Wall colour must be a six-digit hex value.','validation');
       if(snapshot.project?.mode==='renovate'||snapshot.project?.finishes.some(finish=>finish.entityId===wallId&&['wall-front','wall-back'].includes(finish.surface)))fail('Use wall finish assignments for a renovated or material-backed wall.','validation');
+    }else if(operation.type==='update-room'){
+      // Only the room-face snap the designer's export uses: same outline, each corner moved a few centimetres at most.
+      keys(operation,['type','id','patch'],'Room outline snap');
+      const roomId=designRoom(snapshot,operation.id),patch=record(operation.patch,'Room outline patch');keys(patch,['polygon'],'Room outline patch');
+      const before=snapshot.rooms.find(room=>room.id===roomId)!.polygon,after=patch.polygon;
+      if(!Array.isArray(after)||after.length!==before.length||after.some((point,i)=>!Array.isArray(point)||point.length!==2||point.some(value=>typeof value!=='number'||!Number.isFinite(value))||Math.hypot(point[0]-before[i]![0],point[1]-before[i]![1])>.1))fail('A room outline may only snap its corners onto the wall faces.','validation');
     }else if(operation.type==='migrate-project'){
       keys(operation,['type'],'Appearance migration');
       if(snapshot.version!==1||index!==0||++migrations>1)fail('Appearance migration must occur once at the start of a v1 proposal.','validation');
@@ -230,7 +242,7 @@ export function createDesignerHttpAdapter(options:DesignerHttpOptions={}):Design
     northDeg:options.northDeg,doorSwings:options.doorSwings===undefined?undefined:structuredClone(options.doorSwings),
     conversationId:options.conversationId,catalog:options.catalog===undefined?undefined:structuredClone(options.catalog),
     vision:options.vision===undefined?undefined:structuredClone(options.vision),
-    catalogCurrency:options.catalogCurrency,resolveAssets:options.resolveAssets,onPreview:options.onPreview,onProgress:options.onProgress,onMessageDelta:options.onMessageDelta,onConversationId:options.onConversationId,onMetrics:options.onMetrics,onNotes:options.onNotes,
+    catalogCurrency:options.catalogCurrency,resolveAssets:options.resolveAssets,onPreview:options.onPreview,onPartial:options.onPartial,onProgress:options.onProgress,onMessageDelta:options.onMessageDelta,onConversationId:options.onConversationId,onMetrics:options.onMetrics,onNotes:options.onNotes,
     fetch:options.fetch??globalThis.fetch.bind(globalThis),
   };
   return {async propose(scene,revision,signal){
@@ -269,11 +281,18 @@ export function createDesignerHttpAdapter(options:DesignerHttpOptions={}):Design
       });
       response=await abortable(fetching,signal);
       checkAbort(signal);
-      if(!response.ok)throw new DesignerServiceError(`Designer service returned HTTP ${response.status}.`,'http',response.status);
+      if(!response.ok){
+        // The service explains a refusal in an NDJSON error line; show that, not just the status.
+        let detail='';
+        try{const body=await abortable(response.text(),signal);const first=JSON.parse(body.split('\n')[0]??'') as Json;if(typeof first.message==='string')detail=first.message.slice(0,500);}catch{/* no readable reason */}
+        throw new DesignerServiceError(detail?`Designer service refused the request: ${detail}`:`Designer service returned HTTP ${response.status}.`,'http',response.status);
+      }
       if(response.headers.get('Content-Type')?.split(';')[0]?.trim().toLowerCase()!=='application/x-ndjson')fail('Designer service must return application/x-ndjson.');
       if(!response.body)fail('Designer service returned no response stream.');
       reader=response.body.getReader();
       const decoder=new TextDecoder('utf-8',{fatal:true});let pending='',bytes=0,draftLength=0,terminal:Json|undefined;
+      // Partials validate asynchronously (catalog lookups); they run in order and finish before the final record is used.
+      let partials:Promise<void>=Promise.resolve();
       const consume=(line:string)=>{
         if(line.length>MAX_LINE)fail('Designer response line exceeds the 1 MB limit.');
         if(!line.trim())return;
@@ -289,6 +308,19 @@ export function createDesignerHttpAdapter(options:DesignerHttpOptions={}):Design
           if(typeof entry.image!=='string'||entry.image.length>700_000||!/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(entry.image))fail('Preview must be a small base64 image data URL.');
           const caption=entry.caption===undefined?undefined:text(entry.caption,'Preview caption',200);
           configured.onPreview?.({image:entry.image,...(caption===undefined?{}:{caption})});return;
+        }
+        if(entry.type==='partial'){
+          keys(entry,['type','proposal','rooms','metrics'],'Partial proposal');
+          if(!Array.isArray(entry.rooms)||entry.rooms.length>20)fail('Partial rooms must be a short list.');
+          const rooms=entry.rooms.map(value=>text(value,'Partial room',200));
+          if(entry.metrics!==undefined)record(entry.metrics,'Partial metrics');
+          partials=partials.then(async()=>{
+            try{
+              const proposal=proposalFrom(entry.proposal,revision,snapshot,await proposedCatalog(entry.proposal,catalog,configured.resolveAssets,signal),configured.keep);
+              configured.onPartial?.({proposal,rooms,...(entry.metrics===undefined?{}:{metrics:structuredClone(entry.metrics)})});
+            }catch(error){if(signal?.aborted)return;console.warn('Designer partial proposal skipped:',error instanceof Error?error.message:error);}
+          });
+          return;
         }
         if(entry.type==='tool'||entry.type==='build'){
           if(!configured.events)fail('Designer sent events without opt-in.');
@@ -308,7 +340,7 @@ export function createDesignerHttpAdapter(options:DesignerHttpOptions={}):Design
         const chunk=await abortable(current.read(),signal,()=>{void current.cancel().catch(()=>{});});
         checkAbort(signal);
         if(chunk.done){pending+=decoder.decode();break;}
-        bytes+=chunk.value.byteLength;if(bytes>MAX_BYTES)fail('Designer response exceeds the 4 MB payload limit.');
+        bytes+=chunk.value.byteLength;if(bytes>MAX_RESPONSE_BYTES)fail('Designer response exceeds the 16 MB limit.');
         pending+=decoder.decode(chunk.value,{stream:true});
         let newline:number;
         while((newline=pending.indexOf('\n'))>=0){consume(pending.slice(0,newline));pending=pending.slice(newline+1);}
@@ -316,6 +348,7 @@ export function createDesignerHttpAdapter(options:DesignerHttpOptions={}):Design
       }
       if(pending)consume(pending);
       if(!terminal)fail('Designer response ended without a final record.');
+      await partials;
       const final:Json=terminal;
       const conversationId=final.conversationId===undefined?undefined:text(final.conversationId,'Conversation ID',200);
       let proposal:AgentProposal|undefined,question:string|undefined,choices:string[]|undefined,message:string|undefined,notes:string|undefined,suggestions:string[]|undefined,assets:CatalogAsset[]|undefined;
@@ -391,7 +424,7 @@ export async function askDesigner(req:DesignerRequest,opts:AskDesignerOptions={}
       events:req.events,onEvent:opts.onEvent,onAssets:value=>{assets=value;},
       image:req.image,vision,url:serviceUrl(opts.baseUrl),request:req.request,conversationId:req.conversationId,
       keep:req.keep,doorSwings:req.doorSwings,northDeg:req.northDeg,catalog:req.catalog,catalogCurrency:req.catalogCurrency,resolveAssets:opts.resolveAssets,
-      onPreview:opts.onPreview,onProgress:opts.onProgress,onMessageDelta:opts.onMessageDelta,onConversationId:id=>{conversationId=id;},onMetrics:value=>{metrics=value;},onNotes:value=>{notes=value;},
+      onPreview:opts.onPreview,onPartial:opts.onPartial,onProgress:opts.onProgress,onMessageDelta:opts.onMessageDelta,onConversationId:id=>{conversationId=id;},onMetrics:value=>{metrics=value;},onNotes:value=>{notes=value;},
     });
     const proposal=await adapter.propose(req.scene,req.revision,opts.signal);
     if(!conversationId)return {type:'error',message:'Designer response is missing its conversation ID.'};
@@ -420,6 +453,22 @@ export const designerHttpAdapter:DesignerAdapter={
     return createDesignerHttpAdapter({url:serviceUrl()}).propose(scene,revision,signal);
   },
 };
+
+/** Is the designer service up, and warm? Never throws: an unreachable service is `{ok:false}`. */
+export async function designerHealth(opts:{baseUrl?:string;signal?:AbortSignal;fetch?:typeof globalThis.fetch;timeoutMs?:number}={}):Promise<DesignerHealth>{
+  const url=serviceUrl(opts.baseUrl).replace(/\/propose$/,'/health');
+  const timeout=new AbortController(),timer=setTimeout(()=>timeout.abort(),opts.timeoutMs??3000);
+  const abort=()=>timeout.abort();opts.signal?.addEventListener('abort',abort,{once:true});
+  try{
+    const response=await (opts.fetch??globalThis.fetch)(url,{signal:timeout.signal,cache:'no-store'});
+    if(!response.ok)return {ok:false};
+    const value=record(JSON.parse((await response.text()).split('\n')[0]??''),'Health');
+    const warm=value.warm!==null&&typeof value.warm==='object'?value.warm as Record<string,unknown>:undefined;
+    return {ok:value.ok===true,...(typeof value.engine==='string'?{engine:value.engine}:{}),
+      ...(warm?{warm:{...(typeof warm.renderer==='string'?{renderer:warm.renderer}:{}),...(typeof warm.codex==='string'?{codex:warm.codex}:{})}}:{})};
+  }catch{return {ok:false};}
+  finally{clearTimeout(timer);opts.signal?.removeEventListener('abort',abort);}
+}
 
 /** End private image/build/history retention after the customer leaves this conversation. */
 export async function endDesignerConversation(conversationId:string,opts:{baseUrl?:string;signal?:AbortSignal;fetch?:typeof globalThis.fetch}={}):Promise<void>{

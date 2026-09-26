@@ -14,7 +14,7 @@ import './ui/walkthrough.css';
 import { DEFAULT_INSIDE_LENS, isInsideLens } from './render/walkthrough-camera';
 import './ui/designer-panel.css';
 import { mountDesignerPanel, previewDesignerProposal } from './ui/designer-panel';
-import { askDesigner } from './adapters/designer-http';
+import { askDesigner, designerHealth } from './adapters/designer-http';
 import { DesignerProposalCatalog } from './core/designer-catalog';
 import { CATALOG_CURRENCY } from './adapters/catalog-http';
 import { mountFolioShell } from './ui/folio-shell';
@@ -52,7 +52,9 @@ import { bindFurnitureDragCard } from './ui/furniture-drag';
 import { mountThemeToggle } from './ui/theme';
 import './ui/arrival.css';
 
-const designerLive = Boolean(import.meta.env.VITE_DESIGNER_URL);
+// The live designer is the default (VITE_DESIGNER_URL, else the local service on 127.0.0.1:8787); an offline service
+// says so in the chat. The keyword replay runs only when asked for: ?designer=replay or VITE_DESIGNER_REPLAY=1.
+const designerLive = new URLSearchParams(location.search).get('designer') !== 'replay' && import.meta.env.VITE_DESIGNER_REPLAY !== '1';
 const app = document.querySelector<HTMLDivElement>('#app')!;
 app.innerHTML = `
   <header class="app-header">
@@ -1139,6 +1141,8 @@ const designerPanel = mountDesignerPanel(designerHost, {
     // and purchases it proposes are fetched by id through the same lookup as saved projects.
     const products = structuredClone([...catalogProducts.values()]);
     const reply = await askDesigner({ ...request, catalog: products.map(product => product.asset), catalogCurrency: CATALOG_CURRENCY }, { ...options,
+      // Rooms finished so far are previewed like a proposal, so their products must be known to the editor too.
+      onPartial: partial => { if (request.revision === store.revision) designerCatalog.remember(partial.proposal, [...products]); options?.onPartial?.(partial); },
       resolveAssets: async (ids, signal) => {
         const found = await databaseCatalog.resolve(ids, signal);
         products.push(...found);
@@ -1151,6 +1155,8 @@ const designerPanel = mountDesignerPanel(designerHost, {
     return reply;
   } : undefined,
   live: designerLive, snapshot: () => ({ scene: store.scene, revision: store.revision, catalog, catalogCurrency: CATALOG_CURRENCY }),
+  health: designerLive ? () => designerHealth() : undefined,
+  isPreviewing: () => previewMode && proposalView,
   subscribe: listener => store.subscribe(listener), canRequest: () => !busy && !previewMode,
   onBusyChange: waiting => { busy = waiting; $<HTMLButtonElement>('#suggest').disabled = waiting; },
   onProposal: proposal => { pending = proposal; renderProposal(); },

@@ -197,3 +197,13 @@
 .designer-preview { margin: var(--space-2) 0 0; }
 .designer-preview img { display: block; width: 100%; max-width: 360px; border-radius: 6px; border: 1px solid var(--line, rgba(0,0,0,.12)); }
 .designer-preview figcaption { font-size: .75rem; opacity: .7; margin-top: 2px; }
+
+/* Live designer service state and the rooms finished so far (pitch lane). */
+.designer-service-status { margin: 0 var(--space-4) var(--space-2); padding: var(--space-2) var(--space-3); border-radius: 8px; font-size: var(--text-xs, .75rem); line-height: 1.4; }
+.designer-service-offline { background: color-mix(in srgb, #c0392b 12%, transparent); border: 1px solid color-mix(in srgb, #c0392b 40%, transparent); }
+.designer-service-warming { background: color-mix(in srgb, #d4a017 12%, transparent); border: 1px solid color-mix(in srgb, #d4a017 35%, transparent); }
+.designer-service-status code { font-size: .95em; user-select: all; }
+.designer-steps-earlier { display: block; opacity: .65; margin-bottom: 2px; }
+.designer-partial { display: grid; gap: 4px; margin: var(--space-2) 0 0; padding: var(--space-2) var(--space-3); border-radius: 8px; border: 1px solid var(--line, rgba(0,0,0,.12)); }
+.designer-partial small { opacity: .75; }
+.designer-partial .button { justify-self: start; }
