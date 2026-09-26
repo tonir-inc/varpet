@@ -1,0 +1,511 @@
+{
+ "flat": "orion-t7",
+ "scale": "traced in pixels; scale 138.9 px/m from the printed total area",
+ "faults": [],
+ "empty_export": "ok",
+ "furniture": [
+  {
+   "id": "bed-1",
+   "kind": "bed",
+   "room": "bedroom-1",
+   "footprint_m": [
+    1.5,
+    2.11
+   ],
+   "asset": "abo:B07B4W5TZF",
+   "asset_m": [
+    1.5,
+    2.11
+   ],
+   "name": "Amazon Brand \u2013 Stone & Beam Contemporary Curved Wood King Bed, 79\"W, Toffee Oak"
+  },
+  {
+   "id": "bedside-1a",
+   "kind": "cabinet",
+   "room": "bedroom-1",
+   "footprint_m": [
+    0.42,
+    0.41
+   ],
+   "asset": "abo:B07S62NQFY",
+   "asset_m": [
+    0.42,
+    0.4
+   ],
+   "name": "Amazon Brand - Movian 2-Drawer Beside Table, 42 x 40 x 47 cm, White"
+  },
+  {
+   "id": "bedside-1b",
+   "kind": "cabinet",
+   "room": "bedroom-1",
+   "footprint_m": [
+    0.42,
+    0.41
+   ],
+   "asset": "abo:B07S62NQFY",
+   "asset_m": [
+    0.42,
+    0.4
+   ],
+   "name": "Amazon Brand - Movian 2-Drawer Beside Table, 42 x 40 x 47 cm, White"
+  },
+  {
+   "id": "wardrobe-1",
+   "kind": "wardrobe",
+   "room": "bedroom-1",
+   "footprint_m": [
+    1.87,
+    0.6
+   ],
+   "asset": "abo:B07GFS1VB6",
+   "asset_m": [
+    1.78,
+    0.63
+   ],
+   "name": "Amazon Brand - Movian Kolva Sliding 2-Door Wardrobe, 180 x 61 x 197cm, Light Bro"
+  },
+  {
+   "id": "chair-1",
+   "kind": "chair",
+   "room": "bedroom-1",
+   "footprint_m": [
+    0.79,
+    0.82
+   ],
+   "asset": "abo:B082VMWB4G",
+   "asset_m": [
+    0.79,
+    0.82
+   ],
+   "name": "Amazon Brand \u2013 Rivet Jamie Upholstered Mid-Century Modern Low Arm Accent Chair, "
+  },
+  {
+   "id": "lamp-1",
+   "kind": "lamp",
+   "room": "bedroom-1",
+   "footprint_m": [
+    0.48,
+    0.48
+   ],
+   "asset": "abo:B0742F7GT8",
+   "asset_m": [
+    0.48,
+    0.48
+   ],
+   "name": "Stone & Beam Modern Tripod Floor Lamp, with Bulb, Ivory Shade, 19.0\" x 19.0\" x 6"
+  },
+  {
+   "id": "bed-2",
+   "kind": "bed",
+   "room": "bedroom-2",
+   "footprint_m": [
+    1.51,
+    2.11
+   ],
+   "asset": "abo:B07B4W5TZF",
+   "asset_m": [
+    1.5,
+    2.11
+   ],
+   "name": "Amazon Brand \u2013 Stone & Beam Contemporary Curved Wood King Bed, 79\"W, Toffee Oak"
+  },
+  {
+   "id": "bedside-2a",
+   "kind": "cabinet",
+   "room": "bedroom-2",
+   "footprint_m": [
+    0.42,
+    0.43
+   ],
+   "asset": "abo:B07S62NQFY",
+   "asset_m": [
+    0.42,
+    0.4
+   ],
+   "name": "Amazon Brand - Movian 2-Drawer Beside Table, 42 x 40 x 47 cm, White"
+  },
+  {
+   "id": "bedside-2b",
+   "kind": "cabinet",
+   "room": "bedroom-2",
+   "footprint_m": [
+    0.42,
+    0.43
+   ],
+   "asset": "abo:B07S62NQFY",
+   "asset_m": [
+    0.42,
+    0.4
+   ],
+   "name": "Amazon Brand - Movian 2-Drawer Beside Table, 42 x 40 x 47 cm, White"
+  },
+  {
+   "id": "wardrobe-2",
+   "kind": "wardrobe",
+   "room": "bedroom-2",
+   "footprint_m": [
+    1.75,
+    0.6
+   ],
+   "asset": "abo:B07GFS1VB6",
+   "asset_m": [
+    1.78,
+    0.63
+   ],
+   "name": "Amazon Brand - Movian Kolva Sliding 2-Door Wardrobe, 180 x 61 x 197cm, Light Bro"
+  },
+  {
+   "id": "chair-2",
+   "kind": "chair",
+   "room": "bedroom-2",
+   "footprint_m": [
+    0.79,
+    0.82
+   ],
+   "asset": "abo:B082VMWB4G",
+   "asset_m": [
+    0.79,
+    0.82
+   ],
+   "name": "Amazon Brand \u2013 Rivet Jamie Upholstered Mid-Century Modern Low Arm Accent Chair, "
+  },
+  {
+   "id": "lamp-2",
+   "kind": "lamp",
+   "room": "bedroom-2",
+   "footprint_m": [
+    0.48,
+    0.48
+   ],
+   "asset": "abo:B0742F7GT8",
+   "asset_m": [
+    0.48,
+    0.48
+   ],
+   "name": "Stone & Beam Modern Tripod Floor Lamp, with Bulb, Ivory Shade, 19.0\" x 19.0\" x 6"
+  },
+  {
+   "id": "bed-3",
+   "kind": "bed",
+   "room": "bedroom-3",
+   "footprint_m": [
+    1.51,
+    2.11
+   ],
+   "asset": "abo:B07B4W5TZF",
+   "asset_m": [
+    1.5,
+    2.11
+   ],
+   "name": "Amazon Brand \u2013 Stone & Beam Contemporary Curved Wood King Bed, 79\"W, Toffee Oak"
+  },
+  {
+   "id": "bedside-3a",
+   "kind": "cabinet",
+   "room": "bedroom-3",
+   "footprint_m": [
+    0.42,
+    0.42
+   ],
+   "asset": "abo:B07S62NQFY",
+   "asset_m": [
+    0.42,
+    0.4
+   ],
+   "name": "Amazon Brand - Movian 2-Drawer Beside Table, 42 x 40 x 47 cm, White"
+  },
+  {
+   "id": "bedside-3b",
+   "kind": "cabinet",
+   "room": "bedroom-3",
+   "footprint_m": [
+    0.42,
+    0.42
+   ],
+   "asset": "abo:B07S62NQFY",
+   "asset_m": [
+    0.42,
+    0.4
+   ],
+   "name": "Amazon Brand - Movian 2-Drawer Beside Table, 42 x 40 x 47 cm, White"
+  },
+  {
+   "id": "wardrobe-3",
+   "kind": "wardrobe",
+   "room": "bedroom-3",
+   "footprint_m": [
+    1.77,
+    0.55
+   ],
+   "asset": "abo:B01LWRYSFS",
+   "asset_m": [
+    1.77,
+    0.48
+   ],
+   "name": "Amazon Brand - Movian Idro 2-Column Open Wardrobe, 177 x 48 x 200cm, Light Brown"
+  },
+  {
+   "id": "desk-3",
+   "kind": "desk",
+   "room": "bedroom-3",
+   "footprint_m": [
+    1.1,
+    0.56
+   ],
+   "asset": "abo:B07GFL6RF5",
+   "asset_m": [
+    1.1,
+    0.56
+   ],
+   "name": "Amazon Brand - Movian Idro 3-Drawer Desk, 56 x 110 x 73.5cm, Light Brown/Oak Foi"
+  },
+  {
+   "id": "desk-chair-3",
+   "kind": "chair",
+   "room": "bedroom-3",
+   "footprint_m": [
+    0.64,
+    0.68
+   ],
+   "asset": "abo:B075Z8769G",
+   "asset_m": [
+    0.64,
+    0.68
+   ],
+   "name": "Amazon Brand \u2013 Rivet Mid-Century Swope Curved Arm Swivel Office Chair, 26\"W, Fel"
+  },
+  {
+   "id": "rug",
+   "kind": "rug",
+   "room": "living",
+   "footprint_m": [
+    3.03,
+    2.41
+   ],
+   "asset": "abo:B07QB8J5ML",
+   "asset_m": [
+    3.03,
+    2.41
+   ],
+   "name": "Amazon Brand \u2013 Stone & Beam Casual Handwoven Area Rug 8' x 10', Ivory"
+  },
+  {
+   "id": "armchair-1",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.79,
+    0.82
+   ],
+   "asset": "abo:B082VMWB4G",
+   "asset_m": [
+    0.79,
+    0.82
+   ],
+   "name": "Amazon Brand \u2013 Rivet Jamie Upholstered Mid-Century Modern Low Arm Accent Chair, "
+  },
+  {
+   "id": "armchair-2",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.79,
+    0.82
+   ],
+   "asset": "abo:B082VMWB4G",
+   "asset_m": [
+    0.79,
+    0.82
+   ],
+   "name": "Amazon Brand \u2013 Rivet Jamie Upholstered Mid-Century Modern Low Arm Accent Chair, "
+  },
+  {
+   "id": "coffee-table",
+   "kind": "table",
+   "room": "living",
+   "footprint_m": [
+    1.15,
+    0.64
+   ],
+   "asset": "abo:B074KLN3HW",
+   "asset_m": [
+    1.15,
+    0.64
+   ],
+   "name": "Stone & Beam Parson Coffee Table, 45\"L, Oak"
+  },
+  {
+   "id": "sofa",
+   "kind": "sofa",
+   "room": "living",
+   "footprint_m": [
+    2.2,
+    0.9
+   ],
+   "asset": "abo:B075X4QMX3",
+   "asset_m": [
+    2.2,
+    0.9
+   ],
+   "name": "Stone & Beam Westport Modern Nailhead Upholstered Sofa, 87\"W, Linen"
+  },
+  {
+   "id": "lamp-living",
+   "kind": "lamp",
+   "room": "living",
+   "footprint_m": [
+    0.48,
+    0.48
+   ],
+   "asset": "abo:B0742F7GT8",
+   "asset_m": [
+    0.48,
+    0.48
+   ],
+   "name": "Stone & Beam Modern Tripod Floor Lamp, with Bulb, Ivory Shade, 19.0\" x 19.0\" x 6"
+  },
+  {
+   "id": "entry-console",
+   "kind": "dresser",
+   "room": "living",
+   "footprint_m": [
+    1.19,
+    0.39
+   ],
+   "asset": "abo:B07DBGJ5PM",
+   "asset_m": [
+    1.19,
+    0.39
+   ],
+   "name": "Amazon Brand \u2013 Ravenna Home Angela Modern Turned Wood Leg Console Entryway Table"
+  },
+  {
+   "id": "dining-table",
+   "kind": "table",
+   "room": "living",
+   "footprint_m": [
+    1.05,
+    1.05
+   ],
+   "asset": "abo:B07B78LZQC",
+   "asset_m": [
+    1.05,
+    1.05
+   ],
+   "name": "Amazon Brand \u2013 Rivet Ian Modern Wood Round Dining Room Kitchen Table, 42\"W, Brow"
+  },
+  {
+   "id": "dining-chair-n",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.58,
+    0.58
+   ],
+   "asset": "abo:B084T7WS8J",
+   "asset_m": [
+    0.57,
+    0.58
+   ],
+   "name": "Stone & Beam Classic Wishbone Dining Chair, 22.4\"W, Natural / Natural"
+  },
+  {
+   "id": "dining-chair-s",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.58,
+    0.58
+   ],
+   "asset": "abo:B084T7WS8J",
+   "asset_m": [
+    0.57,
+    0.58
+   ],
+   "name": "Stone & Beam Classic Wishbone Dining Chair, 22.4\"W, Natural / Natural"
+  },
+  {
+   "id": "dining-chair-w",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.58,
+    0.58
+   ],
+   "asset": "abo:B084T7WS8J",
+   "asset_m": [
+    0.57,
+    0.58
+   ],
+   "name": "Stone & Beam Classic Wishbone Dining Chair, 22.4\"W, Natural / Natural"
+  },
+  {
+   "id": "dining-chair-e",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.58,
+    0.58
+   ],
+   "asset": "abo:B084T7WS8J",
+   "asset_m": [
+    0.57,
+    0.58
+   ],
+   "name": "Stone & Beam Classic Wishbone Dining Chair, 22.4\"W, Natural / Natural"
+  }
+ ],
+ "furnished_export": "ok",
+ "rooms": [
+  {
+   "room": "Bedroom 1",
+   "m2": 17.65,
+   "printed": null
+  },
+  {
+   "room": "Ensuite and laundry",
+   "m2": 5.94,
+   "printed": null
+  },
+  {
+   "room": "Bathroom",
+   "m2": 3.85,
+   "printed": null
+  },
+  {
+   "room": "Living room and kitchen",
+   "m2": 43.33,
+   "printed": null
+  },
+  {
+   "room": "Hall",
+   "m2": 4.53,
+   "printed": null
+  },
+  {
+   "room": "Inner hall",
+   "m2": 3.69,
+   "printed": null
+  },
+  {
+   "room": "Shower room",
+   "m2": 4.19,
+   "printed": null
+  },
+  {
+   "room": "Bedroom 2",
+   "m2": 14.56,
+   "printed": null
+  },
+  {
+   "room": "Bedroom 3",
+   "m2": 18.42,
+   "printed": null
+  },
+  {
+   "room": "Balcony",
+   "m2": 1.98,
+   "printed": null
+  }
+ ]
+}
