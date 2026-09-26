@@ -1,3 +1,5 @@
+import { furnitureDimensions } from './furniture-bounds';
+import { floorHeight, supportContains } from './furniture-support';
 import type { CatalogAsset, SceneDocument, SceneObject, Vec2 } from '../contracts';
 import { doorBarriers } from './door-barriers';
 import { floorSupported, objectFootprint, polygonsOverlap, wallCollision, wallFootprint } from './validation';
@@ -62,10 +64,12 @@ const atX = (segment: Segment, x: number): number => segment[0][1]
  * This handles concave rooms and seams between adjacent/overlapping rooms without sampling.
  */
 function unsupportedRegions(scene: SceneDocument, object: SceneObject, asset: CatalogAsset): Vec2[][] {
+  if (object.host || object.restsOn) object = { ...object, position: [object.position[0], floorHeight(scene, object), object.position[2]] };
   // Use the authoritative check first, including its contact and elevation tolerances.
   if (floorSupported(object, asset, scene)) return [];
-  const halfX = asset.dimensions[0] * object.scale[0] / 2;
-  const halfZ = asset.dimensions[2] * object.scale[2] / 2;
+  const dimensions = furnitureDimensions(object, asset);
+  const halfX = dimensions[0] / 2;
+  const halfZ = dimensions[2] / 2;
   const cosine = Math.cos(object.rotation), sine = Math.sin(object.rotation);
   const polygons = scene.rooms.filter(room => scene.project?.metadata[room.id]?.phase !== 'remove'
     && (scene.version === 1 || Math.abs((scene.project?.metadata[room.id]?.elevation ?? 0) - object.position[1]) < EPS))
@@ -137,9 +141,13 @@ export function placementConflicts(scene: SceneDocument, catalog: CatalogAsset[]
   const asset = assets.get(candidate.assetId);
   if (!asset || scene.project?.metadata[candidate.id]?.phase === 'remove') return [];
   const footprint = objectFootprint(candidate, asset);
-  const bottom = candidate.position[1], top = bottom + asset.dimensions[1] * candidate.scale[1];
+  const bottom = candidate.position[1], top = bottom + furnitureDimensions(candidate, asset)[1];
   const result: PlacementConflict[] = unsupportedRegions(scene, candidate, asset)
     .map(polygon => ({ kind: 'support', polygon, bottom, top: bottom }));
+  if (candidate.restsOn) {
+    const support = scene.objects.find(o => o.id === candidate.restsOn), supportAsset = support && assets.get(support.assetId);
+    if (!support || !supportAsset || !supportContains(support, supportAsset, candidate)) result.push({kind:'support', entityId:candidate.restsOn, polygon:footprint, bottom, top:bottom});
+  }
   for (const wall of scene.walls) {
     const elevation = scene.project?.metadata[wall.id]?.elevation ?? 0;
     if (scene.project?.metadata[wall.id]?.phase === 'remove' || !wallCollision(candidate, asset, wall, footprint, elevation)) continue;
@@ -170,10 +178,11 @@ export function placementConflicts(scene: SceneDocument, catalog: CatalogAsset[]
     if (polygon.length) result.push({ ...barrier, polygon, bottom: conflictBottom, top: conflictTop });
   }
   if (asset.kind !== 'rug') for (const other of scene.objects) {
+    if (candidate.restsOn === other.id || other.restsOn === candidate.id) continue;
     if (other.id === candidate.id || scene.project?.metadata[other.id]?.phase === 'remove') continue;
     const otherAsset = assets.get(other.assetId);
     if (!otherAsset || otherAsset.kind === 'rug') continue;
-    const otherBottom = other.position[1], otherTop = otherBottom + otherAsset.dimensions[1] * other.scale[1];
+    const otherBottom = other.position[1], otherTop = otherBottom + furnitureDimensions(other, otherAsset)[1];
     if (bottom >= otherTop || otherBottom >= top) continue;
     const polygon = intersection(footprint, objectFootprint(other, otherAsset));
     if (polygon.length) result.push({ kind: 'overlap', entityId: other.id, polygon,

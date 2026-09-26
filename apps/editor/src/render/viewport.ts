@@ -1,3 +1,5 @@
+import { placeFurniture, canRestOnFurniture, isDescendant, followSupports, type FurnitureSurfaceResolver } from '../core/furniture-support';
+import { createFurnitureSurfaceResolver, furniturePointerSurface } from './furniture-surfaces';
 import { registerDesignerRenderer } from '../adapters/designer-vision';
 import { ceilingDesignRoomAt, layoutCeilingDesign } from '../core/ceiling-design';
 import { makeCeilingDesigns, updateCeilingDesignVisibility } from './ceiling-design';
@@ -7,7 +9,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import type { BuildingComponent, CatalogAsset, ComponentTransformPatch, ObjectPatch, SceneDocument, SceneObject, ToolMode, Vec3, ViewMode, Viewport, ViewportCallbacks, ViewportLayer, WallMode } from '../contracts';
-import { AssetLoader, disposeObject, makeFurniture } from './assets';
+import { AssetLoader, disposeObject, makeFurniture, poseWallDecoration } from './assets';
 import { makeStructure, type StructureProjection } from './structure';
 import { installComponentModel, LightingPreview, makeServices, type ServiceProjection } from './services';
 import { label3d } from './annotations';
@@ -76,6 +78,7 @@ function yawOf(quaternion: THREE.Quaternion): number {
 }
 
 export interface FinishViewport extends Viewport {
+  furnitureSurface: FurnitureSurfaceResolver;
   setFurnitureDrag(asset: CatalogAsset | null): void;
   setInsideLens(lens: InsideLens): void;
   setAdditiveSelection(enabled: boolean): void;
@@ -106,7 +109,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     message.textContent = '3D view unavailable. Enable browser hardware acceleration and reload.';
     message.style.cssText = 'margin:auto;padding:2rem;color:#6a5849;max-width:28rem;text-align:center';
     container.append(message);
-    return { setFurnitureDrag() {}, setInsideLens() {}, setSkybox() { return false; }, getSun() { return { ...DEFAULT_SUN }; }, setSun() {}, setTopLighting() {}, setLightingMood() {}, inspectCeiling() { return false; }, project() { return null; }, onFrame() { return () => {}; }, animateAssembly() {}, setHidden() {}, setFinishBrush() {}, setAdditiveSelection() {}, revealSelection() {}, setScene() {}, animatePlacement() {}, setSelection() {}, setTool() {}, setView() {}, setSnap() {}, setWalls() {}, setQuality() {}, setLayer() {}, setDoorAngle() {}, getDoorAngle() { return 0; }, toggleSwitch() {}, setSwitchLevel() {}, getSwitchLevel() { return 0; }, setComparison() {}, focus() {}, cancelInteraction() {}, dispose() { message.remove(); } };
+    return { furnitureSurface() { return undefined; }, setFurnitureDrag() {}, setInsideLens() {}, setSkybox() { return false; }, getSun() { return { ...DEFAULT_SUN }; }, setSun() {}, setTopLighting() {}, setLightingMood() {}, inspectCeiling() { return false; }, project() { return null; }, onFrame() { return () => {}; }, animateAssembly() {}, setHidden() {}, setFinishBrush() {}, setAdditiveSelection() {}, revealSelection() {}, setScene() {}, animatePlacement() {}, setSelection() {}, setTool() {}, setView() {}, setSnap() {}, setWalls() {}, setQuality() {}, setLayer() {}, setDoorAngle() {}, getDoorAngle() { return 0; }, toggleSwitch() {}, setSwitchLevel() {}, getSwitchLevel() { return 0; }, setComparison() {}, focus() {}, cancelInteraction() {}, dispose() { message.remove(); } };
   }
   renderer.setClearColor('#e2e2dd');
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -628,6 +631,15 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   let hiddenIds = new Set<string>();
   function applyHidden(): void { for (const [id, record] of rendered) record.group.visible = !hiddenIds.has(id); }
   const installedModels = new WeakSet<THREE.Object3D>();
+  const furnitureSurface = createFurnitureSurfaceResolver(id => {
+    const record = rendered.get(id), object = documentState?.objects.find(o => o.id === id);
+    const asset = catalogState.find(a => a.id === object?.assetId);
+    return record?.visual.children.find(child => installedModels.has(child) || asset?.source.type === 'procedural');
+  });
+  let furnitureCeiling: number | undefined;
+  function pointerFurnitureSurface(exclude?: string): THREE.Vector3 | undefined {
+    return furniturePointerSurface(raycaster, [...rendered].filter(([id]) => id !== exclude && (!exclude || !documentState || !isDescendant(documentState, id, exclude))).map(([, r]) => r.visual));
+  }
   const assemblyWanted = new Set<string>();
   interface AssemblyPart { part: THREE.Object3D; y: number; lift: number }
   let assemblies: { parts: AssemblyPart[]; start: number; stagger: number }[] = [];
@@ -666,6 +678,8 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       if (disposed || !current || current.token !== pending.token) { disposeObject(pending.model); continue; }
       for (const child of [...current.visual.children]) disposeObject(child);
       current.visual.add(pending.model); installedModels.add(pending.model);
+      const object = documentState?.objects.find(o => o.id === id), asset = catalogState.find(a => a.id === object?.assetId);
+      if (object && asset) poseWallDecoration(pending.model, asset, object);
       if (assemblyWanted.delete(id)) startAssembly(pending.model, current.dimensions[1]);
       if (pending.color) pending.model.traverse(child => {
         if (child instanceof THREE.Mesh) for (const mat of Array.isArray(child.material) ? child.material : [child.material]) {
@@ -723,7 +737,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
         group.position.copy(previous.position); group.quaternion.copy(previous.quaternion); group.scale.copy(previous.scale); group.updateMatrixWorld(true);
         callbacks.onComponentTransform?.(previous.id, patch);
       } else if (changed) {
-        const patch: ObjectPatch = tool === 'move' ? { position: [group.position.x, previous.position.y, group.position.z] }
+        const patch: ObjectPatch = tool === 'move' ? { position: [group.position.x, group.position.y, group.position.z] }
           : tool === 'rotate' ? { rotation: yawOf(group.quaternion) }
           : { scale: [group.scale.x, group.scale.y, group.scale.z] };
         callbacks.onTransform(previous.id, patch);
@@ -738,6 +752,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       const root = rendered.get(member.id)?.group, current = documentState?.objects.find(object => object.id === member.id);
       if (root && current) applyTransform(root, current);
     }
+    for (const object of documentState?.objects ?? []) if (object.restsOn) { const root = rendered.get(object.id)?.group; if (root) applyTransform(root, object); }
     if (pendingModels.size) installLoadedModels();
     // A rejected/canceled/no-op drag must never play a successful landing.
     const record = rendered.get(previous.id);
@@ -763,6 +778,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     const members = !component && documentState ? documentState.objects.filter(object => selectedFurnitureIds.includes(object.id)) : undefined;
     motion.finish(group); cameraMotion.cancel('camera');
     for (const member of members ?? []) { const root = rendered.get(member.id)?.group; if (root) motion.finish(root); }
+    furnitureCeiling = undefined;
     drag = { members, component, id: selectedId, position: group.position.clone(), quaternion: group.quaternion.clone(), scale: group.scale.clone() };
     const record = rendered.get(selectedId);
     if (!component && (members?.length ?? 1) < 2 && tool === 'move' && record) placementMotion.lift(selectedId, record.visual, record.dimensions);
@@ -811,7 +827,10 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     const group = rendered.get(gesture.id)?.group;
     if (!point || !group) return true;
     body.moved = true;
-    const x = gesture.position.x + point.x - body.origin.x, z = gesture.position.z + point.z - body.origin.z;
+    const original = documentState?.objects.find(o => o.id === gesture.id), asset = catalogState.find(a => a.id === original?.assetId);
+    const surface = asset && canRestOnFurniture(asset) ? pointerFurnitureSurface(gesture.id) : undefined;
+    furnitureCeiling = surface ? surface.y + .02 : undefined;
+    const x = surface?.x ?? gesture.position.x + point.x - body.origin.x, z = surface?.z ?? gesture.position.z + point.z - body.origin.z;
     group.position.set(snapEnabled ? Math.round(x * 4) / 4 : x, gesture.position.y, snapEnabled ? Math.round(z * 4) / 4 : z);
     changedTransform();
     return true;
@@ -822,25 +841,39 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     const original = documentState.objects.find(object => object.id === drag!.id);
     const group = rendered.get(drag.id)?.group;
     if (!original || !group) { placementFeedback.clear(); return; }
-    const candidate: SceneObject = {
+    let candidate: SceneObject = {
       ...original,
       position: [group.position.x, group.position.y, group.position.z],
       rotation: yawOf(group.quaternion),
       scale: [group.scale.x, group.scale.y, group.scale.z],
     };
+    try { candidate = placeFurniture(documentState, catalogState, candidate, undefined, furnitureSurface, furnitureCeiling); } catch { /* feedback remains available */ }
     const updates = (drag.members ?? [original]).map(member => {
       const root = rendered.get(member.id)?.group;
+      if (member.id === candidate.id) return candidate;
       return root ? { ...member, position: root.position.toArray() as SceneObject['position'], rotation: yawOf(root.quaternion), scale: root.scale.toArray() as SceneObject['scale'] } : member;
     });
     const byId = new Map(updates.map(object => [object.id, object]));
-    const preview = { ...documentState, objects: documentState.objects.map(object => byId.get(object.id) ?? object) };
+    const preview = { ...documentState, objects: documentState.objects.map(object => structuredClone(byId.get(object.id) ?? object)) };
+    followSupports(documentState, preview, new Set(updates.map(o => o.id)), catalogState);
+    for (const object of preview.objects) if (!byId.has(object.id) && object.restsOn) { const root = rendered.get(object.id)?.group; if (root) applyTransform(root, object); }
     placementFeedback.update(updates.length > 1 ? updates.flatMap(object => placementConflicts(preview, catalogState, object)) : placementConflicts(documentState, catalogState, candidate));
   }
 
   function changedTransform(): void {
     const group = transform.object;
     if (group && drag) {
-      if (!drag.component) group.position.y = drag.position.y;
+      if (!drag.component) {
+        group.position.y = drag.position.y;
+        const original = documentState?.objects.find(o => o.id === drag!.id);
+        const asset = catalogState.find(a => a.id === original?.assetId);
+        if (original && asset && documentState) {
+          try {
+            const mounted = placeFurniture(documentState, catalogState, { ...original, position: group.position.toArray() as SceneObject['position'] }, undefined, furnitureSurface, furnitureCeiling);
+            group.position.fromArray(mounted.position); if (mounted.host) group.rotation.y = mounted.rotation;
+          } catch { /* Release reports the unavailable wall through the command boundary. */ }
+        }
+      }
       else if (drag.component.host && documentState) {
         const component = drag.component; const host = component.host!; const wall = documentState.walls.find(item => item.id === host.wallId);
         if (wall) {
@@ -1019,6 +1052,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
           });
         }
       }
+      for (const model of record.visual.children) poseWallDecoration(model, asset, object);
       record.group.name = object.name;
       if (created || transformChanged || !animate) transitionTransform(motion, record.group, record.pose, object, animate && !created);
       else applyTransform(record.group, object);
@@ -1439,6 +1473,8 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   });
   const furnitureDrop = createFurnitureDrop({
     canvas: renderer.domElement, container, world,
+    surfaceResolver: furnitureSurface,
+    pointerSurface: ray => furniturePointerSurface(ray, [...rendered.values()].map(r => r.visual)),
     camera: () => camera, scene: () => documentState, catalog: () => catalogState,
     snap: () => snapEnabled,
     enabled: () => !disposed && view !== 'inside' && layers.furniture && !!callbacks.onFurnitureDrop
@@ -1471,6 +1507,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   const unregisterDesignerSnapshot = registerDesignerRenderer(renderer.domElement, renderScene, () => drag || endpointDrag || openingDrag || wallMove.active || furnitureDrop.active ? null : documentState);
 
   return {
+    furnitureSurface,
     setScene,
     setFurnitureDrag(asset) {
       onPointerCancel();

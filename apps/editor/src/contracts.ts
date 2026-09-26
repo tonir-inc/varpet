@@ -3,7 +3,7 @@ export type * from './renovation-contracts';
 /** Editor-local v1 boundary. Deliberately does not define the future shared engine schema. */
 export type Vec2 = [number, number]; // x, z in metres
 export type Vec3 = [number, number, number]; // x, y, z in metres
-export type AssetKind = 'sofa' | 'chair' | 'table' | 'desk' | 'bed' | 'cabinet' | 'wardrobe' | 'dresser' | 'lamp' | 'plant' | 'rug' | 'shelf' | 'toilet' | 'sink' | 'bathtub' | 'shower' | 'fridge' | 'stove' | 'oven' | 'washing_machine' | 'dryer' | 'dishwasher' | 'microwave' | 'tv' | 'monitor' | 'computer' | 'laptop' | 'speaker' | 'printer' | 'game_console' | 'kitchen_cabinet' | 'kitchen_counter' | 'kitchen_island' | 'radiator' | 'fan' | 'coat_rack' | 'shoe_rack';
+export type AssetKind = 'sofa' | 'chair' | 'table' | 'desk' | 'bed' | 'cabinet' | 'wardrobe' | 'dresser' | 'lamp' | 'plant' | 'rug' | 'shelf' | 'toilet' | 'sink' | 'bathtub' | 'shower' | 'fridge' | 'stove' | 'oven' | 'washing_machine' | 'dryer' | 'dishwasher' | 'microwave' | 'tv' | 'monitor' | 'computer' | 'laptop' | 'speaker' | 'printer' | 'game_console' | 'kitchen_cabinet' | 'kitchen_counter' | 'kitchen_island' | 'radiator' | 'fan' | 'coat_rack' | 'shoe_rack' | 'decor' | 'wall_art' | 'mirror';
 export interface CatalogAsset {
   id: string;
   name: string;
@@ -24,7 +24,9 @@ export interface SceneObject {
   assetId: string;
   /** Flat furniture group membership, supported only in v2 documents. */
   groupId?: string;
-  position: Vec3; // floor-centred origin, base at y=0
+  restsOn?: string;
+  host?: import('./renovation-contracts').ComponentHost;
+  position: Vec3; // footprint-centred origin at the base
   rotation: number; // radians about +Y
   scale: Vec3;
   color?: string;
@@ -41,12 +43,13 @@ export interface SceneDocument {
   walls: Wall[];
   objects: SceneObject[];
 }
-export type ObjectPatch = Partial<Pick<SceneObject, 'name' | 'position' | 'rotation' | 'scale' | 'color'>>;
+export type ObjectPatch = Partial<Pick<SceneObject, 'name' | 'position' | 'rotation' | 'scale' | 'color' | 'restsOn'>>;
 export type Operation =
   | { type: 'group'; id: string; objectIds: string[] }
   | { type: 'ungroup'; id: string }
-  | { type: 'add'; object: SceneObject }
-  | { type: 'update'; id: string; patch: ObjectPatch }
+  | { type: 'add'; object: SceneObject; on?: string | null }
+  | { type: 'add'; object: Omit<SceneObject, 'position'> & { position?: Vec3 }; on: string }
+  | { type: 'update'; id: string; patch: ObjectPatch; on?: string | null }
   | { type: 'delete'; id: string }
   | { type: 'replace-structure'; rooms: Room[]; walls: Wall[] }
   | { type: 'replace-scene'; scene: SceneDocument }

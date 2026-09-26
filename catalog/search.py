@@ -24,12 +24,15 @@ NATIVE_EXTRA_KINDS = (
     "toilet", "sink", "bathtub", "shower", "fridge", "stove", "oven", "washing_machine",
     "dryer", "dishwasher", "microwave", "tv", "monitor", "computer", "laptop", "speaker",
     "printer", "game_console", "kitchen_cabinet", "kitchen_counter", "kitchen_island",
-    "radiator", "fan", "coat_rack", "shoe_rack", "plant",
+    "radiator", "fan", "coat_rack", "shoe_rack", "plant", "decor", "wall_art", "mirror",
 )
 
+# Only decoration aliases extend the existing extra-model allowlist.
+EXTRA_DECOR_KINDS = tuple(kind for kind, target in EDITOR_KIND_OF.items() if target in {"decor", "wall_art"})
+WALL_EXTRA_KINDS = ("wall_art", "mirror", "clock", "wall_hanging")
 
 def build_placeable_sql():
-    """Combine unchanged ABO eligibility with native extra models without wall mounting."""
+    """Combine unchanged ABO eligibility with extra models, including supported wall decorations."""
     abo = (
         f"(kind in ({', '.join(repr(k) for k in PLACEABLE_KINDS)}) and source = 'abo'"
         " and glb_url is not null and price is not null and name is not null and size_status <> 'conflict'"
@@ -38,12 +41,12 @@ def build_placeable_sql():
     )
     # IDs are extra:<group>:<slug>; group names are not mounting evidence.
     # Wall-only kinds (range_hood, mirror_bathroom, towel_rail, air_conditioner,
-    # clock, curtain) are deliberately absent from the native allowlist.
+    # curtain) are deliberately absent from the allowlist.
     extra = (
-        f"(kind in ({', '.join(repr(k) for k in NATIVE_EXTRA_KINDS)}) and source = 'extra'"
+        f"(kind in ({', '.join(repr(k) for k in (*NATIVE_EXTRA_KINDS, *EXTRA_DECOR_KINDS))}) and source = 'extra'"
         " and glb_url is not null"
-        " and coalesce(split_part(id, ':', 3), '') !~* '(wall|mount|hang|lift)'"
-        " and coalesce(tags->'extra'->>'notes', '') !~* '(wall|mount|hang|lift)')"
+        f" and (kind in ({', '.join(repr(k) for k in WALL_EXTRA_KINDS)}) or (coalesce(split_part(id, ':', 3), '') !~* '(wall|mount|hang|lift)'"
+        " and coalesce(tags->'extra'->>'notes', '') !~* '(wall|mount|hang|lift)')))"
     )
     return f"({abo} or {extra})"
 

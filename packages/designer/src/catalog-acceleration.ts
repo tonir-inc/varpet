@@ -56,7 +56,7 @@ const slotCache=new SceneAnalysisCache();
 export function fitProducts(scene:Scene,rows:RawProduct[],roomId?:string,maxChecks=2,catalog:readonly CatalogAsset[]=[]):any[]{
  const rooms=scene.rooms.filter(r=>!roomId||r.id===roomId),result:any[]=[];
  for(const row of rows.slice(0,20)){
-  if(!row.size_m?.every(v=>Number.isFinite(v)&&v>0)||!['sofa','chair','table','desk','bed','cabinet','wardrobe','dresser','lamp','plant','rug','shelf'].includes(row.kind)&&!editorKindOf[row.kind])continue;
+  if(!row.size_m?.every(v=>Number.isFinite(v)&&v>0)||!['sofa','chair','table','desk','bed','cabinet','wardrobe','dresser','lamp','plant','rug','shelf','decor','wall_art','mirror'].includes(row.kind)&&!editorKindOf[row.kind])continue;
   const asset:CatalogAsset={id:row.id,name:row.name??row.id,kind:(catalog.find(a=>a.id===row.id)?.kind??(['desk','wardrobe','dresser'].includes(row.kind)?row.kind:editorKindOf[row.kind]??row.kind)) as CatalogAsset['kind'],category:row.kind,dimensions:[row.size_m[0]!,row.size_m[2]!,row.size_m[1]!],price:row.price,color:'#888888',source:{type:'gltf',url:row.glb_url??''}};
   const assets=catalog.length?catalog:[asset];
   const slots=rooms.flatMap(room=>slotCache.slots(scene,assets,{roomId:room.id,catalogId:asset.id,maxChecks}).slice(0,2).map(slot=>({id:slot.id,room_id:room.id,ops:slot.ops,score:slot.score})));

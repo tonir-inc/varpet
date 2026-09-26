@@ -1,3 +1,5 @@
+import { wallMirrorLean } from '../core/furniture-bounds';
+import type { SceneObject } from '../contracts';
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -259,6 +261,12 @@ export function makeFurniture(asset: CatalogAsset, color = asset.color): THREE.G
       box(w * 0.8, h * 0.7, d * 0.06, 0, h * 0.48, d * 0.47, m.dark);
       break;
     }
+    case 'decor':
+    case 'wall_art':
+    case 'mirror': {
+      box(w, h, d, 0, h / 2, 0, asset.kind === 'mirror' ? m.metal : m.main, Math.min(w, h, d) / 10);
+      break;
+    }
     case 'rug': {
       box(w, h, d, 0, h / 2, 0, m.main, Math.min(h / 3, 0.015));
       const trim = furnitureMaterial(new THREE.Color(color).lerp(new THREE.Color('#efeadf'), 0.3), 'textile');
@@ -387,4 +395,12 @@ export class AssetLoader {
     this.cache.forEach(source => { void source.promise.then(disposeObject, () => undefined); });
     this.cache.clear();
   }
+}
+
+/** Keep a leaning mirror's projected footprint centred and its lowest point at y=0. */
+export function poseWallDecoration(model: THREE.Object3D, asset: CatalogAsset, object: SceneObject): void {
+  const angle = wallMirrorLean(object, asset);
+  model.rotation.x = -angle;
+  model.position.y = asset.dimensions[2] * Math.sin(angle) / 2;
+  model.position.z = asset.dimensions[1] * Math.sin(angle) / 2;
 }

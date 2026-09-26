@@ -172,7 +172,7 @@ CATEGORY = {"sofa": "Living", "chair": "Living", "table": "Living", "bed": "Bedr
             "shelf": "Storage", "lamp": "Lighting", "rug": "Textiles", "desk": "Office",
             "dresser": "Bedroom", "wardrobe": "Bedroom", "nightstand": "Bedroom",
             "stool": "Living", "ottoman": "Living", "bench": "Living"}
-NATIVE_EDITOR_KINDS = {"desk", "wardrobe", "dresser"}
+NATIVE_EDITOR_KINDS = {"desk", "wardrobe", "dresser", "decor", "wall_art", "mirror"}
 
 
 def editor_kind(kind: str) -> str:

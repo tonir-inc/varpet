@@ -197,3 +197,69 @@ Save/load and JSON import resolve missing built IDs from their original architec
 The reported `catalog middleware must be implemented` assertion can mask a missing installed `@modelcontextprotocol/sdk`: the test's import guard matches the importing file path in the dependency error. Use the repository's pinned pnpm 10 (`npx --yes pnpm@10.0.0 install --frozen-lockfile` if the global pnpm is older), then run `node --test apps/editor/server/catalog.test.mjs`. The middleware and dependency declaration already exist.
 
 No Notion connector or exported Design doc/Hackathon plan was available in this session; this page records the changed contract for handoff.
+
+## Decorations and wall placement
+
+Native furniture kinds now include `decor`, `wall_art`, and `mirror`. Catalog dimensions
+accept 0.01–20 m on every axis, including thin (0.02 m) wall art. Database decoration
+subtypes map to these kinds; clocks and wall hangings map to `wall_art`.
+`add` and transform `update` commands snap wall art and mirrors to the nearest usable
+wall, with local +Z facing into a room. Optional furniture `host` uses
+`{wallId, offset, elevation, side}`; offset is the footprint centre along the wall.
+Position remains the authoritative world-space base. Default base height is
+`max(0.9, 1.5 - scaledHeight/2)` above the room floor; mirrors taller than 1.4 m
+remain floor-based, leaning 0.06 radians toward the wall. Their projected footprint
+and height include the lean; the complete mesh stays above the floor and clear of the wall.
+The lean is derived from kind, scaled height and host, without a new required scene field. No usable wall rejects placement.
+Overlap checks compare vertical extents, so art above a sofa does not overlap it.
+
+## Furniture resting on furniture (`on`)
+
+Placed furniture has optional `restsOn?: string`, the supporting furniture's scene ID.
+`position[1]` is always the item's world-space base height. Existing documents need no
+migration. `decor`, `plant`, `lamp`, and small countertop electronics/appliances may rest
+on furniture; sofas, beds, tables, desks and storage furniture never stack. Wall art and
+mirrors retain their wall placement. These are furniture `add` / `update` operations
+from `contracts.ts`, not renovation `upsert-component` operations:
+
+```ts
+{ type: 'add', on: 'dining-table', object: {
+  id: 'vase', name: 'Vase', assetId: 'catalog-vase',
+  position: [2.2, 0, 3], rotation: 0, scale: [1, 1, 1]
+} }
+{ type: 'update', id: 'vase', on: 'sideboard', patch: { position: [4, 0, 2] } }
+{ type: 'update', id: 'vase', on: 'nightstand', patch: {} }
+{ type: 'update', id: 'vase', on: null, patch: { position: [1, 0, 1] } }
+```
+
+With `on`, omitting an add's `object.position` or an update's `patch.position` selects
+the support's footprint centre and highest surface there. A supplied position requests
+that X/Z; y=0 means search from above. A supplied positive base above the room floor
+limits the downward ray to just above that height, allowing lower shelf boards.
+`on: null` explicitly detaches to the room floor. Missing supports, cycles, large
+furniture, or no upward-facing surface at the requested centre reject the command.
+An explicit position outside the support footprint rejects rather than recentring.
+
+The browser installs `store.setSurfaceResolver(viewport.furnitureSurface)`. This casts
+straight down at the footprint centre against the normalized, rendered model meshes,
+using snapshot transforms (not animation transforms). Drag/drop first picks the visible
+furniture under the cursor so lower shelf boards remain reachable; the vertical ray
+then chooses the actual surface. Holes in loaded geometry do not fall back to a box.
+Without `on`, eligible moved/dropped items automatically use the surface under their
+centre, or the room floor if none is hit. The item itself and its dependants are excluded.
+
+**Headless / model still loading:** no WebGL is required. Missing mesh geometry uses
+scaled catalog height for table, desk, cabinet/nightstand, dresser, shelf and other
+supports; sofa/chair seat is `min(0.45, catalogHeight)`, bed is
+`min(0.55, catalogHeight)`. These are approximate surfaces, not model-specific shelves.
+A loaded mesh with no surface at the requested centre returns an error for explicit `on`.
+Register assets before placing items; meshes may still be loading at that time.
+
+Moving/rotating a support applies its rigid transform to all supported descendants.
+Deleting it drops direct dependants to their room floor and their own dependants follow.
+All of this is one command/history entry; saved relative offsets are derived from world
+transforms rather than duplicated in JSON. Supported items do not collide with their
+own support. Other items still use footprint overlap plus vertical extents, and a centre
+outside its support is a support issue. As with existing placement checks, invalid
+placement is blocking in v1 and a review warning in renovation v2; missing/cyclic IDs
+and unsupported kinds always reject.

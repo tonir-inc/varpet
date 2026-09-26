@@ -7,7 +7,7 @@ import pytest
 
 import mcp_server
 from mcp_server import editor_kind
-from select_editor_set import EDITOR_KIND_OF, SHARE, selection_counts
+from select_editor_set import EDITOR_KIND_OF, SHARE, SUBTYPE_COUNTS, selection_counts
 
 
 @pytest.mark.parametrize("kind, expected", [
@@ -27,7 +27,7 @@ def test_mapping_matches_designer_bridge():
     pairs = re.findall(r"(\w+)\s*:\s*['\"](\w+)['\"]", match.group(1))
     assert pairs
     assert EDITOR_KIND_OF == dict(pairs)
-    assert mcp_server.NATIVE_EDITOR_KINDS == {"desk", "wardrobe", "dresser"}
+    assert mcp_server.NATIVE_EDITOR_KINDS == {"desk", "wardrobe", "dresser", "decor", "wall_art", "mirror"}
     for kind, legacy_kind in pairs:
         assert editor_kind(kind) == (kind if kind in mcp_server.NATIVE_EDITOR_KINDS else legacy_kind)
 
@@ -35,7 +35,7 @@ def test_mapping_matches_designer_bridge():
 @pytest.mark.parametrize("total", [0, 500, 960, 980, 1000])
 def test_selection_budget_and_quotas(total):
     counts = selection_counts(total)
-    assert {kind: counts[kind] for kind in EDITOR_KIND_OF} == {
+    assert {kind: counts[kind] for kind in SUBTYPE_COUNTS} == {
         "desk": 40, "dresser": 15, "wardrobe": 10, "nightstand": 15,
         "stool": 10, "ottoman": 5, "bench": 5,
     }

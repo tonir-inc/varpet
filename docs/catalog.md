@@ -138,6 +138,10 @@ For the demo, run the whole catalog on the laptop: no VM, tunnel or venue Wi-Fi 
 2. Start it: `catalog/demo/run_local.sh` (serves `http://127.0.0.1:8765/mcp`; `/health` answers when ready).
 3. Point tools at it: editor `VARPET_CATALOG_URL=http://127.0.0.1:8765/mcp pnpm dev`; designer/harness via
    `VARPET_CATALOG_URL` in `~/.config/varpet/env`.
+Full demo on one laptop (three processes; without the designer service the chat panel falls back to "Demo replay"):
+`catalog/demo/run_local.sh`;
+`cd harness && VARPET_CATALOG_URL=http://127.0.0.1:8765/mcp uv run python designer_service.py --port 8787`;
+`VITE_DESIGNER_URL=http://127.0.0.1:8787 VARPET_CATALOG_URL=http://127.0.0.1:8765/mcp pnpm dev`.
 Measured on Sergey's Mac: 8,113 items, 7,013 models, 2,471 previews (4.7 GB), searches 0.01–0.25 s.
 
 ## Doors and windows (26 Sept)
@@ -145,3 +149,13 @@ The 10 opening models in `catalog/openings/` are catalog items too (`extra:openi
 source 'extra', mock prices, previews). They are not in the default `placeable` scope (the editor places openings its own
 way): search them with `kind=door|window` or `scope=all`. Place them per `catalog/openings/README.md` (no normalising).
 All 169 extra items now have SigLIP embeddings (their render stands in for the photo), so text search finds them.
+
+## Decoration kinds (26 Sept)
+
+Placeable search includes native `decor`, `wall_art` and `mirror`, plus decoration subtypes
+mapped identically in `select_editor_set.EDITOR_KIND_OF` and the designer bridge. `planter`
+maps to `decor`; `clock` and `wall_hanging` map to `wall_art`; `plant` stays native.
+Extra wall art, mirrors, clocks and wall hangings may carry wall/mount/hang notes or slugs.
+Other extra kinds retain the mounting exclusion; curtains remain unsupported. ABO decorations
+retain existing size, conflict, orientation, model, name and price eligibility checks.
+The capped editor-set script draws quotas from `SHARE`, independently of the placeable kinds.

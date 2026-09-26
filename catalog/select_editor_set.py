@@ -16,10 +16,15 @@ import os
 
 import psycopg
 
-EDITOR_KINDS = ["sofa", "chair", "table", "bed", "cabinet", "lamp", "rug", "shelf"]  # no ABO 'plant'
+# Native ABO kinds for placeable search; SHARE separately owns capped selection quotas.
+EDITOR_KINDS = ["sofa", "chair", "table", "bed", "cabinet", "lamp", "rug", "shelf", "decor", "wall_art", "mirror"]
 SHARE = {"sofa": 0.16, "chair": 0.19, "table": 0.16, "bed": 0.08, "cabinet": 0.10, "lamp": 0.09, "rug": 0.12, "shelf": 0.10}
 EDITOR_KIND_OF = {"desk": "table", "dresser": "cabinet", "wardrobe": "cabinet", "nightstand": "cabinet",
-                  "stool": "chair", "ottoman": "chair", "bench": "chair"}
+                  "stool": "chair", "ottoman": "chair", "bench": "chair",
+                  "vase": "decor", "candle": "decor", "sculpture": "decor", "books": "decor",
+                  "cushion": "decor", "throw_blanket": "decor", "basket": "decor", "tray": "decor",
+                  "bowl": "decor", "lantern": "decor", "picture_frame": "decor", "toy": "decor",
+                  "planter": "decor", "clock": "wall_art", "wall_hanging": "wall_art"}
 SUBTYPE_COUNTS = {"desk": 40, "dresser": 15, "wardrobe": 10, "nightstand": 15,
                   "stool": 10, "ottoman": 5, "bench": 5}
 
@@ -28,7 +33,7 @@ def selection_counts(total: int) -> dict[str, int]:
     """Keep subtype quotas, taking any overflow above 980 from the chair share."""
     if total < 0:
         raise ValueError("total must be nonnegative")
-    counts = {kind: int(total * SHARE[kind]) for kind in EDITOR_KINDS}
+    counts = {kind: int(total * SHARE[kind]) for kind in SHARE}
     counts.update(SUBTYPE_COUNTS)
     counts["chair"] = max(0, counts["chair"] - max(0, sum(counts.values()) - 980))
     assert sum(counts.values()) <= 980, "selection exceeds 980 even without chairs; reduce --total"
