@@ -84,10 +84,17 @@ const server=createServer(async(req,res)=>{
     const raw=await cache.query(query),context=contexts.get(input.context);
     if(!context)throw new Error('Expired catalog scene context');
     const compatible=raw.results.filter((r:RawProduct)=>compatibleProduct(r,context.catalog));
+    if(input.planning===true){
+     // Internal room planner checks each piece against its evolving preview. Fitting
+     // the same SKU against the original scene here is both redundant and misleading.
+     // This raw pool never crosses the model boundary; only checked option IDs do.
+     value={...raw,results:compatible,timing:{seconds:(performance.now()-started)/1000,cache_hit:cache.stats.hits>before},fit_note:'Internal incremental planner pool; not a model-visible fit list.'};
+    }else{
     const lifted=fitScene(context.scene,input),remove_ids=context.scene.items.filter(i=>!lifted.items.some(a=>a.id===i.id)).map(i=>i.id);
     const fitted=await fits.fit({scene:lifted,base_scene:context.scene,editor_scene:context.editor_scene,bridge_options:context.bridge_options,remove_ids,rows:compatible,catalog:context.catalog,room_id:input.room_id}),results=fitted.results;
     for(const row of results)context.allowed.add(row.id);
     value={...raw,results,fit_budget_exhausted:fitted.truncated,timing:{seconds:(performance.now()-started)/1000,cache_hit:cache.stats.hits>before},fit_note:'Only items with a checked free slot in the current scene; bounded search may omit feasible options.'};
+    }
    }else if(action==='show'){
     const context=contexts.get(input.context),ids:unknown=input.item_ids;
     if(!context||!Array.isArray(ids)||ids.length>16||ids.some(id=>!context.allowed.has(id)))throw new Error('Preview IDs must come from this scene fit list');

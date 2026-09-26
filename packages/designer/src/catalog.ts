@@ -175,10 +175,10 @@ const queryCatalog: CatalogQuery = input => {
   return createHttpCatalogQuery()(input);
 };
 
-export function proxyCatalogQuery(roomId?:string,removals:{remake?:boolean;remove_ids?:string[]}={}):CatalogQuery {
+export function proxyCatalogQuery(roomId?:string,removals:{remake?:boolean;remove_ids?:string[]}={},planning=false):CatalogQuery {
  return async query=>{
   const response=await fetch(process.env.VARPET_CATALOG_PROXY+'search',{method:'POST',headers:{'Content-Type':'application/json'},
-   body:JSON.stringify({query,context:process.env.VARPET_CATALOG_CONTEXT,room_id:roomId,...removals}),signal:AbortSignal.timeout(20000)});
+   body:JSON.stringify({query,context:process.env.VARPET_CATALOG_CONTEXT,room_id:roomId,...removals,planning}),signal:AbortSignal.timeout(20000)});
   if(!response.ok)throw new Error('Catalog fit cache unavailable');return response.json();
  };
 }

@@ -255,7 +255,7 @@ def build_config(scene_path: Path) -> dict:
         "features": {name: False for name in (
             "shell_tool", "unified_exec", "apps", "plugins", "memories", "multi_agent",
             "multi_agent_v2", "browser_use", "computer_use", "image_generation", "goals",
-            "sleep_tool", "view_image")},
+            "sleep_tool", "view_image", "code_mode_host", "code_mode", "code_mode_only")},
         "mcp_servers": {"varpet-designer": {
             "command": shutil.which("pnpm") or "pnpm",
             "args": ["--silent", "--filter", "@varpet/designer", "start", "--scene", str(scene_path)],
@@ -420,16 +420,20 @@ def sdk_worker(job_path: Path) -> int:
     config = configure(config, placement, effort, context)
     from designer_products import enable_product_previews
     enable_product_previews(config)
+    from designer_typed_tools import configure as typed_configure, instructions as typed_instructions
+    typed_configure(config)
     if job.get("review_only"):
         config["mcp_servers"] = {}
-    if runtime.get("model_catalog"):
-        config["model_catalog_json"] = runtime["model_catalog"]
+    from designer_typed_tools import direct_catalog
+    config["model_catalog_json"], direct_audit = direct_catalog(runtime, MODEL)
+    _emit("tool_mode_audit", **direct_audit)
     _emit("model_catalog_audit", **runtime.get("model_catalog_audit", {"source": "sdk_discovery"}))
-    instructions = catalog_instructions(job, profile_prompt(placement, context, static_prefix()))
+    instructions = catalog_instructions(job, typed_instructions())
     if job.get('catalog_proxy'):
         server = config['mcp_servers']['varpet-designer']
         server['env'].update(VARPET_CATALOG_PROXY=job['catalog_proxy'], VARPET_CATALOG_CONTEXT=job['catalog_context'])
-        server['enabled_tools'].append('show_candidates')
+        if 'show_candidates' not in server['enabled_tools']:
+            server['enabled_tools'].append('show_candidates')
     if job.get("conversion_error") or context_limited:
         if "varpet-designer" in config["mcp_servers"]:
             config["mcp_servers"]["varpet-designer"]["enabled"] = False
@@ -445,6 +449,7 @@ def sdk_worker(job_path: Path) -> int:
     final_response = None
     total_usage = None
     completed = None
+    terminal_proposal = None
     with Codex(sdk_config) as codex:
         _isolate_skills(codex, runtime["workspace"])
         state_path = Path(runtime["state"])
@@ -487,6 +492,13 @@ def sdk_worker(job_path: Path) -> int:
         for event in handle.stream():
             payload = event.payload.model_dump(mode="json", by_alias=True)
             _emit("event", method=event.method, payload=payload)
+            from designer_typed_tools import saved_receipt
+            receipt = saved_receipt({"method":event.method,"payload":payload}, os.environ.get("VARPET_PROPOSALS_DIR"))
+            if receipt and terminal_proposal is None:
+                terminal_proposal = receipt
+                final_response = receipt['message']
+                _emit("proposal_evidence", proposal=receipt['proposal'])
+                handle.interrupt()
             if event.method == "item/completed":
                 item = payload.get("item", {})
                 if item.get("type") == "agentMessage" and item.get("phase") in (None, "final_answer"):
@@ -496,11 +508,11 @@ def sdk_worker(job_path: Path) -> int:
             elif event.method == "turn/completed":
                 completed = payload.get("turn", {})
             reason = guard.observe({"method": event.method, "payload": payload})
-            if reason and stopped is None:
+            if reason and stopped is None and terminal_proposal is None:
                 stopped = reason
                 _emit("guard_stop", reason=reason, rounds=guard.rounds)
                 handle.interrupt()
-        status = stopped or (completed.get("status") if completed else "missing_completion")
+        status = "completed" if terminal_proposal else stopped or (completed.get("status") if completed else "missing_completion")
         _emit("worker_summary", thread_id=thread.id, status=status, response=final_response,
               total_usage=total_usage, error=completed.get("error") if completed else None)
         if status != "completed":
