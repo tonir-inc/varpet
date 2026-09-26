@@ -1,7 +1,8 @@
 import type {Scene,Item,Vec2} from '../scene.js';
+import {itemPolygon,polygonsOverlap} from '../metrics/space.js';
 import {roomPrograms} from '../../knowledge/room-programs.js';
-import {styleMatches,stylePalette} from '../../knowledge/styles/index.js';
-export interface TasteOptions {program:string;styles?:string[];catalog?:Record<string,{styles:string[];colors_image:string[]}>;excluded_roles?:string[]}
+import {styleMatches,stylePalette,styleFamilies} from '../../knowledge/styles/index.js';
+export interface TasteOptions {program:string;styles?:string[];catalog?:Record<string,{styles:string[];styles_inferred?:string[];colors_image:string[]}>;excluded_roles?:string[]}
 export interface TasteIssue {code:string;item_ids:string[];message:string}
 const EPS=1e-6;
 const seats=(i:Item)=>['sofa','chair','armchair','loveseat'].includes(i.kind);
@@ -13,8 +14,8 @@ function distance(a:Item,b:Item):number {return Math.hypot(a.pos[0]-b.pos[0],a.p
 function facing(a:Item,p:Vec2,tolerance=55):boolean {const [x,y]=local(a,p);return -y>EPS&&Math.atan2(Math.abs(x),-y)<=tolerance*Math.PI/180+EPS;}
 /** Reach from the seat's edge, not centre; rotation and actual catalog dimensions matter. */
 function edgeGap(a:Item,b:Item):number {
- const [x,y]=local(a,b.pos),dx=Math.max(0,Math.abs(x)-a.size[0]/2),dy=Math.max(0,Math.abs(y)-a.size[1]/2);
- return Math.max(0,Math.hypot(dx,dy)-Math.min(b.size[0],b.size[1])/2);
+ const aa=itemPolygon(a),bb=itemPolygon(b);if(polygonsOverlap(aa,bb))return 0;
+ return Math.min(...aa.flatMap(p=>bb.map((q,i)=>segmentDistance(p,q,bb[(i+1)%bb.length]!))),...bb.flatMap(p=>aa.map((q,i)=>segmentDistance(p,q,aa[(i+1)%aa.length]!))));
 }
 function segmentDistance(p:Vec2,a:Vec2,b:Vec2):number {const dx=b[0]-a[0],dy=b[1]-a[1],t=Math.max(0,Math.min(1,((p[0]-a[0])*dx+(p[1]-a[1])*dy)/(dx*dx+dy*dy)));return Math.hypot(p[0]-a[0]-t*dx,p[1]-a[1]-t*dy);}
 /** Independent, pure grading. This does not generate poses or replace physical/request gates. */
@@ -22,16 +23,23 @@ export function scoreComposition(scene:Scene,roomId:string,options:TasteOptions)
  const program=roomPrograms[options.program];if(!program)throw new Error(`Unknown room program: ${options.program}`);
  if(!scene.rooms.some(r=>r.id===roomId))throw new Error(`Unknown room: ${roomId}`);
  const items=[...scene.items,...scene.fixed].filter(i=>i.room_id===roomId),issues:TasteIssue[]=[];
- const excluded=new Set(options.excluded_roles??[]),checks:{code:string;pass:boolean;weight:number}[]=[];
+ const excluded=new Set(options.excluded_roles??[]);
+ for(const [role,relations] of Object.entries({rug:['rug_anchor'],light:['seat_light'],table:['seat_table'],bedside_lights:['light_each_bedside'],nightstands:['nightstand_each_open_side']}))if(excluded.has(role))relations.forEach(r=>excluded.add(r));
+ const checks:{code:string;pass:boolean;weight:number}[]=[];
  const check=(code:string,pass:boolean,weight:number,message:string,ids:string[]=[])=>{if(excluded.has(code))return;checks.push({code,pass,weight});if(!pass)issues.push({code,item_ids:ids,message});};
  // One item cannot satisfy two essential roles (e.g. wardrobe and both nightstands).
- const assigned=new Set<string>();
- for(const role of program.essentials){
-  if(excluded.has(role.role))continue;
-  const available=items.filter(i=>role.kinds.includes(i.kind)&&!assigned.has(i.id));
-  // An explicit sofa exclusion permits a conversation pair, not one isolated chair.
-  const count=available.length;
-  available.slice(0,role.count).forEach(i=>assigned.add(i.id));
+ const roles=program.essentials.filter(role=>!excluded.has(role.role));
+ const slots=roles.flatMap(role=>Array.from({length:role.count},()=>role));
+ const allocation=new Map<number,number>();
+ const assign=(slot:number,seen:Set<number>):boolean=>{
+  for(let i=0;i<items.length;i++)if(!seen.has(i)&&slots[slot]!.kinds.includes(items[i]!.kind)){
+   seen.add(i);const previous=allocation.get(i);
+   if(previous===undefined||assign(previous,seen)){allocation.set(i,slot);return true;}
+  }return false;
+ };
+ slots.forEach((_,i)=>assign(i,new Set()));
+ for(const role of roles){
+  const count=[...allocation.values()].filter(slot=>slots[slot]===role).length;
   check(role.role,count>=role.count,role.role==='seating_anchor'?3:1,`Needs ${role.count} ${role.role.replaceAll('_',' ')} (${role.kinds.join(' or ')}).`);
  }
  if(options.program==='living'){
@@ -51,7 +59,8 @@ export function scoreComposition(scene:Scene,roomId:string,options:TasteOptions)
   check('headboard_on_solid_wall',beds.length>0&&beds.every(b=>{
    const head=world(b,0,b.size[1]/2);
    return scene.walls.filter(w=>w.room_id===roomId&&!w.open).some(w=>{
-    if(segmentDistance(head,w.a,w.b)>.25+(w.thickness??0)/2)return false;
+    const ends=[world(b,-b.size[0]/2,b.size[1]/2),world(b,b.size[0]/2,b.size[1]/2)];
+    if(!ends.every(p=>segmentDistance(p,w.a,w.b)<=.25+(w.thickness??0)/2))return false;
     const length=Math.hypot(w.b[0]-w.a[0],w.b[1]-w.a[1]);
     return !scene.openings.filter(o=>o.wall_id===w.id).some(o=>{
      const a:Vec2=[w.a[0]+(w.b[0]-w.a[0])*o.offset/length,w.a[1]+(w.b[1]-w.a[1])*o.offset/length],end:Vec2=[a[0]+(w.b[0]-w.a[0])*o.width/length,a[1]+(w.b[1]-w.a[1])*o.width/length];
@@ -60,12 +69,13 @@ export function scoreComposition(scene:Scene,roomId:string,options:TasteOptions)
    });
   }),2,'Place the headboard against a solid wall, clear of windows and doors.',beds.map(b=>b.id));
   check('nightstand_each_open_side',beds.length>0&&beds.every(b=>[-1,1].every(side=>items.some(t=>t!==b&&['table','nightstand','cabinet'].includes(t.kind)&&side*local(b,t.pos)[0]>b.size[0]/2&&edgeGap(b,t)<=.6&&local(b,t.pos)[1]>0))),1,'Provide a nightstand beside each side of the headboard.');
-  check('light_each_bedside',beds.length>0&&beds.every(b=>[-1,1].every(side=>items.some(t=>t.kind==='lamp'&&side*local(b,t.pos)[0]>0&&edgeGap(b,t)<=.9))),1,'Provide reachable light at both bedsides.');
+  check('light_each_bedside',beds.length>0&&beds.every(b=>[-1,1].every(side=>items.some(t=>t.kind==='lamp'&&side*local(b,t.pos)[0]>0&&edgeGap(b,t)<=.9&&local(b,t.pos)[1]>=b.size[1]/2-.6))),1,'Provide reachable light at both bedsides.');
  }
  if(options.styles?.length){
-  const ids=options.styles,palette=stylePalette(ids),records=items.map(i=>({i,meta:options.catalog?.[i.sku??i.id]}));
+  const ids=options.styles,palette=stylePalette(ids),records=items.map(i=>({i,meta:(()=>{const m=options.catalog?.[i.sku??i.id];return m?{...m,styles:[...m.styles,...m.styles_inferred??[]]}:undefined;})()}));
   check('style_unknown',records.length>0&&records.every(r=>r.meta?.styles.length&&r.meta.colors_image.length),1,'Style/color evidence is missing; unknown is not a style match.',records.filter(r=>!r.meta?.styles.length||!r.meta.colors_image.length).map(r=>r.i.id));
-  check('style_consistency',records.length>0&&records.every(r=>r.meta&&styleMatches(r.meta.styles,ids)&&r.meta.colors_image.some(c=>palette.includes(c.toLowerCase()))),2,'Use a shared style family and compatible image-derived palette.',records.filter(r=>r.meta&&!styleMatches(r.meta.styles,ids)).map(r=>r.i.id));
+  const shared=styleFamilies(records[0]?.meta?.styles??[]).filter(tag=>records.every(r=>styleFamilies(r.meta?.styles??[]).includes(tag)))??[];
+  check('style_consistency',shared.length>0&&records.length>0&&records.every(r=>r.meta&&styleMatches(r.meta.styles,ids)&&r.meta.colors_image.some(c=>palette.includes(c.toLowerCase()))),2,'Use a shared style family and compatible image-derived palette.',records.filter(r=>r.meta&&!styleMatches(r.meta.styles,ids)).map(r=>r.i.id));
  }
  const total=checks.reduce((s,c)=>s+c.weight,0),earned=checks.reduce((s,c)=>s+(c.pass?c.weight:0),0);
  return {room_id:roomId,program:options.program,score:items.length&&total?Math.round(100*earned/total):0,pass:issues.length===0,issues,checks};

@@ -45,6 +45,8 @@ export class DesignerSession {
     return structuredClone(intent);
   }
 
+  getIntent():Intent|undefined { return this.intent?structuredClone(this.intent):undefined; }
+
   getScene():Scene { return structuredClone(this.scene); }
   getProposal(id:string):Proposal|undefined {
     const proposal=this.proposals.get(id);

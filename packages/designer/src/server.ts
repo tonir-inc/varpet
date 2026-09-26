@@ -17,6 +17,7 @@ import {placeBatch,placementsSchema} from './place-batch.js';
 import {searchCatalog,searchCatalogInputSchema,type CatalogQuery} from './catalog.js';
 import {ask,askInputSchema} from './ask.js';
 import {opsToolSchema,placeToolSchema} from './tool-inputs.js';
+import {designRoom,type DesignCandidate} from './taste/design.js';
 
 export function result(data: unknown, isError = false) {
   return { content: [{ type: 'text' as const, text: typeof data === 'string' ? data : JSON.stringify(data) }], ...(isError ? { isError: true } : {}) };
@@ -26,6 +27,8 @@ export function createServer(input: Scene, options:{catalogQuery?:CatalogQuery; 
   const scene = parseScene(input);
   const proposalsDir = options.proposalsDir ?? process.env.VARPET_PROPOSALS_DIR;
   const session = new DesignerSession(scene);
+  let styleCandidates:DesignCandidate[]=[];
+  let stylePlanning=false;
   const server = new McpServer({ name: 'varpet-designer', version: '0.0.0' });
   server.registerTool('scene_summary', {
     description: 'Rooms, walls with compass directions, openings, furniture, keeps and fixed items. An empty room_ids selects none.',
@@ -88,9 +91,16 @@ export function createServer(input: Scene, options:{catalogQuery?:CatalogQuery; 
     catch(error) { return result(String(error),true); }
   });
   server.registerTool('propose', {
-    description: 'Store checked furniture or colour ops for user review. Colour op: {type:"color",target:"wall"|"item",id,color:"#RRGGBB"}; declare exact colours in set_intent first. Group move ops transform all members. Refuses new/worsened physical violations or unmet intent. Returns an unapplied proposal; explicit user acceptance remains required.',
-    inputSchema: {ops:opsToolSchema,rationale:z.string().min(1).max(4000)},
-  }, async ({ops,rationale}) => {
+    description: 'For a style remake, first search_catalog with room_id, style_request and remake:true, then propose its checked candidate_id without writing coordinates. Otherwise store checked furniture or colour ops for user review. Colour op: {type:"color",target:"wall"|"item",id,color:"#RRGGBB"}; declare exact colours in set_intent first. Group move ops transform all members. Refuses new/worsened physical violations or unmet intent. Returns an unapplied proposal; explicit user acceptance remains required.',
+    inputSchema: {ops:opsToolSchema.optional(),candidate_id:z.string().optional(),rationale:z.string().min(1).max(4000)},
+  }, async ({ops,candidate_id,rationale}) => {
+    if(candidate_id){
+      const candidate=styleCandidates.find(c=>c.id===candidate_id);
+      if(!candidate||ops)return result({ok:false,errors:[{check:'candidate',message:'Choose a returned candidate_id alone; do not supply or invent ops.'}]},true);
+      const declared=session.getIntent();
+      if(declared?.room_id&&declared.room_id!==candidate.intent.room_id)return result({ok:false,errors:[{check:'request_room',message:'The selected candidate is outside the declared request room.'}]},true);
+      ops=candidate.ops;session.setIntent({...declared,...candidate.intent});
+    }else if(stylePlanning)return result({ok:false,errors:[{check:'composition',message:'Style plans require choosing one of the two checked candidate IDs.'}]},true);
     const proposal=session.propose(ops,rationale);
     if (proposal.ok && proposalsDir) {
       const temporary = join(proposalsDir, `.${proposal.proposal_id}-${randomUUID()}.tmp`);
@@ -107,10 +117,21 @@ export function createServer(input: Scene, options:{catalogQuery?:CatalogQuery; 
     return result(proposal,!proposal.ok);
   });
   server.registerTool('search_catalog', {
-    description:'Find sized, priced catalog furniture. Returns item descriptions for place, plus size/price provenance. Mock prices are explicitly labeled; unavailable catalog is never replaced with invented products.',
-    inputSchema:searchCatalogInputSchema,
+    description:'For ANY whole-room style request, use room_id plus style_request (the customer words), remake:true and optional remove_ids/excluded_roles. Searches every program kind and returns two complete physically checked compositions ranked by taste. Propose candidate_id; do not write coordinates or omit essentials. For single products, find sized, priced catalog furniture. Returns item descriptions for place, plus size/price provenance. Mock prices are explicitly labeled; unavailable catalog is never replaced with invented products.',
+    inputSchema:searchCatalogInputSchema.extend({room_id:z.string().optional(),style_request:z.string().optional(),remake:z.boolean().optional(),remove_ids:z.array(z.string()).optional(),excluded_roles:z.array(z.string()).optional()}),
   },async request=>{
-    const catalog=await searchCatalog(request,options.catalogQuery);
+    const {room_id,style_request,remake,remove_ids,excluded_roles,...productQuery}=request;
+    if(style_request){
+      stylePlanning=true;styleCandidates=[];
+      try{
+        if(!room_id)throw new Error('Style requests require room_id');
+        const plan=await designRoom(scene,{room_id,style_request,remake,remove_ids,excluded_roles},options.catalogQuery);
+        styleCandidates=plan.candidates;
+        return result({knowledge:plan.knowledge,missing_kinds:plan.catalog.missing_kinds,unavailable_kinds:plan.catalog.unavailable_kinds,reason:plan.reason,selected_id:plan.selected_id,
+          candidates:plan.candidates.map(c=>({id:c.id,intent:c.intent,composition:c.composition,items:c.ops.filter(op=>op.type==='add').map(op=>op.item),physical_checks_passed:c.checks.ok,cost_dram:c.checks.price.cost_dram}))});
+      }catch(error){return result({ok:false,reason:String(error)},true);}
+    }
+    const catalog=await searchCatalog(productQuery,options.catalogQuery);
     return result(catalog,catalog.status==='unavailable');
   });
   server.registerTool('ask', {

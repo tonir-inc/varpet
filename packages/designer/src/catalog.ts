@@ -20,7 +20,7 @@ export interface CatalogProduct {
   sku: string; kind: string; name: string; size: [number, number, number]; price: number; currency: 'AMD';
   vendor: string | null; source: string | null; price_source: string | null;
   size_status: string | null; size_evidence: unknown; wd_swapped: boolean;
-  colors_listing: string[]; colors_image: string[]; styles: string[]; item: PlaceItem;
+  colors_listing: string[]; colors_image: string[]; styles: string[]; styles_inferred?: string[]; item: PlaceItem;
 }
 export interface CatalogResult {
   status: 'available' | 'unavailable'; results: CatalogProduct[]; excluded_records: number;
@@ -32,7 +32,7 @@ const sizedRecord = z.object({
   price: z.number().int().nonnegative().safe(), currency: z.literal('AMD'),
   vendor: text.nullish(), source: text.nullish(), price_source: text.nullish(),
   size_status: text.nullish(), size_evidence: z.unknown().optional(), wd_swapped: z.boolean().optional(),
-  colors_listing: z.array(z.string()).nullish(), colors_image: z.array(z.string()).nullish(), styles: z.array(z.string()).nullish(),
+  colors_listing: z.array(z.string()).nullish(), colors_image: z.array(z.string()).nullish(), styles: z.array(z.string()).nullish(), style_astra:z.array(z.string()).nullish(),
 });
 const rankingNote = 'Colors, styles and text rank catalog matches; kind, dimensions and price are hard filters. Price provenance is explicit; mock prices are not shop quotations.';
 const execute = promisify(execFile);
@@ -172,7 +172,7 @@ export async function searchCatalog(input: unknown, query: CatalogQuery = queryC
     products.push({ sku: record.id, kind: record.kind, name, size: record.size_m, price: record.price, currency: 'AMD',
       vendor: record.vendor ?? null, source: record.source ?? null, price_source: record.price_source ?? null,
       size_status: record.size_status ?? null, size_evidence: record.size_evidence ?? null, wd_swapped: record.wd_swapped ?? false,
-      colors_listing: record.colors_listing ?? [], colors_image: record.colors_image ?? [], styles: record.styles ?? [], item });
+      colors_listing: record.colors_listing ?? [], colors_image: record.colors_image ?? [], styles: record.styles ?? [], styles_inferred:record.style_astra??[], item });
   }
   const results = products.slice(0, request.limit ?? 10);
   return { status: 'available', results, excluded_records: excluded, ranking_note: rankingNote,

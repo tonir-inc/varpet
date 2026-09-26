@@ -6,7 +6,7 @@ export interface StyleKnowledge {
 }
 export const styles: Record<string,StyleKnowledge> = {
   minimalist: {aliases:['minimalist','minimalistic','minimalism'],catalog_styles:['Minimalist','Scandinavian','Modern','Contemporary'],colors:['white','beige','grey','black','brown'],piece_count:{living:[5,8],bedroom:[5,7]},anchor:'One generous, simple sofa; fewer complete groups, never an empty room',materials:['light wood','matte finishes','linen'],textiles:['one large quiet rug','soft upholstery'],lighting:['diffuse ambient light','one reading light per seating zone']},
-  cozy: {aliases:['cozy','cosy','hygge'],catalog_styles:['Scandinavian','Transitional','Rustic','Contemporary'],colors:['beige','white','brown','grey','green'],piece_count:{living:[6,10],bedroom:[5,9]},anchor:'Inviting upholstered sofa or intimate facing seats',materials:['warm wood','wool','linen'],textiles:['large soft rug','tactile upholstery','layered throws when supported'],lighting:['warm diffuse light','reachable reading lamps','avoid a single harsh overhead source']},
+  cozy: {aliases:['cozy','cosy','hygge'],catalog_styles:['Scandinavian','Modern','Transitional','Rustic','Contemporary'],colors:['beige','white','brown','grey','green'],piece_count:{living:[6,10],bedroom:[5,9]},anchor:'Inviting upholstered sofa or intimate facing seats',materials:['warm wood','wool','linen'],textiles:['large soft rug','tactile upholstery','layered throws when supported'],lighting:['warm diffuse light','reachable reading lamps','avoid a single harsh overhead source']},
   scandinavian: {aliases:['scandinavian','scandi','nordic'],catalog_styles:['Scandinavian','Mid-Century Modern','Modern'],colors:['white','beige','grey','brown','green'],piece_count:{living:[6,9],bedroom:[5,8]},anchor:'Light upholstered sofa with visible wood legs',materials:['pale oak','ash','wool'],textiles:['light woven rug','linen upholstery'],lighting:['soft shaded floor lamp','daylight with low furniture']},
   modern: {aliases:['modern','contemporary'],catalog_styles:['Modern','Contemporary','Mid-Century Modern'],colors:['white','black','grey','beige','brown'],piece_count:{living:[5,9],bedroom:[5,8]},anchor:'Clean-lined sofa and a defined focal shelf',materials:['wood','metal','glass'],textiles:['plain or geometric rug','solid upholstery'],lighting:['sculptural floor lamp','layered task light']},
   classic: {aliases:['classic','traditional'],catalog_styles:['Traditional','Classic','Transitional'],colors:['beige','brown','white','blue','red'],piece_count:{living:[6,10],bedroom:[5,9]},anchor:'Balanced upholstered sofa with paired supporting pieces',materials:['dark wood','brass','velvet'],textiles:['patterned rug','rich upholstery'],lighting:['paired shaded lamps','warm ambient light']},
@@ -24,6 +24,18 @@ export function stylePalette(ids:readonly string[]):string[] {
  return selected[0]!.colors.filter(color=>selected.every(style=>style.colors.includes(color)));
 }
 export function styleMatches(tags:readonly string[],ids:readonly string[]):boolean {
- const normalized=tags.map(s=>s.toLowerCase());
- return ids.length>0&&ids.every(id=>styles[id]?.catalog_styles.some(tag=>normalized.includes(tag.toLowerCase())));
+ const families=styleFamilies(tags);
+ return ids.length>0&&ids.every(id=>styles[id]&&styleFamilies(styles[id]!.catalog_styles).some(family=>families.includes(family)));
+}
+/** Compatible furniture families; unrelated color/type tags are never styles. */
+export function styleFamilies(tags:readonly string[]):string[]{
+ return [...new Set(tags.flatMap(tag=>{
+  const t=tag.trim().toLowerCase();
+  if(['modern','modern/casual','contemporary','scandinavian','minimalist','mid-century modern','mid century modern','mid-century','modern/sleek','asian'].includes(t))return ['modern'];
+  if(['classic','traditional','transitional'].includes(t))return ['classic'];
+  if(['bohemian','boho','eclectic'].includes(t))return ['boho'];
+  if(['industrial'].includes(t))return ['industrial'];
+  if(['rustic','farmhouse'].includes(t))return ['rustic'];
+  return [];
+ }))];
 }

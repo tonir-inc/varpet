@@ -18,3 +18,20 @@ Missing evidence cannot pass consistency. Physical checks remain separate and ma
 
 [derived limitation] Catalog metadata does not prove comfort, fabric feel or lamp color temperature.
 These priors guide selection; customer preference remains the final taste judgment.
+
+The catalog adapter preserves `styles_inferred` separately from listing `styles`; it comes from the
+catalog's existing `style_astra` image annotations. The matcher accepts recognized style families from
+either source. Product-type tags such as "Floor Lamp" alone are not style evidence. Adjacent modern,
+Scandinavian and mid-century tags form one compatible family; arbitrary rustic/classic mixtures do not.
+Search uses two concurrent kind queries at a time to protect the shared service, then filters the
+returned image palette and style metadata. A backend unavailable response remains an unresolved gap.
+
+The existing `search_catalog` MCP tool accepts `room_id`, `style_request`, `remake`, `remove_ids` and
+`excluded_roles`. Living and bedroom recipes return two physically and composition-checked candidates.
+`propose(candidate_id, rationale)` selects exact code-generated ops and preserves any declared budget,
+keeps, preferences and colours. A conflicting declared room is rejected. No proposal is applied.
+Other room programs currently return knowledge/catalog data and no automatic compositions.
+
+[not proven] Preserving a kept item is enforced; automatically designing a successful group around
+an arbitrary kept anchor is not established. Industrial and boho currently expose catalog/coherence
+gaps in the living-room eval instead of silently passing an incomplete room.

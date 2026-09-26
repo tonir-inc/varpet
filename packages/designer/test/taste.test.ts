@@ -52,3 +52,27 @@ test('search covers the program, filters catalog image colors/styles, and prefer
  for(const group of Object.values(result.products)){expect(group.map(p=>p.sku)).toEqual(['confirmed','estimated']);}
  const empty=await searchRoomCatalog('living',['minimalist'],async()=>({results:[]}));expect(empty.missing_kinds).toContain('sofa');
 });
+test('explicit customer exclusions waive the associated relationship, not just the item count',()=>{
+ const s=good();s.items=s.items.filter(i=>!['rug','lamp','table'].includes(i.kind));
+ const codes=scoreComposition(s,'living',{program:'living',excluded_roles:['rug','light','table']}).issues.map(i=>i.code);
+ expect(codes).not.toContain('rug_anchor');expect(codes).not.toContain('seat_light');expect(codes).not.toContain('seat_table');
+});
+test('cozy means a consistent family, not arbitrary independent accepted tags',()=>{
+ const s=good(),catalog=metadata(s);catalog.chair={styles:['Rustic'],colors_image:['beige']};
+ expect(scoreComposition(s,'living',{program:'living',styles:['cozy'],catalog}).issues.map(i=>i.code)).toContain('style_consistency');
+});
+test('bedroom roles use maximum matching and a perpendicular wall cannot support a headboard',()=>{
+ const s=scene([item('storage','cabinet',6,4),item('n1','table',2,4),item('n2','table',4,4),item('bed','bed',3,3,0,[1.6,2,.6]),item('l1','lamp',1.5,4),item('l2','lamp',4.5,4)]);
+ s.walls=[{id:'badwall',room_id:'living',a:[3,4],b:[3,6]}];
+ const codes=scoreComposition(s,'living',{program:'bedroom'}).issues.map(i=>i.code);
+ expect(codes).not.toContain('storage');expect(codes).not.toContain('nightstands');expect(codes).toContain('headboard_on_solid_wall');
+});
+test('image-derived catalog style tags qualify a functional lamp without reading its name',async()=>{
+ const result=await searchRoomCatalog('living',['minimalist','cozy'],async q=>({results:[{id:'inferred',kind:q.kind,name:'ignore this title',size_m:[.4,.4,1.5],price:100,currency:'AMD',styles:['Floor Lamp'],style_astra:['modern'],colors_image:['beige']}]}));
+ expect(result.products.lamp!.map(p=>p.sku)).toContain('inferred');
+});
+test('room catalog queries bound concurrency to avoid flooding the shared service',async()=>{
+ let active=0,peak=0;
+ await searchRoomCatalog('living',['minimalist'],async()=>{active++;peak=Math.max(peak,active);await new Promise(resolve=>setTimeout(resolve,2));active--;return {results:[]};});
+ expect(peak).toBeLessThanOrEqual(2);
+});
