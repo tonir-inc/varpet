@@ -313,6 +313,12 @@ def _isolate_skills(codex, workspace: str) -> None:
         raise RuntimeError(f"Expected only interior-design-rules, got {enabled}")
 
 
+def mcp_audit_record(server) -> dict:
+    status = server.model_dump(mode="json", by_alias=True)
+    return {"server": server.name, "tools": sorted(server.tools),
+            "runtime_status": status.get("runtimeStatus"), "tools_error": server.tools_error}
+
+
 def sdk_worker(job_path: Path) -> int:
     try:
         from openai_codex import Codex, CodexConfig, ApprovalMode, Sandbox
@@ -362,8 +368,7 @@ def sdk_worker(job_path: Path) -> int:
                 {"threadId": thread.id, "detail": "toolsAndAuthOnly", "cursor": cursor},
                 response_model=ListMcpServerStatusResponse)
             for server in inventory.data:
-                _emit("mcp_audit", server=server.name, tools=sorted(server.tools),
-                      runtime_status=server.runtime_status, tools_error=server.tools_error)
+                _emit("mcp_audit", **mcp_audit_record(server))
             cursor = inventory.next_cursor
             if not cursor:
                 break

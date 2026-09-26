@@ -136,6 +136,20 @@ class SpeedProfilesTests(unittest.TestCase):
             missing = designer.prepare_runtime(root / 'other', {}, source_home=source)
             self.assertNotIn('model_catalog', missing)
 
+    def test_mcp_audit_serializes_sdk_enum_through_json_mode(self):
+        from enum import Enum
+        from unittest.mock import Mock
+        class Status(Enum):
+            connected = 'connected'
+        server = Mock(tools={'set_intent':{},'propose':{}}, runtime_status=Status.connected,
+                      tools_error=None)
+        server.name = 'varpet-designer'
+        server.model_dump.return_value = {'runtimeStatus':'connected'}
+        record = json.loads(json.dumps(designer.mcp_audit_record(server)))
+        self.assertEqual(record['runtime_status'], 'connected')
+        self.assertEqual(record['tools'], ['propose','set_intent'])
+        server.model_dump.assert_called_once_with(mode='json', by_alias=True)
+
 
 if __name__ == '__main__':
     unittest.main()
