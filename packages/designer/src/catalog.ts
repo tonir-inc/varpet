@@ -156,7 +156,8 @@ export function createHttpCatalogQuery(options: HttpCatalogOptions = {}): Catalo
   return input => session(async call => {
     const response = await call('search_furniture', input);
     if (!Array.isArray(response.results)) throw new Error('Catalog search returned no result list');
-    const results = await mapLimited(response.results.slice(0, input.limit ?? 10), CATALOG_CONCURRENCY, async raw => {
+    // Bare bed bases are dropped here too, so every caller of this query (including the designer spike) is covered.
+    const results = await mapLimited(response.results.filter(raw => !bareBedBase(raw)).slice(0, input.limit ?? 10), CATALOG_CONCURRENCY, async raw => {
       if (!object(raw) || typeof raw.id !== 'string' || !raw.id) return raw;
       // search_furniture supplies ranked fit dimensions; get_item supplies the
       // actual currency and provenance. Neither is inferred from the endpoint.
@@ -205,6 +206,15 @@ export function proxyCatalogQuery(roomId?:string,removals:{remake?:boolean;remov
  };
 }
 
+/** A support frame, base, box spring, rollaway or loose mattress is not a bed a customer can sleep in as shown.
+ * The catalog files these under `bed`; the designer must never offer them as the bed (Balcony Bedroom 1, 26 Sept). */
+export function isBareBedBase(name: string): boolean {
+  if (/\bheadboard\b/i.test(name)) return false;
+  return /\bsupport\b.*\bbed frame\b|\bbed frame\b.*\bsupport for box spring|(?<!\bno )\bbox spring\b(?! needed)|\bbed base\b|\bfoundation\b|\bslats? only\b|\bmattress only\b|\bsteel slats\b|\bmetal platform bed frame\b|\bbed (?:legs|risers?)\b|\breplacement legs\b|\brollaway\b|\bfold(?:ing|able)\b|\bguest bed\b|\bcot\b/i.test(name)
+    || (/\bmattress\b/i.test(name) && !/\bbed\b/i.test(name));
+}
+const bareBedBase = (raw: unknown) => object(raw) && raw.kind === 'bed' && isBareBedBase(typeof raw.name === 'string' ? raw.name : '');
+
 /** Read-only catalog search. The injected query is also the deterministic test seam. */
 export async function searchCatalog(input: unknown, query: CatalogQuery = queryCatalog): Promise<CatalogResult> {
   const request = searchCatalogInputSchema.parse(input);
@@ -228,6 +238,7 @@ export async function searchCatalog(input: unknown, query: CatalogQuery = queryC
     const record = parsed.data, [w, d, h] = record.size_m;
     const fits = (width: number, depth: number) => width <= (request.max_w ?? Infinity) && depth <= (request.max_d ?? Infinity) && h <= (request.max_h ?? Infinity);
     if ((request.kind && record.kind !== request.kind) || record.price > (request.price_max ?? Infinity)
+      || bareBedBase(record)
       || !(fits(w, d) || (request.allow_rotate !== false && fits(d, w)))) { excluded++; continue; }
     const name = record.name ?? record.id;
     const item: PlaceItem = { id: record.id, kind: record.kind, name, size: record.size_m, sku: record.id, price: record.price,
