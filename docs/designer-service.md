@@ -370,7 +370,8 @@ supersede the Notion doc's six-lane wording. Step 0 evidence is in
 circulation reserves 2 m walking headroom. Planned removals remain obstacles until actually removed
 from the editor snapshot. Entirely below-floor solids do not obstruct this floor. Route prisms
 conservatively enclose sloping runs and end caps. Fixtures/routes never enter furniture pricing or ops.
-If conversion fails, the worker receives the raw editor snapshot with fast path and layout MCP disabled.
+If conversion fails, the worker keeps the raw editor snapshot on disk and sends only a bounded scene
+summary to the model, with fast path and layout MCP disabled.
 Conversation continues in the same thread; the service appends one limitation notice per conversation
 and rejects proposal artifacts until conversion succeeds.
 
@@ -426,3 +427,19 @@ The actual GLB W/D/H was 0.5 / 0.400000006 / 0.649999976 m. At 13:56 UTC, a focu
 Chrome render check loaded this GLB beside the actual editor neutral-slot renderer.
 Both displayed with the stored W/H/D 0.50 / 0.65 / 0.40 m. This verifies rendering only;
 CHAT's HTTP asset delivery and SERVICE's upload lifetime are separate lane checks.
+
+[derived contract, 2026-09-26] Model turns use an allowlisted designer scene projection. Full editor
+documents and request catalogs remain on disk; worker jobs pass file references. Embedded project
+sources, plan data URLs, catalog assets and arbitrary metadata are excluded from model text.
+Requests are limited to 16,000 characters and 64,000 JSON-escaped characters; scene text has a
+120,000-character escaped budget and the complete turn text a 240,000-character escaped budget.
+Oversize or truncated scene context falls back to conversation and disables checked edits. Fast
+selection includes at most 12 candidates, 32 catalog IDs each, bounded descriptions and numeric
+scores, with a 200,000-character escaped prompt limit. Explicit vision images still use local files.
+
+[measured, 2026-09-26, gpt-6-astra low] The failing M6 portal request contained 1,203,538 compact
+scene characters, including a 1,104,254-character embedded plan data URL. An unsupported entrance
+door triggered conversational fallback, which previously inlined that entire document. The bounded
+fallback prompt is 3,539 JSON-escaped characters. Real HTTP requests on spare port 52573 with
+VARPET_DESIGNER_FAST_PATH=1 and the full 900-item catalog answered M6 in 9.344 s and Avani in
+11.473 s, both with zero tools. M6 received one geometry limitation notice; Avani needed none.

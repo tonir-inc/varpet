@@ -21,6 +21,7 @@ import re
 import uuid
 
 import designer
+from designer_context import validate_request_text, model_scene
 import designer_vision
 from designer_presentation import format_presentation
 from designer_builds import BuildPool
@@ -54,6 +55,7 @@ def validate_request(body) -> dict:
         raise ValueError("revision must be a non-negative integer")
     if not isinstance(body.get("request"), str) or not body["request"].strip():
         raise ValueError("request must be a non-empty string")
+    validate_request_text(body["request"])
     if "conversationId" in body and (not isinstance(body["conversationId"], str)
                                      or not body["conversationId"]):
         raise ValueError("conversationId must be a non-empty string")
@@ -242,6 +244,8 @@ class DesignerService:
                     conversion_error = str(error)
                     # Keep the actual snapshot as conversational context; no fabricated empty flat.
                     scene = body["scene"]
+                if not conversion_error and model_scene(scene)[1]:
+                    conversion_error = "Scene exceeds the complete model context budget"
                 if conversation.runtime is None:
                     conversation.runtime = designer.prepare_runtime(conversation.root / "runtime", scene)
                 else:
@@ -258,7 +262,8 @@ class DesignerService:
                 job.write_text(json.dumps({"runtime": conversation.runtime, "request": body["request"],
                                            "effort": self.effort, "profile": self.profile, "images": self.image_paths,
                                            "conversion_error": conversion_error,
-                                           "catalog": body.get("catalog"), "catalogCurrency": body.get("catalogCurrency"), **catalog_context,
+                                           "catalog_path": str(catalog) if "catalog" in body else None,
+                                           "editor_scene_path": str(editor_scene), "catalogCurrency": body.get("catalogCurrency"), **catalog_context,
                                            **({"turn_images": designer_vision.materialize_images(body["vision"], root),
                                                "vision": {key: value for key, value in body["vision"].items() if key not in ("view", "plan")},
                                                "vision_guidance": designer_vision.guidance(body["vision"])} if body.get("vision") else {})}))
