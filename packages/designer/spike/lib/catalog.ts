@@ -44,11 +44,24 @@ function shorten(name: string, max: number): string {
   return name.length <= max ? name : name.slice(0, max - 1).trimEnd() + '…';
 }
 
+/** Limits hold here too, whatever the server does: turning an item 90 degrees counts only when both
+ * max-w and max-d are given (one open axis would let anything pass turned). */
+export function withinLimits(product: Pick<Product, 'size' | 'price'>, input: SearchInput): boolean {
+  const [w, d, h] = product.size, W = input.maxW ?? Infinity, D = input.maxD ?? Infinity;
+  const turn = input.maxW !== undefined && input.maxD !== undefined;
+  const fits = (a: number, b: number) => a <= W + 1e-6 && b <= D + 1e-6;
+  return h <= (input.maxH ?? Infinity) + 1e-6 && product.price <= (input.maxPrice ?? Infinity)
+    && (fits(w, d) || (turn && fits(d, w)));
+}
+
 /** Compact, priced, sized products. kind/size/price are hard filters (as in the underlying
  * catalog); text and style only rank what passed. Prices are whole-AMD integers. */
 export async function search(input: SearchInput = {}): Promise<Product[]> {
   const query = createHttpCatalogQuery();
-  const limit = Math.min(Math.max(Math.trunc(input.limit ?? 10), 1), 20);
+  const wanted = Math.min(Math.max(Math.trunc(input.limit ?? 10), 1), 20);
+  const limited = [input.maxW, input.maxD, input.maxH, input.maxPrice].some(v => v !== undefined);
+  // Ask for a full page when limits apply, so the client-side guard still leaves enough.
+  const limit = limited ? 20 : wanted;
   const request: CatalogInput = {
     ...(input.kind ? { kind: input.kind } : {}),
     ...(input.text ? { text: input.text } : {}),
@@ -57,6 +70,7 @@ export async function search(input: SearchInput = {}): Promise<Product[]> {
     ...(input.maxH !== undefined ? { max_h: input.maxH } : {}),
     ...(input.maxPrice !== undefined ? { price_max: Math.round(input.maxPrice) } : {}),
     ...(input.style ? { styles: [input.style] } : {}),
+    ...(limited && (input.maxW === undefined || input.maxD === undefined) ? { allow_rotate: false } : {}),
     limit,
   };
   const response = await query(request);
@@ -73,6 +87,7 @@ export async function search(input: SearchInput = {}): Promise<Product[]> {
     const size = asSize(record.size_m);
     const price = asNumber(record.price);
     if (!sku || !kind || !name || !size || price === undefined) continue;
+    if (!withinLimits({ size, price }, input)) continue;
     const image = asString(record.main_image_url) ?? asString(record.image) ?? asString(record.preview);
     products.push({
       sku, kind, name: shorten(name, 70), size, price: Math.round(price),
@@ -80,7 +95,7 @@ export async function search(input: SearchInput = {}): Promise<Product[]> {
       ...(image ? { image } : {}),
     });
   }
-  return products;
+  return products.slice(0, wanted);
 }
 
 const TILE = 220, GUTTER = 16, LABEL_H = 76, COLUMNS = 4;

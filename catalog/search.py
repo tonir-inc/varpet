@@ -129,6 +129,15 @@ def turned_fits(size, box):
     return turned and not straight
 
 
+def size_limits(max_w=None, max_d=None, max_h=None, allow_rotate=True):
+    """Per-axis limits to (fit_box, rotate). Turning an item only helps fit a real w x d box: with one
+    horizontal bound the other is open, so any item passes turned and max_w/max_d alone would filter nothing."""
+    if all(v is None for v in (max_w, max_d, max_h)):
+        return None, allow_rotate
+    box = [99.0 if v is None else v for v in (max_w, max_d, max_h)]
+    return box, allow_rotate and max_w is not None and max_d is not None
+
+
 def fits(size, box, rotate=True):
     """Per-axis margins (box - size, metres) in the best orientation; all >= 0 means it fits."""
     straight = [box[0] - size[0], box[1] - size[1], box[2] - size[2]]

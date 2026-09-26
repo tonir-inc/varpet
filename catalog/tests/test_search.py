@@ -3,7 +3,7 @@
 import pytest
 
 from colors import listing_palette, name_of
-from search import colour_score, fits, modes
+from search import colour_score, fits, modes, size_limits
 
 
 @pytest.mark.parametrize(
@@ -167,3 +167,20 @@ def test_search_preserves_provenance(price_max, key, evidence):
     assert len(conn.sql) == 1
     selected = conn.sql[0].split("from item")[0]
     assert all(field in selected for field in ("currency", "source", "price_source", "size_evidence"))
+
+
+@pytest.mark.parametrize("limits, expected", [
+    ((None, None, None, True), (None, True)),
+    ((1.5, None, None, True), ([1.5, 99.0, 99.0], False)),
+    ((None, 0.9, None, True), ([99.0, 0.9, 99.0], False)),
+    ((None, None, 0.5, True), ([99.0, 99.0, 0.5], False)),
+    ((2.0, 0.9, None, True), ([2.0, 0.9, 99.0], True)),
+    ((2.0, 0.9, None, False), ([2.0, 0.9, 99.0], False)),
+])
+def test_size_limits_turn_only_inside_a_full_footprint(limits, expected):
+    assert size_limits(*limits) == expected
+
+
+def test_single_width_limit_rejects_a_wider_item():
+    box, rotate = size_limits(1.5, None, None, True)
+    assert min(fits([1.73, 0.98, 0.89], box, rotate)) < 0
