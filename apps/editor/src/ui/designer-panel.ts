@@ -1,6 +1,8 @@
 import { designerEventProgress } from '../adapters/designer-events';
 import { designerMarkdown } from './designer-markdown';
-import { designerStarters } from './designer-starters';
+import { designerStarters, type DesignerStarter } from './designer-starters';
+import { applyDesignerEvent, designerClock, designerStepsSummary, finishDesignerSteps, validDesignerTurnSteps, type DesignerStep, type DesignerTurnSteps } from './designer-steps';
+import { designerIcon, designerIconButton } from './designer-icons';
 export { designerMarkdown } from './designer-markdown';
 import { EditorStore } from '../core/store';
 import type { AgentProposal, CatalogAsset, SceneDocument } from '../contracts';
@@ -10,7 +12,7 @@ type AskDesigner = typeof askDesigner;
 interface MetricRow { label: string; value: string }
 type ProposalStatus = 'pending' | 'applied' | 'dismissed' | 'stale';
 export type ProposalAction = 'preview' | 'apply' | 'dismiss';
-interface Message { role: 'user' | 'designer'; text: string; metrics?: MetricRow[]; proposal?: AgentProposal; status?: ProposalStatus; options?: string[]; notes?: string; suggestions?: string[]; retryRequest?: string }
+interface Message { role: 'user' | 'designer'; text: string; metrics?: MetricRow[]; proposal?: AgentProposal; status?: ProposalStatus; options?: string[]; notes?: string; suggestions?: string[]; retryRequest?: string; steps?: DesignerTurnSteps }
 interface Conversation { id: string; title: string; conversationId?: string; messages: Message[]; options: string[] }
 interface History { version: 1; activeId: string; conversations: Conversation[] }
 const record = (value: unknown): Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
@@ -42,6 +44,10 @@ function appendNotes(parent: HTMLElement, value?: string): void {
 
 export interface DesignerPanelState {
   messages: Message[]; draft: string; busy: boolean; progress: string; options: string[];
+  /** Steps of the turn in flight; they move onto the reply when it lands. */
+  steps: DesignerStep[];
+  /** A message typed while the designer works; sent when the turn ends. */
+  queued: string;
   conversationId?: string; keep: string[]; elapsedSeconds: number;
   northDeg?: number; northPersisted: boolean; northError: string;
   activeHistoryId: string; conversations: { id: string; title: string }[]; historyPersisted: boolean;
@@ -61,7 +67,7 @@ interface ConversationOptions {
 
 /** Owns chat state only. A proposal can only leave through the editor's review callback. */
 export function createDesignerConversation(options: ConversationOptions) {
-  const state: DesignerPanelState = { messages: [], draft: '', busy: false, progress: '', options: [], keep: [], elapsedSeconds: 0, northPersisted: false, northError: '', activeHistoryId: '', conversations: [], historyPersisted: false };
+  const state: DesignerPanelState = { messages: [], draft: '', busy: false, progress: '', options: [], steps: [], queued: '', keep: [], elapsedSeconds: 0, northPersisted: false, northError: '', activeHistoryId: '', conversations: [], historyPersisted: false };
   let active: AbortController | undefined, disposed = false;
   const now = options.now ?? (() => performance.now());
   let started = 0, settingsScene = options.snapshot().scene.id;
@@ -98,6 +104,8 @@ export function createDesignerConversation(options: ConversationOptions) {
               || thread.options.some(item => typeof item !== 'string') || (thread.conversationId !== undefined && typeof thread.conversationId !== 'string')) throw Error('Invalid conversation');
             for (const message of thread.messages) {
               if (!message || !['user', 'designer'].includes(message.role) || typeof message.text !== 'string') throw Error('Invalid message');
+              // Steps are a record of work, not a decision: a damaged one is dropped, the message is kept.
+              if (message.steps !== undefined && !validDesignerTurnSteps(message.steps)) delete message.steps;
               if (message.notes !== undefined && (typeof message.notes !== 'string' || !message.notes.trim() || message.notes.length > 1600)) throw Error('Invalid notes');
               if (message.metrics && (!Array.isArray(message.metrics) || message.metrics.some(row => !row || typeof row.label !== 'string' || typeof row.value !== 'string'))) throw Error('Invalid metrics');
               if (message.suggestions && (!Array.isArray(message.suggestions) || message.suggestions.length > 4 || message.suggestions.some(value => typeof value !== 'string' || !value.trim() || value.length > 300))) throw Error('Invalid suggestions');
@@ -137,13 +145,22 @@ export function createDesignerConversation(options: ConversationOptions) {
   loadHistory(); persist();
   const publish = (save = true) => { if (!disposed) { if (save) persist(); options.onChange?.(structuredClone(state)); } };
   const reply = (text: string, metrics?: MetricRow[], notes?: string) => state.messages.push({ role: 'designer', text, ...(metrics ? { metrics } : {}), ...(notes === undefined ? {} : { notes }) });
+  /** The turn's steps travel with the reply that ended it, so a finished turn reads as one collapsed line. */
+  const settleSteps = () => {
+    const last = state.messages.at(-1);
+    if (state.steps.length && last?.role === 'designer') {
+      const at = Math.max(0, (now() - started) / 1000);
+      last.steps = { steps: finishDesignerSteps(state.steps, at), seconds: Math.floor(at) };
+    }
+    state.steps = [];
+  };
   const controller = {
     get state() { return structuredClone(state); },
     refreshSettings() {
       const { scene, revision } = options.snapshot();
       if (disposed) return;
       if (scene.id !== settingsScene) {
-        if (options.history) { controller.cancel(); persist(); options.onResetReview?.(); state.keep = []; state.historyPersisted = false; }
+        if (options.history) { state.queued = ''; controller.cancel(); persist(); options.onResetReview?.(); state.keep = []; state.historyPersisted = false; }
         settingsScene = scene.id; loadNorth(); loadHistory();
       }
       if (options.history) {
@@ -155,13 +172,13 @@ export function createDesignerConversation(options: ConversationOptions) {
     },
     newConversation() {
       if (disposed || !options.history) return;
-      controller.cancel(); persist(); options.onResetReview?.();
+      state.queued = ''; controller.cancel(); persist(); options.onResetReview?.();
       const next = emptyConversation(); history.conversations.unshift(next); history.activeId = next.id;
       loadHistory(); state.keep = []; publish();
     },
     selectConversation(id: string) {
       if (disposed || !options.history || id === state.activeHistoryId || !history.conversations.some(thread => thread.id === id)) return;
-      controller.cancel(); persist(); options.onResetReview?.(); history.activeId = id; loadHistory(); state.keep = []; controller.refreshSettings();
+      state.queued = ''; controller.cancel(); persist(); options.onResetReview?.(); history.activeId = id; loadHistory(); state.keep = []; controller.refreshSettings();
     },
     act(id: string, action: ProposalAction) {
       if (disposed || state.busy || !options.history) return false;
@@ -216,7 +233,7 @@ export function createDesignerConversation(options: ConversationOptions) {
       const abortController = new AbortController(); active = abortController;
       state.keep = state.keep.filter(id => scene.objects.some(object => object.id === id));
       state.messages.push({ role: 'user', text: request });
-      started = now(); state.elapsedSeconds = 0; state.draft = '';
+      started = now(); state.elapsedSeconds = 0; state.draft = ''; state.steps = [];
       state.busy = true; state.progress = 'Sending your request to the designer…'; state.options = []; publish();
       try {
         const result = await options.ask({ events: true, scene: structuredClone(scene), revision, request,
@@ -224,7 +241,9 @@ export function createDesignerConversation(options: ConversationOptions) {
           conversationId: state.conversationId, keep: [...state.keep], ...(state.northDeg === undefined ? {} : { northDeg: state.northDeg }) }, {
           signal: abortController.signal,
           onProgress: message => { if (active === abortController && !disposed) { state.progress = message; publish(false); } },
-          onEvent: event => { if (active === abortController && !disposed) { state.progress = designerEventProgress(event); publish(false); } },
+          onEvent: event => { if (active === abortController && !disposed) {
+            state.progress = designerEventProgress(event); state.steps = applyDesignerEvent(state.steps, event, (now() - started) / 1000); publish(false);
+          } },
           onMessageDelta: delta => { if (active === abortController && !disposed) { state.draft = (state.draft + delta).slice(0, 4000); publish(false); } },
         });
         if (disposed || active !== abortController) return;
@@ -249,16 +268,31 @@ export function createDesignerConversation(options: ConversationOptions) {
         state.messages.at(-1)!.retryRequest = request;
       } finally {
         if (!disposed && active === abortController) {
-          active = undefined; state.busy = false; state.progress = ''; state.draft = ''; publish();
+          active = undefined; state.busy = false; state.progress = ''; state.draft = ''; settleSteps(); publish();
+          // After publish, so the host has already seen the turn end and will accept the next request.
+          const next = state.queued;
+          if (next) { state.queued = ''; void controller.send(next); }
         }
       }
     },
-    cancel() {
-      if (!active) return;
-      const controller = active; active = undefined; controller.abort();
-      state.busy = false; state.progress = ''; state.draft = ''; reply('Request cancelled. You can try another request.'); publish();
+    /** Type while the designer works: the message waits and goes out when the turn ends. */
+    queue(message: string): Promise<void> {
+      const text = message.trim();
+      if (disposed || !text) return Promise.resolve();
+      if (!state.busy) return controller.send(text);
+      state.queued = (state.queued ? `${state.queued}\n\n${text}` : text).slice(0, 20000); publish(false);
+      return Promise.resolve();
     },
-    dispose() { disposed = true; active?.abort(); active = undefined; },
+    unqueue() { if (disposed || !state.queued) return; state.queued = ''; publish(false); },
+    /** Stop means stop: a queued message is not sent; it is returned so the composer can offer it again. */
+    cancel(): string {
+      if (!active) return '';
+      const controller = active; active = undefined; controller.abort();
+      const unsent = state.queued; state.queued = '';
+      state.busy = false; state.progress = ''; state.draft = ''; reply('Request cancelled. You can try another request.'); settleSteps(); publish();
+      return unsent;
+    },
+    dispose() { disposed = true; active?.abort(); active = undefined; state.queued = ''; },
   };
   return controller;
 }
@@ -295,118 +329,6 @@ export function createRecordedDesigner(delayMs = 900): AskDesigner {
   };
 }
 
-interface MountOptions extends Omit<ConversationOptions, 'ask' | 'onChange'> {
-  ask?: AskDesigner; live?: boolean;
-  subscribe?: (listener: () => void) => () => void;
-  onBusyChange?: (busy: boolean) => void;
-}
-
-function mountMockDesignerPanel(host: HTMLElement, options: MountOptions) {
-  host.classList.add('designer-panel');
-  host.innerHTML = `<div class="designer-panel-heading"><strong>Talk to your designer</strong><span class="mock-label">${options.live ? 'CONNECTED' : 'DEMO REPLAY'}</span></div>
-    <p class="designer-panel-intro">Tell me what you want to change and what should stay.</p>
-    <div class="designer-messages" role="log" aria-label="Designer conversation" aria-live="polite"></div>
-    <div class="designer-options" aria-label="Choose an answer"></div>
-    <div class="designer-progress" hidden><span class="designer-progress-stage" role="status"></span><span class="designer-elapsed" aria-live="off"></span><small>You can cancel while the designer works.</small></div>
-    <div class="designer-north"><label for="designer-north">North angle <span>°</span></label><input id="designer-north" type="number" min="0" max="359.999999" step="any" placeholder="Unknown" aria-describedby="designer-north-help designer-north-status" />
-      <small id="designer-north-help">Clockwise from plan-up: 0° ↑, 90° →. Leave blank if unknown.</small><small id="designer-north-status" role="status"></small></div>
-    <details class="designer-keeps"><summary>Keep pieces in place</summary><p>These pieces stay untouched in your next request.</p><div class="designer-keep-list"></div></details>
-    <form class="designer-form"><label for="designer-request">What would you like to change?</label>
-      <textarea id="designer-request" name="request" rows="3" maxlength="20000" placeholder="Make the living room feel bigger…" required></textarea>
-      <div class="designer-actions"><button class="button primary" type="submit">Send request</button><button class="button quiet designer-cancel" type="button" hidden>Cancel</button></div>
-    </form>
-    ${options.live ? '' : '<p class="designer-demo-note">Recorded examples: “Move the table”, “Make it cozier”, or “Pick paint colours”.</p>'}`;
-  const find = <T extends HTMLElement>(selector: string) => host.querySelector<T>(selector)!;
-  const log = find<HTMLDivElement>('.designer-messages'), choices = find<HTMLDivElement>('.designer-options');
-  const progress = find<HTMLDivElement>('.designer-progress'), input = find<HTMLTextAreaElement>('textarea');
-  const send = find<HTMLButtonElement>('[type="submit"]'), cancel = find<HTMLButtonElement>('.designer-cancel');
-  const keeps = find<HTMLDivElement>('.designer-keep-list');
-  const north = find<HTMLInputElement>('#designer-north'), northStatus = find<HTMLElement>('#designer-north-status');
-  let displayedMessages = 0, previousBusy = false;
-  let ticker: ReturnType<typeof setInterval> | undefined;
-  const renderKeeps = () => {
-    const state = controller.state;
-    keeps.replaceChildren();
-    for (const object of options.snapshot().scene.objects) {
-      const label = document.createElement('label'), checkbox = document.createElement('input');
-      checkbox.type = 'checkbox'; checkbox.checked = state.keep.includes(object.id); checkbox.disabled = state.busy;
-      checkbox.onchange = () => controller.setKeep(object.id, checkbox.checked);
-      label.append(checkbox, document.createTextNode(object.name)); keeps.append(label);
-    }
-    if (!keeps.childElementCount) keeps.textContent = 'There are no furniture pieces yet.';
-  };
-  let storage = options.storage;
-  if (!storage) { try { storage = window.localStorage; } catch { /* Session-only settings. */ } }
-  const renderNorth = (state: DesignerPanelState) => {
-    if (document.activeElement !== north && !state.northError) north.value = state.northDeg === undefined ? '' : String(state.northDeg);
-    north.disabled = state.busy; north.setCustomValidity(state.northError);
-    northStatus.textContent = state.northError || (state.northDeg === undefined ? 'Sun direction unknown.' : state.northPersisted ? 'Saved on this device for this scene.' : 'For this session only; browser storage is unavailable.');
-  };
-  const controller = createDesignerConversation({ ...options, storage, ask: options.ask ?? (options.live ? askDesigner : createRecordedDesigner()),
-    onChange: state => {
-      const nearBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 48;
-      for (const message of state.messages.slice(displayedMessages)) {
-        const item = document.createElement('div'); item.className = `designer-message designer-message-${message.role}`;
-        const author = document.createElement('strong'); author.textContent = message.role === 'user' ? 'You' : 'Designer';
-        const text = document.createElement('div'); text.className = 'designer-message-copy';
-        if (message.role === 'designer') text.innerHTML = designerMarkdown(message.text); else text.textContent = message.text;
-        item.append(author, text);
-        if (message.metrics) {
-          const numbers = document.createElement('dl'); numbers.className = 'designer-metrics';
-          for (const row of message.metrics) {
-            const label = document.createElement('dt'), value = document.createElement('dd');
-            label.textContent = row.label; value.textContent = row.value; numbers.append(label, value);
-          }
-          item.append(numbers);
-          if (message.notes === undefined) { const note = document.createElement('small'); note.textContent = 'Service estimates. Paint and labour are not priced here.'; item.append(note); }
-        }
-        appendNotes(item, message.notes);
-        if (message.retryRequest) {
-          const retry = document.createElement('button'); retry.type = 'button'; retry.className = 'button designer-retry'; retry.textContent = 'Retry'; retry.onclick = () => { void controller.send(message.retryRequest!); }; item.append(retry);
-        }
-        log.append(item);
-      }
-      displayedMessages = state.messages.length;
-      if (nearBottom) log.scrollTop = log.scrollHeight;
-      choices.replaceChildren();
-      for (const option of state.options.length ? state.options : state.messages.at(-1)?.suggestions ?? []) {
-        const button = document.createElement('button'); button.type = 'button'; button.className = 'button';
-        button.textContent = option; button.disabled = state.busy; button.onclick = () => { void controller.send(option); };
-        choices.append(button);
-      }
-      find<HTMLElement>('.designer-progress-stage').textContent = state.progress;
-      find<HTMLElement>('.designer-elapsed').textContent = `${state.elapsedSeconds} s elapsed`;
-      progress.hidden = !state.busy;
-      cancel.hidden = !state.busy; send.disabled = state.busy; input.disabled = state.busy;
-      host.setAttribute('aria-busy', String(state.busy));
-      for (const checkbox of keeps.querySelectorAll<HTMLInputElement>('input')) checkbox.disabled = state.busy;
-      if (previousBusy !== state.busy) {
-        if (ticker !== undefined) clearInterval(ticker);
-        ticker = state.busy ? setInterval(() => controller.tick(), 1000) : undefined;
-        options.onBusyChange?.(state.busy);
-        if (!state.busy && host.getClientRects().length) input.focus();
-      }
-      renderNorth(state);
-      previousBusy = state.busy;
-    },
-  });
-  find<HTMLFormElement>('form').onsubmit = event => {
-    event.preventDefault(); const request = input.value;
-    if (request.trim() && !controller.state.busy) {
-      void controller.send(request);
-      if (controller.state.busy) input.value = '';
-    }
-  };
-  input.onkeydown = event => {
-    if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) { event.preventDefault(); find<HTMLFormElement>('form').requestSubmit(); }
-  };
-  cancel.onclick = () => controller.cancel();
-  north.onchange = () => { controller.setNorth(north.validity.badInput ? 'invalid' : north.value); north.reportValidity(); };
-  renderKeeps(); renderNorth(controller.state);
-  const unsubscribe = options.subscribe?.(() => { controller.refreshSettings(); renderKeeps(); renderNorth(controller.state); });
-  return { controller, dispose() { if (ticker !== undefined) clearInterval(ticker); controller.dispose(); unsubscribe?.(); host.replaceChildren(); } };
-}
-
 /** Preview all editor operations using the same checks, without changing the user's store. */
 export function previewDesignerProposal(scene: SceneDocument, revision: number, proposal: AgentProposal, catalog: CatalogAsset[]): SceneDocument {
   if (proposal.command.baseRevision !== revision) throw new Error('This proposal is stale. Ask for a fresh proposal.');
@@ -416,50 +338,209 @@ export function previewDesignerProposal(scene: SceneDocument, revision: number, 
   return preview.scene;
 }
 
-/** Live product surface; the original mock panel stays inside Assistant unchanged. */
+interface MountOptions extends Omit<ConversationOptions, 'ask' | 'onChange'> {
+  ask?: AskDesigner; live?: boolean;
+  subscribe?: (listener: () => void) => () => void;
+  onBusyChange?: (busy: boolean) => void;
+}
+
+/** What the buyer is pointing at: their own selection, shown as a yellow chip above the composer. */
+export interface DesignerContext { id: string; label: string }
+
+/** Composer text only; options, retries and suggestions are sent verbatim so they are never prefixed twice. */
+export function designerContextRequest(request: string, context?: DesignerContext | null): string {
+  const text = request.trim(), label = context?.label?.trim();
+  if (!text || !label) return text;
+  const noun = /^[A-Z][a-z]/.test(label) ? label[0]!.toLowerCase() + label.slice(1) : label;
+  return `About the ${noun}: ${text}`;
+}
+
+export interface DesignerProduct { id: string; name: string; price?: number; estimate?: boolean }
+
+/** Pieces a proposal adds, priced only from what the editor already holds. */
+export function proposalProducts(proposal: AgentProposal, catalog: CatalogAsset[] = [], estimates: CatalogAsset[] = []): DesignerProduct[] {
+  const assets = new Map(catalog.map(asset => [asset.id, asset])), custom = new Map(estimates.map(asset => [asset.id, asset]));
+  return proposal.command.operations.flatMap(operation => {
+    if (operation.type !== 'add') return [];
+    const known = assets.get(operation.object.assetId), estimate = known ? undefined : custom.get(operation.object.assetId);
+    const asset = known ?? estimate;
+    const price = asset && Number.isFinite(asset.price) && asset.price > 0 ? asset.price : undefined;
+    return [{ id: operation.object.id, name: operation.object.name?.trim() || asset?.name || 'New piece',
+      ...(price === undefined ? {} : { price, ...(estimate ? { estimate: true } : {}) }) }];
+  }).slice(0, 12);
+}
+
+/** Replies the recorded demo understands. Nothing here reaches a model. */
+const recordedStarters: DesignerStarter[] = ['Move the table', 'Make it cozier', 'Pick paint colours', 'Why minimalism?']
+  .map((label, index) => ({ id: `example:recorded-${index}`, label, request: label }));
+const stepMarks = { done: ['check', 'Done'], failed: ['cross', 'Failed'], unfinished: ['wait', 'Not finished when the designer replied'] } as const;
+const money = (value: number) => `${value.toLocaleString('en-US')} ֏`;
+
+/** The designer column. Live talks to the service; demo replays recorded answers and reviews in the Assistant panel. */
 export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
-  if (!options.live) return { ...mountMockDesignerPanel(host, options), open() {} };
+  const live = options.live === true;
+  const estimates = new Map<string, CatalogAsset>();
+  const baseAsk = options.ask ?? (live ? askDesigner : createRecordedDesigner());
+  // Custom pieces arrive with the reply, not the catalog; remember them so their chips can show an estimate.
+  const ask: AskDesigner = async (request, askOptions) => {
+    const reply = await baseAsk(request, askOptions);
+    if (reply.type === 'proposal') for (const asset of reply.assets ?? []) estimates.set(asset.id, asset);
+    return reply;
+  };
   host.classList.add('designer-column'); host.setAttribute('aria-label', 'Designer');
-  host.innerHTML = `<header class="designer-chat-header"><div><strong>Your designer</strong><small>Design your home together</small></div><button type="button" class="button quiet designer-collapse" aria-label="Collapse designer" aria-expanded="true">‹</button></header>
-    <div class="designer-chat-body"><div class="designer-history-bar"><button class="button designer-new" type="button">+ New conversation</button><details class="designer-history"><summary>Recent conversations</summary><div class="designer-history-list"></div></details></div>
-    <div class="designer-chat-scroll"><div class="designer-greeting"><span class="designer-greeting-icon" aria-hidden="true">✦</span><h2>What would make this feel like home?</h2><p>Tell me what you have in mind. We can explore a change together, and you decide what to apply.</p></div>
-      <details class="designer-starters" open><summary>Ideas for this flat</summary><div class="designer-examples"></div></details>
-      <div class="designer-messages" role="log" aria-label="Designer conversation" aria-live="polite"></div>
-      <div class="designer-progress" hidden><span class="designer-progress-stage" role="status"></span><span class="designer-elapsed" aria-live="off"></span><small>You can cancel while the designer works.</small></div></div>
-    <div class="designer-composer"><details class="designer-context"><summary>Room context · north & keep pieces</summary>
+  host.innerHTML = `<header class="designer-chat-header"><h2 class="designer-title"><span class="designer-dot" aria-hidden="true"></span>Designer</h2>${live ? '' : '<span class="mock-label">Demo replay</span>'}<div class="designer-header-actions"></div></header>
+    <div class="designer-chat-body"><div class="designer-history-bar"${live ? '' : ' hidden'}><details class="designer-history"><summary>Recent conversations</summary><div class="designer-history-list"></div></details></div>
+    <div class="designer-chat-scroll"><div class="designer-greeting"><span class="designer-greeting-icon" aria-hidden="true">${designerIcon('sparkles', 22)}</span><h2>What would make this feel like home?</h2><p>Tell me what you have in mind. We can explore a change together, and you decide what to apply.</p></div>
+      <details class="designer-starters" open><summary>${live ? 'Ideas for this flat' : 'Recorded examples'}</summary><div class="designer-examples"></div></details>
+      <div class="designer-messages" role="log" aria-label="Designer conversation" aria-live="polite"></div></div>
+    <span class="designer-progress-stage designer-visually-hidden" role="status"></span>
+    <div class="designer-composer"><details class="designer-context"><summary>Room context · north and pieces to keep</summary>
       <div class="designer-north"><label for="designer-north">North angle °</label><input id="designer-north" type="number" min="0" max="359.999999" step="any" placeholder="Unknown" aria-describedby="designer-north-help"/><small id="designer-north-help">Clockwise from plan-up: 0° ↑, 90° →. Leave blank if unknown.</small><small class="designer-north-status" role="status"></small></div>
       <details class="designer-keeps"><summary>Keep pieces in place</summary><div class="designer-keep-list"></div></details></details>
-      <form class="designer-form"><label for="designer-request">Message your designer</label><textarea id="designer-request" rows="2" maxlength="20000" placeholder="Ask a question or explore a change…" required></textarea><div class="designer-actions"><button type="submit" class="button primary">Send</button><button type="button" class="button quiet designer-cancel" hidden>Cancel</button></div></form>
+      <div class="designer-about" hidden><span class="designer-about-chip"><span>About: <strong class="designer-about-label"></strong></span></span></div>
+      <form class="designer-form"><label for="designer-request" class="designer-visually-hidden">Message your designer</label>
+        <div class="designer-input"><textarea id="designer-request" rows="1" maxlength="20000" placeholder="Ask anything" required></textarea>
+        <div class="designer-actions"><button type="submit" class="designer-icon-button designer-send" aria-label="Send" title="Send">${designerIcon('send')}</button><button type="button" class="designer-icon-button designer-cancel" aria-label="Stop the designer" title="Stop" hidden>${designerIcon('stop')}</button></div></div></form>
       <small class="designer-compose-hint">Enter to send · Shift+Enter for a new line</small><small class="designer-storage-status"></small></div></div>`;
   const find = <T extends HTMLElement>(selector: string) => host.querySelector<T>(selector)!;
   const log = find<HTMLElement>('.designer-messages'), scroller = find<HTMLElement>('.designer-chat-scroll');
   const input = find<HTMLTextAreaElement>('textarea'), form = find<HTMLFormElement>('form');
-  const north = find<HTMLInputElement>('#designer-north');
-  const collapse = find<HTMLButtonElement>('.designer-collapse');
+  const north = find<HTMLInputElement>('#designer-north'), stage = find<HTMLElement>('.designer-progress-stage');
+  const sendButton = find<HTMLButtonElement>('.designer-send'), stopButton = find<HTMLButtonElement>('.designer-cancel');
   let storage = options.storage;
   if (!storage) { try { storage = window.localStorage; } catch { /* Session-only chat. */ } }
   let messageKey = '', historyKey = '', previousBusy = false, activeThread = '', collapsed = false, hasMessages = false, contextualStarters = false;
-  let ticker: ReturnType<typeof setInterval> | undefined;
+  let ticker: ReturnType<typeof setInterval> | undefined, context: DesignerContext | null = null;
+  const openSteps = new Set<string>();
+  const reducedMotion = () => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return false; } };
   const button = (label: string, action: () => void, className = 'button') => {
     const item = document.createElement('button'); item.type = 'button'; item.className = className; item.textContent = label; item.onclick = action; return item;
   };
+  const newChat = designerIconButton('plus', 'New conversation', () => { controller.newConversation(); renderKeeps(); input.focus(); }, 'designer-new');
+  newChat.hidden = !live;
+  const collapse = designerIconButton('panel-close', 'Collapse designer', () => setCollapsed(!collapsed), 'designer-collapse');
+  collapse.setAttribute('aria-expanded', 'true');
+  find<HTMLElement>('.designer-header-actions').append(newChat, collapse);
+  const clearContext = designerIconButton('close', 'Clear context', () => setContext(null), 'designer-about-clear');
+  find<HTMLElement>('.designer-about-chip').append(clearContext);
+  const jump = designerIconButton('down', 'Jump to latest', () => scroller.scrollTo({ top: scroller.scrollHeight, behavior: reducedMotion() ? 'auto' : 'smooth' }), 'designer-jump');
+  jump.hidden = true; scroller.append(jump);
+  const updateJump = () => { jump.hidden = scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < 120; };
+  scroller.addEventListener('scroll', updateJump, { passive: true });
+
+  const grow = () => { input.style.height = 'auto'; if (input.value) input.style.height = `${Math.min(input.scrollHeight + 2, 160)}px`; };
+  const setInput = (value: string) => { input.value = value; grow(); };
   const setCollapsed = (value: boolean) => {
     collapsed = value; host.classList.toggle('designer-collapsed', value); find<HTMLElement>('.designer-chat-body').hidden = value;
-    collapse.textContent = value ? 'Designer ›' : '‹'; collapse.setAttribute('aria-label', value ? 'Open designer' : 'Collapse designer'); collapse.setAttribute('aria-expanded', String(!value));
+    const label = value ? 'Open designer' : 'Collapse designer';
+    collapse.setAttribute('aria-label', label); collapse.title = label; collapse.setAttribute('aria-expanded', String(!value));
   };
+  function setContext(next: DesignerContext | null) {
+    const label = typeof next?.label === 'string' ? next.label.trim().slice(0, 120) : '';
+    context = next && typeof next.id === 'string' && label ? { id: next.id, label } : null;
+    find<HTMLElement>('.designer-about').hidden = !context;
+    find<HTMLElement>('.designer-about-label').textContent = context?.label ?? '';
+  }
+
+  /** One step row. The ring's phase follows the clock so a rebuilt row does not visibly restart. */
+  const stepRow = (step: DesignerStep, current: boolean) => {
+    const row = document.createElement('li'); row.className = `designer-step designer-step-${step.status}`;
+    const mark = document.createElement('span'); mark.className = 'designer-step-mark';
+    if (step.status === 'running') {
+      const ring = document.createElement('span'); ring.className = 'designer-ring'; ring.style.animationDelay = `-${Math.round(performance.now() % 900)}ms`;
+      mark.append(ring); mark.title = 'Working';
+    } else { const [name, title] = stepMarks[step.status]; mark.innerHTML = designerIcon(name, 14); mark.title = title; }
+    const hidden = document.createElement('span'); hidden.className = 'designer-visually-hidden'; hidden.textContent = `${mark.title}: `;
+    const label = document.createElement('span'); label.className = 'designer-step-label'; label.append(hidden, step.label);
+    if (step.timed && (step.status === 'running' || step.end !== undefined)) {
+      const time = document.createElement('span'); time.className = 'designer-step-time'; time.dataset.at = String(step.at);
+      if (step.end !== undefined) { time.dataset.end = String(step.end); time.textContent = designerClock(step.end - step.at); }
+      label.append(' · ', time);
+    }
+    row.append(mark, label);
+    if (current) { const elapsed = document.createElement('span'); elapsed.className = 'designer-elapsed'; elapsed.setAttribute('aria-hidden', 'true'); row.append(elapsed); }
+    return row;
+  };
+  const stepList = (steps: DesignerStep[], current = -1) => {
+    const list = document.createElement('ol'); list.className = 'designer-step-list';
+    steps.forEach((step, index) => list.append(stepRow(step, index === current))); return list;
+  };
+
+  // The turn in flight lives outside the message key: the clock ticks every second and must not rebuild the log.
+  const liveTurn = document.createElement('div'); liveTurn.className = 'designer-progress designer-turn'; liveTurn.setAttribute('aria-live', 'off'); liveTurn.hidden = true;
+  let liveKey = '';
+  const liveSteps = (state: DesignerPanelState): DesignerStep[] => {
+    const steps = [...state.steps];
+    if (!steps.some(step => step.status === 'running')) steps.push({ key: 'now', status: 'running', at: 0,
+      label: !steps.length ? state.progress || 'Sending your request' : state.draft ? 'Writing the reply' : 'Thinking it through' });
+    return steps;
+  };
+  const renderLive = (state: DesignerPanelState) => {
+    liveTurn.hidden = !state.busy;
+    if (!state.busy) { liveKey = ''; stage.textContent = ''; return; }
+    const steps = liveSteps(state);
+    const current = steps.map(step => step.status).lastIndexOf('running');
+    const key = JSON.stringify(steps.map(step => [step.key, step.label, step.status, step.end]));
+    if (key !== liveKey) { liveKey = key; liveTurn.replaceChildren(stepList(steps, current)); }
+    for (const time of liveTurn.querySelectorAll<HTMLElement>('.designer-step-time:not([data-end])')) time.textContent = designerClock(state.elapsedSeconds - Number(time.dataset.at));
+    const elapsed = liveTurn.querySelector<HTMLElement>('.designer-elapsed');
+    if (elapsed) elapsed.textContent = designerClock(state.elapsedSeconds);
+    stage.textContent = steps[current]?.label ?? state.progress;
+  };
+
+  const copyButton = (text: string) => {
+    const control = designerIconButton('copy', 'Copy message', () => {
+      const done = (name: string, label: string) => {
+        control.innerHTML = designerIcon(name); control.setAttribute('aria-label', label); control.title = label;
+        setTimeout(() => { control.innerHTML = designerIcon('copy'); control.setAttribute('aria-label', 'Copy message'); control.title = 'Copy message'; }, 1600);
+      };
+      if (!navigator.clipboard) { done('cross', 'Copy is not available here'); return; }
+      navigator.clipboard.writeText(text).then(() => done('check', 'Copied'), () => done('cross', 'Could not copy'));
+    }, 'designer-copy');
+    return control;
+  };
+  const productChips = (proposal: AgentProposal) => {
+    const { catalog = [], catalogCurrency } = options.snapshot();
+    const products = proposalProducts(proposal, catalog, [...estimates.values()]);
+    if (!products.length) return undefined;
+    const list = document.createElement('ul'); list.className = 'designer-products'; list.setAttribute('aria-label', 'Pieces in this proposal');
+    products.forEach((product, index) => {
+      const chip = document.createElement('li'); chip.className = 'designer-product';
+      const number = document.createElement('span'); number.className = 'designer-product-index'; number.setAttribute('aria-hidden', 'true'); number.textContent = String(index + 1);
+      const name = document.createElement('span'); name.className = 'designer-product-name'; name.textContent = product.name;
+      chip.append(number, name);
+      if (product.price !== undefined && catalogCurrency === 'AMD') {
+        const price = document.createElement('span'); price.className = 'designer-product-price';
+        price.textContent = product.estimate ? `≈ ${money(product.price)}` : money(product.price);
+        if (product.estimate) price.title = 'Sample estimate for a made-to-measure piece; the workshop confirms';
+        chip.append(price);
+      }
+      list.append(chip);
+    });
+    return list;
+  };
+
   const render = (state: DesignerPanelState) => {
     const switched = activeThread !== state.activeHistoryId; activeThread = state.activeHistoryId;
-    if (switched) input.value = '';
+    if (switched) { setInput(''); openSteps.clear(); }
     const nearBottom = scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < 60;
-    const nextKey = JSON.stringify([state.messages, state.options, state.busy, state.draft]);
+    const nextKey = JSON.stringify([state.messages, state.options, state.busy, state.draft, state.queued]);
     if (nextKey !== messageKey) {
       messageKey = nextKey; log.replaceChildren();
       state.messages.forEach((message, index) => {
         const item = document.createElement('article'); item.className = `designer-message designer-message-${message.role}`;
-        const author = document.createElement('strong'); author.textContent = message.role === 'user' ? 'You' : 'Designer'; item.append(author);
+        const author = document.createElement('strong'); author.className = 'designer-author'; author.textContent = message.role === 'user' ? 'You' : 'Designer'; item.append(author);
+        if (message.steps) {
+          const details = document.createElement('details'), summary = document.createElement('summary'), key = `${state.activeHistoryId}:${index}`;
+          details.className = 'designer-steps'; details.open = openSteps.has(key);
+          summary.textContent = designerStepsSummary(message.steps);
+          details.ontoggle = () => { if (details.open) openSteps.add(key); else openSteps.delete(key); };
+          details.append(summary, stepList(message.steps.steps)); item.append(details);
+        }
         if (message.proposal) { const title = document.createElement('h3'); title.textContent = message.proposal.title; item.append(title); item.classList.add('designer-proposal-card'); }
         const text = document.createElement('div'); text.className = 'designer-message-copy';
         if (message.role === 'designer') text.innerHTML = designerMarkdown(message.text); else text.textContent = message.text; item.append(text);
+        if (message.proposal) { const chips = productChips(message.proposal); if (chips) item.append(chips); }
         if (message.metrics) {
           const metrics = document.createElement('dl'); metrics.className = 'designer-metrics';
           for (const row of message.metrics) { const dt = document.createElement('dt'), dd = document.createElement('dd'); dt.textContent = row.label; dd.textContent = row.value; metrics.append(dt, dd); }
@@ -472,10 +553,11 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
           status.textContent = { pending: 'Ready for your review', applied: 'Applied', dismissed: 'Dismissed', stale: 'Stale · the scene changed or was reopened. Ask for a fresh proposal.' }[message.status ?? 'stale']; item.append(status);
           if (message.status === 'pending') {
             const actions = document.createElement('div'); actions.className = 'designer-proposal-actions';
-            for (const action of ['preview', 'apply', 'dismiss'] as const) {
-              const control = button(action[0]!.toUpperCase() + action.slice(1), () => controller.act(message.proposal!.id, action), `button ${action === 'apply' ? 'primary' : 'quiet'}`);
-              control.disabled = state.busy; actions.append(control);
-            }
+            const act = (action: ProposalAction) => () => controller.act(message.proposal!.id, action);
+            const preview = button('Preview', act('preview'), 'button quiet designer-preview');
+            const apply = button('Apply', act('apply'), 'button primary designer-apply');
+            const dismiss = designerIconButton('close', 'Dismiss', act('dismiss'), 'designer-dismiss');
+            for (const control of [preview, apply, dismiss]) { control.disabled = state.busy; actions.append(control); }
             item.append(actions);
           }
         }
@@ -497,15 +579,31 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
           for (const choice of state.options) { const control = button(choice, () => { void controller.send(choice); }); control.disabled = state.busy; choices.append(control); }
           item.append(choices);
         }
+        if (message.role === 'designer') {
+          const tools = document.createElement('div'); tools.className = 'designer-message-tools';
+          tools.append(copyButton(message.proposal ? `${message.proposal.title}\n\n${message.text}` : message.text)); item.append(tools);
+        }
         log.append(item);
       });
+      log.append(liveTurn);
       if (state.draft) {
         const draft = document.createElement('article'); draft.className = 'designer-message designer-message-designer designer-draft'; draft.setAttribute('aria-live', 'off');
-        const author = document.createElement('strong'); author.textContent = 'Designer';
+        const author = document.createElement('strong'); author.className = 'designer-author'; author.textContent = 'Designer';
         const copy = document.createElement('div'); copy.className = 'designer-message-copy'; copy.innerHTML = designerMarkdown(state.draft); draft.append(author, copy); log.append(draft);
+      }
+      if (state.queued) {
+        const queued = document.createElement('article'); queued.className = 'designer-message designer-message-user designer-queued';
+        const author = document.createElement('strong'); author.className = 'designer-author'; author.textContent = 'You, queued';
+        const copy = document.createElement('div'); copy.className = 'designer-message-copy'; copy.textContent = state.queued;
+        const note = document.createElement('small'); note.textContent = 'Queued · sends when the designer finishes';
+        const remove = designerIconButton('close', 'Remove queued message', () => controller.unqueue(), 'designer-unqueue');
+        const foot = document.createElement('div'); foot.className = 'designer-queued-foot'; foot.append(note, remove);
+        queued.append(author, copy, foot); log.append(queued);
       }
       if (nearBottom || switched) scroller.scrollTop = scroller.scrollHeight;
     }
+    renderLive(state);
+    if (nearBottom && state.busy) scroller.scrollTop = scroller.scrollHeight;
     find<HTMLElement>('.designer-greeting').hidden = state.messages.length > 0 || contextualStarters;
     if (switched || hasMessages !== (state.messages.length > 0)) find<HTMLDetailsElement>('.designer-starters').open = !state.messages.length;
     hasMessages = state.messages.length > 0;
@@ -517,37 +615,40 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
         control.setAttribute('aria-current', String(thread.id === state.activeHistoryId)); list.append(control);
       }
     }
-    const progress = find<HTMLElement>('.designer-progress'); progress.hidden = !state.busy;
-    find<HTMLElement>('.designer-progress-stage').textContent = state.progress;
-    find<HTMLElement>('.designer-elapsed').textContent = `${state.elapsedSeconds} s elapsed`;
-    find<HTMLButtonElement>('.designer-cancel').hidden = !state.busy;
-    find<HTMLButtonElement>('[type="submit"]').disabled = state.busy; input.disabled = state.busy;
+    // The submit button stays in the form and disabled while busy: automation waits on it to learn the turn ended.
+    sendButton.disabled = state.busy; sendButton.hidden = state.busy; stopButton.hidden = !state.busy;
+    input.placeholder = state.busy ? 'Add a message for when the designer finishes' : 'Ask anything';
+    find<HTMLElement>('.designer-compose-hint').textContent = state.busy ? 'Enter queues your message · Shift+Enter for a new line' : 'Enter to send · Shift+Enter for a new line';
     for (const control of host.querySelectorAll<HTMLButtonElement>('.designer-examples button')) control.disabled = state.busy;
     if (document.activeElement !== north && !state.northError) north.value = state.northDeg === undefined ? '' : String(state.northDeg);
     north.disabled = state.busy; north.setCustomValidity(state.northError);
     find<HTMLElement>('.designer-north-status').textContent = state.northError || (state.northDeg === undefined ? 'Sun direction unknown.' : state.northPersisted ? 'Saved for this scene.' : 'For this session only.');
-    find<HTMLElement>('.designer-storage-status').textContent = state.historyPersisted ? 'Conversations saved on this device.' : 'Conversations stay in this session until browser storage is available.';
+    find<HTMLElement>('.designer-storage-status').textContent = !live ? 'Recorded demo replies. Nothing is sent to a designer.'
+      : state.historyPersisted ? 'Conversations saved on this device.' : 'Conversations stay in this session until browser storage is available.';
     for (const control of host.querySelectorAll<HTMLInputElement>('.designer-keep-list input')) control.disabled = state.busy;
+    host.setAttribute('aria-busy', String(state.busy));
     if (previousBusy !== state.busy) {
       if (ticker !== undefined) clearInterval(ticker);
       ticker = state.busy ? setInterval(() => controller.tick(), 1000) : undefined;
       options.onBusyChange?.(state.busy);
-      if (!state.busy && !collapsed) input.focus();
+      if (!state.busy && !collapsed && host.getClientRects().length) input.focus();
     }
     previousBusy = state.busy;
+    updateJump();
   };
-  const controller = createDesignerConversation({ ...options, storage, history: true, ask: options.ask ?? askDesigner, onChange: render });
+  const controller = createDesignerConversation({ ...options, storage, history: live, ask, onChange: render });
   const renderKeeps = () => {
     const list = find<HTMLElement>('.designer-keep-list'); list.replaceChildren();
     for (const object of options.snapshot().scene.objects) {
       const label = document.createElement('label'), checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.checked = controller.state.keep.includes(object.id); checkbox.disabled = controller.state.busy;
       checkbox.onchange = () => controller.setKeep(object.id, checkbox.checked); label.append(checkbox, document.createTextNode(object.name)); list.append(label);
     }
+    if (!list.childElementCount) list.textContent = 'There are no furniture pieces yet.';
   };
   let starterKey = '';
   const renderStarters = () => {
     const { scene, catalog } = options.snapshot();
-    const suggestions = designerStarters(scene, catalog, controller.state.northDeg);
+    const suggestions = live ? designerStarters(scene, catalog, controller.state.northDeg) : recordedStarters;
     contextualStarters = suggestions.some(item => !item.id.startsWith('example:'));
     find<HTMLElement>('.designer-greeting').hidden = controller.state.messages.length > 0 || contextualStarters;
     const key = JSON.stringify(suggestions);
@@ -559,13 +660,33 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
       control.disabled = controller.state.busy; list.append(control);
     }
   };
-  collapse.onclick = () => setCollapsed(!collapsed);
-  find<HTMLButtonElement>('.designer-new').onclick = () => { controller.newConversation(); renderKeeps(); input.focus(); };
-  find<HTMLButtonElement>('.designer-cancel').onclick = () => controller.cancel();
+  stopButton.onclick = () => {
+    const unsent = controller.cancel();
+    if (unsent) {
+      // Hand the queued words back without the context prefix the composer would add again.
+      const prefix = context ? designerContextRequest('x', context).slice(0, -1) : '';
+      const text = prefix && unsent.startsWith(prefix) ? unsent.slice(prefix.length) : unsent;
+      setInput(input.value.trim() ? `${text}\n\n${input.value}` : text);
+    }
+    input.focus();
+  };
   north.onchange = () => { controller.setNorth(north.validity.badInput ? 'invalid' : north.value); north.reportValidity(); renderStarters(); };
-  form.onsubmit = event => { event.preventDefault(); const request = input.value; if (request.trim() && !controller.state.busy) { void controller.send(request); if (controller.state.busy) input.value = ''; } };
+  form.onsubmit = event => {
+    event.preventDefault();
+    const request = designerContextRequest(input.value, context);
+    if (!request) return;
+    if (controller.state.busy) { void controller.queue(request); setInput(''); return; }
+    void controller.send(request); if (controller.state.busy) setInput('');
+  };
   input.onkeydown = event => { if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) { event.preventDefault(); form.requestSubmit(); } };
+  input.oninput = () => grow();
   render(controller.state); renderKeeps(); renderStarters();
   const unsubscribe = options.subscribe?.(() => { controller.refreshSettings(); renderKeeps(); renderStarters(); });
-  return { controller, open() { setCollapsed(false); input.focus(); }, dispose() { if (ticker !== undefined) clearInterval(ticker); controller.dispose(); unsubscribe?.(); host.replaceChildren(); } };
+  return {
+    controller,
+    open() { setCollapsed(false); input.focus(); },
+    /** The buyer's current focus (a selected piece), or null. Shown as a chip; prefixes what they type next. */
+    setContext,
+    dispose() { if (ticker !== undefined) clearInterval(ticker); controller.dispose(); unsubscribe?.(); host.replaceChildren(); },
+  };
 }
