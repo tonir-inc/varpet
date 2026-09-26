@@ -1,6 +1,6 @@
 """Furniture catalog MCP server (stdio). Read-only.
 
-Run: uv run mcp_server.py      Needs VARPET_DB_URL.
+Run: uv run mcp_server.py (stdio), or with CATALOG_HTTP_HOST set for HTTP at /mcp. Needs VARPET_DB_URL.
 Sizes are metres [w, d, h]; prices whole dram. Hard constraints (kind, fit, price) are filters;
 colour, style, text and visual likeness only rank what passed.
 """
@@ -118,4 +118,9 @@ def check_fit(item_id: str, max_w: float, max_d: float, max_h: float, allow_rota
 
 
 if __name__ == "__main__":
-    server.run()
+    # Default stdio. For the shared service: CATALOG_HTTP_HOST=<tailscale ip> [CATALOG_HTTP_PORT=8765]
+    host = os.environ.get("CATALOG_HTTP_HOST")
+    if host:
+        server.run("streamable-http", host=host, port=int(os.environ.get("CATALOG_HTTP_PORT", "8765")), stateless_http=True)
+    else:
+        server.run()

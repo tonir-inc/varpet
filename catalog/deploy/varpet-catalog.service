@@ -1,0 +1,25 @@
+[Unit]
+Description=varpet furniture catalog MCP server (HTTP on the tailnet only)
+After=network-online.target postgresql.service tailscaled.service
+Wants=network-online.target
+
+[Service]
+User=varpet-catalog
+Group=varpet-catalog
+WorkingDirectory=/opt/varpet-catalog/app
+EnvironmentFile=/etc/varpet-catalog.env
+ExecStart=/opt/varpet-catalog/app/.venv/bin/python mcp_server.py
+Restart=on-failure
+RestartSec=5
+# Shared box (a Minecraft server and other apps): cap what we can take.
+MemoryMax=2G
+CPUQuota=200%
+Nice=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/varpet-catalog
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

@@ -1,53 +1,44 @@
 # Connecting to the furniture catalog
 
-Owner: Sergey. The catalog is Postgres 17 + pgvector on the team VM, database `varpet`, read by
-`catalog/search.py` and served to agents by `catalog/mcp_server.py`. Mock data: 7,953 ABO products that
-have a 3D model. Sizes are metres `[w, d, h]`, prices whole dram (mock). Details and test results:
-Notion, Docs / Furniture DB & search.
+Owner: Sergey. Mock data: 7,953 ABO products with a 3D model; sizes in metres `[w, d, h]`, prices in whole
+dram (mock). Details and test results: Notion, Docs / Furniture DB & search.
 
-## 1. Access (once per laptop)
+## How it runs
 
-1. Send Sergey your SSH public key; he adds it to `sergey@152.53.158.86` (Tailscale `100.107.246.46`).
-2. Get the DB password from Sergey (not in git). Put this in your shell or `~/.config/varpet/env`:
-   ```sh
-   export VARPET_DB_URL=postgresql://varpet:<password>@localhost:15432/varpet
-   ```
-3. Open the tunnel (Postgres listens only on the VM's localhost):
-   ```sh
-   ssh -fN -o ServerAliveInterval=30 -L 15432:localhost:5432 sergey@152.53.158.86
-   ```
-4. Install the Python side: `uv sync --directory catalog`.
+- **Service:** `varpet-catalog` (systemd) on the team VM `mc-server`, MCP over streamable HTTP, bound to
+  the Tailscale address only: **`http://100.107.246.46:8765/mcp`**. Read-only, runs as its own user,
+  capped at 2 GB RAM and 2 CPUs (the box is shared).
+- **Database:** Postgres 17 + pgvector on the same VM, database `varpet`, localhost only. Only the
+  service talks to it.
+- **Tools:** `list_vocab`, `search_furniture`, `find_similar`, `get_item`, `check_fit`.
 
-Check: `uv run --directory catalog python search.py '{"kind":"sofa","colors":["blue"],"fit_box":[2.2,1,1]}'`
+## Connect (once per laptop)
 
-## 2. As an MCP server
+1. Be on the tailnet with `mc-server` shared to you (ask Felix), and have Tailscale running.
+   Check: `curl -s -o /dev/null -w '%{http_code}\n' http://100.107.246.46:8765/mcp` prints a status code.
+2. Register the server:
+   - Codex: `codex mcp add varpet-catalog --url http://100.107.246.46:8765/mcp`
+   - Claude Code: `claude mcp add --transport http varpet-catalog http://100.107.246.46:8765/mcp`
+   - Under `deny_all` approvals set `default_tools_approval_mode = "approve"` on this server.
+3. From code: any MCP client on that URL.
 
-stdio server, read-only. Tools: `list_vocab`, `search_furniture`, `find_similar`, `get_item`, `check_fit`.
-
-Codex:
-```sh
-codex mcp add varpet-catalog --env VARPET_DB_URL=$VARPET_DB_URL -- uv run --directory "$PWD/catalog" mcp_server.py
-```
-Claude Code:
-```sh
-claude mcp add varpet-catalog -e VARPET_DB_URL=$VARPET_DB_URL -- uv run --directory "$PWD/catalog" mcp_server.py
-```
-Under `deny_all` approvals set `default_tools_approval_mode = "approve"` on this server (see Notion,
-Engineering / Codex harness).
-
-## 3. From code
-
-- Python: `from search import Query, search` (see `catalog/search.py`).
-- The designer's `search_catalog` (`packages/designer/src/catalog.ts`) already calls `search.py` in a
-  subprocess.
+No password or DB access is needed on laptops. The designer's `search_catalog`
+(`packages/designer/src/catalog.ts`) currently calls `catalog/search.py` directly with `VARPET_DB_URL`;
+pointing it at the MCP URL instead removes that need.
 
 ## Things to know
 
 - **Hard filters:** kind, `max_w/max_d/max_h` (rotation allowed), `price_max`. Colour, style, text and
   likeness only rank. An empty result carries `nearest_misses` with the failing constraint.
-- **Text mode:** `text_mode='vector'` (SigLIP 2) scored best in our eval (precision@5 0.82 vs 0.72 for
-  `fts`). It downloads the model (~1.5 GB) on first use; `fts` needs no model.
+- **Text:** keyword + SigLIP 2 vector (best in our eval: precision@5 0.82 vs 0.72 keyword only).
 - **Sizes:** `size_status` is `confirmed`, `estimated` or `conflict` (mesh, listing and name disagree).
-  Search fits use `fit_size_m`, the larger size on a conflict. `wd_swapped: true` means the mesh faces
+  Fit checks use `fit_size_m`, the larger size on a conflict. `wd_swapped: true` means the mesh faces
   sideways: rotate it 90° when placing.
 - **3D model:** `glb_url` from `get_item` (ABO, CC BY 4.0, attribution needed).
+
+## Operate (Sergey)
+
+- Deploy or update: `cd catalog && ./deploy/deploy.sh` (needs SSH to the VM and `VARPET_DB_URL`).
+- Logs: `ssh <vm> journalctl -u varpet-catalog -f`.
+- Load or refresh data from a laptop through a tunnel:
+  `ssh -fN -L 15432:localhost:5432 <vm>`, then `uv run ingest_abo.py`, `colors.py`, `embed_siglip.py`.
