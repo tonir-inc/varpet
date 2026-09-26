@@ -20,14 +20,26 @@ function validAsset(value: unknown): value is CatalogAsset {
   if (value.source.type !== 'gltf' || typeof value.source.url !== 'string') return false;
   try {
     const url = new URL(value.source.url);
-    return url.protocol === 'https:' && allowedHosts.has(url.hostname) && !url.username && !url.password;
+    return (url.protocol === 'https:' || (url.protocol === 'http:' && url.hostname === '100.107.246.46')) &&
+      allowedHosts.has(url.hostname) && !url.username && !url.password;
   } catch { return false; }
 }
 
 export function createCatalogHttpAdapter(options: {
-  url?: string; timeoutMs?: number; fetch?: typeof fetch;
+  url?: string; timeoutMs?: number; fetch?: typeof fetch; models?: 'original' | 'web';
 } = {}): CatalogAdapter {
-  const url = options.url ?? import.meta.env?.VITE_CATALOG_ASSETS_URL ?? DEFAULT_CATALOG_ASSETS_URL;
+  let url = options.url ?? import.meta.env?.VITE_CATALOG_ASSETS_URL ?? DEFAULT_CATALOG_ASSETS_URL;
+  const models = options.models ?? import.meta.env?.VITE_CATALOG_MODELS ?? 'original';
+  if (models === 'web') {
+    const fragmentStart = url.indexOf('#');
+    const fragment = fragmentStart < 0 ? '' : url.slice(fragmentStart);
+    const base = fragmentStart < 0 ? url : url.slice(0, fragmentStart);
+    const queryStart = base.indexOf('?');
+    const path = queryStart < 0 ? base : base.slice(0, queryStart);
+    const query = new URLSearchParams(queryStart < 0 ? '' : base.slice(queryStart + 1));
+    query.set('models', 'web');
+    url = `${path}?${query}${fragment}`;
+  }
   const timeoutMs = options.timeoutMs ?? 15_000;
   const fetchCatalog = options.fetch ?? globalThis.fetch;
   return {

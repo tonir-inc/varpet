@@ -138,13 +138,14 @@ def _cors(request, response):
     return response
 
 
-def editor_assets():
+def editor_assets(models: str = "original"):
     """The editor's CatalogAsset[] (apps/editor/src/contracts.ts) for every item in the editor set.
     dimensions are [w, h, d]: the same size_m the designer gets from search, reindexed, so the editor
     bridge's exact size check passes."""
     with _conn() as c:
-        rows = c.execute("""select id, name, kind, size_m, colors_img, price, glb_url from item
-                            where editor_set order by kind, id""").fetchall()
+        rows = c.execute("""select id, name, kind, size_m, colors_img, price,
+                                   case when %s = 'web' then coalesce(glb_web_url, glb_url) else glb_url end
+                            from item where editor_set order by kind, id""", (models,)).fetchall()
     out = []
     for iid, name, kind, s, cimg, price, glb in rows:
         colour = (cimg or [{}])[0].get("hex") or "#9a9a9a"
@@ -165,7 +166,8 @@ try:
             r.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
             r.headers["Access-Control-Allow-Headers"] = "Content-Type"
             return _cors(request, r)
-        return _cors(request, JSONResponse(editor_assets(), headers={"Cache-Control": "max-age=300"}))
+        return _cors(request, JSONResponse(editor_assets(request.query_params.get("models", "original")),
+                                           headers={"Cache-Control": "max-age=300"}))
 except ImportError:  # stdio-only installs
     pass
 

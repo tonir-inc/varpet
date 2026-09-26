@@ -24,15 +24,26 @@ try {
     dimensions: [0.5, 0.8, 0.6], color: '#aAbBcC', price: 1000,
     source: { type: 'gltf', url: 'https://amazon-berkeley-objects.s3.amazonaws.com/chair.glb' } };
   const list = (data) => createCatalogHttpAdapter({ fetch: async () => ({ ok: true, json: async () => data }) }).list();
+  const tailnet = { ...asset, source: { type: 'gltf', url: 'http://100.107.246.46:8765/models/chair.glb' } };
+  assert.deepEqual(await list([tailnet]), [tailnet]);
   const valid = await list([asset, { ...asset, id: 'procedural', source: { type: 'procedural' } }]);
   assert.equal(valid.length, 2);
   assert.deepEqual(valid[0], asset);
   assert.ok(Object.isFrozen(valid));
   let requestedUrl;
-  await createCatalogHttpAdapter({ url: 'https://catalog.test/assets', fetch: async (url) => {
+  await createCatalogHttpAdapter({ url: 'https://catalog.test/assets', models: 'original', fetch: async (url) => {
     requestedUrl = url; return { ok: true, json: async () => [asset] };
   } }).list();
   assert.equal(requestedUrl, 'https://catalog.test/assets');
+  for (const [url, expected] of [
+    ['https://catalog.test/assets', 'https://catalog.test/assets?models=web'],
+    ['/editor/assets?kind=chair#assets', '/editor/assets?kind=chair&models=web#assets'],
+  ]) {
+    await createCatalogHttpAdapter({ url, models: 'web', fetch: async (requestUrl) => {
+      requestedUrl = requestUrl; return { ok: true, json: async () => [asset] };
+    } }).list();
+    assert.equal(requestedUrl, expected);
+  }
   const warnings = [];
   const warn = console.warn;
   console.warn = (...args) => warnings.push(args.join(' '));
@@ -41,7 +52,8 @@ try {
       { ...asset, kind: 'unknown' }, ...[[0, 1, 1], [10, 1, 1], [Infinity, 1, 1], [1, 1], [1, 1, '1']].map(dimensions => ({ ...asset, dimensions })),
       { ...asset, color: '#abc' }, ...[-1, 1.5, Number.MAX_SAFE_INTEGER + 1].map(price => ({ ...asset, price })),
       { ...asset, source: { type: 'gltf', url: 'https://evil.test/model.glb' } },
-      { ...asset, source: { type: 'gltf', url: 'http://100.107.246.46/model.glb' } },
+      { ...asset, source: { type: 'gltf', url: 'http://amazon-berkeley-objects.s3.amazonaws.com/model.glb' } },
+      { ...asset, source: { type: 'gltf', url: 'http://evil.test/model.glb' } },
       { ...asset, source: { type: 'other' } }, asset];
     const independentInvalid = invalid.map((entry, index) =>
       entry && typeof entry.id === 'string' && index !== invalid.length - 1

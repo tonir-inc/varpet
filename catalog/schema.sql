@@ -77,3 +77,4 @@ grant all on generation_request to varpet;
 alter table item add column if not exists editor_set boolean not null default false;  -- see select_editor_set.py
 alter table item add column if not exists glb_original_url text;  -- S3 original; glb_url may point at the optimized VM copy
 alter table item add column if not exists preview_url text;       -- rendered preview (render_previews.py)
+alter table item add column if not exists glb_web_url text;     -- optimized copy on the VM (tailnet only); glb_url stays the public S3 original

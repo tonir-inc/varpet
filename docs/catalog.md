@@ -110,3 +110,11 @@ Suggested use in the designer thread (Ashot's call): after `search_catalog`, cal
 8 to 12, pick by look against the request and the pieces already in the room, and say so when none fit.
 Renders also expose broken source models (one "TV console" is a grey box floating over half a cabinet), which
 shop photos hide.
+
+## Lighter 3D models (opt-in)
+The 877 editor-set models also exist as optimized copies on the VM (1024 px WebP textures, 649 MB total vs
+~13.7 GB; median ~0.6 MB each), served at `http://100.107.246.46:8765/models/<asin>.glb` with a one-year cache.
+The VM is reachable only on the tailnet, so `glb_url` and `/editor/assets` keep the public S3 originals by
+default. On the tailnet, ask for the light ones with `GET /editor/assets?models=web`, or in the editor adapter
+`createCatalogHttpAdapter({ models: 'web' })` / `VITE_CATALOG_MODELS=web`. Rendered previews of the same models:
+`item.preview_url` (`/previews/<asin>.webp`), also returned as `preview` in search results.
