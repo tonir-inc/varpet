@@ -13,7 +13,7 @@ DONE: 7 of 7.
    6/6 flats; 9/38 requests pass; packages/designer/eval/komitas.md
    Evidence audit: 6 flats, 38 turns, 6 conversations, 12 rendered screenshots; profiles/tokens/unchanged inputs verified
    ```
-   The raw batch/capture logs, HTTP replies, SDK events and all scene snapshots are committed. [Audit](komitas-live-audit.json) records original scene and screenshot hashes. Parent visually inspected all 12 PNGs; five scenes remain empty and one contains four real catalog models.
+   The raw batch/capture logs, HTTP replies, SDK events and all scene snapshots are committed. The [cohort](komitas-live-cohort.json) records original scene hashes; the [audit](komitas-live-audit.json) records unchanged-input checks and screenshot hashes. Parent visually inspected all 12 PNGs; five scenes remain empty and one contains four real catalog models.
 2. ✓ Fresh untargeted checks after rebase onto `dfa2951`, on eval code/evidence `e095110`, run serially by the fresh reviewer:
    ```text
    VITEST_MAX_WORKERS=1 pnpm test: exit 0
@@ -34,3 +34,16 @@ DONE: 7 of 7.
 7. ✓ This lane changed only `komitas-grade.ts`, its added test, `komitas-report.py`, `test_komitas_report.py`, the cohort/audit/findings/report/verification files, six `*-recovered1` evidence directories, two batch/capture logs and six pairs of screenshots plus capture manifests. SERVICE retains ownership of input scenes, ground truth and architect evidence; no other session's files were edited.
 
 Not proven: usable complete furnishing across these flats (strict pass 9/38), kids budget satisfaction, sofa rearrangement with a sofa present, taste quality, or any product fix. These are measured failures/limitations of the evaluated product path, not missing benchmark runs.
+
+Final push retry verification, measured 2026-09-26 13:14:59 UTC after clean rebase onto `e8e22f9` (the first push was rejected because main advanced):
+```text
+VITEST_MAX_WORKERS=1 pnpm test: exit 0
+Designer: 81 files, 407 tests passed
+Harness: Ran 122 tests in 18.372s — OK
+Eval: Ran 39 tests in 2.852s — OK
+Showcase: 12 passed; tools: 7 passed; editor: 6 + 57 passed, all check scripts Done
+pnpm typecheck: all four package scripts Done, exit 0
+Explicit eval TypeScript check: exit 0, no diagnostics
+Explicit eval Python check: Ran 39 tests in 2.354s — OK
+```
+Fresh review's final verdict was APPROVE. Its low-severity evidence-link note was corrected: source hashes are in the cohort and screenshot hashes are in the audit.
