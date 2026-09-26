@@ -157,6 +157,16 @@ export class StudioRenderer {
     this.composer.render();
   }
 
+  /**
+   * Compile programs for the beauty pass's real target: compiling against the screen would build
+   * tone-mapped sRGB variants the HDR composer never uses. Async compiles return their promise.
+   */
+  compile<T>(compile: () => T): T {
+    const previous = this.renderer.getRenderTarget();
+    this.renderer.setRenderTarget(this.composer.readBuffer);
+    try { return compile(); } finally { this.renderer.setRenderTarget(previous); }
+  }
+
   /** Width/height are CSS pixels; the renderer remains owned by the viewport. */
   setSize(width: number, height: number, pixelRatio = this.renderer.getPixelRatio()): void {
     if (this.disposed) return;

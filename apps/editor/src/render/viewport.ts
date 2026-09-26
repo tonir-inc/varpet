@@ -460,12 +460,15 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
     const sun = effectiveSunlight(sunSettings);
     sunlight.color.set(sun.sunColor); sunlight.intensity = sun.sunIntensity;
     // Keep the studio readable without painting false pools of sunlight through walls.
-    fill.visible = rim.visible = daylight > 0; fill.intensity = 0.08 * daylight; rim.intensity = 0.12 * daylight;
+    // Intensity only: hiding a light changes every material's program (a full recompile hitch).
+    fill.intensity = 0.08 * daylight; rim.intensity = 0.12 * daylight;
     warmPool.visible = secondPool.visible = false;
     applyPracticalLighting();
     renderer.toneMappingExposure = 1.02;
     renderer.toneMapping = unlitTop ? THREE.NoToneMapping : THREE.ACESFilmicToneMapping;
-    renderer.shadowMap.enabled = !unlitTop;
+    // Unlit Top bypasses lighting in the shader; toggling shadowMap.enabled would recompile every material.
+    renderer.shadowMap.enabled = true;
+    scheduleWarmUp();
   }
   function updateEndpointHandles(): void {
     for (const child of [...endpointHandles.children]) disposeObject(child);
@@ -561,7 +564,8 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
       if (keyboardNavigation.update(now)) animating = true;
       if (placementMotion.update(now)) { animating = true; shadowsChanged = true; }
       if (updateAssemblies(now)) { animating = true; shadowsChanged = true; }
-      if (structure?.updateWalls(camera, view === 'inside' ? 'full' : walls, view === 'top', now, motion.reduced, selectedId ?? undefined)) { animating = true; shadowsChanged = true; }
+      // SunOccluders keep the intact shell in the sun's map, so cutaway fades reuse cached shadows.
+      if (structure?.updateWalls(camera, view === 'inside' ? 'full' : walls, view === 'top', now, motion.reduced, selectedId ?? undefined)) animating = true;
       if (walk.update(now)) animating = true;
       if (documentState && view === 'inside') {
         const occupied = ceilingDesignRoomAt(documentState, insideCamera.position.toArray());
@@ -618,6 +622,38 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
         if (!renderFailed) { renderFailed = true; callbacks.onError(`The 3D view could not render: ${error instanceof Error ? error.message : 'unknown graphics error'}`); }
       }
     });
+  }
+
+  let warmTimer: ReturnType<typeof setTimeout> | undefined;
+  /** Idle warm-up of first-use costs: the inside day/evening skies and the faded-wall/furniture programs. */
+  function scheduleWarmUp(): void {
+    if (disposed || warmTimer) return;
+    warmTimer = setTimeout(() => {
+      warmTimer = undefined;
+      if (disposed) return;
+      if (loadingModels > 0 || pendingModels.size || drag || interactionUntil > performance.now()) { scheduleWarmUp(); return; }
+      warmUp();
+    }, 400);
+  }
+  const warmed = new WeakSet<THREE.Material>();
+  function warmUp(): void {
+    try {
+      skyboxes.get('daylight', effectiveSunlight({ ...sunSettings, timeOfDay: 12, enabled: true }));
+      skyboxes.get('twilight', effectiveSunlight(normalizeSun({ timeOfDay: 22, enabled: false }, sunSettings)));
+    } catch { /* The sky is captured again on use; a failure is reported there. */ }
+    // Cutaway walls and entering furniture fade through transparent materials, a separate program.
+    const flipped: THREE.Material[] = [];
+    world.traverse(object => {
+      if (!(object instanceof THREE.Mesh) || object.userData.studioAO === false) return;
+      for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
+        if (material.transparent || warmed.has(material)) continue;
+        warmed.add(material); material.transparent = true; material.needsUpdate = true; flipped.push(material);
+      }
+    });
+    if (!flipped.length) return;
+    // Compile the whole world, not subtrees: a subtree's own lights would be counted twice.
+    try { studioRenderer.compile(() => renderer.compile(world, camera)); }
+    finally { for (const material of flipped) { material.transparent = false; material.needsUpdate = true; } }
   }
 
   function renderScene(): void {
@@ -1109,7 +1145,9 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
         if (asset.source.type === 'gltf') {
           const token = record.token;
           loadingModels++;
-          void loader.load(asset).finally(() => { loadingModels--; }).then(model => {
+          // Compile the model's programs off the frame before it appears (parallel shader compile).
+          void loader.load(asset).then(model => studioRenderer.compile(() => renderer.compileAsync(model, camera, world)).catch(() => undefined).then(() => model))
+            .finally(() => { loadingModels--; }).then(model => {
             const current = rendered.get(object.id);
             if (disposed || !current || current.token !== token) { disposeObject(model); return; }
             // Do not detach or resize a manipulation target while its pointer gesture is live.
@@ -1825,7 +1863,7 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
       furnitureDrop.dispose();
       stopFinishTextureUpdates();
       handPan.dispose(); walk.dispose(); keyboardNavigation.dispose();
-      cancelAnimationFrame(frame); clearTimeout(settleTimer); clearTimeout(skyUpdateTimer); resizeObserver.disconnect();
+      cancelAnimationFrame(frame); clearTimeout(settleTimer); clearTimeout(warmTimer); clearTimeout(skyUpdateTimer); resizeObserver.disconnect();
       window.removeEventListener('blur', onPointerCancel);
       renderer.domElement.removeEventListener('pointerdown', onPointerDown, true);
       window.removeEventListener('pointerup', onPointerUp);

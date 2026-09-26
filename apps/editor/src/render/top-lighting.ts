@@ -7,7 +7,7 @@ export class TopLightingProjection {
 
   prepare(scene: THREE.Scene, unlit: boolean): void {
     this.unlit.value = unlit;
-    if (!unlit) return;
+    // Wrap in every view so entering or leaving Top only flips a uniform, never recompiles.
     // Includes newly loaded models, live wall previews and replacement finishes.
     scene.traverseVisible(object => {
       if (!(object instanceof THREE.Mesh)) return;
