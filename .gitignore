@@ -10,3 +10,5 @@ assets/build/
 !.claude/
 !.claude/**
 .claude/settings.local.json
+catalog/data/
+.env
