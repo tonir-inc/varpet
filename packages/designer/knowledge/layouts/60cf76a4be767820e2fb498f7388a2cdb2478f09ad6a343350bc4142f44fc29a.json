@@ -1,0 +1,455 @@
+{
+  "key": "60cf76a4be767820e2fb498f7388a2cdb2478f09ad6a343350bc4142f44fc29a",
+  "prepared": {
+    "type": "candidates",
+    "classId": "move.group",
+    "fingerprint": "6789224445aabe0967c8f98b3e2f4ff0ecd9f84f0268a46f5d02b8c4b82003b8",
+    "scene_fingerprint": "0e4609778aad5ebc87a024ca3477017f31c2f48b257a12b033d71d5ba624ec03",
+    "intent": {
+      "room_id": "room-living",
+      "add": [],
+      "remove": [],
+      "budget_dram": 0,
+      "move": [
+        {
+          "kinds": [
+            "chair"
+          ],
+          "count": 1
+        }
+      ]
+    },
+    "candidates": [
+      {
+        "id": "slot-ba5391841f0da1b5",
+        "catalog_ids": [],
+        "ops": [
+          {
+            "type": "move",
+            "id": "lounge-chair",
+            "pos": [
+              -0.9,
+              -1.95
+            ],
+            "rot": 270
+          }
+        ],
+        "scores": {
+          "daylight": 0,
+          "zoning": 2.343608329051593,
+          "facing": 0.282657,
+          "open_floor": 0
+        },
+        "score": 0.5170178329051593,
+        "description": "Move Terracotta lounge chair; largest open rectangle +0.00 m²; no worsened access deficits."
+      },
+      {
+        "id": "slot-34f148d1d5376a6e",
+        "catalog_ids": [],
+        "ops": [
+          {
+            "type": "move",
+            "id": "lounge-chair",
+            "pos": [
+              -1,
+              -2
+            ],
+            "rot": 270
+          }
+        ],
+        "scores": {
+          "daylight": 0,
+          "zoning": 2.3323807579381204,
+          "facing": 0.282377,
+          "open_floor": 0
+        },
+        "score": 0.515615075793812,
+        "description": "Move Terracotta lounge chair; largest open rectangle +0.00 m²; no worsened access deficits."
+      },
+      {
+        "id": "slot-36aeacde534b344e",
+        "catalog_ids": [],
+        "ops": [
+          {
+            "type": "move",
+            "id": "lounge-chair",
+            "pos": [
+              -1.05,
+              -1.95
+            ],
+            "rot": 270
+          }
+        ],
+        "scores": {
+          "daylight": 0,
+          "zoning": 2.2638462845343543,
+          "facing": 0.283745,
+          "open_floor": 0
+        },
+        "score": 0.5101296284534355,
+        "description": "Move Terracotta lounge chair; largest open rectangle +0.00 m²; no worsened access deficits."
+      },
+      {
+        "id": "slot-71f568703327f60d",
+        "catalog_ids": [],
+        "ops": [
+          {
+            "type": "move",
+            "id": "lounge-chair",
+            "pos": [
+              -1.05,
+              -1.85
+            ],
+            "rot": 270
+          }
+        ],
+        "scores": {
+          "daylight": 0,
+          "zoning": 2.1783020910791966,
+          "facing": 0.285597,
+          "open_floor": 0
+        },
+        "score": 0.5034272091079197,
+        "description": "Move Terracotta lounge chair; largest open rectangle +0.00 m²; no worsened access deficits."
+      },
+      {
+        "id": "slot-d42a818a37a5cc7a",
+        "catalog_ids": [],
+        "ops": [
+          {
+            "type": "move",
+            "id": "lounge-chair",
+            "pos": [
+              -1.15,
+              -1.85
+            ],
+            "rot": 270
+          }
+        ],
+        "scores": {
+          "daylight": 0,
+          "zoning": 2.127204738618265,
+          "facing": 0.286369,
+          "open_floor": 0
+        },
+        "score": 0.4990894738618265,
+        "description": "Move Terracotta lounge chair; largest open rectangle +0.00 m²; no worsened access deficits."
+      },
+      {
+        "id": "slot-5685ae2dba2ad9c5",
+        "catalog_ids": [],
+        "ops": [
+          {
+            "type": "move",
+            "id": "lounge-chair",
+            "pos": [
+              -1,
+              -2
+            ],
+            "rot": 180
+          }
+        ],
+        "scores": {
+          "daylight": 0,
+          "zoning": 2.3323807579381204,
+          "facing": 0.261333,
+          "open_floor": 0
+        },
+        "score": 0.49457107579381204,
+        "description": "Move Terracotta lounge chair; largest open rectangle +0.00 m²; no worsened access deficits."
+      }
+    ],
+    "recipe": "move.group: choose one checked complete layout by slot_id; repeat its catalog_ids exactly. No coordinates, operations, or extra fields.",
+    "budget_ms": 15000,
+    "catalog": [
+      {
+        "id": "sofa-sage",
+        "name": "Sage linen sofa",
+        "category": "Living",
+        "kind": "sofa",
+        "dimensions": [
+          2.35,
+          0.82,
+          0.92
+        ],
+        "color": "#889987",
+        "price": 1280,
+        "source": {
+          "type": "procedural"
+        }
+      },
+      {
+        "id": "chair-clay",
+        "name": "Terracotta lounge chair",
+        "category": "Living",
+        "kind": "chair",
+        "dimensions": [
+          0.82,
+          0.8,
+          0.84
+        ],
+        "color": "#be775d",
+        "price": 420,
+        "source": {
+          "type": "procedural"
+        }
+      },
+      {
+        "id": "table-coffee",
+        "name": "Walnut coffee table",
+        "category": "Living",
+        "kind": "table",
+        "dimensions": [
+          1.12,
+          0.38,
+          0.65
+        ],
+        "color": "#795840",
+        "price": 285,
+        "source": {
+          "type": "procedural"
+        }
+      },
+      {
+        "id": "rug-woven",
+        "name": "Natural woven rug",
+        "category": "Textiles",
+        "kind": "rug",
+        "dimensions": [
+          3.35,
+          0.025,
+          2.45
+        ],
+        "color": "#d8c6a7",
+        "price": 240,
+        "source": {
+          "type": "procedural"
+        }
+      },
+      {
+        "id": "lamp-brass",
+        "name": "Arc floor lamp",
+        "category": "Lighting",
+        "kind": "lamp",
+        "dimensions": [
+          0.42,
+          1.65,
+          0.42
+        ],
+        "color": "#b3945f",
+        "price": 185,
+        "source": {
+          "type": "procedural"
+        }
+      },
+      {
+        "id": "console-oak",
+        "name": "Low oak console",
+        "category": "Storage",
+        "kind": "cabinet",
+        "dimensions": [
+          1.6,
+          0.65,
+          0.4
+        ],
+        "color": "#a78059",
+        "price": 390,
+        "source": {
+          "type": "procedural"
+        }
+      },
+      {
+        "id": "table-dining",
+        "name": "Gather dining table",
+        "category": "Dining",
+        "kind": "table",
+        "dimensions": [
+          1.8,
+          0.75,
+          0.9
+        ],
+        "color": "#947151",
+        "price": 680,
+        "source": {
+          "type": "procedural"
+        }
+      },
+      {
+        "id": "chair-dining",
+        "name": "Oak dining chair",
+        "category": "Dining",
+        "kind": "chair",
+        "dimensions": [
+          0.5,
+          0.8,
+          0.55
+        ],
+        "color": "#b89a73",
+        "price": 145,
+        "source": {
+          "type": "procedural"
+        }
+      },
+      {
+        "id": "kitchen-base",
+        "name": "Sage kitchen sideboard",
+        "category": "Kitchen",
+        "kind": "cabinet",
+        "dimensions": [
+          2.25,
+          0.91,
+          0.65
+        ],
+        "color": "#8d9b89",
+        "price": 890,
+        "source": {
+          "type": "procedural"
+        }
+      },
+      {
+        "id": "kitchen-island",
+        "name": "Stone kitchen island",
+        "category": "Kitchen",
+        "kind": "cabinet",
+        "dimensions": [
+          1.55,
+          0.92,
+          0.72
+        ],
+        "color": "#e2d9c6",
+        "price": 720,
+        "source": {
+          "type": "procedural"
+        }
+      },
+      {
+        "id": "bath-vanity",
+        "name": "Oak bathroom vanity",
+        "category": "Bathroom",
+        "kind": "cabinet",
+        "dimensions": [
+          1,
+          0.82,
+          0.55
+        ],
+        "color": "#a28d72",
+        "price": 460,
+        "source": {
+          "type": "procedural"
+        }
+      },
+      {
+        "id": "bed-linen",
+        "name": "Linen platform bed",
+        "category": "Bedroom",
+        "kind": "bed",
+        "dimensions": [
+          1.9,
+          0.67,
+          2.15
+        ],
+        "color": "#d9c6af",
+        "price": 1190,
+        "source": {
+          "type": "procedural"
+        }
+      },
+      {
+        "id": "nightstand",
+        "name": "Walnut bedside table",
+        "category": "Bedroom",
+        "kind": "cabinet",
+        "dimensions": [
+          0.6,
+          0.5,
+          0.6
+        ],
+        "color": "#8b694e",
+        "price": 175,
+        "source": {
+          "type": "procedural"
+        }
+      },
+      {
+        "id": "wardrobe",
+        "name": "Oak wardrobe",
+        "category": "Storage",
+        "kind": "cabinet",
+        "dimensions": [
+          1.4,
+          2.05,
+          0.55
+        ],
+        "color": "#c1a580",
+        "price": 840,
+        "source": {
+          "type": "procedural"
+        }
+      },
+      {
+        "id": "rug-bedroom",
+        "name": "Soft sand bedroom rug",
+        "category": "Textiles",
+        "kind": "rug",
+        "dimensions": [
+          2.6,
+          0.02,
+          3
+        ],
+        "color": "#ded1bc",
+        "price": 260,
+        "source": {
+          "type": "procedural"
+        }
+      },
+      {
+        "id": "plant-olive",
+        "name": "Indoor olive tree",
+        "category": "Greenery",
+        "kind": "plant",
+        "dimensions": [
+          0.58,
+          1.42,
+          0.58
+        ],
+        "color": "#758164",
+        "price": 125,
+        "source": {
+          "type": "procedural"
+        }
+      },
+      {
+        "id": "plant-small",
+        "name": "Potted fern",
+        "category": "Greenery",
+        "kind": "plant",
+        "dimensions": [
+          0.42,
+          0.9,
+          0.42
+        ],
+        "color": "#789075",
+        "price": 65,
+        "source": {
+          "type": "procedural"
+        }
+      },
+      {
+        "id": "shelf-walnut",
+        "name": "Open walnut bookshelf",
+        "category": "Storage",
+        "kind": "shelf",
+        "dimensions": [
+          1,
+          1.8,
+          0.35
+        ],
+        "color": "#8a6749",
+        "price": 340,
+        "source": {
+          "type": "procedural"
+        }
+      }
+    ]
+  }
+}

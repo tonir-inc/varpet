@@ -112,7 +112,8 @@ class Conversation:
 
 class DesignerService:
     def __init__(self, *, bridge_command=None, worker_command=None, progress_interval=5.0,
-                 idle_timeout=designer.IDLE_TIMEOUT, effort="medium", profile=None, image_paths=None):
+                 idle_timeout=designer.IDLE_TIMEOUT, effort="medium", profile=None, image_paths=None,
+                 catalog_acceleration=False):
         if not 0 < progress_interval <= 10 or idle_timeout <= 0:
             raise ValueError("progress_interval must be in (0, 10]; idle_timeout must be positive")
         if effort not in ("low", "medium"):
@@ -132,6 +133,18 @@ class DesignerService:
         self.active: set[threading.Event] = set()
         self.condition = threading.Condition()
         self.closed = False
+        self.catalog_acceleration = None
+        if catalog_acceleration or os.environ.get('VARPET_CATALOG_ACCELERATE') == '1':
+            self.start_catalog_acceleration()
+
+    def start_catalog_acceleration(self):
+        if self.catalog_acceleration is None:
+            from designer_catalog_acceleration import CatalogAcceleration
+            try:
+                self.catalog_acceleration = CatalogAcceleration()
+            except Exception:
+                # Catalog outages must not disable paint, moves or the general agent.
+                self.catalog_acceleration = None
 
     def close(self):
         with self.condition:
@@ -140,6 +153,8 @@ class DesignerService:
                 cancel.set()
             self.condition.wait_for(lambda: not self.active)
         self.directory.cleanup()
+        if self.catalog_acceleration:
+            self.catalog_acceleration.close()
 
     def _process(self, command, cancel, *, env=None, on_output=None):
         if cancel.is_set():
@@ -177,6 +192,20 @@ class DesignerService:
         outcome = "error"
         stream = ConversationStream(progress)
         try:
+            from designer_fast import routing_classes
+            import re
+            allowed = routing_classes(self.profile, os.environ)
+            scope_request = re.fullmatch(r"(?:knock down|remove|demolish) the wall between (?:the )?kitchen and (?:the )?living room", body['request'].strip().lower().rstrip('.!'))
+            if scope_request and (allowed is None or 'scope.structural' in allowed):
+                if cancel.is_set():
+                    raise RuntimeError('Request cancelled')
+                progress('Checking what can be changed')
+                usage = {'inputTokens':0,'outputTokens':0,'cachedInputTokens':0,'totalTokens':0}
+                if conversation.usage is None and conversation.usage_known:
+                    conversation.usage = usage.copy()
+                outcome = 'decline'
+                return {'type':outcome,'conversationId':conversation_id,
+                        'message':'I cannot demolish structural walls. I can rearrange the furniture; consult a structural engineer about changing walls.'}
             with tempfile.TemporaryDirectory(prefix="turn-", dir=conversation.root) as directory:
                 root = Path(directory)
                 editor_scene, converted = root / "editor.json", root / "designer.json"
@@ -217,10 +246,13 @@ class DesignerService:
                 proposals = root / "proposals"
                 proposals.mkdir()
                 job = root / "job.json"
+                catalog_context = (self.catalog_acceleration.context(scene, body['catalog'], body['scene'],
+                    {**{k:body[k] for k in ('keep','doorSwings','northDeg','catalogCurrency') if k in body}, 'groupPolicy':'move-together'})
+                                   if not conversion_error and self.catalog_acceleration and isinstance(body.get('catalog'), list) else {})
                 job.write_text(json.dumps({"runtime": conversation.runtime, "request": body["request"],
                                            "effort": self.effort, "profile": self.profile, "images": self.image_paths,
                                            "conversion_error": conversion_error,
-                                           "catalog": body.get("catalog"), "catalogCurrency": body.get("catalogCurrency"),
+                                           "catalog": body.get("catalog"), "catalogCurrency": body.get("catalogCurrency"), **catalog_context,
                                            **({"turn_images": designer_vision.materialize_images(body["vision"], root),
                                                "vision": {key: value for key, value in body["vision"].items() if key not in ("view", "plan")},
                                                "vision_guidance": designer_vision.guidance(body["vision"])} if body.get("vision") else {})}))
@@ -461,6 +493,8 @@ def main():
     if args.image:
         settings["image_paths"] = args.image
     service = DesignerService(**settings)
+    if os.environ.get('VARPET_CATALOG_ACCELERATE') == '1':
+        service.start_catalog_acceleration()
     server = make_server(service, args.port)
     print(f"Designer service: http://127.0.0.1:{server.server_port}", flush=True)
     try:

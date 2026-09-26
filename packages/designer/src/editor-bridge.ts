@@ -32,7 +32,7 @@ export interface EditorBridgeOptions {
 const EPS = 1e-7;
 const kinds: Record<AssetKind, string> = { sofa: 'sofa', chair: 'chair', table: 'table', desk: 'desk', bed: 'bed', cabinet: 'cabinet', wardrobe: 'wardrobe', dresser: 'dresser', lamp: 'lamp', plant: 'plant', rug: 'rug', shelf: 'shelf' };
 /** Legacy catalog subtypes may share editor render kinds; native kinds retain exact semantics. */
-const editorKindOf: Record<string, AssetKind> = { desk: 'table', dresser: 'cabinet', wardrobe: 'cabinet', nightstand: 'cabinet', stool: 'chair', ottoman: 'chair', bench: 'chair' };
+export const editorKindOf: Record<string, AssetKind> = { desk: 'table', dresser: 'cabinet', wardrobe: 'cabinet', nightstand: 'cabinet', stool: 'chair', ottoman: 'chair', bench: 'chair' };
 const swings = { 'in-left': 'inward-left', 'in-right': 'inward-right', 'out-left': 'outward-left', 'out-right': 'outward-right' } as const;
 const plan = ([x, z]: Vec2): Vec2 => [x, -z];
 const digest = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('hex');

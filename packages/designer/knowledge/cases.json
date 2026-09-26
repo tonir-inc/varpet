@@ -1,0 +1,4183 @@
+{
+  "version": 2,
+  "model": "gpt-6-astra",
+  "limits": "N<30 is descriptive. Avani three repetitions/class; Komitas six distinct flats/class, two eligible kids flats plus three paired isolated kids repetitions. Final scope and paint replay unchanged initial scenes in fresh threads; earlier stateful versions remain archived. Stateful edits differ when proposals pass. Partial/infrastructure runs retained, excluded only from matched cohorts, never because of answer quality. After Komitas host load was high; all latency retained. Catalog acceleration measured separately.",
+  "cases": [
+    {
+      "id": "avani-grouped-lounge",
+      "class_id": "move.group",
+      "phrasing": "Move the grouped lounge chair and living rug together to a different valid location in the living room. Preserve their relative arrangement and all other furniture poses. Keep every item, buy nothing, and propose the checked group move.",
+      "expected": {
+        "kind": "proposal"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 3,
+          "passes": 3,
+          "pass_rate": 1.0,
+          "editor_accepts": 3,
+          "editor_attempts": 3,
+          "seconds": {
+            "median": 23.614745415979996,
+            "p90": 31.65754962497158,
+            "max": 31.65754962497158
+          },
+          "tokens": {
+            "median": 54212,
+            "p90": 54215,
+            "max": 54215
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 3,
+          "passes": 3,
+          "pass_rate": 1.0,
+          "editor_accepts": 3,
+          "editor_attempts": 3,
+          "seconds": {
+            "median": 11.602979667019099,
+            "p90": 14.94274091697298,
+            "max": 14.94274091697298
+          },
+          "tokens": {
+            "median": 5997,
+            "p90": 5997,
+            "max": 5997
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "avani-repeated",
+          "flat": "avani",
+          "case": "avani-grouped-lounge",
+          "class_id": "move.group",
+          "phrasing": "Move the grouped lounge chair and living rug together to a different valid location in the living room. Preserve their relative arrangement and all other furniture poses. Keep every item, buy nothing, and propose the checked group move.",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 23.33419295900967,
+          "tokens": 54215,
+          "pass": true,
+          "editor_accepted": true,
+          "reasons": [],
+          "evidence": "packages/designer/eval/fast-runs/20260926T131419Z/avani-grouped-lounge.json"
+        },
+        {
+          "arm": "before",
+          "cohort": "avani-repeated",
+          "flat": "avani",
+          "case": "avani-grouped-lounge",
+          "class_id": "move.group",
+          "phrasing": "Move the grouped lounge chair and living rug together to a different valid location in the living room. Preserve their relative arrangement and all other furniture poses. Keep every item, buy nothing, and propose the checked group move.",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 23.614745415979996,
+          "tokens": 54154,
+          "pass": true,
+          "editor_accepted": true,
+          "reasons": [],
+          "evidence": "packages/designer/eval/fast-runs/20260926T131623Z-before-avani-d6ac60/avani-grouped-lounge.json"
+        },
+        {
+          "arm": "before",
+          "cohort": "avani-repeated",
+          "flat": "avani",
+          "case": "avani-grouped-lounge",
+          "class_id": "move.group",
+          "phrasing": "Move the grouped lounge chair and living rug together to a different valid location in the living room. Preserve their relative arrangement and all other furniture poses. Keep every item, buy nothing, and propose the checked group move.",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 31.65754962497158,
+          "tokens": 54212,
+          "pass": true,
+          "editor_accepted": true,
+          "reasons": [],
+          "evidence": "packages/designer/eval/fast-runs/20260926T131824Z-before-avani-4925e5/avani-grouped-lounge.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "avani-repeated",
+          "flat": "avani",
+          "case": "avani-grouped-lounge",
+          "class_id": "move.group",
+          "phrasing": "Move the grouped lounge chair and living rug together to a different valid location in the living room. Preserve their relative arrangement and all other furniture poses. Keep every item, buy nothing, and propose the checked group move.",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 11.132138750050217,
+          "tokens": 5997,
+          "pass": true,
+          "editor_accepted": true,
+          "reasons": [],
+          "evidence": "packages/designer/eval/fast-runs/20260926T131528Z-after-avani-50bd2c/avani-grouped-lounge.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "avani-repeated",
+          "flat": "avani",
+          "case": "avani-grouped-lounge",
+          "class_id": "move.group",
+          "phrasing": "Move the grouped lounge chair and living rug together to a different valid location in the living room. Preserve their relative arrangement and all other furniture poses. Keep every item, buy nothing, and propose the checked group move.",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 11.602979667019099,
+          "tokens": 5997,
+          "pass": true,
+          "editor_accepted": true,
+          "reasons": [],
+          "evidence": "packages/designer/eval/fast-runs/20260926T131601Z-after-avani-6cf3b2/avani-grouped-lounge.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "avani-repeated",
+          "flat": "avani",
+          "case": "avani-grouped-lounge",
+          "class_id": "move.group",
+          "phrasing": "Move the grouped lounge chair and living rug together to a different valid location in the living room. Preserve their relative arrangement and all other furniture poses. Keep every item, buy nothing, and propose the checked group move.",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 14.94274091697298,
+          "tokens": 5997,
+          "pass": true,
+          "editor_accepted": true,
+          "reasons": [],
+          "evidence": "packages/designer/eval/fast-runs/20260926T131639Z-after-avani-06c2cf/avani-grouped-lounge.json"
+        }
+      ]
+    },
+    {
+      "id": "avani-living-rearrange",
+      "class_id": "rearrange.open-floor",
+      "phrasing": "Make the living room feel bigger.",
+      "expected": {
+        "kind": "proposal",
+        "min_largest_rectangle_delta_m2": 0.1
+      },
+      "measurements": {
+        "before": {
+          "attempts": 3,
+          "passes": 3,
+          "pass_rate": 1.0,
+          "editor_accepts": 3,
+          "editor_attempts": 3,
+          "seconds": {
+            "median": 56.020300917036366,
+            "p90": 85.36802649998572,
+            "max": 85.36802649998572
+          },
+          "tokens": {
+            "median": 116790,
+            "p90": 154965,
+            "max": 154965
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 3,
+          "passes": 3,
+          "pass_rate": 1.0,
+          "editor_accepts": 3,
+          "editor_attempts": 3,
+          "seconds": {
+            "median": 8.918461582972668,
+            "p90": 11.116215499991085,
+            "max": 11.116215499991085
+          },
+          "tokens": {
+            "median": 5629,
+            "p90": 5633,
+            "max": 5633
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "avani-repeated",
+          "flat": "avani",
+          "case": "avani-living-rearrange",
+          "class_id": "rearrange.open-floor",
+          "phrasing": "Make the living room feel bigger.",
+          "expected": {
+            "kind": "proposal",
+            "min_largest_rectangle_delta_m2": 0.1
+          },
+          "seconds": 56.020300917036366,
+          "tokens": 73950,
+          "pass": true,
+          "editor_accepted": true,
+          "reasons": [],
+          "evidence": "packages/designer/eval/fast-runs/20260926T131419Z/avani-living-rearrange.json"
+        },
+        {
+          "arm": "before",
+          "cohort": "avani-repeated",
+          "flat": "avani",
+          "case": "avani-living-rearrange",
+          "class_id": "rearrange.open-floor",
+          "phrasing": "Make the living room feel bigger.",
+          "expected": {
+            "kind": "proposal",
+            "min_largest_rectangle_delta_m2": 0.1
+          },
+          "seconds": 51.58233725000173,
+          "tokens": 116790,
+          "pass": true,
+          "editor_accepted": true,
+          "reasons": [],
+          "evidence": "packages/designer/eval/fast-runs/20260926T131623Z-before-avani-d6ac60/avani-living-rearrange.json"
+        },
+        {
+          "arm": "before",
+          "cohort": "avani-repeated",
+          "flat": "avani",
+          "case": "avani-living-rearrange",
+          "class_id": "rearrange.open-floor",
+          "phrasing": "Make the living room feel bigger.",
+          "expected": {
+            "kind": "proposal",
+            "min_largest_rectangle_delta_m2": 0.1
+          },
+          "seconds": 85.36802649998572,
+          "tokens": 154965,
+          "pass": true,
+          "editor_accepted": true,
+          "reasons": [],
+          "evidence": "packages/designer/eval/fast-runs/20260926T131824Z-before-avani-4925e5/avani-living-rearrange.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "avani-repeated",
+          "flat": "avani",
+          "case": "avani-living-rearrange",
+          "class_id": "rearrange.open-floor",
+          "phrasing": "Make the living room feel bigger.",
+          "expected": {
+            "kind": "proposal",
+            "min_largest_rectangle_delta_m2": 0.1
+          },
+          "seconds": 8.225131333048921,
+          "tokens": 5621,
+          "pass": true,
+          "editor_accepted": true,
+          "reasons": [],
+          "evidence": "packages/designer/eval/fast-runs/20260926T131528Z-after-avani-50bd2c/avani-living-rearrange.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "avani-repeated",
+          "flat": "avani",
+          "case": "avani-living-rearrange",
+          "class_id": "rearrange.open-floor",
+          "phrasing": "Make the living room feel bigger.",
+          "expected": {
+            "kind": "proposal",
+            "min_largest_rectangle_delta_m2": 0.1
+          },
+          "seconds": 11.116215499991085,
+          "tokens": 5633,
+          "pass": true,
+          "editor_accepted": true,
+          "reasons": [],
+          "evidence": "packages/designer/eval/fast-runs/20260926T131601Z-after-avani-6cf3b2/avani-living-rearrange.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "avani-repeated",
+          "flat": "avani",
+          "case": "avani-living-rearrange",
+          "class_id": "rearrange.open-floor",
+          "phrasing": "Make the living room feel bigger.",
+          "expected": {
+            "kind": "proposal",
+            "min_largest_rectangle_delta_m2": 0.1
+          },
+          "seconds": 8.918461582972668,
+          "tokens": 5629,
+          "pass": true,
+          "editor_accepted": true,
+          "reasons": [],
+          "evidence": "packages/designer/eval/fast-runs/20260926T131639Z-after-avani-06c2cf/avani-living-rearrange.json"
+        }
+      ]
+    },
+    {
+      "id": "avani-wall-blue",
+      "class_id": "appearance.walls",
+      "phrasing": "Make the living room west wall blue, exactly #3366cc. Keep all furniture, geometry and other colours unchanged. Propose the colour edit; do not claim that paint or labour has been priced.",
+      "expected": {
+        "kind": "proposal"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 3,
+          "passes": 3,
+          "pass_rate": 1.0,
+          "editor_accepts": 3,
+          "editor_attempts": 3,
+          "seconds": {
+            "median": 22.690028791956138,
+            "p90": 26.758672291995026,
+            "max": 26.758672291995026
+          },
+          "tokens": {
+            "median": 54025,
+            "p90": 54029,
+            "max": 54029
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 3,
+          "passes": 3,
+          "pass_rate": 1.0,
+          "editor_accepts": 3,
+          "editor_attempts": 3,
+          "seconds": {
+            "median": 3.857944375020452,
+            "p90": 4.674792875011917,
+            "max": 4.674792875011917
+          },
+          "tokens": {
+            "median": 0,
+            "p90": 0,
+            "max": 0
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "avani-repeated",
+          "flat": "avani",
+          "case": "avani-wall-blue",
+          "class_id": "appearance.walls",
+          "phrasing": "Make the living room west wall blue, exactly #3366cc. Keep all furniture, geometry and other colours unchanged. Propose the colour edit; do not claim that paint or labour has been priced.",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 21.140461040951777,
+          "tokens": 54029,
+          "pass": true,
+          "editor_accepted": true,
+          "reasons": [],
+          "evidence": "packages/designer/eval/fast-runs/20260926T131419Z/avani-wall-blue.json"
+        },
+        {
+          "arm": "before",
+          "cohort": "avani-repeated",
+          "flat": "avani",
+          "case": "avani-wall-blue",
+          "class_id": "appearance.walls",
+          "phrasing": "Make the living room west wall blue, exactly #3366cc. Keep all furniture, geometry and other colours unchanged. Propose the colour edit; do not claim that paint or labour has been priced.",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 22.690028791956138,
+          "tokens": 54025,
+          "pass": true,
+          "editor_accepted": true,
+          "reasons": [],
+          "evidence": "packages/designer/eval/fast-runs/20260926T131623Z-before-avani-d6ac60/avani-wall-blue.json"
+        },
+        {
+          "arm": "before",
+          "cohort": "avani-repeated",
+          "flat": "avani",
+          "case": "avani-wall-blue",
+          "class_id": "appearance.walls",
+          "phrasing": "Make the living room west wall blue, exactly #3366cc. Keep all furniture, geometry and other colours unchanged. Propose the colour edit; do not claim that paint or labour has been priced.",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 26.758672291995026,
+          "tokens": 53991,
+          "pass": true,
+          "editor_accepted": true,
+          "reasons": [],
+          "evidence": "packages/designer/eval/fast-runs/20260926T131824Z-before-avani-4925e5/avani-wall-blue.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "avani-repeated",
+          "flat": "avani",
+          "case": "avani-wall-blue",
+          "class_id": "appearance.walls",
+          "phrasing": "Make the living room west wall blue, exactly #3366cc. Keep all furniture, geometry and other colours unchanged. Propose the colour edit; do not claim that paint or labour has been priced.",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 4.674792875011917,
+          "tokens": 0,
+          "pass": true,
+          "editor_accepted": true,
+          "reasons": [],
+          "evidence": "packages/designer/eval/fast-runs/20260926T134115Z-after-avani-57590f/avani-wall-blue.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "avani-repeated",
+          "flat": "avani",
+          "case": "avani-wall-blue",
+          "class_id": "appearance.walls",
+          "phrasing": "Make the living room west wall blue, exactly #3366cc. Keep all furniture, geometry and other colours unchanged. Propose the colour edit; do not claim that paint or labour has been priced.",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 3.752444625017233,
+          "tokens": 0,
+          "pass": true,
+          "editor_accepted": true,
+          "reasons": [],
+          "evidence": "packages/designer/eval/fast-runs/20260926T134123Z-after-avani-ce5a82/avani-wall-blue.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "avani-repeated",
+          "flat": "avani",
+          "case": "avani-wall-blue",
+          "class_id": "appearance.walls",
+          "phrasing": "Make the living room west wall blue, exactly #3366cc. Keep all furniture, geometry and other colours unchanged. Propose the colour edit; do not claim that paint or labour has been priced.",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 3.857944375020452,
+          "tokens": 0,
+          "pass": true,
+          "editor_accepted": true,
+          "reasons": [],
+          "evidence": "packages/designer/eval/fast-runs/20260926T134130Z-after-avani-528645/avani-wall-blue.json"
+        }
+      ]
+    },
+    {
+      "id": "b20-t11-bedroom",
+      "class_id": "furnish.bedroom",
+      "phrasing": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+      "expected": {
+        "kind": "proposal"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 53.23053529100001,
+            "p90": 53.23053529100001,
+            "max": 53.23053529100001
+          },
+          "tokens": {
+            "median": 136631,
+            "p90": 136631,
+            "max": 136631
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 13.71485825,
+            "p90": 13.71485825,
+            "max": 13.71485825
+          },
+          "tokens": {
+            "median": 0,
+            "p90": 0,
+            "max": 0
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b20-t11",
+          "case": "b20-t11-bedroom",
+          "class_id": "furnish.bedroom",
+          "phrasing": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 53.23053529100001,
+          "tokens": 136631,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:error",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before/b20-t11/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six",
+          "flat": "b20-t11",
+          "case": "b20-t11-bedroom",
+          "class_id": "furnish.bedroom",
+          "phrasing": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 13.71485825,
+          "tokens": 0,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:decline",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-after-restored/b20-t11/run.json"
+        }
+      ]
+    },
+    {
+      "id": "b20-t11-desk",
+      "class_id": "add.desk-window",
+      "phrasing": "Add a desk by the window for working from home",
+      "expected": {
+        "kind": "proposal"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 42.46412529200001,
+            "p90": 42.46412529200001,
+            "max": 42.46412529200001
+          },
+          "tokens": {
+            "median": 315911,
+            "p90": 315911,
+            "max": 315911
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 8.220053125000005,
+            "p90": 8.220053125000005,
+            "max": 8.220053125000005
+          },
+          "tokens": {
+            "median": 0,
+            "p90": 0,
+            "max": 0
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b20-t11",
+          "case": "b20-t11-desk",
+          "class_id": "add.desk-window",
+          "phrasing": "Add a desk by the window for working from home",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 42.46412529200001,
+          "tokens": 315911,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:question",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before/b20-t11/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six",
+          "flat": "b20-t11",
+          "case": "b20-t11-desk",
+          "class_id": "add.desk-window",
+          "phrasing": "Add a desk by the window for working from home",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 8.220053125000005,
+          "tokens": 0,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:decline",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-after-restored/b20-t11/run.json"
+        }
+      ]
+    },
+    {
+      "id": "b20-t11-living",
+      "class_id": "furnish.living",
+      "phrasing": "Furnish the living room",
+      "expected": {
+        "kind": "proposal"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 160.419936625,
+            "p90": 160.419936625,
+            "max": 160.419936625
+          },
+          "tokens": {
+            "median": 127652,
+            "p90": 127652,
+            "max": 127652
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 9.906293917,
+            "p90": 9.906293917,
+            "max": 9.906293917
+          },
+          "tokens": {
+            "median": 0,
+            "p90": 0,
+            "max": 0
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b20-t11",
+          "case": "b20-t11-living",
+          "class_id": "furnish.living",
+          "phrasing": "Furnish the living room",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 160.419936625,
+          "tokens": 127652,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:decline",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before/b20-t11/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six",
+          "flat": "b20-t11",
+          "case": "b20-t11-living",
+          "class_id": "furnish.living",
+          "phrasing": "Furnish the living room",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 9.906293917,
+          "tokens": 0,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:decline",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-after-restored/b20-t11/run.json"
+        }
+      ]
+    },
+    {
+      "id": "b20-t11-paint",
+      "class_id": "appearance.walls",
+      "phrasing": "Paint the bedroom walls warm white",
+      "expected": {
+        "kind": "proposal"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 1,
+          "pass_rate": 1.0,
+          "editor_accepts": 1,
+          "editor_attempts": 1,
+          "seconds": {
+            "median": 26.874441792000027,
+            "p90": 26.874441792000027,
+            "max": 26.874441792000027
+          },
+          "tokens": {
+            "median": 147785,
+            "p90": 147785,
+            "max": 147785
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 1,
+          "pass_rate": 1.0,
+          "editor_accepts": 1,
+          "editor_attempts": 1,
+          "seconds": {
+            "median": 5.257183083,
+            "p90": 5.257183083,
+            "max": 5.257183083
+          },
+          "tokens": {
+            "median": 0,
+            "p90": 0,
+            "max": 0
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b20-t11",
+          "case": "b20-t11-paint",
+          "class_id": "appearance.walls",
+          "phrasing": "Paint the bedroom walls warm white",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 26.874441792000027,
+          "tokens": 147785,
+          "pass": true,
+          "editor_accepted": true,
+          "reasons": [],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before/b20-t11/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six-final-isolated",
+          "flat": "b20-t11",
+          "case": "b20-t11-paint",
+          "class_id": "appearance.walls",
+          "phrasing": "Paint the bedroom walls warm white",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 5.257183083,
+          "tokens": 0,
+          "pass": true,
+          "editor_accepted": true,
+          "reasons": [],
+          "evidence": "packages/designer/eval/fast-runs/paint-deterministic-final/run.json",
+          "event_log": "packages/designer/eval/fast-runs/paint-deterministic-final/b20-t11-paint-1-sdk.events.jsonl"
+        }
+      ]
+    },
+    {
+      "id": "b20-t11-sofa",
+      "class_id": "move.face-window",
+      "phrasing": "Move the sofa so it faces the window",
+      "expected": {
+        "kind": "proposal"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 22.597382958,
+            "p90": 22.597382958,
+            "max": 22.597382958
+          },
+          "tokens": {
+            "median": 106782,
+            "p90": 106782,
+            "max": 106782
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 31.982494833,
+            "p90": 31.982494833,
+            "max": 31.982494833
+          },
+          "tokens": {
+            "median": 43064,
+            "p90": 43064,
+            "max": 43064
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b20-t11",
+          "case": "b20-t11-sofa",
+          "class_id": "move.face-window",
+          "phrasing": "Move the sofa so it faces the window",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 22.597382958,
+          "tokens": 106782,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:question",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before/b20-t11/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six",
+          "flat": "b20-t11",
+          "case": "b20-t11-sofa",
+          "class_id": "move.face-window",
+          "phrasing": "Move the sofa so it faces the window",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 31.982494833,
+          "tokens": 43064,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:question",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-after-restored/b20-t11/run.json"
+        }
+      ]
+    },
+    {
+      "id": "b20-t11-structural",
+      "class_id": "scope.structural",
+      "phrasing": "Knock down the wall between the kitchen and the living room",
+      "expected": {
+        "kind": "decline"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 92.457818875,
+            "p90": 92.457818875,
+            "max": 92.457818875
+          },
+          "tokens": {
+            "median": 80697,
+            "p90": 80697,
+            "max": 80697
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 1,
+          "pass_rate": 1.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 0.01759370899999999,
+            "p90": 0.01759370899999999,
+            "max": 0.01759370899999999
+          },
+          "tokens": {
+            "median": 0,
+            "p90": 0,
+            "max": 0
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b20-t11",
+          "case": "b20-t11-structural",
+          "class_id": "scope.structural",
+          "phrasing": "Knock down the wall between the kitchen and the living room",
+          "expected": {
+            "kind": "decline"
+          },
+          "seconds": 92.457818875,
+          "tokens": 80697,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before/b20-t11/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six-final-isolated",
+          "flat": "b20-t11",
+          "case": "b20-t11-structural",
+          "class_id": "scope.structural",
+          "phrasing": "Knock down the wall between the kitchen and the living room",
+          "expected": {
+            "kind": "decline"
+          },
+          "seconds": 0.01759370899999999,
+          "tokens": 0,
+          "pass": true,
+          "editor_accepted": null,
+          "reasons": [],
+          "evidence": "packages/designer/eval/fast-runs/scope-zero-process-final/run.json",
+          "event_log": "packages/designer/eval/fast-runs/scope-zero-process-final/b20-t11-structural-1-sdk.events.jsonl"
+        }
+      ]
+    },
+    {
+      "id": "b21-t13-bedroom",
+      "class_id": "furnish.bedroom",
+      "phrasing": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+      "expected": {
+        "kind": "proposal"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 100.968759167,
+            "p90": 100.968759167,
+            "max": 100.968759167
+          },
+          "tokens": {
+            "median": 160934,
+            "p90": 160934,
+            "max": 160934
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 14.103849292000001,
+            "p90": 14.103849292000001,
+            "max": 14.103849292000001
+          },
+          "tokens": {
+            "median": 0,
+            "p90": 0,
+            "max": 0
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b21-t13",
+          "case": "b21-t13-bedroom",
+          "class_id": "furnish.bedroom",
+          "phrasing": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 100.968759167,
+          "tokens": 160934,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:decline",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before/b21-t13/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six",
+          "flat": "b21-t13",
+          "case": "b21-t13-bedroom",
+          "class_id": "furnish.bedroom",
+          "phrasing": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 14.103849292000001,
+          "tokens": 0,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:decline",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-after-restored/b21-t13/run.json"
+        }
+      ]
+    },
+    {
+      "id": "b21-t13-desk",
+      "class_id": "add.desk-window",
+      "phrasing": "Add a desk by the window for working from home",
+      "expected": {
+        "kind": "proposal"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 61.224784999999976,
+            "p90": 61.224784999999976,
+            "max": 61.224784999999976
+          },
+          "tokens": {
+            "median": 268904,
+            "p90": 268904,
+            "max": 268904
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 8.371314665999991,
+            "p90": 8.371314665999991,
+            "max": 8.371314665999991
+          },
+          "tokens": {
+            "median": 0,
+            "p90": 0,
+            "max": 0
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b21-t13",
+          "case": "b21-t13-desk",
+          "class_id": "add.desk-window",
+          "phrasing": "Add a desk by the window for working from home",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 61.224784999999976,
+          "tokens": 268904,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:question",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before/b21-t13/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six",
+          "flat": "b21-t13",
+          "case": "b21-t13-desk",
+          "class_id": "add.desk-window",
+          "phrasing": "Add a desk by the window for working from home",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 8.371314665999991,
+          "tokens": 0,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:decline",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-after-restored/b21-t13/run.json"
+        }
+      ]
+    },
+    {
+      "id": "b21-t13-living",
+      "class_id": "furnish.living",
+      "phrasing": "Furnish the living room",
+      "expected": {
+        "kind": "proposal"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 100.41094466700001,
+            "p90": 100.41094466700001,
+            "max": 100.41094466700001
+          },
+          "tokens": {
+            "median": 69821,
+            "p90": 69821,
+            "max": 69821
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 10.117488541,
+            "p90": 10.117488541,
+            "max": 10.117488541
+          },
+          "tokens": {
+            "median": 0,
+            "p90": 0,
+            "max": 0
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b21-t13",
+          "case": "b21-t13-living",
+          "class_id": "furnish.living",
+          "phrasing": "Furnish the living room",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 100.41094466700001,
+          "tokens": 69821,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:decline",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before/b21-t13/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six",
+          "flat": "b21-t13",
+          "case": "b21-t13-living",
+          "class_id": "furnish.living",
+          "phrasing": "Furnish the living room",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 10.117488541,
+          "tokens": 0,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:decline",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-after-restored/b21-t13/run.json"
+        }
+      ]
+    },
+    {
+      "id": "b21-t13-paint",
+      "class_id": "appearance.walls",
+      "phrasing": "Paint the bedroom walls warm white",
+      "expected": {
+        "kind": "proposal"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 1,
+          "pass_rate": 1.0,
+          "editor_accepts": 1,
+          "editor_attempts": 1,
+          "seconds": {
+            "median": 106.52863079199999,
+            "p90": 106.52863079199999,
+            "max": 106.52863079199999
+          },
+          "tokens": {
+            "median": 174182,
+            "p90": 174182,
+            "max": 174182
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 1,
+          "pass_rate": 1.0,
+          "editor_accepts": 1,
+          "editor_attempts": 1,
+          "seconds": {
+            "median": 4.692468875,
+            "p90": 4.692468875,
+            "max": 4.692468875
+          },
+          "tokens": {
+            "median": 0,
+            "p90": 0,
+            "max": 0
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b21-t13",
+          "case": "b21-t13-paint",
+          "class_id": "appearance.walls",
+          "phrasing": "Paint the bedroom walls warm white",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 106.52863079199999,
+          "tokens": 174182,
+          "pass": true,
+          "editor_accepted": true,
+          "reasons": [],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before/b21-t13/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six-final-isolated",
+          "flat": "b21-t13",
+          "case": "b21-t13-paint",
+          "class_id": "appearance.walls",
+          "phrasing": "Paint the bedroom walls warm white",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 4.692468875,
+          "tokens": 0,
+          "pass": true,
+          "editor_accepted": true,
+          "reasons": [],
+          "evidence": "packages/designer/eval/fast-runs/paint-deterministic-final/run.json",
+          "event_log": "packages/designer/eval/fast-runs/paint-deterministic-final/b21-t13-paint-1-sdk.events.jsonl"
+        }
+      ]
+    },
+    {
+      "id": "b21-t13-sofa",
+      "class_id": "move.face-window",
+      "phrasing": "Move the sofa so it faces the window",
+      "expected": {
+        "kind": "proposal"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 23.515743167000007,
+            "p90": 23.515743167000007,
+            "max": 23.515743167000007
+          },
+          "tokens": {
+            "median": 72197,
+            "p90": 72197,
+            "max": 72197
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 31.007115375,
+            "p90": 31.007115375,
+            "max": 31.007115375
+          },
+          "tokens": {
+            "median": 36198,
+            "p90": 36198,
+            "max": 36198
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b21-t13",
+          "case": "b21-t13-sofa",
+          "class_id": "move.face-window",
+          "phrasing": "Move the sofa so it faces the window",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 23.515743167000007,
+          "tokens": 72197,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:decline",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before/b21-t13/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six",
+          "flat": "b21-t13",
+          "case": "b21-t13-sofa",
+          "class_id": "move.face-window",
+          "phrasing": "Move the sofa so it faces the window",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 31.007115375,
+          "tokens": 36198,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:question",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-after-restored/b21-t13/run.json"
+        }
+      ]
+    },
+    {
+      "id": "b21-t13-structural",
+      "class_id": "scope.structural",
+      "phrasing": "Knock down the wall between the kitchen and the living room",
+      "expected": {
+        "kind": "decline"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 16.629599875000014,
+            "p90": 16.629599875000014,
+            "max": 16.629599875000014
+          },
+          "tokens": {
+            "median": 72386,
+            "p90": 72386,
+            "max": 72386
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 1,
+          "pass_rate": 1.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 0.018337125000000013,
+            "p90": 0.018337125000000013,
+            "max": 0.018337125000000013
+          },
+          "tokens": {
+            "median": 0,
+            "p90": 0,
+            "max": 0
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b21-t13",
+          "case": "b21-t13-structural",
+          "class_id": "scope.structural",
+          "phrasing": "Knock down the wall between the kitchen and the living room",
+          "expected": {
+            "kind": "decline"
+          },
+          "seconds": 16.629599875000014,
+          "tokens": 72386,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before/b21-t13/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six-final-isolated",
+          "flat": "b21-t13",
+          "case": "b21-t13-structural",
+          "class_id": "scope.structural",
+          "phrasing": "Knock down the wall between the kitchen and the living room",
+          "expected": {
+            "kind": "decline"
+          },
+          "seconds": 0.018337125000000013,
+          "tokens": 0,
+          "pass": true,
+          "editor_accepted": null,
+          "reasons": [],
+          "evidence": "packages/designer/eval/fast-runs/scope-zero-process-final/run.json",
+          "event_log": "packages/designer/eval/fast-runs/scope-zero-process-final/b21-t13-structural-1-sdk.events.jsonl"
+        }
+      ]
+    },
+    {
+      "id": "b25-t72-bedroom",
+      "class_id": "furnish.bedroom",
+      "phrasing": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+      "expected": {
+        "kind": "proposal"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 22.736413459,
+            "p90": 22.736413459,
+            "max": 22.736413459
+          },
+          "tokens": {
+            "median": 104685,
+            "p90": 104685,
+            "max": 104685
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 23.837345875000004,
+            "p90": 23.837345875000004,
+            "max": 23.837345875000004
+          },
+          "tokens": {
+            "median": 57691,
+            "p90": 57691,
+            "max": 57691
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b25-t72",
+          "case": "b25-t72-bedroom",
+          "class_id": "furnish.bedroom",
+          "phrasing": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 22.736413459,
+          "tokens": 104685,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:question",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before-restored-valid/b25-t72/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six",
+          "flat": "b25-t72",
+          "case": "b25-t72-bedroom",
+          "class_id": "furnish.bedroom",
+          "phrasing": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 23.837345875000004,
+          "tokens": 57691,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:question",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-after-restored/b25-t72/run.json"
+        }
+      ]
+    },
+    {
+      "id": "b25-t72-desk",
+      "class_id": "add.desk-window",
+      "phrasing": "Add a desk by the window for working from home",
+      "expected": {
+        "kind": "proposal"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 23.995303375000017,
+            "p90": 23.995303375000017,
+            "max": 23.995303375000017
+          },
+          "tokens": {
+            "median": 114733,
+            "p90": 114733,
+            "max": 114733
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 8.884718625000009,
+            "p90": 8.884718625000009,
+            "max": 8.884718625000009
+          },
+          "tokens": {
+            "median": 0,
+            "p90": 0,
+            "max": 0
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b25-t72",
+          "case": "b25-t72-desk",
+          "class_id": "add.desk-window",
+          "phrasing": "Add a desk by the window for working from home",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 23.995303375000017,
+          "tokens": 114733,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:question",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before-restored-valid/b25-t72/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six",
+          "flat": "b25-t72",
+          "case": "b25-t72-desk",
+          "class_id": "add.desk-window",
+          "phrasing": "Add a desk by the window for working from home",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 8.884718625000009,
+          "tokens": 0,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:decline",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-after-restored/b25-t72/run.json"
+        }
+      ]
+    },
+    {
+      "id": "b25-t72-kids",
+      "class_id": "furnish.kids",
+      "phrasing": "Furnish the second bedroom as a kids' room under 300,000 ֏",
+      "expected": {
+        "kind": "proposal"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 23.042348457999992,
+            "p90": 23.042348457999992,
+            "max": 23.042348457999992
+          },
+          "tokens": {
+            "median": 159706,
+            "p90": 159706,
+            "max": 159706
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 7.045629875000014,
+            "p90": 7.045629875000014,
+            "max": 7.045629875000014
+          },
+          "tokens": {
+            "median": 0,
+            "p90": 0,
+            "max": 0
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b25-t72",
+          "case": "b25-t72-kids",
+          "class_id": "furnish.kids",
+          "phrasing": "Furnish the second bedroom as a kids' room under 300,000 ֏",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 23.042348457999992,
+          "tokens": 159706,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:question",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before-restored-valid/b25-t72/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six",
+          "flat": "b25-t72",
+          "case": "b25-t72-kids",
+          "class_id": "furnish.kids",
+          "phrasing": "Furnish the second bedroom as a kids' room under 300,000 ֏",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 7.045629875000014,
+          "tokens": 0,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:decline",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-after-restored/b25-t72/run.json"
+        }
+      ]
+    },
+    {
+      "id": "b25-t72-kids-isolated",
+      "class_id": "furnish.kids",
+      "phrasing": "Furnish the second bedroom as a kids' room under 300,000 ֏",
+      "expected": {
+        "kind": "proposal"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 3,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 57.486288875,
+            "p90": 63.10236441699999,
+            "max": 63.10236441699999
+          },
+          "tokens": {
+            "median": 150832,
+            "p90": 151994,
+            "max": 151994
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 3,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 2.1247888329999998,
+            "p90": 2.768833666,
+            "max": 2.768833666
+          },
+          "tokens": {
+            "median": 0,
+            "p90": 0,
+            "max": 0
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "kids-isolated-three",
+          "flat": "b25-t72",
+          "case": "b25-t72-kids-isolated",
+          "class_id": "furnish.kids",
+          "phrasing": "Furnish the second bedroom as a kids' room under 300,000 ֏",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 57.486288875,
+          "tokens": 150832,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:decline",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/kids-before-three-final/run.json",
+          "event_log": "packages/designer/eval/fast-runs/kids-before-three-final/b25-t72-kids-1-sdk.events.jsonl"
+        },
+        {
+          "arm": "before",
+          "cohort": "kids-isolated-three",
+          "flat": "b25-t72",
+          "case": "b25-t72-kids-isolated",
+          "class_id": "furnish.kids",
+          "phrasing": "Furnish the second bedroom as a kids' room under 300,000 ֏",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 52.672914584,
+          "tokens": 131911,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:decline",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/kids-before-three-final/run.json",
+          "event_log": "packages/designer/eval/fast-runs/kids-before-three-final/b25-t72-kids-2-sdk.events.jsonl"
+        },
+        {
+          "arm": "before",
+          "cohort": "kids-isolated-three",
+          "flat": "b25-t72",
+          "case": "b25-t72-kids-isolated",
+          "class_id": "furnish.kids",
+          "phrasing": "Furnish the second bedroom as a kids' room under 300,000 ֏",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 63.10236441699999,
+          "tokens": 151994,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:decline",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/kids-before-three-final/run.json",
+          "event_log": "packages/designer/eval/fast-runs/kids-before-three-final/b25-t72-kids-3-sdk.events.jsonl"
+        },
+        {
+          "arm": "after",
+          "cohort": "kids-isolated-three",
+          "flat": "b25-t72",
+          "case": "b25-t72-kids-isolated",
+          "class_id": "furnish.kids",
+          "phrasing": "Furnish the second bedroom as a kids' room under 300,000 ֏",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 2.768833666,
+          "tokens": 0,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:decline",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/kids-after-three-final/run.json",
+          "event_log": "packages/designer/eval/fast-runs/kids-after-three-final/b25-t72-kids-1-sdk.events.jsonl"
+        },
+        {
+          "arm": "after",
+          "cohort": "kids-isolated-three",
+          "flat": "b25-t72",
+          "case": "b25-t72-kids-isolated",
+          "class_id": "furnish.kids",
+          "phrasing": "Furnish the second bedroom as a kids' room under 300,000 ֏",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 1.7388047500000003,
+          "tokens": 0,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:decline",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/kids-after-three-final/run.json",
+          "event_log": "packages/designer/eval/fast-runs/kids-after-three-final/b25-t72-kids-2-sdk.events.jsonl"
+        },
+        {
+          "arm": "after",
+          "cohort": "kids-isolated-three",
+          "flat": "b25-t72",
+          "case": "b25-t72-kids-isolated",
+          "class_id": "furnish.kids",
+          "phrasing": "Furnish the second bedroom as a kids' room under 300,000 ֏",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 2.1247888329999998,
+          "tokens": 0,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:decline",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/kids-after-three-final/run.json",
+          "event_log": "packages/designer/eval/fast-runs/kids-after-three-final/b25-t72-kids-3-sdk.events.jsonl"
+        }
+      ]
+    },
+    {
+      "id": "b25-t72-living",
+      "class_id": "furnish.living",
+      "phrasing": "Furnish the living room",
+      "expected": {
+        "kind": "proposal"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 111.963885041,
+            "p90": 111.963885041,
+            "max": 111.963885041
+          },
+          "tokens": {
+            "median": 126367,
+            "p90": 126367,
+            "max": 126367
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 14.971771666,
+            "p90": 14.971771666,
+            "max": 14.971771666
+          },
+          "tokens": {
+            "median": 0,
+            "p90": 0,
+            "max": 0
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b25-t72",
+          "case": "b25-t72-living",
+          "class_id": "furnish.living",
+          "phrasing": "Furnish the living room",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 111.963885041,
+          "tokens": 126367,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:decline",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before-restored-valid/b25-t72/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six",
+          "flat": "b25-t72",
+          "case": "b25-t72-living",
+          "class_id": "furnish.living",
+          "phrasing": "Furnish the living room",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 14.971771666,
+          "tokens": 0,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:decline",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-after-restored/b25-t72/run.json"
+        }
+      ]
+    },
+    {
+      "id": "b25-t72-paint",
+      "class_id": "appearance.walls",
+      "phrasing": "Paint the bedroom walls warm white",
+      "expected": {
+        "kind": "proposal"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 20.014212499999996,
+            "p90": 20.014212499999996,
+            "max": 20.014212499999996
+          },
+          "tokens": {
+            "median": 137134,
+            "p90": 137134,
+            "max": 137134
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 12.406947624999999,
+            "p90": 12.406947624999999,
+            "max": 12.406947624999999
+          },
+          "tokens": {
+            "median": 18396,
+            "p90": 18396,
+            "max": 18396
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b25-t72",
+          "case": "b25-t72-paint",
+          "class_id": "appearance.walls",
+          "phrasing": "Paint the bedroom walls warm white",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 20.014212499999996,
+          "tokens": 137134,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:question",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before-restored-valid/b25-t72/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six-final-isolated",
+          "flat": "b25-t72",
+          "case": "b25-t72-paint",
+          "class_id": "appearance.walls",
+          "phrasing": "Paint the bedroom walls warm white",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 12.406947624999999,
+          "tokens": 18396,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:decline",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/paint-deterministic-final/run.json",
+          "event_log": "packages/designer/eval/fast-runs/paint-deterministic-final/b25-t72-paint-1-sdk.events.jsonl"
+        }
+      ]
+    },
+    {
+      "id": "b25-t72-sofa",
+      "class_id": "move.face-window",
+      "phrasing": "Move the sofa so it faces the window",
+      "expected": {
+        "kind": "proposal"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 22.10622437499999,
+            "p90": 22.10622437499999,
+            "max": 22.10622437499999
+          },
+          "tokens": {
+            "median": 92342,
+            "p90": 92342,
+            "max": 92342
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 23.719533500000004,
+            "p90": 23.719533500000004,
+            "max": 23.719533500000004
+          },
+          "tokens": {
+            "median": 62004,
+            "p90": 62004,
+            "max": 62004
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b25-t72",
+          "case": "b25-t72-sofa",
+          "class_id": "move.face-window",
+          "phrasing": "Move the sofa so it faces the window",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 22.10622437499999,
+          "tokens": 92342,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:question",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before-restored-valid/b25-t72/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six",
+          "flat": "b25-t72",
+          "case": "b25-t72-sofa",
+          "class_id": "move.face-window",
+          "phrasing": "Move the sofa so it faces the window",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 23.719533500000004,
+          "tokens": 62004,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:question",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-after-restored/b25-t72/run.json"
+        }
+      ]
+    },
+    {
+      "id": "b25-t72-structural",
+      "class_id": "scope.structural",
+      "phrasing": "Knock down the wall between the kitchen and the living room",
+      "expected": {
+        "kind": "decline"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 16.72490145800001,
+            "p90": 16.72490145800001,
+            "max": 16.72490145800001
+          },
+          "tokens": {
+            "median": 90998,
+            "p90": 90998,
+            "max": 90998
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 1,
+          "pass_rate": 1.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 0.12526645899999994,
+            "p90": 0.12526645899999994,
+            "max": 0.12526645899999994
+          },
+          "tokens": {
+            "median": 0,
+            "p90": 0,
+            "max": 0
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b25-t72",
+          "case": "b25-t72-structural",
+          "class_id": "scope.structural",
+          "phrasing": "Knock down the wall between the kitchen and the living room",
+          "expected": {
+            "kind": "decline"
+          },
+          "seconds": 16.72490145800001,
+          "tokens": 90998,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before-restored-valid/b25-t72/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six-final-isolated",
+          "flat": "b25-t72",
+          "case": "b25-t72-structural",
+          "class_id": "scope.structural",
+          "phrasing": "Knock down the wall between the kitchen and the living room",
+          "expected": {
+            "kind": "decline"
+          },
+          "seconds": 0.12526645899999994,
+          "tokens": 0,
+          "pass": true,
+          "editor_accepted": null,
+          "reasons": [],
+          "evidence": "packages/designer/eval/fast-runs/scope-zero-process-final/run.json",
+          "event_log": "packages/designer/eval/fast-runs/scope-zero-process-final/b25-t72-structural-1-sdk.events.jsonl"
+        }
+      ]
+    },
+    {
+      "id": "b28-t31-bedroom",
+      "class_id": "furnish.bedroom",
+      "phrasing": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+      "expected": {
+        "kind": "proposal"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 1,
+          "editor_attempts": 1,
+          "seconds": {
+            "median": 72.550324916,
+            "p90": 72.550324916,
+            "max": 72.550324916
+          },
+          "tokens": {
+            "median": 178304,
+            "p90": 178304,
+            "max": 178304
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 10.118385667,
+            "p90": 10.118385667,
+            "max": 10.118385667
+          },
+          "tokens": {
+            "median": 0,
+            "p90": 0,
+            "max": 0
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b28-t31",
+          "case": "b28-t31-bedroom",
+          "class_id": "furnish.bedroom",
+          "phrasing": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 72.550324916,
+          "tokens": 178304,
+          "pass": false,
+          "editor_accepted": true,
+          "reasons": [
+            "request_mismatch",
+            "new_or_worsened_clearance"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before-restored-valid/b28-t31/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six",
+          "flat": "b28-t31",
+          "case": "b28-t31-bedroom",
+          "class_id": "furnish.bedroom",
+          "phrasing": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 10.118385667,
+          "tokens": 0,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:decline",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-after-watchdog-final/b28-t31/run.json"
+        }
+      ]
+    },
+    {
+      "id": "b28-t31-desk",
+      "class_id": "add.desk-window",
+      "phrasing": "Add a desk by the window for working from home",
+      "expected": {
+        "kind": "proposal"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 44.07958116599999,
+            "p90": 44.07958116599999,
+            "max": 44.07958116599999
+          },
+          "tokens": {
+            "median": 264979,
+            "p90": 264979,
+            "max": 264979
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 2.4251276660000003,
+            "p90": 2.4251276660000003,
+            "max": 2.4251276660000003
+          },
+          "tokens": {
+            "median": 0,
+            "p90": 0,
+            "max": 0
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b28-t31",
+          "case": "b28-t31-desk",
+          "class_id": "add.desk-window",
+          "phrasing": "Add a desk by the window for working from home",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 44.07958116599999,
+          "tokens": 264979,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:question",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before-restored-valid/b28-t31/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six",
+          "flat": "b28-t31",
+          "case": "b28-t31-desk",
+          "class_id": "add.desk-window",
+          "phrasing": "Add a desk by the window for working from home",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 2.4251276660000003,
+          "tokens": 0,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:decline",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-after-watchdog-final/b28-t31/run.json"
+        }
+      ]
+    },
+    {
+      "id": "b28-t31-living",
+      "class_id": "furnish.living",
+      "phrasing": "Furnish the living room",
+      "expected": {
+        "kind": "proposal"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 111.09995329099999,
+            "p90": 111.09995329099999,
+            "max": 111.09995329099999
+          },
+          "tokens": {
+            "median": 95284,
+            "p90": 95284,
+            "max": 95284
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 10.959117083,
+            "p90": 10.959117083,
+            "max": 10.959117083
+          },
+          "tokens": {
+            "median": 0,
+            "p90": 0,
+            "max": 0
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b28-t31",
+          "case": "b28-t31-living",
+          "class_id": "furnish.living",
+          "phrasing": "Furnish the living room",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 111.09995329099999,
+          "tokens": 95284,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:decline",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before-restored-valid/b28-t31/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six",
+          "flat": "b28-t31",
+          "case": "b28-t31-living",
+          "class_id": "furnish.living",
+          "phrasing": "Furnish the living room",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 10.959117083,
+          "tokens": 0,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:decline",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-after-watchdog-final/b28-t31/run.json"
+        }
+      ]
+    },
+    {
+      "id": "b28-t31-paint",
+      "class_id": "appearance.walls",
+      "phrasing": "Paint the bedroom walls warm white",
+      "expected": {
+        "kind": "proposal"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 1,
+          "pass_rate": 1.0,
+          "editor_accepts": 1,
+          "editor_attempts": 1,
+          "seconds": {
+            "median": 33.63562095900002,
+            "p90": 33.63562095900002,
+            "max": 33.63562095900002
+          },
+          "tokens": {
+            "median": 159095,
+            "p90": 159095,
+            "max": 159095
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 1,
+          "pass_rate": 1.0,
+          "editor_accepts": 1,
+          "editor_attempts": 1,
+          "seconds": {
+            "median": 2.477307667000001,
+            "p90": 2.477307667000001,
+            "max": 2.477307667000001
+          },
+          "tokens": {
+            "median": 0,
+            "p90": 0,
+            "max": 0
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b28-t31",
+          "case": "b28-t31-paint",
+          "class_id": "appearance.walls",
+          "phrasing": "Paint the bedroom walls warm white",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 33.63562095900002,
+          "tokens": 159095,
+          "pass": true,
+          "editor_accepted": true,
+          "reasons": [],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before-restored-valid/b28-t31/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six-final-isolated",
+          "flat": "b28-t31",
+          "case": "b28-t31-paint",
+          "class_id": "appearance.walls",
+          "phrasing": "Paint the bedroom walls warm white",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 2.477307667000001,
+          "tokens": 0,
+          "pass": true,
+          "editor_accepted": true,
+          "reasons": [],
+          "evidence": "packages/designer/eval/fast-runs/paint-deterministic-final/run.json",
+          "event_log": "packages/designer/eval/fast-runs/paint-deterministic-final/b28-t31-paint-1-sdk.events.jsonl"
+        }
+      ]
+    },
+    {
+      "id": "b28-t31-sofa",
+      "class_id": "move.face-window",
+      "phrasing": "Move the sofa so it faces the window",
+      "expected": {
+        "kind": "proposal"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 22.344734708999983,
+            "p90": 22.344734708999983,
+            "max": 22.344734708999983
+          },
+          "tokens": {
+            "median": 112605,
+            "p90": 112605,
+            "max": 112605
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 11.010036207999997,
+            "p90": 11.010036207999997,
+            "max": 11.010036207999997
+          },
+          "tokens": {
+            "median": 13206,
+            "p90": 13206,
+            "max": 13206
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b28-t31",
+          "case": "b28-t31-sofa",
+          "class_id": "move.face-window",
+          "phrasing": "Move the sofa so it faces the window",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 22.344734708999983,
+          "tokens": 112605,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:question",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before-restored-valid/b28-t31/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six",
+          "flat": "b28-t31",
+          "case": "b28-t31-sofa",
+          "class_id": "move.face-window",
+          "phrasing": "Move the sofa so it faces the window",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 11.010036207999997,
+          "tokens": 13206,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:decline",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-after-watchdog-final/b28-t31/run.json"
+        }
+      ]
+    },
+    {
+      "id": "b28-t31-structural",
+      "class_id": "scope.structural",
+      "phrasing": "Knock down the wall between the kitchen and the living room",
+      "expected": {
+        "kind": "decline"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 1,
+          "pass_rate": 1.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 23.002910290999978,
+            "p90": 23.002910290999978,
+            "max": 23.002910290999978
+          },
+          "tokens": {
+            "median": 89346,
+            "p90": 89346,
+            "max": 89346
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 1,
+          "pass_rate": 1.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 0.034229249999999864,
+            "p90": 0.034229249999999864,
+            "max": 0.034229249999999864
+          },
+          "tokens": {
+            "median": 0,
+            "p90": 0,
+            "max": 0
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b28-t31",
+          "case": "b28-t31-structural",
+          "class_id": "scope.structural",
+          "phrasing": "Knock down the wall between the kitchen and the living room",
+          "expected": {
+            "kind": "decline"
+          },
+          "seconds": 23.002910290999978,
+          "tokens": 89346,
+          "pass": true,
+          "editor_accepted": null,
+          "reasons": [],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before-restored-valid/b28-t31/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six-final-isolated",
+          "flat": "b28-t31",
+          "case": "b28-t31-structural",
+          "class_id": "scope.structural",
+          "phrasing": "Knock down the wall between the kitchen and the living room",
+          "expected": {
+            "kind": "decline"
+          },
+          "seconds": 0.034229249999999864,
+          "tokens": 0,
+          "pass": true,
+          "editor_accepted": null,
+          "reasons": [],
+          "evidence": "packages/designer/eval/fast-runs/scope-zero-process-final/run.json",
+          "event_log": "packages/designer/eval/fast-runs/scope-zero-process-final/b28-t31-structural-1-sdk.events.jsonl"
+        }
+      ]
+    },
+    {
+      "id": "b30-t35-bedroom",
+      "class_id": "furnish.bedroom",
+      "phrasing": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+      "expected": {
+        "kind": "proposal"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 41.783422167000005,
+            "p90": 41.783422167000005,
+            "max": 41.783422167000005
+          },
+          "tokens": {
+            "median": 80068,
+            "p90": 80068,
+            "max": 80068
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 19.669170416999997,
+            "p90": 19.669170416999997,
+            "max": 19.669170416999997
+          },
+          "tokens": {
+            "median": 47669,
+            "p90": 47669,
+            "max": 47669
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b30-t35",
+          "case": "b30-t35-bedroom",
+          "class_id": "furnish.bedroom",
+          "phrasing": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 41.783422167000005,
+          "tokens": 80068,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:question",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before-restored-valid/b30-t35/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six",
+          "flat": "b30-t35",
+          "case": "b30-t35-bedroom",
+          "class_id": "furnish.bedroom",
+          "phrasing": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 19.669170416999997,
+          "tokens": 47669,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:question",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-after-restored/b30-t35/run.json"
+        }
+      ]
+    },
+    {
+      "id": "b30-t35-desk",
+      "class_id": "add.desk-window",
+      "phrasing": "Add a desk by the window for working from home",
+      "expected": {
+        "kind": "proposal"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 55.90205870800001,
+            "p90": 55.90205870800001,
+            "max": 55.90205870800001
+          },
+          "tokens": {
+            "median": 234854,
+            "p90": 234854,
+            "max": 234854
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 2.786254332999997,
+            "p90": 2.786254332999997,
+            "max": 2.786254332999997
+          },
+          "tokens": {
+            "median": 0,
+            "p90": 0,
+            "max": 0
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b30-t35",
+          "case": "b30-t35-desk",
+          "class_id": "add.desk-window",
+          "phrasing": "Add a desk by the window for working from home",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 55.90205870800001,
+          "tokens": 234854,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:question",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before-restored-valid/b30-t35/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six",
+          "flat": "b30-t35",
+          "case": "b30-t35-desk",
+          "class_id": "add.desk-window",
+          "phrasing": "Add a desk by the window for working from home",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 2.786254332999997,
+          "tokens": 0,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:decline",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-after-restored/b30-t35/run.json"
+        }
+      ]
+    },
+    {
+      "id": "b30-t35-kids",
+      "class_id": "furnish.kids",
+      "phrasing": "Furnish the second bedroom as a kids' room under 300,000 ֏",
+      "expected": {
+        "kind": "proposal"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 22.706860208999977,
+            "p90": 22.706860208999977,
+            "max": 22.706860208999977
+          },
+          "tokens": {
+            "median": 134642,
+            "p90": 134642,
+            "max": 134642
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 7.170825874999995,
+            "p90": 7.170825874999995,
+            "max": 7.170825874999995
+          },
+          "tokens": {
+            "median": 0,
+            "p90": 0,
+            "max": 0
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b30-t35",
+          "case": "b30-t35-kids",
+          "class_id": "furnish.kids",
+          "phrasing": "Furnish the second bedroom as a kids' room under 300,000 ֏",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 22.706860208999977,
+          "tokens": 134642,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:question",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before-restored-valid/b30-t35/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six",
+          "flat": "b30-t35",
+          "case": "b30-t35-kids",
+          "class_id": "furnish.kids",
+          "phrasing": "Furnish the second bedroom as a kids' room under 300,000 ֏",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 7.170825874999995,
+          "tokens": 0,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:decline",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-after-restored/b30-t35/run.json"
+        }
+      ]
+    },
+    {
+      "id": "b30-t35-living",
+      "class_id": "furnish.living",
+      "phrasing": "Furnish the living room",
+      "expected": {
+        "kind": "proposal"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 52.345888541,
+            "p90": 52.345888541,
+            "max": 52.345888541
+          },
+          "tokens": {
+            "median": 66061,
+            "p90": 66061,
+            "max": 66061
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 10.638877666,
+            "p90": 10.638877666,
+            "max": 10.638877666
+          },
+          "tokens": {
+            "median": 0,
+            "p90": 0,
+            "max": 0
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b30-t35",
+          "case": "b30-t35-living",
+          "class_id": "furnish.living",
+          "phrasing": "Furnish the living room",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 52.345888541,
+          "tokens": 66061,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:decline",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before-restored-valid/b30-t35/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six",
+          "flat": "b30-t35",
+          "case": "b30-t35-living",
+          "class_id": "furnish.living",
+          "phrasing": "Furnish the living room",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 10.638877666,
+          "tokens": 0,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:decline",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-after-restored/b30-t35/run.json"
+        }
+      ]
+    },
+    {
+      "id": "b30-t35-paint",
+      "class_id": "appearance.walls",
+      "phrasing": "Paint the bedroom walls warm white",
+      "expected": {
+        "kind": "proposal"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 26.719867125000018,
+            "p90": 26.719867125000018,
+            "max": 26.719867125000018
+          },
+          "tokens": {
+            "median": 117972,
+            "p90": 117972,
+            "max": 117972
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 14.767718582999999,
+            "p90": 14.767718582999999,
+            "max": 14.767718582999999
+          },
+          "tokens": {
+            "median": 15433,
+            "p90": 15433,
+            "max": 15433
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b30-t35",
+          "case": "b30-t35-paint",
+          "class_id": "appearance.walls",
+          "phrasing": "Paint the bedroom walls warm white",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 26.719867125000018,
+          "tokens": 117972,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:question",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before-restored-valid/b30-t35/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six-final-isolated",
+          "flat": "b30-t35",
+          "case": "b30-t35-paint",
+          "class_id": "appearance.walls",
+          "phrasing": "Paint the bedroom walls warm white",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 14.767718582999999,
+          "tokens": 15433,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:decline",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/paint-deterministic-final/run.json",
+          "event_log": "packages/designer/eval/fast-runs/paint-deterministic-final/b30-t35-paint-1-sdk.events.jsonl"
+        }
+      ]
+    },
+    {
+      "id": "b30-t35-sofa",
+      "class_id": "move.face-window",
+      "phrasing": "Move the sofa so it faces the window",
+      "expected": {
+        "kind": "proposal"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 22.1318695,
+            "p90": 22.1318695,
+            "max": 22.1318695
+          },
+          "tokens": {
+            "median": 69983,
+            "p90": 69983,
+            "max": 69983
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 24.624915083,
+            "p90": 24.624915083,
+            "max": 24.624915083
+          },
+          "tokens": {
+            "median": 49283,
+            "p90": 49283,
+            "max": 49283
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b30-t35",
+          "case": "b30-t35-sofa",
+          "class_id": "move.face-window",
+          "phrasing": "Move the sofa so it faces the window",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 22.1318695,
+          "tokens": 69983,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:question",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before-restored-valid/b30-t35/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six",
+          "flat": "b30-t35",
+          "case": "b30-t35-sofa",
+          "class_id": "move.face-window",
+          "phrasing": "Move the sofa so it faces the window",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 24.624915083,
+          "tokens": 49283,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:question",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-after-restored/b30-t35/run.json"
+        }
+      ]
+    },
+    {
+      "id": "b30-t35-structural",
+      "class_id": "scope.structural",
+      "phrasing": "Knock down the wall between the kitchen and the living room",
+      "expected": {
+        "kind": "decline"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 15.308791167000017,
+            "p90": 15.308791167000017,
+            "max": 15.308791167000017
+          },
+          "tokens": {
+            "median": 75500,
+            "p90": 75500,
+            "max": 75500
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 1,
+          "pass_rate": 1.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 0.014292124999999942,
+            "p90": 0.014292124999999942,
+            "max": 0.014292124999999942
+          },
+          "tokens": {
+            "median": 0,
+            "p90": 0,
+            "max": 0
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b30-t35",
+          "case": "b30-t35-structural",
+          "class_id": "scope.structural",
+          "phrasing": "Knock down the wall between the kitchen and the living room",
+          "expected": {
+            "kind": "decline"
+          },
+          "seconds": 15.308791167000017,
+          "tokens": 75500,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before-restored-valid/b30-t35/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six-final-isolated",
+          "flat": "b30-t35",
+          "case": "b30-t35-structural",
+          "class_id": "scope.structural",
+          "phrasing": "Knock down the wall between the kitchen and the living room",
+          "expected": {
+            "kind": "decline"
+          },
+          "seconds": 0.014292124999999942,
+          "tokens": 0,
+          "pass": true,
+          "editor_accepted": null,
+          "reasons": [],
+          "evidence": "packages/designer/eval/fast-runs/scope-zero-process-final/run.json",
+          "event_log": "packages/designer/eval/fast-runs/scope-zero-process-final/b30-t35-structural-1-sdk.events.jsonl"
+        }
+      ]
+    },
+    {
+      "id": "b31-t46-bedroom",
+      "class_id": "furnish.bedroom",
+      "phrasing": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+      "expected": {
+        "kind": "proposal"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 17.798497833000003,
+            "p90": 17.798497833000003,
+            "max": 17.798497833000003
+          },
+          "tokens": {
+            "median": 57653,
+            "p90": 57653,
+            "max": 57653
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 38.975311000000005,
+            "p90": 38.975311000000005,
+            "max": 38.975311000000005
+          },
+          "tokens": {
+            "median": 47105,
+            "p90": 47105,
+            "max": 47105
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b31-t46",
+          "case": "b31-t46-bedroom",
+          "class_id": "furnish.bedroom",
+          "phrasing": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 17.798497833000003,
+          "tokens": 57653,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:question",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before-skill-final/b31-t46/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six",
+          "flat": "b31-t46",
+          "case": "b31-t46-bedroom",
+          "class_id": "furnish.bedroom",
+          "phrasing": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 38.975311000000005,
+          "tokens": 47105,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:question",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-after-skill-final/b31-t46/run.json"
+        }
+      ]
+    },
+    {
+      "id": "b31-t46-desk",
+      "class_id": "add.desk-window",
+      "phrasing": "Add a desk by the window for working from home",
+      "expected": {
+        "kind": "proposal"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 17.90992716600001,
+            "p90": 17.90992716600001,
+            "max": 17.90992716600001
+          },
+          "tokens": {
+            "median": 90655,
+            "p90": 90655,
+            "max": 90655
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 5.441635458000004,
+            "p90": 5.441635458000004,
+            "max": 5.441635458000004
+          },
+          "tokens": null,
+          "unknown_token_runs": 1
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b31-t46",
+          "case": "b31-t46-desk",
+          "class_id": "add.desk-window",
+          "phrasing": "Add a desk by the window for working from home",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 17.90992716600001,
+          "tokens": 90655,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:question",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before-skill-final/b31-t46/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six",
+          "flat": "b31-t46",
+          "case": "b31-t46-desk",
+          "class_id": "add.desk-window",
+          "phrasing": "Add a desk by the window for working from home",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 5.441635458000004,
+          "tokens": null,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:decline",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-after-skill-final/b31-t46/run.json"
+        }
+      ]
+    },
+    {
+      "id": "b31-t46-living",
+      "class_id": "furnish.living",
+      "phrasing": "Furnish the living room",
+      "expected": {
+        "kind": "proposal"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 87.845421458,
+            "p90": 87.845421458,
+            "max": 87.845421458
+          },
+          "tokens": {
+            "median": 128302,
+            "p90": 128302,
+            "max": 128302
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 14.074165042,
+            "p90": 14.074165042,
+            "max": 14.074165042
+          },
+          "tokens": {
+            "median": 0,
+            "p90": 0,
+            "max": 0
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b31-t46",
+          "case": "b31-t46-living",
+          "class_id": "furnish.living",
+          "phrasing": "Furnish the living room",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 87.845421458,
+          "tokens": 128302,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:decline",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before-skill-final/b31-t46/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six",
+          "flat": "b31-t46",
+          "case": "b31-t46-living",
+          "class_id": "furnish.living",
+          "phrasing": "Furnish the living room",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 14.074165042,
+          "tokens": 0,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:decline",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-after-skill-final/b31-t46/run.json"
+        }
+      ]
+    },
+    {
+      "id": "b31-t46-paint",
+      "class_id": "appearance.walls",
+      "phrasing": "Paint the bedroom walls warm white",
+      "expected": {
+        "kind": "proposal"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 19.282893834000017,
+            "p90": 19.282893834000017,
+            "max": 19.282893834000017
+          },
+          "tokens": {
+            "median": 107209,
+            "p90": 107209,
+            "max": 107209
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 17.109250874999997,
+            "p90": 17.109250874999997,
+            "max": 17.109250874999997
+          },
+          "tokens": {
+            "median": 46949,
+            "p90": 46949,
+            "max": 46949
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b31-t46",
+          "case": "b31-t46-paint",
+          "class_id": "appearance.walls",
+          "phrasing": "Paint the bedroom walls warm white",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 19.282893834000017,
+          "tokens": 107209,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:question",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before-skill-final/b31-t46/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six-final-isolated",
+          "flat": "b31-t46",
+          "case": "b31-t46-paint",
+          "class_id": "appearance.walls",
+          "phrasing": "Paint the bedroom walls warm white",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 17.109250874999997,
+          "tokens": 46949,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:question",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/paint-deterministic-final/run.json",
+          "event_log": "packages/designer/eval/fast-runs/paint-deterministic-final/b31-t46-paint-1-sdk.events.jsonl"
+        }
+      ]
+    },
+    {
+      "id": "b31-t46-sofa",
+      "class_id": "move.face-window",
+      "phrasing": "Move the sofa so it faces the window",
+      "expected": {
+        "kind": "proposal"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 13.306414749999997,
+            "p90": 13.306414749999997,
+            "max": 13.306414749999997
+          },
+          "tokens": {
+            "median": 74129,
+            "p90": 74129,
+            "max": 74129
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 8.631279416999991,
+            "p90": 8.631279416999991,
+            "max": 8.631279416999991
+          },
+          "tokens": null,
+          "unknown_token_runs": 1
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b31-t46",
+          "case": "b31-t46-sofa",
+          "class_id": "move.face-window",
+          "phrasing": "Move the sofa so it faces the window",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 13.306414749999997,
+          "tokens": 74129,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:question",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before-skill-final/b31-t46/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six",
+          "flat": "b31-t46",
+          "case": "b31-t46-sofa",
+          "class_id": "move.face-window",
+          "phrasing": "Move the sofa so it faces the window",
+          "expected": {
+            "kind": "proposal"
+          },
+          "seconds": 8.631279416999991,
+          "tokens": null,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "outcome:error",
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-after-skill-final/b31-t46/run.json"
+        }
+      ]
+    },
+    {
+      "id": "b31-t46-structural",
+      "class_id": "scope.structural",
+      "phrasing": "Knock down the wall between the kitchen and the living room",
+      "expected": {
+        "kind": "decline"
+      },
+      "measurements": {
+        "before": {
+          "attempts": 1,
+          "passes": 0,
+          "pass_rate": 0.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 20.393042125000008,
+            "p90": 20.393042125000008,
+            "max": 20.393042125000008
+          },
+          "tokens": {
+            "median": 61800,
+            "p90": 61800,
+            "max": 61800
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 1,
+          "passes": 1,
+          "pass_rate": 1.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 0.04152891600000021,
+            "p90": 0.04152891600000021,
+            "max": 0.04152891600000021
+          },
+          "tokens": {
+            "median": 0,
+            "p90": 0,
+            "max": 0
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "komitas-six",
+          "flat": "b31-t46",
+          "case": "b31-t46-structural",
+          "class_id": "scope.structural",
+          "phrasing": "Knock down the wall between the kitchen and the living room",
+          "expected": {
+            "kind": "decline"
+          },
+          "seconds": 20.393042125000008,
+          "tokens": 61800,
+          "pass": false,
+          "editor_accepted": null,
+          "reasons": [
+            "request_mismatch"
+          ],
+          "evidence": "packages/designer/eval/fast-runs/matrix-before-skill-final/b31-t46/run.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "komitas-six-final-isolated",
+          "flat": "b31-t46",
+          "case": "b31-t46-structural",
+          "class_id": "scope.structural",
+          "phrasing": "Knock down the wall between the kitchen and the living room",
+          "expected": {
+            "kind": "decline"
+          },
+          "seconds": 0.04152891600000021,
+          "tokens": 0,
+          "pass": true,
+          "editor_accepted": null,
+          "reasons": [],
+          "evidence": "packages/designer/eval/fast-runs/scope-zero-process-final/run.json",
+          "event_log": "packages/designer/eval/fast-runs/scope-zero-process-final/b31-t46-structural-1-sdk.events.jsonl"
+        }
+      ]
+    },
+    {
+      "id": "i01-one-hundred-beds",
+      "class_id": "feasibility.area",
+      "phrasing": "Fit 100 additional beds inside this 4 by 3.5 metre bedroom, all at the same floor level, with no overlapping footprints. Each additional bed is exactly 1.6 by 2 metres; I already own them, so their purchase cost is zero. Keep the existing bed completely untouched and every existing piece. Do not resize, stack, overlap or move beds outside the bedroom. If impossible, decline and explain the floor-area contradiction with numbers.",
+      "expected": {
+        "kind": "decline",
+        "decline_reason": "floor_area",
+        "impossibility": {
+          "room_id": "bedroom",
+          "count": 100,
+          "footprint_m": [
+            1.6,
+            2
+          ]
+        },
+        "answer_numbers": [
+          320,
+          14
+        ]
+      },
+      "measurements": {
+        "before": {
+          "attempts": 3,
+          "passes": 3,
+          "pass_rate": 1.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 18.980185791966505,
+            "p90": 19.95506612502504,
+            "max": 19.95506612502504
+          },
+          "tokens": {
+            "median": 23729,
+            "p90": 25210,
+            "max": 25210
+          },
+          "unknown_token_runs": 0
+        },
+        "after": {
+          "attempts": 3,
+          "passes": 3,
+          "pass_rate": 1.0,
+          "editor_accepts": 0,
+          "editor_attempts": 0,
+          "seconds": {
+            "median": 0.9817335000261664,
+            "p90": 1.7595483750337735,
+            "max": 1.7595483750337735
+          },
+          "tokens": {
+            "median": 0,
+            "p90": 0,
+            "max": 0
+          },
+          "unknown_token_runs": 0
+        }
+      },
+      "evaluations": [
+        {
+          "arm": "before",
+          "cohort": "avani-repeated",
+          "flat": "avani",
+          "case": "i01-one-hundred-beds",
+          "class_id": "feasibility.area",
+          "phrasing": "Fit 100 additional beds inside this 4 by 3.5 metre bedroom, all at the same floor level, with no overlapping footprints. Each additional bed is exactly 1.6 by 2 metres; I already own them, so their purchase cost is zero. Keep the existing bed completely untouched and every existing piece. Do not resize, stack, overlap or move beds outside the bedroom. If impossible, decline and explain the floor-area contradiction with numbers.",
+          "expected": {
+            "kind": "decline",
+            "decline_reason": "floor_area",
+            "impossibility": {
+              "room_id": "bedroom",
+              "count": 100,
+              "footprint_m": [
+                1.6,
+                2
+              ]
+            },
+            "answer_numbers": [
+              320,
+              14
+            ]
+          },
+          "seconds": 18.980185791966505,
+          "tokens": 23729,
+          "pass": true,
+          "editor_accepted": null,
+          "reasons": [],
+          "evidence": "packages/designer/eval/fast-runs/20260926T131604Z-before-bedroom-959e6c/i01-one-hundred-beds.json"
+        },
+        {
+          "arm": "before",
+          "cohort": "avani-repeated",
+          "flat": "avani",
+          "case": "i01-one-hundred-beds",
+          "class_id": "feasibility.area",
+          "phrasing": "Fit 100 additional beds inside this 4 by 3.5 metre bedroom, all at the same floor level, with no overlapping footprints. Each additional bed is exactly 1.6 by 2 metres; I already own them, so their purchase cost is zero. Keep the existing bed completely untouched and every existing piece. Do not resize, stack, overlap or move beds outside the bedroom. If impossible, decline and explain the floor-area contradiction with numbers.",
+          "expected": {
+            "kind": "decline",
+            "decline_reason": "floor_area",
+            "impossibility": {
+              "room_id": "bedroom",
+              "count": 100,
+              "footprint_m": [
+                1.6,
+                2
+              ]
+            },
+            "answer_numbers": [
+              320,
+              14
+            ]
+          },
+          "seconds": 15.915823333023582,
+          "tokens": 25210,
+          "pass": true,
+          "editor_accepted": null,
+          "reasons": [],
+          "evidence": "packages/designer/eval/fast-runs/20260926T131807Z-before-bedroom-ecd9db/i01-one-hundred-beds.json"
+        },
+        {
+          "arm": "before",
+          "cohort": "avani-repeated",
+          "flat": "avani",
+          "case": "i01-one-hundred-beds",
+          "class_id": "feasibility.area",
+          "phrasing": "Fit 100 additional beds inside this 4 by 3.5 metre bedroom, all at the same floor level, with no overlapping footprints. Each additional bed is exactly 1.6 by 2 metres; I already own them, so their purchase cost is zero. Keep the existing bed completely untouched and every existing piece. Do not resize, stack, overlap or move beds outside the bedroom. If impossible, decline and explain the floor-area contradiction with numbers.",
+          "expected": {
+            "kind": "decline",
+            "decline_reason": "floor_area",
+            "impossibility": {
+              "room_id": "bedroom",
+              "count": 100,
+              "footprint_m": [
+                1.6,
+                2
+              ]
+            },
+            "answer_numbers": [
+              320,
+              14
+            ]
+          },
+          "seconds": 19.95506612502504,
+          "tokens": 23724,
+          "pass": true,
+          "editor_accepted": null,
+          "reasons": [],
+          "evidence": "packages/designer/eval/fast-runs/20260926T132057Z-before-bedroom-7f6713/i01-one-hundred-beds.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "avani-repeated",
+          "flat": "avani",
+          "case": "i01-one-hundred-beds",
+          "class_id": "feasibility.area",
+          "phrasing": "Fit 100 additional beds inside this 4 by 3.5 metre bedroom, all at the same floor level, with no overlapping footprints. Each additional bed is exactly 1.6 by 2 metres; I already own them, so their purchase cost is zero. Keep the existing bed completely untouched and every existing piece. Do not resize, stack, overlap or move beds outside the bedroom. If impossible, decline and explain the floor-area contradiction with numbers.",
+          "expected": {
+            "kind": "decline",
+            "decline_reason": "floor_area",
+            "impossibility": {
+              "room_id": "bedroom",
+              "count": 100,
+              "footprint_m": [
+                1.6,
+                2
+              ]
+            },
+            "answer_numbers": [
+              320,
+              14
+            ]
+          },
+          "seconds": 0.9817335000261664,
+          "tokens": 0,
+          "pass": true,
+          "editor_accepted": null,
+          "reasons": [],
+          "evidence": "packages/designer/eval/fast-runs/20260926T131559Z-after-bedroom-e44f95/i01-one-hundred-beds.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "avani-repeated",
+          "flat": "avani",
+          "case": "i01-one-hundred-beds",
+          "class_id": "feasibility.area",
+          "phrasing": "Fit 100 additional beds inside this 4 by 3.5 metre bedroom, all at the same floor level, with no overlapping footprints. Each additional bed is exactly 1.6 by 2 metres; I already own them, so their purchase cost is zero. Keep the existing bed completely untouched and every existing piece. Do not resize, stack, overlap or move beds outside the bedroom. If impossible, decline and explain the floor-area contradiction with numbers.",
+          "expected": {
+            "kind": "decline",
+            "decline_reason": "floor_area",
+            "impossibility": {
+              "room_id": "bedroom",
+              "count": 100,
+              "footprint_m": [
+                1.6,
+                2
+              ]
+            },
+            "answer_numbers": [
+              320,
+              14
+            ]
+          },
+          "seconds": 0.7916991660022177,
+          "tokens": 0,
+          "pass": true,
+          "editor_accepted": null,
+          "reasons": [],
+          "evidence": "packages/designer/eval/fast-runs/20260926T131637Z-after-bedroom-427d1d/i01-one-hundred-beds.json"
+        },
+        {
+          "arm": "after",
+          "cohort": "avani-repeated",
+          "flat": "avani",
+          "case": "i01-one-hundred-beds",
+          "class_id": "feasibility.area",
+          "phrasing": "Fit 100 additional beds inside this 4 by 3.5 metre bedroom, all at the same floor level, with no overlapping footprints. Each additional bed is exactly 1.6 by 2 metres; I already own them, so their purchase cost is zero. Keep the existing bed completely untouched and every existing piece. Do not resize, stack, overlap or move beds outside the bedroom. If impossible, decline and explain the floor-area contradiction with numbers.",
+          "expected": {
+            "kind": "decline",
+            "decline_reason": "floor_area",
+            "impossibility": {
+              "room_id": "bedroom",
+              "count": 100,
+              "footprint_m": [
+                1.6,
+                2
+              ]
+            },
+            "answer_numbers": [
+              320,
+              14
+            ]
+          },
+          "seconds": 1.7595483750337735,
+          "tokens": 0,
+          "pass": true,
+          "editor_accepted": null,
+          "reasons": [],
+          "evidence": "packages/designer/eval/fast-runs/20260926T131714Z-after-bedroom-6c2575/i01-one-hundred-beds.json"
+        }
+      ]
+    }
+  ]
+}

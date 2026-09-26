@@ -19,6 +19,40 @@ def enabled(profile, environment):
     return profile['fast_path'] is True if 'fast_path' in profile else environment.get('VARPET_DESIGNER_FAST_PATH') == '1'
 
 
+def routing_classes(profile, environment, defaults=None):
+    """None opts into all classes; an empty list disables; otherwise only measured winners."""
+    if 'fast_path' in profile:
+        return None if profile['fast_path'] is True else []
+    if 'VARPET_DESIGNER_FAST_PATH' in environment:
+        return None if environment['VARPET_DESIGNER_FAST_PATH'] == '1' else []
+    if defaults is None:
+        try:
+            defaults = json.loads((ROOT/'packages/designer/knowledge/fast-defaults.json').read_text())['classes']
+        except (OSError, ValueError, KeyError):
+            defaults = []
+    return list(defaults)
+
+
+def deterministic_selection(prepared):
+    # Exact colour and target came from the whole-message rule; there is no design choice.
+    candidates = prepared.get('candidates', [])
+    if prepared.get('classId') == 'appearance.walls' and len(candidates) == 1:
+        return {'slot_id':candidates[0]['id'],'catalog_ids':candidates[0]['catalog_ids']}
+    return None
+
+
+def complete_selection(scene, prepared, catalog, selection, model_seconds, start, usage):
+    import designer
+    selected = code_call({'action':'select','scene':scene,'prepared':prepared,'catalog':catalog,
+                          'selection':selection,'proposals_dir':os.environ.get('VARPET_PROPOSALS_DIR')})
+    designer._emit('fast_proposal', **selected, model_seconds=model_seconds)
+    result = selected['result']
+    designer._emit('worker_summary', status='completed' if result['ok'] else 'fast_rejected',
+                   response=result['proposal']['rationale'] if result['ok'] else 'Candidate failed the proposal gate.',
+                   total_usage=usage, fast_path=True, seconds=time.monotonic()-start)
+    return 0 if result['ok'] else 1
+
+
 def usage_update(previous, known, totals, independent):
     """Independent fast turns report per-turn totals; preserve the resumed thread's counter."""
     if independent:
@@ -56,7 +90,7 @@ def code_call(payload, timeout=15):
     return json.loads(result.stdout)
 
 
-def run(job, job_path):
+def run(job, job_path, allowed_classes=None):
     """Return None for unclassified/search miss; an attempted model call never secretly retries."""
     import designer
     from openai_codex import Codex, CodexConfig, ApprovalMode, Sandbox, LocalImageInput, TextInput
@@ -72,7 +106,8 @@ def run(job, job_path):
     try:
         preparation = code_call({'action': 'prepare', 'scene': scene, 'catalog': catalog, 'request': job['request'],
                                  'cache_dir': str(Path(runtime['workspace']).parent / 'fast-cache'),
-                                 'knowledge_dir': str(ROOT / 'packages/designer/knowledge/layouts')}, timeout=8)
+                                 'knowledge_dir': str(ROOT / 'packages/designer/knowledge/layouts'),
+                                 'allowed_classes': allowed_classes}, timeout=8)
     except subprocess.TimeoutExpired:
         designer._emit('fast_path', status='search_budget', seconds=time.monotonic()-start)
         designer._emit('worker_summary',status='completed',fast_path=True,
@@ -94,6 +129,10 @@ def run(job, job_path):
         designer._emit('worker_summary', status='completed', response=prepared['reason'] + ' ' + prepared['alternative'],
                        total_usage={'inputTokens':0,'outputTokens':0,'cachedInputTokens':0,'totalTokens':0}, fast_path=True, seconds=time.monotonic()-start)
         return 0
+    selected = deterministic_selection(prepared)
+    if selected is not None:
+        return complete_selection(scene,prepared,catalog,selected,0,start,
+                                  {'inputTokens':0,'outputTokens':0,'cachedInputTokens':0,'totalTokens':0})
     from designer_products import prepare_product_previews
     preview_start=time.monotonic()
     try:
@@ -165,11 +204,4 @@ def run(job, job_path):
                        response='None of the checked catalog options looked suitable for this request. I have not added an unsuitable piece.',
                        total_usage=usage,seconds=time.monotonic()-start)
         return 0
-    selected = code_call({'action': 'select', 'scene': scene, 'prepared': prepared, 'catalog':catalog,
-                         'selection': selection, 'proposals_dir': os.environ.get('VARPET_PROPOSALS_DIR')})
-    designer._emit('fast_proposal', **selected, model_seconds=model_seconds)
-    result = selected['result']
-    designer._emit('worker_summary', status='completed' if result['ok'] else 'fast_rejected',
-                   response=result['proposal']['rationale'] if result['ok'] else 'Candidate failed the proposal gate.',
-                   total_usage=usage, fast_path=True, seconds=time.monotonic()-start)
-    return 0 if result['ok'] else 1
+    return complete_selection(scene,prepared,catalog,selection,model_seconds,start,usage)

@@ -1,0 +1,78 @@
+{
+  "version": "slots-v5",
+  "basis": "code candidates, unchanged independent Avani grader and EditorStore; no model timing",
+  "rows": [
+    {
+      "scenario": "avani-living-rearrange",
+      "key": "fef4a66f7d8d9a40cf87da3cff987f48458cb11e2b6ca5763b6307ccdbe2c958",
+      "seconds": 7.418860124999999,
+      "grades": [
+        {
+          "id": "slot-32756cd376362a83",
+          "pass": true,
+          "reasons": []
+        },
+        {
+          "id": "slot-b2d53c385c6efd0e",
+          "pass": true,
+          "reasons": []
+        }
+      ],
+      "scene_fingerprint": "6b06f1adc611c295e87b110435d8981bcbe33f852ba37d4ef33c90b77a5698eb",
+      "catalog_fingerprint": "f6bdcb948bbd73806a70367865338ee8e18c78b8e3e5c172e9358ebbc2b60194"
+    },
+    {
+      "scenario": "avani-wall-blue",
+      "key": "1ac9ef7cd9933794b2d7d55ccec795c9cfb055190e09f9b044f52ff0801f54b2",
+      "seconds": 0.0011894170000014128,
+      "grades": [
+        {
+          "id": "slot-5d4c65827cd8f859",
+          "pass": true,
+          "reasons": []
+        }
+      ],
+      "scene_fingerprint": "6b06f1adc611c295e87b110435d8981bcbe33f852ba37d4ef33c90b77a5698eb",
+      "catalog_fingerprint": "f6bdcb948bbd73806a70367865338ee8e18c78b8e3e5c172e9358ebbc2b60194"
+    },
+    {
+      "scenario": "avani-grouped-lounge",
+      "key": "6d4580fd5a4cb3478e8385f7a2fff495d98c64cafd66253b26428c05460c450f",
+      "seconds": 4.909429333999999,
+      "grades": [
+        {
+          "id": "slot-ba5391841f0da1b5",
+          "pass": true,
+          "reasons": []
+        },
+        {
+          "id": "slot-34f148d1d5376a6e",
+          "pass": true,
+          "reasons": []
+        },
+        {
+          "id": "slot-36aeacde534b344e",
+          "pass": true,
+          "reasons": []
+        },
+        {
+          "id": "slot-71f568703327f60d",
+          "pass": true,
+          "reasons": []
+        },
+        {
+          "id": "slot-d42a818a37a5cc7a",
+          "pass": true,
+          "reasons": []
+        },
+        {
+          "id": "slot-5685ae2dba2ad9c5",
+          "pass": true,
+          "reasons": []
+        }
+      ],
+      "scene_fingerprint": "ef116b0717fdac2827700f0002c05e4b96968229ba931c0381b24aaf6644ff3b",
+      "catalog_fingerprint": "f6bdcb948bbd73806a70367865338ee8e18c78b8e3e5c172e9358ebbc2b60194"
+    }
+  ]
+}

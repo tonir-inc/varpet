@@ -14,7 +14,7 @@ import { checkLayout, scoreLayout } from './layout.js';
 import { intentSchema } from './request.js';
 import { DesignerSession } from './session.js';
 import {placeBatch,placementsSchema} from './place-batch.js';
-import {searchCatalog,searchCatalogInputSchema,type CatalogQuery} from './catalog.js';
+import {searchCatalog,searchCatalogInputSchema,proxyCatalogQuery,type CatalogQuery} from './catalog.js';
 import {ask,askInputSchema} from './ask.js';
 import {opsToolSchema,placeToolSchema} from './tool-inputs.js';
 import {candidateSheet} from './catalog-vision.js';
@@ -134,23 +134,32 @@ export function createServer(input: Scene, options:{catalogQuery?:CatalogQuery; 
     inputSchema:searchCatalogInputSchema.extend({room_id:z.string().optional(),style_request:z.string().optional(),remake:z.boolean().optional(),remove_ids:z.array(z.string()).optional(),excluded_roles:z.array(z.string()).optional()}),
   },async request=>{
     const {room_id,style_request,remake,remove_ids,excluded_roles,...productQuery}=request;
+    const query=options.catalogQuery??(process.env.VARPET_CATALOG_PROXY?proxyCatalogQuery(room_id,style_request?{remake,remove_ids}:{}):undefined);
     if(style_request){
       stylePlanning=true;styleCandidates=[];
       try{
         if(!room_id)throw new Error('Style requests require room_id');
-        const plan=await designRoom(scene,{room_id,style_request,remake,remove_ids,excluded_roles,customer_requests:options.customerRequests},options.catalogQuery);
+        const plan=await designRoom(scene,{room_id,style_request,remake,remove_ids,excluded_roles,customer_requests:options.customerRequests},query);
         styleCandidates=plan.candidates;
-        return result({knowledge:plan.knowledge,missing_kinds:plan.catalog.missing_kinds,unavailable_kinds:plan.catalog.unavailable_kinds,retried_kinds:plan.catalog.retried_kinds,reason:plan.reason,selected_id:plan.selected_id,
+        return result({knowledge:plan.knowledge,missing_kinds:plan.catalog.missing_kinds,unavailable_kinds:plan.catalog.unavailable_kinds,incomplete_kinds:plan.catalog.incomplete_kinds,retried_kinds:plan.catalog.retried_kinds,reason:(!plan.candidates.length&&(plan.catalog.incomplete_kinds.length||plan.catalog.unavailable_kinds.length))?'Catalog or fit search is incomplete; no absence or impossibility is proven.':plan.reason,selected_id:plan.selected_id,
           candidates:plan.candidates.map(c=>({id:c.id,intent:c.intent,composition:c.composition,items:c.ops.filter(op=>op.type==='add').map(op=>op.item),physical_checks_passed:c.checks.ok,cost_dram:c.checks.price.cost_dram}))});
       }catch(error){return result({ok:false,reason:String(error)},true);}
     }
-    const catalog=await searchCatalog(productQuery,options.catalogQuery);
+    const catalog=await searchCatalog(productQuery,query);
     return result(catalog,catalog.status==='unavailable');
   });
   server.registerTool('ask', {
     description:'Ask the customer one concise question, optionally with two to four choices, then wait for their next message.',
     inputSchema:askInputSchema,
   },request=>result(ask(request)));
+  if(process.env.VARPET_CATALOG_PROXY)server.registerTool('show_candidates',{
+    description:'Inspect rendered previews of up to 16 IDs returned by the current room-fit search. Use for appearance judgement; pictures do not replace physical checks.',
+    inputSchema:{item_ids:z.array(z.string()).min(1).max(16)},
+  },async({item_ids})=>{
+    const response=await fetch(process.env.VARPET_CATALOG_PROXY+'show',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({item_ids,context:process.env.VARPET_CATALOG_CONTEXT}),signal:AbortSignal.timeout(25000)});
+    if(!response.ok)return result({error:'Candidate previews unavailable'},true);
+    return await response.json();
+  });
   return server;
 }
 

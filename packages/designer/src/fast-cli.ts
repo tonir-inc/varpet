@@ -3,10 +3,15 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, unlink
 import { join } from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
 import { performance } from 'node:perf_hooks';
-import { prepareFastRequest, selectFastCandidate, sceneFingerprint, FAST_VERSION } from './fast-path.js';
+import { classifyRequest, prepareFastRequest, selectFastCandidate, sceneFingerprint, FAST_VERSION } from './fast-path.js';
 const input=JSON.parse(readFileSync(process.argv[2]??0,'utf8')),started=performance.now();
 function save(path:string,data:unknown){const temp=`${path}.${randomUUID()}.tmp`;writeFileSync(temp,JSON.stringify(data),{mode:0o600});renameSync(temp,path);}
 if(input.action==='prepare'){
+  const recipe=classifyRequest(input.request);
+  if(Array.isArray(input.allowed_classes)&&(!recipe||!input.allowed_classes.includes(recipe.classId))){
+    process.stdout.write(JSON.stringify({prepared:{type:'fallback',classId:recipe?.classId,reason:'Class is not promoted by paired evidence'},cache_hit:false,prepare_ms:performance.now()-started}));
+    process.exit(0);
+  }
   const key=createHash('sha256').update(JSON.stringify([FAST_VERSION,sceneFingerprint(input.scene,input.catalog??[]),input.request])).digest('hex');
   let prepared,cacheHit=false;
   // Cache is a performance hint, never authority: selection always rechecks the source snapshot.

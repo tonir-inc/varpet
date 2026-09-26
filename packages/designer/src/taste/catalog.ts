@@ -11,7 +11,7 @@ export async function searchRoomCatalog(program:string,styleIds:string[],query?:
   const primary=searchStyleForKind(kind,styleIds,program);
   const request={kind,styles:[primary],text:program==='bedroom'?({table:'nightstand bedside table',bed:'platform bed',cabinet:'wardrobe',lamp:'floor lamp'} as Record<string,string>)[kind]??terms[kind]:terms[kind],...(program==='living'&&fitForComposition?fit[kind]:{}),limit:20};
   let result=await searchCatalog(request,query);
-  const retried=result.status==='unavailable';
+  const retried=result.status==='unavailable'&&!result.fit_budget_exhausted;
   if(retried)result=await searchCatalog(request,query);
   const products=result.results.filter(p=>!styleIds.length||(styleMatchesKind(kind,[...p.styles,...p.styles_inferred??[]],styleIds,program)&&p.colors_image.some(c=>palette.includes(c.toLowerCase()))));
   products.sort((a,b)=>Number(b.size_status==='confirmed')-Number(a.size_status==='confirmed'));
@@ -20,5 +20,5 @@ export async function searchRoomCatalog(program:string,styleIds:string[],query?:
  const groups:Awaited<ReturnType<typeof lookup>>[]=[];
  for(let i=0;i<knowledge.search_kinds.length;i+=2)groups.push(...await Promise.all(knowledge.search_kinds.slice(i,i+2).map(lookup)));
  const products:Record<string,CatalogProduct[]>=Object.fromEntries(groups.map(g=>[g.kind,g.products]));
- return {program,styles:styleIds,palette,products,retried_kinds:groups.filter(g=>g.retried).map(g=>g.kind),missing_kinds:groups.filter(g=>!g.products.length).map(g=>g.kind),unavailable_kinds:groups.filter(g=>g.result.status==='unavailable').map(g=>g.kind),note:'Catalog styles and colors_image are required evidence. Empty matches are gaps, not permission to substitute unrelated products. Confirmed dimensions rank first; prices retain their catalog provenance.'};
+ return {program,styles:styleIds,palette,products,retried_kinds:groups.filter(g=>g.retried).map(g=>g.kind),missing_kinds:groups.filter(g=>!g.products.length&&g.result.status==='available'&&!g.result.fit_budget_exhausted).map(g=>g.kind),incomplete_kinds:groups.filter(g=>g.result.fit_budget_exhausted).map(g=>g.kind),unavailable_kinds:groups.filter(g=>g.result.status==='unavailable').map(g=>g.kind),note:'Catalog styles and colors_image are required evidence. Empty matches are gaps, not permission to substitute unrelated products. Confirmed dimensions rank first; prices retain their catalog provenance.'};
 }

@@ -21,10 +21,11 @@ export interface CatalogProduct {
   vendor: string | null; source: string | null; price_source: string | null;
   size_status: string | null; size_evidence: unknown; wd_swapped: boolean;
   colors_listing: string[]; colors_image: string[]; styles: string[]; styles_inferred?: string[]; item: PlaceItem;
+  fit_slots?: unknown[];
 }
 export interface CatalogResult {
   status: 'available' | 'unavailable'; results: CatalogProduct[]; excluded_records: number;
-  ranking_note: string; reason?: string;
+  ranking_note: string; reason?: string; fit_budget_exhausted?: boolean; fit_note?: string; timing?: unknown;
 }
 
 const sizedRecord = z.object({
@@ -33,6 +34,7 @@ const sizedRecord = z.object({
   vendor: text.nullish(), source: text.nullish(), price_source: text.nullish(),
   size_status: text.nullish(), size_evidence: z.unknown().optional(), wd_swapped: z.boolean().optional(),
   colors_listing: z.array(z.string()).nullish(), colors_image: z.array(z.string()).nullish(), styles: z.array(z.string()).nullish(), style_astra:z.array(z.string()).nullish(),
+  fit_slots:z.array(z.unknown()).optional(),
 });
 const rankingNote = 'Colors, styles and text rank catalog matches; kind, dimensions and price are hard filters. Price provenance is explicit; mock prices are not shop quotations.';
 const execute = promisify(execFile);
@@ -138,11 +140,20 @@ export function createHttpCatalogQuery(options: HttpCatalogOptions = {}): Catalo
 }
 
 const queryCatalog: CatalogQuery = input => {
+  if(process.env.VARPET_CATALOG_PROXY)return proxyCatalogQuery()(input);
   const url = process.env.VARPET_CATALOG_URL;
   if (url) return createHttpCatalogQuery({ url })(input);
   if (process.env.VARPET_DB_URL) return queryDatabase(input);
   return createHttpCatalogQuery()(input);
 };
+
+export function proxyCatalogQuery(roomId?:string,removals:{remake?:boolean;remove_ids?:string[]}={}):CatalogQuery {
+ return async query=>{
+  const response=await fetch(process.env.VARPET_CATALOG_PROXY+'search',{method:'POST',headers:{'Content-Type':'application/json'},
+   body:JSON.stringify({query,context:process.env.VARPET_CATALOG_CONTEXT,room_id:roomId,...removals}),signal:AbortSignal.timeout(20000)});
+  if(!response.ok)throw new Error('Catalog fit cache unavailable');return response.json();
+ };
+}
 
 /** Read-only catalog search. The injected query is also the deterministic test seam. */
 export async function searchCatalog(input: unknown, query: CatalogQuery = queryCatalog): Promise<CatalogResult> {
@@ -172,9 +183,12 @@ export async function searchCatalog(input: unknown, query: CatalogQuery = queryC
     products.push({ sku: record.id, kind: record.kind, name, size: record.size_m, price: record.price, currency: 'AMD',
       vendor: record.vendor ?? null, source: record.source ?? null, price_source: record.price_source ?? null,
       size_status: record.size_status ?? null, size_evidence: record.size_evidence ?? null, wd_swapped: record.wd_swapped ?? false,
-      colors_listing: record.colors_listing ?? [], colors_image: record.colors_image ?? [], styles: record.styles ?? [], styles_inferred:record.style_astra??[], item });
+      colors_listing: record.colors_listing ?? [], colors_image: record.colors_image ?? [], styles: record.styles ?? [], styles_inferred:record.style_astra??[], item,
+      ...(record.fit_slots?{fit_slots:record.fit_slots}:{}) });
   }
   const results = products.slice(0, request.limit ?? 10);
-  return { status: 'available', results, excluded_records: excluded, ranking_note: rankingNote,
-    ...(results.length ? {} : { reason: 'No sized, priced AMD products match these constraints.' }) };
+  const metadata=response as Record<string,unknown>,incomplete=metadata.fit_budget_exhausted===true;
+  return { status: incomplete&&!results.length?'unavailable':'available', results, excluded_records: excluded, ranking_note: rankingNote,
+    ...(incomplete?{fit_budget_exhausted:true,reason:'Room-fit search budget exhausted; this is an incomplete list, not evidence of absent or impossible products.'}:results.length?{}:{reason:'No sized, priced AMD products match these constraints.'}),
+    ...(typeof metadata.fit_note==='string'?{fit_note:metadata.fit_note}:{}),...(metadata.timing?{timing:metadata.timing}:{}) };
 }

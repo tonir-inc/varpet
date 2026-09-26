@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "classes": [
+    "feasibility.area",
+    "move.group",
+    "rearrange.open-floor",
+    "scope.structural"
+  ],
+  "evidence": "packages/designer/eval/fast-runs/promotion-report.json",
+  "rule": "At least three runs per arm, some independently passing outcomes, no per-case pass-rate loss, lower median under15s; proven declines max under3s. Zero-pass speedups remain experimental."
+}

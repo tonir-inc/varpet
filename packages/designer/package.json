@@ -3,7 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "exports": { ".": "./src/adapter.ts" },
+  "exports": {
+    ".": "./src/adapter.ts"
+  },
   "scripts": {
     "start": "tsx src/server.ts",
     "test": "vitest run && python3 -m unittest discover -s ../../harness -p 'designer*_test.py' && python3 -m unittest discover -s eval -p 'test_*.py'",
@@ -12,6 +14,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.26.0",
+    "gltf-validator": "2.0.0-dev.3.10",
     "zod": "^3.25.0"
   },
   "devDependencies": {
