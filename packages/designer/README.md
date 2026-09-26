@@ -8,9 +8,9 @@ Assumed pending engine integration: metres, x right, y plan-up; item rotation co
 from local x, front local -y; north_deg clockwise from plan-up. Item pos is its footprint centre.
 Adapter input is validated; no tool writes the source scene or scene file.
 
-Measured card 01 blocker: protect-contract refused adding `varpet-designer` to `.codex/config.toml`.
-That registration requires a team-owned configuration change. The package and real stdio transport
-can be exercised independently. Unbuilt tools return explicit tool errors.
+Measured: the team's `.codex/config.toml` registers `varpet-designer` using the worktree's `tsx`.
+Its default scene is the test bedroom; set `VARPET_SCENE` to an absolute path for a real scene.
+The server exposes nine tools; `search_catalog` and `ask` remain explicit error stubs after card 05.
 
 Measured: `scene_summary` now includes open-floor and circulation metrics; `sun` reports potential
 direct-sun hours and full-window floor projections. The solar tests use NOAA's published calculator
@@ -31,13 +31,24 @@ steps; a search that finds no candidates does not prove continuous geometric imp
 Bare catalog SKUs are not resolved yet. Clearance reports describe the selected candidate, and
 every accepted candidate passes the same containment, overlap, swing and circulation checks.
 
-The blocked project registration, for a team-owned configuration update, is:
+Measured: `check_layout` reports hard containment, collision, door-swing, circulation and purchase
+price errors before soft function-clearance guidance. `score_layout` returns before/after space,
+circulation, potential window sunlight, function clearances and incremental purchase cost. Every
+add operation is charged, even if later removed; owned removals provide no assumed refund.
+Missing purchase prices fail checks. Pure rearranges cost zero. A missing budget is explicitly
+skipped, and missing north keeps sunlight unknown.
 
-```toml
-[mcp_servers.varpet-designer]
-command = "pnpm"
-args = ["--silent", "--filter", "@varpet/designer", "start", "--scene", "test/fixtures/bedroom.json"]
-default_tools_approval_mode = "approve"
-```
+Measured: `set_intent` stores kinds/counts, keeps, optional budget and geometric preferences.
+Kind alternatives use maximum matching. Unrequested additions/removals, identity replacements,
+temporary purchases and any touch to a kept item are refused. Supporting moves are allowed
+within the requested room. `propose` requires a stored intent, passing hard checks and a passing
+request check; it returns a proposal ID, base-scene fingerprint, rationale and score.
 
-This example explicitly loads the test bedroom. Real sessions should pass their scene path.
+Assumed: function-clearance targets are guidance, while circulation below 0.60 m is a hard error.
+Engine checks are explicitly unavailable until the engine exports a concrete schema/check API;
+these results validate only the temporary designer scene. Window sunlight does not model furniture
+occlusion or glare. Conservative raster open-floor changes can reflect grid alignment after rotation.
+
+Decision: proposals remain in memory for the life of this server and are never applied to the
+scene. User acceptance, persistence, viewer/harness integration, catalog lookup and scenario evals
+are outside cards 01–05. Restarting the server discards its intent and proposals.

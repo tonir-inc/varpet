@@ -21,6 +21,14 @@ const sceneInput = z.object({
   items: z.array(item), fixed: z.array(item),
 });
 
+export const opsSchema = z.array(z.discriminatedUnion('type', [
+  z.object({type:z.literal('move'),id,pos:point,rot:num.optional(),room_id:id.optional()}).strict(),
+  z.object({type:z.literal('add'),item:item.strict()}).strict(),
+  z.object({type:z.literal('remove'),id}).strict(),
+])).max(200);
+
+export function parseOps(input:unknown):Op[] { return opsSchema.parse(input); }
+
 /** All external scene input and future engine calls cross this adapter. */
 export function parseScene(input: unknown): Scene {
   const scene = sceneInput.parse(input);
@@ -48,7 +56,7 @@ export function parseScene(input: unknown): Scene {
 /** Preview only. Kept and fixed items are immutable; all callers receive a fresh scene. */
 export function applyOps(scene: Scene, ops: readonly Op[] = []): Scene {
   const copy = parseScene(scene);
-  for (const op of ops) {
+  for (const op of parseOps(ops)) {
     if (op.type === 'add') {
       if ([...copy.items,...copy.fixed,...copy.rooms,...copy.walls,...copy.openings].some(i=>i.id===op.item.id)) throw new Error(`Duplicate id: ${op.item.id}`);
       copy.items.push(structuredClone(op.item));

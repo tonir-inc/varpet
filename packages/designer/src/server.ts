@@ -3,11 +3,14 @@ import { pathToFileURL } from 'node:url';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
-import { parseScene, sceneSummary } from './adapter.js';
+import { opsSchema, parseScene, sceneSummary } from './adapter.js';
 import type { Scene } from './scene.js';
 import { sun } from './metrics/sun.js';
 import { spaceMetrics } from './metrics/space.js';
 import { place, placeInputSchema } from './place.js';
+import { checkLayout, scoreLayout } from './layout.js';
+import { intentSchema } from './request.js';
+import { DesignerSession } from './session.js';
 
 export function result(data: unknown, isError = false) {
   return { content: [{ type: 'text' as const, text: typeof data === 'string' ? data : JSON.stringify(data) }], ...(isError ? { isError: true } : {}) };
@@ -15,6 +18,7 @@ export function result(data: unknown, isError = false) {
 
 export function createServer(input: Scene) {
   const scene = parseScene(input);
+  const session = new DesignerSession(scene);
   const server = new McpServer({ name: 'varpet-designer', version: '0.0.0' });
   server.registerTool('scene_summary', {
     description: 'Rooms, walls with compass directions, openings, furniture, keeps and fixed items. An empty room_ids selects none.',
@@ -45,7 +49,35 @@ export function createServer(input: Scene) {
     try { return result(place(scene,request)); }
     catch(error) { return result(String(error),true); }
   });
-  for (const name of ['set_intent','search_catalog','check_layout','score_layout','propose','ask']) {
+  server.registerTool('set_intent', {
+    description: 'Store the request: room, kinds and counts to add/remove/move, kept items, optional dram budget and geometric preferences. Empty add/remove means rearrange existing furniture only.',
+    inputSchema: intentSchema,
+  }, intent => {
+    try { return result(session.setIntent(intent)); }
+    catch(error) { return result(String(error),true); }
+  });
+  server.registerTool('check_layout', {
+    description: 'Apply preview ops to a copy and return hard errors before soft guidance, coordinates, overlap depths and incremental purchase price. Reports engine checks unavailable while using the temporary scene adapter.',
+    inputSchema: {ops:opsSchema},
+  }, ({ops}) => {
+    try { const check=checkLayout(scene,ops);return result(check,!check.ok); }
+    catch(error) { return result(String(error),true); }
+  });
+  server.registerTool('score_layout', {
+    description: 'Compare before/after open floor, largest rectangle, circulation, potential window sunlight, function clearances and incremental cost. Pure rearranges cost zero; missing north or prices stay unknown.',
+    inputSchema: {ops:opsSchema},
+  }, ({ops}) => {
+    try { return result(scoreLayout(scene,ops)); }
+    catch(error) { return result(String(error),true); }
+  });
+  server.registerTool('propose', {
+    description: 'Store a checked proposal for user review. Refuses failed physical checks or unmet intent. Returns a proposal ID and score without changing or applying the scene; explicit user acceptance remains required.',
+    inputSchema: {ops:opsSchema,rationale:z.string().min(1).max(4000)},
+  }, ({ops,rationale}) => {
+    const proposal=session.propose(ops,rationale);
+    return result(proposal,!proposal.ok);
+  });
+  for (const name of ['search_catalog','ask']) {
     server.registerTool(name, { description: `${name}: not implemented yet`, inputSchema: {} }, () => result(`${name}: not implemented yet`, true));
   }
   return server;
