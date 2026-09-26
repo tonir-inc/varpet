@@ -303,6 +303,13 @@ def sdk_worker(job_path: Path) -> int:
         raise ValueError("Designer effort must be low or medium")
     runtime = job["runtime"]
     config = build_config(Path(runtime["scene"]))
+    from designer_profiles import TurnGuard, configure, prompt as profile_prompt
+    profile = job.get("profile", {})
+    placement, context = profile.get("placement", "relations"), profile.get("context", "full")
+    config = configure(config, placement, effort, context)
+    instructions = profile_prompt(placement, context, static_prefix())
+    guard = TurnGuard(profile.get("max_rounds"), placement == "one-batch")
+    stopped = None
     _forward_sdk_stderr()
     sdk_config = CodexConfig(cwd=runtime["workspace"], env={"CODEX_HOME": runtime["home"]},
                             config_overrides=tuple(key + "=" + _toml(value) for key, value in config.items()))
@@ -313,7 +320,7 @@ def sdk_worker(job_path: Path) -> int:
         _isolate_skills(codex, runtime["workspace"])
         state_path = Path(runtime["state"])
         options = dict(model=MODEL, approval_mode=ApprovalMode.deny_all, sandbox=Sandbox.read_only,
-                       cwd=runtime["workspace"], developer_instructions=static_prefix())
+                       cwd=runtime["workspace"], developer_instructions=instructions)
         if state_path.exists():
             saved = json.loads(state_path.read_text())
             thread = codex.thread_resume(saved["thread_id"], **options)
@@ -337,7 +344,12 @@ def sdk_worker(job_path: Path) -> int:
                 total_usage = payload.get("tokenUsage", {}).get("total")
             elif event.method == "turn/completed":
                 completed = payload.get("turn", {})
-        status = completed.get("status") if completed else "missing_completion"
+            reason = guard.observe({"method": event.method, "payload": payload})
+            if reason and stopped is None:
+                stopped = reason
+                _emit("guard_stop", reason=reason, rounds=guard.rounds)
+                handle.interrupt()
+        status = stopped or (completed.get("status") if completed else "missing_completion")
         _emit("worker_summary", thread_id=thread.id, status=status, response=final_response,
               total_usage=total_usage, error=completed.get("error") if completed else None)
         if status != "completed":

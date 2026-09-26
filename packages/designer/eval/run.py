@@ -120,7 +120,10 @@ def execute(scenario, mode, batch, args, cancel):
     scene = json.loads((ROOT / scenario.get("scene_path", "packages/designer/test/fixtures/bedroom.json")).read_text())
     for item in scene["items"]:
         item["name"] = scenario.get("scene_patch", {}).get("item_names", {}).get(item["id"], item["name"])
-    transcript.write("benchmark", scenario=scenario, mode=mode, model=designer.MODEL, effort="medium",
+    profile = None
+    if args.speed_profile:
+        profile = {"placement": args.speed_profile, "context": args.context, "max_rounds": args.round_cap}
+    transcript.write("benchmark", scenario=scenario, mode=mode, model=designer.MODEL, effort=args.effort, profile=profile,
                      scene=scene, ablation=ABLATION if mode == "without-place" else None)
     events, pending, stderr_tail = [], "", ""
 
@@ -147,7 +150,10 @@ def execute(scenario, mode, batch, args, cancel):
     with tempfile.TemporaryDirectory(prefix="varpet-eval-") as directory:
         runtime = designer.prepare_runtime(Path(directory), scene)
         job_path = Path(directory) / "job.json"
-        job_path.write_text(json.dumps({"runtime": runtime, "request": scenario["request"], "effort": "medium"}))
+        job = {"runtime": runtime, "request": scenario["request"], "effort": args.effort}
+        if profile:
+            job["profile"] = profile
+        job_path.write_text(json.dumps(job))
         command = [sys.executable, "-u", str(HERE / "run.py"), "--worker", str(job_path)]
         if mode == "without-place":
             command.append("--without-place")
@@ -158,6 +164,7 @@ def execute(scenario, mode, batch, args, cancel):
         cancel.set()
     status = "usage_limit" if result.usage_limited else "idle_timeout" if result.timed_out else "deadline" if result.deadline_exceeded else "cancelled" if result.cancelled else summary["status"]
     record = {**summary, "id": run_id, "scenario": scenario, "scene": scene, "mode": mode,
+              "effort": args.effort, "profile": profile,
               "seconds": round(result.seconds, 3), "status": status, "returncode": result.returncode,
               "transcript": str(path.relative_to(HERE)), "measured_at": datetime.now(timezone.utc).isoformat()}
     # A partial thread can yield a checked proposal before its deadline; keep both facts.
@@ -165,6 +172,11 @@ def execute(scenario, mode, batch, args, cancel):
     record_path = batch / (run_id + ".json")
     record_path.write_text(json.dumps(record, ensure_ascii=False, indent=2) + "\n")
     record["measurement"] = score(record)
+    if profile:
+        places = [call for call in record['tool_calls'] if call['name'] == 'place']
+        policy_ok = (args.speed_profile != 'one-batch' or (len(places) == 1 and isinstance(places[0]['arguments'].get('placements'), list)))
+        policy_ok = policy_ok and (args.round_cap is None or record['rounds'] <= args.round_cap)
+        record['speed_policy_pass'] = policy_ok and status == 'completed' and result.returncode == 0
     record["grader_sha256"] = hashlib.sha256((HERE / "measure.ts").read_bytes()).hexdigest()
     transcript.write("benchmark_summary", **{k: v for k, v in record.items() if k not in ("scene", "tool_calls", "scenario")})
     record_path.write_text(json.dumps(record, ensure_ascii=False, indent=2) + "\n")
@@ -173,7 +185,8 @@ def execute(scenario, mode, batch, args, cancel):
 
 
 def source_hashes():
-    paths = [ROOT / "harness/designer.py", ROOT / "harness/designer_prompt.md", HERE / "benchmark-scenarios.json"]
+    paths = [ROOT / "harness/designer.py", ROOT / "harness/designer_prompt.md", ROOT / "harness/designer_profiles.py",
+             designer.SKILL, HERE / "run.py", HERE / "benchmark-scenarios.json"]
     paths.extend(sorted((ROOT / "packages/designer/src").rglob("*.ts")))
     return {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest() for path in paths}
 
@@ -192,6 +205,10 @@ def main():
     parser.add_argument("--worker", type=Path, help=argparse.SUPPRESS)
     parser.add_argument("--live", action="store_true", help="Start a new live 19-run batch; default replays the saved measurements")
     parser.add_argument("--without-place", action="store_true", help="Withhold place; allow coordinate generation")
+    parser.add_argument("--speed-profile", choices=('without-place', 'one-batch'), help="Run only the six rearranges; preserve the original report/latest pointer")
+    parser.add_argument("--effort", choices=('low', 'medium'), default='medium')
+    parser.add_argument("--context", choices=('full', 'trimmed'), default='full')
+    parser.add_argument("--round-cap", type=int, help="Hard observed model-round limit; defaults to 8 for one-batch")
     parser.add_argument("--concurrency", type=int, default=4, choices=range(1, 5))
     parser.add_argument("--idle-timeout", type=float, default=180)
     parser.add_argument("--timeout", type=float, default=600)
@@ -201,13 +218,17 @@ def main():
     parser.add_argument("--batch", type=Path, help="Existing batch for --report-only")
     parser.add_argument("--resume-batch", type=Path, help="Resume unstarted jobs in an interrupted batch; never rerun measured rows")
     args = parser.parse_args()
+    if args.round_cap is not None and args.round_cap < 1:
+        parser.error('--round-cap must be positive')
+    if args.speed_profile == 'one-batch' and args.round_cap is None:
+        args.round_cap = 8
     if args.worker:
         designer.build_config = lambda scene: worker_config(scene, args.without_place)
         if args.without_place:
             prefix = designer.static_prefix
             designer.static_prefix = lambda: prefix() + ABLATION
         return designer.sdk_worker(args.worker)
-    if args.report_only or not (args.live or args.resume_batch or args.only or args.without_place):
+    if args.report_only or not (args.live or args.resume_batch or args.only or args.without_place or args.speed_profile):
         from report import write_report
         batch = args.batch or HERE / (HERE / "latest.json").read_text().strip('"\n')
         if args.rescore:
@@ -218,6 +239,8 @@ def main():
         # Replay has no third-party dependencies; live runs provision the pinned SDK.
         os.execvp("uv", ["uv", "run", "--no-project", "--with", "openai-codex==0.157.1", "python", str(HERE / "run.py"), *sys.argv[1:]])
     scenarios = json.loads((HERE / "benchmark-scenarios.json").read_text())
+    if args.speed_profile:
+        scenarios = [scenario for scenario in scenarios if scenario['category'] == 'rearrange']
     if args.only:
         scenarios = [s for s in scenarios if s["id"] in args.only.split(",")]
         if not scenarios:
@@ -225,9 +248,14 @@ def main():
     jobs = [(s, "without-place" if args.without_place else "with-place") for s in scenarios]
     if not args.without_place:
         jobs.extend((s, "without-place") for s in scenarios if s["category"] == "rearrange")
+    if args.speed_profile:
+        jobs = [(scenario, f'{args.speed_profile}-{args.effort}-{args.context}') for scenario in scenarios]
     batch = args.resume_batch.resolve() if args.resume_batch else HERE / "runs" / datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     if args.resume_batch:
         manifest = json.loads((batch / "manifest.json").read_text())
+        if manifest.get('speed_profile'):
+            args.speed_profile, args.effort, args.context, args.round_cap = (
+                manifest['speed_profile'], manifest['effort'], manifest['context'], manifest['round_cap'])
         restore_settings(args, manifest)
         if manifest["source_hashes"] != source_hashes():
             parser.error("Cannot resume against different designer source/scenarios; start a new batch")
@@ -240,13 +268,15 @@ def main():
         manifest.setdefault("resumed_at", []).append(datetime.now(timezone.utc).isoformat())
     else:
         batch.mkdir(parents=True)
-        manifest = {"started_at": datetime.now(timezone.utc).isoformat(), "model": designer.MODEL, "effort": "medium",
+        manifest = {"started_at": datetime.now(timezone.utc).isoformat(), "model": designer.MODEL, "effort": args.effort,
+                "speed_profile": args.speed_profile, "context": args.context, "round_cap": args.round_cap,
                 "concurrency": args.concurrency, "idle_timeout_seconds": args.idle_timeout, "deadline_seconds": args.timeout,
                 "jobs": [{"scenario": s["id"], "mode": m} for s, m in jobs], "source_hashes": source_hashes(),
                 "git_revision": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
                     "ablation": ABLATION, "bedroom_sha256": hashlib.sha256((ROOT / "packages/designer/test/fixtures/bedroom.json").read_bytes()).hexdigest()}
     (batch / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
-    (HERE / "latest.json").write_text(json.dumps(str(batch.relative_to(HERE))) + "\n")
+    if not args.speed_profile:
+        (HERE / "latest.json").write_text(json.dumps(str(batch.relative_to(HERE))) + "\n")
     cancel = threading.Event()
     pending_jobs = iter(jobs)
     failures = []
@@ -272,8 +302,11 @@ def main():
                     submit()
     manifest.update(finished_at=datetime.now(timezone.utc).isoformat(), usage_limit_stop=cancel.is_set(), errors=failures)
     (batch / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
-    from report import write_report
-    write_report(batch)
+    if args.speed_profile:
+        print(f'SPEED BATCH {batch}', flush=True)
+    else:
+        from report import write_report
+        write_report(batch)
     return 3 if cancel.is_set() else 1 if failures else 0
 
 
