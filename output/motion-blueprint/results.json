@@ -14,39 +14,26 @@
     "09-ink-spreading.png",
     "10-ink-late.png",
     "11-plan-drawn.png",
-    "12-handoff-grow.png",
-    "13-handoff-flood.png",
-    "14-handoff-land.png",
-    "15-tilt-start.png",
-    "16-tilt-mid.png",
-    "17-tilted.png",
-    "18-shell-traced.png",
-    "19-main-walls-rising.png",
-    "20-main-walls-up.png",
-    "21-partitions-rising.png",
-    "22-openings.png",
-    "23-shell-complete.png",
-    "24-complete.png",
-    "25-handover-text-out.png",
-    "26-handover-glide-early.png",
-    "27-handover-glide-mid.png",
-    "28-handover-glide-late.png",
-    "29-handover-crossfade.png",
-    "30-editor.png"
+    "12-working-3000.png",
+    "13-working-3700.png",
+    "14-working-4400.png",
+    "15-working-5100.png",
+    "16-working-6600.png",
+    "17-working-8800.png",
+    "18-working-11000.png"
   ],
   "pageErrors": [],
   "console": [
-    "warning: Canvas2D: Multiple readback operations using getImageData are faster with the willReadFrequently attribute set to true. See: https://html.spec.whatwg.org/multipage/canvas.html#concept-canvas-will-read-frequently"
+    "error: Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep)",
+    "warning: Canvas2D: Multiple readback operations using getImageData are faster with the willReadFrequently attribute set to true. See: https://html.spec.whatwg.org/multipage/canvas.html#concept-canvas-will-read-frequently",
+    "warning: [blueprint] build failed TypeError: Failed to fetch dynamically imported module: http://localhost:5173/src/portal/blueprint-construction.ts?t=1790456623709"
   ],
   "checks": [
     "PASS sheet frame is fully drawn after the intro",
     "PASS a plan card flies in and is gone once it lands",
     "PASS the uploaded image itself is never shown",
     "PASS plan ink is drawn progressively, not all at once",
-    "PASS build action appears after the plan is drawn",
-    "PASS the 2D sheet hands over to the 3D stage and is removed",
-    "PASS completion heading shown",
-    "PASS construction view hands over to the editor and is removed"
+    "PASS build action appears after the plan is drawn"
   ],
   "tokenSeen": [
     true,
@@ -67,36 +54,13 @@
     0,
     58667,
     58667,
-    58746,
+    58751,
     59801
   ],
-  "events": [
-    [
-      303,
-      "progress"
-    ],
-    [
-      3503,
-      "shell"
-    ],
-    [
-      20002,
-      "project"
-    ]
-  ],
-  "editorPose": {
-    "position": [
-      15.669437537369106,
-      16.253641880654445,
-      22.26709544784031
-    ],
-    "target": [
-      0,
-      0.08937999999999992,
-      0
-    ],
-    "fov": 32,
-    "background": "#a6ada1"
+  "working": {
+    "cls": "blueprint-flow",
+    "elapsed": "0:00",
+    "message": "We couldn’t finish this build. Your uploaded files are ready to try again...."
   },
-  "video": "flow.webm"
+  "video": "working.webm"
 }

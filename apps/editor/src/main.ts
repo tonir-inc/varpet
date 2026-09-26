@@ -50,6 +50,7 @@ import { renderEntityInspector, renderAssetChoices } from './ui/inspector';
 import { renderWallSelectionFinishes, type WallFinishSelectionState } from './ui/wall-selection-finishes';
 import { bindFurnitureDragCard } from './ui/furniture-drag';
 import { mountThemeToggle } from './ui/theme';
+import './ui/arrival.css';
 
 const designerLive = Boolean(import.meta.env.VITE_DESIGNER_URL);
 const app = document.querySelector<HTMLDivElement>('#app')!;
@@ -285,6 +286,12 @@ const viewport = createViewport($('#viewport'), {
   onError: message => notify(message, true),
 }, normalizeWallJunctions);
 store.setSurfaceResolver(viewport.furnitureSurface);
+// Built from a blueprint: the apartment stands on its plan's paper, not the studio pedestal. Arriving
+// from the construction view, the editor starts as that exact picture, look-only, with its tools away.
+const presentation = editorSession?.presentation;
+if (presentation) viewport.setBackdrop({ paper: presentation.paper });
+let arrivalPose = presentation?.camera;
+if (presentation?.arriving) { document.body.classList.add('editor-arriving'); viewport.setLocked(true); }
 const insideLensControl = $<HTMLSelectElement>('#inside-lens');
 const insideLensStorageKey = 'varpet.inside-lens.v1';
 let insideLens = DEFAULT_INSIDE_LENS;
@@ -346,6 +353,8 @@ function chooseFinish(preset: FinishPreset | null) {
 
 function focusView(id?: string) {
   cancelAnimationFrame(selectionRevealFrame);
+  // The first framing keeps the construction view's camera, so the handover has no cut.
+  if (arrivalPose && !id && view === 'perspective') { viewport.setCameraPose(arrivalPose, 0); return; }
   if (view === 'plan') floorPlan.focus(id);
   else if (view !== 'inside' && id === selectedId && store.scene.rooms.some(room => room.id === id)) {
     if (!revealSelection()) viewport.focus(id);
@@ -1351,5 +1360,36 @@ refresh();renderAssets();setTool('select');switchPanel(editorSession?'scene':'re
 // Folio: tool panels open only when the buyer asks for them (Add, More, or a piece's toolbar).
 if (panelOpen) switchPanel(activePanel, true);
 
-/** Read-only: lets the blueprint construction view hand over to this editor's first 3D frame. */
-export const editorView = { cameraPose: () => viewport.cameraPose(), element: () => $('#viewport'), onFrame: (listener: () => void) => viewport.onFrame(listener) };
+if (arrivalPose) viewport.setCameraPose(arrivalPose, 0);
+/** Measured, so the tools wait exactly off-screen whatever their width. */
+function measureArrival() {
+  const body = document.body;
+  body.style.setProperty('--arrival-header', `${$('.app-header').offsetHeight}px`);
+  body.style.setProperty('--arrival-designer', `${document.querySelector<HTMLElement>('.designer-column')?.offsetWidth ?? 0}px`);
+  body.style.setProperty('--arrival-panel', `${$('.left-panel').offsetWidth}px`);
+}
+if (presentation?.arriving) measureArrival();
+const nextFrame = () => new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+/** Lets the blueprint construction view hand over to this editor's first 3D frame. */
+export const editorView = {
+  cameraPose: () => viewport.cameraPose(), element: () => $('#viewport'), onFrame: (listener: () => void) => viewport.onFrame(listener),
+  /** Resolves once the first frames are drawn and the furniture models have landed (bounded). */
+  async ready() {
+    await nextFrame(); await nextFrame();
+    const until = performance.now() + 3000;
+    while (viewport.loading() && performance.now() < until) await new Promise(resolve => setTimeout(resolve, 60));
+    await nextFrame(); await nextFrame();
+  },
+  /** Bring the tools in around the finished apartment and hand the canvas to the person. */
+  arrive() {
+    const body = document.body;
+    if (!body.classList.contains('editor-arriving')) return;
+    measureArrival();
+    body.classList.add('editor-arrival');
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      body.classList.remove('editor-arriving');
+      arrivalPose = undefined; viewport.setLocked(false);
+      setTimeout(() => body.classList.remove('editor-arrival'), 1800);
+    }));
+  },
+};

@@ -1,0 +1,26 @@
+.blueprint-test-tools {
+  position: fixed; right: 16px; bottom: 16px; z-index: 1000;
+  width: min(310px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow: auto;
+  color: #193c40; background: #f5faf8; border: 1px solid #9cb9b6; border-radius: 12px;
+  box-shadow: 0 6px 28px #062c3429; font: 12px/1.5 system-ui, sans-serif;
+}
+.blueprint-test-tools summary { padding: 11px 14px; cursor: pointer; font-weight: 650; }
+.blueprint-test-controls { padding: 0 14px 14px; }
+.blueprint-test-controls label { display: grid; gap: 5px; font-weight: 600; }
+.blueprint-test-controls select { width: 100%; }
+.blueprint-test-controls select, .blueprint-test-controls button {
+  padding: 8px; border: 1px solid #a9bfbc; border-radius: 6px; background: white; color: inherit; font: inherit;
+}
+.blueprint-test-controls p { margin: 10px 0; }
+.blueprint-test-controls > div { display: flex; gap: 8px; }
+.blueprint-test-controls button { cursor: pointer; }
+.blueprint-test-controls button:disabled { opacity: .5; cursor: default; }
+.blueprint-test-controls a { color: #075e65; }
+.blueprint-test-note { color: #586e6e; }
+.blueprint-test-tools :focus-visible { outline: 2px solid #087d88; outline-offset: 3px; }
+@media (max-width: 600px) {
+  /* Keep the complete/open action and progress steps clear of development controls. */
+  body:has(.blueprint-flow:not([hidden])) .blueprint-test-tools { top: 10px; bottom: auto; }
+  body:has(.blueprint-test-tools) .blueprint-flow-top { top: 52px; }
+  body:has(.blueprint-test-tools) .blueprint-flow-heading { top: 122px; }
+}

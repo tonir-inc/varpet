@@ -1,12 +1,14 @@
 # Blueprint entry and construction flow
 
+For local checkpoint loading without architect requests, see [Blueprint test states](blueprint-test-states.md).
+
 Verified 2026-09-26, Codex (GPT-6).
 
 The home page now asks for one blueprint. Sample apartments live behind a small disclosure; accounts and saved apartments keep their existing routes. Choosing, dropping, or pasting a valid image starts the architect request immediately after decoding, while its drawing and build action appear. Room photos are optional. Submit opens the construction view and reuses the request already underway.
 
 The upload area shows the platform's paste shortcut (⌘V on Apple devices, Ctrl+V elsewhere). Image paste works anywhere on the landing page, including replacing a selected plan, through the same validation and decode path as file selection. Clipboard file items are a fallback when the file list has no images. Text and non-image paste are left alone; editable fields, open dialogs, construction, and disposed landing pages do not capture images. Paste uses the browser's paste event and requires no clipboard-read permission.
 
-`portal/blueprint.ts` consumes the existing `buildFurnishedFlat` NDJSON workflow. Progress and geometry come from the service's events. The full-screen construction stage draws the returned footprint over the uploaded image, raises walls, installs the catalog opening models, and sweeps away the source sheet. Completion holds the model for review. **Open my apartment** explicitly accepts the validated result into the existing editor session; no account write occurs until the person saves.
+`portal/blueprint.ts` consumes the existing `buildFurnishedFlat` NDJSON workflow. Progress and geometry come from the service's events. The full-screen construction view is the editor's own viewport (see *One view* below): the traced plan lies on blueprint paper, walls rise out of it, pieces arrive, and the source sheet is swept away. Completion opens the result in the editor session automatically; no account write occurs until the person saves. **Open my apartment** remains only as the retry when opening fails.
 
 Back aborts the stream and invalidates late results. Failure retains selected files and exposes retry/change-plan actions. The stage and object URLs are disposed on return or handoff. A terminal completion heading cannot be overwritten by queued phase events.
 
@@ -165,6 +167,18 @@ Clipboard completion review — DONE: 7 of 7.
 - 5 ✓ Independent source reviewer inspected the exact patch: **APPROVE**, no blockers.
 - 6 ✓ Browser/OS and reconstruction limitations are stated above. Existing upload limits are retained.
 - 7 ✓ Root edited the clipboard region in `portal/blueprint.ts` and this document; browser verifier wrote only `output/clipboard-verification/`; reviewer was read-only.
+
+## One view: construction in the editor's viewport
+
+Implemented 2026-09-27, Claude (Opus 5.5). Steps 3–5 of the motion pass below now run through the editor's renderer instead of `ArchitectStage`, so the construction view has the editor's lighting, cutaway walls, catalog door/window models and shadows from the first wall.
+
+- `render/blueprint-ground.ts`: blueprint paper, grid, shadow catcher and the traced sheet (pen-order trace, top-down sweep). `viewport.setBackdrop({paper})` swaps it for the studio pedestal and backdrop, keeps the camera above the paper, and turns the grade's vignette off. The background colour is solved through the grade and ACES so the canvas meets the page's `#155f6d` without an edge.
+- `viewport.setLocked(true)`: orbit, pan, zoom and WASD only; presses never pick, tap or drag. Also `setCameraPose`, `riseStructure`, `loading`, `redraw`.
+- `portal/blueprint-construction.ts` drives one locked viewport from the stream (shell → rise, pieces wait beside the flat, placements carried in), registers the sheet under the walls, and keeps the camera until the person takes it (**Reset view** follows the build again).
+- Completion: heading "A plan. Now a place." for 1.3 s, then `openProject(scene, catalog, presentation)` boots the editor underneath with `EditorSession.presentation` = paper, the construction camera and `arriving`. The editor starts full-bleed and look-only with its tools held off-screen (`ui/arrival.css`), so both canvases show one picture; `editorView.ready()` waits for models, the overlay fades, and `editorView.arrive()` slides the header, designer column and tools in and unlocks the canvas.
+- A reload from a blueprint checkpoint keeps the blueprint ground. Apartments reopened from an account still use the studio (the ground is session presentation, not scene data).
+
+Checked 2026-09-27 in the in-app browser with `?blueprintTest=` reading → walls → checking → complete: construction renders on paper, completion hands over into the editor on the same frame, a click after arrival selects furniture. `pnpm test` and `pnpm typecheck` green. Frame timing during arrival was not measured (hidden pane throttles rAF); the canvas resizes every frame while the designer column slides in.
 
 ## Motion pass: sheet → drawing → 3D → editor
 

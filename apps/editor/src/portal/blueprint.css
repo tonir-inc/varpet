@@ -157,6 +157,9 @@
 .blueprint-flow.is-entering .blueprint-stage { opacity: 0; }
 .blueprint-flow.is-entering.is-handoff .blueprint-stage { opacity: 1; }
 .blueprint-stage .as-stage { background: var(--paper); }
+.bc-viewport { position: absolute; inset: 0; }
+.bc-viewport canvas { cursor: grab; }
+.bc-viewport canvas:active { cursor: grabbing; }
 .blueprint-stage .as-opening-hint { display: none; }
 .blueprint-stage .as-opening-actions { bottom: 10px; }
 .blueprint-stage .as-room-label { border-color: #e6f3f259; background: #0f414ad9; color: #f4fbfa; box-shadow: none; }

@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Blueprint checkpoint verification</title>
+  <style>
+    body { margin: 0; color: #eef4f3; background: #164c5a; font: 14px system-ui, sans-serif; }
+    header, pre { margin: 0; padding: 16px 24px; }
+    button { padding: 8px 12px; }
+    #stage { position: relative; height: 65vh; min-height: 400px; }
+    pre { white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <header><button id="run">Run checkpoint checks</button> <span id="phase">Ready</span></header>
+  <div id="stage"></div><pre id="result">Checks instant checkpoints, model readiness, completion and disposal without the architect service.</pre>
+  <script type="module" src="/src/ui/blueprint-checkpoint-qa.ts"></script>
+</body>
+</html>

@@ -1,0 +1,236 @@
+{
+  "command": "node apps/editor/scripts/check-blueprint-test-states.mjs",
+  "date": "2026-09-26T20:47:10.828Z",
+  "baseURL": "http://127.0.0.1:5189",
+  "checks": [
+    {
+      "name": "normal motion desktop deep link: upload",
+      "status": "passed"
+    },
+    {
+      "name": "normal motion desktop deep link: selected",
+      "status": "passed"
+    },
+    {
+      "name": "normal motion desktop deep link: reading",
+      "status": "passed"
+    },
+    {
+      "name": "normal motion desktop deep link: walls",
+      "status": "passed"
+    },
+    {
+      "name": "normal motion desktop deep link: building",
+      "status": "passed"
+    },
+    {
+      "name": "normal motion desktop deep link: placing",
+      "status": "passed"
+    },
+    {
+      "name": "normal motion desktop deep link: checking",
+      "status": "passed"
+    },
+    {
+      "name": "normal motion desktop deep link: complete",
+      "status": "passed"
+    },
+    {
+      "name": "normal motion desktop deep link: error",
+      "status": "passed"
+    },
+    {
+      "name": "reload retains the selected checkpoint and its settled phase",
+      "status": "passed"
+    },
+    {
+      "name": "dropdown moves forward and backward, and the last rapid selection wins",
+      "status": "passed"
+    },
+    {
+      "name": "Back retains the selected plan and rebuilding restores the checkpoint",
+      "status": "passed"
+    },
+    {
+      "name": "simulated error can retry and return to the preserved plan",
+      "status": "passed"
+    },
+    {
+      "name": "complete opens the real editor with both furniture models and original evidence",
+      "status": "failed",
+      "error": "locator.waitFor: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#viewport canvas') to be visible\u001b[22m\n\n    at /Users/davitstepanyan/Documents/varpet/apps/editor/scripts/check-blueprint-test-states.mjs:147:44\n    at async check (/Users/davitstepanyan/Documents/varpet/apps/editor/scripts/check-blueprint-test-states.mjs:27:9)\n    at async file:///Users/davitstepanyan/Documents/varpet/apps/editor/scripts/check-blueprint-test-states.mjs:143:3"
+    }
+  ],
+  "pageErrors": [],
+  "consoleErrors": [
+    {
+      "url": "http://127.0.0.1:5189/?blueprintTest=upload",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "url": "http://127.0.0.1:5189/?blueprintTest=selected",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "url": "http://127.0.0.1:5189/?blueprintTest=reading",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "url": "http://127.0.0.1:5189/?blueprintTest=walls",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "url": "http://127.0.0.1:5189/?blueprintTest=building",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "url": "http://127.0.0.1:5189/?blueprintTest=placing",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "url": "http://127.0.0.1:5189/?blueprintTest=checking",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "url": "http://127.0.0.1:5189/?blueprintTest=complete",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "url": "http://127.0.0.1:5189/?blueprintTest=error",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "url": "http://127.0.0.1:5189/?blueprintTest=placing",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "url": "http://127.0.0.1:5189/?blueprintTest=placing",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "url": "http://127.0.0.1:5189/?blueprintTest=reading",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "url": "http://127.0.0.1:5189/?blueprintTest=walls",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "url": "http://127.0.0.1:5189/?blueprintTest=error",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "url": "http://127.0.0.1:5189/?blueprintTest=complete",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "url": "http://127.0.0.1:5189/?blueprint=9c5df5f7-9bc3-4d42-881b-8beace9cdc8f",
+      "message": "Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep)"
+    }
+  ],
+  "serviceRequests": [
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&family=Noto+Serif+Armenian:wght@400..700&family=Sofia+Sans:wght@300..700&family=Sofia+Sans+Condensed:wght@500..700&family=Noto+Sans+Armenian:wdth,wght@62.5..100,300..700&display=swap",
+      "method": "GET",
+      "liveProbe": false,
+      "editorOpened": false
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&family=Noto+Serif+Armenian:wght@400..700&family=Sofia+Sans:wght@300..700&family=Sofia+Sans+Condensed:wght@500..700&family=Noto+Sans+Armenian:wdth,wght@62.5..100,300..700&display=swap",
+      "method": "GET",
+      "liveProbe": false,
+      "editorOpened": false
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&family=Noto+Serif+Armenian:wght@400..700&family=Sofia+Sans:wght@300..700&family=Sofia+Sans+Condensed:wght@500..700&family=Noto+Sans+Armenian:wdth,wght@62.5..100,300..700&display=swap",
+      "method": "GET",
+      "liveProbe": false,
+      "editorOpened": false
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&family=Noto+Serif+Armenian:wght@400..700&family=Sofia+Sans:wght@300..700&family=Sofia+Sans+Condensed:wght@500..700&family=Noto+Sans+Armenian:wdth,wght@62.5..100,300..700&display=swap",
+      "method": "GET",
+      "liveProbe": false,
+      "editorOpened": false
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&family=Noto+Serif+Armenian:wght@400..700&family=Sofia+Sans:wght@300..700&family=Sofia+Sans+Condensed:wght@500..700&family=Noto+Sans+Armenian:wdth,wght@62.5..100,300..700&display=swap",
+      "method": "GET",
+      "liveProbe": false,
+      "editorOpened": false
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&family=Noto+Serif+Armenian:wght@400..700&family=Sofia+Sans:wght@300..700&family=Sofia+Sans+Condensed:wght@500..700&family=Noto+Sans+Armenian:wdth,wght@62.5..100,300..700&display=swap",
+      "method": "GET",
+      "liveProbe": false,
+      "editorOpened": false
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&family=Noto+Serif+Armenian:wght@400..700&family=Sofia+Sans:wght@300..700&family=Sofia+Sans+Condensed:wght@500..700&family=Noto+Sans+Armenian:wdth,wght@62.5..100,300..700&display=swap",
+      "method": "GET",
+      "liveProbe": false,
+      "editorOpened": false
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&family=Noto+Serif+Armenian:wght@400..700&family=Sofia+Sans:wght@300..700&family=Sofia+Sans+Condensed:wght@500..700&family=Noto+Sans+Armenian:wdth,wght@62.5..100,300..700&display=swap",
+      "method": "GET",
+      "liveProbe": false,
+      "editorOpened": false
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&family=Noto+Serif+Armenian:wght@400..700&family=Sofia+Sans:wght@300..700&family=Sofia+Sans+Condensed:wght@500..700&family=Noto+Sans+Armenian:wdth,wght@62.5..100,300..700&display=swap",
+      "method": "GET",
+      "liveProbe": false,
+      "editorOpened": false
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&family=Noto+Serif+Armenian:wght@400..700&family=Sofia+Sans:wght@300..700&family=Sofia+Sans+Condensed:wght@500..700&family=Noto+Sans+Armenian:wdth,wght@62.5..100,300..700&display=swap",
+      "method": "GET",
+      "liveProbe": false,
+      "editorOpened": false
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&family=Noto+Serif+Armenian:wght@400..700&family=Sofia+Sans:wght@300..700&family=Sofia+Sans+Condensed:wght@500..700&family=Noto+Sans+Armenian:wdth,wght@62.5..100,300..700&display=swap",
+      "method": "GET",
+      "liveProbe": false,
+      "editorOpened": false
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&family=Noto+Serif+Armenian:wght@400..700&family=Sofia+Sans:wght@300..700&family=Sofia+Sans+Condensed:wght@500..700&family=Noto+Sans+Armenian:wdth,wght@62.5..100,300..700&display=swap",
+      "method": "GET",
+      "liveProbe": false,
+      "editorOpened": false
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&family=Noto+Serif+Armenian:wght@400..700&family=Sofia+Sans:wght@300..700&family=Sofia+Sans+Condensed:wght@500..700&family=Noto+Sans+Armenian:wdth,wght@62.5..100,300..700&display=swap",
+      "method": "GET",
+      "liveProbe": false,
+      "editorOpened": false
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&family=Noto+Serif+Armenian:wght@400..700&family=Sofia+Sans:wght@300..700&family=Sofia+Sans+Condensed:wght@500..700&family=Noto+Sans+Armenian:wdth,wght@62.5..100,300..700&display=swap",
+      "method": "GET",
+      "liveProbe": false,
+      "editorOpened": false
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&family=Noto+Serif+Armenian:wght@400..700&family=Sofia+Sans:wght@300..700&family=Sofia+Sans+Condensed:wght@500..700&family=Noto+Sans+Armenian:wdth,wght@62.5..100,300..700&display=swap",
+      "method": "GET",
+      "liveProbe": false,
+      "editorOpened": false
+    }
+  ],
+  "screenshots": [
+    "desktop-upload.png",
+    "desktop-selected.png",
+    "desktop-reading.png",
+    "desktop-walls.png",
+    "desktop-building.png",
+    "desktop-placing.png",
+    "desktop-checking.png",
+    "desktop-complete.png",
+    "desktop-error.png",
+    "failure.png"
+  ],
+  "browser": "153.0.8010.12"
+}

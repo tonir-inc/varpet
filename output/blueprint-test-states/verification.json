@@ -1,0 +1,160 @@
+{
+  "date": "2026-09-26T20:52:52.425Z",
+  "browser": "153.0.8010.12",
+  "baseURL": "http://127.0.0.1:5190",
+  "commands": [
+    "BLUEPRINT_TEST_URL=http://127.0.0.1:5190 node apps/editor/scripts/check-blueprint-test-states.mjs",
+    "BLUEPRINT_TEST_URL=http://127.0.0.1:5190 BLUEPRINT_TEST_ONLY='complete opens|mobile|unknown checkpoint|services|ordinary upload|uncaught' node apps/editor/scripts/check-blueprint-test-states.mjs"
+  ],
+  "checks": [
+    {
+      "name": "normal motion desktop deep link: upload",
+      "status": "passed",
+      "evidence": "results-desktop.json"
+    },
+    {
+      "name": "normal motion desktop deep link: selected",
+      "status": "passed",
+      "evidence": "results-desktop.json"
+    },
+    {
+      "name": "normal motion desktop deep link: reading",
+      "status": "passed",
+      "evidence": "results-desktop.json"
+    },
+    {
+      "name": "normal motion desktop deep link: walls",
+      "status": "passed",
+      "evidence": "results-desktop.json"
+    },
+    {
+      "name": "normal motion desktop deep link: building",
+      "status": "passed",
+      "evidence": "results-desktop.json"
+    },
+    {
+      "name": "normal motion desktop deep link: placing",
+      "status": "passed",
+      "evidence": "results-desktop.json"
+    },
+    {
+      "name": "normal motion desktop deep link: checking",
+      "status": "passed",
+      "evidence": "results-desktop.json"
+    },
+    {
+      "name": "normal motion desktop deep link: complete",
+      "status": "passed",
+      "evidence": "results-desktop.json"
+    },
+    {
+      "name": "normal motion desktop deep link: error",
+      "status": "passed",
+      "evidence": "results-desktop.json"
+    },
+    {
+      "name": "reload retains the selected checkpoint and its settled phase",
+      "status": "passed",
+      "evidence": "results-desktop.json"
+    },
+    {
+      "name": "dropdown moves forward and backward, and the last rapid selection wins",
+      "status": "passed",
+      "evidence": "results-desktop.json"
+    },
+    {
+      "name": "Back retains the selected plan and rebuilding restores the checkpoint",
+      "status": "passed",
+      "evidence": "results-desktop.json"
+    },
+    {
+      "name": "simulated error can retry and return to the preserved plan",
+      "status": "passed",
+      "evidence": "results-desktop.json"
+    },
+    {
+      "name": "complete opens the real editor with both furniture models and original evidence",
+      "status": "passed",
+      "evidence": "results.json"
+    },
+    {
+      "name": "reduced motion mobile deep link: upload",
+      "status": "passed",
+      "evidence": "results.json"
+    },
+    {
+      "name": "reduced motion mobile deep link: selected",
+      "status": "passed",
+      "evidence": "results.json"
+    },
+    {
+      "name": "reduced motion mobile deep link: reading",
+      "status": "passed",
+      "evidence": "results.json"
+    },
+    {
+      "name": "reduced motion mobile deep link: walls",
+      "status": "passed",
+      "evidence": "results.json"
+    },
+    {
+      "name": "reduced motion mobile deep link: building",
+      "status": "passed",
+      "evidence": "results.json"
+    },
+    {
+      "name": "reduced motion mobile deep link: placing",
+      "status": "passed",
+      "evidence": "results.json"
+    },
+    {
+      "name": "reduced motion mobile deep link: checking",
+      "status": "passed",
+      "evidence": "results.json"
+    },
+    {
+      "name": "reduced motion mobile deep link: complete",
+      "status": "passed",
+      "evidence": "results.json"
+    },
+    {
+      "name": "reduced motion mobile deep link: error",
+      "status": "passed",
+      "evidence": "results.json"
+    },
+    {
+      "name": "normal motion mobile opens the selected construction state directly",
+      "status": "passed",
+      "evidence": "results.json"
+    },
+    {
+      "name": "unknown checkpoint stays in isolated sample mode",
+      "status": "passed",
+      "evidence": "results.json"
+    },
+    {
+      "name": "sample checkpoints never request architect or catalog hydration services",
+      "status": "passed",
+      "evidence": "results.json"
+    },
+    {
+      "name": "ordinary upload keeps its live transport, intercepted before any real request",
+      "status": "passed",
+      "evidence": "results.json"
+    },
+    {
+      "name": "all scenarios finish without uncaught browser errors",
+      "status": "passed",
+      "evidence": "results.json"
+    }
+  ],
+  "historicalFailures": [
+    "Shared Vite cache on port5189 returned504 Outdated Optimize Dep for TransformControls; isolated cache on5190 resolved it.",
+    "The first5190 run used hidden legacy #file-menu; the probe was corrected to visible More tools > Files before the final focused rerun."
+  ],
+  "latestPageErrors": [],
+  "latestConsoleErrors": [],
+  "latestFailedResponses": [],
+  "sampleArchitectRequests": 0,
+  "interceptedLiveRequests": 1
+}

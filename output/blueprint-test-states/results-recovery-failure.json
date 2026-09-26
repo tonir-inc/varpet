@@ -1,0 +1,31 @@
+{
+  "command": "node apps/editor/scripts/check-blueprint-test-states.mjs",
+  "date": "2026-09-26T20:49:21.280Z",
+  "baseURL": "http://127.0.0.1:5189",
+  "checks": [
+    {
+      "name": "complete opens the real editor with both furniture models and original evidence",
+      "status": "failed",
+      "error": "locator.waitFor: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#viewport canvas') to be visible\u001b[22m\n\n    at /Users/davitstepanyan/Documents/varpet/apps/editor/scripts/check-blueprint-test-states.mjs:172:44\n    at async check (/Users/davitstepanyan/Documents/varpet/apps/editor/scripts/check-blueprint-test-states.mjs:29:9)\n    at async file:///Users/davitstepanyan/Documents/varpet/apps/editor/scripts/check-blueprint-test-states.mjs:152:3"
+    }
+  ],
+  "pageErrors": [],
+  "consoleErrors": [
+    {
+      "url": "http://127.0.0.1:5189/?blueprint=dfdd1818-40ef-4339-8cb6-560c08d4b6c4",
+      "message": "Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep)"
+    },
+    {
+      "url": "http://127.0.0.1:5189/?blueprint=dfdd1818-40ef-4339-8cb6-560c08d4b6c4",
+      "message": "Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep)"
+    }
+  ],
+  "serviceRequests": [],
+  "screenshots": [
+    "desktop-opening-picker-locked.png",
+    "desktop-editor-recovery.png",
+    "failure.png"
+  ],
+  "browser": "153.0.8010.12",
+  "editorRecovery": "Your apartment is safe on this device. Reload to open it."
+}

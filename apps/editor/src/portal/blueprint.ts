@@ -2,9 +2,12 @@ import { icon } from '../ui/icons';
 import { apartmentTemplates, type ApartmentTemplate } from './templates';
 import type { SceneDocument } from '../contracts';
 import type { CatalogProduct } from '../adapters/database-catalog';
-import type { ArchitectStage, StagePhase } from '../ui/architect-stage';
+import type { StageEvent, StagePhase } from '../ui/architect-stage';
+import type { BlueprintConstruction } from './blueprint-construction';
+import { BLUEPRINT_PAPER, type EditorPresentation } from './session';
 import { BLUEPRINT_TOTAL_LIMIT, retainBlueprintEvidence, prepareBlueprintPlan, validateBlueprintFile } from './blueprint-evidence';
 import { startBlueprintBuild } from './blueprint-build';
+import { clearBlueprintCheckpoint } from './blueprint-checkpoint';
 import { traceInk, type BlueprintInk } from './blueprint-ink';
 import './blueprint.css';
 
@@ -17,7 +20,7 @@ const PHASES: [StagePhase, string, string][] = [
   ['checking', 'Review', 'A final look at the details.'],
 ];
 /** Blueprint paper, shared by the landing sheet and the 3D construction ground. */
-const PAPER = '#155f6d';
+const PAPER = BLUEPRINT_PAPER;
 /** Longest side of the traced ink, in pixels. */
 const INK_SIZE = 960;
 const COLUMNS = 9, ROWS = 7;
@@ -29,7 +32,15 @@ const centre = (element: Element): Point => { const r = element.getBoundingClien
 
 export interface BlueprintLandingOptions {
   showSample(template: ApartmentTemplate): void;
-  openProject(scene: SceneDocument, catalog: CatalogProduct[]): Promise<void>;
+  /** `presentation` carries the construction view's ground and camera into the editor's first frame. */
+  openProject(scene: SceneDocument, catalog: CatalogProduct[], presentation?: EditorPresentation): Promise<void>;
+  /** Explicit local preview dependency; the ordinary upload always uses the live build. */
+  preview?: {
+    build: typeof startBlueprintBuild;
+    catalog: CatalogProduct[];
+    phase: StagePhase;
+    initial?: { plan: File; photos: File[]; showBuild: boolean };
+  };
 }
 
 /** A new front door to the existing architect stream, with an explicit review before opening its result. */
@@ -91,7 +102,7 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
   const photoInput = q<HTMLInputElement>('.blueprint-photos input');
   let plan: File | null = null, photos: File[] = [], ink: BlueprintInk | undefined;
   let disposed = false, selection = 0, run = 0, dragDepth = 0;
-  let reading: ReturnType<typeof startBlueprintBuild> | undefined, stage: ArchitectStage | undefined;
+  let reading: ReturnType<typeof startBlueprintBuild> | undefined, stage: BlueprintConstruction | undefined;
   let completed: {scene: SceneDocument; catalog: CatalogProduct[]} | undefined;
   const photoUrls: string[] = [];
   const flights = new Set<HTMLElement>();
@@ -99,12 +110,12 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
   const validate = validateBlueprintFile;
   // Warm the build while the plan is being drawn, so the handoff never waits on a download.
   const warmBuild = () => Promise.all([
-    import('../ui/architect-stage'), import('../adapters/database-catalog'), import('../adapters/built-catalog'), import('../core/persistence'),
+    import('./blueprint-construction'), import('../adapters/database-catalog'), import('../adapters/built-catalog'), import('../core/persistence'),
   ]);
   function startReading() {
     if (!plan || disposed) return;
     reading?.cancel();
-    const job = startBlueprintBuild(plan, photos, () => {
+    const job = (options.preview?.build ?? startBlueprintBuild)(plan, photos, () => {
       if (disposed || reading !== job) return;
       if (job.rejection) { rejectPlan(job.rejection.message); return; }
       q('.blueprint-build-note').textContent = job.status === 'ready'
@@ -147,7 +158,7 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
       if (restart) startReading();
     } catch (cause) { report((cause as Error).message); }
   }
-  async function chooseFiles(files: File[], from: Point) {
+  async function chooseFiles(files: File[], from: Point, immediate = false) {
     if (!files.length || !flow.hidden) return;
     const candidate = files.find(file => /plan|blueprint/i.test(file.name)) ?? files[0]!;
     const version = ++selection;
@@ -169,7 +180,12 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
       void warmBuild().catch(() => {}); // Submit reports any module-loading failure with a retry.
       if (files.length > 1) addPhotos(files.filter(file => file !== candidate), false);
       startReading();
-      await revealPlan(traced, candidate.name, version, from);
+      if (immediate) {
+        // A checkpoint initializes in place; replaying the upload would obscure the chosen state.
+        board.classList.add('has-plan'); drop.hidden = true;
+        inkCanvas.width = traced.width; inkCanvas.height = traced.height; inkCanvas.hidden = false;
+        setTitle(candidate.name); paintInk(traced, 1, 1); showNext(false);
+      } else await revealPlan(traced, candidate.name, version, from);
       if (disposed || version !== selection) return;
       build.disabled = false;
     } catch (cause) {
@@ -412,6 +428,7 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
     tick(); clock = window.setInterval(tick, 1000);
   }
   function back() {
+    resetOpening();
     stop(); completed = undefined; flow.hidden = true; welcome.hidden = false; board.style.visibility = '';
     flow.classList.remove('is-entering', 'is-handoff');
     flow.querySelectorAll('.bp-ghost').forEach(node => node.remove());
@@ -458,8 +475,9 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
     flow.getAnimations().forEach(animation => animation.cancel());
   }
 
-  async function startBuild(retry = false) {
+  async function startBuild(retry = false, immediate = false) {
     if (!plan || !ink || disposed) return;
+    resetOpening();
     if ((!flow.hidden && !retry) || (retry && flowError.hidden)) return;
     stop(false); const version = run;
     const job = !reading || reading.status === 'failed' || retry ? startReading()! : reading;
@@ -473,41 +491,58 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
     q('.blueprint-elapsed').textContent = '0:00';
     updatePhase('reading'); q('.blueprint-back').focus({preventScroll: true});
     try {
-      const [{createArchitectStage}, {resolveSceneProducts}, {resolveFurnitureProducts}, {parseScene}] = await warmBuild();
+      const [{createBlueprintConstruction}, {resolveSceneProducts}, {resolveFurnitureProducts}, {parseScene}] = await warmBuild();
       if (disposed || version !== run) return;
-      const sheet = inkSheet(ink);
-      stage = createArchitectStage(q('.blueprint-stage'), {onPhase: updatePhase, holdOnFinish: true, blueprint: {ink: sheet, paper: PAPER, insets}});
-      stage.start(job.plan, job.photos);
+      stage = createBlueprintConstruction(q('.blueprint-stage'), {onPhase: updatePhase, ink, sheet: inkSheet(ink), paper: PAPER, insets});
+      stage.start();
       // Keep the receiving sheet still until the source lands. Early shell events can reframe it.
-      await handoff(version);
+      if (immediate) {
+        welcome.hidden = true; building(); flow.classList.remove('is-entering'); stage.enter();
+      } else await handoff(version);
       if (disposed || version !== run) return;
       // Count from when the timer becomes visible, independently of the early background build.
       working(true);
       const url = import.meta.env.VITE_ARCHITECT_URL || 'http://127.0.0.1:8788';
+      const checkpoint: StageEvent[] = [];
       job.attach(message => {
         if (version !== run) return;
-        say(message); stage?.progress(message);
-      }, event => { if (version === run) stage?.event(event as never); });
+        say(message);
+        if (options.preview) checkpoint.push({type: 'progress', message});
+        else stage?.progress(message);
+      }, event => {
+        if (version !== run) return;
+        if (options.preview) checkpoint.push(event as StageEvent);
+        else stage?.event(event as StageEvent);
+      });
+      if (options.preview) {
+        await stage.hydrate(checkpoint, options.preview.phase);
+        if (disposed || version !== run) return;
+      }
       const result = await job.result;
       if (disposed || version !== run) return;
       if (!result.ok) throw result.error;
       const raw = result.project;
       say('Checking your apartment before you step inside…');
-      const catalog = await resolveSceneProducts(raw, new Map(), ids => resolveFurnitureProducts(ids, {url}));
+      const known = new Map(options.preview?.catalog.map(product => [product.asset.id, product]));
+      const catalog = await resolveSceneProducts(raw, known, ids => resolveFurnitureProducts(ids, {url}));
       if (disposed || version !== run) return;
       const assets = catalog.map(product => product.asset);
       const reviewed = parseScene(JSON.stringify(raw), assets);
       const scene = parseScene(JSON.stringify(await retainBlueprintEvidence(reviewed, job.plan, job.photos)), assets);
       if (disposed || version !== run) return;
-      await stage!.finish();
+      await stage!.finish(scene, assets);
       if (disposed || version !== run) return;
       completed = {scene, catalog};
       updatePhase('done'); say('Built from your blueprint. Ready for your ideas.'); working(false);
       q('.blueprint-live').hidden = true; q('.blueprint-flow-bottom').hidden = true;
-      q('.blueprint-complete').hidden = false; q('[data-open]').focus();
+      // The finished apartment becomes the editor in place: a beat to read the heading, then the tools arrive.
+      await new Promise(resolve => setTimeout(resolve, reduced() ? 0 : 1300));
+      if (disposed || version !== run) return;
+      void openApartment();
     } catch (cause) {
       if (disposed || version !== run || signal.aborted) return;
       if (cause instanceof Error && cause.name === 'PlanRejectedError') { rejectPlan(cause.message); return; }
+      console.warn('[blueprint] build failed', cause);
       job.cancel(); if (reading === job) reading = undefined;
       stage?.dispose(); stage = undefined;
       welcome.hidden = true; building(); board.style.visibility = ''; flow.querySelectorAll('.bp-ghost').forEach(node => node.remove());
@@ -520,21 +555,52 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
     }
   }
   build.onclick = () => void startBuild(); q('[data-retry]').onclick = () => void startBuild(true);
-  q<HTMLButtonElement>('[data-open]').onclick = async () => {
-    if (!completed) return;
-    const button = q<HTMLButtonElement>('[data-open]'); button.disabled = true;
+  let reloadToOpen = false, opening = false;
+  function resetOpening() {
+    reloadToOpen = false;
+    const button = flow.querySelector<HTMLButtonElement>('[data-open]')!;
+    button.disabled = false; button.innerHTML = `Open my apartment ${icon('arrow')}`;
+    flow.querySelector('.blueprint-complete p')!.textContent = 'Tap doors and windows to try them. Open your apartment to correct any detail.';
+    const route = new URL(location.href), checkpoint = route.searchParams.get('blueprint');
+    if (checkpoint) {
+      route.searchParams.delete('blueprint'); history.replaceState(null, '', route);
+      void clearBlueprintCheckpoint(checkpoint).catch(() => {});
+    }
+  }
+  q<HTMLButtonElement>('[data-open]').onclick = () => void openApartment();
+  async function openApartment() {
+    if (!completed || opening) return;
+    if (reloadToOpen) { location.reload(); return; }
+    const button = q<HTMLButtonElement>('[data-open]'); button.disabled = true; opening = true;
     // The editor replaces this page underneath the finished model: lift the construction view
     // above it and hand it over to the handover, so disposing the landing leaves it running.
     const view = stage; stage = undefined;
     document.body.append(flow); flow.classList.add('is-handing-over');
-    try { await options.openProject(completed.scene, completed.catalog); }
+    try { await options.openProject(completed.scene, completed.catalog, {paper: PAPER, camera: view?.pose() ?? undefined, arriving: true}); }
     catch (cause) {
-      host.append(flow); flow.classList.remove('is-handing-over'); stage = view;
-      button.disabled = false; q('.blueprint-complete p').textContent = cause instanceof Error ? cause.message : 'Could not open your apartment. Try again.';
+      // Module initialization may already have replaced the landing host. Keep
+      // recovery attached to the document even after a partial editor startup.
+      if (host.isConnected) host.append(flow);
+      flow.classList.remove('is-handing-over'); stage = view;
+      reloadToOpen = new URLSearchParams(location.search).has('blueprint');
+      button.disabled = false;
+      if (reloadToOpen) button.innerHTML = `Reload and open ${icon('arrow')}`;
+      flow.querySelector('.blueprint-complete p')!.textContent = reloadToOpen
+        ? 'Your apartment is safe on this device. Reload to open it.'
+        : cause instanceof Error ? cause.message : 'Could not open your apartment. Try again.';
+      if (!host.isConnected) flow.querySelector<HTMLButtonElement>('.blueprint-back')!.hidden = true;
+      q('.blueprint-complete').hidden = false; opening = false;
+      button.focus();
       return;
     }
     await handOver(view, flow, reduced());
-  };
+  }
+  if (options.preview?.initial) {
+    const {plan: initialPlan, photos: initialPhotos, showBuild} = options.preview.initial;
+    void chooseFiles([initialPlan, ...initialPhotos], centre(board), true).then(() => {
+      if (showBuild && !disposed && plan === initialPlan) return startBuild(false, true);
+    });
+  }
   return () => {
     disposed = true; ++selection; stop();
     window.removeEventListener('paste', onPaste);
@@ -544,22 +610,19 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
 }
 
 /**
- * The construction camera glides into the editor's first 3D frame, lens and backdrop included,
- * then the construction view fades away over an identical picture of the same apartment.
+ * The editor boots underneath with the same ground, camera and scene, so both canvases show one
+ * picture. The construction view fades away over it, and the editor's tools arrive.
  */
-async function handOver(view: ArchitectStage | undefined, overlay: HTMLElement, still: boolean) {
+async function handOver(view: BlueprintConstruction | undefined, overlay: HTMLElement, still: boolean) {
+  let arrive: (() => void) | undefined;
   try {
     const { editorView } = await import('../main');
-    await nextFrame(); await nextFrame();
-    await view?.settle(() => {
-      const pose = editorView.cameraPose(), element = editorView.element();
-      if (!pose || !element.isConnected) return null;
-      const {left, top, width, height} = element.getBoundingClientRect();
-      return width && height ? {...pose, rect: {left, top, width, height}} : null;
-    }, still ? 0 : 1.8);
-    await overlay.animate([{opacity: 1}, {opacity: 0}], {duration: still ? 0 : 900, easing: 'ease-in-out', fill: 'forwards'}).finished;
+    arrive = editorView.arrive;
+    await editorView.ready();
+    await overlay.animate([{opacity: 1}, {opacity: 0}], {duration: still ? 0 : 650, easing: 'ease-in-out', fill: 'forwards'}).finished;
   } finally {
     view?.dispose(); overlay.remove();
+    arrive?.();
   }
 }
 

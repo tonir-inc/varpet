@@ -50,6 +50,7 @@ import { SceneShadowCache } from './shadow-cache';
 import { InteriorDaylight } from './interior-daylight';
 import { TopLightingProjection } from './top-lighting';
 import { createFurnitureDrop } from './furniture-drop';
+import { BlueprintGround, type BlueprintBackdrop } from './blueprint-ground';
 
 interface RenderObject { group: THREE.Group; pose: THREE.Group; visual: THREE.Group; signature: string; token: object; dimensions: [number, number, number]; opacity: number }
 interface DragSnapshot {
@@ -111,6 +112,18 @@ export interface FinishViewport extends Viewport {
   setHidden(ids: string[]): void;
   /** The current 3D camera and backdrop, read-only, so another view can hand over to this one. Null outside perspective. */
   cameraPose(): { position: Vec3; target: Vec3; fov: number; background: string | null } | null;
+  /** Stand the apartment on blueprint paper instead of the studio pedestal; `null` restores the studio. */
+  setBackdrop(backdrop: BlueprintBackdrop | null): BlueprintGround | null;
+  /** Look only: orbit, pan, zoom and keyboard movement keep working; nothing can be picked, tapped or dragged. */
+  setLocked(locked: boolean): void;
+  /** Glide (or cut, with 0 ms) the 3D camera to a pose. */
+  setCameraPose(pose: { position: Vec3; target: Vec3; fov?: number }, duration?: number): void;
+  /** Raise the current walls out of the floor. */
+  riseStructure(duration?: number): void;
+  /** True while furniture models are still loading or waiting to be installed. */
+  loading(): boolean;
+  /** Draw again after presentation-only changes made from outside (the blueprint sheet). */
+  redraw(): void;
 }
 export function createViewport(container: HTMLElement, callbacks: ViewportCallbacks & { onSunChange?(settings: SunSettings): void; onLightingChange?(): void; onFinish?(presetId: string, target: FinishTarget): boolean; onFurnitureDrop?(assetId: string, position: SceneObject['position']): void }, normalizeScene?: SceneNormalizer): FinishViewport {
   let renderer: THREE.WebGLRenderer;
@@ -122,7 +135,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     message.textContent = '3D view unavailable. Enable browser hardware acceleration and reload.';
     message.style.cssText = 'margin:auto;padding:2rem;color:#6a5849;max-width:28rem;text-align:center';
     container.append(message);
-    return { furnitureSurface() { return undefined; }, setFurnitureDrag() {}, setInsideLens() {}, setSkybox() { return false; }, getSun() { return { ...DEFAULT_SUN }; }, setSun() {}, setTopLighting() {}, setLightingMood() {}, inspectCeiling() { return false; }, project() { return null; }, onFrame() { return () => {}; }, animateAssembly() {}, setHidden() {}, cameraPose() { return null; }, setFinishBrush() {}, setAdditiveSelection() {}, revealSelection() {}, setScene() {}, animatePlacement() {}, setSelection() {}, setTool() {}, setView() {}, setSnap() {}, setWalls() {}, setQuality() {}, setLayer() {}, setDoorAngle() {}, getDoorAngle() { return 0; }, toggleSwitch() {}, setSwitchLevel() {}, getSwitchLevel() { return 0; }, setComparison() {}, focus() {}, cancelInteraction() {}, dispose() { message.remove(); } };
+    return { furnitureSurface() { return undefined; }, setFurnitureDrag() {}, setInsideLens() {}, setSkybox() { return false; }, getSun() { return { ...DEFAULT_SUN }; }, setSun() {}, setTopLighting() {}, setLightingMood() {}, inspectCeiling() { return false; }, project() { return null; }, onFrame() { return () => {}; }, animateAssembly() {}, setHidden() {}, cameraPose() { return null; }, setBackdrop() { return null; }, setLocked() {}, setCameraPose() {}, riseStructure() {}, loading() { return false; }, redraw() {}, setFinishBrush() {}, setAdditiveSelection() {}, revealSelection() {}, setScene() {}, animatePlacement() {}, setSelection() {}, setTool() {}, setView() {}, setSnap() {}, setWalls() {}, setQuality() {}, setLayer() {}, setDoorAngle() {}, getDoorAngle() { return 0; }, toggleSwitch() {}, setSwitchLevel() {}, getSwitchLevel() { return 0; }, setComparison() {}, focus() {}, cancelInteraction() {}, dispose() { message.remove(); } };
   }
   renderer.setClearColor(STUDIO_BACKGROUND);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -199,6 +212,9 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   lighting.add(fill, fill.target, rim, rim.target, warmPool, warmPool.target, secondPool, secondPool.target);
   world.add(lighting);
   const stage = new StudioStage(); world.add(stage.group);
+  let blueprint: BlueprintGround | null = null;
+  let locked = false;
+  let loadingModels = 0;
   const skyboxes = new SkyboxResources(renderer);
   let skyboxPreset: SkyboxPreset = 'studio';
   const sunOccluders = new SunOccluders(); world.add(sunOccluders.group);
@@ -416,7 +432,8 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       for (const route of projection.routes.values()) route.group.visible = layers[route.system];
     }
     annotations.visible = view !== 'inside' && layers.assumptions && !wallPreview; if (comparison) comparison.visible = view !== 'inside' && comparisonEnabled;
-    stage.group.visible = view !== 'inside';
+    stage.group.visible = view !== 'inside' && !blueprint;
+    if (blueprint) blueprint.group.visible = view !== 'inside';
     const inside = view === 'inside';
     const unlitTop = view === 'top' && !topLightingEnabled;
     const daylight = unlitTop || sunSettings.timeOfDay == null ? 1 : timeOfDayLighting(sunSettings.timeOfDay).daylight;
@@ -1031,7 +1048,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       for (const [id, opening] of structure.openings) { const angle = opening.fixed ? 0 : doorAngles.get(id) ?? 0; if (opening.fixed) doorAngles.delete(id); opening.target = angle; opening.setAngle(angle); }
       for (const id of doorAngles.keys()) if (!structure.openings.has(id)) doorAngles.delete(id);
       structure.bounds.getCenter(center); structure.bounds.getSize(size);
-      stage.update(structure.bounds);
+      stage.update(structure.bounds); blueprint?.update(structure.bounds);
       // Follow imported/off-origin shells, keeping the same light direction at any scale.
       const lightScale = Math.max(size.length(), 6) / 13;
       const shadowBounds = structure.bounds.clone().union(new THREE.Box3().setFromObject(sunOccluders.group));
@@ -1103,7 +1120,8 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
         rendered.set(object.id, record); furniture.add(group);
         if (asset.source.type === 'gltf') {
           const token = record.token;
-          void loader.load(asset).then(model => {
+          loadingModels++;
+          void loader.load(asset).finally(() => { loadingModels--; }).then(model => {
             const current = rendered.get(object.id);
             if (disposed || !current || current.token !== token) { disposeObject(model); return; }
             // Do not detach or resize a manipulation target while its pointer gesture is live.
@@ -1271,7 +1289,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       if (documentState && id) for (const member of furnitureMembers(documentState, id)) { const root = rendered.get(member.id)?.group; if (root) box.union(entityBounds(root)); }
       if (id === selectedId) selectionBounds(chosen, box);
     }
-    else if (structure) { box.copy(structure.bounds); if (view !== 'top') box.union(stage.bounds); }
+    else if (structure) { box.copy(structure.bounds); if (view !== 'top' && !blueprint) box.union(stage.bounds); }
     else box.set(new THREE.Vector3(-3, 0, -3), new THREE.Vector3(3, 1, 3));
     box.getCenter(center); box.getSize(size);
     if (!chosen) {
@@ -1348,6 +1366,8 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   }
   function onPointerDown(event: PointerEvent): void {
     if (view === 'inside') return;
+    // Locked: leave the press to orbit and pan, and never turn it into a pick.
+    if (locked) { pointerStart = null; return; }
     if (furnitureDrop.active) { event.stopImmediatePropagation(); return; }
     // Navigation must stop before computing any captured shell gesture's ray.
     cameraMotion.cancel('camera');
@@ -1402,6 +1422,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     if (!drag) suppressPick = keyboardNavigation.active;
   }
   function onPointerMove(event: PointerEvent): void {
+    if (locked) return;
     if (moveFurnitureBody(event)) return;
     if (wallMove.active) { wallMove.pointerMove(event); return; }
     if (openingDrag) {
@@ -1594,6 +1615,59 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       const background = world.background instanceof THREE.Color ? `#${world.background.getHexString()}` : null;
       return { position: perspective.position.toArray(), target: orbit.target.toArray(), fov: perspective.fov, background };
     },
+    setBackdrop(backdrop) {
+      if (disposed) return null;
+      blueprint?.dispose(); blueprint = null;
+      if (backdrop) {
+        blueprint = new BlueprintGround(backdrop, renderer.toneMappingExposure);
+        world.add(blueprint.group);
+        if (structure) blueprint.update(structure.bounds);
+        studioBackground.copy(blueprint.background);
+        // Paper is a floor, not a sky: never look at the model from under the sheet.
+        orbit.minPolarAngle = 0.002; orbit.maxPolarAngle = Math.PI / 2 - 0.03;
+      } else {
+        studioBackground.set(STUDIO_BACKGROUND);
+        orbit.minPolarAngle = 0.05; orbit.maxPolarAngle = Math.PI - 0.05;
+      }
+      studioRenderer.setVignette(blueprint ? 0 : 1);
+      applyLayers(); shadowCache.invalidate(); requestRender();
+      return blueprint;
+    },
+    setLocked(next) {
+      if (next === locked) return;
+      if (next) { onPointerCancel(); furnitureDrop.cancel(); finishInteraction.setBrush(null); }
+      locked = next; pointerStart = null; renderer.domElement.style.cursor = '';
+    },
+    setCameraPose(pose, duration = MOTION.camera) {
+      if (disposed) return;
+      if (view !== 'perspective') setView('perspective');
+      handPan.cancel(); keyboardNavigation.cancel();
+      cameraMotion.sample('camera');
+      const fromPosition = perspective.position.clone(), fromTarget = orbit.target.clone(), fromFov = perspective.fov;
+      const toPosition = new THREE.Vector3(...pose.position), toTarget = new THREE.Vector3(...pose.target), toFov = pose.fov ?? fromFov;
+      const distance = toPosition.distanceTo(toTarget);
+      orbit.maxDistance = Math.max(orbit.maxDistance, distance * 2);
+      perspective.far = Math.max(perspective.far, distance * 4);
+      cameraMotion.animate('camera', duration, t => {
+        perspective.position.lerpVectors(fromPosition, toPosition, t);
+        orbit.target.lerpVectors(fromTarget, toTarget, t);
+        perspective.fov = fromFov + (toFov - fromFov) * t; perspective.updateProjectionMatrix();
+        perspective.lookAt(orbit.target); orbit.update();
+      });
+    },
+    riseStructure(duration = 1500) {
+      const rising = structure;
+      if (disposed || !rising) return;
+      const groups = [rising.group, rising.ceilings];
+      motion.animate(rising.group, duration, t => {
+        // Ease the last stretch softly: walls settle rather than stop.
+        const k = Math.max(0.002, 1 - (1 - t) ** 2);
+        for (const group of groups) group.scale.y = k;
+        sunOccluders.group.scale.y = k;
+      }, () => { for (const group of groups) group.scale.y = 1; sunOccluders.group.scale.y = 1; });
+    },
+    loading() { return loadingModels > 0 || pendingModels.size > 0; },
+    redraw() { requestRender(); },
     setFurnitureDrag(asset) {
       onPointerCancel();
       if (asset) finishInteraction.setBrush(null);
@@ -1743,7 +1817,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       if (structure) { disposeObject(structure.group); disposeObject(structure.ceilings); disposeObject(structure.dimensions); }
       if (ceilingDesigns) disposeObject(ceilingDesigns);
       if (services) disposeObject(services.group); if (comparison) disposeObject(comparison); disposeObject(annotations); disposeObject(endpointHandles); disposeObject(openingHandle); windowHandles.dispose();
-      stage.dispose(); sunOccluders.dispose(); windowLight.dispose(); loader.dispose(); openingAssets.dispose(); sunlight.shadow.dispose(); topLighting.dispose();
+      blueprint?.dispose(); stage.dispose(); sunOccluders.dispose(); windowLight.dispose(); loader.dispose(); openingAssets.dispose(); sunlight.shadow.dispose(); topLighting.dispose();
       studioRenderer.dispose(); skyboxes.dispose(); environment.dispose(); renderer.dispose(); renderer.domElement.remove();
     },
   };

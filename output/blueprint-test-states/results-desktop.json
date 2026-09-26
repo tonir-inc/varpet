@@ -1,0 +1,90 @@
+{
+  "command": "node apps/editor/scripts/check-blueprint-test-states.mjs",
+  "date": "2026-09-26T20:50:40.540Z",
+  "baseURL": "http://127.0.0.1:5190",
+  "checks": [
+    {
+      "name": "normal motion desktop deep link: upload",
+      "status": "passed"
+    },
+    {
+      "name": "normal motion desktop deep link: selected",
+      "status": "passed"
+    },
+    {
+      "name": "normal motion desktop deep link: reading",
+      "status": "passed"
+    },
+    {
+      "name": "normal motion desktop deep link: walls",
+      "status": "passed"
+    },
+    {
+      "name": "normal motion desktop deep link: building",
+      "status": "passed"
+    },
+    {
+      "name": "normal motion desktop deep link: placing",
+      "status": "passed"
+    },
+    {
+      "name": "normal motion desktop deep link: checking",
+      "status": "passed"
+    },
+    {
+      "name": "normal motion desktop deep link: complete",
+      "status": "passed"
+    },
+    {
+      "name": "normal motion desktop deep link: error",
+      "status": "passed"
+    },
+    {
+      "name": "reload retains the selected checkpoint and its settled phase",
+      "status": "passed"
+    },
+    {
+      "name": "dropdown moves forward and backward, and the last rapid selection wins",
+      "status": "passed"
+    },
+    {
+      "name": "Back retains the selected plan and rebuilding restores the checkpoint",
+      "status": "passed"
+    },
+    {
+      "name": "simulated error can retry and return to the preserved plan",
+      "status": "passed"
+    },
+    {
+      "name": "complete opens the real editor with both furniture models and original evidence",
+      "status": "failed",
+      "error": "locator.click: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#file-menu')\u001b[22m\n\u001b[2m    - locator resolved to <button id=\"file-menu\" class=\"button quiet\" aria-label=\"Project files\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    39 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is not visible\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\n    at /Users/davitstepanyan/Documents/varpet/apps/editor/scripts/check-blueprint-test-states.mjs:184:38\n    at async check (/Users/davitstepanyan/Documents/varpet/apps/editor/scripts/check-blueprint-test-states.mjs:29:9)\n    at async file:///Users/davitstepanyan/Documents/varpet/apps/editor/scripts/check-blueprint-test-states.mjs:153:3"
+    }
+  ],
+  "pageErrors": [],
+  "consoleErrors": [],
+  "failedResponses": [],
+  "serviceRequests": [
+    {
+      "url": "http://127.0.0.1:5190/api/catalog/search?text=&kind=",
+      "method": "GET",
+      "liveProbe": false,
+      "editorOpened": true
+    }
+  ],
+  "screenshots": [
+    "desktop-upload.png",
+    "desktop-selected.png",
+    "desktop-reading.png",
+    "desktop-walls.png",
+    "desktop-building.png",
+    "desktop-placing.png",
+    "desktop-checking.png",
+    "desktop-complete.png",
+    "desktop-error.png",
+    "desktop-picker-expanded.png",
+    "desktop-opening-picker-locked.png",
+    "failure.png"
+  ],
+  "browser": "153.0.8010.12"
+}

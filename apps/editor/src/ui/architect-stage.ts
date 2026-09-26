@@ -51,6 +51,8 @@ export interface ArchitectStage {
   /** Follow the phase the stage is currently showing; returns an unsubscribe function. */
   onPhase(cb: (phase: StagePhase) => void): () => void;
   start(plan: Source, photos: Source[]): void;
+  /** Load a fresh stage's recorded checkpoint without replaying earlier animation or phase holds. */
+  hydrate(events: StageEvent[], phase: StagePhase): Promise<void>;
   event(e: StageEvent): void;
   progress(message: string): void;
   finish(): Promise<void>;
@@ -113,6 +115,18 @@ interface Slot {
 interface LampInfo { glow: THREE.MeshStandardMaterial[] }
 interface Rig { target: THREE.Vector3; radius: number; el: number; az: number; orbit: number; sway: number }
 
+/** Snapshot hydration also waits for the stock opening models to replace their procedural previews. */
+class StageOpeningAssets extends OpeningAssetLoader {
+  readonly pending = new Set<Promise<unknown>>();
+
+  override load(...args: Parameters<OpeningAssetLoader['load']>): ReturnType<OpeningAssetLoader['load']> {
+    const loading = super.load(...args);
+    this.pending.add(loading);
+    void loading.then(() => this.pending.delete(loading), () => this.pending.delete(loading));
+    return loading;
+  }
+}
+
 class Stage implements ArchitectStage {
   private readonly root = document.createElement('div');
   private readonly renderer: THREE.WebGLRenderer;
@@ -131,7 +145,8 @@ class Stage implements ArchitectStage {
   private readonly motionQuery = typeof matchMedia === 'function' ? matchMedia('(prefers-reduced-motion: reduce)') : undefined;
   private reduced = this.motionQuery?.matches ?? false;
   private readonly loader = new GLTFLoader();
-  private readonly openingAssets = new OpeningAssetLoader();
+  private readonly openingAssets = new StageOpeningAssets();
+  private readonly assets = new Set<Promise<unknown>>();
   private readonly resize: ResizeObserver;
   private readonly lineMats = new Set<LineMaterial>();
   private readonly urls: string[] = [];
@@ -143,6 +158,8 @@ class Stage implements ArchitectStage {
   private last = performance.now();
   private disposed = false;
   private started = false;
+  private hydrating = false;
+  private cancelHydration: (() => void) | undefined;
   private finishing: Promise<void> | undefined;
   private shellRevision = 0;
   private shellReady: Promise<void> = Promise.resolve();
@@ -420,7 +437,7 @@ class Stage implements ArchitectStage {
     });
     this.invalidate();
     const textures = new THREE.TextureLoader();
-    textures.load(this.url(plan), tex => {
+    void this.trackAsset(textures.loadAsync(this.url(plan))).then(tex => {
       if (this.disposed) { tex.dispose(); return; }
       tex.colorSpace = THREE.NoColorSpace;
       tex.anisotropy = 8;
@@ -434,19 +451,19 @@ class Stage implements ArchitectStage {
         void this.fit(() => ({ target: new THREE.Vector3(0, 0, 0), radius: this.fitRadius({ minX: -w / 2, maxX: w / 2, minZ: -d / 2, maxZ: d / 2 }, 0.95, this.rig.az, 1.1), el: 0.95 }), 1.6);
       }
       this.invalidate();
-    });
+    }, error => { console.warn('[architect-stage] plan failed', error); });
     this.loadPhotos(photos);
   }
 
   private loadPhotos(photos: Source[]): void {
     const textures = new THREE.TextureLoader();
     photos.forEach((p, index) => {
-      textures.load(this.url(p), tex => {
+      void this.trackAsset(textures.loadAsync(this.url(p))).then(tex => {
         if (this.disposed || this.photosOut) { tex.dispose(); return; }
         tex.colorSpace = THREE.SRGBColorSpace;
         const img = tex.image as { width: number; height: number };
         this.addPhoto(tex, img.width / img.height || 1.5, index);
-      });
+      }, error => { console.warn('[architect-stage] photo failed', error); });
     });
   }
 
@@ -557,6 +574,51 @@ class Stage implements ArchitectStage {
     }
   }
 
+  async hydrate(events: StageEvent[], phase: StagePhase): Promise<void> {
+    if (this.disposed) return;
+    if (this.hydrating) throw new Error('A checkpoint is already loading into this stage.');
+    this.hydrating = true;
+    const navigationEnabled = this.controls.enabled, visibility = this.root.style.visibility;
+    this.controls.enabled = false; this.keyboard.cancel(); this.handPan.cancel();
+    this.root.style.visibility = 'hidden';
+    clearTimeout(this.refitTimer);
+    const cancelled = new Promise<void>(resolve => { this.cancelHydration = resolve; });
+    try {
+      // start()/enter() may already have queued their sheet and camera entrances.
+      this.settleTweens();
+      for (const event of events) this.event(event);
+      // Assemblies and placements chain asynchronous work; take another snapshot if a
+      // replacement shell or event arrives while its model is still loading.
+      while (!this.disposed) {
+        const shellReady = this.shellReady, placing = this.placing;
+        await Promise.race([
+          Promise.allSettled([shellReady, placing, ...this.assets, ...this.openingAssets.pending, ...this.assemblies]),
+          cancelled,
+        ]);
+        if (this.disposed) return;
+        if (shellReady === this.shellReady && placing === this.placing && !this.assets.size && !this.openingAssets.pending.size && !this.assemblies.size) break;
+      }
+      // Store the finished presentation too, so the caller's usual finish() is idempotent.
+      if (phase === 'done') await Promise.race([this.finish(), cancelled]);
+      if (this.disposed) return;
+      clearTimeout(this.refitTimer);
+      if (this.frameFn && !this.manualCamera) await this.moveCamera(this.frameFn(), 0);
+      if (this.disposed) return;
+      this.phase = phase === 'done' ? PHASES.length : PHASES.indexOf(phase);
+      this.wantPhase = this.phase;
+      this.phaseAt = this.now;
+    } finally {
+      this.hydrating = false;
+      this.cancelHydration = undefined;
+      if (!this.disposed) {
+        this.controls.enabled = navigationEnabled && !this.pinned;
+        this.root.style.visibility = visibility;
+        this.invalidate();
+      }
+    }
+    if (!this.disposed) this.emitPhase(phase);
+  }
+
   progress(message: string): void {
     if (this.disposed || !message) return;
     const text = message.trim();
@@ -576,6 +638,7 @@ class Stage implements ArchitectStage {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
+    this.cancelHydration?.();
     cancelAnimationFrame(this.raf);
     this.motionQuery?.removeEventListener('change', this.onMotionChange);
     this.keyboard.dispose(); this.handPan.dispose(); this.controls.dispose();
@@ -645,7 +708,7 @@ class Stage implements ArchitectStage {
       t.fn(k);
       if (k >= 1) { this.tweens.splice(i, 1); t.resolve(); }
     }
-    if (this.wantPhase > this.phase && (this.reduced || this.now - this.phaseAt >= PHASE_HOLD)) this.setPhase(this.wantPhase);
+    if (!this.hydrating && this.wantPhase > this.phase && (this.reduced || this.now - this.phaseAt >= PHASE_HOLD)) this.setPhase(this.wantPhase);
     this.updateScan(dt);
     this.updateTrace(dt);
     this.keyboard.update(ms);
@@ -674,17 +737,21 @@ class Stage implements ArchitectStage {
       this.sheetUniforms.uReveal.value = 1;
       this.sheetUniforms.uBand.value = 0;
       this.rig.orbit = 0; this.rig.sway = 0;
-      // Settle in scheduling order: a later fade must win over an earlier entrance.
-      const pending = this.tweens.splice(0).sort((a, b) => a.start - b.start);
-      for (const tween of pending) { tween.fn(1); tween.resolve(); }
+      this.settleTweens();
     }
     this.invalidate();
   };
 
+  private settleTweens(): void {
+    // Settle in scheduling order: a later fade must win over an earlier entrance.
+    const pending = this.tweens.splice(0).sort((a, b) => a.start - b.start);
+    for (const tween of pending) { tween.fn(1); tween.resolve(); }
+  }
+
   /** Runs fn(k) for k in 0..1 over `dur` seconds (shortened under reduced motion). */
   private tween(dur: number, fn: (k: number) => void, delay = 0, shell?: number): Promise<void> {
     if (this.disposed) return Promise.resolve();
-    if (this.reduced) { fn(1); this.invalidate(); return Promise.resolve(); }
+    if (this.reduced || this.hydrating) { fn(1); this.invalidate(); return Promise.resolve(); }
     return new Promise(resolve => { this.tweens.push({ start: this.now + delay, dur, fn, resolve, shell }); this.invalidate(); });
   }
   private shellTween(dur: number, fn: (k: number) => void, delay = 0): Promise<void> { return this.tween(dur, fn, delay, this.shellRevision); }
@@ -1277,7 +1344,7 @@ class Stage implements ArchitectStage {
   private onPiece(pieceId: string, asset: StageAsset): void {
     const slot = this.slots.get(pieceId) ?? this.addSlot(pieceId, [asset.dimensions[0], asset.dimensions[2]], 1, asset.name);
     slot.name = asset.name || slot.name;
-    const loading = this.loadModel(asset);
+    const loading = this.trackAsset(this.loadModel(asset));
     const run = this.limited(() => this.assemble(slot, asset, loading));
     this.assemblies.add(run);
     void run.finally(() => this.assemblies.delete(run));
@@ -1570,6 +1637,7 @@ class Stage implements ArchitectStage {
   private emitPhase(phase: StagePhase): void {
     if (phase === 'done') { this.phase = PHASES.length; this.wantPhase = PHASES.length; }
     this.currentPhase = phase;
+    if (this.hydrating) return;
     for (const cb of this.phaseListeners) { try { cb(phase); } catch (err) { console.error('[architect-stage] onPhase', err); } }
   }
 
@@ -1580,6 +1648,12 @@ class Stage implements ArchitectStage {
   }
 
   // ---------- helpers ----------
+
+  private trackAsset<T>(loading: Promise<T>): Promise<T> {
+    this.assets.add(loading);
+    void loading.then(() => this.assets.delete(loading), () => this.assets.delete(loading));
+    return loading;
+  }
 
   private label(className: string, html: string): CSS2DObject {
     const el = document.createElement('div');
@@ -1695,6 +1769,7 @@ export function createArchitectStage(host: HTMLElement, options: ArchitectStageO
   return {
     onPhase: cb => stage.onPhase(cb),
     start: (plan, photos) => stage.start(plan, photos),
+    hydrate: (events, phase) => stage.hydrate(events, phase),
     planRect: () => stage.planRect(),
     enter: () => stage.enter(),
     settle: (view, duration) => stage.settle(view, duration),

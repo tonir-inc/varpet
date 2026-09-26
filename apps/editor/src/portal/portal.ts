@@ -3,8 +3,9 @@ import { getTemplate, mountPlanPreview, type ApartmentTemplate } from './templat
 import { showAuth } from './auth';
 import { icon } from '../ui/icons';
 import './portal.css';
-import { mountBlueprintLanding } from './blueprint';
+import { mountBlueprintLanding, type BlueprintLandingOptions } from './blueprint';
 import { setEditorSession } from './session';
+import { saveBlueprintCheckpoint, clearBlueprintCheckpoint } from './blueprint-checkpoint';
 import { mountThemeToggle } from '../ui/theme';
 
 type PortalView = 'explore' | 'apartments';
@@ -109,17 +110,39 @@ export async function mountPortal(host: HTMLElement, view: PortalView): Promise<
   }
 
   function renderExplore(): void {
-    disposers.push(mountBlueprintLanding(main, {
+    const options: BlueprintLandingOptions = {
       showSample: showPlan,
-      async openProject(scene, catalog) {
-        setEditorSession({ scene, catalog, user: currentUser, apartment: null, templateId: null });
+      async openProject(scene, catalog, presentation) {
+        // Keep the reviewed result before loading the editor's module graph. A failed
+        // import can remain cached until reload, and reload must not lose the build.
+        let checkpoint: string | undefined;
+        try { checkpoint = await saveBlueprintCheckpoint(scene, catalog); }
+        catch { /* Storage restrictions must not block a healthy in-place opening. */ }
+        if (checkpoint) history.replaceState(null, '', `/?blueprint=${encodeURIComponent(checkpoint)}`);
+        setEditorSession({ scene, catalog, user: currentUser, apartment: null, templateId: null, presentation });
         // Opening the reviewed reconstruction is the person's explicit acceptance.
-        await import('../main');
+        try { await import('../main'); }
+        catch (cause) {
+          if (!checkpoint) throw new Error('Could not load the editor, and browser storage is unavailable. Keep this page open, free some browser storage, then try again.', {cause});
+          throw cause;
+        }
         dispose();
         host.classList.remove('portal-host');
         history.replaceState(null, '', '/?editor');
+        if (checkpoint) void clearBlueprintCheckpoint(checkpoint).catch(() => {});
       },
-    }));
+    };
+    if (import.meta.env.DEV) {
+      void import('./blueprint-test-tools').then(({mountBlueprintTestTools}) => {
+        if (!disposed) disposers.push(mountBlueprintTestTools(main, options));
+      }).catch(() => {
+        if (disposed) return;
+        if (new URLSearchParams(location.search).has('blueprintTest')) {
+          main.setAttribute('role', 'alert');
+          main.textContent = 'Blueprint test tools could not load. Reload this page to retry, or return to the home page for a live upload.';
+        } else disposers.push(mountBlueprintLanding(main, options));
+      });
+    } else disposers.push(mountBlueprintLanding(main, options));
   }
 
   function profileHeading(): string {

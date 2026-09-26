@@ -2,13 +2,26 @@ import './ui/style.css';
 import './portal/portal.css';
 import { api, AccountError } from './portal/api';
 import { createTemplateScene } from './portal/templates';
-import { restoreApartment, restoreApartmentSharing, setEditorSession } from './portal/session';
+import { BLUEPRINT_PAPER, restoreApartment, restoreApartmentSharing, setEditorSession } from './portal/session';
 import { showAuth } from './portal/auth';
+import { readBlueprintCheckpoint, clearBlueprintCheckpoint } from './portal/blueprint-checkpoint';
 
 const host = document.querySelector<HTMLElement>('#app')!;
 const route = new URLSearchParams(location.search);
 
 async function start() {
+  const checkpoint = route.get('blueprint');
+  if (checkpoint) {
+    host.innerHTML = '<main class="portal-loading" role="status">Opening your completed apartment…</main>';
+    const restored = await readBlueprintCheckpoint(checkpoint);
+    if (!restored) throw new Error('This completed apartment is no longer stored in this browser. Open a saved project or start with your plan.');
+    // A completed build keeps standing on its blueprint after a reload.
+    setEditorSession({...restored, user: null, apartment: null, templateId: null, presentation: {paper: BLUEPRINT_PAPER}});
+    await import('./main');
+    history.replaceState(null, '', '/?editor');
+    void clearBlueprintCheckpoint(checkpoint).catch(() => {});
+    return;
+  }
   const templateId = route.get('template');
   const apartmentId = route.get('apartment');
   if (!templateId && !apartmentId && !route.has('editor')) {

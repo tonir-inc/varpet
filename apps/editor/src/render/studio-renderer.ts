@@ -106,7 +106,7 @@ export class StudioRenderer {
     this.occlusion.updatePdMaterial({ radius: 5, lumaPhi: 8, depthPhi: 3, normalPhi: 4 });
     this.grade = new ShaderPass({
       name: 'StudioGrade',
-      uniforms: { tDiffuse: { value: null }, strength: { value: 1 }, whiteBalance: { value: new THREE.Vector3(1, 1, 1) } },
+      uniforms: { tDiffuse: { value: null }, strength: { value: 1 }, vignette: { value: 0.13 }, whiteBalance: { value: new THREE.Vector3(1, 1, 1) } },
       vertexShader: `
         varying vec2 vUv;
         void main() {
@@ -117,6 +117,7 @@ export class StudioRenderer {
       fragmentShader: `
         uniform sampler2D tDiffuse;
         uniform float strength;
+        uniform float vignette;
         uniform vec3 whiteBalance;
         varying vec2 vUv;
         void main() {
@@ -127,8 +128,8 @@ export class StudioRenderer {
           // real finish colors and selection feedback remain recognizable.
           vec3 balance = mix(vec3(0.98, 1.005, 1.025), vec3(1.015, 1.0, 0.98), smoothstep(0.04, 0.8, luminance));
           vec2 centered = (vUv - 0.5) * 1.41421356;
-          float vignette = 1.0 - 0.13 * smoothstep(0.18, 0.9, dot(centered, centered));
-          gl_FragColor = vec4(mix(color, color * balance * vignette, strength), source.a);
+          float edge = 1.0 - vignette * smoothstep(0.18, 0.9, dot(centered, centered));
+          gl_FragColor = vec4(mix(color, color * balance * edge, strength), source.a);
         }
       `,
     });
@@ -178,6 +179,11 @@ export class StudioRenderer {
   setInterior(inside: boolean): void {
     this.interior = inside;
     this.occlusion.blendIntensity = inside ? 0.65 : 0.82;
+  }
+
+  /** Edge darkening as a fraction of the studio default; blueprint paper stays flat to meet the page behind it. */
+  setVignette(amount: number): void {
+    this.grade.uniforms.vignette!.value = 0.13 * amount;
   }
 
   /** Per-channel gains in linear light, like a camera's white balance; (1, 1, 1) is neutral. */

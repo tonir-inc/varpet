@@ -6,6 +6,15 @@ import { parseScene } from '../core/persistence';
 import { isRecord } from '../core/validation';
 import type { Apartment, ApartmentPayload, User } from './api';
 
+/** Blueprint paper: the landing sheet, the construction ground and the editor's ground for a built plan. */
+export const BLUEPRINT_PAPER = '#155f6d';
+/** How the editor first appears: on blueprint paper, from the construction view's camera, tools arriving. */
+export interface EditorPresentation {
+  paper: string;
+  camera?: { position: [number, number, number]; target: [number, number, number]; fov: number };
+  /** Start with the tools away and the canvas look-only; `editorView.arrive()` brings them in. */
+  arriving?: boolean;
+}
 export interface EditorSession {
   scene: SceneDocument;
   catalog: CatalogProduct[];
@@ -14,6 +23,7 @@ export interface EditorSession {
   templateId: string | null;
   sharingSession?: SharingSession | null;
   sharingError?: string;
+  presentation?: EditorPresentation;
 }
 export let editorSession: EditorSession | null = null;
 export function setEditorSession(session: EditorSession) { editorSession = session; }
