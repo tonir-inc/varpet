@@ -6,8 +6,10 @@ Applies to `apps/editor/**`. Follow the root `AGENTS.md` and `../../docs/CONSTIT
 
 The user authorized coordinated edits to the same editor file on 2026-09-26. Within `apps/editor/**`, this overrides the root rule “Two agents never write the same file” and any inherited requirement for exclusive file ownership, including completion checks.
 
+- All agents, including subagents, making editor changes must work directly on `main` in the shared primary checkout at `/Users/davitstepanyan/Documents/varpet`. Do not create or switch to another branch or use a separate worktree for editor work unless the user explicitly requests it for the current task. This overrides the root parallel-worktree rule.
+- Before editor work, verify the checkout is on `main`, inspect local changes, fetch `origin`, and review the latest remote commits. Coordinate synchronization with other active agents: do not stash, reset, rebase, or switch the shared checkout over another agent's unfinished work. If that work prevents updating from `origin/main`, preserve it and defer the update until synchronization is safe. This overrides the root requirement to rebase before every task when the shared checkout is in use.
 - Multiple agents may contribute to the same file, including sequential handoffs and separate changes in a shared file. Assign responsibility for the change or region instead of requiring a single lifetime owner of the file.
-- Before applying a patch, reread the current affected code and preserve other agents' work. Coordinate overlapping edits and apply changes to the same region in sequence; use an isolated worktree when that makes integration easier.
+- Before applying a patch, reread the current affected code and preserve other agents' work. Coordinate overlapping edits and apply changes to the same region in sequence in the shared `main` checkout.
 - Keep patches focused, reconcile changes against the latest version, and verify the combined behavior. Do not overwrite an entire shared file with a stale copy or discard unrelated edits.
 - An active chat or a previous contributor to a file is not by itself a reason to leave an authorized change unapplied or withhold review approval. Resolve actual conflicts and report any remaining technical issue precisely.
 
