@@ -1,0 +1,75 @@
+{
+  "runs": [
+    {
+      "request": "furnish the bedroom",
+      "seconds": 19.07560000002384,
+      "lines": [
+        {
+          "type": "progress",
+          "message": "Starting the designer"
+        },
+        {
+          "type": "progress",
+          "message": "Reading the room layout"
+        },
+        {
+          "type": "progress",
+          "message": "Designer is checking the furniture layout"
+        },
+        {
+          "type": "progress",
+          "message": "Designer is still working"
+        },
+        {
+          "type": "progress",
+          "message": "Designer is still working"
+        },
+        {
+          "type": "progress",
+          "message": "Designer is still working"
+        },
+        {
+          "type": "decline",
+          "conversationId": "7fc2538efef44b77aef323a5d141c6e8",
+          "message": "I’ve planned a modest starter set: a bed plus a storage cabinet. The catalog is currently unavailable, so I can’t provide verified products, exact prices or a checked layout preview yet.\n\nYour budget remains unconfirmed. Solar orientation and door-swing clearance are also unverified. Nothing has been changed."
+        }
+      ]
+    },
+    {
+      "request": "make the living room a place to read",
+      "seconds": 20.349900000035763,
+      "lines": [
+        {
+          "type": "progress",
+          "message": "Starting the designer"
+        },
+        {
+          "type": "progress",
+          "message": "Reading the room layout"
+        },
+        {
+          "type": "progress",
+          "message": "Designer is checking the furniture layout"
+        },
+        {
+          "type": "progress",
+          "message": "Designer is still working"
+        },
+        {
+          "type": "progress",
+          "message": "Designer is still working"
+        },
+        {
+          "type": "progress",
+          "message": "Designer is still working"
+        },
+        {
+          "type": "decline",
+          "conversationId": "9990d7da11434a8ea6332faa55a85e7f",
+          "message": "I’d start with a comfortable reading chair beside a window and a bookcase against a solid wall, keeping the centre open.\n\nThe catalog is unavailable, so I can’t provide sized products, exact costs or a checked preview yet. Your budget remains unconfirmed; solar orientation and door-sweep clearance are also unverified. Nothing has been changed."
+        }
+      ]
+    }
+  ],
+  "done": true
+}

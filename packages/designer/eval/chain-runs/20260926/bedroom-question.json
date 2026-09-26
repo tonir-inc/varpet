@@ -1,0 +1,59 @@
+{
+  "seconds": 40.99,
+  "lines": [
+    {
+      "type": "progress",
+      "message": "Starting the designer"
+    },
+    {
+      "type": "progress",
+      "message": "Reading the room layout"
+    },
+    {
+      "type": "progress",
+      "message": "Designer is checking the furniture layout"
+    },
+    {
+      "type": "progress",
+      "message": "Designer is still working"
+    },
+    {
+      "type": "progress",
+      "message": "Designer is still working"
+    },
+    {
+      "type": "progress",
+      "message": "Designer is still working"
+    },
+    {
+      "type": "progress",
+      "message": "Designer is still working"
+    },
+    {
+      "type": "progress",
+      "message": "Designer is still working"
+    },
+    {
+      "type": "progress",
+      "message": "Designer is still working"
+    },
+    {
+      "type": "progress",
+      "message": "Designer is still working"
+    },
+    {
+      "type": "progress",
+      "message": "Designer is still working"
+    },
+    {
+      "type": "question",
+      "conversationId": "8a42d6d872214909935395eccdfd32c0",
+      "question": "What bedroom setup and maximum furniture budget in dram would you like?",
+      "options": [
+        "Double bed, wardrobe and two bedside tables",
+        "Single bed, wardrobe and desk",
+        "Double bed and wardrobe only"
+      ]
+    }
+  ]
+}

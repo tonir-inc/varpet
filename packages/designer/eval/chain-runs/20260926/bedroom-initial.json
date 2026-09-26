@@ -1,0 +1,4 @@
+{
+  "seconds": 0.4117000000476837,
+  "http": "{\"type\": \"progress\", \"message\": \"Starting the designer\"}\n{\"type\": \"progress\", \"message\": \"Reading the room layout\"}\n{\"type\": \"error\", \"message\": \"Wall w1 is not entirely a room boundary; interior obstacles require an explicit supported representation\"}\n"
+}

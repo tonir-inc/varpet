@@ -1,0 +1,22 @@
+{
+  "thread": "rollout-2026-09-26T15-07-15-01a0dd65-dd66-7173-b117-d962cb5c7017",
+  "usage": {
+    "total_token_usage": {
+      "input_tokens": 404755,
+      "cached_input_tokens": 369536,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 3537,
+      "reasoning_output_tokens": 385,
+      "total_tokens": 408292
+    },
+    "last_token_usage": {
+      "input_tokens": 40116,
+      "cached_input_tokens": 38912,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 4,
+      "reasoning_output_tokens": 0,
+      "total_tokens": 40120
+    },
+    "model_context_window": 258400
+  }
+}
