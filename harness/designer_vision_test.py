@@ -9,6 +9,7 @@ from unittest.mock import Mock, patch
 from pathlib import Path
 import unittest
 import designer
+import designer_typed_tools
 from designer_service import DesignerService
 
 
@@ -38,7 +39,7 @@ class VisionTests(unittest.TestCase):
             image = root / 'plan.png'; image.write_bytes(b'\x89PNG\r\n\x1a\n')
             state = root / 'thread.json'; job = root / 'job.json'
             runtime = {'scene': str(scene), 'state': str(state), 'workspace': directory, 'home': directory}
-            with patch.dict(sys.modules, {'openai_codex': sdk, 'openai_codex.generated.v2_all': generated}), patch.object(designer, '_forward_sdk_stderr'), patch.object(designer, '_isolate_skills'), contextlib.redirect_stdout(io.StringIO()):
+            with patch.dict(sys.modules, {'openai_codex': sdk, 'openai_codex.generated.v2_all': generated}), patch.object(designer, '_forward_sdk_stderr'), patch.object(designer, '_isolate_skills'), patch.object(designer_typed_tools, 'discover_models', return_value={'models': [{'slug': designer.MODEL}]}), contextlib.redirect_stdout(io.StringIO()):
                 job.write_text(json.dumps({'runtime': runtime, 'request': 'Match colours'}))
                 self.assertEqual(designer.sdk_worker(job), 0)
                 original = thread.turn.call_args.args[0]

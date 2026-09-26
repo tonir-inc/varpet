@@ -30,6 +30,21 @@ class TypedToolsTest(unittest.TestCase):
             self.assertEqual(row['context_window'],272000)
             self.assertEqual(audit['original_tool_mode'],'code_mode_only')
 
+    def test_discovery_runs_only_without_prepared_catalog_and_still_requires_the_model(self):
+        calls=[]
+        def discover():
+            calls.append(1);return {'models':[{'slug':designer.MODEL,'tool_mode':'code_mode'}]}
+        with tempfile.TemporaryDirectory() as tmp:
+            path,audit=subject.direct_catalog({'home':tmp},designer.MODEL,discover=discover)
+            self.assertEqual(len(calls),1)
+            self.assertEqual(json.loads(Path(path).read_text())['models'][0]['tool_mode'],'direct')
+            self.assertEqual(audit['original_tool_mode'],'code_mode')
+            source=Path(tmp)/'models.json';source.write_text(json.dumps({'models':[{'slug':designer.MODEL}]}))
+            subject.direct_catalog({'home':tmp,'model_catalog':str(source)},designer.MODEL,discover=discover)
+            self.assertEqual(len(calls),1)
+            with self.assertRaises(ValueError):
+                subject.direct_catalog({'home':tmp},designer.MODEL,discover=lambda:{'models':[{'slug':'other'}]})
+
     def test_terminal_receipt_requires_durable_checked_unapplied_proposal(self):
         with tempfile.TemporaryDirectory() as tmp:
             event={'method':'item/completed','payload':{'item':{'type':'mcpToolCall','server':'varpet-designer','tool':'propose','status':'completed','result':{'content':[{'type':'text','text':json.dumps({'ok':True,'proposal_id':'proposal-1'})}]}}}}

@@ -15,12 +15,16 @@ def configure(config):
 def instructions():
     return (Path(__file__).parent/'prompts/designer-typed-tools.md').read_text()
 
-def direct_catalog(runtime,model):
+def discover_models():
+    """Live metadata from the Codex CLI when no prepared catalog exists. The one seam tests stub."""
+    return json.loads(subprocess.check_output(['codex','debug','models'],text=True,timeout=20))
+
+def direct_catalog(runtime,model,discover=None):
     """Model metadata takes precedence over feature flags. Override only this private runtime copy."""
     if runtime.get('model_catalog'):
         catalog=json.loads(Path(runtime['model_catalog']).read_text())
     else:
-        catalog=json.loads(subprocess.check_output(['codex','debug','models'],text=True,timeout=20))
+        catalog=(discover or discover_models)()
     models=catalog.get('models',[]) if isinstance(catalog,dict) else catalog
     selected=next((m for m in models if m.get('slug')==model),None)
     if selected is None:
