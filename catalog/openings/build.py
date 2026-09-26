@@ -1,4 +1,4 @@
-"""Five doors and five windows as part programs, compiled to GLB by the draft part compiler.
+"""Five doors and seven windows as part programs, compiled to GLB by the draft part compiler.
 
     cd compiler && uv run python ../catalog/openings/build.py
 
@@ -459,8 +459,36 @@ def window_bath_hopper():
     return m
 
 
+def _pvc_single(name, W, H, about):
+    T = 0.2
+    m = Model(name, "window", "tilt", (W, H), T, about)
+    m.mat("pvc", {"finish": "white-laminate", "color": "#f4f4f1", "roughness": 0.35})
+    m.mat("glass", GLASS)
+    m.mat("gasket", GASKET)
+    m.mat("sill", {"finish": "white-laminate", "color": "#f0eee9"})
+    m.mat("drip", {"finish": "brushed-steel", "color": "#b5b8bb"})
+    fw, fd, fy = 0.065, 0.07, 0.03
+    outer_frame(m, W, H, fw, fd, fy, "pvc")
+    window_sills(m, W, T, fy - fd / 2, fy + fd / 2, "sill", "drip")
+    y_room = fy - fd / 2 - 0.012
+    x0, x1 = -W / 2 + fw - 0.008, W / 2 - fw + 0.008
+    sash(m, "sash", x0, x1, fw - 0.008, H - fw + 0.008, y_room, 0.076, 0.065, "pvc", "glass", "gasket")
+    pvc_handle(m, "sash", x1 - 0.0325, H / 2, y_room, "pvc")
+    m.pivot("sash", (x0, y_room, 0), "turn: rotate about +Y 0..90deg into the room (+Z); tilt: top edge 0..10deg into the room about the bottom rail")
+    return m
+
+
+def window_pvc_tall():
+    return _pvc_single("window-pvc-tall", 0.8, 1.9, "Tall narrow white PVC window, one tilt-and-turn sash, laminate sill board, steel weather sill.")
+
+
+def window_pvc_single():
+    return _pvc_single("window-pvc-single", 0.8, 1.4, "Narrow white PVC window, one tilt-and-turn sash, laminate sill board, steel weather sill.")
+
+
 MODELS = [door_flush_white, door_shaker_sage, door_oak_glazed, door_entrance_armored, door_steel_french,
-          window_pvc_tilt_turn, window_alu_transom, window_panoramic_slider, window_oak_box, window_bath_hopper]
+          window_pvc_tilt_turn, window_alu_transom, window_panoramic_slider, window_oak_box, window_bath_hopper,
+          window_pvc_tall, window_pvc_single]
 
 
 def program(m: Model) -> dict:

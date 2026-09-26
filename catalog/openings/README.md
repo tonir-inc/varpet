@@ -1,6 +1,6 @@
 # Doors and windows
 
-Ten GLBs for the editor's openings, built by `build.py` with the draft part compiler and the material library.
+Twelve GLBs for the editor's openings, built by `build.py` with the draft part compiler and the material library.
 `manifest.json` has every number below; the same data sits in each GLB's root node (`extras.varpet.opening`).
 
 | file | opening w x h (m) | wall (m) | mechanism | moving parts |
@@ -15,6 +15,8 @@ Ten GLBs for the editor's openings, built by `build.py` with the draft part comp
 | `window-panoramic-slider.glb` | 2.40 x 1.45 | 0.20 | sliding | `sash-b*` |
 | `window-oak-box.glb` | 1.70 x 1.45 | 0.20 | fixed | none |
 | `window-bath-hopper.glb` | 1.00 x 0.80 | 0.16 | tilt | `sash*` |
+| `window-pvc-tall.glb` | 0.80 x 1.90 | 0.20 | tilt | `sash*` |
+| `window-pvc-single.glb` | 0.80 x 1.40 | 0.20 | tilt | `sash*` |
 
 ## Placing one
 - Origin: bottom centre of the wall hole, on the wall's middle plane. Y up, X along the wall, +Z the room side.

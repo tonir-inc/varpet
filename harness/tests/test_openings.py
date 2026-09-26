@@ -55,3 +55,13 @@ def test_to_editor_keeps_an_explicit_assetid():
 
 def by_wall(out: dict) -> dict:
     return {w["id"]: w for w in out["walls"]}
+
+
+def test_only_one_armored_door_and_it_opens_from_the_hall():
+    s = flat()
+    s.rooms[1].name = "Entrance hall"
+    s.walls[2].openings[0].width = 1.0  # the living room's outside door is now the widest
+    s.walls[1].openings.append(s.walls[2].openings[0].model_copy(update={"id": "hall-door", "offset": 3.0, "width": 0.9}))
+    out = by_wall(to_editor(s))
+    armored = [o["id"] for w in out.values() for o in w["openings"] if o.get("assetId", "").endswith("armored")]
+    assert armored == ["hall-door"]

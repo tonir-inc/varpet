@@ -14,6 +14,7 @@ from __future__ import annotations
 import itertools
 import math
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Literal
@@ -422,10 +423,11 @@ def to_editor(shell: Shell) -> dict:
     An opening with no assetId gets one from the catalog when a model fits (openings.py); the
     editor renders that GLB instead of the procedural opening."""
     polys = {r.id: Polygon(r.polygon) for r in shell.rooms}
+    entrance = _entrance(shell, polys)
     walls = []
     for w in shell.walls:
         wd = w.model_dump()
-        wd["openings"] = [_opening_dict(w, o, polys) for o in w.openings]
+        wd["openings"] = [_opening_dict(o, o.id == entrance) for o in w.openings]
         walls.append(wd)
     out = {"rooms": [r.model_dump() for r in shell.rooms], "walls": walls, "notes": shell.notes}
     if shell.components:
@@ -433,24 +435,39 @@ def to_editor(shell: Shell) -> dict:
     return out
 
 
-def _opening_dict(w: Wall, o: Opening, polys: dict[str, Polygon]) -> dict:
+def _opening_dict(o: Opening, entrance: bool) -> dict:
     od = o.model_dump(exclude_none=True)
     if o.assetId is None:
-        model = choose_model(o.kind, o.width, o.height, exterior=_exterior(w, o, polys))
+        model = choose_model(o.kind, o.width, o.height, exterior=entrance)
         if model:
             od["assetId"] = model
     return od
 
 
-def _exterior(w: Wall, o: Opening, polys: dict[str, Polygon]) -> bool:
-    """True when the opening's wall has a room on only one side, sampled 0.3 m out from the
-    opening's midpoint along the wall's normal."""
+def _sides(w: Wall, o: Opening, polys: dict[str, Polygon]) -> list[str | None]:
+    """The room just past each face of the wall at the opening's midpoint, or None."""
     mid = _door_segment(w, o).interpolate(0.5, normalized=True)
-    length = _len(w)
+    length, reach = _len(w), w.thickness / 2 + 0.25
     nx, nz = -(w.end[1] - w.start[1]) / length, (w.end[0] - w.start[0]) / length
-    sides = [any(p.contains(Point(mid.x + sign * nx * 0.3, mid.y + sign * nz * 0.3)) for p in polys.values())
-             for sign in (1, -1)]
-    return sides[0] != sides[1]
+    return [next((rid for rid, p in polys.items() if p.contains(Point(mid.x + sign * nx * reach, mid.y + sign * nz * reach))), None)
+            for sign in (1, -1)]
+
+
+HALL = re.compile(r"entr|hall|corridor|foyer|lobby", re.I)
+
+
+def _entrance(shell: Shell, polys: dict[str, Polygon]) -> str | None:
+    """The flat's front door: a door with a room on one side only, from a hall-like room first, then
+    the widest. One per flat; balcony doors have the balcony room behind them and never qualify."""
+    names = {r.id: r.name for r in shell.rooms}
+    doors = []
+    for w in shell.walls:
+        for o in w.openings:
+            sides = _sides(w, o, polys) if o.kind == "door" else []
+            inside = [r for r in sides if r]
+            if len(inside) == 1:
+                doors.append((not HALL.search(names[inside[0]]), -o.width, o.id))
+    return min(doors)[2] if doors else None
 
 
 def _crossing(a: Wall, b: Wall) -> tuple[float, float, float, float] | None:
