@@ -180,7 +180,7 @@ function drawRoomFills(scene: Scene, draft: Draft, x: Xform): string {
     const pts = room.polygon.map(x.toPx);
     const floor = (draft.finishes ?? []).find(f => f.room_id === room.id && f.surface === 'floor');
     parts.push(`<polygon points="${polyPoints(pts)}" fill="#fbfbf9" stroke="none"/>`);
-    if (floor) parts.push(`<polygon points="${polyPoints(pts)}" fill="${finishColor(floor)}" opacity="0.45" stroke="none"/>`);
+    if (floor) parts.push(`<polygon points="${polyPoints(pts)}" fill="${finishColor(floor)}" fill-opacity="0.45" stroke="none"/>`);
   }
   return parts.join('\n');
 }
@@ -209,7 +209,7 @@ function drawLights(draft: Draft, x: Xform, roomId?: string): string {
   for (const l of (draft.lighting ?? []).filter((l): l is FixtureLight => l.type === 'fixture' && (!roomId || l.room_id === roomId))) {
     if (!Array.isArray(l.pos)) continue;
     const [cx, cy] = x.toPx(l.pos), r = Math.max(7, 0.14 * x.pxPerM);
-    parts.push(`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}" fill="#ffd66b" stroke="#8a6a12" stroke-width="1.5" opacity="0.95"/>`);
+    parts.push(`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}" fill="#ffd66b" fill-opacity="0.95" stroke="#8a6a12" stroke-width="1.5"/>`);
     parts.push(`<line x1="${(cx - r * 0.7).toFixed(1)}" y1="${(cy - r * 0.7).toFixed(1)}" x2="${(cx + r * 0.7).toFixed(1)}" y2="${(cy + r * 0.7).toFixed(1)}" stroke="#8a6a12" stroke-width="1.2"/>`);
     parts.push(`<line x1="${(cx - r * 0.7).toFixed(1)}" y1="${(cy + r * 0.7).toFixed(1)}" x2="${(cx + r * 0.7).toFixed(1)}" y2="${(cy - r * 0.7).toFixed(1)}" stroke="#8a6a12" stroke-width="1.2"/>`);
     parts.push(`<text x="${cx.toFixed(1)}" y="${(cy - r - 3).toFixed(1)}" font-size="9.5" fill="#6b4f0a" stroke="#ffffff" stroke-width="2" paint-order="stroke" text-anchor="middle">${esc(l.id.slice(0, 14))}</text>`);
@@ -274,7 +274,7 @@ function drawItem(item: Item, x: Xform): string {
   const pxCorners = worldCorners.map(x.toPx);
   const color = KIND_COLORS[item.kind] ?? DEFAULT_ITEM_COLOR;
   const parts: string[] = [];
-  parts.push(`<polygon points="${polyPoints(pxCorners)}" fill="${color}" stroke="#33363a" stroke-width="1.2" opacity="0.92"/>`);
+  parts.push(`<polygon points="${polyPoints(pxCorners)}" fill="${color}" fill-opacity="0.92" stroke="#33363a" stroke-width="1.2"/>`);
 
   // front arrow: local front is (0,-1); draw from just inside center to just past the front edge.
   const arrowLen = Math.max(d / 2 + Math.min(0.3, d / 4), 0.15);
@@ -314,6 +314,21 @@ function drawRestingItem(item: DraftItem, x: Xform): string {
   const [cx, cy] = x.toPx(item.pos), r = Math.max(4, Math.min(item.size[0], item.size[1]) / 2 * x.pxPerM);
   return `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}" fill="#e07b39" stroke="#5a2e10" stroke-width="1.2"/>
 <text x="${(cx + r + 2).toFixed(1)}" y="${(cy - r).toFixed(1)}" font-size="9.5" fill="#5a2e10" stroke="#ffffff" stroke-width="2" paint-order="stroke" text-anchor="start">${esc(item.id.slice(0, 14))}</text>`;
+}
+
+/** resvg aborts the whole process (a Rust panic, not a catchable error) on some geometry: a group opacity layer whose
+ * content lies entirely off the canvas (every other room's floor in a --room plan), NaN coordinates, arcs of zero radius.
+ * Opacity is written per fill/stroke above; this drops any element that still carries a non-finite number, a polygon
+ * with fewer than three distinct points, or a zero-radius arc. */
+function robustSvg(svg: string): string {
+  return svg.split('\n').filter(line => {
+    if (/NaN|Infinity/.test(line)) return false;
+    const points = /<polygon points="([^"]*)"/.exec(line);
+    if (points && new Set(points[1]!.trim().split(/\s+/)).size < 3) return false;
+    const arc = /A (\S+) (\S+) /.exec(line);
+    if (arc && (Number(arc[1]) <= 0 || Number(arc[2]) <= 0)) return false;
+    return true;
+  }).join('\n');
 }
 
 export async function renderPlan(
@@ -357,7 +372,7 @@ ${drawRoomLabels(scene, xform)}
 ${legend}
 </svg>`;
 
-  const resvg = new Resvg(svg, { fitTo: { mode: 'width', value: Math.round(xform.width) } });
+  const resvg = new Resvg(robustSvg(svg), { fitTo: { mode: 'width', value: Math.round(xform.width) } });
   const png = resvg.render().asPng();
   await writeFile(outPng, png);
   return outPng;
