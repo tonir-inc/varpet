@@ -1,0 +1,307 @@
+[
+ {
+  "file": "door-flush-white.glb",
+  "kind": "door",
+  "mechanism": "hinged",
+  "about": "Flush interior door, matte white paint, brushed steel lever and hinges.",
+  "opening_m": {
+   "width": 0.9,
+   "height": 2.1
+  },
+  "wall_m": 0.12,
+  "size_m": {
+   "width": 0.99,
+   "height": 2.145,
+   "depth": 0.198
+  },
+  "moving": {
+   "leaf": {
+    "point_m": [
+     -0.42,
+     0,
+     0.06
+    ],
+    "motion": "rotate about +Y, 0..90deg, swings to the room side (+Z)"
+   }
+  },
+  "parts": 24,
+  "triangles": 1876,
+  "bytes": 190940
+ },
+ {
+  "file": "door-shaker-sage.glb",
+  "kind": "door",
+  "mechanism": "hinged",
+  "about": "Two-panel shaker door painted sage, colour-drenched frame, matte black hardware.",
+  "opening_m": {
+   "width": 0.8,
+   "height": 2.05
+  },
+  "wall_m": 0.12,
+  "size_m": {
+   "width": 0.89,
+   "height": 2.095,
+   "depth": 0.198
+  },
+  "moving": {
+   "leaf": {
+    "point_m": [
+     -0.37,
+     0,
+     0.06
+    ],
+    "motion": "rotate about +Y, 0..90deg, swings to the room side (+Z)"
+   }
+  },
+  "parts": 32,
+  "triangles": 1804,
+  "bytes": 181680
+ },
+ {
+  "file": "door-oak-glazed.glb",
+  "kind": "door",
+  "mechanism": "hinged",
+  "about": "Solid oak door with three satin glass lites, oak frame, black lever.",
+  "opening_m": {
+   "width": 0.9,
+   "height": 2.1
+  },
+  "wall_m": 0.12,
+  "size_m": {
+   "width": 0.99,
+   "height": 2.145,
+   "depth": 0.198
+  },
+  "moving": {
+   "leaf": {
+    "point_m": [
+     -0.42,
+     0,
+     0.06
+    ],
+    "motion": "rotate about +Y, 0..90deg, swings to the room side (+Z)"
+   }
+  },
+  "parts": 52,
+  "triangles": 2044,
+  "bytes": 292748
+ },
+ {
+  "file": "door-entrance-armored.glb",
+  "kind": "door",
+  "mechanism": "hinged",
+  "about": "Steel entrance door: charcoal steel outside, walnut slatted panel inside, two locks, peephole.",
+  "opening_m": {
+   "width": 0.96,
+   "height": 2.1
+  },
+  "wall_m": 0.2,
+  "size_m": {
+   "width": 1.098,
+   "height": 2.169,
+   "depth": 0.271
+  },
+  "moving": {
+   "leaf": {
+    "point_m": [
+     -0.42,
+     0,
+     -0.095
+    ],
+    "motion": "rotate about +Y, 0..90deg, swings out to the landing (-Z)"
+   }
+  },
+  "parts": 42,
+  "triangles": 2344,
+  "bytes": 368920
+ },
+ {
+  "file": "door-steel-french.glb",
+  "kind": "door",
+  "mechanism": "double",
+  "about": "Black steel French doors with a divided-lite grid and brass levers, for a balcony or a kitchen.",
+  "opening_m": {
+   "width": 1.2,
+   "height": 2.15
+  },
+  "wall_m": 0.16,
+  "size_m": {
+   "width": 1.2,
+   "height": 2.15,
+   "depth": 0.165
+  },
+  "moving": {
+   "leaf-l": {
+    "point_m": [
+     -0.555,
+     0,
+     0.0225
+    ],
+    "motion": "rotate about +Y, 0..90deg, swings to the room side (+Z)"
+   },
+   "leaf-r": {
+    "point_m": [
+     0.555,
+     0,
+     0.0225
+    ],
+    "motion": "rotate about +Y, 0..90deg, swings to the room side (+Z)"
+   }
+  },
+  "parts": 40,
+  "triangles": 3152,
+  "bytes": 284248
+ },
+ {
+  "file": "window-pvc-tilt-turn.glb",
+  "kind": "window",
+  "mechanism": "tilt",
+  "about": "White PVC window, two tilt-and-turn sashes on a mullion, laminate sill board, steel weather sill.",
+  "opening_m": {
+   "width": 1.5,
+   "height": 1.45
+  },
+  "wall_m": 0.2,
+  "size_m": {
+   "width": 1.58,
+   "height": 1.45,
+   "depth": 0.28
+  },
+  "moving": {
+   "sash-l": {
+    "point_m": [
+     -0.693,
+     0,
+     0.017
+    ],
+    "motion": "turn: rotate about +Y 0..90deg into the room (+Z); tilt: top edge 0..10deg into the room about the bottom rail"
+   },
+   "sash-r": {
+    "point_m": [
+     0.693,
+     0,
+     0.017
+    ],
+    "motion": "turn: rotate about +Y 0..90deg into the room (+Z); tilt: top edge 0..10deg into the room about the bottom rail"
+   }
+  },
+  "parts": 29,
+  "triangles": 2428,
+  "bytes": 288952
+ },
+ {
+  "file": "window-alu-transom.glb",
+  "kind": "window",
+  "mechanism": "casement",
+  "about": "Anthracite aluminium casement pair under a fixed transom light, oak sill board.",
+  "opening_m": {
+   "width": 1.2,
+   "height": 1.5
+  },
+  "wall_m": 0.2,
+  "size_m": {
+   "width": 1.28,
+   "height": 1.5,
+   "depth": 0.2801
+  },
+  "moving": {
+   "sash-l": {
+    "point_m": [
+     -0.548,
+     0,
+     0.0175
+    ],
+    "motion": "rotate about +Y, 0..90deg into the room (+Z)"
+   },
+   "sash-r": {
+    "point_m": [
+     0.548,
+     0,
+     0.0175
+    ],
+    "motion": "rotate about +Y, 0..90deg into the room (+Z)"
+   }
+  },
+  "parts": 35,
+  "triangles": 2500,
+  "bytes": 347272
+ },
+ {
+  "file": "window-panoramic-slider.glb",
+  "kind": "window",
+  "mechanism": "sliding",
+  "about": "Black slim-line aluminium sliding window, two big panes, marble sill board.",
+  "opening_m": {
+   "width": 2.4,
+   "height": 1.45
+  },
+  "wall_m": 0.2,
+  "size_m": {
+   "width": 2.48,
+   "height": 1.45,
+   "depth": 0.28
+  },
+  "moving": {
+   "sash-b": {
+    "point_m": [
+     1.15,
+     0,
+     0.01
+    ],
+    "motion": "translate 0..1.12 m along -X"
+   }
+  },
+  "parts": 19,
+  "triangles": 1060,
+  "bytes": 192760
+ },
+ {
+  "file": "window-oak-box.glb",
+  "kind": "window",
+  "mechanism": "fixed",
+  "about": "Picture window: a solid oak box lining the whole reveal, proud of the wall, slim black fixed frame.",
+  "opening_m": {
+   "width": 1.7,
+   "height": 1.45
+  },
+  "wall_m": 0.2,
+  "size_m": {
+   "width": 1.74,
+   "height": 1.45,
+   "depth": 0.285
+  },
+  "moving": {},
+  "parts": 10,
+  "triangles": 120,
+  "bytes": 148032
+ },
+ {
+  "file": "window-bath-hopper.glb",
+  "kind": "window",
+  "mechanism": "tilt",
+  "about": "Small white PVC bathroom window, satin glass, tilts in from the bottom rail.",
+  "opening_m": {
+   "width": 1.0,
+   "height": 0.8
+  },
+  "wall_m": 0.16,
+  "size_m": {
+   "width": 1.08,
+   "height": 0.8,
+   "depth": 0.23
+  },
+  "moving": {
+   "sash": {
+    "point_m": [
+     0,
+     0.057,
+     0.027
+    ],
+    "motion": "rotate about X through the bottom rail, 0..12deg, top into the room (+Z)"
+   }
+  },
+  "parts": 17,
+  "triangles": 1452,
+  "bytes": 245900
+ }
+]
