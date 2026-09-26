@@ -522,7 +522,9 @@ def make_server(service: DesignerService, port=8787) -> ThreadingHTTPServer:
         def do_GET(self):
             if self.path == "/designer/health":
                 self.send_headers(200, "application/json")
-                self.write_line({"ok": True})
+                # The spike engine also says what it has warmed (render daemon, Codex) so the editor can show it.
+                self.write_line({"ok": True, **({"engine": "spike", "warm": dict(designer_spike.WARM)}
+                                                if service.engine == "spike" else {})})
             else:
                 match = re.fullmatch(r"/designer/files/([A-Za-z0-9-]+)/(custom-[A-Za-z0-9-]+-\d+)\.glb", self.path)
                 if match and self.headers_origin_allowed():
@@ -612,14 +614,15 @@ def make_server(service: DesignerService, port=8787) -> ThreadingHTTPServer:
                         if time.monotonic() - last_line < service.progress_interval:
                             continue
                         record = {"type": "progress", "message": last_progress}
-                    # preview: a small render of the design in progress (spike designer), shown whatever `events` says.
+                    # preview: a small render of the design in progress (spike designer), shown whatever `events` says;
+                    # partial: a checked proposal of the rooms finished so far (preview only, never the final record).
                     if record["type"] in ("tool", "build") and not body.get("events", False):
                         continue
                     self.write_line(record)
                     last_line = time.monotonic()
                     if record["type"] == "progress":
                         last_progress = record["message"]
-                    elif record["type"] not in ("message_delta", "tool", "build", "preview"):
+                    elif record["type"] not in ("message_delta", "tool", "build", "preview", "partial"):
                         break
             except (OSError, ValueError):
                 pass  # Socket failure is a disconnect, including a failed progress flush.
@@ -643,6 +646,9 @@ def main():
     if os.environ.get('VARPET_CATALOG_ACCELERATE') == '1':
         service.start_catalog_acceleration()
     server = make_server(service, args.port)
+    if service.engine == "spike" and os.environ.get("VARPET_SPIKE_WARM", "1") != "0":
+        # Warm start: the render daemon and the Codex app server come up now, not inside the first request.
+        threading.Thread(target=designer_spike.warm_up, daemon=True).start()
     print(f"Designer service ({service.engine}): http://127.0.0.1:{server.server_port}", flush=True)
     try:
         server.serve_forever()
