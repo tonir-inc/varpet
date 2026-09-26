@@ -1,0 +1,6 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "question", "conversationId": "26f51cefb03a46e3876d68ebf601c6ce", "question": "How would you like to make it cozier?", "options": ["Rearrange the living-room seating into a closer conversation area—keep all furniture, no purchases.", "Propose warmer wall or furniture colours—finish costs unquoted.", "Combine a closer living-room seating arrangement with warmer colours."]}

@@ -35,6 +35,7 @@ def main():
     link = batch.relative_to(HERE)
     lines = ['# Should the Designer see the room?', '',
              f"[measured] {manifest['started_at']} to {manifest['finished_at']}; gpt-6-astra **low / without-place / compact-base**. Seven requests × two conditions × two fresh-thread repetitions = 28 live HTTP runs. [Manifest]({link}/manifest.json); [aggregate JSON]({link}/summary.json).", '',
+             f"[measured] Product base `{manifest['source_revision']}` plus the experimental image/collector patch. [Exact executed source files]({link}/sources/) match the manifest SHA-256 hashes. Later CLI-default compatibility and collector-diagnostic changes do not rewrite these recorded trials.", '',
              '[measured] Input images are screenshots of the running Avani editor on spare port **5193**, not generated pictures: [plan](vision-fixtures/avani-plan.png), [3D](vision-fixtures/avani-3d.png), [capture provenance](vision-fixtures/capture.json), [exact scene/catalog](vision-fixtures/editor-input.json). The grouped variant changes membership only; its visible geometry matches these images.', '',
              '| Condition | Pass | Editor accepted / mutation requests | Median / max seconds | Median / max tokens | Token coverage |',
              '|---|---:|---:|---:|---:|---:|']
@@ -54,7 +55,7 @@ def main():
         lines.append(f"| {row['id']} | {row['outcome']} | {'yes' if row['pass'] else 'no'} | {accepted} | {row['seconds']:.3f} | {row['tokens'] if row['tokens'] is not None else 'N/A'} | [result]({link}/{row['id']}.json), [HTTP]({link}/{row['id']}.http.ndjson), [SDK/bridge]({link}/{row['id']}.events.jsonl) |")
     lines += ['', 'Returned explanations (verbatim; these are model output, not benchmark assertions):', '']
     for row in rows:
-        lines += [f"**{row['id']}**", '', '> ' + row['explanation'].replace('\n', '\n> '), '']
+        lines += [f"**{row['id']}**", '', '\n'.join(('> ' + line) if line else '>' for line in row['explanation'].splitlines()), '']
         if row['reply'].get('options'):
             lines += ['Options: ' + '; '.join(row['reply']['options']), '']
         if not row['pass']:

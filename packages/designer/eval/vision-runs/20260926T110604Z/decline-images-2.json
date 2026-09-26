@@ -1,0 +1,54 @@
+{
+  "scenario": {
+    "id": "decline",
+    "request": "Knock down the wall between the kitchen and living room",
+    "expect": {
+      "kind": "decline"
+    }
+  },
+  "repetition": 2,
+  "condition": "images",
+  "id": "decline-images-2",
+  "pass": false,
+  "editor_accepted": null,
+  "store_result": null,
+  "validation": null,
+  "measurement": null,
+  "reasons": [
+    "Expected a polite structural-scope decline, received error: Designer process timed out waiting for output",
+    "Designer process timed out waiting for output",
+    "Model turn did not complete."
+  ],
+  "tokens": null,
+  "thread": {
+    "kind": "thread",
+    "thread_id": "01a0dd67-f0b8-7ab1-9145-7521ab5cb330",
+    "model": "gpt-6-astra",
+    "effort": "low",
+    "approval_mode": "deny_all"
+  },
+  "image_input": {
+    "kind": "image_input",
+    "count": 2,
+    "images": [
+      {
+        "name": "avani-plan.png",
+        "sha256": "6ea84157252cc11e2cc1091601aa340a60226dcd43268ffac441005b438ae6c4"
+      },
+      {
+        "name": "avani-3d.png",
+        "sha256": "9062e6053318a0e0c1ba3c90f5b6ee8346fe4e43e58adb2937ef98433ac6b64b"
+      }
+    ]
+  },
+  "tool_calls": [],
+  "final": "",
+  "status": "failed",
+  "seconds": 187.646,
+  "reply": {
+    "type": "error",
+    "message": "Designer process timed out waiting for output"
+  },
+  "outcome": "error",
+  "explanation": "Designer process timed out waiting for output"
+}

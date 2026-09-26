@@ -1,0 +1,45 @@
+{
+  "scenario": {
+    "id": "decline",
+    "request": "Knock down the wall between the kitchen and living room",
+    "expect": {
+      "kind": "decline"
+    }
+  },
+  "repetition": 2,
+  "condition": "text",
+  "id": "decline-text-2",
+  "pass": false,
+  "editor_accepted": null,
+  "store_result": null,
+  "validation": null,
+  "measurement": null,
+  "reasons": [
+    "Expected a polite structural-scope decline, received error: Designer process timed out waiting for output",
+    "Designer process timed out waiting for output",
+    "Model turn did not complete."
+  ],
+  "tokens": null,
+  "thread": {
+    "kind": "thread",
+    "thread_id": "01a0dd67-f9d4-7241-83ce-5adb2760d5bc",
+    "model": "gpt-6-astra",
+    "effort": "low",
+    "approval_mode": "deny_all"
+  },
+  "image_input": {
+    "kind": "image_input",
+    "count": 0,
+    "images": []
+  },
+  "tool_calls": [],
+  "final": "",
+  "status": "failed",
+  "seconds": 190.681,
+  "reply": {
+    "type": "error",
+    "message": "Designer process timed out waiting for output"
+  },
+  "outcome": "error",
+  "explanation": "Designer process timed out waiting for output"
+}

@@ -1,0 +1,78 @@
+{
+  "scenario": {
+    "id": "question",
+    "request": "Make it cozier",
+    "expect": {
+      "kind": "question"
+    }
+  },
+  "repetition": 2,
+  "condition": "text",
+  "id": "question-text-2",
+  "pass": true,
+  "editor_accepted": null,
+  "store_result": null,
+  "validation": null,
+  "measurement": null,
+  "reasons": [],
+  "tokens": 29680,
+  "usage": {
+    "cacheWriteInputTokens": 0,
+    "cachedInputTokens": 22656,
+    "inputTokens": 29503,
+    "outputTokens": 177,
+    "reasoningOutputTokens": 0,
+    "totalTokens": 29680
+  },
+  "thread": {
+    "kind": "thread",
+    "thread_id": "01a0dd67-b2d5-7eb2-a44f-a0973c6832f6",
+    "model": "gpt-6-astra",
+    "effort": "low",
+    "approval_mode": "deny_all"
+  },
+  "image_input": {
+    "kind": "image_input",
+    "count": 0,
+    "images": []
+  },
+  "tool_calls": [
+    {
+      "name": "ask",
+      "arguments": {
+        "question": "What would feel cozier to you?",
+        "options": [
+          "A closer, more intimate living-room seating arrangement—keep all furniture, no purchases",
+          "Warmer wall or furniture colours—finish costs unquoted",
+          "Both seating changes and warmer colours"
+        ]
+      },
+      "result": {
+        "_meta": null,
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"type\":\"question\",\"question\":\"What would feel cozier to you?\",\"options\":[\"A closer, more intimate living-room seating arrangement—keep all furniture, no purchases\",\"Warmer wall or furniture colours—finish costs unquoted\",\"Both seating changes and warmer colours\"],\"awaiting_answer\":true}"
+          }
+        ],
+        "structuredContent": null
+      },
+      "isError": false
+    }
+  ],
+  "final": "Would you prefer **closer living-room seating**, **warmer colours**, or **both**? I’ll retain all existing furniture.",
+  "status": "completed",
+  "seconds": 18.271,
+  "reply": {
+    "type": "question",
+    "conversationId": "a2fb0983528342ca881e36e95b280eb3",
+    "question": "What would feel cozier to you?",
+    "options": [
+      "A closer, more intimate living-room seating arrangement—keep all furniture, no purchases",
+      "Warmer wall or furniture colours—finish costs unquoted",
+      "Both seating changes and warmer colours"
+    ]
+  },
+  "outcome": "question",
+  "explanation": "What would feel cozier to you?"
+}

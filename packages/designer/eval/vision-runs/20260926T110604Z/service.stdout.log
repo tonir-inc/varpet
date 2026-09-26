@@ -1,0 +1,1 @@
+{"ports": {"text": 60623, "images": 60624}, "model": "gpt-6-astra", "effort": "low", "profile": {"placement": "without-place", "context": "compact-base"}}

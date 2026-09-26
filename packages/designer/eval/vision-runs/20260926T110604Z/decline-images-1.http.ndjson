@@ -1,0 +1,6 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "decline", "conversationId": "b9e7130cdbeb46e49cbd8e38414dadf3", "message": "I can preview furniture layouts and colours, but not remove walls; a qualified structural professional would need to assess that change. Instead, I can rearrange the kitchen and living-room furniture to improve flow through the existing doorway, keeping all your pieces."}

@@ -1,0 +1,64 @@
+{
+  "statistics": {
+    "text": {
+      "n": 14,
+      "passed": 9,
+      "editor_accepted": 6,
+      "mutation_requests": 8,
+      "seconds_median": 33.854,
+      "seconds_max": 252.876,
+      "tokens_median": 52612,
+      "tokens_max": 137058,
+      "tokens_measured": 13
+    },
+    "images": {
+      "n": 14,
+      "passed": 11,
+      "editor_accepted": 6,
+      "mutation_requests": 8,
+      "seconds_median": 35.316500000000005,
+      "seconds_max": 220.427,
+      "tokens_median": 60943,
+      "tokens_max": 174174,
+      "tokens_measured": 13
+    }
+  },
+  "adjudications": {
+    "reviewer": "Codex primary agent; explicit rubric review of all appearance and refusal outputs; independent reviewer audit requested",
+    "runs": {
+      "sofa-floor-text-1": {
+        "pass": false,
+        "reason": "Honest and appropriate uncertainty, but the requested sofa/floor judgement is incomplete: the answer explicitly says floor colour/material is absent. It discusses the known rug and furniture and makes its wood-floor suggestion conditional."
+      },
+      "sofa-floor-text-2": {
+        "pass": false,
+        "reason": "Honest and appropriate uncertainty, but the requested sofa/floor judgement is incomplete: the answer explicitly says floor colour/material is absent. It discusses the known rug and furniture and makes its wood-floor suggestion conditional."
+      },
+      "sofa-floor-images-1": {
+        "pass": true,
+        "reason": "Completes the requested floor/sofa judgement from the rendered pale warm beige floor and muted sage sofa, explains gentle contrast and the sandy rug connection, gives optional olive-sage adjustment, explicitly leaves the scene unchanged."
+      },
+      "sofa-floor-images-2": {
+        "pass": true,
+        "reason": "Completes the requested floor/sofa judgement from the rendered pale warm beige floor and muted sage sofa, explains gentle contrast and the sandy rug connection, gives optional olive-sage adjustment, explicitly leaves the scene unchanged."
+      },
+      "decline-text-1": {
+        "pass": true,
+        "reason": "Polite structural-scope refusal (but not wall demolition/remove walls), followed by a qualified-professional caveat and an alternative furniture rearrangement. The inherited keyword regex missed this grammatical refusal. No proposal or edits."
+      },
+      "decline-images-1": {
+        "pass": true,
+        "reason": "Polite structural-scope refusal (but not wall demolition/remove walls), followed by a qualified-professional caveat and an alternative furniture rearrangement. The inherited keyword regex missed this grammatical refusal. No proposal or edits."
+      }
+    },
+    "recommendation": "Keep production text-only by default. Offer opt-in images for appearance questions: both image runs directly answered sofa/floor compatibility, while both text runs correctly reported missing floor information. No observed editor-acceptance improvement: all six standing-suite proposals pass per condition, all catalog additions fail the same integration boundary. Colour and cozier explanations show no material gain; geometry outcomes do not establish an image advantage. The small sample and paired stalls do not support a latency claim.",
+    "appearance_comparison": {
+      "Sofa versus floor": "Substantive, repeated difference. Text (2/2) knows sage sofa, beige rug and wood furniture but explicitly cannot confirm the floor. Images (2/2) identify warm pale beige floor in the render, explain muted-green contrast and the rug as a colour bridge, then suggest optional olive sage. The floor appearance is visibly present in the captured render. Hex suggestions are model design preferences, not measurements.",
+      "Exact blue wall": "No substantive difference: all four explanations describe #3366cc on both faces/source-wall segments, preserve furniture/geometry/other colours and leave paint/labour unquoted. Images add no needed information to an exact colour instruction.",
+      "Make it cozier": "No substantive difference: all four ask one clarification question and offer closer seating, warmer colours, or both. Image runs do not ground the options in a distinctive observed texture, material or lighting detail.",
+      "Living room feels bigger": "Same basic explanation in both conditions: move seating toward the bottom wall to open the centre at zero purchase cost. Largest empty rectangle gains are text +2.205/+1.715 m\u00b2 versus images +1.960/+2.205 m\u00b2; narrowest walkway delta is 0 in all four. Text run 1 explicitly mentions the coffee-table reach trade-off; images do not consistently improve explanatory substance.",
+      "Grouped move (control)": "All four are accepted and preserve the group. Image moves are 0.6/1.0 m, versus text 0.4/0.4 m; empty-rectangle loss is larger with images (-1.225/-2.930 versus -0.245/-0.245 m\u00b2). The request did not require more floor area, so these remain passes, but they argue against claiming a general geometry win."
+    },
+    "editor_contract": "If implementing the appearance-only opt-in next: add an async snapshot function at the editor viewport boundary that returns plan and perspective PNG/JPEG blobs plus scene ID, revision, view label and dimensions. Capture after rendering the same frozen scene, hide selection/gizmos/overlays, and do not mutate live camera/scene state. Pass snapshots with that same scene/revision to the service only when requested. The current experimental service takes trusted local image_paths (or --image), writes their paths into job.images and the SDK worker consumes LocalImageInput on the first turn. A product endpoint would need bounded image bytes uploaded/staged to per-conversation files, never client-supplied filesystem paths, and a scene/revision match check. New first-turn snapshots require a fresh thread, or an explicitly designed refresh policy; this experiment does not establish stale-image behavior. Keep JSON as the geometry/check authority. Do not wire the UI yet."
+  }
+}

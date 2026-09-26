@@ -1,0 +1,57 @@
+START avani-living-rearrange-text-1
+START avani-living-rearrange-images-1
+START avani-wall-blue-text-1
+START avani-wall-blue-images-1
+END avani-wall-blue-images-1: proposal; pass=true; accepted=true; 37.756s; 74951 tokens
+START avani-grouped-lounge-text-1
+END avani-wall-blue-text-1: proposal; pass=true; accepted=true; 40.086s; 64168 tokens
+START avani-grouped-lounge-images-1
+END avani-living-rearrange-text-1: proposal; pass=true; accepted=true; 63.328s; 87796 tokens
+START catalog-text-1
+END avani-grouped-lounge-text-1: proposal; pass=true; accepted=true; 30.903s; 52612 tokens
+START catalog-images-1
+END avani-grouped-lounge-images-1: proposal; pass=true; accepted=true; 30.293s; 60742 tokens
+START question-text-1
+END avani-living-rearrange-images-1: proposal; pass=true; accepted=true; 74.363s; 150076 tokens
+START question-images-1
+END question-text-1: question; pass=true; accepted=null; 14.725s; 29519 tokens
+START decline-text-1
+END question-images-1: question; pass=true; accepted=null; 17.989s; 37581 tokens
+START decline-images-1
+END decline-text-1: decline; pass=false; accepted=null; 8.149s; 9678 tokens
+START sofa-floor-text-1
+END catalog-text-1: error; pass=false; accepted=null; 36.805s; 66592 tokens
+START sofa-floor-images-1
+END sofa-floor-text-1: decline; pass=false; accepted=null; 11.308s; 9741 tokens
+START avani-living-rearrange-images-2
+END decline-images-1: decline; pass=false; accepted=null; 12.875s; 12390 tokens
+START avani-living-rearrange-text-2
+END sofa-floor-images-1: decline; pass=false; accepted=null; 10.819s; 12433 tokens
+START avani-wall-blue-images-2
+END catalog-images-1: error; pass=false; accepted=null; 59.785s; 113980 tokens
+START avani-wall-blue-text-2
+END avani-wall-blue-images-2: proposal; pass=true; accepted=true; 30.648s; 74893 tokens
+START avani-grouped-lounge-images-2
+END avani-wall-blue-text-2: proposal; pass=true; accepted=true; 29.675s; 64152 tokens
+START avani-grouped-lounge-text-2
+END avani-living-rearrange-images-2: proposal; pass=true; accepted=true; 57.536s; 174174 tokens
+START catalog-images-2
+END avani-grouped-lounge-images-2: proposal; pass=true; accepted=true; 32.877s; 60943 tokens
+START catalog-text-2
+END avani-grouped-lounge-text-2: proposal; pass=true; accepted=true; 25.827s; 52612 tokens
+START question-images-2
+END avani-living-rearrange-text-2: proposal; pass=true; accepted=true; 83.184s; 137058 tokens
+START question-text-2
+END question-images-2: question; pass=true; accepted=null; 18.675s; 37639 tokens
+START decline-images-2
+END question-text-2: question; pass=true; accepted=null; 18.271s; 29680 tokens
+START decline-text-2
+END catalog-images-2: error; pass=false; accepted=null; 49.941s; 93946 tokens
+START sofa-floor-images-2
+END decline-images-2: error; pass=false; accepted=null; 187.646s; null tokens
+START sofa-floor-text-2
+END decline-text-2: error; pass=false; accepted=null; 190.681s; null tokens
+END catalog-text-2: error; pass=false; accepted=null; 252.876s; 81084 tokens
+END sofa-floor-images-2: decline; pass=false; accepted=null; 220.427s; 12434 tokens
+END sofa-floor-text-2: decline; pass=false; accepted=null; 43.22s; 9725 tokens
+Recorded 28/28 runs in /Users/ashotarushanyan/AshProjects/varpet-bench/packages/designer/eval/vision-runs/20260926T110604Z

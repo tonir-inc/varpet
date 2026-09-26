@@ -1,0 +1,87 @@
+{
+  "scenario": {
+    "id": "question",
+    "request": "Make it cozier",
+    "expect": {
+      "kind": "question"
+    }
+  },
+  "repetition": 1,
+  "condition": "images",
+  "id": "question-images-1",
+  "pass": true,
+  "editor_accepted": null,
+  "store_result": null,
+  "validation": null,
+  "measurement": null,
+  "reasons": [],
+  "tokens": 37581,
+  "usage": {
+    "cacheWriteInputTokens": 0,
+    "cachedInputTokens": 27136,
+    "inputTokens": 37448,
+    "outputTokens": 133,
+    "reasoningOutputTokens": 0,
+    "totalTokens": 37581
+  },
+  "thread": {
+    "kind": "thread",
+    "thread_id": "01a0dd65-f332-71a2-a1ec-819d989aefac",
+    "model": "gpt-6-astra",
+    "effort": "low",
+    "approval_mode": "deny_all"
+  },
+  "image_input": {
+    "kind": "image_input",
+    "count": 2,
+    "images": [
+      {
+        "name": "avani-plan.png",
+        "sha256": "6ea84157252cc11e2cc1091601aa340a60226dcd43268ffac441005b438ae6c4"
+      },
+      {
+        "name": "avani-3d.png",
+        "sha256": "9062e6053318a0e0c1ba3c90f5b6ee8346fe4e43e58adb2937ef98433ac6b64b"
+      }
+    ]
+  },
+  "tool_calls": [
+    {
+      "name": "ask",
+      "arguments": {
+        "question": "How would you like to make it cozier?",
+        "options": [
+          "A closer, more inviting living-room seating arrangement—keep all furniture, no purchases",
+          "Warmer wall colours—keep the furniture layout",
+          "Both seating changes and warmer colours"
+        ]
+      },
+      "result": {
+        "_meta": null,
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"type\":\"question\",\"question\":\"How would you like to make it cozier?\",\"options\":[\"A closer, more inviting living-room seating arrangement—keep all furniture, no purchases\",\"Warmer wall colours—keep the furniture layout\",\"Both seating changes and warmer colours\"],\"awaiting_answer\":true}"
+          }
+        ],
+        "structuredContent": null
+      },
+      "isError": false
+    }
+  ],
+  "final": "Would you prefer a closer seating arrangement at no purchase cost, warmer wall colours, or both?",
+  "status": "completed",
+  "seconds": 17.989,
+  "reply": {
+    "type": "question",
+    "conversationId": "b0f192e6934743b1814291ca4ce4c44f",
+    "question": "How would you like to make it cozier?",
+    "options": [
+      "A closer, more inviting living-room seating arrangement—keep all furniture, no purchases",
+      "Warmer wall colours—keep the furniture layout",
+      "Both seating changes and warmer colours"
+    ]
+  },
+  "outcome": "question",
+  "explanation": "How would you like to make it cozier?"
+}
