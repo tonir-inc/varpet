@@ -24,11 +24,13 @@ try {
     dimensions: [0.5, 0.8, 0.6], color: '#aAbBcC', price: 1000,
     source: { type: 'gltf', url: 'https://amazon-berkeley-objects.s3.amazonaws.com/chair.glb' } };
   const list = (data) => createCatalogHttpAdapter({ fetch: async () => ({ ok: true, json: async () => data }) }).list();
-  const newKinds = ['desk', 'wardrobe', 'dresser'].flatMap(kind => [
+  const newKinds = ['desk', 'wardrobe', 'dresser', 'toilet', 'sink', 'bathtub', 'shower', 'fridge', 'stove', 'oven', 'washing_machine', 'dryer', 'dishwasher', 'microwave', 'tv', 'monitor', 'computer', 'laptop', 'speaker', 'printer', 'game_console', 'kitchen_cabinet', 'kitchen_counter', 'kitchen_island', 'radiator', 'fan', 'coat_rack', 'shoe_rack', 'plant'].flatMap(kind => [
     { ...asset, id: `gltf-${kind}`, kind },
     { ...asset, id: `procedural-${kind}`, kind, source: { type: 'procedural' } },
   ]);
   assert.deepEqual(await list(newKinds), newKinds, 'Native furniture kinds survive catalog discovery for both model sources');
+  const extra = { ...asset, id: 'extra:appliances:washer', kind: 'washing_machine', source: { type: 'gltf', url: '/api/catalog/models/extra-appliances-washer.glb' } };
+  assert.deepEqual(await list([extra]), [extra], 'Relayed extra models survive bulk catalog discovery');
   const tailnet = { ...asset, source: { type: 'gltf', url: 'http://100.107.246.46:8765/models/chair.glb' } };
   assert.deepEqual(await list([tailnet]), [tailnet]);
   const valid = await list([asset, { ...asset, id: 'procedural', source: { type: 'procedural' } }]);

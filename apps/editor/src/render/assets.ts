@@ -127,6 +127,9 @@ export function makeFurniture(asset: CatalogAsset, color = asset.color): THREE.G
       back.rotation.x = -0.1;
       break;
     }
+    case 'kitchen_cabinet':
+    case 'kitchen_counter':
+    case 'kitchen_island':
     case 'cabinet': {
       box(w * 0.92, h * 0.08, d * 0.88, 0, h * 0.04, 0, m.dark);
       box(w, h * 0.86, d, 0, h * 0.51, 0, m.main, 0.008);
@@ -161,6 +164,7 @@ export function makeFurniture(asset: CatalogAsset, color = asset.color): THREE.G
       }
       break;
     }
+    case 'shoe_rack':
     case 'shelf': {
       for (const side of [-1, 1]) box(w * 0.045, h, d, side * w * 0.4775, h / 2, 0, m.main);
       box(w, h, 0.025, 0, h / 2, -d * 0.475, m.main, 0.005);
@@ -203,6 +207,56 @@ export function makeFurniture(asset: CatalogAsset, color = asset.color): THREE.G
         leaf.position.set(Math.cos(angle) * w * 0.22, top, Math.sin(angle) * d * 0.22);
         leaf.rotation.set(0.4, -angle, 0.5 + (i % 2) * 0.3); group.add(leaf);
       }
+      break;
+    }
+    case 'toilet': {
+      box(w * 0.55, h * 0.4, d * 0.6, 0, h * 0.2, d * 0.12);
+      box(w, h * 0.18, d * 0.75, 0, h * 0.49, d * 0.125, m.pale);
+      box(w * 0.9, h * 0.8, d * 0.25, 0, h * 0.6, -d * 0.375);
+      break;
+    }
+    case 'sink': {
+      box(w * 0.35, h * 0.8, d * 0.4, 0, h * 0.4, 0);
+      box(w, h * 0.2, d, 0, h * 0.9, 0, m.pale);
+      break;
+    }
+    case 'bathtub':
+    case 'shower': {
+      box(w, h * 0.08, d, 0, h * 0.04, 0);
+      for (const side of [-1, 1]) box(w * 0.06, h, d, side * w * 0.47, h / 2, 0);
+      box(w, h, d * 0.06, 0, h / 2, -d * 0.47);
+      if (asset.kind === 'bathtub') box(w, h, d * 0.06, 0, h / 2, d * 0.47);
+      break;
+    }
+    case 'tv':
+    case 'monitor':
+    case 'laptop': {
+      box(w * 0.7, h * 0.06, d, 0, h * 0.03, 0, m.dark);
+      box(w * 0.08, h * 0.3, d * 0.12, 0, h * 0.2, 0, m.dark);
+      box(w, h * 0.75, d * 0.12, 0, h * 0.625, -d * 0.2, m.dark);
+      break;
+    }
+    case 'coat_rack':
+    case 'fan': {
+      cylinder(w * 0.45, w * 0.45, h * 0.05, 0, h * 0.025, 0, m.dark);
+      cylinder(w * 0.035, w * 0.035, h * 0.9, 0, h * 0.5, 0, m.metal);
+      box(w, h * (asset.kind === 'fan' ? 0.35 : 0.04), d * 0.3, 0, h * 0.825, 0);
+      break;
+    }
+    case 'fridge':
+    case 'stove':
+    case 'oven':
+    case 'washing_machine':
+    case 'dryer':
+    case 'dishwasher':
+    case 'microwave':
+    case 'computer':
+    case 'speaker':
+    case 'printer':
+    case 'game_console':
+    case 'radiator': {
+      box(w, h, d * 0.94, 0, h / 2, -d * 0.03);
+      box(w * 0.8, h * 0.7, d * 0.06, 0, h * 0.48, d * 0.47, m.dark);
       break;
     }
     case 'rug': {

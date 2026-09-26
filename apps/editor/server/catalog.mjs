@@ -62,7 +62,7 @@ function send(response, status, data) {
   response.end(JSON.stringify(data));
 }
 
-const MODEL = /^\/api\/catalog\/models\/([A-Za-z0-9_-]{1,40}\.glb)$/;
+const MODEL = /^\/api\/catalog\/models\/([A-Za-z0-9_-]{1,120}\.glb)$/;
 const MODEL_TIMEOUT_MS = 60_000;
 
 /** The catalog's 1024 px copy of a model (optimize_models.py), relayed so the browser never needs the tailnet.

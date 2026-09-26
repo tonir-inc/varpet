@@ -3,7 +3,7 @@ export type * from './renovation-contracts';
 /** Editor-local v1 boundary. Deliberately does not define the future shared engine schema. */
 export type Vec2 = [number, number]; // x, z in metres
 export type Vec3 = [number, number, number]; // x, y, z in metres
-export type AssetKind = 'sofa' | 'chair' | 'table' | 'desk' | 'bed' | 'cabinet' | 'wardrobe' | 'dresser' | 'lamp' | 'plant' | 'rug' | 'shelf';
+export type AssetKind = 'sofa' | 'chair' | 'table' | 'desk' | 'bed' | 'cabinet' | 'wardrobe' | 'dresser' | 'lamp' | 'plant' | 'rug' | 'shelf' | 'toilet' | 'sink' | 'bathtub' | 'shower' | 'fridge' | 'stove' | 'oven' | 'washing_machine' | 'dryer' | 'dishwasher' | 'microwave' | 'tv' | 'monitor' | 'computer' | 'laptop' | 'speaker' | 'printer' | 'game_console' | 'kitchen_cabinet' | 'kitchen_counter' | 'kitchen_island' | 'radiator' | 'fan' | 'coat_rack' | 'shoe_rack';
 export interface CatalogAsset {
   id: string;
   name: string;

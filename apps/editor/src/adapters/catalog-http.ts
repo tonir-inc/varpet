@@ -3,7 +3,7 @@ import type { AssetKind, CatalogAdapter, CatalogAsset } from '../contracts';
 export const DEFAULT_CATALOG_ASSETS_URL = 'http://100.107.246.46:8765/editor/assets';
 export const CATALOG_CURRENCY = 'AMD' as const;
 
-const kinds: readonly AssetKind[] = ['sofa', 'chair', 'table', 'desk', 'bed', 'cabinet', 'wardrobe', 'dresser', 'lamp', 'plant', 'rug', 'shelf'];
+const kinds: readonly AssetKind[] = ['sofa', 'chair', 'table', 'desk', 'bed', 'cabinet', 'wardrobe', 'dresser', 'lamp', 'plant', 'rug', 'shelf', 'toilet', 'sink', 'bathtub', 'shower', 'fridge', 'stove', 'oven', 'washing_machine', 'dryer', 'dishwasher', 'microwave', 'tv', 'monitor', 'computer', 'laptop', 'speaker', 'printer', 'game_console', 'kitchen_cabinet', 'kitchen_counter', 'kitchen_island', 'radiator', 'fan', 'coat_rack', 'shoe_rack'];
 const allowedHosts = new Set(['amazon-berkeley-objects.s3.amazonaws.com', '100.107.246.46']);
 const record = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -18,6 +18,7 @@ function validAsset(value: unknown): value is CatalogAsset {
       !record(value.source)) return false;
   if (value.source.type === 'procedural') return true;
   if (value.source.type !== 'gltf' || typeof value.source.url !== 'string') return false;
+  if (/^\/api\/catalog\/models\/[A-Za-z0-9_-]{1,120}\.glb(?:#varpet-rotate-y=90)?$/.test(value.source.url)) return true;
   try {
     const url = new URL(value.source.url);
     return (url.protocol === 'https:' || (url.protocol === 'http:' && url.hostname === '100.107.246.46')) &&

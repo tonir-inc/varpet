@@ -1,6 +1,6 @@
 import { EditorStore } from './store';
 import { demoScene, localCatalog } from './demo';
-import { catalogProduct, sceneCatalogIds, resolveSceneProducts } from '../adapters/database-catalog';
+import { catalogCategories, catalogProduct, sceneCatalogIds, resolveSceneProducts } from '../adapters/database-catalog';
 import { createInitialScene } from './initial-scene';
 import { analyzeProject } from './renovation';
 
@@ -76,3 +76,29 @@ assert(importCatalog.some(a => a.id === visible.asset.id), 'Visible cards remain
 assert(importStore.execute({id:'mixed-import', label:'Import cached and fetched furniture', source:'human', baseRevision:0, operations:[{type:'replace-scene',scene:incoming}]},true).ok, 'Mixed cached/new imports preserve all required products');
 assert(importStore.execute({id:'visible-add', label:'Add previous search result', source:'human', baseRevision:1, operations:[{type:'add',object:{...priced.objects[0]!,id:'visible-object',assetId:visible.asset.id,position:[-3,0,2]}}]},true).ok, 'Prior search cards still add furniture after an import');
 console.log('Database import, browsing, and currency checks passed');
+
+const extra = catalogProduct({ ...row, id: 'extra:appliances:washer', source: 'extra', kind: 'washing_machine',
+  glb_url: 'http://100.107.246.46:8765/models/extra-appliances-washer.glb' });
+assert(extra?.asset.kind === 'washing_machine' && extra.asset.category === 'Appliances', 'Extra washer retains its native kind and category');
+assert(extra.asset.source.type === 'gltf' && extra.asset.source.url === '/api/catalog/models/extra-appliances-washer.glb', 'Extra models use the same-origin relay');
+assert(!extra.attribution.includes('Amazon'), 'Extra provenance does not claim ABO authorship');
+const extraStore = new EditorStore({ ...demoScene, objects: [] }, []);
+extraStore.registerCatalogAssets([extra.asset]);
+assert(extraStore.execute({ id: 'extra-add', label: 'Add washer', source: 'human', baseRevision: 0,
+  operations: [{ type: 'add', object: { id: 'washer', name: 'Washer', assetId: extra.asset.id, position: [-2, 0, 0], rotation: 0, scale: [1, 1, 1] } }] }, true).ok, 'Extra washer registers and places');
+for (const patch of [{ id: 'unknown:washer' }, { kind: 'range_hood' },
+  { glb_url: 'http://evil.example:8765/models/extra-washer.glb' },
+  { glb_url: 'http://100.107.246.46:8765/models/extra-washer.glb?redirect=evil' }]) {
+  assert(catalogProduct({ ...row, id: 'extra:appliances:washer', kind: 'washing_machine', ...patch }) === null, 'Unknown prefixes, mounted kinds and unapproved URLs stay rejected');
+}
+
+for (const [category, kinds] of Object.entries(catalogCategories)) for (const kind of kinds) {
+  const mapped = catalogProduct({ ...row, id: `extra:test:${kind}`, kind,
+    glb_url: `http://100.107.246.46:8765/models/extra-test-${kind}.glb` });
+  assert(mapped?.asset.kind === kind && mapped.asset.category === category, `${kind} maps natively into ${category}`);
+  new EditorStore({ ...demoScene, objects: [] }, [mapped.asset]);
+}
+const extraPriced = structuredClone(priced);
+extraPriced.objects[0]!.assetId = extra.asset.id;
+extraPriced.project!.currency = 'USD';
+assert(analyzeProject(extraPriced, [extra.asset]).quantities.find(q => q.id === 'priced')?.cost === 0, 'Extra AMD prices are not totaled as USD');

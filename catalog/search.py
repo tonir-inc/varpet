@@ -16,16 +16,39 @@ from select_editor_set import EDITOR_KIND_OF, EDITOR_KINDS
 
 DEFAULT_WEIGHTS = {"text": 1.0, "colour": 1.0, "tags": 0.5, "visual": 1.5, "size": 0.3, "room": 0.8}
 
-# Items the editor and the designer bridge can place exactly: an editor kind (or a mapped subtype), a mesh, a price, a name, one size
+# ABO items the editor and the designer bridge can place exactly: an editor kind (or a mapped subtype), a mesh, a price, a name, one size
 # (no listing/mesh conflict, not a sideways mesh) inside the editor's 0.01-20 m. Everything that passes is
 # placeable; there is no count cap, so clients search and fetch by id instead of loading a set.
 PLACEABLE_KINDS = (*EDITOR_KINDS, *EDITOR_KIND_OF)  # subtypes the editor and the bridge map to an editor kind
-PLACEABLE = (
-    f"(kind in ({', '.join(repr(k) for k in PLACEABLE_KINDS)}) and source = 'abo'"
-    " and glb_url is not null and price is not null and name is not null and size_status <> 'conflict'"
-    " and not coalesce((size_evidence->>'wd_swapped')::boolean, false)"
-    " and least(size_m[1], size_m[2], size_m[3]) >= 0.01 and greatest(size_m[1], size_m[2], size_m[3]) <= 20)"
+NATIVE_EXTRA_KINDS = (
+    "toilet", "sink", "bathtub", "shower", "fridge", "stove", "oven", "washing_machine",
+    "dryer", "dishwasher", "microwave", "tv", "monitor", "computer", "laptop", "speaker",
+    "printer", "game_console", "kitchen_cabinet", "kitchen_counter", "kitchen_island",
+    "radiator", "fan", "coat_rack", "shoe_rack", "plant",
 )
+
+
+def build_placeable_sql():
+    """Combine unchanged ABO eligibility with native extra models without wall mounting."""
+    abo = (
+        f"(kind in ({', '.join(repr(k) for k in PLACEABLE_KINDS)}) and source = 'abo'"
+        " and glb_url is not null and price is not null and name is not null and size_status <> 'conflict'"
+        " and not coalesce((size_evidence->>'wd_swapped')::boolean, false)"
+        " and least(size_m[1], size_m[2], size_m[3]) >= 0.01 and greatest(size_m[1], size_m[2], size_m[3]) <= 20)"
+    )
+    # IDs are extra:<group>:<slug>; group names are not mounting evidence.
+    # Wall-only kinds (range_hood, mirror_bathroom, towel_rail, air_conditioner,
+    # clock, curtain) are deliberately absent from the native allowlist.
+    extra = (
+        f"(kind in ({', '.join(repr(k) for k in NATIVE_EXTRA_KINDS)}) and source = 'extra'"
+        " and glb_url is not null"
+        " and coalesce(split_part(id, ':', 3), '') !~* '(wall|mount|hang|lift)'"
+        " and coalesce(tags->'extra'->>'notes', '') !~* '(wall|mount|hang|lift)')"
+    )
+    return f"({abo} or {extra})"
+
+
+PLACEABLE = build_placeable_sql()
 
 
 @dataclass

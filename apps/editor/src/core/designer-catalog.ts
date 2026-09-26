@@ -6,9 +6,9 @@ export function mergeDesignerProducts(current: readonly CatalogProduct[], remote
   const products = new Map(current.map(product => [product.asset.id, product]));
   for (const asset of remote) {
     if (products.size >= 1000) break;
-    if (products.has(asset.id) || !asset.id.startsWith('abo:') || asset.source.type !== 'gltf') continue;
+    if (products.has(asset.id) || !(asset.id.startsWith('abo:') || asset.id.startsWith('extra:')) || asset.source.type !== 'gltf') continue;
     products.set(asset.id, { asset, priceSource: 'unverified', sizeStatus: 'unverified',
-      attribution: 'Amazon Berkeley Objects · CC BY 4.0' });
+      attribution: asset.id.startsWith('extra:') ? 'Extra catalog · license unverified' : 'Amazon Berkeley Objects · CC BY 4.0' });
   }
   return structuredClone([...products.values()]);
 }

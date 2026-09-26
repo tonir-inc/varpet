@@ -13,7 +13,7 @@ function near(actual: number, expected: number, message: string): void {
   assert(Math.abs(actual - expected) < 1e-7, `${message}: expected ${expected}, got ${actual}`);
 }
 const asset: CatalogAsset = { id: 'database-chair', name: 'Database chair', category: 'Chairs', kind: 'chair', dimensions: [4, 3, 2], color: '#f0a010', price: 10, source: { type: 'gltf', url: 'https://models.example/chair.glb#varpet-rotate-y=90' } };
-for (const kind of ['desk', 'wardrobe', 'dresser'] as const) {
+for (const kind of ['desk', 'wardrobe', 'dresser', 'toilet', 'sink', 'bathtub', 'shower', 'fridge', 'stove', 'oven', 'washing_machine', 'dryer', 'dishwasher', 'microwave', 'tv', 'monitor', 'computer', 'laptop', 'speaker', 'printer', 'game_console', 'kitchen_cabinet', 'kitchen_counter', 'kitchen_island', 'radiator', 'fan', 'coat_rack', 'shoe_rack'] as const) {
   const dimensions: CatalogAsset['dimensions'] = kind === 'desk' ? [1.2, 0.75, 0.6]
     : kind === 'wardrobe' ? [1.2, 2, 0.6] : [1, 0.9, 0.45];
   const furniture = makeFurniture({ ...asset, kind, dimensions, source: { type: 'procedural' } });
@@ -37,7 +37,7 @@ for (const kind of ['desk', 'wardrobe', 'dresser'] as const) {
   }
   disposeObject(furniture);
 }
-for (const placeholder of [makeAssetPlaceholder(asset), makeFurniture(asset)]) {
+for (const placeholder of [makeAssetPlaceholder(asset), makeFurniture(asset), makeFurniture({ ...asset, id: 'extra:appliances:washer', kind: 'washing_machine' })]) {
   const bounds = new THREE.Box3().setFromObject(placeholder);
   near(bounds.min.y, 0, 'Placeholder sits on the floor');
   near(bounds.getSize(new THREE.Vector3()).x, 4, 'Placeholder preserves width');
@@ -133,6 +133,11 @@ try {
   const lightLoader = new AssetLoader();
   await lightLoader.load(aboAsset).then(disposeObject);
   assert(lightRequests.length === 3 && lightRequests[2] === '/api/catalog/models/B0718WYQ8D.glb', 'An available light copy replaces the original download');
+  const extraLoader = new AssetLoader();
+  const extraUrl = '/api/catalog/models/extra-appliances-washing-machine.glb';
+  await extraLoader.load({ ...asset, id: 'extra:appliances:washing-machine', kind: 'washing_machine', source: { type: 'gltf', url: extraUrl } }).then(disposeObject);
+  assert(lightRequests.at(-1) === extraUrl, 'Extra GLBs load directly through the editor relay');
+  extraLoader.dispose();
   fallbackLoader.dispose(); lightLoader.dispose();
 } finally {
   GLTFLoader.prototype.loadAsync = originalLoad;

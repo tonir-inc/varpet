@@ -42,9 +42,9 @@ test('designer can propose remote ABO products while existing product identity a
 });
 
 test('remote discovery never reintroduces demo or procedural furniture', () => {
-  const demo = product('demo-chair'), procedural = product('abo:procedural'), real = product('abo:real');
+  const demo = product('demo-chair'), procedural = product('abo:procedural'), real = product('abo:real'), extra = product('extra:appliances:washer');
   procedural.asset.source = { type: 'procedural' };
-  assert.deepEqual(mergeDesignerProducts([], [demo.asset, procedural.asset, real.asset]).map(p => p.asset.id), ['abo:real']);
+  assert.deepEqual(mergeDesignerProducts([], [demo.asset, procedural.asset, real.asset, extra.asset]).map(p => p.asset.id), ['abo:real', 'extra:appliances:washer']);
 });
 
 test('browsing the same designer-added SKU preserves its registered appearance and updates provenance', () => {

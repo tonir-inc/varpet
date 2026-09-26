@@ -25,15 +25,20 @@ export function retainRegisteredProducts(products: readonly CatalogProduct[], kn
 const kinds: Record<string, CatalogAsset['kind']> = {
   sofa: 'sofa', chair: 'chair', table: 'table', desk: 'desk', bed: 'bed', cabinet: 'cabinet',
   dresser: 'dresser', wardrobe: 'wardrobe', nightstand: 'cabinet', storage: 'cabinet',
-  shelf: 'shelf', bench: 'chair', ottoman: 'chair', stool: 'chair', lamp: 'lamp', rug: 'rug', planter: 'plant',
+  shelf: 'shelf', bench: 'chair', ottoman: 'chair', stool: 'chair', lamp: 'lamp', rug: 'rug', planter: 'plant', plant: 'plant',
+  toilet: 'toilet', sink: 'sink', bathtub: 'bathtub', shower: 'shower', fridge: 'fridge', stove: 'stove', oven: 'oven', washing_machine: 'washing_machine', dryer: 'dryer', dishwasher: 'dishwasher', microwave: 'microwave', tv: 'tv', monitor: 'monitor', computer: 'computer', laptop: 'laptop', speaker: 'speaker', printer: 'printer', game_console: 'game_console', kitchen_cabinet: 'kitchen_cabinet', kitchen_counter: 'kitchen_counter', kitchen_island: 'kitchen_island', radiator: 'radiator', fan: 'fan', coat_rack: 'coat_rack', shoe_rack: 'shoe_rack',
 };
+export const catalogCategories: Record<string, readonly string[]> = {"Bathroom": ["toilet", "sink", "bathtub", "shower"], "Appliances": ["fridge", "stove", "oven", "washing_machine", "dryer", "dishwasher", "microwave"], "Electronics": ["tv", "monitor", "computer", "laptop", "speaker", "printer", "game_console"], "Kitchen": ["kitchen_cabinet", "kitchen_counter", "kitchen_island"], "Home": ["radiator", "fan", "coat_rack", "shoe_rack", "plant"]};
+export function catalogCategory(kind: string): string {
+  return Object.entries(catalogCategories).find(([, kinds]) => kinds.includes(kind))?.[0] ?? kind;
+}
 export const catalogKinds = Object.keys(kinds);
 const record = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value);
 const text = (value: unknown, max: number): value is string => typeof value === 'string' && value.trim().length > 0 && value.length <= max;
 
 /** Only complete database products with an approved downloadable model reach the editor. */
 export function catalogProduct(raw: unknown): CatalogProduct | null {
-  if (!record(raw) || !text(raw.id, 100) || !raw.id.startsWith('abo:') || !text(raw.name, 4000)
+  if (!record(raw) || !text(raw.id, 100) || !(raw.id.startsWith('abo:') || raw.id.startsWith('extra:')) || !text(raw.name, 4000)
     || typeof raw.kind !== 'string' || !Object.hasOwn(kinds, raw.kind) || raw.currency !== 'AMD'
     || typeof raw.price !== 'number' || !Number.isSafeInteger(raw.price) || raw.price < 0 || raw.price > 1e7
     || !text(raw.glb_url, 2048) || !text(raw.license, 200)) return null;
@@ -41,19 +46,25 @@ export function catalogProduct(raw: unknown): CatalogProduct | null {
   if (!Array.isArray(size) || size.length !== 3 || !size.every(v => typeof v === 'number' && Number.isFinite(v) && v >= 0.01 && v <= 20)) return null;
   let url: URL;
   try { url = new URL(raw.glb_url); } catch { return null; }
-  if (url.protocol !== 'https:' || url.hostname !== 'amazon-berkeley-objects.s3.amazonaws.com' || url.port
-    || url.username || url.password || url.search || !/^\/3dmodels\/original\/[a-zA-Z0-9/_-]+\.glb$/.test(url.pathname)) return null;
-  url.hash = raw.wd_swapped === true ? 'varpet-rotate-y=90' : '';
+  const original = url.protocol === 'https:' && url.hostname === 'amazon-berkeley-objects.s3.amazonaws.com'
+    && !url.port && /^\/3dmodels\/original\/[a-zA-Z0-9/_-]+\.glb$/.test(url.pathname);
+  const model = /^\/models\/([A-Za-z0-9_-]{1,120}\.glb)$/.exec(url.pathname);
+  const catalogModel = (url.protocol === 'http:' || url.protocol === 'https:')
+    && url.hostname === '100.107.246.46' && url.port === '8765' && model;
+  if (url.username || url.password || url.search || (!original && !catalogModel)) return null;
+  const orientation = raw.wd_swapped === true ? '#varpet-rotate-y=90' : '';
+  url.hash = orientation;
+  const modelUrl = catalogModel ? `/api/catalog/models/${model![1]}${orientation}` : url.href;
   const [width, depth, height] = size as [number, number, number];
   const imageColor = Array.isArray(raw.colors_img) ? raw.colors_img.find(c => record(c) && typeof c.hex === 'string' && /^#[a-f0-9]{6}$/i.test(c.hex)) : undefined;
   return {
-    asset: { id: raw.id, name: raw.name.trim().slice(0, 120), kind: kinds[raw.kind]!, category: raw.kind,
+    asset: { id: raw.id, name: raw.name.trim().slice(0, 120), kind: kinds[raw.kind]!, category: catalogCategory(kinds[raw.kind]!),
       dimensions: raw.wd_swapped === true ? [depth, height, width] : [width, height, depth],
       color: record(imageColor) ? imageColor.hex as string : '#b8b4ad', price: raw.price,
-      source: { type: 'gltf', url: url.href } },
+      source: { type: 'gltf', url: modelUrl } },
     priceSource: text(raw.price_source, 100) ? raw.price_source : 'unverified',
     sizeStatus: text(raw.size_status, 100) ? raw.size_status : 'unverified',
-    attribution: `Amazon Berkeley Objects · ${raw.license}`,
+    attribution: `${raw.id.startsWith('extra:') ? 'Extra catalog' : 'Amazon Berkeley Objects'} · ${raw.license}`,
   };
 }
 

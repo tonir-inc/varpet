@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import { once } from 'node:events';
 import test from 'node:test';
+import { Writable } from 'node:stream';
 
 const catalog = await import('./catalog.mjs').catch(error => {
   if (error.code === 'ERR_MODULE_NOT_FOUND' && error.message.includes('server/catalog.mjs')) return {};
@@ -167,7 +168,7 @@ test('a model without a light copy is an uncached 404 so the browser falls back 
 test('model routes accept only GET of a plain .glb name and never reach the catalog otherwise', async t => {
   const stub = models({});
   const url = await editor(t, { fetch: stub.fetch });
-  for (const name of ['..%2Fsecret.glb', 'B0718WYQ8D.gltf', 'a.b.glb', `${'x'.repeat(41)}.glb`]) {
+  for (const name of ['..%2Fsecret.glb', 'B0718WYQ8D.gltf', 'a.b.glb', `${'x'.repeat(121)}.glb`]) {
     assert.equal((await fetch(`${url}/api/catalog/models/${name}`)).status, 404, name);
   }
   assert.equal((await fetch(`${url}/api/catalog/models/B0718WYQ8D.glb`, { method: 'POST' })).status, 405);
@@ -186,5 +187,24 @@ test('search pages forward an offset and return where the next page starts', asy
   assert.deepEqual(search.params.arguments, { text: 'sofa', limit: 20, offset: 20 });
   for (const bad of ['-1', '1.5', 'x', '100001']) {
     assert.equal((await fetch(`${url}/api/catalog/search?text=sofa&offset=${bad}`)).status, 400, bad);
+  }
+});
+
+test('long extra model names up to 120 characters are relayed', async () => {
+  const glb = new Uint8Array([0x67, 0x6c, 0x54, 0x46]);
+  for (const length of [90, 120, 121]) {
+    const name = `extra-appliances-${'x'.repeat(length - 17)}.glb`;
+    const stub = models({ [`/models/${name}`]: glb });
+    const middleware = catalog.createCatalogMiddleware({ fetch: stub.fetch, url: 'http://catalog.test/mcp' });
+    const chunks = [];
+    let status;
+    const response = new Writable({ write(chunk, _encoding, done) { chunks.push(chunk); done(); } });
+    response.writeHead = code => { status = code; };
+    await middleware({ method: 'GET', url: `/api/catalog/models/${name}` }, response, () => assert.fail('Unexpected route'));
+    assert.equal(status, length <= 120 ? 200 : 404);
+    if (length <= 120) {
+      assert.deepEqual(new Uint8Array(Buffer.concat(chunks)), glb);
+      assert.equal(stub.calls[0].url, `http://catalog.test/models/${name}`);
+    } else assert.deepEqual(stub.calls, []);
   }
 });

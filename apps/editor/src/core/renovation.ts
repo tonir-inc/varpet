@@ -453,7 +453,7 @@ export function analyzeProject(scene: SceneDocument, catalog: CatalogAsset[]): P
   for (const object of scene.objects) {
     const asset = catalog.find(a => a.id === object.assetId);
     if (project.metadata[object.id]?.phase === 'remove') continue;
-    const databasePrice = asset?.id.startsWith('abo:');
+    const databasePrice = (asset?.id.startsWith('abo:') || asset?.id.startsWith('extra:'));
     const currencyMismatch = databasePrice && project.currency !== 'AMD';
     if (currencyMismatch) issue(`catalog-currency:${object.id}`, object.id, 'Furniture price excluded from estimate', 'This database price is in AMD. Set the project currency to AMD after reviewing other allowances; no currency conversion is performed.');
     if (databasePrice) issue(`catalog-price:${object.id}`, object.id, 'Database furniture price needs verification', 'ABO catalog prices are mock AMD amounts, not shop quotations. Check the product price source in Furniture.', 'info');
