@@ -1,0 +1,22 @@
+{
+  "name": "tall-oak-bookshelf",
+  "size": [0.8, 0.35, 2.0],
+  "materials": {
+    "oak": {"finish": "oak", "color": "#a98460"},
+    "oak-dark": {"finish": "oak", "color": "#6e5238"},
+    "oak-back": {"finish": "oak", "color": "#8f6d4c"}
+  },
+  "parts": [
+    {"id": "side", "size": [0.025, 0.35, 1.97], "material": "oak", "grain": "z",
+     "attach": {"to": "piece", "at": [0, 0.5, 0], "self": [0, 0.5, 0]}, "mirror": ["x"]},
+    {"id": "top", "size": [0.8, 0.35, 0.03], "material": "oak", "grain": "x",
+     "attach": {"to": "piece", "at": [0.5, 0.5, 1], "self": [0.5, 0.5, 1]}},
+    {"id": "plinth", "size": [0.75, 0.3, 0.07], "material": "oak-dark", "grain": "x",
+     "attach": {"to": "piece", "at": [0.5, 1, 0], "self": [0.5, 1, 0], "offset": [0, -0.005, 0]}},
+    {"id": "back", "size": [0.75, 0.012, 1.9], "material": "oak-back", "grain": "z",
+     "attach": {"to": "top", "at": [0.5, 1, 0], "self": [0.5, 1, 1]}},
+    {"id": "shelf", "size": [0.75, 0.32, 0.025], "material": "oak", "grain": "x",
+     "attach": {"to": "back", "at": [0.5, 0, 0], "self": [0.5, 1, 0]},
+     "repeat": {"axis": "z", "count": 5, "step": 0.37}}
+  ]
+}

@@ -8,6 +8,25 @@ importers:
 
   .: {}
 
+  apps/buyer:
+    dependencies:
+      three:
+        specifier: ^0.186.1
+        version: 0.186.1
+    devDependencies:
+      '@types/three':
+        specifier: ^0.186.0
+        version: 0.186.0
+      playwright:
+        specifier: ^1.56.0
+        version: 1.63.0
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
+      vite:
+        specifier: ^8.3.1
+        version: 8.3.1(@types/node@26.6.3)(esbuild@0.28.2)(tsx@4.23.15)
+
   apps/editor:
     dependencies:
       '@modelcontextprotocol/sdk':
