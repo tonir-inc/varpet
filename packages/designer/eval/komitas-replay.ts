@@ -19,6 +19,8 @@ for(const row of run.rows){
   const telemetry=events.reverse().find(v=>v.kind==='turn_telemetry');
   row.actual_profile=telemetry?{model:telemetry.model,effort:telemetry.effort,...telemetry.profile}:null;
   if(row.actual_profile?.model!=='gpt-6-astra'||row.actual_profile?.effort!=='low'||row.actual_profile?.placement!=='without-place'||row.actual_profile?.context!=='compact-base'){row.pass=false;row.reasons.push('profile_unverified');}
+  row.fast_path_env=telemetry?.fast_path_env??null;
+  if(run.fast_path_env&&run.fast_path_env!==row.fast_path_env){row.pass=false;row.reasons.push('fast_path_unverified');}
   cid=row.conversationId;
   console.log(`${row.kind}: ${row.pass?'PASS':'FAIL'}; revision ${store.revision}; ${row.reasons.join(', ')}`);
 }

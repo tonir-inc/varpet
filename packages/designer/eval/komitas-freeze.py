@@ -1,5 +1,6 @@
 """Frozen paired benchmark, four live conversations total; no product changes."""
 import importlib.util
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -15,8 +16,26 @@ batch = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(batch)
 
 
+def validate_inputs(cohort, here):
+    for name, digest in cohort['inputs'].items():
+        if hashlib.sha256((here / 'komitas' / name).read_bytes()).hexdigest() != digest:
+            raise ValueError(f'Input changed: {name}')
+    for identifier in cohort['ids']:
+        for arm in ('on', 'off'):
+            output = here / 'komitas-runs' / f'{identifier}-freeze-{arm}'
+            if output.exists() and any(output.iterdir()):
+                raise ValueError(f'Refusing to overwrite evidence: {output}')
+    for arm in ('on', 'off'):
+        if (here / 'komitas-runs' / f'freeze-{arm}-service.log').exists():
+            raise ValueError('Refusing to overwrite service evidence')
+
+
 def main():
     cohort = json.loads((HERE / 'komitas-freeze-cohort.json').read_text())
+    validate_inputs(cohort, HERE)
+    subprocess.run(['git', 'diff', '--exit-code', cohort['product_source'], '--',
+                    'harness', 'packages/designer/src', 'packages/designer/knowledge',
+                    'apps/editor/src', 'catalog'], cwd=ROOT, check=True, stdout=subprocess.DEVNULL)
     services = []
     logs = []
     ports = {'on': 8794, 'off': 8795}
@@ -30,7 +49,8 @@ def main():
             services.append(subprocess.Popen([
                 '/tmp/varpet-designer-sdk/bin/python', '-u', str(HERE / 'komitas-service.py'),
                 '--output', f'/tmp/komitas-freeze-{arm}-events', '--port', str(port)],
-                cwd=ROOT, env={**os.environ, 'VARPET_DESIGNER_FAST_PATH': '1' if arm == 'on' else '0'},
+                cwd=ROOT, env={**os.environ, 'VARPET_DESIGNER_FAST_PATH': '1' if arm == 'on' else '0',
+                               'VARPET_CATALOG_URL': 'http://localhost:8765/mcp'},
                 stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT, start_new_session=True))
             for _ in range(100):
                 if services[-1].poll() is not None:
@@ -46,6 +66,10 @@ def main():
         def run(identifier, arm):
             if batch.STOP.is_set():
                 return 1
+            scene = HERE / 'komitas' / f'{identifier}.scene.json'
+            if hashlib.sha256(scene.read_bytes()).hexdigest() != cohort['inputs'][scene.name]:
+                batch.STOP.set()
+                raise ValueError(f'Input changed before request: {scene.name}')
             output = HERE / 'komitas-runs' / f'{identifier}-freeze-{arm}'
             output.mkdir(parents=True, exist_ok=True)
             return batch.watched([
