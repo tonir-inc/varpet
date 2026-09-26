@@ -27,6 +27,9 @@ class Job(BaseModel):
     size: list[float] | None = Field(
         default=None, min_length=3, max_length=3, description="[w, d, h] in metres, pieces only"
     )
+    size_estimated: bool = Field(
+        default=False, description="True when no plan or photo gives the size"
+    )
     refs: list[str] = Field(default=[], description="Plan or photo paths relative to the repo")
     skills: list[str] = Field(default=[], description="Only the skills this job needs")
     effort: Effort = "low"

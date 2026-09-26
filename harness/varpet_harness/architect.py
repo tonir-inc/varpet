@@ -10,13 +10,16 @@ import json
 from pathlib import Path
 
 from openai_codex import ApprovalMode, AsyncCodex, LocalImageInput, Sandbox, TextInput
+from pydantic import ValidationError
 
+from .codex_runner import thread_config
 from .dispatch import Report
 from .graph import Graph, strict_schema
 
 PLAN_PROMPT = """You are the architect for flat "{flat}". Plan jobs; do not build anything.
 Jobs: one `shell` job from the plan; one `piece` job per furniture piece that is not
-in the catalog below, with its true size [w, d, h] in metres; `designer` jobs last,
+in the catalog below, with its size [w, d, h] in metres (if the plan and photos
+do not give it, use a typical size and set size_estimated); `designer` jobs last,
 depending on the shell and the pieces they arrange. Identical pieces are one job.
 Give each job only the skills it needs from: {skills}.
 Catalog SKUs already built (do not make piece jobs for these): {catalog}
@@ -44,14 +47,32 @@ async def plan(
         sandbox=Sandbox.read_only,
         cwd=str(repo),
         model=model,
-        config={"project_doc_max_bytes": 0},
+        config=thread_config(),
     )
     try:
         items = [TextInput(prompt), *(LocalImageInput(path=str(repo / p)) for p in photos)]
-        result = await thread.run(items, output_schema=strict_schema(), effort="medium")
+        schema = strict_schema()
+        result = await thread.run(items, output_schema=schema, effort="medium")
+        try:
+            return settle(Graph.model_validate_json(result.final_response or ""), plan_path)
+        except ValidationError as e:
+            # Same pattern as the builder: code checks, one fix call.
+            fix = f"The graph failed validation. Fix only this and return the whole graph:\n{e}"
+            result = await thread.run(fix, output_schema=schema, effort="medium")
+            return settle(Graph.model_validate_json(result.final_response or ""), plan_path)
     finally:
         await codex.thread_archive(thread.id)
-    return Graph.model_validate_json(result.final_response or "")
+
+
+def settle(graph: Graph, plan_path: str) -> Graph:
+    """Mechanical fixes in code, not in the prompt: pieces run at low effort
+    (Astra low beat medium, 0.907 vs 0.876) and the shell always sees the plan."""
+    for job in graph.jobs:
+        if job.kind == "piece":
+            job.effort = "low"
+        if job.kind == "shell" and plan_path not in job.refs:
+            job.refs.insert(0, plan_path)
+    return graph
 
 
 def failures(report: Report) -> list[str]:

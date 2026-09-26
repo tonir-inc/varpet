@@ -63,3 +63,15 @@ async def test_limit_stops_batch(tmp_path):
     report = await dispatch(graph, Scripted(stop="a"), tmp_path)
     assert report.stopped == "usage limit reached"
     assert {r.status for r in report.results.values()} == {"voided"}
+
+
+def test_settle_forces_low_piece_effort_and_plan_ref():
+    from varpet_harness.architect import settle
+
+    graph = Graph(flat="t", jobs=[
+        {"id": "shell", "kind": "shell", "brief": "x", "effort": "high"},
+        {"id": "sofa", "kind": "piece", "brief": "x", "size": [2, 1, 1], "effort": "medium"},
+    ])
+    settle(graph, "fixtures/plan.png")
+    assert graph.jobs[0].refs == ["fixtures/plan.png"] and graph.jobs[0].effort == "high"
+    assert graph.jobs[1].effort == "low"
