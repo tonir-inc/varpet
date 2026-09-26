@@ -7,7 +7,7 @@ import {wallOutward} from './adapter.js';
 import {isOutdoorRoom} from './balcony.js';
 
 type Piece={kind:string;name:string;size:[number,number,number];sku?:string};
-export const isCurtain=(p:Pick<Piece,'kind'>)=>p.kind==='curtain';
+export const isCurtain=(p:Pick<Piece,'kind'>)=>p.kind==='curtain'||p.kind==='blind';
 /** Mirrors the editor's hangsFromCeiling: named hanging planters, never wall, deck or railing planters. */
 export const isHangingPlanter=(p:Piece)=>['plant','decor'].includes(p.kind)&&(/\bhanging\b/i.test(p.name)||/(^|:)hanging-/i.test(p.sku??''))
  &&/\b(plant|planter|pot|basket)s?\b/i.test(p.name)&&!/\b(wall|deck|rail|railing|balcony|print|art)\b/i.test(p.name);
