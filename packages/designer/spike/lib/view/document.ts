@@ -12,6 +12,7 @@ import { defaultCeilingDesign } from '../../../../../apps/editor/src/core/ceilin
 import { roomCeilingHeight } from '../../../../../apps/editor/src/core/heights.js';
 import { migrateScene } from '../../../../../apps/editor/src/core/renovation.js';
 import { wallSurfaceSpans } from '../../../../../apps/editor/src/core/wall-surfaces.js';
+import { normalizeWallJunctions } from '../../../../../apps/editor/src/core/wall-junctions.js';
 import { headlessSurface, placeFurniture } from '../../../../../apps/editor/src/core/furniture-support.js';
 import { FIXTURE_DEFAULTS, fixtureBottom, material, onFloor, type Draft, type DraftItem } from '../finishes.js';
 import { CATALOG_CACHE } from './state.js';
@@ -30,11 +31,41 @@ function editorShell(scene: Scene, source?: unknown): SceneDocument {
     const doc = structuredClone(source) as SceneDocument, rooms = new Set(doc.rooms.map(room => room.id));
     const missing = scene.rooms.filter(room => !rooms.has(room.id)).map(room => room.id);
     if (missing.length) throw new Error(`source.json has no rooms ${missing.join(', ')}; it is not this scene's editor document`);
-    return { ...doc, objects: [] };
+    return withSceneSections(scene, { ...doc, objects: [] });
   }
   const rooms = new Set(demoScene.rooms.map(room => room.id));
   if (!scene.rooms.every(room => rooms.has(room.id))) throw new Error('renderView supports the Avani demo shell only (room ids must match apps/editor demoScene)');
-  return { ...structuredClone(demoScene), objects: [] };
+  return withSceneSections(scene, { ...structuredClone(demoScene), objects: [] });
+}
+
+/** A scene made from a junction-split document names wall sections (`wall-south:section-…`) that the saved document
+ * does not have yet. The editor's own normalization makes the same deterministic section ids, so wall finishes and
+ * wall-hung items find their wall; if it cannot split (a mounted component across a junction), walls are matched by
+ * geometry instead (editorWall). */
+function withSceneSections(scene: Scene, doc: SceneDocument): SceneDocument {
+  const known = new Set(doc.walls.map(wall => wall.id));
+  if (scene.walls.every(wall => known.has(wall.source_id ?? wall.id))) return doc;
+  try { return normalizeWallJunctions(migrateScene(doc)); } catch (error) {
+    process.stderr.write(`renderView: wall sections not split (${error instanceof Error ? error.message : error}); matching walls by geometry\n`);
+    return doc;
+  }
+}
+
+/** The editor wall a designer wall lies on: by id, else the editor wall whose centreline contains both its ends. */
+function editorWall(doc: SceneDocument, scene: Scene, designerWallId: string | undefined) {
+  const designer = scene.walls.find(wall => wall.id === designerWallId);
+  if (!designer) return undefined;
+  const byId = doc.walls.find(wall => wall.id === (designer.source_id ?? designer.id));
+  if (byId) return byId;
+  const ends = [designer.a, designer.b].map(([x, y]) => [x, -y] as const);
+  return doc.walls.find(wall => {
+    const dx = wall.end[0] - wall.start[0], dz = wall.end[1] - wall.start[1], length = Math.hypot(dx, dz);
+    if (length < 1e-6) return false;
+    return ends.every(([x, z]) => {
+      const along = ((x - wall.start[0]) * dx + (z - wall.start[1]) * dz) / length, across = Math.abs((x - wall.start[0]) * dz - (z - wall.start[1]) * dx) / length;
+      return across < 0.03 && along > -0.03 && along < length + 0.03;
+    });
+  });
 }
 
 async function loadAssets(skus: string[]): Promise<CatalogAsset[]> {
@@ -91,7 +122,7 @@ export async function editorDocument(scene: Scene, draft: Draft, source?: unknow
 
 /** Flat on the room-side face of the editor wall behind the item, base at height_m - h/2. */
 function hang(doc: SceneDocument, scene: Scene, item: DraftItem, object: SceneObject): SceneObject {
-  const designerWall = scene.walls.find(wall => wall.id === item.wall_id), wall = doc.walls.find(candidate => candidate.id === (designerWall?.source_id ?? designerWall?.id));
+  const wall = editorWall(doc, scene, item.wall_id);
   if (!wall) { process.stderr.write(`renderView: ${item.id} wall ${item.wall_id} has no editor wall; left on the floor\n`); return object; }
   const [w, d, h] = item.size, dx = wall.end[0] - wall.start[0], dz = wall.end[1] - wall.start[1], length = Math.hypot(dx, dz) || 1, tx = dx / length, tz = dz / length;
   const px = object.position[0], pz = object.position[2];
@@ -145,7 +176,7 @@ export function applySurfaces(input: SceneDocument, scene: Scene, draft: Draft):
     if (finish.surface === 'floor' || finish.surface === 'ceiling') { assign(finish.room_id, finish.surface, id); continue; }
     const target = finish.surface === 'wall' ? scene.walls.find(wall => wall.id === finish.wall_id) : undefined;
     const walls = scene.walls.filter(wall => wall.room_id === finish.room_id && (!target || (wall.source_id ?? wall.id) === (target.source_id ?? target.id)));
-    for (const editorId of new Set(walls.map(wall => wall.source_id ?? wall.id))) {
+    for (const editorId of new Set(walls.flatMap(wall => editorWall(doc, scene, wall.id)?.id ?? []))) {
       const side = face(editorId, finish.room_id);
       if (side) assign(editorId, side, id);
     }
