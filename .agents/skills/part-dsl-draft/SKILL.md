@@ -23,8 +23,15 @@ Optional: `rotate` [x,y,z] degrees about the part centre; `mirror` ["x","y"] add
 centre of the box it is placed on (four legs = one leg + mirror x,y); `repeat` {"axis","count","step"} for shelves and rails.
 
 ## Materials
-`materials`: name -> `{"color": "#rrggbb", "roughness": 0..1, "kind": plain|metal|mirror|glass|fabric}`.
-Mirrors and glass need their own material. One flat colour per part, taken from the photo.
+`materials`: name -> `{"finish": <id below>, "color": "#rrggbb", "roughness": 0..1 (optional)}`.
+- Pick the finish that matches what the photo shows (wood species, fabric weave, stone, metal).
+- `color` is the part's colour as seen in the photo; it tints the finish exactly. Leave it out for the usual colour.
+- Mirrors and glass: `{"kind": "mirror"}` or `{"kind": "glass", "color": ...}`, no finish.
+- For wood and brushed metal set the part's `grain` to the axis the grain runs along (usually its longest side).
+- A part with no material is plain grey: avoid it.
+
+<!-- finishes:start -->
+<!-- finishes:end -->
 
 ## Checks (you get these back as faults)
 - size within max(2 cm, 3%) of the true size on every axis;
@@ -44,8 +51,8 @@ Mirrors and glass need their own material. One flat colour per part, taken from 
   "name": "dining-chair",
   "size": [0.45, 0.5, 0.85],
   "materials": {
-    "oak": {"color": "#a57c52", "roughness": 0.55},
-    "linen": {"color": "#d9d2c5", "roughness": 0.9, "kind": "fabric"}
+    "oak": {"finish": "oak", "color": "#a57c52"},
+    "linen": {"finish": "linen", "color": "#d9d2c5"}
   },
   "parts": [
     {"id": "seat", "size": [0.45, 0.5, 0.04], "material": "oak",

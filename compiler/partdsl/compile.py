@@ -16,8 +16,9 @@ from pathlib import Path
 import numpy as np
 import trimesh
 from pydantic import ValidationError
-from trimesh.visual.material import PBRMaterial
+from trimesh.visual import TextureVisuals
 
+from .materials import box_uv, library, pbr
 from .program import Material, Part, Program
 
 FLOOR_TOL = 0.005  # m
@@ -57,6 +58,20 @@ def _shape(p: Part, size: np.ndarray) -> trimesh.Trimesh:
     return trimesh.convex.convex_hull(np.vstack(corners))
 
 
+def _uv(mesh: trimesh.Trimesh, p: Part, prog: Program) -> trimesh.Trimesh:
+    """Unmerge so each face owns its vertices, then box-project in part-local metres."""
+    mat = prog.materials.get(p.material)
+    fin = library().get(mat.finish) if mat and mat.finish else None
+    mesh.unmerge_vertices()
+    normals = mesh.face_normals[np.repeat(np.arange(len(mesh.faces)), 3)]
+    verts = mesh.vertices[mesh.faces.reshape(-1)]
+    uv = np.zeros((len(mesh.vertices), 2))
+    uv[mesh.faces.reshape(-1)] = box_uv(verts, normals, fin.tile_m if fin else 1.0,
+                                        AXIS[p.grain] if p.grain else None)
+    mesh.visual = TextureVisuals(uv=uv)
+    return mesh
+
+
 def _box(bounds: dict[str, tuple[np.ndarray, np.ndarray]], ref: str, piece: np.ndarray):
     if ref in ("piece", "floor"):
         return np.array([-piece[0] / 2, -piece[1] / 2, 0.0]), np.array([piece[0] / 2, piece[1] / 2, piece[2]])
@@ -94,6 +109,7 @@ def build(prog: Program) -> list[Instance]:
             xy = tlo[:2] + np.array(b.at) * (thi[:2] - tlo[:2])
             centre = np.array([xy[0], xy[1], (z0 + z1) / 2])
         mesh = _shape(p, size)
+        mesh = _uv(mesh, p, prog)
         mesh.apply_translation(centre)
         mesh.apply_transform(_rotation(p.rotate, centre))
         bounds[p.id] = (mesh.bounds[0].copy(), mesh.bounds[1].copy())
@@ -174,21 +190,14 @@ def _groups(parts: list[Instance], idx: list[int]) -> list[list[int]]:
     return groups
 
 
-def _pbr(m: Material) -> PBRMaterial:
-    rgb = [int(m.color[i : i + 2], 16) / 255 for i in (1, 3, 5)]
-    alpha = 0.3 if m.kind == "glass" else 1.0
-    metal = 1.0 if m.kind in ("metal", "mirror") else 0.0
-    rough = 0.02 if m.kind in ("mirror", "glass") else m.roughness
-    return PBRMaterial(baseColorFactor=[*rgb, alpha], metallicFactor=metal, roughnessFactor=rough,
-                       alphaMode="BLEND" if alpha < 1 else "OPAQUE")
-
-
 def export(prog: Program, parts: list[Instance], path: Path) -> None:
     scene = trimesh.Scene()
     mats = {"default": Material()} | prog.materials
     for p in parts:
+        m = mats[p.material]
         mesh = p.mesh.copy().apply_transform(Z_UP_TO_GLTF)
-        mesh.visual = trimesh.visual.TextureVisuals(material=_pbr(mats[p.material]))
+        mesh.visual = TextureVisuals(uv=p.mesh.visual.uv, material=pbr(m.finish, m.color, m.kind, m.roughness))
+        mesh.metadata["extras"] = {"finish": m.finish, "tint": m.color}
         scene.add_geometry(mesh, node_name=p.id, geom_name=p.id)
     path.write_bytes(scene.export(file_type="glb"))
 

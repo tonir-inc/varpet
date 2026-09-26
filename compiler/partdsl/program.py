@@ -21,10 +21,22 @@ Axis = Literal["x", "y", "z"]
 
 
 class Material(BaseModel):
+    """`finish` is a catalog/materials id; `color` tints it to the photo's colour."""
+
     model_config = ConfigDict(extra="forbid")
-    color: str = Field(default="#b0b0b0", pattern=r"^#[0-9a-fA-F]{6}$")
-    roughness: float = Field(default=0.6, ge=0, le=1)
+    finish: str | None = None
+    color: str | None = Field(default=None, pattern=r"^#[0-9a-fA-F]{6}$")
+    roughness: float | None = Field(default=None, ge=0, le=1)
     kind: Literal["plain", "metal", "mirror", "glass", "fabric"] = "plain"
+
+    @model_validator(mode="after")
+    def _known_finish(self) -> Material:
+        from .materials import library
+
+        if self.finish is not None and self.finish not in library():
+            known = ", ".join(sorted(library())) or "none installed"
+            raise ValueError(f"unknown finish {self.finish}; known: {known}")
+        return self
 
 
 class Attach(BaseModel):
@@ -73,6 +85,7 @@ class Part(BaseModel):
     rotate: Vec3 = Field(default=(0.0, 0.0, 0.0), description="degrees about the part centre, x then y then z")
     mirror: list[Axis] = Field(default=[], description="add copies reflected through the centre of the box it is placed on")
     repeat: Repeat | None = None
+    grain: Axis | None = Field(default=None, description="axis the texture grain runs along")
 
     @model_validator(mode="after")
     def _one_placement(self) -> Part:
