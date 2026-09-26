@@ -35,7 +35,7 @@ DONE: 7 of 7.
 
 Not proven: usable complete furnishing across these flats (strict pass 9/38), kids budget satisfaction, sofa rearrangement with a sofa present, taste quality, or any product fix. These are measured failures/limitations of the evaluated product path, not missing benchmark runs.
 
-Final push retry verification, measured 2026-09-26 13:14:59 UTC after clean rebase onto `e8e22f9` (the first push was rejected because main advanced):
+First push retry verification, measured 2026-09-26 13:14:59 UTC after clean rebase onto `e8e22f9` (the first push was rejected because main advanced):
 ```text
 VITEST_MAX_WORKERS=1 pnpm test: exit 0
 Designer: 81 files, 407 tests passed
@@ -47,3 +47,5 @@ Explicit eval TypeScript check: exit 0, no diagnostics
 Explicit eval Python check: Ran 39 tests in 2.354s — OK
 ```
 Fresh review's final verdict was APPROVE. Its low-severity evidence-link note was corrected: source hashes are in the cohort and screenshot hashes are in the audit.
+
+Further push race: main advanced to `0a18e32`, then `d09f870`. After the first of those rebases the same full command sequence again passed: 407 designer TS tests, 122 harness tests, 39 eval tests, 12 showcase, 7 tools, editor 6 + 67 plus all check scripts; four typecheck scripts and explicit eval tsc passed. The explicit Python run was 39 tests in 3.262s. Every push retry repeats the root and eval checks before attempting the non-forced push; benchmark source and measurements remain unchanged.
