@@ -12,3 +12,4 @@ assets/build/
 .claude/settings.local.json
 catalog/data/
 .env
+catalog/eval/sheets/

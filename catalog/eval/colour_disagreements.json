@@ -1,0 +1,249 @@
+{
+ "note": "Dominant colour of 38 items where listing and image colour disagreed. Labelled by Claude from the product photo, 26 Sept; not a human label.",
+ "items": [
+  {
+   "id": "abo:B075X2R3BX",
+   "truth": [
+    "white"
+   ]
+  },
+  {
+   "id": "abo:B07QFB4XGC",
+   "truth": [
+    "grey"
+   ]
+  },
+  {
+   "id": "abo:B01M5BDH0H",
+   "truth": [
+    "black"
+   ]
+  },
+  {
+   "id": "abo:B07B4MHTG1",
+   "truth": [
+    "white"
+   ]
+  },
+  {
+   "id": "abo:B07PBZVP9S",
+   "truth": [
+    "beige"
+   ]
+  },
+  {
+   "id": "abo:B07QGDQ1RF",
+   "truth": [
+    "orange",
+    "pink"
+   ]
+  },
+  {
+   "id": "abo:B07BWJCBS6",
+   "truth": [
+    "blue",
+    "grey"
+   ]
+  },
+  {
+   "id": "abo:B07QGWNP22",
+   "truth": [
+    "beige"
+   ]
+  },
+  {
+   "id": "abo:B07B8PXJJW",
+   "truth": [
+    "blue"
+   ]
+  },
+  {
+   "id": "abo:B0831Q111L",
+   "truth": [
+    "grey"
+   ]
+  },
+  {
+   "id": "abo:B082QD7WY8",
+   "truth": [
+    "black"
+   ]
+  },
+  {
+   "id": "abo:B07QK35B7K",
+   "truth": [
+    "brown",
+    "yellow"
+   ]
+  },
+  {
+   "id": "abo:B07DBD9WD6",
+   "truth": [
+    "grey"
+   ]
+  },
+  {
+   "id": "abo:B082XLG9TD",
+   "truth": [
+    "white"
+   ]
+  },
+  {
+   "id": "abo:B075QL8KCM",
+   "truth": [
+    "blue",
+    "green",
+    "grey"
+   ]
+  },
+  {
+   "id": "abo:B075QLB1ZZ",
+   "truth": [
+    "blue",
+    "green",
+    "grey"
+   ]
+  },
+  {
+   "id": "abo:B073P2DNTD",
+   "truth": [
+    "white",
+    "yellow"
+   ]
+  },
+  {
+   "id": "abo:B075YLXVJC",
+   "truth": [
+    "black"
+   ]
+  },
+  {
+   "id": "abo:B07QB8K1GS",
+   "truth": [
+    "pink"
+   ]
+  },
+  {
+   "id": "abo:B07B4MQRH3",
+   "truth": [
+    "white"
+   ]
+  },
+  {
+   "id": "abo:B0871D4XPB",
+   "truth": [
+    "grey",
+    "white"
+   ]
+  },
+  {
+   "id": "abo:B07VB7Q6W7",
+   "truth": [
+    "brown"
+   ]
+  },
+  {
+   "id": "abo:B07B3X7977",
+   "truth": [
+    "brown",
+    "yellow"
+   ]
+  },
+  {
+   "id": "abo:B07B4FZF3V",
+   "truth": [
+    "beige"
+   ]
+  },
+  {
+   "id": "abo:B07QJJKZLD",
+   "truth": [
+    "grey"
+   ]
+  },
+  {
+   "id": "abo:B082YNV6F7",
+   "truth": [
+    "grey",
+    "brown"
+   ]
+  },
+  {
+   "id": "abo:B075X3SJ4V",
+   "truth": [
+    "beige",
+    "white"
+   ]
+  },
+  {
+   "id": "abo:B071DZHLXH",
+   "truth": [
+    "black"
+   ]
+  },
+  {
+   "id": "abo:B07B4WH7YL",
+   "truth": [
+    "blue"
+   ]
+  },
+  {
+   "id": "abo:B07TXPXJTB",
+   "truth": [
+    "black",
+    "grey"
+   ]
+  },
+  {
+   "id": "abo:B07B4D84F8",
+   "truth": [
+    "green"
+   ]
+  },
+  {
+   "id": "abo:B0824F9LLQ",
+   "truth": [
+    "black",
+    "white"
+   ]
+  },
+  {
+   "id": "abo:B07B4CZRMJ",
+   "truth": [
+    "blue"
+   ]
+  },
+  {
+   "id": "abo:B07B4ML8YQ",
+   "truth": [
+    "blue"
+   ]
+  },
+  {
+   "id": "abo:B07V6Z97QJ",
+   "truth": [
+    "white"
+   ]
+  },
+  {
+   "id": "abo:B07MBFDX67",
+   "truth": [
+    "blue",
+    "grey"
+   ]
+  },
+  {
+   "id": "abo:B07GFL6W68",
+   "truth": [
+    "white"
+   ]
+  },
+  {
+   "id": "abo:B0853VK491",
+   "truth": [
+    "brown",
+    "grey"
+   ]
+  }
+ ]
+}
