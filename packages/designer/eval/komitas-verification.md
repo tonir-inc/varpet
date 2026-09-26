@@ -105,3 +105,45 @@ The first full-suite attempt found `gltf-validator` absent locally: three suites
 Fresh read-only reviewer `komitas_live_review`: APPROVE after fixes for hash enforcement, pre-spawn overwrite refusal, replay arm verification and unknown measurement rendering. The protected production paths match the frozen revision, including tracked working-tree changes; inputs are rehashed before each job. Reviewer independently passed 13 focused tests. All new files/edits remain in `packages/designer/eval/`; SERVICE input scenes and ground truth remain untouched.
 
 NOT COMPLETE: no live customer turns are proven while the shared catalog HTTP endpoint is unresponsive. A service listener, successful unit tests or prepared runner is not an end-to-end benchmark. The original six-flat measurements are preserved separately in `komitas-pre-freeze.md`; they are not attributed to the current fixes. The freeze launcher has not started its private services or any model workers. No process on ports 5180, 5190, 8787 or 8788 was started, stopped or restarted by this task.
+
+## Completed paired rerun — 2026-09-26 14:59 UTC
+
+This section supersedes the catalog-blocked readiness status above. Measured product source `303677a`, runner source `299eff9`; all nine frozen inputs unchanged. No production fixes or post-hoc grading changes were made.
+
+Proving commands and measured output:
+```text
+python3 -u packages/designer/eval/komitas-freeze.py < /dev/null
+exit 0; 18 conversations completed, 116 turns; final batch event:
+{"finished": ["b31-t46", "off"], "failures": []}
+python3 packages/designer/eval/komitas-freeze-report.py
+ON: passed 20 / 58; proposals accepted 13 / 13
+OFF: passed 21 / 58; proposals accepted 13 / 13
+komitas-replay.ts on all 18 saved run directories: all exit 0
+komitas-capture.py on all 18 final states: all exit 0; 36 PNGs
+VITEST_MAX_WORKERS=1 pnpm test: exit 0
+Designer: 112 files passed; 504 tests passed
+Harness: Ran 183 tests in 21.497s — OK
+Eval Python: Ran 48 tests in 2.783s — OK
+Showcase: 12 passed; editor server: 28 passed; editor application: 139 passed
+All remaining editor check scripts: Done
+pnpm typecheck: all four workspace typecheck scripts Done; exit 0
+pnpm --filter @varpet/designer exec tsc -p eval/komitas-tsconfig.json: exit 0
+python3 -m unittest discover -s packages/designer/eval -p 'test_*.py':
+Ran 48 tests in 2.552s — OK
+```
+The unit tests deliberately exercise simulated usage limits; their printed `EVAL_USAGE_LIMIT` markers are test output, not live-run limits. Live conversations had no usage-limit stops or watchdog expirations. Audit hashes and all capture/replay logs are committed with the results. The private services (8794/8795) and capture browser server (5197) were stopped after use; their listeners are absent. No operation touched reserved ports 5180, 5190, 8787 or 8788.
+
+Assumed: retain the prepared 900-product live snapshot plus 18 local editor assets in both arms, the exact nine-flat cohort, and the unchanged conservative title/clearance rubric. Nothing from the paired benchmark is descoped; complete customer furnishing is not proven (strict pass 34.5%/36.2%). Current browser catalog-payload latency, fixture-obstacle handling in component-free shells, and real retail prices are not proven. Three display-name errors are isolated offline, not fixed in another lane's production code.
+
+Definition-of-done evidence:
+- 1: Live command, report, 18 replays and 36 captures above; raw outputs under `komitas-runs/*-freeze-{on,off}/`.
+- 2: Untargeted root test and typecheck output above; targeted checks follow the user's clean-rebase push rule.
+- 3: Added `komitas-assets.test.ts` covers by-ID catalog hydration and missing-product rejection; observed missing-module failure before implementation, then green. Existing freeze provenance/routing/report tests remain green.
+- 4: All edits are under `packages/designer/eval/`; no contract, input scene, schema, ground truth or existing assertion was changed to make a check pass.
+- 5: Fresh read-only reviewer `komitas_live_review` approved the runner before launch; final result review recorded below.
+- 6: Assumptions and unproven product outcomes are explicit above and in `komitas.md`.
+- 7: This lane alone wrote the eval runner, asset helper, report generator, diagnostics, verification and measured artifacts. Reviewer was read-only; no production lane files edited.
+
+The measured comparison and display-name gotcha were written to Notion Engineering / Codex harness; update task `task_e20de17f05744bdd9c191530f5cd2212` succeeded. A scan of 633 new artifact files found no API-key, GitHub-token, bearer-token or private-key patterns; largest file 1,413,504 bytes.
+
+Final fresh-context review: **APPROVE**, no remaining findings. Reviewer independently recomputed all 116 turns, pass/acceptance/token/cost totals, unchanged input hashes, zero HTTP outcome mismatches and 18 clean capture manifests. Full-suite execution, visual inspection and the offline diagnostic were performed by this lane and not repeated by the reviewer. **DONE: 7 of 7** for the requested benchmark; customer furnishing limitations remain those explicitly reported above.

@@ -19,7 +19,7 @@ def summary(rows):
     return {'pass': f'{passed}/{n} ({100 * passed / n:.1f}%)',
             'editor': f'{sum(r.get("editor_accepted") is True for r in rows)}/{sum(r["outcome"] == "proposal" for r in rows)}',
             'seconds': f'{median(times):.3f} / {max(times):.3f}',
-            'tokens': f'{median(tokens):,.0f} / {max(tokens):,} ({len(tokens)}/{n} measured)' if tokens else 'N/A',
+            'tokens': f'{format(median(tokens), ",.1f").removesuffix(".0")} / {max(tokens):,} ({len(tokens)}/{n} measured)' if tokens else 'N/A',
             'match': f'{sum(bool(r.get("request_match")) for r in rows)}/{n}'}
 
 
@@ -32,7 +32,7 @@ def cause(row):
     if row['outcome'] == 'error':
         return 'service / bridge error'
     if row['outcome'] == 'question':
-        return 'clarification instead of completed request'
+        return 'typed question outcome'
     if row['outcome'] in ('decline', 'message'):
         if row['kind'] == 'sofa' and 'sofa' in row.get('description', '').lower():
             return 'sofa goal unresolved after earlier furnishing'
@@ -75,7 +75,11 @@ def main():
         outcomes = Counter(r['outcome'] for r in rows)
         complete = sum(bool(run.get('finished_at')) for _, run in runs[arm])
         text += [f'{arm.upper()}: {complete}/9 conversations complete, {len(rows)}/{cohort["planned_turns_per_arm"]} turns; request match {summary(rows)["match"]}; outcomes {dict(outcomes)}; p90 seconds {times[ceil(.9 * len(times)) - 1]:.3f}.' if times else f'{arm.upper()}: no measured turns.', '']
-    text += ['## Remaining failure causes', '', 'Derived coarse categories from final replies and independent checks; categories are mutually exclusive. The per-turn descriptions below retain exact errors and trade-offs.', '', '| Cause | ON | OFF |', '|---|---:|---:|']
+    text += ['## Latency by delivered outcome', '', '| Outcome group | ON median / max seconds | OFF median / max seconds | ON turns | OFF turns |', '|---|---:|---:|---:|---:|']
+    for label in ('strict passes', 'returned proposals', 'messages / questions'):
+        selected = {arm: [r for r in rows if (r['pass'] if label == 'strict passes' else r['outcome'] == 'proposal' if label == 'returned proposals' else r['outcome'] in ('message', 'question'))] for arm, rows in arms.items()}
+        text.append(f'| {label} | {summary(selected["on"])["seconds"]} | {summary(selected["off"])["seconds"]} | {len(selected["on"])} | {len(selected["off"])} |')
+    text += ['', '## Automated failure outcome categories', '', 'Derived coarse categories from final reply types and independent checks; categories are mutually exclusive. Semantic causes, including clarification inside plain messages, are diagnosed separately below. The per-turn descriptions below retain exact errors and trade-offs.', '', '| Cause | ON | OFF |', '|---|---:|---:|']
     counts = {arm: Counter(cause(r) for r in rows if not r['pass']) for arm, rows in arms.items()}
     for key in sorted(set(counts['on']) | set(counts['off'])):
         text.append(f'| {key} | {counts["on"][key]} | {counts["off"][key]} |')
@@ -103,7 +107,7 @@ def main():
     text += ['', '## Reproduce and provenance', '', '```sh',
              'python3 -u packages/designer/eval/komitas-freeze.py < /dev/null',
              'python3 packages/designer/eval/komitas-freeze-report.py', '```', '',
-             'Use product revision `baad342` with these eval scripts to reproduce the frozen setup; a newer runtime is deliberately refused by the source guard and needs a newly declared cohort before running. The launcher refuses to overwrite existing conversations; use a fresh checkout/run directory to repeat. SDK runtime: `/tmp/varpet-designer-sdk/bin/python` with openai-codex installed. Each child has closed stdin, process-group cleanup and a 240-second output watchdog; service workers have a 180-second no-model-output watchdog. A usage limit stops the entire batch.', '',
+             'Use the product revision recorded in `komitas-freeze-cohort.json` with these eval scripts to reproduce the frozen setup; a newer runtime is deliberately refused by the source guard and needs a newly declared cohort before running. The launcher refuses to overwrite existing conversations; use a fresh checkout/run directory to repeat. SDK runtime: `/tmp/varpet-designer-sdk/bin/python` with openai-codex installed. Each child has closed stdin, process-group cleanup and a 240-second output watchdog; service workers have a 180-second no-model-output watchdog. A usage limit stops the entire batch.', '',
              '[Frozen input hashes and settings](komitas-freeze-cohort.json); [historical six-flat report and ten-plan handoff](komitas-pre-freeze.md); [verification](komitas-verification.md). Historical input and runtime failures are not pooled into this comparison. All unchanged source scenes remain SERVICE-owned.']
     (HERE / 'komitas.md').write_text('\n'.join(text) + '\n')
     print(json.dumps({arm: summary(rows) for arm, rows in arms.items()}))
