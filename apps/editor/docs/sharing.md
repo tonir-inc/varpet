@@ -1,8 +1,8 @@
 # Share progress
 
-The header's **Share** button creates a link to saved apartment progress. **View only** is recommended and selected each time the dialog opens; **Can edit** produces a separate link. There are no profiles or accounts.
+The header's **Share** button creates a link to saved apartment progress. **View only** is recommended and selected each time the dialog opens; **Can edit** produces a separate link. Shared links do not require an account. The separate [account and apartment portal](accounts-and-apartments.md) supports login and saved apartments; there is no standalone personal-profile editor.
 
-Creating the first link saves the current scene and its referenced catalog. Later changes publish when an editor presses **Save**. Viewers use **Refresh progress** to load the newest version. Original photos, plans and notes attached to the scene are included; the dialog states this before creating a link. Custom GLB files remain references and need a reachable model server.
+Creating the first link saves the current scene and its referenced catalog. An editor opened through an edit link publishes later changes with **Save**. In an account apartment, **Save** updates **My apartments**, while **Publish progress** updates shared links. The account privately retains the link reference for reopening; exported scene files and saved copies exclude it. Viewers use **Refresh progress** to load the newest version. Original photos, plans and notes attached to the scene are included; the dialog states this before creating a link. Custom GLB files remain references and need a reachable model server.
 
 View links boot a separate viewer without the editor store, editing controls or editor keyboard handlers. The server derives access from a random capability, not from a client permission flag. Edit links can obtain the view link; view links cannot obtain the edit link or write. Capabilities travel in the URL fragment and the Authorization header, not in query parameters.
 
