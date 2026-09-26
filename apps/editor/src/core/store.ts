@@ -1,6 +1,6 @@
 import type { CatalogAsset, CommandResult, EditCommand, SceneChange, SceneDocument, ValidationResult } from '../contracts';
 import { isRecord, validateScene, renovationOperationError } from './validation';
-import { applyRenovationOperation, invalidateAssumptions, migrateScene } from './renovation';
+import { applyRenovationOperation, applyWallTranslationBatch, invalidateAssumptions, migrateScene } from './renovation';
 
 import { furnitureUpdates, removeSingletonGroups } from './grouping';
 
@@ -135,7 +135,9 @@ export class EditorStore {
       const operations = structuredClone(command.operations);
       let candidate = structuredClone(this.current);
       let previous: SceneDocument | undefined = this.current;
-      for (const operation of operations) {
+      const wallBatch = applyWallTranslationBatch(candidate, operations);
+      if (wallBatch) candidate = wallBatch;
+      for (const operation of wallBatch ? [] : operations) {
         switch (operation.type) {
           case 'group': {
             const ids = new Set(operation.objectIds);

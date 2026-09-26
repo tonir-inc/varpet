@@ -26,6 +26,7 @@ import { BUILT_CATEGORY, loadBuiltProducts, resolveFurnitureProducts } from './a
 import { createReconstructionProposal, previewReconstructionProposal } from './core/reconstruction-proposal';
 import { createViewport } from './render/viewport';
 import { SKYBOX_PRESETS, isSkyboxPreset, type SkyboxPreset } from './render/skybox';
+import { selectionTransformOperations, wallSelectionOperations } from './core/multi-selection';
 import { createFloorPlan } from './render/floor-plan';
 import { createCatalogPreviews } from './render/catalog-previews';
 import { icon } from './ui/icons';
@@ -99,7 +100,7 @@ app.innerHTML = `
       <div class="inside-label"><strong>Inside</strong><span>Eye height · 1.65 m</span></div>
       <div class="canvas-label">${icon('layers')} <span>Ground floor</span><span class="pill">1 level</span></div>
       <div class="selection-chip" hidden><span id="selected-name"></span><button id="focus-selected" class="icon-button" aria-label="Frame selected object" title="Frame selection · F">${icon('focus')}</button></div>
-      <div class="tool-rail" role="toolbar" aria-label="Object tools">${(['select','move','rotate','scale'] as ToolMode[]).map((tool, i) => `<button data-tool="${tool}" class="${i === 0 ? 'active' : ''}" aria-label="${{select:'Select',move:'Move',rotate:'Rotate',scale:'Resize'}[tool]} tool" title="${{select:'Select · V',move:'Move · G',rotate:'Rotate · R',scale:'Resize · S'}[tool]}">${icon(tool)}<kbd>${['V','G','R','S'][i]}</kbd></button>`).join('')}<div class="tool-divider"></div><button id="focus" aria-label="Focus selection" title="Frame selection / apartment · F">${icon('focus')}<kbd>F</kbd></button><div class="tool-divider"></div><button id="snap" aria-pressed="true" class="snap active" title="Toggle grid snapping">${icon('grid')}<strong>0.25 m</strong></button></div>
+      <div class="tool-rail" role="toolbar" aria-label="Object tools">${(['select','move','rotate','scale'] as ToolMode[]).map((tool, i) => `<button data-tool="${tool}" class="${i === 0 ? 'active' : ''}" aria-label="${{select:'Select',move:'Move',rotate:'Rotate',scale:'Resize'}[tool]} tool" title="${{select:'Select · V',move:'Move · G',rotate:'Rotate · R',scale:'Resize · S'}[tool]}">${icon(tool)}<kbd>${['V','G','R','S'][i]}</kbd></button>`).join('')}<div class="tool-divider"></div><button id="multi-select" aria-label="Select multiple items" aria-pressed="false" title="Select several walls or models · Shift-click">${icon('layers')}</button><button id="focus" aria-label="Focus selection" title="Frame selection / apartment · F">${icon('focus')}<kbd>F</kbd></button><div class="tool-divider"></div><button id="snap" aria-pressed="true" class="snap active" title="Toggle grid snapping">${icon('grid')}<strong>0.25 m</strong></button></div>
       <div class="canvas-bottom"><span id="view-hint">Drag to orbit <b>·</b> Right drag to pan <b>·</b> Scroll to zoom</span></div>
       <aside class="right-panel" aria-label="Selection properties" hidden><div class="inspector-heading"><span>Properties</span><button id="close-inspector" class="icon-button" aria-label="Close properties" title="Clear selection · Esc">${icon('close')}</button></div><div id="inspector" class="inspector"></div></aside>
       <div id="toast" class="toast" role="status" aria-live="polite"></div>
@@ -151,6 +152,9 @@ async function parseDatabaseScene(text: string) {
 }
 let selectedId: string | null = null;
 let selectedFurnitureIds: string[] = [];
+let selectedWallIds: string[] = [];
+let multiSelection = false;
+const selectionIds = () => [...selectedFurnitureIds, ...selectedWallIds];
 let tool: ToolMode = 'select';
 type ApartmentView = ViewMode | 'plan';
 let view: ApartmentView = 'perspective';
@@ -202,13 +206,17 @@ const viewport = createViewport($('#viewport'), {
   onViewChange: next => setView(next),
   onSelect: (id, additive) => { if (!previewMode && view !== 'inside') select(id, additive); },
   onTransform: (id, patch) => {
-    run([{type:'update', id, patch}], `Transform ${store.scene.objects.find(o => o.id === id)?.name ?? 'object'}`, interactionRevision);
+    transformSelection(id, patch, selectedFurnitureIds.length > 1 ? 'Transform selected furniture' : `Transform ${store.scene.objects.find(o => o.id === id)?.name ?? 'object'}`, interactionRevision);
     viewport.setScene(store.scene, catalog);
-    viewport.setSelection(selectedId, selectedFurnitureIds);
+    viewport.setSelection(selectedId, selectionIds());
   },
   onInteraction: active => { interacting = active; if (active) { cancelAnimationFrame(selectionRevealFrame); interactionRevision = store.revision; } renderProposal(); },
   onWallMove: (id, start, end) => {
-    run([{ type: 'update-wall', id, patch: { start, end } }], 'Move connected wall', interactionRevision);
+    try {
+      const wall = store.scene.walls.find(item => item.id === id);
+      const operations = wall && selectedWallIds.length > 1 ? wallSelectionOperations(store.scene, selectedWallIds, [start[0] - wall.start[0], start[1] - wall.start[1]]) : [{ type: 'update-wall' as const, id, patch: { start, end } }];
+      run(operations, selectedWallIds.length > 1 ? 'Move selected walls' : 'Move connected wall', interactionRevision);
+    } catch (error) { notify(error instanceof Error ? error.message : 'The walls could not be moved.', true); }
     viewport.setScene(store.scene, catalog);
   },
   onWallEndpoint: (id, endpoint, point) => {
@@ -219,12 +227,12 @@ const viewport = createViewport($('#viewport'), {
     const opening = store.scene.walls.flatMap(w => w.openings).find(o => o.id === id);
     run([{ type: 'update-opening', id, patch: { offset } }], `Move ${opening?.kind ?? 'opening'} along wall`, interactionRevision);
     viewport.setScene(store.scene, catalog);
-    viewport.setSelection(selectedId, selectedFurnitureIds);
+    viewport.setSelection(selectedId, selectionIds());
   },
   onComponentTransform: (id, patch) => {
     const component = store.scene.project?.components.find(c => c.id === id);
     if (component) run([{ type: 'upsert-component', component: { ...component, ...patch } }], `Transform ${component.name}`, interactionRevision);
-    viewport.setScene(store.scene, catalog); viewport.setSelection(selectedId, selectedFurnitureIds);
+    viewport.setScene(store.scene, catalog); viewport.setSelection(selectedId, selectionIds());
   },
   onError: message => notify(message, true),
 }, normalizeWallJunctions);
@@ -232,9 +240,11 @@ sunControls = createSunControls($<HTMLButtonElement>('#sun'), $('.viewport-shell
   getSun: () => viewport.getSun(),
   setSun: patch => viewport.setSun(patch),
 });
-const floorPlan = createFloorPlan($('#floor-plan'), id => select(id), {
+const floorPlan = createFloorPlan($('#floor-plan'), (id, additive) => select(id, additive), {
   onInteraction: active => { interacting = active; if (active) interactionRevision = store.revision; renderProposal(); },
   onCommit: (operation, label) => { run([operation], label, interactionRevision); },
+  onCommitMany: (operations, label) => { run(operations, label, interactionRevision); },
+  onAdditiveSelectionChange: setMultiSelection,
   onError: message => notify(message, true),
   onSnapChange: enabled => { snap = enabled; viewport.setSnap(snap); renderViewportHints(); renderInspector(); },
 }, normalizeWallJunctions);
@@ -315,7 +325,7 @@ function exportProject(kind: 'project' | 'schedule' | 'report') {
 
 renovationUI = createRenovationUI($('#renovation-panel'), {
   getScene: () => store.scene, getCatalog: () => catalog,
-  execute: (label, operations) => run(operations, label), select,
+  execute: (label, operations) => run(operations, label), select: (id, additive) => select(id, additive || multiSelection),
   focus: id => focusView(id), notice: notify,
   testDoor: (id, angle) => viewport.setDoorAngle(id, angle), getDoorAngle: id => viewport.getDoorAngle(id),
   toggleSwitch: id => viewport.toggleSwitch(id), setSwitchLevel: (id, level) => viewport.setSwitchLevel(id, level), getSwitchLevel: id => viewport.getSwitchLevel(id), onSources: () => intake.sources(), onReconstruct: () => intake.reconstruction(), onExport: exportProject,
@@ -324,6 +334,7 @@ renovationUI = createRenovationUI($('#renovation-panel'), {
 });
 
 function selectionLabel(): string {
+  if (selectedWallIds.length > 1) return `${selectedWallIds.length} walls selected`;
   if (selectedFurnitureIds.length > 1) return `${selectedFurnitureIds.length} objects${selectedGroupId() ? ' · Group' : ' selected'}`;
   return selectedId ? entityName(selectedId) ?? '' : 'Nothing selected';
 }
@@ -334,16 +345,27 @@ function selectedGroupId(): string | undefined {
 }
 function select(id: string | null, additive = false) {
   cancelAnimationFrame(selectionRevealFrame);
+  if (interacting) return;
   const members = id ? furnitureMembers(store.scene, id).map(object => object.id) : [];
+  const wall = id ? store.scene.walls.find(item => item.id === id) : undefined;
   if (additive && members.length) {
+    selectedWallIds = [];
     const remove = members.every(member => selectedFurnitureIds.includes(member));
     selectedFurnitureIds = remove ? selectedFurnitureIds.filter(member => !members.includes(member))
       : [...new Set([...selectedFurnitureIds, ...members])];
     selectedId = remove ? selectedFurnitureIds.at(-1) ?? null : id;
+  } else if (additive && wall) {
+    selectedFurnitureIds = [];
+    selectedWallIds = selectedWallIds.includes(wall.id) ? selectedWallIds.filter(member => member !== wall.id) : [...selectedWallIds, wall.id];
+    selectedId = selectedWallIds.at(-1) ?? null;
   } else if (additive && !id) return;
-  else { selectedId = id && entityName(id) ? id : null; selectedFurnitureIds = members; }
-  viewport.setSelection(selectedId, selectedFurnitureIds);
-  floorPlan.setSelection(selectedId);
+  else {
+    selectedId = id && entityName(id) ? id : null;
+    selectedFurnitureIds = members; selectedWallIds = wall ? [wall.id] : [];
+    if (!selectedId) setMultiSelection(false);
+  }
+  viewport.setSelection(selectedId, selectionIds());
+  floorPlan.setSelection(selectedId, selectionIds());
   $('#hierarchy').querySelectorAll<HTMLButtonElement>('[data-object]').forEach(button => {
     const selected = selectedFurnitureIds.includes(button.dataset.object!);
     button.classList.toggle('selected', selected);
@@ -352,7 +374,7 @@ function select(id: string | null, additive = false) {
     if (dot) dot.hidden = !selected;
   });
   renderInspector();
-  renovationUI?.setSelection(selectedId);
+  renovationUI?.setSelection(selectedId, selectionIds());
   ceilingUI.setSelection(selectedId);
   $('#selection-status').textContent = selectionLabel();
   renderViewportHints();
@@ -416,7 +438,7 @@ function renderHierarchy() {
     if (!search) { if (details.open) collapsedRooms.delete(details.dataset.room!); else collapsedRooms.add(details.dataset.room!); }
   });
   $('#hierarchy').querySelectorAll<HTMLButtonElement>('[data-object]').forEach(button => {
-    button.onclick = event => select(button.dataset.object!, event.shiftKey);
+    button.onclick = event => select(button.dataset.object!, event.shiftKey || multiSelection);
     button.ondblclick = () => focusView(button.dataset.object!);
   });
 }
@@ -430,12 +452,33 @@ function renderInspector() {
   const inspectorOptions = {
     getScene: () => store.scene, getCatalog: () => catalog, execute: run,
     notice: notify, refresh: renderInspector, showFullHeight,
-    advanced: () => { switchPanel('renovation'); renovationUI?.setSelection(selectedId); },
+    advanced: () => { switchPanel('renovation'); renovationUI?.setSelection(selectedId, selectionIds()); },
     getDoorAngle: (id: string) => viewport.getDoorAngle(id),
     testDoor: (id: string, angle: number) => viewport.setDoorAngle(id, angle),
     onFinishDragStart: (preset: FinishPreset) => chooseFinish(preset),
     onFinishDragEnd: () => chooseFinish(null),
   };
+  if (selectedWallIds.length > 1) {
+    const walls = store.scene.walls.filter(wall => selectedWallIds.includes(wall.id));
+    const locked = walls.some(wall => store.scene.project?.metadata[wall.id]?.locked);
+    $('#inspector').innerHTML = `<div class="selected-asset-heading"><span class="asset-symbol">${icon('layers')}</span><div><span class="eyebrow">Multiple selection</span><h2>${walls.length} walls</h2></div></div>
+      <p class="field-note">Move these walls together. Connected corners, openings and room boundaries follow.</p>
+      <button id="move-selection" class="button primary full" ${locked ? 'disabled' : ''}>${icon('move')} Move selected walls</button>
+      <div class="property-section"><div class="property-label">Move by <span>m</span></div><div class="field-grid two">${([0, 1] as const).map(axis => `<label class="number-field"><span>${axis === 0 ? 'X' : 'Z'}</span><input type="number" data-wall-move-axis="${axis}" aria-label="Move selected walls ${axis === 0 ? 'X' : 'Z'}" value="0" step="${snap ? '0.05' : '0.01'}" ${locked ? 'disabled' : ''}></label>`).join('')}</div></div>
+      <ul class="group-members">${walls.map(wall => `<li>${escape(entityName(wall.id) ?? wall.id)}</li>`).join('')}</ul>
+      <p class="field-note">${locked ? 'Unlock selected walls in Renovate before moving.' : 'Shift-click or use Select multiple items to add or remove walls. Esc clears the selection.'}</p>`;
+    $('#move-selection').onclick = () => setTool('move');
+    $('#inspector').querySelectorAll<HTMLInputElement>('[data-wall-move-axis]').forEach(input => input.onchange = () => {
+      if (!Number.isFinite(input.valueAsNumber)) { notify('Enter a finite distance.', true); renderInspector(); return; }
+      const delta: [number, number] = [0, 0];
+      delta[Number(input.dataset.wallMoveAxis)] = snap ? Math.round(input.valueAsNumber * 20) / 20 : input.valueAsNumber;
+      if (!delta.some(value => Math.abs(value) > 1e-9)) { renderInspector(); return; }
+      try { run(wallSelectionOperations(store.scene, selectedWallIds, delta), 'Move selected walls'); }
+      catch (error) { notify(error instanceof Error ? error.message : 'The walls could not be moved.', true); }
+      renderInspector();
+    });
+    return;
+  }
   if (!object) {
     if (!selectedId || !renderEntityInspector($('#inspector'), selectedId, inspectorOptions)) $('#inspector').innerHTML = '';
     return;
@@ -444,12 +487,14 @@ function renderInspector() {
     const grouped = !!selectedGroupId();
     const members = store.scene.objects.filter(item => selectedFurnitureIds.includes(item.id));
     $('#inspector').innerHTML = `<div class="selected-asset-heading"><span class="asset-symbol">${icon('layers')}</span><div><span class="eyebrow">${grouped ? 'Furniture group' : 'Multiple selection'}</span><h2>${members.length} objects</h2></div></div>
-      <p class="field-note">${grouped ? 'Move or rotate any member to arrange the whole group.' : 'Group these pieces to move and rotate them together.'}</p>
+      <p class="field-note">${grouped ? 'Move or rotate any member to arrange the whole group.' : 'Move or rotate these pieces together. Group is optional and saves the selection for later.'}</p>
       <div class="property-section"><div class="property-label">Selected furniture</div><ul class="group-members">${members.map(item => `<li>${escape(item.name)}</li>`).join('')}</ul></div>
-      ${grouped ? `<div class="property-section"><div class="property-label">Group position <span>m</span></div><div class="field-grid two"><label class="number-field"><span>X</span><input type="number" aria-label="Group position X" data-group-axis="0" value="${Number(object.position[0].toFixed(3))}" step="${snap ? '0.25' : '0.05'}"></label><label class="number-field"><span>Z</span><input type="number" aria-label="Group position Z" data-group-axis="2" value="${Number(object.position[2].toFixed(3))}" step="${snap ? '0.25' : '0.05'}"></label></div><p class="field-note">Position of ${escape(object.name)}; all members follow.</p></div><div class="property-section"><div class="property-label">Group rotation <span>degrees</span></div><label class="number-field"><span>Y</span><input id="group-rotation" type="number" aria-label="Group rotation" value="${Number((object.rotation * 180 / Math.PI).toFixed(3))}" step="15"></label></div>` : ''}
+      <button id="move-selection" class="button primary full">${icon('move')} Move selected furniture</button>
+      <div class="property-section"><div class="property-label">Selection position <span>m</span></div><div class="field-grid two"><label class="number-field"><span>X</span><input type="number" aria-label="Group position X" data-group-axis="0" value="${Number(object.position[0].toFixed(3))}" step="${snap ? '0.25' : '0.05'}"></label><label class="number-field"><span>Z</span><input type="number" aria-label="Group position Z" data-group-axis="2" value="${Number(object.position[2].toFixed(3))}" step="${snap ? '0.25' : '0.05'}"></label></div><p class="field-note">Position of ${escape(object.name)}; all members follow.</p></div><div class="property-section"><div class="property-label">Selection rotation <span>degrees</span></div><label class="number-field"><span>Y</span><input id="group-rotation" type="number" aria-label="Group rotation" value="${Number((object.rotation * 180 / Math.PI).toFixed(3))}" step="15"></label></div>
       <div class="object-actions"><button id="group-furniture" class="button primary" ${grouped ? 'hidden' : ''} title="Group · ⌘/Ctrl+G">${icon('layers')} Group</button><button id="ungroup-furniture" class="button" ${members.some(item => item.groupId) ? '' : 'hidden'} title="Ungroup · ⌘/Ctrl+Shift+G">Ungroup</button></div>
       <button id="delete-group" class="button full danger" style="margin-top:12px">${icon('trash')} Delete ${grouped ? 'group' : 'selected objects'}</button>
       <p class="field-note">Shift-click to add or remove furniture.${grouped ? ' Ungroup to edit or resize individual pieces.' : ''}</p>`;
+    $('#move-selection').onclick = () => setTool('move');
     $('#group-furniture').onclick = groupSelected;
     $('#ungroup-furniture').onclick = ungroupSelected;
     $('#delete-group').onclick = deleteSelected;
@@ -459,7 +504,7 @@ function renderInspector() {
       position[Number(input.dataset.groupAxis)] = snap ? Math.round(input.valueAsNumber * 4) / 4 : input.valueAsNumber;
       updateSelected({ position }, 'Move furniture group');
     });
-    if (grouped) $<HTMLInputElement>('#group-rotation').onchange = event => {
+    $<HTMLInputElement>('#group-rotation').onchange = event => {
       const value = (event.target as HTMLInputElement).valueAsNumber;
       if (!Number.isFinite(value)) { notify('Enter a finite number.', true); renderInspector(); return; }
       updateSelected({ rotation: value * Math.PI / 180 }, 'Rotate furniture group');
@@ -469,7 +514,7 @@ function renderInspector() {
   const asset=catalog.find(a=>a.id===object.assetId)!;
   const dimension=asset.dimensions.map((d,i)=>d*object.scale[i]!);
   const field=(name:string,label:string,value:number,step:string,min?:string)=>`<label class="number-field"><span>${label}</span><input type="number" aria-label="${name}" data-field="${name}" value="${Number(value.toFixed(3))}" step="${step}" ${min ? `min="${min}"` : ''}/></label>`;
-  $('#inspector').innerHTML = `<div class="selected-asset-heading"><span class="asset-symbol" style="--asset-color:${escape(object.color??asset.color)}">${icon('box')}</span><div><span class="eyebrow">${escape(asset.category)}</span><h2>${escape(object.name)}</h2></div></div><p class="field-note">Shift-click other furniture to select pieces for a group.</p><div id="inspector-replacement"></div><label class="text-field">Object name<input id="object-name" value="${escape(object.name)}" maxlength="80" /></label><div class="property-section"><div class="property-label">Position <span>m</span></div><div class="field-grid two">${field('Position X','X',object.position[0],snap?'0.25':'0.05')}${field('Position Z','Z',object.position[2],snap?'0.25':'0.05')}</div><p class="field-note">${icon('lock')} Grounded on the floor</p></div><div class="property-section"><div class="property-label">Rotation <span>degrees</span></div>${field('Rotation','Y',(object.rotation*180/Math.PI)%360,'15')}</div><div class="property-section"><div class="property-label">Dimensions <span>m</span></div><div class="field-grid">${field('Width','W',dimension[0]!,'0.05','0.05')}${field('Height','H',dimension[1]!,'0.05','0.05')}${field('Depth','D',dimension[2]!,'0.05','0.05')}</div></div><div class="property-section"><div class="property-label">Finish <span>base material</span></div><div class="finish-row"><input id="object-color" type="color" aria-label="Object finish color" value="${escape(object.color??asset.color)}"/><span>${escape(object.color??asset.color)}</span><button id="reset-finish" class="text-button">Reset</button></div></div><div class="object-actions"><button id="duplicate" class="button">${icon('duplicate')} Duplicate</button><button id="delete" class="button danger" title="Delete object" aria-label="Delete object">${icon('trash')}</button></div><div class="asset-reference"><span>Catalog reference</span><code>${escape(asset.id)}</code><span>${escape(catalogProducts.get(asset.id)?.attribution ?? "")} · size ${escape(catalogProducts.get(asset.id)?.sizeStatus ?? "unverified")}</span><span>Catalog price <strong>${escape(priceLabel(asset))}</strong></span></div>`;
+  $('#inspector').innerHTML = `<div class="selected-asset-heading"><span class="asset-symbol" style="--asset-color:${escape(object.color??asset.color)}">${icon('box')}</span><div><span class="eyebrow">${escape(asset.category)}</span><h2>${escape(object.name)}</h2></div></div><p class="field-note">Shift-click other models to move them together, or use Select multiple items.</p><div id="inspector-replacement"></div><label class="text-field">Object name<input id="object-name" value="${escape(object.name)}" maxlength="80" /></label><div class="property-section"><div class="property-label">Position <span>m</span></div><div class="field-grid two">${field('Position X','X',object.position[0],snap?'0.25':'0.05')}${field('Position Z','Z',object.position[2],snap?'0.25':'0.05')}</div><p class="field-note">${icon('lock')} Grounded on the floor</p></div><div class="property-section"><div class="property-label">Rotation <span>degrees</span></div>${field('Rotation','Y',(object.rotation*180/Math.PI)%360,'15')}</div><div class="property-section"><div class="property-label">Dimensions <span>m</span></div><div class="field-grid">${field('Width','W',dimension[0]!,'0.05','0.05')}${field('Height','H',dimension[1]!,'0.05','0.05')}${field('Depth','D',dimension[2]!,'0.05','0.05')}</div></div><div class="property-section"><div class="property-label">Finish <span>base material</span></div><div class="finish-row"><input id="object-color" type="color" aria-label="Object finish color" value="${escape(object.color??asset.color)}"/><span>${escape(object.color??asset.color)}</span><button id="reset-finish" class="text-button">Reset</button></div></div><div class="object-actions"><button id="duplicate" class="button">${icon('duplicate')} Duplicate</button><button id="delete" class="button danger" title="Delete object" aria-label="Delete object">${icon('trash')}</button></div><div class="asset-reference"><span>Catalog reference</span><code>${escape(asset.id)}</code><span>${escape(catalogProducts.get(asset.id)?.attribution ?? "")} · size ${escape(catalogProducts.get(asset.id)?.sizeStatus ?? "unverified")}</span><span>Catalog price <strong>${escape(priceLabel(asset))}</strong></span></div>`;
   renderAssetChoices($('#inspector-replacement'), object, inspectorOptions);
   $('#object-name').onchange = event => updateSelected({name:(event.target as HTMLInputElement).value},'Rename object');
   $('#inspector').querySelectorAll<HTMLInputElement>('[data-field]').forEach(input=>input.onchange=()=>{
@@ -487,7 +532,11 @@ function renderInspector() {
   $('#delete').onclick=deleteSelected;
 }
 
-function updateSelected(patch:ObjectPatch,label:string) {if(selectedId){run([{type:'update',id:selectedId,patch}],label);renderInspector();}}
+function transformSelection(id: string, patch: ObjectPatch, label: string, revision = store.revision) {
+  try { return run(selectionTransformOperations(store.scene, id, patch, selectedFurnitureIds), label, revision); }
+  catch (error) { notify(error instanceof Error ? error.message : 'The selection could not be transformed.', true); return false; }
+}
+function updateSelected(patch:ObjectPatch,label:string) {if(selectedId){transformSelection(selectedId,patch,label);renderInspector();}}
 function deleteSelected() {
   if (!selectedId || interacting) return;
   if (!selectedFurnitureIds.length) { notify('Use the element’s delete controls in Renovate to review its dependencies.'); return; }
@@ -592,7 +641,7 @@ function renderViewportHints() {
     return;
   }
   if (view === 'plan') {
-    $('#view-hint').textContent = 'Drag items to move · Empty floor / Alt-drag to pan · Esc to cancel · F to frame';
+    $('#view-hint').textContent = 'Shift-click or Select several · Drag selection to move · Alt-drag to pan · Esc to cancel';
     return;
   }
   const openingWall = store.scene.walls.find(w => w.openings.some(o => o.id === selectedId));
@@ -610,10 +659,12 @@ function renderViewportHints() {
   const navigation = view === 'top' ? 'Drag to pan <b>·</b> Scroll to zoom <b>·</b> F to frame' : 'Drag to orbit <b>·</b> Right drag to pan <b>·</b> Scroll to zoom';
   let hint = navigation;
   if (previewMode) hint = `${navigation} <b>·</b> P or Esc to exit preview`;
+  else if (multiSelection) { hint = 'Click walls or models to add or remove them <b>·</b> Choose Move when ready'; }
+  else if (selectedWallIds.length > 1) { hint = 'Choose Move (G), then drag selected walls together <b>·</b> Shift-click to change selection <b>·</b> Esc cancels'; }
   else if (selectedFurnitureIds.length > 1) {
-    hint = selectedGroupId() ? 'Move or rotate the group <b>·</b> Shift-click to change selection <b>·</b> Ungroup to edit a piece' : 'Choose Group or press ⌘/Ctrl+G <b>·</b> Shift-click to change selection';
+    hint = selectedGroupId() ? 'Move or rotate the group <b>·</b> Shift-click to change selection <b>·</b> Ungroup to edit a piece' : 'Choose Move (G) to move all selected models <b>·</b> Shift-click to change selection';
   } else if (selectedFurnitureIds.length === 1) {
-    hint = `${navigation} <b>·</b> Shift-click furniture to group pieces`;
+    hint = `${navigation} <b>·</b> Shift-click models to select several`;
   } else if (opening && openingWall) {
     if (store.scene.project?.metadata[opening.id]?.locked || store.scene.project?.metadata[openingWall.id]?.locked) {
       hint = 'Opening or wall is locked <b>·</b> Unlock model editing in Renovate to move it';
@@ -629,7 +680,14 @@ function renderViewportHints() {
   }
   $('#view-hint').innerHTML = hint;
 }
-function setTool(next:ToolMode){if(view==='inside')setView('perspective');if(next==='scale'&&selectedFurnitureIds.length>1){notify('Ungroup to resize individual furniture.');return;}if(activeFinish)chooseFinish(null);tool=next;viewport.setTool(tool);document.querySelectorAll<HTMLElement>('[data-tool]').forEach(b=>{b.classList.toggle('active',b.dataset.tool===tool);b.setAttribute('aria-pressed',String(b.dataset.tool===tool));});renderViewportHints();}
+function setMultiSelection(enabled: boolean) {
+  multiSelection = enabled;
+  viewport.setAdditiveSelection(enabled); floorPlan.setAdditiveSelection(enabled);
+  $('#multi-select').classList.toggle('active', enabled);
+  $('#multi-select').setAttribute('aria-pressed', String(enabled));
+  renderViewportHints();
+}
+function setTool(next:ToolMode){if(next!=='select')setMultiSelection(false);if(view==='inside')setView('perspective');if(next==='scale'&&selectedFurnitureIds.length>1){notify('Select one ungrouped model to resize.');return;}if(activeFinish)chooseFinish(null);tool=next;viewport.setTool(tool);document.querySelectorAll<HTMLElement>('[data-tool]').forEach(b=>{b.classList.toggle('active',b.dataset.tool===tool);b.setAttribute('aria-pressed',String(b.dataset.tool===tool));});renderViewportHints();}
 function setView(next:ApartmentView){
   cancelAnimationFrame(selectionRevealFrame);
   if ((next === 'plan' || next === 'inside') && activeFinish) chooseFinish(null);
@@ -729,9 +787,10 @@ function refresh(){
     history.replaceState(null, '', location.pathname + location.search);
   }
   selectedFurnitureIds = expandFurnitureSelection(scene, selectedFurnitureIds);
-  if(selectedId&&!entityName(selectedId))selectedId=null;
-  viewport.setScene(scene,catalog);viewport.setSelection(selectedId, selectedFurnitureIds);
-  floorPlan.setScene(scene,catalog);floorPlan.setSelection(selectedId);
+  selectedWallIds = selectedWallIds.filter(id => scene.walls.some(wall => wall.id === id));
+  if(selectedId&&!entityName(selectedId))selectedId=selectionIds().at(-1)??null;
+  viewport.setScene(scene,catalog);viewport.setSelection(selectedId, selectionIds());
+  floorPlan.setScene(scene,catalog);floorPlan.setSelection(selectedId, selectionIds());
   $('#project-name').textContent=scene.name;
   const area=scene.rooms.reduce((sum,r)=>sum+Math.abs(r.polygon.reduce((a,p,i)=>{const q=r.polygon[(i+1)%r.polygon.length]!;return a+p[0]*q[1]-q[0]*p[1];},0))/2,0);
   $('#scene-area').textContent=`${area.toFixed(0)} m²`;
@@ -866,6 +925,7 @@ $('#focus-selected').onclick=()=>focusView(selectedId??undefined);
 $('#preview').onclick=()=>setPreview(!previewMode);
 $('#inside-view').onclick=()=>setView('inside');$('#perspective').onclick=()=>setView('perspective');$('#top-view').onclick=()=>setView('top');$('#plan-view').onclick=()=>setView('plan');
 document.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach(b=>b.onclick=()=>setTool(b.dataset.tool as ToolMode));
+$('#multi-select').onclick=()=>{const enabled=!multiSelection;if(enabled)setTool('select');setMultiSelection(enabled);};
 $('#focus').onclick=()=>focusView(selectedId??undefined);
 $('#snap').onclick=()=>{snap=!snap;viewport.setSnap(snap);floorPlan.setSnap(snap);renderViewportHints();renderInspector();};
 $('#walls').onclick=()=>{wallMode=wallMode==='cutaway'?'full':wallMode==='full'?'hidden':'cutaway';viewport.setWalls(wallMode);$('#walls span').textContent={cutaway:'Cutaway',full:'Full walls',hidden:'Walls hidden'}[wallMode];};
@@ -877,7 +937,7 @@ $<HTMLSelectElement>('#skybox').onchange = event => {
 };
 let highQuality=false;$('#quality').onclick=()=>{highQuality=!highQuality;viewport.setQuality(highQuality?'high':'balanced');$('#quality span').textContent=highQuality?'High quality':'Balanced';$('#quality').setAttribute('aria-pressed',String(highQuality));};
 $('#suggest').onclick=()=>void requestProposal('designer');
-$('#help').onclick=()=>showModal('Keyboard & navigation',`<p class="modal-intro">Select walls, openings, rooms, furniture and systems in the canvas or Renovate panel. In Select mode, click a selected door or switch again to test it.</p><div class="shortcut-list">${[['1 / 2 / 3 / 4 / 5 / 6','Scene / Furniture / Assistant / Renovate / Materials / Ceilings'],['[','Toggle sidebar'],['P','Enter / exit preview'],['W A S D / arrows','Walk in Inside view'],['Drag / Esc','Look around / leave Inside'],['V / G / R / S','Select / Move / Rotate / Resize'],['F','Frame selection / apartment'],['⌘ / Ctrl + S','Save on this device'],['Shift + click','Add / remove furniture selection'],['⌘ / Ctrl + G','Group selected furniture'],['⌘ / Ctrl + Shift + G','Ungroup furniture'],['⌘ / Ctrl + D','Duplicate furniture'],['Delete / Backspace','Delete selected furniture'],['⌘ / Ctrl + Z','Undo'],['⌘ / Ctrl + Shift + Z','Redo'],['Esc','Cancel drag / clear selection / exit preview']].map(([key,label])=>`<div><span>${label}</span><kbd>${key}</kbd></div>`).join('')}</div><p class="modal-footnote">Plan: drag furniture, fixtures, walls, doors or windows to move them. Drag empty floor, Alt-drag, or right/middle drag to pan. Hold Shift for finer placement. Inside: standing eye height is 1.65 m above the current floor. Click the canvas, then use WASD or arrows to walk; drag to look around. Doors open for the walkthrough and restore when you leave. 3D: drag empty space to orbit, right drag to pan, scroll to zoom. Top: drag to pan. Select a door or window, choose Move (G), then drag it or its purple arrows along the wall. Openings stay inside their wall section and stop at neighbouring openings. Move snaps to 0.05 m for openings and walls. Wall corners also catch nearby straight and 90° alignments, including connected corners. Click Snap / Smooth in the toolbar to turn snapping on or off. Release to apply, Esc to cancel, or Undo to restore the previous position. Select a wall and choose Move to drag it back or forth with its purple center arrows; connected walls and room boundaries follow. The endpoint spheres adjust individual corners; use Renovate for precise dimensions, evidence and service editing.</p>`);
+$('#help').onclick=()=>showModal('Keyboard & navigation',`<p class="modal-intro">Select walls, openings, rooms, furniture and systems in the canvas or Renovate panel. In Select mode, click a selected door or switch again to test it.</p><div class="shortcut-list">${[['1 / 2 / 3 / 4 / 5 / 6','Scene / Furniture / Assistant / Renovate / Materials / Ceilings'],['[','Toggle sidebar'],['P','Enter / exit preview'],['W A S D / arrows','Walk in Inside view'],['Drag / Esc','Look around / leave Inside'],['V / G / R / S','Select / Move / Rotate / Resize'],['F','Frame selection / apartment'],['⌘ / Ctrl + S','Save on this device'],['Shift + click','Add / remove walls or furniture from selection'],['⌘ / Ctrl + G','Group selected furniture'],['⌘ / Ctrl + Shift + G','Ungroup furniture'],['⌘ / Ctrl + D','Duplicate furniture'],['Delete / Backspace','Delete selected furniture'],['⌘ / Ctrl + Z','Undo'],['⌘ / Ctrl + Shift + Z','Redo'],['Esc','Cancel drag / clear selection / exit preview']].map(([key,label])=>`<div><span>${label}</span><kbd>${key}</kbd></div>`).join('')}</div><p class="modal-footnote">Plan: drag furniture, fixtures, walls, doors or windows to move them. Drag empty floor, Alt-drag, or right/middle drag to pan. Hold Shift for finer placement. Inside: standing eye height is 1.65 m above the current floor. Click the canvas, then use WASD or arrows to walk; drag to look around. Doors open for the walkthrough and restore when you leave. 3D: drag empty space to orbit, right drag to pan, scroll to zoom. Top: drag to pan. Select a door or window, choose Move (G), then drag it or its purple arrows along the wall. Openings stay inside their wall section and stop at neighbouring openings. Move snaps to 0.05 m for openings and walls. Wall corners also catch nearby straight and 90° alignments, including connected corners. Click Snap / Smooth in the toolbar to turn snapping on or off. Release to apply, Esc to cancel, or Undo to restore the previous position. Shift-click walls or models, or turn on Select multiple items, to build a selection. Choose Move to move the selection together; one Undo restores every selected item. Select a single wall and choose Move to drag it back or forth with its purple center arrows; connected walls and room boundaries follow. The endpoint spheres adjust individual corners; use Renovate for precise dimensions, evidence and service editing.</p>`);
 window.addEventListener('keydown',event=>{
   if(document.querySelector('dialog[open]') || (event.target instanceof HTMLElement && (event.target.closest('input,textarea,select') || event.target.isContentEditable)))return;
   const key=event.key.toLowerCase();const mod=event.metaKey||event.ctrlKey;

@@ -103,6 +103,83 @@ function syncHostedRoutes(scene: SceneDocument): void {
 export function isRenovationOperation(operation: Operation): operation is RenovationOperation {
   return !['add', 'update', 'delete', 'group', 'ungroup', 'replace-structure', 'replace-scene'].includes(operation.type);
 }
+
+/** Recognize a selection translation before sequential edits can change its junctions. */
+export function applyWallTranslationBatch(input: SceneDocument, operations: Operation[]): SceneDocument | null {
+  if (operations.length < 2) return null;
+  const selected = new Set<string>();
+  let delta: Vec2 | undefined;
+  for (const operation of operations) {
+    if (operation.type !== 'update-wall' || selected.has(operation.id) || !operation.patch.start || !operation.patch.end
+      || Object.keys(operation.patch).some(key => key !== 'start' && key !== 'end')) return null;
+    if ([operation.patch.start, operation.patch.end].some(point => !Array.isArray(point) || point.length !== 2 || !point.every(Number.isFinite))) return null;
+    const wall = input.walls.find(wall => wall.id === operation.id);
+    if (!wall) return null;
+    const shift: Vec2 = [operation.patch.start[0] - wall.start[0], operation.patch.start[1] - wall.start[1]];
+    const endShift: Vec2 = [operation.patch.end[0] - wall.end[0], operation.patch.end[1] - wall.end[1]];
+    if (!shift.every(Number.isFinite) || !endShift.every(Number.isFinite) || !same(shift, endShift) || delta && !same(delta, shift)) return null;
+    delta ??= shift;
+    selected.add(operation.id);
+  }
+  const shift = delta!;
+  const scene = input.version === 2 ? input : migrateScene(input), project = scene.project!;
+  const originalWalls = structuredClone(scene.walls);
+  const sources = originalWalls.filter(wall => selected.has(wall.id));
+  const beforeGeometry = dependentGeometry(scene);
+  const overlaps = (source: Wall, id: string, height: number) => {
+    const base = project.metadata[id]?.elevation ?? 0, sourceBase = project.metadata[source.id]?.elevation ?? 0;
+    return Math.min(base + height, sourceBase + source.height) - Math.max(base, sourceBase) > EPS;
+  };
+  // Inferred ceiling heights depend on adjoining walls, so capture room connections
+  // before moving any wall away from its original boundary.
+  const roomConnections = new Map(scene.rooms.map(room => {
+    const height = roomCeilingHeight(scene, room);
+    return [room.id, sources.filter(source => overlaps(source, room.id, height))];
+  }));
+  const translated = (point: Vec2): Vec2 => [point[0] + shift[0], point[1] + shift[1]];
+  const pointMoves = (point: Vec2, connected: Wall[]) => connected.some(source => segmentPosition(point, source.start, source.end) !== null);
+  for (const wall of scene.walls) {
+    const connected = sources.filter(source => overlaps(source, wall.id, wall.height));
+    const start = selected.has(wall.id) || pointMoves(wall.start, connected) ? translated(wall.start) : wall.start;
+    const end = selected.has(wall.id) || pointMoves(wall.end, connected) ? translated(wall.end) : wall.end;
+    if (selected.has(wall.id) || !same(start, wall.start) || !same(end, wall.end)) {
+      alteration(scene, wall.id);
+      wall.start = start; wall.end = end;
+    }
+  }
+  if (!same(shift, [0, 0])) for (const room of scene.rooms) {
+    const connected = roomConnections.get(room.id)!;
+    // Insert every selected segment's original joints before any boundary point moves.
+    const boundary = connected.reduce((polygon, source) => roomWallJunctions(polygon, source.start, source.end), room.polygon);
+    const points = boundary.map(point => pointMoves(point, connected) ? translated(point) : point);
+    if (points.some((point, index) => !same(point, boundary[index]!))) {
+      if (signedArea(points) * signedArea(room.polygon) <= 0) throw new Error(`Moving these walls would collapse or reverse room “${room.name}”. Keep them inside the connected room boundaries.`);
+      ensureEditable(scene, room.id);
+      invalidateAssumptions(scene, [room.id]);
+      room.polygon = points;
+    }
+  }
+  for (const original of originalWalls) {
+    const wall = find(scene.walls, original.id, 'Wall');
+    const projection = (wall.end[0] - wall.start[0]) * (original.end[0] - original.start[0])
+      + (wall.end[1] - wall.start[1]) * (original.end[1] - original.start[1]);
+    if (projection <= 0) throw new Error(`Moving these walls would pass the far end of connected wall “${wall.id}”. Move them a shorter distance.`);
+  }
+  for (const source of sources) for (const original of originalWalls) {
+    if (source.id === original.id || !overlaps(source, original.id, original.height)) continue;
+    for (const side of ['start', 'end'] as const) {
+      const position = segmentPosition(source[side], original.start, original.end);
+      if (position === null || position <= EPS || position >= 1 - EPS) continue;
+      const wall = find(scene.walls, source.id, 'Wall'), host = find(scene.walls, original.id, 'Wall');
+      if (segmentPosition(wall[side], host.start, host.end) === null) throw new Error(`Moving these walls would disconnect a junction from wall “${host.id}”. Keep the junction on its connected wall.`);
+    }
+  }
+  syncHostedRoutes(scene);
+  const changedDependants = [...dependentGeometry(scene)].filter(([id, geometry]) => beforeGeometry.has(id) && beforeGeometry.get(id) !== geometry).map(([id]) => id);
+  for (const id of changedDependants) ensureEditable(scene, id);
+  invalidateAssumptions(scene, changedDependants);
+  return scene;
+}
 /** Applies to a transaction-local draft. EditorStore validates and commits the complete transaction atomically. */
 export function applyRenovationOperation(input: SceneDocument, operation: RenovationOperation): SceneDocument {
   const scene = input.version === 2 ? input : migrateScene(input), project = scene.project!;

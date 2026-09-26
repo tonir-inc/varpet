@@ -7,7 +7,7 @@ export interface RenovationUIOptions {
   getScene(): SceneDocument;
   getCatalog(): CatalogAsset[];
   execute(label: string, operations: Operation[]): boolean;
-  select(id: string | null): void;
+  select(id: string | null, additive?: boolean): void;
   focus(id: string): void;
   notice(message: string, error?: boolean): void;
   testDoor?(id: string, angle: number): void;
@@ -21,7 +21,7 @@ export interface RenovationUIOptions {
   onLayer?(name: string, enabled: boolean): void;
   onComparison?(enabled: boolean): void;
 }
-export interface RenovationUI { render(): void; setSelection(id: string | null): void; destroy(): void }
+export interface RenovationUI { render(): void; setSelection(id: string | null, ids?: string[]): void; destroy(): void }
 type Tab = 'shell' | 'evidence' | 'assumptions' | 'systems' | 'options' | 'review';
 type Pair = readonly [string, string];
 const TABS: Pair[] = [['shell','Shell'],['evidence','Evidence'],['assumptions','Assumptions'],['systems','Systems'],['options','Options'],['review','Review']];
@@ -64,6 +64,7 @@ function safeSourceUrl(source: EvidenceSource) {
 export function createRenovationUI(container: HTMLElement, config: RenovationUIOptions): RenovationUI {
   let tab: Tab = 'shell';
   let selectedId: string | null = null;
+  let selectedIds: string[] = [];
   let treeSearch = '';
   let assumptionFilter = 'all';
   let assumptionEditor: string | null = null;
@@ -116,17 +117,17 @@ export function createRenovationUI(container: HTMLElement, config: RenovationUIO
     if(success) render();
     return success;
   }
-  function choose(id: string, focus = false) {
+  function choose(id: string, focus = false, additive = false) {
     selectedId=id;
     const project=p();
     if(project.components.some(c=>c.id===id)) { tab='systems'; componentEditor=id; routeEditor=null; }
     else if(project.routes.some(r=>r.id===id)) { tab='systems'; routeEditor=id; componentEditor=null; }
     else tab='shell';
-    config.select(id);
+    config.select(id, additive);
     if(focus) config.focus(id);
     render();
   }
-  function row(id: string,title: string,kind: string) { return `<button type="button" class="rv-entity-row" data-action="select" data-id="${esc(id)}" aria-pressed="${selectedId===id}"><span class="rv-kind">${esc(kind.slice(0,4))}</span><span>${esc(title)}</span>${p().assumptions.some(a=>a.entityId===id && ['unresolved','stale'].includes(a.status))?'<span class="rv-badge unknown" title="Unresolved assumptions">?</span>':''}</button>`; }
+  function row(id: string,title: string,kind: string) { return `<button type="button" class="rv-entity-row" data-action="select" data-id="${esc(id)}" aria-pressed="${selectedIds.includes(id) || selectedId===id}"><span class="rv-kind">${esc(kind.slice(0,4))}</span><span>${esc(title)}</span>${p().assumptions.some(a=>a.entityId===id && ['unresolved','stale'].includes(a.status))?'<span class="rv-badge unknown" title="Unresolved assumptions">?</span>':''}</button>`; }
   function commonMetadata(id: string, extra = '') {
     const m=meta(id), component=p().components.some(c=>c.id===id), room=config.getScene().rooms.some(r=>r.id===id);
     return `<details class="rv-disclosure"><summary>Renovation &amp; evidence</summary>${form('metadata',`<div class="rv-fields">${component||room?'':field('name','Label',m.name ?? name(id))}${component?'':select('phase','Renovation action',m.phase ?? 'existing',PHASES)}${select('review','Alteration review',m.review ?? 'unreviewed',[['unreviewed','Unreviewed'],['required','Review required'],['reviewed','Review recorded']])}${field('material','Existing material',m.material ?? '')}${extra}${textarea('notes','Notes / review reference',m.notes ?? '')}</div>${checkbox('locked','Lock model editing',m.locked)}${submit('Save classification')}`,id)}<div class="rv-actions">${action('assumption-new','Add property assumption',id)}${action('focus','Focus in 3D',id)}</div></details>`;
@@ -344,9 +345,9 @@ export function createRenovationUI(container: HTMLElement, config: RenovationUIO
       default: throw new Error(`Unknown form: ${type}`);
     }
   }
-  function handleAction(actionName: string,id: string) {
+  function handleAction(actionName: string,id: string, additive = false) {
     switch(actionName) {
-      case 'select': choose(id); return;
+      case 'select': choose(id, false, additive); return;
       case 'focus': selectedId=id; config.select(id); config.focus(id); render(); return;
       case 'issue': choose(id,true); return;
       case 'sources': config.onSources?.(); return;
@@ -439,8 +440,8 @@ export function createRenovationUI(container: HTMLElement, config: RenovationUIO
         tab=TABS[next]![0] as Tab; render(); container.querySelector<HTMLButtonElement>(`[data-tab="${tab}"]`)?.focus();
       };
     });
-    container.querySelectorAll<HTMLButtonElement>('[data-action]').forEach(button=>button.onclick=()=>{
-      try { handleAction(button.dataset.action!,button.dataset.id ?? ''); }
+    container.querySelectorAll<HTMLButtonElement>('[data-action]').forEach(button=>button.onclick=event=>{
+      try { handleAction(button.dataset.action!,button.dataset.id ?? '', event.shiftKey); }
       catch(error) { config.notice(error instanceof Error?error.message:String(error),true); }
     });
     container.querySelectorAll<HTMLFormElement>('form[data-form]').forEach(element=>element.onsubmit=event=>{
@@ -513,8 +514,10 @@ export function createRenovationUI(container: HTMLElement, config: RenovationUIO
   render();
   return {
     render,
-    setSelection(id) {
-      if(selectedId===id) { syncTestControls(); return; }
+    setSelection(id, ids = id ? [id] : []) {
+      const sameIds = JSON.stringify(ids) === JSON.stringify(selectedIds);
+      selectedIds = [...ids];
+      if(selectedId===id && sameIds) { syncTestControls(); return; }
       selectedId=id;
       const project=p();
       if(project.components.some(c=>c.id===id)) { tab='systems'; componentEditor=id; routeEditor=null; }

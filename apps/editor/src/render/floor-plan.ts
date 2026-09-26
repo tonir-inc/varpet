@@ -2,6 +2,7 @@ import type { CatalogAsset, EntityMetadata, Opening, Operation, Room, SceneDocum
 import { measureFloorPlanRoom, type FloorPlanRoomMeasurement } from '../core/floor-plan';
 import { componentPosition, componentRotation } from '../core/geometry';
 import { objectFootprint } from '../core/validation';
+import { selectionTransformOperations, wallSelectionOperations, previewSelectionOperations } from '../core/multi-selection';
 import { createPlanMove, previewPlanMove, type PlanMove } from '../core/plan-move';
 import type { SceneNormalizer } from '../core/store';
 import { defaultPlanLayers, planConnectionPoints, planRouteBands, routeEndpointLabel, routeLength, serviceColors, serviceLabels, visiblePlanRoutes, type PlanLayers } from '../core/plan-layers';
@@ -10,8 +11,9 @@ import { drawPlanSelectionMeasurements, updatePlanMeasurementDetails } from './p
 
 export interface FloorPlan {
   setScene(scene: SceneDocument, catalog?: CatalogAsset[]): void;
-  setSelection(id: string | null): void;
+  setSelection(id: string | null, ids?: string[]): void;
   setSnap(enabled: boolean): void;
+  setAdditiveSelection(enabled: boolean): void;
   setVisible(visible: boolean): void;
   cancelInteraction(): boolean;
   focus(id?: string): void;
@@ -21,6 +23,8 @@ export interface FloorPlan {
 interface FloorPlanCallbacks {
   onInteraction(active: boolean): void;
   onCommit(operation: Operation, label: string): void;
+  onCommitMany?(operations: Operation[], label: string): void;
+  onAdditiveSelectionChange?(enabled: boolean): void;
   onError?(message: string): void;
   onSnapChange?(enabled: boolean): void;
 }
@@ -66,7 +70,7 @@ function shortName(name: string, characters: number): string[] {
 }
 
 /** Disposable SVG projection; gestures propose checked operations to the document owner. */
-export function createFloorPlan(container: HTMLElement, onSelect: (id: string | null) => void, callbacks?: FloorPlanCallbacks, normalizeScene?: SceneNormalizer): FloorPlan {
+export function createFloorPlan(container: HTMLElement, onSelect: (id: string | null, additive?: boolean) => void, callbacks?: FloorPlanCallbacks, normalizeScene?: SceneNormalizer): FloorPlan {
   const hatchId = `plan-wall-hatch-${++planSequence}`;
   const root = html('div', 'floor-plan');
   root.hidden = true;
@@ -138,8 +142,12 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
     setSnap(!snapEnabled); callbacks?.onSnapChange?.(snapEnabled);
   });
   snapButton.classList.add('fp-snap'); snapButton.setAttribute('aria-pressed', 'true');
-  controls.append(snapButton, zoomOut, scaleLabel, zoomIn, fitButton);
-  const hint = html('div', 'fp-hint', 'Drag items to move · Empty floor / Alt-drag to pan · Esc to cancel');
+  const multiButton = control('Select multiple walls or models', 'Select several', () => {
+    setAdditiveSelection(!additiveSelection); callbacks?.onAdditiveSelectionChange?.(additiveSelection);
+  });
+  multiButton.setAttribute('aria-pressed', 'false');
+  controls.append(multiButton, snapButton, zoomOut, scaleLabel, zoomIn, fitButton);
+  const hint = html('div', 'fp-hint', 'Shift-click to select several · Drag selection to move · Alt-drag to pan · Esc to cancel');
   const status = html('div', 'fp-drag-status');
   status.setAttribute('role', 'status'); status.hidden = true;
   const empty = html('div', 'fp-empty');
@@ -152,8 +160,11 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
   let documentScene: SceneDocument | null = null;
   let catalog: CatalogAsset[] = [];
   let snapEnabled = true;
+  let additiveSelection = false;
   let measurements = new Map<string, FloorPlanRoomMeasurement>();
   let selection: string | null = null;
+  let selectedIds: string[] = [];
+  const isSelected = (id: string) => selection === id || selectedIds.includes(id);
   let visible = false;
   let disposed = false;
   let width = 1, height = 1;
@@ -166,7 +177,7 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
     id: number; x: number; y: number; panX: number; panY: number; scale: number;
     entityId: string | null; moved: boolean; pan: boolean; move?: PlanMove;
     delta: Vec2; snap: boolean; started: boolean; dirty: boolean;
-    operation: Operation | null; error?: string;
+    operation: Operation | null; operations?: Operation[]; movingIds?: string[]; error?: string;
   } | null = null;
   let world = svg('g');
   function meta(id: string): EntityMetadata { return scene?.project?.metadata[id] ?? {}; }
@@ -272,7 +283,7 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
     element.textContent = value; parent.append(element); return element;
   }
   function selectable(id: string, accessibleName: string, className: string): SVGGElement {
-    const group = svg('g', { class: `fp-entity ${className}${selection === id ? ' is-selected' : ''}${phase(id) === 'remove' ? ' is-removed' : ''}`, 'data-entity-id': id, tabindex: '0', role: 'button', 'aria-label': [accessibleName, phaseNote(id)].filter(Boolean).join('. '), 'aria-pressed': selection === id ? 'true' : 'false' });
+    const group = svg('g', { class: `fp-entity ${className}${isSelected(id) ? ' is-selected' : ''}${phase(id) === 'remove' ? ' is-removed' : ''}`, 'data-entity-id': id, tabindex: '0', role: 'button', 'aria-label': [accessibleName, phaseNote(id)].filter(Boolean).join('. '), 'aria-pressed': isSelected(id) ? 'true' : 'false' });
     if (callbacks && documentScene && createPlanMove(documentScene, id)) group.classList.add('is-movable');
     const title = svg('title'); title.textContent = accessibleName; group.append(title);
     return group;
@@ -326,8 +337,8 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
       if (end <= start) return;
       const a = add(wall.start, direction, start), b = add(wall.start, direction, end);
       const points = [add(a, normal, wall.thickness / 2), add(b, normal, wall.thickness / 2), add(b, normal, -wall.thickness / 2), add(a, normal, -wall.thickness / 2)];
-      if (selection === wall.id) group.append(svg('polygon', { points: pointString(points), fill: 'none', stroke: '#8c71c9', 'stroke-width': 7, 'stroke-opacity': 0.28, 'vector-effect': 'non-scaling-stroke' }));
-      group.append(svg('polygon', { points: pointString(points), fill: role === 'structural' ? '#37363e' : role === 'partition' ? '#dfd8c9' : `url(#${hatchId})`, stroke: role === 'structural' ? '#37363e' : role === 'partition' ? '#797061' : '#82818a', 'stroke-width': selection === wall.id ? 2 : 1.15, 'vector-effect': 'non-scaling-stroke', class: 'fp-wall-body' }));
+      if (isSelected(wall.id)) group.append(svg('polygon', { points: pointString(points), fill: 'none', stroke: '#8c71c9', 'stroke-width': 7, 'stroke-opacity': 0.28, 'vector-effect': 'non-scaling-stroke' }));
+      group.append(svg('polygon', { points: pointString(points), fill: role === 'structural' ? '#37363e' : role === 'partition' ? '#dfd8c9' : `url(#${hatchId})`, stroke: role === 'structural' ? '#37363e' : role === 'partition' ? '#797061' : '#82818a', 'stroke-width': isSelected(wall.id) ? 2 : 1.15, 'vector-effect': 'non-scaling-stroke', class: 'fp-wall-body' }));
     }
     for (const opening of openings) {
       const start = Math.max(0, Math.min(length, opening.offset));
@@ -419,7 +430,7 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
       if (!asset) continue;
       const group = selectable(object.id, `${object.name}, drag to move`, 'fp-furniture');
       group.append(svg('polygon', { points: pointString(objectFootprint(object, asset)), fill: object.color ?? asset.color, 'vector-effect': 'non-scaling-stroke' }));
-      if (selection === object.id) label(group, [object.position[0], object.position[2]], object.name, 'fp-furniture-label', 11);
+      if (isSelected(object.id)) label(group, [object.position[0], object.position[2]], object.name, 'fp-furniture-label', 11);
       world.append(group);
     }
   }
@@ -485,7 +496,7 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
     }
   }
   function drawWallHandles(): void {
-    const wall = scene?.walls.find(item => item.id === selection);
+    const wall = selectedIds.length > 1 ? undefined : scene?.walls.find(item => item.id === selection);
     if (!wall || !callbacks || !documentScene || !createPlanMove(documentScene, wall.id)) return;
     for (const endpoint of ['start', 'end'] as const) {
       const point = wall[endpoint];
@@ -601,6 +612,11 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
     scene = next;
     measurements = new Map(next.rooms.map(room => [room.id, measureFloorPlanRoom(next, room)]));
   }
+  function setAdditiveSelection(enabled: boolean): void {
+    cancelInteraction(); additiveSelection = enabled;
+    multiButton.setAttribute('aria-pressed', String(enabled));
+    multiButton.textContent = enabled ? 'Done selecting' : 'Select several';
+  }
   function setSnap(enabled: boolean): void {
     snapEnabled = enabled;
     snapButton.textContent = enabled ? 'Snap on' : 'Smooth';
@@ -610,7 +626,28 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
   function resolvePreview(): void {
     if (!pointer?.move || !pointer.dirty) return;
     pointer.dirty = false;
-    const result = previewPlanMove(pointer.move, pointer.delta, pointer.snap, catalog, normalizeScene);
+    let result;
+    if (pointer.movingIds && pointer.movingIds.length > 1) {
+      const move = pointer.move;
+      const quantize = (value: number, step: number) => pointer!.snap ? Math.round(value / step) * step : value;
+      try {
+        let operations: Operation[] = [];
+        if (move.kind === 'wall') {
+          const delta: Vec2 = [quantize(pointer.delta[0], 0.05), quantize(pointer.delta[1], 0.05)];
+          if (delta.some(value => Math.abs(value) > 1e-9)) operations = wallSelectionOperations(move.source, pointer.movingIds, delta);
+        } else if (move.kind === 'object') {
+          const position = [...move.object.position] as typeof move.object.position;
+          position[0] = quantize(position[0] + pointer.delta[0], 0.25);
+          position[2] = quantize(position[2] + pointer.delta[1], 0.25);
+          if (position.some((value, i) => Math.abs(value - move.object.position[i]!) > 1e-9)) operations = selectionTransformOperations(move.source, move.id, { position }, pointer.movingIds);
+        }
+        pointer.operations = operations;
+        result = { scene: operations.length ? previewSelectionOperations(move.source, operations, catalog, normalizeScene) : move.source, operation: null, error: undefined as string | undefined };
+      } catch (error) {
+        pointer.operations = undefined;
+        result = { scene: null, operation: null, error: error instanceof Error ? error.message : 'This selection cannot move here.' };
+      }
+    } else result = previewPlanMove(pointer.move, pointer.delta, pointer.snap, catalog, normalizeScene);
     pointer.operation = result.operation; pointer.error = result.error;
     project(result.scene ?? pointer.move.source);
     status.hidden = false;
@@ -654,12 +691,15 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
     const id = entity?.getAttribute('data-entity-id') ?? null;
     const pan = event.button !== 0 || event.altKey || !id || documentScene.rooms.some(room => room.id === id);
     const endpoint = entity?.getAttribute('data-endpoint');
-    const move = !pan && callbacks && id ? createPlanMove(documentScene, id, endpoint === 'start' || endpoint === 'end' ? endpoint : undefined) : undefined;
     event.preventDefault(); drawing.focus({ preventScroll: true });
-    if (event.button === 0 && !event.altKey && id) onSelect(id);
+    const additive = event.shiftKey || additiveSelection;
+    if (event.button === 0 && !event.altKey && additive) { onSelect(id, true); return; }
+    if (event.button === 0 && !event.altKey && id && !isSelected(id)) onSelect(id);
+    const movingIds = callbacks?.onCommitMany && id && selectedIds.includes(id) && selectedIds.length > 1 ? [...selectedIds] : undefined;
+    const move = !pan && callbacks && id ? createPlanMove(documentScene, id, !movingIds && (endpoint === 'start' || endpoint === 'end') ? endpoint : undefined) : undefined;
     if (!visible || (move && documentScene !== move.source)) return;
     pointer = { id: event.pointerId, x: event.clientX, y: event.clientY, panX, panY, scale,
-      entityId: id, moved: false, pan, move, delta: [0, 0], snap: snapEnabled, started: false, dirty: false, operation: null };
+      entityId: id, moved: false, pan, move, movingIds, delta: [0, 0], snap: snapEnabled, started: false, dirty: false, operation: null };
     drawing.setPointerCapture(event.pointerId);
   });
   drawing.addEventListener('pointermove', movePointer);
@@ -668,9 +708,10 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
     movePointer(event); resolvePreview();
     const current = pointer;
     cancelInteraction();
-    if (current.started && current.operation) callbacks?.onCommit(current.operation, current.move!.label);
+    if (current.started && current.operations?.length) callbacks?.onCommitMany?.(current.operations, current.move!.kind === 'wall' ? 'Move selected walls' : 'Move selected furniture');
+    else if (current.started && current.operation) callbacks?.onCommit(current.operation, current.move!.label);
     else if (current.error) callbacks?.onError?.(current.error);
-    else if (!current.moved && event.button === 0 && !event.altKey) onSelect(current.entityId);
+    else if (!current.moved && event.button === 0 && !event.altKey && !current.entityId) onSelect(null);
   });
   drawing.addEventListener('pointercancel', event => { if (pointer?.id === event.pointerId) cancelInteraction(); });
   drawing.addEventListener('lostpointercapture', event => { if (pointer?.id === event.pointerId) cancelInteraction(); });
@@ -680,7 +721,7 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
     const entity = event.target instanceof Element ? event.target.closest('[data-entity-id]') : null;
     if (event.key === 'Escape' && cancelInteraction()) { event.preventDefault(); event.stopPropagation(); return; }
     if (pointer) return;
-    if ((event.key === 'Enter' || event.key === ' ') && entity) onSelect(entity.getAttribute('data-entity-id'));
+    if ((event.key === 'Enter' || event.key === ' ') && entity) onSelect(entity.getAttribute('data-entity-id'), event.shiftKey || additiveSelection);
     else if (event.key === 'Escape') onSelect(null);
     else if (event.key === '+' || event.key === '=') zoom(1.2);
     else if (event.key === '-') zoom(1 / 1.2);
@@ -701,8 +742,12 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
       if (first && visible) focus();
       schedule();
     },
-    setSelection(id) { if (selection !== id) { cancelInteraction(); selection = id; schedule(); } },
-    setSnap, cancelInteraction,
+    setSelection(id, ids = id ? [id] : []) {
+      if (selection !== id || JSON.stringify(selectedIds) !== JSON.stringify(ids)) {
+        cancelInteraction(); selection = id; selectedIds = [...ids]; schedule();
+      }
+    },
+    setSnap, setAdditiveSelection, cancelInteraction,
     setVisible(nextVisible) {
       visible = nextVisible; root.hidden = !visible;
       if (visible) resize();
