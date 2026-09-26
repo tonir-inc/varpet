@@ -29,7 +29,8 @@ import { BUILT_CATEGORY, loadBuiltProducts, resolveFurnitureProducts } from './a
 import { createReconstructionProposal, previewReconstructionProposal } from './core/reconstruction-proposal';
 import { createViewport } from './render/viewport';
 import { SKYBOX_PRESETS, isSkyboxPreset, type SkyboxPreset } from './render/skybox';
-import { selectionTransformOperations, wallSelectionOperations } from './core/multi-selection';
+import { previewSelectionOperations, selectionTransformOperations, wallSelectionOperations } from './core/multi-selection';
+import { mayChangeWallStructure, structuralWallChanges } from './core/structural-wall-confirmation';
 import { createFloorPlan } from './render/floor-plan';
 import { createCatalogPreviews } from './render/catalog-previews';
 import { icon } from './ui/icons';
@@ -298,13 +299,47 @@ function focusView(id?: string) {
   else viewport.focus(id);
 }
 
-function run(operations: Operation[], label: string, revision = store.revision) {
+function run(operations: Operation[], label: string, revision = store.revision, onDeferredApply?: () => void) {
   if (previewMode) { notify('Exit preview to edit the apartment.'); return false; }
   const command: EditCommand = {id:uid(), label, source:'human', baseRevision:revision, operations};
+  // Preflight shell edits with the same checks and junction policy as the real
+  // store. Compare the result so connected walls count, but paint/type changes do not.
+  const shellEdit = operations.some(mayChangeWallStructure);
+  if (shellEdit && revision === store.revision) {
+    try {
+      const candidate = previewSelectionOperations(store.scene, operations, catalog, normalizeWallJunctions);
+      const walls = structuralWallChanges(store.scene, candidate, operations);
+      if (walls.length) {
+        const structural = walls.some(wall => wall.role === 'structural');
+        const correcting = store.scene.project?.mode !== 'renovate';
+        showModal(structural ? 'Change a load-bearing wall?' : 'Change a wall with an unconfirmed structural role?',
+          `<p class="modal-intro">${escape(label)} affects ${walls.length === 1 ? 'this wall' : 'these walls'}. Do you want to continue?</p><ul>${walls.map(wall => `<li><strong>${escape(wall.name)}</strong> — ${wall.role === 'structural' ? 'recorded as load-bearing' : 'structural role is unconfirmed'}</li>`).join('')}</ul><p class="modal-intro">${correcting ? 'This corrects the model. It does not approve changing the real building.' : 'This changes the renovation proposal. Have a structural professional review the work before changing the real building.'}</p><div class="file-actions"><button id="cancel-wall-change" type="button" class="button">Cancel</button><button id="confirm-wall-change" type="button" class="button primary">${correcting ? 'Apply model correction' : 'Apply proposed change'}</button></div>`);
+        $('#cancel-wall-change').onclick = () => modal.close();
+        modal.addEventListener('close', () => {
+          renderInspector();
+          renovationUI?.render();
+        }, { once: true });
+        $('#confirm-wall-change').onclick = () => {
+          modal.close();
+          // Retain the reviewed revision: a later edit must never reuse consent.
+          if (executeHumanCommand(command)) onDeferredApply?.();
+        };
+        $('#cancel-wall-change').focus();
+        return false;
+      }
+    } catch (error) {
+      notify(error instanceof Error ? error.message : 'This wall change could not be checked.', true);
+      return false;
+    }
+  }
+  return executeHumanCommand(command);
+}
+
+function executeHumanCommand(command: EditCommand) {
   const result = store.execute(command, true);
   if (!result.ok) notify(result.errors.join(' '), true);
-  else if (result.warnings.length) notify(`${label}. ${result.warnings[0]}`);
-  else notify(label);
+  else if (result.warnings.length) notify(`${command.label}. ${result.warnings[0]}`);
+  else notify(command.label);
   return result.ok;
 }
 
@@ -335,7 +370,8 @@ function exportProject(kind: 'project' | 'schedule' | 'report') {
 
 renovationUI = createRenovationUI($('#renovation-panel'), {
   getScene: () => store.scene, getCatalog: () => catalog,
-  execute: (label, operations) => run(operations, label), select: (id, additive) => select(id, additive || multiSelection),
+  isAwaitingConfirmation: () => modal.open && !!modal.querySelector('#confirm-wall-change'),
+  execute: (label, operations, onDeferredApply) => run(operations, label, store.revision, onDeferredApply), select: (id, additive) => select(id, additive || multiSelection),
   focus: id => focusView(id), notice: notify,
   testDoor: (id, angle) => viewport.setDoorAngle(id, angle), getDoorAngle: id => viewport.getDoorAngle(id),
   toggleSwitch: id => viewport.toggleSwitch(id), setSwitchLevel: (id, level) => viewport.setSwitchLevel(id, level), getSwitchLevel: id => viewport.getSwitchLevel(id), onSources: () => intake.sources(), onReconstruct: () => intake.reconstruction(), onExport: exportProject,
@@ -460,8 +496,9 @@ function renderInspector() {
   $('.selection-chip').hidden = !name;
   $('#selected-name').textContent = name ? selectionLabel() : '';
   const inspectorOptions = {
-    getScene: () => store.scene, getCatalog: () => catalog, execute: run,
-    notice: notify, refresh: renderInspector, showFullHeight,
+    getScene: () => store.scene, getCatalog: () => catalog,
+    execute: (operations: Operation[], label: string, onDeferredApply?: () => void) => run(operations, label, store.revision, onDeferredApply),
+    notice: notify, refresh: renderInspector, showFullHeight, select: (id: string) => select(id),
     advanced: () => { switchPanel('renovation'); renovationUI?.setSelection(selectedId, selectionIds()); },
     getDoorAngle: (id: string) => viewport.getDoorAngle(id),
     testDoor: (id: string, angle: number) => viewport.setDoorAngle(id, angle),
@@ -847,7 +884,7 @@ function refresh(){
     publish.textContent = shareSession?.saving ? 'Publishing…' : shareSession?.savedRevision === store.revision ? 'Progress published' : 'Publish progress';
   }
   $('#apartment-height').innerHTML = heightControlMarkup(scene);
-  bindHeightControl($('#apartment-height'), { getScene: () => store.scene, execute: run, notice: notify, showFullHeight });
+  bindHeightControl($('#apartment-height'), { getScene: () => store.scene, execute: (operations, label, onDeferredApply) => run(operations, label, store.revision, onDeferredApply), notice: notify, showFullHeight });
   renderWallControls();
   renderHierarchy();renderInspector();renderProposal();
   renovationUI?.render();

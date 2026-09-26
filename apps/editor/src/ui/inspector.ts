@@ -3,6 +3,7 @@ import { hasRoomCeiling } from '../core/heights';
 import './inspector.css';
 import type { CatalogAsset, EntityMetadata, Operation, SceneDocument, SceneObject } from '../contracts';
 import { buildAssetReplacementOperations, buildOpeningTypeOperations, OPENING_TYPES } from '../core/inspector-edits';
+import { inspectorOpenings } from '../core/inspector-openings';
 import { buildFinishOperations, FINISH_DRAG_TYPE, FINISH_PRESETS, getPresetForMaterial, type FinishPreset } from '../core/finish-presets';
 import { wallSurfaceSpans } from '../core/wall-surfaces';
 import { resolveWallFinishTargets } from '../core/wall-finish-targets';
@@ -12,10 +13,11 @@ import { fillFinishSwatches } from './finish-swatch';
 interface InspectorOptions {
   getScene(): SceneDocument;
   getCatalog(): CatalogAsset[];
-  execute(operations: Operation[], label: string): boolean;
+  execute(operations: Operation[], label: string, onDeferredApply?: () => void): boolean;
   notice(message: string, error?: boolean): void;
   refresh(): void;
   advanced(): void;
+  select?(id: string): void;
   showFullHeight?(): void;
   getDoorAngle(id: string): number;
   testDoor(id: string, angle: number): void;
@@ -40,6 +42,17 @@ function commit(config: InspectorOptions, build: () => Operation[], label: strin
 }
 function projectOperations(scene: SceneDocument, operations: Operation[]): Operation[] {
   return scene.project ? operations : [{type:'migrate-project'}, ...operations];
+}
+
+function openingChoices(scene: SceneDocument, id: string): string {
+  const openings = inspectorOpenings(scene, id);
+  if (!openings.length) return '';
+  return `<section class="property-section"><div class="property-label">Doors &amp; windows<span>${openings.length}</span></div><p class="field-note">Select an opening to change its type, dimensions or opening direction.</p><div class="inspector-openings">${openings.map(({ wall, opening }) => {
+    const metadata = scene.project?.metadata[opening.id];
+    const name = metadata?.name ?? `${pretty(opening.kind)} ${scene.walls.indexOf(wall) + 1}.${wall.openings.indexOf(opening) + 1}`;
+    const type = OPENING_TYPES[opening.kind].find(option => option.value === metadata?.mechanism)?.label ?? (metadata?.mechanism ? pretty(metadata.mechanism) : 'Type unspecified');
+    return `<button type="button" data-select-opening="${esc(opening.id)}"><span><strong>${esc(name)}</strong><small>${pretty(opening.kind)} · ${esc(type)}</small></span>${icon('arrow')}</button>`;
+  }).join('')}</div></section>`;
 }
 
 export function renderAssetChoices(container: HTMLElement, object: SceneObject, config: InspectorOptions) {
@@ -102,12 +115,14 @@ export function renderEntityInspector(container: HTMLElement, id: string, config
     }).join('');
     if (config.onFinishDragStart && config.onFinishDragEnd && !disabled) body = `<p class="field-note">Drag a finish onto ${room ? 'a floor' : 'a room-facing wall surface'}, or click to apply it here.</p>${body}`;
     if (selectedWall || (room && hasRoomCeiling(scene, room))) body = heightControlMarkup(scene, { kind: selectedWall ? 'wall' : 'room', id }, !!disabled) + body;
+    if (config.select) body = openingChoices(scene, id) + body;
   } else if (component) {
     body = `<section class="property-section"><div class="property-label">Finish</div><div class="finish-row"><input id="component-color" type="color" aria-label="Component finish color" value="${esc(component.color)}" ${disabled}><span>${esc(component.color)}</span></div></section><div class="property-section"><div class="property-label">Dimensions <span>m</span></div><p class="field-note">${component.dimensions.map(d => Number(d.toFixed(3))).join(' × ')}</p></div>`;
   } else if (route) body = `<p class="field-note">${esc(pretty(route.system))} route · ${route.points.length} points</p>`;
   container.innerHTML = `${heading(name,kind)}${locked ? '<p class="inspector-assumption">Model editing is locked. Open Renovate to unlock.</p>' : removed ? '<p class="inspector-assumption">Marked for removal. Restore this item in Renovate to edit.</p>' : ''}${body}${assumptions.length ? `<section class="property-section"><div class="property-label">Property evidence</div>${assumptions.map(a => `<p class="field-note"><strong>${esc(a.property)}</strong> · ${esc(a.status)}<br>${esc(a.value || a.question || 'Unknown')}</p>`).join('')}</section>` : ''}<div class="inspector-advanced"><button id="inspector-advanced" type="button" class="button full">${icon('walls')} More in Renovate ${icon('arrow')}</button><p class="field-note">${scene.project?.mode === 'renovate' ? 'Editing a renovation proposal.' : 'Correcting the existing model.'} Changes can be undone.</p></div>`;
   if (room || selectedWall) bindHeightControl(container, config, { kind: selectedWall ? 'wall' : 'room', id });
   container.querySelector<HTMLButtonElement>('#inspector-advanced')!.onclick = config.advanced;
+  container.querySelectorAll<HTMLButtonElement>('[data-select-opening]').forEach(button => button.onclick = () => config.select?.(button.dataset.selectOpening!));
   container.querySelectorAll<HTMLButtonElement>('[data-opening-type]').forEach(button => button.onclick = () => commit(config, () => buildOpeningTypeOperations(config.getScene(), id, button.dataset.openingType as NonNullable<EntityMetadata['mechanism']>), `Change ${kind} type to ${button.textContent}`));
   const range = container.querySelector<HTMLInputElement>('#inspector-angle');
   const previewAngle = (degrees: number) => {

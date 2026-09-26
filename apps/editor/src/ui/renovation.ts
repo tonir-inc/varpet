@@ -6,7 +6,8 @@ import { analyzeProject } from '../core/renovation';
 export interface RenovationUIOptions {
   getScene(): SceneDocument;
   getCatalog(): CatalogAsset[];
-  execute(label: string, operations: Operation[]): boolean;
+  execute(label: string, operations: Operation[], onDeferredApply?: () => void): boolean;
+  isAwaitingConfirmation?(): boolean;
   select(id: string | null, additive?: boolean): void;
   focus(id: string): void;
   notice(message: string, error?: boolean): void;
@@ -111,9 +112,9 @@ export function createRenovationUI(container: HTMLElement, config: RenovationUIO
     const matches=p().materials.filter(material=>material.unit===unit).map(material=>[material.id,material.name] as Pair);
     return matches.length?matches:[['',`Add a material priced per ${unit==='m2'?'m²':unit} first`]];
   }
-  function run(label: string,ops: Operation[]) {
+  function run(label: string,ops: Operation[],onDeferredApply?: () => void) {
     const operations=config.getScene().project?ops:[{type:'migrate-project'} as Operation,...ops];
-    const success=config.execute(label,operations);
+    const success=config.execute(label,operations,() => { render(); onDeferredApply?.(); });
     if(success) render();
     return success;
   }
@@ -270,7 +271,7 @@ export function createRenovationUI(container: HTMLElement, config: RenovationUIO
       case 'wall': return run('Update wall geometry',[{type:'update-wall',id,patch:{start:[numeric(fd,'start-x'),numeric(fd,'start-z')],end:[numeric(fd,'end-x'),numeric(fd,'end-z')],height:numeric(fd,'height'),thickness:numeric(fd,'thickness'),color:text(fd,'color')}}]);
       case 'wall-new': {
         const wallId=uid();
-        const success=run('Add wall',[{type:'add-wall',wall:{id:wallId,start:[numeric(fd,'start-x'),numeric(fd,'start-z')],end:[numeric(fd,'end-x'),numeric(fd,'end-z')],height:numeric(fd,'height'),thickness:numeric(fd,'thickness'),color:'#ddd4c8',openings:[]}},{type:'set-metadata',id:wallId,patch:{name:text(fd,'name'),structuralRole:text(fd,'structuralRole') as EntityMetadata['structuralRole']}}]);
+        const success=run('Add wall',[{type:'add-wall',wall:{id:wallId,start:[numeric(fd,'start-x'),numeric(fd,'start-z')],end:[numeric(fd,'end-x'),numeric(fd,'end-z')],height:numeric(fd,'height'),thickness:numeric(fd,'thickness'),color:'#ddd4c8',openings:[]}},{type:'set-metadata',id:wallId,patch:{name:text(fd,'name'),structuralRole:text(fd,'structuralRole') as EntityMetadata['structuralRole']}}],() => choose(wallId));
         if(success) choose(wallId); return success;
       }
       case 'metadata': {
@@ -288,7 +289,7 @@ export function createRenovationUI(container: HTMLElement, config: RenovationUIO
         const opening: Opening={id:openingId,kind:text(fd,'kind') as Opening['kind'],offset:numeric(fd,'offset'),width:numeric(fd,'width'),height:numeric(fd,'height'),sill:numeric(fd,'sill')};
         const patch: EntityMetadata={role:text(fd,'role') as EntityMetadata['role'],mechanism:(text(fd,'mechanism') || undefined) as EntityMetadata['mechanism'],hinge:(text(fd,'hinge') || undefined) as EntityMetadata['hinge'],swing:text(fd,'swing')?numeric(fd,'swing') as 1|-1:undefined,frameWidth:numeric(fd,'frameWidth'),leafThickness:numeric(fd,'leafThickness'),threshold:numeric(fd,'threshold')};
         const {id:_,...openingPatch}=opening;
-        const success=run(id?'Edit opening':'Add opening',[id?{type:'update-opening',id,patch:openingPatch}:{type:'add-opening',wallId:required(fd,'wallId'),opening},{type:'set-metadata',id:openingId,patch}]);
+        const success=run(id?'Edit opening':'Add opening',[id?{type:'update-opening',id,patch:openingPatch}:{type:'add-opening',wallId:required(fd,'wallId'),opening},{type:'set-metadata',id:openingId,patch}],() => choose(openingId));
         if(success) choose(openingId); return success;
       }
       case 'room': {
@@ -381,7 +382,7 @@ export function createRenovationUI(container: HTMLElement, config: RenovationUIO
         const deleteTypes=['delete-wall','delete-room','delete-opening','delete-component','delete-route','delete-source','delete-assumption','delete-material','delete-finish','delete-task','delete-option'];
         if(deleteTypes.includes(actionName)) {
           const operation={type:actionName,id} as Operation;
-          if(run(pretty(actionName),[operation])) {
+          const afterDelete = () => {
             if(selectedId===id) { selectedId=null; config.select(null); }
             if(assumptionEditor===id) assumptionEditor=null;
             if(componentEditor===id) componentEditor=null;
@@ -389,7 +390,8 @@ export function createRenovationUI(container: HTMLElement, config: RenovationUIO
             if(materialEditor===id) materialEditor=null;
             if(taskEditor===id) taskEditor=null;
             if(sourceEditor===id) sourceEditor=null;
-          }
+          };
+          if(run(pretty(actionName),[operation],['delete-wall','delete-opening'].includes(actionName) ? afterDelete : undefined)) afterDelete();
           break;
         }
       }
@@ -447,7 +449,7 @@ export function createRenovationUI(container: HTMLElement, config: RenovationUIO
     container.querySelectorAll<HTMLFormElement>('form[data-form]').forEach(element=>element.onsubmit=event=>{
       event.preventDefault();
       const errorEl=element.querySelector<HTMLElement>('.rv-validation')!;
-      try { errorEl.hidden=true; if(!handleForm(element.dataset.form!,element.dataset.id ?? '',new FormData(element))) { errorEl.textContent='Change was not applied. Resolve the reported conflict and try again.'; errorEl.hidden=false; } }
+      try { errorEl.hidden=true; if(!handleForm(element.dataset.form!,element.dataset.id ?? '',new FormData(element)) && !config.isAwaitingConfirmation?.()) { errorEl.textContent='Change was not applied. Resolve the reported conflict and try again.'; errorEl.hidden=false; } }
       catch(error) { errorEl.textContent=error instanceof Error?error.message:String(error); errorEl.hidden=false; config.notice(errorEl.textContent,true); }
     });
     const tree=container.querySelector<HTMLInputElement>('#rv-tree-search');

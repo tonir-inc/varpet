@@ -3,7 +3,7 @@ import { apartmentHeights, buildHeightOperations, roomCeilingHeight, type Height
 
 interface HeightControlOptions {
   getScene(): SceneDocument;
-  execute(operations: Operation[], label: string): boolean;
+  execute(operations: Operation[], label: string, onDeferredApply?: () => void): boolean;
   notice(message: string, error?: boolean): void;
   showFullHeight?(): void;
 }
@@ -26,7 +26,7 @@ export function bindHeightControl(container: HTMLElement, options: HeightControl
       const input = form.elements.namedItem('shell-height') as HTMLInputElement;
       const operations = buildHeightOperations(options.getScene(), input.valueAsNumber, target);
       if (!operations.length) { options.notice('This height is already applied.'); return; }
-      const applied = options.execute(operations, target ? `Change ${target.kind} height` : 'Change apartment height');
+      const applied = options.execute(operations, target ? `Change ${target.kind} height` : 'Change apartment height', options.showFullHeight);
       if (applied) options.showFullHeight?.();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'This height could not be applied.';

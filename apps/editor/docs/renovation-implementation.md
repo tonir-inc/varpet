@@ -24,6 +24,10 @@ Set structural role (**unknown**, **structural**, or **non-load-bearing partitio
 
 Hinged, double, sliding, pocket, fixed, casement and tilt mechanisms have 3D representations and applicable test movement. In **Select** mode, select a door, then click it again or use its inspector controls to test opening. Swing overlays and approximate obstacle checks help identify conflicts. Temporary opening angles do not create history entries.
 
+To change a window type, select its room or wall and use **Properties → Doors & windows → [window] → Window type**. This list remains available when cutaway hides the opening. Choose Fixed, Casement, Tilt, Sliding or Double; use **Open** to preview the mechanism. Locked openings or hosts still require unlocking in Renovate.
+
+Geometry changes affecting walls recorded as structural or with an unknown structural role now require confirmation, including connected walls and resized wall openings. The dialog distinguishes a recorded load-bearing wall from an unconfirmed role and distinguishes model correction from a renovation proposal. Cancel leaves the scene and history untouched; confirmation applies one checked, undoable command. Paint and window mechanism changes do not trigger this geometry confirmation. [Verification and implementation notes](window-wall-editing.md).
+
 Room elevation and ceiling height represent split levels and balconies. Railings, steps, columns, beams, service shafts, ceilings and bulkheads are editable components. Furniture from the original catalog remains at Y=0; use building components for elevated or mounted fixtures.
 
 ## Keep uncertainty visible

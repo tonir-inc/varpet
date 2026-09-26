@@ -7,6 +7,14 @@
 .inspector-types button { min-height: 37px; padding: var(--space-2); border: 1px solid var(--control-line); border-radius: var(--radius-sm); background: var(--raised); color: var(--ink); font-size: var(--text-xs); }
 .inspector-types button:hover:not(:disabled) { background: var(--hover); border-color: var(--control-line); }
 .inspector-types button[aria-pressed="true"] { background: var(--accent-wash); border-color: var(--accent); color: var(--accent); box-shadow: inset 0 0 0 1px var(--shadow-color); }
+.inspector-openings { display: grid; gap: var(--space-2); }
+.inspector-openings button { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); width: 100%; padding: var(--space-3); border: 1px solid var(--control-line); border-radius: var(--radius-sm); background: var(--raised); color: var(--ink); text-align: left; }
+.inspector-openings button:hover { background: var(--hover); }
+.inspector-openings button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.inspector-openings button > span { min-width: 0; }
+.inspector-openings strong { display: block; font-size: var(--text-sm); font-weight: 600; overflow-wrap: anywhere; }
+.inspector-openings small { display: block; margin-top: 4px; color: var(--muted); font-size: var(--text-xs); }
+.inspector-openings svg { flex: 0 0 auto; }
 .inspector-assumption { margin: 10px 0; padding: 9px 10px; border-radius: var(--radius-sm); background: var(--warning-wash); color: var(--warning); font-size: var(--text-xs); line-height: 1.6; }
 .inspector-preview { padding: 11px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); }
 .inspector-preview input[type="range"] { width: 100%; margin: 2px 0 10px; accent-color: var(--accent); }
