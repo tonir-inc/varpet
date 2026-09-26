@@ -2,10 +2,11 @@
 id: "20260926T194301Z-designer-designer-catalog-connection-failed-fetch-failed--95a125bbc97745d0a19704847a7f8a78"
 lane: "designer"
 severity: "major"
-status: "open"
+status: "fixed"
 title: "Designer 'catalog connection failed' (fetch failed): preview step ignores the configured catalog URL"
 reported_by: "Sergey"
 created: "2026-09-26T19:43:01.318714Z"
+fixed_in: "4ccf5da"
 ---
 
 **Steps**
@@ -29,3 +30,5 @@ search_catalog returns {ok:false, message:'fetch failed'} after ~10 s whenever i
 - 2026-09-26T19:51:08.074412Z: Update: probably not an env problem. Later failures are intermittent (one search with candidates + preview succeeded in 3.4 s), and the catalog slows to 6-8 s under concurrent requests, so the designer's 10-12 s timeouts trip - see 20260926T195100Z-catalog-catalog-search-slows. The env fallback to the tailnet URL is real but may not be what users hit; verify after the catalog latency fix. Severity lowered to major.
 
 - 2026-09-26T20:01:49.966123Z: Env hypothesis DISPROVED: captured the designer tool process env during a turn - VARPET_CATALOG_URL=http://127.0.0.1:8765/mcp is set. The fetch failures matched the catalog slowdown (fixed in the catalog lane: in-memory embedding matrix). The latest turn has no fetch failures. Candidate for close as duplicate if it doesn't recur.
+
+- 2026-09-26T20:23:34.830034Z: All designer catalog calls (search, previews, broker) use one resolver of VARPET_CATALOG_URL (empty = unset); catalog fan-out capped at 2 (get_item details now 2 at a time: check here if searches get slower); timeouts return a retryable 'catalog busy, retry' message; search_catalog keeps checked slots when previews time out
