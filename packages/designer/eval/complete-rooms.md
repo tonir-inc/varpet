@@ -71,3 +71,17 @@ Measured rollout audit: **0 exec and 0 non-MCP calls** across all 27 integrated 
 Machine-readable evidence: [complete-room-results.json](complete-room-results.json), including per-request results, original/stalled-cohort summaries, source revisions, grader hashes and raw-file hashes. Designer source, harness, editor scene contracts and grader files are unchanged between the frozen 6194d07 runtime and the final documentation rebase.
 
 Remaining failures are tracked in the [QA follow-up](../../../board/qa/20260926T192701Z-designer-complete-bedroom-and-kids-programs-still-fail-on-b11e5a19248a494d8873c40bee90d4a0.md).
+
+## Furniture support follow-up — 27 September 2026
+
+Measured (deterministic replay, not the Codex cohort): `planIncrementally` on the first-repeat recorded scenes of
+the three flats, live catalog at 100.107.246.46:8765, then `proposalToEditor`, `EditorStore` and the unchanged
+BENCH/QUALITY graders, as in `complete-room-diagnose.ts` + `complete-room-check.ts`; one run per row, load average
+about 20, so the 2 s role budgets are load-bound. QUALITY full programs: living 2/3 → 2/3, bedroom 0/3 → 1/3
+(Avani: table lamps rest on both nightstands, `on:<nightstand>`), kids 0/3 → 0/3 with BENCH 0/3 → 2/3 (genuine desk,
+chair sets named "desk" rejected). Before d3ce661, after 85ea526.
+Remaining: Balcony and b21-t13 bedrooms lose the second nightstand to the door-to-nightstand walkway (0.45–0.57 m);
+kids chairs in front of the desk leave the desk's own front approach at 0.35 m (a desk-plus-chair work zone in the
+access check would be a checker-semantics decision, not taken); the cheapest kids program found is 316,000 AMD
+against the unchanged 300,000 AMD request. Balcony · living room now gets the balcony program (chair, bistro table,
+plant, 0.30 m from the railing), editor accepted.
