@@ -46,4 +46,19 @@ class Telemetry(unittest.TestCase):
                 self.assertIsNone(record['usage'])
             finally:service.close()
 
+    def test_fast_path_arm_is_observed_in_service_telemetry(self):
+        import os
+        for flag in ('0', '1'):
+            with tempfile.TemporaryDirectory() as directory, patch.dict(os.environ, {'VARPET_DESIGNER_FAST_PATH': flag}):
+                service=m.Service(Path(directory),[])
+                def succeed(_body,_cancel,_progress):
+                    service.local.run_id='test'
+                    return {'type':'decline','conversationId':'actual-thread','message':'Cannot remove walls.'}
+                try:
+                    with patch.object(m.module.VisionService,'propose',side_effect=succeed):
+                        service.propose({},threading.Event(),lambda _:None)
+                    record=json.loads((Path(directory)/'test.events.jsonl').read_text())
+                    self.assertEqual(record.get('fast_path_env'),flag)
+                finally:service.close()
+
 if __name__=='__main__':unittest.main()

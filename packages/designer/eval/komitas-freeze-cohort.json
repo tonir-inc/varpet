@@ -1,0 +1,42 @@
+{
+  "created_at": "2026-09-26T14:24:39.942468+00:00",
+  "product_source": "baad3427262fbd19d5bbab36a0909d5d368c90a3",
+  "ids": [
+    "b18-t1",
+    "b20-t11",
+    "b21-t13",
+    "b23-t64",
+    "b24-t22",
+    "b27-t79",
+    "b28-t31",
+    "b30-t35",
+    "b31-t46"
+  ],
+  "inputs": {
+    "b18-t1.scene.json": "e080093108d7b6bd9dc6a8bd0d80c60e7a50239c2fc04517dd1eecb4403a85ca",
+    "b20-t11.scene.json": "bc950b5865beb2874d3ba39916c6902e645675d2db164b4d372b99456664af5d",
+    "b21-t13.scene.json": "cbe469bd11a42bb26188778dabc834f05b47c5f08b9b3f07a841d258bb16426e",
+    "b23-t64.scene.json": "cf296ff9faff8f708fbe058dbbb43221404573cdeb148a0ae91ae39dd5d81278",
+    "b24-t22.scene.json": "ce94e97aa8e79a6bebfde408a7d6100757fe6f2963dc4ce18e828c6517a6e21a",
+    "b27-t79.scene.json": "99b86da89e80ae523c1992b3804a9e6227e6120f948511424284d9fd61671f08",
+    "b28-t31.scene.json": "53e7c6a2298e7303493659b9af8889e7ad359bb99b40222d7ce1c1eb1bd4fd55",
+    "b30-t35.scene.json": "bf965963f7ca593179f22d424d32384e1196e3e40291c5d80be4df92f3cfea32",
+    "b31-t46.scene.json": "ffcd39e6360b8a1f3800d77ba1cadb835a9c73abab38695b26bd8d315737b3ef"
+  },
+  "planned_turns_per_arm": 58,
+  "arms": {
+    "on": "VARPET_DESIGNER_FAST_PATH=1",
+    "off": "VARPET_DESIGNER_FAST_PATH=0"
+  },
+  "profile": {
+    "model": "gpt-6-astra",
+    "effort": "low",
+    "placement": "without-place",
+    "context": "compact-base"
+  },
+  "parallel_total": 4,
+  "northDeg": 0,
+  "catalogCurrency": "AMD",
+  "catalog": "http://localhost:8765/mcp",
+  "assumptions": "One conversation per flat per arm, alternating arm order, independent initial scenes, no invented answers to questions; immutable original grading rules. Exclude separately furnished *.drawn.scene.json. Product source held fixed across both arms."
+}

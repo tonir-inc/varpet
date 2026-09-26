@@ -2,6 +2,7 @@
 import argparse
 import importlib.util
 import json
+import os
 from pathlib import Path
 import signal
 import threading
@@ -40,6 +41,7 @@ class Service(module.VisionService):
             usage = recorder.designer.usage_delta(before, conv.usage) if conv and known and conv.usage_known else None
             self.record('turn_telemetry', conversation_id=self.local.cid, usage=usage,
                         model=recorder.designer.MODEL, effort=self.effort, profile=self.profile,
+                        fast_path_env=os.environ.get("VARPET_DESIGNER_FAST_PATH"),
                         usage_limited=self.usage_limited.is_set())
 
 if __name__ == '__main__':

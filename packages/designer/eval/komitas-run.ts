@@ -10,6 +10,7 @@ import {validateScene} from '../../../apps/editor/src/core/validation.js';
 import {createCatalogHttpAdapter,mergeCatalogs} from '../../../apps/editor/src/adapters/catalog-http.js';
 import {requests,grade,flatContext,groundTruthForFlat} from './komitas-grade.js';
 const arg=(key:string,fallback:string)=>process.argv.includes(key)?process.argv[process.argv.indexOf(key)+1]!:fallback;
+const expectedFastPath=arg('--fast-path','');
 const input=arg('--scene','avani'),id=arg('--id',input==='avani'?'avani':basename(input,'.scene.json'));
 const output=resolve(ROOT,arg('--output',`packages/designer/eval/komitas-runs/${id}-${Date.now()}`));
 const events=resolve(arg('--events','/tmp/varpet-komitas-events')),endpoint=arg('--service','http://127.0.0.1:8794');
@@ -26,7 +27,7 @@ async function main(){
   const catalog=mergeCatalogs(localCatalog,remote),store=new EditorStore(scene,catalog),initial=validateScene(store.scene,catalog);
   if(!initial.ok)throw new Error(`Invalid initial scene: ${JSON.stringify(initial)}`);
   save('initial.json',{scene:store.scene,catalog});
-  const run:any={id,source:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),started_at:new Date().toISOString(),scene_input:input,northDeg:0,catalogCurrency:'AMD',profile:{effort:'low',placement:'without-place',context:'compact-base'},...context,ground_truth:truth,rows:[]};
+  const run:any={id,fast_path_env:expectedFastPath||null,source:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),started_at:new Date().toISOString(),scene_input:input,northDeg:0,catalogCurrency:'AMD',profile:{effort:'low',placement:'without-place',context:'compact-base'},...context,ground_truth:truth,rows:[]};
   save('run.json',run);let conversationId:string|undefined;
   for(const [kind,request] of requests){
     if(kind==='kids'&&!run.kids_required)continue;
@@ -58,7 +59,8 @@ async function main(){
     let grading:any;try{grading=grade(kind,before,store.scene,catalog,reply,accepted,run.roles);}catch(error){grading={pass:false,request_match:false,reasons:['grader_error'],error:String(error),editor_accepted:accepted};}
     const actualProfile=telemetry?{model:telemetry.model,effort:telemetry.effort,...telemetry.profile}:null;
     if(actualProfile?.model!=='gpt-6-astra'||actualProfile?.effort!=='low'||actualProfile?.placement!=='without-place'||actualProfile?.context!=='compact-base'){grading.pass=false;grading.reasons.push('profile_unverified');}
-    const row={kind,request,actual_profile:actualProfile,outcome:reply.type,seconds,tokens,usage,conversationId,description:reply.proposal?.description??reply.message??reply.question??'',reply,result,...grading};
+    if(expectedFastPath&&telemetry?.fast_path_env!==expectedFastPath){grading.pass=false;grading.reasons.push('fast_path_unverified');}
+    const row={kind,request,fast_path_env:telemetry?.fast_path_env??null,actual_profile:actualProfile,outcome:reply.type,seconds,tokens,usage,conversationId,description:reply.proposal?.description??reply.message??reply.question??'',reply,result,...grading};
     run.rows.push(row);save(`${kind}-after.json`,{scene:store.scene,catalog});save('final.json',{scene:store.scene,catalog});save('run.json',run);
     console.log(JSON.stringify({flat:id,kind,outcome:row.outcome,pass:row.pass,seconds:Math.round(seconds*1000)/1000,tokens,reasons:row.reasons}));
     if(telemetry?.usage_limited||/usage limit/i.test(reply.message??''))throw new Error('USAGE LIMIT: stop the batch');
