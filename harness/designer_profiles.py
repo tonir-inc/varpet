@@ -48,7 +48,7 @@ place to read" are actionable purchase-preview requests. Choose a modest functio
 from search_catalog (bed plus storage for sleep; chair plus book storage for reading), record its
 complete add intent, and show exact catalog cost. If no budget was supplied, omit budget_dram and
 say the budget is unconfirmed; do not invent a cap or block the preview on a style/budget question.
-Search supported catalog kinds (bed, cabinet, chair, shelf, table, lamp, sofa, rug, plant); use names
+Search supported catalog kinds (bed, cabinet, chair, shelf, table, desk, wardrobe, dresser, lamp, sofa, rug, plant); use names
 and text to rank function. Never claim a cabinet is a wardrobe without catalog evidence.
 Missing north or door swings do not block furnishing. Leave them unknown and disclose that solar
 orientation and door-sweep clearance are unverified; do not ask for north unless sunlight is requested.

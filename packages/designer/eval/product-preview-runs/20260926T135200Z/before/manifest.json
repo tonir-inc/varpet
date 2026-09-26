@@ -1,0 +1,53 @@
+{
+  "started_at": "2026-09-26T13:52:08.196Z",
+  "revision": "fd341017791fa44619763750ddadee2db73826fd",
+  "scenarios": [
+    {
+      "id": "chair",
+      "flat": "avani",
+      "turns": [
+        "Add one visually simple neutral reading chair to the living room. Keep existing furniture unchanged. Show a purchase preview; budget unconfirmed."
+      ],
+      "expect": "proposal"
+    },
+    {
+      "id": "desk",
+      "flat": "b20-t11",
+      "turns": [
+        "Add a desk by the bedroom window. Keep the rest of the apartment empty. Show a purchase preview; budget unconfirmed."
+      ],
+      "expect": "proposal"
+    },
+    {
+      "id": "reading",
+      "flat": "b28-t31",
+      "turns": [
+        "Make the living room a place to read with one comfortable simple armchair and a book shelf. Keep the rest of the apartment empty. Show a purchase preview; budget unconfirmed."
+      ],
+      "expect": "proposal"
+    }
+  ],
+  "arms": [
+    "before"
+  ],
+  "repetitions": 1,
+  "concurrency": 3,
+  "model": "gpt-6-astra",
+  "effort": "low",
+  "profile": {
+    "placement": "without-place",
+    "context": "compact-base"
+  },
+  "assumptions": "Three scoped add/furnish requests, one run per arm. Same scene, catalog and request per pair. No statistical quality claim.",
+  "rubric": "Independent EditorStore/validateScene acceptance and request-specific operation checks; style/appearance is separately blind-reviewed from rendered results and answer text. Declines, clarification, render failure and timeouts do not pass actionable requests. No same-model critic is used as the evaluation grader.",
+  "source_hashes": {
+    "harness/designer.py": "ede077ae0e7efbd5205a1d7b07e1bc05cba2f926fdb08ae97f1164b0573d0b13",
+    "harness/designer_service.py": "12fe6a0333b13c625dff98d81b2f0ce68b93457e6bbe0552410b881785605cbe",
+    "harness/designer_vision.py": "41bc19d090aa0e82c221ec9b2812e442b06abc2e9df8e61413869decf863cac3",
+    "harness/designer_vision_render.py": "5cdfa9f456331b87c13008bbfebac8663db98ae074d39b0bfa0938f0f3f71b5e",
+    "packages/designer/src/server.ts": "c8f9762524ab674d45f26ad42d3904e992363d9d054e46840d65466119cd5e58",
+    "packages/designer/src/catalog-vision.ts": "90920623f55c332bcfccb0aa70861122ac5df00a5f02d852303a2489365ef8c5",
+    "packages/designer/eval/product-preview-live.ts": "3e3eba8a58aa2e782b17aeec05fc92403c51733a20d650d89947fd66f98bd552",
+    "packages/designer/eval/vision-options-service.py": "38c1b454ef69882909788bb46bdb9e3312138c0251bdd73ae9b86be606c7767e"
+  }
+}

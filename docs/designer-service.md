@@ -378,3 +378,14 @@ and rejects proposal artifacts until conversion succeeds.
 VARPET_DESIGNER_FAST_PATH=1 answered a pure question on the editor demo augmented with a kitchen
 sink, bath and two pipe segments in 10.085 s (zero tool calls). A resumed question with an unsupported
 room elevation answered in 8.470 s (zero tool calls), with the limitation notice.
+
+### Product appearance before purchases
+
+Production threads always expose `show_candidates(item_ids)` through the Designer MCP, forwarding
+Sergey's exact-model contact sheet and legend. Before adding catalog furniture, the product prompt
+requires inspecting the top candidates; `propose` rejects additions whose SKU has not been shown.
+This needs no editor flag. `vision.products` remains accepted for older callers. FAST purchase
+selection fetches one grid (at most 12 unique SKUs, 8 s catalog / 10 s process deadline) and attaches
+it to its existing single structured model call; rearrangements incur no preview request. Failed
+previews withhold the purchase, and blank/visibly broken tiles must be rejected by the selector.
+Native desk, wardrobe and dresser kinds are retained; legacy aliases remain compatible.

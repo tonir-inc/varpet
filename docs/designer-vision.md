@@ -18,7 +18,7 @@ fallback. These are product images, not evidence of real shop price or physical 
 | Option | Decision it can inform | What it cannot establish | Prototype |
 |---|---|---|---|
 | Customer viewport | What “this corner” refers to; visible palette/material contrast; what the customer currently sees | Off-camera conditions, exact clearances, a stale scene, actual photographic fidelity | Fresh request snapshot, scene/revision bound, up to 1280 px JPEG; works on resumed turns |
-| Product sheet | Silhouette, upholstery appearance, visual weight, conspicuous bad meshes, conflicting catalog names/tags | Comfort, dimensions beyond catalog provenance, missing/blank pictures | `vision.products`; one opt-in MCP tool; require a sheet before added SKUs are proposed |
+| Product sheet | Silhouette, upholstery appearance, visual weight, conspicuous bad meshes, conflicting catalog names/tags | Comfort, dimensions beyond catalog provenance, missing/blank pictures | Production default for purchases; one MCP proxy; require a sheet before added SKUs are proposed |
 | Rendered proposal | Furniture reading as a coherent seating arrangement; obvious request/look mismatch or broken models | Independent geometric validation, objective aesthetic truth, concealed details | `vision.selfCheck`; top + 3D of disposable EditorStore-approved proposal; one read-only judgement; 20 s total render/model budget |
 | Developer plan | Room labels and developer-drawn furniture as an intended-use reference | Existing owned furniture, trustworthy dimensions from pixels, permission to alter shell | `vision.plan`; PNG/JPEG attached as separate context; JSON remains authoritative |
 
@@ -122,9 +122,11 @@ visual taste improvement**. Three repetitions do not support significance claims
 
 [derived recommendation] Switch on **current-view capture for explicit visible color/material
 questions** and offer it for “this corner” when selection/camera context matters. Keep it off for
-ordinary measured rearrangements. Offer **product sheets for appearance-sensitive purchases**:
-it makes look-based choice possible, but keep it experimental until per-tile availability is explicit
-and a larger taste evaluation wins. Keep **automatic self-check off**: the cold renderer/model
+ordinary measured rearrangements. The original experiment recommended experimental **product sheets for appearance-sensitive purchases**.
+Ashot and Sergey subsequently directed look-before-purchase as a product requirement: production now
+requires sheets for every catalog addition. This is a decision to expose necessary visual evidence,
+not a claim that the small experiment established a taste-quality gain. Per-tile availability and a
+larger taste evaluation remain needed. Keep **automatic self-check off**: the cold renderer/model
 budget loses valid deliveries; a persistent cached renderer and then a fresh controlled comparison
 are prerequisites. Attach **developer plans only for label/drawn-program questions**; this study
 does not justify sending them for routine furnishing. No automatic request classifier or CHAT UI
@@ -139,8 +141,11 @@ editor captures are alongside them. Original developer plan bytes are not includ
 
 ## Opt-in API and ownership
 
-No option changes the default fast path. Explicit visual jobs bypass FAST’s text-only selector; ordinary jobs retain its routing. Omitted `vision` adds no image, catalog-preview round,
-renderer process or review model call. QUALITY keeps ownership of style knowledge, programs and
+Current-view, developer-plan and self-check remain opt-in. Explicit visual jobs bypass FAST’s
+selector; ordinary jobs retain its routing. Production catalog additions now always inspect a
+product sheet: the general agent calls `show_candidates`; FAST attaches one grid to its existing
+structured call. Non-purchase FAST requests fetch no images. Omitted `vision` starts no renderer or
+review model call. QUALITY keeps ownership of style knowledge, programs and
 composition generation; this work does not change its definitions or substitute image judgement
 for its deterministic checks. FAST's profile remains unchanged. CHAT can opt in per message:
 
@@ -212,7 +217,7 @@ failed comparison request is replaced. No personal skill is copied back into the
 
 [derived] CHAT may enable `view` for appearance/deictic messages using `askDesigner`'s option;
 selection IDs are supplied by its caller. QUALITY owns incomplete room programs and visual taste.
-FAST's default model, effort, tools and context remain unchanged when options are absent. The
+FAST keeps its model, effort and single-call budget; only purchase selections gain a bounded product grid. The
 experiment uses full-flat standard views, not a controlled close-up camera/selection study; the
 "THIS corner" request also names the chair and sofa, so it does not isolate ambiguous pointing.
 
@@ -256,3 +261,13 @@ close-up/deictic accuracy without a named object; vision on the new FAST selecto
 cached renderer; or customer preference in an independent human study. Developer-plan labels and
 program understanding need a dedicated ground-truth evaluation. These remain limitations, not
 successes inferred from editor acceptance.
+
+## Production purchase follow-up
+
+[measured, 26 September 2026 UTC] Ashot/Sergey directed production look-before-purchase after this
+experiment. On three paired add/furnish requests, median service latency was **49.548 → 42.202 s**,
+median tokens **84,063 → 92,538**, editor-accepted proposals **2/3 → 3/3**. All three after-runs
+called `show_candidates`; the desk fix also corrected a stale supported-kind prompt. This small,
+shared-load smoke is not evidence of a speed or taste-quality gain. FAST also attaches a bounded grid
+to its existing single structured call; an observed candidate-geometry rejection remains unresolved.
+[Exact requests, measurements and limitations](../packages/designer/eval/product-preview-live.md).

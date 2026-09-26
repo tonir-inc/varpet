@@ -1,4 +1,4 @@
-/** Explicit opt-in catalog image passthrough. No preview network calls on the fast path. */
+/** Shared catalog image passthrough; production purchases inspect exact product models. */
 import {Client} from '@modelcontextprotocol/sdk/client/index.js';
 import {StreamableHTTPClientTransport} from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import {z} from 'zod';

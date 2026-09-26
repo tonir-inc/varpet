@@ -384,9 +384,8 @@ def sdk_worker(job_path: Path) -> int:
     from designer_profiles import TurnGuard, configure, prompt as profile_prompt, base_instructions
     placement, context = profile.get("placement", "relations"), profile.get("context", "full")
     config = configure(config, placement, effort, context)
-    if job.get("vision", {}).get("products"):
-        config["mcp_servers"]["varpet-designer"]["env"]["VARPET_VISION_PRODUCTS"] = "1"
-        config["mcp_servers"]["varpet-designer"]["enabled_tools"].append("show_candidates")
+    from designer_products import enable_product_previews
+    enable_product_previews(config)
     if job.get("review_only"):
         config["mcp_servers"] = {}
     if runtime.get("model_catalog"):

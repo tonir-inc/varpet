@@ -1,0 +1,27 @@
+{
+  "id": "fast-chair-after-1-1",
+  "scenario": "fast-chair",
+  "flat": "b20-t11",
+  "arm": "after",
+  "rep": 1,
+  "turn": 1,
+  "request": "Add a chair to the bedroom",
+  "seconds": 9.000855125,
+  "tokens": 0,
+  "tools": [],
+  "model_seconds": 8.413878332998138,
+  "total_tokens": 0,
+  "outcome": "message",
+  "editor_accepted": null,
+  "scope_ok": true,
+  "technical_pass": false,
+  "visual_pass": null,
+  "reply": {
+    "type": "message",
+    "message": "I could not inspect the catalog previews, so I have not added an unseen product. Please try again.",
+    "conversationId": "dd3e68cadba54171bdf8e918bf31df95"
+  },
+  "result": null,
+  "validation": null,
+  "conversationId": "dd3e68cadba54171bdf8e918bf31df95"
+}
