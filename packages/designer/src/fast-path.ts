@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import {createHttpCatalogQuery, type CatalogQuery} from './catalog.js';
+import {createHttpCatalogQuery, mapLimited, CATALOG_CONCURRENCY, type CatalogQuery} from './catalog.js';
 import {catalogProduct} from '../../../apps/editor/src/adapters/database-catalog.js';
 import { z } from 'zod';
 import type { CatalogAsset } from '../../../apps/editor/src/contracts.js';
@@ -407,7 +407,7 @@ export async function discoverFastCatalog(scene:Scene,request:string,owned:reado
   const recipe=classifyRequest(request);
   if(!recipe||!(recipe.classId.startsWith('furnish.')||recipe.classId.startsWith('add.')))return [...owned];
   const kinds=recipe.classId==='furnish.living'?['sofa','table']:recipe.classId==='furnish.bedroom'?['bed','wardrobe','nightstand']:recipe.classId==='furnish.kids'?['bed','desk','cabinet']:[recipe.kind!];
-  const pages=await Promise.all(kinds.map(kind=>query({kind,limit:12})));
+  const pages=await mapLimited(kinds,CATALOG_CONCURRENCY,kind=>query({kind,limit:12}));
   const merged=new Map<string,CatalogAsset>();
   for(const page of pages){
     if(!page||typeof page!=='object'||!Array.isArray((page as {results?:unknown}).results))throw Error('Catalog returned no product list');

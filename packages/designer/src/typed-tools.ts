@@ -6,7 +6,7 @@ import {randomUUID} from 'node:crypto';
 import {parseScene,applyOps} from './adapter.js';
 import {DesignerSession} from './session.js';
 import {SceneAnalysisCache} from './fast-path.js';
-import {searchCatalog,searchCatalogInputSchema,proxyCatalogQuery,type CatalogQuery} from './catalog.js';
+import {searchCatalog,searchCatalogInputSchema,proxyCatalogQuery,mapLimited,CATALOG_CONCURRENCY,type CatalogQuery} from './catalog.js';
 import {candidateSheet} from './catalog-vision.js';
 import {planIncrementally,intentFor,slotAsset} from './incremental-room.js';
 import {place,placeInputSchema} from './place.js';
@@ -72,7 +72,8 @@ export function createTypedServer(input:Scene,config:TypedOptions={}){
   try{
    if(!scene.rooms.some(r=>r.id===room_id))throw new Error('Unknown room_id');
    const startedEpoch=epoch;
-   const results=await Promise.all(queries.map(q=>searchCatalog({...q,limit:Math.min(q.limit??4,4)},query(room_id))));
+   const unique=[...new Map(queries.map(q=>[JSON.stringify(q),q])).values()];
+   const results=await mapLimited(unique,CATALOG_CONCURRENCY,q=>searchCatalog({...q,limit:Math.min(q.limit??4,4)},query(room_id)));
    if(epoch!==startedEpoch)throw new Error('Layout changed during catalog search. Search again for current slots.');
    const products=results.flatMap(r=>r.results).slice(0,6),candidates=[];
    for(const product of products){
@@ -84,8 +85,11 @@ export function createTypedServer(input:Scene,config:TypedOptions={}){
      candidates.push({catalog_id:product.sku,slot_id,option_id,name:product.name.slice(0,80),price:product.price,price_source:product.price_source});
     }
    }
-   const images=candidates.length?await inspect([...new Set(candidates.map(c=>c.catalog_id))]):[];
-   const out=receipt({ok:!!candidates.length,candidates,reason:candidates.length?'Inspect the attached products, then propose one option ID.':'No checked product fit found; try a different kind or room. This is not proof of impossibility.',catalog_status:results.map(r=>r.status)});
+   // A slow preview must not discard checked slots: propose still refuses products not yet inspected.
+   let images:Awaited<ReturnType<typeof inspect>>=[],previewNote:string|undefined;
+   if(candidates.length)try{images=await inspect([...new Set(candidates.map(c=>c.catalog_id))]);}catch(e){previewNote=(e instanceof Error?e.message:String(e)).slice(0,400)+' Call show_candidates for these catalog IDs before propose.';}
+   const busy=results.find(r=>r.retryable)?.reason;
+   const out=receipt({ok:!!candidates.length,candidates,reason:candidates.length?(previewNote??'Inspect the attached products, then propose one option ID.'):(busy??'No checked product fit found; try a different kind or room. This is not proof of impossibility.'),catalog_status:results.map(r=>r.status),...(busy||previewNote?{retryable:true}:{})});
    return {...out,content:[...out.content,...images]};
   }catch(e){return error(e);}
  });

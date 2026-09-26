@@ -1,4 +1,4 @@
-import {searchCatalog,type CatalogQuery,type CatalogInput} from './catalog.js';
+import {searchCatalog,mapLimited,CATALOG_CONCURRENCY,type CatalogQuery,type CatalogInput} from './catalog.js';
 import {searchRoomCatalog} from './taste/catalog.js';
 import {resolveStyles,styleMatchesKind,stylePalette} from '../knowledge/styles/index.js';
 
@@ -22,7 +22,7 @@ export async function roomCatalog(program:string,style:string|undefined,budget:n
   {kind:'shelf',text:'small book storage',max_w:1,max_d:.45,price_max:Math.floor(budget*.08)},
   {kind:'lamp',text:'small reading lamp',max_w:.3,max_d:.3,price_max:Math.floor(budget*.04)},
  ]:[];
- const extra=await Promise.all(requests.map(async input=>({input,result:await searchCatalog({...input,limit:20,...explicit.length?{styles:ids}:{},...budget!==undefined?{price_max:Math.min(input.price_max??budget,budget)}:{}},query)})));
+ const extra=await mapLimited(requests,CATALOG_CONCURRENCY,async input=>({input,result:await searchCatalog({...input,limit:20,...explicit.length?{styles:ids}:{},...budget!==undefined?{price_max:Math.min(input.price_max??budget,budget)}:{}},query)}));
  const palette=stylePalette(ids);
  for(const {input,result} of extra){
   const pool=base.products[input.kind!]??=[];

@@ -2,19 +2,20 @@
 import {Client} from '@modelcontextprotocol/sdk/client/index.js';
 import {StreamableHTTPClientTransport} from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import {z} from 'zod';
+import {catalogUrl,catalogTimedOut,CATALOG_BUSY} from './catalog.js';
 const idsSchema=z.array(z.string().min(1).max(200)).min(1).max(12);
 const responseSchema=z.object({isError:z.boolean().optional(),content:z.array(z.union([
  z.object({type:z.literal('text'),text:z.string().max(40_000)}),
  z.object({type:z.literal('image'),mimeType:z.enum(['image/png','image/jpeg']),data:z.string().max(4_000_000)}),
 ]))});
-export async function catalogImages(ids:string[]):Promise<unknown>{
- const url=new URL(process.env.VARPET_CATALOG_URL??'http://100.107.246.46:8765/mcp');
+export async function catalogImages(ids:string[],url=catalogUrl(),timeoutMs=12_000):Promise<unknown>{
  // The catalog spends up to eight seconds assembling the sheet. Allow its
  // partial/missing-tile response to arrive instead of aborting at that boundary.
- const abort=new AbortController(),timer=setTimeout(()=>abort.abort(),12_000);
- const transport=new StreamableHTTPClientTransport(url,{fetch:(target,init)=>fetch(target,{...init,signal:abort.signal})});
+ const abort=new AbortController(),timer=setTimeout(()=>abort.abort(),timeoutMs);
+ const transport=new StreamableHTTPClientTransport(new URL(url),{fetch:(target,init)=>fetch(target,{...init,signal:abort.signal})});
  const client=new Client({name:'varpet-designer-vision',version:'1'});
- try {await client.connect(transport,{signal:abort.signal,timeout:12_000});return await client.callTool({name:'show_candidates',arguments:{item_ids:ids,columns:4}},undefined,{signal:abort.signal,timeout:12_000});}
+ try {await client.connect(transport,{signal:abort.signal,timeout:timeoutMs});return await client.callTool({name:'show_candidates',arguments:{item_ids:ids,columns:4}},undefined,{signal:abort.signal,timeout:timeoutMs});}
+ catch(error){if(abort.signal.aborted||catalogTimedOut(error))throw new Error('Product previews: '+CATALOG_BUSY,{cause:error});throw error;}
  finally{clearTimeout(timer);abort.abort();await client.close();await transport.close();}
 }
 export async function candidateSheet(input:unknown,call:(ids:string[])=>Promise<unknown>=catalogImages){

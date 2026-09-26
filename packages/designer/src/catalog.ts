@@ -25,7 +25,7 @@ export interface CatalogProduct {
 }
 export interface CatalogResult {
   status: 'available' | 'unavailable'; results: CatalogProduct[]; excluded_records: number;
-  ranking_note: string; reason?: string; fit_budget_exhausted?: boolean; fit_note?: string; timing?: unknown;
+  ranking_note: string; reason?: string; retryable?: boolean; fit_budget_exhausted?: boolean; fit_note?: string; timing?: unknown;
 }
 
 const sizedRecord = z.object({
@@ -73,6 +73,28 @@ const queryDatabase: CatalogQuery = async input => {
 };
 
 export const DEFAULT_CATALOG_URL = 'http://100.107.246.46:8765/mcp';
+/** The one catalog endpoint for every designer call; an empty setting counts as unset. */
+export const catalogUrl = () => process.env.VARPET_CATALOG_URL || DEFAULT_CATALOG_URL;
+/** The catalog slows sharply under concurrent requests; fan out at most this far. */
+export const CATALOG_CONCURRENCY = 2;
+export async function mapLimited<T, R>(values: readonly T[], limit: number, work: (value: T) => Promise<R>): Promise<R[]> {
+  const out = new Array<R>(values.length); let next = 0;
+  await Promise.all(Array.from({ length: Math.min(limit, values.length) }, async () => {
+    while (next < values.length) { const index = next++; out[index] = await work(values[index]!); }
+  }));
+  return out;
+}
+export const CATALOG_BUSY = 'The catalog is slow or busy right now (the request timed out). This is temporary: retry the same call in a moment. It is not a missing product or a broken connection.';
+/** A timeout anywhere in the cause chain (abort, undici connect/headers timeout, MCP request timeout). */
+export function catalogTimedOut(error: unknown): boolean {
+  let current: unknown = error;
+  for (let depth = 0; current && typeof current === 'object' && depth < 4; depth++) {
+    const e = current as { name?: unknown; code?: unknown; message?: unknown; cause?: unknown };
+    if (/AbortError|TimeoutError|timed? ?out|UND_ERR_(?:CONNECT|HEADERS|BODY)_TIMEOUT/i.test(`${e.name ?? ''} ${e.code ?? ''} ${e.message ?? ''}`)) return true;
+    current = e.cause;
+  }
+  return false;
+}
 interface HttpCatalogOptions { url?: string; timeoutMs?: number; fetch?: typeof globalThis.fetch }
 
 function object(value: unknown): value is Record<string, unknown> {
@@ -96,7 +118,7 @@ type CatalogCall = (name: string, args: Record<string, unknown>) => Promise<Reco
 
 /** One read-only MCP session per call of the returned function, with one wall deadline for everything in it. */
 function catalogSession(options: HttpCatalogOptions) {
-  const url = new URL(options.url ?? DEFAULT_CATALOG_URL), timeoutMs = options.timeoutMs ?? 20_000;
+  const url = new URL(options.url || catalogUrl()), timeoutMs = options.timeoutMs ?? 20_000;
   if (!['http:', 'https:'].includes(url.protocol)) throw new Error('Catalog URL must use HTTP or HTTPS');
   if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) throw new Error('Catalog timeout must be positive and finite');
   return async <T>(work: (call: CatalogCall) => Promise<T>): Promise<T> => {
@@ -134,7 +156,7 @@ export function createHttpCatalogQuery(options: HttpCatalogOptions = {}): Catalo
   return input => session(async call => {
     const response = await call('search_furniture', input);
     if (!Array.isArray(response.results)) throw new Error('Catalog search returned no result list');
-    const results = await Promise.all(response.results.slice(0, input.limit ?? 10).map(async raw => {
+    const results = await mapLimited(response.results.slice(0, input.limit ?? 10), CATALOG_CONCURRENCY, async raw => {
       if (!object(raw) || typeof raw.id !== 'string' || !raw.id) return raw;
       // search_furniture supplies ranked fit dimensions; get_item supplies the
       // actual currency and provenance. Neither is inferred from the endpoint.
@@ -144,7 +166,7 @@ export function createHttpCatalogQuery(options: HttpCatalogOptions = {}): Catalo
         colors_listing: raw.colors_listing, colors_image: raw.colors_image,
         currency: detail.currency, source: detail.source, price_source: detail.price_source,
         size_evidence: detail.size_evidence };
-    }));
+    });
     return { ...response, results };
   });
 }
@@ -188,8 +210,10 @@ export async function searchCatalog(input: unknown, query: CatalogQuery = queryC
   const request = searchCatalogInputSchema.parse(input);
   let response: unknown;
   try { response = await query(request); }
-  catch {
+  catch (error) {
     // Subprocess errors can contain a database URL; never return their raw text.
+    if (catalogTimedOut(error)) return { status: 'unavailable', results: [], excluded_records: 0, ranking_note: rankingNote, retryable: true,
+      reason: CATALOG_BUSY + ' No products or prices are available from this attempt.' };
     return { status: 'unavailable', results: [], excluded_records: 0, ranking_note: rankingNote,
       reason: 'Catalog unavailable. Check the catalog MCP service and Tailscale connection (VARPET_CATALOG_URL), or the explicitly configured VARPET_DB_URL backend. No products or prices are available to propose.' };
   }
