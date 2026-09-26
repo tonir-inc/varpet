@@ -17,13 +17,16 @@ if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ] || [ -n "$(git 
   exit 1
 fi
 
-vm 'sudo -n useradd --system --home /opt/varpet-catalog --shell /usr/sbin/nologin varpet-catalog 2>/dev/null || true
+vm 'set -euo pipefail
+    sudo -n useradd --system --home /opt/varpet-catalog --shell /usr/sbin/nologin varpet-catalog 2>/dev/null || true
     sudo -n mkdir -p /opt/varpet-catalog/app /opt/varpet-catalog/hf /opt/varpet-catalog/uv-cache
     sudo -n chown -R sergey:varpet-catalog /opt/varpet-catalog/app'
 rsync -az --delete -e "ssh -i $KEY" --exclude .venv --exclude data --exclude eval/sheets --exclude __pycache__ \
   ./ "$HOST:/opt/varpet-catalog/app/"
-vm "printf 'VARPET_DB_URL=postgresql://varpet:%s@localhost:5432/varpet\nCATALOG_HTTP_HOST=$TS_IP\nCATALOG_HTTP_PORT=8765\nHF_HOME=/opt/varpet-catalog/hf\nUV_CACHE_DIR=/opt/varpet-catalog/uv-cache\nOMP_NUM_THREADS=2\nSIGLIP_DIR=/opt/varpet-catalog/models\n' '$PW' \
-      | sudo -n tee /etc/varpet-catalog.env >/dev/null
+# The secret travels on stdin, never in the local or remote ssh argv.
+printf 'VARPET_DB_URL=postgresql://varpet:%s@localhost:5432/varpet\nCATALOG_HTTP_HOST=%s\nCATALOG_HTTP_PORT=8765\nHF_HOME=/opt/varpet-catalog/hf\nUV_CACHE_DIR=/opt/varpet-catalog/uv-cache\nOMP_NUM_THREADS=2\nSIGLIP_DIR=/opt/varpet-catalog/models\n' "$PW" "$TS_IP" |
+  vm 'set -euo pipefail; sudo -n tee /etc/varpet-catalog.env >/dev/null'
+vm "set -euo pipefail
     sudo -n chown root:varpet-catalog /etc/varpet-catalog.env && sudo -n chmod 640 /etc/varpet-catalog.env
     sudo -n chown -R varpet-catalog:varpet-catalog /opt/varpet-catalog/app /opt/varpet-catalog/hf /opt/varpet-catalog/uv-cache /opt/varpet-catalog/models 2>/dev/null || true
     sudo -n mkdir -p /opt/varpet-catalog/generated /opt/varpet-catalog/models-web && sudo -n chgrp varpet-catalog /opt/varpet-catalog/models-web && sudo -n chmod 2775 /opt/varpet-catalog/models-web && sudo -n chgrp varpet-catalog /opt/varpet-catalog/generated && sudo -n chmod 2775 /opt/varpet-catalog/generated
@@ -33,4 +36,7 @@ import torch; from transformers import AutoModel, AutoProcessor; n='google/sigli
 AutoModel.from_pretrained(n, dtype=torch.bfloat16).save_pretrained(o); AutoProcessor.from_pretrained(n).save_pretrained(o)\" 2>&1 | tail -1
     sudo -n cp deploy/varpet-catalog.service deploy/varpet-catalog-files.service deploy/varpet-catalog-watchdog.service deploy/varpet-catalog-watchdog.timer /etc/systemd/system/
     sudo -n systemctl daemon-reload && sudo -n systemctl enable --now varpet-catalog varpet-catalog-files varpet-catalog-watchdog.timer && sudo -n systemctl restart varpet-catalog varpet-catalog-files
-    sleep 3; systemctl --no-pager --lines=5 status varpet-catalog | head -12"
+    sleep 3
+    systemctl is-active --quiet varpet-catalog
+    systemctl is-active --quiet varpet-catalog-files
+    systemctl --no-pager --lines=5 status varpet-catalog | sed -n '1,12p'"

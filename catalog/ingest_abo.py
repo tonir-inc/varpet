@@ -39,10 +39,14 @@ NAME_KIND = [
     (r"table (set )?with|with side table|dining set|table set|kiddie table", "table"),
     (r"chair (cushions?|pads?|glides?|casters?|covers?|slipcovers?)\b|seat cushion", "decor"),
     (r"anti-fatigue|floor mat|chair mat", "rug"),
+    # Accessories sold separately, not seating supplied with pillows/covers.
+    (r"\b(?:pillow|cushion) covers?\b|\bseat cushions?\b", "decor"),
+    (r"^(?!.*\bwith(?:out)?\b).*\bthrow pillows?\b", "decor"),
+    (r"\b(?:sofa|couch|loveseat|sectional|ottoman|bench|stool) (?:slipcovers?|covers?)\b", "decor"),
+    (r"\bslipcovers? for\b", "decor"),
     (r"\bchairs?\b", "chair"),
     (r"\blamp\b", "lamp"),
     (r"\bpendant|chandelier|sconce|ceiling light|light fixture", "light"),
-    (r"\bpillow|cushion|throw\b|slipcover|\bcover\b", "decor"),
     (r"\brug\b|\bmat\b|runner\b", "rug"),
     (r"\b(sofa|console|coffee|side|end|accent|dining|kitchen|bistro|patio) table", "table"),
     (r"\bnightstand|bedside|bed side|beside table|night stand|night table", "nightstand"),  # "Beside Table" is an ABO typo
@@ -54,6 +58,7 @@ NAME_KIND = [
     (r"\bottoman|pouf", "ottoman"),
     (r"\bstool", "stool"),
     (r"\bbench", "bench"),
+    (r"\bpillow|cushion|throw\b|slipcover|\bcover\b", "decor"),
     (r"\bdesk", "desk"),
     (r"\btable", "table"),
     (r"\bwardrobe|armoire", "wardrobe"),
@@ -61,6 +66,7 @@ NAME_KIND = [
     (r"\bnightstand|bedside", "nightstand"),
     (r"\bbookcase|bookshelf|shel(f|ves)|étagère|etagere", "shelf"),
     (r"\bcabinet|sideboard|credenza|buffet|tv stand|media console|console", "cabinet"),
+    (r"\bbed(?: frame)? with\b.*\bheadboard\b", "bed"),
     (r"\bheadboard", "headboard"),
     (r"\bbed\b|bed frame|platform bed", "bed"),
     (r"\brug\b", "rug"),
@@ -125,7 +131,7 @@ def flat_front(mesh):
     return mesh[1] <= 0.12 and mesh[1] * 3 <= min(mesh[0], mesh[2])
 
 
-def compare(mesh, listing):
+def compare(mesh, listing, name_width_m=None):
     """Size status and a conservative fit size.
 
     confirmed: every axis within 5 cm or 5% (w and d may be swapped).
@@ -145,7 +151,16 @@ def compare(mesh, listing):
     diff = [round(a - b, 3) for a, b in zip(mesh, listing)]
     status = "confirmed" if straight or swapped else "conflict" if conflict else "estimated"
     fit = [round(max(a, b), 4) for a, b in zip(mesh, aligned)] if conflict else mesh
-    return status, {"from": "mesh", "listing_m": listing, "mesh_minus_listing_m": diff, "wd_swapped": swapped and not straight and not flat_front(mesh)}, fit
+    evidence = {"from": "mesh", "listing_m": listing, "mesh_minus_listing_m": diff,
+                "wd_swapped": swapped and not straight and not flat_front(mesh)}
+    if name_width_m is not None:
+        evidence["name_width_m"] = round(name_width_m, 4)
+    if (name_width_m is not None and abs(listing[0] - name_width_m) <= 0.05 + 1e-9
+            and min(listing[0], name_width_m) - mesh[0] >= 0.15 - 1e-9):
+        fit = [round(max(listing[0], name_width_m, fit[0]), 4), *fit[1:]]
+        status = "estimated"
+        evidence["fit_width_rule"] = "listing/name agree within 5 cm; mesh width at least 15 cm narrower"
+    return status, evidence, fit
 
 
 def name_width(name):
@@ -187,9 +202,9 @@ def main():
             # glTF is Y-up: extent_x = width, extent_z = depth, extent_y = height.
             mesh = [round(float(model[k]), 4) for k in ("extent_x", "extent_z", "extent_y")]
             listing = listing_size(d.get("item_dimensions"))
-            status, evidence, fit = compare(mesh, listing)
             nw = name_width(name)
-            if nw:
+            status, evidence, fit = compare(mesh, listing, nw)
+            if nw and not evidence.get("fit_width_rule"):
                 evidence["name_width_m"] = round(nw, 3)
                 widest = max(mesh[0], mesh[1])
                 if max(nw, widest) > 0.2 and max(nw, widest) / max(min(nw, widest), 1e-3) > 1.5:
