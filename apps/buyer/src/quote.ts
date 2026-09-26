@@ -26,9 +26,9 @@ export function sizeOf(asset: CatalogAsset, object?: SceneObject): string {
 
 /**
  * What it costs to make this flat real, grouped by who you would talk to.
- * Owned pieces cost 0; the developer's placeholders are still to buy; custom pieces are estimates.
+ * Owned pieces cost 0; the developer's furniture is real products still to buy; custom pieces are estimates.
  * A developer piece the designer picked from a shop counts as a shop purchase, unless the buyer owns it.
- * "Real" means owned or a product you can buy; placeholders and estimates are not counted.
+ * "Real" means owned or a product you can buy; custom estimates and unpriced pieces are not counted.
  */
 export function buildQuote(input: QuoteInput): Quote {
   const byId = new Map(input.catalog.map(asset => [asset.id, asset]));
@@ -42,7 +42,7 @@ export function buildQuote(input: QuoteInput): Quote {
     let group: QuoteGroupId, unit: number | null = asset.price > 0 ? asset.price : null, note: string | undefined;
     if (input.custom.has(asset.id)) { group = 'workshop'; note = 'estimate, the workshop confirms'; }
     else if (input.original.has(object.id) && input.ownership.get(object.id) === 'owned') { group = 'yours'; unit = 0; real++; }
-    else if (input.original.has(object.id) && !key) { group = 'developer'; if (unit === null) note = 'placeholder, not for sale'; }
+    else if (input.original.has(object.id) && !key) { group = 'developer'; if (unit === null) note = 'not sold separately'; else real++; }
     else { group = 'shop'; if (unit !== null) real++; }
     if (unit) total += unit;
     const lines = groups.get(group)!;
