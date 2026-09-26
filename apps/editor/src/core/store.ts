@@ -1,4 +1,5 @@
 import { placeFurniture, followSupports, floorHeight, type FurnitureSurfaceResolver } from './furniture-support';
+import { rehangObjects } from './decoration-placement';
 import type { CatalogAsset, CommandResult, EditCommand, SceneChange, SceneDocument, SceneObject, ValidationResult } from '../contracts';
 import { isRecord, validateScene, renovationOperationError } from './validation';
 import { applyRenovationOperation, applyWallTranslationBatch, invalidateAssumptions, migrateScene } from './renovation';
@@ -227,6 +228,8 @@ export class EditorStore {
         if (!draftValidation.ok) return { ...draftValidation, revision: this.revision };
         candidate = this.normalize(candidate, previous);
       }
+      const shape = (scene: SceneDocument) => JSON.stringify([scene.walls, scene.rooms, scene.project?.metadata]);
+      if (shape(candidate) !== shape(this.current)) candidate = rehangObjects(candidate, this.catalog);
       const validation = validateScene(candidate, this.catalog);
       if (!validation.ok) return { ...validation, revision: this.revision };
       this.past.push({ scene: this.current, label: command.label });
