@@ -10,7 +10,8 @@ import { expandFurnitureSelection, furnitureMembers } from './core/grouping';
 import { validateScene } from './core/validation';
 import { OPENING_MOVE_SNAP } from './core/opening-move';
 import { loadLocal, parseScene, saveLocal, serializeScene } from './core/persistence';
-import { catalogAdapter, designerAdapter as mockDesignerAdapter, structureAdapter } from './adapters/mock';
+import { catalogAdapter, designerAdapter as mockDesignerAdapter, structureAdapter as mockStructureAdapter } from './adapters/mock';
+import { createArchitectHttpAdapter } from './adapters/architect-http';
 import { createViewport } from './render/viewport';
 import { createFloorPlan } from './render/floor-plan';
 import { createCatalogPreviews } from './render/catalog-previews';
@@ -94,6 +95,8 @@ const uid = () => crypto.randomUUID();
 let catalog: CatalogAsset[] = localCatalog;
 const store = new EditorStore(demoScene, catalog);
 const designerAdapter = import.meta.env.VITE_DESIGNER_URL ? designerHttpAdapter : mockDesignerAdapter;
+const architectLive = Boolean(import.meta.env.VITE_ARCHITECT_URL);
+const structureAdapter = architectLive ? createArchitectHttpAdapter({ onProgress: message => notify(message) }) : mockStructureAdapter;
 let selectedId: string | null = null;
 let selectedFurnitureIds: string[] = [];
 let tool: ToolMode = 'select';
@@ -591,7 +594,7 @@ const modal=$<HTMLDialogElement>('#modal');
 function showModal(title:string,body:string){$('#modal-content').innerHTML=`<div class="modal-heading"><h2>${title}</h2><button id="close-modal" class="icon-button" aria-label="Close dialog">${icon('close')}</button></div>${body}`;$('#close-modal').onclick=()=>modal.close();modal.showModal();}
 modal.onclick=e=>{if(e.target===modal)modal.close();};
 $('#integrations').onclick=()=>{
-  showModal('Sources & connections',`<p class="modal-intro">Local reconstruction tools are ready. Provider integrations remain explicit demo adapters until connected.</p><div class="file-actions"><button id="local-sources" class="button">${icon('upload')} Attach photos and plans</button><button id="local-reconstruct" class="button primary">${icon('walls')} Build the apartment shell</button></div><div class="integration-row"><span>${icon('walls')}</span><div><h3>Architect <span class="mock-label">DEMO</span></h3><p>Exercise the proposal workflow with the original demo structure.</p><button id="mock-structure" class="button">Preview demo structural import</button></div></div><div class="integration-row"><span>${icon('sparkles')}</span><div><h3>Designer <span class="mock-label">DEMO</span></h3><p>Propose validated edits against a scene revision. You approve each batch.</p><button id="mock-designer" class="button">Request demo design proposal</button></div></div><div class="integration-row"><span>${icon('box')}</span><div><h3>Catalog <span class="mock-label">DEMO</span></h3><p>Stable asset IDs, metre dimensions, material defaults, and procedural or GLB sources.</p><button id="mock-catalog" class="button">Refresh demo catalog</button></div></div><p class="modal-footnote">No network services or credentials are needed. A proposal becomes stale if the scene changes before approval.</p>`);
+  showModal('Sources & connections',`<p class="modal-intro">Local reconstruction tools are ready. Provider integrations remain explicit demo adapters until connected.</p><div class="file-actions"><button id="local-sources" class="button">${icon('upload')} Attach photos and plans</button><button id="local-reconstruct" class="button primary">${icon('walls')} Build the apartment shell</button></div><div class="integration-row"><span>${icon('walls')}</span><div><h3>Architect <span class="mock-label">${architectLive?'LIVE':'DEMO'}</span></h3><p>${architectLive?'Read a floor plan and up to four photos into checked rooms and walls. Takes about four minutes; you review it before anything changes.':'Exercise the proposal workflow with the original demo structure.'}</p><button id="mock-structure" class="button">${architectLive?'Choose plan and photos':'Preview demo structural import'}</button></div></div><div class="integration-row"><span>${icon('sparkles')}</span><div><h3>Designer <span class="mock-label">DEMO</span></h3><p>Propose validated edits against a scene revision. You approve each batch.</p><button id="mock-designer" class="button">Request demo design proposal</button></div></div><div class="integration-row"><span>${icon('box')}</span><div><h3>Catalog <span class="mock-label">DEMO</span></h3><p>Stable asset IDs, metre dimensions, material defaults, and procedural or GLB sources.</p><button id="mock-catalog" class="button">Refresh demo catalog</button></div></div><p class="modal-footnote">No network services or credentials are needed. A proposal becomes stale if the scene changes before approval.</p>`);
   $('#local-sources').onclick=()=>{modal.close();intake.sources();};$('#local-reconstruct').onclick=()=>{modal.close();intake.reconstruction();};
   $('#mock-structure').onclick=()=>{modal.close();void requestProposal('architect');};$('#mock-designer').onclick=()=>{modal.close();void requestProposal('designer');};
   $('#mock-catalog').onclick=async()=>{modal.close();try{catalog=await catalogAdapter.list();renderAssets();viewport.setScene(store.scene,catalog);switchPanel('assets');notify('Demo catalog refreshed');}catch(error){notify(String(error),true);}};
