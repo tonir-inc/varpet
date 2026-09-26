@@ -579,3 +579,28 @@ in a studio workspace per conversation. `VARPET_DESIGNER_ENGINE=legacy` restores
   `onPreview`; the panel shows the latest one in the live turn and keeps it on the reply.
 - A turn takes minutes, not the 30–120 s above; the turn timeout is `VARPET_SPIKE_TIMEOUT` (1500 s).
   Heartbeats keep the stream alive.
+
+### Live chat for the pitch (27 Sept)
+
+- **Editor default.** The chat is live unless `?designer=replay` (or `VITE_DESIGNER_REPLAY=1`); the URL is
+  `VITE_DESIGNER_URL`, else `http://127.0.0.1:8787`. The panel polls `GET /designer/health` and says
+  "Designer offline · start the service" or "warming up" instead of silently replaying.
+- **Health.** `{"ok": true, "engine": "spike", "warm": {"renderer": "ready", "codex": "ready"}}`; `warm` values
+  are `cold|starting|ready|failed`. At boot the service starts the render daemon and the Codex app server
+  (`VARPET_SPIKE_WARM=0` skips it) and pings the daemon every 10 min so it never idles out.
+- **Nonterminal `partial`.** `{"type":"partial","proposal":AgentProposal,"rooms":["Living room"],"metrics":{...}}`:
+  a checked (`./varpet check` passes on those rooms alone) proposal of the rooms the designer has finished while
+  it works on the rest. Preview only; the final `proposal` still ends the stream. `VARPET_SPIKE_PARTIALS=0` off.
+- **Metrics.** `metrics.space = {free_before_m2, free_after_m2, rooms:[{id, name, designed, free_before_m2,
+  free_after_m2, narrowest_m|null, blocked}]}` from `harness/designer_spike_tools.ts metrics`, plus
+  `budget_dram` when the brief names an AMD budget (also written to `budget.json`, so the check enforces it)
+  and `timings` per phase.
+- **Edit sync.** Before a follow-up, applied design pieces the customer moved keep their editor position in
+  `draft.json`, deleted ones leave it, and the turn text tells the designer so.
+- **Room snap.** Proposals start with polygon-only `update-room` ops (`snapRoomFaces`, corners move at most
+  10 cm) so wall-hung pieces land on the faces the export used; the adapter accepts only that shape.
+- **Critic.** When `spike/run/critic.py` exists, one review round of the rooms this turn changed runs before the
+  proposal ("Reviewing the design"); blocker/major issues get one fix turn, rolled back if the check fails
+  (`VARPET_SPIKE_CRITIC=0` off).
+- **Rehearsal.** `python3 tools/demo_rehearse.py --flat orion-t8` boots both, runs brief → partial → Apply →
+  follow-up → Apply → Undo in Chrome and prints timings.
