@@ -1,6 +1,6 @@
 # Vision experiment verification
 
-[measured] Post-rebase verification on 2026-09-26 at 11:38 UTC, based on main `223cd22`. Live trials retain their earlier `206e3c6` baseline plus archived experimental sources; they were not repeated after rebase. Catalog-to-chat wiring (`0f41673`) landed after the experiment, so the recorded catalog failures are historical measurements, not a claim about current main.
+[measured] Post-rebase verification on 2026-09-26 at 11:39 UTC, based on main `223cd22`. Live trials retain their earlier `206e3c6` baseline plus archived experimental sources; they were not repeated after rebase. Catalog-to-chat wiring (`0f41673`) landed after the experiment, so the recorded catalog failures are historical measurements, not a claim about current main.
 
 DONE: 7 of 7 (experiment complete; no claim of universal visual or latency improvement)
 
