@@ -25,8 +25,8 @@ def scene(run_dir: Path, base_url: str) -> dict:
     objects = []
     for p in furnished.placements:
         asset = assets.get(p.piece)
-        if asset is None:
-            continue
+        if asset is None or p.on or p.hanging or p.y > 0.005:
+            continue  # the editor keeps furniture on the floor; raised lights become fixtures (lights())
         objects.append({"id": f"{p.piece}-{p.copy_}", "name": f"{asset['name']} {p.copy_}" if p.copy_ > 1 else asset["name"],
                         "assetId": asset["id"], "position": [round(p.x, 4), 0, round(p.z, 4)],
                         "rotation": round(math.radians(p.rotation), 6), "scale": [1, 1, 1]})
@@ -45,3 +45,23 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
+def lights(run_dir: Path, base_url: str = "http://127.0.0.1:8788") -> list[dict]:
+    """Lamps standing on furniture and pendants on the ceiling, as the editor's light fixtures
+    (BuildingComponent kind 'light'), which may sit at any height."""
+    shell = Shell.model_validate_json((run_dir / "shell" / "shell.json").read_text())
+    furnished = Furnished.model_validate_json((run_dir / "furnish" / "placements.json").read_text())
+    assets = {a["id"].removeprefix(f"built-{run_dir.name}-"): a for a in catalog(run_dir, base_url)}
+    rooms = {r.id for r in shell.rooms}
+    out = []
+    for p in furnished.placements:
+        asset = assets.get(p.piece)
+        if asset is None or asset["kind"] != "lamp" or not (p.on or p.hanging or p.y > 0.005):
+            continue
+        w, h, d = asset["dimensions"]
+        out.append({"id": f"{p.piece}-{p.copy_}", "name": asset["name"], "kind": "light",
+                    "position": [round(p.x, 4), round(p.y, 4), round(p.z, 4)], "dimensions": [w, h, d],
+                    "rotation": round(math.radians(p.rotation), 6), "color": asset["color"], "phase": "existing",
+                    **({"roomId": p.room} if p.room in rooms else {})})
+    return out

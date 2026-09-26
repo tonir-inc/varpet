@@ -18,7 +18,13 @@ it today, not a new layout: put each piece where it stands in the photos.
   180 faces -z, 270 faces -x. A sofa's front is the side you sit on; a bed's front is its foot; a
   wardrobe's front is its doors; a desk's front is where you sit.
 - `copy`: 1..count for identical pieces (four dining chairs are copy 1 to 4 of one piece).
-- Only pieces from the list in the brief. Leave a piece out rather than guess if no photo shows where it is.
+- Not everything stands on the floor:
+  - `"on": "<piece>", "y": <top of that piece>`: stands on another piece (a lamp on a bedside chest, a TV on a unit).
+    Its footprint must fit on the piece below; `y` is that piece's height (plus its own `y`).
+  - `"hanging": true, "y": <bottom height>`: hangs from the ceiling (pendant lights). Keep its top under the ceiling.
+  - `"under": "<piece>"`: tucked under another piece (a pouffe under a table, a stool under a counter); it may
+    overlap that piece from above as long as it is lower than it.
+- Only pieces from the list in the brief. Leave a piece out only if no photo shows where it is.
 - One `notes` line per piece: which photo shows it and what it stands against.
 
 ## How to read the photos into positions

@@ -41,6 +41,10 @@ class Placement(BaseModel):
     x: float
     z: float
     rotation: float = Field(description="degrees about +Y; 0 = front faces +z")
+    y: float = Field(default=0.0, ge=0, description="height of the piece's bottom above the floor, metres")
+    on: str | None = Field(default=None, description="piece id it stands on (a lamp on a chest)")
+    under: str | None = Field(default=None, description="piece id it is tucked under (a pouffe under a table)")
+    hanging: bool = Field(default=False, description="hangs from the ceiling (pendant lights)")
 
 
 class Furnished(BaseModel):
@@ -79,8 +83,39 @@ def check(f: Furnished, shell: Shell, sizes: dict[str, tuple[float, float, float
             where = [rid for rid, poly in rooms.items() if poly.buffer(INSIDE_TOL_M).contains(fp)]
             faults.append({"check": "inside", "placement": key, "room": p.room, "outside_m2": round(outside, 3),
                            "detail": f"footprint leaves {p.room}" + (f"; it fits inside {where[0]}" if where else "")})
+    by_key = {f"{p.piece}#{p.copy_}": p for p in f.placements}
+    by_piece = {p.piece: p for p in f.placements}
+    ceiling = max((w.height for w in shell.walls), default=2.6)
+    for key, fp in feet.items():
+        p = by_key[key]
+        h = sizes[p.piece][2]
+        if p.on:
+            base = by_piece.get(p.on)
+            if base is None or p.on not in sizes:
+                faults.append({"check": "on", "placement": key, "detail": f"stands on {p.on}, which is not placed"})
+            else:
+                top = base.y + sizes[p.on][2]
+                bw, bd, _ = sizes[p.on]
+                if abs(p.y - top) > 0.03:
+                    faults.append({"check": "on", "placement": key, "detail": f"y must be the top of {p.on}: {top:.2f} m"})
+                if fp.difference(footprint(base, bw, bd).buffer(0.02)).area > 0.005:
+                    faults.append({"check": "on", "placement": key, "detail": f"hangs over the edge of {p.on}"})
+        if p.hanging and p.y + h > ceiling + 0.01:
+            faults.append({"check": "hanging", "placement": key, "detail": f"top at {p.y + h:.2f} m is above the {ceiling:.2f} m ceiling"})
+        if p.under:
+            cover = by_piece.get(p.under)
+            if cover is None or p.under not in sizes or h > cover.y + sizes[p.under][2] - 0.05:
+                faults.append({"check": "under", "placement": key, "detail": f"is not lower than {p.under}, so it cannot tuck under it"})
+
+    def stacked(a: str, b: str) -> bool:
+        pa, pb = by_key[a], by_key[b]
+        if pa.on == pb.piece or pb.on == pa.piece or pa.under == pb.piece or pb.under == pa.piece:
+            return True
+        ha, hb = sizes[pa.piece][2], sizes[pb.piece][2]
+        return pa.y >= pb.y + hb - 0.01 or pb.y >= pa.y + ha - 0.01  # one entirely above the other
+
     for (a, fa), (b, fb) in itertools.combinations(feet.items(), 2):
-        if _is_under(a.split("#")[0]) or _is_under(b.split("#")[0]):
+        if _is_under(a.split("#")[0]) or _is_under(b.split("#")[0]) or stacked(a, b):
             continue
         overlap = fa.intersection(fb).area
         if overlap > OVERLAP_M2:
@@ -97,6 +132,8 @@ def check(f: Furnished, shell: Shell, sizes: dict[str, tuple[float, float, float
             a, b = line.interpolate(o.offset), line.interpolate(o.offset + o.width)
             swing = LineString([a, b]).buffer(DOOR_CLEAR_M, cap_style="flat")
             for key, fp in feet.items():
+                if by_key[key].y >= o.sill + o.height:  # a pendant above the door head does not block it
+                    continue
                 if not _is_under(key.split("#")[0]) and fp.intersection(swing).area > OVERLAP_M2:
                     faults.append({"check": "door", "placement": key, "door": o.id, "detail": "blocks the doorway"})
     placed: dict[str, int] = {}

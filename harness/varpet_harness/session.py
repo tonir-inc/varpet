@@ -120,7 +120,9 @@ def export_project(repo: Path, run_dir: Path, base_url: str = "http://127.0.0.1:
     from .shell import Shell, to_editor
 
     shell = Shell.model_validate_json((run_dir / "shell" / "shell.json").read_text())
-    (run_dir / "components.json").write_text(json.dumps(to_editor(shell).get("components", [])))
+    from .export import lights
+
+    (run_dir / "components.json").write_text(json.dumps(to_editor(shell).get("components", []) + lights(run_dir, base_url)))
     out = run_dir / "project.json"
     proc = subprocess.run(["node", "scripts/architect-project.mjs", str(run_dir / "export.v1.json"),
                            str(run_dir / "components.json"), str(run_dir / "assets.json"), str(out)],

@@ -13,7 +13,7 @@ from pathlib import Path
 from .graph import Graph
 
 # The editor's closed AssetKind enum; the first keyword that matches a job id wins.
-KINDS = [("lamp", ("lamp", "light")), ("rug", ("rug", "carpet")), ("sofa", ("sofa", "couch", "settee", "chaise")),
+KINDS = [("lamp", ("lamp", "light", "pendant", "chandelier", "sconce")), ("rug", ("rug", "carpet")), ("sofa", ("sofa", "couch", "settee", "chaise")),
          ("chair", ("chair", "stool", "armchair")), ("bed", ("bed",)),
          ("table", ("table", "desk")),
          ("plant", ("plant",)), ("shelf", ("shelf", "shelves", "bookcase", "bookshelf"))]
