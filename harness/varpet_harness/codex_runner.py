@@ -11,6 +11,8 @@ import asyncio
 import json
 import subprocess
 import time
+import tomllib
+from collections.abc import AsyncIterator
 from pathlib import Path
 
 from openai_codex import (
@@ -22,6 +24,7 @@ from openai_codex import (
     TextInput,
     TurnResult,
 )
+from openai_codex._run import _collect_async_turn_result  # pinned SDK; lets us guard the stream
 
 from .dispatch import BatchStop, JobResult
 from .graph import OUTPUT, Job
@@ -29,8 +32,32 @@ from .graph import OUTPUT, Job
 LIMIT_MARKERS = ("rate limit", "usage limit", "rate_limit", "usage_limit")
 IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".webp"}
 
-# Keeps thread start context small; see Notion: Engineering / Codex harness.
-THREAD_CONFIG = {"project_doc_max_bytes": 0}
+
+
+def thread_config(codex_home: Path = Path.home() / ".codex") -> dict:
+    """Switch off every MCP server and plugin the live config defines, and AGENTS.md.
+
+    Measured 26 Sept: 22.1k -> 17.3k input tokens at thread start. Only names the
+    live config defines, or Codex refuses to start (Notion: Codex harness).
+    """
+    path = codex_home / "config.toml"
+    live = tomllib.loads(path.read_text()) if path.exists() else {}
+    return {
+        "project_doc_max_bytes": 0,
+        "mcp_servers": {n: {"enabled": False} for n in live.get("mcp_servers", {})},
+        "plugins": {n: {"enabled": False} for n in live.get("plugins", {})},
+    }
+
+
+async def quiet_guard(stream: AsyncIterator, stall: float) -> AsyncIterator:
+    """Pass events through; raise TimeoutError after `stall` seconds with none."""
+    it = aiter(stream)
+    while True:
+        try:
+            event = await asyncio.wait_for(anext(it), stall)
+        except StopAsyncIteration:
+            return
+        yield event
 
 
 class CodexRunner:
@@ -41,14 +68,15 @@ class CodexRunner:
         model: str = "gpt-6-astra",
         compile_cmd: list[str] | None = None,
         fix_turns: int = 1,
-        turn_timeout: float = 12 * 60,
+        stall: float = 4 * 60,
     ):
         self.codex = codex
         self.repo = repo
         self.model = model
         self.compile_cmd = compile_cmd
         self.fix_turns = fix_turns
-        self.turn_timeout = turn_timeout
+        self.stall = stall
+        self.config = thread_config()
 
     async def run(self, job: Job, workdir: Path, deps: dict[str, JobResult]) -> JobResult:
         t = time.monotonic()
@@ -57,7 +85,7 @@ class CodexRunner:
             sandbox=Sandbox.workspace_write,
             cwd=str(workdir),
             model=self.model,
-            config=THREAD_CONFIG,
+            config=self.config,
         )
         await thread.set_name(job.id)
         out = workdir / OUTPUT[job.kind]
@@ -84,22 +112,24 @@ class CodexRunner:
             await self.codex.thread_archive(thread.id)
 
     async def _turn(self, thread, items, job: Job) -> TurnResult:
-        # Stall watchdog: interrupt and retry once. A limit stops the batch.
+        # Watchdog: no event for `stall` seconds -> interrupt, retry once. A limit stops the batch.
         for attempt in range(2):
             handle = await thread.turn(items, effort=job.effort)
+            stream = handle.stream()
             try:
-                result = await asyncio.wait_for(handle.run(), self.turn_timeout)
+                return await _collect_async_turn_result(
+                    quiet_guard(stream, self.stall), turn_id=handle.id
+                )
             except TimeoutError:
                 await handle.interrupt()
                 if attempt:
                     raise
-                continue
-            err = result.error.message if result.error else ""
-            if any(m in err.lower() for m in LIMIT_MARKERS):
-                raise BatchStop(err)
-            if result.status.value == "failed":
-                raise RuntimeError(err or "turn failed")
-            return result
+            except RuntimeError as e:  # the SDK raises on a failed turn
+                if any(m in str(e).lower() for m in LIMIT_MARKERS):
+                    raise BatchStop(str(e)) from e
+                raise
+            finally:
+                await stream.aclose()
         raise AssertionError("unreachable")
 
     def _first_input(self, job: Job, out: Path, deps: dict[str, JobResult]) -> list:
