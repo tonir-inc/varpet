@@ -6,7 +6,7 @@ import { demoScene, localCatalog } from '../../../../../apps/editor/src/core/dem
 import { catalogItems } from '../../../src/catalog.js';
 import { editorKindOf } from '../../../src/editor-bridge.js';
 import type { Scene } from '../../../src/scene.js';
-import type { CeilingDesign, FinishMaterial } from '../../../../../apps/editor/src/renovation-contracts.js';
+import type { CeilingDesign, ComponentHost, FinishMaterial } from '../../../../../apps/editor/src/renovation-contracts.js';
 import { materialForPreset } from '../../../../../apps/editor/src/core/finish-presets.js';
 import { defaultCeilingDesign, layoutCeilingDesign } from '../../../../../apps/editor/src/core/ceiling-design.js';
 import { roomCeilingHeight } from '../../../../../apps/editor/src/core/heights.js';
@@ -224,12 +224,30 @@ export function applySurfaces(input: SceneDocument, scene: Scene, draft: Draft):
     } else {
       const defaults = FIXTURE_DEFAULTS[light.mount], size = light.size ?? defaults.size;
       const bottom = fixtureBottom(light, items, roomCeilingHeight(doc, room));
+      // Unhosted lights hang from the ceiling on a cord in the editor; a wall light sits on its nearest wall instead.
+      const host = light.mount === 'wall' ? wallHost(doc, [light.pos[0], -light.pos[1]], bottom) : undefined;
       project.components.push({ id: light.id, name: light.name ?? `${light.mount} light`, kind: 'light', position: [light.pos[0], bottom, -light.pos[1]],
-        dimensions: size, rotation: 0, color: light.color ?? '#d9d3c7', phase: 'new', roomId: room.id,
+        ...(host ? { host } : {}), dimensions: size, rotation: 0, color: light.color ?? '#d9d3c7', phase: 'new', roomId: room.id,
         light: { brightness: light.brightness ?? defaults.brightness, temperature: light.temperature_k ?? 2700, enabled: true } });
     }
   }
   return doc;
+}
+
+/** The wall whose face is nearest an editor point (x, z), within 0.5 m, as a component host on the point's side. */
+function wallHost(doc: SceneDocument, [x, z]: [number, number], elevation: number): ComponentHost | undefined {
+  let best: { host: ComponentHost; gap: number } | undefined;
+  for (const wall of doc.walls) {
+    const dx = wall.end[0] - wall.start[0], dz = wall.end[1] - wall.start[1], length = Math.hypot(dx, dz);
+    if (length < 1e-6) continue;
+    const along = ((x - wall.start[0]) * dx + (z - wall.start[1]) * dz) / length;
+    if (along < 0 || along > length) continue;
+    const across = ((x - wall.start[0]) * -dz + (z - wall.start[1]) * dx) / length;
+    const gap = Math.abs(across) - wall.thickness / 2;
+    if (gap > 0.5 || (best && gap >= best.gap)) continue;
+    best = { gap, host: { wallId: wall.id, offset: along, elevation, side: across < 0 ? -1 : 1 } };
+  }
+  return best?.host;
 }
 
 /** The editor refuses a whole document whose ceiling design does not fit its room (a narrow hall, an L-shaped WC), while

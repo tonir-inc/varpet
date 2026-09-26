@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest';
 import type { SceneDocument } from '../../../../apps/editor/src/contracts.js';
+import { componentPosition } from '../../../../apps/editor/src/core/geometry.js';
 import { migrateScene } from '../../../../apps/editor/src/core/renovation.js';
 import { placementIssues, validateScene } from '../../../../apps/editor/src/core/validation.js';
 import { editorToDesigner } from '../../src/editor-bridge.js';
@@ -57,6 +58,22 @@ test('wall art is mounted exactly as the editor mounts it, so the placement revi
   expect(doc.objects.find(object => object.id === 'art')?.host?.wallId).toBe('west');
   expect(doc.objects.find(object => object.id === 'mirror')?.host?.wallId).toBe('east');
   expect(placementIssues(doc, catalog).filter(issue => issue.blocking)).toEqual([]);
+});
+
+test('a wall light is hosted on its nearest wall on the room side, so the editor draws a sconce, not a pendant cord', async () => {
+  const scene = editorToDesigner(source());
+  const draft: Draft = { items: [], lighting: [
+    { room_id: 'A', type: 'fixture', id: 'sconce', mount: 'wall', pos: [0.12, -1.5] },
+    { room_id: 'B', type: 'fixture', id: 'sconce-b', mount: 'wall', pos: [3.1, -1.0] },
+    { room_id: 'A', type: 'fixture', id: 'pendant', mount: 'pendant', pos: [1.5, -1.5] }] };
+  const { scene: doc, catalog } = await editorDocument(scene, draft, source());
+  expect(validateScene(doc, catalog).errors).toEqual([]);
+  const component = (id: string) => doc.project!.components.find(item => item.id === id)!;
+  expect(component('sconce').host).toMatchObject({ wallId: 'west', elevation: 1.7 });
+  expect(componentPosition(doc, component('sconce'))[0]).toBeGreaterThan(0);
+  expect(component('sconce-b').host?.wallId).toBe('P');
+  expect(componentPosition(doc, component('sconce-b'))[0]).toBeGreaterThan(3);
+  expect(component('pendant').host).toBeUndefined();
 });
 
 test('the spike check refuses what the editor cannot hang or stack', () => {
