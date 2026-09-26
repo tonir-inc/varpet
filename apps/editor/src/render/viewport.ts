@@ -474,11 +474,12 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
     world.fog = null;
     world.environment = lightingSky?.environment ?? environment.texture;
     world.environmentIntensity = THREE.MathUtils.lerp(0.008, lightingSky ? 0.35 : 0.4, daylight);
-    ambient.intensity = THREE.MathUtils.lerp(0.1, 0.42, daylight);
     // A light studio: soft sky above, warm paper below; after dusk a warm lamplit bounce.
+    // Inside by day reads like an airy listing photo: brighter floor-to-ceiling bounce and a soft room fill.
+    ambient.intensity = THREE.MathUtils.lerp(0.1, inside ? 0.6 : 0.42, daylight);
     ambient.color.set('#dfe4ec').lerp(eveningSky, 1 - daylight);
-    ambient.groundColor.set('#a89580').lerp(eveningGround, 1 - daylight);
-    eveningLights.setLevel(unlitTop ? 0 : 1 - daylight);
+    ambient.groundColor.set(inside ? '#cbb9a3' : '#a89580').lerp(eveningGround, 1 - daylight);
+    eveningLights.setLevel(unlitTop ? 0 : inside ? THREE.MathUtils.lerp(1, 0.3, daylight) : 1 - daylight);
     const sun = effectiveSunlight(sunSettings);
     sunlight.color.set(sun.sunColor); sunlight.intensity = sun.sunIntensity;
     // Keep the studio readable without painting false pools of sunlight through walls.
@@ -486,7 +487,7 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
     fill.intensity = 0.08 * daylight; rim.intensity = 0.12 * daylight;
     warmPool.visible = secondPool.visible = false;
     applyPracticalLighting();
-    renderer.toneMappingExposure = 1.02;
+    renderer.toneMappingExposure = inside ? THREE.MathUtils.lerp(1.02, 1.2, daylight) : 1.02;
     renderer.toneMapping = unlitTop ? THREE.NoToneMapping : THREE.ACESFilmicToneMapping;
     // Unlit Top bypasses lighting in the shader; toggling shadowMap.enabled would recompile every material.
     renderer.shadowMap.enabled = true;
