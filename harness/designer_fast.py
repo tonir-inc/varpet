@@ -9,6 +9,7 @@ import time
 import tempfile
 import re
 from designer_context import load_catalog, validate_request_text, encoded_size
+import varpet_harness  # noqa: F401  traces this process's Codex conversations (observe.py)
 
 ROOT = Path(__file__).resolve().parents[1]
 SELECTION_SCHEMA = {'type': 'object', 'properties': {
