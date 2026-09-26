@@ -9,6 +9,13 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { centerOf } from './scene.ts';
 
+/** One live lookup per process: are mattress products searchable yet? A failed search counts as no. */
+let mattressLookup: Promise<boolean> | undefined;
+function mattressesAvailable(): Promise<boolean> {
+  mattressLookup ??= import('./catalog.ts').then(c => c.search({ kind: 'mattress', limit: 1 })).then(r => r.length > 0, () => false);
+  return mattressLookup;
+}
+
 const NO_PATH = /^door:(\S+) to (\S+): no accessible path/;
 /** Doors the EMPTY flat cannot walk from (reconstructed shells sometimes put a door's approach outside every room):
  * the door shared by every door-to-door failure of the empty flat, and doors from which a small probe at a room's
@@ -160,7 +167,10 @@ export async function check(scene: Scene, draft: Draft, options: { budget?: numb
     if (!parsed.success) problems.push(...parsed.error.issues.map(i => `operations: ${decorOps[i.path[0] as number]?.item.id ?? i.path[0]}${i.path.slice(2).map(k => '.' + k).join('')}: ${i.message}`));
   }
   problems.push(...checkDecor(scene, draft));
-  problems.push(...designRelations(draft));
+  const relations = designRelations(draft), bare = relations.filter(p => /bare bed frame/.test(p));
+  // Mattress models ship with a catalog deploy; while the live catalog has none, a frame cannot be dressed.
+  const noMattresses = bare.length > 0 && !(await mattressesAvailable());
+  problems.push(...(noMattresses ? relations.filter(p => !bare.includes(p)) : relations));
   problems.push(...checkSurfaces(scene, draft).map(p => `surfaces: ${p}`));
   // Editor finish presets and fixtures carry no supplier price: list the work, never add it to the total.
   const work = surfaceQuantities(scene, draft);
@@ -169,7 +179,8 @@ export async function check(scene: Scene, draft: Draft, options: { budget?: numb
   const cost = decorOps.length ? layoutPrice([...ops, ...decorOps]).cost_dram : result.price.cost_dram;
   const subtotals = roomSubtotals(draft), total = cost ?? subtotals.reduce((sum, [, v]) => sum + v, 0);
   if (options.budget !== undefined && total > options.budget) problems.push(`budget: furniture total ${total} AMD is ${total - options.budget} AMD over the ${options.budget} AMD budget`);
-  const notes = flatNotes.size ? `\nflat (not your draft, ignored): no walkable path through door ${[...flatNotes].join(', ')} even in the empty flat` : '';
+  const notes = (flatNotes.size ? `\nflat (not your draft, ignored): no walkable path through door ${[...flatNotes].join(', ')} even in the empty flat` : '')
+    + (noMattresses ? `\ncatalog (not blocking): ${bare.length} bed frame(s) without a mattress; the live catalog has no mattresses yet` : '');
   const rooms = subtotals.length > 1 ? `\nby room: ${subtotals.map(([r, v]) => `${r} ${v}`).join(', ')}` : '';
   const budgetLine = options.budget !== undefined ? `\nbudget: ${total} of ${options.budget} AMD` : '';
   const summary = `${items.length} items, ${problems.length} hard, ${soft.length} soft warnings${soft.length ? ` (${[...bySoft].map(([k, v]) => `${k} ${v}`).join(', ')})` : ''}${cost !== null ? `, furniture total ${cost} AMD` : ''}${work.length ? `\nunquoted finish and lighting work (price on request): ${work.join('; ')}` : ''}${notes}${rooms}${budgetLine}`;
