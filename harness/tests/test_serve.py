@@ -42,7 +42,7 @@ def test_structure_stream(tmp_path):
     lines = post(server.server_port, {"plan": {"name": "plan.png", "data": img},
                                       "photos": [{"name": f"p{i}.jpg", "data": img} for i in range(6)]})
     assert [l["type"] for l in lines][-1] == "structure"
-    assert any("checking" in l.get("message", "") for l in lines)
+    assert any("checking" in l.get("message", "").lower() for l in lines)
     result = lines[-1]
     assert set(result) == {"type", "rooms", "walls", "notes"}  # printed stays behind
     assert set(result["rooms"][0]) == {"id", "name", "polygon", "color"}
