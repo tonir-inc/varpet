@@ -6,10 +6,11 @@ import './ui/walkthrough.css';
 import './ui/designer-panel.css';
 import { mountDesignerPanel, previewDesignerProposal } from './ui/designer-panel';
 import { askDesigner } from './adapters/designer-http';
-import { DesignerProposalCatalog } from './core/designer-catalog';
+import { DesignerProposalCatalog, mergeDesignerProducts } from './core/designer-catalog';
+import { createCatalogHttpAdapter, CATALOG_CURRENCY } from './adapters/catalog-http';
 import type { AgentProposal, CatalogAsset, EditCommand, ObjectPatch, Operation, SceneDocument, SceneObject, ToolMode, ViewMode, ViewportLayer, WallMode } from './contracts';
 import { createInitialScene } from './core/initial-scene';
-import { databaseCatalog, catalogKinds, resolveSceneProducts, type CatalogProduct } from './adapters/database-catalog';
+import { databaseCatalog, catalogKinds, resolveSceneProducts, retainRegisteredProducts, type CatalogProduct } from './adapters/database-catalog';
 import { createApartmentStore } from './core/apartment-store';
 import { normalizeWallJunctions } from './core/wall-junctions';
 import { expandFurnitureSelection, furnitureMembers } from './core/grouping';
@@ -120,7 +121,7 @@ let catalogRequest: AbortController | undefined;
 let catalogSearchTimer: ReturnType<typeof setTimeout>;
 function registerProducts(products: CatalogProduct[]) {
   // Imports must not invalidate the cards still visible in the current search.
-  products = [...catalogResults, ...products];
+  products = retainRegisteredProducts([...catalogResults, ...products], catalogProducts);
   catalog = store.registerCatalogAssets(products.map(product => product.asset));
   products.forEach(product => catalogProducts.set(product.asset.id, product));
   const retained = new Set(catalog.map(asset => asset.id));
@@ -702,14 +703,25 @@ const designerHost = document.createElement('section');
 if(designerLive){$('.workspace').classList.add('designer-workspace');$('.left-panel').before(designerHost);}else $('#proposal').before(designerHost);
 const designerPanel = mountDesignerPanel(designerHost, {
   ask: designerLive ? async (request, options) => {
-    const products = structuredClone([...catalogProducts.values()]);
-    const reply = await askDesigner({ ...request, catalog, catalogCurrency: 'AMD' }, options);
+    const currentProducts = structuredClone([...catalogProducts.values()]);
+    let remote: CatalogAsset[] = [];
+    const catalogUrl = import.meta.env.VITE_CATALOG_ASSETS_URL;
+    if(catalogUrl){
+      options?.onProgress?.('Loading furniture options…');
+      try { remote = await createCatalogHttpAdapter({ url: catalogUrl }).list(options?.signal); }
+      catch(error){
+        if(options?.signal?.aborted)throw error;
+        options?.onProgress?.('Catalog unavailable; using the furniture already loaded.');
+      }
+    }
+    const products = mergeDesignerProducts(currentProducts, remote);
+    const reply = await askDesigner({ ...request, catalog: products.map(product => product.asset), catalogCurrency: CATALOG_CURRENCY }, options);
     if (reply.type === 'proposal' && !options?.signal?.aborted && request.revision === store.revision) {
       designerCatalog.remember(reply.proposal, products);
     }
     return reply;
   } : undefined,
-  live: designerLive, snapshot: () => ({ scene: store.scene, revision: store.revision }),
+  live: designerLive, snapshot: () => ({ scene: store.scene, revision: store.revision, catalog, catalogCurrency: CATALOG_CURRENCY }),
   subscribe: listener => store.subscribe(listener), canRequest: () => !busy && !previewMode,
   onBusyChange: waiting => { busy = waiting; $<HTMLButtonElement>('#suggest').disabled = waiting; },
   onProposal: proposal => { pending = proposal; if(!designerLive)switchPanel('assistant'); renderProposal(); },

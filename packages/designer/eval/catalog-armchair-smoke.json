@@ -1,0 +1,269 @@
+{
+  "schema_version": 1,
+  "evidence_kind": "measured_live_catalog_purchase",
+  "started_at": "2026-09-26T11:06:49.986Z",
+  "source": {
+    "head": "8a804affd932e44b8037a2a44d95c0d9c4880149",
+    "dirty": true,
+    "hashes": {
+      "packages/designer/src/adapter.ts": "9566c60661a173fbdae302d3c1ef54f034c85599825a6c471165d6743998d71d",
+      "packages/designer/src/ask.ts": "699c031492ef8236b24dc3d4096a73e1240ac252c8e088b84fa45fcd4c093553",
+      "packages/designer/src/catalog.ts": "131f57b8f8645b1d84bcdbfddfae97507c98787d34eb30550eec6fdffca28ddf",
+      "packages/designer/src/editor-bridge.ts": "41106cd05cf97f36327327b5f2c3753516964eb084fecf6d4d5f0e46667a66c9",
+      "packages/designer/src/layout.ts": "ea950717fa222b4c32a9d2f370b4cca7c0b4f83f5ad8fdb687f0a20fd08abe60",
+      "packages/designer/src/local-checks.ts": "bc76ac73e052a7ee430b358f89be9ea59406ac59173be2d1523d4cde23d61aa0",
+      "packages/designer/src/metrics/function.ts": "6f5b397c32d24a2cd59bd192e47aeae036db3a25a867f09d198fb7a475ceb450",
+      "packages/designer/src/metrics/space.ts": "fd407f17d5ddf917fd1733cdd7544b5b50c27fc5536aaa7f0a7d5a10879eff7c",
+      "packages/designer/src/metrics/strategy.ts": "b5fc2660509e8533cfa24f85aac811ca3b5a090cbc1a2d72fdaeb99d8a3a68bb",
+      "packages/designer/src/metrics/sun.ts": "3a9a00bea602c613873d34487d9f8d2915f1a99b997c85721a9d4123d709125a",
+      "packages/designer/src/place-batch.ts": "3a95c2f7c8534e7e428e721f0274004fb1318567556e82e39d61c276fb8cffad",
+      "packages/designer/src/place.ts": "43f05771651844d7c632586c36704dce907ce9d4b7db47a030878725ea247375",
+      "packages/designer/src/request.ts": "f32329fb3091f607f07addb973aee58b0fdf25dc9678994aac5db396d0506c11",
+      "packages/designer/src/scene.ts": "fd6a335c6c90ded0f97a2823424d084f88d800ad2c9994c8eb4c124f8c6650d9",
+      "packages/designer/src/server.ts": "bb6a75f6e454adab4b7223e8036a86e5be89997ca0c3f8f37dba85082624954e",
+      "packages/designer/src/session.ts": "e54a8568849872f9e0f56478e0454d39cdd5265518aafcd2b0da88da0a96b67a",
+      "packages/designer/src/tool-inputs.ts": "a88f805a52e221a560002b40a0ce0e54726a3578cbc6c511130f7fa28c0492e1",
+      "packages/designer/src/wall-geometry.ts": "a7bcffc80c53a7c672c6defb1a51e11df9841cf8adbe56b77ff6602868074079",
+      "apps/editor/src/core/check.ts": "9f71489f1e6701e3f7a6954100ea2f3431cc19581cbbcacb2ef0e5d03857d01c",
+      "apps/editor/src/core/demo.ts": "63f3fe775a6e9e4e78956731a4b2e948bb39fb6ea677c97fb09fd36a0c2375cd",
+      "apps/editor/src/core/finish-presets.ts": "5ba152797babbe17c664eb9f7d568870ef85cddd51e1ecdb099e7311eee697e5",
+      "apps/editor/src/core/floor-plan.ts": "c20ef356b8cef64766c721d14538e04b84ecf13ed1ee466a35d5f5ecab47fc20",
+      "apps/editor/src/core/geometry.ts": "b1da1d72c4fdf46f1b55b414ec17283cdeb0276291d5d37cc6a64eedcd4a083d",
+      "apps/editor/src/core/grouping.ts": "2c8242e24fec75314e79b3aeec63105ca065df952dd9614776ab0d06d9549f3c",
+      "apps/editor/src/core/inspector-edits.ts": "b3ff984fd8c505478a2421ff9252cdb16b9d9bbeccd67d08191870ab618575cd",
+      "apps/editor/src/core/opening-collision.ts": "e11759d871816c5ef2653c58b842b0cdfa48c3ec140aea1e195e2af06df3f439",
+      "apps/editor/src/core/opening-move.ts": "b1515114b2275468d2edeeeabe9b189028a58ac0446f9fd705483ef091c4f157",
+      "apps/editor/src/core/persistence.ts": "638323c7f74e297832941c04d7c56fe612b76945d106c2b01507fc7c15bceb4b",
+      "apps/editor/src/core/placement-conflicts.ts": "892e088b388507241ad260f6e0f46a5b2421d5776bd224898ff9ede005608e5b",
+      "apps/editor/src/core/plan-move.ts": "14287abfca9d2720f1c6a05164f50cd40d088dcbec3a4865030fe8af1030bd2f",
+      "apps/editor/src/core/renovation.ts": "df220f73d9f30c89eb965a484a908f488b46c8926e8375f2e8c482ebbf606a8b",
+      "apps/editor/src/core/store.ts": "ced33ffa5db8447c2c588c79b773bfdac1fe921f927fc04d0b6f57d666888910",
+      "apps/editor/src/core/validation.ts": "ed3dac177fcadc53f43328a73e0b6e478f4846f9b81e2290872ea41e1837293c",
+      "harness/designer.py": "7278a51819bfbbf7faf62e2570c42177fb9825b91bcf86cd5c33734357e831c1",
+      "harness/designer_eval.py": "5b21a683ddf013f8bd3c1b50a2e8bef074d152776ea4d3be0ec3f2e849beb225",
+      "harness/designer_options.py": "61306a95b9cdc209cbdd409f85d1e660f19c4a259c5bd248ac317afdae5710d4",
+      "harness/designer_process.py": "3cdd19af1427e4b65fe19948a9bcab0d61011f7cfcf57878d1b1a663d8f3305f",
+      "harness/designer_profiles.py": "2910bee12464b0384948fa585c0208b2a5e7a56cd91ed4b3cfd7f0c110a77666",
+      "harness/designer_prompt.md": "b9299a9a4c9dcb0c6b8550f9c5b13e9f7ba6aa32c0b4e483d8b37d6729095115",
+      "harness/designer_service.py": "06ccf65edc5958955871b225e0a30875ae80aa52db8e77b23a444453a6b110b8",
+      "apps/editor/src/adapters/catalog-http.ts": "e95fd953efa9a56ab6f9489f4fced472b69eec878d9d61eb99d1f722fec9ff04",
+      "apps/editor/src/adapters/designer-http.ts": "866af6dae3fda1ae280724b58ff000b14397e458fc78dd1bce9f0db5a5ae2f0e",
+      "packages/designer/eval/catalog-armchair-smoke.ts": "c744bcb3050297b449ac3439f7cf2f540708990b2157be2092224072caedd23e",
+      "packages/designer/eval/catalog-armchair-smoke.py": "04170f3fd1e1cf42113572738503a5a4309557006c79385a7bab1c8bd94a5400"
+    },
+    "head_at_end": "8a804affd932e44b8037a2a44d95c0d9c4880149",
+    "runtime_bytes_unchanged": true
+  },
+  "request": "add an armchair for reading by the window",
+  "revision": 0,
+  "catalog_currency": "AMD",
+  "catalog_assets_url": "http://localhost:8765/editor/assets",
+  "catalog_mcp_url": "http://localhost:8765/mcp",
+  "input": {
+    "http_status": 200,
+    "remote_assets": 877,
+    "merged_assets": 895,
+    "catalog_response_sha256": "3586bd4eb8acdb877322739d4756e7fe88a1e09822de146e91d02c82fa19c568",
+    "catalog_sha256": "2d7a73ad14c12b8841598705a7069fca4122067800ae52f0f086a6a148b18cb3",
+    "scene_sha256": "4f5b9805dd7d7f59369413d0359794d4b231511db2db1679d61ad396831231e3",
+    "request_sha256": "d3a72d37180fed4ec9dd5f67a33a78f9b584b55d75ff345136d1ce6329b44dc6"
+  },
+  "logs_directory": "/tmp/varpet-catalog-armchair-bFkywW",
+  "total_http_deadline_seconds": 240,
+  "pass": true,
+  "port": 60827,
+  "http_status": 200,
+  "seconds": 46.444,
+  "outcome": "proposal",
+  "proposal": {
+    "id": "designer-172347c0f529e83ae64bad1789b2409f619cbb8facad02fef2c5dd3949448a96",
+    "title": "Designer layout proposal",
+    "description": "Add a compact upholstered armchair beside the west-wall window, facing into the room for reading. Retain all existing furniture; relocate the media console to the opposite wall to make room. No budget was specified; the catalog price is mock, not a shop quotation.",
+    "command": {
+      "id": "designer-172347c0f529e83ae64bad1789b2409f619cbb8facad02fef2c5dd3949448a96",
+      "label": "Apply designer layout",
+      "source": "designer",
+      "baseRevision": 0,
+      "operations": [
+        {
+          "type": "update",
+          "id": "media-console",
+          "patch": {
+            "position": [
+              0.25,
+              0,
+              0
+            ],
+            "rotation": -1.5707963267948966
+          }
+        },
+        {
+          "type": "add",
+          "object": {
+            "id": "reading-armchair",
+            "name": "Rivet Revolve upholstered reading armchair",
+            "assetId": "abo:B071J7Q6KD",
+            "position": [
+              -4.5,
+              0,
+              0.35
+            ],
+            "rotation": 1.5707963267948966,
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "validation": {
+    "pass": true,
+    "reasons": [],
+    "approval_required": true,
+    "store_result": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "revision": 1
+    },
+    "validation_after": {
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    "request_check": {
+      "ok": true,
+      "errors": [],
+      "budget": {
+        "status": "skipped",
+        "cost_dram": 77000
+      }
+    },
+    "added_assets": [
+      {
+        "object_id": "reading-armchair",
+        "asset": {
+          "id": "abo:B071J7Q6KD",
+          "name": "Amazon Brand – Rivet Revolve Modern Upholstered Armchair with Tapered Legs, 33\"W",
+          "category": "Living",
+          "kind": "chair",
+          "dimensions": [
+            0.8545,
+            0.9267,
+            0.8003
+          ],
+          "color": "#706e6a",
+          "price": 77000,
+          "source": {
+            "type": "gltf",
+            "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/D/B071J7Q6KD.glb"
+          }
+        }
+      }
+    ]
+  },
+  "catalog_search_calls": 1,
+  "catalog_provenance": [
+    {
+      "asset_id": "abo:B071J7Q6KD",
+      "matching_search_products": [
+        {
+          "sku": "abo:B071J7Q6KD",
+          "kind": "chair",
+          "name": "Amazon Brand – Rivet Revolve Modern Upholstered Armchair with Tapered Legs, 33\"W, Grey Weave",
+          "size": [
+            0.8545,
+            0.8003,
+            0.9267
+          ],
+          "price": 77000,
+          "currency": "AMD",
+          "vendor": null,
+          "source": "abo",
+          "price_source": "mock",
+          "size_status": "confirmed",
+          "size_evidence": {
+            "from": "mesh",
+            "listing_m": [
+              0.8788,
+              0.8306,
+              0.8992
+            ],
+            "wd_swapped": false,
+            "name_width_m": 0.838,
+            "mesh_minus_listing_m": [
+              -0.024,
+              -0.03,
+              0.027
+            ]
+          },
+          "wd_swapped": false,
+          "colors_listing": [
+            "grey"
+          ],
+          "colors_image": [
+            "grey",
+            "grey",
+            "grey"
+          ],
+          "styles": [
+            "Mid-Century modern"
+          ],
+          "item": {
+            "id": "abo:B071J7Q6KD",
+            "kind": "chair",
+            "name": "Amazon Brand – Rivet Revolve Modern Upholstered Armchair with Tapered Legs, 33\"W, Grey Weave",
+            "size": [
+              0.8545,
+              0.8003,
+              0.9267
+            ],
+            "sku": "abo:B071J7Q6KD",
+            "price": 77000
+          }
+        }
+      ]
+    }
+  ],
+  "editor_snapshot_unchanged": true,
+  "usage_limited": false,
+  "service_stopped": true,
+  "service_summary": {
+    "type": "service_summary",
+    "model": "gpt-6-astra",
+    "effort": "low",
+    "profile": {
+      "placement": "without-place",
+      "context": "compact-base"
+    },
+    "conversationId": "27e8aac3c1c54f928b791242b9e523e9",
+    "outcome": "proposal",
+    "seconds": 46.404,
+    "usage": {
+      "cacheWriteInputTokens": 0,
+      "cachedInputTokens": 31360,
+      "inputTokens": 65762,
+      "outputTokens": 666,
+      "reasoningOutputTokens": 242,
+      "totalTokens": 66428
+    }
+  },
+  "actual_profile_matches": true,
+  "progress": {
+    "count": 12,
+    "max_gap_seconds": 5.096
+  },
+  "finished_at": "2026-09-26T11:07:36.780Z",
+  "claim_scope": "One real SDK request through the production HTTP service defaults and real catalog MCP. The observer only records subprocess output; it does not change profiles, tools or model behavior. REST and MCP prices may be mock catalog prices, not shop quotations. The independent near-window check uses the existing 1.5 m footprint-distance policy. Test approval applies only to a disposable editor store; browser rendering and GLB download were not tested.",
+  "armchair_identity_review": {
+    "classification": "derived_from_real_catalog_names",
+    "asset_id": "abo:B071J7Q6KD",
+    "rest_name": "Amazon Brand – Rivet Revolve Modern Upholstered Armchair with Tapered Legs, 33\"W",
+    "mcp_name": "Amazon Brand – Rivet Revolve Modern Upholstered Armchair with Tapered Legs, 33\"W, Grey Weave",
+    "both_names_explicitly_say_armchair": true,
+    "price_source": "mock"
+  }
+}

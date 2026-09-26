@@ -1,6 +1,8 @@
+.agents/skills/README.md
 .agents/skills/designer-build/SKILL.md
 .agents/skills/flat-shell/SKILL.md
 .agents/skills/interior-design-rules/SKILL.md
+.agents/skills/product-ui/SKILL.md
 .claude/launch.json
 .claude/settings.json
 .codex/config.toml
@@ -85,6 +87,7 @@ apps/editor/server/catalog.mjs
 apps/editor/server/catalog.test.mjs
 apps/editor/src/adapters/architect-http-check.ts
 apps/editor/src/adapters/architect-http.ts
+apps/editor/src/adapters/catalog-bootstrap.ts
 apps/editor/src/adapters/catalog-http.ts
 apps/editor/src/adapters/database-catalog.ts
 apps/editor/src/adapters/designer-http.ts
@@ -241,6 +244,11 @@ output/ceiling-designs/soft-glow-evening.png
 output/ceiling-designs/task-diffstat.txt
 output/ceiling-designs/test.log
 output/ceiling-designs/typecheck.log
+output/consolidation-verification/build.log
+output/consolidation-verification/files.txt
+output/consolidation-verification/tests.log
+output/consolidation-verification/typecheck.log
+output/consolidation-verification/verification.md
 output/door-placement-top.png
 output/floor-textures-detail.png
 output/floor-textures.png
@@ -262,6 +270,10 @@ packages/designer/README.md
 packages/designer/eval/README.md
 packages/designer/eval/avani-benchmark-scenarios.json
 packages/designer/eval/avani-service-smoke.json
+packages/designer/eval/catalog-armchair-smoke.json
+packages/designer/eval/catalog-armchair-smoke.py
+packages/designer/eval/catalog-armchair-smoke.test.ts
+packages/designer/eval/catalog-armchair-smoke.ts
 packages/designer/eval/demo-e2e-eval-typecheck.log
 packages/designer/eval/demo-e2e-python.log
 packages/designer/eval/demo-e2e-runs/20260926T104122Z/catalog.events.jsonl
@@ -546,6 +558,8 @@ packages/designer/test/appearance.test.ts
 packages/designer/test/baseline-layout.test.ts
 packages/designer/test/baseline-place.test.ts
 packages/designer/test/editor-appearance-bridge.test.ts
+packages/designer/test/editor-catalog-kinds.test.ts
+packages/designer/test/editor-catalog-wiring.test.ts
 packages/designer/test/editor-demo-standing.test.ts
 packages/designer/test/editor-http-api.test.ts
 packages/designer/test/editor-http-appearance.test.ts

@@ -7,6 +7,21 @@ export interface CatalogProduct {
   attribution: string;
 }
 
+/** Endpoints may label the same SKU differently; never rewrite a registered asset. */
+export function retainRegisteredProducts(products: readonly CatalogProduct[], known: ReadonlyMap<string, CatalogProduct>): CatalogProduct[] {
+  return products.map(product => {
+    const previous = known.get(product.asset.id)?.asset;
+    const incoming = product.asset;
+    if (!previous || previous.kind !== incoming.kind || previous.price !== incoming.price
+      || !previous.dimensions.every((value, index) => value === incoming.dimensions[index])
+      || JSON.stringify(previous.source) !== JSON.stringify(incoming.source)) return product;
+    // Preserve names, categories and fallback colors for this session. Updated
+    // provenance is useful, but size/price/source changes still reach the store
+    // unchanged so its immutable-reference check can reject them.
+    return { ...product, asset: previous };
+  });
+}
+
 const kinds: Record<string, CatalogAsset['kind']> = {
   sofa: 'sofa', chair: 'chair', table: 'table', desk: 'table', bed: 'bed', cabinet: 'cabinet',
   dresser: 'cabinet', wardrobe: 'cabinet', nightstand: 'cabinet', storage: 'cabinet',

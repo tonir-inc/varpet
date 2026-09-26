@@ -1,5 +1,17 @@
-import type { AgentProposal } from '../contracts';
+import type { AgentProposal, CatalogAsset } from '../contracts';
 import type { CatalogProduct } from '../adapters/database-catalog';
+
+/** Request-only discovery; current scene/history identities take precedence. */
+export function mergeDesignerProducts(current: readonly CatalogProduct[], remote: readonly CatalogAsset[]): CatalogProduct[] {
+  const products = new Map(current.map(product => [product.asset.id, product]));
+  for (const asset of remote) {
+    if (products.size >= 1000) break;
+    if (products.has(asset.id) || !asset.id.startsWith('abo:') || asset.source.type !== 'gltf') continue;
+    products.set(asset.id, { asset, priceSource: 'unverified', sizeStatus: 'unverified',
+      attribution: 'Amazon Berkeley Objects · CC BY 4.0' });
+  }
+  return structuredClone([...products.values()]);
+}
 
 export class DesignerProposalCatalog {
   private entries = new Map<string, { revision: number; products: CatalogProduct[] }>();

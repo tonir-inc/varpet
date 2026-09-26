@@ -71,9 +71,12 @@ that server connection.
 
 Live designer requests include the current validated `catalog` and
 `catalogCurrency: "AMD"`. Pending add proposals keep exact product records so
-browsing another category cannot invalidate preview or approval. A purchase must
-still reference a SKU present in that request snapshot; the full 877-item editor
-set is not preloaded. Live broad-catalog purchasing remains an integration gap.
+browsing another category cannot invalidate preview or approval. With
+`VITE_CATALOG_ASSETS_URL`, live requests discover the full remote ABO GLB editor
+set on demand, combining it with current immutable product identities. Added
+products are registered before approval; unused discovery assets do not accumulate
+in the store. Without that URL, only currently loaded products are submitted.
+The consolidation tests cover this lifecycle but did not rerun live purchasing.
 
 `createCatalogHttpAdapter`, `mergeCatalogs` and `CATALOG_CURRENCY` remain available
 for consumers of the `/editor/assets` endpoint, with `VITE_CATALOG_ASSETS_URL` as

@@ -70,6 +70,34 @@ its wiring, using `askDesigner` and `designerHttpAdapter` described below.
 `DesignerQuestionError` and `DesignerDeclineError` preserve non-proposal outcomes for the UI.
 Aborting the supplied signal cancels the HTTP stream and the service's worker processes.
 
+### Catalog purchases
+
+[measured configuration] Set `VITE_CATALOG_ASSETS_URL=http://localhost:8765/editor/assets` for the
+local catalog tunnel. The editor resolves and validates the merged remote/demo catalog before creating
+EditorStore. Without that flag, or when the remote catalog cannot be loaded or validated, it uses the
+demo catalog. The catalog stays fixed for the store session; reload the app to fetch a new set.
+Chat snapshots carry that exact catalog and `catalogCurrency: CATALOG_CURRENCY` (`AMD`) on initial and
+follow-up requests. Point the designer service's `VARPET_CATALOG_URL` at the same service's `/mcp` route.
+The remote catalog has real product records but its current AMD prices are mock prices, not shop quotes.
+
+[derived compatibility] Purchased `desk` maps to editor `table`; `dresser`, `wardrobe`, `nightstand`
+map to `cabinet`; `stool`, `ottoman`, `bench` map to `chair`. SKU, dimensions, price and currency checks
+remain exact. Subsequent editor-to-designer conversion uses the editor's broad kind; the editor contract
+does not carry a separate semantic subtype.
+
+[measured source, catalog commit `206e3c6`] There is no mapped-kind enable flag in
+`catalog/select_editor_set.py`: its only CLI flag is `--total`. Sergey must extend `EDITOR_KINDS` and
+`SHARE`, and map the REST asset's kind to the editor kind, before those extra subtypes enter the set.
+
+[measured, 26 Sept 2026] The exact request "add an armchair for reading by the window" passed through
+the real HTTP service and catalog MCP with 895 merged assets in 46.444 seconds (66,428 tokens;
+`gpt-6-astra`, low, without-place, compact-base). EditorStore accepted the added Rivet armchair
+`abo:B071J7Q6KD` after approval on a disposable scene. Its 77,000 AMD price is marked `mock` by the
+catalog. The independent request check confirmed the existing 1.5 m near-window policy.
+Evidence: `packages/designer/eval/catalog-armchair-smoke.json`; reproduce with
+`pnpm --filter @varpet/designer exec tsx eval/catalog-armchair-smoke.ts --live --output /tmp/new-purchase-run.json`.
+Browser rendering and the remote GLB download were not measured by this HTTP check.
+
 Derived coordinate mapping: editor `[x, y, z]` maps to designer `[x, -z]`; rotation radians about +Y
 map to counterclockwise degrees; dimensions `[width, height, depth]` multiplied by object scale map
 to `[width, depth, height]`. Existing poses and scale survive the reverse conversion.

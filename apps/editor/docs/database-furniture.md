@@ -27,7 +27,21 @@ prune its normal cache; preview/apply re-register the proposed products without
 changing the document or its undo history. Multiple conversations at the same
 revision retain independent proposal products.
 
-This does not preload every database item: a purchase proposal must reference an
-asset present in the submitted catalog. Unsupported service-side kinds, elevations
-and building components continue to fail explicitly. End-to-end live purchasing
-against the remote catalog was not verified during consolidation.
+When `VITE_CATALOG_ASSETS_URL` is configured, each live request also loads the
+remote editor set for designer discovery. Only ABO GLB assets join that request;
+current product identities and metadata take precedence. They are retained for
+approval only when the proposal adds them, so normal browsing remains bounded
+and startup stays empty. The endpoint carries no detailed provenance, so newly
+discovered products show unverified price/size provenance. A failed connection
+uses the already loaded furniture and reports that limit in progress. Without
+the URL, requests use only the current catalog.
+
+Unsupported service-side elevations and building components still fail explicitly.
+End-to-end live purchasing against the remote catalog was not rerun during
+consolidation; deterministic checks cover added-product retention and approval.
+
+Discovery is capped at 1,000 products with every current scene/history reference
+kept first. When browsing returns a SKU already registered from designer
+discovery, its session name, category and fallback color remain unchanged while
+new provenance can be shown. Changed dimensions, kind, price or model source
+still trigger the store's immutable-identity error; no geometry change is hidden.
