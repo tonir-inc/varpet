@@ -45,18 +45,22 @@ def build_placeable_sql():
         " and not coalesce((size_evidence->>'wd_swapped')::boolean, false)"
         " and least(size_m[1], size_m[2], size_m[3]) >= 0.01 and greatest(size_m[1], size_m[2], size_m[3]) <= 20)"
     )
-    # IDs are extra:<group>:<slug>; group names are not mounting evidence.
-    # Wall-only kinds (range_hood, mirror_bathroom, towel_rail, air_conditioner,
-    # curtain) are deliberately absent from the allowlist.
+    # Explicit mounting evidence only; incidental prose and slugs are not evidence.
+    supported_wall = (*WALL_EXTRA_KINDS, "curtain", "blind")
+    mount_ok = (
+        f"(kind in ({', '.join(repr(k) for k in supported_wall)}) or ("
+        "lower(coalesce(tags->'extra'->>'placement', '')) not in "
+        "('wall', 'wall-mounted', 'ceiling', 'ceiling-mounted')"
+        " and coalesce(tags->'extra'->>'notes', '') !~* '^(wall-mounted|wall-hung|ceiling)([^a-zA-Z0-9_]|$)'))"
+    )
     extra = (
         f"(kind in ({', '.join(repr(k) for k in (*NATIVE_EXTRA_KINDS, *EXTRA_DECOR_KINDS, *EXTRA_LAMP_KINDS))}) and source = 'extra'"
-        " and glb_url is not null"
-        f" and (kind in ({', '.join(repr(k) for k in WALL_EXTRA_KINDS)}) or (coalesce(split_part(id, ':', 3), '') !~* '(wall|mount|hang|lift)'"
-        " and coalesce(tags->'extra'->>'notes', '') !~* '(wall|mount|hang|lift)')))"
+        f" and glb_url is not null and {mount_ok})"
     )
     furniture = (
         f"(kind in ({', '.join(repr(k) for k in EXTRA_FURNITURE_KINDS)}) and source = 'extra'"
-        " and glb_url is not null and coalesce(tags->'extra'->>'placement', '') in ('floor', 'wall', 'surface'))"
+        " and glb_url is not null and coalesce(tags->'extra'->>'placement', '') in ('floor', 'wall', 'surface')"
+        f" and {mount_ok})"
     )
     return f"({abo} or {extra} or {furniture})"
 
@@ -76,7 +80,7 @@ class Query:
     target_size: list[float] | None = None
     price_max: int | None = None
     like_item: str | None = None                           # item id for visual similarity
-    like_image: str | None = None                          # photo path or URL for visual similarity
+    like_image: str | None = None                          # allowlisted image URL for visual similarity
     exclude_ids: list[str] = field(default_factory=list)
     scope: str = "placeable"                               # placeable (editor is an alias) | all
     colour_mode: str = "astra"                            # Astra tags only: best on 20 photo-labelled queries (0.87 vs 0.81)
@@ -213,7 +217,41 @@ def _openai_vec(text):
     return np.array(embed_openrouter.embed([text], f"openai/{OPENAI_TEXT}")[0])
 
 
+def kind_counts(conn):
+    """Shared vocabulary for validation and MCP list_vocab."""
+    return dict(conn.execute("select kind, count(*) from item group by 1 order by 2 desc").fetchall())
+
+
+def validate_query(q):
+    if not 1 <= q.limit <= 20:
+        raise ValueError("limit must be between 1 and 20")
+    if q.offset < 0:
+        raise ValueError("offset must be >= 0")
+    if q.scope not in ("placeable", "editor", "all"):
+        raise ValueError("scope must be one of: placeable, editor, all")
+    for field in ("target_size", "fit_box"):
+        value = getattr(q, field)
+        if value is not None and len(value) != 3:
+            raise ValueError(f"{field} must contain exactly 3 dimensions [w, d, h]")
+
+
 def search(conn, q: Query):
+    validate_query(q)
+    if q.kind is not None:
+        valid = kind_counts(conn)
+        if q.kind not in valid:
+            raise ValueError(f"Unknown kind {q.kind!r}. Valid kinds: {', '.join(sorted(valid))}")
+    ref = None
+    if q.like_item:
+        if not conn.execute("select id from item where id=%s", (q.like_item,)).fetchone():
+            raise ValueError(f"no item {q.like_item}")
+        row = conn.execute("select emb::text from item_embedding where item_id=%s and model=%s and modality='image'", (q.like_item, q.model)).fetchone()
+        if not row:
+            raise ValueError(f"no image embedding for item {q.like_item}")
+        ref = np.array(json.loads(row[0]))
+    elif q.like_image:
+        import embed_siglip_query
+        ref = embed_siglip_query.image(q.like_image, q.model)
     w = {**DEFAULT_WEIGHTS, **q.weights}
     where, args = ["true"], []
     if q.kind:
@@ -292,13 +330,6 @@ def search(conn, q: Query):
             words = (rec["styles"] or []) + (rec["materials"] or []) + rec["materials_astra"] + rec["style_astra"]
             return {t.lower() for t in words}
         scores["tags"] = np.array([len(want & have(p[0])) / len(want) for p in passed]); used.add("tags")
-    ref = None
-    if q.like_item:
-        row = conn.execute("select emb::text from item_embedding where item_id=%s and model=%s and modality='image'", (q.like_item, q.model)).fetchone()
-        ref = np.array(json.loads(row[0])) if row else None
-    elif q.like_image:
-        import embed_siglip_query
-        ref = embed_siglip_query.image(q.like_image, q.model)
     if ref is not None:
         sims = _sims(conn, ids, q.model, "image", ref)
         scores["visual"] = _minmax(sims); used.add("visual")

@@ -18,7 +18,7 @@ import psycopg
 from mcp.server.mcpserver import MCPServer
 
 from colors import PALETTE
-from search import Query, fits, search, size_limits
+from search import Query, fits, search, size_limits, kind_counts, validate_query
 from select_editor_set import EDITOR_KIND_OF
 
 model_ready = False
@@ -72,7 +72,7 @@ def _threaded(fn):
 def list_vocab() -> dict:
     """Valid kinds (with counts), palette colours, and the most common styles and materials."""
     with _conn() as c:
-        kinds = dict(c.execute("select kind, count(*) from item group by 1 order by 2 desc").fetchall())
+        kinds = kind_counts(c)
         styles = [r[0] for r in c.execute("select s, count(*) from item, unnest(styles) s group by 1 order by 2 desc limit 40")]
         mats = [r[0] for r in c.execute("select m, count(*) from item, unnest(materials) m group by 1 order by 2 desc limit 40")]
     return {"kinds": kinds, "colors": PALETTE, "styles": styles, "materials": mats}
@@ -108,8 +108,9 @@ def search_furniture(
     box, allow_rotate = size_limits(max_w, max_d, max_h, allow_rotate)
     q = Query(kind=kind, text=text, colors=colors or [], styles=styles or [], materials=materials or [],
               fit_box=box, allow_rotate=allow_rotate, target_size=target_size, price_max=price_max,
-              exclude_ids=exclude_ids or [], limit=min(limit, 20), offset=max(offset, 0), scope=scope,
+              exclude_ids=exclude_ids or [], limit=limit, offset=offset, scope=scope,
               room_items=room_items or [])
+    validate_query(q)
     with _conn() as c:
         return search(c, q)
 
@@ -127,18 +128,26 @@ def find_similar(
     offset: int = 0,
     scope: str = "placeable",
 ) -> dict:
-    """Items that look like a catalog item (item_id) or a photo (image: URL or path). Optional: keep the
+    """Items that look like a catalog item (item_id) or a photo (image: allowlisted HTTP(S) URL). Optional: keep the
     same kind, stay within size_tolerance_m of the item's size, or only cheaper than the item."""
+    if not item_id and not image:
+        raise ValueError("find_similar requires item_id or image")
+    validate_query(Query(limit=limit, offset=offset, scope=scope))
+    if image:
+        from embed_siglip_query import validate_image_url
+        validate_image_url(image)
     with _conn() as c:
         ref = c.execute("select kind, size_m, price from item where id=%s", (item_id,)).fetchone() if item_id else None
+        if item_id and ref is None:
+            raise ValueError(f"no item {item_id}")
         box = None
         if ref and size_tolerance_m is not None:
             box = [s + size_tolerance_m for s in ref[1]]
         if ref and cheaper_than_item:
             price_max = min(price_max or ref[2], ref[2] - 1)
         q = Query(kind=kind or (ref[0] if ref and same_kind else None), like_item=item_id, like_image=image,
-                  fit_box=box, price_max=price_max, exclude_ids=[item_id] if item_id else [], limit=min(limit, 20),
-                  offset=max(offset, 0), scope=scope)
+                  fit_box=box, price_max=price_max, exclude_ids=[item_id] if item_id else [], limit=limit,
+                  offset=offset, scope=scope)
         return search(c, q)
 
 

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 # Usage: catalog/import_extra_groups.sh <group>... (folders under catalog/data/extra/, see BRIEF_DECOR.md there)
 # Import extra-model groups (args) into VM + local DB: rows, GLBs, Blender previews, preview-as-photo SigLIP embeddings.
 cd "$(dirname "$0")" || exit 1

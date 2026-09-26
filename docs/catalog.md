@@ -157,8 +157,9 @@ All 169 extra items now have SigLIP embeddings (their render stands in for the p
 Placeable search includes native `decor`, `wall_art` and `mirror`, plus decoration subtypes
 mapped identically in `select_editor_set.EDITOR_KIND_OF` and the designer bridge. `planter`
 maps to `decor`; `clock` and `wall_hanging` map to `wall_art`; `plant` stays native.
-Extra wall art, mirrors, clocks and wall hangings may carry wall/mount/hang notes or slugs.
-Other extra kinds retain the mounting exclusion; curtains remain unsupported. ABO decorations
+Extra wall art, mirrors, clocks and wall hangings support wall mounting. Other extra kinds are
+excluded only by explicit wall/ceiling placement or leading mounting notes, not incidental words
+in slugs or prose. Curtains use `tags.extra.placement="wall"` (the editor hangs them over windows). ABO decorations
 retain existing size, conflict, orientation, model, name and price eligibility checks.
 The capped editor-set script draws quotas from `SHARE`, independently of the placeable kinds.
 
@@ -168,7 +169,7 @@ CC0/CC-BY/public-domain sources; licence + attribution per row): art-prints 74, 
 textiles 124, wall-decor 57, shelf-styling 96, misc-decor 92. Catalog total 8,850.
 - Fine kinds map to editor kinds (EDITOR_KIND_OF = bridge editorKindOf): vase, candle, sculpture, books, cushion,
   throw_blanket, basket, tray, bowl, lantern, picture_frame, toy, planter -> decor; clock, wall_hanging -> wall_art;
-  mirror, wall_art, decor native. Curtains are searchable but not placeable (no ceiling mounting yet).
+  mirror, wall_art, decor native. Curtains are placeable with `tags.extra.placement="wall"`.
 - The editor hangs wall_art/mirrors/clocks on the nearest wall and rests decor on furniture (`restsOn`, op `on`);
   see apps/editor/docs/integrations.md.
 - Previews are Blender renders; the same render is the SigLIP "photo" (these items have no product photo), so text
@@ -184,3 +185,28 @@ textiles 124, wall-decor 57, shelf-styling 96, misc-decor 92. Catalog total 8,85
   a bed at the implied mattress top (0.55 m). The spike check fails a bed with no mattress on it.
 - `max_w` or `max_d` alone is now a real limit: turning an item 90 degrees counts only when both are given
   (before, the open axis let any item pass turned).
+
+## QA repairs (27 Sept)
+
+- Seating names take precedence over incidental pillows, cushions and slipcovers; standalone
+  accessories remain decor. “Bed with Headboard” is a bed.
+- Extra mounting evidence is explicit placement (`wall`, `wall-mounted`, `ceiling`,
+  `ceiling-mounted`) or notes beginning with whole-word `wall-mounted`, `wall-hung` or
+  `ceiling`. Supported wall decorations and curtains are exempt; unsupported wall fixtures stay out.
+- Both search tools accept limit 1–20, offset >= 0 and scope `placeable|editor|all`; invalid inputs
+  raise descriptive errors. Kinds come from `list_vocab`; size vectors require three dimensions.
+  Similarity requires an existing item with an image embedding or an allowed image URL.
+- `find_similar(image=...)` accepts HTTP(S) only: the configured `CATALOG_HTTP_HOST`
+  (default 100.107.246.46), localhost/127.0.0.1 under `/previews/` or `/models/`, or
+  amazon-berkeley-objects.s3.amazonaws.com. No filesystem paths or redirects; 10-second request
+  timeout, streamed 10 MB cap, and image decoding before embedding.
+- Use `styles=["outdoor"]` to rank outdoor/balcony furniture. This is a soft style filter,
+  not an outdoor-only restriction. The repair tags outdoor/patio/garden/balcony/bistro/zero-gravity
+  names, excluding “wall art”.
+- Fit width uses the larger listing/name width when those agree within 5 cm and both exceed
+  mesh width by at least 15 cm; status is estimated with evidence. Render mesh size is unchanged.
+- Offline-prepared repairs: `catalog/fixes/2026-09-27-bughunt.sql` (curtains, 1 cm minimum
+  dimensions, outdoor styles, fit widths) and `catalog/fixes/reclassify_names.py` (name rules).
+  Run the helper without flags to review, then with `--apply`; run SQL with psql
+  `-v ON_ERROR_STOP=1 -f fixes/2026-09-27-bughunt.sql`. Both use `VARPET_DB_URL`, preserve
+  old values in tags, are idempotent, and require no schema changes. **Prepared, not applied.**

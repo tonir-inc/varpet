@@ -40,15 +40,62 @@ def text(query, short="siglip2-base-patch16-224"):
     return torch.nn.functional.normalize(_feat(model.get_text_features(**x)).float(), dim=-1)[0].cpu().numpy()
 
 
-@torch.no_grad()
-def image(path_or_url, short="siglip2-base-patch16-224"):
+MAX_IMAGE_BYTES = 10 * 1024 * 1024
+
+
+def validate_image_url(url):
+    from urllib.parse import urlsplit, unquote
+    parsed = urlsplit(str(url))
+    host = parsed.hostname
+    catalog_host = os.environ.get("CATALOG_HTTP_HOST", "100.107.246.46").lower()
+    local_hosts = {catalog_host, "localhost", "127.0.0.1"}
+    if (parsed.scheme not in ("http", "https") or parsed.username or parsed.password
+            or host not in local_hosts | {"amazon-berkeley-objects.s3.amazonaws.com"}):
+        raise ValueError("image must be an allowlisted HTTP(S) URL; local paths are forbidden")
+    path = unquote(parsed.path)
+    if host in local_hosts and (
+            not path.startswith(("/previews/", "/models/"))
+            or any(part in (".", "..") for part in path.split("/"))
+            or "%" in path or "\\" in path):
+        raise ValueError("catalog image URLs must be under /previews/ or /models/")
+    return str(url)
+
+
+def fetch_image(url):
+    """Untrusted MCP input: bounded streaming, no redirects, decode before model load."""
     import io
     import urllib.request
-    from PIL import Image
+    from PIL import Image, UnidentifiedImageError
+
+    class NoRedirect(urllib.request.HTTPRedirectHandler):
+        def redirect_request(self, req, fp, code, msg, headers, newurl):
+            raise ValueError("image redirects are forbidden")
+
+    url = validate_image_url(url)
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
+    data = bytearray()
+    with opener.open(url, timeout=10) as response:
+        length = response.headers.get("Content-Length")
+        if length and int(length) > MAX_IMAGE_BYTES:
+            raise ValueError("image exceeds 10 MB")
+        while True:
+            chunk = response.read(min(65536, MAX_IMAGE_BYTES + 1 - len(data)))
+            if not chunk:
+                break
+            data.extend(chunk)
+            if len(data) > MAX_IMAGE_BYTES:
+                raise ValueError("image exceeds 10 MB")
+    try:
+        with Image.open(io.BytesIO(data)) as img:
+            img.load()
+            return img.convert("RGB")
+    except (OSError, ValueError, Image.DecompressionBombError, UnidentifiedImageError) as exc:
+        raise ValueError("image URL must decode as an image") from exc
+
+
+@torch.no_grad()
+def image(url, short="siglip2-base-patch16-224"):
+    img = fetch_image(url)
     model, proc = _load(short)
-    if str(path_or_url).startswith("http"):
-        data = io.BytesIO(urllib.request.urlopen(path_or_url, timeout=20).read())
-    else:
-        data = path_or_url
-    x = proc(images=[Image.open(data).convert("RGB")], return_tensors="pt").to(DEVICE)
+    x = proc(images=[img], return_tensors="pt").to(DEVICE)
     return torch.nn.functional.normalize(_feat(model.get_image_features(**{k: (v.to(model.dtype) if v.is_floating_point() else v) for k, v in x.items()})).float(), dim=-1)[0].cpu().numpy()

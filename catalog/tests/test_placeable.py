@@ -67,12 +67,10 @@ def test_extra_unsupported_kinds_are_excluded(extra_matches, kind):
     assert not extra_matches(kind=kind)
 
 
-@pytest.mark.parametrize("word", ["WaLl", "MOUNTed", "Hanging", "LiFt"])
-@pytest.mark.parametrize("field", ["slug", "notes"])
+@pytest.mark.parametrize("placement", ["wall", "wall-mounted", "ceiling", "ceiling-mounted"])
 @pytest.mark.parametrize("kind", ["tv", "sink", "kitchen_cabinet", "radiator"])
-def test_wall_evidence_excludes_native_kinds(extra_matches, word, field, kind):
-    kwargs = {"slug": f"model-{word}"} if field == "slug" else {"tags": {"extra": {"notes": f"Uses {word} support"}}}
-    assert not extra_matches(kind=kind, **kwargs)
+def test_wall_evidence_excludes_native_kinds(extra_matches, placement, kind):
+    assert not extra_matches(kind=kind, tags={"extra": {"placement": placement}})
 
 
 @pytest.mark.parametrize("tags", [None, {}, {"extra": {}}, {"extra": {"notes": None}}])
@@ -104,7 +102,7 @@ def test_wall_decorations_are_placeable(extra_matches, kind, word):
     "throw_blanket", "basket", "tray", "bowl", "lantern", "picture_frame", "toy", "planter"])
 def test_extra_decorations_are_placeable(extra_matches, kind):
     assert extra_matches(kind=kind)
-    assert not extra_matches(kind=kind, slug="wall-mounted")
+    assert not extra_matches(kind=kind, tags={"extra": {"notes": "wall-mounted; fixture"}})
 
 
 def test_abo_decorations_use_abo_eligibility():

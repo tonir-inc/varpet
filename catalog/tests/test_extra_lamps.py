@@ -24,5 +24,5 @@ def test_extra_floor_and_table_lamps_are_placeable():
 
 
 def test_extra_wall_lamps_are_not_placeable():
-    assert not matches("lamp", "industrial-wall-lamp")
+    assert not matches("lamp", "industrial-wall-lamp", "wall-mounted; fixture")
     assert not matches("lamp", "sconce", "Wall-hung; front faces +Z")
