@@ -7,9 +7,10 @@ export async function searchRoomCatalog(program:string,styleIds:string[],query?:
  const palette=stylePalette(styleIds);
  const lookup=async(kind:string)=>{
   const fit:Record<string,object>={sofa:{max_w:2.8,max_d:1.2},chair:{max_w:1.1,max_d:1.15},table:{max_w:1.5,max_d:.85,max_h:.6},lamp:{max_w:.65,max_d:.65},shelf:{max_w:1.4,max_d:.5}};
-  const terms:Record<string,string>={rug:'large area rug 8 feet',lamp:'floor lamp',table:'coffee table',sofa:'upholstered sofa',chair:'upholstered accent chair',shelf:'bookcase shelf'};
+  const terms:Record<string,string>={rug:'large area rug 8 feet',lamp:'floor lamp',table:'coffee table',sofa:'upholstered sofa',chair:'upholstered accent chair',shelf:'bookcase shelf',desk:'writing desk',wardrobe:'wardrobe armoire',dresser:'chest of drawers',nightstand:'bedside nightstand',bench:'entry bench',stool:'seat stool',ottoman:'upholstered ottoman'};
   const primary=searchStyleForKind(kind,styleIds,program);
-  const request={kind,styles:[primary],text:program==='bedroom'?({table:'nightstand bedside table',bed:'platform bed',cabinet:'wardrobe',lamp:'floor lamp'} as Record<string,string>)[kind]??terms[kind]:terms[kind],...(program==='living'&&fitForComposition?fit[kind]:{}),limit:20};
+  const roomFit:Record<string,object>=program==='bedroom'?{bed:{max_w:2.1,max_d:2.5},nightstand:{max_w:.65,max_d:.6,max_h:.75},wardrobe:{max_w:1.5,max_d:.6},dresser:{max_w:1.5,max_d:.6}}:program==='office'?{desk:{max_w:1.8,max_d:.9,max_h:.9},chair:{max_w:.85,max_d:.9},lamp:{max_w:.4,max_d:.4},shelf:{max_w:1.1,max_d:.45}}:fit;
+  const request={kind,styles:[primary],text:program==='bedroom'?({table:'nightstand bedside table',bed:'platform bed',cabinet:'wardrobe',lamp:'floor lamp'} as Record<string,string>)[kind]??terms[kind]:program==='office'&&kind==='table'?'work table writing table':terms[kind],...(fitForComposition?roomFit[kind]:{}),limit:20};
   let result=await searchCatalog(request,query);
   const retried=result.status==='unavailable'&&!result.fit_budget_exhausted;
   if(retried)result=await searchCatalog(request,query);

@@ -7,7 +7,7 @@ shared colors. Style matching reads catalog `styles` and `colors_image`, never p
 
 FAST recipes can import `styles`, `resolveStyles`, `stylePalette` from `./index.js`, and
 `roomPrograms`, `inferRoomProgram` from `../room-programs.js`. Programs expose `search_kinds`,
-`essentials` (role/kinds/count), and `relations`. Explicit customer exclusions override roles;
+`essentials` (role/kinds/count/optional preferred_kinds), and `relations`. Explicit customer exclusions override roles;
 removing a couch excludes sofas until the customer explicitly requests one again. Two facing chairs
 can supply the seating anchor. Customer history is enforced at MCP and editor proposal gates.
 
@@ -28,10 +28,24 @@ Search uses two concurrent kind queries at a time to protect the shared service,
 returned image palette and style metadata. An unavailable response gets one bounded retry; retried_kinds exposes it. A second unavailable response remains an unresolved gap.
 
 The existing `search_catalog` MCP tool accepts `room_id`, `style_request`, `remake`, `remove_ids` and
-`excluded_roles`. Living and bedroom recipes return two physically and composition-checked candidates.
+`excluded_roles`. Living, bedroom and office recipes return two physically and composition-checked candidates.
 `propose(candidate_id, rationale)` selects exact code-generated ops and preserves any declared budget,
 keeps, preferences and colours. A conflicting declared room is rejected. No proposal is applied.
 Other room programs currently return knowledge/catalog data and no automatic compositions.
+
+[measured, 2026-09-26] Bedrooms search real `nightstand`, `wardrobe` and `dresser` kinds, preferring
+native nightstands over legacy tables/cabinets. An explicitly requested wardrobe or dresser stays
+that kind; a removed kind cannot be restored. Offices search `desk` first, with a working-height table
+fallback only when no desk is explicitly required. Entry programs search `bench`, `stool`, `ottoman`
+and chair alternatives. Explicitly excluded office anchor roles currently decline automatic composition.
+The native catalog aliases remain distinct in request-policy checks. Bedroom product variants are
+bounded; equivalent same-bed/orientation poses within 0.25 m do not count as a second candidate.
+[assumed] Wardrobes at least 1.4 m high and 0.4 m deep are a proxy for freestanding clothes storage,
+excluding shallow wardrobe panels; installation metadata is not verified. Floor lamps stay within
+0.9 m lateral reach and 0.6 m longitudinally from the head. Existing physical gates remain mandatory.
+[measured] The current 900-asset editor export still maps desk→table and wardrobe/dresser/nightstand→cabinet.
+Real SKU kinds are retained in planner evidence; native desk/wardrobe/dresser editor contract support
+is tested separately. Entry seating kinds use existing chair aliases. Do not infer real types from names.
 
 [not proven] Preserving a kept item is enforced; automatically designing a successful group around
 an arbitrary kept anchor is not established.

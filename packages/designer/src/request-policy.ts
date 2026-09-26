@@ -1,7 +1,7 @@
 /** Customer-authored history, never model-generated set_intent fields, owns exclusions. */
-const aliases:Record<string,string>={couch:'sofa',couches:'sofa',sofas:'sofa',loveseat:'sofa',loveseats:'sofa',armchair:'chair',armchairs:'chair',chairs:'chair',rugs:'rug',carpet:'rug',carpets:'rug',lamps:'lamp',lights:'lamp',tables:'table',shelves:'shelf',bookcase:'shelf',bookcases:'shelf',beds:'bed',cabinets:'cabinet',wardrobe:'cabinet',wardrobes:'cabinet'};
+const aliases:Record<string,string>={couch:'sofa',couches:'sofa',sofas:'sofa',loveseat:'sofa',loveseats:'sofa',armchair:'chair',armchairs:'chair',chairs:'chair',rugs:'rug',carpet:'rug',carpets:'rug',lamps:'lamp',lights:'lamp',tables:'table',shelves:'shelf',bookcase:'shelf',bookcases:'shelf',beds:'bed',cabinets:'cabinet',wardrobes:'wardrobe',dressers:'dresser',desks:'desk',nightstands:'nightstand',stools:'stool',ottomans:'ottoman',benches:'bench',plants:'plant',light:'lamp'};
 export const canonicalKind=(value:string)=>aliases[value.toLowerCase()]??value.toLowerCase();
-const nouns='couches|couch|sofas?|loveseats?|armchairs?|chairs?|rugs?|carpets?|lamps?|lights?|tables?|shelves|shelf|bookcases?|beds?|cabinets?|wardrobes?';
+const nouns='couches|couch|sofas?|loveseats?|armchairs?|chairs?|rugs?|carpets?|lamps?|lights?|tables?|shelves|shelf|bookcases?|beds?|cabinets?|wardrobes?|dressers?|desks?|nightstands?|stools?|ottomans?|benches|bench|plants?';
 /** Conservative English direct-object clauses. Mentions in relative/location clauses do not release a ban. */
 export function requestPolicy(requests:readonly string[]){
  const blocked=new Set<string>();

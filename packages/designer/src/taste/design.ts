@@ -4,6 +4,7 @@ import {applyOps} from '../adapter.js';
 import {checkLayout} from '../layout.js';
 import {localGeometryErrors,compareLayoutErrors} from '../local-checks.js';
 import {searchRoomCatalog} from './catalog.js';
+import {officeCandidates} from './office.js';
 import {bedroomCandidates} from './bedroom.js';
 import {resolveStyles,styles} from '../../knowledge/styles/index.js';
 import {inferRoomProgram,roomPrograms} from '../../knowledge/room-programs.js';
@@ -27,7 +28,11 @@ export async function designRoom(scene:Scene,request:DesignRequest,query?:Catalo
   const candidates=bedroomCandidates(scene,request,catalog.products,{program,styles:styleIds,catalog:Object.fromEntries(Object.values(catalog.products).flat().map(p=>[p.sku,p])),excluded_roles:excludedRoles});
   return {...base,candidates,selected_id:candidates[0]?.id??null,reason:candidates.length?'Two complete checked bedroom compositions.':'No two complete bedroom compositions fit with a solid headboard wall and reachable bedside furniture.'};
  }
- if(program!=='living')return {...base,reason:'Room program and catalog supplied; automatic composition currently supports living rooms and bedrooms. Use relation placement for this program.'};
+ if(program==='office'){
+  const candidates=officeCandidates(scene,request,catalog.products,{program,styles:styleIds,catalog:Object.fromEntries(Object.values(catalog.products).flat().map(p=>[p.sku,p])),excluded_roles:excludedRoles});
+  return {...base,candidates,selected_id:candidates[0]?.id??null,reason:candidates.length?'Two complete checked office compositions with a desk, work chair, task light and storage.':'No two complete office compositions fit the catalog pieces and circulation.'};
+ }
+ if(program!=='living')return {...base,reason:'Room program and catalog supplied; automatic composition currently supports living rooms, bedrooms and offices. Use relation placement for this program.'};
  const products=catalog.products,excluded=new Set(excludedRoles);
  const target:Record<string,number>={sofa:1.8,chair:.8,table:.5,lamp:.3,shelf:.65,rug:3};
  const pick=(kind:string,predicate:(p:CatalogProduct)=>boolean=()=>true)=>(products[kind]?.filter(predicate)??[]).sort((a,b)=>Number(b.size_status==='confirmed')-Number(a.size_status==='confirmed')||Math.abs(a.size[0]-(target[kind]??1))-Math.abs(b.size[0]-(target[kind]??1))).slice(0,4);
