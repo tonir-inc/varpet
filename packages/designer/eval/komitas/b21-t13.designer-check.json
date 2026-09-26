@@ -1,0 +1,280 @@
+{
+  "id": "b21-t13",
+  "accepted": true,
+  "seconds": 0.2490640830000002,
+  "model_tokens": 0,
+  "editor_accepted": true,
+  "summary": true,
+  "sun_status": "known",
+  "sun_windows": 3,
+  "access": {
+    "rooms": 5,
+    "baseline_failed_paths": 2
+  },
+  "geometry_audit": {
+    "tolerance_m": 0.053,
+    "adjustments": [
+      {
+        "room_id": "hall",
+        "vertex": 2,
+        "before": [
+          4.684,
+          -4.281
+        ],
+        "after": [
+          4.684,
+          -4.28075
+        ],
+        "distance_m": 0.00024999999999941735
+      },
+      {
+        "room_id": "hall",
+        "vertex": 3,
+        "before": [
+          3.491,
+          -4.281
+        ],
+        "after": [
+          3.49125,
+          -4.28075
+        ],
+        "distance_m": 0.0003535533905927638
+      },
+      {
+        "room_id": "hall",
+        "vertex": 4,
+        "before": [
+          3.491,
+          -3.632
+        ],
+        "after": [
+          3.49125,
+          -3.632
+        ],
+        "distance_m": 0.00024999999999986144
+      },
+      {
+        "room_id": "hall",
+        "vertex": 6,
+        "before": [
+          3.386,
+          -2.632
+        ],
+        "after": [
+          3.386,
+          -2.5965
+        ],
+        "distance_m": 0.03550000000000031
+      },
+      {
+        "room_id": "hall",
+        "vertex": 7,
+        "before": [
+          2.789,
+          -2.632
+        ],
+        "after": [
+          2.789,
+          -2.5965
+        ],
+        "distance_m": 0.03550000000000031
+      },
+      {
+        "room_id": "bath",
+        "vertex": 0,
+        "before": [
+          0.21,
+          -0.597
+        ],
+        "after": [
+          0.21055000000000001,
+          -0.5964499999999997
+        ],
+        "distance_m": 0.000777817459305411
+      },
+      {
+        "room_id": "bath",
+        "vertex": 1,
+        "before": [
+          1.298,
+          -0.597
+        ],
+        "after": [
+          1.298,
+          -0.59645
+        ],
+        "distance_m": 0.0005499999999999394
+      },
+      {
+        "room_id": "bath",
+        "vertex": 2,
+        "before": [
+          1.298,
+          -0.298
+        ],
+        "after": [
+          1.298,
+          -0.2982
+        ],
+        "distance_m": 0.00020000000000003348
+      },
+      {
+        "room_id": "bath",
+        "vertex": 3,
+        "before": [
+          2.737,
+          -0.298
+        ],
+        "after": [
+          2.73685,
+          -0.2982
+        ],
+        "distance_m": 0.0002500000000000835
+      },
+      {
+        "room_id": "bath",
+        "vertex": 4,
+        "before": [
+          2.737,
+          -2.386
+        ],
+        "after": [
+          2.73685,
+          -2.3509
+        ],
+        "distance_m": 0.03510032051135707
+      },
+      {
+        "room_id": "bath",
+        "vertex": 5,
+        "before": [
+          1.439,
+          -2.386
+        ],
+        "after": [
+          1.439,
+          -2.3509
+        ],
+        "distance_m": 0.03509999999999991
+      },
+      {
+        "room_id": "bath",
+        "vertex": 7,
+        "before": [
+          0.21,
+          -2.175
+        ],
+        "after": [
+          0.21055000000000024,
+          -2.1750000000000003
+        ],
+        "distance_m": 0.0005500000000002447
+      }
+    ],
+    "warnings": [
+      "Room living: snapping skipped: Room 2 has a degenerate or self-intersecting floor polygon.",
+      "Room bed: snapping skipped: Room 3 has a degenerate or self-intersecting floor polygon.",
+      "Room balcony: snapping skipped: Room 5 has a degenerate or self-intersecting floor polygon."
+    ],
+    "obstacle_wall_ids": [
+      "w1",
+      "w2",
+      "w4",
+      "w6",
+      "w8",
+      "w9",
+      "w11",
+      "column_se"
+    ],
+    "opening_room_ids": {}
+  },
+  "fixed_obstacles": 9,
+  "placement": {
+    "room_id": "bed",
+    "op": {
+      "type": "add",
+      "item": {
+        "id": "komitas-proof-chair",
+        "kind": "chair",
+        "name": "Terracotta lounge chair",
+        "size": [
+          0.82,
+          0.84,
+          0.8
+        ],
+        "sku": "chair-clay",
+        "price": 420,
+        "room_id": "bed",
+        "pos": [
+          7.3381853263,
+          -5.0929222264
+        ],
+        "rot": 0,
+        "keep": false
+      }
+    },
+    "editor_result": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "revision": 1
+    },
+    "proposal_id": "proposal-1",
+    "baseline_notes": [
+      {
+        "check": "walkway",
+        "room_id": "living",
+        "walkway": {
+          "from": "door:bed_door",
+          "to": "door:living_balcony_door",
+          "reachable": false
+        },
+        "item_ids": [],
+        "at": [
+          5.3508,
+          -3.6842
+        ],
+        "deficit_m": 0.6,
+        "message": "Pre-existing, not worsened: door:bed_door to door:living_balcony_door: no accessible path",
+        "severity": "soft",
+        "baseline": true
+      },
+      {
+        "check": "walkway",
+        "room_id": "living",
+        "walkway": {
+          "from": "door:bed_door",
+          "to": "door:bath_door",
+          "reachable": false
+        },
+        "item_ids": [],
+        "at": [
+          5.3508,
+          -3.6842
+        ],
+        "deficit_m": 0.6,
+        "message": "Pre-existing, not worsened: door:bed_door to door:bath_door: no accessible path",
+        "severity": "soft",
+        "baseline": true
+      },
+      {
+        "check": "geometry_reconciliation",
+        "severity": "soft",
+        "item_ids": [],
+        "at": [
+          0,
+          0
+        ],
+        "location_unknown": true,
+        "message": "Layout checks use room-face corrections up to 53 mm and retain 8 walls as fixed structure. Original editor geometry is retained; dimensions need on-site confirmation. Room living: snapping skipped: Room 2 has a degenerate or self-intersecting floor polygon. Room bed: snapping skipped: Room 3 has a degenerate or self-intersecting floor polygon. Room balcony: snapping skipped: Room 5 has a degenerate or self-intersecting floor polygon."
+      }
+    ]
+  },
+  "attempts": [
+    {
+      "room_id": "bed",
+      "candidates": 3,
+      "rejections": {}
+    }
+  ]
+}
