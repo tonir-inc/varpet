@@ -54,3 +54,58 @@ The isolated room does not load or save a user's apartment. It measures pixels f
 the real Three.js renderer: light through glass, blocked wall and roof regions,
 mullion and furniture shadows, direction reversal, elevation-dependent patch length,
 cutaway/hidden wall behavior, Inside compatibility, evening state, and return to idle.
+
+Final integrated results (latest origin/main plus the local skybox and architect-import
+work, all commands exited 0):
+
+```text
+pnpm test
+Designer: 65 test files / 341 tests; Python: 94 + 33 tests, OK
+Editor: Sunlight 222; Sun occluders 25; Skybox 94 assertions
+Editor: catalog server 6 tests; UI/domain Node tests 40; all existing script checks passed
+Tooling: 7 tests passed
+pnpm typecheck
+engine, designer, editor: Done
+pnpm --filter @varpet/editor build
+130 modules transformed; built in 322 ms
+Existing advisory: main bundle exceeds 500 kB
+```
+
+Chrome GPU/browser checks: **15 sunlight**, **36 skybox**, **29 interior**,
+**17 motion**, **8 cutaway**, **17 door placement**, **24 plan movement** passed.
+Sun pixel sample gained 52.3/255 through the opening; the blocked sample gained 0.0.
+The 15 sunlight and 36 skybox checks were repeated after integration and passed.
+
+The UI was exercised at actual 1440×900, 1280×800 and 390×844 CSS-pixel sizes.
+Slider/preset/reset updates, disabled ranges, focus return, Escape without leaving
+Inside, click-away, Tab-away, and Plan hiding passed; scene revision remained unchanged.
+A review found that null focusout targets could also come from clicking help text.
+The fix restricts that close behavior to Tab navigation, with pointer transitions
+clearing the flag; help, heading and preset clicks were rechecked successfully.
+Fresh-context reviewer final verdict: **APPROVE**, no remaining findings.
+
+Evidence: [final editor controls](sunlight-qa/controls.png),
+[mobile controls](sunlight-qa/controls-mobile.png),
+[measured window shadows](sunlight-qa/window-shadows.png).
+Before-control browser inspection confirmed that no Sun control existed. Initial
+screenshot attempts failed in the in-app browser; final captures used Chrome.
+
+Assumption: the user wants manual architectural sunlight preview, with scene-axis
+orientation rather than a location/date calculation. Not proven: calibrated lux,
+ray-traced bounce, real-device mobile GPU performance, or all possible imported models.
+The existing diffuse-window approximation can still produce fan-shaped shading on
+ceilings at grazing angles; direct sun is independently verified by the pixel checks.
+Notion tools were unavailable; the measured behavior and renderer contract are recorded here.
+
+Definition-of-done audit: **DONE: 7 of 7**
+
+1. ✓ Task proving commands and real-GPU outcomes are pasted above.
+2. ✓ Untargeted root tests and typecheck passed after integration; build passed.
+3. ✓ Added `sunlight-check.ts`, `sun-occluders-check.ts`, runners and browser QA.
+4. ✓ No existing tests, fixtures, scene contracts, or constitution changed by this feature.
+5. ✓ Fresh-context review approved, including the final focus and skybox integration fixes.
+6. ✓ Temporary preview assumption and remaining rendering limits are explicit above.
+7. ✓ Implementation ownership: UI lane owned `main.ts` and `ui/sun-controls.*`;
+   shadow lane owned `render/sun-occluders*` and its runner; primary owned `viewport.ts`,
+   `wall-move.ts`, `render/sunlight*`, its runner, `package.json`, QA HTML and docs.
+   All writers stopped before primary resolved Git integration conflicts; no concurrent file writes.

@@ -24,6 +24,11 @@ The procedural object remains visible while a model loads and is retained as a f
 
 ## Controls and lighting
 
+The **Sun** control now adjusts direction, elevation and strength. A full shell shadow
+projection keeps sunlight entering through windows in cutaway views. See
+[adjustable sunlight](sunlight.md) for the current rig, controls and verification;
+the old warm studio pools described below are now disabled.
+
 Left drag orbits the perspective camera, right drag pans, and the wheel zooms. A short left click raycasts furniture for selection, respecting visible opaque structure in front of it. Top view disables orbit rotation. Gizmos move along the floor, rotate around Y, and resize on local axes. Snap increments are 0.25 m, 15°, and 0.1 scale. Scale is clamped to the domain's `[0.1, 4]` range; dimensions and placement still pass domain checks. Quaternion-based yaw extraction preserves rotations beyond 90°.
 
 Lighting combines a restrained hemisphere light, a warm shadow-casting key, two broad warm spotlights, cool fill and rim lights, and a PMREM environment made with Three.js `RoomEnvironment`. Light positions, shadow coverage, and studio fog follow the shell's center and size, including imported apartments away from the origin. Materials use standard physically based shading. This is an architectural presentation light rig, not baked global illumination, path tracing, or a photo-matched lighting solve.
