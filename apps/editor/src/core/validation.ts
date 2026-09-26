@@ -72,7 +72,7 @@ function simplePolygon(polygon: Vec2[]): boolean {
 }
 
 /** Exact vertical decomposition checks the entire rectangular footprint against a union of simple floor polygons. */
-function floorSupported(object: SceneObject, asset: CatalogAsset, scene: SceneDocument): boolean {
+export function floorSupported(object: SceneObject, asset: CatalogAsset, scene: SceneDocument): boolean {
   const halfX = asset.dimensions[0] * object.scale[0] / 2;
   const halfZ = asset.dimensions[2] * object.scale[2] / 2;
   const cosine = Math.cos(object.rotation), sine = Math.sin(object.rotation);
@@ -127,7 +127,7 @@ export function objectFootprint(object: SceneObject, asset: CatalogAsset): Vec2[
     [object.position[0] + cosine * dx + sine * dz, object.position[2] - sine * dx + cosine * dz]);
 }
 
-function polygonsOverlap(a: Vec2[], b: Vec2[]): boolean {
+export function polygonsOverlap(a: Vec2[], b: Vec2[]): boolean {
   for (const [start, end] of [...edges(a), ...edges(b)]) {
     const axis: Vec2 = [start[1] - end[1], end[0] - start[0]];
     const projectionA = a.map(p => p[0] * axis[0] + p[1] * axis[1]);
@@ -137,7 +137,7 @@ function polygonsOverlap(a: Vec2[], b: Vec2[]): boolean {
   return true;
 }
 
-function wallFootprint(wall: Wall, from: number, to: number): Vec2[] {
+export function wallFootprint(wall: Wall, from: number, to: number): Vec2[] {
   const length = Math.hypot(wall.end[0] - wall.start[0], wall.end[1] - wall.start[1]);
   const dx = (wall.end[0] - wall.start[0]) / length, dz = (wall.end[1] - wall.start[1]) / length;
   const h = wall.thickness / 2;
@@ -145,7 +145,7 @@ function wallFootprint(wall: Wall, from: number, to: number): Vec2[] {
     [wall.start[0] + dx * along! - dz * across!, wall.start[1] + dz * along! + dx * across!]);
 }
 
-function wallCollision(object: SceneObject, asset: CatalogAsset, wall: Wall, footprint: Vec2[], elevation = 0): boolean {
+export function wallCollision(object: SceneObject, asset: CatalogAsset, wall: Wall, footprint: Vec2[], elevation = 0): boolean {
   if (object.position[1] + asset.dimensions[1] * object.scale[1] <= elevation + EPS || object.position[1] >= elevation + wall.height - EPS) return false;
   const length = Math.hypot(wall.end[0] - wall.start[0], wall.end[1] - wall.start[1]);
   if (!polygonsOverlap(footprint, wallFootprint(wall, 0, length))) return false;

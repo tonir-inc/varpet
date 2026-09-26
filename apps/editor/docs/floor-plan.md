@@ -14,3 +14,5 @@ Implementation: `src/core/floor-plan.ts` owns deterministic measurements; `src/r
 ## Verification
 
 The deterministic measurement probes cover centered walls, existing clear-face boundaries, clockwise polygons, split/partial walls, rotated rooms, concave L/U-shaped rooms and collapsed insets. The demo kitchen measures 2.64 × 4.24 m between modeled faces; its 11.2 m² rounded area and four edge dimensions were also checked in the running browser. The browser review caught and corrected scale-dependent SVG letter spacing and a legend overlapping the drawing at narrower widths.
+
+Production-browser checks exercised structural/partition classification, undo restoring the unknown wall style, main-entrance labeling, room rename/undo, selection surviving 3D/Top/Plan switches, 120% zoom, Fit returning to 100%, keyboard panning and Preview returning to Plan. No runtime errors were reported. Workspace typecheck, tests (including renovation checks) and the editor production build passed; the existing bundle-size advisory remains.

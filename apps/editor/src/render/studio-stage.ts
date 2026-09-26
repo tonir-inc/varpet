@@ -13,7 +13,11 @@ export class StudioStage {
   private readonly charcoal = new THREE.MeshStandardMaterial({ color: '#161b20', roughness: 0.43, metalness: 0.24 });
   private readonly recess = new THREE.MeshStandardMaterial({ color: '#090c10', roughness: 0.78 });
   private readonly brass = new THREE.MeshStandardMaterial({ color: '#a88754', roughness: 0.36, metalness: 0.72 });
-  private readonly groundMaterial = new THREE.MeshStandardMaterial({ color: '#272d34', roughness: 0.87, metalness: 0.1 });
+  private readonly groundMaterial = new THREE.MeshStandardMaterial({
+    color: '#141c26', roughness: 0.94, metalness: 0,
+    emissive: '#263341', emissiveIntensity: 0.16,
+  });
+  private readonly groundPoolScale = { value: new THREE.Vector2(1, 1) };
   private readonly cap = this.makeSlab(this.limestone);
   private readonly reveal = this.makeSlab(this.recess);
   private readonly body = this.makeSlab(this.charcoal);
@@ -62,6 +66,27 @@ export class StudioStage {
     this.ground.name = 'Charcoal studio floor';
     this.ground.rotation.x = -Math.PI / 2;
     this.ground.receiveShadow = true;
+    // A wide continuous albedo falloff keeps the stage in a pool of light while
+    // retaining StandardMaterial's real shadow reception, tone mapping and fog.
+    this.groundMaterial.onBeforeCompile = shader => {
+      shader.uniforms.studioPoolScale = this.groundPoolScale;
+      shader.vertexShader = shader.vertexShader
+        .replace('#include <common>', '#include <common>\nvarying vec2 vStudioFloorUv;')
+        .replace('#include <begin_vertex>', '#include <begin_vertex>\nvStudioFloorUv = uv;');
+      shader.fragmentShader = shader.fragmentShader
+        .replace('#include <common>', '#include <common>\nuniform vec2 studioPoolScale;\nvarying vec2 vStudioFloorUv;')
+        .replace('#include <color_fragment>', `
+          #include <color_fragment>
+          vec2 studioRadius = (vStudioFloorUv - 0.5) * studioPoolScale;
+          float studioPool = exp(-dot(studioRadius, studioRadius));
+          diffuseColor.rgb *= mix(0.62, 1.32, studioPool);
+        `)
+        .replace('#include <emissivemap_fragment>', `
+          #include <emissivemap_fragment>
+          totalEmissiveRadiance *= mix(0.4, 1.0, studioPool);
+        `);
+    };
+    this.groundMaterial.customProgramCacheKey = () => 'studio-floor-pool-v1';
     this.shadow.name = 'Soft pedestal contact shadow';
     this.shadow.rotation.x = -Math.PI / 2;
     this.group.add(this.ground, this.shadow, this.foot, this.body, this.trim, this.reveal, this.cap);
@@ -110,6 +135,7 @@ export class StudioStage {
     const groundSize = Math.max(180, width * 12, depth * 12);
     this.ground.scale.set(groundSize, groundSize, 1);
     this.ground.position.set(this.center.x, groundY, this.center.z);
+    this.groundPoolScale.value.set(groundSize / (width * 0.95), groundSize / (depth * 0.95));
     const feather = Math.max(0.85, Math.min(width, depth) * 0.13);
     const shadowWidth = width + feather * 2;
     const shadowDepth = depth + feather * 2;

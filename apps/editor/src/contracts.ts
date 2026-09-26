@@ -74,6 +74,7 @@ export interface ViewportCallbacks {
 }
 export interface Viewport {
   setScene(scene: SceneDocument, catalog: CatalogAsset[]): void;
+  animatePlacement(id: string): void;
   setSelection(id: string | null): void;
   setTool(tool: ToolMode): void;
   setView(view: ViewMode): void;

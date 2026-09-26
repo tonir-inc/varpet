@@ -12,8 +12,13 @@ import { analyzeProject, componentPosition } from '../core/renovation';
 import { findOpeningMove, constrainOpeningOffset, type OpeningMoveContext } from '../core/opening-move';
 import { SelectionFrame, resizeTransformControls, styleTransformControls } from './selection-style';
 import { StudioStage } from './studio-stage';
+import { placementConflicts } from '../core/placement-conflicts';
+import { PlacementFeedback } from './placement-feedback';
+import { PlacementMotion } from './placement-motion';
+import { createFinishInteraction, type FinishTarget } from './finish-interaction';
+import type { FinishReveal } from './finish-material';
 
-interface RenderObject { group: THREE.Group; signature: string; token: object }
+interface RenderObject { group: THREE.Group; visual: THREE.Group; signature: string; token: object; dimensions: [number, number, number] }
 interface DragSnapshot { component?: BuildingComponent; id: string; position: THREE.Vector3; quaternion: THREE.Quaternion; scale: THREE.Vector3 }
 interface OpeningDrag {
   context: OpeningMoveContext;
@@ -34,7 +39,8 @@ function yawOf(quaternion: THREE.Quaternion): number {
   return Math.atan2(2 * (x * z + w * y), 1 - 2 * (x * x + y * y));
 }
 
-export function createViewport(container: HTMLElement, callbacks: ViewportCallbacks): Viewport {
+export interface FinishViewport extends Viewport { setFinishBrush(presetId: string | null): void }
+export function createViewport(container: HTMLElement, callbacks: ViewportCallbacks & { onFinish?(presetId: string, target: FinishTarget): boolean }): FinishViewport {
   let renderer: THREE.WebGLRenderer;
   try {
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
@@ -44,12 +50,12 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     message.textContent = '3D view unavailable. Enable browser hardware acceleration and reload.';
     message.style.cssText = 'margin:auto;padding:2rem;color:#6a5849;max-width:28rem;text-align:center';
     container.append(message);
-    return { setScene() {}, setSelection() {}, setTool() {}, setView() {}, setSnap() {}, setWalls() {}, setQuality() {}, setLayer() {}, setDoorAngle() {}, getDoorAngle() { return 0; }, toggleSwitch() {}, setSwitchLevel() {}, getSwitchLevel() { return 0; }, setComparison() {}, focus() {}, cancelInteraction() {}, dispose() { message.remove(); } };
+    return { setFinishBrush() {}, setScene() {}, animatePlacement() {}, setSelection() {}, setTool() {}, setView() {}, setSnap() {}, setWalls() {}, setQuality() {}, setLayer() {}, setDoorAngle() {}, getDoorAngle() { return 0; }, toggleSwitch() {}, setSwitchLevel() {}, getSwitchLevel() { return 0; }, setComparison() {}, focus() {}, cancelInteraction() {}, dispose() { message.remove(); } };
   }
   renderer.setClearColor('#171d25');
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 0.95;
+  renderer.toneMappingExposure = 0.86;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
@@ -91,9 +97,9 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   world.add(transformHelper);
 
   const lighting = new THREE.Group();
-  const ambient = new THREE.HemisphereLight('#cbdcf4', '#88745c', 0.5);
+  const ambient = new THREE.HemisphereLight('#cbdcf4', '#88745c', 0.4);
   lighting.add(ambient);
-  const sunlight = new THREE.DirectionalLight('#ffdfad', 3.5);
+  const sunlight = new THREE.DirectionalLight('#ffdb9f', 2.8);
   sunlight.position.set(-7, 10, 7);
   sunlight.castShadow = true;
   sunlight.shadow.mapSize.set(2048, 2048);
@@ -101,10 +107,10 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   sunlight.shadow.camera.far = 65;
   sunlight.shadow.bias = -0.00025;
   sunlight.shadow.normalBias = 0.025;
-  sunlight.shadow.radius = 5;
+  sunlight.shadow.radius = 8;
   lighting.add(sunlight, sunlight.target);
-  const fill = new THREE.DirectionalLight('#c5d9ff', 0.65);
-  const rim = new THREE.DirectionalLight('#d7e7ff', 1.15);
+  const fill = new THREE.DirectionalLight('#c5d9ff', 0.5);
+  const rim = new THREE.DirectionalLight('#d7e7ff', 0.8);
   lighting.add(fill, fill.target, rim, rim.target);
   world.add(lighting);
   const stage = new StudioStage(); world.add(stage.group);
@@ -113,10 +119,11 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   const roomEnvironment = new RoomEnvironment();
   const environment = pmrem.fromScene(roomEnvironment, 0.04);
   world.environment = environment.texture;
-  world.environmentIntensity = 0.28;
+  world.environmentIntensity = 0.25;
   roomEnvironment.dispose(); pmrem.dispose();
 
   const furniture = new THREE.Group(); world.add(furniture);
+  const placementFeedback = new PlacementFeedback(container); world.add(placementFeedback.group);
   const rendered = new Map<string, RenderObject>();
   const pendingModels = new Map<string, { model: THREE.Group; token: object; color?: string }>();
   const loader = new AssetLoader();
@@ -149,6 +156,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   let endpointDrag: { id: string; endpoint: 'start' | 'end'; point: THREE.Vector3; plane: THREE.Plane; pointerId: number } | null = null;
   let collisionIssues = new Set<string>();
   let documentState: SceneDocument | null = null;
+  let pendingFinishReveal: FinishReveal | undefined;
   let sceneGeneration = 0;
   let selectedId: string | null = null;
   let selection: SelectionFrame | null = null;
@@ -159,6 +167,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   let frame = 0;
   let disposed = false;
   let renderFailed = false;
+  const placementMotion = new PlacementMotion(furniture, requestRender);
   let initialized = false;
   let pointerStart: { x: number; y: number; pointerId: number; button: number } | null = null;
   let suppressPick = false;
@@ -276,7 +285,8 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       if (disposed) return;
       structure?.updateWalls(camera, walls, view === 'top'); wallMove.render();
       const now = performance.now(); const dt = Math.min((now - lastAnimation) / 1000, 0.06); lastAnimation = now;
-      let animating = false;
+      let animating = placementMotion.update(now);
+      if (structure?.updateFinishes(now)) animating = true;
       for (const [id, opening] of structure?.openings ?? []) {
         if (Math.abs(opening.target - opening.angle) > 0.001) {
           const step = Math.sign(opening.target - opening.angle) * Math.min(Math.abs(opening.target - opening.angle), Math.max(0.01, dt) * 4.2);
@@ -326,8 +336,8 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     for (const [id, pending] of pendingModels) {
       const current = rendered.get(id);
       if (disposed || !current || current.token !== pending.token) { disposeObject(pending.model); continue; }
-      for (const child of [...current.group.children]) disposeObject(child);
-      current.group.add(pending.model);
+      for (const child of [...current.visual.children]) disposeObject(child);
+      current.visual.add(pending.model);
       if (pending.color) pending.model.traverse(child => {
         if (child instanceof THREE.Mesh) for (const mat of Array.isArray(child.material) ? child.material : [child.material]) {
           if (mat instanceof THREE.MeshStandardMaterial) mat.color.set(pending.color!);
@@ -342,10 +352,14 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     if (!drag) return;
     const previous = drag;
     const group = previous.component ? services?.components.get(previous.id) : rendered.get(previous.id)?.group;
+    const releasedPosition = group?.position.clone();
+    const releaseHeight = rendered.get(previous.id)?.visual.position.y ?? 0;
+    placementMotion.stop(previous.id);
     const queued = pendingScene;
     pendingScene = null;
     const generationBeforeCommit = sceneGeneration;
     drag = null;
+    placementFeedback.clear();
     transform.dragging = false;
     orbit.enabled = true;
     suppressPick = true;
@@ -383,6 +397,14 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     const currentGroup = rendered.get(previous.id)?.group;
     if (currentGroup && committed) applyTransform(currentGroup, committed);
     if (pendingModels.size) installLoadedModels();
+    // A rejected/canceled/no-op drag must never play a successful landing.
+    const record = rendered.get(previous.id);
+    if (!cancel && !previous.component && tool === 'move' && record && committed && releasedPosition
+      && releasedPosition.distanceToSquared(previous.position) > 1e-10
+      && record.group.position.distanceToSquared(releasedPosition) < 1e-10) {
+      record.visual.position.y = releaseHeight;
+      placementMotion.land(previous.id, record.visual, record.dimensions);
+    }
     requestRender();
   }
 
@@ -391,8 +413,26 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     const component = callbacks.onComponentTransform ? documentState?.project?.components.find(item => item.id === selectedId) : undefined;
     const group = rendered.get(selectedId)?.group ?? (component ? services?.components.get(selectedId) : undefined);
     if (!group) return;
+    placementMotion.stop(selectedId);
     drag = { component, id: selectedId, position: group.position.clone(), quaternion: group.quaternion.clone(), scale: group.scale.clone() };
+    const record = rendered.get(selectedId);
+    if (!component && tool === 'move' && record) placementMotion.lift(selectedId, record.visual, record.dimensions);
     suppressPick = true; orbit.enabled = false; callbacks.onInteraction(true);
+    updatePlacementFeedback();
+  }
+
+  function updatePlacementFeedback(): void {
+    if (!drag || drag.component || !documentState) { placementFeedback.clear(); return; }
+    const original = documentState.objects.find(object => object.id === drag!.id);
+    const group = rendered.get(drag.id)?.group;
+    if (!original || !group) { placementFeedback.clear(); return; }
+    const candidate: SceneObject = {
+      ...original,
+      position: [group.position.x, group.position.y, group.position.z],
+      rotation: yawOf(group.quaternion),
+      scale: [group.scale.x, group.scale.y, group.scale.z],
+    };
+    placementFeedback.update(placementConflicts(documentState, catalogState, candidate));
   }
 
   function changedTransform(): void {
@@ -410,6 +450,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       group.quaternion.setFromAxisAngle(upAxis, yawOf(group.quaternion));
       group.scale.set(Math.max(0.1, Math.min(4, group.scale.x)), Math.max(0.1, Math.min(4, group.scale.y)), Math.max(0.1, Math.min(4, group.scale.z)));
       group.updateMatrixWorld(true);
+      updatePlacementFeedback();
     }
     requestRender();
   }
@@ -452,13 +493,15 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   function setScene(next: SceneDocument, catalog: CatalogAsset[]): void {
     if (disposed) return;
     if (drag || endpointDrag || openingDrag || wallMove.active) { pendingScene = { scene: next, catalog }; return; }
+    if (next !== documentState) placementMotion.clear();
     sceneGeneration++;
     lightingPreview.setComponents(next.project?.components ?? []);
     documentState = next; catalogState = catalog;
     const nextKey = JSON.stringify([next.rooms, next.walls, next.project?.metadata, next.project?.finishes, next.project?.materials]);
     if (structureKey !== nextKey) {
       if (structure) { disposeObject(structure.group); disposeObject(structure.ceilings); disposeObject(structure.dimensions); }
-      structure = makeStructure(next); structureKey = nextKey; world.add(structure.group, structure.ceilings, structure.dimensions);
+      structure = makeStructure(next, pendingFinishReveal); pendingFinishReveal = undefined;
+      structureKey = nextKey; world.add(structure.group, structure.ceilings, structure.dimensions);
       for (const [id, opening] of structure.openings) { const angle = opening.fixed ? 0 : doorAngles.get(id) ?? 0; if (opening.fixed) doorAngles.delete(id); opening.target = angle; opening.setAngle(angle); }
       for (const id of doorAngles.keys()) if (!structure.openings.has(id)) doorAngles.delete(id);
       structure.bounds.getCenter(center); structure.bounds.getSize(size);
@@ -485,6 +528,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     const catalogById = new Map(catalog.map(asset => [asset.id, asset]));
     const existingIds = new Set(next.objects.map(object => object.id));
     for (const [id, record] of rendered) if (!existingIds.has(id)) {
+      placementMotion.stop(id);
       if (transform.object === record.group) transform.detach();
       disposeObject(record.group); rendered.delete(id);
     }
@@ -494,11 +538,15 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       const signature = JSON.stringify([asset, object.color]);
       let record = rendered.get(object.id);
       if (!record || record.signature !== signature) {
+        placementMotion.stop(object.id);
         if (record) { if (transform.object === record.group) transform.detach(); disposeObject(record.group); }
-        const group = makeFurniture(asset, object.color ?? asset.color);
+        // Keep the authoritative transform on the root; only this inner visual moves.
+        const group = new THREE.Group();
+        const visual = new THREE.Group();
+        visual.add(makeFurniture(asset, object.color ?? asset.color)); group.add(visual);
         group.userData.objectId = object.id;
         group.name = object.name;
-        record = { group, signature, token: {} };
+        record = { group, visual, signature, token: {}, dimensions: [...asset.dimensions] };
         rendered.set(object.id, record); furniture.add(group);
         if (asset.source.type === 'gltf') {
           const token = record.token;
@@ -717,6 +765,18 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   function onOrbitEnd(): void { if (orbitWasActive) { orbitWasActive = false; callbacks.onInteraction(false); } }
   function endDrag(): void { finishDrag(false); }
 
+  const finishInteraction = createFinishInteraction({
+    canvas: renderer.domElement, container, world,
+    camera: () => camera, scene: () => documentState,
+    roots: () => [structure?.group, structure?.ceilings, furniture, services?.group],
+    render: requestRender, error: callbacks.onError,
+    apply: (presetId, target) => {
+      if (!documentState || drag || endpointDrag || openingDrag || wallMove.active) return;
+      pendingFinishReveal = { ...target, previousScene: documentState, startedAt: performance.now(), reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches };
+      try { callbacks.onFinish?.(presetId, target); }
+      finally { pendingFinishReveal = undefined; }
+    },
+  });
   transform.addEventListener('mouseDown', startDrag);
   transform.addEventListener('mouseUp', endDrag);
   transform.addEventListener('objectChange', changedTransform);
@@ -735,6 +795,12 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
 
   return {
     setScene,
+    setFinishBrush(id) { onPointerCancel(); finishInteraction.setBrush(id); },
+    animatePlacement(id) {
+      const record = rendered.get(id);
+      if (disposed || drag || !record) return;
+      placementMotion.enter(id, record.visual, record.dimensions);
+    },
     setSelection(id) { if (wallMove.active && id !== selectedId) wallMove.finish(true); if (drag && id !== selectedId) finishDrag(true); if (endpointDrag) finishEndpoint(true); if (openingDrag && id !== selectedId) finishOpening(true); selectedId = id; renderer.domElement.style.cursor = ''; updateSelection(); },
     setTool,
     setView(next) {
@@ -753,7 +819,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     setQuality(mode) {
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, mode === 'high' ? 2 : 1.5));
       const resolution = mode === 'high' ? 4096 : 2048;
-      sunlight.shadow.radius = mode === 'high' ? 10 : 5;
+      sunlight.shadow.radius = mode === 'high' ? 16 : 8;
       if (sunlight.shadow.mapSize.x !== resolution) {
         sunlight.shadow.mapSize.set(resolution, resolution);
         sunlight.shadow.map?.dispose(); sunlight.shadow.map = null; sunlight.shadow.needsUpdate = true;
@@ -772,6 +838,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     dispose() {
       if (disposed) return;
       finishDrag(true); finishEndpoint(true); finishOpening(true); wallMove.finish(true); disposed = true;
+      finishInteraction.dispose();
       cancelAnimationFrame(frame); resizeObserver.disconnect();
       window.removeEventListener('blur', onPointerCancel);
       renderer.domElement.removeEventListener('pointerdown', onPointerDown, true);
@@ -784,6 +851,8 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       transform.removeEventListener('objectChange', changedTransform); transform.removeEventListener('change', requestRender);
       orbit.removeEventListener('change', requestRender); orbit.removeEventListener('start', onOrbitStart); orbit.removeEventListener('end', onOrbitEnd);
       wallMove.dispose(); transform.dispose(); orbit.dispose();
+      placementMotion.dispose();
+      placementFeedback.dispose();
       if (selection) disposeObject(selection);
       rendered.forEach(record => disposeObject(record.group)); rendered.clear();
       pendingModels.forEach(pending => disposeObject(pending.model)); pendingModels.clear();

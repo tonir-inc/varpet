@@ -13,6 +13,8 @@ import { icon } from './ui/icons';
 import { createRenovationUI, type RenovationUI } from './ui/renovation';
 import { createIntake } from './features/intake';
 import { downloadText, projectReport, projectSchedule } from './features/handoff';
+import { buildFinishOperations, getFinishPreset, type FinishPreset } from './core/finish-presets';
+import { createMaterialsUI } from './ui/materials';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 app.innerHTML = `
@@ -31,6 +33,7 @@ app.innerHTML = `
       <button id="scene-tab" class="nav-button active" aria-label="Scene panel" aria-expanded="true" aria-controls="scene-panel" title="Scene · 1">${icon('layers')}<span>Scene</span></button>
       <button id="renovation-tab" class="nav-button" aria-label="Renovation panel" aria-expanded="false" aria-controls="renovation-panel" title="Renovate · 4">${icon('walls')}<span>Renovate</span></button>
       <button id="assets-tab" class="nav-button" aria-label="Furniture panel" aria-expanded="false" aria-controls="assets-panel" title="Furniture · 2">${icon('sofa')}<span>Furniture</span></button>
+      <button id="materials-tab" class="nav-button" aria-label="Materials panel" aria-expanded="false" aria-controls="materials-panel" title="Materials · 5">${icon('grid')}<span>Materials</span></button>
       <button id="assistant-tab" class="nav-button" aria-label="Assistant panel" aria-expanded="false" aria-controls="assistant-panel" title="Assistant · 3">${icon('sparkles')}<span>Assistant</span><i id="proposal-badge" class="nav-badge" hidden></i></button>
       <div class="nav-spacer"></div>
       <button id="integrations" class="nav-button" aria-label="Integrations" title="Integrations">${icon('connections')}<span>Connect</span></button>
@@ -59,6 +62,7 @@ app.innerHTML = `
         <div class="assistant-note">${icon('lock')} You're in control. Every change needs your approval and can be undone.</div>
       </section>
       <section id="renovation-panel" class="panel-content" aria-label="Apartment renovation workspace" hidden></section>
+      <section id="materials-panel" class="panel-content" aria-label="Surface materials" hidden></section>
     </aside>
     <main class="viewport-shell" aria-label="Apartment editor">
       <div id="viewport"></div>
@@ -97,12 +101,13 @@ let pending: AgentProposal | null = null;
 let busy = false;
 let assetCategory = 'All';
 let toastTimer: ReturnType<typeof setTimeout>;
-type Panel = 'scene' | 'assets' | 'assistant' | 'renovation';
+type Panel = 'scene' | 'assets' | 'assistant' | 'renovation' | 'materials';
 let activePanel: Panel = 'scene';
 let panelOpen = true;
 let previewMode = false;
 let proposalView = false;
 let renovationUI: RenovationUI | undefined;
+let activeFinish: FinishPreset | null = null;
 const collapsedRooms = new Set<string>();
 const catalogPreviews = createCatalogPreviews($('#catalog-scroll'));
 
@@ -117,6 +122,15 @@ function notify(message: string, error = false) {
 }
 
 const viewport = createViewport($('#viewport'), {
+  onFinish: (presetId, target) => {
+    if (previewMode || proposalView || view === 'plan') return false;
+    const preset = getFinishPreset(presetId); if (!preset) return false;
+    try {
+      const operations = buildFinishOperations(store.scene, preset, target.entityId, target.surface);
+      if (!operations.length) { notify(`${preset.name} is already applied here.`); return false; }
+      return run(operations, `Apply ${preset.name} to ${entityName(target.entityId) ?? 'surface'}`);
+    } catch (error) { notify(error instanceof Error ? error.message : 'This finish could not be applied.', true); return false; }
+  },
   onSelect: id => { if (!previewMode) select(id); },
   onTransform: (id, patch) => {
     run([{type:'update', id, patch}], `Transform ${store.scene.objects.find(o => o.id === id)?.name ?? 'object'}`, interactionRevision);
@@ -124,6 +138,10 @@ const viewport = createViewport($('#viewport'), {
     viewport.setSelection(selectedId);
   },
   onInteraction: active => { interacting = active; if (active) interactionRevision = store.revision; renderProposal(); },
+  onWallMove: (id, start, end) => {
+    run([{ type: 'update-wall', id, patch: { start, end } }], 'Move connected wall', interactionRevision);
+    viewport.setScene(store.scene, catalog);
+  },
   onWallEndpoint: (id, endpoint, point) => {
     run([{ type: 'update-wall', id, patch: { [endpoint]: point } }], 'Correct wall endpoint', interactionRevision);
     viewport.setScene(store.scene, catalog);
@@ -142,6 +160,27 @@ const viewport = createViewport($('#viewport'), {
   onError: message => notify(message, true),
 });
 const floorPlan = createFloorPlan($('#floor-plan'), id => select(id));
+const materialsUI = createMaterialsUI($('#materials-panel'), {
+  onChoose: preset => chooseFinish(preset),
+  onDragStart: preset => chooseFinish(preset),
+  onDragEnd: () => chooseFinish(null),
+});
+
+function chooseFinish(preset: FinishPreset | null) {
+  if (preset && previewMode) { notify('Exit preview to apply materials.'); return; }
+  if (preset) {
+    if (view === 'plan') setView('perspective');
+    setTool('select');
+    // Paint needs a visible wall face; a cutaway exposes only a narrow stub.
+    if (preset.category === 'wall' && wallMode !== 'full') {
+      wallMode = 'full'; viewport.setWalls(wallMode); $('#walls span').textContent = 'Full walls';
+    }
+  }
+  activeFinish = preset;
+  materialsUI.setActive(preset?.id ?? null);
+  viewport.setFinishBrush(preset?.id ?? null);
+  renderViewportHints();
+}
 
 function focusView(id?: string) {
   if (view === 'plan') floorPlan.focus(id);
@@ -292,7 +331,7 @@ function addAsset(asset:CatalogAsset, original?:SceneObject) {
     object.position=[x,0,z];
     const candidate={...store.scene,objects:[...store.scene.objects,object]};
     const validation=validateScene(candidate,catalog);
-    if(validation.ok){if(run([{type:'add',object:structuredClone(object)}],original?'Duplicate object':`Add ${asset.name}`)){select(object.id);setTool('move');notify(`${object.name} added. Drag the arrows to place it.${validation.warnings.length?' '+validation.warnings[0]:''}`);}return;}
+    if(validation.ok){if(run([{type:'add',object:structuredClone(object)}],original?'Duplicate object':`Add ${asset.name}`)){select(object.id);setTool('move');viewport.animatePlacement(object.id);notify(`${object.name} added. Drag the arrows to place it.${validation.warnings.length?' '+validation.warnings[0]:''}`);}return;}
     lastErrors=validation.errors;
     if(performance.now()-start>150)break;
   }
@@ -311,21 +350,26 @@ function renderAssets(){
   catalogPreviews.setAssets(catalog);
 }
 function switchPanel(panel:Panel, toggle=false){
+  if (panel !== 'materials' && activeFinish) chooseFinish(null);
   panelOpen=toggle && activePanel===panel ? !panelOpen : true;
   activePanel=panel;
   $('.workspace').classList.toggle('left-collapsed',!panelOpen);
   $('.left-panel').hidden=!panelOpen;
   $('.workspace').classList.toggle('renovation-active', panel === 'renovation' && panelOpen);
-  for(const name of ['scene','assets','assistant','renovation']){
+  for(const name of ['scene','assets','assistant','renovation','materials']){
     $(`#${name}-panel`).hidden=panel!==name;
     $(`#${name}-tab`).classList.toggle('active',panel===name && panelOpen);
     $(`#${name}-tab`).setAttribute('aria-expanded',String(panel===name && panelOpen));
   }
-  $('#panel-title').textContent={scene:'Scene',assets:'Furniture',assistant:'Assistant',renovation:'Renovation studio'}[panel];
+  $('#panel-title').textContent={scene:'Scene',assets:'Furniture',assistant:'Assistant',renovation:'Renovation studio',materials:'Materials'}[panel];
   if(panel==='assets' && panelOpen)renderAssets();
   if(panel==='renovation' && panelOpen)renovationUI?.render();
 }
 function renderViewportHints() {
+  if (activeFinish && !previewMode) {
+    $('#view-hint').textContent = `${activeFinish.name} · Click ${activeFinish.category === 'floor' ? 'a floor' : 'a wall face'} to apply · Esc to cancel`;
+    return;
+  }
   if (view === 'plan') {
     $('#view-hint').textContent = 'Select a room for interior dimensions · Drag to pan · Scroll to zoom · F to frame';
     return;
@@ -355,12 +399,13 @@ function renderViewportHints() {
   } else if (wall && tool === 'move') {
     hint = store.scene.project?.metadata[wall.id]?.locked
       ? 'Wall is locked <b>·</b> Unlock model editing in Renovate to move it'
-      : 'Drag a wall endpoint handle <b>·</b> Esc cancels';
+      : 'Drag the wall or purple center arrows <b>·</b> Connected walls follow <b>·</b> Esc cancels';
   }
   $('#view-hint').innerHTML = hint;
 }
-function setTool(next:ToolMode){tool=next;viewport.setTool(tool);document.querySelectorAll<HTMLElement>('[data-tool]').forEach(b=>{b.classList.toggle('active',b.dataset.tool===tool);b.setAttribute('aria-pressed',String(b.dataset.tool===tool));});renderViewportHints();}
+function setTool(next:ToolMode){if(activeFinish)chooseFinish(null);tool=next;viewport.setTool(tool);document.querySelectorAll<HTMLElement>('[data-tool]').forEach(b=>{b.classList.toggle('active',b.dataset.tool===tool);b.setAttribute('aria-pressed',String(b.dataset.tool===tool));});renderViewportHints();}
 function setView(next:ApartmentView){
+  if (next === 'plan' && activeFinish) chooseFinish(null);
   if (next === 'plan' && previewMode) setPreview(false);
   viewport.cancelInteraction();
   view=next;
@@ -378,6 +423,7 @@ function setView(next:ApartmentView){
   renderViewportHints();
 }
 function setPreview(enabled:boolean){
+  if (activeFinish) chooseFinish(null);
   viewport.cancelInteraction();
   if (enabled) {
     previewReturnView = view;
@@ -468,6 +514,7 @@ $('#file-input').onchange=async event=>{const input=event.target as HTMLInputEle
 $('#save').onclick=()=>{try{saveLocal(store.scene);savedRevision=store.revision;refresh();notify('Scene saved on this device');}catch(error){notify(`Could not save: ${String(error)}`,true);}};
 $('#undo').onclick=()=>{if(!interacting&&!previewMode){const r=store.undo();notify(r.ok?'Undo complete':r.errors.join(' '),!r.ok);}};$('#redo').onclick=()=>{if(!interacting&&!previewMode){const r=store.redo();notify(r.ok?'Redo complete':r.errors.join(' '),!r.ok);}};
 $('#scene-tab').onclick=()=>switchPanel('scene',true);$('#assets-tab').onclick=()=>switchPanel('assets',true);$('#assistant-tab').onclick=()=>switchPanel('assistant',true);
+$('#materials-tab').onclick=()=>switchPanel('materials',true);
 $('#renovation-tab').onclick=()=>switchPanel('renovation',true);$('#edit-shell').onclick=()=>switchPanel('renovation');
 $('#collapse-panel').onclick=()=>{switchPanel(activePanel,true);$(`#${activePanel}-tab`).focus();};
 $('#browse-assets').onclick=()=>switchPanel('assets');
@@ -483,11 +530,11 @@ $('#snap').onclick=()=>{snap=!snap;viewport.setSnap(snap);renderViewportHints();
 $('#walls').onclick=()=>{wallMode=wallMode==='cutaway'?'full':wallMode==='full'?'hidden':'cutaway';viewport.setWalls(wallMode);$('#walls span').textContent={cutaway:'Cutaway',full:'Full walls',hidden:'Walls hidden'}[wallMode];};
 let highQuality=false;$('#quality').onclick=()=>{highQuality=!highQuality;viewport.setQuality(highQuality?'high':'balanced');$('#quality span').textContent=highQuality?'High quality':'Balanced';$('#quality').setAttribute('aria-pressed',String(highQuality));};
 $('#suggest').onclick=()=>void requestProposal('designer');
-$('#help').onclick=()=>showModal('Keyboard & navigation',`<p class="modal-intro">Select walls, openings, rooms, furniture and systems in the canvas or Renovate panel. In Select mode, click a selected door or switch again to test it.</p><div class="shortcut-list">${[['1 / 2 / 3 / 4','Scene / Furniture / Assistant / Renovate'],['[','Toggle sidebar'],['P','Enter / exit preview'],['V / G / R / S','Select / Move / Rotate / Resize'],['F','Frame selection / apartment'],['⌘ / Ctrl + S','Save on this device'],['⌘ / Ctrl + D','Duplicate furniture'],['Delete / Backspace','Delete selected furniture'],['⌘ / Ctrl + Z','Undo'],['⌘ / Ctrl + Shift + Z','Redo'],['Esc','Cancel drag / clear selection / exit preview']].map(([key,label])=>`<div><span>${label}</span><kbd>${key}</kbd></div>`).join('')}</div><p class="modal-footnote">3D: drag empty space to orbit, right drag to pan, scroll to zoom. Top: drag to pan. Select a door or window, choose Move (G), then drag it or its purple arrows along the wall. Openings stay inside their wall section and stop at neighbouring openings. Move snaps to 0.05 m for openings and wall endpoints; toggle snapping for finer placement. Release to apply, Esc to cancel, or Undo to restore the previous position. Select a wall and choose Move to adjust its endpoints; use Renovate for precise dimensions, evidence and service editing.</p>`);
+$('#help').onclick=()=>showModal('Keyboard & navigation',`<p class="modal-intro">Select walls, openings, rooms, furniture and systems in the canvas or Renovate panel. In Select mode, click a selected door or switch again to test it.</p><div class="shortcut-list">${[['1 / 2 / 3 / 4 / 5','Scene / Furniture / Assistant / Renovate / Materials'],['[','Toggle sidebar'],['P','Enter / exit preview'],['V / G / R / S','Select / Move / Rotate / Resize'],['F','Frame selection / apartment'],['⌘ / Ctrl + S','Save on this device'],['⌘ / Ctrl + D','Duplicate furniture'],['Delete / Backspace','Delete selected furniture'],['⌘ / Ctrl + Z','Undo'],['⌘ / Ctrl + Shift + Z','Redo'],['Esc','Cancel drag / clear selection / exit preview']].map(([key,label])=>`<div><span>${label}</span><kbd>${key}</kbd></div>`).join('')}</div><p class="modal-footnote">3D: drag empty space to orbit, right drag to pan, scroll to zoom. Top: drag to pan. Select a door or window, choose Move (G), then drag it or its purple arrows along the wall. Openings stay inside their wall section and stop at neighbouring openings. Move snaps to 0.05 m for openings and walls; toggle snapping for finer placement. Release to apply, Esc to cancel, or Undo to restore the previous position. Select a wall and choose Move to drag it back or forth with its purple center arrows; connected walls and room boundaries follow. The endpoint spheres adjust individual corners; use Renovate for precise dimensions, evidence and service editing.</p>`);
 window.addEventListener('keydown',event=>{
   if(document.querySelector('dialog[open]') || (event.target instanceof HTMLElement && (event.target.closest('input,textarea,select') || event.target.isContentEditable)))return;
   const key=event.key.toLowerCase();const mod=event.metaKey||event.ctrlKey;
-  if(key==='escape'){event.preventDefault();if(previewMode){setPreview(false);return;}viewport.cancelInteraction();interacting=false;select(null);renderProposal();return;}
+  if(key==='escape'){event.preventDefault();if(activeFinish){chooseFinish(null);return;}if(previewMode){setPreview(false);return;}viewport.cancelInteraction();interacting=false;select(null);renderProposal();return;}
   if(!mod&&key==='p'){event.preventDefault();setPreview(!previewMode);return;}
   if(previewMode){
     if(mod&&key==='s'){event.preventDefault();$('#save').click();}
@@ -500,7 +547,7 @@ window.addEventListener('keydown',event=>{
   else if(mod&&key==='y'){event.preventDefault();$('#redo').click();}
   else if(mod&&key==='d'){event.preventDefault();duplicateSelected();}
   else if(mod&&key==='s'){event.preventDefault();$('#save').click();}
-  else if(!mod){if(['delete','backspace'].includes(key)){event.preventDefault();deleteSelected();}else if(key==='f')focusView(selectedId??undefined);else if(key==='v')setTool('select');else if(key==='g'&&view!=='plan')setTool('move');else if(key==='r'&&view!=='plan')setTool('rotate');else if(key==='s'&&view!=='plan')setTool('scale');else if(key==='1')switchPanel('scene');else if(key==='2')switchPanel('assets');else if(key==='3')switchPanel('assistant');else if(key==='4')switchPanel('renovation');else if(key==='[')switchPanel(activePanel,true);}
+  else if(!mod){if(['delete','backspace'].includes(key)){event.preventDefault();deleteSelected();}else if(key==='f')focusView(selectedId??undefined);else if(key==='v')setTool('select');else if(key==='g'&&view!=='plan')setTool('move');else if(key==='r'&&view!=='plan')setTool('rotate');else if(key==='s'&&view!=='plan')setTool('scale');else if(key==='1')switchPanel('scene');else if(key==='2')switchPanel('assets');else if(key==='3')switchPanel('assistant');else if(key==='4')switchPanel('renovation');else if(key==='5')switchPanel('materials');else if(key==='[')switchPanel(activePanel,true);}
 });
-window.addEventListener('beforeunload',()=>{viewport.dispose();floorPlan.dispose();catalogPreviews.dispose();renovationUI?.destroy();intake.destroy();});
+window.addEventListener('beforeunload',()=>{materialsUI.dispose();viewport.dispose();floorPlan.dispose();catalogPreviews.dispose();renovationUI?.destroy();intake.destroy();});
 refresh();renderAssets();setTool('select');switchPanel('renovation');

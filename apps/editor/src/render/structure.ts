@@ -2,6 +2,9 @@ import * as THREE from 'three';
 import type { EntityMetadata, Opening, Room, SceneDocument, Wall, WallMode } from '../contracts';
 import { dimension3d, label3d } from './annotations';
 import { disposeObject } from './assets';
+import { finishAppearance, makeFinishMaterial, type FinishMaterialProjection, type FinishReveal } from './finish-material';
+
+export type { FinishReveal } from './finish-material';
 
 export interface OpeningProjection {
   group: THREE.Group;
@@ -20,6 +23,7 @@ export interface StructureProjection {
   ceilings: THREE.Group;
   dimensions: THREE.Group;
   previewOpeningOffset(id: string, offset: number): void;
+  updateFinishes(now: number): boolean;
   updateWalls(camera: THREE.Camera, mode: WallMode, top: boolean): void;
 }
 
@@ -33,31 +37,19 @@ function meshBox(parent: THREE.Object3D, dimensions: [number, number, number], p
   mesh.position.set(...position); mesh.castShadow = true; mesh.receiveShadow = true; parent.add(mesh); return mesh;
 }
 
-/** Clip floor joints against each polygon so concave/nonrectangular rooms remain valid. */
-function floorJoints(room: Room, spacing: number, elevation: number): THREE.LineSegments {
-  const zs = room.polygon.map(p => p[1]); const points: number[] = [];
-  for (let z = Math.ceil(Math.min(...zs) / spacing) * spacing; z < Math.max(...zs) - 0.001; z += spacing) {
-    const crossings: number[] = [];
-    for (let i = 0; i < room.polygon.length; i++) {
-      const a = room.polygon[i]!; const b = room.polygon[(i + 1) % room.polygon.length]!;
-      if ((a[1] <= z && b[1] > z) || (b[1] <= z && a[1] > z)) crossings.push(a[0] + (z - a[1]) * (b[0] - a[0]) / (b[1] - a[1]));
-    }
-    crossings.sort((a, b) => a - b);
-    for (let i = 0; i + 1 < crossings.length; i += 2) points.push(crossings[i]!, elevation + 0.002, z, crossings[i + 1]!, elevation + 0.002, z);
-  }
-  return new THREE.LineSegments(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(points, 3)),
-    new THREE.LineBasicMaterial({ color: '#827863', transparent: true, opacity: 0.095, depthWrite: false }));
-}
-function wallGeometry(wall: Wall, height: number, elevation: number, color: string, backColor?: string): THREE.Group {
+function wallGeometry(wall: Wall, height: number, elevation: number, front: THREE.Material, back: THREE.Material): THREE.Group {
   const group = new THREE.Group();
   const length = Math.hypot(wall.end[0] - wall.start[0], wall.end[1] - wall.start[1]);
-  const plaster = new THREE.MeshStandardMaterial({ color, roughness: 0.94 });
-  const back = backColor ? new THREE.MeshStandardMaterial({ color: backColor, roughness: 0.94 }) : plaster;
+  const plaster = new THREE.MeshStandardMaterial({ color: wall.color, roughness: 0.94 });
   const trim = new THREE.MeshStandardMaterial({ color: '#f4f0e8', roughness: 0.65 });
   const box = (start: number, end: number, bottom: number, top: number, depth: number, skirting = false, z = 0) => {
     if (end - start <= 0.001 || top - bottom <= 0.001) return;
     const mesh = meshBox(group, [end - start, top - bottom, depth], [(start + end) / 2, elevation + (bottom + top) / 2, z], skirting ? trim : plaster);
-    if (!skirting && back !== plaster) mesh.material = [plaster, plaster, plaster, plaster, plaster, back];
+    if (!skirting) {
+      mesh.material = [plaster, plaster, plaster, plaster, front, back];
+      mesh.userData.finishEntityId = wall.id;
+      mesh.userData.finishSurfaces = { 4: 'wall-front', 5: 'wall-back' };
+    }
   };
   let cursor = 0;
   const openings = [...wall.openings].sort((a, b) => a.offset - b.offset);
@@ -137,10 +129,16 @@ function makeOpening(wall: Wall, opening: Opening, metadata: EntityMetadata, ele
   return projection;
 }
 
-export function makeStructure(document: SceneDocument): StructureProjection {
+export function makeStructure(document: SceneDocument, reveal?: FinishReveal): StructureProjection {
   const group = new THREE.Group(); const ceilings = new THREE.Group(); const dimensions = new THREE.Group();
   const entities = new Map<string, THREE.Object3D>(); const openings = new Map<string, OpeningProjection>();
   const refreshOpeningWalls = new Map<string, () => void>();
+  const animatedFinishes = new Set<FinishMaterialProjection>();
+  const trackFinish = (finish: FinishMaterialProjection): THREE.MeshStandardMaterial => {
+    animatedFinishes.add(finish);
+    finish.material.addEventListener('dispose', () => animatedFinishes.delete(finish));
+    return finish.material;
+  };
   const bounds = new THREE.Box3(); const metadata = document.project?.metadata ?? {};
   const finishColor = (id: string, surface: string, fallback: string): string => {
     const assignment = document.project?.finishes.find(item => item.entityId === id && item.surface === surface);
@@ -152,9 +150,18 @@ export function makeStructure(document: SceneDocument): StructureProjection {
     const roomGroup = new THREE.Group(); roomGroup.userData.entityId = room.id; group.add(roomGroup); entities.set(room.id, roomGroup);
     room.polygon.forEach(([x, z]) => bounds.expandByPoint(new THREE.Vector3(x, elevation, z)));
     const geometry = new THREE.ExtrudeGeometry(floorShape(room), { depth: 0.14, bevelEnabled: false });
-    const floor = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ color: finishColor(room.id, 'floor', room.color), roughness: 0.84 }));
+    const jointSpacing = /bath|kitchen/i.test(room.name) ? 0.6 : 0.23;
+    const appearance = finishAppearance(document, room.id, 'floor', room.color, jointSpacing);
+    const previousRoom = reveal?.previousScene.rooms.find(item => item.id === room.id);
+    const transition = reveal?.entityId === room.id && reveal.surface === 'floor' ? {
+      reveal,
+      previous: finishAppearance(reveal.previousScene, room.id, 'floor', previousRoom?.color ?? room.color, /bath|kitchen/i.test(previousRoom?.name ?? room.name) ? 0.6 : 0.23),
+      radius: Math.max(...room.polygon.map(([x, z]) => Math.hypot(x - reveal.point[0], z - reveal.point[2]))),
+    } : undefined;
+    const floorMaterial = trackFinish(makeFinishMaterial(appearance, { u: new THREE.Vector3(1, 0, 0), v: new THREE.Vector3(0, 0, 1) }, transition));
+    const floor = new THREE.Mesh(geometry, [floorMaterial, new THREE.MeshStandardMaterial({ color: appearance.color, roughness: 0.84 })]);
+    floor.userData.finishEntityId = room.id; floor.userData.finishSurface = 'floor';
     floor.rotation.x = -Math.PI / 2; floor.position.y = elevation - 0.14; floor.receiveShadow = true; floor.castShadow = true; roomGroup.add(floor);
-    roomGroup.add(floorJoints(room, /bath|kitchen/i.test(room.name) ? 0.6 : 0.23, elevation));
     if (!['balcony', 'terrace'].includes(meta.zone ?? 'interior')) {
       const ceiling = new THREE.Mesh(new THREE.ShapeGeometry(floorShape(room)), new THREE.MeshStandardMaterial({ color: finishColor(room.id, 'ceiling', '#f1eee6'), roughness: 0.9, side: THREE.DoubleSide, transparent: true, opacity: 0.45 }));
       ceiling.rotation.x = -Math.PI / 2; ceiling.position.y = elevation + (meta.ceilingHeight ?? 2.8); ceiling.userData.entityId = room.id; ceilings.add(ceiling);
@@ -172,9 +179,19 @@ export function makeStructure(document: SceneDocument): StructureProjection {
     bounds.expandByPoint(new THREE.Vector3(wall.end[0], wall.height + elevation, wall.end[1]));
     const wallGroup = new THREE.Group(); wallGroup.userData.entityId = wall.id; entities.set(wall.id, wallGroup);
     wallGroup.position.set(wall.start[0], 0, wall.start[1]); wallGroup.rotation.y = -Math.atan2(wall.end[1] - wall.start[1], wall.end[0] - wall.start[0]); group.add(wallGroup);
-    const color = finishColor(wall.id, 'wall-front', wall.color); const backColor = finishColor(wall.id, 'wall-back', wall.color);
+    const wallAxis = new THREE.Vector3(wall.end[0] - wall.start[0], 0, wall.end[1] - wall.start[1]).normalize();
+    const makeWallFinish = (surface: 'wall-front' | 'wall-back') => {
+      const appearance = finishAppearance(document, wall.id, surface, wall.color);
+      const previousWall = reveal?.previousScene.walls.find(item => item.id === wall.id);
+      const transition = reveal?.entityId === wall.id && reveal.surface === surface ? {
+        reveal,
+        previous: finishAppearance(reveal.previousScene, wall.id, surface, previousWall?.color ?? wall.color),
+        radius: Math.max(...[wall.start, wall.end].flatMap(([x, z]) => [elevation, elevation + wall.height].map(y => Math.hypot((x - reveal.point[0]) * wallAxis.x + (z - reveal.point[2]) * wallAxis.z, y - reveal.point[1])))),
+      } : undefined;
+      return trackFinish(makeFinishMaterial(appearance, { u: wallAxis, v: new THREE.Vector3(0, 1, 0) }, transition));
+    };
     const makeWallProjection = (source: Wall, height: number) => {
-      const projection = wallGeometry(source, height, elevation, color, backColor);
+      const projection = wallGeometry(source, height, elevation, makeWallFinish('wall-front'), makeWallFinish('wall-back'));
       if (meta.phase === 'remove') projection.traverse(object => { if (object instanceof THREE.Mesh) for (const material of Array.isArray(object.material) ? object.material : [object.material]) { material.transparent = true; material.opacity = 0.25; } });
       return projection;
     };
@@ -200,6 +217,14 @@ export function makeStructure(document: SceneDocument): StructureProjection {
   const direction = new THREE.Vector3(); const radial = new THREE.Vector3(); ceilings.visible = false; dimensions.visible = false;
   return {
     group, bounds, entities, openings, ceilings, dimensions,
+    updateFinishes(now) {
+      let active = false;
+      for (const finish of animatedFinishes) {
+        if (finish.update(now)) active = true;
+        else animatedFinishes.delete(finish);
+      }
+      return active;
+    },
     previewOpeningOffset(id, offset) {
       const opening = openings.get(id); const refreshWall = refreshOpeningWalls.get(id);
       if (!opening || !refreshWall || !Number.isFinite(offset) || opening.group.position.x === offset) return;

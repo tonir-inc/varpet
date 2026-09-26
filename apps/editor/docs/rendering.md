@@ -22,7 +22,9 @@ The procedural object remains visible while a model loads and is retained as a f
 
 Left drag orbits the perspective camera, right drag pans, and the wheel zooms. A short left click raycasts furniture for selection, respecting visible opaque structure in front of it. Top view disables orbit rotation. Gizmos move along the floor, rotate around Y, and resize on local axes. Snap increments are 0.25 m, 15°, and 0.1 scale. Scale is clamped to the domain's `[0.1, 4]` range; dimensions and placement still pass domain checks. Quaternion-based yaw extraction preserves rotations beyond 90°.
 
-Lighting combines hemisphere light, a shadow-casting warm directional light, a cool fill light, and a PMREM environment made with Three.js `RoomEnvironment`. Materials use standard physically based shading, sRGB output, and ACES filmic tone mapping. This provides readable form and contact shadows; it is not baked global illumination, path tracing, or a photo-matched lighting solve.
+Lighting combines a restrained hemisphere light, a warm shadow-casting key, cool fill and rim lights, and a PMREM environment made with Three.js `RoomEnvironment`. Light positions, shadow coverage, and studio fog follow the shell's center and size, including imported apartments away from the origin. Materials use standard physically based shading, sRGB output, and ACES filmic tone mapping. This provides readable form and contact shadows; it is not baked global illumination, path tracing, or a photo-matched lighting solve.
+
+`src/render/studio-stage.ts` presents the apartment on a beveled charcoal pedestal with a limestone cap, recessed foot, and fine brass trim. Its top meets the underside of the apartment's 14 cm floor slab. The pedestal adapts to structural bounds and floor elevation; perspective framing includes the base while selected-entity focus and Top framing retain their editing behavior. The surrounding charcoal floor uses a procedural soft contact shadow. All stage geometry is disposable, unselectable presentation scenery outside the scene document, quantities, and edit history.
 
 ## Performance and lifecycle
 
