@@ -1,3 +1,4 @@
+import { registerDesignerRenderer } from '../adapters/designer-vision';
 import type { CatalogAsset, EntityMetadata, Opening, Operation, Room, SceneDocument, Vec2, Wall } from '../contracts';
 import { measureFloorPlanRoom, type FloorPlanRoomMeasurement } from '../core/floor-plan';
 import { componentPosition, componentRotation } from '../core/geometry';
@@ -734,6 +735,7 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
     } else return;
     event.preventDefault(); event.stopPropagation();
   });
+  const unregisterDesignerSnapshot = registerDesignerRenderer(drawing, render, () => pointer ? null : documentScene);
   return {
     setScene(nextScene, nextCatalog = catalog) {
       cancelInteraction();
@@ -754,6 +756,6 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
       else { cancelInteraction(); if (frame) { cancelAnimationFrame(frame); frame = 0; } }
     },
     focus,
-    dispose() { cancelInteraction(); disposed = true; window.removeEventListener('blur', onBlur); resizeObserver.disconnect(); if (frame) cancelAnimationFrame(frame); root.remove(); },
+    dispose() { unregisterDesignerSnapshot(); cancelInteraction(); disposed = true; window.removeEventListener('blur', onBlur); resizeObserver.disconnect(); if (frame) cancelAnimationFrame(frame); root.remove(); },
   };
 }

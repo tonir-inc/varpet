@@ -1,3 +1,4 @@
+import { registerDesignerRenderer } from '../adapters/designer-vision';
 import { ceilingDesignRoomAt, layoutCeilingDesign } from '../core/ceiling-design';
 import { makeCeilingDesigns } from './ceiling-design';
 import * as THREE from 'three';
@@ -1171,6 +1172,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   renderer.domElement.addEventListener('webglcontextlost', onContextLoss);
   window.addEventListener('blur', onPointerCancel);
   resize(); setTool('select');
+  const unregisterDesignerSnapshot = registerDesignerRenderer(renderer.domElement, () => studioRenderer.render(camera), () => drag || endpointDrag || openingDrag || wallMove.active ? null : documentState);
 
   return {
     setScene,
@@ -1266,6 +1268,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     dispose() {
       if (disposed) return;
       finishDrag(true); finishEndpoint(true); finishOpening(true); wallMove.finish(true); disposed = true;
+      unregisterDesignerSnapshot();
       finishInteraction.dispose();
       stopFinishTextureUpdates();
       walk.dispose();

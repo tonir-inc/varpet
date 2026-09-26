@@ -2,9 +2,11 @@
 import type {AgentProposal,CatalogAsset,DesignerAdapter,SceneDocument} from '../contracts';
 import {localCatalog} from '../core/demo';
 import {EditorStore} from '../core/store';
+import {requestVision,type DesignerVision,type VisionCaptureOptions} from './designer-vision';
 
 export type DesignerDoorSwing='in-left'|'in-right'|'out-left'|'out-right';
 export interface DesignerHttpOptions {
+  vision?:DesignerVision;
   url?:string;
   request?:string;
   keep?:readonly string[];
@@ -22,6 +24,7 @@ export interface DesignerHttpOptions {
   fetch?:typeof globalThis.fetch;
 }
 export interface DesignerRequest {
+  vision?:DesignerVision;
   scene:SceneDocument;revision:number;request:string;conversationId?:string;
   keep?:string[];doorSwings?:Record<string,DesignerDoorSwing>;northDeg?:number;
   catalog?:CatalogAsset[];catalogCurrency?:'AMD';
@@ -32,7 +35,7 @@ export type DesignerReply=
   | {type:'message';conversationId:string;message:string;suggestions?:string[]}
   | {type:'decline';conversationId:string;message:string}
   | {type:'error';message:string};
-export interface AskDesignerOptions {baseUrl?:string;onProgress?:(message:string)=>void;onMessageDelta?:(delta:string)=>void;signal?:AbortSignal}
+export interface AskDesignerOptions {vision?:VisionCaptureOptions;baseUrl?:string;onProgress?:(message:string)=>void;onMessageDelta?:(delta:string)=>void;signal?:AbortSignal}
 export class DesignerServiceError extends Error {
   readonly name='DesignerServiceError';
   constructor(message:string,readonly code:'http'|'protocol'|'validation'|'service',readonly status?:number){super(message);}
@@ -157,6 +160,7 @@ export function createDesignerHttpAdapter(options:DesignerHttpOptions={}):Design
     keep:options.keep===undefined?undefined:structuredClone(options.keep),
     northDeg:options.northDeg,doorSwings:options.doorSwings===undefined?undefined:structuredClone(options.doorSwings),
     conversationId:options.conversationId,catalog:options.catalog===undefined?undefined:structuredClone(options.catalog),
+    vision:options.vision===undefined?undefined:structuredClone(options.vision),
     catalogCurrency:options.catalogCurrency,onProgress:options.onProgress,onMessageDelta:options.onMessageDelta,onConversationId:options.onConversationId,onMetrics:options.onMetrics,onNotes:options.onNotes,
     fetch:options.fetch??globalThis.fetch.bind(globalThis),
   };
@@ -178,6 +182,7 @@ export function createDesignerHttpAdapter(options:DesignerHttpOptions={}):Design
       if(Object.entries(swings).some(([id,swing])=>!doorIds.has(id)||!['in-left','in-right','out-left','out-right'].includes(String(swing))))fail('Door swings must identify existing doors and supported swing directions.','validation');
     }
     const body=JSON.stringify({scene:snapshot,revision,request:configured.request,
+      ...(configured.vision===undefined?{}:{vision:configured.vision}),
       ...(configured.keep===undefined?{}:{keep:configured.keep}),...(configured.northDeg===undefined?{}:{northDeg:configured.northDeg}),
       ...(configured.doorSwings===undefined?{}:{doorSwings:configured.doorSwings}),...(configured.conversationId===undefined?{}:{conversationId:configured.conversationId}),
       ...(configured.catalog===undefined?{}:{catalog:configured.catalog}),...(configured.catalogCurrency===undefined?{}:{catalogCurrency:configured.catalogCurrency})});
@@ -278,8 +283,11 @@ export async function askDesigner(req:DesignerRequest,opts:AskDesignerOptions={}
   let conversationId:string|undefined,metrics:unknown,notes:string|undefined;
   try{
     checkAbort(opts.signal);
+    req=structuredClone(req);
+    const vision=opts.vision?await requestVision(req.scene,req.revision,opts.vision,opts.signal):req.vision;
+    checkAbort(opts.signal);
     const adapter=createDesignerHttpAdapter({
-      url:serviceUrl(opts.baseUrl),request:req.request,conversationId:req.conversationId,
+      vision,url:serviceUrl(opts.baseUrl),request:req.request,conversationId:req.conversationId,
       keep:req.keep,doorSwings:req.doorSwings,northDeg:req.northDeg,catalog:req.catalog,catalogCurrency:req.catalogCurrency,
       onProgress:opts.onProgress,onMessageDelta:opts.onMessageDelta,onConversationId:id=>{conversationId=id;},onMetrics:value=>{metrics=value;},onNotes:value=>{notes=value;},
     });
