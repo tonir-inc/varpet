@@ -46,6 +46,7 @@ import { DEFAULT_SUN, normalizeSun, fitSunShadow, effectiveSunlight, type SunSet
 import { timeOfDayLighting } from './time-of-day';
 import { SunOccluders } from './sun-occluders';
 import { SceneShadowCache } from './shadow-cache';
+import { EveningRoomLights, PracticalLightPool, type RoomFill } from './practical-lights';
 import { installPerfProbe, type PerfProbe } from './perf-probe';
 import { TopLightingProjection } from './top-lighting';
 import { createFurnitureDrop } from './furniture-drop';
@@ -77,6 +78,23 @@ interface OpeningDrag {
 // Euler XYZ folds Y past 90 degrees into X/Z turns; read heading from the basis instead.
 const upAxis = new THREE.Vector3(0, 1, 0);
 const INSIDE_TWILIGHT = 0.5;
+const eveningSky = new THREE.Color('#8a7a6a'), eveningGround = new THREE.Color('#6b4a30');
+/** One warm ceiling glow per interior room, just under its ceiling. */
+function eveningRooms(scene: SceneDocument): RoomFill[] {
+  const metadata = scene.project?.metadata ?? {};
+  return scene.rooms.flatMap(room => {
+    const meta = metadata[room.id] ?? {};
+    if (room.polygon.length < 3 || meta.phase === 'remove' || ['balcony', 'terrace'].includes(meta.zone ?? 'interior')) return [];
+    let area = 0, cx = 0, cz = 0;
+    room.polygon.forEach(([x0, z0], index) => {
+      const [x1, z1] = room.polygon[(index + 1) % room.polygon.length]!;
+      const cross = x0! * z1! - x1! * z0!; area += cross; cx += (x0! + x1!) * cross; cz += (z0! + z1!) * cross;
+    });
+    if (Math.abs(area) < 1e-6) return [];
+    const ceiling = (meta.elevation ?? 0) + roomCeilingHeight(scene, room) - (meta.ceilingDesign?.drop ?? 0);
+    return [{ center: new THREE.Vector3(cx / (3 * area), ceiling - 0.45, cz / (3 * area)), area: Math.abs(area) / 2 }];
+  });
+}
 function yawOf(quaternion: THREE.Quaternion): number {
   const { x, y, z, w } = quaternion;
   return Math.atan2(2 * (x * z + w * y), 1 - 2 * (x * x + y * y));
@@ -226,6 +244,8 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
   const skyboxes = new SkyboxResources(renderer);
   let skyboxPreset: SkyboxPreset = 'studio';
   const sunOccluders = new SunOccluders(); world.add(sunOccluders.group);
+  const practicalLights = new PracticalLightPool(); world.add(practicalLights.group);
+  const eveningLights = new EveningRoomLights(); world.add(eveningLights.group);
 
   const pmrem = new THREE.PMREMGenerator(renderer);
   const roomEnvironment = new RoomEnvironment();
@@ -453,10 +473,11 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
     world.fog = null;
     world.environment = lightingSky?.environment ?? environment.texture;
     world.environmentIntensity = THREE.MathUtils.lerp(0.008, lightingSky ? 0.35 : 0.4, daylight);
-    ambient.intensity = THREE.MathUtils.lerp(0.035, 0.42, daylight);
-    // A light studio: soft sky above, warm paper below.
-    ambient.color.set('#dfe4ec');
-    ambient.groundColor.set('#a89580');
+    ambient.intensity = THREE.MathUtils.lerp(0.1, 0.42, daylight);
+    // A light studio: soft sky above, warm paper below; after dusk a warm lamplit bounce.
+    ambient.color.set('#dfe4ec').lerp(eveningSky, 1 - daylight);
+    ambient.groundColor.set('#a89580').lerp(eveningGround, 1 - daylight);
+    eveningLights.setLevel(unlitTop ? 0 : 1 - daylight);
     const sun = effectiveSunlight(sunSettings);
     sunlight.color.set(sun.sunColor); sunlight.intensity = sun.sunIntensity;
     // Keep the studio readable without painting false pools of sunlight through walls.
@@ -660,6 +681,7 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
     const started = perfProbe ? performance.now() : 0;
     if (perfProbe) { renderer.info.autoReset = false; renderer.info.reset(); }
     topLighting.prepare(world, view === 'top' && !topLightingEnabled);
+    practicalLights.sync(world, camera);
     studioRenderer.render(camera);
     if (perfProbe) perfProbe.submits.push({ at: started, ms: performance.now() - started, calls: renderer.info.render.calls, triangles: renderer.info.render.triangles });
   }
@@ -1069,6 +1091,7 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
       ceilingDesigns = makeCeilingDesigns(next, ceilingRoomId); world.add(ceilingDesigns);
       structure = makeStructure(next, pendingFinishReveal, { openingAssets, onAssetReady() { shadowCache.invalidate(); updateSelection(); requestRender(); } }); pendingFinishReveal = undefined;
       sunOccluders.setScene(next);
+      eveningLights.setRooms(eveningRooms(next));
       structureKey = nextKey; world.add(structure.group, structure.ceilings, structure.dimensions);
       loadOpeningModels(structure, next);
       for (const [id, opening] of structure.openings) { const angle = opening.fixed ? 0 : doorAngles.get(id) ?? 0; if (opening.fixed) doorAngles.delete(id); opening.target = angle; opening.setAngle(angle); }
@@ -1885,6 +1908,7 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
       if (structure) { disposeObject(structure.group); disposeObject(structure.ceilings); disposeObject(structure.dimensions); }
       if (ceilingDesigns) disposeObject(ceilingDesigns);
       if (services) disposeObject(services.group); if (comparison) disposeObject(comparison); disposeObject(annotations); disposeObject(endpointHandles); disposeObject(openingHandle); windowHandles.dispose();
+      practicalLights.dispose(); eveningLights.setRooms([]);
       blueprint.dispose(); sunOccluders.dispose(); loader.dispose(); openingAssets.dispose(); sunlight.shadow.dispose(); topLighting.dispose();
       studioRenderer.dispose(); skyboxes.dispose(); environment.dispose(); renderer.dispose(); container.remove();
     },
