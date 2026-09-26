@@ -1,0 +1,257 @@
+{
+  "schema_version": 1,
+  "evidence_kind": "measured_live_production_http_smoke",
+  "started_at": "2026-09-26T10:51:39.466939+00:00",
+  "source": {
+    "head": "75aa26f9fe65ecf945debbbdeac72cbc00cd78c8",
+    "dirty": true,
+    "source_sha256": {
+      "harness/designer.py": "7278a51819bfbbf7faf62e2570c42177fb9825b91bcf86cd5c33734357e831c1",
+      "harness/designer_service.py": "06ccf65edc5958955871b225e0a30875ae80aa52db8e77b23a444453a6b110b8",
+      "harness/designer_profiles.py": "2910bee12464b0384948fa585c0208b2a5e7a56cd91ed4b3cfd7f0c110a77666",
+      "harness/designer_prompt.md": "b9299a9a4c9dcb0c6b8550f9c5b13e9f7ba6aa32c0b4e483d8b37d6729095115",
+      "apps/editor/src/core/demo.ts": "63f3fe775a6e9e4e78956731a4b2e948bb39fb6ea677c97fb09fd36a0c2375cd",
+      "apps/editor/src/core/store.ts": "ced33ffa5db8447c2c588c79b773bfdac1fe921f927fc04d0b6f57d666888910",
+      "apps/editor/src/core/validation.ts": "ed3dac177fcadc53f43328a73e0b6e478f4846f9b81e2290872ea41e1837293c",
+      "packages/designer/src/editor-bridge.ts": "9a6b5ad6e2366fb64651e82ca899539176514a292681d3904be7ea493e348703",
+      "packages/designer/eval/editor-demo.ts": "58af7b9a9b2f5ee5a1919e8c27e3111310e229cf52d8cd5deeeb91fa8d9341ad"
+    },
+    "head_at_end": "75aa26f9fe65ecf945debbbdeac72cbc00cd78c8",
+    "source_bytes_unchanged": true,
+    "head_at_validation": "0c0f3748ef09a7dc8129fb425834daf48df04a1b",
+    "source_bytes_unchanged_at_validation": true
+  },
+  "request": "Make the living room feel bigger",
+  "revision": 0,
+  "input": {
+    "source": "apps/editor/src/core/demo.ts",
+    "variant": "original",
+    "scene_id": "apartment-avani",
+    "object_count": 20,
+    "request_sha256": "f306cf3e8907e696d72d0384374806bdf173749204043191533ac3776d2fdda5",
+    "editor_scene_sha256": "5fc00670be017ae60b85ac2c75bf897a615fb83b476022b949f55b7defffd898",
+    "catalog_sha256": "a7837284de218a61f5c0c5873ba228ae49b43aa433917b717943e801ffd9d7be",
+    "extras": [],
+    "matches_current_demo_source": true
+  },
+  "expected_configuration": {
+    "model": "gpt-6-astra",
+    "effort": "low",
+    "profile": {
+      "placement": "without-place",
+      "context": "compact-base"
+    },
+    "idle_timeout_seconds": 240
+  },
+  "total_http_deadline_seconds": 240,
+  "logs_directory": "/tmp/varpet-avani-production-smoke-unxneoea",
+  "result_checked": true,
+  "port": 58167,
+  "seconds": 63.706,
+  "curl_exit_code": 0,
+  "usage_limited": false,
+  "outcome": "proposal",
+  "service_summary": {
+    "type": "service_summary",
+    "model": "gpt-6-astra",
+    "effort": "low",
+    "profile": {
+      "placement": "without-place",
+      "context": "compact-base"
+    },
+    "conversationId": "7bd0028b0d4f46139265deceee3ec218",
+    "outcome": "proposal",
+    "seconds": 63.687,
+    "usage": {
+      "cacheWriteInputTokens": 0,
+      "cachedInputTokens": 89344,
+      "inputTokens": 130135,
+      "outputTokens": 1502,
+      "reasoningOutputTokens": 276,
+      "totalTokens": 131637
+    }
+  },
+  "service_stopped": true,
+  "finished_at": "2026-09-26T10:52:43.310308+00:00",
+  "validation": {
+    "network_adapter": "passed",
+    "source": "designer",
+    "base_revision": 0,
+    "approval_required": true,
+    "disposable_store_application": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "revision": 1
+    },
+    "final_scene": {
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    "request_scene_unchanged": true,
+    "current_demo_unchanged": true,
+    "operation_count": 5
+  },
+  "derived_room_metrics": {
+    "before": [
+      {
+        "room_id": "room-living",
+        "free_area_m2": 34.32,
+        "largest_free_rectangle_m2": 11.27,
+        "narrowest_walkway_m": 0
+      },
+      {
+        "room_id": "room-kitchen",
+        "free_area_m2": 8.23,
+        "largest_free_rectangle_m2": 4.55,
+        "narrowest_walkway_m": 0.5
+      },
+      {
+        "room_id": "room-bath",
+        "free_area_m2": 5.12,
+        "largest_free_rectangle_m2": 2.45,
+        "narrowest_walkway_m": 0.7
+      },
+      {
+        "room_id": "room-bedroom",
+        "free_area_m2": 9.01,
+        "largest_free_rectangle_m2": 3.91,
+        "narrowest_walkway_m": 0.4
+      }
+    ],
+    "after": [
+      {
+        "room_id": "room-living",
+        "free_area_m2": 34.62,
+        "largest_free_rectangle_m2": 13.72,
+        "narrowest_walkway_m": 0
+      },
+      {
+        "room_id": "room-kitchen",
+        "free_area_m2": 8.23,
+        "largest_free_rectangle_m2": 4.55,
+        "narrowest_walkway_m": 0.5
+      },
+      {
+        "room_id": "room-bath",
+        "free_area_m2": 5.12,
+        "largest_free_rectangle_m2": 2.45,
+        "narrowest_walkway_m": 0.7
+      },
+      {
+        "room_id": "room-bedroom",
+        "free_area_m2": 9.01,
+        "largest_free_rectangle_m2": 3.91,
+        "narrowest_walkway_m": 0.4
+      }
+    ]
+  },
+  "strict_layout_checks": {
+    "before": {
+      "ok": false,
+      "hard_error_count": 31,
+      "soft_guidance_count": 8
+    },
+    "after": {
+      "ok": false,
+      "hard_error_count": 25,
+      "soft_guidance_count": 11
+    }
+  },
+  "independent_baseline_check": {
+    "ok": true,
+    "hard_errors": [],
+    "preexisting_not_worsened_count": 25
+  },
+  "proposal": {
+    "id": "designer-2f18431727c2510bbd790f139e61533af3666934069aa4f91478252625131b5a",
+    "title": "Designer layout proposal",
+    "description": "Same complete preview: retain all pieces at zero cost, consolidate seating against the lower wall to open the centre and improve access. Other rooms and dining unchanged; customer acceptance required.",
+    "command": {
+      "id": "designer-2f18431727c2510bbd790f139e61533af3666934069aa4f91478252625131b5a",
+      "label": "Apply designer layout",
+      "source": "designer",
+      "baseRevision": 0,
+      "operations": [
+        {
+          "type": "update",
+          "id": "sofa",
+          "patch": {
+            "position": [
+              -3.25,
+              0,
+              3.46
+            ],
+            "rotation": 3.141592653589793
+          }
+        },
+        {
+          "type": "update",
+          "id": "coffee-table",
+          "patch": {
+            "position": [
+              -3.25,
+              0,
+              1.975
+            ],
+            "rotation": 0
+          }
+        },
+        {
+          "type": "update",
+          "id": "lounge-chair",
+          "patch": {
+            "position": [
+              -1.15,
+              0,
+              2.3
+            ],
+            "rotation": -1.5707963267948966
+          }
+        },
+        {
+          "type": "update",
+          "id": "living-rug",
+          "patch": {
+            "position": [
+              -3.15,
+              0,
+              2.65
+            ],
+            "rotation": 0
+          }
+        },
+        {
+          "type": "update",
+          "id": "floor-lamp",
+          "patch": {
+            "position": [
+              -4.66,
+              0,
+              2.65
+            ],
+            "rotation": 3.141592653589793
+          }
+        }
+      ]
+    }
+  },
+  "final_scene_sha256": "46e96f4b4f3a7e11917452920e17ab196da1e15a11d147c5adca2104fd0634a1",
+  "actual_configuration": {
+    "model": "gpt-6-astra",
+    "effort": "low",
+    "profile": {
+      "placement": "without-place",
+      "context": "compact-base"
+    },
+    "idle_timeout_seconds": 240
+  },
+  "claim_scope": "One measured live production HTTP call. Editor checks and approval were exercised only in a disposable in-memory store; no user scene was modified. SDK events were not exported by the production CLI. HTTP events and process logs are in the temporary logs directory.",
+  "progress": {
+    "count": 16,
+    "first_seconds": 0.011,
+    "max_gap_between_progress_seconds": 5.105,
+    "max_gap_between_any_http_events_seconds": 5.105
+  }
+}
