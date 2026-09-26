@@ -2,7 +2,9 @@
 
 Measured: 0/10 flats started, 0/10 completed. Avani calibration is excluded from Komitas rates.
 
-Production profile: gpt-6-astra / low / without-place / compact-base, text only. Live HTTP service, catalog MCP at localhost:8765, catalogCurrency AMD, northDeg 0. One real SDK conversation per flat; every EditorStore-accepted proposal is applied before the next request, including proposals that fail the independent rubric. Errors and questions leave the scene unchanged. Raw SDK events and HTTP replies are saved per turn. No synthetic answers or catalog stubs.
+**Blocked:** no accepted Komitas inputs are published. All 65 planned customer turns are unrun; designer rates, proposal acceptance and latency are N/A. Final furnished Komitas screenshots could not be produced. See the input audit below.
+
+Implemented runner (measured on Avani; Komitas blocked at input): gpt-6-astra / low / without-place / compact-base, text only. Live HTTP service, catalog MCP at localhost:8765, catalogCurrency AMD, northDeg 0. One real SDK conversation per flat; every EditorStore-accepted proposal is applied before the next request, including proposals that fail the independent rubric. Errors and questions leave the scene unchanged. Raw SDK events and HTTP replies are saved per turn. No synthetic answers or catalog stubs.
 
 Assumed rubric (declared before Komitas runs): living means at least a sofa and a table; bedroom means exactly one double bed ≥1.35 ×1.8 m, two nightstands and one wardrobe. Catalog titles and broad kinds determine subtypes, not model-supplied names. Desk must be newly added and its footprint within 1.5 m of a same-room window span. Sofa must change pose and face a window span within 15°. Warm white means RGB R≥230, G≥220, B≥205, R≥G≥B, 3≤R−B≤35 on all bedroom wall faces, with a real colour change. Kids applies to ground-truth marketed 3+ room flats (fallback: named living/bedrooms, not counting kitchen/bath); unresolved target roles fail rather than skip; it requires bed, desk and storage in that room and added cost ≤300,000 ֏. These proxies do not claim human taste assessment.
 
@@ -12,9 +14,40 @@ Clearance rule: zero new/worsened measured preferred-clearance deficits, excess 
 
 | Request | Pass / attempts | Request match | Editor accepts / proposals | Median / max seconds | Median / max tokens |
 |---|---:|---:|---:|---:|---:|
+| living | N/A — 0/10 attempted | N/A | N/A | N/A | N/A |
+| bedroom | N/A — 0/10 attempted | N/A | N/A | N/A | N/A |
+| sofa | N/A — 0/10 attempted | N/A | N/A | N/A | N/A |
+| desk | N/A — 0/10 attempted | N/A | N/A | N/A | N/A |
+| paint | N/A — 0/10 attempted | N/A | N/A | N/A | N/A |
+| kids | N/A — 0/5 attempted | N/A | N/A | N/A | N/A |
+| structural | N/A — 0/10 attempted | N/A | N/A | N/A | N/A |
 
 Failure causes (one turn can have multiple causes):
 - No Komitas requests measured yet.
+
+## Blocked before designer execution
+
+Historical input preflight at 2026-09-26T12:18:36.676Z: 10 diagnostic drafts; 6/10 accepted by EditorStore; 0/10 accepted by the bridge; 0 accepted scene files published. Existing architect screenshots show diagnostic empty drafts. Current designer progress is in the measured summary above.
+
+Preflight source `5336f32286e1825f149f5cbeca6e0bca587f8669`, at 2026-09-26T12:18:36.676Z. Raw local checks: [komitas-intake.json](komitas-intake.json). Upstream live generation and owner handoffs: [SERVICE report](komitas-architect.md). These are input failures, not failed model responses. No model calls were spent on rejected inputs.
+
+| Flat | Developer rooms | Kids turn required | Editor | Bridge | First blocker |
+|---|---:|---|---|---|---|
+| b20-t11 | 1 | False | True | False | Error: Wall w01_north_facade is not entirely a room boundary; interior obstacles require an explicit supported representation |
+| b23-t64 | 4 | True | False | False | Room 1 needs 3–32 finite polygon points within ±100 m. |
+| b25-t72 | 4 | True | True | False | Error: Wall w1 is not entirely a room boundary; interior obstacles require an explicit supported representation |
+| b24-t22 | 3 | True | False | False | Door “bathroom_1_door” intersects wall “w27”. Move or resize the opening to keep it clear of that wall. |
+| b31-t46 | 1 | False | True | False | Error: Wall west_bathroom_1 is not entirely a room boundary; interior obstacles require an explicit supported representation |
+| b27-t79 | 3 | True | False | False | Room 1 needs 3–32 finite polygon points within ±100 m. |
+| b21-t13 | 2 | False | True | False | Error: Wall w1 is not entirely a room boundary; interior obstacles require an explicit supported representation |
+| b28-t31 | 2 | False | True | False | Error: Wall w01 is not entirely a room boundary; interior obstacles require an explicit supported representation |
+| b30-t35 | 3 | True | True | False | Error: Wall w01 is not entirely a room boundary; interior obstacles require an explicit supported representation |
+| b18-t1 | 2 | False | False | False | Wall 7 has overlapping openings. |
+
+Top input causes: wall_room_boundary: 6/10; room_polygon_limit: 2/10; opening_collision: 2/10.
+No designer-side production change was made: the boundary failures involve mismatched inside-face geometry, junctions and structural columns. A tolerance-only bridge prototype was already withheld by SERVICE after exposing inconsistent downstream wall orientation; this requires coordinated geometry/contract work, not a small eval-side repair. The polygon and opening failures belong upstream. Source drafts, fixtures and validation rules were preserved.
+
+Input handoff: publish repaired accepted `komitas/<id>.scene.json` files; the runner consumes the existing ground-truth array, including its two marketed one-room entries even when the trace contains extra habitable rooms. Run each arriving scene with the batch command below.
 
 ## avani — complete
 
@@ -38,6 +71,7 @@ Measured Avani finding: the shared catalog snapshot has 877 assets, zero table-k
 ```sh
 uv run --no-project --with openai-codex==0.157.1 python -u packages/designer/eval/komitas-service.py --output /tmp/varpet-komitas-events --port 8794 < /dev/null
 pnpm --filter @varpet/designer exec tsx eval/komitas-run.ts --scene packages/designer/eval/komitas/ID.scene.json --truth packages/designer/eval/komitas/ground-truth.json --output packages/designer/eval/komitas-runs/ID-attempt1
+python3 packages/designer/eval/komitas-batch.py packages/designer/eval/komitas/*.scene.json --truth packages/designer/eval/komitas/ground-truth.json --jobs 4 --port 5197
 python3 packages/designer/eval/komitas-report.py
 ```
 

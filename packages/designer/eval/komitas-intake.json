@@ -1,0 +1,419 @@
+{
+  "measured_at": "2026-09-26T12:18:36.676Z",
+  "source": "5336f32286e1825f149f5cbeca6e0bca587f8669",
+  "scope": "Input preflight only; no designer calls, furnishing, scene modification, or accepted scene publication.",
+  "rows": [
+    {
+      "id": "b20-t11",
+      "input": "packages/designer/eval/komitas/b20-t11.rejected.json",
+      "accepted_scene_published": false,
+      "ground_truth": {
+        "id": "b20-t11",
+        "building_id": 20,
+        "type_id": 11,
+        "rooms": 1,
+        "area_m2": 66.3,
+        "bathrooms": 1,
+        "balconies": 1,
+        "northDeg": 0
+      },
+      "roles": {
+        "living": "living",
+        "bedroom": "bedroom"
+      },
+      "marketed_room_count": 1,
+      "kids_required": false,
+      "eligibility_basis": "ground truth room count",
+      "validation": {
+        "ok": true,
+        "errors": [],
+        "warnings": []
+      },
+      "editor": {
+        "ok": true,
+        "errors": [],
+        "warnings": [],
+        "revision": 1
+      },
+      "bridge_accepted": false,
+      "bridge_error": "Error: Wall w01_north_facade is not entirely a room boundary; interior obstacles require an explicit supported representation",
+      "cause": "wall_room_boundary",
+      "seconds": 0.011188582999999995,
+      "designer_requests_run": 0,
+      "model_tokens": 0
+    },
+    {
+      "id": "b23-t64",
+      "input": "packages/designer/eval/komitas/b23-t64.rejected.json",
+      "accepted_scene_published": false,
+      "ground_truth": {
+        "id": "b23-t64",
+        "building_id": 23,
+        "type_id": 64,
+        "rooms": 4,
+        "area_m2": 114.9,
+        "bathrooms": 2,
+        "balconies": 2,
+        "northDeg": 0
+      },
+      "roles": {
+        "living": "living",
+        "bedroom": "bedroom_4",
+        "kids": "bedroom_5"
+      },
+      "marketed_room_count": 4,
+      "kids_required": true,
+      "eligibility_basis": "ground truth room count",
+      "validation": {
+        "ok": false,
+        "errors": [
+          "Room 1 needs 3–32 finite polygon points within ±100 m."
+        ],
+        "warnings": []
+      },
+      "editor": {
+        "ok": false,
+        "errors": [
+          "Room 1 needs 3–32 finite polygon points within ±100 m."
+        ],
+        "warnings": [],
+        "revision": 0
+      },
+      "bridge_accepted": false,
+      "bridge_error": "Error: Invalid editor scene: Room 1 needs 3–32 finite polygon points within ±100 m.",
+      "cause": "room_polygon_limit",
+      "seconds": 0.002391541999999987,
+      "designer_requests_run": 0,
+      "model_tokens": 0
+    },
+    {
+      "id": "b25-t72",
+      "input": "packages/designer/eval/komitas/b25-t72.rejected.json",
+      "accepted_scene_published": false,
+      "ground_truth": {
+        "id": "b25-t72",
+        "building_id": 25,
+        "type_id": 72,
+        "rooms": 4,
+        "area_m2": 118,
+        "bathrooms": 2,
+        "balconies": 2,
+        "northDeg": 0
+      },
+      "roles": {
+        "living": "living",
+        "bedroom": "bed4",
+        "kids": "bed5"
+      },
+      "marketed_room_count": 4,
+      "kids_required": true,
+      "eligibility_basis": "ground truth room count",
+      "validation": {
+        "ok": true,
+        "errors": [],
+        "warnings": []
+      },
+      "editor": {
+        "ok": true,
+        "errors": [],
+        "warnings": [],
+        "revision": 1
+      },
+      "bridge_accepted": false,
+      "bridge_error": "Error: Wall w1 is not entirely a room boundary; interior obstacles require an explicit supported representation",
+      "cause": "wall_room_boundary",
+      "seconds": 0.007476540999999997,
+      "designer_requests_run": 0,
+      "model_tokens": 0
+    },
+    {
+      "id": "b24-t22",
+      "input": "packages/designer/eval/komitas/b24-t22.rejected.json",
+      "accepted_scene_published": false,
+      "ground_truth": {
+        "id": "b24-t22",
+        "building_id": 24,
+        "type_id": 22,
+        "rooms": 3,
+        "area_m2": 83.2,
+        "bathrooms": 2,
+        "balconies": 1,
+        "northDeg": 0
+      },
+      "roles": {
+        "living": "living",
+        "bedroom": "bedroom_1",
+        "kids": "bedroom_2"
+      },
+      "marketed_room_count": 3,
+      "kids_required": true,
+      "eligibility_basis": "ground truth room count",
+      "validation": {
+        "ok": false,
+        "errors": [
+          "Door “bathroom_1_door” intersects wall “w27”. Move or resize the opening to keep it clear of that wall."
+        ],
+        "warnings": []
+      },
+      "editor": {
+        "ok": false,
+        "errors": [
+          "Door “bathroom_1_door” intersects wall “w27”. Move or resize the opening to keep it clear of that wall."
+        ],
+        "warnings": [],
+        "revision": 0
+      },
+      "bridge_accepted": false,
+      "bridge_error": "Error: Invalid editor scene: Door “bathroom_1_door” intersects wall “w27”. Move or resize the opening to keep it clear of that wall.",
+      "cause": "opening_collision",
+      "seconds": 0.0024480420000000153,
+      "designer_requests_run": 0,
+      "model_tokens": 0
+    },
+    {
+      "id": "b31-t46",
+      "input": "packages/designer/eval/komitas/b31-t46.rejected.json",
+      "accepted_scene_published": false,
+      "ground_truth": {
+        "id": "b31-t46",
+        "building_id": 31,
+        "type_id": 46,
+        "rooms": 1,
+        "area_m2": 89.4,
+        "bathrooms": 2,
+        "balconies": 1,
+        "northDeg": 0
+      },
+      "roles": {
+        "living": "living",
+        "bedroom": "bedroom_1",
+        "kids": "bedroom_2"
+      },
+      "marketed_room_count": 1,
+      "kids_required": false,
+      "eligibility_basis": "ground truth room count",
+      "validation": {
+        "ok": true,
+        "errors": [],
+        "warnings": []
+      },
+      "editor": {
+        "ok": true,
+        "errors": [],
+        "warnings": [],
+        "revision": 1
+      },
+      "bridge_accepted": false,
+      "bridge_error": "Error: Wall west_bathroom_1 is not entirely a room boundary; interior obstacles require an explicit supported representation",
+      "cause": "wall_room_boundary",
+      "seconds": 0.0034552910000000166,
+      "designer_requests_run": 0,
+      "model_tokens": 0
+    },
+    {
+      "id": "b27-t79",
+      "input": "packages/designer/eval/komitas/b27-t79.rejected.json",
+      "accepted_scene_published": false,
+      "ground_truth": {
+        "id": "b27-t79",
+        "building_id": 27,
+        "type_id": 79,
+        "rooms": 3,
+        "area_m2": 87,
+        "bathrooms": 2,
+        "balconies": 1,
+        "northDeg": 0
+      },
+      "roles": {
+        "living": "living",
+        "bedroom": "bedroom_1",
+        "kids": "bedroom_2"
+      },
+      "marketed_room_count": 3,
+      "kids_required": true,
+      "eligibility_basis": "ground truth room count",
+      "validation": {
+        "ok": false,
+        "errors": [
+          "Room 1 needs 3–32 finite polygon points within ±100 m."
+        ],
+        "warnings": []
+      },
+      "editor": {
+        "ok": false,
+        "errors": [
+          "Room 1 needs 3–32 finite polygon points within ±100 m."
+        ],
+        "warnings": [],
+        "revision": 0
+      },
+      "bridge_accepted": false,
+      "bridge_error": "Error: Invalid editor scene: Room 1 needs 3–32 finite polygon points within ±100 m.",
+      "cause": "room_polygon_limit",
+      "seconds": 0.0013128749999999911,
+      "designer_requests_run": 0,
+      "model_tokens": 0
+    },
+    {
+      "id": "b21-t13",
+      "input": "packages/designer/eval/komitas/b21-t13.rejected.json",
+      "accepted_scene_published": false,
+      "ground_truth": {
+        "id": "b21-t13",
+        "building_id": 21,
+        "type_id": 13,
+        "rooms": 2,
+        "area_m2": 41.3,
+        "bathrooms": 1,
+        "balconies": 1,
+        "northDeg": 0
+      },
+      "roles": {
+        "living": "living",
+        "bedroom": "bed"
+      },
+      "marketed_room_count": 2,
+      "kids_required": false,
+      "eligibility_basis": "ground truth room count",
+      "validation": {
+        "ok": true,
+        "errors": [],
+        "warnings": []
+      },
+      "editor": {
+        "ok": true,
+        "errors": [],
+        "warnings": [],
+        "revision": 1
+      },
+      "bridge_accepted": false,
+      "bridge_error": "Error: Wall w1 is not entirely a room boundary; interior obstacles require an explicit supported representation",
+      "cause": "wall_room_boundary",
+      "seconds": 0.002265375000000006,
+      "designer_requests_run": 0,
+      "model_tokens": 0
+    },
+    {
+      "id": "b28-t31",
+      "input": "packages/designer/eval/komitas/b28-t31.rejected.json",
+      "accepted_scene_published": false,
+      "ground_truth": {
+        "id": "b28-t31",
+        "building_id": 28,
+        "type_id": 31,
+        "rooms": 2,
+        "area_m2": 60.9,
+        "bathrooms": 1,
+        "balconies": 1,
+        "northDeg": 0
+      },
+      "roles": {
+        "living": "living",
+        "bedroom": "bedroom"
+      },
+      "marketed_room_count": 2,
+      "kids_required": false,
+      "eligibility_basis": "ground truth room count",
+      "validation": {
+        "ok": true,
+        "errors": [],
+        "warnings": []
+      },
+      "editor": {
+        "ok": true,
+        "errors": [],
+        "warnings": [],
+        "revision": 1
+      },
+      "bridge_accepted": false,
+      "bridge_error": "Error: Wall w01 is not entirely a room boundary; interior obstacles require an explicit supported representation",
+      "cause": "wall_room_boundary",
+      "seconds": 0.0017661659999999983,
+      "designer_requests_run": 0,
+      "model_tokens": 0
+    },
+    {
+      "id": "b30-t35",
+      "input": "packages/designer/eval/komitas/b30-t35.rejected.json",
+      "accepted_scene_published": false,
+      "ground_truth": {
+        "id": "b30-t35",
+        "building_id": 30,
+        "type_id": 35,
+        "rooms": 3,
+        "area_m2": 74.1,
+        "bathrooms": 2,
+        "balconies": 1,
+        "northDeg": 0
+      },
+      "roles": {
+        "living": "living",
+        "bedroom": "bedroom_1",
+        "kids": "bedroom_2"
+      },
+      "marketed_room_count": 3,
+      "kids_required": true,
+      "eligibility_basis": "ground truth room count",
+      "validation": {
+        "ok": true,
+        "errors": [],
+        "warnings": []
+      },
+      "editor": {
+        "ok": true,
+        "errors": [],
+        "warnings": [],
+        "revision": 1
+      },
+      "bridge_accepted": false,
+      "bridge_error": "Error: Wall w01 is not entirely a room boundary; interior obstacles require an explicit supported representation",
+      "cause": "wall_room_boundary",
+      "seconds": 0.002728166000000016,
+      "designer_requests_run": 0,
+      "model_tokens": 0
+    },
+    {
+      "id": "b18-t1",
+      "input": "packages/designer/eval/komitas/b18-t1.rejected.json",
+      "accepted_scene_published": false,
+      "ground_truth": {
+        "id": "b18-t1",
+        "building_id": 18,
+        "type_id": 1,
+        "rooms": 2,
+        "area_m2": 65.6,
+        "bathrooms": 1,
+        "balconies": 1,
+        "northDeg": 0
+      },
+      "roles": {
+        "living": "living",
+        "bedroom": "bed"
+      },
+      "marketed_room_count": 2,
+      "kids_required": false,
+      "eligibility_basis": "ground truth room count",
+      "validation": {
+        "ok": false,
+        "errors": [
+          "Wall 7 has overlapping openings."
+        ],
+        "warnings": []
+      },
+      "editor": {
+        "ok": false,
+        "errors": [
+          "Wall 7 has overlapping openings."
+        ],
+        "warnings": [],
+        "revision": 0
+      },
+      "bridge_accepted": false,
+      "bridge_error": "Error: Invalid editor scene: Wall 7 has overlapping openings.",
+      "cause": "opening_collision",
+      "seconds": 0.0009720000000000084,
+      "designer_requests_run": 0,
+      "model_tokens": 0
+    }
+  ]
+}

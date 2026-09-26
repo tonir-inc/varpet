@@ -44,3 +44,10 @@ test('marketed three-room input never silently skips kids if role is unresolved'
   expect(flatContext(demoScene,{room_count:2}).kids_required).toBe(false);
   expect(flatContext({rooms:[{id:'l',name:'Living'},{id:'b',name:'Bedroom'},{id:'k',name:'Children'}]}).roles.kids).toBe('k');
 });
+import {groundTruthForFlat} from './komitas-grade.js';
+test('published ground-truth array controls eligibility despite differing traced room count',()=>{
+  const row=groundTruthForFlat([{id:'b31-t46',rooms:1},{id:'b24-t22',rooms:3}],'b31-t46');
+  expect(row.rooms).toBe(1);
+  expect(flatContext({rooms:[{name:'Living'},{name:'Bedroom 1'},{name:'Bedroom 2'}]},row).kids_required).toBe(false);
+  expect(()=>groundTruthForFlat([{id:'other',rooms:3}],'missing')).toThrow('Missing ground truth');
+});

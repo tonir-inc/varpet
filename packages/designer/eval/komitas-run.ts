@@ -8,7 +8,7 @@ import {demoScene,localCatalog} from '../../../apps/editor/src/core/demo.js';
 import {EditorStore} from '../../../apps/editor/src/core/store.js';
 import {validateScene} from '../../../apps/editor/src/core/validation.js';
 import {createCatalogHttpAdapter,mergeCatalogs} from '../../../apps/editor/src/adapters/catalog-http.js';
-import {requests,grade,flatContext} from './komitas-grade.js';
+import {requests,grade,flatContext,groundTruthForFlat} from './komitas-grade.js';
 const arg=(key:string,fallback:string)=>process.argv.includes(key)?process.argv[process.argv.indexOf(key)+1]!:fallback;
 const input=arg('--scene','avani'),id=arg('--id',input==='avani'?'avani':basename(input,'.scene.json'));
 const output=resolve(ROOT,arg('--output',`packages/designer/eval/komitas-runs/${id}-${Date.now()}`));
@@ -21,7 +21,7 @@ async function main(){
   const scene=input==='avani'?structuredClone(demoScene):read(resolve(ROOT,input));
   const truthPath=arg('--truth','');
   const truth=truthPath?read(resolve(ROOT,truthPath)):{};
-  const context=flatContext(scene,truth.flats?.find((flat:any)=>flat.id===id)??truth[id]??truth);
+  const context=flatContext(scene,groundTruthForFlat(truth,id));
   const remote=await createCatalogHttpAdapter({url:'http://localhost:8765/editor/assets'}).list();
   const catalog=mergeCatalogs(localCatalog,remote),store=new EditorStore(scene,catalog),initial=validateScene(store.scene,catalog);
   if(!initial.ok)throw new Error(`Invalid initial scene: ${JSON.stringify(initial)}`);

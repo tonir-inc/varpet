@@ -35,6 +35,11 @@ export function roomRoles(scene:any) {
   const bedrooms=scene.rooms.filter((r:any)=>/bedroom|bed room|children|kids|nursery|ննջ|спаль|детск/i.test(r.name??''));
   return {living:scene.rooms.find((r:any)=>/living|հյուր|гостин/i.test(r.name??''))?.id,bedroom:bedrooms[0]?.id,kids:bedrooms[1]?.id};
 }
+export function groundTruthForFlat(truth:any,id:string):any {
+  const rows=Array.isArray(truth)?truth:Array.isArray(truth.flats)?truth.flats:null;
+  if(rows){const row=rows.find((row:any)=>row.id===id);if(!row)throw new Error(`Missing ground truth for ${id}`);return row;}
+  return truth[id]??truth;
+}
 export function flatContext(scene:any,truth:any={}) {
   const roles={...roomRoles(scene),...(truth.room_roles??{})};
   const explicit=[truth.marketed_room_count,truth.room_count,truth.rooms_count,truth.rooms].find(v=>typeof v==='number');
