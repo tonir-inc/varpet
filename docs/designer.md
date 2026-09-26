@@ -1,5 +1,7 @@
 # The designer: the agent the customer talks to
 
+[Designer status and evidence for Felix’s review — 26 September 2026](designer-status-2026-09-26.md).
+
 Owner: Ashot. Status: design, 26 Sept 11:40. Builds on Notion's Design doc and Designer and evals pages and on
 the week's research (skills and data carry over; code is rebuilt here).
 
