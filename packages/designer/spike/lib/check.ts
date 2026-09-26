@@ -8,6 +8,9 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { centerOf } from './scene.ts';
+import type { CatalogAsset } from '../../../../apps/editor/src/contracts.js';
+import { wallDecoration } from '../../../../apps/editor/src/core/decoration-placement.js';
+import { canRestOnFurniture } from '../../../../apps/editor/src/core/furniture-support.js';
 
 /** One live lookup per process: are mattress products searchable yet? A failed search counts as no. */
 let mattressLookup: Promise<boolean> | undefined;
@@ -68,8 +71,16 @@ function overlapDepth(a: Vec2[], b: Vec2[]): number {
 }
 const WALL_KINDS = new Set(['wall_art', 'mirror']);
 
-/** Wall-hung and resting items: the designer checker only knows floor footprints, so these are checked here. */
-export function checkDecor(scene: Scene, draft: Draft): string[] {
+/** The item as the editor's placement rules see it (kind by the bridge's mapping, name, size as w, h, d). */
+function editorAsset(item: DraftItem, kindOf: (kind: string) => string): CatalogAsset {
+  const [w, d, h] = item.size;
+  return { id: item.sku ?? item.id, name: item.name, category: item.kind, kind: kindOf(item.kind) as CatalogAsset['kind'], dimensions: [w, h, d], color: '#888888', price: 0, source: { type: 'procedural' } };
+}
+
+/** Wall-hung and resting items: the designer checker only knows floor footprints, so these are checked here, with the
+ * editor's own rules for what may hang (wallDecoration) and what may rest on furniture (canRestOnFurniture).
+ * kindOf maps a designer kind to the editor's (editor-bridge editorKindOf); identity by default. */
+export function checkDecor(scene: Scene, draft: Draft, kindOf: (kind: string) => string = kind => kind): string[] {
   const out: string[] = [], draftItems = draft.items ?? [], all: DraftItem[] = [...scene.items, ...draftItems];
   const byId = new Map(all.map(item => [item.id, item]));
   const floor = [...all.filter(onFloor), ...(scene.fixed ?? [])];
@@ -79,6 +90,10 @@ export function checkDecor(scene: Scene, draft: Draft): string[] {
     if (item.height_m !== undefined && item.wall_id === undefined) out.push(`decor: ${item.id} has height_m but no wall_id`);
     if (item.wall_id === undefined && item.on === undefined && WALL_KINDS.has(item.kind) && !(item.kind === 'mirror' && item.size[2] > 1.4))
       out.push(`decor: ${item.id} ${item.kind} must hang on a wall: set wall_id and height_m (use onWall())`);
+    if (item.wall_id !== undefined && !wallDecoration(editorAsset(item, kindOf))) {
+      out.push(`decor: ${item.id} ${item.kind} cannot hang on a wall: the editor hangs only wall art, mirrors, curtains and clocks; drop wall_id and height_m and stand it on the floor (or pick a hanging kind)`);
+      continue;
+    }
     if (item.wall_id !== undefined) {
       const spot = wallSpot(scene, item);
       if (!spot) { out.push(`decor: ${item.id} wall ${item.wall_id} does not bound ${item.room_id}`); continue; }
@@ -106,6 +121,8 @@ export function checkDecor(scene: Scene, draft: Draft): string[] {
       const support = byId.get(item.on);
       if (!support) { out.push(`decor: ${item.id} rests on missing item ${item.on}`); continue; }
       if (support.wall_id !== undefined) { out.push(`decor: ${item.id} cannot rest on wall-hung ${support.id}`); continue; }
+      if (!canRestOnFurniture(editorAsset(item, kindOf))) { out.push(`decor: ${item.id} ${item.kind} (${item.size.map(v => v.toFixed(2)).join('x')} m) cannot rest on ${support.id}: the editor stacks only decor, plants, lamps, TVs up to 2 m wide and small electronics; drop \`on\` and stand it on the floor`); continue; }
+      if (kindOf(support.kind) === 'rug') { out.push(`decor: ${item.id} cannot rest on rug ${support.id}; the editor puts it on the floor, so drop \`on\``); continue; }
       const seen = new Set([item.id]);
       let cur: DraftItem | undefined = support;
       while (cur?.on !== undefined && !seen.has(cur.id)) { seen.add(cur.id); cur = byId.get(cur.on); }
@@ -166,7 +183,8 @@ export async function check(scene: Scene, draft: Draft, options: { budget?: numb
     const parsed = opsSchema.safeParse(decorOps);
     if (!parsed.success) problems.push(...parsed.error.issues.map(i => `operations: ${decorOps[i.path[0] as number]?.item.id ?? i.path[0]}${i.path.slice(2).map(k => '.' + k).join('')}: ${i.message}`));
   }
-  problems.push(...checkDecor(scene, draft));
+  const { editorKindOf } = await importSrc<typeof import('../../src/editor-bridge.ts')>('editor-bridge.ts');
+  problems.push(...checkDecor(scene, draft, kind => editorKindOf[kind] ?? kind));
   const relations = designRelations(draft), bare = relations.filter(p => /bare bed frame/.test(p));
   // Mattress models ship with a catalog deploy; while the live catalog has none, a frame cannot be dressed.
   const noMattresses = bare.length > 0 && !(await mattressesAvailable());

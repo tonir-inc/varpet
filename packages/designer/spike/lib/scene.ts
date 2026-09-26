@@ -185,7 +185,7 @@ export function againstWall(scene: Scene, roomId: string, wallId: string, size: 
 }
 /** Default centre height of wall art: the editor's base max(0.9, 1.5 - h/2) plus h/2. */
 export const defaultArtHeight = (h: number) => Math.round((Math.max(0.9, 1.5 - h / 2) + h / 2) * 1000) / 1000;
-/** A wall-hung item (art, mirror, clock, wall shelf) flat on the room-side face of wallId, facing into the room.
+/** A wall-hung item (art, mirror, clock, curtain) flat on the room-side face of wallId, facing into the room.
  * along as in againstWall (from the room alias's `a` end); height = centre height above the floor (default ~1.5).
  * Returns every placement field the draft item needs: {pos, rot, wall_id, height_m}. */
 export function onWall(scene: Scene, roomId: string, wallId: string, size: [number, number, number], along?: number, height?: number): { pos: Vec2; rot: number; wall_id: string; height_m: number } {

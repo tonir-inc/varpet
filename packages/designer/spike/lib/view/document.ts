@@ -15,6 +15,8 @@ import { validateScene } from '../../../../../apps/editor/src/core/validation.js
 import { wallSurfaceSpans } from '../../../../../apps/editor/src/core/wall-surfaces.js';
 import { normalizeWallJunctions } from '../../../../../apps/editor/src/core/wall-junctions.js';
 import { headlessSurface, placeFurniture } from '../../../../../apps/editor/src/core/furniture-support.js';
+import { mountDecoration, wallDecoration } from '../../../../../apps/editor/src/core/decoration-placement.js';
+import { snapRoomFaces } from '../../../src/reconcile-geometry.js';
 import { FIXTURE_DEFAULTS, fixtureBottom, material, onFloor, type Draft, type DraftItem } from '../finishes.js';
 import { CATALOG_CACHE } from './state.js';
 
@@ -24,15 +26,18 @@ export type { Draft };
  * side. top: plan view. Or an explicit pose in designer metres (x, y on the plan, h height; default 1.4 eye / 0.9 target). */
 export type ViewCamera = 'overview' | 'eye' | 'eye2' | 'top' | { eye: [number, number, number?]; target: [number, number, number?] };
 
-const EDITOR_KINDS = new Set<string>(['sofa', 'chair', 'table', 'desk', 'bed', 'cabinet', 'wardrobe', 'dresser', 'lamp', 'plant', 'rug', 'shelf', 'toilet', 'sink', 'bathtub', 'shower', 'fridge', 'stove', 'oven', 'washing_machine', 'dryer', 'dishwasher', 'microwave', 'tv', 'monitor', 'computer', 'laptop', 'speaker', 'printer', 'game_console', 'kitchen_cabinet', 'kitchen_counter', 'kitchen_island', 'radiator', 'fan', 'coat_rack', 'shoe_rack', 'decor', 'wall_art', 'mirror']);
-
-/** The flat's own editor document (workspace source.json) without its furniture; without one, the Avani demo shell. */
+/** The flat's own editor document (workspace source.json) without its furniture; without one, the Avani demo shell.
+ * Room outlines are snapped onto the wall faces as the designer's scene was (editorToDesigner reconciles version 2
+ * documents): traced rooms stop 1-3 cm short of the faces, and the editor paints a wall face, and finds the floor
+ * under a hung mirror, only where a room polygon reaches that face. */
 function editorShell(scene: Scene, source?: unknown): SceneDocument {
   if (source) {
     const doc = structuredClone(source) as SceneDocument, rooms = new Set(doc.rooms.map(room => room.id));
     const missing = scene.rooms.filter(room => !rooms.has(room.id)).map(room => room.id);
     if (missing.length) throw new Error(`source.json has no rooms ${missing.join(', ')}; it is not this scene's editor document`);
-    return withSceneSections(scene, { ...doc, objects: [] });
+    const snapped = doc.version === 2 ? snapRoomFaces({ ...doc, objects: [] }) : undefined;
+    for (const warning of snapped?.audit.warnings ?? []) process.stderr.write(`renderView: ${warning}\n`);
+    return withSceneSections(scene, snapped?.editor ?? { ...doc, objects: [] });
   }
   const rooms = new Set(demoScene.rooms.map(room => room.id));
   if (!scene.rooms.every(room => rooms.has(room.id))) throw new Error('renderView supports the Avani demo shell only (room ids must match apps/editor demoScene)');
@@ -40,9 +45,8 @@ function editorShell(scene: Scene, source?: unknown): SceneDocument {
 }
 
 /** A scene made from a junction-split document names wall sections (`wall-south:section-…`) that the saved document
- * does not have yet. The editor's own normalization makes the same deterministic section ids, so wall finishes and
- * wall-hung items find their wall; if it cannot split (a mounted component across a junction), walls are matched by
- * geometry instead (editorWall). */
+ * does not have yet. The editor's own normalization makes the same deterministic section ids; if it cannot split (a
+ * mounted component across a junction), accent walls are matched by geometry anyway (accentFaces). */
 function withSceneSections(scene: Scene, doc: SceneDocument): SceneDocument {
   const known = new Set(doc.walls.map(wall => wall.id));
   if (scene.walls.every(wall => known.has(wall.source_id ?? wall.id))) return doc;
@@ -52,21 +56,49 @@ function withSceneSections(scene: Scene, doc: SceneDocument): SceneDocument {
   }
 }
 
-/** The editor wall a designer wall lies on: by id, else the editor wall whose centreline contains both its ends. */
-function editorWall(doc: SceneDocument, scene: Scene, designerWallId: string | undefined) {
-  const designer = scene.walls.find(wall => wall.id === designerWallId);
-  if (!designer) return undefined;
-  const byId = doc.walls.find(wall => wall.id === (designer.source_id ?? designer.id));
-  if (byId) return byId;
+/** One side of an editor wall and how much of it (metres along the wall) looks into each room, by the editor's own
+ * wallSurfaceSpans. The editor stores one finish per face, not per span, so a face shared by two rooms (a partition
+ * running past a corner into the hall) takes the finish of `owner`, the room it bounds for the longest stretch. */
+export interface WallFace { wallId: string; surface: 'wall-front' | 'wall-back'; rooms: Map<string, number>; owner: string }
+
+/** Shorter room contacts (a jamb return, a wall end touching a corner) are not a face of that room. */
+const MIN_FACE = 0.05;
+
+export function wallFaces(doc: SceneDocument): WallFace[] {
+  const metadata = doc.project?.metadata ?? {}, faces: WallFace[] = [];
+  const rooms = doc.rooms.filter(room => metadata[room.id]?.phase !== 'remove');
+  for (const wall of doc.walls) {
+    if (metadata[wall.id]?.phase === 'remove') continue;
+    for (const surface of ['wall-front', 'wall-back'] as const) {
+      const cover = new Map<string, number>();
+      for (const room of rooms) {
+        const length = wallSurfaceSpans(wall, [room], metadata).filter(span => surface === 'wall-front' ? span.front : span.back).reduce((sum, span) => sum + span.end - span.start, 0);
+        if (length >= MIN_FACE) cover.set(room.id, length);
+      }
+      const owner = [...cover].sort((a, b) => b[1] - a[1])[0]?.[0];
+      if (owner) faces.push({ wallId: wall.id, surface, rooms: cover, owner });
+    }
+  }
+  return faces;
+}
+
+/** The editor wall faces a designer wall segment covers, on the side that looks into the room: every editor wall
+ * (junction sections included) lying along the segment's line and overlapping it by more than MIN_FACE. */
+export function accentFaces(doc: SceneDocument, faces: WallFace[], designer: Scene['walls'][number] | undefined, roomId: string): WallFace[] {
+  if (!designer) return [];
   const ends = [designer.a, designer.b].map(([x, y]) => [x, -y] as const);
-  return doc.walls.find(wall => {
+  const walls = doc.walls.filter(wall => {
     const dx = wall.end[0] - wall.start[0], dz = wall.end[1] - wall.start[1], length = Math.hypot(dx, dz);
     if (length < 1e-6) return false;
-    return ends.every(([x, z]) => {
-      const along = ((x - wall.start[0]) * dx + (z - wall.start[1]) * dz) / length, across = Math.abs((x - wall.start[0]) * dz - (z - wall.start[1]) * dx) / length;
-      return across < 0.03 && along > -0.03 && along < length + 0.03;
-    });
-  });
+    const along = ends.map(([x, z]) => ((x - wall.start[0]) * dx + (z - wall.start[1]) * dz) / length);
+    const across = ends.map(([x, z]) => Math.abs((x - wall.start[0]) * dz - (z - wall.start[1]) * dx) / length);
+    const overlap = Math.min(length, Math.max(...along)) - Math.max(0, Math.min(...along));
+    return across.every(value => value <= Math.max(0.03, wall.thickness / 2 + 0.01)) && overlap > MIN_FACE;
+  }).map(wall => wall.id);
+  // Prefer faces this room owns: a face shared with a neighbour carries one finish, so an accent on it repaints the
+  // neighbour's stretch too. Only when the room owns none of them does the explicit accent win anyway.
+  const matched = faces.filter(face => walls.includes(face.wallId) && face.rooms.has(roomId)), owned = matched.filter(face => face.owner === roomId);
+  return owned.length ? owned : matched;
 }
 
 async function loadAssets(skus: string[]): Promise<CatalogAsset[]> {
@@ -86,26 +118,29 @@ async function loadAssets(skus: string[]): Promise<CatalogAsset[]> {
 }
 
 /** Draft/scene items become editor objects; a product without a usable model renders as the editor's procedural piece.
- * Wall-hung items (wall_id) get the editor's furniture `host` on the matching editor wall at height_m; items with `on`
- * are placed by the editor's own placeFurniture so they carry `restsOn` and sit on the support's top surface. */
+ * Wall-hung items (wall_id) are mounted by the editor's own mountDecoration, so the host, height and position are the
+ * ones the editor's placement review recomputes; items with `on` are placed by the editor's own placeFurniture so they
+ * carry `restsOn` and sit on the support's top surface. */
 export async function editorDocument(scene: Scene, draft: Draft, source?: unknown): Promise<{ scene: SceneDocument; catalog: CatalogAsset[] }> {
   const doc = editorShell(scene, source), items: DraftItem[] = [...scene.items, ...draft.items];
   const catalog = await loadAssets(items.flatMap(item => item.sku ? [item.sku] : []));
   const placed = new Map<string, SceneObject>();
-  const base = (item: DraftItem): SceneObject => {
-    const [w, d, h] = item.size;
-    let asset = item.sku ? catalog.find(candidate => candidate.id === item.sku) : undefined;
+  const assetOf = (item: DraftItem): CatalogAsset => {
+    let asset = catalog.find(candidate => candidate.id === (item.sku ?? '') || candidate.id === `spike-box-${item.id}`);
     if (!asset) {
-      const kind = (EDITOR_KINDS.has(item.kind) ? item.kind : editorKindOf[item.kind] ?? 'cabinet') as AssetKind;
+      const [w, d, h] = item.size, kind = editorAssetKind(item.kind) as AssetKind;
       asset = { id: `spike-box-${item.id}`, name: item.name, category: 'Spike', kind, dimensions: [w, h, d], color: item.color ?? '#b8b4ad', price: 0, source: { type: 'procedural' } };
       catalog.push(asset);
     }
-    const [aw, ah, ad] = asset.dimensions;
+    return asset;
+  };
+  const base = (item: DraftItem): SceneObject => {
+    const [w, d, h] = item.size, asset = assetOf(item), [aw, ah, ad] = asset.dimensions;
     return { id: item.id, name: item.name, assetId: asset.id, position: [item.pos[0], 0, -item.pos[1]], rotation: item.rot * Math.PI / 180,
       scale: [w / aw, h / ah, d / ad].map(value => Number.isFinite(value) && value > 0 ? value : 1) as [number, number, number], ...(item.color ? { color: item.color } : {}) };
   };
   for (const item of items.filter(onFloor)) placed.set(item.id, base(item));
-  for (const item of items.filter(item => item.wall_id !== undefined)) placed.set(item.id, hang(doc, scene, item, base(item)));
+  for (const item of items.filter(item => item.wall_id !== undefined)) placed.set(item.id, hang(doc, item, base(item), assetOf(item)));
   // Resting items after their supports; chains resolve over a few passes, the rest fall back to the floor.
   let pending = items.filter(item => item.wall_id === undefined && item.on !== undefined);
   for (let pass = 0; pending.length && pass < 4; pass++) {
@@ -121,18 +156,23 @@ export async function editorDocument(scene: Scene, draft: Draft, source?: unknow
   return { scene: applySurfaces({ ...doc, objects }, scene, draft), catalog };
 }
 
-/** Flat on the room-side face of the editor wall behind the item, base at height_m - h/2. */
-function hang(doc: SceneDocument, scene: Scene, item: DraftItem, object: SceneObject): SceneObject {
-  const wall = editorWall(doc, scene, item.wall_id);
-  if (!wall) { process.stderr.write(`renderView: ${item.id} wall ${item.wall_id} has no editor wall; left on the floor\n`); return object; }
-  const [w, d, h] = item.size, dx = wall.end[0] - wall.start[0], dz = wall.end[1] - wall.start[1], length = Math.hypot(dx, dz) || 1, tx = dx / length, tz = dz / length;
-  const px = object.position[0], pz = object.position[2];
-  const offset = Math.max(Math.min(w / 2, length / 2), Math.min(length - Math.min(w / 2, length / 2), (px - wall.start[0]) * tx + (pz - wall.start[1]) * tz));
-  const x = wall.start[0] + tx * offset, z = wall.start[1] + tz * offset;
-  const side: 1 | -1 = (px - x) * -tz + (pz - z) * tx >= 0 ? 1 : -1, nx = -tz * side, nz = tx * side, gap = wall.thickness / 2 + d / 2;
+const EDITOR_KINDS = new Set<string>(['sofa', 'chair', 'table', 'desk', 'bed', 'cabinet', 'wardrobe', 'dresser', 'lamp', 'plant', 'rug', 'shelf', 'toilet', 'sink', 'bathtub', 'shower', 'fridge', 'stove', 'oven', 'washing_machine', 'dryer', 'dishwasher', 'microwave', 'tv', 'monitor', 'computer', 'laptop', 'speaker', 'printer', 'game_console', 'kitchen_cabinet', 'kitchen_counter', 'kitchen_island', 'radiator', 'fan', 'coat_rack', 'shoe_rack', 'decor', 'wall_art', 'mirror', 'curtain']);
+/** The editor asset kind a designer kind becomes when its product has no catalog record. */
+export const editorAssetKind = (kind: string): string => EDITOR_KINDS.has(kind) ? kind : editorKindOf[kind] ?? 'cabinet';
+
+/** The editor's own wall mount (nearest room-facing wall face, its standard hanging height). The editor hangs only
+ * wall decorations (art, mirrors, curtains, clocks); anything else asked to hang stands on the floor below its spot,
+ * as the spike check tells the model. */
+function hang(doc: SceneDocument, item: DraftItem, object: SceneObject, asset: CatalogAsset): SceneObject {
   const floor = doc.project?.metadata[item.room_id]?.elevation ?? 0;
-  const elevation = floor + (item.height_m ?? Math.max(0.9, 1.5 - h / 2) + h / 2) - h / 2;
-  return { ...object, position: [x + nx * gap, elevation, z + nz * gap], rotation: Math.atan2(nx, nz) || 0, host: { wallId: wall.id, offset, elevation, side } };
+  if (!wallDecoration(asset)) {
+    process.stderr.write(`renderView: ${item.id} (${asset.kind}) cannot hang on a wall in the editor; stood on the floor\n`);
+    return { ...object, position: [object.position[0], floor, object.position[2]] };
+  }
+  try { return mountDecoration(doc, object, asset); } catch (error) {
+    process.stderr.write(`renderView: ${item.id} on ${item.wall_id}: ${error instanceof Error ? error.message : error}; left on the floor\n`);
+    return { ...object, position: [object.position[0], floor, object.position[2]] };
+  }
 }
 
 /** The editor's placeFurniture (restsOn + support top); kinds the editor will not stack still sit on the support's top. */
@@ -163,24 +203,15 @@ export function applySurfaces(input: SceneDocument, scene: Scene, draft: Draft):
     project.finishes = project.finishes.filter(finish => !(finish.entityId === entityId && finish.surface === surface));
     project.finishes.push({ id: `spike:${entityId}:${surface}`, entityId, surface, materialId: id });
   };
-  /** The face of an editor wall that looks into this room. */
-  const face = (wallId: string, roomId: string) => {
-    const wall = doc.walls.find(candidate => candidate.id === wallId), room = doc.rooms.find(candidate => candidate.id === roomId);
-    if (!wall || !room) return undefined;
-    const spans = wallSurfaceSpans(wall, [room], project.metadata);
-    return spans.some(span => span.front) ? 'wall-front' as const : spans.some(span => span.back) ? 'wall-back' as const : undefined;
-  };
+  const faces = wallFaces(doc);
   // Room-wide finishes first so a single accent wall overrides its room's walls.
   const order = { floor: 0, ceiling: 0, walls: 1, wall: 2 } as const;
   for (const finish of [...(draft.finishes ?? [])].sort((a, b) => order[a.surface] - order[b.surface])) {
     const id = materialId(finish.material, finish.color);
     if (finish.surface === 'floor' || finish.surface === 'ceiling') { assign(finish.room_id, finish.surface, id); continue; }
-    const target = finish.surface === 'wall' ? scene.walls.find(wall => wall.id === finish.wall_id) : undefined;
-    const walls = scene.walls.filter(wall => wall.room_id === finish.room_id && (!target || (wall.source_id ?? wall.id) === (target.source_id ?? target.id)));
-    for (const editorId of new Set(walls.flatMap(wall => editorWall(doc, scene, wall.id)?.id ?? []))) {
-      const side = face(editorId, finish.room_id);
-      if (side) assign(editorId, side, id);
-    }
+    const targets = finish.surface === 'walls' ? faces.filter(face => face.owner === finish.room_id)
+      : accentFaces(doc, faces, scene.walls.find(wall => wall.id === finish.wall_id), finish.room_id);
+    for (const face of targets) assign(face.wallId, face.surface, id);
   }
   project.materials.push(...materials.values());
   const items = [...scene.items, ...draft.items];

@@ -21,7 +21,7 @@ export interface FixtureLight {
   height_m?: number; size?: [number, number, number]; brightness?: number; temperature_k?: number; color?: string;
 }
 export type Light = CeilingLight | FixtureLight;
-/** A draft item. Wall-hung (art, mirrors, clocks, wall shelves): `wall_id` + `height_m` (centre height above the
+/** A draft item. Wall-hung (art, mirrors, clocks, curtains; the editor hangs nothing else): `wall_id` + `height_m` (centre height above the
  * floor), pos flush on that wall's face. Resting on another item (vase on a sideboard, cushion on a sofa): `on`
  * = the support's id, pos inside its footprint. Neither takes floor space. */
 export interface DraftItem extends Item { wall_id?: string; height_m?: number; on?: string }
