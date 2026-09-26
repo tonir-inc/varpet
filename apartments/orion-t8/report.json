@@ -1,0 +1,491 @@
+{
+ "flat": "orion-t8",
+ "scale": "traced in pixels; scale 138.1 px/m from the printed total area",
+ "faults": [],
+ "empty_export": "ok",
+ "furniture": [
+  {
+   "id": "reading-rug",
+   "kind": "rug",
+   "room": "lounge",
+   "footprint_m": [
+    2.45,
+    1.54
+   ],
+   "asset": "abo:B07B51T9SR",
+   "asset_m": [
+    2.45,
+    1.54
+   ],
+   "name": "Amazon Brand \u2013 Stone & Beam Striped Leather Area Rug, 5 x 8 Foot, Beige"
+  },
+  {
+   "id": "reading-chair-1",
+   "kind": "chair",
+   "room": "lounge",
+   "footprint_m": [
+    0.79,
+    0.82
+   ],
+   "asset": "abo:B082VMWB4G",
+   "asset_m": [
+    0.79,
+    0.82
+   ],
+   "name": "Amazon Brand \u2013 Rivet Jamie Upholstered Mid-Century Modern Low Arm Accent Chair, "
+  },
+  {
+   "id": "reading-chair-2",
+   "kind": "chair",
+   "room": "lounge",
+   "footprint_m": [
+    0.79,
+    0.82
+   ],
+   "asset": "abo:B082VMWB4G",
+   "asset_m": [
+    0.79,
+    0.82
+   ],
+   "name": "Amazon Brand \u2013 Rivet Jamie Upholstered Mid-Century Modern Low Arm Accent Chair, "
+  },
+  {
+   "id": "reading-table",
+   "kind": "table",
+   "room": "lounge",
+   "footprint_m": [
+    0.9,
+    0.45
+   ],
+   "asset": "abo:B01LWVEZ1C",
+   "asset_m": [
+    0.9,
+    0.45
+   ],
+   "name": "Amazon Brand - Alkove Waverly Large Coffee Table with Shelf in Light Oak Finish"
+  },
+  {
+   "id": "reading-bookcase",
+   "kind": "shelf",
+   "room": "lounge",
+   "footprint_m": [
+    0.91,
+    0.35
+   ],
+   "asset": "abo:B07B7DL32H",
+   "asset_m": [
+    0.91,
+    0.35
+   ],
+   "name": "Amazon Brand \u2013 Stone & Beam Rustic Casual Wood Bookcase with Doors, 36\"W, Grey"
+  },
+  {
+   "id": "reading-lamp",
+   "kind": "lamp",
+   "room": "lounge",
+   "footprint_m": [
+    0.42,
+    0.42
+   ],
+   "asset": "abo:B07374SBFN",
+   "asset_m": [
+    0.42,
+    0.42
+   ],
+   "name": "Amazon Brand \u2013 Stone & Beam Glass Column Brass Floor Lamp, With Bulb, Linen Shad"
+  },
+  {
+   "id": "bed-1",
+   "kind": "bed",
+   "room": "bedroom-1",
+   "footprint_m": [
+    1.62,
+    1.96
+   ],
+   "asset": "abo:B07GFS1W12",
+   "asset_m": [
+    1.62,
+    1.96
+   ],
+   "name": "Movian Havel"
+  },
+  {
+   "id": "night-1a",
+   "kind": "cabinet",
+   "room": "bedroom-1",
+   "footprint_m": [
+    0.45,
+    0.38
+   ],
+   "asset": "abo:B07RMZ83ZY",
+   "asset_m": [
+    0.45,
+    0.38
+   ],
+   "name": "AmazonBasics 2-Drawer Beside Table, 45 x 38 x 46 cm, Light Brown with Black Legs"
+  },
+  {
+   "id": "night-1b",
+   "kind": "cabinet",
+   "room": "bedroom-1",
+   "footprint_m": [
+    0.45,
+    0.38
+   ],
+   "asset": "abo:B07RMZ83ZY",
+   "asset_m": [
+    0.45,
+    0.38
+   ],
+   "name": "AmazonBasics 2-Drawer Beside Table, 45 x 38 x 46 cm, Light Brown with Black Legs"
+  },
+  {
+   "id": "wardrobe-1",
+   "kind": "wardrobe",
+   "room": "bedroom-1",
+   "footprint_m": [
+    1.77,
+    0.48
+   ],
+   "asset": "abo:B01LWRYSFS",
+   "asset_m": [
+    1.77,
+    0.48
+   ],
+   "name": "Amazon Brand - Movian Idro 2-Column Open Wardrobe, 177 x 48 x 200cm, Light Brown"
+  },
+  {
+   "id": "bed-2",
+   "kind": "bed",
+   "room": "bedroom-2",
+   "footprint_m": [
+    1.62,
+    1.96
+   ],
+   "asset": "abo:B07GFS1W12",
+   "asset_m": [
+    1.62,
+    1.96
+   ],
+   "name": "Movian Havel"
+  },
+  {
+   "id": "night-2a",
+   "kind": "cabinet",
+   "room": "bedroom-2",
+   "footprint_m": [
+    0.45,
+    0.38
+   ],
+   "asset": "abo:B07RMZ83ZY",
+   "asset_m": [
+    0.45,
+    0.38
+   ],
+   "name": "AmazonBasics 2-Drawer Beside Table, 45 x 38 x 46 cm, Light Brown with Black Legs"
+  },
+  {
+   "id": "night-2b",
+   "kind": "cabinet",
+   "room": "bedroom-2",
+   "footprint_m": [
+    0.45,
+    0.38
+   ],
+   "asset": "abo:B07RMZ83ZY",
+   "asset_m": [
+    0.45,
+    0.38
+   ],
+   "name": "AmazonBasics 2-Drawer Beside Table, 45 x 38 x 46 cm, Light Brown with Black Legs"
+  },
+  {
+   "id": "wardrobe-2",
+   "kind": "wardrobe",
+   "room": "bedroom-2",
+   "footprint_m": [
+    1.77,
+    0.48
+   ],
+   "asset": "abo:B01LWRYSFS",
+   "asset_m": [
+    1.77,
+    0.48
+   ],
+   "name": "Amazon Brand - Movian Idro 2-Column Open Wardrobe, 177 x 48 x 200cm, Light Brown"
+  },
+  {
+   "id": "hall-console",
+   "kind": "shelf",
+   "room": "hall",
+   "footprint_m": [
+    1.19,
+    0.39
+   ],
+   "asset": "abo:B07DBFG1BH",
+   "asset_m": [
+    1.19,
+    0.39
+   ],
+   "name": "Amazon Brand \u2013 Ravenna Home Dora Classic Shelf Storage Wood Console EntryTable, "
+  },
+  {
+   "id": "dining-table",
+   "kind": "table",
+   "room": "living",
+   "footprint_m": [
+    0.9,
+    0.9
+   ],
+   "asset": "abo:B0853Q3Z93",
+   "asset_m": [
+    0.9,
+    0.9
+   ],
+   "name": "Amazon Brand \u2013 Rivet Noah Round Modern Ash Dining Table, 35.4\"W, White"
+  },
+  {
+   "id": "dining-chair-n",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.49,
+    0.59
+   ],
+   "asset": "abo:B0853KR33B",
+   "asset_m": [
+    0.49,
+    0.59
+   ],
+   "name": "Amazon Brand \u2013 Rivet Eli Modern Curved-Back Dining Chair, Set of 2, 19.3\"W, Stuc"
+  },
+  {
+   "id": "dining-chair-s",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.49,
+    0.59
+   ],
+   "asset": "abo:B0853KR33B",
+   "asset_m": [
+    0.49,
+    0.59
+   ],
+   "name": "Amazon Brand \u2013 Rivet Eli Modern Curved-Back Dining Chair, Set of 2, 19.3\"W, Stuc"
+  },
+  {
+   "id": "dining-chair-w",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.49,
+    0.59
+   ],
+   "asset": "abo:B0853KR33B",
+   "asset_m": [
+    0.49,
+    0.59
+   ],
+   "name": "Amazon Brand \u2013 Rivet Eli Modern Curved-Back Dining Chair, Set of 2, 19.3\"W, Stuc"
+  },
+  {
+   "id": "dining-chair-e",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.49,
+    0.59
+   ],
+   "asset": "abo:B0853KR33B",
+   "asset_m": [
+    0.49,
+    0.59
+   ],
+   "name": "Amazon Brand \u2013 Rivet Eli Modern Curved-Back Dining Chair, Set of 2, 19.3\"W, Stuc"
+  },
+  {
+   "id": "living-rug",
+   "kind": "rug",
+   "room": "living",
+   "footprint_m": [
+    2.44,
+    1.53
+   ],
+   "asset": "abo:B07QHL6SF2",
+   "asset_m": [
+    2.44,
+    1.53
+   ],
+   "name": "Amazon Brand \u2013 Stone & Beam Casual Handwoven Area Rug 5' x 8', Ivory"
+  },
+  {
+   "id": "sofa",
+   "kind": "sofa",
+   "room": "living",
+   "footprint_m": [
+    2.2,
+    0.9
+   ],
+   "asset": "abo:B075X4QMX3",
+   "asset_m": [
+    2.2,
+    0.9
+   ],
+   "name": "Stone & Beam Westport Modern Nailhead Upholstered Sofa, 87\"W, Linen"
+  },
+  {
+   "id": "coffee-table",
+   "kind": "table",
+   "room": "living",
+   "footprint_m": [
+    1.08,
+    0.54
+   ],
+   "asset": "abo:B07GFG6JMM",
+   "asset_m": [
+    1.08,
+    0.54
+   ],
+   "name": "Amazon Brand -\u00a0Movian Adour Oval Coffee Table, 55 x 110 x 39cm, Light Brown Oak-"
+  },
+  {
+   "id": "living-chair-1",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.79,
+    0.82
+   ],
+   "asset": "abo:B082VMWB4G",
+   "asset_m": [
+    0.79,
+    0.82
+   ],
+   "name": "Amazon Brand \u2013 Rivet Jamie Upholstered Mid-Century Modern Low Arm Accent Chair, "
+  },
+  {
+   "id": "living-chair-2",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.79,
+    0.82
+   ],
+   "asset": "abo:B082VMWB4G",
+   "asset_m": [
+    0.79,
+    0.82
+   ],
+   "name": "Amazon Brand \u2013 Rivet Jamie Upholstered Mid-Century Modern Low Arm Accent Chair, "
+  },
+  {
+   "id": "living-lamp",
+   "kind": "lamp",
+   "room": "living",
+   "footprint_m": [
+    0.42,
+    0.42
+   ],
+   "asset": "abo:B07374SBFN",
+   "asset_m": [
+    0.42,
+    0.42
+   ],
+   "name": "Amazon Brand \u2013 Stone & Beam Glass Column Brass Floor Lamp, With Bulb, Linen Shad"
+  },
+  {
+   "id": "balcony-table",
+   "kind": "table",
+   "room": "balcony",
+   "footprint_m": [
+    0.75,
+    0.75
+   ],
+   "asset": "abo:B07MF1V33V",
+   "asset_m": [
+    0.75,
+    0.75
+   ],
+   "name": "Amazon Brand \u2013 Ravenna Home Traditional Dining Table 29\"H, White and Rustic Hone"
+  },
+  {
+   "id": "balcony-chair-1",
+   "kind": "chair",
+   "room": "balcony",
+   "footprint_m": [
+    0.49,
+    0.59
+   ],
+   "asset": "abo:B0853KR33B",
+   "asset_m": [
+    0.49,
+    0.59
+   ],
+   "name": "Amazon Brand \u2013 Rivet Eli Modern Curved-Back Dining Chair, Set of 2, 19.3\"W, Stuc"
+  },
+  {
+   "id": "balcony-chair-2",
+   "kind": "chair",
+   "room": "balcony",
+   "footprint_m": [
+    0.49,
+    0.59
+   ],
+   "asset": "abo:B0853KR33B",
+   "asset_m": [
+    0.49,
+    0.59
+   ],
+   "name": "Amazon Brand \u2013 Rivet Eli Modern Curved-Back Dining Chair, Set of 2, 19.3\"W, Stuc"
+  }
+ ],
+ "furnished_export": "ok",
+ "rooms": [
+  {
+   "room": "Reading room",
+   "m2": 10.75,
+   "printed": null
+  },
+  {
+   "room": "Bedroom 1",
+   "m2": 12.43,
+   "printed": null
+  },
+  {
+   "room": "Bedroom 2",
+   "m2": 12.36,
+   "printed": null
+  },
+  {
+   "room": "Entrance hall",
+   "m2": 7.63,
+   "printed": null
+  },
+  {
+   "room": "Inner hall",
+   "m2": 1.56,
+   "printed": null
+  },
+  {
+   "room": "Bathroom",
+   "m2": 3.64,
+   "printed": null
+  },
+  {
+   "room": "Shower room",
+   "m2": 4.87,
+   "printed": null
+  },
+  {
+   "room": "Living room and kitchen",
+   "m2": 43.31,
+   "printed": null
+  },
+  {
+   "room": "Balcony",
+   "m2": 9.15,
+   "printed": null
+  }
+ ]
+}
