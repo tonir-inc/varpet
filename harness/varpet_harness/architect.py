@@ -15,6 +15,7 @@ from pydantic import ValidationError
 from .codex_runner import IMAGE_SUFFIXES, thread_config
 from .dispatch import Report
 from .graph import Graph, strict_schema
+from .product_prompts import product_prompt_names
 
 PLAN_PROMPT = """You are the architect for flat "{flat}". Plan jobs; do not build anything.
 Jobs: one `shell` job from the plan; it also owns everything fixed: fitted kitchens and
@@ -40,7 +41,7 @@ async def plan(
     catalog: list[str],
     model: str = "gpt-6-astra",
 ) -> Graph:
-    skills = sorted(p.parent.name for p in (repo / ".agents" / "skills").glob("*/SKILL.md"))
+    skills = product_prompt_names(repo)
     prompt = PLAN_PROMPT.format(
         flat=flat,
         skills=", ".join(skills) or "none",

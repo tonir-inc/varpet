@@ -27,12 +27,13 @@ import uuid
 from typing import Callable
 
 from designer_process import terminate_tree
+from varpet_harness.product_prompts import resolve_product_prompt
 
 
 ROOT = Path(__file__).resolve().parents[1]
 MODEL = "gpt-6-astra"
 IDLE_TIMEOUT = 240.0
-SKILL = ROOT / ".agents/skills/interior-design-rules/SKILL.md"
+SKILL = resolve_product_prompt("interior-design-rules", ROOT)
 DEFAULT_EFFORT = "low"
 DEFAULT_PROFILE = {"placement": "without-place", "context": "compact-base"}
 

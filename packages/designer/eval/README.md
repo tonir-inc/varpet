@@ -68,7 +68,7 @@ Every Avani record retains the exact editor scene, catalog, converted designer s
 and canonical JSON SHA-256 hashes. The manifest includes the selected scenarios,
 source revision, `git_dirty` status, and file hashes for the actual demo/catalog source,
 editor contracts and core implementation, bridge, exporter, designer implementation,
-interior-design-rules skill and evaluation code. File hashes identify uncommitted
+`harness/prompts/interior-design-rules.md` product prompt and evaluation code. File hashes identify uncommitted
 source precisely when the working tree is dirty. A partial one-request smoke is labelled
 by its planned rows; it does not claim coverage of the full suite. `--batch` and
 `--resume-batch` infer their suite from the manifest and reject a conflicting `--suite`.

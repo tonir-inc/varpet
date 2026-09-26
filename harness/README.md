@@ -21,6 +21,9 @@ From the repository root, install `harness/designer_requirements.txt` into your 
 and run `python harness/designer_service.py --port 8787` (or
 `uv run --project harness python harness/designer_service.py --port 8787`). Uses the existing Codex
 login, `gpt-6-astra` at low effort, only the designer MCP server and interior-design-rules skill.
+Its source is product prompt data in `prompts/interior-design-rules.md`, copied into the isolated
+runtime's skill directory. Architect and builder prompt lookup is defined in
+`varpet_harness/product_prompts.py`: product domains only, independent of local coding-agent skills.
 Requires `pnpm install` and the two `packages/designer/src/editor-bridge.ts` CLI commands.
 
 The service command and Designer REPL default to the measured `without-place` / `compact-base`

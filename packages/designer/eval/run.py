@@ -238,7 +238,8 @@ def execute(scenario, mode, batch, args, cancel):
 
 def source_hashes(suite="bedroom"):
     paths = [ROOT / "harness/designer.py", ROOT / "harness/designer_prompt.md", suite_paths(suite)["scenarios"],
-             ROOT / "harness/designer_profiles.py", designer.SKILL, HERE / "run.py", HERE / "report.py", HERE / "measure.ts"]
+             ROOT / "harness/designer_profiles.py", ROOT / "harness/varpet_harness/product_prompts.py",
+             designer.SKILL, HERE / "run.py", HERE / "report.py", HERE / "measure.ts"]
     paths.extend(sorted((ROOT / "packages/designer/src").rglob("*.ts")))
     if suite == "avani":
         paths.extend([HERE / "editor-demo.ts", ROOT / "apps/editor/src/contracts.ts", ROOT / "apps/editor/src/renovation-contracts.ts"])

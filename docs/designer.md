@@ -142,6 +142,8 @@ schemas, HTTP adapter, editor approval and revision checks, scoped rearrangement
 and physical wall thickness. Benchmark grading also requires the editor to accept the translated
 proposal. Historical bedroom measurements keep their original source and results.
 
-## Build order
+## Implementation
 
-`docs/tasks/designer-*.md`, in order. Each card ends with its proving command.
+See [the designer package](../packages/designer/README.md), [service contract](designer-service.md)
+and [evaluation commands](../packages/designer/eval/README.md). The product's interior-design prompt
+is `harness/prompts/interior-design-rules.md`; coding-agent setup and task cards are local tooling.

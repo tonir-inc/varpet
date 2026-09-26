@@ -79,7 +79,7 @@ class AvaniBenchmark(unittest.TestCase):
         hashes = self.runner.source_hashes("avani")
         for path in ("apps/editor/src/core/demo.ts", "packages/designer/src/editor-bridge.ts",
                      "packages/designer/eval/editor-demo.ts", "packages/designer/eval/avani-benchmark-scenarios.json",
-                     ".agents/skills/interior-design-rules/SKILL.md", "apps/editor/src/contracts.ts",
+                     "harness/prompts/interior-design-rules.md", "apps/editor/src/contracts.ts",
                      "apps/editor/src/renovation-contracts.ts", "apps/editor/src/core/store.ts",
                      "apps/editor/src/core/geometry.ts", "apps/editor/src/core/validation.ts",
                      "apps/editor/src/core/grouping.ts", "apps/editor/src/core/renovation.ts"):

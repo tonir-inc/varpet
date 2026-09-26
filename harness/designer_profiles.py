@@ -1,7 +1,7 @@
 """Explicit, auditable speed experiments; physical/request gates stay in MCP."""
 from copy import deepcopy
-from pathlib import Path
 from designer_conversation import CONVERSATION_RULES
+from varpet_harness.product_prompts import resolve_product_prompt
 
 
 NO_PLACE = (
@@ -87,7 +87,7 @@ def configure(config, placement, effort, context):
 
 def prompt(placement, context, original):
     if context in ('compact', 'compact-base'):
-        skill = Path(__file__).resolve().parents[1] / '.agents/skills/interior-design-rules/SKILL.md'
+        skill = resolve_product_prompt('interior-design-rules')
         return CONVERSATION_RULES + COMPACT + skill.read_text() + (ONE_BATCH if placement == 'one-batch' else '')
     prefix = TRIMMED if context == 'trimmed' else original
     if placement == 'without-place':

@@ -73,7 +73,8 @@ uv run --with-requirements harness/designer_requirements.txt python harness/desi
 
 Add `--prompt 'make it cozier'` for one turn. Measured: the harness uses `gpt-6-astra` medium,
 deny-all approvals, an isolated Codex home/workspace, only the designer MCP server and only the
-interior-design-rules skill. It saves full traces and token counts in `harness/designer-runs/`.
+interior-design-rules skill, sourced from `harness/prompts/interior-design-rules.md`.
+It saves full traces and token counts in `harness/designer-runs/`.
 Four minutes without output terminates the worker and its observed descendants, including MCP
 children in separate process groups, and retries once; usage limits
 stop the run. `pnpm test` includes the offline Python watchdog/configuration tests.

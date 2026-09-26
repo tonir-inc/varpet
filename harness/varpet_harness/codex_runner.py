@@ -28,6 +28,7 @@ from openai_codex._run import _collect_async_turn_result  # pinned SDK; lets us 
 
 from .dispatch import BatchStop, JobResult
 from .graph import OUTPUT, Job
+from .product_prompts import resolve_product_prompt
 
 LIMIT_MARKERS = ("rate limit", "usage limit", "rate_limit", "usage_limit")
 IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".webp"}
@@ -172,9 +173,7 @@ class CodexRunner:
         # Skill text goes inline: SkillInput names a skill but delivers nothing unless
         # Codex discovered it itself (checked 26 Sept), and discovery loads by description.
         for name in job.skills:
-            path = self.repo / ".agents" / "skills" / name / "SKILL.md"
-            if not path.exists():
-                raise FileNotFoundError(f"skill {name} not in .agents/skills")
+            path = resolve_product_prompt(name, self.repo)
             lines += ["", f"# Skill: {name}", _strip_frontmatter(path.read_text())]
         items: list = [TextInput("\n".join(lines))]
         photos = [str(self.repo / r) for r in job.refs if Path(r).suffix.lower() in IMAGE_SUFFIXES]
