@@ -229,7 +229,7 @@ export function validateScene(input: unknown, catalog: CatalogAsset[]): Validati
     for (const opening of wall.openings) {
       if (!isRecord(opening)) { fail(`Wall ${i + 1} contains an invalid opening.`); continue; }
       unique(opening.id, `Wall ${i + 1} opening`);
-      if (!keys(opening, ['id', 'kind', 'offset', 'width', 'height', 'sill']) || typeof opening.kind !== 'string' || !['door', 'window'].includes(opening.kind)
+      if (!keys(opening, ['id', 'kind', 'offset', 'width', 'height', 'sill', 'assetId']) || (opening.assetId !== undefined && !text(opening.assetId, 100)) || typeof opening.kind !== 'string' || !['door', 'window'].includes(opening.kind)
         || !finite(opening.offset, 0, length) || !finite(opening.width, 0.2, length) || !finite(opening.height, 0.2, wall.height)
         || !finite(opening.sill, 0, wall.height) || opening.offset + opening.width > length + EPS || opening.sill + opening.height > wall.height + EPS
         || (input.version === 1 && opening.kind === 'door' && opening.sill > EPS)) { fail(`Wall ${i + 1} has an opening outside its bounds or an unsupported raised door.`); continue; }
@@ -352,7 +352,7 @@ export function renovationOperationError(op: Record<string, unknown>): string | 
   if (op.offset !== undefined && !finite(op.offset, 0.05, 100)) return 'Split offset must be a finite distance.';
   if (op.patch !== undefined) {
     if (!isRecord(op.patch) || !Object.keys(op.patch).length) return 'Operation requires a non-empty property patch.';
-    const patches: Record<string, string[]> = { 'update-wall': ['start', 'end', 'height', 'thickness', 'color'], 'update-opening': ['kind', 'offset', 'width', 'height', 'sill'], 'update-room': ['name', 'polygon', 'color'], 'set-metadata': METADATA_KEYS, 'set-project': ['mode', 'currency'] };
+    const patches: Record<string, string[]> = { 'update-wall': ['start', 'end', 'height', 'thickness', 'color'], 'update-opening': ['kind', 'offset', 'width', 'height', 'sill', 'assetId'], 'update-room': ['name', 'polygon', 'color'], 'set-metadata': METADATA_KEYS, 'set-project': ['mode', 'currency'] };
     if (!keys(op.patch, patches[op.type] ?? [])) return 'Operation patch contains unsupported fields.';
   }
   for (const field of ['wall', 'opening', 'room', 'component', 'route', 'source', 'assumption', 'material', 'finish', 'task']) if (op[field] !== undefined && !isRecord(op[field])) return `Operation requires a ${field} object.`;

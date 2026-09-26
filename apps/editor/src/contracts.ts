@@ -16,7 +16,11 @@ export interface CatalogAsset {
 }
 export interface Room { id: string; name: string; polygon: Vec2[]; color: string }
 /** Offset measures metres from wall.start to the near edge, toward wall.end. Doors have sill=0. */
-export interface Opening { id: string; kind: 'door' | 'window'; offset: number; width: number; height: number; sill: number }
+export interface Opening {
+  id: string; kind: 'door' | 'window'; offset: number; width: number; height: number; sill: number;
+  /** Catalog door/window model (`extra:openings:<stem>`) drawn in place of the procedural opening, fitted to its size. Unknown ids fall back to the procedural opening. */
+  assetId?: string;
+}
 export interface Wall { id: string; start: Vec2; end: Vec2; height: number; thickness: number; color: string; openings: Opening[] }
 export interface SceneObject {
   id: string;

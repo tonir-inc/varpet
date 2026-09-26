@@ -340,6 +340,20 @@ export class AssetLoader {
     const [url, fragment = ''] = asset.source.url.split('#');
     const rotation = Number(new URLSearchParams(fragment).get('varpet-rotate-y') ?? 0);
     if (!url || !Number.isFinite(rotation)) throw new Error('Invalid model URL or orientation.');
+    const oriented = new THREE.Group();
+    oriented.add(await this.instance(url));
+    oriented.rotation.y = rotation * THREE.MathUtils.DEG2RAD;
+    try { return normalizeAsset(oriented, asset.dimensions); }
+    catch (error) { disposeObject(oriented); throw error; }
+  }
+
+  /** A model in its authored frame, neither rotated nor fitted (door and window models place by their own origin). */
+  async loadAuthored(url: string): Promise<THREE.Group> {
+    if (this.disposed) throw new Error('Asset loader disposed.');
+    return this.instance(url);
+  }
+
+  private async instance(url: string): Promise<THREE.Group> {
     let source = this.cache.get(url);
     if (!source) {
       const light = lightModelUrl(url);
@@ -379,11 +393,7 @@ export class AssetLoader {
         };
         object.material = Array.isArray(object.material) ? object.material.map(copyMaterial) : copyMaterial(object.material);
       });
-      const oriented = new THREE.Group();
-      oriented.add(instance);
-      oriented.rotation.y = rotation * THREE.MathUtils.DEG2RAD;
-      try { return normalizeAsset(oriented, asset.dimensions); }
-      catch (error) { disposeObject(oriented); throw error; }
+      return instance;
     } finally {
       source.users--;
       this.trimCache();

@@ -148,6 +148,8 @@ Measured on Sergey's Mac: 8,113 items, 7,013 models, 2,471 previews (4.7 GB), se
 The 10 opening models in `catalog/openings/` are catalog items too (`extra:openings:<file stem>`, kind `door` / `window`,
 source 'extra', mock prices, previews). They are not in the default `placeable` scope (the editor places openings its own
 way): search them with `kind=door|window` or `scope=all`. Place them per `catalog/openings/README.md` (no normalising).
+The editor draws them from `Opening.assetId` (bundled from `catalog/openings/`, no catalog server needed); the
+architect sets that id when a model fits the opening within 15%.
 All 169 extra items now have SigLIP embeddings (their render stands in for the photo), so text search finds them.
 
 ## Decoration kinds (26 Sept)

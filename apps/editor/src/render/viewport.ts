@@ -12,6 +12,7 @@ import type { BuildingComponent, CatalogAsset, ComponentTransformPatch, ObjectPa
 import { AssetLoader, disposeObject, makeFurniture, poseWallDecoration } from './assets';
 import { makeStructure, type StructureProjection } from './structure';
 import { installComponentModel, LightingPreview, makeServices, type ServiceProjection } from './services';
+import { installOpeningModel, openingModel } from './opening-models';
 import { label3d } from './annotations';
 import { createWallMove } from './wall-move';
 import type { SceneNormalizer } from '../core/store';
@@ -972,6 +973,22 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     }
   }
 
+  /** Openings with a catalog model show it once loaded; until then, or if it fails, the procedural opening stays. */
+  function loadOpeningModels(projection: StructureProjection, scene: SceneDocument): void {
+    for (const wall of scene.walls) for (const opening of wall.openings) {
+      const found = openingModel(opening.assetId);
+      if (!found) continue;
+      void loader.loadAuthored(found.url).then(model => {
+        const target = projection.openings.get(opening.id);
+        if (disposed || structure !== projection || !target) { disposeObject(model); return; }
+        installOpeningModel(target, opening, scene.project?.metadata?.[opening.id] ?? {}, found.entry, model);
+        shadowCache.invalidate(); requestRender();
+      }).catch(error => {
+        if (!disposed && structure === projection) callbacks.onError(`Could not load the ${opening.kind} model; showing it as drawn. ${error instanceof Error ? error.message : ''}`);
+      });
+    }
+  }
+
   function setScene(next: SceneDocument, catalog: CatalogAsset[]): void {
     // A replacement or catalog refresh invalidates the library gesture's snapshot.
     furnitureDrop.cancel();
@@ -990,6 +1007,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       structure = makeStructure(next, pendingFinishReveal); pendingFinishReveal = undefined;
       sunOccluders.setScene(next); windowLight.setScene(next);
       structureKey = nextKey; world.add(structure.group, structure.ceilings, structure.dimensions);
+      loadOpeningModels(structure, next);
       for (const [id, opening] of structure.openings) { const angle = opening.fixed ? 0 : doorAngles.get(id) ?? 0; if (opening.fixed) doorAngles.delete(id); opening.target = angle; opening.setAngle(angle); }
       for (const id of doorAngles.keys()) if (!structure.openings.has(id)) doorAngles.delete(id);
       structure.bounds.getCenter(center); structure.bounds.getSize(size);

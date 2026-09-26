@@ -105,7 +105,7 @@ With the architect harness available, run `cd harness && uv run varpet-harness s
 
 Before connecting real output, verify units, orientation, wall opening offsets, polygon validity, stable IDs, and the intended treatment of existing furniture. Do not guess the final shared-engine axes from this local contract.
 
-An opening's `offset` is the distance from the wall's `start` to the opening's left edge, measured along `start → end`; `width` extends in that direction. `sill` is the opening's bottom elevation and `height` its vertical size. A floor-level door has `sill: 0`. Keep the entire opening within its wall length and height.
+An opening's `offset` is the distance from the wall's `start` to the opening's left edge, measured along `start → end`; `width` extends in that direction. `sill` is the opening's bottom elevation and `height` its vertical size. A floor-level door has `sill: 0`. Keep the entire opening within its wall length and height. An optional `assetId` (`extra:openings:<stem>`, a model in `catalog/openings/`) draws that door or window model, scaled to the opening and mirrored by its `hinge` and `swing` metadata; an absent or unknown id keeps the procedural opening. The architect fills it when a model fits within 15%.
 
 ## Fokie: designer proposals
 

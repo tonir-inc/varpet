@@ -22,6 +22,8 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from shapely.geometry import LineString, Point, Polygon
 from shapely.ops import unary_union
 
+from .openings import choose_model
+
 Vec2 = tuple[float, float]
 HEX = r"^#[0-9a-fA-F]{6}$"
 
@@ -59,6 +61,7 @@ class Opening(BaseModel):
     width: float = Field(gt=0)
     height: float = Field(gt=0)
     sill: float = Field(ge=0)
+    assetId: str | None = Field(default=None, description="catalog model for the rendered GLB, e.g. extra:openings:door-oak-glazed; absent renders the procedural opening")
 
 
 class Wall(BaseModel):
@@ -415,12 +418,39 @@ def _door_segment(w: Wall, o: Opening) -> LineString:
 
 def to_editor(shell: Shell) -> dict:
     """Exactly what StructureAdapter.reconstruct returns, plus the project's components
-    (BuildingComponent, unset optionals left out) when there are any: `printed` stays behind."""
-    out = {"rooms": [r.model_dump() for r in shell.rooms], "walls": [w.model_dump() for w in shell.walls],
-           "notes": shell.notes}
+    (BuildingComponent, unset optionals left out) when there are any: `printed` stays behind.
+    An opening with no assetId gets one from the catalog when a model fits (openings.py); the
+    editor renders that GLB instead of the procedural opening."""
+    polys = {r.id: Polygon(r.polygon) for r in shell.rooms}
+    walls = []
+    for w in shell.walls:
+        wd = w.model_dump()
+        wd["openings"] = [_opening_dict(w, o, polys) for o in w.openings]
+        walls.append(wd)
+    out = {"rooms": [r.model_dump() for r in shell.rooms], "walls": walls, "notes": shell.notes}
     if shell.components:
         out["components"] = [c.model_dump(exclude_none=True) for c in shell.components]
     return out
+
+
+def _opening_dict(w: Wall, o: Opening, polys: dict[str, Polygon]) -> dict:
+    od = o.model_dump(exclude_none=True)
+    if o.assetId is None:
+        model = choose_model(o.kind, o.width, o.height, exterior=_exterior(w, o, polys))
+        if model:
+            od["assetId"] = model
+    return od
+
+
+def _exterior(w: Wall, o: Opening, polys: dict[str, Polygon]) -> bool:
+    """True when the opening's wall has a room on only one side, sampled 0.3 m out from the
+    opening's midpoint along the wall's normal."""
+    mid = _door_segment(w, o).interpolate(0.5, normalized=True)
+    length = _len(w)
+    nx, nz = -(w.end[1] - w.start[1]) / length, (w.end[0] - w.start[0]) / length
+    sides = [any(p.contains(Point(mid.x + sign * nx * 0.3, mid.y + sign * nz * 0.3)) for p in polys.values())
+             for sign in (1, -1)]
+    return sides[0] != sides[1]
 
 
 def _crossing(a: Wall, b: Wall) -> tuple[float, float, float, float] | None:
