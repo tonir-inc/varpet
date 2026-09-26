@@ -52,17 +52,24 @@ Failures preserved, and fixes on our side:
   budget stays unconfirmed, never an invented cap; north is not required for ordinary furnishing.
   [Question](chain-runs/20260926/bedroom-question.json).
 - [measured] The pre-existing SSH tunnel disappeared. Both requests declined safely on catalog
-  unavailability: **19.076 s / 40,459 tokens**, **20.339 s / 40,405 tokens**. Restoring the authorized
+  unavailability: **19.076 s / 40,459 tokens**, **20.350 s / 40,405 tokens**. Restoring the authorized
   tunnel made both REST and MCP available; successful runs above used the real service.
   [Outage results](chain-runs/20260926/catalog-unavailable.json). These declines are failures, not passes.
 
 Owner handoff (no files in these lanes edited):
 
-- **stepdav / MAIN / PANEL:** load `mergeCatalogs(localCatalog, await createCatalogHttpAdapter().list())`
+- **stepdav / MAIN, resolved post-rebase blocker:** origin/main `57755c8` contained committed conflict markers
+  in `apps/editor/src/main.ts` at lines 19–36 and 124–133; root typecheck reported
+  `TS1185: Merge conflict marker encountered`. The owning lane fixed them in `323be6a`; this task
+  did not edit main.ts. The two original UI gaps below are already addressed by intervening
+  main commits (`createReconstructionProposal` creates an empty project; the Designer callback loads
+  remote assets and sends AMD). Those newer UI paths were not part of this browser experiment.
+
+- **stepdav / MAIN / PANEL, original finding, now addressed upstream:** load `mergeCatalogs(localCatalog, await createCatalogHttpAdapter().list())`
   before constructing `EditorStore`, and include that same `catalog` and `catalogCurrency: "AMD"` in
   Designer requests. At the tested base `206e3c6`, main constructs the store with localCatalog only and
   the panel snapshot carries only scene/revision. `VITE_CATALOG_ASSETS_URL=http://localhost:8765/editor/assets`.
-- **stepdav / MAIN:** a new-plan import must explicitly create an empty-furniture project (or include
+- **stepdav / MAIN, original finding, now addressed upstream:** a new-plan import must explicitly create an empty-furniture project (or include
   approved deletes with `replace-structure`). `replace-structure` preserves existing objects; importing
   into the current demo store leaves its 20 demo pieces behind. This experiment deliberately starts
   with `objects: []`. Do not silently discard an existing customer's furniture.
