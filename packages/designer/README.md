@@ -101,15 +101,30 @@ Search preserves size evidence and price provenance; mock AMD values are not sho
 Without catalog data, the designer asks for a specific product or a customer-owned piece's details
 instead of inventing a purchasable item.
 
-Run `pnpm --filter @varpet/designer eval` to regrade the saved 13-scenario manifest without model
-calls. The command writes `eval/report.md` and `eval/results.json`, checking recorded proposal ops
-against the scenario's expected intent and fresh deterministic metrics. It rejects mismatched
-prompts/scenes and incomplete runs. Declines and missing evidence are never counted as fulfilled
-layout requests. Motion trajectories, full engine checks and human preference are not evaluated.
+Run `pnpm --filter @varpet/designer eval` (or add `--report-only`) to regenerate
+[`eval/report.md`](eval/report.md) from the saved measurements selected by `eval/latest.json`.
+This calls `eval/run.py` without model calls or rescoring. Measured: the saved batch contains
+19 runs: 13 customer scenarios and six matched rearrangements without `place`. The report includes
+median and slowest seconds, token totals, accepted proposals, independent request checks, and
+before/after open-floor and walkway measurements. Derived: the matched comparison describes one
+sample per condition; it does not establish a causal placement-tool speedup.
 
-To collect new conversations, add `--live --python /path/to/sdk-venv/bin/python`. The default batch
-uses three concurrent conversations, each with a 180-second wall budget; a usage limit stops the
-batch. `--scenario ID` reruns selected rows while retaining other recorded results. Full traces and
-input snapshots live under `eval/runs/`. Assumed: the existing bedroom and living-room fixtures stand
-in for the unavailable demo flat; the two additions explicitly supply user-owned dimensions and
-zero purchase prices. These runs do not prove performance on the actual demo plan or shop inventory.
+To collect a new batch using the current source, add `--live`. The runner uses `gpt-6-astra` medium,
+at most four concurrent threads, a 180-second no-output watchdog and a 600-second total deadline
+per worker. A usage limit stops the batch; failed samples are not automatically retried. The live
+command bootstraps the pinned Python SDK through `uv` if needed. Use `--live --only SCENARIO_ID`
+for a diagnostic pair, or `--batch PATH --report-only` to report an existing batch. Full commands
+and the coordinate-generation ablation policy are in [`eval/README.md`](eval/README.md).
+
+Measured: the saved benchmark is pinned to source revision `097f479` and its recorded source hashes.
+Regenerating its report does not measure later prompt, editor-bridge or runtime changes. Catalog
+additions remain unresolved in that batch; demo-flat coverage, full engine checks and human
+preference remain unproven. Derived: its separate operation-prefix checks fail even where final
+layouts pass, so those results do not prove safe intermediate motion.
+
+The earlier 13-scenario grader remains available as `python3 harness/designer_eval.py` from the
+repository root, with its distinct `eval/scenarios.json`, `eval/runs/manifest.json` and
+[`eval/legacy-report.md`](eval/legacy-report.md). That command regrades cached traces and writes
+`eval/results.json` plus the shared `eval/report.md`; rerun the package `eval` command afterward to
+restore the benchmark report. It is a separate scenario set, including user-owned additions,
+and is not the 19-run placement comparison.

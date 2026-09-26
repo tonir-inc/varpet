@@ -63,5 +63,12 @@ Assumed: fixed deadlines are benchmark policy, not a product latency guarantee.
 Derived metrics use the designer's temporary scene adapter; engine collision
 integration and human pairwise preference votes remain unavailable. AMD cost is
 incremental furniture cost. Billed model cost is unavailable from SDK telemetry
-and is never estimated. Demo-flat coverage is pending until the editor bridge
-lands; the report records the scene/source revision used by each measured batch.
+and is never estimated.
+
+Measured: the saved 19-run batch uses source revision `097f479` and the bedroom
+fixture recorded in its manifest, before editor-bridge integration. Regenerating
+the report preserves its recorded metrics and source hashes; it does not measure
+later prompt, bridge or runtime changes. Demo-flat performance remains unproven
+by this batch. New `--live` batches use the current source; explicit
+`--report-only --rescore` changes the saved deterministic grades, not the original
+model calls or telemetry.
