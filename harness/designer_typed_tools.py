@@ -5,7 +5,7 @@ import hashlib
 import subprocess
 import re
 
-TOOLS = ['plan_room','search_catalog','place','move','remove','paint','propose','show_candidates','ask']
+TOOLS = ['plan_room','search_catalog','place','move','remove','paint','propose','show_candidates','inspect_layout','ask']
 
 def configure(config):
     server=config['mcp_servers']['varpet-designer']

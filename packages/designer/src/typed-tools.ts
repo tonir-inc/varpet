@@ -14,6 +14,8 @@ import {relationsToolSchema} from './tool-inputs.js';
 import {ask,askInputSchema} from './ask.js';
 import type {Scene,Op} from './scene.js';
 import type {Intent} from './request.js';
+import {spaceMetrics} from './metrics/space.js';
+import {functionClearances} from './metrics/function.js';
 
 const id=z.string().trim().min(1).max(200);
 const planSchema=z.object({room_id:id,program:z.enum(['living','bedroom','kids','office','dining','entry','kitchen','bathroom']),style:z.string().max(500).optional(),budget:z.number().int().nonnegative().safe().optional(),keep:z.array(id).max(200).optional(),history:z.array(z.string().max(2000)).max(12).optional()}).strict();
@@ -41,6 +43,12 @@ export function createTypedServer(input:Scene,config:TypedOptions={}){
   const trial=[...staged,...ops],validation=checked(trial);if(!validation.ok)return receipt({ok:false,errors:validation.errors.slice(0,3).map(e=>({check:e.check,message:e.message}))},true);
   staged=trial;epoch++;return receipt({ok:true,staged_changes:staged.length,next:'Call propose to save these checked changes for customer review.'});
  };
+ server.registerTool('inspect_layout',{description:'Read measured open floor, access and furniture relationships in the current room, without editing. Use to explain why the actual layout works; measurements are geometric, not observed daylight.',inputSchema:z.object({room_id:id}).strict()},async({room_id})=>{
+  try{const current=preview(),room=current.rooms.find(r=>r.id===room_id);if(!room)throw new Error('Unknown room_id');
+   const items=current.items.filter(i=>i.room_id===room_id),ids=new Set(items.map(i=>i.id)),space=spaceMetrics(current).rooms.find(r=>r.room_id===room_id);
+   return receipt({room_id,items:items.map(i=>({id:i.id,kind:i.kind})).slice(0,20),free_area_m2:space?.free_area_m2,largest_open_rectangle_m2:space?.largest_free_rectangle?.area_m2,walkways:space?.walkways.slice(0,6),clearances:functionClearances(current).filter(c=>ids.has(c.item_id)).slice(0,10).map(c=>({function:c.function,side:c.side,item_id:c.item_id,other_item_id:c.other_item_id,clearance_m:c.clearance_m,status:c.status})),note:'Measured from the current scene; preserve missing or warning results in the explanation.'});
+  }catch(e){return error(e);}
+ });
  server.registerTool('plan_room',{description:'Furnish incrementally using the room program: anchor first, then each piece against the updated scene. Returns checked complete or honestly labelled partial options plus exact product previews. Inspect images, then propose option_id. Never invent coordinates. Existing furniture is preserved.',inputSchema:planSchema},async request=>{
   try{
    if(staged.length)throw new Error('Finish the staged edit with propose before starting a room plan.');

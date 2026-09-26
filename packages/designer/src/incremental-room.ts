@@ -3,7 +3,7 @@ import {roomPrograms} from '../knowledge/room-programs.js';
 import {resolveStyles} from '../knowledge/styles/index.js';
 import {searchRoomCatalog} from './taste/catalog.js';
 import {SceneAnalysisCache} from './fast-path.js';
-import {applyOps,wallOutward} from './adapter.js';
+import {applyOps} from './adapter.js';
 import {DesignerSession} from './session.js';
 import {requestPolicy,canonicalKind} from './request-policy.js';
 import {scoreComposition} from './taste/composition.js';
@@ -21,17 +21,6 @@ export const slotAsset=(p:CatalogProduct):CatalogAsset=>({id:p.sku,name:p.name.s
 export interface RoomPlanRequest {room_id:string;program:string;style?:string;budget?:number;keep?:string[];history?:string[]}
 export interface RoomPlan {ops:Op[];intent:Intent;missing:string[];complete:boolean;reason:string;products:CatalogProduct[];timing:{catalog_ms:number;placement_ms:number};evidence:unknown}
 
-function supportedHeadboard(scene:Scene,item:Item){
- const t=item.rot*Math.PI/180,back:[number,number]=[item.pos[0]-Math.sin(t)*item.size[1]/2,item.pos[1]+Math.cos(t)*item.size[1]/2];
- return scene.walls.some(w=>{
-  if(w.room_id!==item.room_id||w.open)return false;
-  const dx=w.b[0]-w.a[0],dy=w.b[1]-w.a[1],len=Math.hypot(dx,dy),out=wallOutward(scene,w),along=((back[0]-w.a[0])*dx+(back[1]-w.a[1])*dy)/len;
-  return Math.abs((back[0]-w.a[0])*out[0]+(back[1]-w.a[1])*out[1]+(w.thickness??0)/2)<.13
-   && Math.abs(-Math.sin(t)*out[0]+Math.cos(t)*out[1]-1)<.05
-   && along>=item.size[0]/2&&along<=len-item.size[0]/2
-   && !scene.openings.some(o=>o.wall_id===w.id&&o.offset<along+item.size[0]/2&&o.offset+o.width>along-item.size[0]/2);
- });
-}
 /** Related poses first; ranked single-piece slots are the common fallback. */
 export function* pieceOps(scene:Scene,p:CatalogProduct,roomId:string,cache:SceneAnalysisCache,role='',anchor?:Item,index=0):Generator<Op>{
  const candidates:Op[]=[];
@@ -51,8 +40,9 @@ export function* pieceOps(scene:Scene,p:CatalogProduct,roomId:string,cache:Scene
   }
  }
  for(const candidate of candidates)yield candidate;
- const slots=cache.slots(scene,[slotAsset(p)],{roomId,catalogId:p.sku,maxChecks:16});
- const filtered=slots.flatMap(c=>c.ops).filter(o=>o.type!=='add'||p.kind!=='bed'||supportedHeadboard(scene,o.item));
+ const hasWindow=scene.openings.some(o=>o.kind==='window'&&scene.walls.some(w=>w.id===o.wall_id&&w.room_id===roomId));
+ const slots=cache.slots(scene,[slotAsset(p)],{roomId,catalogId:p.sku,maxChecks:16,solidHeadboard:p.kind==='bed',faceWindow:role==='seating_anchor'&&hasWindow});
+ const filtered=slots.flatMap(c=>c.ops);
  if(role==='seating_anchor'){
   const room=scene.rooms.find(r=>r.id===roomId)!;
   const center=room.polygon.reduce((sum,p)=>[sum[0]+p[0]/room.polygon.length,sum[1]+p[1]/room.polygon.length],[0,0]);
@@ -75,14 +65,14 @@ export async function planIncrementally(scene:Scene,request:RoomPlanRequest,quer
  const roles=[...program.essentials];
  if(request.program==='living')roles.sort((a,b)=>['seating_anchor','rug','table','light','focal_point'].indexOf(a.role)-['seating_anchor','rug','table','light','focal_point'].indexOf(b.role));
  const failures:unknown[]=[];
- const deadline=performance.now()+8000;
+ let deadline=Infinity;
  const used=new Set<string>();
  const qualifies=(kind:string,size:Item['size'],role:string)=>!(role==='bed'&&request.program==='bedroom'&&size[0]<1.4)&&!(role==='storage'&&kind==='wardrobe'&&(size[1]<.4||size[2]<1.4));
  for(const role of roles){
   if(role!==roles[0]&&!anchor){missing.push(`${role.role}: anchor has no checked fit`);continue;}
   const existing=scene.items.filter(i=>!used.has(i.id)&&i.room_id===request.room_id&&role.kinds.includes(i.kind)&&qualifies(i.kind,i.size,role.role));
   for(let n=0;n<role.count;n++){
-   if(existing[n]){used.add(existing[n]!.id);if(!anchor)anchor=existing[n];if(role.role==='work_surface')desk=existing[n];continue;}
+   if(existing[n]){used.add(existing[n]!.id);if(!anchor){anchor=existing[n];deadline=performance.now()+12000;}if(role.role==='work_surface')desk=existing[n];continue;}
    const kinds=role.preferred_kinds??role.kinds;
    const choices=kinds.flatMap(kind=>catalog.products[kind]??[]).filter(p=>!blocked.has(canonicalKind(p.kind))&&p.price+cost<=(request.budget??Infinity)
     &&qualifies(p.kind,p.size,role.role));
@@ -100,8 +90,8 @@ export async function planIncrementally(scene:Scene,request:RoomPlanRequest,quer
     }
     if(selected)break;
    }
-   if(selected&&product){ops.push(selected);chosen.push(product);cost+=product.price;preview=applyOps(scene,ops);if(selected.type==='add'){if(!anchor)anchor=selected.item;if(role.role==='work_surface')desk=selected.item;}}
-   else missing.push(`${role.role} ${n+1}/${role.count}: no checked fit found within catalog, budget and access constraints`);
+   if(selected&&product){ops.push(selected);chosen.push(product);cost+=product.price;preview=applyOps(scene,ops);if(selected.type==='add'){if(!anchor){anchor=selected.item;deadline=performance.now()+12000;}if(role.role==='work_surface')desk=selected.item;}}
+   else missing.push(`${role.role} ${n+1}/${role.count}: ${performance.now()>deadline?'placement time budget exhausted':'no checked fit found within catalog, budget and access constraints'}`);
   }
  }
  const composition=scoreComposition(preview,request.room_id,{program:request.program});
