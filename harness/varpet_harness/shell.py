@@ -48,6 +48,7 @@ DOOR_MIN_M = 0.6  # tidy() never clips a door narrower than this
 GAP_M = 2 * EDITOR_EPS  # clearance tidy() leaves between an opening and what it moved off
 FACE_M = 0.053  # the designer bridge's room-face tolerance (packages/designer/src/reconcile-geometry.ts)
 FACE_DEG = 5.0  # a room edge this close in angle to a wall is that wall's face
+NUDGE_M = 0.10  # tidy() pushes a free fixture this far out of a wall body; deeper stays a fault for the model
 
 
 class Opening(BaseModel):
@@ -643,9 +644,51 @@ def _unoverlap(w: Wall) -> None:
     w.openings = kept
 
 
+def _dedupe_ids(shell: Shell) -> None:
+    """Openings and components that reuse an id get a suffix; the first holder keeps it.
+    Walls and rooms are referenced by id (hosts, roomId, printed), so their clashes stay with the model."""
+    taken = [r.id for r in shell.rooms] + [w.id for w in shell.walls]
+    seen = set(taken)
+    for item in [o for w in shell.walls for o in w.openings] + list(shell.components):
+        if item.id in seen:
+            n = 2
+            while f"{item.id}-{n}" in seen:
+                n += 1
+            item.id = f"{item.id}-{n}"
+        seen.add(item.id)
+
+
+def _nudge_out_of_walls(shell: Shell) -> None:
+    """A free fixture a few cm into a wall body moves out along the wall's normal, toward its own side,
+    if that clears every wall within NUDGE_M."""
+    for c in shell.components:
+        if c.host:
+            continue
+        dx = dz = 0.0
+        fp = _footprint(shell, c)
+        for w in shell.walls:
+            if fp.intersection(_wall_body(w)).area <= WALL_HIT_M2:
+                continue
+            length = _len(w)
+            ux, uz = (w.end[0] - w.start[0]) / length, (w.end[1] - w.start[1]) / length
+            side = -(c.position[0] - w.start[0]) * uz + (c.position[2] - w.start[1]) * ux
+            if abs(side) < EDITOR_EPS:
+                continue
+            sign = 1 if side > 0 else -1
+            depth = max(w.thickness / 2 - sign * (-(x - w.start[0]) * uz + (z - w.start[1]) * ux)
+                        for x, z in fp.exterior.coords)
+            dx, dz = dx - uz * sign * (depth + GAP_M), dz + ux * sign * (depth + GAP_M)
+        if not dx and not dz or math.hypot(dx, dz) > NUDGE_M:
+            continue
+        moved = c.model_copy(update={"position": (c.position[0] + dx, c.position[1], c.position[2] + dz)})
+        if all(_footprint(shell, moved).intersection(_wall_body(w)).area <= WALL_HIT_M2 for w in shell.walls):
+            c.position = tuple(round(v, 4) for v in moved.position)
+
+
 def tidy(shell: Shell) -> Shell:
     """Mechanical fixes in code, not a model turn: drop collinear and near-duplicate
     polygon points (within 1 cm) and keep rooms under the editor's 32 points."""
+    _dedupe_ids(shell)
     _snap_junctions(shell)
     for r in shell.rooms:
         poly = Polygon(r.polygon)
@@ -671,6 +714,7 @@ def tidy(shell: Shell) -> Shell:
     for c in shell.components:  # a mounted component's position is where the editor will draw it
         if c.host and any(w.id == c.host.wallId for w in shell.walls):
             c.position = tuple(round(v, 4) for v in _host_pose(shell, c)[0])
+    _nudge_out_of_walls(shell)
     return shell
 
 

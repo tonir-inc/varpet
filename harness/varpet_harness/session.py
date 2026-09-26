@@ -296,9 +296,13 @@ async def run_session(codex: AsyncCodex, repo: Path, flat: str, plan: str, photo
         t = time.monotonic()
         from .furnish import brief as furnish_brief
 
-        progress("architect: placing the pieces")
-        await turn([TextInput(PLACE_PROMPT.format(brief=furnish_brief(run_dir), furnish_skill=_skill(repo, "flat-furnish")))])
-        place_faults = await checked("furnish/placements.json", FURNISH_CHECK, run_dir / "furnish" / "placements.json")
+        if pieces.pieces:
+            progress("architect: placing the pieces")
+            await turn([TextInput(PLACE_PROMPT.format(brief=furnish_brief(run_dir), furnish_skill=_skill(repo, "flat-furnish")))])
+            place_faults = await checked("furnish/placements.json", FURNISH_CHECK, run_dir / "furnish" / "placements.json")
+        else:  # nothing to place: a model turn here only writes an empty list (67 s on 26 Sept)
+            (run_dir / "furnish" / "placements.json").write_text(json.dumps({"placements": [], "notes": ["no pieces"]}))
+            place_faults = None
         report.step("place", t, ok=place_faults is None)
         _emit_placements(emit, run_dir, base_url)
 
@@ -306,7 +310,8 @@ async def run_session(codex: AsyncCodex, repo: Path, flat: str, plan: str, photo
         if review:
             from .review import render
 
-            for round_ in range(REVIEW_ROUNDS):
+            # the look compares the result with the photos; with none it only says it cannot (89 s on 26 Sept)
+            for round_ in range(REVIEW_ROUNDS if photos else 0):
                 t = time.monotonic()
                 picture = render(run_dir, run_dir / "review" / f"top-{round_ + 1}.png")
                 progress(f"architect: checking its result against the photos (round {round_ + 1})")

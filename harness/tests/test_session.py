@@ -111,3 +111,25 @@ def test_sets_go_to_one_builder(tmp_path, monkeypatch):
     assert sets_built == [("dining", ["dining-table", "dining-chair"])] and singles_built == ["sofa"]
     build = next(s for s in report.steps if s["step"] == "build")
     assert build["built"] == 3 and build["builders"] == 2
+
+
+def test_no_pieces_and_no_photos_skip_the_place_and_look_turns(tmp_path, monkeypatch):
+    run = tmp_path / "run"
+    turns = []
+
+    async def scripted_turn(self, thread, items, job):
+        turns.append(items[0].text[:40])
+        if items[0].text.startswith("You are the architect"):
+            (run / "shell" / "shell.json").write_text(flat().model_dump_json())
+            (run / "pieces.json").write_text(json.dumps({"pieces": []}))
+        return SimpleNamespace(usage=SimpleNamespace(last=SimpleNamespace(total_tokens=1000)))
+
+    monkeypatch.setattr(S.CodexRunner, "_turn", scripted_turn)
+    monkeypatch.setattr("varpet_harness.review.render", lambda run_dir, out: out)
+    import asyncio
+
+    report = asyncio.run(S.run_session(FakeCodex(), REPO, "t", "fixtures/real/x/plan.jpg", [], run, None,
+                                       progress=lambda m: None))
+    assert not any(t.startswith(("Step 3", "Step 4")) for t in turns)
+    assert [s["step"] for s in report.steps] == ["read", "build", "place", "export"]
+    assert json.loads((run / "furnish" / "placements.json").read_text())["placements"] == []

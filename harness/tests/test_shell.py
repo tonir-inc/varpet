@@ -310,3 +310,37 @@ def test_wall_end_at_a_thick_corner_reaches_the_inside_corner():
         "notes": ["test"],
     })
     assert not [f for f in check(s) if f["check"] == "wall"]
+
+
+def test_tidy_renames_duplicate_opening_and_component_ids():
+    s = bathroom()
+    s.components[2].id = "d1"  # a fixture takes a door's id
+    s.walls[1].openings[0].id = "w-n"  # a window takes a wall's id
+    tidy(s)
+    assert "ids" not in kinds(check(s))
+    assert [w.id for w in s.walls] == ["w-n", "w-e", "w-s", "w-w", "w-mid"]  # walls and rooms keep theirs
+    assert s.walls[4].openings[0].id == "d1"  # so does the first holder of an id
+
+
+def test_tidy_leaves_two_walls_with_one_id_to_the_model():
+    s = flat()
+    s.walls[4].id = "w-n"
+    tidy(s)
+    assert "ids" in kinds(check(s))
+
+
+def test_tidy_pushes_a_fixture_a_little_into_a_wall_back_out():
+    s = bathroom()
+    s.components.append(fixture("rad", "radiator", [7.9, 0.15, 1.0], [0.8, 0.6, 0.1], rotation=1.5707963))
+    assert any(x.get("wall") == "w-e" for x in component_faults(s))  # 4 cm into the east wall
+    tidy(s)
+    assert component_faults(s) == []
+    assert 7.88 < s.components[-1].position[0] < 7.9
+
+
+def test_tidy_leaves_a_fixture_deep_in_a_wall_to_the_model():
+    s = bathroom()
+    s.components.append(fixture("rad", "radiator", [7.95, 0.15, 1.0], [0.8, 0.6, 0.3], rotation=1.5707963))
+    tidy(s)
+    assert any(x.get("wall") == "w-e" for x in component_faults(s))
+    assert s.components[-1].position[0] == 7.95
