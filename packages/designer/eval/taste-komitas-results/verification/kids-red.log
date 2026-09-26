@@ -1,0 +1,75 @@
+
+ RUN  v5.0.2 /Users/ashotarushanyan/AshProjects/varpet-quality/packages/designer
+
+ ❯ test/taste-kids.test.ts (4 tests | 4 failed) 12ms
+   × children bedroom names select a distinct sleep, study, storage and play program 5ms
+   × budget-aware children request in a bedroom returns complete checked real-kind furniture 4ms
+   × play space is a usable clear patch, not the sum of narrow leftover strips 2ms
+   × plain furnishing needs no invented customer style preference 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/taste-kids.test.ts > children bedroom names select a distinct sleep, study, storage and play program
+AssertionError: expected 'bedroom' to be 'kids' // Object.is equality
+
+Expected: "kids"
+Received: "bedroom"
+
+ ❯ test/taste-kids.test.ts:10:49
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  test/taste-kids.test.ts > budget-aware children request in a bedroom returns complete checked real-kind furniture
+AssertionError: expected 0 to be greater than 0
+ ❯ test/taste-kids.test.ts:17:35
+     15| test('budget-aware children request in a bedroom returns complete chec…
+     16|  const result=await designRoom(scene,{room_id:'bedroom',style_request:…
+     17|  expect(result.candidates.length).toBeGreaterThan(0);
+       |                                   ^
+     18|  for(const candidate of result.candidates){
+     19|   expect(candidate.checks.ok).toBe(true);expect(candidate.composition.…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  test/taste-kids.test.ts > play space is a usable clear patch, not the sum of narrow leftover strips
+AssertionError: expected [Function] to not throw an error but 'Error: Unknown room program: kids' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"Error: Unknown room program: kids"
+
+ ❯ test/taste-kids.test.ts:29:71
+     27| test('play space is a usable clear patch, not the sum of narrow leftov…
+     28|  const crowded={...scene,fixed:[{id:'obstacle',kind:'structure',name:'…
+     29|  expect(()=>scoreComposition(crowded,'bedroom',{program:'kids'})).not.…
+       |                                                                       ^
+     30|  expect(scoreComposition(crowded,'bedroom',{program:'kids'}).issues.ma…
+     31| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  test/taste-kids.test.ts > plain furnishing needs no invented customer style preference
+Error: A supported room and explicit style are required
+ ❯ designRoom src/taste/design.ts:19:38
+     17|  const room=scene.rooms.find(r=>r.id===request.room_id);if(!room)throw…
+     18|  const program=inferRoomProgram(room.name??room.id),styleIds=resolveSt…
+     19|  if(!program||!styleIds.length)throw new Error('A supported room and e…
+       |                                      ^
+     20|  const blocked=new Set(requestPolicy(request.customer_requests?.length…
+     21|  const anchorAlternative=blocked.has('sofa');
+ ❯ test/taste-kids.test.ts:33:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed (4)
+   Start at  19:48:27
+   Duration  384ms (transform 49%, import 45%, tests 5%, worker 1%)
+
+undefined
+/Users/ashotarushanyan/AshProjects/varpet-quality/packages/designer:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run test/taste-kids.test.ts

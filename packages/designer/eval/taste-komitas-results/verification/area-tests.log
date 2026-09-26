@@ -1,0 +1,12 @@
+
+ RUN  v5.0.2 /Users/ashotarushanyan/AshProjects/varpet-quality/packages/designer
+
+
+ Test Files  12 passed (12)
+      Tests  62 passed (62)
+   Start at  20:07:04
+   Duration  3.75s (tests 63%, import 20%, transform 16%, worker 1%)
+
+    Isolate  12 workers spawned · ~118ms startup each (spawn + environment, per file)
+             at least ~589ms faster with isolate: false — reuses workers across files instead of one per file
+

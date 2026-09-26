@@ -1,0 +1,1732 @@
+{
+  "complete": true,
+  "measured_at": "2026-09-26T16:19:49.444Z",
+  "groups": [
+    {
+      "kind": "living",
+      "path": "normal",
+      "passed": 0,
+      "total": 9,
+      "median_seconds": 39.752769959,
+      "p90_seconds": 123.016856667
+    },
+    {
+      "kind": "living",
+      "path": "fast",
+      "passed": 0,
+      "total": 9,
+      "median_seconds": 9.073832292,
+      "p90_seconds": 19.644765375
+    },
+    {
+      "kind": "bedroom",
+      "path": "normal",
+      "passed": 0,
+      "total": 9,
+      "median_seconds": 16.130037958,
+      "p90_seconds": 82.971872709
+    },
+    {
+      "kind": "bedroom",
+      "path": "fast",
+      "passed": 0,
+      "total": 9,
+      "median_seconds": 9.346623375000002,
+      "p90_seconds": 18.850603125000003
+    },
+    {
+      "kind": "kids",
+      "path": "normal",
+      "passed": 0,
+      "total": 9,
+      "median_seconds": 45.726387958000004,
+      "p90_seconds": 129.316285875
+    },
+    {
+      "kind": "kids",
+      "path": "fast",
+      "passed": 0,
+      "total": 9,
+      "median_seconds": 42.912716583,
+      "p90_seconds": 111.65309987499998
+    },
+    {
+      "kind": "sofa",
+      "path": "normal",
+      "passed": 6,
+      "total": 9,
+      "median_seconds": 43.82246104099999,
+      "p90_seconds": 91.39385500000002
+    },
+    {
+      "kind": "sofa",
+      "path": "fast",
+      "passed": 4,
+      "total": 9,
+      "median_seconds": 16.641855333,
+      "p90_seconds": 21.352025
+    }
+  ],
+  "rows": [
+    {
+      "flat": "b18-t1",
+      "path": "normal",
+      "kind": "living",
+      "request": "Furnish the living room",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 27.109465667000002,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b18-t1",
+      "path": "normal",
+      "kind": "bedroom",
+      "request": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 79.31412670799999,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b18-t1",
+      "path": "normal",
+      "kind": "kids",
+      "request": "Furnish room bed as a kids' room for one eight-year-old under 300,000 \u058f: bed, desk, storage and play space",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 51.325134917,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b18-t1",
+      "path": "normal",
+      "kind": "sofa",
+      "request": "Add a sofa to the living room",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 44.09930562500001,
+      "pass": true,
+      "request_match": true,
+      "reasons": [],
+      "editor_accepted": true,
+      "new_failures": [],
+      "catalog_pieces": [
+        {
+          "object_id": "abo:B0717B4TLX",
+          "id": "abo:B0717B4TLX",
+          "name": "Amazon Brand \u2013 Stone & Beam Dalton Sectional Sofa Couch, 91.5\"W, Stone",
+          "kind": "sofa",
+          "category": "sofa",
+          "dimensions": [
+            2.0931,
+            0.8615,
+            0.9356
+          ],
+          "color": "#8c8575",
+          "price": 290000,
+          "source": {
+            "type": "gltf",
+            "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/X/B0717B4TLX.glb"
+          }
+        }
+      ],
+      "cost_dram": 290000,
+      "inventory": [
+        {
+          "id": "abo:B0717B4TLX",
+          "room_id": "living",
+          "kind": "sofa"
+        }
+      ],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b18-t1",
+      "path": "fast",
+      "kind": "living",
+      "request": "Furnish the living room",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 9.204202625,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b18-t1",
+      "path": "fast",
+      "kind": "bedroom",
+      "request": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 6.016581166,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b18-t1",
+      "path": "fast",
+      "kind": "kids",
+      "request": "Furnish room bed as a kids' room for one eight-year-old under 300,000 \u058f: bed, desk, storage and play space",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 36.287883417,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b18-t1",
+      "path": "fast",
+      "kind": "sofa",
+      "request": "Add a sofa to the living room",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 17.176108375000002,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:error",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b20-t11",
+      "path": "normal",
+      "kind": "living",
+      "request": "Furnish the living room",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 45.432699500000005,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b20-t11",
+      "path": "normal",
+      "kind": "bedroom",
+      "request": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 74.51575629199999,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b20-t11",
+      "path": "normal",
+      "kind": "kids",
+      "request": "Furnish room bedroom as a kids' room for one eight-year-old under 300,000 \u058f: bed, desk, storage and play space",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 43.971429541000006,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b20-t11",
+      "path": "normal",
+      "kind": "sofa",
+      "request": "Add a sofa to the living room",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 42.424243583000006,
+      "pass": true,
+      "request_match": true,
+      "reasons": [],
+      "editor_accepted": true,
+      "new_failures": [],
+      "catalog_pieces": [
+        {
+          "object_id": "abo:B0717B4TLX",
+          "id": "abo:B0717B4TLX",
+          "name": "Amazon Brand \u2013 Stone & Beam Dalton Sectional Sofa Couch, 91.5\"W, Stone",
+          "kind": "sofa",
+          "category": "sofa",
+          "dimensions": [
+            2.0931,
+            0.8615,
+            0.9356
+          ],
+          "color": "#8c8575",
+          "price": 290000,
+          "source": {
+            "type": "gltf",
+            "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/X/B0717B4TLX.glb"
+          }
+        }
+      ],
+      "cost_dram": 290000,
+      "inventory": [
+        {
+          "id": "abo:B0717B4TLX",
+          "room_id": "living",
+          "kind": "sofa"
+        }
+      ],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b20-t11",
+      "path": "fast",
+      "kind": "living",
+      "request": "Furnish the living room",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 9.212646834,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b20-t11",
+      "path": "fast",
+      "kind": "bedroom",
+      "request": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 9.346623375000002,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b20-t11",
+      "path": "fast",
+      "kind": "kids",
+      "request": "Furnish room bedroom as a kids' room for one eight-year-old under 300,000 \u058f: bed, desk, storage and play space",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 51.521169916,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b20-t11",
+      "path": "fast",
+      "kind": "sofa",
+      "request": "Add a sofa to the living room",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 16.238427958999992,
+      "pass": true,
+      "request_match": true,
+      "reasons": [],
+      "editor_accepted": true,
+      "new_failures": [],
+      "catalog_pieces": [
+        {
+          "object_id": "fast-ca7aec94a97f",
+          "id": "abo:B073G7WN36",
+          "name": "Amazon Brand \u2013 Stone & Beam Modern Sweeping Arm Settee, 51\"W, Merlot",
+          "category": "Living",
+          "kind": "sofa",
+          "dimensions": [
+            1.2974,
+            0.8887,
+            0.7786
+          ],
+          "color": "#6e2723",
+          "price": 231000,
+          "source": {
+            "type": "gltf",
+            "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/6/B073G7WN36.glb"
+          }
+        }
+      ],
+      "cost_dram": 231000,
+      "inventory": [
+        {
+          "id": "fast-ca7aec94a97f",
+          "room_id": "living",
+          "kind": "sofa"
+        }
+      ],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b21-t13",
+      "path": "normal",
+      "kind": "living",
+      "request": "Furnish the living room",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 36.336175499999996,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b21-t13",
+      "path": "normal",
+      "kind": "bedroom",
+      "request": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 82.971872709,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b21-t13",
+      "path": "normal",
+      "kind": "kids",
+      "request": "Furnish room bed as a kids' room for one eight-year-old under 300,000 \u058f: bed, desk, storage and play space",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 45.726387958000004,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b21-t13",
+      "path": "normal",
+      "kind": "sofa",
+      "request": "Add a sofa to the living room",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 51.390689542000004,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b21-t13",
+      "path": "fast",
+      "kind": "living",
+      "request": "Furnish the living room",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 6.269796625,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b21-t13",
+      "path": "fast",
+      "kind": "bedroom",
+      "request": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 9.504198542,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b21-t13",
+      "path": "fast",
+      "kind": "kids",
+      "request": "Furnish room bed as a kids' room for one eight-year-old under 300,000 \u058f: bed, desk, storage and play space",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 42.912716583,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b21-t13",
+      "path": "fast",
+      "kind": "sofa",
+      "request": "Add a sofa to the living room",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 4.724378459000007,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b23-t64",
+      "path": "normal",
+      "kind": "living",
+      "request": "Furnish the living room",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 44.8621455,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b23-t64",
+      "path": "normal",
+      "kind": "bedroom",
+      "request": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 8.92813175,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b23-t64",
+      "path": "normal",
+      "kind": "kids",
+      "request": "Furnish room bed2 as a kids' room for one eight-year-old under 300,000 \u058f: bed, desk, storage and play space",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 54.457784415999996,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b23-t64",
+      "path": "normal",
+      "kind": "sofa",
+      "request": "Add a sofa to the living room",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 43.82246104099999,
+      "pass": true,
+      "request_match": true,
+      "reasons": [],
+      "editor_accepted": true,
+      "new_failures": [],
+      "catalog_pieces": [
+        {
+          "object_id": "sofa_living",
+          "id": "abo:B0717B4TLX",
+          "name": "Amazon Brand \u2013 Stone & Beam Dalton Sectional Sofa Couch, 91.5\"W, Stone",
+          "kind": "sofa",
+          "category": "sofa",
+          "dimensions": [
+            2.0931,
+            0.8615,
+            0.9356
+          ],
+          "color": "#8c8575",
+          "price": 290000,
+          "source": {
+            "type": "gltf",
+            "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/X/B0717B4TLX.glb"
+          }
+        }
+      ],
+      "cost_dram": 290000,
+      "inventory": [
+        {
+          "id": "sofa_living",
+          "room_id": "living",
+          "kind": "sofa"
+        }
+      ],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b23-t64",
+      "path": "fast",
+      "kind": "living",
+      "request": "Furnish the living room",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 8.994574707999998,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b23-t64",
+      "path": "fast",
+      "kind": "bedroom",
+      "request": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 8.076172,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b23-t64",
+      "path": "fast",
+      "kind": "kids",
+      "request": "Furnish room bed2 as a kids' room for one eight-year-old under 300,000 \u058f: bed, desk, storage and play space",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 26.543699042,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b23-t64",
+      "path": "fast",
+      "kind": "sofa",
+      "request": "Add a sofa to the living room",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 21.352025,
+      "pass": true,
+      "request_match": true,
+      "reasons": [],
+      "editor_accepted": true,
+      "new_failures": [],
+      "catalog_pieces": [
+        {
+          "object_id": "fast-ca7aec94a97f",
+          "id": "abo:B073G7WN36",
+          "name": "Amazon Brand \u2013 Stone & Beam Modern Sweeping Arm Settee, 51\"W, Merlot",
+          "category": "Living",
+          "kind": "sofa",
+          "dimensions": [
+            1.2974,
+            0.8887,
+            0.7786
+          ],
+          "color": "#6e2723",
+          "price": 231000,
+          "source": {
+            "type": "gltf",
+            "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/6/B073G7WN36.glb"
+          }
+        }
+      ],
+      "cost_dram": 231000,
+      "inventory": [
+        {
+          "id": "fast-ca7aec94a97f",
+          "room_id": "living",
+          "kind": "sofa"
+        }
+      ],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b24-t22",
+      "path": "normal",
+      "kind": "living",
+      "request": "Furnish the living room",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 38.514989667,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b24-t22",
+      "path": "normal",
+      "kind": "bedroom",
+      "request": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 8.275112708,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b24-t22",
+      "path": "normal",
+      "kind": "kids",
+      "request": "Furnish room bed_large as a kids' room for one eight-year-old under 300,000 \u058f: bed, desk, storage and play space",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 111.632255458,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b24-t22",
+      "path": "normal",
+      "kind": "sofa",
+      "request": "Add a sofa to the living room",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 91.39385500000002,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b24-t22",
+      "path": "fast",
+      "kind": "living",
+      "request": "Furnish the living room",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 6.152345333,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b24-t22",
+      "path": "fast",
+      "kind": "bedroom",
+      "request": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 7.5188559999999995,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b24-t22",
+      "path": "fast",
+      "kind": "kids",
+      "request": "Furnish room bed_large as a kids' room for one eight-year-old under 300,000 \u058f: bed, desk, storage and play space",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 35.038357042,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b24-t22",
+      "path": "fast",
+      "kind": "sofa",
+      "request": "Add a sofa to the living room",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 8.251646999999997,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b27-t79",
+      "path": "normal",
+      "kind": "living",
+      "request": "Furnish the living room",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 29.517960667,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b27-t79",
+      "path": "normal",
+      "kind": "bedroom",
+      "request": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 16.130037958,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:question",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b27-t79",
+      "path": "normal",
+      "kind": "kids",
+      "request": "Furnish room bed5 as a kids' room for one eight-year-old under 300,000 \u058f: bed, desk, storage and play space",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 129.316285875,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b27-t79",
+      "path": "normal",
+      "kind": "sofa",
+      "request": "Add a sofa to the living room",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 80.374048458,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b27-t79",
+      "path": "fast",
+      "kind": "living",
+      "request": "Furnish the living room",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 9.024753167,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b27-t79",
+      "path": "fast",
+      "kind": "bedroom",
+      "request": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 18.850603125000003,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:question",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b27-t79",
+      "path": "fast",
+      "kind": "kids",
+      "request": "Furnish room bed5 as a kids' room for one eight-year-old under 300,000 \u058f: bed, desk, storage and play space",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 111.65309987499998,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b27-t79",
+      "path": "fast",
+      "kind": "sofa",
+      "request": "Add a sofa to the living room",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 20.569917875000012,
+      "pass": true,
+      "request_match": true,
+      "reasons": [],
+      "editor_accepted": true,
+      "new_failures": [],
+      "catalog_pieces": [
+        {
+          "object_id": "fast-a57d9b383d43",
+          "id": "abo:B073G6GTK7",
+          "name": "Amazon Brand \u2013 Stone & Beam Modern Sweeping Arm Settee, 51\"W, Damask Navy",
+          "category": "Living",
+          "kind": "sofa",
+          "dimensions": [
+            1.2974,
+            0.8668,
+            0.7786
+          ],
+          "color": "#555a68",
+          "price": 231000,
+          "source": {
+            "type": "gltf",
+            "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/7/B073G6GTK7.glb"
+          }
+        }
+      ],
+      "cost_dram": 231000,
+      "inventory": [
+        {
+          "id": "fast-a57d9b383d43",
+          "room_id": "living",
+          "kind": "sofa"
+        }
+      ],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b28-t31",
+      "path": "normal",
+      "kind": "living",
+      "request": "Furnish the living room",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 86.194905792,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b28-t31",
+      "path": "normal",
+      "kind": "bedroom",
+      "request": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 56.135499417,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b28-t31",
+      "path": "normal",
+      "kind": "kids",
+      "request": "Furnish room bed as a kids' room for one eight-year-old under 300,000 \u058f: bed, desk, storage and play space",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 44.02679116600001,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b28-t31",
+      "path": "normal",
+      "kind": "sofa",
+      "request": "Add a sofa to the living room",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 40.702641,
+      "pass": true,
+      "request_match": true,
+      "reasons": [],
+      "editor_accepted": true,
+      "new_failures": [],
+      "catalog_pieces": [
+        {
+          "object_id": "abo:B0717B4TLX",
+          "id": "abo:B0717B4TLX",
+          "name": "Amazon Brand \u2013 Stone & Beam Dalton Sectional Sofa Couch, 91.5\"W, Stone",
+          "kind": "sofa",
+          "category": "sofa",
+          "dimensions": [
+            2.0931,
+            0.8615,
+            0.9356
+          ],
+          "color": "#8c8575",
+          "price": 290000,
+          "source": {
+            "type": "gltf",
+            "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/X/B0717B4TLX.glb"
+          }
+        }
+      ],
+      "cost_dram": 290000,
+      "inventory": [
+        {
+          "id": "abo:B0717B4TLX",
+          "room_id": "living",
+          "kind": "sofa"
+        }
+      ],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b28-t31",
+      "path": "fast",
+      "kind": "living",
+      "request": "Furnish the living room",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 19.644765375,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b28-t31",
+      "path": "fast",
+      "kind": "bedroom",
+      "request": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 9.174894249999998,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b28-t31",
+      "path": "fast",
+      "kind": "kids",
+      "request": "Furnish room bed as a kids' room for one eight-year-old under 300,000 \u058f: bed, desk, storage and play space",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 91.450698834,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b28-t31",
+      "path": "fast",
+      "kind": "sofa",
+      "request": "Add a sofa to the living room",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 16.641855333,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:error",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b30-t35",
+      "path": "normal",
+      "kind": "living",
+      "request": "Furnish the living room",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 123.016856667,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:error",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b30-t35",
+      "path": "normal",
+      "kind": "bedroom",
+      "request": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 10.386274875000003,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b30-t35",
+      "path": "normal",
+      "kind": "kids",
+      "request": "Furnish room bedroom_5 as a kids' room for one eight-year-old under 300,000 \u058f: bed, desk, storage and play space",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 43.21075129100002,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b30-t35",
+      "path": "normal",
+      "kind": "sofa",
+      "request": "Add a sofa to the living room",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 40.815502542000004,
+      "pass": true,
+      "request_match": true,
+      "reasons": [],
+      "editor_accepted": true,
+      "new_failures": [],
+      "catalog_pieces": [
+        {
+          "object_id": "sofa_living",
+          "id": "abo:B0717B4TLX",
+          "name": "Amazon Brand \u2013 Stone & Beam Dalton Sectional Sofa Couch, 91.5\"W, Stone",
+          "kind": "sofa",
+          "category": "sofa",
+          "dimensions": [
+            2.0931,
+            0.8615,
+            0.9356
+          ],
+          "color": "#8c8575",
+          "price": 290000,
+          "source": {
+            "type": "gltf",
+            "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/X/B0717B4TLX.glb"
+          }
+        }
+      ],
+      "cost_dram": 290000,
+      "inventory": [
+        {
+          "id": "sofa_living",
+          "room_id": "living",
+          "kind": "sofa"
+        }
+      ],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b30-t35",
+      "path": "fast",
+      "kind": "living",
+      "request": "Furnish the living room",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 9.269795,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b30-t35",
+      "path": "fast",
+      "kind": "bedroom",
+      "request": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 16.303129625,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:question",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b30-t35",
+      "path": "fast",
+      "kind": "kids",
+      "request": "Furnish room bedroom_5 as a kids' room for one eight-year-old under 300,000 \u058f: bed, desk, storage and play space",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 43.66542275,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b30-t35",
+      "path": "fast",
+      "kind": "sofa",
+      "request": "Add a sofa to the living room",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 15.520888290999995,
+      "pass": true,
+      "request_match": true,
+      "reasons": [],
+      "editor_accepted": true,
+      "new_failures": [],
+      "catalog_pieces": [
+        {
+          "object_id": "fast-ca7aec94a97f",
+          "id": "abo:B073G7WN36",
+          "name": "Amazon Brand \u2013 Stone & Beam Modern Sweeping Arm Settee, 51\"W, Merlot",
+          "category": "Living",
+          "kind": "sofa",
+          "dimensions": [
+            1.2974,
+            0.8887,
+            0.7786
+          ],
+          "color": "#6e2723",
+          "price": 231000,
+          "source": {
+            "type": "gltf",
+            "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/6/B073G7WN36.glb"
+          }
+        }
+      ],
+      "cost_dram": 231000,
+      "inventory": [
+        {
+          "id": "fast-ca7aec94a97f",
+          "room_id": "living",
+          "kind": "sofa"
+        }
+      ],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b31-t46",
+      "path": "normal",
+      "kind": "living",
+      "request": "Furnish the living room",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 39.752769959,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b31-t46",
+      "path": "normal",
+      "kind": "bedroom",
+      "request": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 8.033735,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b31-t46",
+      "path": "normal",
+      "kind": "kids",
+      "request": "Furnish room bed5 as a kids' room for one eight-year-old under 300,000 \u058f: bed, desk, storage and play space",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 32.390797375000005,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b31-t46",
+      "path": "normal",
+      "kind": "sofa",
+      "request": "Add a sofa to the living room",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 42.34838791600001,
+      "pass": true,
+      "request_match": true,
+      "reasons": [],
+      "editor_accepted": true,
+      "new_failures": [],
+      "catalog_pieces": [
+        {
+          "object_id": "sofa-living",
+          "id": "abo:B0717B4TLX",
+          "name": "Amazon Brand \u2013 Stone & Beam Dalton Sectional Sofa Couch, 91.5\"W, Stone",
+          "kind": "sofa",
+          "category": "sofa",
+          "dimensions": [
+            2.0931,
+            0.8615,
+            0.9356
+          ],
+          "color": "#8c8575",
+          "price": 290000,
+          "source": {
+            "type": "gltf",
+            "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/X/B0717B4TLX.glb"
+          }
+        }
+      ],
+      "cost_dram": 290000,
+      "inventory": [
+        {
+          "id": "sofa-living",
+          "room_id": "living",
+          "kind": "sofa"
+        }
+      ],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b31-t46",
+      "path": "fast",
+      "kind": "living",
+      "request": "Furnish the living room",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 9.073832292,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b31-t46",
+      "path": "fast",
+      "kind": "bedroom",
+      "request": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 17.484123417000003,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:question",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b31-t46",
+      "path": "fast",
+      "kind": "kids",
+      "request": "Furnish room bed5 as a kids' room for one eight-year-old under 300,000 \u058f: bed, desk, storage and play space",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 40.840364125,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:message",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    },
+    {
+      "flat": "b31-t46",
+      "path": "fast",
+      "kind": "sofa",
+      "request": "Add a sofa to the living room",
+      "source": "f8637af6a87258d82558137d1d43668200dfde71",
+      "seconds": 19.489000709,
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:error",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": [],
+      "input_catalog_unchanged": true
+    }
+  ]
+}
