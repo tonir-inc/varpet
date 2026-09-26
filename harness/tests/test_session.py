@@ -178,20 +178,30 @@ def test_a_fixture_piece_needs_its_component_first(tmp_path, monkeypatch):
     session(tmp_path, monkeypatch, play)
 
 
-def test_code_asks_for_the_kitchen_when_photos_show_one_and_none_was_built(tmp_path, monkeypatch):
+def test_code_builds_the_kitchen_from_the_photos_without_being_asked(tmp_path, monkeypatch):
     from test_shell import bathroom, fixture
 
-    turns = []
-
     async def play(tools, n, text, run):
-        turns.append(text)
         s = bathroom()
-        s.components.append(fixture("kitchen-run", "worktop", [2.5, 0, 0.4], [2.0, 0.9, 0.6], room="living"))
+        s.components.append(fixture("kitchen-run", "cabinet", [2.5, 0, 0.4], [2.0, 0.9, 0.6], room="living"))
         (run / "shell" / "shell.json").write_text(s.model_dump_json())
-        if n == 2:
-            await tools["build_pieces"].run({"pieces": [{**SOFA, "id": "kitchen", "fixture": "kitchen-run"}]})
-            await tools["wait_for_pieces"].run({})
-            (run / "furnish" / "placements.json").write_text(json.dumps({"placements": []}))
+        await tools["submit_shell"].run({})  # the model never mentions the kitchen
+        (run / "furnish" / "placements.json").write_text(json.dumps({"placements": []}))
 
     report, *_ = session(tmp_path, monkeypatch, play)
-    assert report.architect_turns == 2 and "kitchen-run" in turns[1]
+    run = tmp_path / "run"
+    assert report.architect_turns == 1
+    assert json.loads((run / "fixtures.json").read_text()) == {"fixture-kitchen-run": "kitchen-run"}
+    assert json.loads((run / "fixture-kitchen-run" / "program.json").read_text())["size"] == [2.0, 0.6, 0.9]
+    shown = S._with_models(run, [{"id": "kitchen-run"}], "http://h")
+    assert shown[0]["assetId"].endswith("fixture-kitchen-run")
+
+
+def test_a_fixture_model_a_few_cm_off_still_shows_because_the_editor_scales_it(tmp_path):
+    f = tmp_path / "faults.json"
+    f.write_text(json.dumps([{"check": "size", "axis": "d", "want_m": 0.58, "got_m": 0.613}]))
+    assert S._fits(f)
+    f.write_text(json.dumps([{"check": "size", "axis": "d", "want_m": 0.58, "got_m": 0.9}]))
+    assert not S._fits(f)
+    f.write_text(json.dumps([{"check": "floor", "detail": "floats"}]))
+    assert not S._fits(f)

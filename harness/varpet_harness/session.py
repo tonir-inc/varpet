@@ -87,10 +87,7 @@ Work in this folder. Plan (the first image): {plan}{photo_list}
 STEPS_FURNISHED = """1. Rooms and walls with their doors and windows into shell/shell.json, per the flat-shell skill below. submit_shell.
 2. build_pieces with every movable piece the photos show. Builders make them in parallel while you go on.
 3. The fixtures (`components`) into shell/shell.json: every one the plan or photos show. submit_shell.
-   Then build_pieces again for the fixtures people look at: always the kitchen run when a photo shows the kitchen
-   (one piece: cabinets, worktop, sink, hob, handles, as the photos show them), and a bathroom vanity when a photo
-   shows one, each with `fixture` set to its component id and refs to those photos. Toilets, radiators and
-   railings stay as they are.
+   Once they pass, code sends the kitchen run and any vanity to builders with the photos; you do not.
 4. wait_for_pieces: it answers with the built sizes and the rules for placing them. Place them into
    furnish/placements.json. submit_placements.
 5. render_top_view and compare it with the photos, piece by piece and fixture by fixture: which wall, what is
@@ -143,6 +140,18 @@ def export_project(repo: Path, run_dir: Path, base_url: str = "http://127.0.0.1:
     return out if proc.returncode == 0 and out.exists() else None
 
 
+def _fits(faults: Path) -> bool:
+    """A fixture's model is scaled to its component by the editor, so a size miss under 10% still shows right."""
+    if not faults.exists():
+        return True
+    try:
+        found = json.loads(faults.read_text())
+    except ValueError:
+        return False
+    return all(f.get("check") == "size" and f.get("want_m") and abs(f["got_m"] - f["want_m"]) <= 0.1 * f["want_m"]
+               for f in found)
+
+
 def _with_models(run_dir: Path, components: list[dict], base_url: str) -> list[dict]:
     """Fixtures a builder made (fixtures.json: piece -> component) show that model instead of the plain shape."""
     from .pieces import catalog
@@ -152,7 +161,7 @@ def _with_models(run_dir: Path, components: list[dict], base_url: str) -> list[d
         return components
     built = {a["id"].removeprefix(f"built-{run_dir.name}-"): a["id"] for a in catalog(run_dir, base_url)}
     model = {component: built[piece] for piece, component in json.loads(path.read_text()).items()
-             if piece in built and not (run_dir / piece / "faults.json").exists()}
+             if piece in built and _fits(run_dir / piece / "faults.json")}
     return [{**c, "assetId": model[c["id"]]} if c.get("id") in model else c for c in components]
 
 
@@ -259,6 +268,7 @@ class _Architect:
         self.builds: list[asyncio.Task] = []  # one per build_pieces call
         self.jobs: list[Job] = []  # every piece asked for so far
         self.fixtures: dict[str, str] = {}  # piece id -> component id it models
+        self.photos: list[str] = []  # absolute paths; with photos, code builds the kitchen and vanities itself
         self.t_place: float | None = None
         self.placed = False
         self.looks = 0
@@ -292,11 +302,45 @@ class _Architect:
             self.progress("architect: fixing shell")
             return "faults:\n" + json.dumps(faults, indent=1) + table
         _emit_shell(self.emit, self.run_dir)
+        if self.photos:
+            await self.build_fixtures()
         if not self.shown:
             self.shown = True
             self.progress("architect: reading the fixtures and furniture")
         shell = Shell.model_validate_json((self.run_dir / "shell" / "shell.json").read_text())
         return f"ok: {len(shell.rooms)} rooms, {len(shell.walls)} walls, {len(shell.components)} fixtures" + table
+
+    async def build_fixtures(self) -> None:
+        """The fixtures people look at get built from the photos by code, not at the model's discretion: per room
+        the largest floor-standing kitchen unit (the run: cabinets, worktop, sink, hob), and every vanity basin."""
+        from .shell import Shell
+
+        shell = Shell.model_validate_json((self.run_dir / "shell" / "shell.json").read_text())
+        rooms = {r.id: r.name for r in shell.rooms}
+        runs: dict[str, object] = {}
+        for c in shell.components:
+            if c.kind in ("cabinet", "worktop") and c.position[1] < 0.3 and c.dimensions[1] > 0.5:
+                best = runs.get(c.roomId)
+                if best is None or c.dimensions[0] * c.dimensions[2] > best.dimensions[0] * best.dimensions[2]:
+                    runs[c.roomId] = c
+        vanities = [c for c in shell.components if c.kind == "sink" and c.dimensions[1] > 0.5 and c.dimensions[2] >= 0.35
+                    and c.roomId not in runs]
+        taken = set(self.fixtures.values())
+        pieces = []
+        for c in [*runs.values(), *vanities]:
+            if c.id in taken:
+                continue
+            room = rooms.get(c.roomId, "flat")
+            kitchen = any(k in f"{room} {c.name} {c.id}".lower() for k in ("kitchen", "worktop", "sink", "hob"))
+            what = ("bathroom vanity: the basin on its cabinet" if c.kind == "sink" else
+                    f"fitted kitchen run ({c.name}): base cabinets, worktop, sink, hob, handles" if kitchen else
+                    f"built-in {c.name}")
+            pieces.append({"id": f"fixture-{c.id}", "brief": f"The {what} in the {room}, exactly as the photos show it: "
+                           "fronts, handles, surfaces and colours.",
+                           "size": [1, 1, 1], "size_source": "plan", "count": 1, "refs": self.photos[:6], "fixture": c.id})
+        if pieces:
+            answer = await self.build_pieces({"pieces": pieces})
+            self.progress(f"builders: fixtures {', '.join(p['fixture'] for p in pieces)} ({answer.split(';')[0]})")
 
     async def build_pieces(self, args: dict) -> str:
         from .shell import Shell
@@ -332,7 +376,7 @@ class _Architect:
     async def _build(self, pieces: Pieces) -> list[str]:
         t = time.monotonic()
         jobs = [Job(id=p.id, kind="piece", brief=p.brief, size=p.size, size_source=p.size_source, count=p.count,
-                    refs=p.refs[:MAX_PIECE_PHOTOS]) for p in pieces.pieces]
+                    refs=p.refs[:6 if p.fixture else MAX_PIECE_PHOTOS]) for p in pieces.pieces]
         self.jobs += jobs
         graph = settle(Graph(flat=self.flat, jobs=[*self.jobs, Job(id="shell", kind="shell", brief="read by the architect"),
                                                    Job(id="furnish", kind="furnish", brief="placed by the architect")]), self.plan)
@@ -401,14 +445,6 @@ class _Architect:
         faults = check_shell(shell, shell.parent) if shell.exists() else [{"check": "file", "detail": "shell/shell.json was not written"}]
         if faults:
             return "Code checked shell/shell.json and found faults. Fix them, then submit_shell:\n" + json.dumps(faults, indent=1)
-        if furnish and not self.fixtures:  # the prompt asks for the kitchen; this makes sure (N3 skipped it twice)
-            from .shell import Shell
-
-            kitchen = [c.id for c in Shell.model_validate_json(shell.read_text()).components if c.kind in ("worktop", "cabinet")]
-            if kitchen:
-                return ("The photos show the kitchen but no fixture was built. Call build_pieces with the kitchen run as one "
-                        f"piece with `fixture` set to its component ({', '.join(kitchen[:4])}), refs to the photos that show it, "
-                        "then wait_for_pieces.")
         placements = self.run_dir / "furnish" / "placements.json"
         if furnish and self.builds:
             faults = check_placements(placements, placements.parent) if placements.exists() else \
@@ -436,6 +472,7 @@ async def run_session(codex: AsyncCodex, repo: Path, flat: str, plan: str, photo
     runner = CodexRunner(codex, repo, model=model, compile_cmd=compile_cmd, progress=progress, activity=activity)
     arch = _Architect(repo, run_dir, flat, plan, runner, lanes, report, progress, emit, base_url)
     arch.area_feedback = area_feedback
+    arch.photos = [str((repo / p).resolve()) for p in photos]
     furnish = bool(photos)
     thread = await start_thread(codex, arch.tools(furnish, look=furnish and review), model=model, cwd=str(run_dir),
                                 config=thread_config(), name=f"architect {flat}")
@@ -464,6 +501,8 @@ async def run_session(codex: AsyncCodex, repo: Path, flat: str, plan: str, photo
                 break
             progress("architect: fixing shell" if "shell.json" in left.split("\n", 1)[0] else "architect: fixing furnish")
             await turn([TextInput(left)])
+        if arch.photos and arch.shown:
+            await arch.build_fixtures()  # a shell that only passed in the backstop turn still gets its kitchen
         if arch.builds:
             await asyncio.gather(*arch.builds)  # never leave builders running behind the export
         if not any(s["step"] == "read" for s in report.steps):
