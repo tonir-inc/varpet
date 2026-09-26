@@ -87,9 +87,10 @@ Work in this folder. Plan (the first image): {plan}{photo_list}
 STEPS_FURNISHED = """1. Rooms and walls with their doors and windows into shell/shell.json, per the flat-shell skill below. submit_shell.
 2. build_pieces with every movable piece the photos show. Builders make them in parallel while you go on.
 3. The fixtures (`components`) into shell/shell.json: every one the plan or photos show. submit_shell.
-   Then build_pieces again for the fixtures people look at in the photos: the kitchen run as one piece (cabinets,
-   worktop, sink, hob, handles, as the photos show them) and a bathroom vanity, each with `fixture` set to its
-   component id and refs to the photos that show it. Toilets, radiators and railings stay as they are.
+   Then build_pieces again for the fixtures people look at: always the kitchen run when a photo shows the kitchen
+   (one piece: cabinets, worktop, sink, hob, handles, as the photos show them), and a bathroom vanity when a photo
+   shows one, each with `fixture` set to its component id and refs to those photos. Toilets, radiators and
+   railings stay as they are.
 4. wait_for_pieces: it answers with the built sizes and the rules for placing them. Place them into
    furnish/placements.json. submit_placements.
 5. render_top_view and compare it with the photos, piece by piece and fixture by fixture: which wall, what is
