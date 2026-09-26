@@ -14,18 +14,33 @@ per lane (`catalog/data/extra/bpy-<lane>/`). How to build: `catalog/blender/READ
 | Vanities with basin, bathroom cabinets, towel racks, hampers, bath mats, mirror cabinets | bpy-bathroom | 18 |
 | Balcony bistro sets, folding chairs, loveseat, bar table, side tables, outdoor rug, deck box | bpy-balcony | 17 |
 | Desktop PCs, monitors, keyboard set, narrow mirrors | bpy-techmirror | 16 |
+| Sofas, armchairs, poufs | bpy-living-seating | 16 |
+| Coffee, side and console tables | bpy-living-tables | 16 |
+| Sideboards, TV units, bookcases, display cabinets | bpy-storage | 16 |
+| Nightstands, dressers, wardrobes, bedroom benches, vanity | bpy-bedroom | 16 |
+| Dining tables, chairs, benches | bpy-dining | 16 |
+| Desks, office chairs, pedestals, office shelving | bpy-office | 16 |
+| Floor and table lamps | bpy-lighting | 16 |
+| Bunk and house beds, kids desk, toy storage, shoe cabinets, coat stands, hall tree | bpy-kids-entry | 17 |
+| Room-divider screens, plant stands, magazine racks, valet, clothes rail, bar carts | bpy-screens | 16 |
+| Wabi-sabi vases, bowls, sculptures, candles, books, floor vases | bpy-styling | 18 |
+| Bathroom accessories (soap sets, towels, diffuser, stool, bin) | bpy-bath-acc | 16 |
+| Patterned rugs (Beni Ourain, kilim, Armenian, jute, shag, runners) | bpy-rugs | 16 |
+| Kitchen countertop items (kettles, coffee, toasters, mixer, jars, microwave) | bpy-countertop | 16 |
+| Potted plants (fiddle leaf, olive, monstera, palms, bonsai, succulents) | bpy-plants | 13 |
+| Cushion sets, throws, bed runner, floor cushion, sheepskin | bpy-soft | 17 |
 
-## Wave 2 (claimed)
+## In progress
 | Family | Lane |
 |---|---|
-| Sofas (low japandi, curved boucle, MCM tufted, modular), armchairs (lounge, cane, boucle), poufs | living-seating |
-| Coffee tables (travertine, slatted oak, round walnut, nesting), side tables, console tables | living-tables |
-| Sideboards (fluted, MCM), low TV units, bookcases, display cabinets, wall shelves | storage |
-| Nightstands, dressers, wardrobes (reeded doors), bedroom benches, vanity desks | bedroom |
-| Dining tables (extendable oak, round pedestal, oval), dining chairs (wishbone-style, upholstered), dining benches | dining |
-| Desks (oak, walnut MCM, standing), task chairs, desk storage, wall-mounted desk-free shelving | office |
-| Floor lamps (arc, paper, tripod), table lamps (mushroom, ceramic, glass), bedside lamps | lighting |
-| Kids: bunk bed, kids desk and chair, toy storage; entry: shoe cabinet, coat stand, entry bench | kids-entry |
+| Floating shelves, clocks, peg rails, wall art panels, pegboards with accessory sets | wall |
+| Laundry, cleaning and home fitness | utility |
+| Fridges, ranges, washer/dryer, dishwashers, wine cooler | appliances |
+| Fitted kitchen base units, sink base, tall pantry, 240 cm run, islands | kitchen-fitted |
+| Toilets, freestanding and built-in baths, showers, pedestal and stone basins | bath-fixtures |
+| TVs, soundbar, speakers, turntable, consoles, projector, radio | media |
+| Kids toys: teepee, rocking horse, Pikler, toy kitchen, doll house, plush | toys |
+| Terrace: outdoor sofas, loungers, dining, parasols, large planters | terrace |
 
 ## Later
 - Rugs with real patterns (berber, jute, kilim, round, washable runners); throws and cushion sets that rest on sofas.

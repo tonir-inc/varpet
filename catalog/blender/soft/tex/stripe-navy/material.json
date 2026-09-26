@@ -1,0 +1,10 @@
+{
+  "id": "stripe-navy",
+  "family": "fabric",
+  "tile_m": 0.16,
+  "grain": false,
+  "default_color": "#ffffff",
+  "metal": 0.0,
+  "source": "generated: catalog linen x ticking stripe",
+  "license": "CC0"
+}

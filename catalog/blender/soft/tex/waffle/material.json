@@ -1,0 +1,10 @@
+{
+  "id": "waffle",
+  "family": "fabric",
+  "tile_m": 0.096,
+  "grain": false,
+  "default_color": "#ece7dc",
+  "metal": 0.0,
+  "source": "generated: waffle weave height field",
+  "license": "CC0"
+}
