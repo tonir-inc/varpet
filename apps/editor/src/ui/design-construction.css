@@ -1,0 +1,58 @@
+.design-construction {
+  --construction-green: #78cdb5;
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  overflow: hidden;
+  pointer-events: none;
+  color: #eefcf7;
+  font-family: var(--font-mono, ui-monospace, monospace);
+}
+.design-construction[hidden], .design-construction [hidden] { display: none; }
+/* Match the arrival rule's ID specificity: the designer's observations stay visible
+   while the ordinary editing controls wait for Customize. */
+body.editor-arriving .viewport-shell > .design-construction:not(#viewport, #architect-stage, #floor-plan) { opacity: 1; transform: none; }
+body.editor-arriving .design-construction-activity { top: 116px; }
+body.editor-arriving .design-construction-builds { top: 174px; max-height: calc(100% - 270px); }
+.design-construction-drawing, .design-construction-pins { position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; }
+.design-construction-drawing, .design-construction-pins { opacity: 1; transition: opacity 380ms ease-out; }
+.design-construction.is-settling .design-construction-drawing,
+.design-construction.is-settling .design-construction-pins { opacity: 0; }
+.design-construction-footprint { fill: rgb(120 205 181 / 13%); stroke: var(--construction-green); stroke-width: 1.4; vector-effect: non-scaling-stroke; }
+.design-construction-wire { fill: none; stroke: var(--construction-green); stroke-width: 1; stroke-dasharray: 4 4; opacity: .8; vector-effect: non-scaling-stroke; }
+.design-construction-pin, .design-construction-build, .design-construction-activity {
+  border: 1px solid rgb(120 205 181 / 48%);
+  background: rgb(17 48 47 / 94%);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 12%);
+}
+.design-construction-pin { position: absolute; top: 0; left: 0; display: flex; align-items: center; gap: 8px; max-width: min(240px, calc(100% - 24px)); padding: 7px 10px 7px 7px; border-radius: 4px; font-size: 11px; line-height: 1.35; }
+.design-construction-pin-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.design-construction-number { flex: 0 0 auto; display: grid; place-items: center; min-width: 24px; height: 24px; border: 1px solid rgb(120 205 181 / 60%); color: var(--construction-green); font-size: 11px; font-variant-numeric: tabular-nums; }
+.design-construction-activity { position: absolute; top: 20px; left: 50%; display: flex; align-items: center; gap: 9px; transform: translateX(-50%); max-width: min(580px, calc(100% - 32px)); padding: 10px 14px; border-radius: 5px; font-size: 12px; line-height: 1.5; }
+.design-construction-activity-icon { flex: 0 0 auto; width: 6px; height: 6px; background: var(--construction-green); border-radius: 50%; }
+.design-construction-activity[data-state='error'], .design-construction-activity[data-state='failed'] { border-color: #cdbdab; }
+.design-construction-activity[data-state='error'] .design-construction-activity-icon,
+.design-construction-activity[data-state='failed'] .design-construction-activity-icon { background: #cdbdab; }
+.design-construction-builds { position: absolute; top: 78px; right: 18px; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; max-width: min(300px, calc(100% - 36px)); max-height: calc(100% - 190px); overflow: auto; pointer-events: auto; scrollbar-width: thin; overscroll-behavior: contain; }
+.design-construction-builds:empty { display: none; }
+.design-construction-builds:focus-visible { outline: 2px solid var(--construction-green); outline-offset: 3px; }
+.design-construction-build { display: flex; flex-shrink: 0; align-items: flex-start; gap: 10px; width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 5px; }
+.design-construction-build-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.design-construction-build-name { color: #f0faf6; font-size: 12px; line-height: 1.4; font-weight: 600; }
+.design-construction-build-state { color: var(--construction-green); font-size: 11px; line-height: 1.4; }
+.design-construction-build-reason { color: #e3ded7; font-size: 11px; line-height: 1.5; overflow-wrap: anywhere; }
+.design-construction-build[data-state='queued'] { border-style: dashed; }
+.design-construction-build[data-state='failed'] { background: rgb(42 47 46 / 95%); border-color: #858f89; }
+.design-construction-build[data-state='failed'] .design-construction-build-state { color: #e3ded7; }
+.design-construction-build[data-state='done'] .design-construction-number { background: rgb(120 205 181 / 12%); }
+@media (max-width: 600px) {
+  .design-construction-activity { top: 12px; font-size: 11px; padding: 8px 10px; }
+  .design-construction-builds { top: 68px; right: 12px; max-width: min(260px, calc(100% - 24px)); max-height: 34%; }
+  .design-construction-build { padding: 8px 9px; }
+  .design-construction-pin { font-size: 10px; max-width: 190px; }
+  body.editor-arriving .design-construction-activity { top: 102px; }
+  body.editor-arriving .design-construction-builds { top: 160px; max-height: 25%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .design-construction-drawing, .design-construction-pins { transition: none; }
+}

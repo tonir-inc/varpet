@@ -955,8 +955,8 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
     assemblies = assemblies.filter(assembly => {
       let active = false;
       assembly.parts.forEach(({ part, y, lift }, index) => {
-        const k = Math.min(1, Math.max(0, (now - assembly.start - index * assembly.stagger) / ASSEMBLY_PART_MS));
-        part.visible = now >= assembly.start + index * assembly.stagger;
+        const k = motion.reduced ? 1 : Math.min(1, Math.max(0, (now - assembly.start - index * assembly.stagger) / ASSEMBLY_PART_MS));
+        part.visible = motion.reduced || now >= assembly.start + index * assembly.stagger;
         part.position.y = y + lift * (1 - (1 - (1 - k) ** 3));
         if (k < 1) active = true;
       });

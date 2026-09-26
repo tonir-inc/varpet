@@ -555,6 +555,8 @@ interface MountOptions extends Omit<ConversationOptions, 'ask' | 'onChange'> {
   health?: () => Promise<DesignerHealth>;
   subscribe?: (listener: () => void) => () => void;
   onBusyChange?: (busy: boolean) => void;
+  /** Observe the same conversation from a guided first-design surface. */
+  onStateChange?: (state: DesignerPanelState) => void;
 }
 
 /** What the buyer is pointing at, as a text prefix. */
@@ -996,6 +998,7 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
     }
     previousBusy = state.busy;
     updateJump();
+    options.onStateChange?.(state);
   };
   const statusLine = find<HTMLElement>('.designer-service-status');
   let healthTimer: ReturnType<typeof setTimeout> | undefined, checking = false;

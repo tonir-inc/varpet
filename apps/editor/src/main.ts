@@ -18,6 +18,8 @@ import './ui/designer-panel.css';
 import { mountDesignerPanel, previewDesignerProposal } from './ui/designer-panel';
 import { mountProposalBar } from './ui/review-bar';
 import { describeEntity, proposalArrival } from './ui/proposal-review';
+import { mountDesignOnboarding } from './ui/design-onboarding';
+import { createDesignConstruction } from './ui/design-construction';
 import { askDesigner, designerHealth } from './adapters/designer-http';
 import { DesignerProposalCatalog } from './core/designer-catalog';
 import { CATALOG_CURRENCY } from './adapters/catalog-http';
@@ -228,6 +230,8 @@ let panelOpen = true;
 let folioShell: ReturnType<typeof mountFolioShell> | undefined;
 let previewMode = false;
 let proposalView = false;
+let designOnboarding: ReturnType<typeof mountDesignOnboarding> | undefined;
+let guidedPreviewId: string | undefined;
 let renovationUI: RenovationUI | undefined;
 let sunControls: SunControls | undefined;
 let topLightingEnabled = false;
@@ -246,6 +250,7 @@ function notify(message: string, error = false) {
 }
 
 const presentation = startupSession?.presentation;
+let guidedDesign = presentation?.workflow === 'design' && Boolean(presentation.arriving);
 const viewportCallbacks: FinishViewportCallbacks = {
   onLightingChange: () => ceilingUI.syncLighting(),
   onSunChange: settings => {
@@ -312,6 +317,7 @@ const viewportCallbacks: FinishViewportCallbacks = {
 const adoptedViewport = presentation?.takeViewport?.();
 const viewport = adoptedViewport ?? createViewport($('#viewport'), viewportCallbacks, normalizeWallJunctions);
 if (adoptedViewport) viewport.attach($('#viewport'), viewportCallbacks, normalizeWallJunctions);
+const designConstruction = createDesignConstruction($('.viewport-shell'), viewport);
 store.setSurfaceResolver(viewport.furnitureSurface);
 /** The designer proposal previewed in the flat: its scene, and the new pieces this turn has already shown. */
 let review: { proposal: AgentProposal; scene: SceneDocument; shown: Set<string> } | null = null;
@@ -400,6 +406,7 @@ function chooseFinish(preset: FinishPreset | null) {
 
 function focusView(id?: string) {
   cancelAnimationFrame(selectionRevealFrame);
+  if (guidedDesign && !id) return;
   // The first framing keeps the construction view's camera, so the handover has no cut.
   if (arrivalPose && !id && view === 'perspective') { viewport.setCameraPose(arrivalPose, 0); return; }
   if (view === 'plan') floorPlan.focus(id);
@@ -410,6 +417,7 @@ function focusView(id?: string) {
 }
 
 function run(operations: Operation[], label: string, revision = store.revision, onDeferredApply?: () => void) {
+  if (guidedDesign) return false;
   if (previewMode) { notify('Exit preview to edit the apartment.'); return false; }
   const command: EditCommand = {id:uid(), label, source:'human', baseRevision:revision, operations};
   // Preflight shell edits with the same checks and junction policy as the real
@@ -1059,7 +1067,7 @@ function setView(next:ApartmentView){
   folioShell?.update();
 }
 /** `frame`: frame the flat on entering (a designer proposal frames its own room instead). */
-function setPreview(enabled:boolean, frame = true){
+function setPreview(enabled:boolean, frame = true, retainSceneOnExit = false){
   if (activeFinish) chooseFinish(null);
   viewport.cancelInteraction();
   if (enabled) {
@@ -1067,7 +1075,12 @@ function setPreview(enabled:boolean, frame = true){
     if (view === 'plan') setView('perspective');
   }
   if (!enabled) endReview();
-  if (!enabled && proposalView) { proposalView = false; viewport.setScene(store.scene, catalog); $<HTMLButtonElement>('#save').disabled = false; }
+  if (!enabled && proposalView) {
+    proposalView = false; designConstruction.clear();
+    // Approving an already visible design commits that same picture without retiring/reloading its models.
+    if (!retainSceneOnExit) viewport.setScene(store.scene, catalog);
+    $<HTMLButtonElement>('#save').disabled = false;
+  }
   previewMode=enabled;
   select(null);
   app.classList.toggle('preview-mode',enabled);
@@ -1085,7 +1098,7 @@ function setPreview(enabled:boolean, frame = true){
     previewReturnView = null;
     setView(previousView);
   }
-  if (view !== 'inside' && frame) requestAnimationFrame(()=>focusView());
+  if (view !== 'inside' && frame && !guidedDesign) requestAnimationFrame(()=>focusView());
   folioShell?.update();
 }
 
@@ -1169,8 +1182,9 @@ function refresh(){
   if(selectedId&&!entityName(selectedId))selectedId=selectionIds().at(-1)??null;
   // The architect temporarily owns this renderer; background catalog/save refreshes
   // must not replace the streamed shell with the checked editor document mid-build.
-  // A proposal under review keeps the proposed flat on screen until it is accepted or rejected.
-  if (!stage && !review) { viewport.setScene(scene,catalog);viewport.setSelection(selectedId, selectionIds()); }
+  // Keep a checked proposal visible through background catalog and save refreshes.
+  if (review && review.proposal.command.baseRevision !== store.revision) setPreview(false);
+  if (!stage) { viewport.setScene(review?.scene ?? scene,catalog);viewport.setSelection(selectedId, selectionIds()); }
   // A whole design arriving at once (import, designer apply) paints the 3D view in this frame;
   // the plan, panels and inspectors follow after it, so no single frame carries all of it.
   const heavy = heavyChange(scene);
@@ -1238,6 +1252,7 @@ const designerPanel = mountDesignerPanel(designerHost, {
     const reply = await askDesigner({ ...request, catalog: products.map(product => product.asset), catalogCurrency: CATALOG_CURRENCY }, { ...options,
       // Rooms finished so far are previewed like a proposal, so their products must be known to the editor too.
       onPartial: partial => { if (request.revision === store.revision) designerCatalog.remember(partial.proposal, [...products]); options?.onPartial?.(partial); },
+      onEvent: event => { if (options?.signal?.aborted) return; options?.onEvent?.(event); designConstruction.event(event); },
       resolveAssets: async (ids, signal) => {
         const found = await databaseCatalog.resolve(ids, signal);
         products.push(...found);
@@ -1252,33 +1267,60 @@ const designerPanel = mountDesignerPanel(designerHost, {
   live: designerLive, snapshot: () => ({ scene: store.scene, revision: store.revision, catalog, catalogCurrency: CATALOG_CURRENCY }),
   health: designerLive ? () => designerHealth() : undefined,
   isPreviewing: () => previewMode && proposalView,
-  // Talking to the designer stays open while its proposal is previewed (a follow-up, a replay's next turn).
+  // Talking to the designer stays open while its proposal is previewed.
   subscribe: listener => store.subscribe(listener), canRequest: () => !busy && (!previewMode || review !== null),
   autoPreview: true,
-  onBusyChange: waiting => { busy = waiting; $<HTMLButtonElement>('#suggest').disabled = waiting; proposalBar.setBusy(waiting); },
+  onBusyChange: waiting => {
+    busy = waiting; $<HTMLButtonElement>('#suggest').disabled = waiting; proposalBar.setBusy(waiting);
+    if (waiting) designConstruction.clear();
+    else queueMicrotask(() => {
+      if (!guidedDesign || !pending || busy || pending.id === guidedPreviewId) return;
+      const proposal = pending; guidedPreviewId = proposal.id;
+      if (review?.proposal.id === proposal.id || designerPanel.controller.act(proposal.id, 'preview')) designOnboarding?.review(proposal);
+      else { designConstruction.clear(); designOnboarding?.error(designerPanel.controller.state.messages.at(-1)?.text ?? 'This design could not be previewed. Please ask for a fresh proposal.'); }
+    });
+  },
+  onStateChange: state => {
+    designOnboarding?.update(state);
+    if (!state.busy && state.messages.at(-1)?.status === 'stale') designOnboarding?.error('Your apartment changed while the designer was working. Ask for a fresh design.');
+    if (!state.busy && !state.messages.at(-1)?.proposal) designConstruction.clear();
+  },
   onProposal: proposal => { pending = proposal; renderProposal(); },
-  onResetReview: () => { if(pending?.command.source==='designer'){if(proposalView)setPreview(false);pending=null;renderProposal();} },
+  onResetReview: () => { designConstruction.clear(); if(pending?.command.source==='designer'){if(proposalView)setPreview(false);pending=null;renderProposal();} },
   onProposalAction: (proposal, action) => {
     if(interacting)return {ok:false,message:'Finish your current edit before reviewing a proposal.'};
-    // A newer preview (the next room, a revision) replaces the one on screen in place; anything else leaves it first.
+    if(action!=='dismiss') {
+      if(proposal.command.baseRevision!==store.revision)return {ok:false,message:'This proposal is stale. Request a fresh proposal.'};
+      const products = designerCatalog.products(proposal, store.revision);
+      if(products.length)registerProducts(products);
+    }
+    // A newer preview replaces the one on screen in place; approval retains its models.
     const continuing = action === 'preview' && previewMode && proposalView && review !== null;
-    if(previewMode && !continuing)setPreview(false);
+    const alreadyPreviewed = action === 'apply' && proposalView && review?.proposal.id === proposal.id;
+    if(previewMode && !continuing)setPreview(false, !alreadyPreviewed, alreadyPreviewed);
     pending=proposal;
-    if(action==='dismiss'){designerCatalog.forget(proposal);pending=null;renderProposal();notify('Proposal dismissed');return {ok:true};}
-    if(proposal.command.baseRevision!==store.revision)return {ok:false,message:'This proposal is stale. Request a fresh proposal.'};
-    const products = designerCatalog.products(proposal, store.revision);
-    if(products.length)registerProducts(products);
-    if(action==='apply')return applyPendingProposal();
+    if(action==='dismiss'){designConstruction.clear();designerCatalog.forget(proposal);pending=null;renderProposal();if(!guidedDesign)notify('Proposal dismissed');return {ok:true};}
+    const originalObjects = new Map(store.scene.objects.map(object => [object.id, JSON.stringify(object)]));
+    const changedIds = (scene: SceneDocument) => scene.objects.filter(object => originalObjects.get(object.id) !== JSON.stringify(object)).map(object => object.id);
+    if(action==='apply') {
+      const result = applyPendingProposal();
+      if (!result.ok && alreadyPreviewed) viewport.setScene(store.scene, catalog);
+      if(result.ok && !guidedDesign && !alreadyPreviewed) designConstruction.preview(store.scene, catalog, changedIds(store.scene));
+      return result;
+    }
     const proposed=previewDesignerProposal(store.scene,store.revision,proposal,catalog);
     if(!previewMode)setPreview(true, false);
     proposalView=true;$<HTMLButtonElement>('#save').disabled=true;viewport.setScene(proposed,catalog);
-    // The camera goes to the room that changed most and its new pieces arrive; pieces this turn already showed stay.
     const shown = continuing && review ? review.shown : new Set<string>();
     const arrival = proposalArrival(store.scene, proposed, shown);
     review = { proposal, scene: proposed, shown: new Set([...shown, ...arrival.added]) };
-    viewport.presentArrival({ roomId: arrival.roomId, ids: arrival.ids, elsewhere: arrival.elsewhere, available: arrivalArea() });
-    // Partial room previews come from the turn in flight; they are looked at, not accepted.
-    proposalBar.show(proposal, { partial: designerPanel.controller.state.partial?.proposal.id === proposal.id, busy });
+    if (guidedDesign) {
+      designConstruction.preview(proposed, catalog, changedIds(proposed));
+    } else {
+      viewport.presentArrival({ roomId: arrival.roomId, ids: arrival.ids, elsewhere: arrival.elsewhere, available: arrivalArea() });
+      // Partial room previews belong to the turn in flight and cannot be accepted.
+      proposalBar.show(proposal, { partial: designerPanel.controller.state.partial?.proposal.id === proposal.id, busy });
+    }
     return {ok:true};
   },
 });
@@ -1290,7 +1332,7 @@ folioShell = mountFolioShell({
   toggleInspector: () => setInspectorOpen(!inspectorVisible()), isInspectorOpen: inspectorVisible,
   askAbout: id => { attachToDesigner(id, store.scene); },
 });
-window.addEventListener('pagehide', event => { if (!event.persisted) { designerPanel.dispose(); folioShell?.dispose(); } });
+window.addEventListener('pagehide', event => { if (!event.persisted) { designOnboarding?.dispose(); designConstruction.dispose(); designerPanel.dispose(); folioShell?.dispose(); } });
 /** Pitch tour of the finished flat. Other lanes start it with document.dispatchEvent(new CustomEvent('varpet:tour')). */
 const tourButton = document.createElement('button');
 tourButton.type = 'button'; tourButton.className = 'folio-action'; tourButton.dataset.folio = 'tour';
@@ -1494,6 +1536,7 @@ let highQuality=false;$('#quality').onclick=()=>{highQuality=!highQuality;viewpo
 $('#suggest').onclick=()=>void requestProposal('designer');
 $('#help').onclick=()=>showModal('Keyboard & navigation',`<p class="modal-intro">Select walls, openings, rooms, furniture and systems in the canvas or Renovate panel. In Select mode, click a selected door or switch again to test it.</p><div class="shortcut-list">${[['1 / 2 / 3 / 4 / 5 / 6','Scene / Furniture / Assistant / Renovate / Materials / Ceilings'],['[','Toggle sidebar'],['P','Enter / exit preview'],['W A S D / arrows','Move around the scene (click canvas first)'],['Space + drag','Pan in 3D, Top or Plan'],['Drag / Esc','Look around / leave Inside'],['V / G / R / E','Select / Move / Rotate / Resize'],['F','Frame selection / apartment'],['⌘ / Ctrl + S',editorSession?'Save to My apartments':shareSession?'Save shared progress':'Save to team'],['Shift + click','Add / remove walls or furniture from selection'],['⌘ / Ctrl + G','Group selected furniture'],['⌘ / Ctrl + Shift + G','Ungroup furniture'],['⌘ / Ctrl + D','Duplicate furniture'],['Delete / Backspace','Delete selected furniture'],['⌘ / Ctrl + Z','Undo'],['⌘ / Ctrl + Shift + Z','Redo'],['Esc','Cancel drag / clear selection / exit preview']].map(([key,label])=>`<div><span>${label}</span><kbd>${key}</kbd></div>`).join('')}</div><p class="modal-footnote">Plan: drag furniture, fixtures, walls, doors or windows to move them. Hold Space and drag, drag empty floor, Alt-drag, or right/middle drag to pan. Hold Shift for finer placement. Inside: standing eye height is 1.65 m above the current floor. Click the canvas, then use WASD or arrows to walk; drag to look around. Doors open for the walkthrough and restore when you leave. Click the canvas, then use WASD or arrows to move in 3D, Top or Plan. 3D: drag empty space to orbit, hold Space and drag or right drag to pan, scroll to zoom. Top: drag to pan. Hold Space to show the hand cursor and pan over selected items without moving them. Select a window to show handles: drag its center or the window to move along the wall and up/down; drag an edge or corner to resize. The vertical arrow raises or lowers it without changing its size. Top view offers sideways movement and width handles; use 3D for height. Select a door, choose Move (G), then drag it or its purple arrows along the wall. Openings stay inside their wall section and stop at neighbouring openings. Move snaps to 0.05 m for openings and walls. Wall corners also catch nearby straight and 90° alignments, including connected corners. Click Snap / Smooth in the toolbar to turn snapping on or off. Release to apply, Esc to cancel, or Undo to restore the previous position. Shift-click walls or models, or turn on Select multiple items, to build a selection. Choose Move to move the selection together; one Undo restores every selected item. Select a single wall and choose Move to drag it back or forth with its purple center arrows; connected walls and room boundaries follow. The endpoint spheres adjust individual corners; use Renovate for precise dimensions, evidence and service editing.</p>`);
 window.addEventListener('keydown',event=>{
+  if(guidedDesign)return;
   if(stage)return; // The construction viewport owns navigation while the architect works.
   if(document.querySelector('dialog[open]') || (event.target instanceof HTMLElement && (event.target.closest('input,textarea,select') || event.target.isContentEditable)))return;
   const key=event.key.toLowerCase();const mod=event.metaKey||event.ctrlKey;
@@ -1590,10 +1633,75 @@ if (arrivalPose) viewport.setCameraPose(arrivalPose, 0);
 function measureArrival() {
   const body = document.body;
   body.style.setProperty('--arrival-header', `${$('.app-header').offsetHeight}px`);
-  body.style.setProperty('--arrival-designer', `${document.querySelector<HTMLElement>('.designer-column')?.offsetWidth ?? 0}px`);
+  const designerWidth = document.querySelector<HTMLElement>('.designer-column')?.offsetWidth ?? 0;
+  // The mobile row is removed during arrival; retain a responsive desktop offset if the window grows.
+  body.style.setProperty('--arrival-designer', designerWidth ? `${designerWidth}px` : 'var(--designer-width, 340px)');
   body.style.setProperty('--arrival-panel', `${$('.left-panel').offsetWidth}px`);
 }
 if (presentation?.arriving) measureArrival();
+const arrivalInert = new Map<HTMLElement, boolean>();
+function holdEditorChrome(hold: boolean) {
+  if (hold) {
+    const elements = document.querySelectorAll<HTMLElement>('.app-header, .workspace-nav, .designer-column, .workspace > .left-panel, .status-bar, .viewport-shell > :not(#viewport, #architect-stage, .design-onboarding, .design-construction)');
+    for (const element of elements) { if (!arrivalInert.has(element)) arrivalInert.set(element, element.inert); element.inert = true; }
+  } else {
+    for (const [element, inert] of arrivalInert) element.inert = inert;
+    arrivalInert.clear();
+  }
+}
+if (presentation?.arriving) holdEditorChrome(true);
+
+function revealEditorTools() {
+  const body = document.body;
+  if (!body.classList.contains('editor-arriving')) return;
+  measureArrival(); body.classList.add('editor-arrival');
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    body.classList.remove('editor-arriving');
+    arrivalPose = undefined; viewport.setLocked(false); holdEditorChrome(false);
+    setTimeout(() => body.classList.remove('editor-arrival'), 1800);
+  }));
+}
+
+function discardGuidedReview() {
+  if (proposalView) setPreview(false);
+  designConstruction.clear();
+  if (pending?.command.source === 'designer') {
+    const proposal = pending;
+    if (!designerPanel.controller.act(proposal.id, 'dismiss')) { designerCatalog.forget(proposal); pending = null; renderProposal(); }
+  }
+  guidedPreviewId = undefined;
+}
+
+function enterCustomize() {
+  designOnboarding?.dispose(); designOnboarding = undefined;
+  designConstruction.clear(); guidedDesign = false;
+  const phase = document.createElement('span'); phase.className = 'design-customize-phase';
+  phase.textContent = '03 Customize'; phase.setAttribute('aria-label', 'Phase 3: Customize'); $('.project-name').append(phase);
+  revealEditorTools();
+  notify('Customize · Click a piece to edit it, or ask your designer on the left.');
+}
+
+function startGuidedDesign() {
+  if (designOnboarding) return;
+  // The camera and renderer are the construction world's; only the brief arrives here.
+  designOnboarding = mountDesignOnboarding($('.viewport-shell'), {
+    live: designerLive,
+    submit: request => {
+      if (!designerLive || busy) return;
+      discardGuidedReview();
+      void designerPanel.controller.send(request);
+    },
+    cancel: () => { designerPanel.controller.cancel(); discardGuidedReview(); },
+    edit: discardGuidedReview,
+    apply: () => {
+      if (!pending || busy) return;
+      if (designerPanel.controller.act(pending.id, 'apply')) enterCustomize();
+      else designOnboarding?.error(designerPanel.controller.state.messages.at(-1)?.text ?? 'This design could not be applied. Ask for a fresh proposal.');
+    },
+    skip: () => { designerPanel.controller.cancel(); discardGuidedReview(); enterCustomize(); },
+  });
+  designOnboarding.update(designerPanel.controller.state);
+}
 const nextFrame = () => new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
 /** Lets the blueprint construction view hand over to this editor's first 3D frame. */
 export const editorView = {
@@ -1607,14 +1715,7 @@ export const editorView = {
   },
   /** Bring the tools in around the finished apartment and hand the canvas to the person. */
   arrive() {
-    const body = document.body;
-    if (!body.classList.contains('editor-arriving')) return;
-    measureArrival();
-    body.classList.add('editor-arrival');
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      body.classList.remove('editor-arriving');
-      arrivalPose = undefined; viewport.setLocked(false);
-      setTimeout(() => body.classList.remove('editor-arrival'), 1800);
-    }));
+    if (guidedDesign) startGuidedDesign();
+    else revealEditorTools();
   },
 };

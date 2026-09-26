@@ -1,0 +1,45 @@
+/* The same full-bleed world continues through Design; only this brief is interactive. */
+body.editor-arriving .viewport-shell > .design-onboarding:not(#viewport, #architect-stage, #floor-plan) {
+  position: absolute; inset: 0; z-index: 16; opacity: 1; transform: none; pointer-events: none;
+  color: #f2f7f4; font-family: var(--condensed); overflow: auto;
+}
+.design-journey { position: absolute; top: 26px; left: 50%; transform: translateX(-50%); width: min(540px, calc(100% - 48px)); text-align: center; }
+.design-plan-done { display: block; margin-bottom: 9px; color: #c5dacf; font-size: 13px; letter-spacing: .04em; }
+.design-journey .blueprint-journey { --journey-current: #f2f7f4; --journey-text: #a7c2c6; --journey-line: #c0d8d540; }
+.design-brief { position: absolute; left: 32px; bottom: 44px; width: 360px; max-width: calc(100% - 64px); max-height: calc(100% - 165px); overflow: auto; padding: 23px 26px 16px; border: 1px solid #dae8e64a; border-radius: 3px; background: #073e49ee; box-shadow: 0 9px 36px #092d3824; pointer-events: auto; backdrop-filter: blur(12px); }
+.design-eyebrow { color: #b1d2c2; font: 12px/1.4 monospace; letter-spacing: .1em; }
+.design-brief h1 { margin: 8px 0 9px; color: #fff; font: 500 32px/1.02 var(--condensed); letter-spacing: -.035em; }
+.design-intro, .design-unavailable, .design-response, .design-review-note { margin: 0 0 16px; color: #d1e2df; font-size: 15px; line-height: 1.4; }
+.design-response { border-left: 2px solid #c9de91; padding-left: 11px; max-height: 160px; overflow: auto; white-space: pre-wrap; }
+.design-brief label { display: block; margin-bottom: 7px; font-size: 15px; font-weight: 600; }
+.design-brief textarea { box-sizing: border-box; display: block; width: 100%; resize: vertical; min-height: 80px; max-height: 180px; border: 1px solid #bcd4d271; border-radius: 2px; background: #ffffff0a; color: #fff; padding: 10px 11px; font: 15px/1.35 var(--condensed); }
+.design-brief textarea::placeholder { color: #bacdca; opacity: 1; }
+.design-brief small { display: block; margin: 7px 0 14px; color: #aac5c3; font-size: 12px; line-height: 1.35; }
+.design-brief button { cursor: pointer; font-family: var(--condensed); }
+.design-brief :is(button, textarea):focus-visible { outline: 2px solid #e5ee9d; outline-offset: 4px; }
+.design-primary { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 42px; padding: 10px 13px; border: 1px solid #d7e59f; border-radius: 2px; background: #d7e59f; color: #14342b; font-size: 17px; font-weight: 600; }
+.design-primary:hover { background: #e4ecc2; }
+.design-text-button { display: block; min-height: 36px; border: 0; background: transparent; color: #e1ece9; font-size: 15px; padding: 7px 0; }
+.design-text-button:hover { color: #fff; text-decoration: underline; }
+.design-skip { margin-top: 8px; }
+.design-working { display: flex; align-items: flex-start; gap: 9px; min-height: 48px; }
+.design-working p { flex: 1; margin: 0; color: #e8f2eb; font-size: 16px; line-height: 1.4; }
+.design-working .design-stop { margin-top: -7px; }
+.design-live-dot { display: block; flex: none; width: 7px; height: 7px; margin-top: 8px; border-radius: 50%; background: #c9de91; animation: design-live-pulse 1.5s ease-in-out infinite; }
+.design-options { display: flex; flex-wrap: wrap; gap: 7px; margin: 0 0 15px; }
+.design-options button { color: #eaf2ee; background: #ffffff0a; border: 1px solid #bcd4d250; border-radius: 2px; padding: 7px 10px; font-size: 14px; }
+.design-navigation { position: absolute; right: 32px; bottom: 20px; margin: 0; color: #d0e0df; font-size: 13px; letter-spacing: .02em; }
+.design-navigation span { margin: 0 8px; opacity: .6; }
+.design-onboarding [hidden] { display: none !important; }
+.project-name > .design-customize-phase { display: flex; flex-shrink: 0; border: 1px solid var(--accent); border-radius: 2px; padding: 2px 6px; color: var(--accent-ink); font: 11px/1.4 var(--condensed); white-space: nowrap; }
+@keyframes design-live-pulse { 50% { opacity: .4; } }
+@media (max-width: 640px) {
+  .project-name > .design-customize-phase { position: fixed; top: 120px; left: 12px; background: var(--surface); box-shadow: var(--shadow-1); pointer-events: none; }
+  .design-journey { top: 15px; width: calc(100% - 30px); }
+  .design-brief { left: 15px; bottom: 16px; width: calc(100% - 30px); max-width: none; max-height: min(55%, calc(100% - 130px)); box-sizing: border-box; padding: 17px 19px 12px; }
+  .design-brief h1 { font-size: 27px; }
+  .design-intro { font-size: 14px; margin-bottom: 12px; }
+  .design-navigation { display: none; }
+  .design-brief textarea { min-height: 62px; }
+}
+@media (prefers-reduced-motion: reduce) { .design-live-dot { animation: none; } }

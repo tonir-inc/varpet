@@ -20,6 +20,14 @@ body.editor-arrival .status-bar { transition: margin-bottom 700ms cubic-bezier(.
 body.editor-arrival .viewport-shell > :not(#viewport, #architect-stage, #floor-plan) { transition: opacity 480ms ease-out 620ms, transform 760ms cubic-bezier(.16, 1, .3, 1) 620ms; }
 body.editor-arrival .viewport-shell > .folio-dock { transition-delay: 760ms; }
 
+@media (max-width: 900px) {
+  /* The mobile designer is a bottom grid row, not a sidebar. Remove that row
+   * while the guided world owns the screen; restoring it keeps the same canvas. */
+  body.editor-arriving.folio .designer-workspace { grid-template-rows: minmax(0, 1fr); }
+  body.editor-arriving.folio .designer-workspace > .designer-column { display: none; }
+  body.editor-arriving.folio .designer-workspace > .viewport-shell { grid-row: 1; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   body.editor-arrival *, body.editor-arrival .app-header { transition-duration: 1ms !important; transition-delay: 0ms !important; }
 }
