@@ -57,18 +57,21 @@ def search_furniture(
     exclude_ids: list[str] | None = None,
     limit: int = 10,
     scope: str = "editor",
+    room_items: list[str] | None = None,
 ) -> dict:
     """Find furniture. kind/max size/price are hard filters; colors (palette names), styles, materials
     and free text rank the rest. Returns up to `limit` (max 20) items, or nearest_misses when none pass.
     `preview` is a render of the exact 3D model (null when missing); `image` is the shop photo.
     scope 'editor' (default) searches only the items the editor has loaded, so any result can be placed;
-    'all' searches the whole catalog."""
+    'all' searches the whole catalog.
+    room_items: ids already in the flat, to prefer pieces that go with them (style and look)
+    """
     box = None
     if any(v is not None for v in (max_w, max_d, max_h)):
         box = [max_w or 99.0, max_d or 99.0, max_h or 99.0]
     q = Query(kind=kind, text=text, colors=colors or [], styles=styles or [], materials=materials or [],
               fit_box=box, allow_rotate=allow_rotate, target_size=target_size, price_max=price_max,
-              exclude_ids=exclude_ids or [], limit=min(limit, 20), scope=scope)
+              exclude_ids=exclude_ids or [], limit=min(limit, 20), scope=scope, room_items=room_items or [])
     with _conn() as c:
         return search(c, q)
 

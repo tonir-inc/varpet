@@ -13,7 +13,7 @@ import psycopg
 
 from colors import PALETTE, listing_palette
 
-DEFAULT_WEIGHTS = {"text": 1.0, "colour": 1.0, "tags": 0.5, "visual": 1.5, "size": 0.3}
+DEFAULT_WEIGHTS = {"text": 1.0, "colour": 1.0, "tags": 0.5, "visual": 1.5, "size": 0.3, "room": 0.8}
 
 
 @dataclass
@@ -37,6 +37,7 @@ class Query:
     weights: dict = field(default_factory=dict)
     limit: int = 10
     collapse_variants: bool = True
+    room_items: list[str] = field(default_factory=list)     # catalog ids already in the flat
 
 
 _FAMILY_COLORS = set(PALETTE) | set(
@@ -98,6 +99,29 @@ def _words(v):
     return [str(x) for x in (v if isinstance(v, list) else [v]) if x]
 
 
+def room_score(sim_norm, cand_tags, room_tags):
+    """Blend image similarity with Jaccard overlap of Astra style/material tags.
+
+    room_tags is a list of Astra dictionaries. Missing tag evidence falls back
+    to similarity alone; colours and listing tags do not contribute.
+    """
+    def words(tags):
+        return {word.lower() for key in ("style", "materials")
+                for word in _words((tags or {}).get(key))}
+
+    candidate = words(cand_tags)
+    room = set().union(*(words(tags) for tags in room_tags))
+    if not candidate or not room:
+        return float(sim_norm)
+    overlap = len(candidate & room) / len(candidate | room)
+    return 0.6 * float(sim_norm) + 0.4 * overlap
+
+
+def excluded_ids(q: Query):
+    """Exclude explicit omissions and pieces already in the room, without mutation."""
+    return list(dict.fromkeys(q.exclude_ids + q.room_items))
+
+
 def modes(mode, aliases=ALIASES):
     """'listing+astra' -> {'listing', 'astra'}; 'both' and 'all' are shorthands."""
     return set(aliases.get(mode, mode).split("+"))
@@ -136,8 +160,9 @@ def search(conn, q: Query):
     where, args = ["true"], []
     if q.kind:
         where.append("kind = %s"); args.append(q.kind)
-    if q.exclude_ids:
-        where.append("not (id = any(%s))"); args.append(q.exclude_ids)
+    excluded = excluded_ids(q)
+    if excluded:
+        where.append("not (id = any(%s))"); args.append(excluded)
     if q.scope == "editor":
         where.append("editor_set")
     tsq = "plainto_tsquery('english', %s)"
@@ -222,6 +247,22 @@ def search(conn, q: Query):
     if q.target_size:
         t = np.array(q.target_size)
         scores["size"] = np.array([1 / (1 + np.abs(np.array(p[0]["size_m"]) - t).sum()) for p in passed]); used.add("size")
+
+    if q.room_items:
+        room_tags = [(tags or {}).get("astra") or {} for (tags,) in conn.execute(
+            "select tags from item where id = any(%s)", (q.room_items,),
+        ).fetchall()]
+        refs = conn.execute(
+            "select emb::text from item_embedding where item_id = any(%s) and model=%s and modality='image'",
+            (q.room_items, q.model),
+        ).fetchall()
+        sims = [_sims(conn, ids, q.model, "image", json.loads(row[0])) for row in refs]
+        sim_norm = _minmax(np.mean(sims, axis=0)) if sims else np.zeros(len(passed))
+        scores["room"] = np.array([
+            room_score(sim, rec["_astra"], room_tags)
+            for (rec, _), sim in zip(passed, sim_norm)
+        ])
+        used.add("room")
 
     total = sum(w[k] * scores[k] for k in used) if used else np.zeros(len(passed))
     order = np.argsort(-total)
