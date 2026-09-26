@@ -44,6 +44,16 @@ test('existing exact shared-kind purchases remain accepted', () => {
   expect(new EditorStore(demoScene, catalog).execute(translated.command, true).ok).toBe(true);
 });
 
+test.each(['desk', 'wardrobe', 'dresser'] as const)('native %s purchases apply and retain their kind on the next designer request', kind => {
+  const nativeCatalog = catalog.map(asset => asset.id === `shop-${kind}` ? { ...asset, kind } : asset);
+  const nativeOptions = { ...options, catalog: nativeCatalog };
+  const translated = proposalToEditor(accepted(kind), demoScene, 0, nativeOptions);
+  const store = new EditorStore(demoScene, nativeCatalog);
+  expect(store.execute(translated.command, true).ok).toBe(true);
+  expect(editorToDesigner(store.scene, nativeOptions).items.find(item => item.id === `purchased-${kind}`))
+    .toMatchObject({ kind, sku: `shop-${kind}`, size: [.65, .45, .75] });
+});
+
 test.each(['identity', 'dimensions', 'price', 'currency', 'unmapped kind', 'wrong mapped family'])('compatibility never bypasses the %s check', constraint => {
   const proposal = accepted('desk'), op = proposal.ops[0]!;
   if (op.type !== 'add') throw new Error('Expected catalog addition');

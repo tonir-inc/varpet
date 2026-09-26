@@ -3,7 +3,7 @@ export type * from './renovation-contracts';
 /** Editor-local v1 boundary. Deliberately does not define the future shared engine schema. */
 export type Vec2 = [number, number]; // x, z in metres
 export type Vec3 = [number, number, number]; // x, y, z in metres
-export type AssetKind = 'sofa' | 'chair' | 'table' | 'bed' | 'cabinet' | 'lamp' | 'plant' | 'rug' | 'shelf';
+export type AssetKind = 'sofa' | 'chair' | 'table' | 'desk' | 'bed' | 'cabinet' | 'wardrobe' | 'dresser' | 'lamp' | 'plant' | 'rug' | 'shelf';
 export interface CatalogAsset {
   id: string;
   name: string;

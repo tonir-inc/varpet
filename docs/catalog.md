@@ -83,17 +83,16 @@ for consumers of the `/editor/assets` endpoint, with `VITE_CATALOG_ASSETS_URL` a
 its override. The interactive editor currently uses its database search adapter.
 
 ### Ashot (designer)
-Nothing needed for the 8 shared kinds. **Known gap: kinds the editor does not have.** The demo
-opener ("fit a desk by the window") needs `desk`, which the designer uses (daylight, request check)
-but the editor's `AssetKind` lacks, and the bridge compares kinds exactly
-(`editor-bridge.ts`, `op.item.kind !== kinds[asset.kind]`). So desks are not in the editor set and
-`search_catalog` finds none. Proposed fix, one of:
-- Bridge compatibility map (Ashot):
-  `const editorKindOf: Record<string, AssetKind> = { desk: 'table', dresser: 'cabinet', wardrobe: 'cabinet', nightstand: 'cabinet', stool: 'chair', ottoman: 'chair', bench: 'chair' };`
-  and compare `(editorKindOf[op.item.kind] ?? op.item.kind) !== asset.kind`. Then the catalog adds
-  those items to the editor set with the mapped editor kind (Sergey, one flag in
-  `select_editor_set.py` and the REST mapping).
-- Or Davit adds `desk` (and `wardrobe`/`dresser`) to `AssetKind` with procedural shapes.
+The editor now supports native `desk`, `wardrobe` and `dresser` kinds, including
+procedural shapes, both catalog adapters, validation, and designer round-trips.
+The demo opener ("fit a desk by the window") can retain `desk` semantics for
+daylight and request checks. Legacy desk-to-table and storage-to-cabinet aliases
+remain accepted for older callers.
+
+**Catalog follow-up (Sergey):** add these kinds to `EDITOR_KINDS` and their allocation
+shares in `select_editor_set.py`, then refresh the editor set. `/editor/assets` can
+return the native kind strings unchanged. No catalog products or selection flags
+were changed by the editor update; live discovery awaits that catalog refresh.
 
 ### Network
 Both need either Tailscale with `mc-server` shared (Felix), or an SSH tunnel to the VM

@@ -48,7 +48,8 @@ export function designerStarters(scene: SceneDocument, catalog: CatalogAsset[] =
       add(`empty:${room.id}`, `${title} is empty. Furnish it?`, `Furnish the ${title}.`);
     } else if (/bedroom/i.test(title)) {
       const wardrobe = /wardrobe|closet/i;
-      const hasStorage = objects.some(object => wardrobe.test(`${object.name} ${assets.get(object.assetId)?.name ?? ''}`))
+      const hasStorage = objects.some(object => assets.get(object.assetId)?.kind === 'wardrobe'
+        || wardrobe.test(`${object.name} ${assets.get(object.assetId)?.name ?? ''}`))
         || built.some(component => wardrobe.test(component.name));
       // An unclassified cabinet may already be a wardrobe; do not assert its absence.
       const uncertain = objects.some(object => !assets.has(object.assetId) || assets.get(object.assetId)?.kind === 'cabinet')

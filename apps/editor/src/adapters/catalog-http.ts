@@ -3,7 +3,7 @@ import type { AssetKind, CatalogAdapter, CatalogAsset } from '../contracts';
 export const DEFAULT_CATALOG_ASSETS_URL = 'http://100.107.246.46:8765/editor/assets';
 export const CATALOG_CURRENCY = 'AMD' as const;
 
-const kinds: readonly AssetKind[] = ['sofa', 'chair', 'table', 'bed', 'cabinet', 'lamp', 'plant', 'rug', 'shelf'];
+const kinds: readonly AssetKind[] = ['sofa', 'chair', 'table', 'desk', 'bed', 'cabinet', 'wardrobe', 'dresser', 'lamp', 'plant', 'rug', 'shelf'];
 const allowedHosts = new Set(['amazon-berkeley-objects.s3.amazonaws.com', '100.107.246.46']);
 const record = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === 'object' && !Array.isArray(value);

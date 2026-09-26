@@ -24,6 +24,11 @@ try {
     dimensions: [0.5, 0.8, 0.6], color: '#aAbBcC', price: 1000,
     source: { type: 'gltf', url: 'https://amazon-berkeley-objects.s3.amazonaws.com/chair.glb' } };
   const list = (data) => createCatalogHttpAdapter({ fetch: async () => ({ ok: true, json: async () => data }) }).list();
+  const newKinds = ['desk', 'wardrobe', 'dresser'].flatMap(kind => [
+    { ...asset, id: `gltf-${kind}`, kind },
+    { ...asset, id: `procedural-${kind}`, kind, source: { type: 'procedural' } },
+  ]);
+  assert.deepEqual(await list(newKinds), newKinds, 'Native furniture kinds survive catalog discovery for both model sources');
   const tailnet = { ...asset, source: { type: 'gltf', url: 'http://100.107.246.46:8765/models/chair.glb' } };
   assert.deepEqual(await list([tailnet]), [tailnet]);
   const valid = await list([asset, { ...asset, id: 'procedural', source: { type: 'procedural' } }]);

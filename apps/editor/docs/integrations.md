@@ -10,6 +10,14 @@ All distances are metres. The scene uses right-handed Y-up coordinates, with the
 
 IDs must remain stable across a proposal and its application. Use scene object IDs in commands and catalog IDs in `assetId`; renderer UUIDs are implementation details. Catalog assets referenced by a scene must be available before that scene is accepted.
 
+Furniture kinds include native `desk`, `wardrobe` and `dresser` (26 September 2026).
+Both catalog adapters preserve these kinds, and the designer bridge retains them
+through placement and subsequent requests. Procedural sources render a writing
+desk with open knee space and a side drawer, a wardrobe with doors, or a three-drawer
+dresser. GLTF sources still use their actual model and the neutral loading bounds.
+Catalog producers can send these exact kind strings with the usual dimensions and
+source fields; adding shop products remains a catalog-side step.
+
 ## Adapter contracts
 
 The contracts are transport-neutral TypeScript interfaces; their concrete mock exports live in `src/adapters/mock.ts` as `structureAdapter`, `catalogAdapter`, and `designerAdapter`:

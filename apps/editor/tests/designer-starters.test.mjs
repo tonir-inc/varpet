@@ -45,6 +45,13 @@ test('unknown furniture and ambiguous cabinets never become false empty or missi
   s.objects=[object('bed','bed'),object('cabinet','cabinet')];
   assert.doesNotMatch(labels(designerStarters(s,catalog)),/No wardrobe/);
 });
+test('native wardrobe kind counts as storage even when its product name gives no clue',()=>{
+  const s=scene(); s.objects=[object('bed','bed'),object('pax','pax')];
+  const assets=[...catalog,{id:'pax',name:'PAX',kind:'wardrobe',category:'Bedroom'}];
+  assert.doesNotMatch(labels(designerStarters(s,assets)),/No wardrobe/);
+  s.objects.pop();
+  assert.match(labels(designerStarters(s,assets)),/No wardrobe/);
+});
 test('room polygons, boundaries and floors determine which room contains furniture',()=>{
   const s=scene(); s.rooms=[room('bed','Bedroom')];
   s.rooms[0].polygon=[[0,0],[4,0],[4,1],[1,1],[1,4],[0,4]];

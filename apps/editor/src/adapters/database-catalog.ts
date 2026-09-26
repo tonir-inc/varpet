@@ -23,8 +23,8 @@ export function retainRegisteredProducts(products: readonly CatalogProduct[], kn
 }
 
 const kinds: Record<string, CatalogAsset['kind']> = {
-  sofa: 'sofa', chair: 'chair', table: 'table', desk: 'table', bed: 'bed', cabinet: 'cabinet',
-  dresser: 'cabinet', wardrobe: 'cabinet', nightstand: 'cabinet', storage: 'cabinet',
+  sofa: 'sofa', chair: 'chair', table: 'table', desk: 'desk', bed: 'bed', cabinet: 'cabinet',
+  dresser: 'dresser', wardrobe: 'wardrobe', nightstand: 'cabinet', storage: 'cabinet',
   shelf: 'shelf', bench: 'chair', ottoman: 'chair', stool: 'chair', lamp: 'lamp', rug: 'rug', planter: 'plant',
 };
 export const catalogKinds = Object.keys(kinds);

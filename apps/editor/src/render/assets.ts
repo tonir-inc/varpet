@@ -6,15 +6,17 @@ import type { CatalogAsset } from '../contracts';
 import { furnitureMaterial } from './furniture-materials';
 
 const materials = (asset: CatalogAsset, color: string) => {
+  const worktop = asset.kind === 'table' || asset.kind === 'desk';
+  const storage = ['cabinet', 'wardrobe', 'dresser'].includes(asset.kind);
   const timber = /\b(wood|oak|walnut|teak|beech|birch|pine)\b/i.test(asset.name)
-    || ((asset.kind === 'table' || asset.kind === 'shelf') && !/\b(stone|marble|glass|metal|concrete)\b/i.test(asset.name));
+    || ((worktop || asset.kind === 'shelf') && !/\b(stone|marble|glass|metal|concrete)\b/i.test(asset.name));
   const tint = new THREE.Color(color).getHSL({ h: 0, s: 0, l: 0 });
-  const painted = asset.kind === 'cabinet' && tint.s < 0.12 && tint.l > 0.72;
+  const painted = storage && tint.s < 0.12 && tint.l > 0.72;
   const upholstered = asset.kind === 'sofa' || asset.kind === 'bed' || asset.kind === 'rug' || (asset.kind === 'chair' && !timber);
   return {
     main: upholstered ? furnitureMaterial(color, 'textile')
-      : timber && !painted ? furnitureMaterial(color, asset.kind === 'table' ? 'wood-horizontal' : 'wood-vertical')
-        : new THREE.MeshStandardMaterial({ color, roughness: asset.kind === 'cabinet' ? 0.54 : 0.74 }),
+      : timber && !painted ? furnitureMaterial(color, worktop ? 'wood-horizontal' : 'wood-vertical')
+        : new THREE.MeshStandardMaterial({ color, roughness: storage ? 0.54 : 0.74 }),
     pale: ['sofa', 'bed', 'lamp'].includes(asset.kind) ? furnitureMaterial('#eee8df', 'textile')
       : new THREE.MeshStandardMaterial({ color: '#eee8df', roughness: 0.38 }),
     wood: furnitureMaterial('#ae7e53', 'wood-vertical'),
@@ -106,6 +108,16 @@ export function makeFurniture(asset: CatalogAsset, color = asset.color): THREE.G
       box(w, h * 0.065, d, 0, h * 0.9675, 0, m.main, 0.025);
       break;
     }
+    case 'desk': {
+      legs(h * 0.94, 0.44, 0.38, Math.min(0.025, w * 0.02, d * 0.04));
+      box(w, h * 0.06, d, 0, h * 0.97, 0, m.main, 0.012);
+      box(w * 0.88, h * 0.12, d * 0.05, 0, h * 0.67, -d * 0.38, m.wood);
+      // A shallow drawer on the right leaves the central knee space open.
+      box(w * 0.28, h * 0.17, d * 0.86, w * 0.3, h * 0.855, 0, m.main);
+      box(w * 0.25, h * 0.14, d * 0.025, w * 0.3, h * 0.855, d * 0.44, m.pale, 0.004);
+      box(w * 0.09, h * 0.018, d * 0.035, w * 0.3, h * 0.855, d * 0.465, m.metal, 0.004);
+      break;
+    }
     case 'chair': {
       legs(h * 0.51, 0.35, 0.35, 0.022);
       box(w * 0.94, h * 0.085, d * 0.91, 0, h * 0.52, 0, m.wood, 0.02);
@@ -124,6 +136,28 @@ export function makeFurniture(asset: CatalogAsset, color = asset.color): THREE.G
         const x = -w / 2 + (i + 0.5) * w / count;
         box(w / count - 0.014, h * 0.77, d * 0.025, x, h * 0.53, d * 0.507, m.main, 0.004);
         box(w / count * 0.35, 0.015, 0.028, x, h * 0.83, d * 0.534, m.metal, 0.005);
+      }
+      break;
+    }
+    case 'wardrobe': {
+      box(w * 0.92, h * 0.08, d * 0.88, 0, h * 0.04, 0, m.dark);
+      box(w, h * 0.92, d, 0, h * 0.54, 0, m.main, 0.008);
+      const doors = Math.max(2, Math.round(w / 0.6));
+      for (let i = 0; i < doors; i++) {
+        const x = -w / 2 + (i + 0.5) * w / doors;
+        box(w / doors * 0.97, h * 0.88, d * 0.025, x, h * 0.54, d * 0.507, m.main, 0.004);
+        box(w * 0.012, h * 0.16, d * 0.045, x + (i % 2 ? -1 : 1) * w / doors * 0.32, h * 0.5, d * 0.54, m.metal, 0.004);
+      }
+      break;
+    }
+    case 'dresser': {
+      box(w * 0.9, h * 0.08, d * 0.86, 0, h * 0.04, 0, m.dark);
+      box(w, h * 0.86, d, 0, h * 0.51, 0, m.main, 0.008);
+      box(w, h * 0.06, d, 0, h * 0.97, 0, m.main, 0.012);
+      for (let i = 0; i < 3; i++) {
+        const y = h * (0.235 + i * 0.275);
+        box(w * 0.94, h * 0.26, d * 0.025, 0, y, d * 0.507, m.main, 0.004);
+        box(w * 0.2, h * 0.018, d * 0.045, 0, y, d * 0.54, m.metal, 0.004);
       }
       break;
     }

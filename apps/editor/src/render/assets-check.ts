@@ -13,6 +13,30 @@ function near(actual: number, expected: number, message: string): void {
   assert(Math.abs(actual - expected) < 1e-7, `${message}: expected ${expected}, got ${actual}`);
 }
 const asset: CatalogAsset = { id: 'database-chair', name: 'Database chair', category: 'Chairs', kind: 'chair', dimensions: [4, 3, 2], color: '#f0a010', price: 10, source: { type: 'gltf', url: 'https://models.example/chair.glb#varpet-rotate-y=90' } };
+for (const kind of ['desk', 'wardrobe', 'dresser'] as const) {
+  const dimensions: CatalogAsset['dimensions'] = kind === 'desk' ? [1.2, 0.75, 0.6]
+    : kind === 'wardrobe' ? [1.2, 2, 0.6] : [1, 0.9, 0.45];
+  const furniture = makeFurniture({ ...asset, kind, dimensions, source: { type: 'procedural' } });
+  const bounds = new THREE.Box3().setFromObject(furniture);
+  near(bounds.min.y, 0, `${kind} sits on the floor`);
+  near(bounds.getCenter(new THREE.Vector3()).x, 0, `${kind} is centred across its width`);
+  near(bounds.getCenter(new THREE.Vector3()).z, 0, `${kind} is centred across its depth`);
+  bounds.getSize(new THREE.Vector3()).toArray().forEach((value, index) => near(value, dimensions[index]!, `${kind} preserves catalog dimension ${index}`));
+  let meshes = 0;
+  furniture.traverse(child => {
+    if (!(child instanceof THREE.Mesh)) return;
+    meshes++;
+    assert(child.castShadow && child.receiveShadow, `${kind} participates in scene lighting`);
+  });
+  assert(meshes > 1, `${kind} has recognizable parts rather than a single bounding box`);
+  if (kind === 'desk') {
+    const knees = new THREE.Vector3(0, dimensions[1] * 0.5, dimensions[2] * 0.25);
+    furniture.traverse(child => {
+      if (child instanceof THREE.Mesh) assert(!new THREE.Box3().setFromObject(child).containsPoint(knees), 'Desk leaves open knee space beneath the front of its worktop');
+    });
+  }
+  disposeObject(furniture);
+}
 for (const placeholder of [makeAssetPlaceholder(asset), makeFurniture(asset)]) {
   const bounds = new THREE.Box3().setFromObject(placeholder);
   near(bounds.min.y, 0, 'Placeholder sits on the floor');

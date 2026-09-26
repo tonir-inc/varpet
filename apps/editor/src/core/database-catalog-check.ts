@@ -30,6 +30,16 @@ const row = { id: 'abo:B01N2PLWIL', name: 'Database chair', kind: 'chair', size_
   price: 80000, currency: 'AMD', price_source: 'mock', source: 'abo', license: 'CC BY 4.0', size_status: 'conflict',
   glb_url: 'https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/L/B01N2PLWIL.glb' };
 const product = catalogProduct(row);
+for (const kind of ['desk', 'wardrobe', 'dresser'] as const) {
+  const mapped = catalogProduct({ ...row, id: `abo:${kind}`, kind });
+  assert(mapped?.asset.kind === kind, `Database ${kind} preserves its native kind`);
+  const furnitureStore = new EditorStore({ ...demoScene, objects: [] }, []);
+  furnitureStore.registerCatalogAssets([mapped.asset]);
+  const placed = furnitureStore.execute({ id: `add-${kind}`, label: `Add ${kind}`, source: 'human', baseRevision: 0,
+    operations: [{ type: 'add', object: { id: kind, name: kind, assetId: mapped.asset.id, position: [-2, 0, 0], rotation: 0, scale: [1, 1, 1] } }] }, true);
+  assert(placed.ok, `${kind} registers and places: ${placed.errors.join(' ')}`);
+  assert(furnitureStore.undo().ok && furnitureStore.redo().ok, `${kind} placement supports undo/redo`);
+}
 assert(product?.asset.source.type === 'gltf', 'Database entries use their actual GLB model');
 assert(JSON.stringify(product.asset.dimensions) === '[0.85,1.1,0.95]', 'Conservative fit dimensions map X/Z/Y to editor X/Y/Z');
 assert(product.priceSource === 'mock' && product.attribution.includes('CC BY 4.0'), 'Mock pricing and attribution survive mapping');

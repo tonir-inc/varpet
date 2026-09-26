@@ -8,7 +8,7 @@ import { hasRoomCeiling } from './heights';
 const EPS = 1e-5;
 const COORD_LIMIT = 100;
 const COLOR = /^#[0-9a-f]{6}$/i;
-const KINDS = new Set(['sofa', 'chair', 'table', 'bed', 'cabinet', 'lamp', 'plant', 'rug', 'shelf']);
+const KINDS = new Set(['sofa', 'chair', 'table', 'desk', 'bed', 'cabinet', 'wardrobe', 'dresser', 'lamp', 'plant', 'rug', 'shelf']);
 type RecordValue = Record<string, unknown>;
 type Segment = [Vec2, Vec2];
 
