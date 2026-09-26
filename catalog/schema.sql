@@ -15,7 +15,8 @@ create table if not exists item (
   product_type    text,                      -- raw source category
   kind            text not null,             -- fixed vocab, see kinds in ingest_abo.py
   size_m          real[],                    -- [w, d, h] from the mesh when there is one
-  size_status     text,                      -- confirmed | estimated
+  fit_size_m      real[],                    -- size used by fit checks: larger of mesh and listing on conflict
+  size_status     text,                      -- confirmed | estimated | conflict
   size_evidence   jsonb,
   listing_size_m  real[],                    -- [w, d, h] as the listing states it
   price           integer,
@@ -52,3 +53,5 @@ create table if not exists item_embedding (
   emb       vector not null,
   primary key (item_id, model, modality)
 );
+
+alter table item add column if not exists fit_size_m real[];

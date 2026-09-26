@@ -1,0 +1,165 @@
+{
+ "note": "Gold queries for catalog search. 'relevant' ids are filled by labelling pooled top results by eye (see eval/README.md). must_be_empty queries have no answer in ABO.",
+ "queries": [
+  {
+   "id": "q01",
+   "q": {
+    "kind": "sofa",
+    "colors": [
+     "blue"
+    ],
+    "fit_box": [
+     2.2,
+     1.0,
+     1.0
+    ]
+   },
+   "ask": "blue sofa, at most 2.2 m wide"
+  },
+  {
+   "id": "q02",
+   "q": {
+    "kind": "sofa",
+    "colors": [
+     "green"
+    ],
+    "text": "velvet"
+   },
+   "ask": "green velvet sofa"
+  },
+  {
+   "id": "q03",
+   "q": {
+    "kind": "chair",
+    "colors": [
+     "grey"
+    ],
+    "text": "armchair",
+    "fit_box": [
+     0.9,
+     0.9,
+     1.1
+    ]
+   },
+   "ask": "grey armchair under 90 cm"
+  },
+  {
+   "id": "q04",
+   "q": {
+    "kind": "desk",
+    "text": "wood",
+    "fit_box": [
+     1.2,
+     0.7,
+     0.8
+    ]
+   },
+   "ask": "wooden desk for a 1.2 m alcove"
+  },
+  {
+   "id": "q05",
+   "q": {
+    "kind": "bed",
+    "colors": [
+     "black"
+    ],
+    "text": "metal"
+   },
+   "ask": "black metal bed frame"
+  },
+  {
+   "id": "q06",
+   "q": {
+    "kind": "table",
+    "text": "round coffee table",
+    "colors": [
+     "white"
+    ]
+   },
+   "ask": "round white coffee table"
+  },
+  {
+   "id": "q07",
+   "q": {
+    "kind": "rug",
+    "colors": [
+     "beige"
+    ],
+    "fit_box": [
+     2.5,
+     1.8,
+     0.1
+    ]
+   },
+   "ask": "beige rug that fits 2.5 x 1.8 m"
+  },
+  {
+   "id": "q08",
+   "q": {
+    "kind": "shelf",
+    "text": "bookcase",
+    "colors": [
+     "brown"
+    ]
+   },
+   "ask": "brown wooden bookcase"
+  },
+  {
+   "id": "q09",
+   "q": {
+    "kind": "lamp",
+    "text": "floor lamp",
+    "colors": [
+     "black"
+    ]
+   },
+   "ask": "black floor lamp"
+  },
+  {
+   "id": "q10",
+   "q": {
+    "kind": "chair",
+    "text": "mid-century leather lounge chair",
+    "colors": [
+     "brown"
+    ]
+   },
+   "ask": "brown leather mid-century lounge chair"
+  },
+  {
+   "id": "e01",
+   "q": {
+    "kind": "sofa",
+    "fit_box": [
+     0.5,
+     0.9,
+     1.0
+    ]
+   },
+   "ask": "sofa under 50 cm wide",
+   "must_be_empty": true
+  },
+  {
+   "id": "e02",
+   "q": {
+    "kind": "bed",
+    "fit_box": [
+     1.2,
+     1.5,
+     1.0
+    ]
+   },
+   "ask": "bed that fits 1.2 x 1.5 m",
+   "must_be_empty": true
+  },
+  {
+   "id": "e03",
+   "q": {
+    "kind": "sofa",
+    "price_max": 50000
+   },
+   "ask": "sofa under 50,000 dram",
+   "must_be_empty": true
+  }
+ ]
+}

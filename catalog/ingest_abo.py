@@ -29,8 +29,17 @@ TYPE_KIND = {
     "RUG": "rug", "LAMP": "lamp", "LIGHT_FIXTURE": "light", "HOME_MIRROR": "mirror",
     "PLANTER": "planter", "WALL_ART": "wall_art", "VASE": "decor", "PILLOW": "decor",
 }
-# Checked in order against the name for vague types (HOME, HOME_FURNITURE_AND_DECOR, ...).
+# Checked in order against the name first: ABO product_type is unreliable (BED holds mirrors and drawers).
 NAME_KIND = [
+    (r"\blamp\b", "lamp"),
+    (r"\bpendant|chandelier|sconce|ceiling light|light fixture", "light"),
+    (r"\bpillow|cushion|throw\b|slipcover|\bcover\b", "decor"),
+    (r"\brug\b|\bmat\b|runner\b", "rug"),
+    (r"\b(sofa|console|coffee|side|end|accent|dining|kitchen|bistro|patio) table", "table"),
+    (r"\bnightstand|bedside|night stand", "nightstand"),
+    (r"\bchest of drawers|dresser", "dresser"),
+    (r"\bmirror", "mirror"),
+    (r"\bunder-?bed|storage drawer", "storage"),
     (r"\bsofa|couch|loveseat|sectional|futon", "sofa"),
     (r"\barmchair|accent chair|recliner|chair\b", "chair"),
     (r"\bottoman|pouf", "ottoman"),
@@ -84,13 +93,11 @@ def en(values, key="value"):
 
 
 def kind_of(product_type, name):
-    if product_type in TYPE_KIND:
-        return TYPE_KIND[product_type]
     low = (name or "").lower()
     for pattern, kind in NAME_KIND:
         if re.search(pattern, low):
             return kind
-    return "other"
+    return TYPE_KIND.get(product_type, "other")
 
 
 def listing_size(dims):
@@ -105,16 +112,38 @@ def listing_size(dims):
 
 
 def compare(mesh, listing):
-    """confirmed when every axis agrees within 5 cm or 5%, allowing w and d to be swapped."""
+    """Size status and a conservative fit size.
+
+    confirmed: every axis within 5 cm or 5% (w and d may be swapped).
+    conflict:  some axis over 20 cm differs by more than 1.5x (mis-scaled mesh or a wrong listing).
+    estimated: anything else, or no listing.
+    fit size = mesh size, except on conflict: the larger of mesh and listing per axis, so a fit check
+    never passes something that might be too big.
+    """
     if not listing:
-        return "estimated", {"from": "mesh", "listing": None}
+        return "estimated", {"from": "mesh", "listing": None}, mesh
     def close(a, b):
         return abs(a - b) <= max(0.05, 0.05 * b)
     straight = all(close(a, b) for a, b in zip(mesh, listing))
     swapped = close(mesh[0], listing[1]) and close(mesh[1], listing[0]) and close(mesh[2], listing[2])
+    aligned = listing if abs(mesh[0] - listing[0]) <= abs(mesh[0] - listing[1]) else [listing[1], listing[0], listing[2]]
+    conflict = any(max(a, b) > 0.2 and max(a, b) / max(min(a, b), 1e-3) > 1.5 for a, b in zip(mesh, aligned))
     diff = [round(a - b, 3) for a, b in zip(mesh, listing)]
-    status = "confirmed" if straight or swapped else "estimated"
-    return status, {"from": "mesh", "listing_m": listing, "mesh_minus_listing_m": diff, "wd_swapped": swapped and not straight}
+    status = "confirmed" if straight or swapped else "conflict" if conflict else "estimated"
+    fit = [round(max(a, b), 4) for a, b in zip(mesh, aligned)] if conflict else mesh
+    return status, {"from": "mesh", "listing_m": listing, "mesh_minus_listing_m": diff, "wd_swapped": swapped and not straight}, fit
+
+
+def name_width(name):
+    """Largest horizontal size stated in the name, metres: '87"W', '78" W' or 'a x b x c cm'."""
+    low = (name or "").lower()
+    m = re.search(r'(\d+(?:\.\d+)?)\s*(?:"|\'\'|in(?:ch(?:es)?)?)\s*w\b', low)
+    if m:
+        return float(m.group(1)) * INCH
+    m = re.search(r"(\d+(?:\.\d+)?)\s*x\s*(\d+(?:\.\d+)?)\s*x\s*(\d+(?:\.\d+)?)\s*cm", low)
+    if m:
+        return max(float(g) for g in m.groups()) / 100
+    return None
 
 
 def mock_price(kind, size):
@@ -144,14 +173,21 @@ def main():
             # glTF is Y-up: extent_x = width, extent_z = depth, extent_y = height.
             mesh = [round(float(model[k]), 4) for k in ("extent_x", "extent_z", "extent_y")]
             listing = listing_size(d.get("item_dimensions"))
-            status, evidence = compare(mesh, listing)
+            status, evidence, fit = compare(mesh, listing)
+            nw = name_width(name)
+            if nw:
+                evidence["name_width_m"] = round(nw, 3)
+                widest = max(mesh[0], mesh[1])
+                if max(nw, widest) > 0.2 and max(nw, widest) / max(min(nw, widest), 1e-3) > 1.5:
+                    status = "conflict"
+                    fit = [max(fit[0], nw), fit[1], fit[2]] if fit[0] >= fit[1] else [fit[0], max(fit[1], nw), fit[2]]
             img_ids = [d["main_image_id"]] if d.get("main_image_id") else []
             img_ids += d.get("other_image_id", [])
             img_urls = [f"{ABO}/images/small/{images[i]}" for i in img_ids if i in images]
             rows.append((
                 f"abo:{d['item_id']}", "abo", d["item_id"], name, (en(d.get("brand")) or [None])[0],
                 "\n".join(en(d.get("bullet_point")) + en(d.get("product_description"))) or None,
-                product_type, kind, mesh, status, Jsonb(evidence), listing,
+                product_type, kind, mesh, fit, status, Jsonb(evidence), listing,
                 mock_price(kind, mesh), "AMD", "mock",
                 en(d.get("color")), en(d.get("color"), "standardized_values"),
                 en(d.get("material")), en(d.get("style")), en(d.get("item_keywords")),
@@ -164,11 +200,11 @@ def main():
         with conn.cursor() as cur:
             cur.executemany("""
                 insert into item (id, source, source_id, name, brand, description, product_type, kind,
-                  size_m, size_status, size_evidence, listing_size_m, price, currency, price_source,
+                  size_m, fit_size_m, size_status, size_evidence, listing_size_m, price, currency, price_source,
                   color_text, color_std, materials, styles, keywords, main_image_url, image_urls, glb_url, license, raw)
-                values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                 on conflict (id) do update set
-                  name=excluded.name, kind=excluded.kind, size_m=excluded.size_m, size_status=excluded.size_status,
+                  name=excluded.name, kind=excluded.kind, size_m=excluded.size_m, fit_size_m=excluded.fit_size_m, size_status=excluded.size_status,
                   size_evidence=excluded.size_evidence, listing_size_m=excluded.listing_size_m, price=excluded.price,
                   color_text=excluded.color_text, color_std=excluded.color_std, materials=excluded.materials,
                   styles=excluded.styles, keywords=excluded.keywords, main_image_url=excluded.main_image_url,
