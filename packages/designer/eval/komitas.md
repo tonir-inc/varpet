@@ -199,7 +199,7 @@ Derived from these measured turns: 1/6 strict passes; 0/0 proposals accepted; me
 
 Capture status: recorded without reported errors. Screenshots: [top](komitas/b31-t46-furnished-top.png), [3D](komitas/b31-t46-furnished-3d.png). Capture metadata lists rendering/download errors.
 
-Measured Avani finding: the shared catalog snapshot has 877 assets, zero table-kind desk/workstation titles, zero cabinet-kind wardrobe/armoire titles, and six table/cabinet nightstand titles. Paint changes connected wall sources beyond bedroom faces; the paint grade checks bedroom coverage only, and this spillover remains a product limitation.
+Measured catalog finding: each saved snapshot contains 895 assets: 877 live ABO products plus 18 local editor assets. Within the live ABO subset there are zero table-kind desk/workstation titles, zero cabinet-kind wardrobe/armoire titles, and six table/cabinet nightstand titles. The local editor subset includes a primitive Oak wardrobe; it is not one of the live shop products. Paint changes connected wall sources beyond bedroom faces; the paint grade checks bedroom coverage only, and this spillover remains a product limitation.
 
 ## Reproduce
 
