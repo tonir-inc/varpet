@@ -13,6 +13,7 @@ import { HandPanControls } from '../render/hand-pan';
 import { disposeObject, normalizeAsset } from '../render/assets';
 import { makeOpening, type OpeningProjection } from '../render/structure';
 import { OpeningAssetLoader } from '../render/opening-assets';
+import { registerPlan } from './plan-registration';
 import type { EntityMetadata, Wall } from '../contracts';
 import './architect-stage.css';
 
@@ -169,6 +170,8 @@ class Stage implements ArchitectStage {
   private readonly sheet: THREE.Mesh;
   private planAspect = 1.4;
   private scanning = false;
+  /** Blueprint theme: the traced plan's ink, kept to register the returned walls against it. */
+  private inkAlpha: { alpha: Uint8ClampedArray; width: number; height: number } | undefined;
   /** While the architect works and no shell has arrived, light keeps running along the plan's lines. */
   private tracing = false;
   private scanClock = 0;
@@ -232,9 +235,11 @@ class Stage implements ArchitectStage {
     this.navigation.hidden = !!options.blueprint;
     // A drawing legend: each gesture is a key, each action its meaning.
     const legend = (rows: [string, string][]) => rows.map(([key, action]) => `<div><dt>${key}</dt><dd>${action}</dd></div>`).join('');
-    this.navigation.innerHTML = `<div class="as-nav-head"><strong>Explore your space</strong><button type="button" title="Frame your space and follow the build"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8a5.5 5.5 0 1 0 1.7-4"/><path d="M2.5 2v3.2h3.2"/></svg>Reset view</button></div>
-      <dl class="as-mouse-help">${legend([['Drag', 'orbit'], ['Scroll', 'zoom'], ['Space + drag', 'pan'], ['WASD', 'move']])}</dl>
-      <dl class="as-touch-help">${legend([['Drag', 'orbit'], ['Pinch', 'zoom'], ['Two fingers', 'pan']])}</dl>`;
+    this.navigation.setAttribute('role', 'group');
+    this.navigation.setAttribute('aria-label', 'Explore your space');
+    this.navigation.innerHTML = `<dl class="as-mouse-help">${legend([['Drag', 'orbit'], ['Scroll', 'zoom'], ['Space + drag', 'pan'], ['WASD', 'move']])}</dl>
+      <dl class="as-touch-help">${legend([['Drag', 'orbit'], ['Pinch', 'zoom'], ['Two fingers', 'pan']])}</dl>
+      <button type="button" title="Frame your space and follow the build"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8a5.5 5.5 0 1 0 1.7-4"/><path d="M2.5 2v3.2h3.2"/></svg>Reset view</button>`;
     this.navigation.querySelector('button')!.onclick = this.resetView;
     this.root.append(this.navigation);
     const q = <T extends HTMLElement>(sel: string) => this.root.querySelector(sel) as T;
@@ -447,6 +452,12 @@ class Stage implements ArchitectStage {
 
   /** The traced sheet is already drawn: show it flat and still, exactly where the page left it. */
   private startBlueprint(ink: HTMLCanvasElement): void {
+    const pixels = ink.getContext('2d')?.getImageData(0, 0, ink.width, ink.height).data;
+    if (pixels) {
+      const alpha = new Uint8ClampedArray(ink.width * ink.height);
+      for (let i = 0; i < alpha.length; i++) alpha[i] = pixels[i * 4 + 3]!;
+      this.inkAlpha = { alpha, width: ink.width, height: ink.height };
+    }
     const tex = new THREE.CanvasTexture(ink);
     tex.colorSpace = THREE.NoColorSpace;
     tex.anisotropy = 8;
@@ -924,15 +935,21 @@ class Stage implements ArchitectStage {
     this.requestPhase(1);
     this.dismissPhotos();
 
-    // Fit the sheet under the rooms, keeping the plan's aspect.
-    const W = (box.maxX - box.minX) * 1.14, D = (box.maxZ - box.minZ) * 1.14;
-    const sw = Math.max(W, D / this.planAspect), sd = sw * this.planAspect;
+    // Size and place the plan so its own lines sit under the returned walls. Without a
+    // confident match, fit it under the rooms, keeping the plan's aspect.
+    let { sw, sd, sx, sz } = this.sheetUnderRooms(box);
+    const matched = this.inkAlpha && registerPlan(this.inkAlpha.alpha, this.inkAlpha.width, this.inkAlpha.height, walls);
+    if (matched && this.inkAlpha) {
+      const wx = Math.min(...walls.flatMap(w => [w.start[0], w.end[0]])), wz = Math.min(...walls.flatMap(w => [w.start[1], w.end[1]]));
+      sw = this.inkAlpha.width / matched.scale; sd = this.inkAlpha.height / matched.scale;
+      sx = wx - matched.x / matched.scale + sw / 2; sz = wz - matched.y / matched.scale + sd / 2;
+    }
     const cx = (box.minX + box.maxX) / 2, cz = (box.minZ + box.maxZ) / 2;
     const p0 = this.sheet.position.clone(), s0 = this.sheet.scale.clone();
     const opacityFrom = this.sheetUniforms.uOpacity.value;
     void this.shellTween(1.3, k => {
       const e = easeInOut(k);
-      this.setSheet(lerp(p0.x, cx, e), lerp(p0.z, cz, e), lerp(s0.x, sw, e), lerp(s0.y, sd, e));
+      this.setSheet(lerp(p0.x, sx, e), lerp(p0.z, sz, e), lerp(s0.x, sw, e), lerp(s0.y, sd, e));
       this.sheetUniforms.uOpacity.value = lerp(opacityFrom, 1, e);
     });
     void this.fit(() => this.framing(this.sceneBox(), 1.1), 2.0, { orbit: 0, sway: 0 });
@@ -980,6 +997,13 @@ class Stage implements ArchitectStage {
       if (this.disposed || revision !== this.shellRevision) return;
       (this.root.querySelector('.as-opening-hint') as HTMLElement).hidden = ![...this.openings.values()].some(o => !o.projection.fixed);
     });
+  }
+
+  /** The fallback placement: the plan's drawing assumed to fill about 88% of the page, centred. */
+  private sheetUnderRooms(box: Box2): { sw: number; sd: number; sx: number; sz: number } {
+    const W = (box.maxX - box.minX) * 1.14, D = (box.maxZ - box.minZ) * 1.14;
+    const sw = Math.max(W, D / this.planAspect);
+    return { sw, sd: sw * this.planAspect, sx: (box.minX + box.maxX) / 2, sz: (box.minZ + box.maxZ) / 2 };
   }
 
   private tracePath(points: THREE.Vector3[], parent: THREE.Object3D, delay: number, duration: number): void {

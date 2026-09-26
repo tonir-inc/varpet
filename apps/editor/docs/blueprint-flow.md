@@ -12,7 +12,23 @@ Back aborts the stream and invalidates late results. Failure retains selected fi
 
 ### Reading before submission
 
-`portal/blueprint-build.ts` owns one request with an immutable snapshot of the original plan and photos. Before submission it buffers progress and geometry; activity logs are discarded because the construction stage does not render them. Submit creates the stage, completes the sheet handoff, then replays the buffered events in wire order and follows the same live stream. Replaying a cached shell before handoff completes would move the receiving sheet and camera while the source is still flying toward it. Completed requests are also reused. Elapsed time includes the head start on the upload page.
+`portal/blueprint-build.ts` owns one request with an immutable snapshot of the original plan and photos. Before submission it buffers progress and geometry; activity logs are discarded because the construction stage does not render them. Submit creates the stage, completes the sheet handoff, then replays the buffered events in wire order and follows the same live stream. Replaying a cached shell before handoff completes would move the receiving sheet and camera while the source is still flying toward it. Completed requests are also reused. The visible elapsed timer starts at `0:00` when the construction header appears after the handoff. Background processing still starts on upload; its head start is not included in this timer. Retrying or returning to the construction view starts the visible timer over.
+
+Timer verification, 2026-09-27, Codex (GPT-6): a mocked browser build had an 8.29-second background head start and first displayed `0:00`, then advanced to `0:01`, with the original request reused. Seven browser checks passed with zero page errors, covering normal/reduced motion, Back, failure, retry and disposal. A fresh-context review found no issues. The probe was corrected to ignore the hidden timer on the error screen when sampling retry frames.
+
+```text
+pnpm test
+packages/designer: Test Files 128 passed; Tests 614 passed
+packages/designer: Ran 201 tests; OK; Ran 81 tests; OK
+apps/editor: server tests 29 passed; application tests 220 passed; Done
+apps/buyer, apps/showcase, packages/engine: Done
+
+pnpm typecheck
+All workspace packages: Done
+
+pnpm --filter @varpet/editor build
+built in 315ms; existing chunk-size advisory
+```
 
 Accepted replacements and photo additions/removals abort the old transport and start a request for the updated files. A multi-file drop starts once after adding its photos. Invalid files preserve the current valid request. Background failures are handled immediately; the upload status invites the user to continue, which makes a fresh attempt. Construction failures retain the explicit retry action. Back and disposal abort and invalidate the request; stale callbacks cannot update the current preview. Original evidence comes from the exact request snapshot.
 
@@ -158,6 +174,7 @@ Implemented 2026-09-26, Claude (Opus 5.5). One continuous sequence, no hard cuts
 2. **Drop.** The upload itself is never shown: most plans look poor at this size. A clean paper card of the *traced* plan (dark ink on cream) flies out of wherever the file came from (the drop point, the upload mark, **Change plan**) on an arc: horizontal and vertical travel sit on separate layers with different easings, so the path curves in one continuous move. It grows to the drawing's size, settles, and melts into the sheet under a reading line. `portal/blueprint-ink.ts` re-inks it: paper is the most common tone, ink the far side of it (2nd percentile), with a smooth ramp so tinted room fills become faint shading and light-on-dark blueprints read correctly. Cropped to the drawing. The pen order is a breadth-first walk along each connected stroke network from its top-left end, so walls draw as continuous lines with a glowing frontier (2.6 s). The build action appears after the drawing.
 3. **Handoff to 3D.** The stage starts top-down on the same ink texture (`ArchitectStageOptions.blueprint`), reports where its sheet sits (`planRect()`), and the drawn 2D sheet FLIPs onto exactly that rectangle while the page floods with paper. Crossfade, then `enter()` tilts the camera into perspective. The page header is hidden only after the sheet lands; hiding it earlier shifts layout under the moving sheet.
 4. **Working, then construction.** Until the architect's first geometry arrives, the stage shows that work is happening: a light runs along the plan's own lines in pen order (the red channel of the stage's ink texture carries the order), the reading band sweeps the sheet again every few seconds, and the camera drifts slowly (stopped by the person's own navigation). The header shows elapsed time, the live dot breathes, the current step shimmers, and each new progress message rises into place. All of it ends when the shell arrives or the run stops; reduced motion keeps it still apart from the timer. This is a bounded progress indicator, not idle motion. Then main walls (metadata `boundary` exterior/shared, else walls with no room on one side, else bounding-box walls) sweep up around the flat from the entrance; then partitions; then all doors and windows in one pass as the last partitions top out. Floors flood once the main walls are up.
+   **The blueprint matches the walls.** When the shell arrives, `ui/plan-registration.ts` finds where the returned walls sit on the traced plan: one uniform scale and offset (no rotation) at which wall centrelines land on ink and the space just beside each wall lands on paper. It runs a coarse search over every scale that keeps the walls on the page (72 px image), then refines on a 320 px image, in about 50 ms. The sheet is then sized and placed from that match, so a flat drawn large on the page gets a large sheet and the plan's own lines sit under the rising walls. A weak match (wall ink below 0.3, or less than 0.18 above the ink beside the walls) returns null and the sheet falls back to the old fit (drawing assumed to fill about 88% of the page, centred). Presentation alignment only: the checked shell stays authoritative. Not handled: plans rotated or mirrored relative to the returned coordinates.
 5. **Into the editor.** **Open my apartment** lifts the construction overlay to `<body>` (the canvas keeps its WebGL context), the editor boots underneath, and `settle()` orbits the construction camera into the editor's live pose (`editorView.cameraPose()`, read every frame), rendering the whole canvas as if it were the editor's viewport rectangle (`setViewOffset`), while the paper blends to the editor backdrop. The overlay then fades over an identical picture of the same apartment.
 
 `FinishViewport.cameraPose()` is read-only presentation state; it does not touch the document or history.
@@ -171,6 +188,8 @@ node output/motion-blueprint/probe.cjs        6/6 checks, 0 page errors; frames,
   ink pixels over the drawing: 2 → 344 → 46328 → 59749 → 59801 (progressive)
 node output/motion-blueprint/stage-qa.cjs     COMPLETE 19 browser checks (existing construction QA page)
 node --test tests/blueprint-ink.test.mjs      5 pass
+node --test tests/plan-registration.test.mjs  4 pass (scale within 3–4%, offset within 4 px, clutter ignored, noise refused)
+Avani plan + its own walls (browser)           room labels on the plan land inside the matching rooms of the shell
 pnpm test                                     exit 0 (editor 182 node + 29 server tests, designer 551, buyer 10, showcase 17)
 pnpm typecheck                                Done for all packages
 ```

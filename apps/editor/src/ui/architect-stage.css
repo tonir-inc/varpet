@@ -25,7 +25,10 @@
   transform: translateX(-50%);
   width: max-content;
   max-width: calc(100% - 32px);
-  padding: 10px 14px 11px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 7px 7px 7px 12px;
   border: 1px solid var(--nav-line);
   border-radius: 2px;
   outline: 1px solid color-mix(in srgb, var(--nav-line) 45%, transparent);
@@ -37,8 +40,6 @@
   font-size: 11px;
 }
 .as-navigation[hidden], .as-navigation .as-touch-help { display: none; }
-.as-nav-head { display: flex; align-items: center; justify-content: space-between; gap: 28px; }
-.as-navigation strong { color: var(--nav-muted); font-size: 9px; font-weight: 600; letter-spacing: 1.6px; text-transform: uppercase; }
 .as-navigation button {
   display: inline-flex;
   align-items: center;
@@ -58,7 +59,7 @@
 .as-navigation button:hover { border-color: currentColor; background: color-mix(in srgb, var(--nav-ink) 8%, transparent); }
 .as-navigation button:hover svg { transform: rotate(-60deg); }
 .as-navigation button:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
-.as-navigation dl { display: flex; flex-wrap: wrap; align-items: center; margin: 9px 0 0; padding-top: 9px; border-top: 1px solid var(--nav-line); }
+.as-navigation dl { display: flex; flex-wrap: wrap; align-items: center; margin: 0; padding-right: 14px; border-right: 1px solid var(--nav-line); }
 .as-navigation dl > div { display: flex; align-items: center; gap: 6px; padding: 0 12px; }
 .as-navigation dl > div:first-child { padding-left: 0; }
 .as-navigation dl > div:last-child { padding-right: 0; }
@@ -73,8 +74,8 @@
   .as-navigation .as-touch-help { display: flex; }
 }
 @media (max-width: 560px) {
-  .as-navigation dl > div { padding: 3px 12px 3px 0; }
-  .as-navigation dl > div + div { border-left: 0; }
+  .as-navigation { flex-wrap: wrap; justify-content: center; row-gap: 8px; padding: 8px 10px; }
+  .as-navigation dl { justify-content: center; padding-right: 0; border-right: 0; }
 }
 @media (prefers-reduced-motion: reduce) { .as-navigation button, .as-navigation button svg { transition: none; } }
 .as-labels, .as-labels > div { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }

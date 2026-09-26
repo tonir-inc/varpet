@@ -382,11 +382,12 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
     /^Reading (?:the|your) plan\b/i.test(message) ? 'Reading the plan' : message.replace(/(?:…|\.{3})\s*$/, ''));
   /** While the architect works: the live dot breathes, the current step shimmers and time counts up. */
   let clock = 0;
-  function working(on: boolean, started = performance.now()) {
+  function working(on: boolean) {
     flow.classList.toggle('is-working', on);
     flow.querySelector<HTMLElement>('.blueprint-flow-dots')!.hidden = !on;
     clearInterval(clock); clock = 0;
     if (!on) return;
+    const started = performance.now();
     const elapsed = q('.blueprint-elapsed');
     const tick = () => { const s = Math.floor((performance.now() - started) / 1000); elapsed.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
     tick(); clock = window.setInterval(tick, 1000);
@@ -450,7 +451,7 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
     q('.blueprint-live').hidden = false;
     q('.blueprint-flow-name').textContent = plan.name;
     say('Reading the plan');
-    working(true, job.started);
+    q('.blueprint-elapsed').textContent = '0:00';
     updatePhase('reading'); q('.blueprint-back').focus({preventScroll: true});
     try {
       const [{createArchitectStage}, {resolveSceneProducts}, {resolveFurnitureProducts}, {parseScene}] = await warmBuild();
@@ -461,6 +462,8 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
       // Keep the receiving sheet still until the source lands. Early shell events can reframe it.
       await handoff(version);
       if (disposed || version !== run) return;
+      // Count from when the timer becomes visible, independently of the early background build.
+      working(true);
       const url = import.meta.env.VITE_ARCHITECT_URL || 'http://127.0.0.1:8788';
       job.attach(message => {
         if (version !== run) return;
