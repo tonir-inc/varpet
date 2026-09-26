@@ -8,6 +8,14 @@ description: Use when building or changing the designer agent (packages/designer
 The design is `docs/designer.md`; the tasks are `docs/tasks/designer-*.md`, in order. Read the design
 once, then only your task card.
 
+## The designer fits the product, not the other way round
+
+The editor's scene format and operations (`apps/editor/src/contracts.ts`, `renovation-contracts.ts`) are the
+source of truth. Before every task: rebase onto origin/main and re-read them. Anything the editor can do
+(furniture, colours, groups, renovation) the designer should either support or pass through untouched; never
+drop editor data in the bridge. The editor's own demo scene (`apps/editor/src/core/demo.ts`) is the scene that
+matters: every new capability gets a test on it, not only on the designer's bedroom fixture.
+
 ## Contracts that do not move
 
 - The model never writes the scene. Every tool that changes anything works on a COPY and returns a
