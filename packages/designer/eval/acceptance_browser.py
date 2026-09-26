@@ -113,9 +113,9 @@ async def main(args):
    if usage_limited:raise RuntimeError('USAGE LIMIT: stop batch')
    return after
   try:
-   start=time.monotonic();await page.goto(f'http://127.0.0.1:{args.port}/?template=avani',wait_until='domcontentloaded',timeout=60000)
+   start=time.monotonic();template='m6' if args.flat=='m6' else 'avani';await page.goto(f'http://127.0.0.1:{args.port}/?template={template}',wait_until='domcontentloaded',timeout=60000)
    await page.locator('#project-name').wait_for(timeout=60000)
-   if args.flat!='avani':await import_scene(json.loads((HERE/'komitas'/f'{args.flat}.scene.json').read_text()))
+   if args.flat not in ('avani','m6'):await import_scene(json.loads((HERE/'komitas'/f'{args.flat}.scene.json').read_text()))
    await page.locator('.designer-context').evaluate('(el)=>el.open=true')
    await page.locator('#designer-north').fill('0');await page.locator('#designer-north').dispatch_event('change')
    initial=await export('initial');capture=await shot('open')
