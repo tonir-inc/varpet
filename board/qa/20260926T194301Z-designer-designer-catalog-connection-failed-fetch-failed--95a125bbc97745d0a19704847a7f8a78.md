@@ -25,3 +25,5 @@ search_catalog returns {ok:false, message:'fetch failed'} after ~10 s whenever i
 ![Screenshot 1](img/20260926T194301Z-designer-designer-catalog-connection-failed-fetch-failed--95a125bbc97745d0a19704847a7f8a78-1.png)
 
 **Notes**
+
+- 2026-09-26T19:51:08.074412Z: Update: probably not an env problem. Later failures are intermittent (one search with candidates + preview succeeded in 3.4 s), and the catalog slows to 6-8 s under concurrent requests, so the designer's 10-12 s timeouts trip - see 20260926T195100Z-catalog-catalog-search-slows. The env fallback to the tailnet URL is real but may not be what users hit; verify after the catalog latency fix. Severity lowered to major.
