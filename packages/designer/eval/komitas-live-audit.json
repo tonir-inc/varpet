@@ -1,0 +1,85 @@
+{
+  "measured_at": "2026-09-26T13:07:06.913406+00:00",
+  "flats": 6,
+  "turns": 38,
+  "rows": [
+    {
+      "id": "b20-t11",
+      "turns": 6,
+      "initial_objects": 0,
+      "final_objects": 0,
+      "screenshots_sha256": {
+        "b20-t11-furnished-top.png": "7a6654b11472f658fd14103cc4d313e17d822e94c7f6dfc585ab81e0f81565ea",
+        "b20-t11-furnished-3d.png": "b8c6bc1c65fa4fe15ffaf45d631d0fb50f8ed6b8a806f174b55bdee957d7ef18"
+      },
+      "profile_verified": true,
+      "tokens_measured": true,
+      "input_unchanged": true
+    },
+    {
+      "id": "b21-t13",
+      "turns": 6,
+      "initial_objects": 0,
+      "final_objects": 0,
+      "screenshots_sha256": {
+        "b21-t13-furnished-top.png": "9b1aaa7a0900985b2025cc83314d301fc3860b9369572046ceeb5c8e5aa79f44",
+        "b21-t13-furnished-3d.png": "2d1dc9836e5871b70e9f3a5d806ce32105d7862a1c960a5012efbb05936e5469"
+      },
+      "profile_verified": true,
+      "tokens_measured": true,
+      "input_unchanged": true
+    },
+    {
+      "id": "b25-t72",
+      "turns": 7,
+      "initial_objects": 0,
+      "final_objects": 0,
+      "screenshots_sha256": {
+        "b25-t72-furnished-top.png": "c3237c44283e11ba2eb54ab564e79a33d9062cae503ac166b918e1dcf71d02a2",
+        "b25-t72-furnished-3d.png": "956067de7d4f624e572977ada886360d755daf8d62ba3161b0cc84fe859630a2"
+      },
+      "profile_verified": true,
+      "tokens_measured": true,
+      "input_unchanged": true
+    },
+    {
+      "id": "b28-t31",
+      "turns": 6,
+      "initial_objects": 0,
+      "final_objects": 4,
+      "screenshots_sha256": {
+        "b28-t31-furnished-top.png": "bd16b654b1342d6081b7ef0be924b6118d66ccb94125238b6fee65e864fa7433",
+        "b28-t31-furnished-3d.png": "bad885933104fa4cf9fd141a8eca7097fe6808c999a85815dd0e14e828c648b3"
+      },
+      "profile_verified": true,
+      "tokens_measured": true,
+      "input_unchanged": true
+    },
+    {
+      "id": "b30-t35",
+      "turns": 7,
+      "initial_objects": 0,
+      "final_objects": 0,
+      "screenshots_sha256": {
+        "b30-t35-furnished-top.png": "f44adaf4b6909d74b2744eeda622c394adb88ac7a39ae928a9f4d75ba00b2979",
+        "b30-t35-furnished-3d.png": "9fbf176f111ea5cb3e123aa7db1718839f4c29e00f440f6244d544d057de68e5"
+      },
+      "profile_verified": true,
+      "tokens_measured": true,
+      "input_unchanged": true
+    },
+    {
+      "id": "b31-t46",
+      "turns": 6,
+      "initial_objects": 0,
+      "final_objects": 0,
+      "screenshots_sha256": {
+        "b31-t46-furnished-top.png": "dca447a7181fd8d524b49ad5d285c50a71b9f57fe1f0c8a7bdacfbaca568b7b6",
+        "b31-t46-furnished-3d.png": "a6ce4786561670d7ec30a84f6198c4d170100d0b1259c9b20ffb02c7df788e50"
+      },
+      "profile_verified": true,
+      "tokens_measured": true,
+      "input_unchanged": true
+    }
+  ]
+}

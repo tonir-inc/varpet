@@ -1,0 +1,8 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "question", "conversationId": "d2bdfe4378b145d5900c57c438c3fc82", "question": "The supplied scene contains no sofa or other furniture. Could you load the furnished scene with the sofa so I can position it facing the living-room window?", "options": []}

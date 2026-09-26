@@ -1,0 +1,11 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "question", "conversationId": "22d0f26a475b403eb94685f07e117f0b", "question": "The catalog search found no dedicated desk. Would you like a preview of a 135 × 80 cm dining table used as a work surface beside the living-room window (93,000 AMD mock price, budget unconfirmed), or prefer to supply a desk model?", "options": ["Preview the table as a work surface", "I'll supply a desk model"]}

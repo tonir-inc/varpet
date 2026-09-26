@@ -1,0 +1,30 @@
+{
+  "captured_at": "2026-09-26T12:56:04.765718+00:00",
+  "source": "93414ae3f947162e6c7d69fb5fbb3067491e3198",
+  "scope": "Six accepted Komitas flats requested after SERVICE recovery; four rejected original drafts are excluded.",
+  "model": "gpt-6-astra",
+  "effort": "low",
+  "placement": "without-place",
+  "context": "compact-base",
+  "catalog_endpoint": "http://localhost:8765/mcp",
+  "currency": "AMD",
+  "northDeg": 0,
+  "parallel_conversations": 4,
+  "ids": [
+    "b20-t11",
+    "b21-t13",
+    "b25-t72",
+    "b28-t31",
+    "b30-t35",
+    "b31-t46"
+  ],
+  "inputs": {
+    "b20-t11.scene.json": "adc7fb8885f2db8665fa0c592a5ced66d0673bec375d6b2795b97f6623319825",
+    "b21-t13.scene.json": "ffcfcfac46cb802053598981abe79906703feecec25e01c35f5f6cf9d1e0f940",
+    "b25-t72.scene.json": "a44469d58cfe29d4dcc278e6e33c27d9642bfeea953a355bd2df9c76b90378ab",
+    "b28-t31.scene.json": "a00b5117497b87f09ff12c3752bf53ae9aa49d3331d0e10e9a7a9d5479279142",
+    "b30-t35.scene.json": "94e9e3cfce7d64a5cc4e84bab0bb981d1ca1c12c27254ff4d82145f84a03e1ec",
+    "b31-t46.scene.json": "da9f589cf7c9ce160f29d2d69c20f16c84c576fc1915e154d5553b0a04ee5c5f"
+  },
+  "planned_turns": 38
+}

@@ -1,0 +1,15 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "decline", "conversationId": "7cc31d5d69f44e5286e34bdadeb1236a", "message": "I found catalog furniture, but couldn’t obtain a complete layout that passed the room’s physical checks, so no purchase preview is ready. Nothing has changed.\n\nYour budget remains unconfirmed. Catalog prices are mock estimates, not retailer quotations; door-swing clearance is also unverified."}

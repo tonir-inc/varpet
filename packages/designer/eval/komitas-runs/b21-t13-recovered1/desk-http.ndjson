@@ -1,0 +1,10 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "question", "conversationId": "d2bdfe4378b145d5900c57c438c3fc82", "question": "I found no dedicated desk in the catalog results. Would you like a preview using the Rivet dining table as a work surface beside the living-room window (93,000 AMD mock catalog price, not a shop quote), or would you prefer to supply a desk product?", "options": ["Preview the table as a desk", "Supply a desk product"]}

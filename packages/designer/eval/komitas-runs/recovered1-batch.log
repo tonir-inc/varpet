@@ -1,0 +1,176 @@
+{"flat":"b21-t13","kind":"living","stage":"start","revision":0}
+{"flat":"b28-t31","kind":"living","stage":"start","revision":0}
+{"flat":"b25-t72","kind":"living","stage":"start","revision":0}
+{"flat":"b20-t11","kind":"living","stage":"start","revision":0}
+{"flat":"b28-t31","kind":"living","stage":"http_progress","seconds":28.458450625000005}
+{"flat":"b25-t72","kind":"living","stage":"http_progress","seconds":27.915671834}
+{"flat":"b20-t11","kind":"living","stage":"http_progress","seconds":27.768965292}
+{"flat":"b21-t13","kind":"living","stage":"http_progress","seconds":30.668265125}
+{"flat":"b21-t13","kind":"living","outcome":"decline","pass":false,"seconds":45.531,"tokens":54388,"reasons":["outcome:decline","request_mismatch"]}
+{"flat":"b21-t13","kind":"bedroom","stage":"start","revision":0}
+{"flat":"b21-t13","kind":"bedroom","stage":"http_progress","seconds":0.009416207999995095}
+{"flat":"b28-t31","kind":"living","stage":"http_progress","seconds":58.746366042}
+{"flat":"b25-t72","kind":"living","stage":"http_progress","seconds":58.202233334}
+{"flat":"b20-t11","kind":"living","stage":"http_progress","seconds":57.947672375}
+{"flat":"b25-t72","kind":"living","outcome":"decline","pass":false,"seconds":60.927,"tokens":105987,"reasons":["outcome:decline","request_mismatch"]}
+{"flat":"b25-t72","kind":"bedroom","stage":"start","revision":0}
+{"flat":"b25-t72","kind":"bedroom","stage":"http_progress","seconds":0.031021458000002895}
+{"flat":"b21-t13","kind":"bedroom","stage":"http_progress","seconds":30.989398957999992}
+{"flat":"b25-t72","kind":"bedroom","outcome":"question","pass":false,"seconds":20.989,"tokens":70297,"reasons":["outcome:question","request_mismatch"]}
+{"flat":"b25-t72","kind":"sofa","stage":"start","revision":0}
+{"flat":"b25-t72","kind":"sofa","stage":"http_progress","seconds":0.01724183400000038}
+{"flat":"b28-t31","kind":"living","stage":"http_progress","seconds":89.07657645900001}
+{"flat":"b20-t11","kind":"living","stage":"http_progress","seconds":88.49384575}
+{"flat":"b28-t31","kind":"living","outcome":"decline","pass":false,"seconds":91.786,"tokens":130136,"reasons":["outcome:decline","request_mismatch"]}
+{"flat":"b28-t31","kind":"bedroom","stage":"start","revision":0}
+{"flat":"b28-t31","kind":"bedroom","stage":"http_progress","seconds":0.016921209000007365}
+{"flat":"b20-t11","kind":"living","outcome":"decline","pass":false,"seconds":95.482,"tokens":125373,"reasons":["outcome:decline","request_mismatch"]}
+{"flat":"b20-t11","kind":"bedroom","stage":"start","revision":0}
+{"flat":"b20-t11","kind":"bedroom","stage":"http_progress","seconds":0.006492083999997704}
+{"flat":"b21-t13","kind":"bedroom","stage":"http_progress","seconds":61.410385666}
+{"flat":"b25-t72","kind":"sofa","stage":"http_progress","seconds":30.787824083999993}
+{"flat":"b28-t31","kind":"bedroom","stage":"http_progress","seconds":30.836180084000006}
+{"flat":"b20-t11","kind":"bedroom","stage":"http_progress","seconds":30.74582245899999}
+{"flat":"b21-t13","kind":"bedroom","outcome":"error","pass":false,"seconds":83.584,"tokens":111315,"reasons":["outcome:error","request_mismatch"]}
+{"flat":"b21-t13","kind":"sofa","stage":"start","revision":0}
+{"flat":"b21-t13","kind":"sofa","stage":"http_progress","seconds":0.006457250000006752}
+{"flat":"b25-t72","kind":"sofa","stage":"http_progress","seconds":61.08755929200001}
+{"flat":"b28-t31","kind":"bedroom","stage":"http_progress","seconds":61.190077792}
+{"flat":"b21-t13","kind":"sofa","outcome":"question","pass":false,"seconds":25.501,"tokens":91181,"reasons":["outcome:question","request_mismatch"]}
+{"flat":"b21-t13","kind":"desk","stage":"start","revision":0}
+{"flat":"b21-t13","kind":"desk","stage":"http_progress","seconds":0.011447749999992084}
+{"flat":"b20-t11","kind":"bedroom","stage":"http_progress","seconds":61.17732158399999}
+{"flat":"b25-t72","kind":"sofa","outcome":"question","pass":false,"seconds":85.842,"tokens":92647,"reasons":["outcome:question","request_mismatch"]}
+{"flat":"b25-t72","kind":"desk","stage":"start","revision":0}
+{"flat":"b25-t72","kind":"desk","stage":"http_progress","seconds":0.022289166999980806}
+{"flat":"b28-t31","kind":"bedroom","stage":"http_progress","seconds":91.71953724999999}
+{"flat":"b21-t13","kind":"desk","stage":"http_progress","seconds":30.909247124999993}
+{"flat":"b25-t72","kind":"desk","outcome":"question","pass":false,"seconds":18.849,"tokens":115069,"reasons":["outcome:question","request_mismatch"]}
+{"flat":"b25-t72","kind":"paint","stage":"start","revision":0}
+{"flat":"b25-t72","kind":"paint","stage":"http_progress","seconds":0.012683665999997174}
+{"flat":"b20-t11","kind":"bedroom","stage":"http_progress","seconds":91.690951542}
+{"flat":"b21-t13","kind":"desk","outcome":"question","pass":false,"seconds":35.088,"tokens":269300,"reasons":["outcome:question","request_mismatch"]}
+{"flat":"b21-t13","kind":"paint","stage":"start","revision":0}
+{"flat":"b21-t13","kind":"paint","stage":"http_progress","seconds":0.02515374999999767}
+{"flat":"b28-t31","kind":"bedroom","outcome":"proposal","pass":false,"seconds":97.923,"tokens":147860,"reasons":["request_mismatch","new_or_worsened_clearance"]}
+{"flat":"b28-t31","kind":"sofa","stage":"start","revision":1}
+{"flat":"b28-t31","kind":"sofa","stage":"http_progress","seconds":0.020858417000010378}
+{"flat":"b20-t11","kind":"bedroom","outcome":"error","pass":false,"seconds":100.751,"tokens":236120,"reasons":["outcome:error","request_mismatch"]}
+{"flat":"b20-t11","kind":"sofa","stage":"start","revision":0}
+{"flat":"b20-t11","kind":"sofa","stage":"http_progress","seconds":0.006437291999987793}
+{"flat":"b25-t72","kind":"paint","outcome":"question","pass":false,"seconds":14.606,"tokens":137503,"reasons":["outcome:question","request_mismatch"]}
+{"flat":"b25-t72","kind":"kids","stage":"start","revision":0}
+{"flat":"b25-t72","kind":"kids","stage":"http_progress","seconds":0.01384908300000825}
+{"flat":"b28-t31","kind":"sofa","outcome":"decline","pass":false,"seconds":12.695,"tokens":55445,"reasons":["outcome:decline","request_mismatch"]}
+{"flat":"b28-t31","kind":"desk","stage":"start","revision":1}
+{"flat":"b28-t31","kind":"desk","stage":"http_progress","seconds":0.006375417000002926}
+{"flat":"b20-t11","kind":"sofa","outcome":"question","pass":false,"seconds":11.789,"tokens":111572,"reasons":["outcome:question","request_mismatch"]}
+{"flat":"b20-t11","kind":"desk","stage":"start","revision":0}
+{"flat":"b20-t11","kind":"desk","stage":"http_progress","seconds":0.008709582999988925}
+{"flat":"b25-t72","kind":"kids","outcome":"question","pass":false,"seconds":16.472,"tokens":159921,"reasons":["outcome:question","request_mismatch"]}
+{"flat":"b25-t72","kind":"structural","stage":"start","revision":0}
+{"flat":"b25-t72","kind":"structural","stage":"http_progress","seconds":0.008467333000007784}
+{"flat":"b21-t13","kind":"paint","stage":"http_progress","seconds":31.206308875000015}
+{"flat":"b21-t13","kind":"paint","outcome":"proposal","pass":true,"seconds":39.063,"tokens":189544,"reasons":[]}
+{"flat":"b21-t13","kind":"structural","stage":"start","revision":1}
+{"flat":"b21-t13","kind":"structural","stage":"http_progress","seconds":0.009519124999991618}
+{"flat":"b25-t72","kind":"structural","outcome":"decline","pass":false,"seconds":11.114,"tokens":91078,"reasons":["request_mismatch"]}
+{"flat":"b28-t31","kind":"desk","stage":"http_progress","seconds":30.907252500000002}
+{"captured_at": "2026-09-26T12:58:58.859661+00:00", "state": "/Users/ashotarushanyan/AshProjects/varpet-bench/packages/designer/eval/komitas-runs/b25-t72-recovered1/final.json", "browser": "153.0.8010.53", "page_errors": [], "failed_requests": [], "loaded_assets": [], "expected_gltf_assets": [], "complete": true, "renderer": "apps/editor/src/render/viewport.ts", "port": 5197}
+4/6 flats; 1/18 requests pass; /Users/ashotarushanyan/AshProjects/varpet-bench/packages/designer/eval/komitas.md
+{"flat": "b25-t72", "exit_code": 0}
+{"flat":"b21-t13","kind":"structural","outcome":"decline","pass":true,"seconds":11.172,"tokens":68240,"reasons":[]}
+{"flat":"b20-t11","kind":"desk","stage":"http_progress","seconds":30.80979795799998}
+{"flat":"b28-t31","kind":"desk","outcome":"question","pass":false,"seconds":37.659,"tokens":328876,"reasons":["outcome:question","request_mismatch"]}
+{"flat":"b28-t31","kind":"paint","stage":"start","revision":1}
+{"flat":"b28-t31","kind":"paint","stage":"http_progress","seconds":0.017057874999998602}
+{"flat":"b30-t35","kind":"living","stage":"start","revision":0}
+{"captured_at": "2026-09-26T12:59:05.638442+00:00", "state": "/Users/ashotarushanyan/AshProjects/varpet-bench/packages/designer/eval/komitas-runs/b21-t13-recovered1/final.json", "browser": "153.0.8010.53", "page_errors": [], "failed_requests": [], "loaded_assets": [], "expected_gltf_assets": [], "complete": true, "renderer": "apps/editor/src/render/viewport.ts", "port": 5197}
+5/6 flats; 2/20 requests pass; /Users/ashotarushanyan/AshProjects/varpet-bench/packages/designer/eval/komitas.md
+{"flat": "b21-t13", "exit_code": 0}
+{"flat":"b31-t46","kind":"living","stage":"start","revision":0}
+{"flat":"b20-t11","kind":"desk","outcome":"question","pass":false,"seconds":42.455,"tokens":327989,"reasons":["outcome:question","request_mismatch"]}
+{"flat":"b20-t11","kind":"paint","stage":"start","revision":0}
+{"flat":"b20-t11","kind":"paint","stage":"http_progress","seconds":0.00774275000000489}
+{"flat":"b28-t31","kind":"paint","outcome":"proposal","pass":true,"seconds":26.768,"tokens":157066,"reasons":[]}
+{"flat":"b28-t31","kind":"structural","stage":"start","revision":2}
+{"flat":"b28-t31","kind":"structural","stage":"http_progress","seconds":0.02113491599995177}
+{"flat":"b30-t35","kind":"living","stage":"http_progress","seconds":31.070595832999995}
+{"flat":"b20-t11","kind":"paint","outcome":"proposal","pass":true,"seconds":22.92,"tokens":153088,"reasons":[]}
+{"flat":"b20-t11","kind":"structural","stage":"start","revision":1}
+{"flat":"b20-t11","kind":"structural","stage":"http_progress","seconds":0.040595708999957424}
+{"flat":"b31-t46","kind":"living","stage":"http_progress","seconds":30.7476455}
+{"flat":"b28-t31","kind":"structural","outcome":"decline","pass":false,"seconds":12.026,"tokens":88340,"reasons":["request_mismatch"]}
+{"flat":"b31-t46","kind":"living","outcome":"decline","pass":false,"seconds":39.641,"tokens":100780,"reasons":["outcome:decline","request_mismatch"]}
+{"flat":"b31-t46","kind":"bedroom","stage":"start","revision":0}
+{"flat":"b31-t46","kind":"bedroom","stage":"http_progress","seconds":0.01797829199999978}
+{"flat":"b20-t11","kind":"structural","outcome":"decline","pass":false,"seconds":13.401,"tokens":83347,"reasons":["request_mismatch"]}
+{"flat":"b30-t35","kind":"living","outcome":"decline","pass":false,"seconds":58.807,"tokens":108951,"reasons":["outcome:decline","request_mismatch"]}
+{"flat":"b30-t35","kind":"bedroom","stage":"start","revision":0}
+{"flat":"b30-t35","kind":"bedroom","stage":"http_progress","seconds":0.030039167000002635}
+{"captured_at": "2026-09-26T13:00:01.720488+00:00", "state": "/Users/ashotarushanyan/AshProjects/varpet-bench/packages/designer/eval/komitas-runs/b20-t11-recovered1/final.json", "browser": "153.0.8010.53", "page_errors": [], "failed_requests": [], "loaded_assets": [], "expected_gltf_assets": [], "complete": true, "renderer": "apps/editor/src/render/viewport.ts", "port": 5197}
+6/6 flats; 4/27 requests pass; /Users/ashotarushanyan/AshProjects/varpet-bench/packages/designer/eval/komitas.md
+{"flat": "b20-t11", "exit_code": 0}
+{"flat":"b31-t46","kind":"bedroom","stage":"http_progress","seconds":31.378233332999997}
+{"flat":"b30-t35","kind":"bedroom","outcome":"question","pass":false,"seconds":21.561,"tokens":90421,"reasons":["outcome:question","request_mismatch"]}
+{"flat":"b30-t35","kind":"sofa","stage":"start","revision":0}
+{"flat":"b30-t35","kind":"sofa","stage":"http_progress","seconds":0.016431708999996773}
+{"flat":"b31-t46","kind":"bedroom","outcome":"question","pass":false,"seconds":34.418,"tokens":84373,"reasons":["outcome:question","request_mismatch"]}
+{"flat":"b31-t46","kind":"sofa","stage":"start","revision":0}
+{"flat":"b31-t46","kind":"sofa","stage":"http_progress","seconds":0.015808292000001528}
+{"flat":"b31-t46","kind":"sofa","outcome":"question","pass":false,"seconds":15.371,"tokens":72886,"reasons":["outcome:question","request_mismatch"]}
+{"flat":"b31-t46","kind":"desk","stage":"start","revision":0}
+{"flat":"b31-t46","kind":"desk","stage":"http_progress","seconds":0.029303041000006486}
+{"flat":"b30-t35","kind":"sofa","outcome":"question","pass":false,"seconds":19.067,"tokens":77030,"reasons":["outcome:question","request_mismatch"]}
+{"flat":"b30-t35","kind":"desk","stage":"start","revision":0}
+{"flat":"b30-t35","kind":"desk","stage":"http_progress","seconds":0.010902417000004789}
+{"flat":"b31-t46","kind":"desk","outcome":"question","pass":false,"seconds":13.318,"tokens":89354,"reasons":["outcome:question","request_mismatch"]}
+{"flat":"b31-t46","kind":"paint","stage":"start","revision":0}
+{"flat":"b31-t46","kind":"paint","stage":"http_progress","seconds":0.01165479200000118}
+{"flat":"b31-t46","kind":"paint","outcome":"question","pass":false,"seconds":15.744,"tokens":105814,"reasons":["outcome:question","request_mismatch"]}
+{"flat":"b31-t46","kind":"structural","stage":"start","revision":0}
+{"flat":"b31-t46","kind":"structural","stage":"http_progress","seconds":0.013866500000003725}
+{"flat":"b30-t35","kind":"desk","stage":"http_progress","seconds":30.866941334000003}
+{"flat":"b31-t46","kind":"structural","outcome":"decline","pass":true,"seconds":19.407,"tokens":61084,"reasons":[]}
+{"flat":"b30-t35","kind":"desk","outcome":"decline","pass":false,"seconds":51.4,"tokens":238159,"reasons":["outcome:decline","request_mismatch"]}
+{"flat":"b30-t35","kind":"paint","stage":"start","revision":0}
+{"flat":"b30-t35","kind":"paint","stage":"http_progress","seconds":0.0060811249999969735}
+{"captured_at": "2026-09-26T13:01:33.650492+00:00", "state": "/Users/ashotarushanyan/AshProjects/varpet-bench/packages/designer/eval/komitas-runs/b31-t46-recovered1/final.json", "browser": "153.0.8010.53", "page_errors": [], "failed_requests": [], "loaded_assets": [], "expected_gltf_assets": [], "complete": true, "renderer": "apps/editor/src/render/viewport.ts", "port": 5197}
+6/6 flats; 5/35 requests pass; /Users/ashotarushanyan/AshProjects/varpet-bench/packages/designer/eval/komitas.md
+{"flat": "b31-t46", "exit_code": 0}
+Traceback (most recent call last):
+  File "/Users/ashotarushanyan/AshProjects/varpet-bench/packages/designer/eval/komitas-capture.py", line 29, in <module>
+    page.goto(f'http://127.0.0.1:{args.port}/@fs{Path(__file__).resolve().parent}/komitas-view.html?state=/@fs{args.state.resolve()}',wait_until='networkidle',timeout=120000)
+  File "/Users/ashotarushanyan/.cache/uv/archive-v0/EB_h3h9mvFdi1errdbYsc/lib/python3.11/site-packages/playwright/sync_api/_generated.py", line 9903, in goto
+    self._sync(
+  File "/Users/ashotarushanyan/.cache/uv/archive-v0/EB_h3h9mvFdi1errdbYsc/lib/python3.11/site-packages/playwright/_impl/_sync_base.py", line 115, in _sync
+    return task.result()
+           ^^^^^^^^^^^^^
+  File "/Users/ashotarushanyan/.cache/uv/archive-v0/EB_h3h9mvFdi1errdbYsc/lib/python3.11/site-packages/playwright/_impl/_page.py", line 562, in goto
+    return await self._main_frame.goto(**locals_to_params(locals()))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ashotarushanyan/.cache/uv/archive-v0/EB_h3h9mvFdi1errdbYsc/lib/python3.11/site-packages/playwright/_impl/_frame.py", line 157, in goto
+    await self._channel.send(
+  File "/Users/ashotarushanyan/.cache/uv/archive-v0/EB_h3h9mvFdi1errdbYsc/lib/python3.11/site-packages/playwright/_impl/_connection.py", line 76, in send
+    return await self._connection.wrap_api_call(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ashotarushanyan/.cache/uv/archive-v0/EB_h3h9mvFdi1errdbYsc/lib/python3.11/site-packages/playwright/_impl/_connection.py", line 632, in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+playwright._impl._errors.TimeoutError: Page.goto: Timeout 120000ms exceeded.
+Call log:
+  - navigating to "http://127.0.0.1:5197/@fs/Users/ashotarushanyan/AshProjects/varpet-bench/packages/designer/eval/komitas-view.html?state=/@fs/Users/ashotarushanyan/AshProjects/varpet-bench/packages/designer/eval/komitas-runs/b28-t31-recovered1/final.json", waiting until "networkidle"
+6/6 flats; 5/35 requests pass; /Users/ashotarushanyan/AshProjects/varpet-bench/packages/designer/eval/komitas.md
+{"flat": "b28-t31", "exit_code": 1}
+{"flat":"b30-t35","kind":"paint","stage":"http_progress","seconds":30.580282542}
+{"flat":"b30-t35","kind":"paint","stage":"http_progress","seconds":61.075454}
+{"flat":"b30-t35","kind":"paint","outcome":"question","pass":false,"seconds":85.342,"tokens":112647,"reasons":["outcome:question","request_mismatch"]}
+{"flat":"b30-t35","kind":"kids","stage":"start","revision":0}
+{"flat":"b30-t35","kind":"kids","stage":"http_progress","seconds":0.014086499999975785}
+{"flat":"b30-t35","kind":"kids","outcome":"question","pass":false,"seconds":19.763,"tokens":129127,"reasons":["outcome:question","request_mismatch"]}
+{"flat":"b30-t35","kind":"structural","stage":"start","revision":0}
+{"flat":"b30-t35","kind":"structural","stage":"http_progress","seconds":0.006392709000007017}
+{"flat":"b30-t35","kind":"structural","outcome":"decline","pass":false,"seconds":20.626,"tokens":72716,"reasons":["request_mismatch"]}
+{"captured_at": "2026-09-26T13:03:46.338230+00:00", "state": "/Users/ashotarushanyan/AshProjects/varpet-bench/packages/designer/eval/komitas-runs/b30-t35-recovered1/final.json", "browser": "153.0.8010.53", "page_errors": [], "failed_requests": [], "loaded_assets": [], "expected_gltf_assets": [], "complete": true, "renderer": "apps/editor/src/render/viewport.ts", "port": 5197}
+6/6 flats; 5/38 requests pass; /Users/ashotarushanyan/AshProjects/varpet-bench/packages/designer/eval/komitas.md
+{"flat": "b30-t35", "exit_code": 0}
+Batch infrastructure failures: 1

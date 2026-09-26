@@ -1,0 +1,12 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "question", "conversationId": "994d5bfd5ee940eebcf8ff0b61a14635", "question": "The catalog search found no dedicated desk. Would you like a preview using the Rivet dining table as a worktable beside the living-room north window, or wait for a dedicated desk? Its catalog price is 93,000 AMD (mock, not a retailer quote); your budget remains unconfirmed.", "options": ["Preview the worktable alternative", "Wait for a dedicated desk"]}
