@@ -6,7 +6,7 @@
   "exports": { ".": "./src/adapter.ts" },
   "scripts": {
     "start": "tsx src/server.ts",
-    "test": "vitest run && python3 ../../harness/designer_test.py",
+    "test": "vitest run && python3 -m unittest discover -s ../../harness -p 'designer*_test.py'",
     "typecheck": "tsc -p ."
   },
   "dependencies": {

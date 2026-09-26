@@ -1,6 +1,8 @@
 import { execFile } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { z } from 'zod';
 import type { PlaceRequest } from './place.js';
 
@@ -58,7 +60,7 @@ with psycopg.connect(os.environ['VARPET_DB_URL'], connect_timeout=5) as c:
 print(json.dumps(result))
 `;
 
-const queryCatalog: CatalogQuery = async input => {
+const queryDatabase: CatalogQuery = async input => {
   if (!process.env.VARPET_DB_URL) throw new Error('Catalog database is not configured');
   const directory = fileURLToPath(new URL('../../../catalog/', import.meta.url));
   const { stdout } = await execute('uv', ['run', '--no-sync', '--offline', '--directory', directory, 'python', '-c', pythonSearch, JSON.stringify(input)], {
@@ -66,6 +68,80 @@ const queryCatalog: CatalogQuery = async input => {
     env: { ...process.env, UV_PYTHON_DOWNLOADS: 'never' },
   });
   return JSON.parse(stdout);
+};
+
+export const DEFAULT_CATALOG_URL = 'http://100.107.246.46:8765/mcp';
+interface HttpCatalogOptions { url?: string; timeoutMs?: number; fetch?: typeof globalThis.fetch }
+
+function object(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function toolPayload(result: Awaited<ReturnType<Client['callTool']>>): Record<string, unknown> {
+  if (result.isError) throw new Error('Catalog tool failed');
+  if (object(result.structuredContent)) return result.structuredContent;
+  for (const content of Array.isArray(result.content) ? result.content : []) {
+    if (!object(content) || content.type !== 'text' || typeof content.text !== 'string') continue;
+    try {
+      const payload: unknown = JSON.parse(content.text);
+      if (object(payload)) return payload;
+    } catch { /* Another text block may contain the structured result. */ }
+  }
+  throw new Error('Catalog returned no structured result');
+}
+
+/** One read-only MCP session with one wall deadline for connect, search and provenance. */
+export function createHttpCatalogQuery(options: HttpCatalogOptions = {}): CatalogQuery {
+  const url = new URL(options.url ?? DEFAULT_CATALOG_URL), timeoutMs = options.timeoutMs ?? 20_000;
+  if (!['http:', 'https:'].includes(url.protocol)) throw new Error('Catalog URL must use HTTP or HTTPS');
+  if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) throw new Error('Catalog timeout must be positive and finite');
+  return async input => {
+    const controller = new AbortController();
+    const fetch = options.fetch ?? globalThis.fetch;
+    const transport = new StreamableHTTPClientTransport(url, {
+      fetch: (target, init) => fetch(target, { ...init,
+        signal: init?.signal ? AbortSignal.any([controller.signal, init.signal]) : controller.signal }),
+      reconnectionOptions: { initialReconnectionDelay: 100, maxReconnectionDelay: 100,
+        reconnectionDelayGrowFactor: 1, maxRetries: 0 },
+    });
+    const client = new Client({ name: 'varpet-designer-catalog', version: '1' });
+    let timer: ReturnType<typeof setTimeout>;
+    const expired = new Promise<never>((_, reject) => {
+      timer = setTimeout(() => { controller.abort(); reject(new Error('Catalog request timed out')); }, timeoutMs);
+    });
+    const requestOptions = { signal: controller.signal, timeout: timeoutMs, maxTotalTimeout: timeoutMs };
+    const search = async () => {
+      await client.connect(transport, requestOptions);
+      const response = toolPayload(await client.callTool({ name: 'search_furniture', arguments: input }, undefined, requestOptions));
+      if (!Array.isArray(response.results)) throw new Error('Catalog search returned no result list');
+      const results = await Promise.all(response.results.slice(0, input.limit ?? 10).map(async raw => {
+        if (!object(raw) || typeof raw.id !== 'string' || !raw.id) return raw;
+        // search_furniture supplies ranked fit dimensions; get_item supplies the
+        // actual currency and provenance. Neither is inferred from the endpoint.
+        const detail = toolPayload(await client.callTool({ name: 'get_item', arguments: { item_id: raw.id } }, undefined, requestOptions));
+        if (detail.id !== raw.id) throw new Error('Catalog detail identity does not match search');
+        return { ...raw, ...detail, size_m: detail.fit_size_m ?? raw.size_m ?? detail.size_m,
+          colors_listing: raw.colors_listing, colors_image: raw.colors_image,
+          currency: detail.currency, source: detail.source, price_source: detail.price_source,
+          size_evidence: detail.size_evidence };
+      }));
+      return { ...response, results };
+    };
+    try { return await Promise.race([search(), expired]); }
+    finally {
+      clearTimeout(timer!);
+      controller.abort();
+      await client.close();
+      await transport.close();
+    }
+  };
+}
+
+const queryCatalog: CatalogQuery = input => {
+  const url = process.env.VARPET_CATALOG_URL;
+  if (url) return createHttpCatalogQuery({ url })(input);
+  if (process.env.VARPET_DB_URL) return queryDatabase(input);
+  return createHttpCatalogQuery()(input);
 };
 
 /** Read-only catalog search. The injected query is also the deterministic test seam. */
@@ -76,7 +152,7 @@ export async function searchCatalog(input: unknown, query: CatalogQuery = queryC
   catch {
     // Subprocess errors can contain a database URL; never return their raw text.
     return { status: 'unavailable', results: [], excluded_records: 0, ranking_note: rankingNote,
-      reason: 'Catalog unavailable. Configure VARPET_DB_URL and the installed catalog Python environment. No products or prices are available to propose.' };
+      reason: 'Catalog unavailable. Check the catalog MCP service and Tailscale connection (VARPET_CATALOG_URL), or the explicitly configured VARPET_DB_URL backend. No products or prices are available to propose.' };
   }
   if (!response || typeof response !== 'object' || !('results' in response) || !Array.isArray(response.results)) {
     return { status: 'unavailable', results: [], excluded_records: 0, ranking_note: rankingNote, reason: 'Catalog unavailable: the backend did not return a valid result list.' };

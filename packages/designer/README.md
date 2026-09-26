@@ -70,10 +70,29 @@ uv run --with-requirements harness/designer_requirements.txt python harness/desi
 Add `--prompt 'make it cozier'` for one turn. Measured: the harness uses `gpt-6-astra` medium,
 deny-all approvals, an isolated Codex home/workspace, only the designer MCP server and only the
 interior-design-rules skill. It saves full traces and token counts in `harness/designer-runs/`.
-Four minutes without output kills the whole worker process group and retries once; usage limits
+Four minutes without output terminates the worker and its observed descendants, including MCP
+children in separate process groups, and retries once; usage limits
 stop the run. `pnpm test` includes the offline Python watchdog/configuration tests.
 
-Assumed: catalog setup supplies `VARPET_DB_URL` and an installed Python environment in `catalog/`.
+Ask `Show me options for the living room` or add `--options` to run three independent
+`gpt-6-astra` explorers at low effort. They optimize open floor, daylight for work and social
+seating within a shared 115-second budget. The harness ranks accepted `propose` payloads using
+their measured scores, removes identical final layouts, and shows up to two previews with numbers.
+Incomplete exploration stays explicit. Each selected strategy's advantage is checked against the
+other option; an unproven contrast is stated rather than assumed.
+
+Assumed: daylight-for-work is a distance and side-light alignment proxy, not illumination or glare.
+Social seating measures mutual facing within three metres, not sightlines or subjective comfort.
+Derived: ranking averages the varying strategy metrics after normalization across returned options;
+circulation, clearance warnings and cost break ties. The living-room test fixture exercises two
+distinct accepted layouts with opposing daylight and social advantages.
+
+Measured: catalog search defaults to the team's HTTP MCP service at
+`http://100.107.246.46:8765/mcp`, with a 20-second total request budget. `VARPET_CATALOG_URL`
+overrides that address. An explicit `VARPET_DB_URL` retains the local Python backend when no URL
+override is set. HTTP searches fetch product details to preserve currency and provenance.
+Assumed: the laptop can reach the team's tailnet service. A 2026-09-26 connectivity probe from this
+workspace timed out, so live catalog retrieval remains unverified here.
 Search preserves size evidence and price provenance; mock AMD values are not shop quotations.
 Without catalog data, the designer asks for a specific product or a customer-owned piece's details
 instead of inventing a purchasable item.

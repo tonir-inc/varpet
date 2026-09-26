@@ -3,6 +3,7 @@ import { checkLocalLayout } from './local-checks.js';
 import { functionClearances, type FunctionClearance } from './metrics/function.js';
 import { spaceMetrics, type SpaceMetrics } from './metrics/space.js';
 import { sun, type SunResult } from './metrics/sun.js';
+import {strategyMetrics,type StrategyMetrics} from './metrics/strategy.js';
 import type { Op, Scene, Vec2 } from './scene.js';
 
 export interface LayoutIssue {
@@ -14,7 +15,7 @@ export interface LayoutIssue {
 export interface LayoutPrice {
   cost_dram:number|null; currency:'AMD'; basis:'incremental_purchases'; errors:LayoutIssue[];
 }
-export interface LayoutMetrics {
+export interface LayoutMetrics extends StrategyMetrics {
   space:SpaceMetrics; daylight:SunResult; function_clearances:FunctionClearance[]; cost_dram:number|null;
 }
 export interface CheckStatus {
@@ -55,7 +56,7 @@ export function layoutPrice(ops:readonly Op[]):LayoutPrice {
 }
 
 function metrics(scene:Scene,cost:number|null,space?:SpaceMetrics):LayoutMetrics {
-  return {space:space??spaceMetrics(scene),daylight:sun(scene),function_clearances:functionClearances(scene),cost_dram:cost};
+  return {space:space??spaceMetrics(scene),daylight:sun(scene),function_clearances:functionClearances(scene),cost_dram:cost,...strategyMetrics(scene)};
 }
 
 /** Preview only: all mutations pass through the adapter's validated copy. Soft guidance does not fail ok. */

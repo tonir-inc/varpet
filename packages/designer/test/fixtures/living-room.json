@@ -1,0 +1,23 @@
+{
+  "north_deg": 0,
+  "rooms": [{ "id": "living", "name": "Living room", "polygon": [[0,0],[6,0],[6,6],[0,6]] }],
+  "walls": [
+    { "id": "south", "room_id": "living", "a": [0,0], "b": [6,0] },
+    { "id": "east", "room_id": "living", "a": [6,0], "b": [6,6] },
+    { "id": "north", "room_id": "living", "a": [6,6], "b": [0,6] },
+    { "id": "west", "room_id": "living", "a": [0,6], "b": [0,0] }
+  ],
+  "openings": [
+    { "id": "door", "wall_id": "south", "kind": "door", "offset": 3, "width": 0.9, "height": 2.1, "sill": 0, "swing": "inward-right" },
+    { "id": "window", "wall_id": "east", "kind": "window", "offset": 3.5, "width": 2, "height": 1.4, "sill": 0.8 }
+  ],
+  "items": [
+    { "id": "tv", "room_id": "living", "kind": "tv_unit", "name": "TV unit", "pos": [0.225,3], "rot": 90, "size": [1.6,0.45,0.5], "keep": true },
+    { "id": "sofa", "room_id": "living", "kind": "sofa", "name": "Sofa", "pos": [3,5.5], "rot": 0, "size": [2,0.9,0.9], "keep": false },
+    { "id": "armchair", "room_id": "living", "kind": "armchair", "name": "Armchair", "pos": [5.5,3.2], "rot": 270, "size": [0.85,0.9,0.9], "keep": false },
+    { "id": "coffee_table", "room_id": "living", "kind": "coffee_table", "name": "Coffee table", "pos": [3,3.4], "rot": 0, "size": [1.1,0.6,0.45], "keep": false },
+    { "id": "desk", "room_id": "living", "kind": "desk", "name": "Desk", "pos": [1.4,1.75], "rot": 0, "size": [1.2,0.65,0.75], "keep": false },
+    { "id": "office_chair", "room_id": "living", "kind": "office_chair", "name": "Office chair", "pos": [1.4,0.45], "rot": 180, "size": [0.55,0.55,0.9], "keep": false }
+  ],
+  "fixed": []
+}
