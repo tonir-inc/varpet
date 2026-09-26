@@ -112,9 +112,13 @@ def export_project(repo: Path, run_dir: Path, base_url: str = "http://127.0.0.1:
 
     (run_dir / "export.v1.json").write_text(json.dumps(scene(run_dir, base_url)))
     (run_dir / "assets.json").write_text(json.dumps(catalog(run_dir, base_url)))
+    from .shell import Shell, to_editor
+
+    shell = Shell.model_validate_json((run_dir / "shell" / "shell.json").read_text())
+    (run_dir / "components.json").write_text(json.dumps(to_editor(shell).get("components", [])))
     out = run_dir / "project.json"
     proc = subprocess.run(["node", "scripts/architect-project.mjs", str(run_dir / "export.v1.json"),
-                           str(run_dir / "shell" / "shell.json"), str(run_dir / "assets.json"), str(out)],
+                           str(run_dir / "components.json"), str(run_dir / "assets.json"), str(out)],
                           cwd=repo / "apps" / "editor", capture_output=True, text=True, stdin=subprocess.DEVNULL)
     (run_dir / "export.log").write_text(proc.stdout + proc.stderr)
     return out if proc.returncode == 0 and out.exists() else None
