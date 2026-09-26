@@ -73,6 +73,14 @@ class Graph(BaseModel):
         return waves
 
 
+def only(graph: Graph, kinds: set[str]) -> Graph:
+    """Keep jobs of these kinds; deps on dropped jobs are removed."""
+    keep = [j for j in graph.jobs if j.kind in kinds]
+    ids = {j.id for j in keep}
+    jobs = [j.model_copy(update={"deps": [d for d in j.deps if d in ids]}) for j in keep]
+    return Graph(flat=graph.flat, jobs=jobs)
+
+
 def strict_schema() -> dict:
     """Graph schema for a model's structured output: every field required, no extras."""
     schema = Graph.model_json_schema()

@@ -22,8 +22,10 @@ in the catalog below, with its size [w, d, h] in metres (if the plan and photos
 do not give it, use a typical size and set size_estimated); `designer` jobs last,
 depending on the shell and the pieces they arrange. Identical pieces are one job.
 Give each job only the skills it needs from: {skills}.
+Put in each piece job's refs the photos that show that piece (by path below); the shell gets the plan.
 Catalog SKUs already built (do not make piece jobs for these): {catalog}
-Plan: {plan}"""
+Plan: {plan}
+Photos, attached in this order: {photos}"""
 
 
 async def plan(
@@ -41,6 +43,7 @@ async def plan(
         skills=", ".join(skills) or "none",
         catalog=", ".join(catalog) or "none",
         plan=repo / plan_path,
+        photos="; ".join(f"{i + 1}: {p}" for i, p in enumerate(photos)) or "none",
     )
     thread = await codex.thread_start(
         approval_mode=ApprovalMode.deny_all,
