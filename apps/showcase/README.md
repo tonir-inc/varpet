@@ -8,6 +8,7 @@ Run from the repository root:
 pnpm --filter @varpet/showcase dev
 # http://127.0.0.1:5191
 pnpm --filter @varpet/showcase build
+pnpm --filter @varpet/showcase test:browser
 pnpm --filter @varpet/showcase export
 ```
 
@@ -38,15 +39,15 @@ Until at least one accepted Komitas 3D view arrives, Avani remains one explicitl
 
 ## Private developer plans
 
-Only the development/preview server reads originals from `~/AshProjects/tonir/apartment/komitas-park/data/plans/<id>.png|jpg|jpeg`. Override with `KOMITAS_PLANS_DIR`. The endpoint permits only flat IDs, serves no directory listing, and sends `private, no-store`. Missing images show a clean placeholder. No original image is copied into the source tree, virtual data module, or production build.
+Only the development server and explicitly requested private-plan screenshot exports read originals from `~/AshProjects/tonir/apartment/komitas-park/data/plans/<id>.png|jpg|jpeg`. Override with `KOMITAS_PLANS_DIR`. The endpoint permits only flat IDs, serves no directory listing, and sends `private, no-store`. The data loader checks each local file before advertising availability; absent plans and Avani render a placeholder without an image request. Plan additions/removals refresh the development view. No original image is copied into the source tree, virtual data module, or production build.
 
-A static host shows placeholders unless it independently serves authorized originals at `/plans/<id>`. Do not commit originals. App-local private directories and export output are gitignored.
+Ordinary builds and their preview/static sites use placeholders, so they do not request local-only originals. The opt-in private-plan export uses locally verified availability for its screenshots, then rebuilds the shared site with placeholders. Do not commit originals. App-local private directories and export output are gitignored.
 
 ## Static export
 
 `pnpm --filter @varpet/showcase export` builds and captures the gallery, each detail, shell, furnished and embed view, plus `numbers.json`, `numbers.csv`, a standalone screenshot report, and an interactive `site/` copy. Output defaults to `apps/showcase/exports/<timestamp>/`. Pass a destination after `export` to choose another folder. Serve `site/` as the web root; its flat/embed directories support ordinary static hosts.
 
-Exports exclude private plans by default. `--include-private-plans` puts locally available originals into the screenshots only; originals are still never copied. Export folders must remain uncommitted. The exporter uses an ephemeral loopback port by default (or `SHOWCASE_EXPORT_PORT`), and refuses 5180/8787/8788. On macOS it uses installed Chrome. Else install Chromium with `pnpm --filter @varpet/showcase exec playwright install chromium`, or set `SHOWCASE_CHROME` to a browser executable.
+Exports exclude private plans by default. `--include-private-plans` puts locally available originals into the screenshots only; originals are still never copied. Export folders must remain uncommitted. The exporter uses an ephemeral loopback port by default (or `SHOWCASE_EXPORT_PORT`), and refuses 5180/5190/8787/8788. On macOS it uses installed Chrome. Else install Chromium with `pnpm --filter @varpet/showcase exec playwright install chromium`, or set `SHOWCASE_CHROME` to a browser executable.
 
 ## UI decisions and verification
 
@@ -55,3 +56,9 @@ Assumed: this is a premium residence brochure, separate from the editing workspa
 Audit before this new app: there was no showcase surface. The editor baseline exposes editing controls, gives the plan no brochure-level prominence, uses a dark full-workspace palette, has no residence collection, and mixes shopping/review tools into the viewing experience. This app addresses those five mismatches with an editorial hierarchy, warm neutral surfaces, one primary action, plan/3D pairing, and a compact iframe surface. No editor controls or identifiers were removed.
 
 Screenshots are reproducible through the export command (ignored local artifacts); no developer material belongs in a git commit. `pnpm --filter @varpet/showcase test` covers input discovery, local plan path confinement, source attribution, catalog readiness, and price currency. Root tests/typecheck and showcase/editor builds are required before pushing.
+
+## Click-through regression
+
+`pnpm --filter @varpet/showcase test:browser` starts and closes its own Vite server on an ephemeral loopback port. It never attaches to an existing server or uses 5180, 5190, 8787 or 8788. It clicks every published gallery card, each available As built/Furnished state, Top/3D and the embed link, checking disabled/hidden controls for pending views. A separate empty-input scenario covers both Avani states and asserts zero plan requests. Any browser console error, uncaught page error, failed request, HTTP error or renderer error fails the run. Chrome selection follows `SHOWCASE_CHROME` or installed macOS Chrome; otherwise install Playwright Chromium as above.
+
+Assumed: a check server is temporary and closes with the test; it is never a customer handoff URL. Ashot's permanent showcase runs separately from `~/AshProjects/varpet-live` on port 5190. This worktree must not start or stop that server. `SHOWCASE_DATA_DIR` allows an isolated test input directory; by default the published Komitas inputs are used.

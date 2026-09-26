@@ -2,8 +2,8 @@ import type { CatalogAsset, SceneDocument } from '../../editor/src/contracts';
 import { validateScene } from '../../editor/src/core/validation';
 import { demoScene, localCatalog } from '../../editor/src/core/demo';
 
-export interface InputRecord { id: string; facts: Record<string, unknown>; shell: SceneDocument | null; furnished: SceneDocument | null; catalog: CatalogAsset[] | { assets: CatalogAsset[]; currency?: string }; conversation: Record<string, unknown> | null }
-export interface Flat { id: string; title: string; example: boolean; shell: SceneDocument | null; furnished: SceneDocument | null; catalog: CatalogAsset[]; area: number | null; rooms: number | null; areaSource: string; requests: string[]; requestOutcomes: string[]; pieces: { id: string; name: string; price: number | null }[]; total: number | null; issue: string; priceNote: string }
+export interface InputRecord { id: string; planAvailable?: boolean; facts: Record<string, unknown>; shell: SceneDocument | null; furnished: SceneDocument | null; catalog: CatalogAsset[] | { assets: CatalogAsset[]; currency?: string }; conversation: Record<string, unknown> | null }
+export interface Flat { id: string; planAvailable: boolean; title: string; example: boolean; shell: SceneDocument | null; furnished: SceneDocument | null; catalog: CatalogAsset[]; area: number | null; rooms: number | null; areaSource: string; requests: string[]; requestOutcomes: string[]; pieces: { id: string; name: string; price: number | null }[]; total: number | null; issue: string; priceNote: string }
 const positive = (value: unknown): number | null => Number.isFinite(Number(value)) && Number(value) > 0 ? Number(value) : null;
 export function areaOf(scene: SceneDocument): number { return scene.rooms.reduce((sum, room) => sum + Math.abs(room.polygon.reduce((a, p, i) => { const q = room.polygon[(i + 1) % room.polygon.length]!; return a + p[0] * q[1] - q[0] * p[1]; }, 0)) / 2, 0); }
 export function makeFlat(input: InputRecord): Flat {
@@ -23,14 +23,14 @@ export function makeFlat(input: InputRecord): Flat {
     return { id: object.id, name: asset?.name ?? object.name, price: currency === 'AMD' && asset && Number.isSafeInteger(asset.price) && asset.price >= 0 ? asset.price : null };
   });
   const developerArea = positive(facts.area_m2 ?? facts.area ?? facts.total_area_m2 ?? facts.total_area);
-  return { id, title: `Residence ${id.replace(/^b/, '').replace('-t', ' · ')}`, example: false, shell, furnished, catalog,
+  return { id, planAvailable: input.planAvailable === true, title: `Residence ${id.replace(/^b/, '').replace('-t', ' · ')}`, example: false, shell, furnished, catalog,
     area: developerArea ?? (shell ? areaOf(shell) : null), rooms: positive(facts.rooms ?? facts.room_count), areaSource: developerArea ? 'Developer plan' : 'Derived from the reconstructed floor',
     requests, requestOutcomes, pieces, total: furnished && pieces.every(piece => piece.price !== null) ? pieces.reduce((sum, piece) => sum + piece.price!, 0) : null,
     issue, priceNote: furnished ? 'Catalog estimates in AMD; not a retailer quotation. Paint and labour excluded.' : 'Furniture selection and pricing are being prepared.' };
 }
 export function exampleFlat(): Flat {
   const shell = structuredClone(demoScene); shell.objects = [];
-  return { id: 'avani', title: 'The Avani apartment', example: true, shell, furnished: demoScene, catalog: localCatalog,
+  return { id: 'avani', planAvailable: false, title: 'The Avani apartment', example: true, shell, furnished: demoScene, catalog: localCatalog,
     area: areaOf(shell), rooms: null, areaSource: 'Derived from the example scene', requests: [], requestOutcomes: [],
     pieces: demoScene.objects.map(object => ({ id: object.id, name: object.name, price: null })), total: null, issue: '',
     priceNote: 'Example furniture. No designer run or AMD purchase quote is claimed.' };

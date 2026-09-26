@@ -48,3 +48,17 @@ test('uses the latest completed BENCH run with its exact final catalog, ignoring
     assert.equal(flat.conversation.catalogCurrency, 'AMD');
   } finally { await rm(root, { recursive: true }); }
 });
+
+test('plan availability is explicit and only true for a supplied local original', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'showcase-plan-availability-'));
+  try {
+    const dir = join(root, 'data'), plans = join(root, 'plans');
+    await mkdir(dir); await mkdir(plans);
+    await writeFile(join(dir, 'ground-truth.json'), JSON.stringify([{ id: 'present' }, { id: 'absent' }]));
+    await writeFile(join(plans, 'present.png'), 'local original');
+    const local = await loadRecords(dir, plans);
+    assert.equal(local.find(flat => flat.id === 'present').planAvailable, true);
+    assert.equal(local.find(flat => flat.id === 'absent').planAvailable, false);
+    assert.ok((await loadRecords(dir)).every(flat => flat.planAvailable === false));
+  } finally { await rm(root, { recursive: true }); }
+});

@@ -10,9 +10,9 @@ const args = process.argv.slice(2), positional = args.find(arg => !arg.startsWit
 const output = resolve(positional ?? join(root, 'exports', new Date().toISOString().replace(/[:.]/g, '-')));
 const includePlans = args.includes('--include-private-plans');
 const port = Number(process.env.SHOWCASE_EXPORT_PORT ?? 0);
-if ([5180, 8787, 8788].includes(port)) throw Error('Use a spare export port, not an active editor/service port.');
+if ([5180, 5190, 8787, 8788].includes(port)) throw Error('Use a spare export port, not an active editor/service port.');
 await mkdir(output, { recursive: true });
-await build({ root });
+await build({ root, mode: includePlans ? 'private-plans' : 'production' });
 const server = await preview({ root, preview: { host: '127.0.0.1', port, strictPort: true } });
 let browser;
 try {
@@ -60,6 +60,7 @@ try {
   await writeFile(join(output, 'numbers.csv'), ['id,example,area_m2,rooms,pieces,total_amd,requests', ...flats.map(flat => [flat.id, flat.example, flat.area_m2, flat.rooms, flat.added_pieces.length, flat.total_amd, flat.requests.join(' | ')].map(csv).join(','))].join('\n'));
   const esc = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
   await writeFile(join(output, 'index.html'), `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Varpet residences · Export</title><style>body{font:16px/1.6 system-ui;background:#f4f1ea;color:#232e29;max-width:1100px;margin:40px auto;padding:24px}img{width:100%;height:auto}article{margin:48px 0}small{color:#5c655e}</style><h1>A place to call home</h1><p>Komitas Park collection · ${flats.filter(flat => !flat.example).length} published flats${flats.some(flat => flat.example) ? ' · Avani example shown while the collection is prepared' : ''}</p><img src="gallery.png" alt="Residence gallery">${flats.map(flat => `<article><h2>${esc(flat.title)}</h2><p>${esc(flat.area_m2 ?? 'Unconfirmed')} m² · ${esc(flat.rooms ?? 'Unconfirmed')} rooms · ${flat.added_pieces.length} pieces · ${flat.total_amd === null ? 'Not quoted' : `${esc(flat.total_amd)} ֏`}</p>${flat.shell_ready || flat.furnished_ready ? `<img src="${flat.id}-detail.png" alt="${esc(flat.title)} plan and 3D view">` : '<p>3D view being prepared.</p>'}<p>${flat.requests.map((request, index) => `${esc(request)} — ${esc(flat.request_outcomes[index] ?? 'Recorded customer request')}`).join('<br>')}</p><small>${esc(flat.price_note)}</small></article>`).join('')}<p><a href="numbers.json">Full numbers</a> · <a href="numbers.csv">Spreadsheet</a></p>`);
+  if (includePlans) await build({ root }); // Shared site always uses portable plan placeholders.
   await cp(join(root, 'dist'), join(output, 'site'), { recursive: true });
   const index = await readFile(join(root, 'dist/index.html'), 'utf8');
   for (const flat of flats) for (const route of ['flat', 'embed']) { const dir = join(output, 'site', route, flat.id); await mkdir(dir, { recursive: true }); await writeFile(join(dir, 'index.html'), index); }

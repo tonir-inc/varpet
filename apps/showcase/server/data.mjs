@@ -31,7 +31,7 @@ async function completedRuns(dir) {
   return latest;
 }
 /** Read only committed scene/result JSON. Developer images never enter the module graph or dist. */
-export async function loadRecords(dir) {
+export async function loadRecords(dir, plansDir) {
   let files;
   try { files = await readdir(dir); } catch (error) { if (error.code === 'ENOENT') return []; throw error; }
   const truth = factRows(await json(join(dir, 'ground-truth.json')));
@@ -42,7 +42,7 @@ export async function loadRecords(dir) {
   return Promise.all(ids.sort().map(async id => {
     const bench = runs.get(id);
     return ({
-    id, facts: truth.find(row => String(row.id ?? row.plan_id ?? row.flat_id) === id) ?? {},
+    id, planAvailable: Boolean(plansDir && await planFile(plansDir, id)), facts: truth.find(row => String(row.id ?? row.plan_id ?? row.flat_id) === id) ?? {},
     shell: await json(join(dir, `${id}.scene.json`)) ?? null,
     furnished: bench?.final.scene ?? await firstJson(dir, [`${id}.furnished.scene.json`, `${id}.final.scene.json`, `${id}/final.scene.json`, `${id}/furnished.scene.json`]) ?? null,
     catalog: bench?.final.catalog ?? await firstJson(dir, [`${id}.catalog.json`, `${id}/catalog.json`]) ?? sharedCatalog ?? [],

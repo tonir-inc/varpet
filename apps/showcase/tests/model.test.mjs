@@ -54,3 +54,10 @@ test('facts-only real collection retains an explicitly labelled interactive exam
   assert.match(collectionDescription(flats), /1 residence/);
   assert.match(collectionDescription(flats), /0 furnished/);
 });
+
+test('Avani never advertises a developer plan; real flats preserve explicit availability only', () => {
+  assert.equal(exampleFlat().planAvailable, false);
+  const input = { id: 'test', facts: {}, shell: null, furnished: null, catalog: [], conversation: null };
+  assert.equal(makeFlat(input).planAvailable, false);
+  assert.equal(makeFlat({ ...input, planAvailable: true }).planAvailable, true);
+});
