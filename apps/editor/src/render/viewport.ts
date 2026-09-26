@@ -46,6 +46,7 @@ import { DEFAULT_SUN, normalizeSun, fitSunShadow, effectiveSunlight, type SunSet
 import { timeOfDayLighting } from './time-of-day';
 import { SunOccluders } from './sun-occluders';
 import { SceneShadowCache } from './shadow-cache';
+import { installPerfProbe, type PerfProbe } from './perf-probe';
 import { TopLightingProjection } from './top-lighting';
 import { createFurnitureDrop } from './furniture-drop';
 import { BLUEPRINT_PAPER, BlueprintGround, type BlueprintBackdrop } from './blueprint-ground';
@@ -294,6 +295,7 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
   let frame = 0;
   let disposed = false;
   let renderFailed = false;
+  let perfProbe: PerfProbe | undefined;
   const placementMotion = new PlacementMotion(furniture, () => { shadowCache.invalidate(); requestRender(); });
   const motion = new MotionTimeline(() => { shadowCache.invalidate(); requestRender(); });
   const cameraMotion = new MotionTimeline(requestRender);
@@ -619,8 +621,11 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
   }
 
   function renderScene(): void {
+    const started = perfProbe ? performance.now() : 0;
+    if (perfProbe) { renderer.info.autoReset = false; renderer.info.reset(); }
     topLighting.prepare(world, view === 'top' && !topLightingEnabled);
     studioRenderer.render(camera);
+    if (perfProbe) perfProbe.submits.push({ at: started, ms: performance.now() - started, calls: renderer.info.render.calls, triangles: renderer.info.render.triangles });
   }
 
   function selectionBounds(chosen: THREE.Object3D, target = new THREE.Box3()): THREE.Box3 {
@@ -1590,7 +1595,7 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
   resize(); setTool('select');
   const unregisterDesignerSnapshot = registerDesignerRenderer(renderer.domElement, renderScene, () => drag || endpointDrag || openingDrag || wallMove.active || furnitureDrop.active || handPan.active ? null : documentState);
 
-  return {
+  const api: FinishViewport = {
     attach(next, nextCallbacks, nextNormalizer) {
       if (disposed) throw new Error('Cannot attach a disposed viewport');
       onPointerCancel(); keyboardNavigation.cancel(); handPan.cancel();
@@ -1846,4 +1851,6 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
       studioRenderer.dispose(); skyboxes.dispose(); environment.dispose(); renderer.dispose(); container.remove();
     },
   };
+  perfProbe = installPerfProbe({ viewport: api, renderer, world });
+  return api;
 }
