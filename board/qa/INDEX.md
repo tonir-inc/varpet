@@ -18,7 +18,7 @@ No open issues.
 
 ## architect
 
-No open issues.
+- **major** · open · [Walls don't connect properly at the south balcony \(misaligned, stepped wall segments\)](20260926T193058Z-architect-walls-don-t-connect-properly-at-the-south-balcon-3691a08ccbb248dc8876d95c547d8278.md)
 
 ## unknown
 
