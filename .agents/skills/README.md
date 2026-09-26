@@ -12,3 +12,4 @@ One copy of every skill. Rewrite each against the final schema before use; give 
 | evidence-first, cross-view-check, scale-correction, clearance-check, render-compare, bpy-headless | Fidelity and Blender | `apartment-design-validation/skills/` |
 | definition-of-done, write-tests-first, TDD, systematic debugging | Engineering | Ashot's zip, `2-skills/` |
 | product-ui | Editor look and feel: tokens, type, states, the designer chat, polish passes | Written 26 Sept |
+| ai-engineering | Making agents faster and more reliable: measure, candidates and filters, precompute, routing, fail fast | Written 26 Sept |
