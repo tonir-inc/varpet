@@ -85,6 +85,8 @@ export interface FinishViewport extends Viewport {
   onFrame(listener: () => void): () => void;
   /** Drops a loaded model's parts into place one by one, bottom first; waits for the model if it is still loading. */
   animateAssembly(id: string): void;
+  /** Hides these furniture objects in the view (an overlay may draw them instead); the scene is unchanged. */
+  setHidden(ids: string[]): void;
 }
 export function createViewport(container: HTMLElement, callbacks: ViewportCallbacks & { onSunChange?(settings: SunSettings): void; onFinish?(presetId: string, target: FinishTarget): boolean }, normalizeScene?: SceneNormalizer): FinishViewport {
   let renderer: THREE.WebGLRenderer;
@@ -96,7 +98,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     message.textContent = '3D view unavailable. Enable browser hardware acceleration and reload.';
     message.style.cssText = 'margin:auto;padding:2rem;color:#6a5849;max-width:28rem;text-align:center';
     container.append(message);
-    return { setInsideLens() {}, setSkybox() { return false; }, getSun() { return { ...DEFAULT_SUN }; }, setSun() {}, setLightingMood() {}, inspectCeiling() { return false; }, project() { return null; }, onFrame() { return () => {}; }, animateAssembly() {}, setFinishBrush() {}, setAdditiveSelection() {}, revealSelection() {}, setScene() {}, animatePlacement() {}, setSelection() {}, setTool() {}, setView() {}, setSnap() {}, setWalls() {}, setQuality() {}, setLayer() {}, setDoorAngle() {}, getDoorAngle() { return 0; }, toggleSwitch() {}, setSwitchLevel() {}, getSwitchLevel() { return 0; }, setComparison() {}, focus() {}, cancelInteraction() {}, dispose() { message.remove(); } };
+    return { setInsideLens() {}, setSkybox() { return false; }, getSun() { return { ...DEFAULT_SUN }; }, setSun() {}, setLightingMood() {}, inspectCeiling() { return false; }, project() { return null; }, onFrame() { return () => {}; }, animateAssembly() {}, setHidden() {}, setFinishBrush() {}, setAdditiveSelection() {}, revealSelection() {}, setScene() {}, animatePlacement() {}, setSelection() {}, setTool() {}, setView() {}, setSnap() {}, setWalls() {}, setQuality() {}, setLayer() {}, setDoorAngle() {}, getDoorAngle() { return 0; }, toggleSwitch() {}, setSwitchLevel() {}, getSwitchLevel() { return 0; }, setComparison() {}, focus() {}, cancelInteraction() {}, dispose() { message.remove(); } };
   }
   renderer.setClearColor('#171d25');
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -618,6 +620,8 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   }
 
   const frameListeners = new Set<() => void>();
+  let hiddenIds = new Set<string>();
+  function applyHidden(): void { for (const [id, record] of rendered) record.group.visible = !hiddenIds.has(id); }
   const installedModels = new WeakSet<THREE.Object3D>();
   const assemblyWanted = new Set<string>();
   interface AssemblyPart { part: THREE.Object3D; y: number; lift: number }
@@ -951,7 +955,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     collisionIssues = new Set(analyzeProject(next, catalog).issues.filter(issue => issue.id.startsWith('swing:') || issue.id.startsWith('swing-wall:')).map(issue => issue.entityId).filter((id): id is string => Boolean(id)));
     if (selectedId && !entity(selectedId)) selectedId = null;
     selectedFurnitureIds = expandFurnitureSelection(next, selectedFurnitureIds);
-    applyLayers(); updateSelection();
+    applyLayers(); updateSelection(); applyHidden();
     if (!initialized) { initialized = true; focus(undefined, false); }
     if (view === 'inside') {
       const spawn = findWalkSpawn(next, catalog, { point: [insideCamera.position.x, insideCamera.position.z] });
@@ -1384,6 +1388,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       return { x: (v.x + 1) / 2 * width, y: (1 - v.y) / 2 * height, visible: v.z > -1 && v.z < 1 && Math.abs(v.x) <= 1 && Math.abs(v.y) <= 1 };
     },
     onFrame(listener) { frameListeners.add(listener); return () => { frameListeners.delete(listener); }; },
+    setHidden(ids) { hiddenIds = new Set(ids); applyHidden(); shadowCache.invalidate(); requestRender(); },
     setSelection(id, ids) {
       const requested = id ? [...new Set([id, ...(ids ?? [])])] : [];
       const furnitureIds = documentState ? expandFurnitureSelection(documentState, requested) : [];
