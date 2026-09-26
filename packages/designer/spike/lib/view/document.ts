@@ -11,6 +11,7 @@ import { materialForPreset } from '../../../../../apps/editor/src/core/finish-pr
 import { defaultCeilingDesign, layoutCeilingDesign } from '../../../../../apps/editor/src/core/ceiling-design.js';
 import { roomCeilingHeight } from '../../../../../apps/editor/src/core/heights.js';
 import { migrateScene } from '../../../../../apps/editor/src/core/renovation.js';
+import { validateScene } from '../../../../../apps/editor/src/core/validation.js';
 import { wallSurfaceSpans } from '../../../../../apps/editor/src/core/wall-surfaces.js';
 import { normalizeWallJunctions } from '../../../../../apps/editor/src/core/wall-junctions.js';
 import { headlessSurface, placeFurniture } from '../../../../../apps/editor/src/core/furniture-support.js';
@@ -300,6 +301,58 @@ export function cornerPoses(scene: Scene, draft: Draft, roomId: string): { eye: 
   return [best, opposite].map(({ eye }) => ({ eye: [eye[0], eye[1], EYE_HEIGHT], target: [aim[0], aim[1], 0.9] }));
 }
 
+/** The room, the walls that face it, and what stands, hangs or shines inside it; every wall of the result bounds only this
+ * room, so the editor's cutaway lowers the ones facing the camera. The full document if the reduced one does not validate. */
+/** Horizontal direction from a focused room to the editor's orbit camera (viewport focus()). */
+const OVERVIEW_AZIMUTH = [0.95 / Math.hypot(0.95, 1.35), 1.35 / Math.hypot(0.95, 1.35)] as const;
+
+function isolateRoom(doc: SceneDocument, catalog: CatalogAsset[], roomId: string): SceneDocument {
+  const room = doc.rooms.find(candidate => candidate.id === roomId), project = doc.project;
+  if (!room || !project) return doc;
+  const polygon = room.polygon as [number, number][], metadata = project.metadata;
+  const within = (x: number, z: number) => inside(polygon, [x, z]);
+  // Traced rooms stop a few centimetres short of the wall face, so probe 12 cm beyond each face along the wall. A wall
+  // facing the room is trimmed to the room's stretch (plus any opening it cuts through); a wall between the room and the
+  // overview camera is left out so the camera looks in, as the editor's cutaway does for exterior walls.
+  const trimmed = new Map<string, number>();
+  const walls = doc.walls.flatMap(wall => {
+    const dx = wall.end[0] - wall.start[0], dz = wall.end[1] - wall.start[1], length = Math.hypot(dx, dz);
+    if (length < 1e-6) return [];
+    const ux = dx / length, uz = dz / length, reach = wall.thickness / 2 + 0.12, steps = 40;
+    const probe = (t: number, side: number) => within(wall.start[0] + dx * t - uz * side, wall.start[1] + dz * t + ux * side);
+    let plus = 0, minus = 0, first = Infinity, last = -Infinity;
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps, a = probe(t, reach), b = probe(t, -reach);
+      if (a) plus++;
+      if (b) minus++;
+      if (a || b) { first = Math.min(first, t * length); last = Math.max(last, t * length); }
+    }
+    if (!plus && !minus) return [];
+    const roomSide = plus >= minus ? 1 : -1, outward = [uz * roomSide, -ux * roomSide];
+    if (outward[0]! * OVERVIEW_AZIMUTH[0] + outward[1]! * OVERVIEW_AZIMUTH[1] > 0.26) return [];
+    let from = Math.max(0, first - length / steps - wall.thickness), to = Math.min(length, last + length / steps + wall.thickness);
+    for (const opening of wall.openings) if (opening.offset < to && opening.offset + opening.width > from) { from = Math.min(from, opening.offset); to = Math.max(to, opening.offset + opening.width); }
+    trimmed.set(wall.id, from);
+    const at = (offset: number): [number, number] => [wall.start[0] + ux * offset, wall.start[1] + uz * offset];
+    return [{ ...wall, start: at(from), end: at(to), openings: wall.openings.filter(opening => opening.offset >= from - 1e-6 && opening.offset + opening.width <= to + 1e-6).map(opening => ({ ...opening, offset: opening.offset - from })) }];
+  });
+  const wallIds = new Set(walls.map(wall => wall.id));
+  const rehost = <T extends { host?: { wallId: string; offset: number } }>(item: T): T => item.host ? { ...item, host: { ...item.host, offset: item.host.offset - (trimmed.get(item.host.wallId) ?? 0) } } : item;
+  let objects = doc.objects.filter(object => (!object.host || wallIds.has(object.host.wallId)) && within(object.position[0], object.position[2])).map(rehost);
+  for (let pass = 0; pass < 4; pass++) { const ids = new Set(objects.map(object => object.id)); objects = objects.filter(object => !object.restsOn || ids.has(object.restsOn)); }
+  const components = project.components.filter(component => (component.host ? wallIds.has(component.host.wallId) : true)
+    && (component.roomId !== undefined ? component.roomId === roomId : within(component.position[0], component.position[2]))).map(rehost);
+  const ids = new Set([roomId, ...wallIds, ...walls.flatMap(wall => wall.openings.map(opening => opening.id)), ...objects.map(object => object.id), ...components.map(component => component.id)]);
+  const isolated: SceneDocument = { ...doc, rooms: [room], walls, objects, project: { ...project,
+    metadata: Object.fromEntries(Object.entries(metadata).filter(([id]) => ids.has(id))),
+    components, routes: [], assumptions: [], tasks: [], options: [], activeOptionId: undefined, baseline: undefined,
+    finishes: project.finishes.filter(finish => ids.has(finish.entityId)) } };
+  const validation = validateScene({ ...isolated, objects: [] }, catalog);
+  if (validation.ok) return isolated;
+  process.stderr.write(`renderView: overview of ${roomId} shows the whole flat (${validation.errors.slice(0, 3).join(' ')})\n`);
+  return doc;
+}
+
 const editorPoint = ([x, y, h]: [number, number, number?], fallback: number) => [x, h ?? fallback, -y];
 
 
@@ -308,7 +361,10 @@ const editorPoint = ([x, y, h]: [number, number, number?], fallback: number) => 
 export async function renderPayload(scene: Scene, draft: Draft, roomId: string | undefined, camera: ViewCamera = 'overview', time: 'day' | 'evening' = 'day', source?: unknown) {
   if (roomId !== undefined && !scene.rooms.some(room => room.id === roomId)) throw new Error(`Unknown room ${roomId}`);
   if (roomId === undefined && (camera === 'eye' || camera === 'eye2')) throw new Error('eye cameras need a room');
-  const document = await editorDocument(scene, draft, source);
+  const full = await editorDocument(scene, draft, source);
+  // A room overview is a dollhouse of that room alone: neighbouring rooms, their partitions and furniture would stand
+  // between the orbit camera and a small room (a WC seen over the hall), and the editor only cuts exterior walls.
+  const document = roomId !== undefined && camera === 'overview' ? { ...full, scene: isolateRoom(full.scene, full.catalog, roomId) } : full;
   const explicit = typeof camera === 'object' ? camera : roomId !== undefined && (camera === 'eye' || camera === 'eye2') ? cornerPoses(scene, draft, roomId)[camera === 'eye' ? 0 : 1] : undefined;
   const pose = explicit ? { position: editorPoint(explicit.eye, EYE_HEIGHT), target: editorPoint(explicit.target, 0.9), fov: EYE_FOV } : null;
   return { ...document, roomId, pose, time, view: explicit ? 'inside' : camera === 'top' ? 'top' : 'perspective', walls: explicit ? 'full' : 'cutaway' };
