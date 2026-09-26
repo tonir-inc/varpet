@@ -95,3 +95,30 @@ live model latency or browser rendering. The store still requires approval and r
 Measured 2026-09-26: all 20 objects and all openings in the editor demo convert, but a single-chair
 move still fails the designer's whole-scene walkway gate because the baseline has 29 hard walkway
 failures (including 0.15 m dining access). Conversion does not waive existing clearance requirements.
+
+## Inside the editor (added 26 Sept 14:00: the editor owner is not adding designer UI, so we build it)
+
+`apps/editor/src/adapters/designer-http.ts` (main designer session) exports exactly:
+
+```ts
+export interface DesignerRequest {
+  scene: SceneDocument; revision: number; request: string; conversationId?: string;
+  keep?: string[]; doorSwings?: Record<string, 'in-left' | 'in-right' | 'out-left' | 'out-right'>; northDeg?: number;
+}
+export type DesignerReply =
+  | { type: 'proposal'; conversationId: string; proposal: AgentProposal; metrics?: unknown }
+  | { type: 'question'; conversationId: string; question: string; options: string[] }
+  | { type: 'decline'; conversationId: string; message: string }
+  | { type: 'error'; message: string };
+export function askDesigner(req: DesignerRequest,
+  opts?: { baseUrl?: string; onProgress?: (message: string) => void; signal?: AbortSignal }): Promise<DesignerReply>;
+export const designerHttpAdapter: DesignerAdapter; // propose(scene, revision) = askDesigner with a default request
+```
+
+Default `baseUrl`: `import.meta.env.VITE_DESIGNER_URL ?? 'http://127.0.0.1:8787'`.
+
+`apps/editor/src/ui/designer-panel.ts` (+ its CSS; the panel session) is the customer's chat: a text box, the
+conversation, a live progress line, option buttons for a question, the decline message, and for a proposal the
+editor's existing review/approve flow (the same one the Suggest button uses). Wiring in `apps/editor/src/main.ts`
+is kept to a few lines: mount the panel, and use `designerHttpAdapter` when `VITE_DESIGNER_URL` is set,
+otherwise the mock.
