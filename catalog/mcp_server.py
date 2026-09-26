@@ -6,6 +6,8 @@ colour, style, text and visual likeness only rank what passed.
 """
 import os
 import re
+from pathlib import Path
+from time import perf_counter
 
 import psycopg
 from mcp.server.mcpserver import MCPServer
@@ -167,6 +169,26 @@ try:
     from starlette.requests import Request
     from starlette.responses import JSONResponse, Response
 
+    @server.custom_route("/health", methods=["GET"])
+    async def health_route(request: Request) -> Response:
+        try:
+            with _conn() as c:
+                started = perf_counter()
+                items, editor_set = c.execute(
+                    "select count(*), count(*) filter (where editor_set) from item"
+                ).fetchone()
+                db_ms = (perf_counter() - started) * 1000
+        except Exception as exc:
+            return _cors(request, JSONResponse(
+                {"ok": False, "error": type(exc).__name__}, status_code=503,
+                headers={"Cache-Control": "no-store"}))
+        models = Path(MODELS_DIR)
+        return _cors(request, JSONResponse(
+            {"ok": True, "db_ms": db_ms, "items": items, "editor_set": editor_set,
+             "models_web": sum(p.is_file() for p in models.glob("*")),
+             "previews": sum(p.is_file() for p in (models / "previews").glob("*"))},
+            headers={"Cache-Control": "no-store"}))
+
     @server.custom_route("/editor/assets", methods=["GET", "OPTIONS"])
     async def editor_assets_route(request: Request) -> Response:
         if request.method == "OPTIONS":
@@ -258,7 +280,6 @@ def show_candidates(item_ids: list[str], columns: int = 4) -> list:
     return ["\n".join(legend), Image(data=buf.getvalue(), format="jpeg")]
 
 
-@server.tool()
 def request_generation(kind: str, w: float, d: float, h: float, description: str,
                        reference_image_url: str | None = None) -> dict:
     """Queue a piece nobody sells in this size: it is built to exactly [w, d, h] metres from the description
@@ -273,7 +294,6 @@ def request_generation(kind: str, w: float, d: float, h: float, description: str
     return {"request_id": rid, "status": "pending"}
 
 
-@server.tool()
 def get_generation(request_id: int) -> dict:
     """Status of a queued piece: pending, building, done (with the new item, placeable like any other) or failed."""
     with _conn() as c:
@@ -286,6 +306,11 @@ def get_generation(request_id: int) -> dict:
     if rec["item_id"]:
         rec["item"] = get_item(rec["item_id"])
     return rec
+
+
+if os.environ.get("CATALOG_ENABLE_GENERATION") == "1":
+    server.tool()(request_generation)
+    server.tool()(get_generation)
 
 
 if __name__ == "__main__":
