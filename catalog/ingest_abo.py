@@ -31,6 +31,8 @@ TYPE_KIND = {
 }
 # Checked in order against the name first: ABO product_type is unreliable (BED holds mirrors and drawers).
 NAME_KIND = [
+    (r"\b(laptop|monitor) (desk )?stand|desk stand|workstation converter|computer workstation|laptop computer holder", "decor"),
+    (r"\bdesk (high )?pedestal|drawer pedestal", "cabinet"),
     (r"\blamp\b", "lamp"),
     (r"\bpendant|chandelier|sconce|ceiling light|light fixture", "light"),
     (r"\bpillow|cushion|throw\b|slipcover|\bcover\b", "decor"),
