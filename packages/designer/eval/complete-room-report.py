@@ -14,7 +14,8 @@ def main():
     p.add_argument('--before',type=Path,required=True)
     p.add_argument('--after',type=Path,required=True)
     p.add_argument('--output',type=Path,required=True)
-    args=p.parse_args();rows=[];hashes={};sources={}
+    p.add_argument('--composition',type=Path,required=True,help='Independent actual-editor-scene QUALITY scores')
+    args=p.parse_args();rows=[];hashes={};sources={};inputs={};composition=json.loads(args.composition.read_text())
     for phase,root in [('before',args.before),('after',args.after)]:
         for flat in ['avani','balcony','b21-t13']:
             for n in [1,2,3]:
@@ -24,11 +25,16 @@ def main():
                 sources[f'{phase}/{folder.name}']=run['source']
                 for kind in ['living','bedroom','kids']:
                     original=next(r for r in run['rows'] if r['kind']==kind)
-                    before=json.loads((folder/f'{kind}-request.json').read_text())['scene']
+                    request=json.loads((folder/f'{kind}-request.json').read_text())
+                    paired_input={k:request[k] for k in ['scene','catalog','request','northDeg','catalogCurrency']}
+                    key=(flat,n,kind)
+                    if phase=='before':inputs[key]=paired_input
+                    elif inputs[key]!=paired_input:raise ValueError(f'Paired request/scene/catalog changed: {key}')
+                    before=request['scene']
                     after=json.loads((folder/f'{kind}-after.json').read_text())
                     acceptance={'pass':original['pass'],'failures':original['reasons'],'rubric':'QUALITY/BENCH Komitas kids'} if kind=='kids' else grade(kind,before,after['scene'],after['catalog'],original['reply'],original['editor_accepted'],original['description'],original['seconds'])
                     audit=report.sdk(folder/f'{kind}-sdk.events.jsonl')
-                    rows.append({'phase':phase,'flat':flat,'repeat':n,'kind':kind,'runner_pass':original['pass'],'acceptance':acceptance,'editor_accepted':original['editor_accepted'],'outcome':original['outcome'],'seconds':original['seconds'],'tokens':original['tokens'],'description':original['description'],'quality_complete':original['editor_accepted'] is True and original['description'].startswith('Placed the '),'audit':audit})
+                    rows.append({'phase':phase,'flat':flat,'repeat':n,'kind':kind,'runner_pass':original['pass'],'acceptance':acceptance,'editor_accepted':original['editor_accepted'],'outcome':original['outcome'],'seconds':original['seconds'],'tokens':original['tokens'],'description':original['description'],'planner_complete':original['editor_accepted'] is True and original['description'].startswith('Placed the '),'composition':composition[f'{phase}/{flat}/{n}/{kind}'],'quality_complete':composition[f'{phase}/{flat}/{n}/{kind}']['pass'],'audit':audit})
                 for file in folder.iterdir():
                     if file.is_file():hashes[f'{phase}/{folder.name}/{file.name}']=hashlib.sha256(file.read_bytes()).hexdigest()
     def summarize(selected):
