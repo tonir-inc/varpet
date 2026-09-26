@@ -1,0 +1,6 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "decline", "conversationId": "66233724f8d349af87f376935b9ba14f", "message": "I can’t remove walls or propose structural work, but I can help rearrange furniture to open up the route between your kitchen and living room, or coordinate their paint colours."}
