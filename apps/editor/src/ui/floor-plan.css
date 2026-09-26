@@ -9,6 +9,15 @@
 .viewport-shell.plan-mode .right-panel { display: none !important; }
 .fp-drawing { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; outline: none; }
 .fp-drawing.is-panning { cursor: grabbing; }
+.fp-entity.is-movable, .fp-endpoint { cursor: move; }
+.fp-drawing.is-moving, .fp-drawing.is-moving * { cursor: grabbing; }
+.fp-drawing.is-invalid, .fp-drawing.is-invalid * { cursor: not-allowed; }
+.fp-furniture polygon { stroke: #8e8098; stroke-width: 1; fill-opacity: .6; }
+.fp-furniture:hover polygon, .fp-furniture.is-selected polygon { stroke: #8c71c9; stroke-width: 2.5; fill-opacity: .85; }
+.fp-furniture-label { pointer-events: none; fill: #493e54; paint-order: stroke; stroke: #faf8f3; stroke-width: 3px; vector-effect: non-scaling-stroke; }
+.fp-drag-status { position: absolute; top: 130px; left: 50%; transform: translateX(-50%); max-width: min(560px, 85%); padding: 10px 14px; border: 1px solid #d7c8e8; border-radius: 9px; background: #fffdfbf5; color: #70528f; font-size: 12px; line-height: 1.5; pointer-events: none; box-shadow: 0 4px 20px #4b34471a; }
+.fp-drag-status.is-invalid { border-color: #dbabab; color: #a64747; }
+.fp-drag-status[hidden] { display: none; }
 .fp-drawing:focus-visible { outline: 2px solid #b49bdc; outline-offset: -3px; }
 .fp-heading { position: absolute; top: 77px; left: 28px; max-width: calc(100% - 335px); pointer-events: none; }
 .fp-eyebrow { margin-bottom: 6px; color: #928998; font-size: 9px; font-weight: 650; letter-spacing: 1.5px; }
@@ -61,6 +70,8 @@
 .fp-controls .fp-control:hover { background: #eee7f4; color: #654987; }
 .fp-controls .fp-control:focus-visible { outline: 2px solid #a385c7; outline-offset: 1px; }
 .fp-controls .fp-fit { width: 66px; margin-left: 7px; border-left: 1px solid #e7e0ec; border-radius: 0 5px 5px 0; font-size: 10px; }
+.fp-controls .fp-snap { width: 64px; margin-right: 5px; border-right: 1px solid #e7e0ec; border-radius: 5px 0 0 5px; font-size: 10px; }
+.fp-controls .fp-snap[aria-pressed="true"] { color: #7652a1; background: #f0e9f7; }
 .fp-scale { min-width: 41px; color: #8c7d98; font-size: 10px; text-align: center; font-variant-numeric: tabular-nums; }
 .fp-hint { position: absolute; left: 28px; bottom: 15px; color: #a49ba9; font-size: 9px; pointer-events: none; }
 .fp-empty { position: absolute; top: 48%; left: 50%; width: min(340px, calc(100% - 60px)); transform: translate(-50%, -50%); text-align: center; pointer-events: none; }

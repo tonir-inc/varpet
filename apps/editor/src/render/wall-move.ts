@@ -58,7 +58,8 @@ export function createWallMove(options: WallMoveOptions) {
     raycaster.setFromCamera(pointer, options.getCamera());
   }
   function patchFor(wall: Wall, normal: THREE.Vector3, distance: number): { start: Vec2; end: Vec2 } {
-    const shift = (point: Vec2): Vec2 => [point[0] + normal.x * distance, point[1] + normal.z * distance];
+    const coordinate = (value: number) => options.snap() ? Number(value.toFixed(8)) : value;
+    const shift = (point: Vec2): Vec2 => [coordinate(point[0] + normal.x * distance), coordinate(point[1] + normal.z * distance)];
     return { start: shift(wall.start), end: shift(wall.end) };
   }
   function refresh(): void {

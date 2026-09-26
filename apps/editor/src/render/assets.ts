@@ -3,14 +3,25 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkeleton } from 'three/addons/utils/SkeletonUtils.js';
 import type { CatalogAsset } from '../contracts';
+import { furnitureMaterial } from './furniture-materials';
 
-const materials = (color: string) => ({
-  main: new THREE.MeshStandardMaterial({ color, roughness: 0.88 }),
-  pale: new THREE.MeshStandardMaterial({ color: '#eee8df', roughness: 0.97 }),
-  wood: new THREE.MeshStandardMaterial({ color: '#ae7e53', roughness: 0.62 }),
-  dark: new THREE.MeshStandardMaterial({ color: '#39382f', roughness: 0.56, metalness: 0.18 }),
-  metal: new THREE.MeshStandardMaterial({ color: '#c4a16d', roughness: 0.38, metalness: 0.7 }),
-});
+const materials = (asset: CatalogAsset, color: string) => {
+  const timber = /\b(wood|oak|walnut|teak|beech|birch|pine)\b/i.test(asset.name)
+    || ((asset.kind === 'table' || asset.kind === 'shelf') && !/\b(stone|marble|glass|metal|concrete)\b/i.test(asset.name));
+  const tint = new THREE.Color(color).getHSL({ h: 0, s: 0, l: 0 });
+  const painted = asset.kind === 'cabinet' && tint.s < 0.12 && tint.l > 0.72;
+  const upholstered = asset.kind === 'sofa' || asset.kind === 'bed' || asset.kind === 'rug' || (asset.kind === 'chair' && !timber);
+  return {
+    main: upholstered ? furnitureMaterial(color, 'textile')
+      : timber && !painted ? furnitureMaterial(color, asset.kind === 'table' ? 'wood-horizontal' : 'wood-vertical')
+        : new THREE.MeshStandardMaterial({ color, roughness: asset.kind === 'cabinet' ? 0.54 : 0.74 }),
+    pale: ['sofa', 'bed', 'lamp'].includes(asset.kind) ? furnitureMaterial('#eee8df', 'textile')
+      : new THREE.MeshStandardMaterial({ color: '#eee8df', roughness: 0.38 }),
+    wood: furnitureMaterial('#ae7e53', 'wood-vertical'),
+    dark: new THREE.MeshStandardMaterial({ color: '#39382f', roughness: 0.42, metalness: 0.22 }),
+    metal: new THREE.MeshStandardMaterial({ color: '#c4a16d', roughness: 0.27, metalness: 0.7 }),
+  };
+};
 
 /** Every asset uses a floor-centred origin and fits its catalog dimensions. */
 export function normalizeAsset(group: THREE.Group, dimensions: CatalogAsset['dimensions']): THREE.Group {
@@ -33,7 +44,7 @@ export function normalizeAsset(group: THREE.Group, dimensions: CatalogAsset['dim
 
 export function makeFurniture(asset: CatalogAsset, color = asset.color): THREE.Group {
   const group = new THREE.Group();
-  const m = materials(color);
+  const m = materials(asset, color);
   const [w, h, d] = asset.dimensions;
   const box = (x: number, y: number, z: number, px: number, py: number, pz: number, material = m.main, radius = 0.015) => {
     const mesh = new THREE.Mesh(new RoundedBoxGeometry(x, y, z, 2, Math.min(radius, x / 3, y / 3, z / 3)), material);
@@ -118,9 +129,11 @@ export function makeFurniture(asset: CatalogAsset, color = asset.color): THREE.G
       cylinder(w * 0.31, w * 0.37, h * 0.028, 0, h * 0.014, 0, m.dark, 32);
       cylinder(w * 0.025, w * 0.025, h * 0.76, 0, h * 0.4, 0, m.metal);
       const shade = new THREE.Mesh(new THREE.CylinderGeometry(w * 0.33, w * 0.5, h * 0.25, 40, 1, true), m.pale);
+      shade.material.emissive.set('#ffd299');
+      shade.material.emissiveIntensity = 0.24;
       shade.material.side = THREE.DoubleSide; shade.position.y = h * 0.875; group.add(shade);
       const diffuser = cylinder(w * 0.48, w * 0.48, h * 0.012, 0, h * 0.75, 0, m.pale, 32);
-      const glow = new THREE.MeshStandardMaterial({ color: '#ffdfad', emissive: '#ffce8b', emissiveIntensity: 0.7, roughness: 0.9 });
+      const glow = new THREE.MeshStandardMaterial({ color: '#ffdfad', emissive: '#ffce8b', emissiveIntensity: 1.1, roughness: 0.9 });
       diffuser.material = glow;
       break;
     }
@@ -142,7 +155,7 @@ export function makeFurniture(asset: CatalogAsset, color = asset.color): THREE.G
     }
     case 'rug': {
       box(w, h, d, 0, h / 2, 0, m.main, Math.min(h / 3, 0.015));
-      const trim = new THREE.MeshStandardMaterial({ color: new THREE.Color(color).lerp(new THREE.Color('#efeadf'), 0.3), roughness: 1 });
+      const trim = furnitureMaterial(new THREE.Color(color).lerp(new THREE.Color('#efeadf'), 0.3), 'textile');
       const lineHeight = h + 0.001;
       for (const x of [-1, 1]) box(0.018, 0.002, d * 0.91, x * w * 0.46, lineHeight, 0, trim, 0);
       for (const z of [-1, 1]) box(w * 0.92, 0.002, 0.018, 0, lineHeight, z * d * 0.455, trim, 0);

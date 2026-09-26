@@ -143,17 +143,21 @@ export function placementConflicts(scene: SceneDocument, catalog: CatalogAsset[]
     const elevation = scene.project?.metadata[wall.id]?.elevation ?? 0;
     if (scene.project?.metadata[wall.id]?.phase === 'remove' || !wallCollision(candidate, asset, wall, footprint, elevation)) continue;
     const length = Math.hypot(wall.end[0] - wall.start[0], wall.end[1] - wall.start[1]);
-    // Furniture validation treats windows as barriers and only clears fully fitting door passages.
-    const passages = wall.openings.filter(opening => opening.kind === 'door' && elevation + opening.sill <= bottom + EPS
-      && elevation + opening.sill + opening.height >= top - EPS).sort((a, b) => a.offset - b.offset);
-    const addWall = (from: number, to: number) => {
+    // Windows remain barriers, matching validation. Doors split the wall into jambs, sill and lintel
+    // so an oversized object highlights only solid wall material, not the empty aperture below it.
+    const passages = wall.openings.filter(opening => opening.kind === 'door').sort((a, b) => a.offset - b.offset);
+    const addWall = (from: number, to: number, low = 0, high = wall.height) => {
+      const conflictBottom = Math.max(bottom, elevation + low), conflictTop = Math.min(top, elevation + high);
+      if (conflictTop <= conflictBottom + EPS) return;
       const polygon = intersection(footprint, wallFootprint(wall, from, to));
       if (polygon.length) result.push({ kind: 'wall', entityId: wall.id, polygon,
-        bottom: Math.max(bottom, elevation), top: Math.min(top, elevation + wall.height) });
+        bottom: conflictBottom, top: conflictTop });
     };
     let cursor = 0;
     for (const passage of passages) {
       if (passage.offset > cursor + EPS) addWall(cursor, passage.offset);
+      addWall(passage.offset, passage.offset + passage.width, 0, passage.sill);
+      addWall(passage.offset, passage.offset + passage.width, passage.sill + passage.height, wall.height);
       cursor = passage.offset + passage.width;
     }
     if (cursor < length - EPS) addWall(cursor, length);

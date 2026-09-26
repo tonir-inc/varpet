@@ -155,6 +155,7 @@ export function makeFinishMaterial(
       .replace('#include <common>', `#include <common>\n${fragmentDeclarations}`)
       .replace('#include <color_fragment>', /* glsl */`
         #include <color_fragment>
+        vec3 finishTint = diffuseColor.rgb;
         vec2 finishUv = vec2(dot(vFinishWorld, uFinishAxisU), dot(vFinishWorld, uFinishAxisV));
         vec3 finishNext = finishColorAt(finishUv, uFinishBase, uFinishAccent, uFinishPattern);
         float finishBlend = 1.0;
@@ -170,6 +171,7 @@ export function makeFinishMaterial(
         } else {
           diffuseColor.rgb = finishNext;
         }
+        diffuseColor.rgb *= finishTint;
       `)
       .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor = mix(uFinishPreviousPattern.w, uFinishPattern.w, finishBlend);');
   };

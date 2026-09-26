@@ -1,14 +1,25 @@
-import type { EntityMetadata, Opening, Room, SceneDocument, Vec2, Wall } from '../contracts';
+import type { CatalogAsset, EntityMetadata, Opening, Operation, Room, SceneDocument, Vec2, Wall } from '../contracts';
 import { measureFloorPlanRoom, type FloorPlanRoomMeasurement } from '../core/floor-plan';
 import { componentPosition, componentRotation } from '../core/geometry';
+import { objectFootprint } from '../core/validation';
+import { createPlanMove, previewPlanMove, type PlanMove } from '../core/plan-move';
 import '../ui/floor-plan.css';
 
 export interface FloorPlan {
-  setScene(scene: SceneDocument): void;
+  setScene(scene: SceneDocument, catalog?: CatalogAsset[]): void;
   setSelection(id: string | null): void;
+  setSnap(enabled: boolean): void;
   setVisible(visible: boolean): void;
+  cancelInteraction(): boolean;
   focus(id?: string): void;
   dispose(): void;
+}
+
+interface FloorPlanCallbacks {
+  onInteraction(active: boolean): void;
+  onCommit(operation: Operation, label: string): void;
+  onError?(message: string): void;
+  onSnapChange?(enabled: boolean): void;
 }
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -51,14 +62,14 @@ function shortName(name: string, characters: number): string[] {
   return [name.slice(0, firstEnd), rest.length > characters ? `${rest.slice(0, Math.max(1, characters - 1))}…` : rest];
 }
 
-/** An SVG projection of the scene. It never changes geometry or classifies missing metadata. */
-export function createFloorPlan(container: HTMLElement, onSelect: (id: string | null) => void): FloorPlan {
+/** Disposable SVG projection; gestures propose checked operations to the document owner. */
+export function createFloorPlan(container: HTMLElement, onSelect: (id: string | null) => void, callbacks?: FloorPlanCallbacks): FloorPlan {
   const hatchId = `plan-wall-hatch-${++planSequence}`;
   const root = html('div', 'floor-plan');
   root.hidden = true;
   root.setAttribute('role', 'region');
   root.setAttribute('aria-label', 'Apartment floor plan');
-  const drawing = svg('svg', { class: 'fp-drawing', tabindex: '0', 'aria-label': 'Floor plan. Select a room to show dimensions. Drag to pan, scroll to zoom, or press F to fit.' });
+  const drawing = svg('svg', { class: 'fp-drawing', tabindex: '0', 'aria-label': 'Floor plan. Drag items to move. Drag empty floor or Alt-drag to pan. Scroll to zoom. Escape cancels a move. Select a room to show dimensions.' });
   const header = html('div', 'fp-heading');
   const eyebrow = html('div', 'fp-eyebrow', 'APARTMENT PLAN');
   const headline = html('h2', 'fp-title', 'Floor plan');
@@ -98,15 +109,24 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
   const zoomIn = control('Zoom in', '+', () => zoom(1.2));
   const fitButton = control('Fit apartment (F)', 'Fit plan', () => focus());
   fitButton.classList.add('fp-fit');
-  controls.append(zoomOut, scaleLabel, zoomIn, fitButton);
-  const hint = html('div', 'fp-hint', 'Drag to pan · Scroll to zoom · Select a room to measure');
+  const snapButton = control('Toggle plan snapping', 'Snap on', () => {
+    setSnap(!snapEnabled); callbacks?.onSnapChange?.(snapEnabled);
+  });
+  snapButton.classList.add('fp-snap'); snapButton.setAttribute('aria-pressed', 'true');
+  controls.append(snapButton, zoomOut, scaleLabel, zoomIn, fitButton);
+  const hint = html('div', 'fp-hint', 'Drag items to move · Empty floor / Alt-drag to pan · Esc to cancel');
+  const status = html('div', 'fp-drag-status');
+  status.setAttribute('role', 'status'); status.hidden = true;
   const empty = html('div', 'fp-empty');
   empty.append(html('strong', '', 'Your apartment plan starts here'), html('p', '', 'Add rooms and walls in Renovate to see the layout and dimensions.'));
   empty.hidden = true;
-  root.append(drawing, header, legend, detail, controls, hint, empty);
+  root.append(drawing, header, legend, detail, controls, hint, empty, status);
   container.append(root);
 
   let scene: SceneDocument | null = null;
+  let documentScene: SceneDocument | null = null;
+  let catalog: CatalogAsset[] = [];
+  let snapEnabled = true;
   let measurements = new Map<string, FloorPlanRoomMeasurement>();
   let selection: string | null = null;
   let visible = false;
@@ -117,7 +137,12 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
   let viewAdjusted = false;
   let legendInitialized = false;
   let frame = 0;
-  let pointer: { id: number; x: number; y: number; panX: number; panY: number; entityId: string | null; moved: boolean } | null = null;
+  let pointer: {
+    id: number; x: number; y: number; panX: number; panY: number; scale: number;
+    entityId: string | null; moved: boolean; pan: boolean; move?: PlanMove;
+    delta: Vec2; snap: boolean; started: boolean; dirty: boolean;
+    operation: Operation | null; error?: string;
+  } | null = null;
   let world = svg('g');
   function meta(id: string): EntityMetadata { return scene?.project?.metadata[id] ?? {}; }
   function phase(id: string): EntityMetadata['phase'] {
@@ -131,7 +156,10 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
     return value ? `Phase: ${{ existing: 'existing', retain: 'retained', remove: 'marked for removal', new: 'new', replace: 'replacement' }[value]}.` : '';
   }
   function getAllPoints(): Vec2[] {
-    return scene ? [...scene.rooms.flatMap(room => room.polygon), ...scene.walls.flatMap(wall => [wall.start, wall.end]), ...(scene.project?.components.filter(component => ['column', 'shaft'].includes(component.kind)).flatMap(component => {
+    return scene ? [...scene.rooms.flatMap(room => room.polygon), ...scene.walls.flatMap(wall => [wall.start, wall.end]), ...scene.objects.flatMap(object => {
+      const asset = catalog.find(item => item.id === object.assetId);
+      return asset ? objectFootprint(object, asset) : [[object.position[0], object.position[2]] as Vec2];
+    }), ...(scene.project?.components.flatMap(component => {
       const radius = Math.hypot(component.dimensions[0], component.dimensions[2]) / 2;
       const position = componentPosition(scene!, component);
       return [[position[0] - radius, position[2] - radius], [position[0] + radius, position[2] + radius]] as Vec2[];
@@ -139,10 +167,11 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
   }
   function schedule(): void {
     if (!visible || disposed || frame) return;
-    frame = requestAnimationFrame(() => { frame = 0; render(); });
+    frame = requestAnimationFrame(() => { frame = 0; resolvePreview(); render(); });
   }
   function resize(): void {
     if (!visible || disposed) return;
+    cancelInteraction();
     const nextWidth = Math.max(1, root.clientWidth), nextHeight = Math.max(1, root.clientHeight);
     panX += (nextWidth - width) / 2; panY += (nextHeight - height) / 2;
     width = nextWidth; height = nextHeight;
@@ -152,12 +181,17 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
     if (!fitted || !viewAdjusted) focus(); else schedule();
   }
   function focus(id?: string): void {
+    cancelInteraction();
     if (!visible) { fitted = false; return; }
     let points = getAllPoints();
     const room = scene?.rooms.find(item => item.id === id);
     const wall = scene?.walls.find(item => item.id === id || item.openings.some(opening => opening.id === id));
     const component = scene?.project?.components.find(item => item.id === id);
-    if (room) points = room.polygon;
+    const object = scene?.objects.find(item => item.id === id);
+    if (object) {
+      const asset = catalog.find(item => item.id === object.assetId);
+      if (asset) points = objectFootprint(object, asset);
+    } else if (room) points = room.polygon;
     else if (wall) points = [wall.start, wall.end];
     else if (component) {
       const radius = Math.max(1, Math.hypot(component.dimensions[0], component.dimensions[2]));
@@ -179,6 +213,7 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
     schedule();
   }
   function zoom(factor: number, x = width / 2, y = height / 2): void {
+    if (pointer) return;
     viewAdjusted = true;
     const nextScale = Math.max(Math.max(3, fitScale / 5), Math.min(Math.max(360, fitScale * 8), scale * factor));
     panX = x - (x - panX) * nextScale / scale;
@@ -196,6 +231,7 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
   }
   function selectable(id: string, accessibleName: string, className: string): SVGGElement {
     const group = svg('g', { class: `fp-entity ${className}${selection === id ? ' is-selected' : ''}${phase(id) === 'remove' ? ' is-removed' : ''}`, 'data-entity-id': id, tabindex: '0', role: 'button', 'aria-label': [accessibleName, phaseNote(id)].filter(Boolean).join('. '), 'aria-pressed': selection === id ? 'true' : 'false' });
+    if (callbacks && documentScene && createPlanMove(documentScene, id)) group.classList.add('is-movable');
     const title = svg('title'); title.textContent = accessibleName; group.append(title);
     return group;
   }
@@ -328,11 +364,30 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
   }
   function drawComponents(): void {
     for (const component of scene?.project?.components ?? []) {
-      if (!['column', 'shaft'].includes(component.kind)) continue;
       const group = selectable(component.id, `${component.name}, ${component.kind}, ${metres(component.dimensions[0])} by ${metres(component.dimensions[2])}`, 'fp-component');
       const position = componentPosition(scene!, component);
       const cx = position[0], cy = position[2], w = component.dimensions[0], h = component.dimensions[2];
-      group.append(svg('rect', { x: cx - w / 2, y: cy - h / 2, width: w, height: h, transform: `rotate(${-componentRotation(scene!, component) * 180 / Math.PI} ${cx} ${cy})`, fill: component.kind === 'shaft' ? `url(#${hatchId})` : '#57525e', stroke: selection === component.id ? '#8c71c9' : '#49454f', 'stroke-width': selection === component.id ? 3 : 1.5, 'vector-effect': 'non-scaling-stroke' }));
+      group.append(svg('rect', { x: cx - w / 2, y: cy - h / 2, width: w, height: h, transform: `rotate(${-componentRotation(scene!, component) * 180 / Math.PI} ${cx} ${cy})`, fill: component.kind === 'shaft' ? `url(#${hatchId})` : component.color, stroke: selection === component.id ? '#8c71c9' : '#49454f', 'stroke-width': selection === component.id ? 3 : 1.5, 'vector-effect': 'non-scaling-stroke' }));
+      world.append(group);
+    }
+  }
+  function drawFurniture(): void {
+    for (const object of [...(scene?.objects ?? [])].sort((a, b) => Number(catalog.find(item => item.id === b.assetId)?.kind === 'rug') - Number(catalog.find(item => item.id === a.assetId)?.kind === 'rug'))) {
+      const asset = catalog.find(item => item.id === object.assetId);
+      if (!asset) continue;
+      const group = selectable(object.id, `${object.name}, drag to move`, 'fp-furniture');
+      group.append(svg('polygon', { points: pointString(objectFootprint(object, asset)), fill: object.color ?? asset.color, 'vector-effect': 'non-scaling-stroke' }));
+      if (selection === object.id) label(group, [object.position[0], object.position[2]], object.name, 'fp-furniture-label', 11);
+      world.append(group);
+    }
+  }
+  function drawWallHandles(): void {
+    const wall = scene?.walls.find(item => item.id === selection);
+    if (!wall || !callbacks || !documentScene || !createPlanMove(documentScene, wall.id)) return;
+    for (const endpoint of ['start', 'end'] as const) {
+      const point = wall[endpoint];
+      const group = svg('g', { class: 'fp-endpoint', 'data-entity-id': wall.id, 'data-endpoint': endpoint, 'aria-label': `Drag wall ${endpoint} corner` });
+      group.append(svg('circle', { cx: point[0], cy: point[1], r: 7 / scale, fill: '#fffdfb', stroke: '#8c71c9', 'stroke-width': 2, 'vector-effect': 'non-scaling-stroke' }));
       world.append(group);
     }
   }
@@ -346,7 +401,12 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
     const openingWall = scene?.walls.find(item => item.openings.some(opening => opening.id === selection));
     const opening = openingWall?.openings.find(item => item.id === selection);
     const component = scene?.project?.components.find(item => item.id === selection);
-    if (room) {
+    const object = scene?.objects.find(item => item.id === selection);
+    if (object) {
+      detailHeading.textContent = object.name;
+      metric(metres(object.position[0]), 'Position X'); metric(metres(object.position[2]), 'Position Z');
+      detailNote.textContent = 'Drag to move · Furniture snaps to 0.25 m · Shift-drag for finer placement';
+    } else if (room) {
       const measurement = measurements.get(room.id)!;
       detailHeading.textContent = meta(room.id).name || room.name;
       metric(area(measurement.area), measurement.basis === 'interior' ? 'Internal area' : 'Modeled area');
@@ -374,8 +434,8 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
       detailHeading.textContent = 'Explore the apartment';
       detailNote.textContent = 'Select a room for its area and dimensions. Walls, doors and windows are selectable too.';
     }
-    if (selection && (room || wall || opening || component)) detailNote.textContent = [phaseNote(selection), detailNote.textContent].filter(Boolean).join(' ');
-    detail.classList.toggle('fp-detail-overview', !room && !wall && !opening && !component);
+    if (selection && (room || wall || opening || component || object)) detailNote.textContent = [phaseNote(selection), detailNote.textContent].filter(Boolean).join(' ');
+    detail.classList.toggle('fp-detail-overview', !room && !wall && !opening && !component && !object);
   }
   function render(): void {
     if (!visible || !scene || disposed) return;
@@ -388,12 +448,14 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
     world = svg('g', { transform: `translate(${panX} ${panY}) scale(${scale})` });
     drawing.replaceChildren(defs, world);
     for (const room of scene.rooms) drawRoom(room);
+    drawFurniture();
     for (const wall of scene.walls) drawWall(wall);
     for (const wall of scene.walls) for (const opening of wall.openings) drawOpening(wall, opening);
     drawComponents();
     const selectedRoom = selection ? measurements.get(selection) : undefined;
     if (selectedRoom) drawDimensions(selectedRoom);
     for (const room of scene.rooms) drawRoomLabel(room);
+    drawWallHandles();
     if (activeId) [...drawing.querySelectorAll<SVGElement>('[data-entity-id]')].find(element => element.getAttribute('data-entity-id') === activeId)?.focus({ preventScroll: true });
     const hasGeometry = getAllPoints().length > 0;
     empty.hidden = hasGeometry;
@@ -412,32 +474,88 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
     const rect = drawing.getBoundingClientRect();
     zoom(Math.exp(-Math.max(-100, Math.min(100, event.deltaY)) * 0.002), event.clientX - rect.left, event.clientY - rect.top);
   }, { passive: false });
-  drawing.addEventListener('pointerdown', event => {
-    if (event.button !== 0 && event.button !== 1) return;
-    const entity = event.target instanceof Element ? event.target.closest('[data-entity-id]') : null;
-    pointer = { id: event.pointerId, x: event.clientX, y: event.clientY, panX, panY, entityId: entity?.getAttribute('data-entity-id') ?? null, moved: false };
-    drawing.setPointerCapture(event.pointerId);
-    drawing.classList.add('is-panning');
-  });
-  drawing.addEventListener('pointermove', event => {
+  function project(next: SceneDocument): void {
+    scene = next;
+    measurements = new Map(next.rooms.map(room => [room.id, measureFloorPlanRoom(next, room)]));
+  }
+  function setSnap(enabled: boolean): void {
+    snapEnabled = enabled;
+    snapButton.textContent = enabled ? 'Snap on' : 'Snap off';
+    snapButton.setAttribute('aria-pressed', String(enabled));
+    snapButton.title = 'Furniture: 0.25 m · Walls, openings and fixtures: 0.05 m · Hold Shift for finer placement';
+  }
+  function resolvePreview(): void {
+    if (!pointer?.move || !pointer.dirty) return;
+    pointer.dirty = false;
+    const result = previewPlanMove(pointer.move, pointer.delta, pointer.snap, catalog);
+    pointer.operation = result.operation; pointer.error = result.error;
+    project(result.scene ?? pointer.move.source);
+    status.hidden = false;
+    status.classList.toggle('is-invalid', !!result.error);
+    drawing.classList.toggle('is-invalid', !!result.error);
+    status.textContent = result.error ? `Cannot move: ${result.error}` : `${pointer.move.label} · Release to apply · Esc to cancel`;
+  }
+  function cancelInteraction(): boolean {
+    const previous = pointer;
+    if (!previous) return false;
+    pointer = null;
+    if (drawing.hasPointerCapture(previous.id)) drawing.releasePointerCapture(previous.id);
+    drawing.classList.remove('is-panning', 'is-moving', 'is-invalid'); status.hidden = true;
+    if (documentScene) project(documentScene);
+    if (previous.started) callbacks?.onInteraction(false);
+    schedule();
+    return true;
+  }
+  function movePointer(event: PointerEvent): void {
     if (!pointer || event.pointerId !== pointer.id) return;
     const dx = event.clientX - pointer.x, dy = event.clientY - pointer.y;
     if (Math.hypot(dx, dy) > 4) pointer.moved = true;
     if (!pointer.moved) return;
-    viewAdjusted = true;
-    panX = pointer.panX + dx; panY = pointer.panY + dy;
-    world.setAttribute('transform', `translate(${panX} ${panY}) scale(${scale})`);
+    if (pointer.move) {
+      if (!pointer.started) { pointer.started = true; callbacks?.onInteraction(true); }
+      pointer.delta = [dx / pointer.scale, dy / pointer.scale];
+      pointer.snap = snapEnabled && !event.shiftKey;
+      pointer.dirty = true;
+      drawing.classList.add('is-moving'); schedule();
+    } else if (pointer.pan) {
+      viewAdjusted = true;
+      panX = pointer.panX + dx; panY = pointer.panY + dy;
+      world.setAttribute('transform', `translate(${panX} ${panY}) scale(${scale})`);
+      drawing.classList.add('is-panning');
+    }
+  }
+  drawing.addEventListener('contextmenu', event => event.preventDefault());
+  drawing.addEventListener('pointerdown', event => {
+    if (pointer || !visible || !documentScene || ![0, 1, 2].includes(event.button)) return;
+    const entity = event.target instanceof Element ? event.target.closest('[data-entity-id]') : null;
+    const id = entity?.getAttribute('data-entity-id') ?? null;
+    const pan = event.button !== 0 || event.altKey || !id || documentScene.rooms.some(room => room.id === id);
+    const endpoint = entity?.getAttribute('data-endpoint');
+    const move = !pan && callbacks && id ? createPlanMove(documentScene, id, endpoint === 'start' || endpoint === 'end' ? endpoint : undefined) : undefined;
+    event.preventDefault(); drawing.focus({ preventScroll: true });
+    if (event.button === 0 && !event.altKey && id) onSelect(id);
+    pointer = { id: event.pointerId, x: event.clientX, y: event.clientY, panX, panY, scale,
+      entityId: id, moved: false, pan, move, delta: [0, 0], snap: snapEnabled, started: false, dirty: false, operation: null };
+    drawing.setPointerCapture(event.pointerId);
   });
+  drawing.addEventListener('pointermove', movePointer);
   drawing.addEventListener('pointerup', event => {
     if (!pointer || event.pointerId !== pointer.id) return;
-    const current = pointer; pointer = null;
-    drawing.classList.remove('is-panning');
-    if (drawing.hasPointerCapture(event.pointerId)) drawing.releasePointerCapture(event.pointerId);
-    if (!current.moved && event.button === 0) onSelect(current.entityId);
+    movePointer(event); resolvePreview();
+    const current = pointer;
+    cancelInteraction();
+    if (current.started && current.operation) callbacks?.onCommit(current.operation, current.move!.label);
+    else if (current.error) callbacks?.onError?.(current.error);
+    else if (!current.moved && event.button === 0 && !event.altKey) onSelect(current.entityId);
   });
-  drawing.addEventListener('pointercancel', () => { pointer = null; drawing.classList.remove('is-panning'); });
+  drawing.addEventListener('pointercancel', event => { if (pointer?.id === event.pointerId) cancelInteraction(); });
+  drawing.addEventListener('lostpointercapture', event => { if (pointer?.id === event.pointerId) cancelInteraction(); });
+  const onBlur = () => { cancelInteraction(); };
+  window.addEventListener('blur', onBlur);
   drawing.addEventListener('keydown', event => {
     const entity = event.target instanceof Element ? event.target.closest('[data-entity-id]') : null;
+    if (event.key === 'Escape' && cancelInteraction()) { event.preventDefault(); event.stopPropagation(); return; }
+    if (pointer) return;
     if ((event.key === 'Enter' || event.key === ' ') && entity) onSelect(entity.getAttribute('data-entity-id'));
     else if (event.key === 'Escape') onSelect(null);
     else if (event.key === '+' || event.key === '=') zoom(1.2);
@@ -452,20 +570,21 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
     event.preventDefault(); event.stopPropagation();
   });
   return {
-    setScene(nextScene) {
+    setScene(nextScene, nextCatalog = catalog) {
+      cancelInteraction();
       const first = scene === null;
-      scene = nextScene;
-      measurements = new Map(scene.rooms.map(room => [room.id, measureFloorPlanRoom(scene!, room)]));
+      documentScene = nextScene; catalog = nextCatalog; project(nextScene);
       if (first && visible) focus();
       schedule();
     },
-    setSelection(id) { if (selection !== id) { selection = id; schedule(); } },
+    setSelection(id) { if (selection !== id) { cancelInteraction(); selection = id; schedule(); } },
+    setSnap, cancelInteraction,
     setVisible(nextVisible) {
       visible = nextVisible; root.hidden = !visible;
       if (visible) resize();
-      else { pointer = null; drawing.classList.remove('is-panning'); if (frame) { cancelAnimationFrame(frame); frame = 0; } }
+      else { cancelInteraction(); if (frame) { cancelAnimationFrame(frame); frame = 0; } }
     },
     focus,
-    dispose() { disposed = true; resizeObserver.disconnect(); if (frame) cancelAnimationFrame(frame); root.remove(); },
+    dispose() { cancelInteraction(); disposed = true; window.removeEventListener('blur', onBlur); resizeObserver.disconnect(); if (frame) cancelAnimationFrame(frame); root.remove(); },
   };
 }

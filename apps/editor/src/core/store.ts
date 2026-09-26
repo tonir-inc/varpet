@@ -1,6 +1,8 @@
 import type { CatalogAsset, CommandResult, EditCommand, SceneChange, SceneDocument, ValidationResult } from '../contracts';
 import { isRecord, validateScene, renovationOperationError } from './validation';
-import { applyRenovationOperation, invalidateAssumptions } from './renovation';
+import { applyRenovationOperation, invalidateAssumptions, migrateScene } from './renovation';
+
+import { furnitureUpdates, removeSingletonGroups } from './grouping';
 
 const HISTORY_LIMIT = 100;
 type HistoryEntry = { scene: SceneDocument; label: string };
@@ -24,6 +26,7 @@ function commandErrors(command: unknown): string[] {
   for (const operation of command.operations) {
     if (!isRecord(operation)) return ['Each operation must be an object.'];
     const allowed: Record<string, string[]> = {
+      group: ['type', 'id', 'objectIds'], ungroup: ['type', 'id'],
       add: ['type', 'object'], update: ['type', 'id', 'patch'], delete: ['type', 'id'],
       'replace-structure': ['type', 'rooms', 'walls'], 'replace-scene': ['type', 'scene'],
     };
@@ -34,9 +37,13 @@ function commandErrors(command: unknown): string[] {
       continue;
     }
     if (Object.keys(operation).some(key => !allowed[operation.type as string]!.includes(key))) return ['Operation contains unsupported fields.'];
-    if (operation.type === 'update' || operation.type === 'delete') {
+    if (['update', 'delete', 'group', 'ungroup'].includes(operation.type)) {
       if (typeof operation.id !== 'string' || !operation.id.trim() || operation.id.length > 100) return ['Operation needs a valid object ID.'];
     }
+    if (operation.type === 'group') {
+      if (!Array.isArray(operation.objectIds) || operation.objectIds.length < 2 || operation.objectIds.length > 400 || operation.objectIds.some(id => typeof id !== 'string' || !id.trim() || id.length > 100) || new Set(operation.objectIds).size !== operation.objectIds.length) return ['Select 2–400 different furniture objects to group.'];
+    }
+    if (['group', 'ungroup'].includes(operation.type) && ['__proto__', 'prototype', 'constructor'].includes(operation.id as string)) return ['Group needs a non-reserved ID.'];
     if (operation.type === 'update') {
       if (!isRecord(operation.patch) || Object.keys(operation.patch).length < 1
         || Object.keys(operation.patch).some(key => !['name', 'position', 'rotation', 'scale', 'color'].includes(key))) return ['Update contains an empty or unsupported object patch.'];
@@ -104,6 +111,21 @@ export class EditorStore {
       let candidate = structuredClone(this.current);
       for (const operation of operations) {
         switch (operation.type) {
+          case 'group': {
+            const ids = new Set(operation.objectIds);
+            if (operation.objectIds.some(id => !candidate.objects.some(object => object.id === id))) return this.rejection('Select existing furniture to group.');
+            const previousGroups = new Set(candidate.objects.filter(object => ids.has(object.id)).map(object => object.groupId).filter(Boolean));
+            if (candidate.objects.some(object => !ids.has(object.id) && object.groupId && (previousGroups.has(object.groupId) || object.groupId === operation.id))) return this.rejection('Select every member of an existing group before regrouping it.');
+            candidate = migrateScene(candidate);
+            for (const object of candidate.objects) if (ids.has(object.id)) object.groupId = operation.id;
+            break;
+          }
+          case 'ungroup': {
+            const members = candidate.objects.filter(object => object.groupId === operation.id);
+            if (!members.length) return this.rejection('This furniture group no longer exists.');
+            for (const object of members) delete object.groupId;
+            break;
+          }
           case 'add':
             if (candidate.objects.some(object => object.id === operation.object.id)) return this.rejection(`Object “${operation.object.id}” already exists.`);
             candidate.objects.push(operation.object);
@@ -111,14 +133,17 @@ export class EditorStore {
           case 'update': {
             const index = candidate.objects.findIndex(object => object.id === operation.id);
             if (index < 0) return this.rejection(`Object “${operation.id}” no longer exists.`);
-            candidate.objects[index] = { ...candidate.objects[index]!, ...operation.patch };
-            invalidateAssumptions(candidate, [operation.id]);
+            const updates = furnitureUpdates(candidate, operation.id, operation.patch);
+            const byId = new Map(updates.map(object => [object.id, object]));
+            candidate.objects = candidate.objects.map(object => byId.get(object.id) ?? object);
+            invalidateAssumptions(candidate, updates.map(object => object.id));
             break;
           }
           case 'delete': {
             const index = candidate.objects.findIndex(object => object.id === operation.id);
             if (index < 0) return this.rejection(`Object “${operation.id}” no longer exists.`);
             candidate.objects.splice(index, 1);
+            removeSingletonGroups(candidate);
             if (candidate.project) delete candidate.project.metadata[operation.id];
             break;
           }

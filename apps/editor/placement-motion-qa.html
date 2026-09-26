@@ -10,16 +10,11 @@ window.matchMedia=query=>query==='(prefers-reduced-motion: reduce)'?{get matches
 let controls, dragging=false, root, samples=[], label='Ready', snapshot='';
 const setMode=TransformControls.prototype.setMode;
 TransformControls.prototype.setMode=function(...args){controls=this;return setMode.apply(this,args)};
-const render=THREE.WebGLRenderer.prototype.render;
-THREE.WebGLRenderer.prototype.render=function(world,camera){
- world.traverse(object=>{if(object.userData.objectId==='coffee-table') root=object});
- if(root){samples.push({y:root.position.y,visualY:root.children[0].position.y,scale:root.children[0].scale.toArray()});if(samples.length>120)samples.shift();}
- const output=render.call(this,world,camera);show();return output;
-};
 const store=new EditorStore(demoScene,localCatalog);
 function show(){if(!root)return;const object=store.scene.objects.find(o=>o.id==='coffee-table');const ys=samples.map(s=>s.visualY);result.textContent=JSON.stringify({label,revision:store.revision,position:object.position,root:root.position.toArray(),visual:root.children[0].position.toArray(),scale:root.children[0].scale.toArray(),frames:samples.length,maxLift:Math.max(0,...ys),belowFloor:ys.some(y=>y<0),rootMovedVertically:samples.some(s=>s.y!==0),unchanged:snapshot===JSON.stringify(store.scene),reduced});}
 const viewport=createViewport(document.querySelector('#view'),{onSelect(id){viewport.setSelection(id)},onInteraction(active){dragging=active},onError(message){label=message;show()},onTransform(id,patch){const change=store.execute({id:crypto.randomUUID(),label:'QA move',source:'human',baseRevision:store.revision,operations:[{type:'update',id,patch}]},true);viewport.setScene(store.scene,localCatalog);label=change.ok?'Committed':`Rejected: ${change.errors.join(' ')}`;show()}});
 viewport.setScene(store.scene,localCatalog);viewport.setSelection('coffee-table');viewport.setTool('move');viewport.focus('coffee-table');
+root=controls.object;let sampledMesh;root.traverse(object=>{if(!sampledMesh&&object.isMesh)sampledMesh=object});sampledMesh.onBeforeRender=()=>{samples.push({y:root.position.y,visualY:root.children[0].position.y,scale:root.children[0].scale.toArray()});if(samples.length>120)samples.shift();show()};
 function capture(name){samples=[];snapshot=JSON.stringify(store.scene);label=name;}
 function preview(invalid){capture(invalid?'Invalid preview':'Move preview');if(!dragging)controls.dispatchEvent({type:'mouseDown',mode:'translate'});const object=store.scene.objects.find(o=>o.id==='coffee-table');controls.object.position.set(invalid?999:object.position[0],0,invalid?999:object.position[2]-0.5);controls.object.updateMatrixWorld(true);controls.dispatchEvent({type:'objectChange'});show()}
 document.querySelector('#drop').onclick=()=>{capture('Drop');viewport.animatePlacement('coffee-table')};
