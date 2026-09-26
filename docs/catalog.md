@@ -98,3 +98,15 @@ but the editor's `AssetKind` lacks, and the bridge compares kinds exactly
 ### Network
 Both need either Tailscale with `mc-server` shared (Felix), or an SSH tunnel to the VM
 (`ssh -fN -L 18765:100.107.246.46:8765 <vm>`; send Sergey your public key).
+
+## Looking before choosing: `show_candidates` (for the designer)
+Tags and embeddings can agree while the piece still looks wrong for the room ("Scandinavian" by tags, heavy
+carved pine in the picture). `show_candidates(item_ids)` returns one image, a numbered grid of up to 16 items,
+plus a legend (number, id, kind, name, size, price). Each tile is a **render of the exact 3D model the editor
+will place** (`catalog/render_previews.py`, 3/4 front view); the shop photo is the fallback. About 60 KB, one
+image instead of 16. For the model's judgement only, not shown to the customer.
+
+Suggested use in the designer thread (Ashot's call): after `search_catalog`, call `show_candidates` on the top
+8 to 12, pick by look against the request and the pieces already in the room, and say so when none fit.
+Renders also expose broken source models (one "TV console" is a grey box floating over half a cabinet), which
+shop photos hide.

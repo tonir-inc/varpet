@@ -181,8 +181,70 @@ try:
             return _cors(request, Response(status_code=404))
         return _cors(request, FileResponse(os.path.join(MODELS_DIR, name), media_type="model/gltf-binary",
                                            headers={"Cache-Control": "public, max-age=31536000, immutable"}))
+    @server.custom_route("/previews/{name}", methods=["GET", "HEAD"])
+    async def preview_file(request: Request) -> Response:
+        """Rendered previews of the same GLB the editor places (render_previews.py)."""
+        name = request.path_params["name"]
+        path = os.path.join(MODELS_DIR, "previews", name)
+        if not re.fullmatch(r"[A-Za-z0-9_-]{1,40}\.webp", name) or not os.path.isfile(path):
+            return _cors(request, Response(status_code=404))
+        return _cors(request, FileResponse(path, media_type="image/webp",
+                                           headers={"Cache-Control": "public, max-age=31536000, immutable"}))
 except ImportError:
     pass
+
+
+def _preview_image(item_id, preview_url, photo_url):
+    """Local rendered preview when the service has it, else the shop photo over HTTP."""
+    import io
+    import urllib.request
+    from PIL import Image as PILImage
+    asin = item_id.split(":", 1)[1]
+    local = os.path.join(MODELS_DIR, "previews", f"{asin}.webp")
+    if os.path.isfile(local):
+        return PILImage.open(local).convert("RGB")
+    for url in (preview_url, photo_url):
+        if url:
+            try:
+                return PILImage.open(io.BytesIO(urllib.request.urlopen(url, timeout=10).read())).convert("RGB")
+            except Exception:
+                continue
+    return None
+
+
+@server.tool()
+def show_candidates(item_ids: list[str], columns: int = 4) -> list:
+    """Look at candidates before choosing: one image with a numbered tile per item (a render of the exact 3D
+    model that will be placed; the shop photo if no render exists), plus a legend: number, id, name, size, price.
+    Use it to judge style and look against the request and the room (for example, not Scandinavian enough);
+    pass at most 16 ids. The image is for your judgement only; it is not shown to the customer."""
+    from PIL import Image as PILImage, ImageDraw
+    from mcp.server.mcpserver import Image
+    ids = list(dict.fromkeys(item_ids))[:16]
+    with _conn() as c:
+        rows = {r[0]: r for r in c.execute(
+            "select id, name, kind, size_m, price, preview_url, main_image_url from item where id = any(%s)", (ids,))}
+    ids = [i for i in ids if i in rows]
+    if not ids:
+        return ["No known item ids."]
+    tile, cols = 256, max(1, min(columns, len(ids)))
+    sheet = PILImage.new("RGB", (cols * tile, ((len(ids) + cols - 1) // cols) * tile), "white")
+    draw = ImageDraw.Draw(sheet)
+    legend = []
+    for n, iid in enumerate(ids, 1):
+        _, name, kind, size, price, preview, photo = rows[iid]
+        img = _preview_image(iid, preview, photo)
+        x, y = ((n - 1) % cols) * tile, ((n - 1) // cols) * tile
+        if img is not None:
+            img.thumbnail((tile - 8, tile - 8))
+            sheet.paste(img, (x + (tile - img.width) // 2, y + (tile - img.height) // 2))
+        draw.rectangle([x + 4, y + 4, x + 34, y + 30], fill="black")
+        draw.text((x + 10, y + 9), str(n), fill="white")
+        w, d, h = size
+        legend.append(f"{n}. {iid} | {kind} | {(name or '')[:60]} | {w:.2f} x {d:.2f} x {h:.2f} m | {price} AMD")
+    buf = __import__("io").BytesIO()
+    sheet.save(buf, "JPEG", quality=80)
+    return ["\n".join(legend), Image(data=buf.getvalue(), format="jpeg")]
 
 
 @server.tool()

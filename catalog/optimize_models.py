@@ -10,6 +10,7 @@ Usage: uv run optimize_models.py [--workers 6] [--upload] [--switch]
 """
 import argparse
 import os
+import socket
 import subprocess
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
@@ -19,6 +20,7 @@ import psycopg
 
 OUT = Path(__file__).parent / "data" / "models"
 RAW = Path(__file__).parent / "data" / "models-raw"
+socket.setdefaulttimeout(60)  # a hung S3 download on a flaky network must not stall the batch
 BASE = os.environ.get("VARPET_MODELS_URL", "http://100.107.246.46:8765/models")
 
 
