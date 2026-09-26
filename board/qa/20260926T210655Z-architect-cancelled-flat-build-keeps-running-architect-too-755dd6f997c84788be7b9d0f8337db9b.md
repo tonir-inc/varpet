@@ -25,3 +25,5 @@ codex_tools.py:64-65 calls router.on_call (session.py:480 -> activity -> emit ->
 
 
 **Notes**
+
+- 2026-09-26T21:52:29.712051Z: bughunt-e2e 01:52: reproduced again - a PDF upload at 01:39:46 whose browser context closed ~5 s later still has its codex app-server child (pid 73173, parent serve 38127) alive 12+ min later; run floor-plan-20260927-013946-f33fb4694f9f wrote shell.json 01:41 and add_fixtures.py 01:42 after the disconnect.
