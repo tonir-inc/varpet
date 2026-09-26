@@ -25,6 +25,7 @@ do not give it, use a typical size and set size_estimated); `designer` jobs last
 depending on the shell and the pieces they arrange. Identical pieces are one job.
 Give each job only the skills it needs from: {skills}.
 Put in each piece job's refs the photos that show that piece best, best first, at most 3.
+Put in the shell job's refs the photos that best show walls, windows, floors and ceiling height, at most 4.
 Catalog SKUs already built (do not make piece jobs for these): {catalog}
 Plan: {plan} (attached first when it is an image)
 Photos, attached after it in this order: {photos}"""
@@ -71,6 +72,8 @@ async def plan(
 
 
 MAX_PIECE_PHOTOS = 3  # every image is paid for again in the builder's call
+MAX_SHELL_PHOTOS = 4
+SKILL = {"shell": "flat-shell", "piece": "part-dsl-draft"}
 
 
 def settle(graph: Graph, plan_path: str) -> Graph:
@@ -81,8 +84,11 @@ def settle(graph: Graph, plan_path: str) -> Graph:
         if job.kind == "piece":
             job.effort = "low"
             job.refs = job.refs[:MAX_PIECE_PHOTOS]
-        if job.kind == "shell" and plan_path not in job.refs:
-            job.refs.insert(0, plan_path)
+        if job.kind == "shell":
+            job.refs = [plan_path, *[r for r in job.refs if r != plan_path][:MAX_SHELL_PHOTOS]]
+        skill = SKILL.get(job.kind)
+        if skill and skill not in job.skills:
+            job.skills.append(skill)
     return graph
 
 

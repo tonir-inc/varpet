@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import json
 import subprocess
+import sys
 import time
 import tomllib
 from collections.abc import AsyncIterator
@@ -72,7 +73,10 @@ class CodexRunner:
         self.codex = codex
         self.repo = repo
         self.model = model
-        self.compile_cmd = compile_cmd
+        # Every kind checks under one contract: <cmd> <output> <workdir>, exit 0 or faults.json.
+        self.checkers: dict[str, list[str]] = {"shell": [sys.executable, "-m", "varpet_harness.shell"]}
+        if compile_cmd:
+            self.checkers["piece"] = compile_cmd
         self.fix_turns = fix_turns
         self.stall = stall
         self.config = thread_config()
@@ -95,16 +99,17 @@ class CodexRunner:
             turns += 1
             if not out.exists():
                 return self._done(job, "failed", out, tokens, turns, t, "no output file")
-            if job.kind != "piece" or not self.compile_cmd:
+            cmd = self.checkers.get(job.kind)
+            if cmd is None:
                 return self._done(job, "ok", out, tokens, turns, t)
-            faults = await asyncio.to_thread(self._compile, out, workdir)
+            faults = await asyncio.to_thread(self._compile, cmd, out, workdir)
             for _ in range(self.fix_turns):
                 if faults is None:
                     break
                 fix = await self._turn(thread, [TextInput(_fix_prompt(faults, out))], job)
                 tokens += _tokens(fix)
                 turns += 1
-                faults = await asyncio.to_thread(self._compile, out, workdir)
+                faults = await asyncio.to_thread(self._compile, cmd, out, workdir)
             status = "ok" if faults is None else "failed"
             return self._done(job, status, out, tokens, turns, t, None if faults is None else "faults left")
         finally:
@@ -157,10 +162,12 @@ class CodexRunner:
                 items[0] = TextInput(items[0].text + f"\nReference file: {p}")
         return items
 
-    def _compile(self, program: Path, workdir: Path) -> str | None:
-        """Compiler contract (compiler/README.md): exit 0 on pass, else faults.json."""
+    @staticmethod
+    def _compile(cmd: list[str], output: Path, workdir: Path) -> str | None:
+        """Checker contract (compiler/README.md): exit 0 on pass, else faults.json."""
+        (workdir / "faults.json").unlink(missing_ok=True)
         proc = subprocess.run(
-            [*self.compile_cmd, str(program), str(workdir)],
+            [*cmd, str(output), str(workdir)],
             stdin=subprocess.DEVNULL,
             capture_output=True,
             text=True,
