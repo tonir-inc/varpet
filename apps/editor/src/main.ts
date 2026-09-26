@@ -1,5 +1,6 @@
 import { createCeilingUI } from './ui/ceiling-design';
 import { bindHeightControl, heightControlMarkup } from './ui/height-controls';
+import { createSunControls, type SunControls } from './ui/sun-controls';
 import './ui/style.css';
 import './ui/motion.css';
 import './ui/walkthrough.css';
@@ -90,7 +91,7 @@ app.innerHTML = `
     <main class="viewport-shell" aria-label="Apartment editor">
       <div id="viewport"></div>
       <div id="floor-plan" hidden></div>
-      <div class="viewport-top"><div class="view-switch" role="group" aria-label="Apartment view"><button id="perspective" class="active" aria-pressed="true" title="Perspective camera">${icon('cube')} 3D</button><button id="top-view" aria-pressed="false" title="Orthographic camera">${icon('top')} Top</button><button id="inside-view" aria-pressed="false" title="Walk inside at standing eye height">${icon('eye')} Inside</button><button id="plan-view" aria-pressed="false" title="Floor plan with room dimensions">${icon('room')} Plan</button></div><div class="view-options"><button id="walls" title="Cycle wall visibility">${icon('walls')} <span>Cutaway</span></button><button id="quality" aria-pressed="false" title="Toggle rendering quality">${icon('sun')} <span>Balanced</span></button><button id="preview" aria-pressed="false" title="Preview apartment · P">${icon('eye')} <span>Preview</span></button></div></div>
+      <div class="viewport-top"><div class="view-switch" role="group" aria-label="Apartment view"><button id="perspective" class="active" aria-pressed="true" title="Perspective camera">${icon('cube')} 3D</button><button id="top-view" aria-pressed="false" title="Orthographic camera">${icon('top')} Top</button><button id="inside-view" aria-pressed="false" title="Walk inside at standing eye height">${icon('eye')} Inside</button><button id="plan-view" aria-pressed="false" title="Floor plan with room dimensions">${icon('room')} Plan</button></div><div class="view-options"><button id="walls" title="Cycle wall visibility">${icon('walls')} <span>Cutaway</span></button><button id="sun" aria-label="Sun controls" aria-haspopup="dialog" aria-expanded="false" aria-controls="sun-controls" title="Adjust sunlight">${icon('sun')} <span>Sun</span></button><button id="quality" aria-pressed="false" title="Toggle rendering quality">${icon('sun')} <span>Balanced</span></button><button id="preview" aria-pressed="false" title="Preview apartment · P">${icon('eye')} <span>Preview</span></button></div></div>
       <label class="skybox-control" title="Choose a sky for 3D and Inside views">${icon('sun')}<span>Sky</span><select id="skybox" aria-label="Skybox">${SKYBOX_PRESETS.map(preset => `<option value="${preset.id}">${preset.label}</option>`).join('')}</select></label>
       <div class="inside-label"><strong>Inside</strong><span>Eye height · 1.65 m</span></div>
       <div class="canvas-label">${icon('layers')} <span>Ground floor</span><span class="pill">1 level</span></div>
@@ -164,6 +165,7 @@ let panelOpen = true;
 let previewMode = false;
 let proposalView = false;
 let renovationUI: RenovationUI | undefined;
+let sunControls: SunControls | undefined;
 let activeFinish: FinishPreset | null = null;
 const collapsedRooms = new Set<string>();
 const catalogPreviews = createCatalogPreviews($('#catalog-scroll'));
@@ -179,6 +181,7 @@ function notify(message: string, error = false) {
 }
 
 const viewport = createViewport($('#viewport'), {
+  onSunChange: settings => sunControls?.refresh(settings),
   onFinish: (presetId, target) => {
     if (previewMode || proposalView || view === 'plan') return false;
     const preset = getFinishPreset(presetId); if (!preset) return false;
@@ -217,6 +220,10 @@ const viewport = createViewport($('#viewport'), {
   },
   onError: message => notify(message, true),
 }, normalizeWallJunctions);
+sunControls = createSunControls($<HTMLButtonElement>('#sun'), $('.viewport-shell'), {
+  getSun: () => viewport.getSun(),
+  setSun: patch => viewport.setSun(patch),
+});
 const floorPlan = createFloorPlan($('#floor-plan'), id => select(id), {
   onInteraction: active => { interacting = active; if (active) interactionRevision = store.revision; renderProposal(); },
   onCommit: (operation, label) => { run([operation], label, interactionRevision); },
@@ -628,6 +635,7 @@ function setView(next:ApartmentView){
   app.classList.toggle('inside-mode', view === 'inside');
   if (view === 'inside') select(null);
   const isPlan = view === 'plan';
+  sunControls?.setVisible(!isPlan);
   $('.viewport-shell').classList.toggle('plan-mode', isPlan);
   $('#viewport').hidden = isPlan;
   $('#floor-plan').hidden = !isPlan;
@@ -844,5 +852,5 @@ window.addEventListener('keydown',event=>{
   else if(mod&&key==='s'){event.preventDefault();$('#save').click();}
   else if(!mod){if(['delete','backspace'].includes(key)){event.preventDefault();deleteSelected();}else if(key==='f')focusView(selectedId??undefined);else if(key==='v')setTool('select');else if(key==='g'&&view!=='plan')setTool('move');else if(key==='r'&&view!=='plan')setTool('rotate');else if(key==='s'&&view!=='plan')setTool('scale');else if(key==='1')switchPanel('scene');else if(key==='2')switchPanel('assets');else if(key==='3')switchPanel('assistant');else if(key==='4')switchPanel('renovation');else if(key==='5')switchPanel('materials');else if(key==='6')switchPanel('ceilings');else if(key==='[')switchPanel(activePanel,true);}
 });
-window.addEventListener('beforeunload',()=>{catalogRequest?.abort();clearTimeout(catalogSearchTimer);cancelAnimationFrame(selectionRevealFrame);materialsUI.dispose();ceilingUI.dispose();viewport.dispose();floorPlan.dispose();catalogPreviews.dispose();renovationUI?.destroy();intake.destroy();});
+window.addEventListener('beforeunload',()=>{catalogRequest?.abort();clearTimeout(catalogSearchTimer);cancelAnimationFrame(selectionRevealFrame);materialsUI.dispose();ceilingUI.dispose();sunControls?.dispose();viewport.dispose();floorPlan.dispose();catalogPreviews.dispose();renovationUI?.destroy();intake.destroy();});
 refresh();renderAssets();setTool('select');switchPanel('renovation');if(designerLive)switchPanel('renovation',true);void searchDatabase();void refreshBuiltPieces();

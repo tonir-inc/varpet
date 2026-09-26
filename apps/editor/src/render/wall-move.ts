@@ -22,7 +22,7 @@ interface WallMoveOptions {
   topView(): boolean;
   onStart(): void;
   onFinish(id: string, patch: { start: Vec2; end: Vec2 } | null): void;
-  onPreview(shell: StructureProjection | null, services: ServiceProjection | null): void;
+  onPreview(shell: StructureProjection | null, services: ServiceProjection | null, scene?: SceneDocument): void;
   requestRender(): void;
 }
 
@@ -96,7 +96,7 @@ export function createWallMove(options: WallMoveOptions) {
       clearProjection();
       previewShell = makeStructure(proposed); previewServices = makeServices(proposed);
       options.world.add(previewShell.group, previewShell.ceilings, previewShell.dimensions, previewServices.group);
-      options.onPreview(previewShell, previewServices);
+      options.onPreview(previewShell, previewServices, proposed);
       material.color.set('#a78bea');
       status.textContent = `Move wall ${distance >= 0 ? '+' : ''}${distance.toFixed(2)} m · Release to apply · Esc to cancel`;
     } catch (error) {
