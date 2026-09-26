@@ -1,0 +1,31 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Writing your answer"}
+{"type": "message_delta", "delta": "Which bedroom"}
+{"type": "message_delta", "delta": " would"}
+{"type": "message_delta", "delta": " you"}
+{"type": "message_delta", "delta": " like"}
+{"type": "message_delta", "delta": " painted"}
+{"type": "message_delta", "delta": " warm"}
+{"type": "message_delta", "delta": " white"}
+{"type": "message_delta", "delta": "—"}
+{"type": "message_delta", "delta": "**"}
+{"type": "message_delta", "delta": "Bedroom"}
+{"type": "message_delta", "delta": " "}
+{"type": "message_delta", "delta": "1"}
+{"type": "message_delta", "delta": "**"}
+{"type": "message_delta", "delta": " ("}
+{"type": "message_delta", "delta": "with"}
+{"type": "message_delta", "delta": " balcony"}
+{"type": "message_delta", "delta": " access"}
+{"type": "message_delta", "delta": ")"}
+{"type": "message_delta", "delta": " or"}
+{"type": "message_delta", "delta": " **"}
+{"type": "message_delta", "delta": "Bedroom"}
+{"type": "message_delta", "delta": " "}
+{"type": "message_delta", "delta": "2"}
+{"type": "message_delta", "delta": "**"}
+{"type": "message_delta", "delta": "?"}
+{"type": "message", "message": "Which bedroom would you like painted warm white—**Bedroom 1** (with balcony access) or **Bedroom 2**?", "conversationId": "beb8453b513c48759e9b9249df8b15d5"}

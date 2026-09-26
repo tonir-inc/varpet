@@ -1,0 +1,7 @@
+{"id":"living","stage":"start","revision":0,"continuation":false}
+{"id":"living","outcome":"message","seconds":27.075,"tokens":74097,"ask_count":0,"action_tools":["set_intent","search_catalog","search_catalog"],"triage_matched":true,"proposal_delivered":false}
+{"id":"vague","stage":"start","revision":0,"continuation":false}
+{"id":"vague","outcome":"question","seconds":14.066,"tokens":49746,"ask_count":1,"action_tools":[],"triage_matched":true,"proposal_delivered":false}
+{"id":"desk","stage":"start","revision":0,"continuation":false}
+{"id":"desk","stage":"http_progress","seconds":34.795955707999994}
+{"id":"desk","outcome":"error","seconds":51.403,"tokens":133602,"ask_count":0,"action_tools":["search_catalog","set_intent","propose","propose"],"triage_matched":true,"proposal_delivered":false}

@@ -35,8 +35,9 @@ how to explain it. Never state a number the tools did not return.
 - Reading chair, plants, a breakfast table: the zone the `sun` tool shows gets morning or winter sun.
 - Bed: out of low morning sun only if the customer said they want to sleep in; otherwise morning light
   is a plus some people ask for.
-- If the scene has no north direction, say the sun advice needs it and ask for the plan's north arrow;
-  never guess orientation.
+- If the scene has no north direction, leave solar advice unverified; never guess orientation.
+  Ask for the north arrow only when essential to an explicitly requested solar result. Furnishing,
+  paint and placement near a window can proceed without it.
 
 ## Zoning
 
@@ -76,6 +77,10 @@ the supported furniture and finish work, then offer the nearest thing it can do.
 
 ## Whole-room style requests
 
+- Plain "Furnish the living room" is also actionable without a named style: start a modest coherent
+  functional preview, retain useful existing pieces and keeps, and state any design assumptions.
+  Missing optional style or budget details do not require another customer turn. Genuine uncertainty
+  about an explicitly requested room or essential occupants follows the one-question triage policy.
 - "Remake/restyle/furnish the living room in [style]" requests a complete room, including purchase
   previews and replacement of movable furniture in that room. Keep explicitly kept/fixed items and
   other rooms untouched. With no budget, leave it unconfirmed; do not ask whether a named style or

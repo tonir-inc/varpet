@@ -1,0 +1,69 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Writing your answer"}
+{"type": "message_delta", "delta": "**Warm white"}
+{"type": "message_delta", "delta": "**"}
+{"type": "message_delta", "delta": " is"}
+{"type": "message_delta", "delta": " white"}
+{"type": "message_delta", "delta": " with"}
+{"type": "message_delta", "delta": " a"}
+{"type": "message_delta", "delta": " subtle"}
+{"type": "message_delta", "delta": " cream"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": " yellow"}
+{"type": "message_delta", "delta": " or"}
+{"type": "message_delta", "delta": " beige"}
+{"type": "message_delta", "delta": " undert"}
+{"type": "message_delta", "delta": "one"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": " rather"}
+{"type": "message_delta", "delta": " than"}
+{"type": "message_delta", "delta": " a"}
+{"type": "message_delta", "delta": " cool"}
+{"type": "message_delta", "delta": " blue"}
+{"type": "message_delta", "delta": " tint"}
+{"type": "message_delta", "delta": "."}
+{"type": "message_delta", "delta": " On"}
+{"type": "message_delta", "delta": " walls"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": " it"}
+{"type": "message_delta", "delta": " tends"}
+{"type": "message_delta", "delta": " to"}
+{"type": "message_delta", "delta": " feel"}
+{"type": "message_delta", "delta": " softer"}
+{"type": "message_delta", "delta": " and"}
+{"type": "message_delta", "delta": " less"}
+{"type": "message_delta", "delta": " stark"}
+{"type": "message_delta", "delta": " while"}
+{"type": "message_delta", "delta": " still"}
+{"type": "message_delta", "delta": " looking"}
+{"type": "message_delta", "delta": " white"}
+{"type": "message_delta", "delta": "—not"}
+{"type": "message_delta", "delta": " obviously"}
+{"type": "message_delta", "delta": " yellow"}
+{"type": "message_delta", "delta": ".\n\n"}
+{"type": "message_delta", "delta": "Its"}
+{"type": "message_delta", "delta": " appearance"}
+{"type": "message_delta", "delta": " changes"}
+{"type": "message_delta", "delta": " with"}
+{"type": "message_delta", "delta": " daylight"}
+{"type": "message_delta", "delta": " and"}
+{"type": "message_delta", "delta": " bulbs"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": " so"}
+{"type": "message_delta", "delta": " it"}
+{"type": "message_delta", "delta": "’s"}
+{"type": "message_delta", "delta": " worth"}
+{"type": "message_delta", "delta": " testing"}
+{"type": "message_delta", "delta": " a"}
+{"type": "message_delta", "delta": " paint"}
+{"type": "message_delta", "delta": " sample"}
+{"type": "message_delta", "delta": " in"}
+{"type": "message_delta", "delta": " the"}
+{"type": "message_delta", "delta": " room"}
+{"type": "message_delta", "delta": " before"}
+{"type": "message_delta", "delta": " choosing"}
+{"type": "message_delta", "delta": "."}
+{"type": "message", "message": "**Warm white** is white with a subtle cream, yellow or beige undertone, rather than a cool blue tint. On walls, it tends to feel softer and less stark while still looking white—not obviously yellow.\n\nIts appearance changes with daylight and bulbs, so it’s worth testing a paint sample in the room before choosing.", "conversationId": "518686e01a274636ba4bcea8302b909e"}

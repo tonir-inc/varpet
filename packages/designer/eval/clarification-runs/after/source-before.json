@@ -1,0 +1,13 @@
+{
+  "scope": "Runner checkout only. An isolated or remote service needs its own worker-source manifest.",
+  "measured_at": "2026-09-26T14:12:00.917Z",
+  "git_head": "8788020917fdd4f52fc2d74a9d9a391ebae007d3",
+  "git_status": " M harness/designer_profiles.py\n M harness/designer_prompt.md\n M harness/prompts/interior-design-rules.md\n M packages/designer/src/server.ts\n?? harness/designer_clarification_prompt_test.py\n?? harness/prompts/designer-triage.md\n?? packages/designer/eval/clarification-probe.ts\n?? packages/designer/eval/clarification-runs/\n?? packages/designer/test/clarification-limit.test.ts\n",
+  "policy_sha256": {
+    "harness/designer.py": "a56a9d9c5533fbd72f7cd338cf311ff828ca41f9351c6d714b7bff7cfdec058f",
+    "harness/designer_prompt.md": "7e95dd002c9a71fd0b802bf48893beeb81c6893170dbcaec07c5972f2f358161",
+    "harness/designer_profiles.py": "f1242886be1a09ede2b5fcfca1964fa5cf3af2136c1202d5bfeb5d70a812d672",
+    "harness/designer_conversation.py": "cb135a2b11921b97cc69515c2a7081336d5bdfcf5cd606d2988f4dacfa5941c3",
+    "harness/prompts/interior-design-rules.md": "28f05ab3ade2d959e8630e929ef39c5eec3a9efcf7d5f01b6e4cd313ce8bd35c"
+  }
+}

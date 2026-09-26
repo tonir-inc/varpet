@@ -1,0 +1,18 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Looking for suitable furniture"}
+{"type": "progress", "message": "Looking for suitable furniture"}
+{"type": "progress", "message": "Checking your design"}
+{"type": "progress", "message": "Checking your design"}
+{"type": "progress", "message": "Checking your design"}
+{"type": "progress", "message": "Checking your design"}
+{"type": "progress", "message": "Understanding the change you want"}
+{"type": "progress", "message": "Checking your proposed change"}
+{"type": "progress", "message": "Checking your proposed change"}
+{"type": "progress", "message": "Checking your proposed change"}
+{"type": "progress", "message": "Writing your answer"}
+{"type": "progress", "message": "Preparing the checked layout preview"}
+{"type": "error", "message": "Addition wfh_desk needs a real catalog asset ID in sku", "conversationId": "2bd852295aa94fef94714d3fecf274cc"}

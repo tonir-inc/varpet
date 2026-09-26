@@ -1,0 +1,25 @@
+{
+  "measured": true,
+  "snapshot_root": "/private/tmp/varpet-clarification-baseline",
+  "modules_verified": [
+    "designer",
+    "designer_profiles",
+    "designer_service",
+    "designer_fast",
+    "varpet_harness.product_prompts"
+  ],
+  "mcp_cwd_is_snapshot": true,
+  "interior_rules_are_snapshot_copy": true,
+  "baseline_original_prompt_hashes_verified": true,
+  "only_dependency_directories_symlinked": [
+    "node_modules",
+    "packages/designer/node_modules",
+    "apps/editor/node_modules"
+  ],
+  "bridge_preflight_on_fixed_input": "pass",
+  "python": "/Users/ashotarushanyan/AshProjects/varpet-live/harness/.venv/bin/python3",
+  "port": 8816,
+  "catalog_endpoint": "http://localhost:8765/mcp",
+  "fast_path": false,
+  "catalog_acceleration": false
+}

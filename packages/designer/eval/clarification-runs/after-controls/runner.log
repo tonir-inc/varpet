@@ -1,0 +1,4 @@
+{"id":"ambiguous-paint","stage":"start","revision":0,"continuation":false}
+{"id":"ambiguous-paint","outcome":"message","seconds":8.866,"tokens":16396,"ask_count":0,"action_tools":[],"triage_matched":false,"proposal_delivered":false}
+{"id":"advice","stage":"start","revision":0,"continuation":false}
+{"id":"advice","outcome":"message","seconds":9.024,"tokens":16425,"ask_count":0,"action_tools":[],"triage_matched":true,"proposal_delivered":false}

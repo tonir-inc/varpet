@@ -31,6 +31,7 @@ export function createServer(input: Scene, options:{catalogQuery?:CatalogQuery; 
   const session = new DesignerSession(scene,options.customerRequests);
   const buildsDir=options.buildsDir??process.env.VARPET_BUILDS_DIR;
   const slots=buildsDir?new CustomSlots({buildsDir,conversationId:options.conversationId??process.env.VARPET_CONVERSATION_ID??'',turnId:options.turnId??process.env.VARPET_TURN_ID??''}):undefined;
+  let clarificationAsked=false;
   let styleCandidates:DesignCandidate[]=[];
   let stylePlanning=false;
   const productVision=process.env.VARPET_VISION_PRODUCTS==='1',seenProducts=new Set<string>();
@@ -160,9 +161,14 @@ export function createServer(input: Scene, options:{catalogQuery?:CatalogQuery; 
     return result(catalog,catalog.status==='unavailable');
   });
   server.registerTool('ask', {
-    description:'Ask the customer one concise question, optionally with two to four choices, then wait for their next message.',
+    description:'Ask at most one concise clarification in this customer turn, only when the request is genuinely vague. Optionally offer two to four choices, then wait for their next message.',
     inputSchema:askInputSchema,
-  },request=>result(ask(request)));
+  },request=>{
+    if(clarificationAsked)return result({ok:false,error:'clarification_limit',message:'One clarification has already been asked this turn. Wait for the customer’s next message; do not ask another question.'},true);
+    const question=ask(request);
+    clarificationAsked=true;
+    return result(question);
+  });
   if(process.env.VARPET_CATALOG_PROXY)server.registerTool('show_candidates',{
     description:'Inspect rendered previews of up to 16 IDs returned by the current room-fit search. Use for appearance judgement; pictures do not replace physical checks.',
     inputSchema:{item_ids:z.array(z.string()).min(1).max(16)},

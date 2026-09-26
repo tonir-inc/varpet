@@ -1,0 +1,100 @@
+{
+  "claim_type": "measured",
+  "paired": [
+    {
+      "case": "living",
+      "inputs_identical": true,
+      "before": {
+        "outcome": "message",
+        "seconds": 36.342073875000004,
+        "tokens": 67148,
+        "ask_count": 0,
+        "action_tools": [
+          "set_intent",
+          "search_catalog",
+          "search_catalog"
+        ],
+        "triage_matched": true,
+        "proposal_delivered": false
+      },
+      "after": {
+        "outcome": "message",
+        "seconds": 27.075238417,
+        "tokens": 74097,
+        "ask_count": 0,
+        "action_tools": [
+          "set_intent",
+          "search_catalog",
+          "search_catalog"
+        ],
+        "triage_matched": true,
+        "proposal_delivered": false
+      }
+    },
+    {
+      "case": "vague",
+      "inputs_identical": true,
+      "before": {
+        "outcome": "question",
+        "seconds": 14.545619833999996,
+        "tokens": 47599,
+        "ask_count": 1,
+        "action_tools": [],
+        "triage_matched": true,
+        "proposal_delivered": false
+      },
+      "after": {
+        "outcome": "question",
+        "seconds": 14.066208917000004,
+        "tokens": 49746,
+        "ask_count": 1,
+        "action_tools": [],
+        "triage_matched": true,
+        "proposal_delivered": false
+      }
+    },
+    {
+      "case": "desk",
+      "inputs_identical": true,
+      "before": {
+        "outcome": "question",
+        "seconds": 16.50887375,
+        "tokens": 49598,
+        "ask_count": 1,
+        "action_tools": [],
+        "triage_matched": false,
+        "proposal_delivered": false
+      },
+      "after": {
+        "outcome": "error",
+        "seconds": 51.403322625,
+        "tokens": 133602,
+        "ask_count": 0,
+        "action_tools": [
+          "search_catalog",
+          "set_intent",
+          "propose",
+          "propose"
+        ],
+        "triage_matched": true,
+        "proposal_delivered": false
+      }
+    }
+  ],
+  "before_triage_matched": 2,
+  "after_triage_matched": 3,
+  "paired_delivered_proposals_before": 0,
+  "paired_delivered_proposals_after": 0,
+  "desk_residual": {
+    "error": "Addition wfh_desk needs a real catalog asset ID in sku",
+    "sku": "abo:B075Z8KXDK",
+    "name": "Amazon Brand \u2013 Stone & Beam Avondale Wood and Metal Office Computer Desk, 60\"W, Walnut",
+    "actual_catalog_result": true,
+    "present_in_frozen_request_catalog": false,
+    "all_eight_live_desk_results_absent_from_frozen_catalog": true
+  },
+  "notes": [
+    "No full customer-goal grading was changed or rerun. Living still has no checked composition, outside this prompt-triage task.",
+    "Fixed before/after requests, scene, catalog, revision, currency and north are identical JSON values."
+  ]
+}

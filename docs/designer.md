@@ -99,6 +99,11 @@ not silently inherit a changed product default.
    verified from the furniture purchase total.
 2. **Intent.** `set_intent` from the message. If the request cannot be acted on ("make it cozier" with
    nothing else), `ask` one question with options, then stop.
+   The shared runtime policy in `harness/prompts/designer-triage.md` applies to every profile.
+   Clear furnishing and addition requests proceed without a style or budget interview; an omitted
+   budget stays unconfirmed. Placement choices can be delegated, while a genuinely unresolved room
+   identity needs one question. Catalog or search failures are limitations, not customer ambiguity.
+   The MCP server permits one successful `ask` per customer turn; a fresh turn resets that allowance.
 3. **Look.** Read the supplied scene (`scene_summary` when available), and use `sun` when light matters.
 4. **Place or recolour.** Derive complete candidate ops from the scene, or use `place` by relation when
    enabled; `search_catalog` only when something new is needed. A group moves rigidly from one member's
