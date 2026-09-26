@@ -99,6 +99,43 @@ class SpeedProfilesTests(unittest.TestCase):
         self.assertIn('numeric', prompt)
         self.assertLess(len(prompt), len(designer.static_prefix()))
 
+    def test_runtime_copies_model_metadata_cache_without_sharing_writes(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / 'source'
+            source.mkdir()
+            cache = source / 'models_cache.json'
+            cache.write_text('{"models":[],"client_version":"test"}')
+            runtime = designer.prepare_runtime(root / 'runtime', {}, source_home=source)
+            copied = Path(runtime['home']) / cache.name
+            self.assertTrue(copied.exists(), 'Avoid repeated model-catalog refresh timeouts')
+            self.assertEqual(copied.read_bytes(), cache.read_bytes())
+            self.assertFalse(copied.is_symlink())
+            self.assertEqual(copied.stat().st_mode & 0o777, 0o600)
+            copied.write_text('{}')
+            self.assertIn('client_version', cache.read_text())
+
+    def test_runtime_uses_supported_static_catalog_only_when_selected_model_exists(self):
+        import hashlib
+        import tempfile
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / 'source'
+            source.mkdir()
+            model = {'slug':designer.MODEL,'base_instructions':'model metadata'}
+            cache = {'models':[model],'client_version':'test','fetched_at':'original'}
+            (source / 'models_cache.json').write_text(json.dumps(cache))
+            runtime = designer.prepare_runtime(root / 'runtime', {}, source_home=source)
+            self.assertIn('model_catalog', runtime)
+            catalog = Path(runtime['model_catalog'])
+            self.assertEqual(json.loads(catalog.read_text()), {'models':[model]})
+            self.assertEqual(runtime['model_catalog_audit']['sha256'], hashlib.sha256(catalog.read_bytes()).hexdigest())
+            self.assertEqual(runtime['model_catalog_audit']['client_version'], 'test')
+            (source / 'models_cache.json').write_text('{"models":[]}')
+            missing = designer.prepare_runtime(root / 'other', {}, source_home=source)
+            self.assertNotIn('model_catalog', missing)
+
 
 if __name__ == '__main__':
     unittest.main()

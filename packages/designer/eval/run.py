@@ -149,6 +149,7 @@ def execute(scenario, mode, batch, args, cancel):
     print(f"START {run_id}", flush=True)
     with tempfile.TemporaryDirectory(prefix="varpet-eval-") as directory:
         runtime = designer.prepare_runtime(Path(directory), scene)
+        transcript.write("runtime", model_catalog=runtime.get("model_catalog_audit"))
         job_path = Path(directory) / "job.json"
         job = {"runtime": runtime, "request": scenario["request"], "effort": args.effort}
         if profile:
@@ -165,6 +166,7 @@ def execute(scenario, mode, batch, args, cancel):
     status = "usage_limit" if result.usage_limited else "idle_timeout" if result.timed_out else "deadline" if result.deadline_exceeded else "cancelled" if result.cancelled else summary["status"]
     record = {**summary, "id": run_id, "scenario": scenario, "scene": scene, "mode": mode,
               "effort": args.effort, "profile": profile,
+              "model_catalog": runtime.get("model_catalog_audit"),
               "seconds": round(result.seconds, 3), "status": status, "returncode": result.returncode,
               "transcript": str(path.relative_to(HERE)), "measured_at": datetime.now(timezone.utc).isoformat()}
     # A partial thread can yield a checked proposal before its deadline; keep both facts.
