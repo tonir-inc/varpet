@@ -34,5 +34,15 @@ keeps, preferences and colours. A conflicting declared room is rejected. No prop
 Other room programs currently return knowledge/catalog data and no automatic compositions.
 
 [not proven] Preserving a kept item is enforced; automatically designing a successful group around
-an arbitrary kept anchor is not established. Industrial and boho currently expose catalog/coherence
-gaps in the living-room eval instead of silently passing an incomplete room.
+an arbitrary kept anchor is not established.
+
+Industrial and boho expose living-only `composition.program`, `roles`, `signatures` and `identity_styles` as data. Search uses
+`searchStyleForKind`; filtering and grading use `styleMatchesKind`. Industrial needs industrial-tagged
+table and shelving, with compatible neutral upholstery/rug/light. Boho needs a bohemian rug and
+rustic/bohemian storage; a neutral modern sofa and shaded modern lamp can support that composition.
+Explicitly excluded roles remove their signature requirement, while at least one remaining piece must
+still carry the requested Industrial or Bohemian identity. Missing remaining signature evidence fails
+grading; a shared neutral family alone cannot pass. Other styles and room programs retain the shared-family requirement. Listing and inferred tags retain provenance.
+[assumed] These role recipes are design priors, not measured customer preferences. Living candidates
+require focal shelving at least 0.7 m high and 0.2 m deep to avoid putting tiny wall racks on the floor;
+size is only a proxy for freestanding use, not verified installation metadata.

@@ -34,7 +34,7 @@ export async function designRoom(scene:Scene,request:DesignRequest,query?:Catalo
  const sofas=pick(excluded.has('seating_anchor')?'chair':'sofa',p=>p.size[0]>=(excluded.has('seating_anchor')?.6:1.4)&&p.size[0]<=2.8&&p.size[1]<=1.2),chairs=pick('chair',p=>p.size[0]>=.6&&p.size[0]<=1.1&&p.size[1]<=1.15);
  const rugs=pick('rug',p=>Math.max(p.size[0],p.size[1])>=2.3&&Math.min(p.size[0],p.size[1])>=1.7);
  const tables=pick('table',p=>p.size[2]<=.6&&p.size[0]<=1.5&&p.size[1]<=.85);
- const lamps=pick('lamp',p=>p.size[2]>=.8&&p.size[0]<=.65&&p.size[1]<=.65),shelves=pick('shelf',p=>p.size[0]<=1.4&&p.size[1]<=.5);
+ const lamps=pick('lamp',p=>p.size[2]>=.8&&p.size[0]<=.65&&p.size[1]<=.65),shelves=pick('shelf',p=>p.size[0]<=1.4&&p.size[1]>=.2&&p.size[1]<=.5&&p.size[2]>=.7);
  if([sofas,chairs,...excluded.has('rug')?[]:[rugs],...excluded.has('table')?[]:[tables],...excluded.has('light')?[]:[lamps],...excluded.has('focal_point')?[]:[shelves]].some(p=>!p.length))return {...base,reason:'Catalog lacks a compatible, sized full living-room set; missing roles or dimensions must be resolved, not silently omitted.'};
  const remove=scene.items.filter(i=>i.room_id===room.id&&!i.keep&&(request.remake||request.remove_ids?.includes(i.id)));
  const removed=new Set(remove.map(i=>i.id));

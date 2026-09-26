@@ -1,7 +1,7 @@
 import type {Scene,Item,Vec2} from '../scene.js';
 import {itemPolygon,polygonsOverlap} from '../metrics/space.js';
 import {roomPrograms} from '../../knowledge/room-programs.js';
-import {styleMatches,stylePalette,styleFamilies} from '../../knowledge/styles/index.js';
+import {styles,styleMatchesKind,stylePalette,styleFamilies} from '../../knowledge/styles/index.js';
 export interface TasteOptions {program:string;styles?:string[];catalog?:Record<string,{styles:string[];styles_inferred?:string[];colors_image:string[]}>;excluded_roles?:string[];alternative_seating?:boolean}
 export interface TasteIssue {code:string;item_ids:string[];message:string}
 const EPS=1e-6;
@@ -76,7 +76,13 @@ export function scoreComposition(scene:Scene,roomId:string,options:TasteOptions)
   const ids=options.styles,palette=stylePalette(ids),records=items.map(i=>({i,meta:(()=>{const m=options.catalog?.[i.sku??i.id];return m?{...m,styles:[...m.styles,...m.styles_inferred??[]]}:undefined;})()}));
   check('style_unknown',records.length>0&&records.every(r=>r.meta?.styles.length&&r.meta.colors_image.length),1,'Style/color evidence is missing; unknown is not a style match.',records.filter(r=>!r.meta?.styles.length||!r.meta.colors_image.length).map(r=>r.i.id));
   const shared=styleFamilies(records[0]?.meta?.styles??[]).filter(tag=>records.every(r=>styleFamilies(r.meta?.styles??[]).includes(tag)))??[];
-  check('style_consistency',shared.length>0&&records.length>0&&records.every(r=>r.meta&&styleMatches(r.meta.styles,ids)&&r.meta.colors_image.some(c=>palette.includes(c.toLowerCase()))),2,'Use a shared style family and compatible image-derived palette.',records.filter(r=>r.meta&&!styleMatches(r.meta.styles,ids)).map(r=>r.i.id));
+  const recipes=ids.flatMap(id=>styles[id]?.composition?.program===options.program?[styles[id]!.composition!]:[]);
+  check('style_consistency',(shared.length>0||recipes.length>0)&&records.length>0&&records.every(r=>r.meta&&styleMatchesKind(r.i.kind,r.meta.styles,ids,options.program)&&r.meta.colors_image.some(c=>palette.includes(c.toLowerCase()))),2,'Use compatible role-specific styles and an image-derived palette, or a shared style family.',records.filter(r=>r.meta&&!styleMatchesKind(r.i.kind,r.meta.styles,ids,options.program)).map(r=>r.i.id));
+  if(recipes.length)check('style_signature',recipes.every(recipe=>{
+   const active=recipe.signatures.filter(signature=>!program.essentials.some(role=>excluded.has(role.role)&&role.kinds.includes(signature.kind)));
+   return active.every(signature=>records.filter(r=>r.i.kind===signature.kind&&styleFamilies(r.meta?.styles??[]).some(f=>styleFamilies(signature.catalog_styles).includes(f))).length>=signature.count)
+    &&records.some(r=>styleFamilies(r.meta?.styles??[]).some(f=>styleFamilies(recipe.identity_styles).includes(f)));
+  }),2,'Keep the non-excluded signature pieces and at least one item with the requested style identity; a neutral supporting set alone is insufficient.');
  }
  const total=checks.reduce((s,c)=>s+c.weight,0),earned=checks.reduce((s,c)=>s+(c.pass?c.weight:0),0);
  return {room_id:roomId,program:options.program,score:items.length&&total?Math.round(100*earned/total):0,pass:issues.length===0,issues,checks};
