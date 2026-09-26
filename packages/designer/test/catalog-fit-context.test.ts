@@ -24,3 +24,13 @@ test('supported semantic catalog kinds use the editor bridge mapping and retain 
  const empty={...scene,items:[]};
  expect(api().fitProducts(empty,[row],'r',2,[asset]).map((r:any)=>r.id)).toEqual(['desk']);
 });
+test('native desk and wardrobe catalog identities stay native through fit selection',()=>{
+ for(const kind of ['desk','wardrobe']){
+  const row={id:kind,kind,name:kind,size_m:[1,.5,.75],price:1000,currency:'AMD',glb_url:'https://example.com/model.glb'};
+  const asset={id:kind,kind,name:kind,dimensions:[1,.75,.5],price:1000,color:'#888888',category:kind,source:{type:'gltf',url:row.glb_url}};
+  expect(api().compatibleProduct(row,[asset])).toBe(true);
+  const fitted=api().fitProducts({...scene,items:[]},[row],'r',2,[asset]);
+  expect(fitted).toHaveLength(1);
+  expect(fitted[0].fit_slots[0].ops[0].item.kind).toBe(kind);
+ }
+});

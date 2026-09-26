@@ -1,7 +1,7 @@
 {
   "version": 2,
   "model": "gpt-6-astra",
-  "limits": "N<30 is descriptive. Avani three repetitions/class; Komitas six distinct flats/class, two eligible kids flats plus three paired isolated kids repetitions. Final scope and paint replay unchanged initial scenes in fresh threads; earlier stateful versions remain archived. Stateful edits differ when proposals pass. Partial/infrastructure runs retained, excluded only from matched cohorts, never because of answer quality. After Komitas host load was high; all latency retained. Catalog acceleration measured separately.",
+  "limits": "N<30 is descriptive. Avani three repetitions/class; Komitas six distinct flats/class, two eligible kids flats plus three paired isolated kids repetitions. Final scope and paint replay exact saved before-request scenes and catalogs in fresh threads; earlier stateful versions remain archived. Stateful edits differ when proposals pass. Partial/infrastructure runs retained, excluded only from matched cohorts, never because of answer quality. After Komitas host load was high; all latency retained. Catalog acceleration measured separately.",
   "cases": [
     {
       "id": "avani-grouped-lounge",
@@ -757,9 +757,9 @@
           "editor_accepts": 1,
           "editor_attempts": 1,
           "seconds": {
-            "median": 5.257183083,
-            "p90": 5.257183083,
-            "max": 5.257183083
+            "median": 2.3427655830000003,
+            "p90": 2.3427655830000003,
+            "max": 2.3427655830000003
           },
           "tokens": {
             "median": 0,
@@ -797,13 +797,13 @@
           "expected": {
             "kind": "proposal"
           },
-          "seconds": 5.257183083,
+          "seconds": 2.3427655830000003,
           "tokens": 0,
           "pass": true,
           "editor_accepted": true,
           "reasons": [],
-          "evidence": "packages/designer/eval/fast-runs/paint-deterministic-final/run.json",
-          "event_log": "packages/designer/eval/fast-runs/paint-deterministic-final/b20-t11-paint-1-sdk.events.jsonl"
+          "evidence": "packages/designer/eval/fast-runs/matched-paint-scope-rebased/run.json",
+          "event_log": "packages/designer/eval/fast-runs/matched-paint-scope-rebased/b20-t11-paint-1-sdk.events.jsonl"
         }
       ]
     },
@@ -928,9 +928,9 @@
           "editor_accepts": 0,
           "editor_attempts": 0,
           "seconds": {
-            "median": 0.01759370899999999,
-            "p90": 0.01759370899999999,
-            "max": 0.01759370899999999
+            "median": 0.011808874999999715,
+            "p90": 0.011808874999999715,
+            "max": 0.011808874999999715
           },
           "tokens": {
             "median": 0,
@@ -970,13 +970,13 @@
           "expected": {
             "kind": "decline"
           },
-          "seconds": 0.01759370899999999,
+          "seconds": 0.011808874999999715,
           "tokens": 0,
           "pass": true,
           "editor_accepted": null,
           "reasons": [],
-          "evidence": "packages/designer/eval/fast-runs/scope-zero-process-final/run.json",
-          "event_log": "packages/designer/eval/fast-runs/scope-zero-process-final/b20-t11-structural-1-sdk.events.jsonl"
+          "evidence": "packages/designer/eval/fast-runs/matched-paint-scope-rebased/run.json",
+          "event_log": "packages/designer/eval/fast-runs/matched-paint-scope-rebased/b20-t11-structural-1-sdk.events.jsonl"
         }
       ]
     },
@@ -1277,9 +1277,9 @@
           "editor_accepts": 1,
           "editor_attempts": 1,
           "seconds": {
-            "median": 4.692468875,
-            "p90": 4.692468875,
-            "max": 4.692468875
+            "median": 2.436435542,
+            "p90": 2.436435542,
+            "max": 2.436435542
           },
           "tokens": {
             "median": 0,
@@ -1317,13 +1317,13 @@
           "expected": {
             "kind": "proposal"
           },
-          "seconds": 4.692468875,
+          "seconds": 2.436435542,
           "tokens": 0,
           "pass": true,
           "editor_accepted": true,
           "reasons": [],
-          "evidence": "packages/designer/eval/fast-runs/paint-deterministic-final/run.json",
-          "event_log": "packages/designer/eval/fast-runs/paint-deterministic-final/b21-t13-paint-1-sdk.events.jsonl"
+          "evidence": "packages/designer/eval/fast-runs/matched-paint-scope-rebased/run.json",
+          "event_log": "packages/designer/eval/fast-runs/matched-paint-scope-rebased/b21-t13-paint-1-sdk.events.jsonl"
         }
       ]
     },
@@ -1448,9 +1448,9 @@
           "editor_accepts": 0,
           "editor_attempts": 0,
           "seconds": {
-            "median": 0.018337125000000013,
-            "p90": 0.018337125000000013,
-            "max": 0.018337125000000013
+            "median": 0.013524749999999586,
+            "p90": 0.013524749999999586,
+            "max": 0.013524749999999586
           },
           "tokens": {
             "median": 0,
@@ -1490,13 +1490,13 @@
           "expected": {
             "kind": "decline"
           },
-          "seconds": 0.018337125000000013,
+          "seconds": 0.013524749999999586,
           "tokens": 0,
           "pass": true,
           "editor_accepted": null,
           "reasons": [],
-          "evidence": "packages/designer/eval/fast-runs/scope-zero-process-final/run.json",
-          "event_log": "packages/designer/eval/fast-runs/scope-zero-process-final/b21-t13-structural-1-sdk.events.jsonl"
+          "evidence": "packages/designer/eval/fast-runs/matched-paint-scope-rebased/run.json",
+          "event_log": "packages/designer/eval/fast-runs/matched-paint-scope-rebased/b21-t13-structural-1-sdk.events.jsonl"
         }
       ]
     },
@@ -2059,14 +2059,14 @@
           "editor_accepts": 0,
           "editor_attempts": 0,
           "seconds": {
-            "median": 12.406947624999999,
-            "p90": 12.406947624999999,
-            "max": 12.406947624999999
+            "median": 9.882265459000003,
+            "p90": 9.882265459000003,
+            "max": 9.882265459000003
           },
           "tokens": {
-            "median": 18396,
-            "p90": 18396,
-            "max": 18396
+            "median": 18410,
+            "p90": 18410,
+            "max": 18410
           },
           "unknown_token_runs": 0
         }
@@ -2102,16 +2102,16 @@
           "expected": {
             "kind": "proposal"
           },
-          "seconds": 12.406947624999999,
-          "tokens": 18396,
+          "seconds": 9.882265459000003,
+          "tokens": 18410,
           "pass": false,
           "editor_accepted": null,
           "reasons": [
-            "outcome:decline",
+            "outcome:message",
             "request_mismatch"
           ],
-          "evidence": "packages/designer/eval/fast-runs/paint-deterministic-final/run.json",
-          "event_log": "packages/designer/eval/fast-runs/paint-deterministic-final/b25-t72-paint-1-sdk.events.jsonl"
+          "evidence": "packages/designer/eval/fast-runs/matched-paint-scope-rebased/run.json",
+          "event_log": "packages/designer/eval/fast-runs/matched-paint-scope-rebased/b25-t72-paint-1-sdk.events.jsonl"
         }
       ]
     },
@@ -2236,9 +2236,9 @@
           "editor_accepts": 0,
           "editor_attempts": 0,
           "seconds": {
-            "median": 0.12526645899999994,
-            "p90": 0.12526645899999994,
-            "max": 0.12526645899999994
+            "median": 0.010803165999997873,
+            "p90": 0.010803165999997873,
+            "max": 0.010803165999997873
           },
           "tokens": {
             "median": 0,
@@ -2278,13 +2278,13 @@
           "expected": {
             "kind": "decline"
           },
-          "seconds": 0.12526645899999994,
+          "seconds": 0.010803165999997873,
           "tokens": 0,
           "pass": true,
           "editor_accepted": null,
           "reasons": [],
-          "evidence": "packages/designer/eval/fast-runs/scope-zero-process-final/run.json",
-          "event_log": "packages/designer/eval/fast-runs/scope-zero-process-final/b25-t72-structural-1-sdk.events.jsonl"
+          "evidence": "packages/designer/eval/fast-runs/matched-paint-scope-rebased/run.json",
+          "event_log": "packages/designer/eval/fast-runs/matched-paint-scope-rebased/b25-t72-structural-1-sdk.events.jsonl"
         }
       ]
     },
@@ -2585,9 +2585,9 @@
           "editor_accepts": 1,
           "editor_attempts": 1,
           "seconds": {
-            "median": 2.477307667000001,
-            "p90": 2.477307667000001,
-            "max": 2.477307667000001
+            "median": 2.3839639580000003,
+            "p90": 2.3839639580000003,
+            "max": 2.3839639580000003
           },
           "tokens": {
             "median": 0,
@@ -2625,13 +2625,13 @@
           "expected": {
             "kind": "proposal"
           },
-          "seconds": 2.477307667000001,
+          "seconds": 2.3839639580000003,
           "tokens": 0,
           "pass": true,
           "editor_accepted": true,
           "reasons": [],
-          "evidence": "packages/designer/eval/fast-runs/paint-deterministic-final/run.json",
-          "event_log": "packages/designer/eval/fast-runs/paint-deterministic-final/b28-t31-paint-1-sdk.events.jsonl"
+          "evidence": "packages/designer/eval/fast-runs/matched-paint-scope-rebased/run.json",
+          "event_log": "packages/designer/eval/fast-runs/matched-paint-scope-rebased/b28-t31-paint-1-sdk.events.jsonl"
         }
       ]
     },
@@ -2756,9 +2756,9 @@
           "editor_accepts": 0,
           "editor_attempts": 0,
           "seconds": {
-            "median": 0.034229249999999864,
-            "p90": 0.034229249999999864,
-            "max": 0.034229249999999864
+            "median": 0.01152587499999936,
+            "p90": 0.01152587499999936,
+            "max": 0.01152587499999936
           },
           "tokens": {
             "median": 0,
@@ -2796,13 +2796,13 @@
           "expected": {
             "kind": "decline"
           },
-          "seconds": 0.034229249999999864,
+          "seconds": 0.01152587499999936,
           "tokens": 0,
           "pass": true,
           "editor_accepted": null,
           "reasons": [],
-          "evidence": "packages/designer/eval/fast-runs/scope-zero-process-final/run.json",
-          "event_log": "packages/designer/eval/fast-runs/scope-zero-process-final/b28-t31-structural-1-sdk.events.jsonl"
+          "evidence": "packages/designer/eval/fast-runs/matched-paint-scope-rebased/run.json",
+          "event_log": "packages/designer/eval/fast-runs/matched-paint-scope-rebased/b28-t31-structural-1-sdk.events.jsonl"
         }
       ]
     },
@@ -3191,14 +3191,14 @@
           "editor_accepts": 0,
           "editor_attempts": 0,
           "seconds": {
-            "median": 14.767718582999999,
-            "p90": 14.767718582999999,
-            "max": 14.767718582999999
+            "median": 7.5030967499999965,
+            "p90": 7.5030967499999965,
+            "max": 7.5030967499999965
           },
           "tokens": {
-            "median": 15433,
-            "p90": 15433,
-            "max": 15433
+            "median": 15446,
+            "p90": 15446,
+            "max": 15446
           },
           "unknown_token_runs": 0
         }
@@ -3234,16 +3234,16 @@
           "expected": {
             "kind": "proposal"
           },
-          "seconds": 14.767718582999999,
-          "tokens": 15433,
+          "seconds": 7.5030967499999965,
+          "tokens": 15446,
           "pass": false,
           "editor_accepted": null,
           "reasons": [
-            "outcome:decline",
+            "outcome:message",
             "request_mismatch"
           ],
-          "evidence": "packages/designer/eval/fast-runs/paint-deterministic-final/run.json",
-          "event_log": "packages/designer/eval/fast-runs/paint-deterministic-final/b30-t35-paint-1-sdk.events.jsonl"
+          "evidence": "packages/designer/eval/fast-runs/matched-paint-scope-rebased/run.json",
+          "event_log": "packages/designer/eval/fast-runs/matched-paint-scope-rebased/b30-t35-paint-1-sdk.events.jsonl"
         }
       ]
     },
@@ -3368,9 +3368,9 @@
           "editor_accepts": 0,
           "editor_attempts": 0,
           "seconds": {
-            "median": 0.014292124999999942,
-            "p90": 0.014292124999999942,
-            "max": 0.014292124999999942
+            "median": 0.02654279200000019,
+            "p90": 0.02654279200000019,
+            "max": 0.02654279200000019
           },
           "tokens": {
             "median": 0,
@@ -3410,13 +3410,13 @@
           "expected": {
             "kind": "decline"
           },
-          "seconds": 0.014292124999999942,
+          "seconds": 0.02654279200000019,
           "tokens": 0,
           "pass": true,
           "editor_accepted": null,
           "reasons": [],
-          "evidence": "packages/designer/eval/fast-runs/scope-zero-process-final/run.json",
-          "event_log": "packages/designer/eval/fast-runs/scope-zero-process-final/b30-t35-structural-1-sdk.events.jsonl"
+          "evidence": "packages/designer/eval/fast-runs/matched-paint-scope-rebased/run.json",
+          "event_log": "packages/designer/eval/fast-runs/matched-paint-scope-rebased/b30-t35-structural-1-sdk.events.jsonl"
         }
       ]
     },
@@ -3713,14 +3713,14 @@
           "editor_accepts": 0,
           "editor_attempts": 0,
           "seconds": {
-            "median": 17.109250874999997,
-            "p90": 17.109250874999997,
-            "max": 17.109250874999997
+            "median": 20.576800750000004,
+            "p90": 20.576800750000004,
+            "max": 20.576800750000004
           },
           "tokens": {
-            "median": 46949,
-            "p90": 46949,
-            "max": 46949
+            "median": 47042,
+            "p90": 47042,
+            "max": 47042
           },
           "unknown_token_runs": 0
         }
@@ -3756,16 +3756,16 @@
           "expected": {
             "kind": "proposal"
           },
-          "seconds": 17.109250874999997,
-          "tokens": 46949,
+          "seconds": 20.576800750000004,
+          "tokens": 47042,
           "pass": false,
           "editor_accepted": null,
           "reasons": [
             "outcome:question",
             "request_mismatch"
           ],
-          "evidence": "packages/designer/eval/fast-runs/paint-deterministic-final/run.json",
-          "event_log": "packages/designer/eval/fast-runs/paint-deterministic-final/b31-t46-paint-1-sdk.events.jsonl"
+          "evidence": "packages/designer/eval/fast-runs/matched-paint-scope-rebased/run.json",
+          "event_log": "packages/designer/eval/fast-runs/matched-paint-scope-rebased/b31-t46-paint-1-sdk.events.jsonl"
         }
       ]
     },
@@ -3886,9 +3886,9 @@
           "editor_accepts": 0,
           "editor_attempts": 0,
           "seconds": {
-            "median": 0.04152891600000021,
-            "p90": 0.04152891600000021,
-            "max": 0.04152891600000021
+            "median": 0.011985249999997904,
+            "p90": 0.011985249999997904,
+            "max": 0.011985249999997904
           },
           "tokens": {
             "median": 0,
@@ -3928,13 +3928,13 @@
           "expected": {
             "kind": "decline"
           },
-          "seconds": 0.04152891600000021,
+          "seconds": 0.011985249999997904,
           "tokens": 0,
           "pass": true,
           "editor_accepted": null,
           "reasons": [],
-          "evidence": "packages/designer/eval/fast-runs/scope-zero-process-final/run.json",
-          "event_log": "packages/designer/eval/fast-runs/scope-zero-process-final/b31-t46-structural-1-sdk.events.jsonl"
+          "evidence": "packages/designer/eval/fast-runs/matched-paint-scope-rebased/run.json",
+          "event_log": "packages/designer/eval/fast-runs/matched-paint-scope-rebased/b31-t46-structural-1-sdk.events.jsonl"
         }
       ]
     },

@@ -20,7 +20,7 @@ const fits=new FitPool();
 const prefixes=new Map<string,{results:RawProduct[];truncated:boolean;pending:boolean}>();
 const token=randomUUID(),contexts=new Map<string,{scene:Scene;editor_scene:unknown;bridge_options:EditorBridgeOptions;catalog:CatalogAsset[];allowed:Set<string>}>();
 const audits=new Map<string,{promise:Promise<boolean>;expires:number}>(),auditRows:any[]=[];
-const kinds=['sofa','chair','table','bed','cabinet','lamp','rug','shelf'];
+const kinds=['sofa','chair','table','desk','bed','cabinet','wardrobe','nightstand','dresser','lamp','rug','shelf'];
 const styleNames=['any','Modern','Traditional','Industrial','Bohemian'];
 const shortlist:Record<string,RawProduct[]>={},warmErrors:any[]=[];
 const verifiedUrls=new Map<string,string>();

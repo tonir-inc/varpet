@@ -1,6 +1,7 @@
 {
   "version": 1,
   "classes": [
+    "appearance.walls",
     "feasibility.area",
     "move.group",
     "rearrange.open-floor",
