@@ -15,6 +15,15 @@ async function connect(options:Parameters<typeof createTypedServer>[1]={},input=
  return {client,close:async()=>{await client.close();await server.close();}};
 }
 const value=(r:any)=>JSON.parse(r.content.find((c:any)=>c.type==='text').text);
+test('layout inspection retains measured facts while omitting detailed route coordinates',async()=>{
+ const polygon=scene.rooms[0]!.polygon;
+ const input={...scene,walls:polygon.map((a,i)=>({id:'w'+i,room_id:'living',a,b:polygon[(i+1)%4]!,height:2.7})),openings:[0,2].map(i=>({id:'door'+i,wall_id:'w'+i,kind:'door' as const,offset:1,width:1,height:2,sill:0}))};
+ const c=await connect({},input);try{
+  const result=value(await c.client.callTool({name:'inspect_layout',arguments:{room_id:'living'}}));
+  expect(result.free_area_m2).toBeGreaterThan(0);expect(result.walkways.length).toBeGreaterThan(0);
+  expect(JSON.stringify(result)).not.toContain('"path":');expect(JSON.stringify(result).length).toBeLessThanOrEqual(3000);
+ }finally{await c.close();}
+});
 test('typed inventory cannot accept coordinates, dimensions or operations',async()=>{
  const c=await connect();try{
   const list=(await c.client.listTools()).tools;
