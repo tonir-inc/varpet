@@ -249,7 +249,7 @@ def grade(key,before,after,catalog,reply,accepted,text,seconds):
    if living:
     for label,scene in [('before',before),('after',after)]:measure['open_rectangle_'+label]=open_rectangle(scene,living,catalog)
     if measure['open_rectangle_after']<=measure['open_rectangle_before']+.04:fail.append('no_measured_open_rectangle_improvement')
-  elif typ not in ('message','question','decline') or changed or not re.search(r'empty|no furniture|unfurnished|already open',text,re.I):fail.append('empty_room_not_honestly_explained')
+  elif typ not in ('message','question','decline') or changed or not re.search(r'empty|no (?:movable )?furniture|unfurnished|already open',text,re.I):fail.append('empty_room_not_honestly_explained')
  if key=='why':
   if not inventory:fail.append('no_actual_layout_to_explain')
   if typ!='message':fail.append('why_not_explanation')
