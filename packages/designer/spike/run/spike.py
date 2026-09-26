@@ -150,7 +150,12 @@ def private_home(tool_mode: str, home: Path | None = None) -> tuple[Path, dict]:
     return home, extra
 
 
-def codex_config(effort: str, sandbox: str, network: bool, extra: dict) -> dict:
+SUBAGENT_SLOTS = 4
+
+
+def codex_config(effort: str, sandbox: str, network: bool, extra: dict, *, subagents: str | None = None,
+                 subagent_effort: str | None = None) -> dict:
+    """subagents: developer instructions for room sub-agents; set, it turns on spawn_agent/wait_agent (multi-agent v2)."""
     config = {
         "model": MODEL,
         "model_reasoning_effort": effort,
@@ -164,6 +169,11 @@ def codex_config(effort: str, sandbox: str, network: bool, extra: dict) -> dict:
         "sandbox_mode": {"full-access": "danger-full-access"}.get(sandbox, sandbox),
         "sandbox_workspace_write": {"network_access": network},
     }
+    if subagents:
+        config["features"]["multi_agent_v2"] = {"enabled": True, "max_concurrent_threads_per_session": SUBAGENT_SLOTS,
+                                                "subagent_developer_instructions": subagents}
+        config["agents"] = {"default_subagent_reasoning_effort": subagent_effort or effort}
+        config["approval_policy"] = "never"
     if "model_catalog_json" in extra:
         config["model_catalog_json"] = extra["model_catalog_json"]
     return config
@@ -202,14 +212,18 @@ def is_question(final: str | None, workspace: Path) -> bool:
 class Session:
     """One designer thread kept open across turns (initial request, scripted follow-ups, critic fixes)."""
 
-    def __init__(self, workspace: Path, args, events_path: Path):
+    def __init__(self, workspace: Path, args, events_path: Path, parallel: bool = False):
         self.workspace, self.args, self.events_path = workspace, args, events_path
         self.home, self.extra = private_home(args.tool_mode)
-        self.config = codex_config(args.effort, args.sandbox, not args.no_network, self.extra)
+        subagents = (RUN / "SUBAGENT.md").read_text() if parallel else None
+        self.parallel = parallel
+        self.config = codex_config(args.effort, args.sandbox, not args.no_network, self.extra, subagents=subagents,
+                                   subagent_effort=getattr(args, "subagent_effort", None))
         self.counts, self.commands, self.images, self.tools = Counter(), [], [], []
         self.usage = None
         self.turns: list[dict] = []
         self.started = time.monotonic()
+        self.epoch = time.time()
 
     def __enter__(self):
         from openai_codex import Codex, CodexConfig, ApprovalMode, Sandbox
@@ -278,7 +292,7 @@ class Session:
     def summary(self) -> dict:
         ignored = {"agentMessage", "reasoning", "userMessage", None}
         last = self.turns[-1] if self.turns else {}
-        return {"tool_mode": self.args.tool_mode, "original_tool_mode": self.extra.get("original_tool_mode"),
+        return {"parallel": self.parallel, "tool_mode": self.args.tool_mode, "original_tool_mode": self.extra.get("original_tool_mode"),
                 "sandbox": self.args.sandbox, "network": not self.args.no_network, "config": self.config,
                 "skills_enabled": getattr(self, "skills_enabled", None), "thread_id": getattr(self, "thread", None) and self.thread.id,
                 "status": last.get("status", "missing_completion"), "error": last.get("error"),
@@ -286,7 +300,28 @@ class Session:
                 "tool_calls": {"total": sum(n for k, n in self.counts.items() if k not in ignored),
                                "by_type": dict(self.counts), "commands": self.commands,
                                "images_viewed": self.images, "tools": self.tools},
-                "final_message": last.get("final_message")}
+                "final_message": last.get("final_message"), "milestones": milestones(self.workspace, self.epoch)}
+
+
+def milestones(workspace: Path, epoch: float) -> dict:
+    """Seconds from the first turn to the first room render and first room check OK (main thread or sub-agents),
+    from ./varpet's .varpet-log.jsonl; per room, the last check."""
+    out: dict = {"first_room_render_s": None, "first_room_ok_s": None, "rooms": {}}
+    try:
+        lines = [json.loads(line) for line in (workspace / ".varpet-log.jsonl").read_text().splitlines() if line.strip()]
+    except (OSError, ValueError):
+        return out
+    for entry in lines:
+        if entry.get("event") != "end" or entry.get("exit") != 0:
+            continue
+        t = round(entry["t"] - epoch, 1)
+        room = entry.get("part")
+        if entry.get("cmd") == "render-view" and "--room" in " ".join(entry.get("args") or []) + (" --room" if room else ""):
+            out["first_room_render_s"] = out["first_room_render_s"] or t
+        if entry.get("cmd") == "check" and room:
+            out["first_room_ok_s"] = out["first_room_ok_s"] or t
+            out["rooms"][room] = t
+    return out
 
 
 def run_thread(workspace: Path, case: dict, args, events_path: Path, result: dict) -> None:
@@ -296,7 +331,9 @@ def run_thread(workspace: Path, case: dict, args, events_path: Path, result: dic
     first = turn_text(case)
     turn_input = [LocalImageInput(path=str(SPIKE / case["image"])), TextInput(text=first)] if case.get("image") else first
     brief = case["request"]
-    with Session(workspace, args, events_path) as session:
+    rooms = json.loads((workspace / "scene.json").read_text())["rooms"]
+    parallel = args.parallel == "on" or (args.parallel == "auto" and len(scope(case, rooms)) > 1)
+    with Session(workspace, args, events_path, parallel) as session:
         try:
             last = session.turn(turn_input, "request")
             result["question"] = last["final_message"] if is_question(last["final_message"], workspace) else None
@@ -437,6 +474,9 @@ def main() -> int:
     parser.add_argument("--followup", action="append", help="a scripted customer answer sent as the next turn on the same thread (repeatable)")
     parser.add_argument("--critic-rounds", type=int, default=2, help="independent critic rounds after the design (default 2)")
     parser.add_argument("--no-critic", action="store_true", help="skip the critic")
+    parser.add_argument("--parallel", default="auto", choices=("auto", "on", "off"),
+                        help="room sub-agents (spawn_agent, run/SUBAGENT.md); auto = on for multi-room cases")
+    parser.add_argument("--subagent-effort", choices=("low", "medium", "high"), help="sub-agent effort (default: --effort)")
     args = parser.parse_args()
     case = load_case(args.case, args.cases)
     if not args.cli.exists():

@@ -22,11 +22,24 @@ answer. Small gaps (a piece the catalog lacks, a slightly smaller table) are not
 ## Whole-apartment briefs
 When the request covers several rooms or the whole flat, write `plan.md` first (short): who lives here and
 what each person needs, which room does what (you may re-assign rooms: a study, a kid's room, a guest corner),
-the style and palette for the flat and any per-room variation, and a budget split per room with about 5%
-reserve. Then design room by room, largest living space first, finishing each (check OK, render, fix) before
-the next. Keep the flat coherent (same floor unless there is a reason, a shared palette, doors and the hall
-kept clear). Honour every concrete need in the brief. Bathrooms, WCs and kitchens keep their fixed fittings;
-furnish them with what the catalog offers for them (bath storage stands on the floor).
+the style and palette for the flat (floor, wall colours, wood and metal, textiles) and any per-room variation,
+and a budget split per room with about 5% reserve. Keep the flat coherent (same floor unless there is a
+reason, a shared palette, doors and the hall kept clear). Honour every concrete need in the brief. Bathrooms,
+WCs and kitchens keep their fixed fittings; furnish them with what the catalog offers for them (bath storage
+stands on the floor).
+
+Then design the rooms in parallel if you have the `spawn_agent` tool (you are asked to delegate here): one
+sub-agent per main room (living, bedrooms, study, kitchen), `fork_turns: "all"`, never more than 4 running;
+the message names the room id and name, who uses it, every need from the brief that lands in this room with
+its numbers (seats, desks, storage, what to avoid), the budget line, and ends: "Design only this room, as fully
+as the studio instructions ask. Work with `./varpet ... --part <room id>` and write only `rooms/<room id>.json`."
+While they work, design the small rooms yourself the same way (hall, bathrooms, WC, balconies: `--part <room
+id>`, a few pieces each, one render). Wait until EVERY sub-agent has finished (wait_agent) before you run
+`./varpet merge`: merge removes the room files. Then run `./varpet merge` (folds `rooms/*.json` into
+`draft.json` and checks the whole flat), fix what spans rooms (budget, clashing palette, a door blocked
+from the other side) in the room files and merge again, look at one whole-flat render (`./varpet render-view
+flat.png --camera overview`) and finish. Without `spawn_agent`, design room by room yourself, largest living
+space first, finishing each (check OK, render, fix) before the next.
 
 ## Your workspace
 - `scene.json`: the flat (metres; x right, y up; `rot` in degrees CCW; an item's front faces its local -y).

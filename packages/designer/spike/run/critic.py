@@ -18,6 +18,7 @@ Standalone: uv run --project ../../../harness python run/critic.py <workspace> "
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 import re
 import shutil
@@ -29,6 +30,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import spike  # noqa: E402
 
 EFFORT = "medium"
+WORKERS = int(os.environ.get("VARPET_CRITIC_WORKERS", "4"))
 IMAGE_PX = 768
 PLAN_PX = 1024  # plan labels stay legible
 SEVERITIES = ("blocker", "major", "minor")
@@ -70,7 +72,8 @@ Check, in order:
 
 Walls, doors, windows and the fixed fittings listed with the room (kitchen runs, toilets, basins, showers) are
 the flat's; the designer cannot move them. Report a fault in them (e.g. a unit facing the wall) as severity
-minor with the issue starting "flat:", so the team can fix the flat; a designer piece blocking them is normal.
+minor with the issue starting "flat:", so the team can fix the flat; that includes a kitchen or bathroom with no
+fittings at all (the flat model lacks them; the designer cannot build them). A designer piece blocking them is normal.
 
 Severity: blocker = a need from the brief is unmet or unusable (fewer seats than asked, TV on the floor, bed
 or wardrobe blocking a door, desk with no chair). major = a relation or scale error the customer would notice
@@ -215,28 +218,12 @@ def _config(extra: dict) -> dict:
     return config
 
 
-def critique(workspace: Path | str, brief: str, rooms: list[str] | None = None, round: int = 1,
-             context: str | None = None) -> list[dict]:
-    """Render each room and review it in a fresh tool-less Codex thread; returns the issues (see module doc).
-    context: the designer's reply to the previous round, if any."""
+def _review(workspace: Path, brief: str, rooms: list[str], scene_rooms: dict, draft: dict, out: Path,
+            context: str | None) -> dict[str, dict]:
+    """One worker: its own CODEX_HOME and app-server; renders then reviews each of its rooms in a fresh thread."""
     from openai_codex import ApprovalMode, Codex, CodexConfig, LocalImageInput, Sandbox, TextInput
     from openai_codex.generated.v2_all import ReasoningEffort
-    workspace = Path(workspace).resolve()
-    draft = _draft(workspace)
-    scene_rooms = _rooms(workspace)
-    used = {i.get("room_id") for i in draft.get("items") or [] if isinstance(i, dict)}
-    rooms = [r for r in (rooms or [r for r in scene_rooms if r in used]) if r in scene_rooms and r in used]
-    out = workspace / "critic" / f"round-{round}"
-    if out.exists():
-        shutil.rmtree(out)
-    out.mkdir(parents=True)
-    started = time.monotonic()
-    record: dict = {"round": round, "rooms": {}, "issues": []}
-    shots = {room: render_room(workspace, room, out, draft) for room in rooms}
-    record["render_seconds"] = round_(time.monotonic() - started)
-    if not rooms:
-        (out / "critic.json").write_text(json.dumps(record, indent=2, ensure_ascii=False))
-        return []
+    entries: dict[str, dict] = {}
     home, extra = spike.private_home("default")
     config = _config(extra)
     sdk = CodexConfig(cwd=str(workspace), env={"CODEX_HOME": str(home)},
@@ -246,13 +233,16 @@ def critique(workspace: Path | str, brief: str, rooms: list[str] | None = None, 
             spike.disable_skills(codex, str(workspace))
             for room_id in rooms:
                 began = time.monotonic()
-                entry: dict = {"images": [i["path"] for i in shots[room_id]["images"]], "notes": shots[room_id]["notes"]}
+                shots = render_room(workspace, room_id, out, draft)
+                entry: dict = {"images": [i["path"] for i in shots["images"]], "notes": shots["notes"],
+                               "render_seconds": round_(time.monotonic() - began)}
                 try:
                     thread = codex.thread_start(model=spike.MODEL, approval_mode=ApprovalMode.deny_all,
                                                 sandbox=Sandbox("read-only"), cwd=str(workspace),
                                                 developer_instructions=RUBRIC, ephemeral=True)
-                    inputs = [LocalImageInput(path=i["path"]) for i in shots[room_id]["images"]]
-                    inputs.append(TextInput(text=_prompt(brief, scene_rooms[room_id], draft, shots[room_id], context, _fixed(workspace, room_id))))
+                    inputs = [LocalImageInput(path=i["path"]) for i in shots["images"]]
+                    inputs.append(TextInput(text=_prompt(brief, scene_rooms[room_id], draft, shots, context,
+                                                         _fixed(workspace, room_id))))
                     result = thread.run(inputs, effort=ReasoningEffort(EFFORT), approval_mode=ApprovalMode.deny_all,
                                         output_schema=SCHEMA)
                     entry["raw"] = result.final_response
@@ -264,10 +254,39 @@ def critique(workspace: Path | str, brief: str, rooms: list[str] | None = None, 
                     entry["error"] = f"{type(error).__name__}: {error}"
                     entry["issues"] = []
                 entry["seconds"] = round_(time.monotonic() - began)
-                record["rooms"][room_id] = entry
-                record["issues"] += entry["issues"]
+                entries[room_id] = entry
+    except Exception as error:
+        for room_id in rooms:
+            entries.setdefault(room_id, {"error": f"{type(error).__name__}: {error}", "issues": []})
     finally:
         shutil.rmtree(home, ignore_errors=True)
+    return entries
+
+
+def critique(workspace: Path | str, brief: str, rooms: list[str] | None = None, round: int = 1,
+             context: str | None = None) -> list[dict]:
+    """Render each room and review it in a fresh tool-less Codex thread; returns the issues (see module doc).
+    Rooms run on up to WORKERS parallel workers. context: the designer's reply to the previous round, if any."""
+    from concurrent.futures import ThreadPoolExecutor
+    workspace = Path(workspace).resolve()
+    draft = _draft(workspace)
+    scene_rooms = _rooms(workspace)
+    used = {i.get("room_id") for i in draft.get("items") or [] if isinstance(i, dict)}
+    rooms = [r for r in (rooms or [r for r in scene_rooms if r in used]) if r in scene_rooms and r in used]
+    out = workspace / "critic" / f"round-{round}"
+    if out.exists():
+        shutil.rmtree(out)
+    out.mkdir(parents=True)
+    started = time.monotonic()
+    record: dict = {"round": round, "rooms": {}, "issues": []}
+    try:
+        chunks = [rooms[n::WORKERS] for n in range(min(WORKERS, len(rooms)))]
+        with ThreadPoolExecutor(max_workers=max(1, len(chunks))) as pool:
+            for entries in pool.map(lambda chunk: _review(workspace, brief, chunk, scene_rooms, draft, out, context), chunks):
+                record["rooms"].update(entries)
+        for room_id in rooms:
+            record["issues"] += record["rooms"].get(room_id, {}).get("issues", [])
+    finally:
         record["seconds"] = round_(time.monotonic() - started)
         (out / "critic.json").write_text(json.dumps(record, indent=2, ensure_ascii=False))
     return record["issues"]
