@@ -75,3 +75,10 @@ def test_settle_forces_low_piece_effort_and_plan_ref():
     settle(graph, "fixtures/plan.png")
     assert graph.jobs[0].refs == ["fixtures/plan.png"] and graph.jobs[0].effort == "high"
     assert graph.jobs[1].effort == "low"
+
+
+def test_only_prunes_kinds_and_deps():
+    from varpet_harness.graph import only
+
+    pieces = only(load(FIXTURE), {"piece"})
+    assert {j.kind for j in pieces.jobs} == {"piece"} and all(not j.deps for j in pieces.jobs)
