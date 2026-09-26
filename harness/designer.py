@@ -145,6 +145,12 @@ def run_with_retry(command: list[str], *, idle_timeout: float = IDLE_TIMEOUT,
     return attempts
 
 
+def designer_mcp_env() -> dict[str, str]:
+    """Forward request-local paths explicitly across the SDK → MCP boundary."""
+    return {name: os.environ[name] for name in ("VARPET_SCENE", "VARPET_PROPOSALS_DIR")
+            if name in os.environ}
+
+
 def build_config(scene_path: Path) -> dict:
     return {
         "model": MODEL,
@@ -159,6 +165,7 @@ def build_config(scene_path: Path) -> dict:
             "command": shutil.which("pnpm") or "pnpm",
             "args": ["--silent", "--filter", "@varpet/designer", "start", "--scene", str(scene_path)],
             "cwd": str(ROOT),
+            "env": designer_mcp_env(),
             "default_tools_approval_mode": "approve",
             "enabled_tools": ["scene_summary", "set_intent", "search_catalog", "place",
                               "check_layout", "score_layout", "sun", "propose", "ask"],
