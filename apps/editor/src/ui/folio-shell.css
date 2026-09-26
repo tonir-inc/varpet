@@ -10,7 +10,7 @@
 .folio .view-options #preview,
 .folio .header-actions #file-menu { display: none !important; }
 
-/* General tools share the left workspace; only selection properties live on the right. */
+/* General tools share the left workspace; Furniture and Properties use the right. */
 .folio .workspace > .viewport-shell { order: 1; }
 .folio .workspace > .left-panel,
 .folio .designer-workspace .left-panel { order: 0; position: relative; inset: auto; flex-shrink: 0; width: 320px; max-width: none; max-height: none; border: 0; border-right: 1px solid var(--line); border-radius: 0; box-shadow: none; }
@@ -22,6 +22,17 @@
 .folio .viewport-shell { container-type: inline-size; }
 /* Selection stays a single floating card as the left workspace changes. */
 .folio .viewport-shell .right-panel { top: 74px; right: 12px; bottom: 100px; max-height: calc(100% - 174px); z-index: 15; }
+
+.furniture-panel { position: absolute; top: 74px; right: 12px; bottom: 100px; z-index: 15; display: flex; flex-direction: column; width: min(340px, calc(100% - 24px)); min-height: 0; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); box-shadow: var(--shadow-2); }
+.furniture-panel .panel-heading { flex-shrink: 0; gap: 8px; }
+.furniture-panel .panel-heading h2 { flex: 1; margin: 0; font-size: var(--text-md); }
+.furniture-panel .furniture-help { flex-shrink: 0; margin: 0 0 var(--space-3); text-align: left; }
+.furniture-panel .catalog-note { font-size: var(--text-xs); }
+.furniture-panel #assets-panel { overflow: auto; }
+.furniture-panel #catalog-scroll { min-height: 160px; }
+.folio .preview-mode .furniture-panel { display: none !important; }
+/* Keep card rectangles still: their model previews use an aligned WebGL canvas. */
+.furniture-panel:not([hidden]) { animation: editor-fade-in var(--motion-surface) var(--motion-ease-out); }
 
 /* Direct editing stays visible without bringing back the old navigation rail. */
 .folio .folio-edit-tools { top: 12px; bottom: auto; left: 12px; transform: none; max-width: calc(100% - 24px); padding: 3px; gap: 2px; flex-wrap: wrap; border-radius: var(--radius-md); box-shadow: var(--shadow-1); }
@@ -101,6 +112,7 @@
   .folio .designer-workspace > .viewport-shell { grid-column: 1; grid-row: 1; }
   .folio .designer-workspace > section { grid-column: 1; grid-row: 2; width: auto; max-height: 42dvh; border-right: 0; border-top: 1px solid var(--line); overflow: auto; }
   .folio .designer-workspace > .left-panel, .folio .designer-workspace:has(.designer-collapsed) > .left-panel { position: absolute; inset: auto 0 0 0; z-index: 25; width: auto; height: 62dvh; max-width: none; border-left: 0; border-top: 1px solid var(--line); box-shadow: var(--shadow-2); }
+  .folio .designer-workspace:has(.furniture-panel:not([hidden])) > section { display: none; }
 }
 @media (max-width: 760px) {
   .folio .app-header .portal-link, .folio .app-header #my-apartments, .folio .app-header .save-state { display: none; }
@@ -143,4 +155,5 @@
 @media (max-width: 600px) {
   .folio .folio-sandbox { font-size: 12px; padding-inline: 6px; }
   .folio .viewport-shell .right-panel { top: 94px; bottom: 112px; max-height: calc(100% - 206px); }
+  .furniture-panel { top: 94px; bottom: 112px; width: min(280px, calc(100% - 72px)); }
 }

@@ -47,6 +47,12 @@ const NOMINAL_WIDTH = 10;
 /** The editor's own 3/4 bearing, a little higher so the rooms read from above while they fill. */
 const AZIMUTH = Math.atan2(0.95, 1.35), ELEVATION = THREE.MathUtils.degToRad(40);
 const TRACE_PERIOD = 5200;
+/** The reading band passes down the sheet every few seconds while the architect works. */
+const SCAN_PASS = 3800, SCAN_REST = 1700;
+/** A slow drift keeps the waiting view alive, in radians per second, after the tilt settles. */
+const DRIFT = 0.025, TILT = 1900;
+/** How long the walls take to rise out of the sheet. */
+const RISE = 1700;
 interface Box { minX: number; maxX: number; minY: number; maxY: number; minZ: number; maxZ: number }
 
 export function createBlueprintConstruction(host: HTMLElement, options: BlueprintConstructionOptions): BlueprintConstruction {
@@ -79,8 +85,10 @@ export function createBlueprintConstruction(host: HTMLElement, options: Blueprin
   let rooms: Room[] = [], walls: Wall[] = [], components: BuildingComponent[] = [], lights: BuildingComponent[] = [];
   let objects: SceneObject[] | null = null;
   const assets = new Map<string, CatalogAsset>();
-  let traceFrame = 0, traceStart = 0;
-  const tweens = new Set<number>();
+  let traceFrame = 0, traceStart = 0, finished = false;
+  /** The camera move under way before the walls arrive, so re-anchoring the sheet can carry it on. */
+  let cameraGoal: { position: Vec3; target: Vec3; until: number } | null = null;
+  const tweens = new Set<number>(), timers = new Set<number>();
 
   const insets = () => options.insets?.() ?? { top: 0, bottom: 0 };
   // The legend sits just above the flow's own progress, whatever it currently shows.
@@ -96,18 +104,19 @@ export function createBlueprintConstruction(host: HTMLElement, options: Blueprin
   // A press on the canvas is the person taking the camera: stop following the build until Reset view.
   const onPress = () => { following = false; };
   container.addEventListener('pointerdown', onPress, true);
+  container.addEventListener('keydown', onPress, true);
   container.addEventListener('wheel', onPress, { capture: true, passive: true });
   navigation.querySelector('button')!.onclick = () => { following = true; frameBuild(1200); };
 
   /** A pose that fits the box in the part of the screen the overlaid text leaves free. */
-  function framing(box: Box, elevation: number, margin = 1.12): { position: Vec3; target: Vec3 } {
+  function framing(box: Box, elevation: number, margin = 1.12, azimuth = AZIMUTH): { position: Vec3; target: Vec3 } {
     const rect = container.getBoundingClientRect();
     const width = Math.max(1, rect.width), height = Math.max(1, rect.height);
     const { top, bottom } = insets();
     const free = Math.max(0.35, (height - top - bottom) / height);
     const fov = viewport.cameraPose()?.fov ?? 32;
     const tanV = Math.tan(THREE.MathUtils.degToRad(fov) / 2), tanH = tanV * width / height;
-    const direction = new THREE.Vector3().setFromSphericalCoords(1, Math.PI / 2 - elevation, AZIMUTH);
+    const direction = new THREE.Vector3().setFromSphericalCoords(1, Math.PI / 2 - elevation, azimuth);
     const right = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), direction).normalize();
     const up = new THREE.Vector3().crossVectors(direction, right).normalize();
     const centre = new THREE.Vector3((box.minX + box.maxX) / 2, (box.minY + box.maxY) / 2, (box.minZ + box.maxZ) / 2);
@@ -154,19 +163,29 @@ export function createBlueprintConstruction(host: HTMLElement, options: Blueprin
     });
   }
 
-  function startTrace() {
+  /**
+   * While the architect works and no walls have arrived: light runs along the plan's lines, a
+   * reading band passes down the sheet, and the camera drifts until the person takes it.
+   */
+  function startTrace(driftAfter = TILT) {
     if (reduced() || traceFrame || !ground || shellSeen) return;
     traceStart = performance.now();
     const step = (now: number) => {
       traceFrame = 0;
       if (disposed || shellSeen || !ground) return;
-      ground.trace = ((now - traceStart) % TRACE_PERIOD) / TRACE_PERIOD * 1.35 - 0.2;
+      const elapsed = now - traceStart;
+      ground.trace = (elapsed % TRACE_PERIOD) / TRACE_PERIOD * 1.35 - 0.2;
+      const pass = elapsed % (SCAN_PASS + SCAN_REST);
+      ground.scan = pass < SCAN_PASS ? -0.1 + 1.2 * pass / SCAN_PASS : null;
+      if (following && elapsed > driftAfter) {
+        viewport.setCameraPose(framing(sheetBox(ground.sheetRect), ELEVATION, 1.02, AZIMUTH + DRIFT * (elapsed - driftAfter) / 1000), 0);
+      }
       viewport.redraw();
       traceFrame = requestAnimationFrame(step);
     };
     traceFrame = requestAnimationFrame(step);
   }
-  function stopTrace() { cancelAnimationFrame(traceFrame); traceFrame = 0; if (ground) ground.trace = null; }
+  function stopTrace() { cancelAnimationFrame(traceFrame); traceFrame = 0; if (ground) { ground.trace = null; ground.scan = null; } }
 
   /** The flat as streamed so far; pieces not placed yet wait in a line beside it. */
   function liveScene(): SceneDocument {
@@ -204,23 +223,42 @@ export function createBlueprintConstruction(host: HTMLElement, options: Blueprin
     return { x: (box.minX + box.maxX) / 2, z: (box.minZ + box.maxZ) / 2, width, depth: width * aspect };
   }
 
+  /**
+   * Until the walls arrive the sheet has a placeholder size. When they do, the sheet takes its real
+   * size and place and the camera moves with it by the same scale and offset, so the picture does
+   * not change: the plan stays where it is on screen and the apartment rises onto it, untouched.
+   */
+  function anchorSheet(from: SheetRect, fromFloor: number, target: SheetRect) {
+    if (!ground) return;
+    const s = target.width / from.width, floor = ground.floorLevel;
+    const map = ([x, y, z]: Vec3): Vec3 => [target.x + (x - from.x) * s, floor + (y - fromFloor) * s, target.z + (z - from.z) * s];
+    ground.sheetRect = target;
+    ground.sheetOpacity = 1;
+    ground.gridOpacity = 0;
+    const pose = viewport.cameraPose();
+    if (pose) viewport.setCameraPose({ position: map(pose.position), target: map(pose.target) }, 0);
+    // A camera move still under way (the tilt into 3D) carries on towards the same view.
+    const remaining = cameraGoal ? cameraGoal.until - performance.now() : 0;
+    if (cameraGoal && remaining > 0) viewport.setCameraPose({ position: map(cameraGoal.position), target: map(cameraGoal.target) }, remaining);
+    cameraGoal = null;
+  }
+
   function onShell(animate: boolean) {
     const first = !shellSeen;
     shellSeen = true; stopTrace();
+    const from = ground?.sheetRect, fromFloor = ground?.floorLevel ?? 0;
     show();
     setPhase('walls');
-    if (!first || !ground) return;
-    if (animate) viewport.riseStructure(1700);
+    if (!first || !ground || !from) return;
     const target = registeredSheet();
-    if (target) {
-      const from = ground.sheetRect;
-      void tween(animate ? 1300 : 0, k => {
-        ground.sheetRect = { x: from.x + (target.x - from.x) * k, z: from.z + (target.z - from.z) * k,
-          width: from.width + (target.width - from.width) * k, depth: from.depth + (target.depth - from.depth) * k };
-        ground.sheetOpacity = Math.max(ground.sheetOpacity, k);
-      });
-    }
-    if (following) frameBuild(animate ? 2000 : 0);
+    if (target) anchorSheet(from, fromFloor, target);
+    if (!animate) { ground.gridOpacity = 1; if (following) frameBuild(0); return; }
+    viewport.riseStructure(RISE);
+    // The grid is in metres, the placeholder sheet was not: fade it back in at its true spacing.
+    void tween(RISE, k => { ground.gridOpacity = k; });
+    // Hold still while the walls rise, then frame the apartment.
+    const settle = window.setTimeout(() => { timers.delete(settle); if (!disposed && following && !finished) frameBuild(1600); }, RISE);
+    timers.add(settle);
   }
 
   function apply(event: StageEvent, animate: boolean) {
@@ -274,7 +312,10 @@ export function createBlueprintConstruction(host: HTMLElement, options: Blueprin
       entered = true; navigation.hidden = false; placeNavigation();
       if (shellSeen) return;
       startTrace();
-      if (ground) viewport.setCameraPose(framing(sheetBox(ground.sheetRect), ELEVATION, 1.02), reduced() ? 0 : 1900);
+      if (!ground) return;
+      const pose = framing(sheetBox(ground.sheetRect), ELEVATION, 1.02), duration = reduced() ? 0 : TILT;
+      cameraGoal = { ...pose, until: performance.now() + duration };
+      viewport.setCameraPose(pose, duration);
     },
     event(event) { apply(event, true); },
     progress() {},
@@ -282,11 +323,11 @@ export function createBlueprintConstruction(host: HTMLElement, options: Blueprin
       for (const event of events) apply(event, false);
       setPhase(next);
       if (!entered) { entered = true; navigation.hidden = false; placeNavigation(); }
-      if (!shellSeen) startTrace();
+      if (!shellSeen) startTrace(0);
     },
     async finish(scene, catalog) {
       if (disposed) return;
-      stopTrace(); shellSeen = true;
+      stopTrace(); shellSeen = true; finished = true;
       rooms = scene.rooms; walls = scene.walls;
       // Same document id as the live view: arriving pieces fade in rather than pop.
       viewport.setScene({ ...structuredClone(scene), id: LIVE_ID }, catalog);
@@ -308,7 +349,9 @@ export function createBlueprintConstruction(host: HTMLElement, options: Blueprin
       if (disposed) return;
       disposed = true; stopTrace(); resizing.disconnect();
       tweens.forEach(cancelAnimationFrame); tweens.clear();
+      timers.forEach(clearTimeout); timers.clear();
       container.removeEventListener('pointerdown', onPress, true);
+      container.removeEventListener('keydown', onPress, true);
       container.removeEventListener('wheel', onPress, true);
       viewport.dispose(); root.remove();
     },

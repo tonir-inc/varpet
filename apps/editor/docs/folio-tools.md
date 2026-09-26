@@ -7,15 +7,18 @@ catalog placement, scene document and history; no scene contract changed.
   remains compatible. Both start the unfurnished local shell without an account
   request; Save and Files → Load saved scene use device storage. The editor's
   Sandbox link opens a separate tab so the current project stays open.
-- **Add furniture** opens Furniture immediately, even when another panel is open.
+- **Add furniture** opens Furniture on the right, even when another panel is open.
   Click a catalog card to place a product or drag it onto the floor. Clicking Add
-  again closes the Furniture drawer. Catalog unavailability retains Retry and its
+  again closes the Furniture drawer. Placement keeps it open for the next piece;
+  Properties replaces it only when explicitly opened. Designer stays on the left
+  on desktop; on small screens it steps aside while the library is open.
+  Catalog unavailability retains Retry and its
   existing error message; there are no invented fallback products.
 - The top tool row restores Select, Move, Rotate, Resize, multi-selection, framing,
   snapping and one Selection properties toggle. Selecting a different item opens
   Properties consistently for furniture and structural elements. Toggling or
   closing Properties preserves selection; refreshes do not reopen a closed panel.
-  Properties contains only the current selection. General tools occupy the left
+  Properties contains only the current selection. Other general tools occupy the left
   workspace and temporarily replace Designer; closing them restores the conversation.
   The costs button opens a centered dialog instead of another right drawer.
 - **Sun** opens above the bottom dock, scrolls within available space and supports
@@ -88,3 +91,51 @@ covered room selection, framing, switching between Furniture and Properties, and
 preview visibility. The viewport override was reset. Full workspace tests,
 typecheck and production build passed; fresh read-only review approved the adjustment. Screenshot:
 `output/ui-restoration/floating-selection.png`.
+
+## Blueprint workspace and furniture panel, 27 September 2026
+
+The blueprint ground is now the default for every editor entry, including direct
+editor/sandbox links, saved apartments and read-only shared progress. The optional
+construction presentation still supplies its paper colour, camera and arrival.
+There is no fallback to the old studio pedestal in these entry points.
+
+The right library reuses the catalog cards, search, category filtering, thumbnails
+and checked placement commands. Opening it hides Properties; adding a piece keeps
+the library open and frames the selection beside it. The close button, Escape
+inside the library and shortcut 2 retain the existing panel controls. Its fade
+keeps thumbnail rectangles fixed and respects reduced motion. The catalog clears
+the top editing row; below 900 px, the designer sheet steps aside to preserve room
+for the catalog list and scene.
+
+Browser verification used the real catalog through the existing SSH tunnel on a
+separate local preview origin. Click-add, Undo, explicit Properties switching,
+close/reopen, Escape and shortcut 2 passed. Layout checked at 1200, 1024 and 390 px;
+the 390 px library measured 280 × 586 px. The existing furniture-drop QA page
+completed 26 checks covering placement, exact-once commits, undo/redo, invalid
+floors, cancellation, detached cards and click suppression. The UI automation's
+native drag gesture did not complete a drop; native dragging was not re-proven.
+Screenshot: `output/furniture-panel/blueprint-library.png`.
+
+The untargeted run exposed an existing blueprint rejection test dependency issue:
+presentation constants pulled account/catalog persistence into the landing.
+`portal/blueprint-presentation.ts` now owns the lightweight constants/types;
+`session.ts` re-exports them for compatibility. Renderer startup failure also
+keeps independent architect validation alive, so a late invalid-plan rejection
+can still reset the landing. Back, new uploads, retry and disposal cancel it.
+The four existing rejection tests pass without test or schema changes.
+
+Final verification (Codex GPT-6, 27 September 2026):
+
+```text
+pnpm test                         # exit 0, untargeted
+# Designer: 134 files / 637 tests; Python: 204 + 81 tests
+# Buyer: 10; Showcase: 17; Editor: 29 server + 247 application tests
+# All editor domain/render assertion scripts passed.
+pnpm typecheck                    # exit 0, all workspace packages
+pnpm --filter @varpet/editor build # exit 0; existing chunk-size advisory
+git diff --check                  # exit 0
+```
+
+Fresh independent review: no blocking findings. Concurrent blueprint animation
+edits were preserved in shared main. The named completion/debugging skill files
+were absent; verification is recorded here.

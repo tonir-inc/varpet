@@ -1,5 +1,5 @@
 import { placeFurniture, floorHeight } from './core/furniture-support';
-import { editorSession, apartmentPayload, restoreApartmentSharing, ApartmentShareAttachment } from './portal/session';
+import { BLUEPRINT_PAPER, editorSession, apartmentPayload, restoreApartmentSharing, ApartmentShareAttachment } from './portal/session';
 import { api, AccountError } from './portal/api';
 import { showAuth } from './portal/auth';
 import { createCeilingUI } from './ui/ceiling-design';
@@ -94,15 +94,6 @@ app.innerHTML = `
         <button id="edit-shell" class="button full" style="margin-top:8px">${icon('walls')} Edit apartment & systems <span class="shortcut">4</span></button>
         <div class="structure-note">${icon('layers')} Your apartment, explained<span>Renovate lets you correct walls and openings, review assumptions, compare options and plan services.</span></div>
       </section>
-      <section id="assets-panel" class="panel-content" aria-label="Furniture library" hidden>
-        <div class="section-title"><span>Furniture library</span><span id="asset-count" class="count"></span></div>
-        <label class="search">${icon('search')}<input id="asset-search" placeholder="Search furniture…" aria-label="Search furniture" /></label>
-        <label class="text-field">Category<select id="asset-category" aria-label="Furniture category"><option value="">All furniture</option></select></label>
-        <div id="catalog-status" role="status" aria-live="polite"></div>
-        <button id="catalog-retry" class="button full" hidden>Retry furniture connections</button>
-        <div id="catalog-scroll"><div id="asset-list" class="asset-list"></div></div>
-        <p class="muted catalog-note">Shop prices in AMD, labeled with their source. Pieces built from your photos are not priced. Drag a piece onto the floor, or click to add it.</p><p class="muted catalog-note">Models: <a href="https://amazon-berkeley-objects.s3.amazonaws.com/index.html" target="_blank" rel="noopener noreferrer">Amazon Berkeley Objects</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Models are centered, oriented and scaled to catalog fit dimensions.</p>
-      </section>
       <section id="assistant-panel" class="panel-content" aria-label="Design assistant" hidden>
         <section id="architect-progress" class="af-panel" aria-live="polite" hidden></section>
         <section class="assistant-card"><div class="assistant-heading"><span class="assistant-icon">${icon('sparkles')}</span><div><strong>Design together</strong><span>Design assistant <span class="mock-label">${designerLive ? 'Live' : 'Demo'}</span></span></div></div><p>Explore a change to your apartment. Review the proposal before applying it.</p><button id="suggest" class="button suggestion">${icon('sparkles')} Suggest an edit ${icon('arrow')}</button><div id="proposal" aria-live="polite"></div></section>
@@ -123,6 +114,18 @@ app.innerHTML = `
       <div class="selection-chip" hidden><span id="selected-name"></span><button id="focus-selected" class="icon-button" aria-label="Frame selected object" title="Frame selection · F">${icon('focus')}</button></div>
       <div class="tool-rail" role="toolbar" aria-label="Object tools">${(['select','move','rotate','scale'] as ToolMode[]).map((tool, i) => `<button data-tool="${tool}" class="${i === 0 ? 'active' : ''}" aria-label="${{select:'Select',move:'Move',rotate:'Rotate',scale:'Resize'}[tool]} tool" title="${{select:'Select · V',move:'Move · G',rotate:'Rotate · R',scale:'Resize · E'}[tool]}">${icon(tool)}<kbd>${['V','G','R','E'][i]}</kbd></button>`).join('')}<div class="tool-divider"></div><button id="multi-select" aria-label="Select multiple items" aria-pressed="false" title="Select several walls or models · Shift-click">${icon('layers')}</button><button id="focus" aria-label="Focus selection" title="Frame selection / apartment · F">${icon('focus')}<kbd>F</kbd></button><div class="tool-divider"></div><button id="snap" aria-pressed="true" class="snap active" title="Toggle grid snapping">${icon('grid')}<strong>0.25 m</strong></button></div>
       <div class="canvas-bottom"><span id="view-hint">WASD / arrows to move <b>·</b> Drag to orbit <b>·</b> Space + drag to pan <b>·</b> Scroll to zoom</span></div>
+      <aside id="furniture-library" class="furniture-panel" aria-labelledby="furniture-title" hidden>
+        <div class="panel-heading"><h2 id="furniture-title">Furniture</h2><span id="asset-count" class="count"></span><button id="close-furniture" class="icon-button" aria-label="Close furniture library" title="Close furniture library">${icon('close')}</button></div>
+      <section id="assets-panel" class="panel-content" aria-label="Furniture library" hidden>
+        <label class="search">${icon('search')}<input id="asset-search" placeholder="Search furniture…" aria-label="Search furniture" /></label>
+        <label class="text-field">Category<select id="asset-category" aria-label="Furniture category"><option value="">All furniture</option></select></label>
+        <p class="muted furniture-help">Click a piece to add it, or drag it onto the floor.</p>
+        <div id="catalog-status" role="status" aria-live="polite"></div>
+        <button id="catalog-retry" class="button full" hidden>Retry furniture connections</button>
+        <div id="catalog-scroll"><div id="asset-list" class="asset-list"></div></div>
+        <p class="muted catalog-note">Shop prices in AMD, labeled with their source. Pieces built from your photos are not priced.</p><p class="muted catalog-note">Models: <a href="https://amazon-berkeley-objects.s3.amazonaws.com/index.html" target="_blank" rel="noopener noreferrer">Amazon Berkeley Objects</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Models are centered, oriented and scaled to catalog fit dimensions.</p>
+      </section>
+      </aside>
       <aside id="selection-properties" class="right-panel" aria-label="Selection properties" hidden><div class="inspector-heading"><span>Properties</span><button id="close-inspector" class="icon-button" aria-label="Close properties" title="Close properties">${icon('close')}</button></div><div id="inspector" class="inspector"></div></aside>
       <div id="toast" class="toast" role="status" aria-live="polite"></div>
       <div id="render-error" class="render-error" hidden></div>
@@ -286,10 +289,10 @@ const viewport = createViewport($('#viewport'), {
   onError: message => notify(message, true),
 }, normalizeWallJunctions);
 store.setSurfaceResolver(viewport.furnitureSurface);
-// Built from a blueprint: the apartment stands on its plan's paper, not the studio pedestal. Arriving
-// from the construction view, the editor starts as that exact picture, look-only, with its tools away.
+// Every editor entry uses the blueprint workspace, including saved flats and the sandbox.
+// Construction handoff additionally preserves its exact camera and tool arrival.
 const presentation = editorSession?.presentation;
-if (presentation) viewport.setBackdrop({ paper: presentation.paper });
+viewport.setBackdrop({ paper: presentation?.paper ?? BLUEPRINT_PAPER });
 let arrivalPose = presentation?.camera;
 if (presentation?.arriving) { document.body.classList.add('editor-arriving'); viewport.setLocked(true); }
 const insideLensControl = $<HTMLSelectElement>('#inside-lens');
@@ -562,12 +565,11 @@ function scheduleSelectionReveal() {
 function revealSelection(): boolean {
   selectionRevealFrame = 0;
   if (!selectedId || interacting || previewMode || view === 'plan' || view === 'inside') return false;
-  const panel = $('.right-panel'), canvas = $('#viewport');
+  const panel = $(furniturePanelOpen() ? '#furniture-library' : '#selection-properties'), canvas = $('#viewport');
   if (!canvas.clientWidth) return false;
   const toolbar = $('.tool-rail'), dock = $('.folio-dock');
-  // Properties is optional: room selection must still frame when it is closed.
-  // The tool drawer already resizes the canvas. Only reserve space for a visible
-  // Properties overlay; layout offsets exclude its entrance animation.
+  // Reserve space for the visible right panel so a newly placed piece stays
+  // beside the furniture library. Layout offsets exclude entrance animation.
   const right = panel.offsetWidth ? Math.min(canvas.clientWidth, panel.offsetLeft - canvas.offsetLeft) : canvas.clientWidth;
   const available = {
     left: 24,
@@ -623,7 +625,11 @@ function renderHierarchy() {
   });
 }
 
+function furniturePanelOpen() { return panelOpen && activePanel === 'assets'; }
+function inspectorVisible() { return inspectorOpen && !furniturePanelOpen(); }
+
 function setInspectorOpen(open: boolean) {
+  if (open && selectedId && furniturePanelOpen()) switchPanel('assets', true);
   inspectorOpen = open && !!selectedId;
   renderInspector();
   folioShell?.update();
@@ -635,8 +641,8 @@ function renderInspector() {
   const object = store.scene.objects.find(o=>o.id===selectedId);
   const name = selectedId ? entityName(selectedId) : undefined;
   if (!name) inspectorOpen = false;
-  $('.right-panel').hidden = !inspectorOpen;
-  document.body.classList.toggle('folio-inspect', inspectorOpen);
+  $('#selection-properties').hidden = !inspectorVisible();
+  document.body.classList.toggle('folio-inspect', inspectorVisible());
   $('.selection-chip').hidden = !name;
   $('#selected-name').textContent = name ? selectionLabel() : '';
   const inspectorOptions = {
@@ -843,8 +849,10 @@ function switchPanel(panel:Panel, toggle=false){
   panelOpen=toggle && activePanel===panel ? !panelOpen : true;
   if (!panelOpen && activeFinish) chooseFinish(null);
   activePanel=panel;
-  $('.workspace').classList.toggle('left-collapsed',!panelOpen);
-  $('.left-panel').hidden=!panelOpen;
+  const leftOpen = panelOpen && panel !== 'assets';
+  $('.workspace').classList.toggle('left-collapsed', !leftOpen);
+  $('.left-panel').hidden = !leftOpen;
+  $('#furniture-library').hidden = !furniturePanelOpen();
   $('.workspace').classList.toggle('renovation-active', panel === 'renovation' && panelOpen);
   for(const name of ['scene','assets','assistant','renovation','materials','ceilings']){
     $(`#${name}-panel`).hidden=panel!==name;
@@ -852,7 +860,12 @@ function switchPanel(panel:Panel, toggle=false){
     $(`#${name}-tab`).setAttribute('aria-expanded',String(panel===name && panelOpen));
   }
   $('#panel-title').textContent={scene:'Scene',assets:'Furniture',assistant:'Assistant',renovation:'Renovation studio',materials:'Materials',ceilings:'Ceilings & lights'}[panel];
-  if(panel==='assets' && panelOpen)renderAssets();
+  renderInspector();
+  if (furniturePanelOpen()) {
+    renderAssets();
+    $('#asset-search').focus({ preventScroll: true });
+    if (selectedId) scheduleSelectionReveal();
+  }
   if(panel==='renovation' && panelOpen)renovationUI?.render();
   if(panel==='ceilings' && panelOpen)ceilingUI.render();
   if(pending)renderProposal();
@@ -1139,7 +1152,7 @@ folioShell = mountFolioShell({
   getScene: () => store.scene, getCatalog: () => catalog, getSelectedId: () => selectedId, getView: () => view,
   setTool, openPanel: panel => switchPanel(panel), closePanel: () => { if (panelOpen) switchPanel(activePanel, true); }, isPanelOpen: panel => panelOpen && (!panel || activePanel === panel),
   remove: deleteSelected, undo: () => $<HTMLButtonElement>('#undo').click(),
-  toggleInspector: () => setInspectorOpen(!inspectorOpen), isInspectorOpen: () => inspectorOpen,
+  toggleInspector: () => setInspectorOpen(!inspectorVisible()), isInspectorOpen: inspectorVisible,
   askAbout: (id, label) => {
     if (panelOpen) switchPanel(activePanel, true);
     designerPanel.open();
@@ -1244,6 +1257,12 @@ $('#ceilings-tab').onclick=()=>switchPanel('ceilings',true);
 $('#renovation-tab').onclick=()=>switchPanel('renovation',true);$('#edit-shell').onclick=()=>switchPanel('renovation');
 $('#collapse-panel').onclick=()=>{switchPanel(activePanel,true);$(`[data-folio=${activePanel==='assets'?'add':'more'}]`).focus();};
 $('#browse-assets').onclick=()=>switchPanel('assets');
+$('#close-furniture').onclick=()=>{if(furniturePanelOpen())switchPanel('assets',true);$('[data-folio=add]').focus();};
+$('#furniture-library').addEventListener('keydown', event => {
+  if (event.key === 'Escape' && !interacting) {
+    event.preventDefault(); event.stopPropagation(); $('#close-furniture').click();
+  }
+});
 $<HTMLSelectElement>('#asset-category').innerHTML += Object.entries({ Furniture: catalogKinds.filter(kind => !Object.values(catalogCategories).some(kinds => kinds.includes(kind))), ...catalogCategories }).map(([label, kinds]) => `<optgroup label="${label}">${kinds.map(kind => `<option value="${kind}">${kind.charAt(0).toUpperCase()+kind.slice(1).replaceAll('_', ' ')}</option>`).join('')}</optgroup>`).join('');
 if(architectLive)$<HTMLSelectElement>('#asset-category').add(new Option(BUILT_CATEGORY, BUILT_CATEGORY));
 $('#asset-category').onchange=()=>{assetCategory=$<HTMLSelectElement>('#asset-category').value;$('#catalog-scroll').scrollTop=0;void searchDatabase();};

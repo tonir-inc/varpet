@@ -115,7 +115,7 @@ export function mountFolioShell(deps: FolioShellDeps) {
   toast.className = 'folio-toast'; toast.hidden = true; toast.setAttribute('role', 'status');
   shell.append(toast);
 
-  // Costs are a separate dialog; the right panel belongs only to the selection.
+  // Costs are a separate dialog; the right side is for furniture and selection.
   const quoteButton = document.createElement('button');
   quoteButton.type = 'button'; quoteButton.className = 'folio-quote'; quoteButton.dataset.folio = 'quote';
   quoteButton.title = 'What it costs, and who makes it';

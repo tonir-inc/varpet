@@ -1,4 +1,5 @@
 import { createViewport } from '../render/viewport';
+import { BLUEPRINT_PAPER } from '../portal/blueprint-presentation';
 import { readSharedProject, type ShareReference, type SharedProject } from '../core/sharing';
 import { icon } from './icons';
 import { mountThemeToggle } from './theme';
@@ -16,6 +17,7 @@ export function mountSharedViewer(app: HTMLElement, reference: ShareReference, i
     onSelect() {}, onTransform() {}, onInteraction() {},
     onError(message) { const error = app.querySelector<HTMLElement>('.shared-render-error')!; error.hidden = false; error.textContent = message; },
   });
+  viewport.setBackdrop({ paper: BLUEPRINT_PAPER });
   const render = () => {
     app.querySelector('#shared-project-name')!.textContent = project.scene.name;
     document.title = `${project.scene.name} · Shared progress · Varpet`;

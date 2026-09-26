@@ -19,7 +19,7 @@ export class BlueprintGround {
   readonly background = new THREE.Color();
   private readonly gridUniforms = { uOpacity: { value: 1 }, uColor: { value: INK.clone() }, uCenter: { value: new THREE.Vector2() }, uReach: { value: new THREE.Vector2(8, 40) } };
   private readonly sheetUniforms = {
-    uMap: { value: null as THREE.Texture | null }, uOpacity: { value: 0 }, uTrace: { value: -1 }, uTraceOn: { value: 0 },
+    uMap: { value: null as THREE.Texture | null }, uOpacity: { value: 0 }, uTrace: { value: -1 }, uTraceOn: { value: 0 }, uScan: { value: -1 }, uBand: { value: 0 },
     uErase: { value: -0.1 }, uAccent: { value: INK.clone() },
   };
   private readonly grid: THREE.Mesh;
@@ -55,16 +55,20 @@ export class BlueprintGround {
       vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
       fragmentShader: `
         uniform sampler2D uMap; uniform float uOpacity; uniform float uTrace; uniform float uTraceOn; uniform float uErase; uniform vec3 uAccent;
+        uniform float uScan; uniform float uBand;
         varying vec2 vUv;
         void main() {
           vec4 tex = texture2D(uMap, vUv);
+          // Reading band: a soft line of light passing down the sheet while the architect reads it.
+          float d = (1.0 - vUv.y) - uScan;
+          float band = exp(-(d * d) / (0.03 * 0.03)) * uBand;
           // Working trace: a bright head follows the pen order along the lines, with a fading tail.
           float t = tex.r - uTrace;
           float glow = (exp(-(t * t) / (0.024 * 0.024)) + 0.7 * step(t, 0.0) * exp(t / 0.12)) * uTraceOn;
           // A soft drafting sweep lifts the source off the ground once the model stands on it.
           float remaining = smoothstep(uErase - 0.035, uErase + 0.035, 1.0 - vUv.y);
-          float alpha = tex.a * (0.9 - 0.45 * uTraceOn + min(1.0, glow) * 0.55);
-          gl_FragColor = vec4(mix(uAccent, vec3(1.0), min(1.0, glow)) * 1.15, min(1.0, alpha) * uOpacity * remaining);
+          float alpha = tex.a * (0.9 - 0.45 * uTraceOn + min(1.0, glow) * 0.55 + band * 0.1) + band * 0.09;
+          gl_FragColor = vec4(mix(uAccent, vec3(1.0), max(band * 0.7, min(1.0, glow))) * 1.15, min(1.0, alpha) * uOpacity * remaining);
         }`,
     }));
     this.grid.renderOrder = -3; this.shadow.renderOrder = -2; this.sheet.renderOrder = -1;
@@ -105,10 +109,14 @@ export class BlueprintGround {
   set sheetRect(rect: SheetRect) { this.rect = { ...rect }; this.layout(); }
   get sheetObject(): THREE.Object3D { return this.sheet; }
   get floorLevel(): number { return this.floor; }
+  /** Fades the metre grid, while the sheet under it changes scale. */
+  set gridOpacity(value: number) { this.gridUniforms.uOpacity.value = value; }
   set sheetOpacity(value: number) { this.sheetUniforms.uOpacity.value = value; }
   get sheetOpacity(): number { return this.sheetUniforms.uOpacity.value; }
   /** Pen position along the traced order (0..1); `null` stops the working trace. */
   set trace(value: number | null) { this.sheetUniforms.uTraceOn.value = value == null ? 0 : 1; this.sheetUniforms.uTrace.value = value ?? -1; }
+  /** Reading band position down the sheet (0 top, 1 bottom); `null` hides it. */
+  set scan(value: number | null) { this.sheetUniforms.uBand.value = value == null ? 0 : 1; this.sheetUniforms.uScan.value = value ?? -1; }
   /** 0 leaves the whole sheet, 1 has swept it away from the top down. */
   set erase(value: number) { this.sheetUniforms.uErase.value = -0.1 + value * 1.2; }
 

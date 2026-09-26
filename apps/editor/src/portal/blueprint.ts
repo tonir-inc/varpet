@@ -4,7 +4,7 @@ import type { SceneDocument } from '../contracts';
 import type { CatalogProduct } from '../adapters/database-catalog';
 import type { StageEvent, StagePhase } from '../ui/architect-stage';
 import type { BlueprintConstruction } from './blueprint-construction';
-import { BLUEPRINT_PAPER, type EditorPresentation } from './session';
+import { BLUEPRINT_PAPER, type EditorPresentation } from './blueprint-presentation';
 import { BLUEPRINT_TOTAL_LIMIT, retainBlueprintEvidence, prepareBlueprintPlan, validateBlueprintFile } from './blueprint-evidence';
 import { startBlueprintBuild } from './blueprint-build';
 import { clearBlueprintCheckpoint } from './blueprint-checkpoint';
@@ -490,11 +490,13 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
     say('Reading the plan');
     q('.blueprint-elapsed').textContent = '0:00';
     updatePhase('reading'); q('.blueprint-back').focus({preventScroll: true});
+    let constructionReady = false;
     try {
       const [{createBlueprintConstruction}, {resolveSceneProducts}, {resolveFurnitureProducts}, {parseScene}] = await warmBuild();
       if (disposed || version !== run) return;
       stage = createBlueprintConstruction(q('.blueprint-stage'), {onPhase: updatePhase, ink, sheet: inkSheet(ink), paper: PAPER, insets});
       stage.start();
+      constructionReady = true;
       // Keep the receiving sheet still until the source lands. Early shell events can reframe it.
       if (immediate) {
         welcome.hidden = true; building(); flow.classList.remove('is-entering'); stage.enter();
@@ -543,7 +545,9 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
       if (disposed || version !== run || signal.aborted) return;
       if (cause instanceof Error && cause.name === 'PlanRejectedError') { rejectPlan(cause.message); return; }
       console.warn('[blueprint] build failed', cause);
-      job.cancel(); if (reading === job) reading = undefined;
+      // Reading starts before the view loads. A failed view must still allow the
+      // architect to reject an invalid plan; Back or a new upload cancels it.
+      if (constructionReady) { job.cancel(); if (reading === job) reading = undefined; }
       stage?.dispose(); stage = undefined;
       welcome.hidden = true; building(); board.style.visibility = ''; flow.querySelectorAll('.bp-ghost').forEach(node => node.remove());
       flow.classList.remove('is-entering', 'is-handoff');
@@ -561,6 +565,8 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
     const button = flow.querySelector<HTMLButtonElement>('[data-open]')!;
     button.disabled = false; button.innerHTML = `Open my apartment ${icon('arrow')}`;
     flow.querySelector('.blueprint-complete p')!.textContent = 'Tap doors and windows to try them. Open your apartment to correct any detail.';
+    // Resetting the landing does not require an attached browser URL.
+    if (typeof location === 'undefined') return;
     const route = new URL(location.href), checkpoint = route.searchParams.get('blueprint');
     if (checkpoint) {
       route.searchParams.delete('blueprint'); history.replaceState(null, '', route);
