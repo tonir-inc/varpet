@@ -146,9 +146,39 @@ def run_with_retry(command: list[str], *, idle_timeout: float = IDLE_TIMEOUT,
 
 
 def designer_mcp_env() -> dict[str, str]:
-    """Forward request-local paths explicitly across the SDK → MCP boundary."""
-    return {name: os.environ[name] for name in ("VARPET_SCENE", "VARPET_PROPOSALS_DIR")
-            if name in os.environ}
+    """Forward only request paths and the literal per-laptop catalog endpoint."""
+    from urllib.parse import urlsplit
+
+    forwarded = {name: os.environ[name] for name in (
+        "VARPET_SCENE", "VARPET_PROPOSALS_DIR", "VARPET_CATALOG_URL") if name in os.environ}
+    if "VARPET_CATALOG_URL" in forwarded:
+        return forwarded
+    settings = Path.home() / ".config" / "varpet" / "env"
+    try:
+        lines = settings.read_text(encoding="utf-8").splitlines()
+    except FileNotFoundError:
+        return forwarded
+    for number, line in enumerate(lines, start=1):
+        line = line.strip()
+        if not re.match(r"(?:export\s+)?VARPET_CATALOG_URL\b", line):
+            continue
+        assignment = re.fullmatch(
+            r'''(?:export\s+)?VARPET_CATALOG_URL\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s#]+))(?:\s+#.*)?\s*''',
+            line)
+        value = next((part for part in assignment.groups() if part is not None), "") if assignment else ""
+        valid = bool(value) and not re.search(r"[\s\\$`;|<>()]", value)
+        try:
+            parsed = urlsplit(value)
+            valid = valid and parsed.scheme in ("http", "https") and bool(parsed.hostname)
+            parsed.port  # Reject malformed ports without revealing the configured value.
+        except ValueError:
+            valid = False
+        if not valid:
+            raise ValueError(
+                f"{settings}:{number}: VARPET_CATALOG_URL must be a literal http:// or https:// URL "
+                "(optional export and quotes); shell expansion is unsupported")
+        forwarded["VARPET_CATALOG_URL"] = value
+    return forwarded
 
 
 def build_config(scene_path: Path) -> dict:

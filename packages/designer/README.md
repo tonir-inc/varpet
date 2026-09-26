@@ -95,8 +95,13 @@ Measured: catalog search defaults to the team's HTTP MCP service at
 `http://100.107.246.46:8765/mcp`, with a 20-second total request budget. `VARPET_CATALOG_URL`
 overrides that address. An explicit `VARPET_DB_URL` retains the local Python backend when no URL
 override is set. HTTP searches fetch product details to preserve currency and provenance.
-Assumed: the laptop can reach the team's tailnet service. A 2026-09-26 connectivity probe from this
-workspace timed out, so live catalog retrieval remains unverified here.
+The isolated customer harness forwards an explicit `VARPET_CATALOG_URL`, or reads that one literal
+assignment from `~/.config/varpet/env` when the process environment omits it. Optional `export`, quotes
+and comments are supported; the file is never executed and unrelated settings are not forwarded.
+Measured 2026-09-26: direct tailnet TCP access timed out, but the configured local SSH tunnel worked.
+`search_catalog` launched through the customer harness's actual MCP configuration returned one real
+ABO chair in 4.32 seconds, including dimensions, `price_source: mock` and a 55,000 AMD price.
+This is one successful retrieval, not a latency guarantee or a shop-stock claim.
 Search preserves size evidence and price provenance; mock AMD values are not shop quotations.
 Without catalog data, the designer asks for a specific product or a customer-owned piece's details
 instead of inventing a purchasable item.
