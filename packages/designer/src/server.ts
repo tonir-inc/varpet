@@ -17,6 +17,7 @@ import {placeBatch,placementsSchema} from './place-batch.js';
 import {searchCatalog,searchCatalogInputSchema,type CatalogQuery} from './catalog.js';
 import {ask,askInputSchema} from './ask.js';
 import {opsToolSchema,placeToolSchema} from './tool-inputs.js';
+import {candidateSheet} from './catalog-vision.js';
 import {designRoom,type DesignCandidate} from './taste/design.js';
 
 export function result(data: unknown, isError = false) {
@@ -29,8 +30,16 @@ export function createServer(input: Scene, options:{catalogQuery?:CatalogQuery; 
   const session = new DesignerSession(scene,options.customerRequests);
   let styleCandidates:DesignCandidate[]=[];
   let stylePlanning=false;
+  const productVision=process.env.VARPET_VISION_PRODUCTS==='1',seenProducts=new Set<string>();
   const server = new McpServer({ name: 'varpet-designer', version: '0.0.0' });
-  server.registerTool('scene_summary', {
+  if(productVision)server.registerTool('show_candidates',{
+    description:'Look before choosing. Show exact catalog renders (shop photo fallback) for 1–12 shortlisted IDs. Check visual style, silhouette, palette and broken models. Blank tiles are unknown. Required before purchasing when product vision is enabled.',
+    inputSchema:{item_ids:z.array(z.string().min(1)).min(1).max(12)},
+  },async({item_ids})=>{
+    try {const sheet=await candidateSheet(item_ids);item_ids.forEach(id=>seenProducts.add(id));return sheet;}
+    catch(error){return result(String(error),true);}
+  });
+  server.registerTool('scene_summary' , {
     description: 'Rooms, walls with compass directions, openings, furniture, keeps and fixed items. An empty room_ids selects none.',
     inputSchema: { room_ids: z.array(z.string()).optional() },
   }, ({ room_ids }) => {
@@ -101,6 +110,10 @@ export function createServer(input: Scene, options:{catalogQuery?:CatalogQuery; 
       if(declared?.room_id&&declared.room_id!==candidate.intent.room_id)return result({ok:false,errors:[{check:'request_room',message:'The selected candidate is outside the declared request room.'}]},true);
       ops=candidate.ops;session.setIntent({...declared,...candidate.intent});
     }else if(stylePlanning)return result({ok:false,errors:[{check:'composition',message:'Style plans require choosing one of the two checked candidate IDs.'}]},true);
+    if(productVision){
+      const missing=(ops??[]).filter(op=>op.type==='add'&&!seenProducts.has(op.item.sku??'')).map(op=>op.type==='add'?op.item.sku:undefined);
+      if(missing.length)return result({ok:false,errors:[{check:'visual_evidence',message:'Call show_candidates before selecting these products; inspect appearance and retry.',item_ids:missing}]},true);
+    }
     const proposal=session.propose(ops,rationale);
     if (proposal.ok && proposalsDir) {
       const temporary = join(proposalsDir, `.${proposal.proposal_id}-${randomUUID()}.tmp`);

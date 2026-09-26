@@ -21,6 +21,7 @@ import re
 import uuid
 
 import designer
+import designer_vision
 from designer_presentation import format_presentation
 from designer_conversation import conversational_reply, ConversationStream
 
@@ -71,6 +72,8 @@ def validate_request(body) -> dict:
         if not isinstance(swings, dict) or any(value not in ("in-left", "in-right", "out-left", "out-right")
                                                for value in swings.values()):
             raise ValueError("doorSwings must map opening ids to in-left, in-right, out-left or out-right")
+    if "vision" in body:
+        designer_vision.validate_vision(body["vision"], scene, body["revision"], body["request"])
     return body
 
 
@@ -217,7 +220,10 @@ class DesignerService:
                 job.write_text(json.dumps({"runtime": conversation.runtime, "request": body["request"],
                                            "effort": self.effort, "profile": self.profile, "images": self.image_paths,
                                            "conversion_error": conversion_error,
-                                           "catalog": body.get("catalog"), "catalogCurrency": body.get("catalogCurrency")}))
+                                           "catalog": body.get("catalog"), "catalogCurrency": body.get("catalogCurrency"),
+                                           **({"turn_images": designer_vision.materialize_images(body["vision"], root),
+                                               "vision": {key: value for key, value in body["vision"].items() if key not in ("view", "plan")},
+                                               "vision_guidance": designer_vision.guidance(body["vision"])} if body.get("vision") else {})}))
                 env = {**os.environ, "VARPET_SCENE": conversation.runtime["scene"],
                        "VARPET_PROPOSALS_DIR": str(proposals)}
                 events, pending = [], ""
@@ -300,9 +306,17 @@ class DesignerService:
                             raise RuntimeError(f"Invalid designer presentation {key}")
                     proposal = {**proposal, "title": presentation["title"],
                                 "description": presentation["description"]}
+                    visual = None
+                    if body.get("vision", {}).get("selfCheck"):
+                        confirmed, visual = designer_vision.confirm_proposal(self, body, proposal, root, cancel, progress)
+                        if not confirmed:
+                            outcome = "question"
+                            return {"type": "question", "conversationId": conversation_id,
+                                    "question": "I haven’t confirmed that this preview meets the requested look. " + visual.get("reason", "")[:600],
+                                    "options": ["Adjust the style request", "Try again without visual confirmation"]}
                     outcome = "proposal"
                     return {"type": outcome, "conversationId": conversation_id, "proposal": proposal,
-                            "metrics": saved.get("score", {}),
+                            "metrics": {**saved.get("score", {}), **({"visualConfirmation": visual} if visual else {})},
                             **({"notes": presentation["notes"]} if "notes" in presentation else {})}
                 questions = [value for event in events for value in tool_values(event, "ask")
                              if value.get("type") == "question" and isinstance(value.get("question"), str)]

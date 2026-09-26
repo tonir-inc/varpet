@@ -1,0 +1,16 @@
+<!doctype html><html><head><meta charset="utf-8"><style>html,body,#viewport{margin:0;width:100%;height:100%;overflow:hidden}</style></head><body><div id="viewport"></div><script type="module">
+import {AssetLoader} from '/src/render/assets.ts';
+import {createViewport} from '/src/render/viewport.ts';
+import {EditorStore} from '/src/core/store.ts';
+window.captureErrors=[];window.capturePending=0;window.captureLoaded=[];
+const load=AssetLoader.prototype.load;
+AssetLoader.prototype.load=async function(asset){window.capturePending++;try{const model=await load.call(this,asset);window.captureLoaded.push(asset.id);return model;}catch(e){window.captureErrors.push(String(e));throw e;}finally{window.capturePending--;}};
+window.renderVision=({scene,catalog,proposal})=>{
+ const store=new EditorStore(scene,catalog);
+ if(proposal){const accepted=store.execute({...proposal.command,baseRevision:0},true);if(!accepted.ok)throw new Error(accepted.errors.join('; '));}
+ window.renderedScene=store.scene;
+ window.captureExpected=[...new Set(store.scene.objects.map(o=>o.assetId))].filter(id=>catalog.find(a=>a.id===id)?.source.type==='gltf');
+ window.evalViewport=createViewport(document.querySelector('#viewport'),{onSelect(){},onTransform(){},onInteraction(){},onError(e){window.captureErrors.push(e)}});
+ evalViewport.setScene(store.scene,catalog);evalViewport.setWalls('cutaway');evalViewport.setQuality('balanced');evalViewport.focus();
+};
+</script></body></html>
