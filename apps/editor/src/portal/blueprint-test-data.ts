@@ -103,6 +103,7 @@ export function createBlueprintTestBuild(data: BlueprintTestData, state: Bluepri
     return {
       plan, photos: [...photos], started: performance.now(), result,
       get status() { return status; },
+      get rejection() { return undefined; },
       get signal() { return controller.signal; },
       attach(onProgress, onEvent) {
         if (controller.signal.aborted || attached) return;
