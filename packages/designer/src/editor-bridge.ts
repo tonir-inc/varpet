@@ -43,13 +43,60 @@ const swings = { 'in-left': 'inward-left', 'in-right': 'inward-right', 'out-left
 const plan = ([x, z]: Vec2): Vec2 => [x, -z];
 const digest = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 
+/** Kind the designer gives an object whose catalog asset it cannot resolve; the model reads it as a fixed obstacle. */
+export const UNRECOGNISED_KIND = 'unrecognised';
+/** Editor order (width, height, depth) for a stand-in with no usable catalog dimensions. */
+const STAND_IN_DIMENSIONS: [number, number, number] = [0.6, 0.9, 0.6];
+const assetProbe = { format: 'varpet.editor', version: 1, id: 'asset-probe', name: 'Asset probe', units: 'm', upAxis: 'Y',
+  rooms: [{ id: 'probe', name: 'Probe', polygon: [[0, 0], [1, 0], [1, 1], [0, 1]], color: '#ffffff' }], walls: [], objects: [] };
+const validAsset = (asset: unknown) => validateScene(assetProbe, [asset as CatalogAsset]).ok;
+
+export interface BridgeCatalog {
+  /** Valid supplied assets plus a stand-in for every asset the scene references but the catalog cannot supply. */
+  catalog: CatalogAsset[];
+  /** Valid supplied assets only: purchases resolve against these, never against a stand-in. */
+  known: CatalogAsset[];
+  /** Objects converted as fixed obstacles: unknown assets and anything resting on them. */
+  unrecognised: Set<string>;
+}
+
+/** One object with an unknown or invalid catalog asset must not make the whole flat unreadable. Its asset gets
+ * a stand-in (the supplied record's dimensions when they are usable) so the editor checks still run, and the
+ * designer keeps the object where it is as a fixed obstacle. Invalid, unreferenced catalog records are dropped. */
+export function bridgeCatalog(input: unknown, catalog: CatalogAsset[]): BridgeCatalog {
+  const known: CatalogAsset[] = [], ids = new Set<string>();
+  for (const asset of Array.isArray(catalog) ? catalog : []) if (isRecord(asset) && typeof asset.id === 'string' && !ids.has(asset.id) && validAsset(asset)) { known.push(asset); ids.add(asset.id); }
+  const objects = isRecord(input) && Array.isArray(input.objects) ? input.objects.filter(isRecord) : [];
+  const standIns = new Map<string, CatalogAsset>(), unrecognised = new Set<string>();
+  for (const object of objects) {
+    if (typeof object.assetId !== 'string' || ids.has(object.assetId) || typeof object.id !== 'string') continue;
+    unrecognised.add(object.id);
+    if (standIns.has(object.assetId)) continue;
+    const raw = (Array.isArray(catalog) ? catalog : []).find(asset => isRecord(asset) && asset.id === object.assetId) as Record<string, unknown> | undefined;
+    const dimensions = Array.isArray(raw?.dimensions) && raw.dimensions.length === 3 && raw.dimensions.every(value => typeof value === 'number' && Number.isFinite(value) && value >= 0.01 && value <= 20)
+      ? raw.dimensions as [number, number, number] : STAND_IN_DIMENSIONS;
+    // The stand-in's kind only has to satisfy the editor's mount rules for how this object is placed.
+    const [kind, name] = object.hangsFrom === 'ceiling' ? ['plant', 'Unrecognised hanging plant'] as const
+      : object.host !== undefined ? ['wall_art', 'Unrecognised wall item'] as const : ['decor', 'Unrecognised item'] as const;
+    standIns.set(object.assetId, { id: object.assetId, name, category: UNRECOGNISED_KIND, kind, dimensions: [...dimensions], color: '#9a9a9a', price: 0, source: { type: 'procedural' } });
+  }
+  // With no usable catalog at all nothing can be identified: that is a missing catalog, not one odd object.
+  if (unrecognised.size && !known.length) throw new Error('Invalid editor scene: no usable catalog was supplied for its furniture assets');
+  // Furniture standing on an unrecognised piece stays with it.
+  for (let grew = true; grew;) {
+    grew = false;
+    for (const object of objects) if (typeof object.id === 'string' && typeof object.restsOn === 'string' && unrecognised.has(object.restsOn) && !unrecognised.has(object.id)) { unrecognised.add(object.id); grew = true; }
+  }
+  return { catalog: [...known, ...standIns.values()], known, unrecognised };
+}
+
 function validatedEditor(input: unknown, catalog: CatalogAsset[]): SceneDocument {
   const validation = validateScene(input, catalog);
   if (!validation.ok) throw new Error(`Invalid editor scene: ${validation.errors.join(' ')}`);
   return structuredClone(input as SceneDocument);
 }
 
-function checkSupported(scene: SceneDocument, options: EditorBridgeOptions): void {
+function checkSupported(scene: SceneDocument, options: EditorBridgeOptions, unrecognised: ReadonlySet<string> = new Set()): void {
   if(options.geometryPolicy!==undefined&&!['strict','reconcile'].includes(options.geometryPolicy))throw new Error("Unsupported geometryPolicy");
   if (options.groupPolicy !== undefined && !['preserve', 'move-together'].includes(options.groupPolicy)) throw new Error('Unsupported groupPolicy; use preserve or move-together');
   if (options.northDeg !== undefined && !Number.isFinite(options.northDeg)) throw new Error('northDeg must be finite');
@@ -61,7 +108,7 @@ function checkSupported(scene: SceneDocument, options: EditorBridgeOptions): voi
     if (!Object.hasOwn(swings, swing)) throw new Error(`Unsupported door swing: ${swing}`);
   }
   // Furniture resting on furniture (restsOn), wall-hung (host) and ceiling-hung items are elevated by contract.
-  for (const object of scene.objects) if (Math.abs(object.position[1]) > EPS && object.restsOn === undefined && object.host === undefined && object.hangsFrom !== 'ceiling') throw new Error(`Unsupported elevated object: ${object.id}`);
+  for (const object of scene.objects) if (!unrecognised.has(object.id) && Math.abs(object.position[1]) > EPS && object.restsOn === undefined && object.host === undefined && object.hangsFrom !== 'ceiling') throw new Error(`Unsupported elevated object: ${object.id}`);
   for (const opening of openings) if (opening.kind === 'door' && opening.sill > EPS) throw new Error(`Unsupported elevated door: ${opening.id}`);
   const project = scene.project;
   if (!project) return;
@@ -152,15 +199,27 @@ function addServiceObstacles(editor: SceneDocument, scene: Scene): void {
   }
 }
 
+/** A floor-standing object the bridge cannot identify stays where it is as a fixed obstacle of its known footprint.
+ * Hung pieces and pieces standing on it take no floor and are left out; the designer cannot move or buy them. */
+function addUnrecognised(scene: Scene, object: SceneDocument['objects'][number], asset: CatalogAsset, footprint: Vec2[], options: EditorBridgeOptions): void {
+  if (object.host !== undefined || object.hangsFrom !== undefined || object.restsOn !== undefined || !Array.isArray(object.position)) return;
+  const pos: Vec2 = [object.position[0], -object.position[2]];
+  const room = scene.rooms.find(candidate => outsidePoint(footprint, candidate.polygon) === undefined) ?? scene.rooms.find(candidate => outsidePoint([pos], candidate.polygon) === undefined);
+  if (!room) return;
+  scene.fixed.push({ id: object.id, name: `${object.name} (unrecognised catalog item ${object.assetId}: fixed in place, approximate size)`.slice(0, 300), kind: UNRECOGNISED_KIND,
+    room_id: room.id, pos, rot: object.rotation * 180 / Math.PI, size: [asset.dimensions[0] * object.scale[0], asset.dimensions[2] * object.scale[2], asset.dimensions[1] * object.scale[1]], keep: true,
+    ...(object.groupId !== undefined && options.groupPolicy === 'move-together' ? { group_id: object.groupId } : {}) });
+}
+
 /** Convert a validated snapshot; functional subtypes require catalog evidence,
  * while orientation and currency must be supplied explicitly. */
 export function editorToDesigner(input: unknown, options: EditorBridgeOptions = {}): Scene {
-  const catalog = options.catalog ?? localCatalog;
+  const { catalog, unrecognised } = bridgeCatalog(input, options.catalog ?? localCatalog);
   let editor = validatedEditor(input, catalog);
   const reconciliation = (options.geometryPolicy ?? (editor.version === 2 ? "reconcile" : "strict")) === "reconcile" ? snapRoomFaces(editor) : undefined;
   if(reconciliation)editor=reconciliation.editor;
-  checkSupported(editor, options);
-  const blocking = placementIssues(editor, catalog).filter(issue => issue.blocking);
+  checkSupported(editor, options, unrecognised);
+  const blocking = placementIssues(editor, catalog).filter(issue => issue.blocking && !unrecognised.has(issue.entityId));
   if (blocking.length) throw new Error(`Unsupported editor placement: ${blocking.map(issue => issue.message).join(' ')}`);
   const zone = (id: string) => { const value = editor.project?.metadata[id]?.zone; return value && value !== 'interior' ? { zone: value } : {}; };
   const scene: Scene = { rooms: editor.rooms.map(room => ({ id: room.id, name: room.name, polygon: room.polygon.map(plan), ...zone(room.id) })), walls: [], openings: [], items: [], fixed: [] };
@@ -200,6 +259,7 @@ export function editorToDesigner(input: unknown, options: EditorBridgeOptions = 
   for (const object of editor.objects) {
     const asset = catalog.find(candidate => candidate.id === object.assetId)!;
     const footprint = objectFootprint(object, asset).map(plan);
+    if (unrecognised.has(object.id)) { addUnrecognised(scene, object, asset, footprint, options); continue; }
     const rooms = scene.rooms.filter(room => outsidePoint(footprint, room.polygon) === undefined);
     if (rooms.length !== 1) throw new Error(`Object ${object.id} must fit in exactly one room; spanning or overlapping room ownership is unsupported`);
     const metadata = editor.project?.metadata[object.id];
@@ -220,13 +280,13 @@ export function proposalToEditor(input: unknown, editorInput: unknown, revision:
   if (!isRecord(candidate) || typeof candidate.id !== 'string' || !candidate.id || typeof candidate.rationale !== 'string'
     || candidate.requires_user_acceptance !== true || candidate.application_status !== 'not_applied' || candidate.validation_scope !== 'temporary_designer_scene'
     || !isRecord(candidate.checks) || candidate.checks.ok !== true || !isRecord(candidate.request_check) || candidate.request_check.ok !== true) throw new Error('Only accepted, request-checked, unapplied designer proposals can be translated');
-  const catalog = options.catalog ?? localCatalog, editor = validatedEditor(editorInput, catalog), scene = editorToDesigner(editor, options);
+  const { catalog, known, unrecognised } = bridgeCatalog(editorInput, options.catalog ?? localCatalog), editor = validatedEditor(editorInput, catalog), scene = editorToDesigner(editor, options);
   if (candidate.base_scene_fingerprint !== sceneDigest(scene)) throw new Error('Stale proposal: source snapshot fingerprint does not match');
   const ops = parseOps(candidate.ops);
   if (ops.length < 1 || ops.length > 100) throw new Error('Editor proposals require 1–100 operations');
   // Resolve purchase provenance before expensive geometry and before constructing an editor command.
   for (const op of ops) if (op.type === 'add') {
-    const asset = catalog.find(candidate => candidate.id === op.item.sku);
+    const asset = known.find(candidate => candidate.id === op.item.sku);
     if (!asset) throw new Error(`Addition ${op.item.id} needs a real catalog asset ID in sku`);
     if (options.catalogCurrency !== 'AMD') throw new Error('Purchases require explicit catalogCurrency AMD; catalog currency is otherwise unknown');
     if (!Number.isSafeInteger(asset.price) || op.item.price !== asset.price) throw new Error(`Addition ${op.item.id} must carry the exact catalog price in AMD`);
@@ -275,7 +335,7 @@ export function proposalToEditor(input: unknown, editorInput: unknown, revision:
   // This store is private and disposable; the caller's snapshot is never modified or approved.
   const preview = new EditorStore(editor, catalog), checked = preview.execute({ ...proposal.command, baseRevision: 0 }, true);
   if (!checked.ok) throw new Error(`Editor rejected translated proposal: ${checked.errors.join(' ')}`);
-  const blocking = placementIssues(preview.scene, catalog).filter(issue => issue.blocking);
+  const blocking = placementIssues(preview.scene, catalog).filter(issue => issue.blocking && !unrecognised.has(issue.entityId));
   if (blocking.length) throw new Error(`Translated proposal has unsupported placement: ${blocking.map(issue => issue.message).join(' ')}`);
   return proposal;
 }
