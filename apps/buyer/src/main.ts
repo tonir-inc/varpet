@@ -8,7 +8,7 @@ import { exampleFlat, komitasFlats, money, type Flat } from './flats';
 import { buildQuote, sizeOf, type QuoteGroupId } from './quote';
 import { initialDesigner, reduce } from './stream/reducer';
 import { play } from './stream/player';
-import { createRoomMarks } from './ui/marks';
+import { createRoomMarks, type BuildMark, type BuildStage } from './ui/marks';
 import { EXAMPLE_PICTURE, pictureBoxes } from './ui/picture';
 
 const $ = <T extends Element = HTMLElement>(selector: string) => document.querySelector<T>(selector)!;
@@ -34,8 +34,12 @@ let quoteOpen = false;
 
 /* ---------- the designer ---------- */
 let designer: DesignerState = initialDesigner();
-let recordingAt = 0;
+let recordingAt = 0, recordingWall = performance.now();
+const recordingNow = () => recordingAt + (performance.now() - recordingWall) / 1000 * speed;
+let piecesSeenWall = 0;
 const boxes = new Map<number, [number, number, number, number]>();
+const drawnBoxes = new Set<number>();
+const searched = new Set<number>();
 const buildStarted = new Map<string, number>();
 let applied = false;
 let abort: AbortController | null = null;
@@ -47,7 +51,7 @@ const viewport = createViewport($('#viewport'), {
   onInteraction: () => {},
   onError: message => toast(message, true),
 });
-const marks = createRoomMarks($<SVGSVGElement>('#marks'), viewport);
+const marks = createRoomMarks($<SVGSVGElement>('#marks'), $('#cards'), viewport);
 viewport.setWalls('cutaway');
 viewport.setView('perspective');
 viewport.setTool('select');
@@ -113,17 +117,20 @@ async function startExample() {
   if (!response?.ok) { toast('There is no recorded example for this flat yet.', true); return; }
   const recording = await response.json() as Recording;
   abort?.abort(); abort = new AbortController();
-  designer = initialDesigner(); boxes.clear(); buildStarted.clear(); applied = false; recordingAt = 0;
+  designer = initialDesigner(); boxes.clear(); buildStarted.clear(); drawnBoxes.clear(); searched.clear(); applied = false; recordingAt = 0; recordingWall = performance.now(); piecesSeenWall = 0;
+  $('#ref-pic').innerHTML = `${EXAMPLE_PICTURE}<svg class="boxes" aria-hidden="true"></svg><span class="scan" aria-hidden="true"></span>`;
   $('#reference').hidden = false;
   render();
   play(recording, { speed, signal: abort.signal, onLine: (line, at) => receive(line, at) });
 }
 function receive(line: StreamLine, at: number) {
   const before = new Map(designer.pieces.map(piece => [piece.key, piece.status]));
-  recordingAt = at;
+  recordingAt = at; recordingWall = performance.now();
   designer = reduce(designer, line, at);
   if (line.type === 'tool' && line.name === 'set_intent' && line.phase === 'end') for (const seen of line.refs?.pieces ?? []) if (seen.box) boxes.set(seen.key, seen.box);
-  if (line.type === 'build' && !buildStarted.has(line.slotId)) buildStarted.set(line.slotId, at);
+  if (line.type === 'tool' && line.name === 'search_catalog' && line.phase === 'end' && line.refs?.key !== undefined) searched.add(line.refs.key);
+  if (line.type === 'build' && line.state === 'writing' && !buildStarted.has(line.slotId)) buildStarted.set(line.slotId, at);
+  if (!piecesSeenWall && designer.pieces.length) { piecesSeenWall = performance.now(); setTimeout(render, 2800); }
   render();
   // A built piece swaps in for its grey slot and assembles in place.
   for (const piece of designer.pieces) {
@@ -140,7 +147,7 @@ function receive(line: StreamLine, at: number) {
 function minutesLeft(): string {
   const active = designer.pieces.filter(piece => piece.slotId && BUILDING.has(piece.status));
   if (!active.length) return '';
-  const left = Math.max(...active.map(piece => 125 - (recordingAt - (buildStarted.get(piece.slotId!) ?? recordingAt))));
+  const left = Math.max(...active.map(piece => 125 - (recordingNow() - (buildStarted.get(piece.slotId!) ?? recordingNow()))));
   return left > 90 ? 'About 2 minutes left' : left > 30 ? 'About a minute left' : 'Almost done';
 }
 
@@ -180,17 +187,32 @@ function render() {
 }
 
 function renderMarks(scene: SceneDocument, list: CatalogAsset[]) {
+  const builds: BuildMark[] = designer.pieces.flatMap(piece => {
+    const objectId = objectForAsset(designer.proposal, piece.slotId);
+    if (!objectId || piece.status === 'failed') return [];
+    const stage: BuildStage = piece.status === 'reserved' ? 'queued' : piece.status as BuildStage;
+    return [{ key: piece.key, objectId, name: piece.name, stage, startedAt: buildStarted.get(piece.slotId!) ?? recordingNow() }];
+  });
+  // Slots still being built are not furniture yet: the view hides them and the drawing takes their place.
+  viewport.setHidden(pendingProposal() && viewing === null ? builds.filter(b => b.stage !== 'done').map(b => b.objectId) : []);
   if (mode !== 'designer' || viewing !== null || applied || !designer.proposal) { marks.set(null); return; }
   const objects = pieceObjects();
   const pending = new Set(designer.pieces.filter(piece => piece.status !== 'found' && piece.status !== 'done').map(piece => piece.key));
-  const slots = designer.pieces.filter(piece => piece.slotId && BUILDING.has(piece.status)).flatMap(piece => objectForAsset(designer.proposal, piece.slotId) ?? []);
-  marks.set({ scene, catalog: list, changed: changedIds(designer.proposal), slots, marks: [...objects].map(([objectId, key]) => ({ key, objectId, pending: pending.has(key) })) });
+  marks.set({ scene, catalog: list, changed: changedIds(designer.proposal), builds, now: recordingNow, marks: [...objects].map(([objectId, key]) => ({ key, objectId, pending: pending.has(key) })) });
 }
 
 function renderReference() {
   const figure = $('#reference');
   if (figure.hidden) return;
-  $('#ref-pic').innerHTML = EXAMPLE_PICTURE + pictureBoxes(designer.pieces, boxes);
+  const stage = !designer.pieces.length ? 'reading' : performance.now() - piecesSeenWall < 2600 ? 'found' : 'pinned';
+  figure.dataset.stage = stage;
+  document.body.toggleAttribute('data-reading', stage !== 'pinned');
+  $('#ref-caption').textContent = stage === 'reading' ? 'Reading your picture' : stage === 'found' ? `${designer.pieces.length} pieces found` : 'Your picture. Read once, then deleted.';
+  const svg = figure.querySelector('.boxes');
+  if (!svg) return;
+  const html = pictureBoxes(designer.pieces, boxes, drawnBoxes);
+  if (svg.innerHTML !== html) svg.innerHTML = html;
+  for (const piece of designer.pieces) if (boxes.has(piece.key)) drawnBoxes.add(piece.key);
 }
 
 function renderSays() {
@@ -207,7 +229,7 @@ function renderSays() {
 }
 
 const statusLine: Record<string, (p: Piece, size: string) => string> = {
-  seen: () => 'Looking for it.',
+  seen: p => searched.has(p.key) ? 'No shop has one that fits. It will be built to fit.' : 'Looking for it.',
   searching: () => 'Searching Yerevan shops.',
   found: (_, size) => `Found in a Yerevan shop, <span class="num">${size}</span>.`,
   reserved: (_, size) => `No shop has one that fits. Building it to fit, <span class="num">${size}</span>.`,
@@ -222,6 +244,10 @@ const statusLine: Record<string, (p: Piece, size: string) => string> = {
 function renderPanel(scene: SceneDocument, list: CatalogAsset[]) {
   const panel = $('#panel');
   if (mode === 'hand') { panel.innerHTML = inspectorHtml(scene, list); return; }
+  if (!designer.pieces.length && designer.phase !== 'idle') {
+    panel.innerHTML = `<h2>Reading your picture</h2><p class="lead soft">The designer is finding each piece in it: what it is, its size, its colour and material. Then it looks for each one in Yerevan shops.</p>`;
+    return;
+  }
   if (!designer.pieces.length) {
     panel.innerHTML = `<h2>Make it yours</h2><p class="lead soft">Two ways to change this flat.</p>
       <div class="ways"><div class="way"><h3>Show the designer a picture</h3><p>Upload a room you like. It finds the pieces in Yerevan shops, or has them built to fit your walls, and checks every walkway and door.</p></div>
@@ -291,7 +317,7 @@ function currentQuote(scene: SceneDocument, list: CatalogAsset[]) {
 const groupText: Record<QuoteGroupId, { title: string; who: string; action?: string; blue?: boolean }> = {
   shop: { title: 'A Yerevan furniture shop', who: 'Example shop, no agreement yet', action: 'Message the shop' },
   workshop: { title: 'A workshop, made to measure', who: 'Example workshop, no agreement yet', action: 'Send the drawing', blue: true },
-  developer: { title: "From the developer's design", who: "Placeholders you'd still need to buy" },
+  developer: { title: 'In the flat now, from the developer', who: 'Real products. Buy them, or tick the ones you already own.' },
   yours: { title: 'Already yours', who: 'Costs nothing' },
 };
 function renderQuote(scene: SceneDocument, list: CatalogAsset[]) {
@@ -305,7 +331,7 @@ function renderQuote(scene: SceneDocument, list: CatalogAsset[]) {
       ${group.lines.map(line => `<div class="line"><span class="t">${esc(line.tag)}</span><span class="d">${esc(line.name)}${line.count > 1 ? ` × ${line.count}` : ''}<small class="num">${esc(line.size)}</small></span>
         <span class="v num">${line.unit === null ? '–' : money(line.unit * line.count, flat.currency)}${line.note ? `<small>${esc(line.note)}</small>` : ''}</span></div>`).join('')}</section>`; }).join('')}
     <div class="qtotal"><span>To make this flat real</span><strong class="num">${money(quote.total, flat.currency)}</strong></div>
-    <p class="qfoot soft">${flat.currency ? 'Sample prices.' : 'Demo prices with no currency.'} ${quote.real} of ${quote.pieces} pieces are real products or already yours; the rest are estimates or placeholders.</p>
+    <p class="qfoot soft">${flat.currency ? 'Sample prices.' : 'Demo prices with no currency.'} ${quote.real} of ${quote.pieces} pieces are products you can buy or already own; the rest are made-to-measure estimates.</p>
     <div class="qacts"><button class="primary" data-contact="advisor">Send to my advisor</button><button data-contact="share">Share with family</button></div>`;
 }
 
@@ -328,7 +354,7 @@ document.addEventListener('click', event => {
   else if (d.close !== undefined) { quoteOpen = false; render(); }
   else if (d.contact) toast(d.contact === 'share' ? 'Sharing needs an account; this demo keeps everything on this device.' : 'Contacting shops, workshops and advisors is not connected in this demo.');
   else if (target.id === 'apply') applyProposal();
-  else if (target.id === 'dismiss') { abort?.abort(); designer = initialDesigner(); $('#reference').hidden = true; render(); }
+  else if (target.id === 'dismiss') { abort?.abort(); designer = initialDesigner(); $('#reference').hidden = true; document.body.removeAttribute('data-reading'); render(); }
 });
 document.addEventListener('change', event => {
   const input = event.target as HTMLInputElement;
