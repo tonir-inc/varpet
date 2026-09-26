@@ -65,6 +65,8 @@ class Report:
 
 async def dispatch(graph: Graph, runner: Runner, run_dir: Path, lanes: int = 6) -> Report:
     report = Report(flat=graph.flat)
+    run_dir.mkdir(parents=True, exist_ok=True)
+    (run_dir / "graph.json").write_text(graph.model_dump_json(indent=1))
     jobs = {j.id: j for j in graph.jobs}
     pending = dict(jobs)
     running: dict[asyncio.Task, str] = {}

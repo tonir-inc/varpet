@@ -1,6 +1,7 @@
 import base64
 import json
 import threading
+import urllib.error
 import urllib.request
 from http.server import ThreadingHTTPServer
 from pathlib import Path
@@ -47,4 +48,33 @@ def test_structure_stream(tmp_path):
     assert set(result["rooms"][0]) == {"id", "name", "polygon", "color"}
     bad = post(server.server_port, {"photos": []})
     assert bad[-1]["type"] == "error" and "plan" in bad[-1]["message"]
+    server.shutdown()
+
+
+def test_pieces_catalog_and_files(tmp_path):
+    from varpet_harness.graph import Graph
+
+    run = tmp_path / "demo-20260926-120000"
+    (run / "sofa").mkdir(parents=True)
+    (run / "bedside-lamp").mkdir()
+    (run / "graph.json").write_text(Graph(flat="demo", jobs=[
+        {"id": "sofa", "kind": "piece", "brief": "x", "size": [2.2, 0.95, 0.85]},
+        {"id": "bedside-lamp", "kind": "piece", "brief": "x", "size": [0.3, 0.3, 0.5]}]).model_dump_json())
+    (run / "sofa" / "piece.glb").write_bytes(b"glTF-fake")
+    (run / "sofa" / "program.json").write_text(json.dumps({"size": [2.2, 0.95, 0.85], "materials": {"f": {"color": "#e0ddd5"}},
+                                                           "parts": [{"size": [2.2, 0.9, 0.4], "material": "f"}]}))
+    server = ThreadingHTTPServer(("127.0.0.1", 0), handler(Path("."), tmp_path))
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    base = f"http://127.0.0.1:{server.server_port}"
+    get = lambda path: json.loads(urllib.request.urlopen(base + path).read())
+    assert get("/runs") == [{"run": run.name, "pieces": 1}]
+    [asset] = get(f"/pieces?run={run.name}")  # the lamp has no GLB, so only the sofa
+    assert asset["kind"] == "sofa" and asset["dimensions"] == [2.2, 0.85, 0.95] and asset["color"] == "#e0ddd5"
+    assert urllib.request.urlopen(asset["source"]["url"]).read() == b"glTF-fake"
+    for bad in ("/files/../secret.glb", f"/files/{run.name}/sofa/program.json", "/pieces?run=../x"):
+        try:
+            urllib.request.urlopen(base + bad)
+            raise AssertionError(bad)
+        except urllib.error.HTTPError as e:
+            assert e.code == 404
     server.shutdown()

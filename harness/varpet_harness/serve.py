@@ -19,7 +19,10 @@ from collections.abc import Callable
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+from urllib.parse import parse_qs, urlparse
+
 from .graph import Job
+from .pieces import catalog, runs as list_runs
 from .shell import Shell, to_editor
 
 MAX_BODY = 40_000_000
@@ -69,13 +72,47 @@ def handler(repo: Path, runs: Path, runner_factory=None):
     class Handler(BaseHTTPRequestHandler):
         def _cors(self) -> None:
             self.send_header("Access-Control-Allow-Origin", "*")
-            self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
+            self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
             self.send_header("Access-Control-Allow-Headers", "Content-Type")
 
         def do_OPTIONS(self) -> None:
             self.send_response(204)
             self._cors()
             self.end_headers()
+
+        def _json(self, status: int, body) -> None:
+            data = json.dumps(body).encode()
+            self.send_response(status)
+            self._cors()
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+
+        def do_GET(self) -> None:
+            url = urlparse(self.path)
+            base = f"http://{self.headers.get('Host') or '127.0.0.1'}"
+            if url.path == "/runs":
+                return self._json(200, list_runs(runs))
+            if url.path == "/pieces":
+                name = (parse_qs(url.query).get("run") or [""])[0]
+                run_dir = (runs / name).resolve()
+                if not name or run_dir.parent != runs.resolve() or not (run_dir / "graph.json").exists():
+                    return self._json(404, {"error": f"no run {name!r}"})
+                return self._json(200, catalog(run_dir, base))
+            if url.path.startswith("/files/"):
+                target = (runs / url.path[len("/files/"):]).resolve()
+                if target.suffix != ".glb" or runs.resolve() not in target.parents or not target.is_file():
+                    return self._json(404, {"error": "not found"})
+                data = target.read_bytes()
+                self.send_response(200)
+                self._cors()
+                self.send_header("Content-Type", "model/gltf-binary")
+                self.send_header("Content-Length", str(len(data)))
+                self.end_headers()
+                self.wfile.write(data)
+                return
+            self._json(404, {"error": "not found"})
 
         def do_POST(self) -> None:
             if self.path.rstrip("/") != "/structure":
