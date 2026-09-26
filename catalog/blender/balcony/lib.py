@@ -17,7 +17,7 @@ import kit  # noqa: E402
 TEX = HERE / "tex"
 
 # Default roughness per finish when a call gives none: oiled outdoor wood is matte, outdoor fabric dry.
-ROUGH_DEFAULT = {"oak": 0.55, "walnut": 0.55, "linen-alt": 0.9}
+ROUGH_DEFAULT = {"oak": 0.55, "walnut": 0.55, "teak": 0.55, "linen-alt": 0.9}
 _material = kit.material
 
 

@@ -9,11 +9,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import common as C  # noqa: E402
 from common import kit  # noqa: E402
+import kit_shapes as ks  # noqa: E402
 
 MATTRESS = ("wool-felt", "#f8f6f1")
 
 VARIANTS = [
-    dict(slug="japandi-oak-cot", materials=["solid oak", "cotton mattress"], mattress=(1.20, 0.60), wood=("oak", "#d0b088"), post=0.045, H=0.90,
+    dict(slug="japandi-oak-cot", materials=["solid oak", "cotton mattress"], mattress=(1.20, 0.60), wood=("oak-rift", "#d0b088"), post=0.045, H=0.90,
          sides="slats", ends="arch", legs="posts", slat=(0.024, 0.036), pitch=0.078,
          name="Japandi oak cot with arched end panels and mattress, 60x120", colors=["beige", "white"],
          price=158000, style="japandi", tags=["cot", "crib", "oak", "slatted", "baby", "nursery"]),
@@ -29,7 +30,7 @@ VARIANTS = [
          sides="slats", ends="panel", legs="taper", slat=(0.022, 0.034), pitch=0.075,
          name="Mid-century walnut crib on tapered legs with mattress, 60x120", colors=["brown", "white"],
          price=178000, style="mid-century", tags=["crib", "cot", "walnut", "tapered legs", "baby", "nursery"]),
-    dict(slug="oak-cane-cot", materials=["solid oak", "rattan cane", "cotton mattress"], mattress=(1.20, 0.60), wood=("oak", "#b98d5e"), post=0.045, H=0.90,
+    dict(slug="oak-cane-cot", materials=["solid oak", "rattan cane", "cotton mattress"], mattress=(1.20, 0.60), wood=("oak-rift", "#b98d5e"), post=0.045, H=0.90,
          sides="slats", ends="cane", legs="posts", slat=(0.024, 0.036), pitch=0.078, side_drop=0.04,
          name="Oak cot with rattan cane end panels and mattress, 60x120", colors=["beige", "brown"],
          price=168000, style="japandi", tags=["cot", "crib", "cane", "rattan", "oak", "baby", "nursery"]),
@@ -119,7 +120,10 @@ def build(v):
             C.hbox((rail_t, di + 0.004, top_h), (x, 0, end_top - top_h), spec, tint, bevel=0.007)
             C.hbox((rail_t, di + 0.004, bot_h), (x, 0, bot_z0), spec, tint, bevel=0.005)
             z0, z1 = bot_z0 + bot_h - 0.004, end_top - top_h + 0.004
-            C.uv_scale(C.hbox((0.008, di + 0.004, z1 - z0), (x, 0, z0), "rattan", "#d2b184", bevel=0.001), 2.2)
+            # real see-through cane webbing, framed by the rails above/below and the posts either side
+            ks.cane_panel(di + 0.004, z1 - z0, (x, 0, z0), tint="#d2b184", rot=(0, 0, 90))
+            for sy in (-1, 1):  # slim stiles hiding the webbing's cut edge against the posts
+                C.vbox((rail_t * 0.7, 0.018, z1 - z0), (x, sy * (di / 2 - 0.009), z0), spec, tint, bevel=0.003)
 
     # slatted mattress base on ledgers
     led = 0.022

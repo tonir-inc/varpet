@@ -5,7 +5,8 @@ import lib
 from lib import beam, cbox, join, kit, plate, rounded, solid_lathe, sweep, weave, xform
 
 SAGE, BLACK, TERRA = "#7a8a6a", "#232323", "#a4513a"
-TEAK, ACACIA = "#a67a50", "#7e4e30"
+WOOD = "teak"  # catalog material; acacia is the same grain, tinted darker and redder
+TEAK, ACACIA = None, "#8c5a3a"
 FAB = "linen-alt"
 ROUGH = 0.55  # powder coat: satin, uniform
 
@@ -120,7 +121,7 @@ def bistro_chair(color):
 
 # ---------------- teak / acacia folding set ----------------
 def teak_folding_table():
-    w = "oak"
+    w = WOOD
     top = 0.72
     n, gap = 5, 0.014
     sw = (0.60 - gap * (n - 1)) / n
@@ -154,59 +155,69 @@ def teak_folding_table():
         sweep([(-xo, y, zs), (xo, y, zs)], 0.011, w, TEAK, sides=16)
 
 
-def wood_folding_chair(wood_tint, back="horizontal"):
-    w = "oak" if wood_tint == TEAK else "walnut"
-    xo = 0.215
-    lt, lw = 0.025, 0.042
+def wood_folding_chair(wood_tint, back="horizontal", bolt="metal:#b08d57"):
+    """Classic slatted folding chair: long back frame (front foot -> backrest) crossed in X by the rear legs,
+    one bolt at the crossing on each side; seat rails pivot on the back frame and rest on the rear legs."""
+    w = WOOD
+    xo, lt, lw = 0.215, 0.024, 0.042
     seat_z = 0.445
-    # back posts: straight, slightly reclined
-    pf, pt = (0.215, 0.0), (0.285, 0.88)
+    a0, a1 = (-0.19, 0.0), (0.21, 0.88)  # back frame (y, z): foot, top
 
-    def post_y(z):
-        return pf[0] + (pt[0] - pf[0]) * z / pt[1]
-    for sx in (-xo, xo):
-        beam((sx, pf[0], 0.0), (sx, pt[0], pt[1]), lw, lt, w, wood_tint, up=(1, 0, 0), bevel=0.004)
-        cut_floor(kit.meshes()[-1])
-    # front legs: gently raked forward, up to the seat rails
-    for sx in (-xo, xo):
-        beam((sx, -0.245, -0.01), (sx, -0.205, seat_z + 0.02), lw, lt, w, wood_tint, up=(1, 0, 0), bevel=0.004)
-        cut_floor(kit.meshes()[-1])
-    # seat rails (inside the legs) and front/back seat rails
-    xr = xo - lt / 2 - 0.011
-    yb = post_y(seat_z - 0.025)
-    for sx in (-xr, xr):
-        cbox((0.022, yb + 0.225, 0.05), (sx, (yb - 0.225) / 2, seat_z - 0.025), w, wood_tint, bevel=0.002, grain="y")
-        kit.cylinder(0.008, 0.005, (0, 0, 0), "metal:#9a9a9a", verts=16, bevel=0.001, roughness=0.3, rot=(0, 90, 0))
-        kit.meshes()[-1].location = (math.copysign(xo + lt / 2, sx) + (0 if sx > 0 else -0.005), yb - 0.02, seat_z - 0.025)
-    cbox((2 * xr - 0.022, 0.02, 0.045), (0, -0.2, seat_z - 0.03), w, wood_tint, bevel=0.002)
-    # seat slats along X, gaps between
-    n, y0, y1 = 5, -0.232, yb - 0.005
-    pitch = (y1 - y0) / n
-    for i in range(n):
-        cbox((2 * xo - lt - 0.004, pitch - 0.01, 0.018), (0, y0 + pitch * (i + 0.5), seat_z + 0.009), w, wood_tint,
+    def ay(z):
+        return a0[0] + (a1[0] - a0[0]) * (z - a0[1]) / (a1[1] - a0[1])
+    b0, b1 = (0.26, 0.0), (-0.20, 0.43)  # rear leg (y, z): foot, top under the seat front
+
+    def by(z):
+        return b0[0] + (b1[0] - b0[0]) * z / b1[1]
+    xa = xo - lt / 2          # back frame, outermost
+    xb = xa - lt - 0.002      # rear legs just inside it
+    for sx in (-1, 1):
+        cut_floor(beam((sx * xa, ay(-0.03), -0.03), (sx * xa, a1[0], a1[1]), lw, lt, w, wood_tint, up=(1, 0, 0), bevel=0.004))
+        cut_floor(beam((sx * xb, by(-0.03), -0.03), (sx * xb, b1[0], b1[1]), lw, lt, w, wood_tint, up=(1, 0, 0), bevel=0.004))
+    # X crossing -> through bolt with a domed head on the outside
+    zc = (b0[0] - a0[0]) / ((a1[0] - a0[0]) / a1[1] - (b1[0] - b0[0]) / b1[1])
+    yc = ay(zc)
+    for sx in (-1, 1):
+        sweep([(sx * (xb - lt / 2 - 0.004), yc, zc), (sx * (xo + 0.004), yc, zc)], 0.0045, bolt, sides=12, roughness=0.3)
+        kit.cylinder(0.011, 0.004, (0, 0, 0), bolt, verts=20, bevel=0.0015, roughness=0.3, rot=(0, 90, 0))
+        kit.meshes()[-1].location = (sx * (xo + 0.004) - (0.004 if sx < 0 else 0), yc, zc)
+    # seat: side rails inside the rear legs, pivoting on the back frame
+    xr = xb - lt / 2 - 0.011
+    ys0, ys1 = -0.235, ay(seat_z) + 0.05
+    rz = seat_z - 0.018 - 0.022
+    for sx in (-1, 1):
+        cbox((0.022, ys1 - ys0 - 0.01, 0.044), (sx * xr, (ys0 + ys1) / 2, rz), w, wood_tint, bevel=0.002, grain="y")
+        yp = ay(rz)
+        sweep([(sx * (xr - 0.011), yp, rz), (sx * (xo + 0.003), yp, rz)], 0.004, bolt, sides=12, roughness=0.3)
+        kit.cylinder(0.009, 0.004, (0, 0, 0), bolt, verts=20, bevel=0.0015, roughness=0.3, rot=(0, 90, 0))
+        kit.meshes()[-1].location = (sx * (xo + 0.003) - (0.004 if sx < 0 else 0), yp, rz)
+    n = 6
+    pitch = (ys1 - ys0) / n
+    for i in range(n):  # seat slats across, gaps between
+        cbox((2 * xb - lt, pitch - 0.011, 0.018), (0, ys0 + pitch * (i + 0.5), seat_z - 0.009), w, wood_tint,
              bevel=0.003, name="seat")
-    # back
-    xi = xo - lt / 2 + 0.003  # slats tuck into the posts
+    # back between the frame members, following their recline
+    xi = xa - lt / 2 + 0.003
     if back == "horizontal":
-        for zc, hh in ((0.60, 0.065), (0.69, 0.065), (0.79, 0.085)):
-            y = post_y(zc)
-            prof = [(x, y + 0.022 * (1 - (x / xi) ** 2)) for x in [-xi + 2 * xi * i / 14 for i in range(15)]]
-            plate(prof, hh, 0.017, w, wood_tint, z0=zc - hh / 2, bevel=0.003)
+        for zc_, hh in ((0.60, 0.06), (0.69, 0.06), (0.79, 0.08)):
+            y = ay(zc_)
+            prof = [(x, y + 0.018 * (1 - (x / xi) ** 2)) for x in [-xi + 2 * xi * i / 14 for i in range(15)]]
+            plate(prof, hh, 0.017, w, wood_tint, z0=zc_ - hh / 2, bevel=0.003)
     else:
-        rails = ((0.56, 0.05), (0.82, 0.075))
-        for zc, hh in rails:
-            y = post_y(zc)
-            prof = [(x, y + 0.02 * (1 - (x / xi) ** 2)) for x in [-xi + 2 * xi * i / 14 for i in range(15)]]
-            plate(prof, hh, 0.02, w, wood_tint, z0=zc - hh / 2, bevel=0.003)
-        z0, z1 = 0.56 + 0.025, 0.82 - 0.0375
+        z0, z1 = 0.56, 0.84
+        for zc_, hh in ((z0, 0.05), (z1 - 0.0375, 0.075)):
+            y = ay(zc_)
+            prof = [(x, y + 0.016 * (1 - (x / xi) ** 2)) for x in [-xi + 2 * xi * i / 14 for i in range(15)]]
+            plate(prof, hh, 0.02, w, wood_tint, z0=zc_ - hh / 2, bevel=0.003)
+        za, zb = z0 + 0.02, z1 - 0.07
         for i in range(5):
             x = -0.14 + 0.07 * i
-            y = post_y((z0 + z1) / 2) + 0.02 * (1 - (x / xi) ** 2)
-            beam((x, post_y(z0) - post_y((z0 + z1) / 2) + y, z0 - 0.003), (x, post_y(z1) - post_y((z0 + z1) / 2) + y, z1 + 0.003),
-                 0.012, 0.042, w, wood_tint, up=(0, 1, 0), bevel=0.003)
-    # stretchers
-    for y in (-0.24, post_y(0.12)):
-        sweep([(-xo + 0.01, y, 0.12), (xo - 0.01, y, 0.12)], 0.01, w, wood_tint, sides=16)
+            bow = 0.016 * (1 - (x / xi) ** 2)
+            beam((x, ay(za) + bow, za), (x, ay(zb) + bow, zb), 0.042, 0.012, w, wood_tint, up=(0, 1, 0), bevel=0.003)
+    # round stretchers: front feet of the back frame, rear feet of the rear legs
+    zs = 0.10
+    sweep([(-xa, ay(zs), zs), (xa, ay(zs), zs)], 0.011, w, wood_tint, sides=16)
+    sweep([(-xb, by(zs), zs), (xb, by(zs), zs)], 0.011, w, wood_tint, sides=16)
 
 
 # ---------------- rope lounge chair ----------------
@@ -245,7 +256,7 @@ def rope_lounge():
 
 # ---------------- loveseat ----------------
 def loveseat():
-    w, tint = "oak", TEAK
+    w, tint = WOOD, TEAK
     W, D = 1.20, 0.64
     lg = 0.042
     xp, yp = W / 2 - 0.03, D / 2 - lg / 2
@@ -288,7 +299,7 @@ def bar_table():
     sw = (0.35 - gap * (n - 1)) / n
     for i in range(n):
         y = -0.175 + sw / 2 + i * (sw + gap)
-        cbox((1.00, sw, top_t), (0, y, H - top_t / 2), "oak", TEAK, bevel=0.004, name="slat")
+        cbox((1.00, sw, top_t), (0, y, H - top_t / 2), WOOD, TEAK, bevel=0.004, name="slat")
     xl, yl = 0.43, 0.14
     zt = H - top_t - t / 2
     for sx in (-xl, xl):
@@ -308,7 +319,7 @@ def high_stool():
     R = 0.18
     solid_lathe([(0, seat - 0.032), (R - 0.03, seat - 0.032), (R - 0.008, seat - 0.028), (R - 0.001, seat - 0.018),
                  (R, seat - 0.008), (R - 0.004, seat - 0.001), (R - 0.012, seat), (0, seat + 0.001)],
-                "oak", TEAK, steps=72, name="seat")
+                WOOD, TEAK, steps=72, name="seat")
     kit.cylinder(0.12, 0.012, (0, 0, seat - 0.044), s, verts=48, bevel=0.002, roughness=ROUGH)  # mounting ring plate
     rt, rb, tr = 0.105, 0.19, 0.011
     zt = seat - 0.044
@@ -376,7 +387,7 @@ def stripe_rug():
 
 # ---------------- deck box ----------------
 def deck_box():
-    w, tint = "walnut", ACACIA
+    w, tint = WOOD, ACACIA
     W, D, H = 1.00, 0.46, 0.56
     p = 0.04
     lid_t = 0.022
@@ -437,7 +448,7 @@ PIECES = {
     "teak-folding-chair": (lambda: wood_folding_chair(TEAK, "horizontal"), dict(
         name="Teak slatted folding chair, outdoor balcony, 46 cm", kind="chair", colors=["brown"], price_amd=38000,
         materials=["teak", "brass"], style="scandinavian", tags=["outdoor", "balcony", "folding", "slatted", "wood"])),
-    "acacia-folding-chair": (lambda: wood_folding_chair(ACACIA, "vertical"), dict(
+    "acacia-folding-chair": (lambda: wood_folding_chair(ACACIA, "vertical", "metal:#8a8a8a"), dict(
         name="Acacia folding chair with vertical slat back, outdoor balcony, 46 cm", kind="chair", colors=["brown"],
         price_amd=32000, materials=["acacia", "steel"], style="japandi",
         tags=["outdoor", "balcony", "folding", "slatted", "wood"])),

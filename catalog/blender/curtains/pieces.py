@@ -7,6 +7,7 @@ from mathutils import Vector, noise
 
 import textile as T
 from textile import kit
+import kit_cloth as kc  # noqa: E402  (textile puts catalog/blender on sys.path)
 
 # rod hardware finishes: (spec, tint, roughness)
 ROD = {
@@ -60,71 +61,88 @@ def brackets(xs, rod_z, r, depth, style, rods_y=(0.0,)):
     T.torus_set(cr, r + 0.004, 0.0045, spec, tint, rough, seg=20, ring=6, name="cradles")
 
 
-def curtain_pair(fab, *, width, drop, heading, rod, cover=0.27, folds=None, amp=None, seed=7,
-                 thickness=0.003, sheer=None):
+def _cloth(cloth, width, drop, at, heading, side, open_fraction, seed, folds, fullness, name):
+    """kit_cloth panel; cloth = (spec, tint, material override or None). Returns (obj, hook points (x, y))."""
+    spec, tint, override = cloth
+    obj = kc.drape(width, drop, at, spec, tint, fullness=fullness, heading=heading, open_fraction=open_fraction,
+                   side=side, seed=seed, folds=folds, name=name)
+    if override is not None:  # same spec, so kit_cloth's arc-length UVs keep the right tile
+        m = override()
+        m.use_backface_culling = False
+        obj.data.materials[0] = m
+    top = sorted((v.co.x + at[0], v.co.y + at[1]) for v in obj.data.vertices if v.co.z > -1e-6)
+    return obj, top
+
+
+def _hooks(top, n, heading):
+    """Hook points on the heading: pleat fins (pinch) or the back crest between waves."""
+    x0, x1 = top[0][0], top[-1][0]
+    ts = [(i + 0.5) / n for i in range(n)] if heading == "pinch" else [i / n for i in range(n + 1)]
+    out = []
+    for t in ts:
+        x = x0 + (x1 - x0) * t
+        out.append(min(top, key=lambda p: abs(p[0] - x)))
+    return out
+
+
+def curtain_pair(cloth, *, width, drop, heading, rod, cover=0.3, folds=None, seed=7, fullness=2.0,
+                 sheer=None, sheer_folds=13):
     """Pair drawn open on a pole. width = overall incl. finials; drop = fabric length.
-    fab = (mat list); sheer = optional (mat list) for a closed voile layer on a second, rear rod."""
+    cloth = (spec, tint, override); sheer = optional cloth for a closed voile layer on a second, rear rod."""
     r = 0.0175 if rod == "oak" else 0.014
     rod_r = r
     ring_R, ring_r = rod_r + 0.008, (0.006 if rod == "oak" else 0.0033)
     fin_L = {"brass": 0.057, "black": 0.03, "oak": 0.07}[rod]
     x_end = width / 2 - fin_L
-    rods_y = (0.0,) if sheer is None else (0.0, 0.075)
-    depth = 0.09 if sheer is None else 0.135
-    # fabric top hangs off the rings; rod axis at rod_z
+    rods_y = (0.0,) if sheer is None else (0.0, 0.1)
+    depth = 0.09 if sheer is None else 0.175
     ring_cz = rod_r - ring_R + ring_r  # relative to rod axis
     ring_bottom = ring_cz - ring_R - ring_r
     hook = 0.018 if heading == "pinch" else 0.008
     fab_top = drop  # hem at z=0
     rod_z = fab_top - ring_bottom + hook - 0.004
-    # pole, finials
     spec, tint, rough = ROD[rod]
     T.rod_x(-x_end, x_end, 0.0, rod_z, rod_r, spec, tint, rough)
-    L = finial(rod, x_end, rod_z, 1, rod_r)
+    finial(rod, x_end, rod_z, 1, rod_r)
     finial(rod, -x_end, rod_z, -1, rod_r)
     bx = x_end - 0.05
     bxs = [-bx, bx] + ([0.0] if width > 2.5 and sheer is None else [])
     if sheer is not None:
         sr = 0.008
         T.rod_x(-bx - 0.03, bx + 0.03, rods_y[1], rod_z, sr, "paint:#1d1d1f", None, 0.42, verts=20)
-        # end caps on the rear rod
         for d in (1, -1):
             T.lathe_x([(0, 0), (sr + 0.002, 0), (sr + 0.002, 0.008), (0, 0.009)], d * (bx + 0.03), rods_y[1], rod_z, d,
                       "paint:#1d1d1f", None, 0.42, steps=20)
     brackets(bxs, rod_z, rod_r, depth, rod, rods_y)
-    # panels
-    n = folds or max(4, round(width * cover / 0.12))
-    a = amp or 0.042
+    # panels: each closes to the centre, drawn open to `cover` of the width
     x_out = bx - 0.04
-    x_in = x_out - width * cover
+    target = width * cover
+    stack = max(0.1 * fullness * x_out, 0.12)
+    of = (x_out - target) / (x_out - stack)
+    n = folds or max(3, round(x_out / (0.14 if heading == "pinch" else 0.16)))
+    y0 = 0.02 if sheer is None else -0.012
     ring_pts = []
-    for side, sd in ((1, seed), (-1, seed + 11)):
-        grid, px, py = T.curtain_panel(side * x_out, side * x_in, fab_top, drop, heading=heading, folds=n,
-                                       amp=a, seed=sd, y_off=(0.015 if sheer is None else -0.004))
-        T.sheet(grid, fab[0], fab[1], thickness=thickness, name="panel")
-        ring_pts += list(zip(px, py))
-    # rings on the pole + hooks down into the heading
+    for side, sgn, sd in (("left", -1, seed), ("right", 1, seed + 11)):
+        _, top = _cloth(cloth, x_out, drop, (sgn * x_out / 2, y0, fab_top), heading, side, of, sd, n, fullness,
+                        "panel")
+        ring_pts += _hooks(top, n, heading)
     rc = [(x, 0.0, rod_z + ring_cz) for x, _ in ring_pts]
     T.torus_set(rc, ring_R, ring_r, spec, tint, rough, seg=18, ring=6, name="rings")
     eye_z = rod_z + ring_bottom
-    hooks = [(x, 0.0, eye_z - 0.001) for x, _ in ring_pts]
-    T.sphere_set(hooks, 0.0042, spec, tint, rough, seg=8, rings=5, name="eyes")
-    # pin hooks: thin wire from eye to the fabric top at the pleat (its y)
-    for x, y in ring_pts:
+    T.sphere_set([(x, 0.0, eye_z - 0.001) for x, _ in ring_pts], 0.0042, spec, tint, rough, seg=8, rings=5,
+                 name="eyes")
+    for x, y in ring_pts:  # pin hook: thin wire from the ring eye into the heading
         kit.curve_tube([(x, 0.0, eye_z - 0.003), (x, y * 0.5, fab_top + 0.004), (x, y, fab_top - 0.012)], 0.0012,
                        "metal:#a8a8a8", None, roughness=0.35, name="hook")
-    if sheer is not None:
+    if sheer is not None:  # closed voile on the rear rod, shallow waves so it clears the main pair
         sx = bx - 0.035
-        grid, spx, spy = T.curtain_panel(sx, -sx, fab_top, drop, heading="wave", folds=int(2 * sx / 0.11),
-                                         amp=0.024, seed=seed + 5, flare=0.0, irregular=0.8, cols_per_fold=7, rows=30)
-        for row in grid:
-            for i, (x, y, z) in enumerate(row):
-                row[i] = (x, y + rods_y[1], z)
-        T.sheet(grid, sheer[0], sheer[1], thickness=0.0, name="sheer")
-        sc = [(x, rods_y[1], rod_z - 0.004) for x in spx]
-        T.torus_set(sc, 0.008 + 0.005, 0.0022, "paint:#1d1d1f", None, 0.42, seg=12, ring=5, name="glides")
-        for x, y in zip(spx, spy):
-            kit.curve_tube([(x, rods_y[1], rod_z - 0.016), (x, rods_y[1] + y, fab_top - 0.01)], 0.001,
+        _, top = _cloth(sheer, 2 * sx, drop, (0.0, rods_y[1] + 0.045, fab_top), "wave", "centre", 0.0, seed + 5,
+                        sheer_folds, 1.45, "sheer")
+        spts = _hooks(top, sheer_folds, "wave")
+        T.torus_set([(x, rods_y[1], rod_z - 0.004) for x, _ in spts], 0.008 + 0.005, 0.0022, "paint:#1d1d1f", None,
+                    0.42, seg=12, ring=5, name="glides")
+        for x, y in spts:
+            kit.curve_tube([(x, rods_y[1], rod_z - 0.016), (x, y, fab_top - 0.01)], 0.001,
                            "metal:#a8a8a8", None, roughness=0.35, name="shook")
 
 

@@ -2,6 +2,7 @@
 import math
 
 import kit
+import kit_shapes as ks
 from parts import (BLACK, BRASS, OAK, OAK_LIGHT, WALNUT, along, bent_tube, circle, d_shape, extrude,
                    lerp, pad, puffy_round, ring, rod, rounded_rect, shell, shell_point, slab, sq_rod,
                    superellipse, uv_scale, dished_seat, radial_uv, top_uv)
@@ -26,7 +27,7 @@ def diag(r, k):
 # ---------------------------------------------------------------- japandi oak stools
 def japandi_stool(seat_h, back=False):
     R, t = 0.18, 0.032
-    dished_seat(R, t, (0, 0, seat_h - t), "oak", OAK_LIGHT, name="seat")
+    dished_seat(R, t, (0, 0, seat_h - t), "oak-rift", OAK_LIGHT, name="seat")
     tops, bots = [], []
     for k in range(4):
         x0, y0 = diag(0.118, k)
@@ -34,15 +35,15 @@ def japandi_stool(seat_h, back=False):
         top, bot = (x0, y0, seat_h - t + 0.006), (x1, y1, 0)
         tops.append(top)
         bots.append(bot)
-        rod(bot, top, 0.016, "oak", OAK_LIGHT, r1=0.019, verts=28, name="leg")
+        rod(bot, top, 0.016, "oak-rift", OAK_LIGHT, r1=0.019, verts=28, name="leg")
     # staggered rungs: front footrest (flat-topped bar), sides higher, back lower
     fz = seat_h - 0.27
     for (a, b), z, r in (((0, 1), fz, None), ((1, 2), fz + 0.05, 0.0105), ((3, 0), fz + 0.05, 0.0105), ((2, 3), fz - 0.1, 0.0105)):
         pa, pb = along(tops[a], bots[a], z), along(tops[b], bots[b], z)
         if r is None:
-            sq_rod(pa, pb, 0.034, "oak", OAK_LIGHT, h=0.022, bevel=0.005, name="footrest")
+            sq_rod(pa, pb, 0.034, "oak-rift", OAK_LIGHT, h=0.022, bevel=0.005, name="footrest")
         else:
-            rod(pa, pb, r, "oak", OAK_LIGHT, name="rung")
+            rod(pa, pb, r, "oak-rift", OAK_LIGHT, name="rung")
     if back:
         # two back posts rise through the seat and carry a curved back band
         top_z, off = seat_h + 0.21, -0.012
@@ -52,10 +53,10 @@ def japandi_stool(seat_h, back=False):
             a = math.radians(ang)
             x0, y0 = 0.148 * math.cos(a), 0.148 * math.sin(a)
             x1, y1 = Rm * math.cos(a), Rm * math.sin(a) + off
-            rod((x0, y0, seat_h - t + 0.004), (x1, y1, top_z - 0.02), 0.0135, "oak", OAK_LIGHT, name="post")
+            rod((x0, y0, seat_h - t + 0.004), (x1, y1, top_z - 0.02), 0.0135, "oak-rift", OAK_LIGHT, name="post")
         pts = [(R1 * math.cos(math.radians(a)), R1 * math.sin(math.radians(a)) + off) for a in range(35, 146, 5)]
         pts += [(R0 * math.cos(math.radians(a)), R0 * math.sin(math.radians(a)) + off) for a in range(145, 34, -5)]
-        extrude(pts, top_z - 0.085, 0.085, "oak", OAK_LIGHT, bevel=0.008, name="backrest")
+        extrude(pts, top_z - 0.085, 0.085, "oak-rift", OAK_LIGHT, bevel=0.008, name="backrest")
 
 
 @piece("japandi-oak-counter-stool-65", "Japandi light oak counter stool with footrest, dished round seat, seat 65 cm",
@@ -191,13 +192,21 @@ BENT = "#4a3120"  # espresso-stained beech
 CANE = "#c9a878"
 
 
+def cane_seat(r, z, thick=0.002):
+    """Round see-through cane webbing disk (alpha MASK), set into the rim ring."""
+    disk = kit.cylinder(r, thick, (0, 0, z), "cane", verts=64, bevel=0.0, name="cane")
+    radial_uv(disk, "cane")
+    m, _ = ks.alpha_material("cane")
+    disk.data.materials.clear()
+    disk.data.materials.append(m)
+    return disk
+
+
 def bentwood_stool(seat_h, back=False):
     R = 0.18
     rim_r = 0.014
     ring(R - rim_r, rim_r, seat_h - rim_r, "walnut", BENT, n=64, name="rim")
-    cane = kit.cylinder(R - rim_r, 0.01, (0, 0, seat_h - rim_r - 0.004), "rattan", CANE, verts=64, bevel=0.0, name="cane")
-    radial_uv(cane, "rattan", CANE)
-    uv_scale(cane, 4.0)
+    cane_seat(R - rim_r * 0.5, seat_h - rim_r - 0.001)
     ring(R - 0.03, 0.011, seat_h - 0.05, "walnut", BENT, n=64, name="apron")
     fz = seat_h - 0.29
     legs = []
@@ -244,15 +253,15 @@ def bentwood_75():
        "table", ["beige", "brown"], 245000, ["oak"], "scandinavian", ["dining table", "round", "pedestal", "seats 4"])
 def round_pedestal():
     H, T = 0.75, 0.03
-    top = kit.cylinder(0.45, T, (0, 0, H - T), "oak", OAK, verts=96, bevel=0.008, name="top")
-    radial_uv(top, "oak", OAK)
-    kit.cylinder(0.22, 0.022, (0, 0, H - T - 0.022), "oak", OAK, verts=64, bevel=0.004, name="cleat")
+    top = kit.cylinder(0.45, T, (0, 0, H - T), "oak-rift", OAK, verts=96, bevel=0.008, name="top")
+    radial_uv(top, "oak-rift", OAK)
+    kit.cylinder(0.22, 0.022, (0, 0, H - T - 0.022), "oak-rift", OAK, verts=64, bevel=0.004, name="cleat")
     # turned column with a soft flare into a round plinth
     prof = [(0.245, 0.0), (0.25, 0.005), (0.25, 0.018), (0.244, 0.026), (0.19, 0.031), (0.12, 0.037),
             (0.085, 0.052), (0.068, 0.085), (0.062, 0.16), (0.06, 0.45), (0.063, 0.6), (0.072, 0.65),
             (0.1, 0.682), (0.125, 0.69), (0.13, H - T - 0.02)]
-    base = kit.lathe(prof, "oak", OAK, steps=64, name="pedestal")
-    radial_uv(base, "oak", OAK)
+    base = kit.lathe(prof, "oak-rift", OAK, steps=64, name="pedestal")
+    radial_uv(base, "oak-rift", OAK)
 
 
 @piece("mcm-walnut-drop-leaf-table-120", "Mid-century walnut drop-leaf kitchen table for 2-4, 120 x 75 cm open (shown with one leaf down)",
@@ -288,18 +297,18 @@ def drop_leaf():
        "table", ["beige", "brown"], 198000, ["oak"], "japandi", ["dining table", "rectangular", "seats 4"])
 def rect_table():
     W, D, H, T = 1.10, 0.70, 0.75, 0.03
-    slab(W, D, T, (0, 0, H - T), "oak", OAK_LIGHT, r=0.035, bevel=0.009, name="top")
+    slab(W, D, T, (0, 0, H - T), "oak-rift", OAK_LIGHT, r=0.035, bevel=0.009, name="top")
     ins, lg, ah = 0.06, 0.05, 0.075
     xs, ys = W / 2 - ins, D / 2 - ins
     for sx in (-1, 1):
         for sy in (-1, 1):
             p_top = (sx * xs, sy * ys, H - T + 0.002)
             p_bot = (sx * (xs + 0.012), sy * (ys + 0.01), 0)
-            sq_rod(p_bot, p_top, lg, "oak", OAK_LIGHT, bevel=0.012, name="leg")
-    kit.box((2 * xs - lg, 0.022, ah), (0, -ys, H - T - ah), "oak", OAK_LIGHT, bevel=0.003, name="apron")
-    kit.box((2 * xs - lg, 0.022, ah), (0, ys, H - T - ah), "oak", OAK_LIGHT, bevel=0.003, name="apron")
+            sq_rod(p_bot, p_top, lg, "oak-rift", OAK_LIGHT, bevel=0.012, name="leg")
+    kit.box((2 * xs - lg, 0.022, ah), (0, -ys, H - T - ah), "oak-rift", OAK_LIGHT, bevel=0.003, name="apron")
+    kit.box((2 * xs - lg, 0.022, ah), (0, ys, H - T - ah), "oak-rift", OAK_LIGHT, bevel=0.003, name="apron")
     for sx in (-1, 1):
-        kit.box((0.022, 2 * ys - lg, ah), (sx * xs, 0, H - T - ah), "oak", OAK_LIGHT, bevel=0.003, grain="y", name="apron")
+        kit.box((0.022, 2 * ys - lg, ah), (sx * xs, 0, H - T - ah), "oak-rift", OAK_LIGHT, bevel=0.003, grain="y", name="apron")
 
 
 # ---------------------------------------------------------------- chairs
@@ -308,30 +317,30 @@ def rect_table():
 def spindle_chair():
     SH, t = 0.45, 0.03
     w, d = 0.44, 0.42
-    seat = extrude(d_shape(w, d), SH - t, t, "oak", OAK_LIGHT, bevel=0.009, segments=4, name="seat")
+    seat = extrude(d_shape(w, d), SH - t, t, "oak-rift", OAK_LIGHT, bevel=0.009, segments=4, name="seat")
     legs = {}
     for key, top, bot in (("fr", (0.165, -0.12, SH - t + 0.004), (0.2, -0.19, 0)),
                           ("fl", (-0.165, -0.12, SH - t + 0.004), (-0.2, -0.19, 0)),
                           ("bl", (-0.155, 0.13, SH - t + 0.004), (-0.19, 0.21, 0)),
                           ("br", (0.155, 0.13, SH - t + 0.004), (0.19, 0.21, 0))):
         legs[key] = (top, bot)
-        rod(bot, top, 0.0135, "oak", OAK_LIGHT, r1=0.0175, verts=24, name="leg")
+        rod(bot, top, 0.0135, "oak-rift", OAK_LIGHT, r1=0.0175, verts=24, name="leg")
     zr = 0.17
     for a, b in (("fl", "bl"), ("fr", "br")):
-        rod(along(*legs[a], zr), along(*legs[b], zr), 0.0095, "oak", OAK_LIGHT, name="side_rung")
+        rod(along(*legs[a], zr), along(*legs[b], zr), 0.0095, "oak-rift", OAK_LIGHT, name="side_rung")
     ml = lerp(along(*legs["fl"], zr), along(*legs["bl"], zr), 0.5)
     mr = lerp(along(*legs["fr"], zr), along(*legs["br"], zr), 0.5)
-    rod(ml, mr, 0.0095, "oak", OAK_LIGHT, name="mid_rung")
+    rod(ml, mr, 0.0095, "oak-rift", OAK_LIGHT, name="mid_rung")
     # curved crest rail on raked spindles
     R, yc, rail_z, rail_h = 0.31, -0.075, 0.745, 0.065
-    extrude(sector(R - 0.012, R + 0.012, 52, 128, yc, step=4), rail_z, rail_h, "oak", OAK_LIGHT, bevel=0.008, segments=4, name="crest")
+    extrude(sector(R - 0.012, R + 0.012, 52, 128, yc, step=4), rail_z, rail_h, "oak-rift", OAK_LIGHT, bevel=0.008, segments=4, name="crest")
     for i, ang in enumerate(range(58, 123, 8)):
         a = math.radians(ang)
         xt, yt = R * math.cos(a), R * math.sin(a) + yc
         xb = xt * 0.93
         yb = d / 2 - 0.035 - 0.05 * (xb / (w / 2)) ** 2
         post = i in (0, 8)
-        rod((xb, yb, SH - 0.012), (xt, yt, rail_z + 0.012), 0.0125 if post else 0.0085, "oak", OAK_LIGHT,
+        rod((xb, yb, SH - 0.012), (xt, yt, rail_z + 0.012), 0.0125 if post else 0.0085, "oak-rift", OAK_LIGHT,
             r1=0.011 if post else 0.0068, verts=16, name="spindle")
 
 
@@ -372,12 +381,11 @@ def cane_chair():
         kit.box((2 * bw - 0.02, 0.022, h), (0, post_y(z0), z0), "walnut", WALNUT, bevel=0.005,
                 rot=(-math.degrees(rake), 0, 0), name="back_rail")
     cz = 0.565
-    cane = kit.box((2 * bw - 0.03, 0.006, 0.77 - cz), (0, post_y(cz), cz), "rattan", CANE, bevel=0.0,
-                   rot=(-math.degrees(rake), 0, 0), name="cane")
-    uv_scale(cane, 4.0)
+    ks.cane_panel(2 * bw - 0.01, 0.77 - cz + 0.01, (0, post_y(cz - 0.005), cz - 0.005), rot=(-math.degrees(rake), 0, 0))
     # side stretchers
     for sx in (-1, 1):
         rod((sx * (fx + 0.005), fy - 0.005, 0.16), (sx * (fx + 0.003), by + 0.045, 0.16), 0.009, "walnut", WALNUT, name="stretcher")
+    ks.shrink_images()  # walnut + leather + cane RGBA PNG break 3 MB at 1k
 
 
 @piece("scandi-moulded-shell-chair-oak-legs", "Scandinavian moulded shell dining chair, warm white shell on oak dowel legs with black wire brace, seat 45 cm",
@@ -405,7 +413,7 @@ def shell_chair():
             top = (p.x, p.y, p.z - 0.03)
             bot = (sx * 0.23, foot_y, 0)
             kit.box((0.04, 0.05, 0.022), (p.x, p.y, p.z - 0.03), BLACK, bevel=0.004, roughness=0.4, name="mount")
-            rod(bot, top, 0.012, "oak", OAK_LIGHT, r1=0.0145, verts=20, name="leg")
+            rod(bot, top, 0.012, "oak-rift", OAK_LIGHT, r1=0.0145, verts=20, name="leg")
             kit.cylinder(0.0105, 0.012, (top[0], top[1], top[2] - 0.004), BLACK, verts=20, bevel=0.001, name="ferrule")
             feet.append((top, bot))
     # wire brace: side rails and an X at the back
@@ -443,7 +451,7 @@ def trolley():
     tones = ["#b48c5c", "#ab8352", "#b99262", "#b08858", "#a88051", "#b68f5f", "#ad8555", "#bb9464", "#aa8252", "#b28a5a"]
     for i in range(n):
         y = -D / 2 + D / n * (i + 0.5)
-        kit.box((W, D / n, T), (0, y, top_z), "oak", tones[i], bevel=0.0015, roughness=0.55, name="strip")
+        kit.box((W, D / n, T), (0, y, top_z), "oak-rift", tones[i], bevel=0.0015, roughness=0.55, name="strip")
     # frame
     ash = "#c8b08e"
     lg = 0.042
@@ -519,7 +527,7 @@ def bakers_rack():
             for y in (-ys + 0.005, ys - 0.005):
                 rod((-xs, y, z + 0.08), (xs, y, z + 0.08), 0.004, BLACK, verts=8, roughness=0.5, name="lip")
         else:
-            kit.box((W - 0.01, D - 0.006, 0.022), (0, 0, z), "oak", OAK, bevel=0.003, name="shelf")
+            kit.box((W - 0.01, D - 0.006, 0.022), (0, 0, z), "oak-rift", OAK, bevel=0.003, name="shelf")
     # hook rail under the third shelf
     hz = shelves[3] - 0.06
     rod((-xs, -ys, hz), (xs, -ys, hz), 0.006, BLACK, verts=12, roughness=0.5, name="hook_rail")
@@ -585,17 +593,17 @@ def storage_bench():
     # frame: four legs, top, low shelf, side slats
     for sx in (-1, 1):
         for sy in (-1, 1):
-            kit.box((lg, lg, top_z - T), (sx * (W / 2 - lg / 2), sy * (D / 2 - lg / 2), 0), "oak", OAK_LIGHT, bevel=0.006, grain="y", name="leg")
-    slab(W, D, T, (0, 0, top_z - T), "oak", OAK_LIGHT, r=0.012, bevel=0.006, name="top")
+            kit.box((lg, lg, top_z - T), (sx * (W / 2 - lg / 2), sy * (D / 2 - lg / 2), 0), "oak-rift", OAK_LIGHT, bevel=0.006, grain="y", name="leg")
+    slab(W, D, T, (0, 0, top_z - T), "oak-rift", OAK_LIGHT, r=0.012, bevel=0.006, name="top")
     sh_z = 0.07
-    kit.box((W - 2 * lg + 0.01, D - 0.02, 0.02), (0, 0, sh_z), "oak", OAK_LIGHT, bevel=0.003, name="shelf")
+    kit.box((W - 2 * lg + 0.01, D - 0.02, 0.02), (0, 0, sh_z), "oak-rift", OAK_LIGHT, bevel=0.003, name="shelf")
     for sy in (-1, 1):
-        kit.box((W - 2 * lg, 0.02, 0.05), (0, sy * (D / 2 - 0.02), top_z - T - 0.05), "oak", OAK_LIGHT, bevel=0.003, name="apron")
-    kit.box((0.022, D - 2 * lg, top_z - T - sh_z - 0.02), (0, 0, sh_z + 0.02), "oak", OAK_LIGHT, bevel=0.003, grain="y", name="divider")
+        kit.box((W - 2 * lg, 0.02, 0.05), (0, sy * (D / 2 - 0.02), top_z - T - 0.05), "oak-rift", OAK_LIGHT, bevel=0.003, name="apron")
+    kit.box((0.022, D - 2 * lg, top_z - T - sh_z - 0.02), (0, 0, sh_z + 0.02), "oak-rift", OAK_LIGHT, bevel=0.003, grain="y", name="divider")
     for sx in (-1, 1):
         for k in range(3):
             y = -D / 2 + lg + (D - 2 * lg) * (k + 0.5) / 3
-            kit.box((0.018, 0.058, top_z - T - sh_z - 0.02), (sx * (W / 2 - lg / 2), y, sh_z + 0.02), "oak", OAK_LIGHT, bevel=0.003, grain="y", name="side_slat")
+            kit.box((0.018, 0.058, top_z - T - sh_z - 0.02), (sx * (W / 2 - lg / 2), y, sh_z + 0.02), "oak-rift", OAK_LIGHT, bevel=0.003, grain="y", name="side_slat")
     # two rattan baskets on the shelf
     bw = (W - 2 * lg - 0.022) / 2 - 0.04
     bh = top_z - T - 0.05 - sh_z - 0.02 - 0.03

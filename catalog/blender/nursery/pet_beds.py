@@ -227,7 +227,7 @@ VARIANTS = [
          cushion=("wool-felt", "#b9b4ac"), name="Mid-century raised walnut pet bed with cushion, small 60x46",
          colors=["brown", "grey"], materials=["walnut", "wool blend cushion"], price=49000, style="mid-century",
          tags=["pet bed", "cat bed", "raised", "walnut", "tapered legs", "small"]),
-    dict(slug="mcm-raised-pet-bed-medium", fam="mcm", size=(0.82, 0.60), wood=("oak", "#c9a57a"),
+    dict(slug="mcm-raised-pet-bed-medium", fam="mcm", size=(0.82, 0.60), wood=("oak-rift", "#c9a57a"),
          cushion=("wool-felt", "#e3dccf"), name="Mid-century raised oak pet bed with cushion, medium 82x60",
          colors=["beige", "white"], materials=["oak", "wool blend cushion"], price=66000, style="mid-century",
          tags=["pet bed", "dog bed", "raised", "oak", "tapered legs", "medium"]),

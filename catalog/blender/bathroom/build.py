@@ -13,6 +13,7 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))
 import kit  # noqa: E402
 import parts as P  # noqa: E402
+import kit_shapes as KS  # noqa: E402
 
 OUT = HERE.parents[1] / "data" / "extra" / "bpy-bathroom"
 BRASS = "metal:#b8955e"
@@ -38,6 +39,12 @@ def basin_and_tap(cx, cy, top, R, H, tap_y, tap="metal:#bfc0c0", oval=1.0, tap_r
     P.mixer_tap(cx, tap_y, top, reach, H + 0.1, tap, tap_rough)
 
 
+def reeded_door(x0, x1, y_back, z0, z1, depth=0.024, pitch=0.024, name="door"):
+    """Rift-oak door with real half-round reeds on the front (-Y); back plane at y_back, crowns at y_back - depth."""
+    KS.reeded_panel(x1 - x0, z1 - z0, depth, ((x0 + x1) / 2, y_back - depth / 2, z0), "oak-rift", OAK_T,
+                    reed_w=pitch, name=name)
+
+
 def fluted_oak_vanity(W):
     D, top = 0.47, 0.80
     plinth_h, slab_t = 0.07, 0.03
@@ -45,16 +52,16 @@ def fluted_oak_vanity(W):
     door_t = 0.018
     yb = -D / 2 + door_t + 0.006        # carcass front plane (behind doors)
     # recessed plinth, carcass, oak top
-    P.slab((W - 0.06, D - 0.06, plinth_h), (0, 0.02, 0), "oak", "#6e5238", bevel=0.002)
-    P.slab((W, D - door_t - 0.006, body_top - plinth_h), (0, (yb + D / 2) / 2, plinth_h), "oak", OAK_T, bevel=0.003)
-    P.slab((W + 0.01, D + 0.005, slab_t), (0, -0.0025, body_top), "oak", OAK_T, bevel=0.004, segments=3)
+    P.slab((W - 0.06, D - 0.06, plinth_h), (0, 0.02, 0), "oak-rift", "#6e5238", bevel=0.002)
+    P.slab((W, D - door_t - 0.006, body_top - plinth_h), (0, (yb + D / 2) / 2, plinth_h), "oak-rift", OAK_T, bevel=0.003)
+    P.slab((W + 0.01, D + 0.005, slab_t), (0, -0.0025, body_top), "oak-rift", OAK_T, bevel=0.004, segments=3)
     ndoors = 1 if W < 0.7 else 2
     gap = 0.003
     dw = (W - gap * (ndoors + 1)) / ndoors
     z0, z1 = plinth_h + 0.004, body_top - 0.004
     for k in range(ndoors):
         x0 = -W / 2 + gap + k * (dw + gap)
-        P.fluted_front(x0, x0 + dw, yb, door_t, z0, z1, "oak", OAK_T, name=f"door{k}")
+        reeded_door(x0, x0 + dw, yb, z0, z1, name=f"door{k}")
     # brass knobs sit on the reed crest near the meeting edge (or the right edge for one door)
     crest = yb - door_t - 0.006
     kz = z1 - 0.07
@@ -237,23 +244,23 @@ def white_travertine_small(W, D, top):
 def _c1():
     W, D, H = 0.35, 0.30, 1.60
     t, ph = 0.018, 0.06
-    P.slab((W - 0.04, D - 0.04, ph), (0, 0.02, 0), "oak", "#6e5238", bevel=0.002)
+    P.slab((W - 0.04, D - 0.04, ph), (0, 0.02, 0), "oak-rift", "#6e5238", bevel=0.002)
     door_t = 0.018
     yf = -D / 2 + door_t + 0.006
     cd = D / 2 - yf
     cy = (yf + D / 2) / 2
     for sx in (-1, 1):
-        P.slab((t, cd, H - ph), (sx * (W / 2 - t / 2), cy, ph), "oak", OAK_T, bevel=0.002, upright=True)
-    P.slab((W - 2 * t, cd, t), (0, cy, ph), "oak", OAK_T, bevel=0.001)
-    P.slab((W + 0.006, cd + 0.003, t), (0, cy - 0.0015, H - t), "oak", OAK_T, bevel=0.003, grain="x")
-    P.slab((W - 2 * t, 0.008, H - ph - 2 * t), (0, D / 2 - 0.004, ph + t), "oak", OAK_T, bevel=0.0)
+        P.slab((t, cd, H - ph), (sx * (W / 2 - t / 2), cy, ph), "oak-rift", OAK_T, bevel=0.002, upright=True)
+    P.slab((W - 2 * t, cd, t), (0, cy, ph), "oak-rift", OAK_T, bevel=0.001)
+    P.slab((W + 0.006, cd + 0.003, t), (0, cy - 0.0015, H - t), "oak-rift", OAK_T, bevel=0.003, grain="x")
+    P.slab((W - 2 * t, 0.008, H - ph - 2 * t), (0, D / 2 - 0.004, ph + t), "oak-rift", OAK_T, bevel=0.0)
     # niche between the doors: 26 cm high, oak shelves top and bottom
     nz0, nz1 = 0.40, 0.66
     for z in (nz0 - t, nz1):
-        P.slab((W - 2 * t, cd - 0.008, t), (0, cy - 0.004, z), "oak", OAK_T, bevel=0.0015)
+        P.slab((W - 2 * t, cd - 0.008, t), (0, cy - 0.004, z), "oak-rift", OAK_T, bevel=0.0015)
     g = 0.003
-    P.fluted_front(-W / 2 + g, W / 2 - g, yf, door_t, ph + g, nz0 - t - g, "oak", OAK_T, pitch=0.022, name="dlo")
-    P.fluted_front(-W / 2 + g, W / 2 - g, yf, door_t, nz1 + t + g, H - t - g, "oak", OAK_T, pitch=0.022, name="dhi")
+    reeded_door(-W / 2 + g, W / 2 - g, yf, ph + g, nz0 - t - g, pitch=0.022, name="dlo")
+    reeded_door(-W / 2 + g, W / 2 - g, yf, nz1 + t + g, H - t - g, pitch=0.022, name="dhi")
     crest = yf - door_t - 0.006
     for z in (nz0 - t - 0.06, nz1 + t + 0.06):
         P.revolve([(0.0, 0.0), (0.006, 0.0), (0.005, 0.012), (0.011, 0.016), (0.011, 0.022), (0.0, 0.023)],
@@ -306,7 +313,7 @@ def _s1():
         for sx in (-1, 1):
             P.slab((0.012, D - 2 * s, 0.012), (sx * (W / 2 - s / 2), 0, z - 0.012), "black-metal", "#3a3a3a",
                    bevel=0.001, roughness=0.55)
-        P.slab((W - 2 * s - 0.004, D - 0.02, 0.02), (0, 0, z), "oak", OAK_T, bevel=0.003)
+        P.slab((W - 2 * s - 0.004, D - 0.02, 0.02), (0, 0, z), "oak-rift", OAK_T, bevel=0.003)
     # styled with rolled towels and a stoneware jug
     P.rod((-0.16, -0.05, 0.575), (0.02, -0.05, 0.575), 0.035, 0.035, "wool-felt", "#d9cbb4", verts=24)
     P.rod((-0.16, 0.05, 0.575), (0.02, 0.05, 0.575), 0.035, 0.035, "wool-felt", "#e8e2d5", verts=24)
@@ -350,16 +357,16 @@ def _t2():
     H, W, foot = 0.85, 0.55, 0.36
     s = 0.03
     for x in (-W / 2 + s / 2, W / 2 - s / 2):
-        P.slanted_rail(x, -foot / 2 + s / 2, -0.012, H, s, s, "oak", OAK_T, bevel=0.004)
-        P.slanted_rail(x, foot / 2 - s / 2, 0.012, H, s, s, "oak", OAK_T, bevel=0.004)
+        P.slanted_rail(x, -foot / 2 + s / 2, -0.012, H, s, s, "oak-rift", OAK_T, bevel=0.004)
+        P.slanted_rail(x, foot / 2 - s / 2, 0.012, H, s, s, "oak-rift", OAK_T, bevel=0.004)
         # small oak cap joining the apex
-        P.slab((s + 0.002, 0.06, 0.02), (x, 0, H - 0.02), "oak", OAK_T, bevel=0.004)
+        P.slab((s + 0.002, 0.06, 0.02), (x, 0, H - 0.02), "oak-rift", OAK_T, bevel=0.004)
     r = 0.011
-    P.rod((-W / 2 + 0.005, 0, H - 0.04), (W / 2 - 0.005, 0, H - 0.04), r, r, "oak", OAK_T, verts=20)
+    P.rod((-W / 2 + 0.005, 0, H - 0.04), (W / 2 - 0.005, 0, H - 0.04), r, r, "oak-rift", OAK_T, verts=20)
     for sgn in (-1, 1):
         z = 0.42
         y = sgn * ((foot / 2 - s / 2) + (0.012 - (foot / 2 - s / 2)) * z / H)
-        P.rod((-W / 2 + 0.005, y, z), (W / 2 - 0.005, y, z), r, r, "oak", OAK_T, verts=20)
+        P.rod((-W / 2 + 0.005, y, z), (W / 2 - 0.005, y, z), r, r, "oak-rift", OAK_T, verts=20)
     hung_towel(0, H - 0.04, r, 0.40, 0.36, 0.30, "#d8cab2")
 
 
@@ -469,10 +476,10 @@ def _m2():
             P.slab((0.03, 0.03, 0.006), (sx * (W / 2 - 0.08), sy * (D / 2 - 0.05), 0), "paint:#2a2a2a",
                    bevel=0.002, roughness=0.9, name="foot")
     for sx in (-1, 1):
-        P.slab((0.04, D - 0.02, 0.018), (sx * (W / 2 - 0.08), 0, 0.006), "oak", TEAK_T, bevel=0.003, grain="y")
+        P.slab((0.04, D - 0.02, 0.018), (sx * (W / 2 - 0.08), 0, 0.006), "teak", None, bevel=0.003, grain="y")
     for k in range(n):
         y = -D / 2 + sw / 2 + k * (sw + gap)
-        P.slab((W, sw, 0.018), (0, y, 0.024), "oak", TEAK_T, bevel=0.004, segments=3)
+        P.slab((W, sw, 0.018), (0, y, 0.024), "teak", None, bevel=0.004, segments=3)
 
 
 # ---------------------------------------------------------------- caddy
@@ -482,12 +489,12 @@ def _m2():
 def _d1():
     L, D = 0.75, 0.22
     for sy in (-1, 1):
-        P.slab((L, 0.028, 0.03), (0, sy * (D / 2 - 0.014), 0.0), "oak", TEAK_T, bevel=0.004, segments=3)
+        P.slab((L, 0.028, 0.03), (0, sy * (D / 2 - 0.014), 0.0), "teak", None, bevel=0.004, segments=3)
     n, sw = 17, 0.026
     step = (L - 0.06) / (n - 1)
     for k in range(n):
         x = -L / 2 + 0.03 + k * step
-        P.slab((sw, D - 0.056, 0.016), (x, 0, 0.008), "oak", TEAK_T, bevel=0.003, grain="y")
+        P.slab((sw, D - 0.056, 0.016), (x, 0, 0.008), "teak", None, bevel=0.003, grain="y")
     # ceramic soap dish resting on the slats, plus a pillar candle
     P.revolve([(0.0, 0.0), (0.03, 0.0), (0.045, 0.006), (0.055, 0.018), (0.05, 0.02), (0.04, 0.009), (0.0, 0.007)],
               "ceramic:#e8e2d8", roughness=0.35, steps=48, scale=(1.25, 0.9, 1), at=(-0.2, 0, 0.024), name="dish")
@@ -520,8 +527,8 @@ def _w2():
     W, H, D = 0.50, 0.90, 0.13
     door_t = 0.012
     # body: oak shell (rear y in (door_t, D)) with a slim oak reveal ring behind the mirror door
-    P.prism_xz(P.pill_outline(W, H, H / 2, 32), door_t, D, "oak", OAK_T, bevel=0.004, vertical=True, name="body")
-    P.prism_xz(P.pill_outline(W - 0.012, H - 0.012, H / 2, 32), 0.002, door_t, "oak", "#8b6a47", bevel=0.001,
+    P.prism_xz(P.pill_outline(W, H, H / 2, 32), door_t, D, "oak-rift", OAK_T, bevel=0.004, vertical=True, name="body")
+    P.prism_xz(P.pill_outline(W - 0.012, H - 0.012, H / 2, 32), 0.002, door_t, "oak-rift", "#8b6a47", bevel=0.001,
                vertical=True, name="door-edge")
     P.prism_xz(P.pill_outline(W - 0.016, H - 0.016, H / 2, 32), 0.0, 0.0021, "mirror", bevel=0.0008, name="glass")
 

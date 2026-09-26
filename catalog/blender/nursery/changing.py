@@ -11,7 +11,7 @@ import common as C  # noqa: E402
 from common import kit  # noqa: E402
 
 VARIANTS = [
-    dict(slug="oak-changing-dresser", kind="dresser", W=0.92, D=0.52, Hc=0.86, wood=("oak", "#d0b088"),
+    dict(slug="oak-changing-dresser", kind="dresser", W=0.92, D=0.52, Hc=0.86, wood=("oak-rift", "#d0b088"),
          plinth="recessed", cols=1, rows=3, pull="knob", mat=("wool-felt", "#ece7de"),
          name="Japandi oak changing dresser with 3 drawers and padded mat, 92x55", colors=["beige", "white"],
          materials=["solid oak", "oak veneer", "cotton pad"], price=198000, style="japandi",
