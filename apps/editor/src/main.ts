@@ -1,7 +1,7 @@
 import './ui/style.css';
 import './ui/motion.css';
 import './ui/designer-panel.css';
-import { mountDesignerPanel } from './ui/designer-panel';
+import { mountDesignerPanel, previewDesignerProposal } from './ui/designer-panel';
 import type { AgentProposal, CatalogAsset, EditCommand, ObjectPatch, Operation, SceneDocument, SceneObject, ToolMode, ViewMode, ViewportLayer, WallMode } from './contracts';
 import { demoScene, localCatalog } from './core/demo';
 import { EditorStore } from './core/store';
@@ -534,13 +534,20 @@ function setPreview(enabled:boolean){
   requestAnimationFrame(()=>focusView());
 }
 
+function applyPendingProposal(){
+  if(!pending||interacting||previewMode)return {ok:false,message:'Finish your current edit or preview before applying.'};
+  const proposal=pending;const result=store.execute(proposal.command,true);
+  if(result.ok){pending=null;renderProposal();select(null);focusView();notify(`${proposal.title} applied`);}else notify(result.errors.join(' '),true);
+  return {ok:result.ok,message:result.errors.join(' ')};
+}
 function renderProposal(){
   $('#proposal-badge').hidden=!pending;
   const el=$('#proposal');if(!pending){el.innerHTML='';return;}
+  if(designerLive && pending.command.source==='designer'){el.innerHTML='';return;}
   const stale=pending.command.baseRevision!==store.revision;
   const canInspect = pending.command.operations.some(o => o.type === 'replace-scene' || o.type === 'replace-structure');
   el.innerHTML=`<div class="proposal"><span class="eyebrow">${pending.command.source==='architect'?'RECONSTRUCTION REVIEW':'PROPOSED CHANGE'}</span><strong>${escape(pending.title)}</strong><p>${escape(pending.description)}</p>${stale?'<p class="proposal-warning">The scene has changed. Request a fresh proposal.</p>':interacting?'<p class="proposal-warning">Finish your current edit before applying.</p>':''}${canInspect?`<button id="inspect-proposal" class="button full" ${stale||interacting?'disabled':''}>Inspect proposed 3D apartment</button>`:''}<div><button id="apply-proposal" class="button primary" ${stale||interacting||previewMode?'disabled':''}>Apply change</button><button id="reject-proposal" class="button quiet">Dismiss</button></div></div>`;
-  $('#apply-proposal').onclick=()=>{if(!pending||interacting||previewMode)return;const proposal=pending;const result=store.execute(proposal.command,true);if(result.ok){pending=null;renderProposal();select(null);focusView();notify(`${proposal.title} applied`);}else notify(result.errors.join(' '),true);};
+  $('#apply-proposal').onclick=()=>{ applyPendingProposal(); };
   if(canInspect)$('#inspect-proposal').onclick=()=>{
     if(!pending||pending.command.baseRevision!==store.revision||interacting)return;
     let proposed:SceneDocument=structuredClone(store.scene);
@@ -550,7 +557,7 @@ function renderProposal(){
   $('#reject-proposal').onclick=()=>{pending=null;renderProposal();notify('Proposal dismissed');};
 }
 async function requestProposal(kind:'designer'|'architect'){
-  if(kind==='designer' && designerLive){switchPanel('assistant');await designerPanel.controller.suggest();return;}
+  if(kind==='designer' && designerLive){designerPanel.open();await designerPanel.controller.suggest();return;}
   if(busy)return;switchPanel('assistant');busy=true;$<HTMLButtonElement>('#suggest').disabled=true;$('#suggest').innerHTML=`${icon('sparkles')} Considering your space…`;
   const revision=store.revision;const scene=store.scene;
   try{
@@ -581,12 +588,23 @@ function refresh(){
 }
 store.subscribe(refresh);
 const designerHost = document.createElement('section');
-$('#proposal').before(designerHost);
+if(designerLive){$('.workspace').classList.add('designer-workspace');$('.left-panel').before(designerHost);}else $('#proposal').before(designerHost);
 const designerPanel = mountDesignerPanel(designerHost, {
   live: designerLive, snapshot: () => ({ scene: store.scene, revision: store.revision }),
   subscribe: listener => store.subscribe(listener), canRequest: () => !busy && !previewMode,
   onBusyChange: waiting => { busy = waiting; $<HTMLButtonElement>('#suggest').disabled = waiting; },
-  onProposal: proposal => { pending = proposal; switchPanel('assistant'); renderProposal(); },
+  onProposal: proposal => { pending = proposal; if(!designerLive)switchPanel('assistant'); renderProposal(); },
+  onResetReview: () => { if(pending?.command.source==='designer'){if(proposalView)setPreview(false);pending=null;renderProposal();} },
+  onProposalAction: (proposal, action) => {
+    if(interacting)return {ok:false,message:'Finish your current edit before reviewing a proposal.'};
+    if(previewMode)setPreview(false);
+    pending=proposal;
+    if(action==='apply')return applyPendingProposal();
+    if(action==='dismiss'){pending=null;renderProposal();notify('Proposal dismissed');return {ok:true};}
+    const proposed=previewDesignerProposal(store.scene,store.revision,proposal,catalog);
+    setPreview(true);proposalView=true;$<HTMLButtonElement>('#save').disabled=true;viewport.setScene(proposed,catalog);focusView();
+    notify('Proposed change preview. Apply or dismiss it in the conversation.');return {ok:true};
+  },
 });
 window.addEventListener('beforeunload', () => designerPanel.dispose());
 
@@ -648,4 +666,4 @@ window.addEventListener('keydown',event=>{
   else if(!mod){if(['delete','backspace'].includes(key)){event.preventDefault();deleteSelected();}else if(key==='f')focusView(selectedId??undefined);else if(key==='v')setTool('select');else if(key==='g'&&view!=='plan')setTool('move');else if(key==='r'&&view!=='plan')setTool('rotate');else if(key==='s'&&view!=='plan')setTool('scale');else if(key==='1')switchPanel('scene');else if(key==='2')switchPanel('assets');else if(key==='3')switchPanel('assistant');else if(key==='4')switchPanel('renovation');else if(key==='5')switchPanel('materials');else if(key==='[')switchPanel(activePanel,true);}
 });
 window.addEventListener('beforeunload',()=>{materialsUI.dispose();viewport.dispose();floorPlan.dispose();catalogPreviews.dispose();renovationUI?.destroy();intake.destroy();});
-refresh();renderAssets();setTool('select');switchPanel('renovation');
+refresh();renderAssets();setTool('select');switchPanel('renovation');if(designerLive)switchPanel('renovation',true);
