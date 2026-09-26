@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.venv/
+__pycache__/
+*.blend1
+assets/build/
+.DS_Store

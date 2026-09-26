@@ -1,0 +1,2 @@
+# Project Codex config. Loads only once this folder is trusted in ~/.codex/config.toml.
+# Disable global MCP servers, plugins and memories here to cut thread start context.
