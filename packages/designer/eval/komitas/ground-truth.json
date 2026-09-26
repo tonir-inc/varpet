@@ -1,0 +1,102 @@
+[
+  {
+    "id": "b20-t11",
+    "building_id": 20,
+    "type_id": 11,
+    "rooms": 1,
+    "area_m2": 66.3,
+    "bathrooms": 1,
+    "balconies": 1,
+    "northDeg": 0
+  },
+  {
+    "id": "b23-t64",
+    "building_id": 23,
+    "type_id": 64,
+    "rooms": 4,
+    "area_m2": 114.9,
+    "bathrooms": 2,
+    "balconies": 2,
+    "northDeg": 0
+  },
+  {
+    "id": "b25-t72",
+    "building_id": 25,
+    "type_id": 72,
+    "rooms": 4,
+    "area_m2": 118,
+    "bathrooms": 2,
+    "balconies": 2,
+    "northDeg": 0
+  },
+  {
+    "id": "b24-t22",
+    "building_id": 24,
+    "type_id": 22,
+    "rooms": 3,
+    "area_m2": 83.2,
+    "bathrooms": 2,
+    "balconies": 1,
+    "northDeg": 0
+  },
+  {
+    "id": "b31-t46",
+    "building_id": 31,
+    "type_id": 46,
+    "rooms": 1,
+    "area_m2": 89.4,
+    "bathrooms": 2,
+    "balconies": 1,
+    "northDeg": 0
+  },
+  {
+    "id": "b27-t79",
+    "building_id": 27,
+    "type_id": 79,
+    "rooms": 3,
+    "area_m2": 87,
+    "bathrooms": 2,
+    "balconies": 1,
+    "northDeg": 0
+  },
+  {
+    "id": "b21-t13",
+    "building_id": 21,
+    "type_id": 13,
+    "rooms": 2,
+    "area_m2": 41.3,
+    "bathrooms": 1,
+    "balconies": 1,
+    "northDeg": 0
+  },
+  {
+    "id": "b28-t31",
+    "building_id": 28,
+    "type_id": 31,
+    "rooms": 2,
+    "area_m2": 60.9,
+    "bathrooms": 1,
+    "balconies": 1,
+    "northDeg": 0
+  },
+  {
+    "id": "b30-t35",
+    "building_id": 30,
+    "type_id": 35,
+    "rooms": 3,
+    "area_m2": 74.1,
+    "bathrooms": 2,
+    "balconies": 1,
+    "northDeg": 0
+  },
+  {
+    "id": "b18-t1",
+    "building_id": 18,
+    "type_id": 1,
+    "rooms": 2,
+    "area_m2": 65.6,
+    "bathrooms": 1,
+    "balconies": 1,
+    "northDeg": 0
+  }
+]
