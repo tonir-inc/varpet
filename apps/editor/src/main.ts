@@ -18,7 +18,7 @@ import { validateScene } from './core/validation';
 import { OPENING_MOVE_SNAP } from './core/opening-move';
 import { STORAGE_KEY, parseScene, saveLocal, serializeScene } from './core/persistence';
 import { createDesignerAdapter, structureAdapter as mockStructureAdapter } from './adapters/mock';
-import { createArchitectHttpAdapter } from './adapters/architect-http';
+import { createArchitectHttpAdapter, withBuiltPieceResolver } from './adapters/architect-http';
 import { createReconstructionProposal } from './core/reconstruction-proposal';
 import { createViewport } from './render/viewport';
 import { createFloorPlan } from './render/floor-plan';
@@ -109,6 +109,7 @@ const escape = (s: string) => s.replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&l
 const uid = () => crypto.randomUUID();
 const architectLive = Boolean(import.meta.env.VITE_ARCHITECT_URL);
 const structureAdapter = architectLive ? createArchitectHttpAdapter({ onProgress: message => notify(message) }) : mockStructureAdapter;
+const builtPieceResolver = withBuiltPieceResolver(ids => databaseCatalog.resolve(ids), (asset): CatalogProduct => ({ asset, priceSource: 'built from photos', sizeStatus: 'estimated', attribution: 'Built by the varpet architect from your photos' }));
 let catalog: CatalogAsset[] = [];
 const store = createApartmentStore(createInitialScene(), catalog);
 const catalogProducts = new Map<string, CatalogProduct>();
@@ -130,7 +131,7 @@ function registerProducts(products: CatalogProduct[]) {
 const priceLabel = (asset: CatalogAsset) => `${asset.price.toLocaleString()} AMD · ${catalogProducts.get(asset.id)?.priceSource ?? 'unverified'}`;
 async function parseDatabaseScene(text: string) {
   if (text.length > 24_000_000) throw new Error('Project file exceeds the 24 MB limit.');
-  registerProducts(await resolveSceneProducts(JSON.parse(text), catalogProducts));
+  registerProducts(await resolveSceneProducts(JSON.parse(text), catalogProducts, architectLive ? builtPieceResolver : undefined));
   return parseScene(text, catalog);
 }
 let selectedId: string | null = null;

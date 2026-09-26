@@ -21,7 +21,7 @@ RUNS = Path(os.environ.get("VARPET_RUNS", Path.home() / ".varpet" / "runs"))
 
 async def _run(args) -> int:
     graph = load(Path(args.graph))
-    run_dir = Path(args.runs) / f"{graph.flat}-{time.strftime('%Y%m%d-%H%M%S')}"
+    run_dir = Path(args.resume) if args.resume else Path(args.runs) / f"{graph.flat}-{time.strftime('%Y%m%d-%H%M%S')}"
     if args.stub:
         report = await dispatch(graph, StubRunner(), run_dir, args.lanes)
     else:
@@ -33,7 +33,7 @@ async def _run(args) -> int:
         try:
             compile_cmd = shlex.split(args.compile) if args.compile else None
             runner = CodexRunner(codex, REPO, model=args.model, compile_cmd=compile_cmd)
-            report = await dispatch(graph, runner, run_dir, args.lanes)
+            report = await dispatch(graph, runner, run_dir, args.lanes, resume=bool(args.resume))
         finally:
             await codex.close()
     print(report.to_json())
@@ -76,6 +76,7 @@ def main() -> None:
     run.add_argument("--model", default="gpt-6-astra")
     run.add_argument("--lanes", type=int, default=6)
     run.add_argument("--runs", default=str(RUNS))
+    run.add_argument("--resume", help="an existing run folder: jobs with checked output there are not run again")
     flat = sub.add_parser("flat", help="architect plans the flat, then dispatch the graph")
     flat.add_argument("name")
     flat.add_argument("--plan", required=True, help="plan image or text, absolute or repo-relative")

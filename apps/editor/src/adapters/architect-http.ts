@@ -112,3 +112,26 @@ export async function withBuiltPieces(base:CatalogAsset[],url?:string,run?:strin
     return base;
   }
 }
+
+/**
+ * Scene loading: ids starting "built-" are pieces the architect built from photos; they resolve from the
+ * architect service, everything else from the catalog database as before.
+ */
+export function withBuiltPieceResolver<P>(resolve:(ids:string[])=>Promise<P[]>,wrap:(asset:CatalogAsset)=>P,url?:string,fetcher?:typeof globalThis.fetch):(ids:string[])=>Promise<P[]>{
+  return async ids=>{
+    const built=ids.filter(id=>id.startsWith('built-'));
+    const others=await resolve(ids.filter(id=>!id.startsWith('built-')));
+    if(!built.length)return others;
+    const base=(url??import.meta.env.VITE_ARCHITECT_URL??'http://127.0.0.1:8788').replace(/\/$/,'');
+    const request=fetcher??globalThis.fetch.bind(globalThis);
+    const runs=await (await request(`${base}/runs`)).json() as {run:string}[];
+    const found=new Map<string,CatalogAsset>();
+    for(const {run} of runs.filter(({run})=>built.some(id=>id.startsWith(`built-${run}-`)))){
+      const {assets}=await builtPieces({url:base,run,fetch:request});
+      for(const asset of assets)found.set(asset.id,asset);
+    }
+    const missing=built.filter(id=>!found.has(id));
+    if(missing.length)throw new ArchitectServiceError(`The architect service does not have ${missing.join(', ')}.`);
+    return [...others,...built.map(id=>wrap(found.get(id)!))];
+  };
+}

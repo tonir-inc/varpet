@@ -10,12 +10,12 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-Kind = Literal["shell", "piece", "designer"]
+Kind = Literal["shell", "piece", "furnish", "designer"]
 Effort = Literal["low", "medium", "high"]
 SizeSource = Literal["plan", "photo", "scan", "typical"]
 
 # File each kind leaves in its workdir. The next job reads it from there.
-OUTPUT: dict[str, str] = {"shell": "shell.json", "piece": "program.json", "designer": "ops.json"}
+OUTPUT: dict[str, str] = {"shell": "shell.json", "piece": "program.json", "furnish": "placements.json", "designer": "ops.json"}
 
 
 class Job(BaseModel):

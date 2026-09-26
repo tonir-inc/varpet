@@ -63,7 +63,15 @@ class Report:
         return json.dumps(body, indent=2)
 
 
-async def dispatch(graph: Graph, runner: Runner, run_dir: Path, lanes: int = 6) -> Report:
+def _done_before(job: Job, workdir: Path) -> bool:
+    """--resume: a job whose checked output is already on disk is not run again."""
+    out = workdir / OUTPUT[job.kind]
+    if job.kind == "piece":
+        return (workdir / "piece.glb").exists() and not (workdir / "faults.json").exists()
+    return out.exists() and not (workdir / "faults.json").exists()
+
+
+async def dispatch(graph: Graph, runner: Runner, run_dir: Path, lanes: int = 6, resume: bool = False) -> Report:
     report = Report(flat=graph.flat)
     run_dir.mkdir(parents=True, exist_ok=True)
     (run_dir / "graph.json").write_text(graph.model_dump_json(indent=1))
@@ -89,6 +97,9 @@ async def dispatch(graph: Graph, runner: Runner, run_dir: Path, lanes: int = 6) 
                 continue
             workdir = run_dir / jid
             workdir.mkdir(parents=True, exist_ok=True)
+            if resume and _done_before(job, workdir):
+                report.results[jid] = JobResult(jid, "ok", output=str(workdir / OUTPUT[job.kind]), error="resumed")
+                continue
             deps = {d: report.results[d] for d in job.deps}
             running[asyncio.create_task(runner.run(job, workdir, deps))] = jid
         report.peak_lanes = max(report.peak_lanes, len(running))

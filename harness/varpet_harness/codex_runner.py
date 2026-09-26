@@ -75,7 +75,8 @@ class CodexRunner:
         self.repo = repo
         self.model = model
         # Every kind checks under one contract: <cmd> <output> <workdir>, exit 0 or faults.json.
-        self.checkers: dict[str, list[str]] = {"shell": [sys.executable, "-m", "varpet_harness.shell"]}
+        self.checkers: dict[str, list[str]] = {"shell": [sys.executable, "-m", "varpet_harness.shell"],
+                                               "furnish": [sys.executable, "-m", "varpet_harness.furnish"]}
         if compile_cmd:
             self.checkers["piece"] = compile_cmd
         self.fix_turns = fix_turns
@@ -152,6 +153,10 @@ class CodexRunner:
                 lines.append(f"True size in metres ({job.size_source}): w {w}, d {d}, h {h}.")
         if job.count > 1:
             lines.append(f"The flat has {job.count} identical copies; build one.")
+        if job.kind == "furnish":
+            from .furnish import brief
+
+            lines += ["", brief(out.parent.parent)]
         for dep_id, r in deps.items():
             lines.append(f"Input from {dep_id}: {r.output}")
         lines.append(f"Write your result to {out.name} in this folder. Nothing else.")
