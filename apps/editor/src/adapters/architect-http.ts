@@ -144,3 +144,31 @@ export function withBuiltPieceResolver<P>(resolve:(ids:string[])=>Promise<P[]>,w
     return [...others,...built.map(id=>wrap(found.get(id)!))];
   };
 }
+
+/**
+ * The whole architect session: plan + photos -> a furnished editor project (rooms, walls, fixtures, built
+ * furniture). About 8 minutes; progress lines are already written for people.
+ */
+export async function buildFurnishedFlat(input:{plan:File;photos:File[];name:string},onProgress:(message:string)=>void,options:{url?:string;fetch?:typeof globalThis.fetch;signal?:AbortSignal}={}):Promise<unknown>{
+  const base=(options.url??import.meta.env.VITE_ARCHITECT_URL??'http://127.0.0.1:8788').replace(/\/$/,'');
+  const request=options.fetch??globalThis.fetch.bind(globalThis);
+  const body=JSON.stringify({name:input.name,plan:await encode(input.plan),photos:await Promise.all(input.photos.slice(0,10).map(encode))});
+  const response=await request(`${base}/flat`,{method:'POST',headers:{'Content-Type':'application/json'},body,signal:options.signal});
+  if(!response.ok||!response.body)throw new ArchitectServiceError(`Architect service answered HTTP ${response.status}.`);
+  const reader=response.body.pipeThrough(new TextDecoderStream()).getReader();
+  let buffer='';
+  for(;;){
+    const {value,done}=await reader.read();
+    buffer+=value??'';
+    let cut:number;
+    while((cut=buffer.indexOf('\n'))>=0){
+      const raw=buffer.slice(0,cut).trim();buffer=buffer.slice(cut+1);
+      if(!raw)continue;
+      const line=JSON.parse(raw) as Record<string,unknown>;
+      if(line.type==='progress')onProgress(String(line.message));
+      else if(line.type==='project')return line.project;
+      else if(line.type==='error')throw new ArchitectServiceError(String(line.message));
+    }
+    if(done)throw new ArchitectServiceError('The architect service closed before the apartment was ready.');
+  }
+}

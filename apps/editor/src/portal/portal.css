@@ -406,3 +406,6 @@
   #app.portal-host { scroll-behavior: auto; }
   .portal-button, .portal-card-link svg { transition: none; }
 }
+
+.portal-own-plan-stage { display: grid; place-items: center; min-height: 220px; color: var(--accent); }
+.portal-own-plan-stage > svg { width: 56px; height: 56px; }

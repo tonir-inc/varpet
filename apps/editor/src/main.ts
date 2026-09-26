@@ -24,7 +24,8 @@ import { validateScene } from './core/validation';
 import { OPENING_MOVE_SNAP } from './core/opening-move';
 import { STORAGE_KEY, parseScene, saveLocal, serializeScene } from './core/persistence';
 import { createDesignerAdapter, structureAdapter as mockStructureAdapter } from './adapters/mock';
-import { createArchitectHttpAdapter } from './adapters/architect-http';
+import { buildFurnishedFlat, createArchitectHttpAdapter } from './adapters/architect-http';
+import { openArchitectFlat } from './ui/architect-flat';
 import { BUILT_CATEGORY, loadBuiltProducts, resolveFurnitureProducts } from './adapters/built-catalog';
 import { createReconstructionProposal, previewReconstructionProposal } from './core/reconstruction-proposal';
 import { createViewport } from './render/viewport';
@@ -352,6 +353,19 @@ function entityName(id: string): string | undefined {
   return scene.project?.components.find(c => c.id === id)?.name ?? scene.project?.routes.find(r => r.id === id)?.name;
 }
 
+function openArchitect() {
+  openArchitectFlat({
+    showModal: (title, body) => showModal(title, body), isOpen: () => modal.open, notify,
+    build: (input, onProgress) => buildFurnishedFlat(input, message => { onProgress(message); if (!modal.open) notify(message); }),
+    onProject: async project => {
+      const scene = await parseDatabaseScene(JSON.stringify(project));
+      const title = 'Furnished apartment from your plan and photos';
+      pending = { id: uid(), title, description: 'The architect read your plan, built the furniture from your photos and placed it where the photos show it. Applying replaces the current apartment; undo restores it.', command: { id: uid(), label: title, source: 'architect', baseRevision: store.revision, operations: [{ type: 'replace-scene', scene }] } };
+      switchPanel('assistant'); renderProposal(); notify('Your apartment is ready. Inspect it in 3D, then apply or dismiss it.');
+    },
+  });
+}
+
 const intake = createIntake({
   getScene: () => store.scene, getCatalog: () => catalog, getRevision: () => store.revision,
   execute: (label, operations, revision) => run(operations, label, revision), notice: notify,
@@ -374,7 +388,7 @@ renovationUI = createRenovationUI($('#renovation-panel'), {
   execute: (label, operations, onDeferredApply) => run(operations, label, store.revision, onDeferredApply), select: (id, additive) => select(id, additive || multiSelection),
   focus: id => focusView(id), notice: notify,
   testDoor: (id, angle) => viewport.setDoorAngle(id, angle), getDoorAngle: id => viewport.getDoorAngle(id),
-  toggleSwitch: id => viewport.toggleSwitch(id), setSwitchLevel: (id, level) => viewport.setSwitchLevel(id, level), getSwitchLevel: id => viewport.getSwitchLevel(id), onSources: () => intake.sources(), onReconstruct: () => intake.reconstruction(), onExport: exportProject,
+  toggleSwitch: id => viewport.toggleSwitch(id), setSwitchLevel: (id, level) => viewport.setSwitchLevel(id, level), getSwitchLevel: id => viewport.getSwitchLevel(id), onSources: () => intake.sources(), onReconstruct: () => intake.reconstruction(), onArchitect: architectLive ? openArchitect : undefined, onExport: exportProject,
   onLayer: (name, enabled) => viewport.setLayer(name as ViewportLayer, enabled),
   onComparison: enabled => viewport.setComparison(enabled),
 });
@@ -938,6 +952,7 @@ const designerPanel = mountDesignerPanel(designerHost, {
 window.addEventListener('pagehide', event => { if (!event.persisted) designerPanel.dispose(); });
 
 const modal=$<HTMLDialogElement>('#modal');
+if (architectLive && new URLSearchParams(location.search).has('architect')) queueMicrotask(openArchitect);
 const sharingUI = mountSharing($<HTMLButtonElement>('#share'), {
   async createLink(access) {
     if (accountSaving) throw new Error('Wait for your apartment to finish saving, then try again.');

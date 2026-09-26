@@ -1,0 +1,22 @@
+.af-form { display: grid; gap: var(--space-4); }
+.af-drop, .af-field { display: grid; gap: var(--space-1); padding: var(--space-4); border: 1px dashed var(--line); border-radius: var(--radius-sm); }
+.af-field { border-style: solid; }
+.af-drop:focus-within, .af-field:focus-within { border-color: var(--accent); }
+.af-label { font-size: var(--text-sm); font-weight: 600; }
+.af-hint, .af-note, .af-elapsed { color: var(--muted); font-size: var(--text-xs); line-height: 1.5; }
+.af-drop input[type=file] { margin-top: var(--space-2); color: var(--muted); font-size: var(--text-xs); }
+.af-field input { margin-top: var(--space-1); padding: var(--space-2) var(--space-3); border: 1px solid var(--control-line); border-radius: var(--radius-sm); background: transparent; color: inherit; font-size: var(--text-sm); }
+.af-progress { display: grid; gap: var(--space-4); min-width: min(420px, 80vw); }
+.af-steps { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+.af-step { display: grid; grid-template-columns: 16px 1fr; gap: var(--space-3); align-items: start; }
+.af-step div { display: grid; gap: 2px; }
+.af-step strong { font-size: var(--text-sm); }
+.af-step span:not(.af-dot) { color: var(--muted); font-size: var(--text-xs); }
+.af-dot { width: 12px; height: 12px; margin-top: 3px; border: 2px solid var(--line); border-radius: 50%; }
+.af-done .af-dot { border-color: var(--accent); background: var(--accent); }
+.af-active .af-dot { border-color: var(--accent); animation: af-pulse 1.2s ease-in-out infinite; }
+.af-failed .af-dot { border-color: var(--danger); background: var(--danger); }
+.af-waiting strong { color: var(--muted); }
+.af-status { padding: var(--space-3); border-radius: var(--radius-sm); background: var(--accent-wash); font-size: var(--text-sm); }
+@keyframes af-pulse { 50% { background: var(--accent); } }
+@media (prefers-reduced-motion: reduce) { .af-active .af-dot { animation: none; background: var(--accent-wash); } }
