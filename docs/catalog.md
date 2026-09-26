@@ -159,3 +159,17 @@ Extra wall art, mirrors, clocks and wall hangings may carry wall/mount/hang note
 Other extra kinds retain the mounting exclusion; curtains remain unsupported. ABO decorations
 retain existing size, conflict, orientation, model, name and price eligibility checks.
 The capped editor-set script draws quotas from `SHARE`, independently of the placeable kinds.
+
+## Decorations (26 Sept night)
+727 decoration items, `source='extra'`, groups under gitignored `catalog/data/extra/<group>/` (built by 8 Opus agents from
+CC0/CC-BY/public-domain sources; licence + attribution per row): art-prints 74, posters 112, plants 80, tabletop 92,
+textiles 124, wall-decor 57, shelf-styling 96, misc-decor 92. Catalog total 8,850.
+- Fine kinds map to editor kinds (EDITOR_KIND_OF = bridge editorKindOf): vase, candle, sculpture, books, cushion,
+  throw_blanket, basket, tray, bowl, lantern, picture_frame, toy, planter -> decor; clock, wall_hanging -> wall_art;
+  mirror, wall_art, decor native. Curtains are searchable but not placeable (no ceiling mounting yet).
+- The editor hangs wall_art/mirrors/clocks on the nearest wall and rests decor on furniture (`restsOn`, op `on`);
+  see apps/editor/docs/integrations.md.
+- Previews are Blender renders; the same render is the SigLIP "photo" (these items have no product photo), so text
+  and visual search find them.
+- Import a group: `catalog/import_extra_groups.sh <group>...` (VM + local DB rows, GLB upload, previews, embeddings).
+
