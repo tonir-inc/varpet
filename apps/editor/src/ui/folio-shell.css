@@ -21,7 +21,7 @@
 /* Icons for actions, words for things: header and view buttons keep their titles and labels for screen readers. */
 .folio .header-actions #share { font-size: 0; gap: 0; }
 .folio .header-actions #share svg { width: 18px; height: 18px; }
-.folio-quote { height: 36px; border: 0; border-radius: var(--radius-md); background: var(--accent); color: var(--on-accent); padding: 0 12px 0 10px; font-weight: 600; }
+.folio-quote { height: 36px; white-space: nowrap; flex-shrink: 0; border: 0; border-radius: var(--radius-md); background: var(--accent); color: var(--on-accent); padding: 0 12px 0 10px; font-weight: 600; }
 .folio-quote:hover { background: var(--accent-hover); }
 .folio-num { font-family: var(--serif); font-weight: 600; font-variant-numeric: lining-nums tabular-nums; }
 .folio-quote .folio-num { font-size: 16px; }
@@ -66,7 +66,15 @@
 .folio-total strong { font-size: 26px; }
 .folio-note { margin-top: 8px; font-size: 12.5px; color: var(--muted); }
 
+/* Tablets and phones: the flat on top, the designer as a sheet below it, tool panels as an overlay sheet. */
+@media (max-width: 900px) {
+  .folio .designer-workspace { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
+  .folio .designer-workspace > .viewport-shell { grid-column: 1; grid-row: 1; }
+  .folio .designer-workspace > section { grid-column: 1; grid-row: 2; width: auto; max-height: 42dvh; border-right: 0; border-top: 1px solid var(--line); overflow: auto; }
+  .folio .designer-workspace > .left-panel, .folio .designer-workspace:has(.designer-collapsed) > .left-panel { position: absolute; inset: auto 0 0 0; z-index: 25; width: auto; height: 62dvh; max-width: none; border-left: 0; border-top: 1px solid var(--line); box-shadow: var(--shadow-2); }
+}
 @media (max-width: 760px) {
+  .folio .app-header .portal-link, .folio .app-header #my-apartments, .folio .app-header .save-state { display: none; }
   .folio-dock { bottom: 10px; gap: 6px; }
   .folio-menu { right: 10px; bottom: 58px; }
   .folio-toolbar .folio-who strong { max-width: 110px; }
