@@ -20,6 +20,7 @@ Three pieces meet here. Each is built by a different session; this file is what 
   "revision": 12,
   "request": "keep the bed and wardrobe, fit a desk by the window",
   "conversationId": "optional; continue an earlier conversation",
+  "image": { "name": "inspiration.jpg", "dataUrl": "data:image/jpeg;base64,..." },
   "keep": ["optional object ids the customer wants untouched"],
   "doorSwings": { "opening-id": "in-left | in-right | out-left | out-right" },
   "northDeg": 0
@@ -454,3 +455,64 @@ door triggered conversational fallback, which previously inlined that entire doc
 fallback prompt is 3,539 JSON-escaped characters. Real HTTP requests on spare port 52573 with
 VARPET_DESIGNER_FAST_PATH=1 and the full 900-item catalog answered M6 in 9.344 s and Avani in
 11.473 s, both with zero tools. M6 received one geometry limitation notice; Avani needed none.
+
+## Inspiration picture on any request (freeze, 26 September 2026)
+
+`image?: {name: string, dataUrl: string}` is one optional field on `DesignerRequest` and
+`DesignerHttpOptions`, forwarded by `askDesigner`/`createDesignerHttpAdapter`. It works on the first
+or any later turn, with any request type; it is not restricted to style requests or service startup.
+The picture is the buyer's inspiration reference. Scene JSON still controls geometry and identities.
+No upload is fetched from a remote URL, and no picture is copied into the catalog.
+
+[Decision] Accept one PNG, JPEG or WebP of **at most 262,144 decoded bytes (256 KiB)** per request.
+The adapter and service both reject oversize inputs with a resize message; they do not silently
+compress or crop. The name is a plain filename of at most 120 characters; it is never a filesystem
+path. Data URLs must have the matching image MIME signature and valid base64. This replaces the
+Notion design's assumed 5 MB cap with a conservative freeze limit. Existing `vision` experiment
+fields remain separate; they are not needed for inspiration uploads.
+
+The data URL is HTTP upload transport only. The service writes the bytes to a random, mode 0600
+file in the mode 0700 conversation inspiration directory. Worker JSON and builder specifications
+carry only that path. The designer receives `LocalImageInput(path=...)`, never base64 in `TextInput`
+or scene JSON; text still uses HOTFIX's bounded scene projection. PICTURE's existing `BuildPool`
+passes the latest inspiration path into `designer_piece_worker` → `Job.refs` → builder
+`LocalImageInput`. Follow-up builders reuse the latest reference until another image replaces it;
+the designer reattaches only when an image is explicitly supplied on that turn. Old private files
+remain until conversation deletion because the resumed thread may refer to them. No-input requests
+retain their existing fast routing; an image request reaches the visual designer.
+
+**End/delete:** `DELETE /designer/conversations/<conversationId>` returns `200 {"ok":true}`; unknown
+IDs return 404. It cancels and joins an active designer/build turn before removing the whole private
+conversation directory: uploads, SDK history and private builder artifacts. Service shutdown also
+removes it. CORS permits DELETE for the same local editor origins. A normal final answer or HTTP
+stream close does **not** end the conversation: follow-up turns still need its state.
+
+The adapter exports `endDesignerConversation(conversationId,{baseUrl?,signal?})`. The conversation
+UI owner must call this when discarding/ending a conversation; this change does not add a panel
+button or infer that closing a browser tab means end. Private custom GLB URLs also expire on delete;
+persist wanted assets before ending. There is no new idle-time expiry policy in this change.
+
+[Measured] On a spare ephemeral port 60427, a real 83,366-byte local bedroom photo was attached on
+turn 2. The designer described the cabinet's off-white body, tapered/splayed wood legs and grooved
+front with semicircular pull correctly in **10.938 s / 17,230 incremental tokens** (29,710 cumulative).
+The model text was **11,221 JSON-escaped characters**, the image audit reported exactly one attachment,
+and attachment/source SHA256 matched. HTTP DELETE returned 200; the conversation and entire private
+directory disappeared. No photo bytes are committed. Evidence:
+`packages/designer/eval/inspiration-live/measurement.json`; reproduce with:
+
+```sh
+uv run --project harness python packages/designer/eval/inspiration-live.py /absolute/path/to/photo.jpg --output /tmp/inspiration-check < /dev/null
+```
+
+[Measured scope] Five Python regressions cover malformed/oversize inputs, exact cap, WebP paths,
+second-turn designer+builder forwarding, active cancellation-before-delete and concurrent deletion;
+three adapter tests cover upload, rejection-before-network and DELETE. Builder propagation uses the
+real controller with a stub compiler/model worker; this smoke does not remeasure custom-building
+quality. Protected live ports 5180, 5190, 8787, 8788 were not started, stopped or restarted.
+
+[Measured verification, 26 September 2026 UTC] `VITEST_MAX_WORKERS=1 pnpm test` passed untargeted:
+497 Designer tests,183 harness unittest tests,45 eval tests,12 showcase tests plus editor suites/assertions.
+`pnpm typecheck`, editor production build and 55 harness pytest tests passed. Fresh review: APPROVE.
+The initial run needed `pnpm install --frozen-lockfile` for the newly landed gltf-validator dependency;
+no test, fixture or schema was weakened. The only live server for this task used an ephemeral spare
+port and was shut down by its evaluation's finally block.

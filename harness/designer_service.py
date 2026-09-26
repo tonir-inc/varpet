@@ -19,6 +19,8 @@ import threading
 import time
 import re
 import uuid
+import shutil
+import designer_inspiration
 
 import designer
 from designer_context import validate_request_text, model_scene
@@ -78,6 +80,8 @@ def validate_request(body) -> dict:
         if not isinstance(swings, dict) or any(value not in ("in-left", "in-right", "out-left", "out-right")
                                                for value in swings.values()):
             raise ValueError("doorSwings must map opening ids to in-left, in-right, out-left or out-right")
+    if "image" in body:
+        designer_inspiration.validate_image(body["image"])
     if "vision" in body:
         designer_vision.validate_vision(body["vision"], scene, body["revision"], body["request"])
     return body
@@ -106,6 +110,9 @@ def tool_values(event: dict, tool: str) -> list[dict]:
 @dataclass
 class Conversation:
     root: Path
+    inspiration_image: str | None = None
+    cancel: threading.Event | None = None
+    ending: bool = False
     customer_requests: list[str] = field(default_factory=list)
     runtime: dict | None = None
     conversion_notice_sent: bool = False
@@ -164,6 +171,21 @@ class DesignerService:
         if self.catalog_acceleration:
             self.catalog_acceleration.close()
 
+    def end_conversation(self, conversation_id):
+        """Cancel/join this conversation before deleting its uploads, SDK history and builds."""
+        with self.condition:
+            conversation=self.conversations.get(conversation_id)
+            if conversation is None:
+                raise ValueError('Unknown conversationId')
+            conversation.ending=True
+            if conversation.cancel is not None:
+                conversation.cancel.set()
+            self.condition.wait_for(lambda: conversation.cancel is None)
+            if self.conversations.get(conversation_id) is not conversation:
+                raise ValueError("Unknown conversationId")
+            self.conversations.pop(conversation_id,None)
+            shutil.rmtree(conversation.root,ignore_errors=False)
+
     def _process(self, command, cancel, *, env=None, on_output=None):
         if cancel.is_set():
             raise RuntimeError("Request cancelled")
@@ -192,8 +214,11 @@ class DesignerService:
                 conversation = Conversation(Path(self.directory.name) / conversation_id)
                 conversation.root.mkdir()
                 self.conversations[conversation_id] = conversation
+            if conversation.ending:
+                raise ValueError("Conversation is ending")
             if not conversation.lock.acquire(blocking=False):
                 raise ValueError("A request is already running for this conversation")
+            conversation.cancel = cancel
             self.active.add(cancel)
         started = time.monotonic()
         usage = None
@@ -205,11 +230,13 @@ class DesignerService:
             progress("Custom piece " + event["slotId"] + ": " + event["state"])
             event_stream.build(event)
         try:
+            if "image" in body:
+                conversation.inspiration_image = designer_inspiration.store_image(body["image"], conversation.root)
             from designer_fast import routing_classes
             import re
             allowed = routing_classes(self.profile, os.environ)
             scope_request = re.fullmatch(r"(?:knock down|remove|demolish) the wall between (?:the )?kitchen and (?:the )?living room", body['request'].strip().lower().rstrip('.!'))
-            if scope_request and (allowed is None or 'scope.structural' in allowed):
+            if scope_request and 'image' not in body and (allowed is None or 'scope.structural' in allowed):
                 if cancel.is_set():
                     raise RuntimeError('Request cancelled')
                 progress('Checking what can be changed')
@@ -220,7 +247,7 @@ class DesignerService:
                 return {'type':outcome,'conversationId':conversation_id,
                         'message':'I cannot demolish structural walls. I can rearrange the furniture; consult a structural engineer about changing walls.'}
             with tempfile.TemporaryDirectory(prefix="turn-", dir=conversation.root) as directory, self.build_pool.turn(
-                    conversation.root / "builds", conversation_id, build_turn_id, self.image_paths, cancel,
+                    conversation.root / "builds", conversation_id, build_turn_id, self.image_paths + ([conversation.inspiration_image] if conversation.inspiration_image else []), cancel,
                     build_progress) as builds:
                 root = Path(directory)
                 editor_scene, converted = root / "editor.json", root / "designer.json"
@@ -268,6 +295,7 @@ class DesignerService:
                                    if not conversion_error and self.catalog_acceleration and isinstance(body.get('catalog'), list) else {})
                 job.write_text(json.dumps({"runtime": conversation.runtime, "request": body["request"],
                                            "effort": self.effort, "profile": self.profile, "images": self.image_paths,
+                                           **({"inspiration_image": conversation.inspiration_image} if "image" in body else {}),
                                            "conversion_error": conversion_error,
                                            "catalog_path": str(catalog) if "catalog" in body else None,
                                            "editor_scene_path": str(editor_scene), "catalogCurrency": body.get("catalogCurrency"), **catalog_context,
@@ -409,8 +437,9 @@ class DesignerService:
             print(json.dumps({"type": "service_summary", "model": designer.MODEL, "effort": self.effort, "profile": self.profile,
                               "conversationId": conversation_id, "outcome": "aborted" if cancel.is_set() else outcome,
                               "seconds": round(time.monotonic() - started, 3), "usage": usage, "tool_calls": stream.tool_calls}), file=sys.stderr, flush=True)
-            conversation.lock.release()
             with self.condition:
+                conversation.cancel = None
+                conversation.lock.release()
                 self.active.remove(cancel)
                 self.condition.notify_all()
 
@@ -468,13 +497,23 @@ def make_server(service: DesignerService, port=8787) -> ThreadingHTTPServer:
                 self.send_headers(404)
                 self.write_line({"type": "error", "message": "Not found"})
 
+        def do_DELETE(self):
+            match=re.fullmatch(r"/designer/conversations/([A-Za-z0-9-]{1,200})",self.path)
+            if not match or not self.headers_origin_allowed():
+                self.send_headers(403 if not self.headers_origin_allowed() else 404,"application/json")
+                self.write_line({"type":"error","message":"Origin or route is not allowed"});return
+            try:service.end_conversation(match[1])
+            except ValueError:
+                self.send_headers(404,"application/json");self.write_line({"type":"error","message":"Unknown conversationId"});return
+            self.send_headers(200,"application/json");self.write_line({"ok":True})
+
         def do_OPTIONS(self):
-            if self.path != "/designer/propose" or not self.headers_origin_allowed():
+            if (self.path != "/designer/propose" and not re.fullmatch(r"/designer/conversations/[A-Za-z0-9-]{1,200}",self.path)) or not self.headers_origin_allowed():
                 self.send_headers(403)
                 return
             self.send_response(204)
             self.send_header("Access-Control-Allow-Origin", self.headers.get("Origin") or ORIGIN)
-            self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+            self.send_header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
             self.send_header("Access-Control-Allow-Headers", "Content-Type")
             self.send_header("Vary", "Origin")
             self.send_header("Content-Length", "0")

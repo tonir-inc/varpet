@@ -1,0 +1,84 @@
+{
+  "port": 60427,
+  "photo_bytes": 83366,
+  "photo_sha256": "75d3b10a1314c3f0ecd2246ce3c14d2c2cc967a3b93ebe6fb120f86953a34012",
+  "attachment_sha256": "75d3b10a1314c3f0ecd2246ce3c14d2c2cc967a3b93ebe6fb120f86953a34012",
+  "rows": [
+    {
+      "turn": 1,
+      "seconds": 11.756849957979284,
+      "reply": {
+        "type": "message",
+        "message": "Of course\u2014send the inspiration picture when you\u2019re ready. I won\u2019t make any edits.",
+        "conversationId": "6ce738d6b46d46ccabff5d70be4fc1f4"
+      },
+      "audit": [
+        {
+          "kind": "context_audit",
+          "text_json_chars": 10901,
+          "incomplete": false
+        },
+        {
+          "kind": "image_input",
+          "count": 0,
+          "images": []
+        },
+        {
+          "kind": "worker_summary",
+          "status": "completed",
+          "total_usage": {
+            "cacheWriteInputTokens": 0,
+            "cachedInputTokens": 3456,
+            "inputTokens": 12457,
+            "outputTokens": 23,
+            "reasoningOutputTokens": 0,
+            "totalTokens": 12480
+          }
+        }
+      ]
+    },
+    {
+      "turn": 2,
+      "seconds": 10.93798904097639,
+      "reply": {
+        "type": "message",
+        "message": "The small bedside cabinet has:\n- **Colour:** a warm off-white body and top.\n- **Legs:** slim, tapered, slightly splayed legs in a light natural-wood tone.\n- **Drawer front:** horizontal grooves with a dark semicircular finger-pull cutout at the top centre.\n\nNo changes made to the flat.",
+        "conversationId": "6ce738d6b46d46ccabff5d70be4fc1f4"
+      },
+      "audit": [
+        {
+          "kind": "context_audit",
+          "text_json_chars": 11221,
+          "incomplete": false
+        },
+        {
+          "kind": "image_input",
+          "count": 1,
+          "images": [
+            {
+              "name": "b32376c5ebda41daa83c701d6dc2333e.jpeg",
+              "sha256": "75d3b10a1314c3f0ecd2246ce3c14d2c2cc967a3b93ebe6fb120f86953a34012"
+            }
+          ]
+        },
+        {
+          "kind": "worker_summary",
+          "status": "completed",
+          "total_usage": {
+            "cacheWriteInputTokens": 0,
+            "cachedInputTokens": 15744,
+            "inputTokens": 29615,
+            "outputTokens": 95,
+            "reasoningOutputTokens": 0,
+            "totalTokens": 29710
+          }
+        }
+      ]
+    }
+  ],
+  "delete_reply": {
+    "ok": true
+  },
+  "conversation_removed": true,
+  "private_directory_removed": true
+}

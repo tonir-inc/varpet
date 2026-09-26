@@ -2,12 +2,15 @@
 import type {AgentProposal,CatalogAsset,DesignerAdapter,SceneDocument} from '../contracts';
 import {parseDesignerEvent, type DesignerEvent} from './designer-events';
 export type {DesignerEvent} from './designer-events';
+import {validateDesignerImage,type DesignerImage} from './designer-inspiration';
+export type {DesignerImage} from './designer-inspiration';
 import {localCatalog} from '../core/demo';
 import {EditorStore} from '../core/store';
 import {requestVision,type DesignerVision,type VisionCaptureOptions} from './designer-vision';
 
 export type DesignerDoorSwing='in-left'|'in-right'|'out-left'|'out-right';
 export interface DesignerHttpOptions {
+  image?:DesignerImage;
   events?:boolean;
   onEvent?:(event:DesignerEvent)=>void;
   onAssets?:(assets:CatalogAsset[])=>void;
@@ -31,6 +34,7 @@ export interface DesignerHttpOptions {
   fetch?:typeof globalThis.fetch;
 }
 export interface DesignerRequest {
+  image?:DesignerImage;
   vision?:DesignerVision;
   scene:SceneDocument;revision:number;request:string;conversationId?:string;
   keep?:string[];doorSwings?:Record<string,DesignerDoorSwing>;northDeg?:number;
@@ -174,6 +178,7 @@ function proposalFrom(value:unknown,revision:number,snapshot:SceneDocument,catal
 export function createDesignerHttpAdapter(options:DesignerHttpOptions={}):DesignerAdapter{
   const configured={
     events:options.events,onEvent:options.onEvent,onAssets:options.onAssets,
+    image:options.image===undefined?undefined:structuredClone(options.image),
     url:options.url??'http://localhost:8787/designer/propose',
     request:options.request??'Make the room feel bigger by rearranging the furniture I already own at zero cost.',
     keep:options.keep===undefined?undefined:structuredClone(options.keep),
@@ -201,7 +206,9 @@ export function createDesignerHttpAdapter(options:DesignerHttpOptions={}):Design
       const swings=record(configured.doorSwings,'Door swings'),doorIds=new Set(snapshot.walls.flatMap(wall=>wall.openings.filter(opening=>opening.kind==='door').map(opening=>opening.id)));
       if(Object.entries(swings).some(([id,swing])=>!doorIds.has(id)||!['in-left','in-right','out-left','out-right'].includes(String(swing))))fail('Door swings must identify existing doors and supported swing directions.','validation');
     }
+    if(configured.image!==undefined)validateDesignerImage(configured.image);
     const body=JSON.stringify({scene:snapshot,revision,request:configured.request,...(configured.events===undefined?{}:{events:configured.events}),
+      ...(configured.image===undefined?{}:{image:configured.image}),
       ...(configured.vision===undefined?{}:{vision:configured.vision}),
       ...(configured.keep===undefined?{}:{keep:configured.keep}),...(configured.northDeg===undefined?{}:{northDeg:configured.northDeg}),
       ...(configured.doorSwings===undefined?{}:{doorSwings:configured.doorSwings}),...(configured.conversationId===undefined?{}:{conversationId:configured.conversationId}),
@@ -331,7 +338,7 @@ export async function askDesigner(req:DesignerRequest,opts:AskDesignerOptions={}
     checkAbort(opts.signal);
     const adapter=createDesignerHttpAdapter({
       events:req.events,onEvent:opts.onEvent,onAssets:value=>{assets=value;},
-      vision,url:serviceUrl(opts.baseUrl),request:req.request,conversationId:req.conversationId,
+      image:req.image,vision,url:serviceUrl(opts.baseUrl),request:req.request,conversationId:req.conversationId,
       keep:req.keep,doorSwings:req.doorSwings,northDeg:req.northDeg,catalog:req.catalog,catalogCurrency:req.catalogCurrency,resolveAssets:opts.resolveAssets,
       onProgress:opts.onProgress,onMessageDelta:opts.onMessageDelta,onConversationId:id=>{conversationId=id;},onMetrics:value=>{metrics=value;},onNotes:value=>{notes=value;},
     });
@@ -362,3 +369,11 @@ export const designerHttpAdapter:DesignerAdapter={
     return createDesignerHttpAdapter({url:serviceUrl()}).propose(scene,revision,signal);
   },
 };
+
+/** End private image/build/history retention after the customer leaves this conversation. */
+export async function endDesignerConversation(conversationId:string,opts:{baseUrl?:string;signal?:AbortSignal;fetch?:typeof globalThis.fetch}={}):Promise<void>{
+ if(!/^[A-Za-z0-9-]{1,200}$/.test(conversationId))throw new DesignerServiceError('Invalid conversation ID.','validation');
+ const url=serviceUrl(opts.baseUrl).replace(/\/propose$/,'/conversations/'+encodeURIComponent(conversationId));
+ const response=await (opts.fetch??globalThis.fetch)(url,{method:'DELETE',signal:opts.signal});
+ if(!response.ok)throw new DesignerServiceError(`Could not end conversation (HTTP ${response.status}).`,'http',response.status);
+}
