@@ -115,7 +115,7 @@ if mode in ("proposal", "multiple-proposals"):
         time.sleep(.02)
         proposal["id"] = "p-2"
         (folder / "p-2.json").write_text(json.dumps(proposal))
-emit("worker_summary", status="completed", response="I place furniture; I don't pick paint colours.",
+emit("worker_summary", status="completed", response="DECLINE: I place furniture; I don't pick paint colours.",
      thread_id="stub-thread", total_usage={"inputTokens": 20, "outputTokens": 7, "totalTokens": 27})
 '''
 
@@ -263,7 +263,7 @@ class ServiceTests(unittest.TestCase):
         self.assertTrue(final["conversationId"])
         self.assertEqual(len(self.records("bridge.jsonl")), 1)
 
-    def test_plain_text_response_without_proposal_is_decline(self):
+    def test_explicit_refusal_without_proposal_is_decline(self):
         self.start()
         final, _ = self.post(self.payload("decline"))
         self.assertEqual(final["type"], "decline")
@@ -309,7 +309,7 @@ print(json.dumps({"kind": "event", "method": "thread/tokenUsage/updated",
 if turn == 2:
     print("failed after spending tokens", file=sys.stderr)
     sys.exit(1)
-print(json.dumps({"kind": "worker_summary", "status": "completed", "response": "Cannot do that.",
+print(json.dumps({"kind": "worker_summary", "status": "completed", "response": "DECLINE: Cannot do that.",
                   "total_usage": total}), flush=True)
 ''')
         self.start()

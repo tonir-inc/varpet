@@ -22,6 +22,7 @@ import uuid
 
 import designer
 from designer_presentation import format_presentation
+from designer_conversation import conversational_reply, ConversationStream
 
 
 ORIGIN = "http://localhost:5173"
@@ -169,6 +170,7 @@ class DesignerService:
         started = time.monotonic()
         usage = None
         outcome = "error"
+        stream = ConversationStream(progress)
         try:
             with tempfile.TemporaryDirectory(prefix="turn-", dir=conversation.root) as directory:
                 root = Path(directory)
@@ -223,6 +225,7 @@ class DesignerService:
                             continue
                         if isinstance(event, dict):
                             events.append(event)
+                            stream.observe(event)
                             totals = event.get("total_usage")
                             if event.get("method") == "thread/tokenUsage/updated":
                                 totals = event.get("payload", {}).get("tokenUsage", {}).get("total")
@@ -235,7 +238,7 @@ class DesignerService:
                                 conversation.usage_known = previous_total_known and usage is not None
                                 observed_usage = True
 
-                progress("Designer is checking the furniture layout")
+                progress("Thinking about your request")
                 try:
                     self._process(self.worker_command + [str(job)], cancel, env=env, on_output=output)
                 finally:
@@ -295,12 +298,13 @@ class DesignerService:
                 response = summary.get("response")
                 if not isinstance(response, str) or not response.strip():
                     raise RuntimeError("Designer completed without a proposal, question or response")
-                outcome = "decline"
-                return {"type": outcome, "conversationId": conversation_id, "message": response}
+                reply = conversational_reply(response)
+                outcome = reply["type"]
+                return {**reply, "conversationId": conversation_id}
         finally:
             print(json.dumps({"type": "service_summary", "model": designer.MODEL, "effort": self.effort, "profile": self.profile,
                               "conversationId": conversation_id, "outcome": "aborted" if cancel.is_set() else outcome,
-                              "seconds": round(time.monotonic() - started, 3), "usage": usage}), file=sys.stderr, flush=True)
+                              "seconds": round(time.monotonic() - started, 3), "usage": usage, "tool_calls": stream.tool_calls}), file=sys.stderr, flush=True)
             conversation.lock.release()
             with self.condition:
                 self.active.remove(cancel)
@@ -379,7 +383,7 @@ def make_server(service: DesignerService, port=8787) -> ThreadingHTTPServer:
 
             def run():
                 try:
-                    final = service.propose(body, cancel, lambda message: messages.put({"type": "progress", "message": message}))
+                    final = service.propose(body, cancel, lambda message: messages.put(message if isinstance(message, dict) else {"type": "progress", "message": message}))
                 except Exception as error:
                     final = {"type": "error", "message": str(error) or type(error).__name__}
                 messages.put(final)
@@ -387,6 +391,7 @@ def make_server(service: DesignerService, port=8787) -> ThreadingHTTPServer:
             worker = threading.Thread(target=run, daemon=True)
             worker.start()
             last_line = time.monotonic()
+            last_progress = "Starting the designer"
             try:
                 self.write_line({"type": "progress", "message": "Starting the designer"})
                 while True:
@@ -397,10 +402,12 @@ def make_server(service: DesignerService, port=8787) -> ThreadingHTTPServer:
                     except queue.Empty:
                         if time.monotonic() - last_line < service.progress_interval:
                             continue
-                        record = {"type": "progress", "message": "Designer is still working"}
+                        record = {"type": "progress", "message": last_progress}
                     self.write_line(record)
                     last_line = time.monotonic()
-                    if record["type"] != "progress":
+                    if record["type"] == "progress":
+                        last_progress = record["message"]
+                    elif record["type"] != "message_delta":
                         break
             except (OSError, ValueError):
                 pass  # Socket failure is a disconnect, including a failed progress flush.

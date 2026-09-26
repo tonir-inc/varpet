@@ -1,0 +1,65 @@
+[
+  {
+    "type": "service_summary",
+    "model": "gpt-6-astra",
+    "effort": "low",
+    "profile": {
+      "placement": "without-place",
+      "context": "compact-base"
+    },
+    "conversationId": "4e7c2f392feb4f428de4e14a22303266",
+    "outcome": "proposal",
+    "seconds": 30.357,
+    "usage": {
+      "cacheWriteInputTokens": 0,
+      "cachedInputTokens": 24064,
+      "inputTokens": 50633,
+      "outputTokens": 415,
+      "reasoningOutputTokens": 0,
+      "totalTokens": 51048
+    },
+    "tool_calls": 2
+  },
+  {
+    "type": "service_summary",
+    "model": "gpt-6-astra",
+    "effort": "low",
+    "profile": {
+      "placement": "without-place",
+      "context": "compact-base"
+    },
+    "conversationId": "4e7c2f392feb4f428de4e14a22303266",
+    "outcome": "message",
+    "seconds": 10.88,
+    "usage": {
+      "cacheWriteInputTokens": 0,
+      "cachedInputTokens": 21888,
+      "inputTokens": 24031,
+      "outputTokens": 101,
+      "reasoningOutputTokens": 0,
+      "totalTokens": 24132
+    },
+    "tool_calls": 0
+  },
+  {
+    "type": "service_summary",
+    "model": "gpt-6-astra",
+    "effort": "low",
+    "profile": {
+      "placement": "without-place",
+      "context": "compact-base"
+    },
+    "conversationId": "4e7c2f392feb4f428de4e14a22303266",
+    "outcome": "message",
+    "seconds": 11.247,
+    "usage": {
+      "cacheWriteInputTokens": 0,
+      "cachedInputTokens": 23808,
+      "inputTokens": 26040,
+      "outputTokens": 148,
+      "reasoningOutputTokens": 0,
+      "totalTokens": 26188
+    },
+    "tool_calls": 0
+  }
+]

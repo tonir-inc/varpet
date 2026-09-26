@@ -15,6 +15,7 @@ export interface DesignerHttpOptions {
   /** Explicit catalog price provenance; omitted by default. */
   catalogCurrency?:'AMD';
   onProgress?:(message:string)=>void;
+  onMessageDelta?:(delta:string)=>void;
   onConversationId?:(conversationId:string)=>void;
   onMetrics?:(metrics:unknown)=>void;
   onNotes?:(notes:string)=>void;
@@ -28,9 +29,10 @@ export interface DesignerRequest {
 export type DesignerReply=
   | {type:'proposal';conversationId:string;proposal:AgentProposal;metrics?:unknown;notes?:string}
   | {type:'question';conversationId:string;question:string;options:string[]}
+  | {type:'message';conversationId:string;message:string;suggestions?:string[]}
   | {type:'decline';conversationId:string;message:string}
   | {type:'error';message:string};
-export interface AskDesignerOptions {baseUrl?:string;onProgress?:(message:string)=>void;signal?:AbortSignal}
+export interface AskDesignerOptions {baseUrl?:string;onProgress?:(message:string)=>void;onMessageDelta?:(delta:string)=>void;signal?:AbortSignal}
 export class DesignerServiceError extends Error {
   readonly name='DesignerServiceError';
   constructor(message:string,readonly code:'http'|'protocol'|'validation'|'service',readonly status?:number){super(message);}
@@ -39,6 +41,10 @@ export class DesignerQuestionError extends Error {
   readonly name='DesignerQuestionError';
   readonly type='question';
   constructor(readonly question:string,readonly options:string[]|undefined,readonly conversationId?:string){super(question);}
+}
+export class DesignerMessageReply extends Error {
+  readonly name='DesignerMessageReply';
+  constructor(message:string,readonly suggestions:string[]|undefined,readonly conversationId?:string){super(message);}
 }
 export class DesignerDeclineError extends Error {
   readonly name='DesignerDeclineError';
@@ -151,7 +157,7 @@ export function createDesignerHttpAdapter(options:DesignerHttpOptions={}):Design
     keep:options.keep===undefined?undefined:structuredClone(options.keep),
     northDeg:options.northDeg,doorSwings:options.doorSwings===undefined?undefined:structuredClone(options.doorSwings),
     conversationId:options.conversationId,catalog:options.catalog===undefined?undefined:structuredClone(options.catalog),
-    catalogCurrency:options.catalogCurrency,onProgress:options.onProgress,onConversationId:options.onConversationId,onMetrics:options.onMetrics,onNotes:options.onNotes,
+    catalogCurrency:options.catalogCurrency,onProgress:options.onProgress,onMessageDelta:options.onMessageDelta,onConversationId:options.onConversationId,onMetrics:options.onMetrics,onNotes:options.onNotes,
     fetch:options.fetch??globalThis.fetch.bind(globalThis),
   };
   return {async propose(scene,revision,signal){
@@ -190,7 +196,7 @@ export function createDesignerHttpAdapter(options:DesignerHttpOptions={}):Design
       if(response.headers.get('Content-Type')?.split(';')[0]?.trim().toLowerCase()!=='application/x-ndjson')fail('Designer service must return application/x-ndjson.');
       if(!response.body)fail('Designer service returned no response stream.');
       reader=response.body.getReader();
-      const decoder=new TextDecoder('utf-8',{fatal:true});let pending='',bytes=0,terminal:Json|undefined;
+      const decoder=new TextDecoder('utf-8',{fatal:true});let pending='',bytes=0,draftLength=0,terminal:Json|undefined;
       const consume=(line:string)=>{
         if(line.length>MAX_LINE)fail('Designer response line exceeds the 1 MB limit.');
         if(!line.trim())return;
@@ -201,7 +207,13 @@ export function createDesignerHttpAdapter(options:DesignerHttpOptions={}):Design
         if(entry.type==='progress'){
           keys(entry,['type','message'],'Progress');configured.onProgress?.(text(entry.message,'Progress message',2000));return;
         }
-        if(!['proposal','question','decline','error'].includes(String(entry.type)))fail('Designer response has an unknown record type.');
+        if(entry.type==='message_delta'){
+          keys(entry,['type','delta'],'Message delta');
+          if(typeof entry.delta!=='string'||!entry.delta.length)fail('Message delta must be nonempty text.');
+          draftLength+=entry.delta.length; if(draftLength>4000)fail('Streamed answer exceeds 4000 characters.');
+          configured.onMessageDelta?.(entry.delta);return;
+        }
+        if(!['proposal','question','message','decline','error'].includes(String(entry.type)))fail('Designer response has an unknown record type.');
         terminal=entry;
       };
       while(true){
@@ -219,7 +231,7 @@ export function createDesignerHttpAdapter(options:DesignerHttpOptions={}):Design
       if(!terminal)fail('Designer response ended without a final record.');
       const final:Json=terminal;
       const conversationId=final.conversationId===undefined?undefined:text(final.conversationId,'Conversation ID',200);
-      let proposal:AgentProposal|undefined,question:string|undefined,choices:string[]|undefined,message:string|undefined,notes:string|undefined;
+      let proposal:AgentProposal|undefined,question:string|undefined,choices:string[]|undefined,message:string|undefined,notes:string|undefined,suggestions:string[]|undefined;
       if(final.type==='proposal'){
         keys(final,['type','conversationId','proposal','metrics','notes'],'Proposal response');
         if(final.metrics!==undefined)record(final.metrics,'Metrics');
@@ -232,17 +244,22 @@ export function createDesignerHttpAdapter(options:DesignerHttpOptions={}):Design
           if(final.options.length)choices=final.options.map(value=>text(value,'Question option',300));
         }
       }else{
-        keys(final,['type','conversationId','message'],'Terminal response');message=text(final.message,'Designer message',4000);
+        keys(final,final.type==='message'?['type','conversationId','message','suggestions']:['type','conversationId','message'],'Terminal response');
+        if(final.suggestions!==undefined){
+          if(!Array.isArray(final.suggestions)||final.suggestions.length>4)fail('Message suggestions must be an array of at most four strings.');
+          suggestions=final.suggestions.map(value=>text(value,'Message suggestions',300));
+        }message=text(final.message,'Designer message',4000);
       }
       checkAbort(signal);
       if(conversationId)configured.onConversationId?.(conversationId);
       if(proposal){if(final.metrics!==undefined)configured.onMetrics?.(structuredClone(final.metrics));if(notes!==undefined)configured.onNotes?.(notes);return proposal;}
       if(final.type==='question')throw new DesignerQuestionError(question!,choices,conversationId);
+      if(final.type==='message')throw new DesignerMessageReply(message!,suggestions,conversationId);
       if(final.type==='decline')throw new DesignerDeclineError(message!,conversationId);
       throw new DesignerServiceError(message!,'service');
     }catch(error){
       if(signal?.aborted)throw abortError();
-      if(error instanceof DesignerServiceError||error instanceof DesignerQuestionError||error instanceof DesignerDeclineError)throw error;
+      if(error instanceof DesignerMessageReply||error instanceof DesignerServiceError||error instanceof DesignerQuestionError||error instanceof DesignerDeclineError)throw error;
       throw new DesignerServiceError(error instanceof Error?error.message:'Designer request failed.','protocol');
     }finally{
       if(reader){void reader.cancel().catch(()=>{});reader.releaseLock();}
@@ -264,7 +281,7 @@ export async function askDesigner(req:DesignerRequest,opts:AskDesignerOptions={}
     const adapter=createDesignerHttpAdapter({
       url:serviceUrl(opts.baseUrl),request:req.request,conversationId:req.conversationId,
       keep:req.keep,doorSwings:req.doorSwings,northDeg:req.northDeg,catalog:req.catalog,catalogCurrency:req.catalogCurrency,
-      onProgress:opts.onProgress,onConversationId:id=>{conversationId=id;},onMetrics:value=>{metrics=value;},onNotes:value=>{notes=value;},
+      onProgress:opts.onProgress,onMessageDelta:opts.onMessageDelta,onConversationId:id=>{conversationId=id;},onMetrics:value=>{metrics=value;},onNotes:value=>{notes=value;},
     });
     const proposal=await adapter.propose(req.scene,req.revision,opts.signal);
     if(!conversationId)return {type:'error',message:'Designer response is missing its conversation ID.'};
@@ -274,6 +291,10 @@ export async function askDesigner(req:DesignerRequest,opts:AskDesignerOptions={}
     if(error instanceof DesignerQuestionError){
       if(!error.conversationId)return {type:'error',message:'Designer question is missing its conversation ID.'};
       return {type:'question',conversationId:error.conversationId,question:error.question,options:error.options??[]};
+    }
+    if(error instanceof DesignerMessageReply){
+      if(!error.conversationId)return {type:'error',message:'Designer answer is missing its conversation ID.'};
+      return {type:'message',conversationId:error.conversationId,message:error.message,...(error.suggestions===undefined?{}:{suggestions:error.suggestions})};
     }
     if(error instanceof DesignerDeclineError){
       if(!error.conversationId)return {type:'error',message:'Designer decline is missing its conversation ID.'};

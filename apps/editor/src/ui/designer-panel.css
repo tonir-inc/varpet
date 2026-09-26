@@ -139,3 +139,20 @@
 .designer-proposal-notes > summary { cursor: pointer; }
 .designer-proposal-notes > summary:hover { color: var(--ink); }
 .designer-proposal-notes > p { margin-top: var(--space-2); line-height: 1.5; }
+
+/* Conversation text shares a safe, deliberately small Markdown vocabulary. */
+.designer-message-copy { margin-top: var(--space-2); white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.5; }
+.designer-message-copy p { white-space: normal; margin: 0; }
+.designer-message-copy p + p, .designer-message-copy ul, .designer-message-copy ol { margin-top: var(--space-3); }
+.designer-message-copy ul, .designer-message-copy ol { padding-left: var(--space-5); margin-bottom: 0; }
+.designer-message-copy li + li { margin-top: var(--space-1); }
+.designer-message-copy strong { color: var(--ink); font-size: inherit; }
+.designer-message-copy code { color: var(--ink); background: var(--ground); padding-inline: var(--space-1); border-radius: var(--radius-sm); }
+.designer-column .designer-message-designer:not(.designer-proposal-card) { background: var(--ground); border: 1px solid var(--line); padding: var(--space-4); }
+.designer-suggestions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-4); }
+.designer-suggestions .designer-suggestion { min-height: 32px; font-size: var(--text-xs); white-space: normal; text-align: left; border-color: var(--line); color: var(--muted); }
+.designer-suggestions .designer-suggestion:hover:not(:disabled) { color: var(--ink); border-color: var(--accent); }
+.designer-compose-hint { display: block; margin-top: var(--space-2); font-size: var(--text-xs); color: var(--muted); }
+.designer-message-error { border-left: 2px solid var(--danger); }
+.designer-retry { margin-top: var(--space-3); }
+.designer-draft { animation: none; }

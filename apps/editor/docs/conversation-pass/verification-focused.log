@@ -1,0 +1,16 @@
+✔ message, suggestions and streamed text cross the HTTP boundary (8.877458ms)
+✔ message suggestions reject malformed values and enforce the four-chip boundary (9.952ms)
+✔ follow-up answers retain proposal context, suggestions, notes and approval state (1.867458ms)
+✔ streamed draft is replaced once by the final answer and ignored after cancellation (0.671542ms)
+✔ retry resends the failed request in the same thread without applying anything (0.360208ms)
+✔ light markdown renders emphasis and lists while all HTML and links stay inert (0.505666ms)
+✔ recorded demo answers a design question without proposing an edit (2.612542ms)
+✔ cancel clears streamed text immediately and rejects late chunks (0.330958ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 289.031875

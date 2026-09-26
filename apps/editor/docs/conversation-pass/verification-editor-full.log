@@ -1,0 +1,137 @@
+
+> @varpet/editor@0.0.0 test /Users/ashotarushanyan/AshProjects/varpet-ui/apps/editor
+> node scripts/check.mjs && node scripts/check-renovation.mjs && node scripts/check-openings.mjs && node scripts/check-finishes.mjs && node scripts/check-continuous-wall-finishes.mjs && node scripts/check-continuous-finish-render.mjs && node scripts/check-finish-texture-presets.mjs && node scripts/check-finish-textures.mjs && node scripts/check-placement.mjs && node scripts/check-walls.mjs && node scripts/check-wall-controller.mjs && node scripts/check-grouping.mjs && node scripts/check-plan-move.mjs && node scripts/check-inspector.mjs && node scripts/check-motion.mjs && node scripts/check-transform-motion.mjs && node scripts/check-projection-motion.mjs && node scripts/check-cutaway.mjs && node scripts/check-wall-junctions.mjs && node scripts/check-apartment-junctions.mjs && node scripts/check-plan-layers.mjs && node scripts/check-plan-measurements.mjs && node scripts/check-selection-camera.mjs && node scripts/check-room-camera.mjs && node scripts/check-walkthrough.mjs && node scripts/check-structural-surfaces.mjs && node scripts/check-heights.mjs && node scripts/check-interior-lighting.mjs && node scripts/check-walkthrough-camera.mjs && node scripts/check-database-catalog.mjs && node scripts/check-assets.mjs && node --test server/catalog.test.mjs && node scripts/check-walkthrough-view.mjs && node scripts/check-architect.mjs && node scripts/check-reconstruction-proposal.mjs && node scripts/check-ceiling-design.mjs && node scripts/check-ceiling-render.mjs && node scripts/check-catalog-http.mjs && node --test tests/*.test.mjs
+
+Domain checks passed (265 assertions).
+Renovation checks passed (102 assertions).
+Reconstruction and handoff checks passed (29 assertions).
+Opening clearance: 80 assertions passed.
+Finish regressions passed: 92 assertions across 5 scenarios.
+Continuous wall finish regressions passed: 76 assertions across 21 scenarios.
+Continuous finish rendering checks passed (29 assertions).
+Finish texture preset checks passed (33 assertions).
+Finish texture checks passed (24 assertions).
+Door barrier checks passed (5922 assertions).
+Placement conflict checks passed (358 assertions).
+Wall movement checks passed (87 assertions).
+Wall controller checks passed (423 assertions; 6 wall directions in Top and 3D). Preview rendering requires browser verification.
+PASS grouping preserves placement, migrates explicitly, and saves membership
+PASS moving any member translates the whole group once and undo restores all
+PASS rotation orbits members about the selected piece without changing scale or spacing
+PASS invalid, stale, unapproved and locked-member transforms are atomic
+PASS invalid membership is rejected and regrouping requires complete existing groups
+PASS ungroup preserves transforms and subsequent moves affect one piece
+PASS delete dissolves singleton groups and undo restores membership
+PASS baseline and options retain independent group membership
+PASS imports reject invalid group IDs, singleton groups and version 1 membership
+PASS 9 grouping checks
+Plan movement checks passed (283 assertions).
+Inspector regressions passed: 102 assertions across 10 scenarios.
+Editor motion checks passed (52 assertions).
+Transform motion checks passed (11 assertions).
+Projection motion checks passed (16 assertions).
+Cutaway checks passed (421 assertions).
+Wall junction checks passed (64 assertions).
+Apartment wall junction checks passed (35 assertions).
+Plan layers checks passed (51 assertions).
+Plan selection measurements: 92 assertions passed.
+Selection camera checks passed (78 assertions).
+Room camera checks passed (1012 assertions).
+Walkthrough geometry: 36 assertions passed.
+Structural surface checks passed (155 assertions).
+Height checks passed: legacy ceilings meet the wall tops.
+Height configuration checks passed: 35 assertions.
+Interior lighting checks passed (25 assertions).
+Walkthrough camera checks passed (98 assertions).
+Database catalog store checks passed
+Database catalog mapping checks passed
+Database startup and saved-reference checks passed
+Database import, browsing, and currency checks passed
+assets: 22 checks passed
+✔ search uses the real SDK, honors session/SSE, and merges raw dimensions, model and provenance (35.36375ms)
+✔ saved item hydration deduplicates ids and reports missing records without fake products (8.185292ms)
+✔ vocabulary is returned directly from the database tool (3.12975ms)
+✔ remote errors and invalid detail identities return sanitized unavailable responses (9.072958ms)
+✔ the request deadline aborts stalled upstream requests (64.097917ms)
+✔ invalid or mutating requests never call the catalog and unrelated routes pass through (4.189792ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 329.17325
+Walkthrough view checks passed (41 assertions).
+Built pieces unavailable, using the catalog without them TypeError: offline
+    at file:///private/var/folders/gm/0bvd7yfn75398h953rj6qh0c0000gn/T/varpet-architect-check-T2yyt8/check.mjs:2906:8
+    at builtPieces (file:///private/var/folders/gm/0bvd7yfn75398h953rj6qh0c0000gn/T/varpet-architect-check-T2yyt8/check.mjs:1795:29)
+    at withBuiltPieces (file:///private/var/folders/gm/0bvd7yfn75398h953rj6qh0c0000gn/T/varpet-architect-check-T2yyt8/check.mjs:1851:28)
+    at file:///private/var/folders/gm/0bvd7yfn75398h953rj6qh0c0000gn/T/varpet-architect-check-T2yyt8/check.mjs:2905:14
+architect adapter check passed
+Reconstruction proposal checks passed (16 assertions).
+Ceiling design contract checks passed: 46 assertions.
+Ceiling design checks passed: 406 assertions.
+Ceiling rendering checks passed (150 assertions).
+catalog HTTP checks passed
+✔ designer can propose remote ABO products while existing product identity and provenance stay authoritative (2.895042ms)
+✔ remote discovery never reintroduces demo or procedural furniture (0.132208ms)
+✔ browsing the same designer-added SKU preserves its registered appearance and updates provenance (0.677583ms)
+✔ discovery fits the catalog bound without dropping current scene or history references (7.063875ms)
+✔ proposal survives a catalog search, requires approval, and undo restores the empty apartment (0.729959ms)
+✔ same-revision conversations retain only added products and immutable snapshots (0.181917ms)
+✔ reused proposal IDs cannot substitute a different command or bypass revisions (0.278875ms)
+✔ message, suggestions and streamed text cross the HTTP boundary (8.75775ms)
+✔ message suggestions reject malformed values and enforce the four-chip boundary (10.923666ms)
+✔ follow-up answers retain proposal context, suggestions, notes and approval state (1.3635ms)
+✔ streamed draft is replaced once by the final answer and ignored after cancellation (0.222416ms)
+✔ retry resends the failed request in the same thread without applying anything (0.275125ms)
+✔ light markdown renders emphasis and lists while all HTML and links stay inert (0.377125ms)
+✔ recorded demo answers a design question without proposing an edit (2.159041ms)
+✔ cancel clears streamed text immediately and rejects late chunks (0.301625ms)
+✔ optional notes travel outside the unchanged AgentProposal and never apply the scene (16.718958ms)
+✔ legacy proposals without notes remain valid and do not emit a notes callback (3.609125ms)
+✔ notes accept the 1600-character boundary and reject malformed, blank or oversized values (15.416ms)
+✔ notes cannot escape proposal validation or appear on another terminal response (1.759625ms)
+✔ askDesigner returns envelope notes without changing the proposal (4.496083ms)
+✔ proposal notes persist as plain text and do not change preview, apply or stale-history rules (1.293792ms)
+✔ invalid restored notes cannot enter conversation state (0.332875ms)
+✔ old saved messages without notes remain readable (0.121125ms)
+✔ non-history panel callers retain notes without changing their review callback (0.207542ms)
+✔ reload restores messages, choices and service conversationId; new conversation retains selectable history (2.340292ms)
+✔ scene changes abort work, isolate history and ignore late replies (0.297709ms)
+✔ stored pending proposals become stale even when a reloaded store has the same revision (0.36675ms)
+✔ preview, apply and dismiss are explicit actions; terminal state persists and cannot apply twice (0.381167ms)
+✔ failed approval stays pending and reports the editor error; revision changes mark it stale (0.267583ms)
+✔ storage failures and malformed history do not break requests or scene-local session history (0.479291ms)
+✔ legacy mock mode does not load or save conversation history (0.092541ms)
+✔ preview applies through a scratch command store, checks staleness and leaves the original untouched (2.088ms)
+✔ a new conversation confirms storage availability before reporting its persistence status (0.111292ms)
+✔ successfully stored long history remains readable on reload (2.128875ms)
+✔ recorded HTTP proposal requires approval, applies through the editor store, and undo restores every object (48.289292ms)
+✔ recorded HTTP question continues the conversation and declines preserve keeps (19.013791ms)
+✔ a scene edited after the request rejects its stale proposal atomically (10.421667ms)
+✔ empty input and overlapping submissions do not start requests (1.624916ms)
+✔ streams progress and sends a captured scene, revision and existing keep ids (0.497667ms)
+✔ question option is the next message in the same conversation (0.18675ms)
+✔ proposal is sent to review once without changing the scene (0.2935ms)
+✔ cancel aborts the signal immediately and ignores late progress and proposals (0.181167ms)
+✔ a cancelled request cannot clear the busy state of a newer request (0.151333ms)
+✔ service errors and network errors are visible and allow retry (0.174ms)
+✔ disposing aborts without publishing a late reply (0.1315ms)
+✔ recorded demo has proposal, question, decline and respects keeps (7.783042ms)
+✔ proposal numbers come from service score, including zero cost and blocked walkways (3.888958ms)
+✔ missing or malformed proposal numbers remain unknown instead of becoming zero (0.249417ms)
+✔ valid score reports minimum across rooms and whole dram purchases (0.166917ms)
+✔ no door routes or missing metrics are not reported as measured clearance (0.099208ms)
+✔ north is unknown by default, validates degrees, persists per scene and is sent with Suggest (0.317625ms)
+✔ unavailable browser storage preserves north for this session without claiming it was saved (0.106834ms)
+✔ elapsed seconds use elapsed time, reset on retry, and stop after cancellation and disposal (0.179917ms)
+ℹ tests 53
+ℹ suites 0
+ℹ pass 53
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 434.362

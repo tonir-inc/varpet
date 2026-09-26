@@ -1,3 +1,5 @@
+import { designerMarkdown } from './designer-markdown';
+export { designerMarkdown } from './designer-markdown';
 import { EditorStore } from '../core/store';
 import type { AgentProposal, CatalogAsset, SceneDocument } from '../contracts';
 import { askDesigner, type DesignerRequest } from '../adapters/designer-http';
@@ -6,7 +8,7 @@ type AskDesigner = typeof askDesigner;
 interface MetricRow { label: string; value: string }
 type ProposalStatus = 'pending' | 'applied' | 'dismissed' | 'stale';
 export type ProposalAction = 'preview' | 'apply' | 'dismiss';
-interface Message { role: 'user' | 'designer'; text: string; metrics?: MetricRow[]; proposal?: AgentProposal; status?: ProposalStatus; options?: string[]; notes?: string }
+interface Message { role: 'user' | 'designer'; text: string; metrics?: MetricRow[]; proposal?: AgentProposal; status?: ProposalStatus; options?: string[]; notes?: string; suggestions?: string[]; retryRequest?: string }
 interface Conversation { id: string; title: string; conversationId?: string; messages: Message[]; options: string[] }
 interface History { version: 1; activeId: string; conversations: Conversation[] }
 const record = (value: unknown): Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
@@ -37,7 +39,7 @@ function appendNotes(parent: HTMLElement, value?: string): void {
 }
 
 export interface DesignerPanelState {
-  messages: Message[]; busy: boolean; progress: string; options: string[];
+  messages: Message[]; draft: string; busy: boolean; progress: string; options: string[];
   conversationId?: string; keep: string[]; elapsedSeconds: number;
   northDeg?: number; northPersisted: boolean; northError: string;
   activeHistoryId: string; conversations: { id: string; title: string }[]; historyPersisted: boolean;
@@ -57,7 +59,7 @@ interface ConversationOptions {
 
 /** Owns chat state only. A proposal can only leave through the editor's review callback. */
 export function createDesignerConversation(options: ConversationOptions) {
-  const state: DesignerPanelState = { messages: [], busy: false, progress: '', options: [], keep: [], elapsedSeconds: 0, northPersisted: false, northError: '', activeHistoryId: '', conversations: [], historyPersisted: false };
+  const state: DesignerPanelState = { messages: [], draft: '', busy: false, progress: '', options: [], keep: [], elapsedSeconds: 0, northPersisted: false, northError: '', activeHistoryId: '', conversations: [], historyPersisted: false };
   let active: AbortController | undefined, disposed = false;
   const now = options.now ?? (() => performance.now());
   let started = 0, settingsScene = options.snapshot().scene.id;
@@ -96,6 +98,8 @@ export function createDesignerConversation(options: ConversationOptions) {
               if (!message || !['user', 'designer'].includes(message.role) || typeof message.text !== 'string') throw Error('Invalid message');
               if (message.notes !== undefined && (typeof message.notes !== 'string' || !message.notes.trim() || message.notes.length > 1600)) throw Error('Invalid notes');
               if (message.metrics && (!Array.isArray(message.metrics) || message.metrics.some(row => !row || typeof row.label !== 'string' || typeof row.value !== 'string'))) throw Error('Invalid metrics');
+              if (message.suggestions && (!Array.isArray(message.suggestions) || message.suggestions.length > 4 || message.suggestions.some(value => typeof value !== 'string' || !value.trim() || value.length > 300))) throw Error('Invalid suggestions');
+              if (message.retryRequest !== undefined && (typeof message.retryRequest !== 'string' || !message.retryRequest.trim() || message.retryRequest.length > 20000)) throw Error('Invalid retry request');
               if (message.options && (!Array.isArray(message.options) || message.options.some(option => typeof option !== 'string'))) throw Error('Invalid options');
               if (message.proposal) {
                 if (typeof message.proposal.id !== 'string' || typeof message.proposal.title !== 'string' || typeof message.proposal.description !== 'string') throw Error('Invalid proposal');
@@ -196,6 +200,10 @@ export function createDesignerConversation(options: ConversationOptions) {
       else ids.delete(id);
       state.keep = [...ids]; publish();
     },
+    retry(): Promise<void> { const request = state.messages.at(-1)?.retryRequest; return request ? controller.send(request) : Promise.resolve(); },
+    followUp(text: string, proposal?: AgentProposal, status?: ProposalStatus): Promise<void> {
+      return controller.send(proposal ? `${text}\n\nAbout your proposal “${proposal.title}” (${status ?? 'pending'}).` : text);
+    },
     async send(message: string) {
       const request = message.trim();
       if (disposed || state.busy || !request) return;
@@ -206,7 +214,7 @@ export function createDesignerConversation(options: ConversationOptions) {
       const abortController = new AbortController(); active = abortController;
       state.keep = state.keep.filter(id => scene.objects.some(object => object.id === id));
       state.messages.push({ role: 'user', text: request });
-      started = now(); state.elapsedSeconds = 0;
+      started = now(); state.elapsedSeconds = 0; state.draft = '';
       state.busy = true; state.progress = 'Sending your request to the designer…'; state.options = []; publish();
       try {
         const result = await options.ask({ scene: structuredClone(scene), revision, request,
@@ -214,6 +222,7 @@ export function createDesignerConversation(options: ConversationOptions) {
           conversationId: state.conversationId, keep: [...state.keep], ...(state.northDeg === undefined ? {} : { northDeg: state.northDeg }) }, {
           signal: abortController.signal,
           onProgress: message => { if (active === abortController && !disposed) { state.progress = message; publish(false); } },
+          onMessageDelta: delta => { if (active === abortController && !disposed) { state.draft = (state.draft + delta).slice(0, 4000); publish(false); } },
         });
         if (disposed || active !== abortController) return;
         if (result.type !== 'error') state.conversationId = result.conversationId;
@@ -226,20 +235,25 @@ export function createDesignerConversation(options: ConversationOptions) {
         } else if (result.type === 'question') {
           reply(result.question); state.options = [...result.options];
           if (options.history) state.messages.at(-1)!.options = [...result.options];
-        } else reply(result.message);
+        } else {
+          reply(result.message);
+          if (result.type === 'message') state.messages.at(-1)!.suggestions = result.suggestions ?? ['Show me another option', 'Make it warmer', 'What would it cost?'];
+          if (result.type === 'error') state.messages.at(-1)!.retryRequest = request;
+        }
       } catch (error) {
         if (disposed || active !== abortController) return;
         reply(error instanceof Error ? error.message : 'The designer could not finish. Please try again.');
+        state.messages.at(-1)!.retryRequest = request;
       } finally {
         if (!disposed && active === abortController) {
-          active = undefined; state.busy = false; state.progress = ''; publish();
+          active = undefined; state.busy = false; state.progress = ''; state.draft = ''; publish();
         }
       }
     },
     cancel() {
       if (!active) return;
       const controller = active; active = undefined; controller.abort();
-      state.busy = false; state.progress = ''; reply('Request cancelled. You can try another request.'); publish();
+      state.busy = false; state.progress = ''; state.draft = ''; reply('Request cancelled. You can try another request.'); publish();
     },
     dispose() { disposed = true; active?.abort(); active = undefined; },
   };
@@ -259,6 +273,9 @@ export function createRecordedDesigner(delayMs = 900): AskDesigner {
       signal?.addEventListener('abort', abort, { once: true });
       if (signal?.aborted) abort();
     });
+    if (/^(why|what|how|explain|tell me)\b/i.test(req.request)) return { type: 'message', conversationId,
+      message: 'Recorded demo: **minimalism** means fewer competing elements, useful furniture and a calm palette. It can still feel warm. We can talk through an idea before you decide whether to change anything.',
+      suggestions: ['Tell me more', 'Make it cozier'] };
     if (/paint|colou?r|decor|wall/i.test(req.request)) return { type: 'decline', conversationId,
       message: 'I can help arrange furniture, but I don’t choose paint colours or move walls. Try asking for a furniture layout.' };
     if (/coz[iy]|cos[iy]/i.test(req.request)) return { type: 'question', conversationId,
@@ -328,7 +345,8 @@ function mountMockDesignerPanel(host: HTMLElement, options: MountOptions) {
       for (const message of state.messages.slice(displayedMessages)) {
         const item = document.createElement('div'); item.className = `designer-message designer-message-${message.role}`;
         const author = document.createElement('strong'); author.textContent = message.role === 'user' ? 'You' : 'Designer';
-        const text = document.createElement('p'); text.textContent = message.text;
+        const text = document.createElement('div'); text.className = 'designer-message-copy';
+        if (message.role === 'designer') text.innerHTML = designerMarkdown(message.text); else text.textContent = message.text;
         item.append(author, text);
         if (message.metrics) {
           const numbers = document.createElement('dl'); numbers.className = 'designer-metrics';
@@ -340,17 +358,20 @@ function mountMockDesignerPanel(host: HTMLElement, options: MountOptions) {
           if (message.notes === undefined) { const note = document.createElement('small'); note.textContent = 'Service estimates. Paint and labour are not priced here.'; item.append(note); }
         }
         appendNotes(item, message.notes);
+        if (message.retryRequest) {
+          const retry = document.createElement('button'); retry.type = 'button'; retry.className = 'button designer-retry'; retry.textContent = 'Retry'; retry.onclick = () => { void controller.send(message.retryRequest!); }; item.append(retry);
+        }
         log.append(item);
       }
       displayedMessages = state.messages.length;
       if (nearBottom) log.scrollTop = log.scrollHeight;
       choices.replaceChildren();
-      for (const option of state.options) {
+      for (const option of state.options.length ? state.options : state.messages.at(-1)?.suggestions ?? []) {
         const button = document.createElement('button'); button.type = 'button'; button.className = 'button';
         button.textContent = option; button.disabled = state.busy; button.onclick = () => { void controller.send(option); };
         choices.append(button);
       }
-      find<HTMLElement>('.designer-progress-stage').textContent = state.progress === 'Designer is still working' ? 'Waiting for the designer’s reply…' : state.progress;
+      find<HTMLElement>('.designer-progress-stage').textContent = state.progress;
       find<HTMLElement>('.designer-elapsed').textContent = `${state.elapsedSeconds} s elapsed`;
       progress.hidden = !state.busy;
       cancel.hidden = !state.busy; send.disabled = state.busy; input.disabled = state.busy;
@@ -406,8 +427,8 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
     <div class="designer-composer"><details class="designer-context"><summary>Room context · north & keep pieces</summary>
       <div class="designer-north"><label for="designer-north">North angle °</label><input id="designer-north" type="number" min="0" max="359.999999" step="any" placeholder="Unknown" aria-describedby="designer-north-help"/><small id="designer-north-help">Clockwise from plan-up: 0° ↑, 90° →. Leave blank if unknown.</small><small class="designer-north-status" role="status"></small></div>
       <details class="designer-keeps"><summary>Keep pieces in place</summary><div class="designer-keep-list"></div></details></details>
-      <form class="designer-form"><label for="designer-request">Message your designer</label><textarea id="designer-request" rows="2" maxlength="20000" placeholder="What would you like to change?" required></textarea><div class="designer-actions"><button type="submit" class="button primary">Send</button><button type="button" class="button quiet designer-cancel" hidden>Cancel</button></div></form>
-      <small class="designer-storage-status"></small></div></div>`;
+      <form class="designer-form"><label for="designer-request">Message your designer</label><textarea id="designer-request" rows="2" maxlength="20000" placeholder="Ask a question or explore a change…" required></textarea><div class="designer-actions"><button type="submit" class="button primary">Send</button><button type="button" class="button quiet designer-cancel" hidden>Cancel</button></div></form>
+      <small class="designer-compose-hint">Enter to send · Shift+Enter for a new line</small><small class="designer-storage-status"></small></div></div>`;
   const find = <T extends HTMLElement>(selector: string) => host.querySelector<T>(selector)!;
   const log = find<HTMLElement>('.designer-messages'), scroller = find<HTMLElement>('.designer-chat-scroll');
   const input = find<HTMLTextAreaElement>('textarea'), form = find<HTMLFormElement>('form');
@@ -428,14 +449,15 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
     const switched = activeThread !== state.activeHistoryId; activeThread = state.activeHistoryId;
     if (switched) input.value = '';
     const nearBottom = scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < 60;
-    const nextKey = JSON.stringify([state.messages, state.options, state.busy]);
+    const nextKey = JSON.stringify([state.messages, state.options, state.busy, state.draft]);
     if (nextKey !== messageKey) {
       messageKey = nextKey; log.replaceChildren();
       state.messages.forEach((message, index) => {
         const item = document.createElement('article'); item.className = `designer-message designer-message-${message.role}`;
         const author = document.createElement('strong'); author.textContent = message.role === 'user' ? 'You' : 'Designer'; item.append(author);
         if (message.proposal) { const title = document.createElement('h3'); title.textContent = message.proposal.title; item.append(title); item.classList.add('designer-proposal-card'); }
-        const text = document.createElement('p'); text.textContent = message.text; item.append(text);
+        const text = document.createElement('div'); text.className = 'designer-message-copy';
+        if (message.role === 'designer') text.innerHTML = designerMarkdown(message.text); else text.textContent = message.text; item.append(text);
         if (message.metrics) {
           const metrics = document.createElement('dl'); metrics.className = 'designer-metrics';
           for (const row of message.metrics) { const dt = document.createElement('dt'), dd = document.createElement('dd'); dt.textContent = row.label; dd.textContent = row.value; metrics.append(dt, dd); }
@@ -455,6 +477,19 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
             item.append(actions);
           }
         }
+        const suggestions = message.proposal ? ['Show me another option', 'Why this layout?', 'Make it warmer', 'What would it cost?'] : index === state.messages.length - 1 ? message.suggestions : undefined;
+        if (suggestions?.length) {
+          const chips = document.createElement('div'); chips.className = 'designer-suggestions'; chips.setAttribute('aria-label', 'Continue the conversation');
+          for (const suggestion of suggestions) {
+            const chip = button(suggestion, () => { void controller.followUp(suggestion, message.proposal, message.status); }, 'button quiet designer-suggestion');
+            chip.disabled = state.busy; chips.append(chip);
+          }
+          item.append(chips);
+        }
+        if (message.retryRequest && index === state.messages.length - 1) {
+          item.classList.add('designer-message-error');
+          const retry = button('Retry', () => { void controller.retry(); }, 'button designer-retry'); retry.disabled = state.busy; item.append(retry);
+        }
         if (message.options && index === state.messages.length - 1 && state.options.length) {
           const choices = document.createElement('div'); choices.className = 'designer-options';
           for (const choice of state.options) { const control = button(choice, () => { void controller.send(choice); }); control.disabled = state.busy; choices.append(control); }
@@ -462,6 +497,11 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
         }
         log.append(item);
       });
+      if (state.draft) {
+        const draft = document.createElement('article'); draft.className = 'designer-message designer-message-designer designer-draft'; draft.setAttribute('aria-live', 'off');
+        const author = document.createElement('strong'); author.textContent = 'Designer';
+        const copy = document.createElement('div'); copy.className = 'designer-message-copy'; copy.innerHTML = designerMarkdown(state.draft); draft.append(author, copy); log.append(draft);
+      }
       if (nearBottom || switched) scroller.scrollTop = scroller.scrollHeight;
     }
     find<HTMLElement>('.designer-greeting').hidden = state.messages.length > 0;
@@ -474,7 +514,7 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
       }
     }
     const progress = find<HTMLElement>('.designer-progress'); progress.hidden = !state.busy;
-    find<HTMLElement>('.designer-progress-stage').textContent = state.progress === 'Designer is still working' ? 'Waiting for the designer’s reply…' : state.progress;
+    find<HTMLElement>('.designer-progress-stage').textContent = state.progress;
     find<HTMLElement>('.designer-elapsed').textContent = `${state.elapsedSeconds} s elapsed`;
     find<HTMLButtonElement>('.designer-cancel').hidden = !state.busy;
     find<HTMLButtonElement>('[type="submit"]').disabled = state.busy; input.disabled = state.busy;
@@ -488,6 +528,7 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
       if (ticker !== undefined) clearInterval(ticker);
       ticker = state.busy ? setInterval(() => controller.tick(), 1000) : undefined;
       options.onBusyChange?.(state.busy);
+      if (!state.busy && !collapsed) input.focus();
     }
     previousBusy = state.busy;
   };

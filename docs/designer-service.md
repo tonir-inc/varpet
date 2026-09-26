@@ -35,13 +35,15 @@ acquiring invented dimensions.
 `catalogCurrency: "AMD"` explicitly confirms purchase-price units. Without it, owned furniture can
 be rearranged, but unlabelled editor prices are not treated as dram quotations.
 
-Response: `Content-Type: application/x-ndjson`, one JSON object per line. Zero or more progress lines, then
+Response: `Content-Type: application/x-ndjson`, one JSON object per line. Zero or more progress or message-delta lines, then
 exactly one final line:
 
 ```json
 {"type": "progress", "message": "Checking the walkway to the door"}
 {"type": "proposal", "conversationId": "c1", "proposal": { "id": "...", "title": "...", "description": "...", "command": { "id": "...", "label": "...", "source": "designer", "baseRevision": 12, "operations": [] } }, "metrics": {}}
 {"type": "question", "conversationId": "c1", "question": "Cozier how?", "options": ["warmer light", "fewer pieces", "softer seating"]}
+{"type": "message_delta", "delta": "A quieter palette "}
+{"type": "message", "conversationId": "c1", "message": "**Minimalism** reduces visual clutter; it does not mean an empty home.", "suggestions": ["Make it warmer", "What would it cost?"]}
 {"type": "decline", "conversationId": "c1", "message": "Moving walls is outside my scope; I can help with furniture and finishes."}
 {"type": "error", "message": "..."}
 ```
@@ -80,7 +82,7 @@ must match the supplied snapshot. The translator checks the resulting command wi
 and `onConversationId(id)` when constructing it; call `propose(scene, revision, signal)` as before.
 It returns a preview without applying it. The separate Designer panel session owns the chat UI and
 its wiring, using `askDesigner` and `designerHttpAdapter` described below.
-`DesignerQuestionError` and `DesignerDeclineError` preserve non-proposal outcomes for the UI.
+`DesignerQuestionError`, `DesignerMessageReply` and `DesignerDeclineError` preserve non-proposal outcomes for the UI. `askDesigner` converts them into the corresponding reply union.
 Aborting the supplied signal cancels the HTTP stream and the service's worker processes.
 
 ### Catalog purchases
@@ -197,10 +199,11 @@ export interface DesignerRequest {
 export type DesignerReply =
   | { type: 'proposal'; conversationId: string; proposal: AgentProposal; metrics?: unknown; notes?: string }
   | { type: 'question'; conversationId: string; question: string; options: string[] }
+  | { type: 'message'; conversationId: string; message: string; suggestions?: string[] }
   | { type: 'decline'; conversationId: string; message: string }
   | { type: 'error'; message: string };
 export function askDesigner(req: DesignerRequest,
-  opts?: { baseUrl?: string; onProgress?: (message: string) => void; signal?: AbortSignal }): Promise<DesignerReply>;
+  opts?: { baseUrl?: string; onProgress?: (message: string) => void; onMessageDelta?: (delta: string) => void; signal?: AbortSignal }): Promise<DesignerReply>;
 export const designerHttpAdapter: DesignerAdapter; // propose(scene, revision) = askDesigner with a default request
 ```
 
@@ -211,3 +214,34 @@ conversation, a live progress line, option buttons for a question, the decline m
 editor's existing review/approve flow (the same one the Suggest button uses). Wiring in `apps/editor/src/main.ts`
 is kept to a few lines: mount the panel, and use `designerHttpAdapter` when `VITE_DESIGNER_URL` is set,
 otherwise the mock.
+
+## Conversation answers and streaming
+
+[derived contract, 26 September 2026] `message` is a free answer, distinct from a clarification
+(`question`) and an actual out-of-scope action refusal (`decline`). Its `message` is nonempty text of
+at most 4,000 characters; optional `suggestions` holds zero to four nonempty strings, each at most
+300 characters. No answer carries scene operations. The same `conversationId` resumes the designer
+thread, so “why?” refers to earlier choices. Every request still includes the current authoritative
+scene; discussing or accepting an offer is separate from applying a checked proposal in the editor.
+
+[derived protocol] Plain final model text becomes `message`. A genuine refusal uses `DECLINE:`
+(the service removes that marker), or a typed JSON `decline` envelope. A typed JSON `message`
+envelope can supply suggestions. Unknown fields and invalid suggestion values fail validation.
+Progress reports observed tool stages in plain language; heartbeats repeat the current stage.
+`message_delta` contains an append-only `delta` string. Only SDK `final_answer` text from a turn
+with no tool calls streams; commentary, reasoning and tool payloads never do. JSON replies and
+refusal markers are buffered. The final reply is authoritative and replaces the transient draft.
+Clients must not treat a delta as the terminal record; cancellation, error, or a proposal clears it.
+Both the completed answer and the cumulative draft are bounded to 4,000 characters.
+
+[derived UI] The panel supports paragraphs, bold, emphasis, inline code and short lists. HTML is
+escaped and links remain inert text. Answer suggestions and proposal follow-ups send an ordinary
+customer message; proposal chips include its title and current status to identify the reference.
+Enter sends, Shift+Enter inserts a newline, IME composition does not submit. Retry resends the
+failed request using the captured conversation identity and a fresh scene snapshot. MAIN's specific
+proposal title, warm paragraph and collapsed Notes remain unchanged.
+
+[assumed scope] General advice and explanations require zero model tool calls and do not silently
+become changes. Design knowledge remains owned by QUALITY; routing and acceleration remain owned
+by FAST. This change adds the shared conversation policy and transport/UI, without a new classifier.
+Measured browser evidence and limitations: `apps/editor/docs/conversation-pass/README.md`.

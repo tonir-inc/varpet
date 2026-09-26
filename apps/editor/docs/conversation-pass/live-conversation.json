@@ -1,0 +1,595 @@
+{
+  "proof": {
+    "stream": [
+      {
+        "request": "what does minimalistic mean for a small flat?",
+        "text": "{\"type\": \"progress\", \"message\": \"Starting the designer\"}\n{\"type\": \"progress\", \"message\": \"Reading the room layout\"}\n{\"type\": \"progress\", \"message\": \"Thinking about your request\"}\n{\"type\": \"progress\", \"message\": \"Thinking about your request\"}\n{\"type\": \"progress\", \"message\": \"Writing your answer\"}\n{\"type\": \"message_delta\", \"delta\": \"For a small\"}\n{\"type\": \"message_delta\", \"delta\": \" flat\"}\n{\"type\": \"message_delta\", \"delta\": \",\"}\n{\"type\": \"message_delta\", \"delta\": \" **\"}\n{\"type\": \"message_delta\", \"delta\": \"minimal\"}\n{\"type\": \"message_delta\", \"delta\": \"istic\"}\n{\"type\": \"message_delta\", \"delta\": \" means\"}\n{\"type\": \"message_delta\", \"delta\": \" keeping\"}\n{\"type\": \"message_delta\", \"delta\": \" what\"}\n{\"type\": \"message_delta\", \"delta\": \"’s\"}\n{\"type\": \"message_delta\", \"delta\": \" useful\"}\n{\"type\": \"message_delta\", \"delta\": \" and\"}\n{\"type\": \"message_delta\", \"delta\": \" meaningful\"}\n{\"type\": \"message_delta\", \"delta\": \",\"}\n{\"type\": \"message_delta\", \"delta\": \" while\"}\n{\"type\": \"message_delta\", \"delta\": \" giving\"}\n{\"type\": \"message_delta\", \"delta\": \" it\"}\n{\"type\": \"message_delta\", \"delta\": \" room\"}\n{\"type\": \"message_delta\", \"delta\": \" to\"}\n{\"type\": \"message_delta\", \"delta\": \" breathe\"}\n{\"type\": \"message_delta\", \"delta\": \"**\"}\n{\"type\": \"message_delta\", \"delta\": \"—\"}\n{\"type\": \"message_delta\", \"delta\": \"not\"}\n{\"type\": \"message_delta\", \"delta\": \" making\"}\n{\"type\": \"message_delta\", \"delta\": \" your\"}\n{\"type\": \"message_delta\", \"delta\": \" home\"}\n{\"type\": \"message_delta\", \"delta\": \" empty\"}\n{\"type\": \"message_delta\", \"delta\": \" or\"}\n{\"type\": \"message_delta\", \"delta\": \" all\"}\n{\"type\": \"message_delta\", \"delta\": \"-white\"}\n{\"type\": \"message_delta\", \"delta\": \".\\n\\n\"}\n{\"type\": \"message_delta\", \"delta\": \"-\"}\n{\"type\": \"message_delta\", \"delta\": \" **\"}\n{\"type\": \"message_delta\", \"delta\": \"Purpose\"}\n{\"type\": \"message_delta\", \"delta\": \"ful\"}\n{\"type\": \"message_delta\", \"delta\": \" furniture\"}\n{\"type\": \"message_delta\", \"delta\": \":**\"}\n{\"type\": \"message_delta\", \"delta\": \" fewer\"}\n{\"type\": \"message_delta\", \"delta\": \" well\"}\n{\"type\": \"message_delta\", \"delta\": \"-ch\"}\n{\"type\": \"message_delta\", \"delta\": \"osen\"}\n{\"type\": \"message_delta\", \"delta\": \" pieces\"}\n{\"type\": \"message_delta\", \"delta\": \",\"}\n{\"type\": \"message_delta\", \"delta\": \" sized\"}\n{\"type\": \"message_delta\", \"delta\": \" for\"}\n{\"type\": \"message_delta\", \"delta\": \" the\"}\n{\"type\": \"message_delta\", \"delta\": \" room\"}\n{\"type\": \"message_delta\", \"delta\": \".\\n\"}\n{\"type\": \"message_delta\", \"delta\": \"-\"}\n{\"type\": \"message_delta\", \"delta\": \" **\"}\n{\"type\": \"message_delta\", \"delta\": \"Clear\"}\n{\"type\": \"message_delta\", \"delta\": \" routes\"}\n{\"type\": \"message_delta\", \"delta\": \":**\"}\n{\"type\": \"message_delta\", \"delta\": \" easy\"}\n{\"type\": \"message_delta\", \"delta\": \" movement\"}\n{\"type\": \"message_delta\", \"delta\": \" between\"}\n{\"type\": \"message_delta\", \"delta\": \" doors\"}\n{\"type\": \"message_delta\", \"delta\": \",\"}\n{\"type\": \"message_delta\", \"delta\": \" seating\"}\n{\"type\": \"message_delta\", \"delta\": \" and\"}\n{\"type\": \"message_delta\", \"delta\": \" storage\"}\n{\"type\": \"message_delta\", \"delta\": \".\\n\"}\n{\"type\": \"message_delta\", \"delta\": \"-\"}\n{\"type\": \"message_delta\", \"delta\": \" **\"}\n{\"type\": \"message_delta\", \"delta\": \"Less\"}\n{\"type\": \"message_delta\", \"delta\": \" visual\"}\n{\"type\": \"message_delta\", \"delta\": \" clutter\"}\n{\"type\": \"message_delta\", \"delta\": \":**\"}\n{\"type\": \"message_delta\", \"delta\": \" closed\"}\n{\"type\": \"message_delta\", \"delta\": \" storage\"}\n{\"type\": \"message_delta\", \"delta\": \" for\"}\n{\"type\": \"message_delta\", \"delta\": \" everyday\"}\n{\"type\": \"message_delta\", \"delta\": \" things\"}\n{\"type\": \"message_delta\", \"delta\": \",\"}\n{\"type\": \"message_delta\", \"delta\": \" with\"}\n{\"type\": \"message_delta\", \"delta\": \" a\"}\n{\"type\": \"message_delta\", \"delta\": \" few\"}\n{\"type\": \"message_delta\", \"delta\": \" favourites\"}\n{\"type\": \"message_delta\", \"delta\": \" on\"}\n{\"type\": \"message_delta\", \"delta\": \" display\"}\n{\"type\": \"message_delta\", \"delta\": \".\\n\"}\n{\"type\": \"message_delta\", \"delta\": \"-\"}\n{\"type\": \"message_delta\", \"delta\": \" **\"}\n{\"type\": \"message_delta\", \"delta\": \"A\"}\n{\"type\": \"message_delta\", \"delta\": \" simple\"}\n{\"type\": \"message_delta\", \"delta\": \" palette\"}\n{\"type\": \"message_delta\", \"delta\": \":**\"}\n{\"type\": \"message_delta\", \"delta\": \" a\"}\n{\"type\": \"message_delta\", \"delta\": \" few\"}\n{\"type\": \"message_delta\", \"delta\": \" complementary\"}\n{\"type\": \"message_delta\", \"delta\": \" colours\"}\n{\"type\": \"message_delta\", \"delta\": \" and\"}\n{\"type\": \"message_delta\", \"delta\": \" materials\"}\n{\"type\": \"message_delta\", \"delta\": \".\\n\"}\n{\"type\": \"message_delta\", \"delta\": \"-\"}\n{\"type\": \"message_delta\", \"delta\": \" **\"}\n{\"type\": \"message_delta\", \"delta\": \"Warm\"}\n{\"type\": \"message_delta\", \"delta\": \"th\"}\n{\"type\": \"message_delta\", \"delta\": \":**\"}\n{\"type\": \"message_delta\", \"delta\": \" wood\"}\n{\"type\": \"message_delta\", \"delta\": \",\"}\n{\"type\": \"message_delta\", \"delta\": \" soft\"}\n{\"type\": \"message_delta\", \"delta\": \" textiles\"}\n{\"type\": \"message_delta\", \"delta\": \" and\"}\n{\"type\": \"message_delta\", \"delta\": \" personal\"}\n{\"type\": \"message_delta\", \"delta\": \" touches\"}\n{\"type\": \"message_delta\", \"delta\": \" keep\"}\n{\"type\": \"message_delta\", \"delta\": \" it\"}\n{\"type\": \"message_delta\", \"delta\": \" welcoming\"}\n{\"type\": \"message_delta\", \"delta\": \".\\n\\n\"}\n{\"type\": \"message_delta\", \"delta\": \"Your\"}\n{\"type\": \"message_delta\", \"delta\": \" proposed\"}\n{\"type\": \"message_delta\", \"delta\": \" sage\"}\n{\"type\": \"message_delta\", \"delta\": \" walls\"}\n{\"type\": \"message_delta\", \"delta\": \" fit\"}\n{\"type\": \"message_delta\", \"delta\": \" the\"}\n{\"type\": \"message_delta\", \"delta\": \" simple\"}\n{\"type\": \"message_delta\", \"delta\": \"-p\"}\n{\"type\": \"message_delta\", \"delta\": \"alette\"}\n{\"type\": \"message_delta\", \"delta\": \" idea\"}\n{\"type\": \"message_delta\", \"delta\": \",\"}\n{\"type\": \"message_delta\", \"delta\": \" but\"}\n{\"type\": \"message_delta\", \"delta\": \" paint\"}\n{\"type\": \"message_delta\", \"delta\": \" alone\"}\n{\"type\": \"message_delta\", \"delta\": \" doesn\"}\n{\"type\": \"message_delta\", \"delta\": \"’t\"}\n{\"type\": \"message_delta\", \"delta\": \" make\"}\n{\"type\": \"message_delta\", \"delta\": \" a\"}\n{\"type\": \"message_delta\", \"delta\": \" room\"}\n{\"type\": \"message_delta\", \"delta\": \" minimalist\"}\n{\"type\": \"message_delta\", \"delta\": \".\"}\n{\"type\": \"message_delta\", \"delta\": \" Practical\"}\n{\"type\": \"message_delta\", \"delta\": \" storage\"}\n{\"type\": \"message_delta\", \"delta\": \" and\"}\n{\"type\": \"message_delta\", \"delta\": \" a\"}\n{\"type\": \"message_delta\", \"delta\": \" comfortable\"}\n{\"type\": \"message_delta\", \"delta\": \" layout\"}\n{\"type\": \"message_delta\", \"delta\": \" matter\"}\n{\"type\": \"message_delta\", \"delta\": \" just\"}\n{\"type\": \"message_delta\", \"delta\": \" as\"}\n{\"type\": \"message_delta\", \"delta\": \" much\"}\n{\"type\": \"message_delta\", \"delta\": \".\"}\n{\"type\": \"message\", \"message\": \"For a small flat, **minimalistic means keeping what’s useful and meaningful, while giving it room to breathe**—not making your home empty or all-white.\\n\\n- **Purposeful furniture:** fewer well-chosen pieces, sized for the room.\\n- **Clear routes:** easy movement between doors, seating and storage.\\n- **Less visual clutter:** closed storage for everyday things, with a few favourites on display.\\n- **A simple palette:** a few complementary colours and materials.\\n- **Warmth:** wood, soft textiles and personal touches keep it welcoming.\\n\\nYour proposed sage walls fit the simple-palette idea, but paint alone doesn’t make a room minimalist. Practical storage and a comfortable layout matter just as much.\", \"conversationId\": \"4e7c2f392feb4f428de4e14a22303266\"}\n",
+        "chunks": [
+          {
+            "at": 4.800000011920929,
+            "text": "{\"type\": \"progress\", \"message\": \"Starting the designer\"}\n{\"type\": \"progress\", \"message\": \"Reading the room layout\"}\n"
+          },
+          {
+            "at": 244.30000001192093,
+            "text": "{\"type\": \"progress\", \"message\": \"Thinking about your request\"}\n"
+          },
+          {
+            "at": 5252.699999988079,
+            "text": "{\"type\": \"progress\", \"message\": \"Thinking about your request\"}\n"
+          },
+          {
+            "at": 6611,
+            "text": "{\"type\": \"progress\", \"message\": \"Writing your answer\"}\n"
+          },
+          {
+            "at": 6693.699999988079,
+            "text": "{\"type\": \"message_delta\", \"delta\": \"For a small\"}\n"
+          },
+          {
+            "at": 6701.5,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" flat\"}\n"
+          },
+          {
+            "at": 6769.099999964237,
+            "text": "{\"type\": \"message_delta\", \"delta\": \",\"}\n{\"type\": \"message_delta\", \"delta\": \" **\"}\n"
+          },
+          {
+            "at": 6779.599999964237,
+            "text": "{\"type\": \"message_delta\", \"delta\": \"minimal\"}\n"
+          },
+          {
+            "at": 6805.199999988079,
+            "text": "{\"type\": \"message_delta\", \"delta\": \"istic\"}\n"
+          },
+          {
+            "at": 6899.5,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" means\"}\n"
+          },
+          {
+            "at": 6901.899999976158,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" keeping\"}\n"
+          },
+          {
+            "at": 6927.099999964237,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" what\"}\n"
+          },
+          {
+            "at": 6944.099999964237,
+            "text": "{\"type\": \"message_delta\", \"delta\": \"’s\"}\n"
+          },
+          {
+            "at": 6944.800000011921,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" useful\"}\n"
+          },
+          {
+            "at": 7046.399999976158,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" and\"}\n"
+          },
+          {
+            "at": 7173.399999976158,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" meaningful\"}\n"
+          },
+          {
+            "at": 7174.699999988079,
+            "text": "{\"type\": \"message_delta\", \"delta\": \",\"}\n"
+          },
+          {
+            "at": 7174.699999988079,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" while\"}\n{\"type\": \"message_delta\", \"delta\": \" giving\"}\n{\"type\": \"message_delta\", \"delta\": \" it\"}\n{\"type\": \"message_delta\", \"delta\": \" room\"}\n"
+          },
+          {
+            "at": 7320.399999976158,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" to\"}\n{\"type\": \"message_delta\", \"delta\": \" breathe\"}\n{\"type\": \"message_delta\", \"delta\": \"**\"}\n{\"type\": \"message_delta\", \"delta\": \"—\"}\n{\"type\": \"message_delta\", \"delta\": \"not\"}\n"
+          },
+          {
+            "at": 7356.399999976158,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" making\"}\n"
+          },
+          {
+            "at": 7380.699999988079,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" your\"}\n"
+          },
+          {
+            "at": 7444.300000011921,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" home\"}\n{\"type\": \"message_delta\", \"delta\": \" empty\"}\n"
+          },
+          {
+            "at": 7501,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" or\"}\n"
+          },
+          {
+            "at": 7511.699999988079,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" all\"}\n{\"type\": \"message_delta\", \"delta\": \"-white\"}\n"
+          },
+          {
+            "at": 7560.399999976158,
+            "text": "{\"type\": \"message_delta\", \"delta\": \".\\n\\n\"}\n"
+          },
+          {
+            "at": 7618,
+            "text": "{\"type\": \"message_delta\", \"delta\": \"-\"}\n"
+          },
+          {
+            "at": 7653.800000011921,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" **\"}\n"
+          },
+          {
+            "at": 7671.099999964237,
+            "text": "{\"type\": \"message_delta\", \"delta\": \"Purpose\"}\n"
+          },
+          {
+            "at": 7676.699999988079,
+            "text": "{\"type\": \"message_delta\", \"delta\": \"ful\"}\n"
+          },
+          {
+            "at": 7725.899999976158,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" furniture\"}\n"
+          },
+          {
+            "at": 7747,
+            "text": "{\"type\": \"message_delta\", \"delta\": \":**\"}\n"
+          },
+          {
+            "at": 7748,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" fewer\"}\n"
+          },
+          {
+            "at": 7783.699999988079,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" well\"}\n"
+          },
+          {
+            "at": 7814,
+            "text": "{\"type\": \"message_delta\", \"delta\": \"-ch\"}\n"
+          },
+          {
+            "at": 7864.599999964237,
+            "text": "{\"type\": \"message_delta\", \"delta\": \"osen\"}\n"
+          },
+          {
+            "at": 7882.899999976158,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" pieces\"}\n"
+          },
+          {
+            "at": 8000.099999964237,
+            "text": "{\"type\": \"message_delta\", \"delta\": \",\"}\n"
+          },
+          {
+            "at": 8027.800000011921,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" sized\"}\n"
+          },
+          {
+            "at": 8028.800000011921,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" for\"}\n{\"type\": \"message_delta\", \"delta\": \" the\"}\n"
+          },
+          {
+            "at": 8075.699999988079,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" room\"}\n"
+          },
+          {
+            "at": 8231.599999964237,
+            "text": "{\"type\": \"message_delta\", \"delta\": \".\\n\"}\n"
+          },
+          {
+            "at": 8234,
+            "text": "{\"type\": \"message_delta\", \"delta\": \"-\"}\n{\"type\": \"message_delta\", \"delta\": \" **\"}\n{\"type\": \"message_delta\", \"delta\": \"Clear\"}\n{\"type\": \"message_delta\", \"delta\": \" routes\"}\n{\"type\": \"message_delta\", \"delta\": \":**\"}\n"
+          },
+          {
+            "at": 8387.800000011921,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" easy\"}\n"
+          },
+          {
+            "at": 8392.800000011921,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" movement\"}\n{\"type\": \"message_delta\", \"delta\": \" between\"}\n{\"type\": \"message_delta\", \"delta\": \" doors\"}\n{\"type\": \"message_delta\", \"delta\": \",\"}\n"
+          },
+          {
+            "at": 8407.300000011921,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" seating\"}\n"
+          },
+          {
+            "at": 8466.800000011921,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" and\"}\n"
+          },
+          {
+            "at": 8467.399999976158,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" storage\"}\n"
+          },
+          {
+            "at": 8505.800000011921,
+            "text": "{\"type\": \"message_delta\", \"delta\": \".\\n\"}\n"
+          },
+          {
+            "at": 8538.199999988079,
+            "text": "{\"type\": \"message_delta\", \"delta\": \"-\"}\n"
+          },
+          {
+            "at": 8539,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" **\"}\n"
+          },
+          {
+            "at": 8577.199999988079,
+            "text": "{\"type\": \"message_delta\", \"delta\": \"Less\"}\n"
+          },
+          {
+            "at": 8605.599999964237,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" visual\"}\n"
+          },
+          {
+            "at": 8668.599999964237,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" clutter\"}\n"
+          },
+          {
+            "at": 8674.300000011921,
+            "text": "{\"type\": \"message_delta\", \"delta\": \":**\"}\n"
+          },
+          {
+            "at": 8706.899999976158,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" closed\"}\n"
+          },
+          {
+            "at": 8795.699999988079,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" storage\"}\n{\"type\": \"message_delta\", \"delta\": \" for\"}\n{\"type\": \"message_delta\", \"delta\": \" everyday\"}\n"
+          },
+          {
+            "at": 8837.800000011921,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" things\"}\n"
+          },
+          {
+            "at": 8883.899999976158,
+            "text": "{\"type\": \"message_delta\", \"delta\": \",\"}\n"
+          },
+          {
+            "at": 8912.599999964237,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" with\"}\n"
+          },
+          {
+            "at": 8913.300000011921,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" a\"}\n"
+          },
+          {
+            "at": 8976.800000011921,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" few\"}\n"
+          },
+          {
+            "at": 8982.099999964237,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" favourites\"}\n"
+          },
+          {
+            "at": 9004,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" on\"}\n"
+          },
+          {
+            "at": 9109.5,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" display\"}\n{\"type\": \"message_delta\", \"delta\": \".\\n\"}\n{\"type\": \"message_delta\", \"delta\": \"-\"}\n"
+          },
+          {
+            "at": 9121.199999988079,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" **\"}\n"
+          },
+          {
+            "at": 9176,
+            "text": "{\"type\": \"message_delta\", \"delta\": \"A\"}\n"
+          },
+          {
+            "at": 9330.699999988079,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" simple\"}\n"
+          },
+          {
+            "at": 9359.800000011921,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" palette\"}\n{\"type\": \"message_delta\", \"delta\": \":**\"}\n"
+          },
+          {
+            "at": 9364.5,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" a\"}\n{\"type\": \"message_delta\", \"delta\": \" few\"}\n"
+          },
+          {
+            "at": 9389.099999964237,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" complementary\"}\n"
+          },
+          {
+            "at": 9460.599999964237,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" colours\"}\n{\"type\": \"message_delta\", \"delta\": \" and\"}\n{\"type\": \"message_delta\", \"delta\": \" materials\"}\n{\"type\": \"message_delta\", \"delta\": \".\\n\"}\n"
+          },
+          {
+            "at": 9486.599999964237,
+            "text": "{\"type\": \"message_delta\", \"delta\": \"-\"}\n"
+          },
+          {
+            "at": 9518.300000011921,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" **\"}\n"
+          },
+          {
+            "at": 9553.699999988079,
+            "text": "{\"type\": \"message_delta\", \"delta\": \"Warm\"}\n"
+          },
+          {
+            "at": 9774,
+            "text": "{\"type\": \"message_delta\", \"delta\": \"th\"}\n{\"type\": \"message_delta\", \"delta\": \":**\"}\n"
+          },
+          {
+            "at": 9782.099999964237,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" wood\"}\n{\"type\": \"message_delta\", \"delta\": \",\"}\n{\"type\": \"message_delta\", \"delta\": \" soft\"}\n"
+          },
+          {
+            "at": 9805,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" textiles\"}\n"
+          },
+          {
+            "at": 9805.599999964237,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" and\"}\n{\"type\": \"message_delta\", \"delta\": \" personal\"}\n"
+          },
+          {
+            "at": 9823.199999988079,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" touches\"}\n"
+          },
+          {
+            "at": 9828.699999988079,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" keep\"}\n"
+          },
+          {
+            "at": 9892.699999988079,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" it\"}\n"
+          },
+          {
+            "at": 9893.699999988079,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" welcoming\"}\n"
+          },
+          {
+            "at": 9945.199999988079,
+            "text": "{\"type\": \"message_delta\", \"delta\": \".\\n\\n\"}\n"
+          },
+          {
+            "at": 9964.099999964237,
+            "text": "{\"type\": \"message_delta\", \"delta\": \"Your\"}\n"
+          },
+          {
+            "at": 10065.800000011921,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" proposed\"}\n{\"type\": \"message_delta\", \"delta\": \" sage\"}\n{\"type\": \"message_delta\", \"delta\": \" walls\"}\n"
+          },
+          {
+            "at": 10077.599999964237,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" fit\"}\n"
+          },
+          {
+            "at": 10123.399999976158,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" the\"}\n"
+          },
+          {
+            "at": 10138.199999988079,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" simple\"}\n"
+          },
+          {
+            "at": 10172.399999976158,
+            "text": "{\"type\": \"message_delta\", \"delta\": \"-p\"}\n"
+          },
+          {
+            "at": 10211.399999976158,
+            "text": "{\"type\": \"message_delta\", \"delta\": \"alette\"}\n"
+          },
+          {
+            "at": 10218.599999964237,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" idea\"}\n"
+          },
+          {
+            "at": 10276,
+            "text": "{\"type\": \"message_delta\", \"delta\": \",\"}\n"
+          },
+          {
+            "at": 10306.199999988079,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" but\"}\n"
+          },
+          {
+            "at": 10327.5,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" paint\"}\n"
+          },
+          {
+            "at": 10328.199999988079,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" alone\"}\n"
+          },
+          {
+            "at": 10371.199999988079,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" doesn\"}\n"
+          },
+          {
+            "at": 10408.599999964237,
+            "text": "{\"type\": \"message_delta\", \"delta\": \"’t\"}\n"
+          },
+          {
+            "at": 10439.399999976158,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" make\"}\n"
+          },
+          {
+            "at": 10476.800000011921,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" a\"}\n"
+          },
+          {
+            "at": 10522.800000011921,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" room\"}\n"
+          },
+          {
+            "at": 10553.300000011921,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" minimalist\"}\n"
+          },
+          {
+            "at": 10554.199999988079,
+            "text": "{\"type\": \"message_delta\", \"delta\": \".\"}\n"
+          },
+          {
+            "at": 10583,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" Practical\"}\n"
+          },
+          {
+            "at": 10660.899999976158,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" storage\"}\n{\"type\": \"message_delta\", \"delta\": \" and\"}\n"
+          },
+          {
+            "at": 10687.199999988079,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" a\"}\n"
+          },
+          {
+            "at": 10763.199999988079,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" comfortable\"}\n{\"type\": \"message_delta\", \"delta\": \" layout\"}\n{\"type\": \"message_delta\", \"delta\": \" matter\"}\n"
+          },
+          {
+            "at": 10813.300000011921,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" just\"}\n"
+          },
+          {
+            "at": 10833,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" as\"}\n"
+          },
+          {
+            "at": 10888.5,
+            "text": "{\"type\": \"message_delta\", \"delta\": \" much\"}\n"
+          },
+          {
+            "at": 10923.099999964237,
+            "text": "{\"type\": \"message_delta\", \"delta\": \".\"}\n"
+          },
+          {
+            "at": 11249.699999988079,
+            "text": "{\"type\": \"message\", \"message\": \"For a small flat, **minimalistic means keeping what’s useful and meaningful, while giving it room to breathe**—not making your home empty or all-white.\\n\\n- **Purposeful furniture:** fewer well-chosen pieces, sized for the room.\\n- **Clear routes:** easy movement between doors, seating and storage.\\n- **Less visual clutter:** closed storage for everyday things, with a few favourites on display.\\n- **A simple palette:** a few complementary colours and materials.\\n- **Warmth:** wood, soft textiles and personal touches keep it welcoming.\\n\\nYour proposed sage walls fit the simple-palette idea, but paint alone doesn’t make a room minimalist. Practical storage and a comfortable layout matter just as much.\", \"conversationId\": \"4e7c2f392feb4f428de4e14a22303266\"}\n"
+          }
+        ],
+        "elapsed": 11249.800000011921
+      }
+    ],
+    "history": {
+      "version": 1,
+      "activeId": "cec3a602-c9ec-4d80-b591-4d496d19bf0d",
+      "conversations": [
+        {
+          "id": "cec3a602-c9ec-4d80-b591-4d496d19bf0d",
+          "title": "Paint the bedroom walls a soft sage for a minimalistic feel.",
+          "messages": [
+            {
+              "role": "user",
+              "text": "Paint the bedroom walls a soft sage for a minimalistic feel."
+            },
+            {
+              "role": "designer",
+              "text": "I’ve given 5 wall sections a fresh colour, keeping the layout just as it is. No furniture purchases are needed. The trade-off: the colour covers both sides of each selected wall, including shared walls.",
+              "proposal": {
+                "id": "designer-7198e5c326194af8e95c2d324326da0f643e2d5736d0d14d8e0f73b1c1dc2221",
+                "title": "Fresh colour for the bedroom",
+                "description": "I’ve given 5 wall sections a fresh colour, keeping the layout just as it is. No furniture purchases are needed. The trade-off: the colour covers both sides of each selected wall, including shared walls.",
+                "command": {
+                  "id": "designer-7198e5c326194af8e95c2d324326da0f643e2d5736d0d14d8e0f73b1c1dc2221",
+                  "label": "Apply designer layout",
+                  "source": "designer",
+                  "baseRevision": 0,
+                  "operations": [
+                    {
+                      "type": "update-wall",
+                      "id": "wall-east:section-1wcj16j",
+                      "patch": {
+                        "color": "#b8c4ae"
+                      }
+                    },
+                    {
+                      "type": "update-wall",
+                      "id": "wall-north:section-1bz51as",
+                      "patch": {
+                        "color": "#b8c4ae"
+                      }
+                    },
+                    {
+                      "type": "update-wall",
+                      "id": "wall-spine:section-tfjdn7",
+                      "patch": {
+                        "color": "#b8c4ae"
+                      }
+                    },
+                    {
+                      "type": "update-wall",
+                      "id": "wall-bedroom",
+                      "patch": {
+                        "color": "#b8c4ae"
+                      }
+                    },
+                    {
+                      "type": "update-wall",
+                      "id": "wall-bedroom:section-1wuotw",
+                      "patch": {
+                        "color": "#b8c4ae"
+                      }
+                    }
+                  ]
+                }
+              },
+              "status": "stale",
+              "metrics": [
+                {
+                  "label": "Open floor · before → after",
+                  "value": "73.92 → 73.92 m²"
+                },
+                {
+                  "label": "Narrowest walkway · proposed",
+                  "value": "0.90 m"
+                },
+                {
+                  "label": "Cost · furniture purchases",
+                  "value": "0 ֏"
+                }
+              ],
+              "notes": "Paint and labour are not priced."
+            },
+            {
+              "role": "user",
+              "text": "why did you do it this way?"
+            },
+            {
+              "role": "designer",
+              "text": "I chose **soft sage (#B8C4AE)** because its muted green-grey tone suits your request for a calm, minimalistic feel. Using one shade across all bedroom walls keeps the palette simple, rather than adding a contrasting accent wall.\n\nThe adjoining-room faces change because the editor colours **both sides of shared walls**—that’s a tool limitation, not a design choice to repaint those rooms.\n\nThis is still **only a preview**; your current walls haven’t changed.",
+              "suggestions": [
+                "Show me another option",
+                "Make it warmer",
+                "What would it cost?"
+              ]
+            },
+            {
+              "role": "user",
+              "text": "what does minimalistic mean for a small flat?"
+            },
+            {
+              "role": "designer",
+              "text": "For a small flat, **minimalistic means keeping what’s useful and meaningful, while giving it room to breathe**—not making your home empty or all-white.\n\n- **Purposeful furniture:** fewer well-chosen pieces, sized for the room.\n- **Clear routes:** easy movement between doors, seating and storage.\n- **Less visual clutter:** closed storage for everyday things, with a few favourites on display.\n- **A simple palette:** a few complementary colours and materials.\n- **Warmth:** wood, soft textiles and personal touches keep it welcoming.\n\nYour proposed sage walls fit the simple-palette idea, but paint alone doesn’t make a room minimalist. Practical storage and a comfortable layout matter just as much.",
+              "suggestions": [
+                "Show me another option",
+                "Make it warmer",
+                "What would it cost?"
+              ]
+            }
+          ],
+          "options": [],
+          "conversationId": "4e7c2f392feb4f428de4e14a22303266"
+        }
+      ]
+    },
+    "revision": " All changes stay on this deviceNothing selectedMetres · Revision 0"
+  },
+  "checks": [
+    {
+      "width": 1440,
+      "scroll": 1440,
+      "strong": 9,
+      "bullets": 5
+    },
+    {
+      "width": 1280,
+      "scroll": 1280,
+      "strong": 9,
+      "bullets": 5
+    },
+    {
+      "width": 390,
+      "scroll": 390,
+      "strong": 9,
+      "bullets": 5
+    }
+  ],
+  "newline": "Line one\na",
+  "focus": {
+    "text": "Send",
+    "outline": "rgb(212, 202, 255) solid 2px"
+  }
+}

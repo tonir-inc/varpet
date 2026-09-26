@@ -53,7 +53,7 @@ class DefaultSettingsTests(unittest.TestCase):
             else:
                 jobs.append(json.loads(Path(command[-1]).read_text()))
                 kwargs['on_output']('stdout', json.dumps({'kind':'worker_summary','status':'completed',
-                    'response':'I cannot choose paint colours.','total_usage':{'totalTokens':10}})+'\n')
+                    'response':'DECLINE: I cannot choose paint colours.','total_usage':{'totalTokens':10}})+'\n')
         logs = io.StringIO()
         with patch.object(service, '_process', side_effect=process), contextlib.redirect_stderr(logs):
             result = service.propose({'scene':{'format':'varpet.editor'},'revision':0,'request':'Choose paint'}, threading.Event(), lambda message: None)
