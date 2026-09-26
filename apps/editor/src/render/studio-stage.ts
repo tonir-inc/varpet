@@ -9,13 +9,13 @@ export class StudioStage {
   /** Pedestal bounds for camera framing; deliberately excludes studio scenery. */
   readonly bounds = new THREE.Box3();
 
-  private readonly border = new THREE.MeshStandardMaterial({ color: '#6e6e6e', roughness: 0.9, metalness: 0 });
-  private readonly charcoal = new THREE.MeshStandardMaterial({ color: '#161b20', roughness: 0.43, metalness: 0.24 });
-  private readonly recess = new THREE.MeshStandardMaterial({ color: '#090c10', roughness: 0.78 });
+  private readonly border = new THREE.MeshStandardMaterial({ color: '#bdbab2', roughness: 0.9, metalness: 0 });
+  private readonly charcoal = new THREE.MeshStandardMaterial({ color: '#ecebe6', roughness: 0.6, metalness: 0.02 });
+  private readonly recess = new THREE.MeshStandardMaterial({ color: '#d6d4cd', roughness: 0.78 });
   private readonly brass = new THREE.MeshStandardMaterial({ color: '#a88754', roughness: 0.36, metalness: 0.72 });
   private readonly groundMaterial = new THREE.MeshStandardMaterial({
-    color: '#141c26', roughness: 0.94, metalness: 0,
-    emissive: '#263341', emissiveIntensity: 0.16,
+    color: '#e6e5e0', roughness: 0.94, metalness: 0,
+    emissive: '#ffffff', emissiveIntensity: 0.04,
   });
   private readonly groundPoolScale = { value: new THREE.Vector2(1, 1) };
   private readonly groundSpan = { value: 180 };
@@ -33,9 +33,9 @@ export class StudioStage {
     uniforms: {
       galleryHeight: { value: 32 },
       daylight: { value: 1 },
-      galleryLower: { value: new THREE.Color('#232425') },
-      galleryCurtain: { value: new THREE.Color('#80796e') },
-      galleryLight: { value: new THREE.Color('#aaa18f') },
+      galleryLower: { value: new THREE.Color('#d9d8d3') },
+      galleryCurtain: { value: new THREE.Color('#efeee9') },
+      galleryLight: { value: new THREE.Color('#ffffff') },
     },
     vertexShader: `
       varying vec2 galleryUv;

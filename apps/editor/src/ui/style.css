@@ -1,51 +1,62 @@
 /* Shared UI roles. Keep material colours and plan semantics separate from chrome. */
+/* Shared UI roles in the Folio language: white paper, black ink, green for the designer,
+   a yellow highlighter for the buyer's own selection. Material colours and plan semantics stay separate. */
 :root {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: "Sofia Sans", "Noto Sans Armenian", system-ui, -apple-system, "Segoe UI", sans-serif;
   font-size: 14px;
   line-height: 1.5;
   font-synthesis: none;
-  color-scheme: dark;
+  color-scheme: light;
   color: var(--ink);
   background: var(--ground);
-  --ground: #191c22;
-  --surface: #23262d;
-  --raised: #2c3039;
-  --hover: #373c47;
-  --line: #444955;
-  --control-line: #7a8191;
-  --ink: #eef0f5;
-  --muted: #b1b7c5;
-  --accent: #c2b6fa;
-  --accent-dark: #ac9be9;
-  --accent-hover: #d4caff;
-  --accent-wash: #3b354e;
-  --on-accent: #242034;
-  --positive: #a7dabb;
-  --positive-wash: #293e34;
-  --warning: #edc58d;
-  --warning-wash: #443a2b;
-  --danger: #ffb4bc;
-  --danger-wash: #472e38;
-  --focus: #d4caff;
-  --stage: #171d25;
-  --scrim: #10131bb3;
-  --shadow-color: #080b1240;
-  --texture-light: #ffffff1a;
-  --texture-dark: #00000014;
+  --serif: "Source Serif 4", "Noto Serif Armenian", Georgia, serif;
+  --condensed: "Sofia Sans Condensed", "Noto Sans Armenian", "Arial Narrow", sans-serif;
+  --ground: #f4f4f1;
+  --surface: #ffffff;
+  --raised: #efeeea;
+  --hover: #e7e6e1;
+  --line: #deddd8;
+  --control-line: #a8a69f;
+  --ink: #151515;
+  --muted: #6b6962;
+  /* Primary actions are ink; the buyer's selection is highlighter yellow. */
+  --accent: #151515;
+  --accent-dark: #000000;
+  --accent-hover: #2b2b2b;
+  --accent-wash: #fdf1a8;
+  --on-accent: #ffffff;
+  --select: #fbe36a;
+  --select-wash: #fdf1a8;
+  /* Only what the designer did is green. */
+  --designer: #0c6a55;
+  --designer-soft: #7db8a8;
+  --designer-wash: #e3f0eb;
+  --positive: #1f6b45;
+  --positive-wash: #e4f1e8;
+  --warning: #8a5a00;
+  --warning-wash: #fbf0d6;
+  --danger: #c4202f;
+  --danger-wash: #fbe5e5;
+  --focus: #151515;
+  --stage: #cfd1cf;
+  --scrim: #ffffffeb;
+  --shadow-color: #1515151f;
+  --texture-light: #ffffff66;
+  --texture-dark: #0000000d;
   --texture-chip: #f5f0e2;
-  --plan-ground: #faf8f3;
-  --plan-surface: #fffefa;
-  --plan-ink: #393540;
-  --plan-muted: #6b6372;
-  --plan-line: #c5becb;
-  --plan-accent: #73549f;
-  --plan-wash: #ede5f8;
-  --plan-room: #f0ede5;
-  --plan-wall: #37363e;
-  --plan-partition: #dfd8c9;
-  --plan-window: #34718e;
-  --plan-entrance: #82613c;
-  --plan-danger: #a64747;
+  --plan-ground: #f4f4f1;
+  --plan-surface: #ffffff;
+  --plan-ink: #151515;
+  --plan-muted: #6b6962;
+  --plan-line: #deddd8;
+  --plan-accent: #151515;
+  --plan-wash: #fdf1a8;
+  --plan-room: #f1efe9;
+  --plan-wall: #151515;
+  --plan-partition: #d9d5cb;
+  --plan-window: #2d6c8c;
+  --plan-entrance: #8a6238;
+  --plan-danger: #c4202f;
   --text-xs: 12px;
   --text-sm: 14px;
   --text-md: 16px;
@@ -59,11 +70,11 @@
   --space-5: 20px;
   --space-6: 24px;
   --space-8: 32px;
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: 4px;
   --shadow-1: 0 4px 16px var(--shadow-color);
-  --shadow-2: 0 16px 48px var(--shadow-color);
+  --shadow-2: 0 12px 36px var(--shadow-color);
   --motion-feedback: 140ms;
   --motion-surface: 180ms;
   --motion-ease-out: cubic-bezier(.2, .8, .2, 1);
@@ -72,6 +83,8 @@
   --panel-raised: var(--raised);
   --floating-shadow: var(--shadow-1);
 }
+/* Headings and the designer's voice are set in the serif; numbers are condensed like plan figures. */
+h1, h2 { font-family: var(--serif); font-weight: 600; letter-spacing: -0.01em; }
 
 * { box-sizing: border-box; }
 body { margin: 0; }

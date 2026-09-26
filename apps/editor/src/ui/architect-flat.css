@@ -36,5 +36,5 @@
 .af-log { display: grid; gap: 4px; max-height: 260px; margin: 0; padding: 0; overflow: hidden; list-style: none; font-size: var(--text-xs); line-height: 1.4; }
 .af-log li { overflow-wrap: anywhere; }
 .af-log-command, .af-log-file { color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; }
-.architect-stage-host { position: absolute; inset: 0; z-index: 3; overflow: hidden; background: #111318; }
+.architect-stage-host { position: absolute; inset: 0; z-index: 3; overflow: hidden; background: var(--stage); }
 .architect-stage-host[hidden] { display: none; }

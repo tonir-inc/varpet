@@ -13,8 +13,8 @@ export class SelectionOutline extends OutlinePass {
     this.edgeThickness = 1.4;
     this.edgeGlow = 1.1;
     this.pulsePeriod = 0;
-    this.visibleEdgeColor.setRGB(1, 1, 1);
-    this.hiddenEdgeColor.setRGB(0.18, 0.18, 0.18);
+    this.visibleEdgeColor.setRGB(0.08, 0.08, 0.08);
+    this.hiddenEdgeColor.setRGB(0.55, 0.55, 0.52);
 
     // OutlinePass bakes the initial projection into its depth comparison.
     // Keep both projections correct without recompiling when Top is toggled.
@@ -39,7 +39,8 @@ export class SelectionOutline extends OutlinePass {
         float edge = clamp(texture2D(edgeTexture1, vUv).r * edgeStrength, 0.0, 1.0) * outside;
         float halo = clamp(texture2D(edgeTexture2, vUv).r * edgeStrength * edgeGlow, 0.0, 0.65) * outside;
         float alpha = edge + halo * (1.0 - edge);
-        vec3 color = mix(vec3(0.61, 0.44, 0.91), vec3(1.0), edge / max(alpha, 0.0001));
+        // Folio selection: an ink line inside a highlighter-yellow halo.
+        vec3 color = mix(vec3(0.98, 0.89, 0.42), vec3(0.08, 0.08, 0.08), edge / max(alpha, 0.0001));
         gl_FragColor = vec4(color, alpha);
       }
     `;

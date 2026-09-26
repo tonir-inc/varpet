@@ -100,7 +100,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     container.append(message);
     return { setInsideLens() {}, setSkybox() { return false; }, getSun() { return { ...DEFAULT_SUN }; }, setSun() {}, setLightingMood() {}, inspectCeiling() { return false; }, project() { return null; }, onFrame() { return () => {}; }, animateAssembly() {}, setHidden() {}, setFinishBrush() {}, setAdditiveSelection() {}, revealSelection() {}, setScene() {}, animatePlacement() {}, setSelection() {}, setTool() {}, setView() {}, setSnap() {}, setWalls() {}, setQuality() {}, setLayer() {}, setDoorAngle() {}, getDoorAngle() { return 0; }, toggleSwitch() {}, setSwitchLevel() {}, getSwitchLevel() { return 0; }, setComparison() {}, focus() {}, cancelInteraction() {}, dispose() { message.remove(); } };
   }
-  renderer.setClearColor('#171d25');
+  renderer.setClearColor('#e2e2dd');
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 0.78;
@@ -114,8 +114,8 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
 
   const world = new THREE.Scene();
   const shadowCache = new SceneShadowCache(world);
-  world.background = new THREE.Color('#171d25');
-  const studioFog = new THREE.Fog('#171d25', 40, 125);
+  world.background = new THREE.Color('#e2e2dd');
+  const studioFog = new THREE.Fog('#e2e2dd', 40, 125);
   world.fog = studioFog;
   const perspective = new THREE.PerspectiveCamera(32, 1, 0.05, 250);
   perspective.position.set(11, 12, 15);

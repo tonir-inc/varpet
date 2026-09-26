@@ -53,7 +53,7 @@ export interface ArchitectStage {
 export type StagePhase = 'reading' | 'walls' | 'building' | 'placing' | 'checking' | 'done';
 const PHASES: StagePhase[] = ['reading', 'walls', 'building', 'placing', 'checking'];
 export interface ArchitectStageOptions { onPhase?: (phase: StagePhase) => void }
-const ACCENT = new THREE.Color('#c2b6fa');
+const ACCENT = new THREE.Color('#0c6a55');
 const PHASE_HOLD = 3.2;
 const NOMINAL_PLAN_WIDTH = 10;
 
@@ -186,7 +186,7 @@ class Stage implements ArchitectStage {
     room.traverse(o => { if (o instanceof THREE.Mesh) { o.geometry.dispose(); (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => m.dispose()); } });
     this.scene.environment = this.envTexture;
     this.scene.environmentIntensity = 0.55;
-    this.scene.background = new THREE.Color('#10131a');
+    this.scene.background = new THREE.Color('#cfd1cf');
 
     this.sun.castShadow = true;
     this.sun.shadow.mapSize.set(2048, 2048);
