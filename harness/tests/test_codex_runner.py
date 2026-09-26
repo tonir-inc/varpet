@@ -1,3 +1,4 @@
+import json
 import asyncio
 import sys
 from pathlib import Path
@@ -78,3 +79,27 @@ def test_thread_config_only_names_live_servers(tmp_path):
     assert cfg["mcp_servers"] == {"a": {"enabled": False}}
     assert cfg["plugins"] == {"p@m": {"enabled": False}}
     assert thread_config(tmp_path / "nope")["mcp_servers"] == {}
+
+
+SCRIPTED_CHECKER = [sys.executable, str(Path(__file__).parent / "fakes" / "scripted_checker.py")]
+FORMAT = [{"check": "format", "detail": "dims_m: at most 2 items"}]
+GEOMETRY = [{"check": "reachable", "rooms": ["bed"]}]
+
+
+async def test_format_repair_does_not_spend_the_geometry_budget(tmp_path):
+    (tmp_path / "script.json").write_text(json.dumps([FORMAT, GEOMETRY, GEOMETRY, None]))
+    r = ScriptedRunner(fix_turns=2)
+    r.checkers["piece"] = SCRIPTED_CHECKER
+    r.workdir = tmp_path
+    res = await r.run(piece(), tmp_path, {})
+    assert (res.status, res.turns) == ("ok", 4)
+    assert "format" in r.prompts[1] and "reachable" in r.prompts[2]
+
+
+async def test_geometry_budget_runs_out(tmp_path):
+    (tmp_path / "script.json").write_text(json.dumps([GEOMETRY]))
+    r = ScriptedRunner(fix_turns=3)
+    r.checkers["piece"] = SCRIPTED_CHECKER
+    r.workdir = tmp_path
+    res = await r.run(piece(), tmp_path, {})
+    assert (res.status, res.turns, res.error) == ("failed", 4, "faults left")

@@ -27,6 +27,7 @@ from .shell import Shell, to_editor
 
 MAX_BODY = 40_000_000
 MAX_PHOTOS = 4
+GEOMETRY_TURNS = 3  # Komitas, 26 Sept: one repair turn left 7/10 plans with faults
 SAFE = re.compile(r"[^A-Za-z0-9._-]")
 
 
@@ -56,7 +57,7 @@ async def reconstruct(body: dict, repo: Path, runs: Path, progress: Callable[[st
 
         codex = AsyncCodex()
         try:
-            result = await CodexRunner(codex, repo, progress=progress).run(job, folder / "shell", {})
+            result = await CodexRunner(codex, repo, fix_turns=GEOMETRY_TURNS, progress=progress).run(job, folder / "shell", {})
         finally:
             await codex.close()
     else:

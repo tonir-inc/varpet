@@ -1,8 +1,8 @@
 """One Codex thread per job, via the Python `openai-codex` SDK.
 
-Piece jobs: one build turn, the compiler checks the part program, faults go
-back in at most `fix_turns` more turns on the same thread. The architect is
-never in this loop.
+Every checked job: one build turn, its checker runs, faults go back in at most
+`fix_turns` more turns on the same thread. A malformed output (a `format` fault)
+gets its own `format_turns` first, so a shape error never spends the geometry budget.
 """
 
 from __future__ import annotations
@@ -68,6 +68,7 @@ class CodexRunner:
         model: str = "gpt-6-astra",
         compile_cmd: list[str] | None = None,
         fix_turns: int = 1,
+        format_turns: int = 2,
         stall: float = 4 * 60,
         progress=None,
     ):
@@ -80,6 +81,7 @@ class CodexRunner:
         if compile_cmd:
             self.checkers["piece"] = compile_cmd
         self.fix_turns = fix_turns
+        self.format_turns = format_turns
         self.stall = stall
         self.progress = progress or (lambda message: None)
         self.config = thread_config()
@@ -108,9 +110,12 @@ class CodexRunner:
                 return self._done(job, "ok", out, tokens, turns, t)
             self.progress(f"{job.id}: checking")
             faults = await asyncio.to_thread(self._compile, cmd, out, workdir)
-            for _ in range(self.fix_turns):
-                if faults is None:
+            budget = {"format": self.format_turns, "fix": self.fix_turns}
+            while faults is not None:
+                kind = "format" if _format_only(faults) else "fix"
+                if not budget[kind]:
                     break
+                budget[kind] -= 1
                 self.progress(f"{job.id}: fixing {_count(faults)}")
                 fix = await self._turn(thread, [TextInput(_fix_prompt(faults, out))], job)
                 tokens += _tokens(fix)
@@ -222,6 +227,14 @@ def _count(faults: str) -> str:
         return f"{n} fault{'s' if n != 1 else ''}"
     except ValueError:
         return "faults"
+
+
+def _format_only(faults: str) -> bool:
+    try:
+        items = json.loads(faults)
+        return bool(items) and all(isinstance(f, dict) and f.get("check") == "format" for f in items)
+    except ValueError:
+        return False
 
 
 def _tokens(result: TurnResult) -> int:
