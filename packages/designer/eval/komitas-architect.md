@@ -1,5 +1,7 @@
 # Komitas Park: real plan → architect → editor → designer bridge
 
+Follow-up: [six captured flats now reach the designer](komitas-unlock.md); the historical measurements below remain unchanged.
+
 **Measured, 26 September 2026 (15:56–16:04 Armenia time), gpt-6-astra, medium:**
 10/10 plans produced renderable empty drafts; **3/10 passed the architect, 6/10 passed
 EditorStore, and 0/10 passed the designer bridge. No accepted `.scene.json` is published.**
