@@ -1,0 +1,13 @@
+{
+  "id": "cane",
+  "family": "wood",
+  "tile_m": 0.12,
+  "grain": false,
+  "default_color": "#c9a877",
+  "metal": 0.0,
+  "source": "procedural",
+  "license": "CC0",
+  "clearcoat": 0.2,
+  "clearcoat_roughness": 0.4,
+  "alpha": true
+}

@@ -1,0 +1,12 @@
+{
+  "id": "terrazzo",
+  "family": "stone",
+  "tile_m": 0.6,
+  "grain": false,
+  "default_color": "#c2bfc1",
+  "metal": 0.0,
+  "source": "ambientcg:Terrazzo001",
+  "license": "CC0",
+  "clearcoat": 0.3,
+  "clearcoat_roughness": 0.3
+}

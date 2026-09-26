@@ -1,0 +1,13 @@
+{
+  "id": "oak-rift",
+  "family": "wood",
+  "tile_m": 1.0,
+  "grain": true,
+  "default_color": "#a27f58",
+  "metal": 0.0,
+  "source": "polyhaven:oak_veneer_05",
+  "license": "CC0",
+  "clearcoat": 0.25,
+  "clearcoat_roughness": 0.35,
+  "source_color": "#a98b71"
+}

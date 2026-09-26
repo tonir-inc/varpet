@@ -1,0 +1,12 @@
+{
+  "id": "teak",
+  "family": "wood",
+  "tile_m": 1.0,
+  "grain": true,
+  "default_color": "#b08257",
+  "metal": 0.0,
+  "source": "polyhaven:teak_veneer",
+  "license": "CC0",
+  "clearcoat": 0.15,
+  "clearcoat_roughness": 0.45
+}
