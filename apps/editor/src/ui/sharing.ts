@@ -6,6 +6,7 @@ export interface SharingOptions {
   createLink(access: ShareAccess): Promise<string>;
   notice?(message: string): void;
   warning?(): string;
+  saveDescription?: string;
 }
 
 let nextSharingId = 0;
@@ -44,7 +45,7 @@ export function mountSharing(button: HTMLButtonElement, options: SharingOptions)
       </label>
     </fieldset>
     <div class="sharing-explanation">
-      <p>Links show the latest saved progress. Save publishes your changes.</p>
+      <p data-share-save-description>Links show the latest saved progress. Save publishes your changes.</p>
       <p>Anyone with this link can access the project, including attached photos, plans and notes.</p>
     </div>
     <p class="sharing-local" data-share-local hidden>This link works on this computer only. Public sharing needs a hosted URL.</p>
@@ -59,6 +60,7 @@ export function mountSharing(button: HTMLButtonElement, options: SharingOptions)
       <button class="button primary sharing-action" type="button" data-share-action>Create link</button>
     </footer>
   `;
+  if (options.saveDescription) dialog.querySelector('[data-share-save-description]')!.textContent = options.saveDescription;
   const view = dialog.querySelector<HTMLInputElement>('input[value="view"]')!;
   const edit = dialog.querySelector<HTMLInputElement>('input[value="edit"]')!;
   const action = dialog.querySelector<HTMLButtonElement>('[data-share-action]')!;

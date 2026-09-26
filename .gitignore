@@ -12,6 +12,7 @@ assets/build/
 .claude/settings.local.json
 catalog/data/
 .env
+.varpet/
 catalog/eval/sheets/
 
 # real-listing fixtures (copyrighted listing media, private testing only)

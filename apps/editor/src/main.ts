@@ -1,3 +1,6 @@
+import { editorSession, apartmentPayload, restoreApartmentSharing, ApartmentShareAttachment } from './portal/session';
+import { api, AccountError } from './portal/api';
+import { showAuth } from './portal/auth';
 import { createCeilingUI } from './ui/ceiling-design';
 import { bindHeightControl, heightControlMarkup } from './ui/height-controls';
 import { createSunControls, type SunControls } from './ui/sun-controls';
@@ -122,13 +125,15 @@ let builtLoading = false;
 let builtError = '';
 const structureAdapter = architectLive ? createArchitectHttpAdapter({ onProgress: message => notify(message) }) : mockStructureAdapter;
 const sharedStartup = getSharedStartup();
-let shareSession = sharedStartup ? new SharingSession(sharedStartup.reference, sharedStartup.project) : null;
-let sharedSceneId = sharedStartup?.project.scene.id;
+const shareOwnerId = () => editorSession ? editorSession.apartment?.id ?? '__account_draft__' : undefined;
+let shareSession = sharedStartup ? new SharingSession(sharedStartup.reference, sharedStartup.project) : editorSession?.sharingSession ?? null;
 const shareCreation = new ShareCreation();
-let catalog: CatalogAsset[] = sharedStartup?.project.catalog ?? [];
-const store = createApartmentStore(sharedStartup?.project.scene ?? createInitialScene(), catalog);
-const catalogProducts = new Map<string, CatalogProduct>(catalog.map(asset => [asset.id, { asset,
-  priceSource: 'shared project · unverified', sizeStatus: 'shared project', attribution: 'Catalog captured with the shared project' }]));
+const shareAttachment = new ApartmentShareAttachment();
+let catalog: CatalogAsset[] = sharedStartup?.project.catalog ?? editorSession?.catalog.map(product => product.asset) ?? [];
+const store = createApartmentStore(sharedStartup?.project.scene ?? editorSession?.scene ?? createInitialScene(), catalog);
+const startupProducts: CatalogProduct[] = sharedStartup ? catalog.map(asset => ({ asset,
+  priceSource: 'shared project · unverified', sizeStatus: 'shared project', attribution: 'Catalog captured with the shared project' })) : editorSession?.catalog ?? [];
+const catalogProducts = new Map<string, CatalogProduct>(startupProducts.map(product => [product.asset.id, product]));
 const designerCatalog = new DesignerProposalCatalog();
 let catalogResults: CatalogProduct[] = [];
 let catalogLoading = false;
@@ -166,7 +171,8 @@ let snap = true;
 let interacting = false;
 let selectionRevealFrame = 0;
 let interactionRevision = 0;
-let savedRevision = sharedStartup ? 0 : -1;
+let savedRevision = editorSession?.apartment ? 0 : -1;
+let accountSaving = false;
 let pending: AgentProposal | null = null;
 let busy = false;
 let assetCategory = '';
@@ -782,8 +788,8 @@ function showFullHeight() {
 function refresh(){
   designerCatalog.prune(store.revision);
   const scene=store.scene;
-  if (shareSession && scene.id !== sharedSceneId) {
-    shareSession = null; sharedSceneId = undefined; savedRevision = -1;
+  if (shareSession && !shareSession.matchesProject(scene.id, shareOwnerId())) {
+    shareSession = null; if (!editorSession) savedRevision = -1;
     history.replaceState(null, '', location.pathname + location.search);
   }
   selectedFurnitureIds = expandFurnitureSelection(scene, selectedFurnitureIds);
@@ -797,11 +803,21 @@ function refresh(){
   $('#room-count').textContent=`${scene.rooms.length} rooms`;
   $('#revision').textContent=`Revision ${store.revision}`;
   $<HTMLButtonElement>('#undo').disabled=previewMode||!store.canUndo;$<HTMLButtonElement>('#redo').disabled=previewMode||!store.canRedo;
-  $('#save-state').textContent=shareSession?.saving?'Saving shared progress…':store.revision===savedRevision?(shareSession?'Saved to shared project':'Saved on this device'):store.revision===0?'Empty apartment':'Unsaved changes';
-  $<HTMLButtonElement>('#save').disabled = proposalView || Boolean(shareSession?.saving);
-  $('#save').title = shareSession ? 'Save shared progress · ⌘S' : 'Save on this device · ⌘S';
-  $('.project-name > span').textContent = shareSession ? 'Shared project · Can edit' : 'Local project';
-  if (shareSession && $('#status-text').textContent === 'All changes stay on this device') $('#status-text').textContent = 'Save publishes progress to this shared project';
+  const activeSavedRevision = editorSession ? savedRevision : shareSession?.savedRevision ?? savedRevision;
+  const saving = accountSaving || (!editorSession && Boolean(shareSession?.saving));
+  $('#save-state').textContent = saving ? 'Saving…' : store.revision === activeSavedRevision
+    ? editorSession ? 'Saved to My apartments' : shareSession ? 'Saved to shared project' : 'Saved on this device'
+    : store.revision === 0 ? editorSession ? 'Not saved yet' : 'Empty apartment' : 'Unsaved changes';
+  $<HTMLButtonElement>('#save').disabled = proposalView || saving;
+  $('#save').title = editorSession ? 'Save to My apartments · ⌘S' : shareSession ? 'Save shared progress · ⌘S' : 'Save on this device · ⌘S';
+  $('.project-name > span').textContent = editorSession ? editorSession.apartment ? 'My apartment' : 'Plan copy' : shareSession ? 'Shared project · Can edit' : 'Local project';
+  if (shareSession && !editorSession && $('#status-text').textContent === 'All changes stay on this device') $('#status-text').textContent = 'Save publishes progress to this shared project';
+  const publish = document.querySelector<HTMLButtonElement>('#publish-progress');
+  if (publish) {
+    publish.hidden = !shareSession;
+    publish.disabled = proposalView || !shareSession || shareSession.saving || shareSession.savedRevision === store.revision;
+    publish.textContent = shareSession?.saving ? 'Publishing…' : shareSession?.savedRevision === store.revision ? 'Progress published' : 'Publish progress';
+  }
   $('#apartment-height').innerHTML = heightControlMarkup(scene);
   bindHeightControl($('#apartment-height'), { getScene: () => store.scene, execute: run, notice: notify, showFullHeight });
   renderHierarchy();renderInspector();renderProposal();
@@ -852,27 +868,49 @@ const designerPanel = mountDesignerPanel(designerHost, {
     notify('Proposed change preview. Apply or dismiss it in the conversation.');return {ok:true};
   },
 });
-window.addEventListener('beforeunload', () => designerPanel.dispose());
+window.addEventListener('pagehide', event => { if (!event.persisted) designerPanel.dispose(); });
 
 const modal=$<HTMLDialogElement>('#modal');
 const sharingUI = mountSharing($<HTMLButtonElement>('#share'), {
   async createLink(access) {
+    if (accountSaving) throw new Error('Wait for your apartment to finish saving, then try again.');
+    if (editorSession && (!editorSession.apartment || editorSession.apartment.scene.id !== store.scene.id)) {
+      await saveToAccount();
+      if (!editorSession.apartment || editorSession.apartment.scene.id !== store.scene.id)
+        throw new Error('Save this apartment to My apartments before creating its shared link.');
+    }
+    if (!shareSession && editorSession?.apartment?.sharing) {
+      shareSession = await restoreApartmentSharing(editorSession.apartment, store.scene, [...catalogProducts.values()]);
+      if (shareSession) {
+        // Reconnection after local edits has no matching revision until explicitly published.
+        shareSession.savedRevision = -1;
+        editorSession.sharingError = undefined;
+        refresh();
+      }
+    }
     if (!shareSession) {
-      const revision = store.revision, sceneId = store.scene.id;
+      const revision = store.revision, sceneId = store.scene.id, ownerId = shareOwnerId(), apartment = editorSession?.apartment;
       {
-        const created = await shareCreation.create(createShareSnapshot(store.scene, catalog), revision);
-        if (store.scene.id !== sceneId) throw new Error('The project changed while creating the link. Share your current project again.');
-        shareSession = created; sharedSceneId = sceneId; savedRevision = created.savedRevision;
-        history.replaceState(null, '', created.link('edit', location.href));
+        const snapshot = createShareSnapshot(store.scene, catalog);
+        const connected = apartment
+          ? await shareAttachment.create(snapshot, revision, apartment, fetch, api.setApartmentShare)
+          : null;
+        const created = connected?.session ?? await shareCreation.create(snapshot, revision, fetch, ownerId);
+        if (store.scene.id !== sceneId || shareOwnerId() !== ownerId)
+          throw new Error('The apartment changed while connecting the link. Reopen it to recover that link.');
+        if (connected && editorSession) editorSession.apartment = connected.apartment;
+        shareSession = created;
+        if (!editorSession) history.replaceState(null, '', created.link('edit', location.href));
         refresh();
       }
     }
     return shareSession.link(access, location.href);
   },
+  saveDescription: editorSession ? 'Links show the latest published progress. Use Publish progress to update your links. Save updates My apartments.' : undefined,
   notice: message => notify(message),
   warning() {
     const messages: string[] = [];
-    if (shareSession && savedRevision !== store.revision) messages.push('There are unsaved changes. Save before sending the link to include your latest progress.');
+    if (shareSession && shareSession.savedRevision !== store.revision) messages.push(editorSession ? 'This apartment differs from the shared progress. Publish progress replaces the shared version with this apartment.' : 'There are unsaved changes. Save before sending the link to include your latest progress.');
     if (catalog.some(asset => asset.source.type === 'gltf' && /localhost|127\.0\.0\.1|\/built\//.test(asset.source.url))) messages.push('Some custom models need the original model server to stay available.');
     return messages.join(' ');
   },
@@ -887,24 +925,35 @@ $('#integrations').onclick=()=>{
 };
 $('#file-menu').onclick=()=>{
   showModal('Your apartment project',`<p class="modal-intro">Save locally or carry your apartment, assumptions and source evidence as versioned JSON. Loading and reconstruction can be undone.</p><div class="file-actions"><button id="new-shell" class="button primary">${icon('walls')} Build an empty apartment</button><button id="open-local" class="button">${icon('folder')} Load saved scene</button><button id="import-json" class="button">${icon('upload')} Import project JSON</button><button id="export-json" class="button">${icon('download')} Export project with evidence</button><button id="export-report" class="button">${icon('download')} Export review report</button><button id="export-schedule" class="button">${icon('download')} Export schedule CSV</button><button id="reset-apartment" class="button">${icon('home')} Restore empty apartment</button></div><p class="modal-footnote">Original source attachments are embedded in the project export. Catalog models remain references. Browser storage has a limited capacity; keep an exported copy.</p>`);
+  if (editorSession) {
+    const copy = document.createElement('button'); copy.className = 'button'; copy.textContent = 'Save a copy to My apartments';
+    copy.onclick = () => { modal.close(); void saveToAccount(true); }; $('.file-actions').append(copy);
+    const local = document.createElement('button'); local.className = 'button'; local.textContent = 'Save on this device';
+    local.onclick = () => { try { saveLocal(store.scene); notify('Local backup saved. Use Save to update My apartments.'); } catch(error) { notify(String(error), true); } };
+    $('.file-actions').append(local);
+  }
   $('#new-shell').onclick=()=>{modal.close();intake.reconstruction();};
-  $('#open-local').onclick=async()=>{const baseRevision=store.revision;try{const text=localStorage.getItem(STORAGE_KEY);if(!text){notify('No saved scene yet. Use Save first.',true);return;}const scene=await parseDatabaseScene(text);if(run([{type:'replace-scene',scene}],'Load saved scene',baseRevision)){if(!shareSession)savedRevision=store.revision;select(null);focusView();refresh();modal.close();}}catch(error){notify(error instanceof Error?error.message:String(error),true);}};
+  $('#open-local').onclick=async()=>{const baseRevision=store.revision;try{const text=localStorage.getItem(STORAGE_KEY);if(!text){notify('No saved scene yet. Use Save first.',true);return;}const scene=await parseDatabaseScene(text);if(run([{type:'replace-scene',scene}],'Load saved scene',baseRevision)){if(!shareSession&&!editorSession)savedRevision=store.revision;select(null);focusView();refresh();modal.close();}}catch(error){notify(error instanceof Error?error.message:String(error),true);}};
   $('#import-json').onclick=()=>{modal.close();$<HTMLInputElement>('#file-input').click();};
   $('#export-json').onclick=()=>{exportProject('project');modal.close();};$('#export-report').onclick=()=>{exportProject('report');modal.close();};$('#export-schedule').onclick=()=>{exportProject('schedule');modal.close();};
   $('#reset-apartment').onclick=()=>{if(run([{type:'replace-scene',scene:createInitialScene()}],'Restore empty apartment')){select(null);focusView();modal.close();}};
 };
 $('#file-input').onchange=async event=>{const input=event.target as HTMLInputElement;const file=input.files?.[0];if(!file)return;const baseRevision=store.revision;try{if(file.size>24_000_000)throw new Error('Project file exceeds the 24 MB limit.');const scene=await parseDatabaseScene(await file.text());if(run([{type:'replace-scene',scene}],'Import scene',baseRevision)){select(null);focusView();}}catch(error){notify(error instanceof Error?error.message:String(error),true);}finally{input.value='';}};
-$('#save').onclick=async()=>{
+async function publishProgress() {
   const session = shareSession, revision = store.revision;
-  if (session?.saving) return;
+  if (!session || session.saving || proposalView) return;
   try {
-    if (session) {
-      const saving = session.save(createShareSnapshot(store.scene, catalog), revision);
-      refresh(); await saving;
-      if (shareSession === session) savedRevision = session.savedRevision;
-      notify('Shared progress saved. Anyone with the link can open this version.');
-    } else { saveLocal(store.scene); savedRevision=revision; notify('Scene saved on this device'); }
+    const saving = session.save(createShareSnapshot(store.scene, catalog), revision, shareOwnerId());
+    refresh(); await saving;
+    notify('Shared progress saved. Anyone with the link can open this version.');
   } catch(error) { notify(error instanceof Error ? error.message : 'Could not save your progress. Try again.', true); }
+  finally { refresh(); }
+}
+$('#save').onclick=async()=>{
+  if (editorSession) { await saveToAccount(); return; }
+  if (shareSession) { await publishProgress(); return; }
+  try { saveLocal(store.scene); savedRevision=store.revision; notify('Scene saved on this device'); }
+  catch(error) { notify(error instanceof Error ? error.message : 'Could not save your progress. Try again.', true); }
   finally { refresh(); }
 };
 $('#undo').onclick=()=>{if(!interacting&&!previewMode){const r=store.undo();notify(r.ok?'Undo complete':r.errors.join(' '),!r.ok);}};$('#redo').onclick=()=>{if(!interacting&&!previewMode){const r=store.redo();notify(r.ok?'Redo complete':r.errors.join(' '),!r.ok);}};
@@ -937,7 +986,7 @@ $<HTMLSelectElement>('#skybox').onchange = event => {
 };
 let highQuality=false;$('#quality').onclick=()=>{highQuality=!highQuality;viewport.setQuality(highQuality?'high':'balanced');$('#quality span').textContent=highQuality?'High quality':'Balanced';$('#quality').setAttribute('aria-pressed',String(highQuality));};
 $('#suggest').onclick=()=>void requestProposal('designer');
-$('#help').onclick=()=>showModal('Keyboard & navigation',`<p class="modal-intro">Select walls, openings, rooms, furniture and systems in the canvas or Renovate panel. In Select mode, click a selected door or switch again to test it.</p><div class="shortcut-list">${[['1 / 2 / 3 / 4 / 5 / 6','Scene / Furniture / Assistant / Renovate / Materials / Ceilings'],['[','Toggle sidebar'],['P','Enter / exit preview'],['W A S D / arrows','Walk in Inside view'],['Drag / Esc','Look around / leave Inside'],['V / G / R / S','Select / Move / Rotate / Resize'],['F','Frame selection / apartment'],['⌘ / Ctrl + S','Save on this device'],['Shift + click','Add / remove walls or furniture from selection'],['⌘ / Ctrl + G','Group selected furniture'],['⌘ / Ctrl + Shift + G','Ungroup furniture'],['⌘ / Ctrl + D','Duplicate furniture'],['Delete / Backspace','Delete selected furniture'],['⌘ / Ctrl + Z','Undo'],['⌘ / Ctrl + Shift + Z','Redo'],['Esc','Cancel drag / clear selection / exit preview']].map(([key,label])=>`<div><span>${label}</span><kbd>${key}</kbd></div>`).join('')}</div><p class="modal-footnote">Plan: drag furniture, fixtures, walls, doors or windows to move them. Drag empty floor, Alt-drag, or right/middle drag to pan. Hold Shift for finer placement. Inside: standing eye height is 1.65 m above the current floor. Click the canvas, then use WASD or arrows to walk; drag to look around. Doors open for the walkthrough and restore when you leave. 3D: drag empty space to orbit, right drag to pan, scroll to zoom. Top: drag to pan. Select a door or window, choose Move (G), then drag it or its purple arrows along the wall. Openings stay inside their wall section and stop at neighbouring openings. Move snaps to 0.05 m for openings and walls. Wall corners also catch nearby straight and 90° alignments, including connected corners. Click Snap / Smooth in the toolbar to turn snapping on or off. Release to apply, Esc to cancel, or Undo to restore the previous position. Shift-click walls or models, or turn on Select multiple items, to build a selection. Choose Move to move the selection together; one Undo restores every selected item. Select a single wall and choose Move to drag it back or forth with its purple center arrows; connected walls and room boundaries follow. The endpoint spheres adjust individual corners; use Renovate for precise dimensions, evidence and service editing.</p>`);
+$('#help').onclick=()=>showModal('Keyboard & navigation',`<p class="modal-intro">Select walls, openings, rooms, furniture and systems in the canvas or Renovate panel. In Select mode, click a selected door or switch again to test it.</p><div class="shortcut-list">${[['1 / 2 / 3 / 4 / 5 / 6','Scene / Furniture / Assistant / Renovate / Materials / Ceilings'],['[','Toggle sidebar'],['P','Enter / exit preview'],['W A S D / arrows','Walk in Inside view'],['Drag / Esc','Look around / leave Inside'],['V / G / R / S','Select / Move / Rotate / Resize'],['F','Frame selection / apartment'],['⌘ / Ctrl + S',editorSession?'Save to My apartments':shareSession?'Save shared progress':'Save on this device'],['Shift + click','Add / remove walls or furniture from selection'],['⌘ / Ctrl + G','Group selected furniture'],['⌘ / Ctrl + Shift + G','Ungroup furniture'],['⌘ / Ctrl + D','Duplicate furniture'],['Delete / Backspace','Delete selected furniture'],['⌘ / Ctrl + Z','Undo'],['⌘ / Ctrl + Shift + Z','Redo'],['Esc','Cancel drag / clear selection / exit preview']].map(([key,label])=>`<div><span>${label}</span><kbd>${key}</kbd></div>`).join('')}</div><p class="modal-footnote">Plan: drag furniture, fixtures, walls, doors or windows to move them. Drag empty floor, Alt-drag, or right/middle drag to pan. Hold Shift for finer placement. Inside: standing eye height is 1.65 m above the current floor. Click the canvas, then use WASD or arrows to walk; drag to look around. Doors open for the walkthrough and restore when you leave. 3D: drag empty space to orbit, right drag to pan, scroll to zoom. Top: drag to pan. Select a door or window, choose Move (G), then drag it or its purple arrows along the wall. Openings stay inside their wall section and stop at neighbouring openings. Move snaps to 0.05 m for openings and walls. Wall corners also catch nearby straight and 90° alignments, including connected corners. Click Snap / Smooth in the toolbar to turn snapping on or off. Release to apply, Esc to cancel, or Undo to restore the previous position. Shift-click walls or models, or turn on Select multiple items, to build a selection. Choose Move to move the selection together; one Undo restores every selected item. Select a single wall and choose Move to drag it back or forth with its purple center arrows; connected walls and room boundaries follow. The endpoint spheres adjust individual corners; use Renovate for precise dimensions, evidence and service editing.</p>`);
 window.addEventListener('keydown',event=>{
   if(document.querySelector('dialog[open]') || (event.target instanceof HTMLElement && (event.target.closest('input,textarea,select') || event.target.isContentEditable)))return;
   const key=event.key.toLowerCase();const mod=event.metaKey||event.ctrlKey;
@@ -962,5 +1011,61 @@ window.addEventListener('keydown',event=>{
   else if(mod&&key==='s'){event.preventDefault();$('#save').click();}
   else if(!mod){if(['delete','backspace'].includes(key)){event.preventDefault();deleteSelected();}else if(key==='f')focusView(selectedId??undefined);else if(key==='v')setTool('select');else if(key==='g'&&view!=='plan')setTool('move');else if(key==='r'&&view!=='plan')setTool('rotate');else if(key==='s'&&view!=='plan')setTool('scale');else if(key==='1')switchPanel('scene');else if(key==='2')switchPanel('assets');else if(key==='3')switchPanel('assistant');else if(key==='4')switchPanel('renovation');else if(key==='5')switchPanel('materials');else if(key==='6')switchPanel('ceilings');else if(key==='[')switchPanel(activePanel,true);}
 });
-window.addEventListener('beforeunload',()=>{sharingUI.destroy();catalogRequest?.abort();clearTimeout(catalogSearchTimer);cancelAnimationFrame(selectionRevealFrame);materialsUI.dispose();ceilingUI.dispose();sunControls?.dispose();viewport.dispose();floorPlan.dispose();catalogPreviews.dispose();renovationUI?.destroy();intake.destroy();});
-refresh();renderAssets();setTool('select');switchPanel('renovation');if(designerLive)switchPanel('renovation',true);void searchDatabase();void refreshBuiltPieces();
+window.addEventListener('pagehide',event=>{if(event.persisted)return;sharingUI.destroy();catalogRequest?.abort();clearTimeout(catalogSearchTimer);cancelAnimationFrame(selectionRevealFrame);materialsUI.dispose();ceilingUI.dispose();sunControls?.dispose();viewport.dispose();floorPlan.dispose();catalogPreviews.dispose();renovationUI?.destroy();intake.destroy();});
+function chooseApartmentName(initial: string): Promise<string | null> {
+  return new Promise(resolve => {
+    showModal('Save your apartment', `<p class="modal-intro">Give this apartment a name. You can return to it from My apartments.</p><form id="apartment-name-form"><label class="text-field">Apartment name<input id="apartment-name-input" required maxlength="120" value="${escape(initial)}" autocomplete="off" /></label><div class="file-actions"><button type="button" id="cancel-apartment-name" class="button">Cancel</button><button type="submit" class="button primary">Save apartment</button></div></form>`);
+    let settled = false;
+    const finish = (name: string | null) => { if(settled)return;settled=true;modal.removeEventListener('close',cancel);modal.close();resolve(name); };
+    const cancel = () => finish(null);
+    modal.addEventListener('close',cancel,{once:true});
+    $('#cancel-apartment-name').onclick=cancel;
+    $('#apartment-name-form').onsubmit=event=>{event.preventDefault();const input=$<HTMLInputElement>('#apartment-name-input');const name=input.value.trim();if(!name){input.setCustomValidity('Enter an apartment name.');input.reportValidity();input.oninput=()=>input.setCustomValidity('');return;}finish(name);};
+    $<HTMLInputElement>('#apartment-name-input').select();
+  });
+}
+
+async function saveToAccount(copy = false) {
+  if (!editorSession || accountSaving || proposalView) return;
+  if (previewMode) setPreview(false);
+  accountSaving=true;refresh();
+  try {
+    editorSession.user = await api.session();
+    if (!editorSession.user) editorSession.user = await showAuth('login');
+    if (!editorSession.user) return;
+    let name = editorSession.apartment?.name ?? store.scene.name;
+    if (!editorSession.apartment || copy) {
+      const chosen = await chooseApartmentName(copy ? `${name} copy`.slice(0,120) : name);
+      if (!chosen) return;
+      name=chosen;
+    }
+    if (name !== store.scene.name && !run([{type:'replace-scene',scene:{...store.scene,name}}], 'Name apartment')) return;
+    const revision = store.revision;
+    const payload = apartmentPayload(store.scene, [...catalogProducts.values()], editorSession.templateId, name);
+    const saved = editorSession.apartment && !copy
+      ? await api.updateApartment(editorSession.apartment.id, editorSession.apartment.version, payload)
+      : await api.createApartment(payload);
+    editorSession.apartment=saved;
+    // A response only marks the snapshot it actually saved. Edits made during I/O stay dirty.
+    savedRevision=revision;
+    history.replaceState(null, '', `/?apartment=${encodeURIComponent(saved.id)}`);
+    $('#project-name').textContent=name;
+    $('.project-name > span').textContent='My apartment';
+    notify(store.revision===revision?'Apartment saved to My apartments.':'Snapshot saved. Save again to keep your latest changes.');
+  } catch(error) {
+    notify(error instanceof AccountError && error.status===409
+      ? 'This apartment was updated in another tab. Use File → Save a copy to keep these edits, or reopen the saved apartment.'
+      : error instanceof Error ? error.message : 'Could not save your apartment. Please try again.', true);
+  } finally {accountSaving=false;refresh();}
+}
+
+if (editorSession) {
+  const publish=document.createElement('button');publish.id='publish-progress';publish.className='button';publish.hidden=true;publish.onclick=()=>void publishProgress();$('#share').before(publish);
+  const profile=document.createElement('a');profile.href='/?view=apartments';profile.className='button quiet';profile.textContent='My apartments';
+  $('.header-actions').prepend(profile);
+  $('.project-name > span').textContent=editorSession.apartment?'My apartment':'Plan copy';
+  $('#save').title='Save to My apartments · ⌘S';
+  $('#status-text').textContent=editorSession.sharingError ? 'Apartment loaded. Open Share to retry reconnecting your existing link.' : 'Make this apartment yours. Save to keep it in My apartments.';
+  window.addEventListener('beforeunload',event=>{if(accountSaving || (store.revision>0 && store.revision!==savedRevision)){event.preventDefault();event.returnValue='';}});
+}
+refresh();renderAssets();setTool('select');switchPanel(editorSession?'scene':'renovation');if(designerLive)switchPanel('renovation',true);void searchDatabase();void refreshBuiltPieces();

@@ -1,12 +1,12 @@
 import './ui/style.css';
 import './ui/shared-viewer.css';
-import { parseShareReference, readSharedProject, setSharedStartup } from './core/sharing';
+import { parseShareReference, readSharedProject, setSharedStartup, shouldReloadShareNavigation } from './core/sharing';
 
 const app = document.querySelector<HTMLElement>('#app')!;
 async function boot() {
   try {
     const reference = parseShareReference(location.hash);
-    if (!reference) { await import('./main'); return; }
+    if (!reference) { await import('./app'); return; }
     app.innerHTML = '<main class="share-loading"><span class="brand-mark">v</span><h1>Opening shared progress</h1><p role="status">Checking your link and loading the apartment…</p></main>';
     const project = await readSharedProject(reference);
     if (project.access === 'view') {
@@ -22,5 +22,7 @@ async function boot() {
     app.querySelector('button')!.onclick = () => location.reload();
   }
 }
-window.addEventListener('hashchange', () => location.reload());
+window.addEventListener('hashchange', event => {
+  if (shouldReloadShareNavigation(new URL(event.oldURL).hash, new URL(event.newURL).hash)) location.reload();
+});
 void boot();

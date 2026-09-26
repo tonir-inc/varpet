@@ -13,7 +13,7 @@ await build({ root, configFile: false, publicDir: false, logLevel: 'error', plug
   load(id) { if (id === '\0sharing-entry') return `export * from '${root}/src/core/sharing.ts'; export * from '${root}/src/core/demo.ts';`; },
 }], build: { ssr: 'sharing-entry', target: 'node22', outDir: output, minify: false,
   rolldownOptions: { output: { entryFileNames: 'sharing.mjs' } } } });
-const { parseShareReference, shareLink, createShareSnapshot, readSharedProject, ShareCreation, SharingSession, demoScene, localCatalog } = await import(pathToFileURL(join(output, 'sharing.mjs')));
+const { parseShareReference, shouldReloadShareNavigation, shareLink, createShareSnapshot, readSharedProject, ShareCreation, SharingSession, demoScene, localCatalog } = await import(pathToFileURL(join(output, 'sharing.mjs')));
 const id = 'a'.repeat(32), edit = 'e'.repeat(43), view = 'v'.repeat(43);
 const reference = { id, token: edit }, updatedAt = '2026-09-26T18:00:00.000Z';
 const snapshot = () => createShareSnapshot(demoScene, localCatalog);
@@ -26,6 +26,18 @@ test('capabilities live only in URL fragments and permission labels cannot eleva
   assert.deepEqual(parseShareReference(new URL(link).hash), reference);
   assert.equal(parseShareReference('#'), null);
   for (const hash of ['#share=', '#share=../../etc.secret', `#share=${id}.${edit}&access=edit`]) assert.throws(() => parseShareReference(hash));
+});
+
+test('landing anchors stay in-page while changed share fragments reload, including malformed links', () => {
+  assert.equal(typeof shouldReloadShareNavigation, 'function');
+  const share = `#share=${id}.${edit}`, other = `#share=${id}.${view}`;
+  for (const [previous, next] of [['', '#apartments'], ['#apartments', '#details'], ['#apartments', ''], [share, share], ['#share=', '#share=']]) {
+    assert.equal(shouldReloadShareNavigation(previous, next), false, `${previous} → ${next}`);
+  }
+  for (const [previous, next] of [['', share], [share, ''], [share, '#apartments'], [share, other],
+    ['#apartments', '#share='], ['#share=', '#apartments'], ['#share=', '#share=malformed']]) {
+    assert.equal(shouldReloadShareNavigation(previous, next), true, `${previous} → ${next}`);
+  }
 });
 
 test('shared snapshots contain the exact scene and only its referenced catalog', () => {
@@ -90,6 +102,49 @@ test('save responses and scene identity are checked before marking progress save
   await assert.rejects(session.save(different, 3), /different|project/i);
 });
 
+test('the same scene cannot publish through a different account apartment or an unowned editor', async () => {
+  let requests = 0;
+  const session = new SharingSession(reference, project(), 3, async () => {
+    requests++; return response({ version: 2, updatedAt });
+  }, 'apartment-a');
+  for (const owner of ['apartment-b', '__account_draft__', undefined]) {
+    await assert.rejects(session.save(snapshot(), 4, owner), /different|project/i);
+  }
+  assert.equal(requests, 0, 'identity mismatch must be rejected before sending a save');
+  assert.equal(session.version, 1); assert.equal(session.savedRevision, 3); assert.equal(session.saving, false);
+  await session.save(snapshot(), 4, 'apartment-a');
+  assert.equal(requests, 1); assert.equal(session.savedRevision, 4);
+});
+
+test('project matching distinguishes account records, drafts, direct shares and replaced scenes', () => {
+  const account = new SharingSession(reference, project(), 0, undefined, 'apartment-a');
+  const draft = new SharingSession(reference, project(), 0, undefined, '__account_draft__');
+  const direct = new SharingSession(reference, project());
+  assert.equal(typeof account.matchesProject, 'function');
+  assert.equal(account.matchesProject(demoScene.id, 'apartment-a'), true);
+  assert.equal(account.matchesProject(demoScene.id, 'apartment-b'), false);
+  assert.equal(account.matchesProject(demoScene.id), false);
+  assert.equal(account.matchesProject('reconstructed-scene', 'apartment-a'), false);
+  assert.equal(draft.matchesProject(demoScene.id, '__account_draft__'), true);
+  assert.equal(draft.matchesProject(demoScene.id, 'apartment-a'), false);
+  assert.equal(direct.matchesProject(demoScene.id), true);
+  assert.equal(direct.matchesProject(demoScene.id, 'apartment-a'), false);
+});
+
+test('newly created sharing sessions retain their account apartment identity', async () => {
+  let requests = 0;
+  const session = await SharingSession.create(snapshot(), 12, async (_url, init) => {
+    requests++;
+    return init.method === 'POST'
+      ? response({ id, editToken: edit, viewToken: view, version: 1, updatedAt }, 201)
+      : response({ version: 2, updatedAt });
+  }, 'apartment-a');
+  await assert.rejects(session.save(snapshot(), 13, 'apartment-b'), /different|project/i);
+  assert.equal(requests, 1, 'creating a link must retain the owner check for later saves');
+  await session.save(snapshot(), 13, 'apartment-a');
+  assert.equal(requests, 2); assert.equal(session.savedRevision, 13);
+});
+
 test('pending link creation stays with its source project after close, replace and reopen', async () => {
   const pending = [], creation = new ShareCreation();
   const fetcher = async (_url, init) => new Promise(resolve => pending.push({ scene: JSON.parse(init.body).scene, resolve }));
@@ -107,4 +162,24 @@ test('pending link creation stays with its source project after close, replace a
   assert.equal(await duplicateB, sessionB);
   assert.notEqual(sessionA.reference.id, sessionB.reference.id);
   assert.equal(sessionB.savedRevision, 2);
+});
+
+test('pending link creation separates account apartments that contain the same scene', async () => {
+  const pending = [], creation = new ShareCreation();
+  const fetcher = async () => new Promise(resolve => pending.push(resolve));
+  const sameScene = snapshot();
+  const first = creation.create(sameScene, 1, fetcher, 'apartment-a');
+  const second = creation.create(sameScene, 2, fetcher, 'apartment-b');
+  assert.equal(pending.length, 2, 'different account apartments need independent share records');
+  pending[0](response({ id, editToken: edit, viewToken: view, version: 1, updatedAt }, 201));
+  const sessionA = await first;
+  const duplicateB = creation.create(sameScene, 3, fetcher, 'apartment-b');
+  assert.equal(pending.length, 2, 'finishing the other owner must not discard this owner’s pending request');
+  pending[1](response({ id: 'b'.repeat(32), editToken: edit, viewToken: view, version: 1, updatedAt }, 201));
+  const sessionB = await second;
+  assert.equal(await duplicateB, sessionB);
+  assert.notEqual(sessionA.reference.id, sessionB.reference.id);
+  assert.equal(sessionB.savedRevision, 2);
+  assert.equal(sessionA.matchesProject(sameScene.scene.id, 'apartment-a'), true);
+  assert.equal(sessionB.matchesProject(sameScene.scene.id, 'apartment-b'), true);
 });

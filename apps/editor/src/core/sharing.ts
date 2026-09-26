@@ -20,6 +20,10 @@ export function parseShareReference(hash: string): ShareReference | null {
   return { id, token };
 }
 
+export function shouldReloadShareNavigation(previousHash: string, nextHash: string): boolean {
+  return previousHash !== nextHash && (previousHash.startsWith('#share=') || nextHash.startsWith('#share='));
+}
+
 export function shareLink(reference: ShareReference, base: string): string {
   if (!ID.test(reference.id) || !TOKEN.test(reference.token)) throw new Error('Invalid sharing link.');
   const url = new URL(base);
@@ -78,26 +82,31 @@ export class SharingSession {
   saving = false;
   private readonly sceneId: string;
   private readonly viewToken: string;
-  constructor(readonly reference: ShareReference, project: SharedProject, localRevision = 0, private fetcher: typeof fetch = fetch) {
+  constructor(readonly reference: ShareReference, project: SharedProject, localRevision = 0, private fetcher: typeof fetch = fetch,
+    private readonly ownerId?: string) {
     if (project.access !== 'edit' || !project.viewToken) throw new Error('View-only links cannot open an editing session.');
     this.version = project.version; this.updatedAt = project.updatedAt; this.savedRevision = localRevision;
     this.sceneId = project.scene.id; this.viewToken = project.viewToken;
   }
-  static async create(snapshot: ShareSnapshot, localRevision: number, fetcher: typeof fetch = fetch): Promise<SharingSession> {
+  static async create(snapshot: ShareSnapshot, localRevision: number, fetcher: typeof fetch = fetch, ownerId?: string): Promise<SharingSession> {
     const captured = createShareSnapshot(snapshot.scene, snapshot.catalog);
     const body = await request('/api/shares', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(captured) }, fetcher);
     if (!versionFields(body) || body.version !== 1 || typeof body.id !== 'string' || !ID.test(body.id)
       || typeof body.editToken !== 'string' || !TOKEN.test(body.editToken) || typeof body.viewToken !== 'string' || !TOKEN.test(body.viewToken)
       || body.editToken === body.viewToken) throw new Error('The sharing service returned an invalid response.');
     return new SharingSession({ id: body.id, token: body.editToken }, { ...captured, id: body.id, access: 'edit',
-      viewToken: body.viewToken, version: body.version, updatedAt: body.updatedAt }, localRevision, fetcher);
+      viewToken: body.viewToken, version: body.version, updatedAt: body.updatedAt }, localRevision, fetcher, ownerId);
+  }
+  /** Account copies can retain the same scene ID while belonging to separate saved apartments. */
+  matchesProject(sceneId: string, ownerId?: string): boolean {
+    return sceneId === this.sceneId && ownerId === this.ownerId;
   }
   link(access: ShareAccess, base: string): string {
     return shareLink({ id: this.reference.id, token: access === 'edit' ? this.reference.token : this.viewToken }, base);
   }
-  async save(snapshot: ShareSnapshot, localRevision: number): Promise<void> {
+  async save(snapshot: ShareSnapshot, localRevision: number, ownerId?: string): Promise<void> {
     if (this.saving) throw new Error('A save is already in progress.');
-    if (snapshot.scene.id !== this.sceneId) throw new Error('This is a different project. Open a new editor tab to share it separately.');
+    if (!this.matchesProject(snapshot.scene.id, ownerId)) throw new Error('This is a different project. Open a new editor tab to share it separately.');
     const captured = createShareSnapshot(snapshot.scene, snapshot.catalog), expected = this.version;
     this.saving = true;
     try {
@@ -112,10 +121,10 @@ export class SharingSession {
 
 /** Coalesce access-choice requests only while they belong to the same project. */
 export class ShareCreation {
-  private pending: { sceneId: string; promise: Promise<SharingSession> } | null = null;
-  async create(snapshot: ShareSnapshot, revision: number, fetcher: typeof fetch = fetch): Promise<SharingSession> {
-    if (!this.pending || this.pending.sceneId !== snapshot.scene.id) {
-      this.pending = { sceneId: snapshot.scene.id, promise: SharingSession.create(snapshot, revision, fetcher) };
+  private pending: { sceneId: string; ownerId?: string; promise: Promise<SharingSession> } | null = null;
+  async create(snapshot: ShareSnapshot, revision: number, fetcher: typeof fetch = fetch, ownerId?: string): Promise<SharingSession> {
+    if (!this.pending || this.pending.sceneId !== snapshot.scene.id || this.pending.ownerId !== ownerId) {
+      this.pending = { sceneId: snapshot.scene.id, ownerId, promise: SharingSession.create(snapshot, revision, fetcher, ownerId) };
     }
     const request = this.pending;
     try { return await request.promise; }
