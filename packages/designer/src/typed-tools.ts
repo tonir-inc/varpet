@@ -25,7 +25,7 @@ const surfaceOnly=(p:{kind:string;size:[number,number,number]})=>p.kind==='tv'||
 const supportOp=(product:CatalogProduct,support:{id:string;room_id:string},pose:{pos:[number,number];rot:number},index:number):Op=>({type:'add',item:{...product.item,name:product.name.slice(0,120),id:`on-${support.id}-${index}-${product.sku}`.slice(0,200),room_id:support.room_id,keep:false,pos:pose.pos,rot:pose.rot,on:support.id}});
 
 const id=z.string().trim().min(1).max(200);
-const planSchema=z.object({room_id:id,program:z.enum(['living','bedroom','kids','office','dining','entry','kitchen','bathroom','balcony']),style:z.string().max(500).optional(),budget:z.number().int().nonnegative().safe().optional(),keep:z.array(id).max(200).optional(),history:z.array(z.string().max(2000)).max(12).optional()}).strict();
+const planSchema=z.object({room_id:id,program:z.enum(['living','bedroom','kids','office','dining','entry','kitchen','bathroom','balcony']),style:z.string().max(500).optional(),budget:z.number().int().nonnegative().safe().optional(),keep:z.array(id).max(200).optional(),history:z.array(z.string().max(2000)).max(12).optional(),mode:z.enum(['complete','fill']).optional()}).strict();
 interface Option {ops:Op[];intent:Intent;note:string;missing:string[];complete:boolean;epoch:number}
 export interface TypedOptions {catalogQuery?:CatalogQuery;proposalsDir?:string;customerRequests?:readonly string[];images?:(ids:string[])=>Promise<unknown>}
 
@@ -56,7 +56,7 @@ export function createTypedServer(input:Scene,config:TypedOptions={}){
    return receipt({room_id,items:items.map(i=>({id:i.id,kind:i.kind})).slice(0,20),free_area_m2:space?.free_area_m2,largest_open_rectangle_m2:space?.largest_free_rectangle?.area_m2,walkways:space?.walkways.slice(0,6).map(w=>({from:w.from,to:w.to,width_m:w.width_m,status:w.status,reachable:w.reachable})),omitted_walkways:Math.max(0,(space?.walkways.length??0)-6),clearances:functionClearances(current).filter(c=>ids.has(c.item_id)).slice(0,10).map(c=>({function:c.function,side:c.side,item_id:c.item_id,other_item_id:c.other_item_id,clearance_m:c.clearance_m,status:c.status})),note:'Measured from the current scene; preserve missing or warning results in the explanation.'});
   }catch(e){return error(e);}
  });
- server.registerTool('plan_room',{description:'Furnish incrementally using the room program: anchor first, then each piece against the updated scene. Returns checked complete or honestly labelled partial options plus exact product previews. Inspect images, then propose option_id. Never invent coordinates. Existing furniture is preserved.',inputSchema:planSchema},async request=>{
+ server.registerTool('plan_room',{description:'Furnish incrementally using the room program: anchor first, then each piece against the updated scene. mode fill ("add more", "as much as possible", "fill the room") then keeps adding optional pieces (chairs, side tables, poufs, plants, storage, decor on furniture, wall art, curtains) while they pass every check. Returns checked complete or honestly labelled partial options plus exact product previews. Inspect images, then propose option_id. Never invent coordinates. Existing furniture is preserved.',inputSchema:planSchema},async request=>{
   try{
    if(staged.length)throw new Error('Finish the staged edit with propose before starting a room plan.');
    const startedEpoch=epoch;
@@ -64,7 +64,7 @@ export function createTypedServer(input:Scene,config:TypedOptions={}){
    if(epoch!==startedEpoch)throw new Error('Layout changed during planning. Your staged edits are preserved; propose them or plan again.');
    const evidenceId=randomUUID();evidence.set(evidenceId,plan);
    if(dir){await mkdir(join(dir,'evidence'),{recursive:true});await writeFile(join(dir,'evidence',evidenceId+'.json'),JSON.stringify(plan),{flag:'wx',mode:0o600});}
-   if(!plan.ops.length)return receipt({ok:false,complete:false,missing:plan.missing_text,reason:plan.reason,next:'No new anchor fit was found. Try a smaller single product with search_catalog; do not claim impossibility.'},true);
+   if(!plan.ops.length)return receipt({ok:false,complete:false,missing:plan.missing_text,reason:plan.reason,next:request.mode==='fill'?'Nothing more passed the checks in this bounded search. Tell the customer what was tried; do not claim impossibility.':'No new anchor fit was found. Try a smaller single product with search_catalog; do not claim impossibility.'},true);
    const valid=checked(plan.ops,plan.intent,plan.reason);if(!valid.ok)return receipt({ok:false,errors:valid.errors.slice(0,3)},true);
    const ids=[...new Set(plan.products.map(p=>p.sku))];
    const option_id=saveOption({...plan,missing:plan.missing_text,note:plan.reason});
@@ -100,7 +100,7 @@ export function createTypedServer(input:Scene,config:TypedOptions={}){
     // Restable products first try the tops of furniture in the room (TV on the TV unit, lamp on a nightstand).
     const current=preview(),onTop=surfacesFor(current,room_id,product.kind,product.size).slice(0,2);
     for(const support of onTop){
-     const pose=surfacePoses(current,support,product.size)[0]!,op=supportOp(product,support,pose,current.items.length);
+     const pose=surfacePoses(current,support,product.size,{kind:product.kind})[0]!,op=supportOp(product,support,pose,current.items.length);
      const ops=[...staged,op],intent=intentFor(scene,ops,{room_id});if(!checked(ops,intent).ok)continue;
      const slot_id=`slot-${randomUUID()}`;slots.set(slot_id,{piece:product.sku,ops:[op],epoch});
      const option_id=saveOption({ops,intent,note:`Add ${product.name.slice(0,100)} on the ${support.name.slice(0,60)}.`,missing:[],complete:true});
@@ -130,14 +130,16 @@ export function createTypedServer(input:Scene,config:TypedOptions={}){
  server.registerTool('place_on',{description:'Stage a piece on top of existing furniture: an owned item ID (moved onto it) or a catalog_id returned by search_catalog. For a TV on a TV unit, a lamp on a nightstand or desk, decor on a shelf. Code picks a pose that fits wholly on the top and checks it. Call propose afterward.',inputSchema:z.object({piece_or_catalog_id:id,support_id:id}).strict()},async({piece_or_catalog_id,support_id})=>{
   try{
    const current=preview(),support=current.items.find(i=>i.id===support_id);
-   if(!support||!isSurface(support))throw new Error('support_id must be a table, desk, nightstand, cabinet, dresser, shelf or TV unit in the scene; seats, beds, rugs and wardrobes cannot hold items.');
+   // A made-up mattress is the one piece that rests on a bed frame.
+   const onBed=support?.kind==='bed'&&(current.items.find(i=>i.id===piece_or_catalog_id)??searched.get(piece_or_catalog_id))?.kind==='mattress';
+   if(!support||!isSurface(support)&&!onBed)throw new Error('support_id must be a table, desk, nightstand, cabinet, dresser, shelf or TV unit in the scene; seats, beds, rugs and wardrobes cannot hold items (a mattress goes on its bed).');
    const owned=current.items.find(i=>i.id===piece_or_catalog_id),product=owned?undefined:searched.get(piece_or_catalog_id);
    if(!owned&&!product)throw new Error('Unknown piece: use an owned item ID or a catalog_id returned by search_catalog in this conversation.');
    if(owned&&(owned.keep||owned.group_id))throw new Error('Kept or grouped items cannot be moved onto furniture.');
    const kind=owned?.kind??product!.kind,size=owned?.size??product!.size;
    if(!canRestOn(kind,size))throw new Error(`A ${kind} cannot stand on furniture; only lamps, plants, decor, TVs and small electronics can.`);
    if(owned&&owned.room_id!==support.room_id)throw new Error('Choose a support in the same room as the item.');
-   const poses=surfacePoses(owned?{...current,items:current.items.filter(i=>i.id!==owned.id)}:current,support,size);
+   const poses=surfacePoses(owned?{...current,items:current.items.filter(i=>i.id!==owned.id)}:current,support,size,{kind});
    if(!poses.length)throw new Error(`The top of ${support.id} is too small or already occupied for this ${kind}. Choose a larger support.`);
    for(const pose of poses){
     const op:Op=owned?{type:'move',id:owned.id,pos:pose.pos,rot:pose.rot,on:support.id}:supportOp(product!,support,pose,current.items.length);

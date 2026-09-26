@@ -1,9 +1,9 @@
 /** Incremental program construction. The model supplies intent; code owns every pose. */
 import {roomPrograms} from '../knowledge/room-programs.js';
 import {roomCatalog} from './room-catalog.js';
-import {localGeometryErrors,compareLayoutErrors} from './local-checks.js';
+import {localGeometryErrors,compareLayoutErrors,outsidePoint} from './local-checks.js';
 import {functionClearances} from './metrics/function.js';
-import {spaceMetrics} from './metrics/space.js';
+import {spaceMetrics,itemPolygon} from './metrics/space.js';
 import {functionClearanceRegressions} from './proposal-clearances.js';
 import {SceneAnalysisCache} from './fast-path.js';
 import {applyOps} from './adapter.js';
@@ -14,7 +14,9 @@ import type {CatalogProduct,CatalogQuery} from './catalog.js';
 import type {CatalogAsset} from '../../../apps/editor/src/contracts.js';
 import type {Scene,Op,Item,Vec2} from './scene.js';
 import type {Intent} from './request.js';
-import {canRestOn,isSurface,surfacePoses} from './support.js';
+import {canRestOn,isSurface,surfacePoses,isBedFrame,headAligned,MATTRESS_OVERHANG_M} from './support.js';
+import {fillRoom} from './fill-room.js';
+import {searchCatalog} from './catalog.js';
 import {isOutdoorRoom,railingSegments,railingGap,RAILING_CLEARANCE_M} from './balcony.js';
 
 /** Customer-facing names for program roles and composition checks; raw codes stay in evidence. */
@@ -28,7 +30,8 @@ export function intentFor(scene:Scene,ops:Op[],extra:Intent={}):Intent{
 }
 // This descriptor is used only by the geometric slot cache. Publication still resolves the real SKU through the editor catalog bridge.
 export const slotAsset=(p:CatalogProduct):CatalogAsset=>({id:p.sku,name:p.name.slice(0,120),kind:p.kind as CatalogAsset['kind'],category:p.kind,dimensions:[p.size[0],p.size[2],p.size[1]],price:p.price,color:'#b8b4ad',source:{type:'procedural'}});
-export interface RoomPlanRequest {room_id:string;program:string;style?:string;budget?:number;keep?:string[];history?:string[]}
+/** mode 'fill': after the essentials keep adding optional pieces (roomExtras) while they pass every check. */
+export interface RoomPlanRequest {room_id:string;program:string;style?:string;budget?:number;keep?:string[];history?:string[];mode?:'complete'|'fill'}
 /** missing keeps role/check codes for tests and eval; missing_text is what the model and customer read. */
 export interface RoomPlan {ops:Op[];intent:Intent;missing:string[];missing_text:string[];complete:boolean;reason:string;products:CatalogProduct[];timing:{catalog_ms:number;placement_ms:number};evidence:unknown}
 
@@ -107,6 +110,32 @@ function* byBedsideAccess(scene:Scene,poses:Iterable<Op>,roomId:string):Generato
  const ranked=[...poses].slice(0,24).map((op,index)=>({op,index,reach:bedsideAccess(scene,op,roomId)}));
  ranked.sort((a,b)=>Number(b.reach>=.75-1e-6)-Number(a.reach>=.75-1e-6)||a.index-b.index);
  for(const {op} of ranked)yield op;
+}
+
+/** Put a fitting made-up mattress on every bare bed frame in the room: the closest fit that neither overhangs by more
+ * than 0.10 m (at the foot and each side) nor leaves more than 0.40 m of width or 0.45 m of length bare. Non-blocking: a missing catalog match or
+ * budget is disclosed, never a reason to drop the bed. */
+async function dressBeds(scene:Scene,ops:Op[],roomId:string,budget:number|undefined,query:CatalogQuery|undefined,evaluate:(ops:Op[],role:string,sku:string)=>unknown):Promise<{ops:Op[];products:CatalogProduct[];note:string}|undefined>{
+ const state=applyOps(scene,ops),beds=state.items.filter(i=>i.room_id===roomId&&isBedFrame(i)&&!state.items.some(m=>m.on===i.id&&m.kind==='mattress'));
+ if(!beds.length)return undefined;
+ const out=[...ops],products:CatalogProduct[]=[],notes:string[]=[];let spent=0;
+ for(const bed of beds){
+  const result=await searchCatalog({kind:'mattress',max_w:bed.size[0]+2*MATTRESS_OVERHANG_M,max_d:bed.size[1]+MATTRESS_OVERHANG_M,limit:12},query);
+  const fits=result.results.filter(p=>p.kind==='mattress'&&p.size[0]<=bed.size[0]+2*MATTRESS_OVERHANG_M&&p.size[1]<=bed.size[1]+MATTRESS_OVERHANG_M&&bed.size[0]-p.size[0]<=.4&&bed.size[1]-p.size[1]<=.45)
+   .sort((a,b)=>Math.abs(bed.size[0]-a.size[0])+Math.abs(bed.size[1]-a.size[1])-Math.abs(bed.size[0]-b.size[0])-Math.abs(bed.size[1]-b.size[1])||a.price-b.price);
+  if(!fits.length){notes.push(result.status==='available'?'No fitting made-up mattress is in the catalog yet, so the bed frame is shown bare.':'The catalog did not answer the mattress search, so the bed frame is shown bare.');continue;}
+  const affordable=fits.filter(p=>p.price+spent<=(budget??Infinity));
+  if(!affordable.length){notes.push(`A fitting mattress costs from ${Math.min(...fits.map(p=>p.price))} AMD, over the remaining budget, so the bed frame is shown bare.`);continue;}
+  // Head end flush with the headboard: a longer mattress overhangs only at the foot, never into the wall.
+  const room=scene.rooms.find(r=>r.id===roomId)!;
+  const placed=affordable.slice(0,3).find(p=>{
+   const pos=headAligned(bed,p.size);
+   const op:Op={type:'add',item:{...p.item,name:p.name.slice(0,120),id:`mattress-${bed.id}-${p.sku}`.slice(0,200),room_id:roomId,keep:false,pos,rot:bed.rot,on:bed.id}};
+   if(outsidePoint(itemPolygon(op.item),room.polygon)||!evaluate([...out,op],'mattress',p.sku))return false;out.push(op);return true;
+  });
+  if(placed){products.push(placed);spent+=placed.price;}else notes.push('No fitting mattress passed the checks, so the bed frame is shown bare.');
+ }
+ return {ops:out,products,note:[...new Set(notes)].map(n=>' '+n).join('')};
 }
 
 export async function planIncrementally(scene:Scene,request:RoomPlanRequest,query?:CatalogQuery,history:readonly string[]=[]):Promise<RoomPlan>{
@@ -202,7 +231,8 @@ export async function planIncrementally(scene:Scene,request:RoomPlanRequest,quer
     // Reserve the cheapest known remaining roles whenever the full program can meet budget.
     const reserve=request.budget!==undefined&&requiredMinimum<=request.budget?minimumCost(r)*Math.max(0,role.count-Math.max(n+1,existing.length))+roles.slice(r+1).reduce((sum,rr,j)=>sum+minimumCost(r+j+1)*(rr.count-ownedByRole[r+j+1]!.length),0):0;
     // Slot generation for one product can take seconds on a loaded machine: a role always gets a few real checks.
-    const roleDeadline=Math.min(deadline,performance.now()+(role.role==='work_surface'&&seatRole>=0?6000:3000));let tried=0;const over=()=>performance.now()>roleDeadline&&tried>=3;
+    const roleStart=performance.now(),roleDeadline=Math.min(deadline,roleStart+(role.role==='work_surface'&&seatRole>=0?6000:3000));let tried=0;
+    const over=()=>performance.now()>roleDeadline&&(tried>=3||performance.now()>roleStart+10000);
     for(const relatedOnly of anchor&&['nightstands','bedside_lights'].includes(role.role)?[true]:[true,false]){
     for(const p of choices.slice(0,10)){
      if(p.price+cost+reserve>(request.budget??Infinity))continue;
@@ -275,7 +305,17 @@ export async function planIncrementally(scene:Scene,request:RoomPlanRequest,quer
  }
 
  best??=build();
- const {ops,products,missing,complete,composition,paths}=best;
+ const {missing,complete,composition,paths}=best;
+ let ops=best.ops,products=best.products;
+ // A catalog bed is a frame: dress each bare one with a fitting made-up mattress when one exists and is affordable.
+ const dressed=['bedroom','kids'].includes(request.program)?await dressBeds(scene,ops,request.room_id,request.budget===undefined?undefined:request.budget-products.reduce((sum,p)=>sum+p.price,0),query,evaluate):undefined;
+ if(dressed){ops=dressed.ops;products=[...products,...dressed.products];}
+ const fill=request.mode==='fill'?await fillRoom({scene,roomId:request.room_id,program:request.program,ops,cost:products.reduce((sum,p)=>sum+p.price,0),budget:request.budget,time_ms:25000,cache,query,blocked,evaluate}):undefined;
+ if(fill){ops=fill.ops;products=[...products,...fill.products];}
+ const nouns:Record<string,[string,string]>={wall_art:['a piece of wall art','pieces of wall art'],curtain:['a pair of curtains','pairs of curtains'],books:['a set of books','sets of books'],ottoman:['an ottoman','ottomans'],armchair:['an armchair','armchairs']};
+ const count=(list:string[])=>Object.entries(list.reduce<Record<string,number>>((a,k)=>(a[k]=(a[k]??0)+1,a),{})).map(([k,n])=>{const [one,many]=nouns[k]??[`a ${k.replaceAll('_',' ')}`,`${k.replaceAll('_',' ')}s`];return n>1?`${n} ${many}`:one;});
+ const fillNote=!fill?'':fill.added.length?` Filled the room further: added ${phrase(count(fill.added.map(a=>a.kind)))}. ${{well_furnished:'The room is now well furnished.',nothing_more_fits:'Nothing more passes the access and clearance checks.',budget:'The budget is spent.',time:'Stopped at the search time bound; more may fit.'}[fill.stopped]}`
+  :` Nothing more could be added: ${fill.stopped==='budget'?'the budget is spent':fill.stopped==='time'?'the search time bound was reached':fill.stopped==='well_furnished'?'the room already holds every optional piece':'no further piece passes the access and clearance checks'}.`;
  const minPath=paths.length?Math.min(...paths.map(p=>p.width_m)):undefined;
  const accessNote=minPath!==undefined&&minPath<.9?` Secondary access is ${minPath.toFixed(2)} m: acceptable at 0.75 m minimum, below the comfortable 0.90 m target.`:'';
  const budgetNote=request.budget!==undefined&&requiredMinimum>request.budget?` The cheapest currently found full program totals ${requiredMinimum} AMD, above the ${request.budget} AMD budget; this is a catalog-search bound, not proof about all products.`:'';
@@ -283,8 +323,8 @@ export async function planIncrementally(scene:Scene,request:RoomPlanRequest,quer
  // The customer reads this text; role and check codes stay in missing/evidence for the model and eval.
  const missingRoles=[...new Set(missing.map(m=>m.match(/^([a-z_]+)(?: \d+\/\d+)?:/)?.[1]).filter((r):r is string=>!!r&&r in ROLE_PHRASES))];
  const unmet=[...new Set([...composition.issues.map(i=>i.code),...missing.some(m=>m.startsWith('Face every sofa'))?['seat_facing']:[]])].filter(c=>!missingRoles.includes(c)&&!roles.some(r=>r.role===c)&&c in CHECK_PHRASES);
- const placedText=products.length?`placed ${phrase(products.map(p=>p.kind.replaceAll('_',' ')))}`:'nothing placed yet';
+ const placedText=best.products.length?`placed ${phrase(best.products.map(p=>p.kind.replaceAll('_',' ')))}`:'nothing placed yet';
  const partial=`Partial layout: ${placedText}.${missingRoles.length?` No checked fit found for ${phrase(missingRoles.map(r=>ROLE_PHRASES[r]!))}.`:''}${unmet.length?` Still missing ${phrase(unmet.map(c=>CHECK_PHRASES[c]!))}.`:''} This bounded search does not prove impossibility.`;
  const missingText=[...missingRoles.map(r=>`${ROLE_PHRASES[r]!}: no checked fit`),...unmet.map(c=>`still missing ${CHECK_PHRASES[c]!}`)];
- return {ops,intent:intentFor(scene,ops,extra),missing,missing_text:missingText,complete,products,timing:{catalog_ms:catalogMs,placement_ms:performance.now()-started-catalogMs},reason:(complete?`Placed the ${products.map(p=>p.kind).join(', ')} as a complete checked ${request.program} arrangement.`:partial)+overrideNote+accessNote+budgetNote,evidence:{catalog,failures,attempts,composition,minimum_found_program_dram:requiredMinimum,style_basis:catalog.style_basis,requested_program:program,program_name:request.program,...outdoor?{outdoor:true,requested_program_name:requestedProgram,railing_segments:railings.length}:{}}};
+ return {ops,intent:intentFor(scene,ops,extra),missing,missing_text:missingText,complete,products,timing:{catalog_ms:catalogMs,placement_ms:performance.now()-started-catalogMs},reason:(complete?best.products.length?`Placed the ${best.products.map(p=>p.kind).join(', ')} as a complete checked ${request.program} arrangement.`:`The ${request.program} essentials are already in place.`:partial)+overrideNote+accessNote+budgetNote+(dressed?.note??'')+fillNote,evidence:{catalog,failures,attempts,composition,...dressed?{mattress:dressed.note}:{},...fill?{fill:{added:fill.added,unfilled:fill.unfilled,stopped:fill.stopped,searches:fill.searches,cost_dram:fill.cost,checks:fill.checks,check_ms:fill.check_ms}}:{},minimum_found_program_dram:requiredMinimum,style_basis:catalog.style_basis,requested_program:program,program_name:request.program,...outdoor?{outdoor:true,requested_program_name:requestedProgram,railing_segments:railings.length}:{}}};
 }

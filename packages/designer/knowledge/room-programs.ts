@@ -23,3 +23,49 @@ export function inferRoomProgram(name:string):string|undefined {
  if(/dining/i.test(name))return 'dining';if(/office|study|work/i.test(name))return 'office';
  if(/kitchen/i.test(name))return 'kitchen';if(/entry|hall/i.test(name))return 'entry';if(/bath|wc/i.test(name))return 'bathroom';return undefined;
 }
+/** Optional pieces for "add more / fill the room", in priority order, after the essentials. `total` is how many of
+ * the role's kinds a well furnished room holds (essentials included). Placement: floor slots, on furniture tops,
+ * hung on a wall, or over a window. Every piece passes the same hard checks as the essentials. */
+export interface ExtraRole {
+ role:string;total:number;place:'floor'|'on'|'wall'|'window';near?:'seating'|'bed'|'window';
+ queries:ExtraQuery[];
+ /** Pieces placed with it when it would otherwise leave a composition check unmet (a chair's table and lamp). */
+ with?:(ExtraQuery&{fixes:string})[];
+}
+export interface ExtraQuery {kind:string;text?:string;max_w?:number;max_d?:number;max_h?:number;min_h?:number}
+const art:ExtraRole={role:'wall_art',total:2,place:'wall',queries:[{kind:'wall_art',text:'framed art print',max_w:1.2,max_h:1}]};
+const curtains:ExtraRole={role:'curtains',total:2,place:'window',queries:[{kind:'curtain',text:'curtain pair on rod'},{kind:'blind',text:'roller blind'}]};
+const plant=(total:number):ExtraRole=>({role:'plants',total,place:'floor',near:'window',queries:[{kind:'plant',text:'potted floor plant',max_w:.8,max_d:.8,min_h:.6}]});
+const decor=(total:number,text='coffee table books'):ExtraRole=>({role:'decor',total,place:'on',queries:[{kind:'vase',text:'flowers in vase',max_w:.35,max_d:.35,max_h:.6},{kind:'books',text,max_w:.4,max_d:.35,max_h:.3},{kind:'candle',text:'candle',max_w:.25,max_d:.25,max_h:.4}]});
+export const roomExtras:Record<string,ExtraRole[]>={
+ living:[
+  {role:'accent_seating',total:2,place:'floor',near:'seating',queries:[{kind:'chair',text:'upholstered accent armchair',max_w:.9,max_d:.95}],
+   with:[{kind:'table',text:'small side end table',max_w:.55,max_d:.55,max_h:.7,fixes:'seat_table'},{kind:'lamp',text:'floor reading lamp',max_w:.45,max_d:.45,min_h:1.2,fixes:'seat_light'}]},
+  {role:'side_tables',total:3,place:'floor',near:'seating',queries:[{kind:'table',text:'small side end table',max_w:.6,max_d:.6,max_h:.7}]},
+  {role:'pouf',total:1,place:'floor',near:'seating',queries:[{kind:'ottoman',text:'round pouf ottoman',max_w:.8,max_d:.8,max_h:.5}]},
+  plant(2),
+  {role:'storage',total:2,place:'floor',queries:[{kind:'cabinet',text:'sideboard console cabinet',max_w:1.6,max_d:.5},{kind:'shelf',text:'bookcase',max_w:1.2,max_d:.45}]},
+  decor(3),art,curtains,
+ ],
+ bedroom:[
+  {role:'rug',total:1,place:'floor',near:'bed',queries:[{kind:'rug',text:'area rug',max_w:2.5,max_d:1.8}]},
+  {role:'bench',total:1,place:'floor',near:'bed',queries:[{kind:'bench',text:'bed end bench',max_w:1.4,max_d:.5,max_h:.55}]},
+  {role:'dresser',total:1,place:'floor',queries:[{kind:'dresser',text:'chest of drawers',max_w:1.4,max_d:.55}]},
+  {role:'accent_chair',total:1,place:'floor',queries:[{kind:'chair',text:'upholstered accent chair',max_w:.8,max_d:.85}]},
+  plant(1),decor(2,'books'),art,curtains,
+ ],
+ kids:[
+  {role:'rug',total:1,place:'floor',queries:[{kind:'rug',text:'kids play rug',max_w:2,max_d:1.6}]},
+  {role:'toy_storage',total:1,place:'floor',queries:[{kind:'basket',text:'toy storage basket',max_w:.5,max_d:.5,max_h:.6}]},
+  {role:'shelf',total:2,place:'floor',queries:[{kind:'shelf',text:'kids bookcase',max_w:1,max_d:.4}]},
+  {role:'pouf',total:1,place:'floor',queries:[{kind:'ottoman',text:'pouf',max_w:.7,max_d:.7,max_h:.5}]},
+  {role:'toys',total:2,place:'on',queries:[{kind:'toy',text:'plush toy',max_w:.4,max_d:.35,max_h:.45},{kind:'books',text:'books',max_w:.4,max_d:.35,max_h:.3}]},
+  art,curtains,
+ ],
+ office:[{role:'storage',total:2,place:'floor',queries:[{kind:'shelf',text:'bookcase',max_w:1.2,max_d:.45},{kind:'cabinet',text:'filing cabinet',max_w:1,max_d:.55}]},plant(1),decor(2,'books'),art,curtains],
+ dining:[{role:'sideboard',total:1,place:'floor',queries:[{kind:'cabinet',text:'sideboard buffet',max_w:1.6,max_d:.5}]},plant(1),decor(1),art,curtains],
+ entry:[{role:'mirror',total:1,place:'wall',queries:[{kind:'mirror',text:'wall mirror',max_w:1,max_h:1.3}]},plant(1),decor(1),art],
+ balcony:[{role:'plants',total:3,place:'floor',queries:[{kind:'plant',text:'potted plant',max_w:.6,max_d:.6,min_h:.5}]},{role:'lantern',total:1,place:'on',queries:[{kind:'lantern',text:'lantern',max_w:.3,max_d:.3,max_h:.5},{kind:'candle',text:'candle',max_w:.25,max_d:.25,max_h:.4}]}],
+ kitchen:[plant(1),decor(1)],
+ bathroom:[plant(1)],
+};

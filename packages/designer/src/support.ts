@@ -15,11 +15,21 @@ export const SURFACE_KINDS=new Set(['table','coffee_table','side_table','nightst
 export type Size=[number,number,number];
 /** Item size is [width, depth, height] in metres. */
 export function canRestOn(kind:string,size:Size):boolean{
- if(DECOR.has(kind)||kind==='plant'||kind==='lamp')return true;
+ if(DECOR.has(kind)||kind==='plant'||kind==='lamp'||kind==='mattress')return true;
  if(kind==='tv')return size[0]<=2&&size[2]<=1.3&&size[1]<=.5;
  return ELECTRONICS.has(kind)&&size.every(s=>s<=1);
 }
 export const isSurface=(item:Pick<Item,'kind'|'on'|'mount'>)=>SURFACE_KINDS.has(item.kind)&&item.on===undefined&&item.mount===undefined;
+/** A made-up mattress rests on a bed frame's deck (editor: kind mattress maps to decor, placed with the bed's pose), and only there. */
+export const MATTRESS_OVERHANG_M=.1;
+const MATTRESS_INCLUDED=/\b(with|incl\w*|\+)\s+(an?\s+)?([\w-]+\s+){0,2}mattress(es)?\b|\bmattress\s+included\b/i;
+/** Mattress centre with its head end flush with the headboard; a longer one overhangs only at the foot. */
+export function headAligned(bed:Pick<Item,'pos'|'rot'|'size'>,size:Size):Vec2{
+ const t=bed.rot*Math.PI/180,shift=(bed.size[1]-size[1])/2;
+ return [bed.pos[0]-Math.sin(t)*shift,bed.pos[1]+Math.cos(t)*shift];
+}
+export const isBedFrame=(item:Pick<Item,'kind'|'name'>)=>item.kind==='bed'&&!MATTRESS_INCLUDED.test(item.name??'');
+const supports=(kind:string,support:Pick<Item,'kind'|'on'|'mount'>)=>kind==='mattress'?support.kind==='bed'&&support.on===undefined&&support.mount===undefined:isSurface(support);
 export {onFloor} from './scene.js';
 
 function outsideDepth(points:Vec2[],support:Item):number{
@@ -37,8 +47,8 @@ export function supportErrors(scene:Scene):LayoutError[]{
  for(const item of supported){
   const support=scene.items.find(i=>i.id===item.on)!,base={room_id:item.room_id,item_ids:[item.id,support.id],at:[...item.pos] as Vec2};
   if(!canRestOn(item.kind,item.size)){errors.push({...base,check:'support',deficit_m:1,message:`${item.id} (${item.kind}) cannot rest on furniture; place it on the floor`});continue;}
-  if(!isSurface(support)||support.room_id!==item.room_id){errors.push({...base,check:'support',deficit_m:1,message:`${support.id} (${support.kind}) is not a usable surface for ${item.id}`});continue;}
-  const depth=outsideDepth(itemPolygon(item),support);
+  if(!supports(item.kind,support)||support.room_id!==item.room_id){errors.push({...base,check:'support',deficit_m:1,message:`${support.id} (${support.kind}) is not a usable surface for ${item.id}`});continue;}
+  const depth=outsideDepth(itemPolygon(item),support)-(item.kind==='mattress'?MATTRESS_OVERHANG_M:0);
   if(depth>EPS)errors.push({...base,check:'support',deficit_m:depth,message:`${item.id} overhangs ${support.id} by ${depth.toFixed(3)} m; it must fit on the top`});
  }
  for(let i=0;i<supported.length;i++)for(let j=i+1;j<supported.length;j++){
@@ -50,7 +60,10 @@ export function supportErrors(scene:Scene):LayoutError[]{
 
 /** Candidate poses on a support top, most usable first; each keeps the whole footprint on the top and clear of items already there.
  * `away` prefers poses farther from a point, e.g. a bedside lamp toward the stand's outer edge. */
-export function surfacePoses(scene:Scene,support:Item,size:Size,options:{away?:Vec2}={}):{pos:Vec2;rot:number}[]{
+export function surfacePoses(scene:Scene,support:Item,size:Size,options:{away?:Vec2;kind?:string}={}):{pos:Vec2;rot:number}[]{
+ // A mattress lies on the whole deck with the bed's pose; one per bed.
+ if(options.kind==='mattress')return support.kind==='bed'&&!scene.items.some(i=>i.on===support.id&&i.kind==='mattress')
+  &&size[0]<=support.size[0]+2*MATTRESS_OVERHANG_M&&size[1]<=support.size[1]+MATTRESS_OVERHANG_M?[{pos:headAligned(support,size),rot:support.rot}]:[];
  const t=support.rot*Math.PI/180,world=(u:number,v:number):Vec2=>[support.pos[0]+u*Math.cos(t)-v*Math.sin(t),support.pos[1]+u*Math.sin(t)+v*Math.cos(t)];
  const poses:{pos:Vec2;rot:number;score:number}[]=[],siblings=scene.items.filter(i=>i.on===support.id);
  for(const turn of [0,90]){
@@ -70,5 +83,5 @@ export function surfacePoses(scene:Scene,support:Item,size:Size,options:{away?:V
 /** Surfaces in a room that can hold an item of this size, largest free top first. */
 export function surfacesFor(scene:Scene,roomId:string,kind:string,size:Size):Item[]{
  if(!canRestOn(kind,size))return [];
- return scene.items.filter(i=>i.room_id===roomId&&isSurface(i)&&surfacePoses(scene,i,size).length).sort((a,b)=>b.size[0]*b.size[1]-a.size[0]*a.size[1]);
+ return scene.items.filter(i=>i.room_id===roomId&&supports(kind,i)&&surfacePoses(scene,i,size,{kind}).length).sort((a,b)=>b.size[0]*b.size[1]-a.size[0]*a.size[1]);
 }
