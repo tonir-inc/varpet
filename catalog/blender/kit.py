@@ -278,6 +278,11 @@ def export(path, name=None):
         o.select_set(False)
     for o in objs:
         o.select_set(True)
+    # Every mesh needs a UV map with the same name before join, or glTF drops textured materials' UV link.
+    for o in objs:
+        if not o.data.uv_layers:
+            o.data.uv_layers.new(name="UVMap")
+        o.data.uv_layers[0].name = "UVMap"
     bpy.context.view_layer.objects.active = objs[0]
     bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
     if len(objs) > 1:
