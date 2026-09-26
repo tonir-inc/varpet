@@ -373,7 +373,7 @@ def sdk_worker(job_path: Path) -> int:
     job = json.loads(job_path.read_text())
     effort, profile = runtime_settings(job)
     from designer_fast import enabled as fast_enabled, run as fast_run
-    if not job.get("conversion_error") and fast_enabled(profile, os.environ):
+    if fast_enabled(profile, os.environ) and not (job.get("conversion_error") or job.get("vision") or job.get("turn_images") or job.get("review_only")):
         fast_result = fast_run(job, job_path)
         if fast_result is not None:
             return fast_result
