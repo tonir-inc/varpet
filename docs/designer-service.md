@@ -27,8 +27,11 @@ Three pieces meet here. Each is built by a different session; this file is what 
 ```
 
 `keep`, `doorSwings` and `northDeg` are optional until the editor carries them (asked of the editor owner).
-`catalog` may carry the editor store's immutable `CatalogAsset[]`; when absent, the bridge uses the
-editor's local demo catalog. Unknown asset IDs fail rather than acquiring invented dimensions.
+`catalog` carries the exact `CatalogAsset[]` captured for this request. The editor registers database
+assets dynamically; an existing registered ID retains its identity while the scene or undo history uses
+it. Legacy callers that omit `catalog` still get the bridge's local demo catalog; the current editor
+passes its database catalog explicitly, including an empty array. Unknown asset IDs fail rather than
+acquiring invented dimensions.
 `catalogCurrency: "AMD"` explicitly confirms purchase-price units. Without it, owned furniture can
 be rearranged, but unlabelled editor prices are not treated as dram quotations.
 
@@ -72,12 +75,16 @@ Aborting the supplied signal cancels the HTTP stream and the service's worker pr
 
 ### Catalog purchases
 
-[measured configuration] Set `VITE_CATALOG_ASSETS_URL=http://localhost:8765/editor/assets` for the
-local catalog tunnel. The editor resolves and validates the merged remote/demo catalog before creating
-EditorStore. Without that flag, or when the remote catalog cannot be loaded or validated, it uses the
-demo catalog. The catalog stays fixed for the store session; reload the app to fetch a new set.
-Chat snapshots carry that exact catalog and `catalogCurrency: CATALOG_CURRENCY` (`AMD`) on initial and
-follow-up requests. Point the designer service's `VARPET_CATALOG_URL` at the same service's `/mcp` route.
+[measured source, editor main `223cd22`] The editor starts with an empty v2 apartment and resolves
+real furniture through same-origin `/api/catalog/search` and `/api/catalog/items`. It registers returned
+assets with `EditorStore.registerCatalogAssets`; there is no demo-catalog fallback in current startup.
+Chat requests carry the captured catalog and `catalogCurrency: CATALOG_CURRENCY` (`AMD`).
+`VITE_CATALOG_ASSETS_URL=http://localhost:8765/editor/assets` additionally enables full-set discovery
+for a designer request. Existing registered identities take precedence; proposal additions are retained
+by `DesignerProposalCatalog` and registered before preview or approval. Without that optional URL,
+discovery is limited to the editor's currently retained database products. The designer MCP search may
+find a SKU outside that snapshot, which the bridge correctly refuses as unknown.
+Point the designer service's `VARPET_CATALOG_URL` at the same catalog service's `/mcp` route.
 The remote catalog has real product records but its current AMD prices are mock prices, not shop quotes.
 
 [derived compatibility] Purchased `desk` maps to editor `table`; `dresser`, `wardrobe`, `nightstand`
@@ -97,6 +104,14 @@ catalog. The independent request check confirmed the existing 1.5 m near-window 
 Evidence: `packages/designer/eval/catalog-armchair-smoke.json`; reproduce with
 `pnpm --filter @varpet/designer exec tsx eval/catalog-armchair-smoke.ts --live --output /tmp/new-purchase-run.json`.
 Browser rendering and the remote GLB download were not measured by this HTTP check.
+
+[measured attempt, 26 Sept 2026] The latest normalized v2/database-only trio is reproducible with
+`pnpm --filter @varpet/designer exec tsx eval/latest-editor-smoke.ts --live --output /tmp/current-editor-run.json`.
+It uses real same-origin catalog middleware, the configured discovery path above, independent disposable
+EditorStores, and checks ceiling metadata and archived v2 data after approval. Furniture poses are assumed
+test data in the current Avani shell. The recorded attempt in `eval/latest-editor-smoke.json` stopped at
+catalog hydration (HTTP 503; localhost tunnel refused connections and the tailnet endpoint timed out).
+No model calls ran, so this attempt supplies no request timings or live proposal-acceptance evidence.
 
 Derived coordinate mapping: editor `[x, y, z]` maps to designer `[x, -z]`; rotation radians about +Y
 map to counterclockwise degrees; dimensions `[width, height, depth]` multiplied by object scale map
@@ -135,6 +150,14 @@ material-backed or renovation-mode walls use appearance-only finish assignments 
 and does not mark the wall for structural replacement. The browser rejects geometry in wall patches.
 One wall colour affects both faces and all original-wall segments. V2 project data is retained on the
 original snapshot; only requested command effects and the editor's normal assumption invalidation apply.
+[measured regressions] Room ceilings live in `project.metadata[roomId].ceilingDesign`: enabled,
+disabled and null values survive unrelated designer edits, along with sources, assumptions, materials,
+finishes, tasks, baseline and inactive options. The `inside` camera view is editor UI state. After an
+architect's approved `replace-scene`, the next request captures that fresh v2 apartment and revision;
+designer approval preserves it instead of restoring the previous apartment. Registered photo-built GLB
+assets also pass through when supplied in the request catalog. Active building components, service
+routes and elevated rooms remain explicit unsupported geometry, rather than being silently discarded.
+Coverage: `test/editor-current-v2.test.ts` and `test/editor-http-current-v2.test.ts` in the designer package.
 Finish work is unquoted; the reported incremental furniture purchase cost does not price paint or labour.
 The Avani standing fixture also caught a rug penetrating the west wall by 5 mm. Wall thickness now
 crosses the bridge into preview checks, circulation and wall/corner placement; the same candidate is
@@ -147,6 +170,7 @@ refused before translation. A smaller valid group move still passes the designer
 ```ts
 export interface DesignerRequest {
   scene: SceneDocument; revision: number; request: string; conversationId?: string;
+  catalog?: CatalogAsset[]; catalogCurrency?: 'AMD';
   keep?: string[]; doorSwings?: Record<string, 'in-left' | 'in-right' | 'out-left' | 'out-right'>; northDeg?: number;
 }
 export type DesignerReply =

@@ -1,0 +1,402 @@
+{
+  "schema_version": 1,
+  "evidence_kind": "measured_catalog_preflight_outage",
+  "recorded_at": "2026-09-26T11:56:51Z",
+  "source": {
+    "head": "223cd2285e188b56a616eeaf6d0507f315c768d8",
+    "dirty": true,
+    "captured_after_preflight_failure": true,
+    "sha256": {
+      "packages/designer/eval/latest-editor-smoke.ts": "984533adfd5b4692f488bccceea9d553082a70d500f766efe056e169f1159327",
+      "packages/designer/eval/latest-editor-smoke.test.ts": "3f9a80fdf8a5c65334c28adec17fa761a35f8619d2141b9cdb24102027167798",
+      "apps/editor/src/core/initial-scene.ts": "0552c5bad659188cfade9539c3377efc7d77e9613884e5671a46e24a1c782556",
+      "apps/editor/src/core/apartment-store.ts": "a506f6a8d68c7cfa8ed0edfd68fc80c498070d439e7bc5cf56f028e1ea9f8936",
+      "apps/editor/src/core/store.ts": "2c3d47b39270851aa686cafa836994c7233112df3549eae1b0d6958450f0a6bd",
+      "apps/editor/src/core/designer-catalog.ts": "d94e1d86e3ead8d792ef933ac1cc79693ed5bf08c63e0f30b5ac4161dc916230",
+      "apps/editor/src/adapters/database-catalog.ts": "2011d30dec445a6050731aa7bde7901cf68281d3b4a729f0b0e4fbc4948918b5",
+      "apps/editor/src/adapters/designer-http.ts": "866af6dae3fda1ae280724b58ff000b14397e458fc78dd1bce9f0db5a5ae2f0e",
+      "apps/editor/server/catalog.mjs": "31d54d089a9a4b7b5e9bde6d30026a289d25d4a3c9a3448dd16a95d095b2b8e9",
+      "packages/designer/src/editor-bridge.ts": "41106cd05cf97f36327327b5f2c3753516964eb084fecf6d4d5f0e46667a66c9",
+      "harness/designer_service.py": "06ccf65edc5958955871b225e0a30875ae80aa52db8e77b23a444453a6b110b8"
+    }
+  },
+  "pass": false,
+  "model_calls": 0,
+  "rows": [
+    {
+      "id": "paint",
+      "request": "paint the bedroom walls sage",
+      "outcome": "not_run",
+      "reason": "Live catalog unavailable during required same-origin reference hydration, before service/model launch.",
+      "pass": false,
+      "seconds": null,
+      "tokens": null,
+      "editor_acceptance": null,
+      "ceiling_and_v2_preservation": null
+    },
+    {
+      "id": "bigger",
+      "request": "make the living room feel bigger",
+      "outcome": "not_run",
+      "reason": "Live catalog unavailable during required same-origin reference hydration, before service/model launch.",
+      "pass": false,
+      "seconds": null,
+      "tokens": null,
+      "editor_acceptance": null,
+      "ceiling_and_v2_preservation": null
+    },
+    {
+      "id": "armchair",
+      "request": "add an armchair for reading by the window",
+      "outcome": "not_run",
+      "reason": "Live catalog unavailable during required same-origin reference hydration, before service/model launch.",
+      "pass": false,
+      "seconds": null,
+      "tokens": null,
+      "editor_acceptance": null,
+      "ceiling_and_v2_preservation": null
+    }
+  ],
+  "preflight": {
+    "same_origin": {
+      "claim": "measured",
+      "path": "/api/catalog/items",
+      "requested_ids": [
+        "abo:B07BW8P2F7",
+        "abo:B07DBFQFGS",
+        "abo:B07HPFP4SZ",
+        "abo:B07B4Y45H5",
+        "abo:B074KLJQKV"
+      ],
+      "http_status": 503,
+      "body": {
+        "status": "unavailable",
+        "results": [],
+        "reason": "Catalog unavailable. Check the catalog service connection and try again."
+      },
+      "upstream": "http://localhost:8765/mcp",
+      "raw_log": "/tmp/varpet-latest-editor-lpz0WU/catalog-api.jsonl",
+      "raw_log_sha256": "120d3ad9a6cf111f5bfc44761b676f64a9fb45b9593c72b9e5a0d9bd258507c0"
+    },
+    "local_direct": {
+      "claim": "measured",
+      "url": "http://localhost:8765/editor/assets",
+      "curl_exit_code": 7,
+      "http_status": null,
+      "error": "Failed to connect to localhost port 8765: connection refused."
+    },
+    "remote_direct": {
+      "claim": "measured",
+      "url": "http://100.107.246.46:8765/editor/assets",
+      "curl_exit_code": 28,
+      "http_status": null,
+      "deadline_seconds": 10,
+      "error": "Connection timed out after 10006 milliseconds."
+    },
+    "tunnel_recovery": {
+      "claim": "parent-reported measured attempt",
+      "result": "Existing SSH agent/default identities rejected public-key authentication; no tunnel available."
+    }
+  },
+  "earlier_database_probe": {
+    "claim": "measured earlier successful API reads, not live proposal evidence",
+    "source": "/tmp/latest-editor-catalog-probe.json",
+    "sha256": "42db8773f5721280098b050e8fa36a4186b1b5c3c3403c7b019d03296c49e224",
+    "queries": [
+      {
+        "role": "sofa",
+        "valid_products": 20,
+        "excluded": 0
+      },
+      {
+        "role": "table",
+        "valid_products": 20,
+        "excluded": 0
+      },
+      {
+        "role": "chair",
+        "valid_products": 20,
+        "excluded": 0
+      },
+      {
+        "role": "bed",
+        "valid_products": 20,
+        "excluded": 0
+      },
+      {
+        "role": "cabinet",
+        "valid_products": 20,
+        "excluded": 0
+      }
+    ],
+    "same_origin_responses": [
+      {
+        "path": "/api/catalog/search?text=sofa&kind=sofa",
+        "http_status": 200,
+        "body_sha256": "455558c49fb7da0147bba853793ee601aa2df548020d11642ef955708a568ba9"
+      },
+      {
+        "path": "/api/catalog/search?text=coffee+table&kind=table",
+        "http_status": 200,
+        "body_sha256": "7ddcad2e20a8b2bc693e27f4ac2ae12d40f74501c7c619088984aad960282ff4"
+      },
+      {
+        "path": "/api/catalog/search?text=armchair&kind=chair",
+        "http_status": 200,
+        "body_sha256": "a447f07862930d1b55e233727d472ef385736fdbef480fd5c5d2803eec3780f1"
+      },
+      {
+        "path": "/api/catalog/search?text=bed&kind=bed",
+        "http_status": 200,
+        "body_sha256": "74a330dd183856925e6d8feb6a9b6d5717d39d12270bd9f620b4ac7448c0381e"
+      },
+      {
+        "path": "/api/catalog/search?text=nightstand&kind=cabinet",
+        "http_status": 200,
+        "body_sha256": "ea362397e146c355e0590354f3da2ae535a1106277f0c4a05e936933a5cffb47"
+      }
+    ]
+  },
+  "prepared_input": {
+    "claim": "derived fixture, never submitted to the live model",
+    "source": "/tmp/latest-editor-prepared-input.json",
+    "scene_sha256": "7a4bf68cf5141b4822edcf199be880ff1ecafce1c43cb302da758b48dc727a07",
+    "catalog_sha256": "95af3f9564a27065969bcab569834a6426d8a9e057ec8b8b720f812e13e12368",
+    "version": 2,
+    "revision": 0,
+    "wall_count": 13,
+    "object_count": 5,
+    "validation": {
+      "ok": true,
+      "errors": [],
+      "warnings": []
+    },
+    "editor_to_designer_conversion": "passed",
+    "bedroom_physical_wall_ids": [
+      "wall-east:section-1wcj16j",
+      "wall-north:section-1bz51as",
+      "wall-spine:section-tfjdn7",
+      "wall-bedroom",
+      "wall-bedroom:section-1wuotw"
+    ],
+    "living_largest_free_rectangle_m2": 22.68,
+    "setup": [
+      {
+        "id": "db-sofa",
+        "sku": "abo:B07BW8P2F7",
+        "kind": "sofa",
+        "position": [
+          -2.2,
+          0,
+          1.8
+        ],
+        "rotation": 3.141592653589793,
+        "claim": "assumed test position; exact registered database SKU"
+      },
+      {
+        "id": "db-table",
+        "sku": "abo:B07DBFQFGS",
+        "kind": "table",
+        "position": [
+          -2.2,
+          0,
+          0.6
+        ],
+        "rotation": 0,
+        "claim": "assumed test position; exact registered database SKU"
+      },
+      {
+        "id": "db-chair",
+        "sku": "abo:B07HPFP4SZ",
+        "kind": "chair",
+        "position": [
+          -3.9,
+          0,
+          1.4
+        ],
+        "rotation": 1.5707963267948966,
+        "claim": "assumed test position; exact registered database SKU"
+      },
+      {
+        "id": "db-bed",
+        "sku": "abo:B07B4Y45H5",
+        "kind": "bed",
+        "position": [
+          2.6,
+          0,
+          2.5
+        ],
+        "rotation": 3.141592653589793,
+        "claim": "assumed test position; exact registered database SKU"
+      },
+      {
+        "id": "db-cabinet",
+        "sku": "abo:B074KLJQKV",
+        "kind": "cabinet",
+        "position": [
+          4.4,
+          0,
+          3.1
+        ],
+        "rotation": 0,
+        "claim": "assumed test position; exact registered database SKU"
+      }
+    ],
+    "products": [
+      {
+        "asset": {
+          "id": "abo:B07BW8P2F7",
+          "name": "Amazon Brand – Rivet Edgewest Low Back Modern Loveseat, 65\"W, Beige",
+          "kind": "sofa",
+          "category": "sofa",
+          "dimensions": [
+            1.651,
+            0.8119,
+            0.8385
+          ],
+          "color": "#d9cfbf",
+          "price": 254000,
+          "source": {
+            "type": "gltf",
+            "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/7/B07BW8P2F7.glb"
+          }
+        },
+        "priceSource": "mock",
+        "sizeStatus": "confirmed",
+        "attribution": "Amazon Berkeley Objects · CC BY 4.0 (Amazon Berkeley Objects)"
+      },
+      {
+        "asset": {
+          "id": "abo:B07DBFQFGS",
+          "name": "Amazon Brand – Ravenna Home Dora Classic Shelf Storage Wood Coffee Table, 37\"W, Dark Cherry",
+          "kind": "table",
+          "category": "table",
+          "dimensions": [
+            0.9427,
+            0.4556,
+            0.5327
+          ],
+          "color": "#571a08",
+          "price": 72000,
+          "source": {
+            "type": "gltf",
+            "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/S/B07DBFQFGS.glb"
+          }
+        },
+        "priceSource": "mock",
+        "sizeStatus": "confirmed",
+        "attribution": "Amazon Berkeley Objects · CC BY 4.0 (Amazon Berkeley Objects)"
+      },
+      {
+        "asset": {
+          "id": "abo:B07HPFP4SZ",
+          "name": "Movian Andre Accent Chair - Light Grey",
+          "kind": "chair",
+          "category": "chair",
+          "dimensions": [
+            0.59,
+            0.84,
+            0.6101
+          ],
+          "color": "#919598",
+          "price": 58000,
+          "source": {
+            "type": "gltf",
+            "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/Z/B07HPFP4SZ.glb"
+          }
+        },
+        "priceSource": "mock",
+        "sizeStatus": "confirmed",
+        "attribution": "Amazon Berkeley Objects · CC BY 4.0 (Amazon Berkeley Objects)"
+      },
+      {
+        "asset": {
+          "id": "abo:B07B4Y45H5",
+          "name": "Amazon Brand – Rivet Fisher Rustic Wood King Bed, 79\"W, Reclaimed-Look Wood",
+          "kind": "bed",
+          "category": "bed",
+          "dimensions": [
+            2.0126,
+            1.2953,
+            2.1837
+          ],
+          "color": "#8f6446",
+          "price": 253000,
+          "source": {
+            "type": "gltf",
+            "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/5/B07B4Y45H5.glb"
+          }
+        },
+        "priceSource": "mock",
+        "sizeStatus": "confirmed",
+        "attribution": "Amazon Berkeley Objects · CC BY 4.0 (Amazon Berkeley Objects)"
+      },
+      {
+        "asset": {
+          "id": "abo:B074KLJQKV",
+          "name": "Amazon Brand – Stone & Beam Fremont Slatted 2-Door Cabinet, 31.5\"W, Ash",
+          "kind": "cabinet",
+          "category": "cabinet",
+          "dimensions": [
+            0.7959,
+            0.7854,
+            0.4116
+          ],
+          "color": "#724934",
+          "price": 121000,
+          "source": {
+            "type": "gltf",
+            "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/V/B074KLJQKV.glb"
+          }
+        },
+        "priceSource": "mock",
+        "sizeStatus": "confirmed",
+        "attribution": "Amazon Berkeley Objects · CC BY 4.0 (Amazon Berkeley Objects)"
+      }
+    ],
+    "ceiling_designs": [
+      {
+        "room_id": "room-living",
+        "design": {
+          "style": "soft-glow",
+          "drop": 0.16,
+          "inset": 0.35,
+          "brightness": 65,
+          "temperature": 2700,
+          "enabled": true
+        }
+      },
+      {
+        "room_id": "room-bedroom",
+        "design": {
+          "style": "quiet",
+          "drop": 0,
+          "inset": 0.55,
+          "brightness": 70,
+          "temperature": 3000,
+          "enabled": true
+        }
+      }
+    ],
+    "baseline": true,
+    "archived_options": 1
+  },
+  "planned_profile": {
+    "model": "gpt-6-astra",
+    "effort": "low",
+    "placement": "without-place",
+    "context": "compact-base",
+    "catalog_currency": "AMD",
+    "same_origin_mcp_url": "http://localhost:8765/mcp",
+    "configured_discovery_url": "http://localhost:8765/editor/assets",
+    "scope": "Current database products plus configured live database discovery; no procedural catalog merge. Discovery was not reached in this attempt."
+  },
+  "verification": {
+    "targeted_command": "pnpm --filter @varpet/designer exec vitest run eval/latest-editor-smoke.test.ts",
+    "result": "Test Files 1 passed (1); Tests 5 passed (5)",
+    "eval_typecheck_command": "pnpm --filter @varpet/designer exec tsc -p eval",
+    "eval_typecheck_exit": 0,
+    "untargeted_checks": "Owned by the integrating root agent; not asserted here."
+  },
+  "limitation": "None of the three live HTTP/model outcomes, EditorStore proposal acceptance, or post-proposal ceiling/v2 preservation is proven. Earlier DB reads and deterministic tests are separate evidence only. The Avani shell is current; furniture poses and ceiling designs are assumed test setup, while product identities/dimensions/prices are exact earlier live database records. Catalog AMD prices are mock amounts, not shop quotations."
+}
