@@ -41,8 +41,10 @@ services:
     image: docker.langfuse.com/langfuse/langfuse-worker:4
     restart: always
     depends_on: *depends
-    environment: *env
-    mem_limit: 1g
+    environment:
+      <<: *env
+      NODE_OPTIONS: --max-old-space-size=1024
+    mem_limit: 1536m
 
   langfuse-web:
     image: docker.langfuse.com/langfuse/langfuse:4
@@ -63,7 +65,9 @@ services:
       LANGFUSE_INIT_USER_EMAIL: ${INIT_USER_EMAIL}
       LANGFUSE_INIT_USER_NAME: admin
       LANGFUSE_INIT_USER_PASSWORD: ${INIT_USER_PASSWORD}
-    mem_limit: 1g
+      # Node sizes its heap from the cgroup limit; ~500 MB at 1g OOMs during startup.
+      NODE_OPTIONS: --max-old-space-size=1536
+    mem_limit: 2g
 
   clickhouse:
     image: docker.io/clickhouse/clickhouse-server:25.12
