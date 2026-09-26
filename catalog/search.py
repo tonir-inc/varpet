@@ -37,6 +37,13 @@ class Query:
     limit: int = 10
 
 
+def turned_fits(size, box):
+    """True when the item fits only when turned 90 degrees (width and depth swapped)."""
+    straight = min(box[0] - size[0], box[1] - size[1], box[2] - size[2]) >= 0
+    turned = min(box[0] - size[1], box[1] - size[0], box[2] - size[2]) >= 0
+    return turned and not straight
+
+
 def fits(size, box, rotate=True):
     """Per-axis margins (box - size, metres) in the best orientation; all >= 0 means it fits."""
     straight = [box[0] - size[0], box[1] - size[1], box[2] - size[2]]
@@ -129,6 +136,8 @@ def search(conn, q: Query):
         else:
             if margins:
                 rec["fit_margin_m"] = [round(m, 3) for m in margins]
+                # The designer must turn it 90 degrees to fit; straight it does not.
+                rec["fits_turned"] = q.allow_rotate and turned_fits(size, q.fit_box)
             passed.append((rec, cimg))
 
     if not passed:

@@ -17,7 +17,7 @@ vm "printf 'VARPET_DB_URL=postgresql://varpet:%s@localhost:5432/varpet\nCATALOG_
       | sudo -n tee /etc/varpet-catalog.env >/dev/null
     sudo -n chown root:varpet-catalog /etc/varpet-catalog.env && sudo -n chmod 640 /etc/varpet-catalog.env
     sudo -n chown -R varpet-catalog:varpet-catalog /opt/varpet-catalog/app /opt/varpet-catalog/hf /opt/varpet-catalog/uv-cache /opt/varpet-catalog/models 2>/dev/null || true
-    sudo -n mkdir -p /opt/varpet-catalog/generated && sudo -n chgrp varpet-catalog /opt/varpet-catalog/generated && sudo -n chmod 2775 /opt/varpet-catalog/generated
+    sudo -n mkdir -p /opt/varpet-catalog/generated /opt/varpet-catalog/models-web && sudo -n chgrp varpet-catalog /opt/varpet-catalog/models-web && sudo -n chmod 2775 /opt/varpet-catalog/models-web && sudo -n chgrp varpet-catalog /opt/varpet-catalog/generated && sudo -n chmod 2775 /opt/varpet-catalog/generated
     cd /opt/varpet-catalog/app && sudo -n -u varpet-catalog env UV_CACHE_DIR=/opt/varpet-catalog/uv-cache uv sync --frozen --no-dev 2>&1 | tail -2
     [ -d /opt/varpet-catalog/models/siglip2-base-patch16-224-bf16 ] || sudo -n -u varpet-catalog env HF_HOME=/opt/varpet-catalog/hf .venv/bin/python -c \"
 import torch; from transformers import AutoModel, AutoProcessor; n='google/siglip2-base-patch16-224'; o='/opt/varpet-catalog/models/siglip2-base-patch16-224-bf16'

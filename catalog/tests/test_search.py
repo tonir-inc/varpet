@@ -95,3 +95,10 @@ def test_name_of(lab, expected):
 ])
 def test_listing_palette(listing, expected):
     assert listing_palette(listing) == expected
+
+
+def test_turned_fits_only_when_straight_fails():
+    from search import turned_fits
+    assert turned_fits([2.0, 0.9, 0.8], [1.0, 2.2, 1.0])       # 2 m sofa into a 1 x 2.2 m niche: turned only
+    assert not turned_fits([2.0, 0.9, 0.8], [2.2, 1.0, 1.0])   # fits straight
+    assert not turned_fits([2.0, 0.9, 0.8], [1.0, 1.0, 1.0])   # fits neither way

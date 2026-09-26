@@ -169,6 +169,22 @@ except ImportError:  # stdio-only installs
     pass
 
 
+MODELS_DIR = os.environ.get("CATALOG_MODELS_DIR", "/opt/varpet-catalog/models-web")
+try:
+    from starlette.responses import FileResponse
+
+    @server.custom_route("/models/{name}", methods=["GET", "HEAD"])
+    async def model_file(request: Request) -> Response:
+        """Optimized GLBs (optimize_models.py). Immutable per id, so browsers cache them for a year."""
+        name = request.path_params["name"]
+        if not re.fullmatch(r"[A-Za-z0-9_-]{1,40}\.glb", name) or not os.path.isfile(os.path.join(MODELS_DIR, name)):
+            return _cors(request, Response(status_code=404))
+        return _cors(request, FileResponse(os.path.join(MODELS_DIR, name), media_type="model/gltf-binary",
+                                           headers={"Cache-Control": "public, max-age=31536000, immutable"}))
+except ImportError:
+    pass
+
+
 @server.tool()
 def request_generation(kind: str, w: float, d: float, h: float, description: str,
                        reference_image_url: str | None = None) -> dict:
