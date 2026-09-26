@@ -45,18 +45,40 @@ def fits(size, box, rotate=True):
     return max(straight, turned, key=lambda m: min(m))
 
 
-def colour_score(req, listing_cols, img_cols, mode):
+ALIASES = {"both": "listing+image", "all": "listing+image+astra"}
+
+
+def modes(mode, aliases=ALIASES):
+    """'listing+astra' -> {'listing', 'astra'}; 'both' and 'all' are shorthands."""
+    return set(aliases.get(mode, mode).split("+"))
+
+
+def colour_score(req, listing_cols, img_cols, astra, mode):
     if not req:
         return None
-    lst = 1.0 if set(req) & set(listing_cols) else 0.0
-    img = min(1.0, sum(c["share"] for c in img_cols or [] if c["name"] in req) * 1.25)
-    return {"listing": lst, "image": img, "both": (lst + img) / 2}[mode]
+    parts = {
+        "listing": 1.0 if set(req) & set(listing_cols) else 0.0,
+        "image": min(1.0, sum(c["share"] for c in img_cols or [] if c["name"] in req) * 1.25),
+        "astra": 1.0 if astra.get("main_color") in req else 0.5 if set(req) & set(astra.get("other_colors") or []) else 0.0,
+    }
+    use = [parts[m] for m in modes(mode)]
+    return sum(use) / len(use)
+
+
+TEXT_ALIASES = {"both": "fts+vector", "all": "fts+vector+openai"}
+OPENAI_TEXT = "text-embedding-3-large"
 
 
 def _text_vec(conn, text, model):
     """Embed the query text with the same SigLIP model (lazy import: torch is heavy)."""
     import embed_siglip_query
     return embed_siglip_query.text(text, model)
+
+
+def _openai_vec(text):
+    """Query embedding with the model the 'doc' rows were built with, through OpenRouter."""
+    import embed_openrouter
+    return np.array(embed_openrouter.embed([text], f"openai/{OPENAI_TEXT}")[0])
 
 
 def search(conn, q: Query):
@@ -70,14 +92,15 @@ def search(conn, q: Query):
     rank = f"ts_rank_cd(fts, {tsq}, 32)" if q.text else "0"
     rows = conn.execute(
         f"""select id, name, kind, coalesce(fit_size_m, size_m), size_status, price, color_std, colors_img, styles, materials,
-                   main_image_url, glb_url, size_evidence, {rank}
+                   main_image_url, glb_url, size_evidence, tags, {rank}
             from item where {' and '.join(where)}""",
         ([q.text] if q.text else []) + args,
     ).fetchall()
 
     passed, misses = [], []
     for r in rows:
-        (iid, name, kind, size, status, price, cstd, cimg, styles, mats, img, glb, ev, fts) = r
+        (iid, name, kind, size, status, price, cstd, cimg, styles, mats, img, glb, ev, tags, fts) = r
+        astra = (tags or {}).get("astra") or {}
         fail = []
         margins = fits(size, q.fit_box, q.allow_rotate) if q.fit_box else None
         if margins and min(margins) < 0:
@@ -87,7 +110,9 @@ def search(conn, q: Query):
         rec = {"id": iid, "name": name, "kind": kind, "size_m": size, "size_status": status, "price": price,
                "colors_listing": listing_palette(cstd), "colors_image": [c["name"] for c in cimg or []],
                "styles": styles, "materials": mats, "image": img, "glb_url": glb,
-               "wd_swapped": bool((ev or {}).get("wd_swapped")), "_fts": float(fts)}
+               "colors_astra": [c for c in [astra.get("main_color")] + (astra.get("other_colors") or []) if c],
+               "style_astra": astra.get("style"), "materials_astra": astra.get("materials"),
+               "wd_swapped": bool((ev or {}).get("wd_swapped")), "_fts": float(fts), "_astra": astra}
         if fail:
             rec["failed"] = fail
             misses.append(rec)
@@ -110,19 +135,23 @@ def search(conn, q: Query):
     used = set()
 
     if q.text:
-        parts = []
-        if q.text_mode in ("fts", "both"):
+        parts, tm = [], modes(q.text_mode, TEXT_ALIASES)
+        if "fts" in tm:
             f = np.array([p[0]["_fts"] for p in passed]); parts.append(f / f.max() if f.max() > 0 else f)
-        if q.text_mode in ("vector", "both"):
+        if "vector" in tm:
             qv = _text_vec(conn, q.text, q.model)
-            sims = _sims(conn, ids, q.model, "image", qv)
-            parts.append(_minmax(sims))
+            parts.append(_minmax(_sims(conn, ids, q.model, "image", qv)))
+        if "openai" in tm:
+            parts.append(_minmax(_sims(conn, ids, OPENAI_TEXT, "doc", _openai_vec(q.text))))
         scores["text"] = np.mean(parts, axis=0); used.add("text")
     if q.colors:
-        scores["colour"] = np.array([colour_score(q.colors, p[0]["colors_listing"], p[1], q.colour_mode) for p in passed]); used.add("colour")
+        scores["colour"] = np.array([colour_score(q.colors, p[0]["colors_listing"], p[1], p[0]["_astra"], q.colour_mode) for p in passed]); used.add("colour")
     if q.styles or q.materials:
         want = {s.lower() for s in q.styles + q.materials}
-        scores["tags"] = np.array([len(want & {t.lower() for t in (p[0]["styles"] or []) + (p[0]["materials"] or [])}) / len(want) for p in passed]); used.add("tags")
+        def have(rec):
+            words = (rec["styles"] or []) + (rec["materials"] or []) + (rec["materials_astra"] or []) + [rec["style_astra"] or ""]
+            return {t.lower() for t in words}
+        scores["tags"] = np.array([len(want & have(p[0])) / len(want) for p in passed]); used.add("tags")
     ref = None
     if q.like_item:
         row = conn.execute("select emb::text from item_embedding where item_id=%s and model=%s and modality='image'", (q.like_item, q.model)).fetchone()
