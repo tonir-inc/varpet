@@ -1,7 +1,9 @@
 import { createHash } from 'node:crypto';
+import {createHttpCatalogQuery, type CatalogQuery} from './catalog.js';
+import {catalogProduct} from '../../../apps/editor/src/adapters/database-catalog.js';
 import { z } from 'zod';
 import type { CatalogAsset } from '../../../apps/editor/src/contracts.js';
-import { applyOps, parseScene, wallOutward } from './adapter.js';
+import { applyOps, parseOps, parseScene, wallOutward } from './adapter.js';
 import { checkLocalLayout, compareLayoutErrors, localGeometryErrors, outsidePoint } from './local-checks.js';
 import { functionClearances } from './metrics/function.js';
 import { itemPolygon, physicalDoorSwingPolygon, spaceMetrics, polygonsOverlap, isFloorRug, rasterizeRoom } from './metrics/space.js';
@@ -12,22 +14,26 @@ import { checkRequest, type Intent } from './request.js';
 import { DesignerSession } from './session.js';
 import type { Item, Op, Scene, Vec2 } from './scene.js';
 
-export const FAST_VERSION = 'slots-v5';
+export const FAST_VERSION = 'slots-v6';
 const hash = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 export const sceneFingerprint = (scene: Scene, catalog: readonly CatalogAsset[] = []) => hash([FAST_VERSION, parseScene(scene), catalog]);
 type ClassId = 'furnish.living'|'furnish.bedroom'|'furnish.kids'|'add.one'|'add.desk-window'|'move.face-window'|'move.group'|'rearrange.open-floor'|'appearance.walls'|'scope.structural'|'feasibility.area';
-export interface Recipe { classId: ClassId; room?: 'living'|'bedroom'|'kids'; kind?: string; color?: string; wall?: string; budget?: number; count?:number; footprint?:[number,number] }
+export interface Recipe { classId: ClassId; room?: 'living'|'bedroom'|'kids'|'bathroom'|'all'; double?:boolean; kind?: string; color?: string; wall?: string; budget?: number; count?:number; footprint?:[number,number] }
 
 /** Whole-message rules: unsupported qualifications must go to the general agent. */
 export function classifyRequest(request: string): Recipe | undefined {
   const text=request.trim().toLowerCase().replace(/[.!]+$/,'');
   const beds=text.match(/^fit (\d+) additional beds inside this [\d.]+ by [\d.]+ metre bedroom, all at the same floor level, with no overlapping footprints\. each additional bed is exactly ([\d.]+) by ([\d.]+) metres; i already own them, so their purchase cost is zero\. keep the existing bed completely untouched and every existing piece\. do not resize, stack, overlap or move beds outside the bedroom\. if impossible, decline and explain the floor-area contradiction with numbers$/);
   if(beds&&[beds[1],beds[2],beds[3]].every(v=>Number.isFinite(Number(v))&&Number(v)>0))return {classId:'feasibility.area',room:'bedroom',count:Number(beds[1]),footprint:[Number(beds[2]),Number(beds[3])]};
-  if (/^(knock down|remove|demolish) the wall between (?:the )?kitchen and (?:the )?living room$/.test(text)) return {classId:'scope.structural'};
+  if (/^(?:knock down|tear down|remove|demolish|destroy) (?:the |a )?(?:(?:kitchen|living room|bedroom|bathroom) )?wall(?: between (?:the )?(?:kitchen|living room|bedroom|bathroom) and (?:the )?(?:kitchen|living room|bedroom|bathroom|other room))?$/.test(text)) return {classId:'scope.structural'};
   if (/^furnish (?:the |my )?living room$/.test(text)) return {classId:'furnish.living',room:'living'};
   if (/^furnish (?:the |my )?bedroom(?:: a double bed, two nightstands and a wardrobe)?$/.test(text)) return {classId:'furnish.bedroom',room:'bedroom'};
   if (/^furnish the second bedroom as a kids' room under 300,000 ֏$/.test(text)) return {classId:'furnish.kids',room:'kids',budget:300000};
   if (/^add a desk by the window(?: for working from home)?$/.test(text)) return {classId:'add.desk-window',kind:'desk'};
+  const double=text.match(/^(?:put|place|add|fit) (?:a |one )?double bed (?:in|into|to) (?:the |my )?(bathroom|bedroom|living room)$/);
+  if(double)return {classId:'add.one',kind:'bed',double:true,room:double[1]==='living room'?'living':double[1] as 'bathroom'|'bedroom'};
+  const allPaint=text.match(/^paint (?:the (?:apartment|flat)(?: walls)?|all(?: the)? walls) (red|blue|green|white|warm white|#[0-9a-f]{6})$/);
+  if(allPaint)return {classId:'appearance.walls',room:'all',color:({'red':'#ff0000','blue':'#0000ff','green':'#008000','white':'#ffffff','warm white':'#f5efe4'} as Record<string,string>)[allPaint[1]!]??allPaint[1]};
   const add=text.match(/^add (?:a|one) (sofa|chair|bed|table|cabinet|lamp|plant|rug|shelf) to (?:the |my )?(living room|bedroom)$/);
   if(add) return {classId:'add.one',kind:add[1],room:add[2]==='living room'?'living':'bedroom'};
   if (/^move the sofa so it faces the window$/.test(text)) return {classId:'move.face-window',kind:'sofa'};
@@ -51,6 +57,7 @@ function matchesKind(kind:string,semantic:string,broad:string):boolean {
 }
 function roomId(scene:Scene,recipe:Recipe):string|undefined {
   const bedrooms=scene.rooms.filter(r=>/bedroom|bed room|ննջ|спаль/i.test(r.name??''));
+  if(recipe.room==='bathroom'){const baths=scene.rooms.filter(r=>/bathroom|bath room|լոգ|ванн/i.test(r.name??''));return baths.length===1?baths[0]!.id:undefined;}
   if(recipe.room==='kids') return bedrooms[1]?.id;
   if(recipe.room==='bedroom') return bedrooms.length===1?bedrooms[0]!.id:undefined;
   if(recipe.room==='living') {const living=scene.rooms.filter(r=>/living|հյուր|гостин/i.test(r.name??''));return living.length===1?living[0]!.id:undefined;}
@@ -182,7 +189,23 @@ function generateSlots(scene:Scene,catalog:readonly CatalogAsset[],query:SlotQue
     const edge=Math.min(item.pos[0]-box.minX,box.maxX-item.pos[0],item.pos[1]-box.minY,box.maxY-item.pos[1]);
     const distance=spans.length?Math.min(...spans.map(w=>Math.hypot(item.pos[0]-(w.a[0]+w.b[0])/2,item.pos[1]-(w.a[1]+w.b[1])/2))):10;
     const travel=owned?Math.hypot(item.pos[0]-owned.pos[0],item.pos[1]-owned.pos[1]):0;
-    cheap.push({item,op,after,score:owned&&!query.openFloor?-travel:-edge-(query.nearWindow?distance:0)});
+    const semantic=asset?catalogKind(asset):base.kind;
+    let purchaseRank=-edge;
+    if(semantic==='table'){
+      const footprint=bounds(itemPolygon(item));
+      const clearance=Math.min(footprint.minX-box.minX,box.maxX-footprint.maxX,footprint.minY-box.minY,box.maxY-footprint.maxY);
+      purchaseRank=-Math.abs(clearance-1); // Rank usable table access before the bounded full checks.
+    }
+    if(semantic==='coffee_table'){
+      const sofas=scene.items.filter(i=>i.room_id===room.id&&i.kind==='sofa');
+      if(sofas.length){
+        purchaseRank=-Math.min(...sofas.map(sofa=>{
+          const theta=sofa.rot*Math.PI/180,reach=(sofa.size[1]+item.size[1])/2+.41;
+          return Math.hypot(item.pos[0]-(sofa.pos[0]+Math.sin(theta)*reach),item.pos[1]-(sofa.pos[1]-Math.cos(theta)*reach));
+        }));
+      }
+    }
+    cheap.push({item,op,after,score:owned&&!query.openFloor?-travel:purchaseRank-(query.nearWindow?distance:0)});
   }
   cheap.sort((a,b)=>b.score-a.score||JSON.stringify(a.op).localeCompare(JSON.stringify(b.op)));
   if(query.openFloor){
@@ -210,18 +233,27 @@ export type PreparedFastRequest = {type:'fallback';reason:string;classId?:ClassI
   | {type:'decline';classId:ClassId;reason:string;alternative:string;proof:string}
   | {type:'candidates';classId:ClassId;fingerprint:string;scene_fingerprint:string;intent:Intent;candidates:Candidate[];recipe:string;budget_ms:number;catalog:CatalogAsset[]};
 const defaultCache=new SceneAnalysisCache();
-export function prepareFastRequest(input:Scene,request:string,catalog:readonly CatalogAsset[]=[],cache=defaultCache,limits:{maxChecks?:number}={}):PreparedFastRequest {
+export function prepareFastRequest(input:Scene,request:string,catalog:readonly CatalogAsset[]=[],cache=defaultCache,limits:{maxChecks?:number;variant?:number;catalogComplete?:boolean}={}):PreparedFastRequest {
   const recipe=classifyRequest(request);if(!recipe)return {type:'fallback',reason:'Unclassified or qualified request'};
   const {classId}=recipe,scene=parseScene(input);
   const fallback=(reason:string):PreparedFastRequest=>({type:'fallback',classId,reason});
   const decline=(reason:string,alternative:string,proof:string):PreparedFastRequest=>({type:'decline',classId,reason,alternative,proof});
   if(classId==='scope.structural')return decline('I cannot demolish structural walls.','I can rearrange the furniture; consult a structural engineer about changing walls.','Designer scope excludes structural operations');
-  const room=roomId(scene,recipe);
-  if(!room){
-    if(classId.startsWith('add.')&&recipe.kind&&!catalog.some(a=>matchesKind(recipe.kind!,catalogKind(a),a.kind)))
+  const room=recipe.room==='all'?'':roomId(scene,recipe)??'';
+  if(!room&&recipe.room!=='all'){
+    if(limits.catalogComplete!==false&&classId.startsWith('add.')&&recipe.kind&&!catalog.some(a=>matchesKind(recipe.kind!,catalogKind(a),a.kind)))
       return decline(`No ${recipe.kind} with a usable catalog identity is available.`,`Load a catalog containing a ${recipe.kind}, or choose another available furniture kind.`,'Empty supplied catalog subtype set across all rooms; not a claim of physical impossibility');
     return fallback('Room is ambiguous or missing');
   }
+  if(recipe.double&&room){
+    const polygon=scene.rooms.find(r=>r.id===room)!.polygon,box=bounds(polygon);
+    const rectangle=polygon.length===4&&polygon.every(p=>(p[0]===box.minX||p[0]===box.maxX)&&(p[1]===box.minY||p[1]===box.maxY));
+    const width=Math.min(box.maxX-box.minX,box.maxY-box.minY);
+    // Even ignoring walls/fixtures, a double bed (>=1.35 x 1.8) plus the existing
+    // 0.60 m side-access gates has a minimum projected width of 1.8 m at ANY yaw.
+    if(rectangle&&width<1.8-1e-7)return decline(`A double bed cannot fit with usable side access: this room is only ${Number(width.toFixed(2))} m wide. A double bed of at least 1.35 × 1.8 m plus 0.60 m access on each side needs at least 1.8 m in its narrowest orientation, before walls and fixtures.`, 'Try the bedroom instead, or choose a smaller single piece.', 'Rectangular room width is smaller than every rotation of the minimum bed-and-access rectangle');
+  }
+  if(recipe.double&&!catalog.length)return fallback('Room width does not prove infeasibility; a verified double-bed catalog is needed');
   if(classId==='feasibility.area'){
     const polygon=scene.rooms.find(r=>r.id===room)!.polygon;
     const area=Math.abs(polygon.reduce((n,p,i)=>{const q=polygon[(i+1)%polygon.length]!;return n+p[0]*q[1]-q[0]*p[1];},0))/2;
@@ -231,7 +263,7 @@ export function prepareFastRequest(input:Scene,request:string,catalog:readonly C
   }
   const finish=(candidates:Candidate[],intent:Intent):PreparedFastRequest=>candidates.length?{type:'candidates',classId,fingerprint:sceneFingerprint(scene,catalog),scene_fingerprint:sceneFingerprint(scene),intent,candidates:candidates.slice(0,12),recipe:`${classId}: choose one checked complete layout by slot_id; repeat its catalog_ids exactly. No coordinates, operations, or extra fields.`,budget_ms:15000,catalog:structuredClone([...catalog])}:fallback('Bounded candidate search found no complete checked layout; impossibility is not proven');
   if(classId==='appearance.walls'){
-    let walls=scene.walls.filter(w=>w.room_id===room&&!w.open);
+    let walls=scene.walls.filter(w=>(recipe.room==='all'||w.room_id===room)&&!w.open);
     if(recipe.wall){
       // Named editor compass walls are stable IDs, not an inferred north direction.
       walls=walls.filter(w=>(w.source_id??w.id)===`wall-${recipe.wall}`||w.id===recipe.wall);
@@ -239,7 +271,7 @@ export function prepareFastRequest(input:Scene,request:string,catalog:readonly C
     }
     if(!walls.length)return fallback('No paintable walls');
     const colors=walls.map(w=>({target:'wall' as const,id:w.id,color:recipe.color!})),ops:Op[]=colors.map(c=>({type:'color',...c}));
-    return finish([{id:`slot-${hash(ops).slice(0,16)}`,catalog_ids:[],ops,score:0,scores:{daylight:0,zoning:0,facing:0,open_floor:0},description:'Apply the requested wall colour. Furniture and geometry stay in place; paint and labour are unquoted.'}],{room_id:room,add:[],remove:[],colors});
+    return finish([{id:`slot-${hash(ops).slice(0,16)}`,catalog_ids:[],ops,score:0,scores:{daylight:0,zoning:0,facing:0,open_floor:0},description:'Apply the requested wall colour. Furniture and geometry stay in place; paint and labour are unquoted.'}],{room_id:room||undefined,add:[],remove:[],colors});
   }
   if((classId==='add.desk-window'||classId==='move.face-window')&&!windows(scene,room).length)return decline('This room has no window, so a window-facing or window-side placement is impossible.','Place the desk with task lighting, or choose a room with a window.','No window span in selected room');
   if(limits.maxChecks===0)return fallback('Candidate check budget exhausted');
@@ -251,7 +283,10 @@ export function prepareFastRequest(input:Scene,request:string,catalog:readonly C
       const members=[...scene.items,...scene.fixed].filter(m=>m.group_id===i.group_id);
       return members.length===2&&members.some(m=>m.kind==='rug'&&/living rug/i.test(m.name));
     });
-    if(!targets.length)return fallback('No unambiguous movable target');
+    if(!targets.length){
+      if(classId==='rearrange.open-floor')return decline('There is no movable furniture in the living room, so there is nothing to rearrange to gain floor space.', 'I can furnish the living room with a sofa and table instead.', 'No movable furniture in the selected room');
+      return fallback('No unambiguous movable target');
+    }
     if(classId!=='rearrange.open-floor'&&targets.length!==1)return fallback('Multiple targets require clarification');
     cache.analyze(scene,catalog);
     if(classId==='rearrange.open-floor'){
@@ -290,19 +325,24 @@ export function prepareFastRequest(input:Scene,request:string,catalog:readonly C
       return fallback('The room already has all requested pieces; no nonempty furnishing edit is specified');
     }
   }
-  const assets=(kind:string)=>catalog.filter(a=>matchesKind(kind,catalogKind(a),a.kind)&&(classId!=='furnish.bedroom'||kind!=='bed'||a.dimensions[0]>=1.35&&a.dimensions[2]>=1.8)).sort((a,b)=>a.price-b.price||a.id.localeCompare(b.id));
+  const assets=(kind:string)=>catalog.filter(a=>matchesKind(kind,catalogKind(a),a.kind)&&(!(classId==='furnish.bedroom'||recipe.double)||kind!=='bed'||a.dimensions[0]>=1.35&&a.dimensions[2]>=1.8)).sort((a,b)=>a.price-b.price||a.id.localeCompare(b.id));
   const polygon=scene.rooms.find(r=>r.id===room)!.polygon,box=bounds(polygon),roomArea=Math.abs(polygon.reduce((s,a,i)=>{const b=polygon[(i+1)%polygon.length]!;return s+a[0]*b[1]-b[0]*a[1];},0))/2;
   for(const kind of needed){const choices=assets(kind);
+    if(!choices.length&&limits.catalogComplete===false)return fallback(`Bounded catalog search has not found a usable ${kind}; absence from the catalog is not proven`);
     if(!choices.length)return decline(`No ${kind} with a usable catalog identity is available.`,`Choose another available furniture kind or load a catalog containing a ${kind}.`,'Empty supplied catalog subtype set; not a claim of physical impossibility');
+    if(choices.every(a=>a.dimensions[0]*a.dimensions[2]>roomArea+1e-7)&&limits.catalogComplete===false)return fallback('Bounded catalog search has not found a small enough piece; impossibility is not proven');
     if(choices.every(a=>a.dimensions[0]*a.dimensions[2]>roomArea+1e-7))return decline(`The available ${kind} footprint is larger than this room's ${roomArea.toFixed(2)} m² area.`,`Choose a smaller ${kind}, within the room's ${(box.maxX-box.minX).toFixed(2)} × ${(box.maxY-box.minY).toFixed(2)} m bounds.`,'Every available footprint area exceeds total room area');
   }
+  if(recipe.budget!==undefined&&needed.reduce((s,k)=>s+assets(k)[0]!.price,0)>recipe.budget&&limits.catalogComplete===false)return fallback('Bounded catalog search has not found an affordable set; catalog minimum price is unknown');
   if(recipe.budget!==undefined&&needed.reduce((s,k)=>s+assets(k)[0]!.price,0)>recipe.budget)return decline('The cheapest available requested pieces exceed the budget.','Keep existing furniture, reduce the piece count, or increase the budget.','Sum of independent minimum catalog prices exceeds budget');
   cache.analyze(scene,catalog);
   // Bounded beam over complete layouts; every next piece sees previous placements.
   let beam:{scene:Scene;ops:Op[];score:number}[]=[{scene,ops:[],score:0}];
   for(const kind of needed){
     const next:typeof beam=[];
-    for(const state of beam.slice(0,2))for(const asset of assets(kind).slice(0,3)){
+    const choices=assets(kind),offset=limits.variant?limits.variant%Math.max(1,choices.length):0;
+    const varied=[...choices.slice(offset),...choices.slice(0,offset)];
+    for(const state of beam.slice(0,2))for(const asset of varied.slice(0,3)){
       const slots=cache.slots(state.scene,catalog,{roomId:room,catalogId:asset.id,nearWindow:kind==='desk',...limits});
       for(const slot of slots.slice(0,2)){
         const ops=[...state.ops,...slot.ops];if(recipe.budget!==undefined&&ops.reduce((n,o)=>n+(o.type==='add'?o.item.price??Infinity:0),0)>recipe.budget)continue;
@@ -330,4 +370,28 @@ export function selectFastCandidate(scene:Scene,prepared:Extract<PreparedFastReq
   if(!candidate||JSON.stringify(selected.catalog_ids)!==JSON.stringify(candidate.catalog_ids))throw new Error('Unknown slot or mismatched catalog IDs');
   const session=new DesignerSession(scene);session.setIntent(candidate.intent??prepared.intent);
   return session.propose(candidate.ops,candidate.description);
+}
+
+/** Registered scene assets are identities, not a purchase universe. Query each requested kind
+ * from the real catalog, map through the same editor boundary, and retain owned identities. */
+export async function discoverFastCatalog(scene:Scene,request:string,owned:readonly CatalogAsset[],query:CatalogQuery=createHttpCatalogQuery({url:process.env.VARPET_CATALOG_URL||undefined,timeoutMs:6000})):Promise<CatalogAsset[]> {
+  const recipe=classifyRequest(request);
+  if(!recipe||!(recipe.classId.startsWith('furnish.')||recipe.classId.startsWith('add.')))return [...owned];
+  const kinds=recipe.classId==='furnish.living'?['sofa','table']:recipe.classId==='furnish.bedroom'?['bed','wardrobe','nightstand']:recipe.classId==='furnish.kids'?['bed','desk','cabinet']:[recipe.kind!];
+  const pages=await Promise.all(kinds.map(kind=>query({kind,limit:12})));
+  const merged=new Map<string,CatalogAsset>();
+  for(const page of pages){
+    if(!page||typeof page!=='object'||!Array.isArray((page as {results?:unknown}).results))throw Error('Catalog returned no product list');
+    for(const raw of (page as {results:unknown[]}).results.slice(0,12)){const product=catalogProduct(raw);if(product)merged.set(product.asset.id,product.asset);}
+  }
+  for(const asset of owned)merged.set(asset.id,asset);
+  return [...merged.values()];
+}
+
+/** Alternative requests may not silently repeat a previously offered layout. */
+export function excludeFastOptions(prepared:PreparedFastRequest,excluded:readonly Op[][]):PreparedFastRequest {
+  if(prepared.type!=='candidates'||!excluded.length)return prepared;
+  const key=(ops:readonly Op[])=>JSON.stringify([...parseOps(ops)].sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b))));
+  const seen=new Set(excluded.map(key)),candidates=prepared.candidates.filter(c=>!seen.has(key(c.ops)));
+  return candidates.length?{...prepared,candidates}:{type:'fallback',classId:prepared.classId,reason:'Bounded candidate search has no different checked option yet; previous options were excluded'};
 }

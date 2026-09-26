@@ -79,6 +79,7 @@ export class DesignerSession {
       const after=applyOps(this.scene,ops);
       const request=checkRequest(this.scene,after,ops,this.intent,checks.price.cost_dram,this.customerRequests);
       if(!request.ok) return {ok:false,errors:request.errors};
+      if(!ops.length)return {ok:false,errors:[{check:'empty_proposal',message:'There are no changes to propose. Answer conversationally instead of creating an empty proposal.'}]};
       const score=scoreLayout(this.scene,ops);
       const id=`proposal-${this.nextId++}`;
       const proposal:Proposal={id,base_scene_fingerprint:this.fingerprint,ops,rationale:paragraph,intent:structuredClone(this.intent),checks,request_check:request,score,requires_user_acceptance:true,application_status:'not_applied',validation_scope:'temporary_designer_scene'};

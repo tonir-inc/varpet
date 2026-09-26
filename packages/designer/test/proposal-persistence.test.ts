@@ -27,12 +27,19 @@ test('propose saves only accepted checked snapshots to the service directory', a
     expect((await call('propose', { ops: [], rationale: 'No intent yet.' })).isError).toBe(true);
     expect(await readdir(root)).toEqual([]);
     await call('set_intent', {});
-    const result = await call('propose', { ops: [], rationale: 'Keep the clear room.' });
+    const empty = await call('propose', { ops: [], rationale: 'Keep the clear room.' });
+    expect(empty.isError).toBe(true);
+    expect(JSON.stringify(empty.content)).toMatch(/empty_proposal.*conversationally/);
+    expect(JSON.stringify(empty.content)).not.toMatch(/proposal_id/);
+    expect(await readdir(root)).toEqual([]);
+    await call('set_intent',{add:[{kinds:['chair'],count:1}]});
+    const result = await call('propose', { ops: [{type:'add',item:{id:'chair',room_id:'r',kind:'chair',name:'Chair',pos:[2,2],rot:0,size:[.5,.5,.8],keep:false,price:25000}}], rationale: 'Add a chair.' });
     expect(result.isError).not.toBe(true);
     const accepted = JSON.parse((result.content as {text:string}[])[0]!.text);
     expect(await readdir(root)).toEqual([`${accepted.proposal_id}.json`]);
     const saved = JSON.parse(await readFile(join(root, `${accepted.proposal_id}.json`), 'utf8'));
     expect(saved).toEqual(accepted.proposal);
+    expect(saved.ops).toHaveLength(1);
     expect(saved).toMatchObject({ application_status: 'not_applied', requires_user_acceptance: true,
       checks: { ok: true }, request_check: { ok: true } });
   } finally { await client.close(); await server.close(); await rm(root, { recursive: true }); }
@@ -45,7 +52,12 @@ test('a persistence failure is returned as a tool error instead of claiming a de
   const { client, server, call } = await connect();
   try {
     await call('set_intent', {});
-    const result = await call('propose', { ops: [], rationale: 'Keep the clear room.' });
+    const empty = await call('propose', { ops: [], rationale: 'Keep the clear room.' });
+    expect(empty.isError).toBe(true);
+    expect(JSON.stringify(empty.content)).toMatch(/empty_proposal.*conversationally/);
+    expect(JSON.stringify(empty.content)).not.toMatch(/proposal_id/);
+    await call('set_intent',{add:[{kinds:['chair'],count:1}]});
+    const result = await call('propose', { ops: [{type:'add',item:{id:'chair',room_id:'r',kind:'chair',name:'Chair',pos:[2,2],rot:0,size:[.5,.5,.8],keep:false,price:25000}}], rationale: 'Add a chair.' });
     expect(result.isError).toBe(true);
     expect(JSON.stringify(result.content)).toMatch(/save|persist/i);
     expect(await readFile(file, 'utf8')).toBe('occupied');

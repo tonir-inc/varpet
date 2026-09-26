@@ -36,6 +36,18 @@ database assets dynamically; an existing registered ID retains its identity whil
 it. Legacy callers that omit `catalog` still get the bridge's local demo catalog; the current editor
 passes its database catalog explicitly, including an empty array. Unknown asset IDs fail rather than
 acquiring invented dimensions.
+The fast path also queries the configured real catalog by requested furniture kind (at most twelve
+records per kind), maps records with the editor's `catalogProduct`, and preserves registered identities.
+The supplied scene catalog is never treated as the complete buying universe. Bounded search misses
+are not evidence that no product exists. Catalog failures are reported as unavailable, not "no sofa".
+Discovery and full product records stay off the model prompt; selection sees only checked candidate IDs
+and the product preview grid. Visual selection has a 25-second budget; nonvisual selection keeps 12 seconds.
+
+Follow-up chips bind to the latest customer request, including fast failures that never entered the SDK
+thread. Another option retains recent modifiers and excludes earlier checked fast-path proposals for that
+request. Empty operation lists are rejected by the native proposal gate and never sent to the editor;
+an empty living-room rearrangement answers directly and offers furnishing instead.
+
 `catalogCurrency: "AMD"` explicitly confirms purchase-price units. Without it, owned furniture can
 be rearranged, but unlabelled editor prices are not treated as dram quotations.
 
@@ -44,7 +56,7 @@ exactly one final line:
 
 ```json
 {"type": "progress", "message": "Checking the walkway to the door"}
-{"type": "proposal", "conversationId": "c1", "proposal": { "id": "...", "title": "...", "description": "...", "command": { "id": "...", "label": "...", "source": "designer", "baseRevision": 12, "operations": [] } }, "metrics": {}}
+{"type": "proposal", "conversationId": "c1", "proposal": { "id": "...", "title": "...", "description": "...", "command": { "id": "...", "label": "...", "source": "designer", "baseRevision": 12, "operations": [{"type":"update","id":"sofa","patch":{"position":[1,0,2]}}] } }, "metrics": {}}
 {"type": "question", "conversationId": "c1", "question": "Cozier how?", "options": ["warmer light", "fewer pieces", "softer seating"]}
 {"type": "message_delta", "delta": "A quieter palette "}
 {"type": "message", "conversationId": "c1", "message": "**Minimalism** reduces visual clutter; it does not mean an empty home.", "suggestions": ["Make it warmer", "What would it cost?"]}

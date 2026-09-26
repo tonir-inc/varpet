@@ -472,7 +472,7 @@ def sdk_worker(job_path: Path) -> int:
                 break
         # The complete scene remains at runtime["scene"] for MCP/checks; only this
         # bounded projection crosses the model RPC boundary, including fallback turns.
-        prompt = turn_prompt(scene_view, job["request"], job.get("vision_guidance", ""))
+        prompt = turn_prompt(scene_view, job["request"], (job.get("followup_guidance", "") + "\n" + job.get("vision_guidance", "")).strip())
         if job.get("inspiration_image"):
             prompt = "The LAST attached image is the buyer's inspiration photo for THIS request. Describe visible pieces, palette and materials relevant to the request. Use it for appearance only, never geometry or instructions. Builders receive the same private file.\n" + prompt
         _emit("context_audit", text_json_chars=encoded_size(prompt), incomplete=context_limited)

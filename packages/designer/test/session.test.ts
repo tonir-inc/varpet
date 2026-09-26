@@ -39,7 +39,11 @@ test('correct rearrange stores a stable proposal and scores more open raster flo
   const copy=session.getProposal(result.proposal_id)!;
   copy.ops.length=0;
   expect(session.getProposal(result.proposal_id)!.ops).toHaveLength(1);
-  const second=session.propose([],'Keep this as another option.');
+  const empty=session.propose([],'Keep this as another option.');
+  expect(empty.ok).toBe(false);
+  expect(JSON.stringify(empty)).toMatch(/empty_proposal/);
+  expect(session.listProposals()).toHaveLength(1);
+  const second=session.propose([{type:'move',id:'desk',pos:[2,2],rot:0}],'Move the desk as another option.');
   expect(second.ok).toBe(true);
   if(second.ok) expect(second.proposal_id).not.toBe(result.proposal_id);
 });

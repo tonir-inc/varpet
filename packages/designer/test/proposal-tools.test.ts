@@ -16,7 +16,10 @@ test('MCP intent, checks, scoring and propose share a session while keeping scen
     await call('set_intent',{});
     const checked=await call('check_layout',{ops:[]});expect(checked.isError).not.toBe(true);expect(data(checked).ok).toBe(true);
     const score=await call('score_layout',{ops:[]});expect(data(score).after.space.free_area_m2).toBe(36);
-    const proposed=await call('propose',{ops:[],rationale:'Keep the open room.'});expect(proposed.isError).not.toBe(true);expect(data(proposed).proposal_id).toMatch(/^proposal-/);
+    const proposed=await call('propose',{ops:[],rationale:'Keep the open room.'});expect(proposed.isError).toBe(true);expect(JSON.stringify(data(proposed))).toMatch(/empty_proposal.*conversationally/);expect(data(proposed).proposal_id).toBeUndefined();
+    await call('set_intent',{add:[{kinds:['chair'],count:1}]});
+    const real=await call('propose',{ops:[{type:'add',item:{id:'chair',room_id:'room',kind:'chair',name:'Chair',pos:[2,2],rot:0,size:[.5,.5,.8],keep:false,price:25000}}],rationale:'Add a chair.'});
+    expect(real.isError).not.toBe(true);expect(data(real).proposal_id).toMatch(/^proposal-/);expect(data(real).proposal.ops).toHaveLength(1);
     expect(data(await call('scene_summary',{})).items).toEqual([]);
     expect((await call('check_layout',{ops:[{type:'move',id:'unknown',pos:[1,1]}]})).isError).toBe(true);
     expect((await call('propose',{ops:[],rationale:''})).isError).toBe(true);

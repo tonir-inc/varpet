@@ -44,7 +44,9 @@ elif mode == "to-command":
     output = {
         "id": accepted["id"], "title": "Desk by the window", "description": accepted["rationale"],
         "command": {"id": "cmd-1", "label": "Move desk", "source": "designer",
-                    "baseRevision": int(args[3]), "operations": []}}
+                    "baseRevision": int(args[3]), "operations": [{"type":"update", "id":"desk", "patch":{"position":[2,0,-2]}}]}}
+    if scene.get("mode") == "empty-command":
+        output["command"]["operations"] = []
     if scene.get("mode") == "bad-source":
         output["command"]["source"] = "user"
     if scene.get("mode") == "bad-revision":
@@ -105,9 +107,9 @@ if mode in ("question", "failed-ask"):
         "error": {"message": "invalid question"} if mode == "failed-ask" else None,
         "arguments": {"question": question["question"], "options": question["options"]},
         "result": {"content": [{"type": "text", "text": json.dumps(question)}]}}})
-if mode in ("proposal", "multiple-proposals"):
+if mode in ("proposal", "multiple-proposals", "empty-proposal"):
     time.sleep(.25)
-    proposal = {"id": "p-1", "ops": [], "rationale": "Frees 1.2 m².", "score": {"free_floor": 1.2}}
+    proposal = {"id": "p-1", "ops": [] if mode == "empty-proposal" else [{"type":"move","id":"desk","pos":[2,2]}], "rationale": "Frees 1.2 m².", "score": {"free_floor": 1.2}}
     folder = pathlib.Path(os.environ["VARPET_PROPOSALS_DIR"])
     assert folder.is_dir() and not list(folder.iterdir())
     (folder / "p-1.json").write_text(json.dumps(proposal))
@@ -199,6 +201,22 @@ class ServiceTests(unittest.TestCase):
             time.sleep(.01)
         self.fail(f"subprocess did not create {path.name}")
 
+    def test_empty_native_proposal_returns_honest_reply_without_translation(self):
+        self.start()
+        final, _ = self.post(self.payload("empty-proposal"))
+        self.assertEqual(final["type"], "message")
+        self.assertIn("no checked change", final["message"])
+        self.assertNotIn("proposal", final)
+        self.assertEqual([call[0] for call in self.records("bridge.jsonl")], ["to-designer"])
+
+    def test_empty_translated_command_returns_honest_reply_without_proposal(self):
+        self.start()
+        final, _ = self.post(self.payload(scene={"format":"varpet.editor", "mode":"empty-command"}))
+        self.assertEqual(final["type"], "message")
+        self.assertIn("no checked change", final["message"])
+        self.assertNotIn("proposal", final)
+        self.assertNotIn("command", final)
+
     def test_health_and_cors_preflight(self):
         self.start()
         connection = http.client.HTTPConnection("127.0.0.1", self.port, timeout=3)
@@ -227,7 +245,9 @@ class ServiceTests(unittest.TestCase):
         self.assertTrue(final["conversationId"])
         self.assertEqual(final["proposal"]["command"]["baseRevision"], 12)
         self.assertEqual(final["proposal"]["command"]["source"], "designer")
-        self.assertEqual(final["proposal"]["description"], "Frees 1.2 m².")
+        self.assertIn("moved", final["proposal"]["description"])
+        self.assertNotIn("1.2", final["proposal"]["description"])
+        self.assertEqual(len(final["proposal"]["command"]["operations"]), 1)
         self.assertIsInstance(final["metrics"], dict)
         progress = [(at, item) for at, item in timed if item["type"] == "progress"]
         self.assertGreaterEqual(len(progress), 3)

@@ -18,6 +18,12 @@ class CatalogHandoffTest(unittest.TestCase):
                 validate_request({**base, **extras})
 
     def test_catalog_and_extras_are_identical_during_conversion_and_translation(self):
+        self.check_catalog_handoff(empty=False)
+
+    def test_empty_catalog_translation_returns_reply_not_zero_operation_command(self):
+        self.check_catalog_handoff(empty=True)
+
+    def check_catalog_handoff(self, *, empty):
         calls = []
         catalog = [{"id": "real-sofa", "kind": "sofa", "dimensions": [2, 1, 1]}]
         swings = {"door": "in-left"}
@@ -31,7 +37,7 @@ class CatalogHandoffTest(unittest.TestCase):
                 elif "to-command" in command:
                     mode = command.index("to-command")
                     Path(command[mode + 4]).write_text(json.dumps({"id": "p-1", "title": "Move", "description": "Checked.",
-                        "command": {"id": "c-1", "label": "Move", "source": "designer", "baseRevision": 7, "operations": []}}))
+                        "command": {"id": "c-1", "label": "Move", "source": "designer", "baseRevision": 7, "operations": [] if empty else [{"type":"update", "id":"sofa", "patch":{"position":[2,0,-2]}}]}}))
                 else:
                     Path(env["VARPET_PROPOSALS_DIR"], "p-1.json").write_text(json.dumps({"id": "p-1", "score": {}}))
                     on_output("stdout", json.dumps({"kind": "worker_summary", "status": "completed", "response": "Checked."}) + "\n")
@@ -43,7 +49,14 @@ class CatalogHandoffTest(unittest.TestCase):
             result = service.propose({"scene": {"format": "varpet.editor"}, "revision": 7,
                 "request": "Move the sofa", "catalog": catalog, "catalogCurrency": "AMD", "keep": ["bed"],
                 "northDeg": 35, "doorSwings": swings}, threading.Event(), lambda message: None)
-            self.assertEqual(result["type"], "proposal")
+            if empty:
+                self.assertEqual(result["type"], "message")
+                self.assertIn("no checked change", result["message"])
+                self.assertNotIn("proposal", result)
+                self.assertNotIn("command", result)
+            else:
+                self.assertEqual(result["type"], "proposal")
+                self.assertEqual(len(result["proposal"]["command"]["operations"]), 1)
             convert, translate = calls[0], calls[-1]
             for flag in ("--catalog", "--currency", "--keep", "--north", "--swings"):
                 self.assertIn(flag, convert)

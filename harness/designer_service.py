@@ -107,6 +107,23 @@ def tool_values(event: dict, tool: str) -> list[dict]:
     return [value for value in values if isinstance(value, dict)]
 
 
+def resolve_followup(request, history):
+    """Fast turns have no SDK history: bind chips to the latest customer task here."""
+    import re
+    another = r'(?:show me )?another option[.!]?'
+    chip = request.strip().split('\n\nAbout your proposal', 1)[0]
+    if not (re.fullmatch(another, chip, re.I) or chip.lower().rstrip('.!?') in ('make it warmer', 'what would it cost', 'why this layout')):
+        return request, 0
+    if not history:
+        return request, 0
+    previous = history[-1]
+    effective, prior_variant = resolve_followup(previous, history[:-1])
+    if re.fullmatch(another, chip, re.I):
+        return effective, prior_variant + 1
+    return f'{chip}\n\nRegarding my latest request: {effective}', 0
+
+
+
 @dataclass
 class Conversation:
     root: Path
@@ -114,6 +131,7 @@ class Conversation:
     cancel: threading.Event | None = None
     ending: bool = False
     customer_requests: list[str] = field(default_factory=list)
+    proposal_options: dict[str, list] = field(default_factory=dict)
     runtime: dict | None = None
     conversion_notice_sent: bool = False
     usage: dict | None = None
@@ -234,8 +252,10 @@ class DesignerService:
                 conversation.inspiration_image = designer_inspiration.store_image(body["image"], conversation.root)
             from designer_fast import routing_classes
             import re
+            effective_request, variant = resolve_followup(body['request'], conversation.customer_requests)
+            conversation.customer_requests.append(body['request'])
             allowed = routing_classes(self.profile, os.environ)
-            scope_request = re.fullmatch(r"(?:knock down|remove|demolish) the wall between (?:the )?kitchen and (?:the )?living room", body['request'].strip().lower().rstrip('.!'))
+            scope_request = re.fullmatch(r"(?:knock down|tear down|remove|demolish|destroy) (?:the |a )?(?:(?:kitchen|living room|bedroom|bathroom) )?wall(?: between (?:the )?(?:kitchen|living room|bedroom|bathroom) and (?:the )?(?:kitchen|living room|bedroom|bathroom|other room))?", effective_request.strip().lower().rstrip('.!'))
             if scope_request and 'image' not in body and (allowed is None or 'scope.structural' in allowed):
                 if cancel.is_set():
                     raise RuntimeError('Request cancelled')
@@ -284,7 +304,6 @@ class DesignerService:
                     conversation.runtime = designer.prepare_runtime(conversation.root / "runtime", scene)
                 else:
                     Path(conversation.runtime["scene"]).write_text(json.dumps(scene, ensure_ascii=False))
-                conversation.customer_requests.append(body["request"])
                 customer_requests = Path(conversation.runtime["scene"] + ".requests.json")
                 customer_requests.write_text(json.dumps(conversation.customer_requests, ensure_ascii=False))
                 proposals = root / "proposals"
@@ -293,7 +312,9 @@ class DesignerService:
                 catalog_context = (self.catalog_acceleration.context(scene, body['catalog'], body['scene'],
                     {**{k:body[k] for k in ('keep','doorSwings','northDeg','catalogCurrency') if k in body}, 'groupPolicy':'move-together'})
                                    if not conversion_error and self.catalog_acceleration and isinstance(body.get('catalog'), list) else {})
-                job.write_text(json.dumps({"runtime": conversation.runtime, "request": body["request"],
+                job.write_text(json.dumps({"runtime": conversation.runtime, "request": effective_request, "variant": variant, "discover_catalog": True,
+                                           "excluded_ops": conversation.proposal_options.get(effective_request, []) if variant else [],
+                                           "followup_guidance": ("Retry the latest customer request with a different checked option or approach. Earlier successful proposals are unrelated unless this latest request names them." if variant else ""),
                                            "effort": self.effort, "profile": self.profile, "images": self.image_paths,
                                            **({"inspiration_image": conversation.inspiration_image} if "image" in body else {}),
                                            "conversion_error": conversion_error,
@@ -363,6 +384,11 @@ class DesignerService:
                 if files:
                     proposal_file = files[-1]
                     saved = json.loads(proposal_file.read_text())
+                    if saved.get("ops") == []:
+                        outcome = "message"
+                        return {"type":outcome,"conversationId":conversation_id,
+                                "message":"There is no checked change to preview. " + str(summary.get("response") or "Tell me what you would like to change.")[:3500]}
+
                     custom_ids = [op["item"]["sku"] for op in saved.get("ops", [])
                                   if op.get("type") == "add" and str(op.get("item", {}).get("sku", "")).startswith("custom-")]
                     builds.finish()
@@ -383,8 +409,12 @@ class DesignerService:
                     if (not all(isinstance(proposal.get(key), str) for key in ("id", "title", "description"))
                             or command.get("source") != "designer" or command.get("baseRevision") != body["revision"]
                             or not all(isinstance(command.get(key), str) for key in ("id", "label"))
-                            or not isinstance(command.get("operations"), list)):
+                            or not isinstance(command.get("operations"), list) or len(command["operations"]) > 100):
                         raise RuntimeError("Bridge returned an invalid AgentProposal or stale revision")
+                    if not command["operations"]:
+                        outcome = "message"
+                        return {"type":outcome,"conversationId":conversation_id,
+                                "message":"There is no checked change to preview. Tell me what you would like to change."}
                     presentation = format_presentation(saved, body["scene"], proposal, body["request"])
                     if not isinstance(presentation, dict):
                         raise RuntimeError("Invalid designer presentation")
@@ -411,6 +441,11 @@ class DesignerService:
                                     "question": "I haven’t confirmed that this preview meets the requested look. " + visual.get("reason", "")[:600],
                                     "options": ["Adjust the style request", "Try again without visual confirmation"]}
                     event_stream.checked(saved)
+                    if effective_request not in conversation.proposal_options and len(conversation.proposal_options) >= 16:
+                        conversation.proposal_options.pop(next(iter(conversation.proposal_options)))
+                    prior_options = conversation.proposal_options.setdefault(effective_request, [])
+                    prior_options.append(saved.get('ops', []))
+                    del prior_options[:-8]
                     outcome = "proposal"
                     return {"type": outcome, "conversationId": conversation_id, "proposal": proposal,
                             "metrics": {**saved.get("score", {}), **({"visualConfirmation": visual} if visual else {})},

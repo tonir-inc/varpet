@@ -96,7 +96,8 @@ def code_call(payload, timeout=15):
         path.write_text(json.dumps(payload))
         result = designer.watch_process([str(ROOT / 'packages/designer/node_modules/.bin/tsx'),
                                         str(ROOT / 'packages/designer/src/fast-cli.ts'),str(path)],
-                                       deadline=time.monotonic()+timeout,idle_timeout=timeout)
+                                       deadline=time.monotonic()+timeout,idle_timeout=timeout,
+                                        env={**os.environ, **designer.designer_mcp_env()})
     if result.deadline_exceeded or result.timed_out:
         raise subprocess.TimeoutExpired('fast-path code', timeout)
     if result.returncode:
@@ -121,7 +122,8 @@ def run(job, job_path, allowed_classes=None):
         preparation = code_call({'action': 'prepare', 'scene': scene, 'catalog': catalog, 'request': job['request'],
                                  'cache_dir': str(Path(runtime['workspace']).parent / 'fast-cache'),
                                  'knowledge_dir': str(ROOT / 'packages/designer/knowledge/layouts'),
-                                 'allowed_classes': allowed_classes}, timeout=8)
+                                 'allowed_classes': allowed_classes, 'discover_catalog': job.get('discover_catalog', False),
+                                 'variant': job.get('variant', 0), 'excluded_ops': job.get('excluded_ops', [])}, timeout=18 if job.get('discover_catalog') else 8)
     except subprocess.TimeoutExpired:
         designer._emit('fast_path', status='search_budget', seconds=time.monotonic()-start)
         designer._emit('worker_summary',status='completed',fast_path=True,
@@ -129,6 +131,7 @@ def run(job, job_path, allowed_classes=None):
                        total_usage={'inputTokens':0,'outputTokens':0,'cachedInputTokens':0,'totalTokens':0})
         return 0
     prepared = preparation['prepared']
+    catalog = prepared.get('catalog', catalog)
     designer._emit('fast_path', stage='prepared', **{k: v for k, v in preparation.items() if k != 'prepared'},
                    outcome=prepared['type'], class_id=prepared.get('classId'))
     if prepared['type'] == 'fallback':
@@ -147,6 +150,10 @@ def run(job, job_path, allowed_classes=None):
     if selected is not None:
         return complete_selection(scene,prepared,catalog,selected,0,start,
                                   {'inputTokens':0,'outputTokens':0,'cachedInputTokens':0,'totalTokens':0})
+    if job.get('variant') and len(prepared['candidates']) > 1:
+        candidates = prepared['candidates']
+        offset = job['variant'] % len(candidates)
+        prepared = {**prepared, 'candidates': candidates[offset:] + candidates[:offset]}
     from designer_products import prepare_product_previews
     preview_start=time.monotonic()
     try:
@@ -196,7 +203,7 @@ def run(job, job_path, allowed_classes=None):
         def interrupt():
             expired.set()
             handle.interrupt()
-        timer = threading.Timer(12, interrupt)
+        timer = threading.Timer(25 if product_images else 12, interrupt)
         timer.start()
         try:
             for event in handle.stream():

@@ -3,7 +3,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, unlink
 import { join } from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
 import { performance } from 'node:perf_hooks';
-import { classifyRequest, prepareFastRequest, selectFastCandidate, sceneFingerprint, FAST_VERSION } from './fast-path.js';
+import { classifyRequest, discoverFastCatalog, excludeFastOptions, prepareFastRequest, selectFastCandidate, sceneFingerprint, FAST_VERSION } from './fast-path.js';
 const input=JSON.parse(readFileSync(process.argv[2]??0,'utf8')),started=performance.now();
 function save(path:string,data:unknown){const temp=`${path}.${randomUUID()}.tmp`;writeFileSync(temp,JSON.stringify(data),{mode:0o600});renameSync(temp,path);}
 if(input.action==='prepare'){
@@ -12,20 +12,27 @@ if(input.action==='prepare'){
     process.stdout.write(JSON.stringify({prepared:{type:'fallback',classId:recipe?.classId,reason:'Class is not promoted by paired evidence'},cache_hit:false,prepare_ms:performance.now()-started}));
     process.exit(0);
   }
-  const key=createHash('sha256').update(JSON.stringify([FAST_VERSION,sceneFingerprint(input.scene,input.catalog??[]),input.request])).digest('hex');
+  if(input.discover_catalog&&recipe){
+    const cheap=recipe.double?prepareFastRequest(input.scene,input.request,[]):undefined;
+    if(cheap?.type==='decline'&&cheap.proof.startsWith('Rectangular room width')){process.stdout.write(JSON.stringify({prepared:cheap,prepare_ms:performance.now()-started}));process.exit(0);}
+    try{input.catalog=await discoverFastCatalog(input.scene,input.request,input.catalog??[]);}
+    catch{process.stdout.write(JSON.stringify({prepared:{type:'decline',classId:recipe.classId,reason:'I could not reach the furniture catalog, so I have not checked what is available.',alternative:'Please retry when the catalog connection is available.',proof:'Catalog discovery failed; no availability or fit claim'},prepare_ms:performance.now()-started}));process.exit(0);}
+  }
+  const key=createHash('sha256').update(JSON.stringify([FAST_VERSION,sceneFingerprint(input.scene,input.catalog??[]),input.request,input.variant??0])).digest('hex');
   let prepared,cacheHit=false;
   // Cache is a performance hint, never authority: selection always rechecks the source snapshot.
   for(const directory of [input.cache_dir,input.knowledge_dir].filter(Boolean)){
     const file=join(directory,`${key}.json`);
     if(existsSync(file)){try{const cached=JSON.parse(readFileSync(file,'utf8'));if(cached.key===key){prepared=cached.prepared;cacheHit=true;break;}}catch{/* Regenerate damaged cache. */}}
   }
-  prepared??=prepareFastRequest(input.scene,input.request,input.catalog??[]);
+  prepared??=prepareFastRequest(input.scene,input.request,input.catalog??[],undefined,{variant:input.variant??0,catalogComplete:!input.discover_catalog});
   if(input.cache_dir&&prepared.type==='candidates'&&!cacheHit){
     mkdirSync(input.cache_dir,{recursive:true});
     const entries=readdirSync(input.cache_dir).filter(p=>/^[a-f0-9]{64}\.json$/.test(p));
     if(entries.length>=32)unlinkSync(join(input.cache_dir,entries[0]!));
     save(join(input.cache_dir,`${key}.json`),{key,prepared});
   }
+  prepared=excludeFastOptions(prepared,input.excluded_ops??[]);
   process.stdout.write(JSON.stringify({prepared,key,cache_hit:cacheHit,prepare_ms:performance.now()-started}));
 }else if(input.action==='select'){
   const result=selectFastCandidate(input.scene,input.prepared,input.selection,input.catalog??[]);
