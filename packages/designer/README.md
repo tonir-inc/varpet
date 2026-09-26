@@ -10,7 +10,8 @@ Adapter input is validated; no tool writes the source scene or scene file.
 
 Measured: the team's `.codex/config.toml` registers `varpet-designer` using the worktree's `tsx`.
 Its default scene is the test bedroom; set `VARPET_SCENE` to an absolute path for a real scene.
-The server exposes nine tools; `search_catalog` and `ask` remain explicit error stubs after card 05.
+The server exposes nine tools. `search_catalog` uses the team's catalog backend and returns explicit
+unavailability when its database/runtime is missing; `ask` returns one customer question.
 
 Measured: `scene_summary` now includes open-floor and circulation metrics; `sun` reports potential
 direct-sun hours and full-window floor projections. The solar tests use NOAA's published calculator
@@ -18,7 +19,8 @@ as an independent oracle: https://gml.noaa.gov/grad/solcalc/main.js.
 
 Assumed: 5 cm conservative occupied cells and a 2.5 cm routing lattice. Circulation uses widest
 paths, includes the actual entrance/front approaches, and reserves door swings. A door's own swing
-is traversable on ingress only. Straight approach rays can conservatively decline a tight turn.
+is traversable on ingress only, including turns through that doorway. Item-front approaches still
+use straight rays and can conservatively decline a tight turn.
 Measured: outward sweeps also reserve floor and block furniture/access strips in neighboring rooms.
 Shared doorways provide ingress only where the complete opening span lies on the neighbor boundary.
 Room-filtered summaries retain these cross-room effects.
@@ -33,6 +35,9 @@ relations and exclusions. It returns at most three checked preview ops. Search u
 steps; a search that finds no candidates does not prove continuous geometric impossibility.
 Bare catalog SKUs are not resolved yet. Clearance reports describe the selected candidate, and
 every accepted candidate passes the same containment, overlap, swing and circulation checks.
+Measured: `place({placements:[...]})` rearranges up to six pieces together with an eight-state search
+beam. It temporarily lifts requested movable pieces on a copy, then returns up to three fully
+checked combinations. Anchors must precede dependent pieces. Keeps are never lifted or moved.
 
 Measured: `check_layout` reports hard containment, collision, door-swing, circulation and purchase
 price errors before soft function-clearance guidance. `score_layout` returns before/after space,
@@ -53,5 +58,22 @@ these results validate only the temporary designer scene. Window sunlight does n
 occlusion or glare. Conservative raster open-floor changes can reflect grid alignment after rotation.
 
 Decision: proposals remain in memory for the life of this server and are never applied to the
-scene. User acceptance, persistence, viewer/harness integration, catalog lookup and scenario evals
-are outside cards 01–05. Restarting the server discards its intent and proposals.
+scene. User acceptance, persistence and viewer integration remain separate work. Restarting the
+server discards its intent and proposals; the harness re-establishes intent on each customer turn.
+
+Run a customer conversation with an authenticated Codex CLI:
+
+```sh
+uv run --with-requirements harness/designer_requirements.txt python harness/designer.py --scene packages/designer/test/fixtures/bedroom.json
+```
+
+Add `--prompt 'make it cozier'` for one turn. Measured: the harness uses `gpt-6-astra` medium,
+deny-all approvals, an isolated Codex home/workspace, only the designer MCP server and only the
+interior-design-rules skill. It saves full traces and token counts in `harness/designer-runs/`.
+Four minutes without output kills the whole worker process group and retries once; usage limits
+stop the run. `pnpm test` includes the offline Python watchdog/configuration tests.
+
+Assumed: catalog setup supplies `VARPET_DB_URL` and an installed Python environment in `catalog/`.
+Search preserves size evidence and price provenance; mock AMD values are not shop quotations.
+Without catalog data, the designer asks for a specific product or a customer-owned piece's details
+instead of inventing a purchasable item.

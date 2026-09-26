@@ -27,6 +27,6 @@ test('stdio lists exactly nine tools and reads the bedroom from any working dire
     expect(invalid.isError).toBe(true);
     const pending = await client.callTool({ name: 'ask', arguments: {} });
     expect(pending.isError).toBe(true);
-    expect(JSON.stringify(pending.content)).toContain('not implemented yet');
+    expect(JSON.stringify(pending.content)).toContain('question');
   } finally { await client.close(); await transport.close(); }
 }, 20000);

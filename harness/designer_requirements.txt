@@ -1,0 +1,2 @@
+# Pinned because stderr forwarding uses this SDK version's transport hook.
+openai-codex==0.157.1

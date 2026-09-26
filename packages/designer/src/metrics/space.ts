@@ -184,7 +184,7 @@ function routingGrid(raster: RoomRaster): RoutingGrid {
   return { width, height, step: raster.resolution / 2, origin: raster.origin, clearance: distance };
 }
 
-interface Endpoint { id: string; point: Vec2; node: number; aperture: number; narrowest: Vec2 }
+interface Endpoint { id: string; point: Vec2; node: number; aperture: number; narrowest: Vec2; ingress?: Vec2[] }
 function nodePoint(grid: RoutingGrid, node: number): Vec2 { return [rounded(grid.origin[0] + (node % grid.width) * grid.step), rounded(grid.origin[1] + Math.floor(node / grid.width) * grid.step)]; }
 function nodeAt(grid: RoutingGrid, point: Vec2): number {
   const x = Math.round((point[0] - grid.origin[0]) / grid.step), y = Math.round((point[1] - grid.origin[1]) / grid.step);
@@ -257,6 +257,45 @@ function approach(grid: RoutingGrid, room: Room, obstacles: Obstacle[], point: V
   return { node: best, aperture, narrowest: [rounded(narrowest[0]), rounded(narrowest[1])] };
 }
 
+/** A person may turn while passing through their own open door. Search only the
+ * sweep's immediate vicinity, with every other obstruction retained, then hand
+ * over to the normal grid where the whole door sweep is reserved again. */
+function turningDoorApproach(scene: Scene, room: Room, grid: RoutingGrid, obstacles: Obstacle[], point: Vec2, direction: Vec2, opening: Opening): Pick<Endpoint, 'node' | 'aperture' | 'narrowest' | 'ingress'> {
+  const physicalScene: Scene = { ...scene, openings: scene.openings.map(o => o.id === opening.id ? { ...o, swing: 'none' } : o) };
+  const physical = routingGrid(rasterizeRoom(physicalScene, room));
+  const seed = approach(physical, room, obstacles, point, direction, 0.45, opening.id);
+  if (seed.node < 0) return seed;
+  const sweep = physicalDoorSwingPolygon(scene, opening)!;
+  const minX = Math.min(...sweep.map(p => p[0])) - 0.45, maxX = Math.max(...sweep.map(p => p[0])) + 0.45;
+  const minY = Math.min(...sweep.map(p => p[1])) - 0.45, maxY = Math.max(...sweep.map(p => p[1])) + 0.45;
+  const widths = new Float64Array(grid.width * grid.height).fill(-1), previous = new Int32Array(widths.length).fill(-1), queue = new MaxQueue();
+  widths[seed.node] = Math.min(seed.aperture, opening.width, physical.clearance[seed.node]!);
+  queue.push({ node: seed.node, width: widths[seed.node]!, steps: 0 });
+  let candidate = -1, bestWidth = 0, current: QueueEntry | undefined;
+  while ((current = queue.pop())) {
+    if (current.width < widths[current.node]! - EPS) continue;
+    const handoffWidth = Math.min(current.width, grid.clearance[current.node]!);
+    if (handoffWidth > bestWidth + EPS) { candidate = current.node; bestWidth = handoffWidth; }
+    if (bestWidth >= widths[seed.node]! - EPS) break;
+    for (const node of neighbors(physical, current.node)) {
+      const position = nodePoint(physical, node);
+      if (position[0] < minX || position[0] > maxX || position[1] < minY || position[1] > maxY) continue;
+      const width = Math.min(current.width, physical.clearance[node]!);
+      if (width <= EPS || width <= widths[node]! + EPS) continue;
+      widths[node] = width; previous[node] = current.node;
+      queue.push({ node, width, steps: current.steps + 1 });
+    }
+  }
+  if (candidate < 0) return { node: -1, aperture: 0, narrowest: point };
+  const nodes: number[] = [];
+  for (let node = candidate; node !== -1; node = previous[node]!) nodes.push(node);
+  nodes.reverse();
+  const bottleneck = nodes.find(node => physical.clearance[node]! <= bestWidth + EPS);
+  const narrowest = bottleneck === undefined ? seed.narrowest : nodePoint(physical, bottleneck);
+  const ingress = [point, ...nodes.filter((node, i) => i === 0 || i === nodes.length - 1 || node - nodes[i - 1]! !== nodes[i + 1]! - node).map(node => nodePoint(physical, node))];
+  return { node: candidate, aperture: bestWidth, narrowest, ingress };
+}
+
 /** Prove the complete aperture lies on collinear boundary edges, not just its centre. */
 function openingOnBoundary(room: Room, point: Vec2, along: Vec2, width: number): boolean {
   const start: Vec2 = [point[0] - along[0] * width / 2, point[1] - along[1] * width / 2];
@@ -289,7 +328,7 @@ function endpoints(scene: Scene, room: Room, grid: RoutingGrid): { doors: Endpoi
       || pointInPolygon([point[0] - intoRoom[0] * 1e-5, point[1] - intoRoom[1] * 1e-5], room.polygon))) continue;
     const swingsIntoRoom = opening.kind === 'door' && opening.swing?.startsWith(owner ? 'inward' : 'outward');
     const swing = swingsIntoRoom ? opening.id : undefined;
-    const entry = approach(grid, room, obstacles, point, intoRoom, 0.45 + (swing ? opening.width : 0), swing);
+    const entry = swing ? turningDoorApproach(scene, room, grid, obstacles, point, intoRoom, opening) : approach(grid, room, obstacles, point, intoRoom, 0.45);
     doors.push({ id: `door:${opening.id}`, point, ...entry, aperture: Math.min(opening.width, entry.aperture), narrowest: opening.width <= entry.aperture ? point : entry.narrowest });
   }
   for (const item of scene.items.filter(i => i.room_id === room.id)) {
@@ -368,7 +407,7 @@ function walkway(grid: RoutingGrid, from: Endpoint, to: Endpoint): Walkway {
   const narrowNode = nodes.find(node => grid.clearance[node]! <= width + EPS);
   const narrowest = narrowNode === undefined ? (from.aperture <= to.aperture ? from.narrowest : to.narrowest) : nodePoint(grid, narrowNode);
   // Collinear samples add no information to the returned path.
-  const path = [from.point, ...nodes.filter((node, i) => i === 0 || i === nodes.length - 1 || node - nodes[i - 1]! !== nodes[i + 1]! - node).map(node => nodePoint(grid, node)), to.point];
+  const path = [...(from.ingress ?? [from.point]), ...nodes.filter((node, i) => i === 0 || i === nodes.length - 1 || node - nodes[i - 1]! !== nodes[i + 1]! - node).map(node => nodePoint(grid, node)), ...(to.ingress ? [...to.ingress].reverse() : [to.point])];
   return { from: from.id, to: to.id, reachable: true, width_m: width, status: status(width), narrowest, path };
 }
 

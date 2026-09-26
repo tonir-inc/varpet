@@ -3,7 +3,7 @@ import { pathToFileURL } from 'node:url';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
-import { opsSchema, parseScene, sceneSummary } from './adapter.js';
+import { parseOps, parseScene, sceneSummary } from './adapter.js';
 import type { Scene } from './scene.js';
 import { sun } from './metrics/sun.js';
 import { spaceMetrics } from './metrics/space.js';
@@ -11,12 +11,16 @@ import { place, placeInputSchema } from './place.js';
 import { checkLayout, scoreLayout } from './layout.js';
 import { intentSchema } from './request.js';
 import { DesignerSession } from './session.js';
+import {placeBatch,placementsSchema} from './place-batch.js';
+import {searchCatalog,searchCatalogInputSchema,type CatalogQuery} from './catalog.js';
+import {ask,askInputSchema} from './ask.js';
+import {opsToolSchema,placeToolSchema} from './tool-inputs.js';
 
 export function result(data: unknown, isError = false) {
   return { content: [{ type: 'text' as const, text: typeof data === 'string' ? data : JSON.stringify(data) }], ...(isError ? { isError: true } : {}) };
 }
 
-export function createServer(input: Scene) {
+export function createServer(input: Scene, options:{catalogQuery?:CatalogQuery}={}) {
   const scene = parseScene(input);
   const session = new DesignerSession(scene);
   const server = new McpServer({ name: 'varpet-designer', version: '0.0.0' });
@@ -46,10 +50,17 @@ export function createServer(input: Scene) {
     catch (error) { return result(String(error),true); }
   });
   server.registerTool('place', {
-    description: 'Find up to three checked poses from spatial relations, with clearances. Accepts existing item IDs or a sized item description; no raw pose input. Returns preview ops without changing the scene.',
-    inputSchema: placeInputSchema,
+    description: 'Find checked poses from relations, never raw coordinates. Use single item_id/item + room_id + relations, OR placements:[those requests] to rearrange up to six pieces together. Batch temporarily lifts only requested movable pieces, returns fully checked combined ops and scores; place anchors before dependents. Scene unchanged.',
+    inputSchema: placeToolSchema,
   }, request => {
-    try { return result(place(scene,request)); }
+    try {
+      const {placements,...single}=request;
+      if(placements) {
+        if(Object.values(single).some(value=>value!==undefined)) throw new Error('Use placements or single-item arguments, not both');
+        return result(placeBatch(scene,placementsSchema.parse(placements)));
+      }
+      return result(place(scene,placeInputSchema.parse(single)));
+    }
     catch(error) { return result(String(error),true); }
   });
   server.registerTool('set_intent', {
@@ -61,28 +72,36 @@ export function createServer(input: Scene) {
   });
   server.registerTool('check_layout', {
     description: 'Apply preview ops to a copy and return hard errors before soft guidance, coordinates, overlap depths and incremental purchase price. Reports engine checks unavailable while using the temporary scene adapter.',
-    inputSchema: {ops:opsSchema},
+    inputSchema: {ops:opsToolSchema},
   }, ({ops}) => {
-    try { const check=checkLayout(scene,ops);return result(check,!check.ok); }
+    try { const check=checkLayout(scene,parseOps(ops));return result(check,!check.ok); }
     catch(error) { return result(String(error),true); }
   });
   server.registerTool('score_layout', {
     description: 'Compare before/after open floor, largest rectangle, circulation, potential window sunlight, function clearances and incremental cost. Pure rearranges cost zero; missing north or prices stay unknown.',
-    inputSchema: {ops:opsSchema},
+    inputSchema: {ops:opsToolSchema},
   }, ({ops}) => {
-    try { return result(scoreLayout(scene,ops)); }
+    try { return result(scoreLayout(scene,parseOps(ops))); }
     catch(error) { return result(String(error),true); }
   });
   server.registerTool('propose', {
     description: 'Store a checked proposal for user review. Refuses failed physical checks or unmet intent. Returns a proposal ID and score without changing or applying the scene; explicit user acceptance remains required.',
-    inputSchema: {ops:opsSchema,rationale:z.string().min(1).max(4000)},
+    inputSchema: {ops:opsToolSchema,rationale:z.string().min(1).max(4000)},
   }, ({ops,rationale}) => {
     const proposal=session.propose(ops,rationale);
     return result(proposal,!proposal.ok);
   });
-  for (const name of ['search_catalog','ask']) {
-    server.registerTool(name, { description: `${name}: not implemented yet`, inputSchema: {} }, () => result(`${name}: not implemented yet`, true));
-  }
+  server.registerTool('search_catalog', {
+    description:'Find sized, priced catalog furniture. Returns item descriptions for place, plus size/price provenance. Mock prices are explicitly labeled; unavailable catalog is never replaced with invented products.',
+    inputSchema:searchCatalogInputSchema,
+  },async request=>{
+    const catalog=await searchCatalog(request,options.catalogQuery);
+    return result(catalog,catalog.status==='unavailable');
+  });
+  server.registerTool('ask', {
+    description:'Ask the customer one concise question, optionally with two to four choices, then wait for their next message.',
+    inputSchema:askInputSchema,
+  },request=>result(ask(request)));
   return server;
 }
 
