@@ -62,3 +62,20 @@ test('plan availability is explicit and only true for a supplied local original'
     assert.ok((await loadRecords(dir)).every(flat => flat.planAvailable === false));
   } finally { await rm(root, { recursive: true }); }
 });
+
+test('loads drawn-only residences with their frozen catalog and a compact omissions audit', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'showcase-drawn-'));
+  try {
+    await writeFile(join(dir, 'b1-t2.drawn.scene.json'), JSON.stringify({ objects: [{ id: 'drawn-chair' }] }));
+    await writeFile(join(dir, 'b1-t2.drawn.catalog.json'), JSON.stringify({ currency: 'AMD', assets: [{ id: 'drawn-sku' }] }));
+    await writeFile(join(dir, 'b1-t2.drawn.audit.json'), JSON.stringify({ drawn: 2, placed: 1, proposal: { private: 'large raw trace' }, items: [
+      { status: 'placed', role: 'chair' }, { status: 'not_placed', role: 'wardrobe', name: 'Wardrobe', reason: 'No legal pose', attempts: ['large trace'] },
+    ] }));
+    const [flat] = await loadRecords(dir);
+    assert.equal(flat.id, 'b1-t2'); assert.equal(flat.shell, null);
+    assert.equal(flat.drawn.objects[0].id, 'drawn-chair');
+    assert.equal(flat.drawnCatalog.assets[0].id, 'drawn-sku');
+    assert.deepEqual(flat.drawnAudit, { drawn: 2, placed: 1, omitted: [{ role: 'wardrobe', name: 'Wardrobe', reason: 'No legal pose' }] });
+    assert.deepEqual(flat.catalog, []);
+  } finally { await rm(dir, { recursive: true }); }
+});

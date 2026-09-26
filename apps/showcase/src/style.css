@@ -5,3 +5,12 @@
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 
 .view-controls[hidden]{display:none}
+
+/* Developer plan comparison: keep partial placement visible next to the view. */
+.drawn-note{max-width:900px;margin:0 0 24px;padding:16px 20px;border-left:2px solid var(--accent);background:var(--surface);font-size:14px;color:var(--ink)}
+.drawn-note .fine-print{margin-top:8px}
+.state-switch{flex-wrap:wrap}
+@media(max-width:760px){.state-switch button{flex-basis:100%}}
+
+.embed-drawn-note{position:absolute;top:112px;left:24px;max-width:min(420px,calc(100% - 48px));max-height:45vh;overflow:auto;padding:10px 14px;background:var(--scrim);color:var(--stage-ink);border:1px solid var(--stage-line);border-radius:4px;font-size:12px}
+.embed-drawn-note summary{cursor:pointer}.embed-drawn-note p{margin-top:8px}

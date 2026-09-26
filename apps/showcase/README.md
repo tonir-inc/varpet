@@ -12,7 +12,7 @@ pnpm --filter @varpet/showcase test:browser
 pnpm --filter @varpet/showcase export
 ```
 
-Routes: `/` (collection), `/flat/<id>` (plan + shell/furnished comparison), `/embed/<id>` (iframe). Embed example:
+Routes: `/` (collection), `/flat/<id>` (plan + As built / As the developer drew it / Furnished by the designer comparison), `/embed/<id>` (iframe). Embed example:
 
 ```html
 <iframe src="https://your-showcase.example/embed/b31-t50" title="Explore this apartment" width="100%" height="600" style="border:0" loading="lazy"></iframe>
@@ -26,6 +26,7 @@ Read at dev start (watched for updates) and at build time from `packages/designe
 
 - `<id>.scene.json`: SERVICE's editor-format shell, untouched.
 - `ground-truth.json`: an array, `{flats: [...]}`, or an ID map; each record has `id`, `rooms`, and `area_m2`. Missing facts remain unknown; fallback polygon area is labelled derived.
+- `<id>.drawn.scene.json`, `<id>.drawn.catalog.json` and `<id>.drawn.audit.json`: DRAWN’s original-plan reconstruction, its frozen catalog, and placement counts/omissions. The third view appears only when its scene validates against that catalog. Missing catalog matches and blocked placements are disclosed by type/count; this is not a claim of complete reproduction. The original drawn shell may differ from SERVICE’s updated shell.
 - `<id>.furnished.scene.json` (also accepts `<id>.final.scene.json`): BENCH's final editor-format scene.
 - `<id>.catalog.json` or shared `catalog.json`: exact `CatalogAsset[]` for the final scene; no invented dimensions or model identities. An object `{assets: [...], currency: "AMD"}` is also accepted.
 - `<id>.conversation.json`: `{requests: ["customer request", ...], catalogCurrency: "AMD"}`. Also accepts `.result.json` with `steps[].request`.
@@ -45,7 +46,7 @@ Ordinary builds and their preview/static sites use placeholders, so they do not 
 
 ## Static export
 
-`pnpm --filter @varpet/showcase export` builds and captures the gallery, each detail, shell, furnished and embed view, plus `numbers.json`, `numbers.csv`, a standalone screenshot report, and an interactive `site/` copy. Output defaults to `apps/showcase/exports/<timestamp>/`. Pass a destination after `export` to choose another folder. Serve `site/` as the web root; its flat/embed directories support ordinary static hosts.
+`pnpm --filter @varpet/showcase export` builds and captures the gallery, each detail, shell, developer-drawn (including its limitations), furnished and embed view, plus `numbers.json`, `numbers.csv`, a standalone screenshot report, and an interactive `site/` copy. Output defaults to `apps/showcase/exports/<timestamp>/`. Pass a destination after `export` to choose another folder. Serve `site/` as the web root; its flat/embed directories support ordinary static hosts.
 
 Exports exclude private plans by default. `--include-private-plans` puts locally available originals into the screenshots only; originals are still never copied. Export folders must remain uncommitted. The exporter uses an ephemeral loopback port by default (or `SHOWCASE_EXPORT_PORT`), and refuses 5180/5190/8787/8788. On macOS it uses installed Chrome. Else install Chromium with `pnpm --filter @varpet/showcase exec playwright install chromium`, or set `SHOWCASE_CHROME` to a browser executable.
 
@@ -59,6 +60,14 @@ Screenshots are reproducible through the export command (ignored local artifacts
 
 ## Click-through regression
 
-`pnpm --filter @varpet/showcase test:browser` starts and closes its own Vite server on an ephemeral loopback port. It never attaches to an existing server or uses 5180, 5190, 8787 or 8788. It clicks every published gallery card, each available As built/Furnished state, Top/3D and the embed link, checking disabled/hidden controls for pending views. A separate empty-input scenario covers both Avani states and asserts zero plan requests. Any browser console error, uncaught page error, failed request, HTTP error or renderer error fails the run. Chrome selection follows `SHOWCASE_CHROME` or installed macOS Chrome; otherwise install Playwright Chromium as above.
+`pnpm --filter @varpet/showcase test:browser` starts and closes its own Vite server on an ephemeral loopback port. It never attaches to an existing server or uses 5180, 5190, 8787 or 8788. It clicks every published gallery card, each available As built/As the developer drew it/Furnished by the designer state, Top/3D and the embed link, checking disabled/hidden controls for pending views. A separate empty-input scenario covers both Avani states and asserts zero plan requests. Any browser console error, uncaught page error, failed request, HTTP error or renderer error fails the run. Chrome selection follows `SHOWCASE_CHROME` or installed macOS Chrome; otherwise install Playwright Chromium as above.
 
 Assumed: a check server is temporary and closes with the test; it is never a customer handoff URL. Ashot's permanent showcase runs separately from `~/AshProjects/varpet-live` on port 5190. This worktree must not start or stop that server. `SHOWCASE_DATA_DIR` allows an isolated test input directory; by default the published Komitas inputs are used.
+
+Assumed for the freeze: developer-drawn snapshots retain their original geometry and exact catalog independently of BENCH’s newest completed final state; no furniture is transplanted between revised shells. The omitted-item audit is projected to counts, names, kinds and reasons only. Exported JSON/CSV retain the audit counts and the visible note.
+
+The shared renderer now attempts editor-only optimized model URLs. The standalone showcase resolves those paths to the exact public original from the frozen catalog through Three’s loading manager; it does not change catalog identities or require the editor’s API. The browser regression asserts zero requests to that endpoint.
+
+For a local demo or reliable offline model transport, set `VITE_SHOWCASE_MODEL_BASE_URL` to a CORS-enabled mirror directory containing the same catalog models as `<ASIN>.glb`. Only model download paths change; scene/catalog identities stay frozen. The default remains the published S3 originals. Do not commit downloaded meshes.
+
+Measured freeze verification, 26 September 2026: 17 showcase unit tests passed; the untargeted root suite, root typecheck and showcase build passed. Strict Chrome click-through passed both scenarios in 61.2 s: 10 real flats, six drawn and six designer states, 52 camera clicks, all drawn embed disclosures, plus Avani; zero console/network errors and zero editor-model endpoint requests. This final run used a temporary local mirror of the 13 exact original GLBs (228,060,540 bytes, downloaded from their frozen source URLs), not substitute geometry. Direct S3 runs both passed and hit the unchanged 30 s network deadline on 30–54 MB originals; reliable public-S3 loading latency is not established. Developer-plan images and downloaded meshes remain uncommitted.

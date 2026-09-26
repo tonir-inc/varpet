@@ -61,3 +61,48 @@ test('Avani never advertises a developer plan; real flats preserve explicit avai
   assert.equal(makeFlat(input).planAvailable, false);
   assert.equal(makeFlat({ ...input, planAvailable: true }).planAvailable, true);
 });
+
+test('developer drawings use their own catalog and disclose omitted pieces without claiming designer purchases', () => {
+  const example = exampleFlat();
+  const input = { id: 'drawn-only', facts: {}, shell: null, furnished: null, catalog: [], conversation: null,
+    drawn: example.furnished, drawnCatalog: { assets: example.catalog, currency: 'AMD' },
+    drawnAudit: { drawn: 20, placed: 2, omitted: [{ role: 'kitchen_base', name: 'Kitchen base', reason: 'No corresponding kitchen product' }, { role: 'wardrobe', name: 'Wardrobe', reason: 'No legal pose' }] } };
+  const flat = makeFlat(input);
+  assert.equal(flat.drawn, example.furnished);
+  assert.deepEqual(flat.drawnCatalog, example.catalog);
+  assert.match(flat.drawnNote, /2 of 20 drawn pieces/);
+  assert.match(flat.drawnNote, /18 not placed/);
+  assert.match(flat.drawnNote, /kitchen base/);
+  assert.match(flat.drawnNote, /wardrobe/);
+  assert.equal(flat.total, null); assert.deepEqual(flat.pieces, []);
+  assert.equal(buildFlats([input]).length, 1, 'A drawn-only residence needs no Avani fallback');
+  assert.equal(initialState(flat, null), 'drawn');
+  assert.equal(initialState({ ...flat, shell: example.shell, furnished: example.furnished }, 'drawn'), 'drawn');
+  assert.equal(initialState({ ...flat, shell: example.shell }, null), 'shell');
+  assert.equal(makeFlat({ ...input, drawnCatalog: [] }).drawn, null, 'Never hydrate a drawn snapshot from another catalog');
+});
+
+test('missing drawing audit cannot imply a complete developer layout', () => {
+  const example = exampleFlat();
+  const flat = makeFlat({ id: 'test', facts: {}, shell: example.shell, furnished: null, catalog: [], conversation: null, drawn: example.furnished, drawnCatalog: example.catalog });
+  assert.match(flat.drawnNote, /Completeness has not been confirmed/);
+});
+
+test('standalone model transport resolves editor optimization paths to the exact frozen public model', async () => {
+  const { publicModelResolver } = await import(pathToFileURL(join(out, 'model.mjs')));
+  const original = 'https://example.test/original/ASIN.glb';
+  const flat = { catalog: [{ source: { type: 'procedural' } }], drawnCatalog: [{ source: { type: 'gltf', url: `${original}#varpet-rotate-y=90` } }] };
+  const resolve = publicModelResolver([flat], url => url.endsWith('/ASIN.glb') ? '/api/catalog/models/ASIN.glb' : undefined);
+  assert.equal(resolve('/api/catalog/models/ASIN.glb'), original);
+  assert.equal(resolve('/other.glb'), '/other.glb');
+  assert.equal(resolve(original), original);
+  assert.throws(() => publicModelResolver([flat, { catalog: [{ source: { type: 'gltf', url: 'https://other.test/ASIN.glb' } }], drawnCatalog: [] }], () => '/api/catalog/models/ASIN.glb'), /Conflicting model sources/);
+});
+
+test('an explicit model mirror preserves the exact SKU and leaves unrelated resources alone', async () => {
+  const { publicModelResolver } = await import(pathToFileURL(join(out, 'model.mjs')));
+  const flat = { catalog: [{ source: { type: 'gltf', url: 'https://original.test/S/ASIN.glb' } }], drawnCatalog: [] };
+  const resolve = publicModelResolver([flat], () => '/api/catalog/models/ASIN.glb', 'http://127.0.0.1:54321/models/');
+  assert.equal(resolve('/api/catalog/models/ASIN.glb'), 'http://127.0.0.1:54321/models/ASIN.glb');
+  assert.equal(resolve('/textures/floor.jpg'), '/textures/floor.jpg');
+});

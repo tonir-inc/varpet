@@ -36,14 +36,18 @@ export async function loadRecords(dir, plansDir) {
   try { files = await readdir(dir); } catch (error) { if (error.code === 'ENOENT') return []; throw error; }
   const truth = factRows(await json(join(dir, 'ground-truth.json')));
   const shellIds = files.filter(file => /^[^.]+\.scene\.json$/.test(file)).map(file => file.slice(0, -11));
-  const ids = [...new Set([...truth.map(row => String(row.id ?? row.plan_id ?? row.flat_id ?? '')), ...shellIds])].filter(id => flatId.test(id));
+  const ids = [...new Set([...truth.map(row => String(row.id ?? row.plan_id ?? row.flat_id ?? '')), ...shellIds, ...files.filter(file => file.endsWith('.drawn.scene.json')).map(file => file.slice(0, -17))])].filter(id => flatId.test(id));
   const sharedCatalog = await json(join(dir, 'catalog.json'));
   const runs = await completedRuns(join(dir, '../komitas-runs'));
   return Promise.all(ids.sort().map(async id => {
     const bench = runs.get(id);
+    const audit = await json(join(dir, `${id}.drawn.audit.json`));
     return ({
     id, planAvailable: Boolean(plansDir && await planFile(plansDir, id)), facts: truth.find(row => String(row.id ?? row.plan_id ?? row.flat_id) === id) ?? {},
     shell: await json(join(dir, `${id}.scene.json`)) ?? null,
+    drawn: await json(join(dir, `${id}.drawn.scene.json`)) ?? null,
+    drawnCatalog: await json(join(dir, `${id}.drawn.catalog.json`)) ?? [],
+    drawnAudit: audit ? { drawn: audit.drawn, placed: audit.placed, omitted: (audit.items ?? []).filter(item => item.status === 'not_placed').map(({ role, name, reason }) => ({ role, name, reason })) } : null,
     furnished: bench?.final.scene ?? await firstJson(dir, [`${id}.furnished.scene.json`, `${id}.final.scene.json`, `${id}/final.scene.json`, `${id}/furnished.scene.json`]) ?? null,
     catalog: bench?.final.catalog ?? await firstJson(dir, [`${id}.catalog.json`, `${id}/catalog.json`]) ?? sharedCatalog ?? [],
     conversation: bench ? { requests: (bench.run.rows ?? []).map(row => row.request).filter(request => typeof request === 'string'), catalogCurrency: bench.run.catalogCurrency, steps: (bench.run.rows ?? []).map(row => ({ request: row.request, outcome: row.outcome, editor_accepted: row.editor_accepted })) } : await firstJson(dir, [`${id}.conversation.json`, `${id}.result.json`, `${id}/conversation.json`, `${id}/result.json`]) ?? null,
