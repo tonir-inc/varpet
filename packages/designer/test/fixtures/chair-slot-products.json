@@ -1,0 +1,182 @@
+[
+ {
+  "id": "abo:B00EUL2B16",
+  "name": "Ashley Furniture Signature Design - Leahlyn Dining Upholstered Side Chair - Pierced Splat Back - Set of 2 - Medium Brown",
+  "kind": "chair",
+  "size_m": [
+   0.4572,
+   0.5842,
+   0.9652
+  ],
+  "size_status": "confirmed",
+  "price": 52000,
+  "currency": "AMD",
+  "glb_url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/6/B00EUL2B16.glb",
+  "query": "chair6"
+ },
+ {
+  "id": "abo:B00IFHPVEU",
+  "name": "AmazonBasics Leather-Padded, Adjustable, Swivel Office Desk Chair with Armrest, Black",
+  "kind": "chair",
+  "size_m": [
+   0.5758,
+   0.6414,
+   0.9979
+  ],
+  "size_status": "estimated",
+  "price": 58000,
+  "currency": "AMD",
+  "glb_url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/U/B00IFHPVEU.glb",
+  "query": "chair6"
+ },
+ {
+  "id": "abo:B00IIFW2L4",
+  "name": "AmazonBasics Mesh, Mid-Back, Adjustable, Swivel Office Desk Chair with Armrests, Black",
+  "kind": "chair",
+  "size_m": [
+   0.6101,
+   0.6402,
+   1.0259
+  ],
+  "size_status": "confirmed",
+  "price": 59000,
+  "currency": "AMD",
+  "glb_url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/4/B00IIFW2L4.glb",
+  "query": "chair6"
+ },
+ {
+  "id": "abo:B00XBC3BF0",
+  "name": "AmazonBasics High-Back, Leather Executive, Swivel, Adjustable Office Desk Chair with Casters, Black",
+  "kind": "chair",
+  "size_m": [
+   0.6629,
+   0.7391,
+   1.155
+  ],
+  "size_status": "confirmed",
+  "price": 65000,
+  "currency": "AMD",
+  "glb_url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/0/B00XBC3BF0.glb",
+  "query": "chair6"
+ },
+ {
+  "id": "abo:B00XBC3J84",
+  "name": "AmazonBasics Upholstered, Low-Back, Adjustable, Swivel Office Desk Chair, Black",
+  "kind": "chair",
+  "size_m": [
+   0.6475,
+   0.6464,
+   0.9591
+  ],
+  "size_status": "estimated",
+  "price": 61000,
+  "currency": "AMD",
+  "glb_url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/4/B00XBC3J84.glb",
+  "query": "chair6"
+ },
+ {
+  "id": "abo:B016ID2V5O",
+  "name": "AmazonBasics High-Back Executive Chair - Black",
+  "kind": "chair",
+  "size_m": [
+   0.7,
+   0.78,
+   1.145
+  ],
+  "size_status": "confirmed",
+  "price": 69000,
+  "currency": "AMD",
+  "glb_url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/O/B016ID2V5O.glb",
+  "query": "chair6"
+ },
+ {
+  "id": "abo:B07K7K8YF9",
+  "name": "Alcove - Hayes Helena - Set of 2 solid wood armchairs with upholstered seat, lacquered beech",
+  "kind": "chair",
+  "size_m": [
+   0.46,
+   0.474,
+   1.027
+  ],
+  "size_status": "confirmed",
+  "price": 49000,
+  "currency": "AMD",
+  "glb_url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/9/B07K7K8YF9.glb",
+  "query": "dining"
+ },
+ {
+  "id": "abo:B07B78LX2J",
+  "name": "Amazon Brand \u2013 Stone & Beam Hughes Casual Upholstered Dining Room Kitchen Chairs, Set of 2, Grey, Wood",
+  "kind": "chair",
+  "size_m": [
+   0.4964,
+   0.5854,
+   0.9403
+  ],
+  "size_status": "estimated",
+  "price": 53000,
+  "currency": "AMD",
+  "glb_url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/J/B07B78LX2J.glb",
+  "query": "dining"
+ },
+ {
+  "id": "abo:B07B83KVGK",
+  "name": "Amazon Brand \u2013 Rivet Mid-Century Modern Wood Dining Chair, 30\"H, Natural",
+  "kind": "chair",
+  "size_m": [
+   0.5121,
+   0.4993,
+   0.7915
+  ],
+  "size_status": "estimated",
+  "price": 51000,
+  "currency": "AMD",
+  "glb_url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/K/B07B83KVGK.glb",
+  "query": "dining"
+ },
+ {
+  "id": "abo:B07B7B6PL8",
+  "name": "Stone & Beam Hughes Casual Wood Kitchen Dining Chair, Set of 2, Beige",
+  "kind": "chair",
+  "size_m": [
+   0.4964,
+   0.5854,
+   0.9403
+  ],
+  "size_status": "estimated",
+  "price": 53000,
+  "currency": "AMD",
+  "glb_url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/8/B07B7B6PL8.glb",
+  "query": "dining"
+ },
+ {
+  "id": "abo:B07B7BJK9S",
+  "name": "Amazon Brand \u2013 Stone & Beam Jon Casual Farmhouse Wood Dining Chair, 40\"H, Pack of 2, Beige",
+  "kind": "chair",
+  "size_m": [
+   0.5362,
+   0.6006,
+   0.9883
+  ],
+  "size_status": "confirmed",
+  "price": 55000,
+  "currency": "AMD",
+  "glb_url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/S/B07B7BJK9S.glb",
+  "query": "dining"
+ },
+ {
+  "id": "abo:B0814SPW1L",
+  "name": "AmazonBasics Stackable Kids Chairs, Plastic, Blue, 4-Pack",
+  "kind": "chair",
+  "size_m": [
+   0.3564,
+   0.4011,
+   0.5799
+  ],
+  "size_status": "confirmed",
+  "price": 15000,
+  "currency": "AMD",
+  "glb_url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/L/B0814SPW1L.glb",
+  "query": "dining"
+ }
+]

@@ -107,12 +107,13 @@ export function createTypedServer(input:Scene,config:TypedOptions={}){
      candidates.push({catalog_id:product.sku,slot_id,option_id,on:support.id,on_name:support.name.slice(0,60),name:product.name.slice(0,80),price:product.price,price_source:product.price_source});break;
     }
     if(canRestOn(product.kind,product.size)&&surfaceOnly(product)){if(!onTop.length)hints.add(`A ${product.kind==='tv'?'TV':product.kind==='lamp'?'table lamp':product.kind} stands on furniture: add a TV unit, table, desk, nightstand, cabinet or shelf with a free top first.`);continue;}
-    const found=cache.slots(preview(),[slotAsset(product)],{roomId:room_id,catalogId:product.sku,maxChecks:16,solidHeadboard:product.kind==='bed'});
-    for(const candidate of found.slice(0,1)){
+    // One slot is offered per product; stop at two checked slots (a spare if the first fails the request check).
+    const found=cache.slots(preview(),[slotAsset(product)],{roomId:room_id,catalogId:product.sku,maxChecks:16,limit:2,solidHeadboard:product.kind==='bed'});
+    for(const candidate of found){
      const ops=[...staged,...candidate.ops],intent=intentFor(scene,ops,{room_id});if(!checked(ops,intent).ok)continue;
      const slot_id=`slot-${randomUUID()}`;slots.set(slot_id,{piece:product.sku,ops:candidate.ops,epoch});
      const option_id=saveOption({ops,intent,note:`Add ${product.name.slice(0,100)} in the checked slot.`,missing:[],complete:true});
-     candidates.push({catalog_id:product.sku,slot_id,option_id,name:product.name.slice(0,80),price:product.price,price_source:product.price_source});
+     candidates.push({catalog_id:product.sku,slot_id,option_id,name:product.name.slice(0,80),price:product.price,price_source:product.price_source});break;
     }
    }
    // A slow preview must not discard checked slots: propose still refuses products not yet inspected.

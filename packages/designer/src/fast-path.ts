@@ -6,8 +6,8 @@ import { z } from 'zod';
 import type { CatalogAsset } from '../../../apps/editor/src/contracts.js';
 import { applyOps, parseOps, parseScene, wallOutward } from './adapter.js';
 import { checkLocalLayout, compareLayoutErrors, localGeometryErrors, outsidePoint, sourceFloorPolygon } from './local-checks.js';
-import { functionClearances } from './metrics/function.js';
-import { itemPolygon, physicalDoorSwingPolygon, spaceMetrics, polygonsOverlap, isFloorRug, rasterizeRoom } from './metrics/space.js';
+import { functionClearances, itemFunctionClearances, type FunctionClearance } from './metrics/function.js';
+import { itemFront, itemPolygon, physicalDoorSwingPolygon, spaceMetrics, polygonsOverlap, isFloorRug, rasterizeRoom } from './metrics/space.js';
 import { wallSolidPolygons } from './wall-geometry.js';
 import { strategyMetrics } from './metrics/strategy.js';
 import { sun } from './metrics/sun.js';
@@ -68,17 +68,24 @@ function roomId(scene:Scene,recipe:Recipe):string|undefined {
   if(windowed.length===1) return windowed[0]!.id;
   return scene.rooms.length===1?scene.rooms[0]!.id:undefined;
 }
+const SEATS=['chair','desk_chair','dining_chair','office_chair'];
 const bounds=(polygon:Vec2[])=>({minX:Math.min(...polygon.map(p=>p[0])),maxX:Math.max(...polygon.map(p=>p[0])),minY:Math.min(...polygon.map(p=>p[1])),maxY:Math.max(...polygon.map(p=>p[1]))});
+const typedScene=(scene:Scene,catalog:readonly CatalogAsset[]):Scene=>({...scene,items:scene.items.map(i=>{const asset=catalog.find(a=>a.id===i.sku);return asset?{...i,kind:catalogKind(asset)}:i;})});
+const deficitKey=(c:FunctionClearance)=>`f:${c.item_id}:${c.function}:${c.side}:${c.other_item_id??''}`;
 function deficitMap(scene:Scene,catalog:readonly CatalogAsset[]) {
   const result=new Map<string,number>();
-  const typed={...scene,items:scene.items.map(i=>{const asset=catalog.find(a=>a.id===i.sku);return asset?{...i,kind:catalogKind(asset)}:i;})};
-  for(const c of functionClearances(typed)) result.set(`f:${c.item_id}:${c.function}:${c.side}:${c.other_item_id??''}`,Math.max(c.deficit_m,c.excess_m??0));
+  for(const c of functionClearances(typedScene(scene,catalog))) result.set(deficitKey(c),Math.max(c.deficit_m,c.excess_m??0));
   for(const r of spaceMetrics(scene).rooms) for(const p of r.walkways) result.set(`w:${r.room_id}:${[p.from,p.to].sort().join(':')}`,p.reachable?Math.max(0,.75-p.width_m):.75);
   return result;
 }
 function deficitsPreserved(before:Map<string,number>,after:Scene,catalog:readonly CatalogAsset[]):boolean {
   for(const [key,value] of deficitMap(after,catalog)) if(value>(before.get(key)??0)+1e-6)return false;
   return true;
+}
+/** The placed item's own part of deficitsPreserved, cheap enough to run on every candidate pose. */
+function ownFunctionWorsens(after:Scene,itemId:string,before:Map<string,number>,catalog:readonly CatalogAsset[]):boolean {
+  const typed=typedScene(after,catalog),item=typed.items.find(i=>i.id===itemId);
+  return !!item&&itemFunctionClearances(typed,item).some(c=>Math.max(c.deficit_m,c.excess_m??0)>(before.get(deficitKey(c))??0)+1e-6);
 }
 function windows(scene:Scene,room:string) {
   return scene.openings.filter(o=>o.kind==='window').flatMap(o=>{
@@ -112,7 +119,7 @@ function coarseOpenFloor(scene:Scene,room:Scene['rooms'][number]):number {
   return best*.25**2;
 }
 export interface Candidate { id:string; catalog_ids:string[]; ops:Op[]; intent?:Intent; score:number; scores:{daylight:number;zoning:number;facing:number;open_floor:number}; description:string }
-export interface SlotQuery {roomId:string;catalogId?:string;itemId?:string;nearWindow?:boolean;faceWindow?:boolean;openFloor?:boolean;maxChecks?:number;solidHeadboard?:boolean;diverse?:boolean;sideReserve?:number}
+export interface SlotQuery {roomId:string;catalogId?:string;itemId?:string;nearWindow?:boolean;faceWindow?:boolean;openFloor?:boolean;maxChecks?:number;solidHeadboard?:boolean;diverse?:boolean;sideReserve?:number;/** Stop after this many checked slots (default 6). */limit?:number}
 export function supportedHeadboard(scene:Scene,item:Item){
  const t=item.rot*Math.PI/180,back:Vec2=[item.pos[0]-Math.sin(t)*item.size[1]/2,item.pos[1]+Math.cos(t)*item.size[1]/2];
  return scene.walls.some(w=>{
@@ -187,6 +194,7 @@ function generateSlots(scene:Scene,catalog:readonly CatalogAsset[],query:SlotQue
   const swings=scene.openings.map(o=>physicalDoorSwingPolygon(scene,o)).filter((p):p is Vec2[]=>p!==null);
   const solids=new Map<number,Vec2[][]>();
   const cheap:{item:Item;op:Op;after:Scene;score:number}[]=[];
+  const seatAnchors=typedScene(scene,catalog).items.filter(i=>i.room_id===room.id&&i.id!==base.id&&onFloor(i)&&['sofa','table','coffee_table','desk','dining_table'].includes(i.kind));
   for(const item of poses){
     if(query.solidHeadboard&&!supportedHeadboard(scene,item))continue;
     const op:Op=owned?{type:'move',id:owned.id,pos:item.pos,rot:item.rot}:{type:'add',item};
@@ -200,6 +208,9 @@ function generateSlots(scene:Scene,catalog:readonly CatalogAsset[],query:SlotQue
     if(moved.some(i=>windowBlocked(after,i)))continue;
     if(query.sideReserve!==undefined&&functionClearances(after).some(c=>c.item_id===item.id&&c.function==='bed_side'&&c.clearance_m<query.sideReserve!-1e-6))continue;
     if(query.nearWindow&&!checkRequest(after,after,[],{preferences:[{type:'near_window',item_id:item.id,max_distance_m:1.5}]},0).ok)continue;
+    // deficitsPreserved rejects any pose whose own function clearance worsens (a chair backed against a wall has
+    // no pull-out room). Rejecting those here keeps the bounded full checks for poses that can pass.
+    if(ownFunctionWorsens(after,item.id,deficits,catalog))continue;
     const edge=Math.min(item.pos[0]-box.minX,box.maxX-item.pos[0],item.pos[1]-box.minY,box.maxY-item.pos[1]);
     const distance=spans.length?Math.min(...spans.map(w=>Math.hypot(item.pos[0]-(w.a[0]+w.b[0])/2,item.pos[1]-(w.a[1]+w.b[1])/2))):10;
     const travel=owned?Math.hypot(item.pos[0]-owned.pos[0],item.pos[1]-owned.pos[1]):0;
@@ -221,6 +232,20 @@ function generateSlots(scene:Scene,catalog:readonly CatalogAsset[],query:SlotQue
           return Math.hypot(item.pos[0]-(sofa.pos[0]+Math.sin(theta)*reach),item.pos[1]-(sofa.pos[1]-Math.cos(theta)*reach));
         }));
       }
+    }
+    // A chair needs an open approach to its seat (the walkway check wants 0.75 m in front) and reads as part of
+    // the room when it faces the sofa or table it serves. Edge-first ranking spent the whole budget on chairs
+    // tucked sideways along walls, whose approach is narrower than that.
+    if(SEATS.includes(semantic)){
+      const front=itemFront(item),t=item.rot*Math.PI/180,ahead:Vec2=[Math.sin(t),-Math.cos(t)],side:Vec2=[Math.cos(t),Math.sin(t)];
+      const approach:Vec2[]=([[-1,0],[1,0],[1,1],[-1,1]] as Vec2[]).map(([u,v])=>[front[0]+side[0]*u*.375+ahead[0]*v*.45,front[1]+side[1]*u*.375+ahead[1]*v*.45]);
+      if(!solids.has(item.size[2]))solids.set(item.size[2],wallSolidPolygons(scene,item.size[2]).map(s=>s.polygon));
+      const open=!outsidePoint(approach,room.polygon)&&!solids.get(item.size[2])!.some(p=>polygonsOverlap(approach,p))&&!obstacles.some(o=>o.room===room.id&&polygonsOverlap(approach,o.polygon))&&!swings.some(p=>polygonsOverlap(approach,p));
+      const served=seatAnchors.map(anchor=>{
+        const dx=anchor.pos[0]-item.pos[0],dy=anchor.pos[1]-item.pos[1],d=Math.hypot(dx,dy)||1;
+        return (ahead[0]*dx+ahead[1]*dy)/d-.3*Math.max(0,d-2.5);
+      });
+      purchaseRank=(open?10:0)+(served.length?Math.max(...served):-edge);
     }
     cheap.push({item,op,after,score:owned&&!query.openFloor?-travel:purchaseRank-(query.nearWindow?distance:0)});
   }
@@ -254,7 +279,7 @@ function generateSlots(scene:Scene,catalog:readonly CatalogAsset[],query:SlotQue
     const daylight=query.nearWindow?1/(1+Math.min(...spans.map(w=>Math.hypot(item.pos[0]-(w.a[0]+w.b[0])/2,item.pos[1]-(w.a[1]+w.b[1])/2)))):strategy.daylight_for_work.score;
     const facing=query.faceWindow?1:strategy.social_living.score,score=(query.openFloor?10:1)*open_floor+daylight+facing+.1*zoning;
     output.push({id:`slot-${hash([op]).slice(0,16)}`,catalog_ids:asset?[asset.id]:[],ops:[op],scores:{daylight,zoning,facing,open_floor},score,description:`${owned?'Move':'Add'} ${base.name}; largest open rectangle ${open_floor>=0?'+':''}${open_floor.toFixed(2)} m²; no worsened access deficits.`});
-    if(output.length===6)break;
+    if(output.length>=(query.limit??6))break;
   }
   return output.sort((a,b)=>b.score-a.score||a.id.localeCompare(b.id)).slice(0,24);
 }

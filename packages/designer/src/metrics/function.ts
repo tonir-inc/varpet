@@ -75,8 +75,14 @@ function coffeeGap(sofa:Item,table:Item):number|undefined {
 
 /** Function guidance is a soft preference. Physical paths and door swings stay hard checks. */
 export function functionClearances(input:Scene):FunctionClearance[] {
-  const scene=parseScene(input),metrics:FunctionClearance[]=[];
-  for(const item of scene.items) {
+  const scene=parseScene(input);
+  return scene.items.flatMap(item=>itemFunctionClearances(scene,item));
+}
+
+/** One item's function clearances in an already parsed scene (the same rules as functionClearances). */
+export function itemFunctionClearances(scene:Scene,item:Item):FunctionClearance[] {
+  const metrics:FunctionClearance[]=[];
+  {
     const kind=item.kind.toLowerCase().replace(/[ -]/g,'_');
     if(kind==='bed') for(const side of ['left','right'] as const) metrics.push(result(item,side,'bed_side',clearance(scene,item,side),0.6));
     if(['chair','desk_chair','dining_chair','office_chair'].includes(kind)) metrics.push(result(item,'back','chair_pullout',clearance(scene,item,'back'),0.6));
