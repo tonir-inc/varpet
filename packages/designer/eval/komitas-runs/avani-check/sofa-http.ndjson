@@ -1,0 +1,7 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "question", "conversationId": "b33ee2801185444c9bf6338d67b0871c", "question": "Which living-room window should the sofa face?", "options": ["The window currently behind the sofa", "The window on the left-hand wall"]}

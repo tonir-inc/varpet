@@ -1,0 +1,16 @@
+{
+  "captured_at": "2026-09-26T12:06:35.431130+00:00",
+  "state": "packages/designer/eval/komitas-runs/avani-check/final.json",
+  "browser": "153.0.8010.53",
+  "page_errors": [],
+  "failed_requests": [],
+  "loaded_assets": [
+    "abo:B07DBB7FVP"
+  ],
+  "expected_gltf_assets": [
+    "abo:B07DBB7FVP"
+  ],
+  "complete": true,
+  "renderer": "apps/editor/src/render/viewport.ts",
+  "port": 5197
+}

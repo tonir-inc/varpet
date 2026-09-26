@@ -1,0 +1,5 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "decline", "conversationId": "b33ee2801185444c9bf6338d67b0871c", "message": "I can preview furniture layouts and wall colours, but not remove walls or plan structural work. A qualified structural engineer must assess the wall before demolition.\n\nInstead, I can rearrange the kitchen and living-room furniture to improve circulation through the existing doorway."}

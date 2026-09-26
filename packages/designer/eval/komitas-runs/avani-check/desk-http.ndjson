@@ -1,0 +1,11 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "question", "conversationId": "b33ee2801185444c9bf6338d67b0871c", "question": "The available catalog search returned no dedicated desks. Would you consider a small dining table as a work surface by the living-room window, or prefer to wait for a proper desk? The table is listed at 74,000 AMD (mock pricing, not a shop quote); your budget is unconfirmed.", "options": ["Preview the small table as a desk alternative", "Wait for a dedicated desk"]}
