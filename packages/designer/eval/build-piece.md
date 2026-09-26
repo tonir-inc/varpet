@@ -147,3 +147,13 @@ DONE: 7 of 7 for changes 1 and 5, with the separate lane handoffs above.
 
 Not proven: end-to-end uploaded-picture → live website slot replacement, final workshop
 quotation, or owner-rated likeness; these are not established by the local builder smoke.
+
+[Measured final integration gate, 2026-09-26 14:04 UTC] After rebasing over the catalog
+preview and FAST changes, and installing their newly added `gltf-validator` with
+`pnpm install --frozen-lockfile`, the untargeted root run exited 0 again:
+`VITEST_MAX_WORKERS=1 pnpm test` → **100 designer files / 461 tests passed**,
+**160 harness tests OK**, **45 eval tests OK**, **12 showcase tests passed**, all editor
+checks passed (`apps/editor test: Done`). `pnpm typecheck` exited 0 across the workspace.
+Logs: `/tmp/varpet-picture-ready-{test,typecheck}.log`. The preceding attempt failed only
+because three new catalog suites could not import the not-yet-installed dependency;
+no test or lockfile was changed. Fresh rebase review: APPROVE.
