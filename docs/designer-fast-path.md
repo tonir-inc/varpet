@@ -1,7 +1,7 @@
 # Designer fast path
 
 [measured, 2026-09-26 UTC, gpt-6-astra low] The release comparison contains 106 requests:
-three repeated Avani edits/proofs per arm, six accepted Komitas flats, and three extra paired kids
+three repeated Avani edits/proofs per arm, six then-accepted Komitas flats, and three extra paired kids
 requests. Five classes meet the release gate; they are enabled in `knowledge/fast-defaults.json`.
 Full pass rates, editor acceptance, median/p90/max, tokens and per-request timing are in
 [the evaluation](../packages/designer/eval/fast-path.md). N<30 per arm is descriptive, not confidence evidence.
@@ -73,7 +73,7 @@ uses the unchanged graders and EditorStore. No failed candidate is published as 
 
 [measured] Avani has nine certified offered slots. Komitas has three certified paint-room recipes;
 no furnished-room layout passed the full editor gate. Furnishing, desk and sofa-facing requests still
-have zero successful Komitas outcomes and remain opt-in. Their faster declines are not successful
+have zero successful fast-arm Komitas outcomes and remain opt-in. The expanded 918-asset, three-flat rerun measures desk 47.482→38.309 s (passes 1/3→0/3) and bedroom 81.269→9.138 s (0/3→0/3); actual shop subtypes do not remove the remaining routing/search failures. Their faster declines are not successful
 layouts. The missing furnished-room library is an explicit remaining limitation.
 
 [derived budgets] Preparation: 8 s; model selection: 12 s; catalog CPU search: 4 s. Exhaustion is a

@@ -5,7 +5,7 @@ median/p90/max, tokens and evaluation paths. Null token usage stays unknown. The
 and BENCH graders own correctness; no generation heuristic grades itself.
 
 `python3 packages/designer/eval/fast-promotion-report.py` rebuilds cases, aggregate evidence and
-`fast-defaults.json` from fixed complete cohorts. `fast-timing.py` extracts all 106 per-request model
+`fast-defaults.json` from fixed complete cohorts. `fast-timing.py` extracts the 106 historical and 12 expanded-catalog per-request model
 windows, rounds, tools, checks and process stages. General model/network/startup is inseparable.
 
 `pnpm --dir packages/designer exec tsx knowledge/precompute.ts` certifies Avani recipes.
@@ -21,3 +21,5 @@ Failed and infrastructure-interrupted cohorts remain under `eval/fast-runs/` wit
 [derived] Add production failures as cases. Invalidate recipe caches whenever generation/check
 semantics change. Promote only independently passing, faster classes without per-case pass loss;
 three repetitions are a release observation, not a statistical reliability guarantee.
+
+`cases-expanded-catalog.json` adds the three-flat desk/bedroom comparison with the 918-asset catalog and fresh shells. `fast-real-catalog-report.py` verifies paired input equality and rebuilds it. These results are separate from the historical six-flat cohort.

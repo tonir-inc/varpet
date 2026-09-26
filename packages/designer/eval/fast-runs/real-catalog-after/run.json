@@ -692,7 +692,25 @@
       ],
       "catalog_pieces": [],
       "cost_dram": 0,
-      "inventory": []
+      "inventory": [],
+      "tokens": 96889,
+      "usage": {
+        "cacheWriteInputTokens": 0,
+        "cachedInputTokens": 78720,
+        "inputTokens": 96489,
+        "outputTokens": 400,
+        "reasoningOutputTokens": 36,
+        "totalTokens": 96889
+      },
+      "actual_profile": {
+        "model": "gpt-6-astra",
+        "effort": "low",
+        "profile": {
+          "placement": "without-place",
+          "context": "compact-base"
+        }
+      },
+      "event_log": "packages/designer/eval/fast-runs/real-catalog-after/b20-t11-desk-1-sdk.events.jsonl"
     },
     {
       "arm": "after",
@@ -1383,7 +1401,23 @@
       ],
       "catalog_pieces": [],
       "cost_dram": 0,
-      "inventory": []
+      "inventory": [],
+      "tokens": 0,
+      "usage": {
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "cachedInputTokens": 0,
+        "totalTokens": 0
+      },
+      "actual_profile": {
+        "model": "gpt-6-astra",
+        "effort": "low",
+        "profile": {
+          "placement": "without-place",
+          "context": "compact-base"
+        }
+      },
+      "event_log": "packages/designer/eval/fast-runs/real-catalog-after/b20-t11-bedroom-1-sdk.events.jsonl"
     },
     {
       "arm": "after",
@@ -1734,7 +1768,25 @@
       ],
       "catalog_pieces": [],
       "cost_dram": 0,
-      "inventory": []
+      "inventory": [],
+      "tokens": 100072,
+      "usage": {
+        "cacheWriteInputTokens": 0,
+        "cachedInputTokens": 81280,
+        "inputTokens": 99628,
+        "outputTokens": 444,
+        "reasoningOutputTokens": 30,
+        "totalTokens": 100072
+      },
+      "actual_profile": {
+        "model": "gpt-6-astra",
+        "effort": "low",
+        "profile": {
+          "placement": "without-place",
+          "context": "compact-base"
+        }
+      },
+      "event_log": "packages/designer/eval/fast-runs/real-catalog-after/b21-t13-desk-1-sdk.events.jsonl"
     },
     {
       "arm": "after",
@@ -2085,7 +2137,23 @@
       ],
       "catalog_pieces": [],
       "cost_dram": 0,
-      "inventory": []
+      "inventory": [],
+      "tokens": 0,
+      "usage": {
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "cachedInputTokens": 0,
+        "totalTokens": 0
+      },
+      "actual_profile": {
+        "model": "gpt-6-astra",
+        "effort": "low",
+        "profile": {
+          "placement": "without-place",
+          "context": "compact-base"
+        }
+      },
+      "event_log": "packages/designer/eval/fast-runs/real-catalog-after/b21-t13-bedroom-1-sdk.events.jsonl"
     },
     {
       "arm": "after",
@@ -3456,7 +3524,25 @@
       ],
       "catalog_pieces": [],
       "cost_dram": 0,
-      "inventory": []
+      "inventory": [],
+      "tokens": 94368,
+      "usage": {
+        "cacheWriteInputTokens": 0,
+        "cachedInputTokens": 76288,
+        "inputTokens": 94001,
+        "outputTokens": 367,
+        "reasoningOutputTokens": 32,
+        "totalTokens": 94368
+      },
+      "actual_profile": {
+        "model": "gpt-6-astra",
+        "effort": "low",
+        "profile": {
+          "placement": "without-place",
+          "context": "compact-base"
+        }
+      },
+      "event_log": "packages/designer/eval/fast-runs/real-catalog-after/b28-t31-desk-1-sdk.events.jsonl"
     },
     {
       "arm": "after",
@@ -4827,7 +4913,18 @@
       ],
       "catalog_pieces": [],
       "cost_dram": 0,
-      "inventory": []
+      "inventory": [],
+      "tokens": null,
+      "usage": null,
+      "actual_profile": {
+        "model": "gpt-6-astra",
+        "effort": "low",
+        "profile": {
+          "placement": "without-place",
+          "context": "compact-base"
+        }
+      },
+      "event_log": "packages/designer/eval/fast-runs/real-catalog-after/b28-t31-bedroom-1-sdk.events.jsonl"
     }
   ]
 }

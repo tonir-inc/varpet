@@ -19,6 +19,8 @@ def events(path):
 
 rows=[]
 report=json.loads((HERE/'fast-runs/promotion-report.json').read_text())
+expanded=HERE/'fast-runs/real-catalog-report.json'
+if expanded.exists():report['rows']+=json.loads(expanded.read_text())['rows']
 kind_of={'furnish.living':'living','furnish.bedroom':'bedroom','furnish.kids':'kids','move.face-window':'sofa','add.desk-window':'desk','appearance.walls':'paint','scope.structural':'structural'}
 for record in report['rows']:
     path=ROOT/record['evidence']

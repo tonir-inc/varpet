@@ -2,7 +2,7 @@
 from pathlib import Path
 import json,shutil
 ROOT=Path(__file__).resolve().parent/'fast-runs'
-for name in ['scope-zero-process-final','kids-before-three-final','kids-after-three-final','paint-deterministic-final','matched-paint-scope-rebased','real-catalog-before','real-catalog-after']:
+for name in ['scope-zero-process-final','kids-before-three-final','kids-after-three-final','paint-deterministic-final','matched-paint-scope-rebased','real-catalog-before','real-catalog-after','real-catalog-before-retry','real-catalog-after-retry']:
  p=ROOT/name/'run.json'
  if not p.exists():continue
  data=json.loads(p.read_text())

@@ -2880,6 +2880,391 @@
       "model_window_seconds": null,
       "outside_tools_seconds": 2.1247888329999998,
       "evidence": "packages/designer/eval/fast-runs/kids-after-three-final/b25-t72-kids-3-sdk.events.jsonl"
+    },
+    {
+      "id": "b20-t11-desk-expanded-catalog",
+      "class_id": "add.desk-window",
+      "arm": "before",
+      "total_seconds": 30.547582166,
+      "rounds": 6,
+      "tool_calls": 4,
+      "tools_seconds": 3.277,
+      "process_stages": [
+        {
+          "stage": "to-designer",
+          "seconds": 0.30451795901171863,
+          "returncode": 0
+        },
+        {
+          "stage": "worker",
+          "seconds": 30.211908375029452,
+          "returncode": 0
+        }
+      ],
+      "proposal_checks_seconds": 0.0,
+      "fast_preparation": [],
+      "model_window_seconds": null,
+      "outside_tools_seconds": 27.270582166,
+      "evidence": "packages/designer/eval/fast-runs/real-catalog-before/b20-t11-desk-1-sdk.events.jsonl"
+    },
+    {
+      "id": "b20-t11-bedroom-expanded-catalog",
+      "class_id": "furnish.bedroom",
+      "arm": "before",
+      "total_seconds": 56.215202833000006,
+      "rounds": 5,
+      "tool_calls": 6,
+      "tools_seconds": 3.846,
+      "process_stages": [
+        {
+          "stage": "to-designer",
+          "seconds": 0.4630746250040829,
+          "returncode": 0
+        },
+        {
+          "stage": "worker",
+          "seconds": 55.11129437503405,
+          "returncode": 0
+        },
+        {
+          "stage": "to-command",
+          "seconds": 0.5881736250012182,
+          "returncode": 0
+        }
+      ],
+      "proposal_checks_seconds": 0.464,
+      "fast_preparation": [],
+      "model_window_seconds": null,
+      "outside_tools_seconds": 52.369202833,
+      "evidence": "packages/designer/eval/fast-runs/real-catalog-before/b20-t11-bedroom-1-sdk.events.jsonl"
+    },
+    {
+      "id": "b21-t13-desk-expanded-catalog",
+      "class_id": "add.desk-window",
+      "arm": "before",
+      "total_seconds": 58.285392125,
+      "rounds": 7,
+      "tool_calls": 7,
+      "tools_seconds": 4.322,
+      "process_stages": [
+        {
+          "stage": "to-designer",
+          "seconds": 0.3148757499875501,
+          "returncode": 0
+        },
+        {
+          "stage": "worker",
+          "seconds": 57.521925000008196,
+          "returncode": 0
+        },
+        {
+          "stage": "to-command",
+          "seconds": 0.395634250016883,
+          "returncode": 0
+        }
+      ],
+      "proposal_checks_seconds": 1.11,
+      "fast_preparation": [],
+      "model_window_seconds": null,
+      "outside_tools_seconds": 53.963392125,
+      "evidence": "packages/designer/eval/fast-runs/real-catalog-before-retry/b21-t13-desk-1-sdk.events.jsonl"
+    },
+    {
+      "id": "b21-t13-bedroom-expanded-catalog",
+      "class_id": "furnish.bedroom",
+      "arm": "before",
+      "total_seconds": 109.668775708,
+      "rounds": 9,
+      "tool_calls": 10,
+      "tools_seconds": 13.739,
+      "process_stages": [
+        {
+          "stage": "to-designer",
+          "seconds": 0.24976683396380395,
+          "returncode": 0
+        },
+        {
+          "stage": "worker",
+          "seconds": 108.2628827909939,
+          "returncode": 0
+        },
+        {
+          "stage": "to-command",
+          "seconds": 1.0981579590006731,
+          "returncode": 0
+        }
+      ],
+      "proposal_checks_seconds": 0.574,
+      "fast_preparation": [],
+      "model_window_seconds": null,
+      "outside_tools_seconds": 95.929775708,
+      "evidence": "packages/designer/eval/fast-runs/real-catalog-before-retry/b21-t13-bedroom-1-sdk.events.jsonl"
+    },
+    {
+      "id": "b28-t31-desk-expanded-catalog",
+      "class_id": "add.desk-window",
+      "arm": "before",
+      "total_seconds": 47.482316667000006,
+      "rounds": 5,
+      "tool_calls": 4,
+      "tools_seconds": 7.632,
+      "process_stages": [
+        {
+          "stage": "to-designer",
+          "seconds": 0.4837830839678645,
+          "returncode": 0
+        },
+        {
+          "stage": "worker",
+          "seconds": 46.29231333400821,
+          "returncode": 0
+        },
+        {
+          "stage": "to-command",
+          "seconds": 0.6502319580176845,
+          "returncode": 0
+        }
+      ],
+      "proposal_checks_seconds": 0.282,
+      "fast_preparation": [],
+      "model_window_seconds": null,
+      "outside_tools_seconds": 39.85031666700001,
+      "evidence": "packages/designer/eval/fast-runs/real-catalog-before-retry/b28-t31-desk-1-sdk.events.jsonl"
+    },
+    {
+      "id": "b28-t31-bedroom-expanded-catalog",
+      "class_id": "furnish.bedroom",
+      "arm": "before",
+      "total_seconds": 81.26883329200002,
+      "rounds": 8,
+      "tool_calls": 10,
+      "tools_seconds": 9.23,
+      "process_stages": [
+        {
+          "stage": "to-designer",
+          "seconds": 1.025038499967195,
+          "returncode": 0
+        },
+        {
+          "stage": "worker",
+          "seconds": 79.76461662497604,
+          "returncode": 0
+        }
+      ],
+      "proposal_checks_seconds": 0.319,
+      "fast_preparation": [],
+      "model_window_seconds": null,
+      "outside_tools_seconds": 72.03883329200002,
+      "evidence": "packages/designer/eval/fast-runs/real-catalog-before-retry/b28-t31-bedroom-1-sdk.events.jsonl"
+    },
+    {
+      "id": "b20-t11-desk-expanded-catalog",
+      "class_id": "add.desk-window",
+      "arm": "after",
+      "total_seconds": 38.823489958,
+      "rounds": 6,
+      "tool_calls": 4,
+      "tools_seconds": 3.356,
+      "process_stages": [
+        {
+          "stage": "to-designer",
+          "seconds": 0.3877008749986999,
+          "returncode": 0
+        },
+        {
+          "stage": "worker",
+          "seconds": 38.39537908299826,
+          "returncode": 0
+        }
+      ],
+      "proposal_checks_seconds": 0.0,
+      "fast_preparation": [
+        {
+          "kind": "fast_path",
+          "stage": "prepared",
+          "key": "6b7815b85fb11053f88738ab5aa0c0d64731f1079d428686a2887123fc75dca9",
+          "cache_hit": false,
+          "prepare_ms": 8.953667000000024,
+          "outcome": "fallback",
+          "class_id": "add.desk-window"
+        }
+      ],
+      "model_window_seconds": null,
+      "outside_tools_seconds": 35.467489958,
+      "evidence": "packages/designer/eval/fast-runs/real-catalog-after/b20-t11-desk-1-sdk.events.jsonl"
+    },
+    {
+      "id": "b20-t11-bedroom-expanded-catalog",
+      "class_id": "furnish.bedroom",
+      "arm": "after",
+      "total_seconds": 9.138316750000005,
+      "rounds": 0,
+      "tool_calls": 0,
+      "tools_seconds": 0.0,
+      "process_stages": [
+        {
+          "stage": "to-designer",
+          "seconds": 0.39632504200562835,
+          "returncode": 0
+        },
+        {
+          "stage": "worker",
+          "seconds": 8.699046749970876,
+          "returncode": 0
+        }
+      ],
+      "proposal_checks_seconds": 0.0,
+      "fast_preparation": [
+        {
+          "kind": "fast_path",
+          "status": "search_budget",
+          "seconds": 8.048503250000067
+        }
+      ],
+      "model_window_seconds": null,
+      "outside_tools_seconds": 9.138316750000005,
+      "evidence": "packages/designer/eval/fast-runs/real-catalog-after/b20-t11-bedroom-1-sdk.events.jsonl"
+    },
+    {
+      "id": "b21-t13-desk-expanded-catalog",
+      "class_id": "add.desk-window",
+      "arm": "after",
+      "total_seconds": 31.929916790999997,
+      "rounds": 6,
+      "tool_calls": 4,
+      "tools_seconds": 3.071,
+      "process_stages": [
+        {
+          "stage": "to-designer",
+          "seconds": 0.3055647079600021,
+          "returncode": 0
+        },
+        {
+          "stage": "worker",
+          "seconds": 31.59647212503478,
+          "returncode": 0
+        }
+      ],
+      "proposal_checks_seconds": 0.0,
+      "fast_preparation": [
+        {
+          "kind": "fast_path",
+          "stage": "prepared",
+          "key": "f961ded7a72391a6b966ef3ba50f0d62c8345a26f7c34686106db46e8fe66426",
+          "cache_hit": false,
+          "prepare_ms": 6.5036249999999995,
+          "outcome": "fallback",
+          "class_id": "add.desk-window"
+        }
+      ],
+      "model_window_seconds": null,
+      "outside_tools_seconds": 28.858916790999995,
+      "evidence": "packages/designer/eval/fast-runs/real-catalog-after/b21-t13-desk-1-sdk.events.jsonl"
+    },
+    {
+      "id": "b21-t13-bedroom-expanded-catalog",
+      "class_id": "furnish.bedroom",
+      "arm": "after",
+      "total_seconds": 9.045538666999986,
+      "rounds": 0,
+      "tool_calls": 0,
+      "tools_seconds": 0.0,
+      "process_stages": [
+        {
+          "stage": "to-designer",
+          "seconds": 0.33312016702257097,
+          "returncode": 0
+        },
+        {
+          "stage": "worker",
+          "seconds": 8.679631625011098,
+          "returncode": 0
+        }
+      ],
+      "proposal_checks_seconds": 0.0,
+      "fast_preparation": [
+        {
+          "kind": "fast_path",
+          "status": "search_budget",
+          "seconds": 8.043473666009959
+        }
+      ],
+      "model_window_seconds": null,
+      "outside_tools_seconds": 9.045538666999986,
+      "evidence": "packages/designer/eval/fast-runs/real-catalog-after/b21-t13-bedroom-1-sdk.events.jsonl"
+    },
+    {
+      "id": "b28-t31-desk-expanded-catalog",
+      "class_id": "add.desk-window",
+      "arm": "after",
+      "total_seconds": 38.309111166,
+      "rounds": 5,
+      "tool_calls": 4,
+      "tools_seconds": 4.054,
+      "process_stages": [
+        {
+          "stage": "to-designer",
+          "seconds": 0.7336123749846593,
+          "returncode": 0
+        },
+        {
+          "stage": "worker",
+          "seconds": 37.08026812499156,
+          "returncode": 0
+        },
+        {
+          "stage": "to-command",
+          "seconds": 0.43747591599822044,
+          "returncode": 0
+        }
+      ],
+      "proposal_checks_seconds": 1.016,
+      "fast_preparation": [
+        {
+          "kind": "fast_path",
+          "stage": "prepared",
+          "key": "66929f21f97195ba1d4cf6f3901a07e566c23c9f72879d0bed7f9cfe91761eb4",
+          "cache_hit": false,
+          "prepare_ms": 8.611250000000013,
+          "outcome": "fallback",
+          "class_id": "add.desk-window"
+        }
+      ],
+      "model_window_seconds": null,
+      "outside_tools_seconds": 34.255111166,
+      "evidence": "packages/designer/eval/fast-runs/real-catalog-after-retry/b28-t31-desk-1-sdk.events.jsonl"
+    },
+    {
+      "id": "b28-t31-bedroom-expanded-catalog",
+      "class_id": "furnish.bedroom",
+      "arm": "after",
+      "total_seconds": 9.369475124999997,
+      "rounds": 0,
+      "tool_calls": 0,
+      "tools_seconds": 0.0,
+      "process_stages": [
+        {
+          "stage": "to-designer",
+          "seconds": 0.33199620799859986,
+          "returncode": 0
+        },
+        {
+          "stage": "worker",
+          "seconds": 9.000678792013787,
+          "returncode": 0
+        }
+      ],
+      "proposal_checks_seconds": 0.0,
+      "fast_preparation": [
+        {
+          "kind": "fast_path",
+          "status": "search_budget",
+          "seconds": 8.088593708002008
+        }
+      ],
+      "model_window_seconds": null,
+      "outside_tools_seconds": 9.369475124999997,
+      "evidence": "packages/designer/eval/fast-runs/real-catalog-after-retry/b28-t31-bedroom-1-sdk.events.jsonl"
     }
   ]
 }

@@ -1,0 +1,5 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "message", "message": "I could not find a checked layout within the search budget. This does not prove the request impossible. Try one piece at a time or a different room.", "conversationId": "efdd76fbacf04654af9e378c71acaff1"}

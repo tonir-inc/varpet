@@ -1,0 +1,88 @@
+
+> @varpet/designer@0.0.0 test /Users/ashotarushanyan/AshProjects/varpet-fast/packages/designer
+> vitest run && python3 -m unittest discover -s ../../harness -p 'designer*_test.py' && python3 -m unittest discover -s eval -p 'test_*.py'
+
+
+ RUN  v5.0.2 /Users/ashotarushanyan/AshProjects/varpet-fast/packages/designer
+
+
+ Test Files  96 passed (96)
+      Tests  453 passed (453)
+   Start at  17:57:08
+   Duration  63.63s (tests 83%, import 12%, transform 4%, worker 1%)
+
+    Isolate  96 workers spawned · ~151ms startup each (spawn + environment, per file)
+             at least ~14.35s faster with isolate: false — reuses workers across files instead of one per file
+
+...........{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "05750853a4384d4abc472af746987369", "outcome": "decline", "seconds": 0.007, "usage": null, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "4cd3bb34cdc04f52acd71cc2a1cd8977", "outcome": "message", "seconds": 0.008, "usage": null, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "a0b8d783d87a48c5b6155f4333507e11", "outcome": "message", "seconds": 0.009, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "baffb4bb2b4347b6ad63cfebe29bd688", "outcome": "error", "seconds": 0.009, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "f7a2bad4090243be8d7fec2fb329f847", "outcome": "error", "seconds": 0.007, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "99203c83da134dabb8c1f88074d9cbe8", "outcome": "error", "seconds": 0.008, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "fa853a127ebe4938b47d9355ac33242d", "outcome": "error", "seconds": 0.006, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "81875735fbb1418b85d58d4aedd642dc", "outcome": "error", "seconds": 0.007, "usage": null, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "658af81e42504e3fb083e916fd5ec5eb", "outcome": "message", "seconds": 0.006, "usage": null, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "83fac0e16b1f45859e879d76c68b9654", "outcome": "aborted", "seconds": 0.0, "usage": null, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"fast_path": true}, "conversationId": "d90a5539b6f347d1821cf6cb611b0319", "outcome": "message", "seconds": 0.007, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"fast_path": true}, "conversationId": "d90a5539b6f347d1821cf6cb611b0319", "outcome": "message", "seconds": 0.001, "usage": null, "tool_calls": 0}
+.{"kind": "model_catalog_audit", "sha256": "ee0a14accf8c3afd5d82fc7aa1ecb49cad985691bc96723ff6cd92e5e0f81c42", "client_version": "0.155.0", "fetched_at": "2026-09-26T13:57:45.909451Z"}
+.....................{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"fast_path": true}, "conversationId": "127b10d91b6a442897f159775cb930fb", "outcome": "decline", "seconds": 0.0, "usage": {"inputTokens": 0, "outputTokens": 0, "cachedInputTokens": 0, "totalTokens": 0}, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"fast_path": false}, "conversationId": "e097777508e14bc58b9157667855d9ec", "outcome": "error", "seconds": 0.006, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"fast_path": true}, "conversationId": "3802ab4996da4cfaa9b0309d4e0b7d5d", "outcome": "error", "seconds": 0.006, "usage": null, "tool_calls": 0}
+...............................{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "b8584158f7cb489ca95cbf0403d03f2c", "outcome": "proposal", "seconds": 0.002, "usage": null, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "c9f872cbe04a4ad19fc3c6e4111acdf0", "outcome": "error", "seconds": 0.002, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "7e7a69fc84674b8e917da3a77440a670", "outcome": "error", "seconds": 0.002, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "bb9d6c5276d248469af610f35dd701dd", "outcome": "error", "seconds": 0.002, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "dfa88b6f230d43408690ddcdd4d7d1cb", "outcome": "error", "seconds": 0.002, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "47f6a70542364135a65c3daced2e799c", "outcome": "error", "seconds": 0.002, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "08a12b62976e4b9a9c45184f6d4f95d3", "outcome": "error", "seconds": 0.003, "usage": null, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "58b2453215b743c89858132a66303304", "outcome": "error", "seconds": 0.008, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "4244b461d8854098b0227a8dafb3db81", "outcome": "error", "seconds": 0.006, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "ec9ae4afa6574239ad889cee6f10fe05", "outcome": "error", "seconds": 0.005, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "57a20d906958473f89e85d64214ccb94", "outcome": "error", "seconds": 0.003, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "f189445539df48e687c253ff1f2a0a39", "outcome": "error", "seconds": 0.003, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "13340eadde554e6faa4bf4485e4ed1d6", "outcome": "error", "seconds": 0.003, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "b0d477ac56564d15af842d227f26aa59", "outcome": "error", "seconds": 0.003, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "80bc44cd4b2345c393957c6f776336ad", "outcome": "error", "seconds": 0.003, "usage": null, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "aa43925c71db4fc8b752155434fa976f", "outcome": "proposal", "seconds": 0.003, "usage": null, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "f70c76c8622843a9adfcf07576246997", "outcome": "proposal", "seconds": 0.004, "usage": null, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "7114b69a24344187b8b0d8d14f684d33", "outcome": "error", "seconds": 0.006, "usage": null, "tool_calls": 0}
+.....{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "eb5359a1e45d4973a821a50b608af228", "outcome": "decline", "seconds": 0.079, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "eb5359a1e45d4973a821a50b608af228", "outcome": "decline", "seconds": 0.083, "usage": {"inputTokens": 0, "outputTokens": 0, "totalTokens": 0}, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "eb5359a1e45d4973a821a50b608af228", "outcome": "proposal", "seconds": 0.437, "usage": {"inputTokens": 0, "outputTokens": 0, "totalTokens": 0}, "tool_calls": 0}
+....{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "c914b199b5af40caa322d36c43b792e9", "outcome": "proposal", "seconds": 0.007, "usage": null, "tool_calls": 0}
+...{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "23427fb84e6f41daba3260f5bec3f950", "outcome": "error", "seconds": 0.085, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "598529479c4e4868a4f820ae7fb48c0c", "outcome": "error", "seconds": 0.39, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "c4546f94339d48a0add2fb9c95f37769", "outcome": "error", "seconds": 0.367, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "d3146b8179a743ce93a65be8204bdae1", "outcome": "message", "seconds": 0.082, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "d3146b8179a743ce93a65be8204bdae1", "outcome": "message", "seconds": 0.069, "usage": {"inputTokens": 0, "outputTokens": 0, "totalTokens": 0}, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "0806a791feb9434d8d42fec4e1775f03", "outcome": "error", "seconds": 0.377, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "24563197af0f418eab1f0ea8d93158e1", "outcome": "aborted", "seconds": 0.213, "usage": null, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "4b90255a51834f858a63508c6ca6e532", "outcome": "decline", "seconds": 0.098, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "d0a9e9c1325b4468b6a3b45289343792", "outcome": "decline", "seconds": 0.12, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+...{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "f99a153d9d7145018cfa2b82dc9cf89c", "outcome": "error", "seconds": 0.423, "usage": null, "tool_calls": 0}
+..{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "24339f5894934978b8feaa595c63e881", "outcome": "proposal", "seconds": 0.411, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+..{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "1ca8a588685a4d64a6b0f5927ec06da7", "outcome": "proposal", "seconds": 0.371, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "b8451df0d05e457f89beac88cbe410e7", "outcome": "question", "seconds": 0.077, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "41a17909aadd486a8f8c8fd07c51236e", "outcome": "proposal", "seconds": 0.377, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "41a17909aadd486a8f8c8fd07c51236e", "outcome": "decline", "seconds": 0.08, "usage": {"inputTokens": 0, "outputTokens": 0, "totalTokens": 0}, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "e9bb6779783a41bf9a1fadf2cb6ee5bf", "outcome": "error", "seconds": 0.142, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "07436ce851b740819232fb9de1701862", "outcome": "error", "seconds": 0.209, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "7ed0d3c94b284c2ca1c0841d003600dc", "outcome": "error", "seconds": 0.074, "usage": null, "tool_calls": 0}
+...........................................
+----------------------------------------------------------------------
+Ran 145 tests in 21.491s
+
+OK
+............EVAL_USAGE_LIMIT
+..{"flat": "sample", "exit_code": 9}
+.{"flat": "sample", "exit_code": 3}
+..''
+.usage limit reached
+.usage limit reached
+......................
+----------------------------------------------------------------------
+Ran 41 tests in 3.053s
+
+OK
