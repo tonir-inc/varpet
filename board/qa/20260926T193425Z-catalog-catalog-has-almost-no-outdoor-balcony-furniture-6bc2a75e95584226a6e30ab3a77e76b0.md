@@ -18,7 +18,7 @@ A small balcony range: bistro table + chairs, folding chairs, outdoor bench/loun
 
 **Actual**
 
-Only a handful of items match outdoor|patio|balcony|garden|bistro in names; the designer has nothing balcony-appropriate to choose, which feeds the 'balcony furnished like a living room' issue.
+~196 items match outdoor|patio|balcony|garden|bistro by name (13 chairs incl. folding / zero-gravity lounge chairs, 18 tables incl. a 3-piece bistro set, 26 planters, 27 outdoor lights), but nothing marks them as outdoor/balcony (no style/tag/room signal and no 'outdoor' filter in search_furniture), so the designer's balcony queries can't target them. Fix: tag outdoor suitability (name + Astra) and expose it as a filter / room hint.
 
 **Evidence**
 
