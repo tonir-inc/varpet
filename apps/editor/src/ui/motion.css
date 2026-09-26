@@ -2,18 +2,14 @@
  * Keep state and focus immediate. Only the entering surface animates; display:none
  * and [hidden] continue to remove closed controls from pointer and keyboard use.
  */
-:root {
-  --motion-feedback: 140ms;
-  --motion-surface: 220ms;
-  --motion-ease-out: cubic-bezier(.2, .8, .2, 1);
-}
+
 
 button {
   transition:
-    background-color var(--motion-feedback) ease,
-    border-color var(--motion-feedback) ease,
-    color var(--motion-feedback) ease,
-    opacity var(--motion-feedback) ease,
+    background-color var(--motion-feedback) var(--motion-ease-out),
+    border-color var(--motion-feedback) var(--motion-ease-out),
+    color var(--motion-feedback) var(--motion-ease-out),
+    opacity var(--motion-feedback) var(--motion-ease-out),
     transform var(--motion-feedback) var(--motion-ease-out);
 }
 
@@ -28,18 +24,18 @@ button:not(.asset-card):active:not(:disabled) { transform: translateY(1px); }
 select,
 .hierarchy summary {
   transition:
-    background-color var(--motion-feedback) ease,
-    border-color var(--motion-feedback) ease,
-    color var(--motion-feedback) ease,
-    box-shadow var(--motion-feedback) ease;
+    background-color var(--motion-feedback) var(--motion-ease-out),
+    border-color var(--motion-feedback) var(--motion-ease-out),
+    color var(--motion-feedback) var(--motion-ease-out),
+    box-shadow var(--motion-feedback) var(--motion-ease-out);
 }
 
 .object-row svg,
 .tool-rail button kbd,
 .tool-rail #snap strong {
   transition:
-    background-color var(--motion-feedback) ease,
-    color var(--motion-feedback) ease;
+    background-color var(--motion-feedback) var(--motion-ease-out),
+    color var(--motion-feedback) var(--motion-ease-out);
 }
 
 .room-chevron {
@@ -76,9 +72,9 @@ select,
   transition:
     opacity var(--motion-surface) var(--motion-ease-out),
     transform var(--motion-surface) var(--motion-ease-out),
-    background-color var(--motion-feedback) ease,
-    border-color var(--motion-feedback) ease,
-    color var(--motion-feedback) ease;
+    background-color var(--motion-feedback) var(--motion-ease-out),
+    border-color var(--motion-feedback) var(--motion-ease-out),
+    color var(--motion-feedback) var(--motion-ease-out);
 }
 .toast.visible { transform: translate(-50%, 0); }
 
