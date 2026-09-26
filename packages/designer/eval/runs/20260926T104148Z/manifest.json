@@ -1,0 +1,68 @@
+{
+  "started_at": "2026-09-26T10:41:48.488276+00:00",
+  "model": "gpt-6-astra",
+  "effort": "low",
+  "speed_profile": "without-place",
+  "context": "compact-base",
+  "round_cap": null,
+  "concurrency": 4,
+  "idle_timeout_seconds": 180,
+  "deadline_seconds": 240.0,
+  "jobs": [
+    {
+      "scenario": "r01-desk-east-wall",
+      "mode": "without-place-low-compact-base"
+    },
+    {
+      "scenario": "r02-wardrobe-south-wall",
+      "mode": "without-place-low-compact-base"
+    },
+    {
+      "scenario": "r03-chair-faces-desk",
+      "mode": "without-place-low-compact-base"
+    },
+    {
+      "scenario": "r04-desk-near-window",
+      "mode": "without-place-low-compact-base"
+    },
+    {
+      "scenario": "r05-more-usable-floor",
+      "mode": "without-place-low-compact-base"
+    },
+    {
+      "scenario": "r06-wider-walkway",
+      "mode": "without-place-low-compact-base"
+    }
+  ],
+  "source_hashes": {
+    "harness/designer.py": "7278a51819bfbbf7faf62e2570c42177fb9825b91bcf86cd5c33734357e831c1",
+    "harness/designer_prompt.md": "b9299a9a4c9dcb0c6b8550f9c5b13e9f7ba6aa32c0b4e483d8b37d6729095115",
+    "harness/designer_profiles.py": "2910bee12464b0384948fa585c0208b2a5e7a56cd91ed4b3cfd7f0c110a77666",
+    ".agents/skills/interior-design-rules/SKILL.md": "435e591448ee3fcec03b66e0561ea9539fe6535144869354698f0f9b0498fae9",
+    "packages/designer/eval/run.py": "55323f154fd83e6e49f0218191fd1d2da4c8fffe4cfe56cc71f102ba6d48af52",
+    "packages/designer/eval/benchmark-scenarios.json": "ce11957fc2b9ab2d10cc46822727f0686817d8b97ff9c06e988717d41d7673c1",
+    "packages/designer/src/adapter.ts": "42e995509030113f9ea9c55ece596b9f9686d624a50a1a5a8527194a88954cc2",
+    "packages/designer/src/ask.ts": "699c031492ef8236b24dc3d4096a73e1240ac252c8e088b84fa45fcd4c093553",
+    "packages/designer/src/catalog.ts": "131f57b8f8645b1d84bcdbfddfae97507c98787d34eb30550eec6fdffca28ddf",
+    "packages/designer/src/editor-bridge.ts": "4667d735012851f877956d9792f6037ee7ebb3e95d4894f7f85ac6f009bd582b",
+    "packages/designer/src/layout.ts": "c23350aab7ee7809a7e9134529235ea8ab48a81af7de4bcc628f220b6518bf61",
+    "packages/designer/src/local-checks.ts": "fd89d1a854fa87d6b6bb0f27a5924ae18647d4941942d4df461318d9ea4ae963",
+    "packages/designer/src/metrics/function.ts": "6f5b397c32d24a2cd59bd192e47aeae036db3a25a867f09d198fb7a475ceb450",
+    "packages/designer/src/metrics/space.ts": "e69dfaed804f451eeffeca33dd7ee9abfe44290340251aa50800cb44f155ba64",
+    "packages/designer/src/metrics/strategy.ts": "b5fc2660509e8533cfa24f85aac811ca3b5a090cbc1a2d72fdaeb99d8a3a68bb",
+    "packages/designer/src/metrics/sun.ts": "3a9a00bea602c613873d34487d9f8d2915f1a99b997c85721a9d4123d709125a",
+    "packages/designer/src/place-batch.ts": "3a95c2f7c8534e7e428e721f0274004fb1318567556e82e39d61c276fb8cffad",
+    "packages/designer/src/place.ts": "6a06f7c7ba8e9032cd385fb99d4b1d6c41744c6247232f27c151c5a4b5628720",
+    "packages/designer/src/request.ts": "1aac89c2ff4dc43c7481a85156b051df010b70181bd68ba5d843b12796d43c94",
+    "packages/designer/src/scene.ts": "963a9045fb713f8a05108becb68e31bf20af108c426e6440de5f6db97fda5074",
+    "packages/designer/src/server.ts": "bb6a75f6e454adab4b7223e8036a86e5be89997ca0c3f8f37dba85082624954e",
+    "packages/designer/src/session.ts": "e54a8568849872f9e0f56478e0454d39cdd5265518aafcd2b0da88da0a96b67a",
+    "packages/designer/src/tool-inputs.ts": "a88f805a52e221a560002b40a0ce0e54726a3578cbc6c511130f7fa28c0492e1"
+  },
+  "git_revision": "2aed49b1ec3e6013052873138c873b4ebf8018c9",
+  "ablation": "\n\nEVALUATION ABLATION: the place tool is intentionally unavailable in this thread. This overrides only rules requiring place-generated coordinates. Derive candidate move ops yourself from scene geometry; validate with check_layout and score_layout, repair rejected checks, and finish with accepted propose. Preserve every other rule, keep, budget and request check.",
+  "bedroom_sha256": "037af58ab714c7cbbf439ab2fc5b0df95a37fdfe497ed727109b6b34f0b17eb6",
+  "finished_at": "2026-09-26T10:43:31.365080+00:00",
+  "usage_limit_stop": false,
+  "errors": []
+}

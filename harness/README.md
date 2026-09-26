@@ -27,8 +27,8 @@ The service command and Designer REPL default to the measured `without-place` / 
 profile: complete interior skill, a short furniture-specific base prompt, and `propose` performing
 the unchanged physical/request checks and scoring. Existing authenticated model metadata is
 snapshotted per conversation to avoid repeated catalog refreshes; missing metadata uses normal SDK
-discovery. [Measured comparison](../packages/designer/eval/speed.md): 6/6 rearranges pass after merging main, 49.1 s
-median, 92.8 s maximum, 58,296 median tokens. A sub-minute response is not guaranteed.
+discovery. [Measured comparison](../packages/designer/eval/speed.md): 6/6 rearranges pass after merging main, 48.0 s
+median, 68.2 s maximum, 55,973 median tokens. A sub-minute response is not guaranteed.
 For compatibility, the Python embedding constructor `DesignerService()` retains medium/full
 reference settings; pass `**designer.default_service_settings()` to use the service command's defaults.
 

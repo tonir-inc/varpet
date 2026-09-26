@@ -2,7 +2,24 @@
 
 Measured on 2026-09-26, `gpt-6-astra`, pinned Codex SDK/CLI `0.157.1`.
 
-## Validation after merging current main
+## Final validation with current colour/group support
+
+[measured] The selected profile, reconciled with main `06a5617` and its updated interior skill, passed **6/6**: **47.959 s median, 68.185 s maximum, 55,973 median tokens**, 357,581 total tokens. Four of six requests finished below 60 s. **The strict per-request 60-second target is still not achieved.**
+
+[measured] The compact prompt now retains current colour intent/ops, unquoted finishes, rigid group anchors and baseline-note semantics. The bridge, adapter, grader and physical checks remain owned by their existing lane. These final validation cohorts are separate from A–L because upstream code and skill changed; they confirm the selected configuration on merged product code rather than reranking all configurations.
+
+[Manifest](runs/20260926T104148Z/manifest.json); source `2aed49b1ec3e6013052873138c873b4ebf8018c9`; 2026-09-26T10:41:48.488276+00:00 through 2026-09-26T10:43:31.365080+00:00 UTC.
+
+| Scenario | Seconds | Tokens | Grade / policy | Evidence |
+|---|---:|---:|---|---|
+| r01-desk-east-wall | 43.822 | 50,415 | PASS / PASS | [record](runs/20260926T104148Z/r01-desk-east-wall-without-place-low-compact-base.json), [events](runs/20260926T104148Z/r01-desk-east-wall-without-place-low-compact-base.jsonl) |
+| r02-wardrobe-south-wall | 52.095 | 61,531 | PASS / PASS | [record](runs/20260926T104148Z/r02-wardrobe-south-wall-without-place-low-compact-base.json), [events](runs/20260926T104148Z/r02-wardrobe-south-wall-without-place-low-compact-base.jsonl) |
+| r03-chair-faces-desk | 32.358 | 50,013 | PASS / PASS | [record](runs/20260926T104148Z/r03-chair-faces-desk-without-place-low-compact-base.json), [events](runs/20260926T104148Z/r03-chair-faces-desk-without-place-low-compact-base.jsonl) |
+| r04-desk-near-window | 64.586 | 62,388 | PASS / PASS | [record](runs/20260926T104148Z/r04-desk-near-window-without-place-low-compact-base.json), [events](runs/20260926T104148Z/r04-desk-near-window-without-place-low-compact-base.jsonl) |
+| r05-more-usable-floor | 68.185 | 92,680 | PASS / PASS | [record](runs/20260926T104148Z/r05-more-usable-floor-without-place-low-compact-base.json), [events](runs/20260926T104148Z/r05-more-usable-floor-without-place-low-compact-base.jsonl) |
+| r06-wider-walkway | 38.470 | 40,554 | PASS / PASS | [record](runs/20260926T104148Z/r06-wider-walkway-without-place-low-compact-base.json), [events](runs/20260926T104148Z/r06-wider-walkway-without-place-low-compact-base.jsonl) |
+
+## First validation after merging main
 
 [measured] After rebasing onto `e4c961d`, the selected profile passed **6/6** again: **49.099 s median, 92.780 s maximum, 58,296 median tokens**, 444,088 total tokens, and **5/6 below 60 s**. The remaining slow request is r05 (larger empty rectangle). The per-request 60-second target remains unmet.
 
@@ -55,7 +72,7 @@ Measured on 2026-09-26, `gpt-6-astra`, pinned Codex SDK/CLI `0.157.1`.
 | r05-more-usable-floor | 127.981 | 224,671 | 11 | PASS / PASS | [record](runs/20260926T102958Z/r05-more-usable-floor-without-place-low-compact-base.json), [events](runs/20260926T102958Z/r05-more-usable-floor-without-place-low-compact-base.jsonl) |
 | r06-wider-walkway | 45.890 | 56,641 | 5 | PASS / PASS | [record](runs/20260926T102958Z/r06-wider-walkway-without-place-low-compact-base.json), [events](runs/20260926T102958Z/r06-wider-walkway-without-place-low-compact-base.jsonl) |
 
-[measured] Selected batch: 2026-09-26T10:29:58.148424+00:00 through 2026-09-26T10:32:44.254155+00:00 UTC; source `5af298370f2e7534edced907219ffe528725f469`. All 72 model requests across A–L use the same grader SHA-256 `ac839d01936500963d7e059710d33d4dbb45d90952265d640d86c704f7965699`. Each manifest preserves source hashes; each selected record preserves model-catalog metadata. No slow or failed measured trial was discarded.
+[measured] Selected batch: 2026-09-26T10:29:58.148424+00:00 through 2026-09-26T10:32:44.254155+00:00 UTC; source `5af298370f2e7534edced907219ffe528725f469`. All 72 model requests across A–L in the original comparison use the same grader SHA-256 `ac839d01936500963d7e059710d33d4dbb45d90952265d640d86c704f7965699`. Each manifest preserves source hashes; each selected record preserves model-catalog metadata. No slow or failed measured trial was discarded.
 
 ## Method
 
