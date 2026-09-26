@@ -45,6 +45,7 @@ def test_a_labelled_trace_becomes_the_flat_in_metres(tmp_path):
     assert shell["printed"] == {"living": {"dims_m": [4.88, 3.88]}, "bed": {"area_m2": 11.17}}
     wc = shell["components"][0]
     assert wc["kind"] == "toilet" and wc["roomId"] == "bed" and "100.0 px/m" in shell["notes"][0]
+    assert shell.pop("transform")["px_per_m"] == 100
     path = tmp_path / "shell.json"
     path.write_text(json.dumps(shell))
     assert check_file(path, tmp_path) == []

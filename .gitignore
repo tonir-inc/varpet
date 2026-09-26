@@ -38,3 +38,6 @@ packages/designer/eval/taste-komitas-results/*.tar.gz
 
 # Local message-board read receipts
 .board-seen-*
+# listing images are for private testing only (fixtures/real/*/source.json)
+apartments/n3-studio/source.jpg
+apartments/*/review/work/
