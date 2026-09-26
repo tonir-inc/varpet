@@ -87,8 +87,9 @@ export function scoreComposition(scene:Scene,roomId:string,options:TasteOptions)
   if(options.program==='bedroom')check('nightstand_each_open_side',beds.length>0&&beds.every(b=>[-1,1].every(side=>items.some(t=>t!==b&&['table','nightstand','cabinet'].includes(t.kind)&&side*local(b,t.pos)[0]>b.size[0]/2&&edgeGap(b,t)<=.7+EPS&&local(b,t.pos)[1]>0))),1,'Provide a nightstand beside each side of the headboard.');
   if(options.program==='bedroom')check('light_each_bedside',beds.length>0&&beds.every(b=>[-1,1].every(side=>items.some(t=>t.kind==='lamp'&&side*local(b,t.pos)[0]>0&&edgeGap(b,t)<=.9+EPS&&local(b,t.pos)[1]>=b.size[1]/2-.9-EPS))),1,'Provide reachable light at both bedsides.');
  }
- if(options.styles?.length){
-  const ids=options.styles,palette=stylePalette(ids),records=scene.items.filter(i=>i.room_id===roomId&&i.sku&&!scene.fixed.some(f=>f.id===i.id)&&!i.structure&&!['structural','structure','wall','column'].includes(i.kind)).map(i=>({i,meta:(()=>{const m=options.catalog?.[i.sku??i.id];return m?{...m,styles:[...m.styles,...m.styles_inferred??[]]}:undefined;})()}));
+ const appearanceItems=scene.items.filter(i=>i.room_id===roomId&&i.sku&&!scene.fixed.some(f=>f.id===i.id)&&!i.structure&&!['structural','structure','wall','column'].includes(i.kind));
+ if(options.styles?.length&&appearanceItems.length){
+  const ids=options.styles,palette=stylePalette(ids),records=appearanceItems.map(i=>({i,meta:(()=>{const m=options.catalog?.[i.sku??i.id];return m?{...m,styles:[...m.styles,...m.styles_inferred??[]]}:undefined;})()}));
   check('style_unknown',records.length>0&&records.every(r=>r.meta?.styles.length&&r.meta.colors_image.length),1,'Style/color evidence is missing; unknown is not a style match.',records.filter(r=>!r.meta?.styles.length||!r.meta.colors_image.length).map(r=>r.i.id));
   const shared=styleFamilies(records[0]?.meta?.styles??[]).filter(tag=>records.every(r=>styleFamilies(r.meta?.styles??[]).includes(tag)))??[];
   const recipes=ids.flatMap(id=>styles[id]?.composition?.program===options.program?[styles[id]!.composition!]:[]);
@@ -100,7 +101,7 @@ export function scoreComposition(scene:Scene,roomId:string,options:TasteOptions)
   }),2,'Keep the non-excluded signature pieces and at least one item with the requested style identity; a neutral supporting set alone is insufficient.');
  }
  const total=checks.reduce((s,c)=>s+c.weight,0),earned=checks.reduce((s,c)=>s+(c.pass?c.weight:0),0);
- return {room_id:roomId,program:options.program,score:items.length&&total?Math.round(100*earned/total):0,pass:issues.length===0,issues,checks};
+ return {room_id:roomId,program:options.program,appearance_items_evaluated:options.styles?.length?appearanceItems.length:0,score:items.length&&total?Math.round(100*earned/total):0,pass:issues.length===0,issues,checks};
 }
 export function rankCompositions(candidates:{id:string;scene:Scene}[],roomId:string,options:TasteOptions){
  if(candidates.length<2)throw new Error('Style requests require at least two candidates');

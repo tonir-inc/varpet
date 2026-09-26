@@ -49,3 +49,12 @@ test.each(['Bedroom','Office'])('%s retains its only checked composition',async 
  const result=await designRoom(room,{room_id:'living',style_request:'modern'},async p=>({results:dimensions[p.kind!]? [{id:p.kind,kind:p.kind,name:p.kind,size_m:dimensions[p.kind!],price:100,currency:'AMD',styles:['Modern'],colors_image:['beige']}]:[]}));
  expect(result.candidates).toHaveLength(1);expect(result.candidates[0]!.checks.ok).toBe(true);expect(result.reason).toMatch(/no alternative/i);
 });
+test('zero eligible purchases reports appearance not applicable while empty rooms still fail',async()=>{
+ const plan=await designRoom(scene,{room_id:'living',style_request:'modern'},query);
+ const fixed=plan.candidates[0]!.ops.flatMap(o=>o.type==='add'?[{...o.item,keep:true}]:[]);
+ const score=scoreComposition({...scene,fixed},'living',{program:'living',styles:['modern']});
+ expect(score.pass).toBe(true);expect((score as any).appearance_items_evaluated).toBe(0);
+ const empty=scoreComposition(scene,'living',{program:'living',styles:['modern']});
+ expect(empty.pass).toBe(false);expect(empty.issues.map(i=>i.code)).toContain('seating_anchor');
+ expect(empty.issues.map(i=>i.code)).not.toContain('style_unknown');
+});
