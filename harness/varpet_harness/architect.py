@@ -20,8 +20,8 @@ PLAN_PROMPT = """You are the architect for flat "{flat}". Plan jobs; do not buil
 Jobs: one `shell` job from the plan; it also owns everything fixed: fitted kitchens and
 wardrobes, sanitaryware, appliances, radiators. One `piece` job per movable furniture piece
 (sofas, beds, tables, chairs, storage, rugs, mirrors) that is not in the catalog below,
-with `count` for identical copies, with its size [w, d, h] in metres (if the plan and photos
-do not give it, use a typical size and set size_estimated); `designer` jobs last,
+with `count` for identical copies, with its size [w, d, h] in metres and size_source saying where it came from: plan (printed),
+photo (measured against something of known size, e.g. a 2.0 m door), scan, or typical (a usual size); `designer` jobs last,
 depending on the shell and the pieces they arrange. Identical pieces are one job.
 Give each job only the skills it needs from: {skills}.
 Put in each piece job's refs the photos that show that piece best, best first, at most 3.

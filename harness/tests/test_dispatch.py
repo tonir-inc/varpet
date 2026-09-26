@@ -84,3 +84,10 @@ def test_only_prunes_kinds_and_deps():
 
     pieces = only(load(FIXTURE), {"piece"})
     assert {j.kind for j in pieces.jobs} == {"piece"} and all(not j.deps for j in pieces.jobs)
+
+
+def test_size_source_is_a_closed_choice_in_the_strict_schema():
+    job = strict_schema()["$defs"]["Job"]["properties"]["size_source"]
+    assert job["enum"] == ["plan", "photo", "scan", "typical"]
+    with pytest.raises(ValueError):
+        Graph(flat="t", jobs=[{"id": "a", "kind": "piece", "brief": "x", "size": [1, 1, 1], "size_source": "guess"}])

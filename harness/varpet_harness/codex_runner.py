@@ -145,7 +145,11 @@ class CodexRunner:
         lines = [job.brief, ""]
         if job.size:
             w, d, h = job.size
-            lines.append(f"True size in metres: w {w}, d {d}, h {h}.")
+            if job.size_source == "typical":
+                lines.append(f"Size in metres, a typical estimate: w {w}, d {d}, h {h}. "
+                             "Keep it, but take proportions and details from the photos.")
+            else:
+                lines.append(f"True size in metres ({job.size_source}): w {w}, d {d}, h {h}.")
         if job.count > 1:
             lines.append(f"The flat has {job.count} identical copies; build one.")
         for dep_id, r in deps.items():

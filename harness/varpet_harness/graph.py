@@ -12,6 +12,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 Kind = Literal["shell", "piece", "designer"]
 Effort = Literal["low", "medium", "high"]
+SizeSource = Literal["plan", "photo", "scan", "typical"]
 
 # File each kind leaves in its workdir. The next job reads it from there.
 OUTPUT: dict[str, str] = {"shell": "shell.json", "piece": "program.json", "designer": "ops.json"}
@@ -28,8 +29,10 @@ class Job(BaseModel):
         default=None, min_length=3, max_length=3, description="[w, d, h] in metres, pieces only"
     )
     count: int = Field(default=1, ge=1, description="how many identical copies the flat has")
-    size_estimated: bool = Field(
-        default=False, description="True when no plan or photo gives the size"
+    size_source: SizeSource = Field(
+        default="typical",
+        description="plan: printed on the plan; photo: measured against something of known size in a photo; "
+        "scan: from a LiDAR or RoomPlan scan; typical: a usual size for this kind of piece",
     )
     refs: list[str] = Field(default=[], description="Plan or photo paths relative to the repo")
     skills: list[str] = Field(default=[], description="Only the skills this job needs")
