@@ -13,7 +13,7 @@ class KomitasRetry(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
             stale = ['case.scene.json', 'case.shell.json', 'case.faults.json', 'case.metrics.json',
-                     'case.architect.json', 'case.rejected.json', 'case-top.png', 'case-3d.png']
+                     'case.architect.json', 'case.repair.json', 'case.rejected.json', 'case-top.png', 'case-3d.png']
             keep = ['ground-truth.json', 'other.scene.json', 'case.png']
             for name in stale + keep: (root/name).write_text('old')
             runner.clear_previous(root, 'case')

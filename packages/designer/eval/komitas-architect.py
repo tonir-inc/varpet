@@ -62,7 +62,7 @@ def worker(plan: Path, work: Path):
 def clear_previous(output: Path, id: str):
     """Invalidate the previous attempt before launching a new one; never touch source plans."""
     for suffix in ('.scene.json', '.rejected.json', '.shell.json', '.faults.json',
-                   '.metrics.json', '.architect.json', '-top.png', '-3d.png'):
+                   '.metrics.json', '.architect.json', '.repair.json', '-top.png', '-3d.png'):
         (output / (id + suffix)).unlink(missing_ok=True)
 
 

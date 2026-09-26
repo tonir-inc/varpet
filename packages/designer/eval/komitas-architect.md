@@ -30,6 +30,8 @@ actual one-repair prompt; `*.faults.json` preserves the final failed architect c
 The original batch's `source_revision` was sampled at completion; the architect runner, shell
 checker and flat-shell skill were unchanged between launch base `3ea46ed` and that revision.
 Future driver runs capture the launch revision. No retries were used for these measurements.
+Felix's junction-snapping change `5c5d457` landed after the live runs; the report was rebased
+onto it, but these measurements do not claim to evaluate that subsequent architect version.
 
 Ground truth is the ten unmodified selected rows from the developer's external stage-3.json.
 **Assumed comparison convention:** habitable rooms = traced living rooms + bedrooms; kitchens,
@@ -160,4 +162,34 @@ on `http://127.0.0.1:5193/`; all twenty screenshots were captured with zero rend
 The new ledger regression first reproduced a stale accepted scene after a later HTTP error;
 then passed after invalidation was added. A Python retry-hygiene test covers stale shell/fault/
 metric/image cleanup while preserving unrelated flats, ground truth and original plan filenames.
-Untargeted final checks and fresh review are recorded below after completion.
+Untargeted verification output at rebased `043227b` (26 September 2026):
+
+```text
+VITEST_MAX_WORKERS=4 pnpm test: exit 0
+Designer: Tests 343 passed (343)
+Harness unittest: Ran 94 tests — OK
+Eval unittest: Ran 34 tests — OK
+Tools: 7 passed; editor domain/render/adapter/UI suites passed
+pnpm typecheck: engine Done; designer Done; editor Done; exit 0
+cd harness && uv run pytest -q tests: 24 passed in 2.87s
+```
+
+The worker cap only reduces simultaneous test execution; no tests are filtered and no timeout
+or assertion was weakened. Two earlier uncapped root runs timed out in the existing 5-second
+`place.test.ts` case while the architect/browser were active; a repeat and the capped full run passed.
+
+DONE: 7 of 7 for the **evaluation/report** audit below; usable apartment generation remains blocked.
+- 1 ✓ real batch output: 10 drafts, architect 3/10, EditorStore 6/10, bridge 0/10; tables and raw artifacts above.
+- 2 ✓ untargeted root checks and Python checks: command output above.
+- 3 ✓ new `test/komitas-ledger.test.ts` and `eval/test_komitas_architect.py`: rejection/retry regressions demonstrated red then green.
+- 4 ✓ only new eval artifacts, eval scripts/report and new tests changed; no contract, fixture or production file changed.
+- 5 ✓ fresh reviewer `komitas_review`: **APPROVE for the evaluation/failure report**, no outstanding findings. It explicitly did not approve usable apartment generation.
+- 6 ✓ north, area/count conventions and photo-free unknowns stated above. Usable scenes remain blocked, not silently descoped.
+- 7 ✓ this session wrote only `eval/komitas*`, `eval/test_komitas_architect.py` and `test/komitas-ledger.test.ts`; no teammate-owned file changed.
+
+Not proven: any accepted designer apartment, furnishing on these drafts, or pixel-level fidelity
+against the original plans. All twenty screenshots show generated geometry, not acceptance.
+
+
+Final captured-output audit printed: `{"drafts":10,"architect":3,"editor":6,"bridge":0,"accepted":0,"screenshots":20}`.
+No source plan image filenames or rejected `.scene.json` files were present.
