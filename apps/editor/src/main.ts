@@ -9,6 +9,7 @@ import { mountSharing } from './ui/sharing';
 import { createShareSnapshot, getSharedStartup, ShareCreation, SharingSession } from './core/sharing';
 import './ui/motion.css';
 import './ui/walkthrough.css';
+import { DEFAULT_INSIDE_LENS, isInsideLens } from './render/walkthrough-camera';
 import './ui/designer-panel.css';
 import { mountDesignerPanel, previewDesignerProposal } from './ui/designer-panel';
 import { askDesigner } from './adapters/designer-http';
@@ -109,11 +110,11 @@ app.innerHTML = `
       <div id="floor-plan" hidden></div>
       <div class="viewport-top"><div class="view-switch" role="group" aria-label="Apartment view"><button id="perspective" class="active" aria-pressed="true" title="Perspective camera">${icon('cube')} 3D</button><button id="top-view" aria-pressed="false" title="Orthographic camera">${icon('top')} Top</button><button id="inside-view" aria-pressed="false" title="Walk inside at standing eye height">${icon('eye')} Inside</button><button id="plan-view" aria-pressed="false" title="Floor plan with room dimensions">${icon('room')} Plan</button></div><div class="view-options"><button id="walls" title="Cycle wall visibility">${icon('walls')} <span>Cutaway</span></button><button id="sun" aria-label="Sun controls" aria-haspopup="dialog" aria-expanded="false" aria-controls="sun-controls" title="Adjust sunlight">${icon('sun')} <span>Sun</span></button><button id="quality" aria-pressed="false" title="Toggle rendering quality">${icon('sun')} <span>Balanced</span></button><button id="preview" aria-pressed="false" title="Preview apartment · P">${icon('eye')} <span>Preview</span></button></div></div>
       <label class="skybox-control" title="Choose a sky for 3D and Inside views">${icon('sun')}<span>Sky</span><select id="skybox" aria-label="Skybox">${SKYBOX_PRESETS.map(preset => `<option value="${preset.id}">${preset.label}</option>`).join('')}</select></label>
-      <div class="inside-label"><strong>Inside</strong><span>Eye height · 1.65 m</span></div>
+      <div class="inside-label"><strong>Inside</strong><span>Eye height · 1.65 m</span><label class="inside-lens">View <select id="inside-lens" aria-label="Inside view width"><option value="standard">Standard</option><option value="photo" selected>Photo</option><option value="wide">Extra wide</option></select></label></div>
       <div class="canvas-label">${icon('layers')} <span>Ground floor</span><span class="pill">1 level</span></div>
       <div class="selection-chip" hidden><span id="selected-name"></span><button id="focus-selected" class="icon-button" aria-label="Frame selected object" title="Frame selection · F">${icon('focus')}</button></div>
-      <div class="tool-rail" role="toolbar" aria-label="Object tools">${(['select','move','rotate','scale'] as ToolMode[]).map((tool, i) => `<button data-tool="${tool}" class="${i === 0 ? 'active' : ''}" aria-label="${{select:'Select',move:'Move',rotate:'Rotate',scale:'Resize'}[tool]} tool" title="${{select:'Select · V',move:'Move · G',rotate:'Rotate · R',scale:'Resize · S'}[tool]}">${icon(tool)}<kbd>${['V','G','R','S'][i]}</kbd></button>`).join('')}<div class="tool-divider"></div><button id="multi-select" aria-label="Select multiple items" aria-pressed="false" title="Select several walls or models · Shift-click">${icon('layers')}</button><button id="focus" aria-label="Focus selection" title="Frame selection / apartment · F">${icon('focus')}<kbd>F</kbd></button><div class="tool-divider"></div><button id="snap" aria-pressed="true" class="snap active" title="Toggle grid snapping">${icon('grid')}<strong>0.25 m</strong></button></div>
-      <div class="canvas-bottom"><span id="view-hint">Drag to orbit <b>·</b> Right drag to pan <b>·</b> Scroll to zoom</span></div>
+      <div class="tool-rail" role="toolbar" aria-label="Object tools">${(['select','move','rotate','scale'] as ToolMode[]).map((tool, i) => `<button data-tool="${tool}" class="${i === 0 ? 'active' : ''}" aria-label="${{select:'Select',move:'Move',rotate:'Rotate',scale:'Resize'}[tool]} tool" title="${{select:'Select · V',move:'Move · G',rotate:'Rotate · R',scale:'Resize · E'}[tool]}">${icon(tool)}<kbd>${['V','G','R','E'][i]}</kbd></button>`).join('')}<div class="tool-divider"></div><button id="multi-select" aria-label="Select multiple items" aria-pressed="false" title="Select several walls or models · Shift-click">${icon('layers')}</button><button id="focus" aria-label="Focus selection" title="Frame selection / apartment · F">${icon('focus')}<kbd>F</kbd></button><div class="tool-divider"></div><button id="snap" aria-pressed="true" class="snap active" title="Toggle grid snapping">${icon('grid')}<strong>0.25 m</strong></button></div>
+      <div class="canvas-bottom"><span id="view-hint">WASD / arrows to move <b>·</b> Drag to orbit <b>·</b> Scroll to zoom</span></div>
       <aside class="right-panel" aria-label="Selection properties" hidden><div class="inspector-heading"><span>Properties</span><button id="close-inspector" class="icon-button" aria-label="Close properties" title="Clear selection · Esc">${icon('close')}</button></div><div id="inspector" class="inspector"></div></aside>
       <div id="toast" class="toast" role="status" aria-live="polite"></div>
       <div id="render-error" class="render-error" hidden></div>
@@ -211,7 +212,10 @@ function notify(message: string, error = false) {
 }
 
 const viewport = createViewport($('#viewport'), {
-  onSunChange: settings => sunControls?.refresh(settings),
+  onSunChange: settings => {
+    sunControls?.refresh(settings);
+    renovationUI?.setSelection(selectedId, selectionIds());
+  },
   onFinish: (presetId, target) => {
     if (previewMode || proposalView || view === 'plan') return false;
     const preset = getFinishPreset(presetId); if (!preset) return false;
@@ -247,6 +251,12 @@ const viewport = createViewport($('#viewport'), {
     viewport.setScene(store.scene, catalog);
     viewport.setSelection(selectedId, selectionIds());
   },
+  onOpeningTransform: (id, patch) => {
+    const opening = store.scene.walls.flatMap(wall => wall.openings).find(item => item.id === id);
+    const resized = opening && (Math.abs(opening.width - patch.width) > 1e-8 || Math.abs(opening.height - patch.height) > 1e-8);
+    run([{ type: 'update-opening', id, patch }], resized ? 'Resize window' : 'Move window', interactionRevision);
+    viewport.setScene(store.scene, catalog); viewport.setSelection(selectedId, selectionIds());
+  },
   onComponentTransform: (id, patch) => {
     const component = store.scene.project?.components.find(c => c.id === id);
     if (component) run([{ type: 'upsert-component', component: { ...component, ...patch } }], `Transform ${component.name}`, interactionRevision);
@@ -254,6 +264,20 @@ const viewport = createViewport($('#viewport'), {
   },
   onError: message => notify(message, true),
 }, normalizeWallJunctions);
+const insideLensControl = $<HTMLSelectElement>('#inside-lens');
+const insideLensStorageKey = 'varpet.inside-lens.v1';
+let insideLens = DEFAULT_INSIDE_LENS;
+try {
+  const savedLens = localStorage.getItem(insideLensStorageKey);
+  if (isInsideLens(savedLens)) insideLens = savedLens;
+} catch { /* Camera preferences also work when browser storage is unavailable. */ }
+insideLensControl.value = insideLens;
+viewport.setInsideLens(insideLens);
+insideLensControl.onchange = () => {
+  if (!isInsideLens(insideLensControl.value)) return;
+  viewport.setInsideLens(insideLensControl.value);
+  try { localStorage.setItem(insideLensStorageKey, insideLensControl.value); } catch { /* Optional preference. */ }
+};
 sunControls = createSunControls($<HTMLButtonElement>('#sun'), $('.viewport-shell'), {
   getSun: () => viewport.getSun(),
   setSun: patch => viewport.setSun(patch),
@@ -760,13 +784,13 @@ function renderViewportHints() {
     return;
   }
   if (view === 'plan') {
-    $('#view-hint').textContent = 'Shift-click or Select several · Drag selection to move · Alt-drag to pan · Esc to cancel';
+    $('#view-hint').textContent = 'Shift-click or Select several · Drag selection to move · WASD / arrows to pan · Esc to cancel';
     return;
   }
   const openingWall = store.scene.walls.find(w => w.openings.some(o => o.id === selectedId));
   const opening = openingWall?.openings.find(o => o.id === selectedId);
   const wall = store.scene.walls.find(w => w.id === selectedId);
-  const fineSnap = tool === 'move' && !!(opening || wall);
+  const fineSnap = opening?.kind === 'window' || tool === 'move' && !!(opening || wall);
   const snapStep = fineSnap ? OPENING_MOVE_SNAP : 0.25;
   $('#snap').classList.toggle('active', snap);
   $('#snap').setAttribute('aria-pressed', String(snap));
@@ -775,7 +799,7 @@ function renderViewportHints() {
   $('#snap').title = wallSnap ? 'Toggle wall snapping: 90° alignments and 0.05 m steps · Off for smooth movement' : `Toggle ${snapStep.toFixed(2)} m snapping${opening && tool === 'move' ? ' along wall' : ''} · Off for smooth movement`;
   $('#snap').setAttribute('aria-label', `${snap ? 'Disable' : 'Enable'} ${wallSnap ? 'wall angle and grid' : `${snapStep.toFixed(2)} m`} snapping`);
 
-  const navigation = view === 'top' ? 'Drag to pan <b>·</b> Scroll to zoom <b>·</b> F to frame' : 'Drag to orbit <b>·</b> Right drag to pan <b>·</b> Scroll to zoom';
+  const navigation = view === 'top' ? 'WASD / arrows to move <b>·</b> Drag to pan <b>·</b> Scroll to zoom' : 'WASD / arrows to move <b>·</b> Drag to orbit <b>·</b> Scroll to zoom';
   let hint = navigation;
   if (previewMode) hint = `${navigation} <b>·</b> P or Esc to exit preview`;
   else if (multiSelection) { hint = 'Click walls or models to add or remove them <b>·</b> Choose Move when ready'; }
@@ -787,6 +811,9 @@ function renderViewportHints() {
   } else if (opening && openingWall) {
     if (store.scene.project?.metadata[opening.id]?.locked || store.scene.project?.metadata[openingWall.id]?.locked) {
       hint = 'Opening or wall is locked <b>·</b> Unlock model editing in Renovate to move it';
+    } else if (opening.kind === 'window') {
+      hint = view === 'top' ? 'Drag the center to move or side handles to resize <b>·</b> Use 3D for height <b>·</b> Esc cancels'
+        : 'Drag the window or center to move <b>·</b> Drag edges or corners to resize <b>·</b> Esc cancels';
     } else if (tool === 'move') {
       hint = `Drag the ${opening.kind} or purple arrows along its wall <b>·</b> Esc cancels`;
     } else {
@@ -1123,7 +1150,7 @@ $<HTMLSelectElement>('#skybox').onchange = event => {
 };
 let highQuality=false;$('#quality').onclick=()=>{highQuality=!highQuality;viewport.setQuality(highQuality?'high':'balanced');$('#quality span').textContent=highQuality?'High quality':'Balanced';$('#quality').setAttribute('aria-pressed',String(highQuality));};
 $('#suggest').onclick=()=>void requestProposal('designer');
-$('#help').onclick=()=>showModal('Keyboard & navigation',`<p class="modal-intro">Select walls, openings, rooms, furniture and systems in the canvas or Renovate panel. In Select mode, click a selected door or switch again to test it.</p><div class="shortcut-list">${[['1 / 2 / 3 / 4 / 5 / 6','Scene / Furniture / Assistant / Renovate / Materials / Ceilings'],['[','Toggle sidebar'],['P','Enter / exit preview'],['W A S D / arrows','Walk in Inside view'],['Drag / Esc','Look around / leave Inside'],['V / G / R / S','Select / Move / Rotate / Resize'],['F','Frame selection / apartment'],['⌘ / Ctrl + S',editorSession?'Save to My apartments':shareSession?'Save shared progress':'Save on this device'],['Shift + click','Add / remove walls or furniture from selection'],['⌘ / Ctrl + G','Group selected furniture'],['⌘ / Ctrl + Shift + G','Ungroup furniture'],['⌘ / Ctrl + D','Duplicate furniture'],['Delete / Backspace','Delete selected furniture'],['⌘ / Ctrl + Z','Undo'],['⌘ / Ctrl + Shift + Z','Redo'],['Esc','Cancel drag / clear selection / exit preview']].map(([key,label])=>`<div><span>${label}</span><kbd>${key}</kbd></div>`).join('')}</div><p class="modal-footnote">Plan: drag furniture, fixtures, walls, doors or windows to move them. Drag empty floor, Alt-drag, or right/middle drag to pan. Hold Shift for finer placement. Inside: standing eye height is 1.65 m above the current floor. Click the canvas, then use WASD or arrows to walk; drag to look around. Doors open for the walkthrough and restore when you leave. 3D: drag empty space to orbit, right drag to pan, scroll to zoom. Top: drag to pan. Select a door or window, choose Move (G), then drag it or its purple arrows along the wall. Openings stay inside their wall section and stop at neighbouring openings. Move snaps to 0.05 m for openings and walls. Wall corners also catch nearby straight and 90° alignments, including connected corners. Click Snap / Smooth in the toolbar to turn snapping on or off. Release to apply, Esc to cancel, or Undo to restore the previous position. Shift-click walls or models, or turn on Select multiple items, to build a selection. Choose Move to move the selection together; one Undo restores every selected item. Select a single wall and choose Move to drag it back or forth with its purple center arrows; connected walls and room boundaries follow. The endpoint spheres adjust individual corners; use Renovate for precise dimensions, evidence and service editing.</p>`);
+$('#help').onclick=()=>showModal('Keyboard & navigation',`<p class="modal-intro">Select walls, openings, rooms, furniture and systems in the canvas or Renovate panel. In Select mode, click a selected door or switch again to test it.</p><div class="shortcut-list">${[['1 / 2 / 3 / 4 / 5 / 6','Scene / Furniture / Assistant / Renovate / Materials / Ceilings'],['[','Toggle sidebar'],['P','Enter / exit preview'],['W A S D / arrows','Move around the scene (click canvas first)'],['Drag / Esc','Look around / leave Inside'],['V / G / R / E','Select / Move / Rotate / Resize'],['F','Frame selection / apartment'],['⌘ / Ctrl + S',editorSession?'Save to My apartments':shareSession?'Save shared progress':'Save on this device'],['Shift + click','Add / remove walls or furniture from selection'],['⌘ / Ctrl + G','Group selected furniture'],['⌘ / Ctrl + Shift + G','Ungroup furniture'],['⌘ / Ctrl + D','Duplicate furniture'],['Delete / Backspace','Delete selected furniture'],['⌘ / Ctrl + Z','Undo'],['⌘ / Ctrl + Shift + Z','Redo'],['Esc','Cancel drag / clear selection / exit preview']].map(([key,label])=>`<div><span>${label}</span><kbd>${key}</kbd></div>`).join('')}</div><p class="modal-footnote">Plan: drag furniture, fixtures, walls, doors or windows to move them. Drag empty floor, Alt-drag, or right/middle drag to pan. Hold Shift for finer placement. Inside: standing eye height is 1.65 m above the current floor. Click the canvas, then use WASD or arrows to walk; drag to look around. Doors open for the walkthrough and restore when you leave. Click the canvas, then use WASD or arrows to move in 3D, Top or Plan. 3D: drag empty space to orbit, right drag to pan, scroll to zoom. Top: drag to pan. Select a window to show handles: drag its center or the window to move along the wall and up/down; drag an edge or corner to resize. The vertical arrow raises or lowers it without changing its size. Top view offers sideways movement and width handles; use 3D for height. Select a door, choose Move (G), then drag it or its purple arrows along the wall. Openings stay inside their wall section and stop at neighbouring openings. Move snaps to 0.05 m for openings and walls. Wall corners also catch nearby straight and 90° alignments, including connected corners. Click Snap / Smooth in the toolbar to turn snapping on or off. Release to apply, Esc to cancel, or Undo to restore the previous position. Shift-click walls or models, or turn on Select multiple items, to build a selection. Choose Move to move the selection together; one Undo restores every selected item. Select a single wall and choose Move to drag it back or forth with its purple center arrows; connected walls and room boundaries follow. The endpoint spheres adjust individual corners; use Renovate for precise dimensions, evidence and service editing.</p>`);
 window.addEventListener('keydown',event=>{
   if(document.querySelector('dialog[open]') || (event.target instanceof HTMLElement && (event.target.closest('input,textarea,select') || event.target.isContentEditable)))return;
   const key=event.key.toLowerCase();const mod=event.metaKey||event.ctrlKey;
@@ -1146,7 +1173,7 @@ window.addEventListener('keydown',event=>{
   else if(mod&&key==='g'){event.preventDefault();if(event.shiftKey)ungroupSelected();else groupSelected();}
   else if(mod&&key==='d'){event.preventDefault();duplicateSelected();}
   else if(mod&&key==='s'){event.preventDefault();$('#save').click();}
-  else if(!mod){if(['delete','backspace'].includes(key)){event.preventDefault();deleteSelected();}else if(key==='f')focusView(selectedId??undefined);else if(key==='v')setTool('select');else if(key==='g'&&view!=='plan')setTool('move');else if(key==='r'&&view!=='plan')setTool('rotate');else if(key==='s'&&view!=='plan')setTool('scale');else if(key==='1')switchPanel('scene');else if(key==='2')switchPanel('assets');else if(key==='3')switchPanel('assistant');else if(key==='4')switchPanel('renovation');else if(key==='5')switchPanel('materials');else if(key==='6')switchPanel('ceilings');else if(key==='[')switchPanel(activePanel,true);}
+  else if(!mod){if(['delete','backspace'].includes(key)){event.preventDefault();deleteSelected();}else if(key==='f')focusView(selectedId??undefined);else if(key==='v')setTool('select');else if(key==='g'&&view!=='plan')setTool('move');else if(key==='r'&&view!=='plan')setTool('rotate');else if(key==='e'&&view!=='plan')setTool('scale');else if(key==='1')switchPanel('scene');else if(key==='2')switchPanel('assets');else if(key==='3')switchPanel('assistant');else if(key==='4')switchPanel('renovation');else if(key==='5')switchPanel('materials');else if(key==='6')switchPanel('ceilings');else if(key==='[')switchPanel(activePanel,true);}
 });
 window.addEventListener('pagehide',event=>{if(event.persisted)return;sharingUI.destroy();catalogRequest?.abort();clearTimeout(catalogSearchTimer);cancelAnimationFrame(selectionRevealFrame);materialsUI.dispose();ceilingUI.dispose();sunControls?.dispose();viewport.dispose();floorPlan.dispose();catalogPreviews.dispose();renovationUI?.destroy();intake.destroy();});
 function chooseApartmentName(initial: string): Promise<string | null> {

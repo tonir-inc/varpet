@@ -1,0 +1,7 @@
+<!doctype html>
+<html lang="en"><head><meta charset="UTF-8"><title>Scene keyboard navigation verification</title>
+<style>body{margin:0;background:#171d25;color:#eee;font:13px system-ui}header{box-sizing:border-box;padding:12px;height:250px;overflow:auto}button,input{padding:8px;margin:3px}pre{white-space:pre-wrap}#view{position:absolute;inset:250px 0 0}dialog{background:#263141;color:#fff;border:1px solid #728198;padding:20px}</style>
+</head><body><header><strong>WASD and arrows · isolated renderer checks</strong>
+<button id="run">Run checks</button><input id="typing" placeholder="Typing must not move the scene"><pre id="result" role="status">Ready.</pre>
+</header><div id="view"></div><dialog id="dialog"><label>Dialog input <input id="dialog-typing"></label></dialog>
+<script type="module" src="/src/render/keyboard-navigation-qa.ts"></script></body></html>

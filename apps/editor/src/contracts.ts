@@ -73,6 +73,7 @@ export interface ViewportCallbacks {
   onWallEndpoint?(id: string, endpoint: 'start' | 'end', point: Vec2): void;
   onWallMove?(id: string, start: Vec2, end: Vec2): void;
   onOpeningMove?(id: string, offset: number): void;
+  onOpeningTransform?(id: string, patch: Pick<Opening, 'offset' | 'sill' | 'width' | 'height'>): void;
   onSelect(id: string | null, additive?: boolean): void;
   onTransform(id: string, patch: ObjectPatch): void;
   onInteraction(active: boolean): void;

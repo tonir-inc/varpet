@@ -65,7 +65,10 @@ document.querySelector<HTMLButtonElement>('#run')!.onclick = async event => {
     check(Math.abs(camera!.position.y - 2.05) < 1e-7, 'Framing a room in Inside keeps the camera at eye height');
     viewport.setView('perspective'); await delay(500);
     const exited = camera!.position.clone(); canvas.focus(); key('keydown', 'w'); await delay(120); key('keyup', 'w');
-    check(camera!.position.distanceTo(exited) === 0, 'Movement listeners are inactive after leaving Inside');
+    check(Math.hypot(camera!.position.x - exited.x, camera!.position.z - exited.z) > 0.02, 'W moves the exterior camera after leaving Inside');
+    check(Math.abs(camera!.position.y - exited.y) < 1e-7, 'Exterior movement preserves its restored camera height');
+    const exteriorStopped = camera!.position.clone(); await delay(150);
+    check(camera!.position.equals(exteriorStopped), 'Exterior movement stops immediately on key release');
     check(errors.length === 0, 'Real renderer completed without reported errors');
     output.textContent = `${results.join('\n')}\nCOMPLETE ${results.length} browser checks.`;
   } catch (error) { output.textContent = `${results.join('\n')}\nFAIL ${String(error)}`; }

@@ -77,7 +77,7 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
   root.hidden = true;
   root.setAttribute('role', 'region');
   root.setAttribute('aria-label', 'Apartment floor plan');
-  const drawing = svg('svg', { class: 'fp-drawing', tabindex: '0', 'aria-label': 'Floor plan. Drag items to move. Drag empty floor or Alt-drag to pan. Scroll to zoom. Escape cancels a move. Select a room to show dimensions.' });
+  const drawing = svg('svg', { class: 'fp-drawing', tabindex: '0', 'aria-label': 'Floor plan. Drag items to move. Click the plan, then use W A S D or arrow keys to pan. Drag empty floor or Alt-drag to pan. Scroll to zoom. Escape cancels a move. Select a room to show dimensions.' });
   const header = html('div', 'fp-heading');
   const eyebrow = html('div', 'fp-eyebrow', 'APARTMENT PLAN');
   const headline = html('h2', 'fp-title', 'Floor plan');
@@ -148,7 +148,7 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
   });
   multiButton.setAttribute('aria-pressed', 'false');
   controls.append(multiButton, snapButton, zoomOut, scaleLabel, zoomIn, fitButton);
-  const hint = html('div', 'fp-hint', 'Shift-click to select several · Drag selection to move · Alt-drag to pan · Esc to cancel');
+  const hint = html('div', 'fp-hint', 'Shift-click to select several · Drag selection to move · WASD / arrows to pan · Esc to cancel');
   const status = html('div', 'fp-drag-status');
   status.setAttribute('role', 'status'); status.hidden = true;
   const empty = html('div', 'fp-empty');
@@ -719,6 +719,8 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
   const onBlur = () => { cancelInteraction(); };
   window.addEventListener('blur', onBlur);
   drawing.addEventListener('keydown', event => {
+    if (event.ctrlKey || event.metaKey || event.altKey || event.isComposing || document.querySelector('dialog[open]')) return;
+    const key = event.key.toLowerCase();
     const entity = event.target instanceof Element ? event.target.closest('[data-entity-id]') : null;
     if (event.key === 'Escape' && cancelInteraction()) { event.preventDefault(); event.stopPropagation(); return; }
     if (pointer) return;
@@ -727,10 +729,10 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
     else if (event.key === '+' || event.key === '=') zoom(1.2);
     else if (event.key === '-') zoom(1 / 1.2);
     else if (event.key.toLowerCase() === 'f') focus(selection ?? undefined);
-    else if (event.key.startsWith('Arrow')) {
+    else if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(key)) {
       viewAdjusted = true;
-      panX += event.key === 'ArrowLeft' ? 35 : event.key === 'ArrowRight' ? -35 : 0;
-      panY += event.key === 'ArrowUp' ? 35 : event.key === 'ArrowDown' ? -35 : 0;
+      panX += key === 'a' || key === 'arrowleft' ? 35 : key === 'd' || key === 'arrowright' ? -35 : 0;
+      panY += key === 'w' || key === 'arrowup' ? 35 : key === 's' || key === 'arrowdown' ? -35 : 0;
       schedule();
     } else return;
     event.preventDefault(); event.stopPropagation();

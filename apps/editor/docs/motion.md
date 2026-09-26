@@ -2,6 +2,8 @@
 
 Inside walking-camera behavior and its verification are recorded in [Inside walkthrough](walkthrough.md): immediate room entry/exit, direct drag/look and grounded movement, input interruption, and idle rendering. The [current walking response](walkthrough-camera.md#walking-response) uses 2.8 m/s with elapsed-time movement on frames up to 250 ms and a release tail below 7.5 cm; avoid capping ordinary slow frames to 50 ms, which makes navigation slow down with rendering.
 
+Exterior [keyboard navigation](keyboard-navigation.md) uses direct, continuous 5 m/s ground movement in 3D and Top. Camera and orbit target move together; key release stops immediately. This intentional direct-input response also applies with reduced motion. Keyboard takeover cancels framing and queued selection reveal; mouse orbit, pan and zoom can continue alongside held movement keys. Report navigation as active until both mouse and keyboard finish; actual editing gestures still cancel and block keyboard travel. Frames run only while a direction is held, with no inertia or idle loop. Plan retains its existing 35 px key-repeat pan, with WASD aliases for arrows.
+
 Motion should make the connection between an action and its result easy to follow. A visible state change must have an intentional transition or a documented reason to be immediate. These rules apply to future editor changes as well as the existing UI.
 
 ## Required behavior

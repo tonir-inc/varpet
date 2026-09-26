@@ -17,6 +17,7 @@ interface FinishInteractionOptions {
   scene(): SceneDocument | null;
   roots(): (THREE.Object3D | undefined)[];
   render(): void;
+  onStart?(): void;
   apply(presetId: string, target: FinishTarget): void;
   error(message: string): void;
 }
@@ -130,6 +131,7 @@ export function createFinishInteraction(options: FinishInteractionOptions) {
   function down(event: PointerEvent) {
     if (!brushId || event.button !== 0) return;
     event.preventDefault(); event.stopImmediatePropagation();
+    options.onStart?.();
     press = { x: event.clientX, y: event.clientY, id: event.pointerId };
     canvas.setPointerCapture(event.pointerId); hover(event);
   }
@@ -170,6 +172,7 @@ export function createFinishInteraction(options: FinishInteractionOptions) {
   canvas.addEventListener('dragleave', leave);
   window.addEventListener('blur', cancel);
   return {
+    get active() { return press !== null; },
     setBrush(id: string | null) { cancel(); brushId = id && getFinishPreset(id) ? id : null; clearHover(); },
     dispose() {
       canvas.removeEventListener('pointerdown', down, true); canvas.removeEventListener('pointerup', up, true);

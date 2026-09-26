@@ -32,6 +32,7 @@ export class StudioStage {
     depthWrite: false,
     uniforms: {
       galleryHeight: { value: 32 },
+      daylight: { value: 1 },
       galleryLower: { value: new THREE.Color('#232425') },
       galleryCurtain: { value: new THREE.Color('#80796e') },
       galleryLight: { value: new THREE.Color('#aaa18f') },
@@ -45,6 +46,7 @@ export class StudioStage {
     `,
     fragmentShader: `
       uniform float galleryHeight;
+      uniform float daylight;
       uniform vec3 galleryLower;
       uniform vec3 galleryCurtain;
       uniform vec3 galleryLight;
@@ -69,7 +71,7 @@ export class StudioStage {
         // Let the real floor show through at the base, avoiding a hard horizon
         // where differently lit wall and floor materials meet.
         float floorBlend = smoothstep(0.0, 3.4, height);
-        gl_FragColor = vec4(color, floorBlend);
+        gl_FragColor = vec4(color * daylight, floorBlend);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
       }
@@ -234,6 +236,13 @@ export class StudioStage {
     this.bounds.min.set(this.center.x - width / 2, top - 1.24, this.center.z - depth / 2);
     this.bounds.max.set(this.center.x + width / 2, top, this.center.z + depth / 2);
     this.group.updateMatrixWorld(true);
+  }
+
+  /** The gallery backdrop and floor emission follow the same daily cycle. */
+  setDaylight(level: number): void {
+    const daylight = THREE.MathUtils.lerp(0.015, 1, THREE.MathUtils.clamp(level, 0, 1));
+    this.backdropMaterial.uniforms.daylight!.value = daylight;
+    this.groundMaterial.emissiveIntensity = 0.16 * daylight;
   }
 
   /** Keep the pedestal while letting a skybox replace the surrounding gallery. */

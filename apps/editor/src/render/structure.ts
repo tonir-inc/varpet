@@ -27,6 +27,7 @@ export interface StructureProjection {
   openings: Map<string, OpeningProjection>;
   ceilings: THREE.Group;
   dimensions: THREE.Group;
+  previewOpening(id: string, dimensions: Partial<Pick<Opening, 'offset' | 'sill' | 'width' | 'height'>>): void;
   previewOpeningOffset(id: string, offset: number): void;
   updateFinishes(now: number): boolean;
   updateWalls(camera: THREE.Camera, mode: WallMode, top: boolean, now?: number, reduced?: boolean, selectedOpeningId?: string): boolean;
@@ -115,8 +116,12 @@ function wallGeometry(wall: Wall, height: number, elevation: number, spans: Wall
   for (const side of [-1, 1]) box(cursor, length, 0, Math.min(0.075, height), true, side);
   return group;
 }
-function makeOpening(wall: Wall, opening: Opening, metadata: EntityMetadata, elevation: number): OpeningProjection {
-  const group = new THREE.Group(); group.userData.entityId = opening.id;
+function makeOpening(wall: Wall, opening: Opening, metadata: EntityMetadata, elevation: number, previous?: OpeningProjection): OpeningProjection {
+  // Selection and angle animation retain these identities across a drag preview.
+  const group = previous?.group ?? new THREE.Group(); group.userData.entityId = opening.id;
+  const angle = previous?.angle ?? 0, target = previous?.target ?? 0;
+  const envelopeVisible = Boolean(group.userData.envelope?.visible);
+  if (previous) { const obsolete = new THREE.Group(); obsolete.add(...group.children); disposeObject(obsolete); }
   group.position.set(opening.offset, opening.sill + elevation, 0);
   const frame = Math.min(metadata.frameWidth ?? 0.045, opening.width / 5, opening.height / 5);
   const width = Math.max(0.01, opening.width - frame * 2); const bottom = opening.kind === 'window' ? frame : Math.min(metadata.threshold ?? 0, opening.height / 4); const height = Math.max(0.01, opening.height - frame - bottom);
@@ -138,7 +143,7 @@ function makeOpening(wall: Wall, opening: Opening, metadata: EntityMetadata, ele
     };
     leafMaterial.customProgramCacheKey = () => 'varpet-thin-window-glass-v1';
   }
-  const metal = new THREE.MeshStandardMaterial({ color: '#727b7e', roughness: 0.32, metalness: 0.65 });
+  const metal = opening.kind === 'door' ? new THREE.MeshStandardMaterial({ color: '#727b7e', roughness: 0.32, metalness: 0.65 }) : undefined;
   meshBox(group, [frame, opening.height, wall.thickness + 0.02], [frame / 2, opening.height / 2, 0], trim);
   meshBox(group, [frame, opening.height, wall.thickness + 0.02], [opening.width - frame / 2, opening.height / 2, 0], trim);
   meshBox(group, [opening.width, frame, wall.thickness + 0.02], [opening.width / 2, opening.height - frame / 2, 0], trim);
@@ -153,16 +158,17 @@ function makeOpening(wall: Wall, opening: Opening, metadata: EntityMetadata, ele
     // Alpha blending does not make shadow maps transparent. Frames still cast.
     if (opening.kind === 'window') { leaf.castShadow = false; leaf.receiveShadow = false; }
     leaves.push(leaf);
-    if (opening.kind === 'door') meshBox(pivot, [0.13, 0.025, 0.08], [(isRight ? -1 : 1) * (leafWidth - 0.1), Math.min(1, height * 0.5), thickness / 2 + 0.03], metal);
+    if (opening.kind === 'door') meshBox(pivot, [0.13, 0.025, 0.08], [(isRight ? -1 : 1) * (leafWidth - 0.1), Math.min(1, height * 0.5), thickness / 2 + 0.03], metal!);
     else {
       meshBox(pivot, [0.025, height, thickness + 0.01], [(isRight ? -1 : 1) * leafWidth * 0.5, height / 2, 0], trim);
       meshBox(pivot, [leafWidth, 0.025, thickness + 0.01], [(isRight ? -1 : 1) * leafWidth / 2, height * 0.5, 0], trim);
     }
     group.add(pivot); moving.push(pivot);
   }
-  const envelope = new THREE.Group(); envelope.visible = false;
-  const envelopeMaterial = new THREE.LineBasicMaterial({ color: '#5b8e94', transparent: true, opacity: 0.85, depthTest: false });
-  if (!fixed && !['sliding', 'pocket', 'tilt'].includes(mechanism)) {
+  const envelope = new THREE.Group(); envelope.visible = envelopeVisible;
+  const envelopeMaterial = !fixed && !['sliding', 'pocket', 'tilt'].includes(mechanism)
+    ? new THREE.LineBasicMaterial({ color: '#5b8e94', transparent: true, opacity: 0.85, depthTest: false }) : undefined;
+  if (envelopeMaterial) {
     for (let i = 0; i < count; i++) {
       const isRight = count === 2 ? i === 1 : right; const x = isRight ? opening.width - frame : frame; const radius = width / count;
       const points = [new THREE.Vector3(x, 0.02, 0)];
@@ -173,9 +179,10 @@ function makeOpening(wall: Wall, opening: Opening, metadata: EntityMetadata, ele
   }
   group.add(envelope); group.userData.envelope = envelope;
   const warning = label3d('Swing envelope has an obstacle', '#9e302a', '#fff0ed'); warning.position.set(opening.width / 2, opening.height + 0.22, 0); warning.visible = false; group.add(warning);
-  const projection: OpeningProjection = {
-    group, leaves, angle: 0, target: 0, fixed,
-    setAngle(value) {
+  const projection: OpeningProjection = previous ?? { group, leaves, angle, target, fixed, setAngle() {}, setCollision() {} };
+  Object.assign(projection, {
+    group, leaves, angle, target, fixed,
+    setAngle(value: number) {
       const angle = fixed ? 0 : THREE.MathUtils.clamp(value, 0, Math.PI / 2); projection.angle = angle;
       moving.forEach((pivot, i) => {
         const isRight = count === 2 ? i === 1 : right; const sign = isRight ? -1 : 1;
@@ -186,15 +193,17 @@ function makeOpening(wall: Wall, opening: Opening, metadata: EntityMetadata, ele
       });
       group.updateMatrixWorld(true);
     },
-    setCollision(collision) { warning.visible = collision; envelopeMaterial.color.set(collision ? '#c54337' : '#5b8e94'); },
-  };
+    setCollision(collision: boolean) { group.userData.openingCollision = collision; warning.visible = collision; envelopeMaterial?.color.set(collision ? '#c54337' : '#5b8e94'); },
+  });
+  projection.setAngle(angle); projection.setCollision(Boolean(group.userData.openingCollision));
   return projection;
 }
 
 export function makeStructure(document: SceneDocument, reveal?: FinishReveal): StructureProjection {
   const group = new THREE.Group(); const ceilings = new THREE.Group(); const dimensions = new THREE.Group();
   const entities = new Map<string, THREE.Object3D>(); const openings = new Map<string, OpeningProjection>();
-  const refreshOpeningWalls = new Map<string, () => void>();
+  const openingPreviews = new Map<string, Opening>();
+  const previewOpenings = new Map<string, (dimensions: Partial<Pick<Opening, 'offset' | 'sill' | 'width' | 'height'>>) => void>();
   const animatedFinishes = new Set<FinishMaterialProjection>();
   const trackFinish = (finish: FinishMaterialProjection): THREE.MeshStandardMaterial => {
     animatedFinishes.add(finish);
@@ -292,17 +301,34 @@ export function makeStructure(document: SceneDocument, reveal?: FinishReveal): S
     const full = makeWallProjection(wall, wall.height); const low = makeWallProjection(wall, Math.min(0.32, wall.height));
     const openingGroup = new THREE.Group(); wallGroup.add(full, low, openingGroup);
     const refreshWall = () => {
-      const preview = { ...wall, openings: wall.openings.map(opening => ({ ...opening, offset: openings.get(opening.id)!.group.position.x })) };
-      for (const [projection, height] of [[full, wall.height], [low, Math.min(0.32, wall.height)]] as const) {
+      const preview = { ...wall, openings: wall.openings.map(opening => openingPreviews.get(opening.id) ?? opening) };
+      for (const [index, [projection, height]] of ([[full, wall.height], [low, Math.min(0.32, wall.height)]] as const).entries()) {
         const replacement = makeWallProjection(preview, height);
         const obsolete = new THREE.Group(); obsolete.add(...projection.children);
         projection.add(...replacement.children); disposeObject(obsolete);
+        setProjectionOpacity(projection, state.alpha[index]!);
       }
+      setProjectionOpacity(openingGroup, state.alpha[2]!);
       wallGroup.updateMatrixWorld(true);
     };
     for (const opening of wall.openings) {
       const projection = makeOpening(wall, opening, metadata[opening.id] ?? {}, elevation); openings.set(opening.id, projection);
-      refreshOpeningWalls.set(opening.id, refreshWall);
+      openingPreviews.set(opening.id, { ...opening });
+      previewOpenings.set(opening.id, dimensions => {
+        const current = openingPreviews.get(opening.id)!;
+        const next = { ...current };
+        for (const key of ['offset', 'sill', 'width', 'height'] as const) {
+          const value = dimensions[key];
+          if (value === undefined) continue;
+          if (!Number.isFinite(value) || value < 0 || (key === 'width' || key === 'height') && value === 0) return;
+          next[key] = value;
+        }
+        if (next.offset === current.offset && next.sill === current.sill && next.width === current.width && next.height === current.height) return;
+        openingPreviews.set(opening.id, next);
+        if (next.width !== current.width || next.height !== current.height) makeOpening(wall, next, metadata[opening.id] ?? {}, elevation, projection);
+        else projection.group.position.set(next.offset, next.sill + elevation, 0);
+        refreshWall();
+      });
       openingGroup.add(projection.group); entities.set(opening.id, projection.group);
     }
     dimensions.add(dimension3d(new THREE.Vector3(wall.start[0], elevation + 0.06, wall.start[1]), new THREE.Vector3(wall.end[0], elevation + 0.06, wall.end[1])));
@@ -314,11 +340,12 @@ export function makeStructure(document: SceneDocument, reveal?: FinishReveal): S
     const protectedBoundary = meta.boundary === 'interior' || meta.boundary === 'shared';
     const exterior = !protectedBoundary && front !== back;
     const outward = new THREE.Vector3(-wallAxis.z, 0, wallAxis.x).multiplyScalar(front ? -1 : 1);
-    return { full, low, openingGroup, outward, exterior, thickness: wall.thickness,
+    const state = { full, low, openingGroup, outward, exterior, thickness: wall.thickness,
       // Preserve the existing Top projection for standalone walls without rooms.
       topCut: exterior || (!document.rooms.length && !protectedBoundary),
       midpoint: new THREE.Vector3((wall.start[0] + wall.end[0]) / 2, 0, (wall.start[1] + wall.end[1]) / 2),
       alpha: [1, 0, 1], from: [1, 0, 1], target: [1, 0, 1], started: 0, initialized: false, cut: false };
+    return state;
   });
   const direction = new THREE.Vector3(); const toCamera = new THREE.Vector3(); ceilings.visible = false; dimensions.visible = false;
   return {
@@ -331,11 +358,8 @@ export function makeStructure(document: SceneDocument, reveal?: FinishReveal): S
       }
       return active;
     },
-    previewOpeningOffset(id, offset) {
-      const opening = openings.get(id); const refreshWall = refreshOpeningWalls.get(id);
-      if (!opening || !refreshWall || !Number.isFinite(offset) || opening.group.position.x === offset) return;
-      opening.group.position.x = offset; refreshWall();
-    },
+    previewOpening(id, dimensions) { previewOpenings.get(id)?.(dimensions); },
+    previewOpeningOffset(id, offset) { previewOpenings.get(id)?.({ offset }); },
     updateWalls(camera, mode, top, now = performance.now(), reduced = false, selectedOpeningId) {
       let active = false;
       const inside = !top && interiorRooms.some(room => cameraOverRoom(camera, room));

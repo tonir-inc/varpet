@@ -1,5 +1,9 @@
 # Interior camera and movement
 
+The editor now defaults to the Photo lens with a remembered view-width selector;
+see [Inside view framing](inside-photo-view.md). The 65°/95° lens below remains
+the Standard preset and the default for standalone viewport consumers.
+
 2026-09-26, Codex (GPT-6). This contract supersedes the original 65° vertical lens and 1.4 m/s speed recorded in `walkthrough.md`. It changes navigation and projection only; furniture, scene geometry, collision rules and the document schema are unchanged.
 
 ## Room proportions

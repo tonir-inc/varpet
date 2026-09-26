@@ -1,0 +1,10 @@
+.opening-drag-controls { position: absolute; inset: 0; z-index: 3; pointer-events: none; overflow: hidden; }
+.opening-drag-controls[hidden], .opening-drag-controls [hidden] { display: none; }
+.opening-drag-knob { position: absolute; display: grid; place-items: center; width: 30px; height: 30px; padding: 0; transform: translate(-50%, -50%); pointer-events: auto; touch-action: none; user-select: none; border: 0; border-radius: 6px; background: transparent; color: #221a36; }
+.opening-drag-resize::after { content: ''; display: block; width: 13px; height: 13px; border: 2px solid #f3ecff; border-radius: 3px; background: #a98adb; box-shadow: 0 1px 5px #171020a0; transition: background 100ms; }
+.opening-drag-move { width: 30px; height: 30px; font: 24px/1 system-ui; background: #c6adef; border: 2px solid #f3ecff; box-shadow: 0 2px 7px #17102090; border-radius: 50%; }
+.opening-drag-knob:hover::after, .opening-drag-knob.is-dragging::after, .opening-drag-move:hover, .opening-drag-move.is-dragging { background: #eee2ff; }
+.opening-drag-knob:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.opening-drag-readout { position: absolute; transform: translateX(-50%); padding: 5px 8px; border: 1px solid #bba0e0; border-radius: 5px; background: #24222eee; color: #fff; white-space: nowrap; font: 12px/1.5 system-ui; pointer-events: none; }
+.preview-mode .opening-drag-controls { display: none; }
+@media (prefers-reduced-motion: reduce) { .opening-drag-resize::after { transition: none; } }

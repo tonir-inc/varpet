@@ -4,6 +4,7 @@ import './inspector.css';
 import type { CatalogAsset, EntityMetadata, Operation, SceneDocument, SceneObject } from '../contracts';
 import { buildAssetReplacementOperations, buildOpeningTypeOperations, OPENING_TYPES } from '../core/inspector-edits';
 import { inspectorOpenings } from '../core/inspector-openings';
+import { buildWindowDimensionOperations, windowDimensionTargets, type WindowDimensionMatch } from '../core/window-dimensions';
 import { buildFinishOperations, FINISH_DRAG_TYPE, FINISH_PRESETS, getPresetForMaterial, type FinishPreset } from '../core/finish-presets';
 import { wallSurfaceSpans } from '../core/wall-surfaces';
 import { resolveWallFinishTargets } from '../core/wall-finish-targets';
@@ -55,6 +56,16 @@ function openingChoices(scene: SceneDocument, id: string): string {
   }).join('')}</div></section>`;
 }
 
+function windowMatchMarkup(scene: SceneDocument, id: string, disabled: string): string {
+  const others = scene.walls.flatMap(wall => scene.project?.metadata[wall.id]?.phase === 'remove' ? [] : wall.openings.filter(opening => opening.id !== id && opening.kind === 'window' && scene.project?.metadata[opening.id]?.phase !== 'remove'));
+  if (!others.length) return '';
+  return `<section class="property-section inspector-window-match"><div class="property-label">Apply to other windows</div><p class="field-note" id="window-match-note" aria-live="polite">Use this window’s applied dimensions. Sill heights, positions and types stay as they are.</p><div class="window-match-actions">${(['height', 'size'] as const).map(match => {
+    const count = windowDimensionTargets(scene, id, match).length;
+    const label = match === 'height' ? 'Match height' : 'Match width & height';
+    return `<button type="button" class="button full" data-window-match="${match}" data-target-count="${count}" aria-describedby="window-match-note" ${disabled || !count ? 'disabled' : ''}>${esc(label)}${count ? ` · ${count} ${count === 1 ? 'window' : 'windows'}` : ' · Already matched'}</button>`;
+  }).join('')}</div><p class="inspector-error" role="alert" hidden></p></section>`;
+}
+
 export function renderAssetChoices(container: HTMLElement, object: SceneObject, config: InspectorOptions) {
   const catalog = config.getCatalog();
   const asset = catalog.find(a => a.id === object.assetId)!;
@@ -95,7 +106,8 @@ export function renderEntityInspector(container: HTMLElement, id: string, config
     const currentType = types.find(t => t.value === meta.mechanism)?.label ?? (meta.mechanism ? pretty(meta.mechanism) : 'Unspecified');
     body = `<section class="property-section"><div class="property-label">${pretty(opening.kind)} type<span>${esc(currentType)}</span></div><div class="inspector-types" role="group" aria-label="${pretty(opening.kind)} type">${types.map(type => `<button type="button" data-opening-type="${type.value}" aria-pressed="${type.value === meta.mechanism}" ${disabled}>${esc(type.label)}</button>`).join('')}</div>${!meta.mechanism ? `<p class="field-note inspector-assumption">Type is unspecified. Preview uses ${mechanism}. Choose a type to record it.</p>` : ''}</section>`;
     if (mechanism !== 'fixed') body += `<section class="property-section inspector-preview"><div class="property-label">Test opening <output id="inspector-angle-output">${travel ? Math.round(angle / (Math.PI / 2) * 100) + '%' : Math.round(angle * 180 / Math.PI) + '°'}</output></div><input id="inspector-angle" aria-label="Test opening ${travel ? 'travel' : 'angle'}" type="range" min="0" max="90" step="1" value="${Math.round(angle * 180 / Math.PI)}"><div class="inspector-preview-actions"><button type="button" class="button" data-angle="0">Close</button><button type="button" class="button" data-angle="90">Open</button></div><p class="field-note">Preview only. Does not change the saved design.</p></section>`;
-    body += `<form id="inspector-opening"><fieldset ${disabled}><div class="property-label">Opening dimensions <span>m</span></div><div class="field-grid two">${number('width','Opening width',opening.width,0.01)}${number('height','Opening height',opening.height,0.01)}${number('offset','Offset along wall',opening.offset)}${number('sill',opening.kind === 'window' ? 'Sill height' : 'Opening base',opening.sill)}</div><p class="field-note">Wall opening size; the frame reduces usable space.</p><details class="inspector-details"><summary>Frame &amp; orientation</summary><div class="field-grid two">${number('frameWidth','Frame width',meta.frameWidth ?? 0.05)}${number('leafThickness','Leaf thickness',meta.leafThickness ?? 0.04,0.001)}</div>${choices('hinge','Hinge side',meta.hinge ?? '',[['','Unspecified'],['left','Left at wall start'],['right','Right at wall end']])}${choices('swing','Opening direction',meta.swing === undefined ? '' : String(meta.swing),[['','Unspecified'],['1','Wall side A'],['-1','Wall side B']])}<p class="field-note">Unspecified frame dimensions use provisional preview values.</p></details><button class="button full" type="submit">Apply dimensions</button></fieldset><p class="inspector-error" role="alert" hidden></p></form>`;
+    body += `<form id="inspector-opening"><fieldset ${disabled}><div class="property-label">Opening dimensions <span>m</span></div><div class="field-grid two">${number('width','Opening width',opening.width,0.2)}${number('height','Opening height',opening.height,0.2)}${number('offset','Offset along wall',opening.offset)}${number('sill',opening.kind === 'window' ? 'Sill height' : 'Opening base',opening.sill)}</div><p class="field-note">Width and height resize the wall opening; sill height sets its distance above the wall base.</p><button class="button primary full" id="apply-opening-dimensions" type="submit" disabled>Apply to this ${opening.kind}</button><p class="field-note" id="opening-edit-state" aria-live="polite">Change dimensions, then apply.</p><details class="inspector-details"><summary>Frame &amp; orientation</summary><div class="field-grid two">${number('frameWidth','Frame width',meta.frameWidth ?? 0.05)}${number('leafThickness','Leaf thickness',meta.leafThickness ?? 0.04,0.001)}</div>${choices('hinge','Hinge side',meta.hinge ?? '',[['','Unspecified'],['left','Left at wall start'],['right','Right at wall end']])}${choices('swing','Opening direction',meta.swing === undefined ? '' : String(meta.swing),[['','Unspecified'],['1','Wall side A'],['-1','Wall side B']])}<p class="field-note">Frame dimensions reduce usable space. Unspecified values are provisional.</p></details></fieldset><p class="inspector-error" role="alert" hidden></p></form>`;
+    if (opening.kind === 'window') body += windowMatchMarkup(scene, id, disabled);
   } else if (room || selectedWall) {
     const surfaces = room ? [['floor','Floor finish']] as const : [['wall-front','Wall side A'],['wall-back','Wall side B']] as const;
     const spans = selectedWall ? wallSurfaceSpans(selectedWall, scene.rooms, scene.project?.metadata) : [];
@@ -134,8 +146,25 @@ export function renderEntityInspector(container: HTMLElement, id: string, config
   if (range) range.oninput = () => previewAngle(range.valueAsNumber);
   container.querySelectorAll<HTMLButtonElement>('[data-angle]').forEach(button => button.onclick = () => previewAngle(Number(button.dataset.angle)));
   const form = container.querySelector<HTMLFormElement>('#inspector-opening');
+  const fields = form ? [...form.querySelectorAll<HTMLInputElement | HTMLSelectElement>('input, select')] : [];
+  const fieldValue = (field: HTMLInputElement | HTMLSelectElement) => field instanceof HTMLInputElement && field.type === 'number' ? field.valueAsNumber : field.value;
+  const originalValues = fields.map(fieldValue);
+  const hasOpeningDraft = () => fields.some((field, index) => fieldValue(field) !== originalValues[index]);
+  const matchButtons = container.querySelectorAll<HTMLButtonElement>('[data-window-match]');
+  const updateOpeningDraft = () => {
+    if (!form) return;
+    const dirty = hasOpeningDraft();
+    form.querySelector<HTMLButtonElement>('#apply-opening-dimensions')!.disabled = !!disabled || !dirty;
+    form.querySelector<HTMLElement>('#opening-edit-state')!.textContent = dirty ? 'Unapplied changes. Apply to update this opening.' : 'Change dimensions, then apply.';
+    const note = container.querySelector<HTMLElement>('#window-match-note');
+    if (note) note.textContent = dirty ? 'Apply this window’s changes first, then match the others.' : 'Use this window’s applied dimensions. Sill heights, positions and types stay as they are.';
+    matchButtons.forEach(button => button.disabled = !!disabled || dirty || Number(button.dataset.targetCount) === 0);
+    form.querySelector<HTMLElement>('[role="alert"]')!.hidden = true;
+  };
+  if (form) { form.oninput = updateOpeningDraft; form.onchange = updateOpeningDraft; }
   if (form && opening) form.onsubmit = event => {
     event.preventDefault();
+    if (disabled) return;
     const data = new FormData(form);
     const read = (key: string) => {
       const value = String(data.get(key) ?? '').trim();
@@ -153,14 +182,38 @@ export function renderEntityInspector(container: HTMLElement, id: string, config
       const swing = data.get('swing') ? Number(data.get('swing')) as 1 | -1 : undefined;
       if ((hinge || undefined) !== meta.hinge) patch.hinge = hinge || undefined;
       if (swing !== meta.swing) patch.swing = swing;
-      const operations: Operation[] = [{type:'update-opening',id,patch:{width:read('width'),height:read('height'),offset:read('offset'),sill:read('sill')}}];
+      const dimensions: Partial<Pick<typeof opening, 'width' | 'height' | 'offset' | 'sill'>> = {};
+      for (const key of ['width', 'height', 'offset', 'sill'] as const) {
+        const value = read(key);
+        if (value !== opening[key]) dimensions[key] = value;
+      }
+      if (!Object.keys(dimensions).length && !Object.keys(patch).length) return;
+      // Even a frame-only edit follows the opening alteration path for locks,
+      // review state and assumption invalidation.
+      const operations: Operation[] = [{type:'update-opening',id,patch:Object.keys(dimensions).length ? dimensions : {kind:opening.kind}}];
       if (Object.keys(patch).length) operations.push({type:'set-metadata',id,patch});
-      commit(config, () => projectOperations(config.getScene(), operations), 'Edit opening dimensions');
+      config.execute(projectOperations(config.getScene(), operations), `Resize ${kind}: ${read('width')} × ${read('height')} m`);
     } catch (error) {
       const message = form.querySelector<HTMLElement>('[role="alert"]')!;
       message.hidden = false; message.textContent = error instanceof Error ? error.message : 'Check the dimensions.';
     }
   };
+  matchButtons.forEach(button => button.onclick = () => {
+    if (disabled || hasOpeningDraft()) { updateOpeningDraft(); return; }
+    const message = container.querySelector<HTMLElement>('.inspector-window-match [role="alert"]')!;
+    message.hidden = true;
+    try {
+      const match = button.dataset.windowMatch as WindowDimensionMatch;
+      const current = config.getScene();
+      const operations = buildWindowDimensionOperations(current, id, match);
+      const count = operations.filter(operation => operation.type === 'update-opening').length;
+      if (!count) { config.refresh(); return; }
+      config.execute(operations, `Match ${match === 'height' ? 'height' : 'width and height'} of ${count} other ${count === 1 ? 'window' : 'windows'}`);
+    } catch (error) {
+      message.hidden = false;
+      message.textContent = error instanceof Error ? error.message : 'These window dimensions could not be matched.';
+    }
+  });
   fillFinishSwatches(container);
   container.querySelectorAll<HTMLButtonElement>('[data-finish]').forEach(button => {
     const preset = FINISH_PRESETS.find(p => p.id === button.dataset.finish)!;

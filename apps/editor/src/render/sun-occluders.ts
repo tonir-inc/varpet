@@ -13,7 +13,7 @@ export class SunOccluders {
   private readonly roofMaterial = new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, transparent: true, opacity: 0, shadowSide: THREE.FrontSide });
   private readonly shellGeometries = new Set<THREE.BufferGeometry>();
   private readonly angles = new Map<string, number>();
-  private readonly offsets = new Map<string, number>();
+  private readonly openingPreviews = new Map<string, Opening>();
   private readonly setAngles = new Map<string, (angle: number) => void>();
   private readonly wallGroups = new Map<string, THREE.Group>();
   private scene: SceneDocument | null = null;
@@ -21,7 +21,7 @@ export class SunOccluders {
   constructor() { this.group.name = 'Sun shadow shell'; this.group.userData.studioAO = false; }
 
   setScene(scene: SceneDocument): void {
-    this.clear(); this.scene = scene; this.offsets.clear();
+    this.clear(); this.scene = scene; this.openingPreviews.clear();
     const openingIds = new Set(scene.walls.flatMap(wall => wall.openings.map(opening => opening.id)));
     for (const id of this.angles.keys()) if (!openingIds.has(id)) this.angles.delete(id);
     const metadata = scene.project?.metadata ?? {};
@@ -40,11 +40,22 @@ export class SunOccluders {
     this.setAngles.get(id)?.(this.angles.get(id)!);
   }
 
-  previewOpeningOffset(id: string, offset: number): void {
-    if (!this.scene || !Number.isFinite(offset) || this.offsets.get(id) === offset) return;
+  previewOpeningOffset(id: string, offset: number): void { this.previewOpening(id, { offset }); }
+
+  previewOpening(id: string, dimensions: Partial<Pick<Opening, 'offset' | 'sill' | 'width' | 'height'>>): void {
+    if (!this.scene) return;
     const wall = this.scene.walls.find(wall => wall.openings.some(opening => opening.id === id));
     if (!wall || !this.wallGroups.has(wall.id)) return;
-    this.offsets.set(id, offset);
+    const current = this.openingPreviews.get(id) ?? wall.openings.find(opening => opening.id === id)!;
+    const next = { ...current };
+    for (const key of ['offset', 'sill', 'width', 'height'] as const) {
+      const value = dimensions[key];
+      if (value === undefined) continue;
+      if (!Number.isFinite(value) || value < 0 || (key === 'width' || key === 'height') && value === 0) return;
+      next[key] = value;
+    }
+    if (next.offset === current.offset && next.sill === current.sill && next.width === current.width && next.height === current.height) return;
+    this.openingPreviews.set(id, next);
     const previous = this.wallGroups.get(wall.id)!;
     previous.traverse(object => {
       if (object instanceof THREE.Mesh && this.shellGeometries.delete(object.geometry)) object.geometry.dispose();
@@ -85,7 +96,7 @@ export class SunOccluders {
     group.position.set(wall.start[0], elevation, wall.start[1]);
     group.rotation.y = -Math.atan2(wall.end[1] - wall.start[1], wall.end[0] - wall.start[0]);
     this.group.add(group); this.wallGroups.set(wall.id, group);
-    const openings = wall.openings.map(opening => ({ ...opening, offset: this.offsets.get(opening.id) ?? opening.offset })).sort((a, b) => a.offset - b.offset);
+    const openings = wall.openings.map(opening => this.openingPreviews.get(opening.id) ?? opening).sort((a, b) => a.offset - b.offset);
     const footprint = wallFootprint(wall, this.scene!.walls, metadata);
     const span = (left: number, right: number, bottom: number, top: number) => {
       if (right - left <= .0001 || top - bottom <= .0001) return;
@@ -155,6 +166,6 @@ export class SunOccluders {
 
   dispose(): void {
     this.clear(); this.box.dispose(); this.wallMaterial.dispose(); this.roofMaterial.dispose();
-    this.angles.clear(); this.offsets.clear(); this.scene = null; this.group.removeFromParent();
+    this.angles.clear(); this.openingPreviews.clear(); this.scene = null; this.group.removeFromParent();
   }
 }

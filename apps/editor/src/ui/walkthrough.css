@@ -1,6 +1,9 @@
 .inside-label { display: none; }
-.inside-mode .inside-label { display: flex; position: absolute; top: 76px; left: 18px; gap: 10px; align-items: center; padding: 8px 11px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); color: var(--ink); font-size: var(--text-xs); pointer-events: none; }
+.inside-mode .inside-label { display: flex; position: absolute; top: 112px; left: 18px; max-width: calc(100% - 36px); flex-wrap: wrap; gap: 10px; align-items: center; padding: 8px 11px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); color: var(--ink); font-size: var(--text-xs); pointer-events: none; }
 .inside-label span { color: var(--ink); }
+.inside-lens { display: flex; align-items: center; gap: 6px; padding-left: 10px; border-left: 1px solid var(--line); pointer-events: auto; }
+.inside-lens select { width: auto; min-height: 30px; padding: 3px 6px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); color: var(--ink); font: inherit; cursor: pointer; }
+.inside-lens select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .inside-mode .tool-rail, .inside-mode .selection-chip, .inside-mode .canvas-label,
 .inside-mode .right-panel, .inside-mode #walls { display: none; }
 .inside-mode .canvas-bottom { justify-content: center; bottom: 20px; }
@@ -9,8 +12,8 @@
 @media (max-width: 800px) {
   .inside-mode .workspace .viewport-top .view-switch { visibility: visible; }
   .inside-mode .canvas-bottom #view-hint { display: block; font-size: var(--text-xs); }
-  .inside-mode .inside-label { top: 65px; left: 12px; }
+  .inside-mode .inside-label { top: 112px; left: 12px; }
 }
 .inside-mode .inside-label, .inside-mode #view-hint { background: var(--surface); border-color: var(--line); box-shadow: var(--shadow-1); }
 .inside-mode .inside-label { font-size: var(--text-sm); }
-@media (max-width: 600px) { .inside-mode .inside-label { top: 100px; left: 12px; max-width: calc(100% - 24px); flex-wrap: wrap; } }
+@media (max-width: 600px) { .inside-mode .inside-label { top: 154px; left: 12px; max-width: calc(100% - 24px); } }
