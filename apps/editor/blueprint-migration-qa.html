@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Blueprint viewport migration verification</title>
+  <style>
+    body { margin: 0; background: #155f6d; color: #eef9f8; font: 13px system-ui, sans-serif; }
+    header { display: flex; align-items: center; gap: 16px; padding: 14px 20px; }
+    button { padding: 8px 12px; cursor: pointer; }
+    main { position: relative; height: 65vh; min-height: 400px; }
+    .view { position: absolute; inset: 0; }
+    #editor { pointer-events: none; }
+    #editor.adopted { pointer-events: auto; }
+    pre { padding: 12px 20px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <header><button id="run">Run blueprint migration checks</button><button id="recovery">Run recovery checks</button><span id="status">Ready</span></header>
+  <main><div id="construction" class="view"></div><div id="editor" class="view"></div></main>
+  <pre id="result">Exercises the real blueprint construction and transfers its live viewport into an editor host, with normal and reduced motion.</pre>
+  <script type="module" src="/src/portal/blueprint-migration-qa.ts"></script>
+</body>
+</html>

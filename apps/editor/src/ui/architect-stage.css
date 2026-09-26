@@ -11,6 +11,10 @@
   --as-accent: var(--designer, #0c6a55);
   --as-muted: var(--muted, #69796f);
 }
+.bc-viewport { position: absolute; inset: 0; }
+.bc-viewport canvas { cursor: grab; }
+.bc-viewport canvas:active { cursor: grabbing; }
+.viewport-shell.construction-active > :not(#architect-stage, #toast) { visibility: hidden; }
 .as-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
 .as-canvas.is-navigating { cursor: grabbing; }
 .as-canvas:focus-visible { outline: 2px solid var(--as-accent); outline-offset: -4px; }

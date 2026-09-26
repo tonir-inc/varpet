@@ -31,6 +31,17 @@ export class LightingPreview {
     this.setComponents(scene.project?.components ?? [], scene);
   }
 
+  /** Restore temporary switch choices after a borrowed construction view returns this scene. */
+  preserveLevels(): () => void {
+    const sceneId = this.sceneId, levels = new Map(this.levels), lastLevels = new Map(this.lastLevels);
+    return () => {
+      if (this.sceneId !== sceneId) return;
+      this.levels.clear(); this.lastLevels.clear();
+      for (const [id, level] of levels) if (this.lightTargets.has(id)) this.levels.set(id, level);
+      for (const [id, level] of lastLevels) if (this.lightTargets.has(id)) this.lastLevels.set(id, level);
+    };
+  }
+
   setComponents(components: BuildingComponent[], scene?: SceneDocument): void {
     const next = new Map(components.map(component => [component.id, scene?.project?.metadata[component.id]?.phase === 'remove' ? { ...component, phase: 'remove' as const } : component]));
     const targets = new Map<string, { enabled: boolean; kind: 'light' | 'ceiling' }>();

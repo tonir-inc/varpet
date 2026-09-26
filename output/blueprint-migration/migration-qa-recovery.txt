@@ -1,0 +1,27 @@
+PASS failed editor startup reclaims the same live world into the construction host
+PASS startup recovery preserves the exact camera
+PASS retry transfers the reclaimed viewport successfully
+PASS disposing recovered construction leaves the retried editor world alive
+PASS reclaim and retry release every motion subscription
+PASS perspective: cancelled construction restores the rendered camera and projection exactly
+PASS perspective: cancelled construction restores manual Sun settings and opening preview
+PASS perspective: cancelled construction restores the selected sky illumination
+PASS perspective: cancelled construction restores an explicitly switched-off circuit
+PASS perspective: restored circuit remembers its previous dimmer level
+PASS top: cancelled construction restores the rendered camera and projection exactly
+PASS top: cancelled construction restores manual Sun settings and opening preview
+PASS top: cancelled construction restores the selected sky illumination
+PASS top: cancelled construction restores an explicitly switched-off circuit
+PASS top: restored circuit remembers its previous dimmer level
+PASS inside: cancelled construction restores the rendered camera and projection exactly
+PASS inside: cancelled construction restores manual Sun settings and opening preview
+PASS inside: cancelled construction restores the selected sky illumination
+PASS inside: cancelled construction restores an explicitly switched-off circuit
+PASS inside: restored circuit remembers its previous dimmer level
+PASS cancelled Inside reconstruction retains its prior outside camera for exiting Inside
+PASS exiting restored Inside returns doors to their previous outside preview
+PASS presentation recovery never changes source scene or saved light defaults
+PASS disposing during completion settles the promise and removes its canvas
+PASS construction, navigation and adoption preserve input scene, catalog and shell
+PASS no rendering errors, uncaught browser errors or unintended document transformations
+COMPLETE 26 blueprint migration checks

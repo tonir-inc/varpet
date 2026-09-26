@@ -31,13 +31,13 @@ import { STORAGE_KEY, parseScene, saveLocal, serializeScene } from './core/persi
 import { createDesignerAdapter, structureAdapter as mockStructureAdapter } from './adapters/mock';
 import { buildFurnishedFlat, createArchitectHttpAdapter, replayFurnishedFlat } from './adapters/architect-http';
 import { applyLiveEvent, liveScene, logArchitectActivity, openArchitectFlat, startArchitectFlat, type ArchitectFlatDeps } from './ui/architect-flat';
-import { createArchitectStage, type ArchitectStage } from './ui/architect-stage';
+import { createBlueprintConstruction, type BlueprintConstruction } from './portal/blueprint-construction';
+import { blueprintSource } from './portal/blueprint-source';
 import { BUILT_CATEGORY, loadBuiltProducts, resolveFurnitureProducts } from './adapters/built-catalog';
 import { createReconstructionProposal, previewReconstructionProposal } from './core/reconstruction-proposal';
-import { createViewport } from './render/viewport';
+import { createViewport, type FinishViewportCallbacks } from './render/viewport';
 import { SKYBOX_PRESETS, isSkyboxPreset, type SkyboxPreset } from './render/skybox';
-import { previewSelectionOperations, selectionTransformOperations, wallSelectionOperations } from './core/multi-selection';
-import { mayChangeWallStructure, structuralWallChanges } from './core/structural-wall-confirmation';
+import { selectionTransformOperations, wallSelectionOperations } from './core/multi-selection';
 import { createFloorPlan } from './render/floor-plan';
 import { createCatalogPreviews } from './render/catalog-previews';
 import { icon } from './ui/icons';
@@ -228,7 +228,8 @@ function notify(message: string, error = false) {
   $('#status-text').textContent = message;
 }
 
-const viewport = createViewport($('#viewport'), {
+const presentation = editorSession?.presentation;
+const viewportCallbacks: FinishViewportCallbacks = {
   onLightingChange: () => ceilingUI.syncLighting(),
   onSunChange: settings => {
     sunControls?.refresh(settings);
@@ -287,13 +288,15 @@ const viewport = createViewport($('#viewport'), {
     viewport.setScene(store.scene, catalog); viewport.setSelection(selectedId, selectionIds());
   },
   onError: message => notify(message, true),
-}, normalizeWallJunctions);
+};
+const adoptedViewport = presentation?.takeViewport?.();
+const viewport = adoptedViewport ?? createViewport($('#viewport'), viewportCallbacks, normalizeWallJunctions);
+if (adoptedViewport) viewport.attach($('#viewport'), viewportCallbacks, normalizeWallJunctions);
 store.setSurfaceResolver(viewport.furnitureSurface);
 // Every editor entry uses the blueprint workspace, including saved flats and the sandbox.
 // Construction handoff additionally preserves its exact camera and tool arrival.
-const presentation = editorSession?.presentation;
-viewport.setBackdrop({ paper: presentation?.paper ?? BLUEPRINT_PAPER });
-let arrivalPose = presentation?.camera;
+if (!adoptedViewport) viewport.setBackdrop({ paper: presentation?.paper ?? BLUEPRINT_PAPER });
+let arrivalPose = adoptedViewport?.cameraPose() ?? presentation?.camera;
 if (presentation?.arriving) { document.body.classList.add('editor-arriving'); viewport.setLocked(true); }
 const insideLensControl = $<HTMLSelectElement>('#inside-lens');
 const insideLensStorageKey = 'varpet.inside-lens.v1';
@@ -365,39 +368,9 @@ function focusView(id?: string) {
   else viewport.focus(id);
 }
 
-function run(operations: Operation[], label: string, revision = store.revision, onDeferredApply?: () => void) {
+function run(operations: Operation[], label: string, revision = store.revision) {
   if (previewMode) { notify('Exit preview to edit the apartment.'); return false; }
   const command: EditCommand = {id:uid(), label, source:'human', baseRevision:revision, operations};
-  // Preflight shell edits with the same checks and junction policy as the real
-  // store. Compare the result so connected walls count, but paint/type changes do not.
-  const shellEdit = operations.some(mayChangeWallStructure);
-  if (shellEdit && revision === store.revision) {
-    try {
-      const candidate = previewSelectionOperations(store.scene, operations, catalog, normalizeWallJunctions);
-      const walls = structuralWallChanges(store.scene, candidate, operations);
-      if (walls.length) {
-        const structural = walls.some(wall => wall.role === 'structural');
-        const correcting = store.scene.project?.mode !== 'renovate';
-        showModal(structural ? 'Change a load-bearing wall?' : 'Change a wall with an unconfirmed structural role?',
-          `<p class="modal-intro">${escape(label)} affects ${walls.length === 1 ? 'this wall' : 'these walls'}. Do you want to continue?</p><ul>${walls.map(wall => `<li><strong>${escape(wall.name)}</strong> — ${wall.role === 'structural' ? 'recorded as load-bearing' : 'structural role is unconfirmed'}</li>`).join('')}</ul><p class="modal-intro">${correcting ? 'This corrects the model. It does not approve changing the real building.' : 'This changes the renovation proposal. Have a structural professional review the work before changing the real building.'}</p><div class="file-actions"><button id="cancel-wall-change" type="button" class="button">Cancel</button><button id="confirm-wall-change" type="button" class="button primary">${correcting ? 'Apply model correction' : 'Apply proposed change'}</button></div>`);
-        $('#cancel-wall-change').onclick = () => modal.close();
-        modal.addEventListener('close', () => {
-          renderInspector();
-          renovationUI?.render();
-        }, { once: true });
-        $('#confirm-wall-change').onclick = () => {
-          modal.close();
-          // Retain the reviewed revision: a later edit must never reuse consent.
-          if (executeHumanCommand(command)) onDeferredApply?.();
-        };
-        $('#cancel-wall-change').focus();
-        return false;
-      }
-    } catch (error) {
-      notify(error instanceof Error ? error.message : 'This wall change could not be checked.', true);
-      return false;
-    }
-  }
   return executeHumanCommand(command);
 }
 
@@ -424,20 +397,28 @@ function architectDeps(): ArchitectFlatDeps {
     showModal: (title, body) => showModal(title, body), isOpen: () => modal.open, notify,
     progressHost: () => document.querySelector<HTMLElement>('#architect-progress'),
     onStarted: () => { if (modal.open) modal.close(); switchPanel('assistant'); },
-    build: (input, onProgress) => {
-      startStage(input.plan, input.photos);
-      return buildFurnishedFlat(input, message => { onProgress(message); stage?.progress(message); }, { onEvent: event => { logArchitectActivity(event); stage?.event(event as never); } })
-        .catch(error => { stopStage(); throw error; });
+    build: async (input, onProgress) => {
+      try {
+        await startStage(input.plan);
+        return await buildFurnishedFlat(input, message => { onProgress(message); stage?.progress(message); }, { onEvent: event => { logArchitectActivity(event); stage?.event(event as never); } });
+      } catch (error) { stopStage(); throw error; }
     },
     onProject: async project => {
-      const scene = decorateGeneratedCeilings(await parseDatabaseScene(JSON.stringify(project)));
-      const title = 'Furnished apartment from your plan and photos';
-      pending = { id: uid(), title, description: 'The architect read your plan, built the furniture from your photos and placed it where the photos show it. Rooms without recorded lighting receive editable ceiling spots and proposed wall switches where they fit. Applying replaces the current apartment; undo restores it.', command: { id: uid(), label: title, source: 'architect', baseRevision: store.revision, operations: [{ type: 'replace-scene', scene }] } };
-      switchPanel('assistant'); renderProposal(); notify('Your apartment is ready. Inspect it in 3D, then apply or dismiss it.');
-      await stage?.finish(); stopStage();
-      if (!previewMode) setPreview(true);
-      proposalView = true; $<HTMLButtonElement>('#save').disabled = true;
-      viewport.setScene(scene, catalog); focusView();
+      try {
+        const scene = decorateGeneratedCeilings(await parseDatabaseScene(JSON.stringify(project)));
+        const title = 'Furnished apartment from your plan and photos';
+        pending = { id: uid(), title, description: 'The architect read your plan, built the furniture from your photos and placed it where the photos show it. Rooms without recorded lighting receive editable ceiling spots and proposed wall switches where they fit. Applying replaces the current apartment; undo restores it.', command: { id: uid(), label: title, source: 'architect', baseRevision: store.revision, operations: [{ type: 'replace-scene', scene }] } };
+        if (!previewMode) setPreview(true);
+        proposalView = true; $<HTMLButtonElement>('#save').disabled = true;
+        // Let the preview layout settle before the final construction framing.
+        await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+        await stage?.finish(scene, catalog);
+        const pose = stage?.pose();
+        stopStage(true);
+        viewport.setScene(scene, catalog);
+        if (pose) viewport.setCameraPose(pose, 0); else focusView();
+        switchPanel('assistant'); renderProposal(); notify('Your apartment is ready. Inspect it in 3D, then apply or dismiss it.');
+      } catch (error) { stopStage(); throw error; }
     },
   };
 }
@@ -449,18 +430,58 @@ async function replayArchitect() {
   const photos = await Promise.all(['photo-01.jpg', 'photo-02.jpg', 'photo-03.jpg', 'photo-05.jpg', 'photo-06.jpg'].map(file));
   const deps = architectDeps();
   const speed = Number(new URLSearchParams(location.search).get('speed') ?? '1');
-  await startArchitectFlat({ ...deps, build: (input, onProgress) => { startStage(input.plan, input.photos); return replayFurnishedFlat(base + 'n3.json', message => { onProgress(message); stage?.progress(message); }, event => { logArchitectActivity(event); stage?.event(event as never); }, speed); } }, { plan, photos, name: 'Replay' });
+  await startArchitectFlat({ ...deps, build: async (input, onProgress) => {
+    try {
+      await startStage(input.plan);
+      return await replayFurnishedFlat(base + 'n3.json', message => { onProgress(message); stage?.progress(message); }, event => { logArchitectActivity(event); stage?.event(event as never); }, speed);
+    } catch (error) { stopStage(); throw error; }
+  } }, { plan, photos, name: 'Replay' });
 }
 
-/* The construction view: the flat being built live in the 3D area, over the editor, while the architect works. */
-let stage: ArchitectStage | null = null;
-function startStage(plan: File, photos: File[]) {
+/* Construction borrows the editor's live world, then returns it for the reviewed proposal. */
+let stage: BlueprintConstruction | null = null;
+let stageVersion = 0;
+let stageReturn: { view: ApartmentView; walls: WallMode; preview: boolean; restore: () => void; controls: [HTMLElement, boolean][] } | null = null;
+async function startStage(plan: File) {
   stopStage();
+  const version = ++stageVersion;
+  const source = await blueprintSource(plan);
+  if (version !== stageVersion) throw new DOMException('Construction was replaced.', 'AbortError');
+  const controls = [...$('.viewport-shell').children].filter((element): element is HTMLElement => element instanceof HTMLElement && element.id !== 'architect-stage' && element.id !== 'toast')
+    .map((element): [HTMLElement, boolean] => [element, element.inert]);
+  stageReturn = { view, walls: wallMode, preview: previewMode, restore: viewport.preservePresentation(), controls };
+  select(null); setView('perspective'); setWallMode('cutaway');
+  controls.forEach(([element]) => { element.inert = true; });
+  $('.viewport-shell').classList.add('construction-active');
   const host = $('#architect-stage'); host.hidden = false;
-  stage = createArchitectStage(host);
-  stage.start(plan, photos);
+  stage = createBlueprintConstruction(host, { ...source, paper: BLUEPRINT_PAPER, viewport, normalizeScene: normalizeWallJunctions });
+  stage.start(); stage.enter();
 }
-function stopStage() { stage?.dispose(); stage = null; const host = document.querySelector<HTMLElement>('#architect-stage'); if (host) { host.hidden = true; host.replaceChildren(); } }
+function stopStage(keepResult = false) {
+  const version = ++stageVersion, previous = stageReturn;
+  stageReturn = null;
+  if (stage) {
+    stage.takeViewport();
+    viewport.attach($('#viewport'), viewportCallbacks, normalizeWallJunctions);
+    stage.dispose(); stage = null;
+  }
+  const host = document.querySelector<HTMLElement>('#architect-stage');
+  if (host) { host.hidden = true; host.replaceChildren(); }
+  $('.viewport-shell').classList.remove('construction-active');
+  if (!previous) return;
+  previous.controls.forEach(([element, inert]) => { element.inert = inert; });
+  viewport.setLocked(false);
+  if (!keepResult) {
+    viewport.setBackdrop(null);
+    if (!previous.preview && previewMode) setPreview(false);
+    viewport.setScene(store.scene, catalog);
+    setWallMode(previous.walls); setView(previous.view);
+    // A queued preview focus must not replace the camera we restore after a failed build.
+    requestAnimationFrame(() => {
+      if (version === stageVersion && !stage) previous.restore();
+    });
+  }
+}
 
 /* Earlier live preview in the editor itself (kept for reference; the construction view replaced it). */
 let liveEntered = false, liveStopped = false;
@@ -494,8 +515,7 @@ function exportProject(kind: 'project' | 'schedule' | 'report') {
 
 renovationUI = createRenovationUI($('#renovation-panel'), {
   getScene: () => store.scene, getCatalog: () => catalog,
-  isAwaitingConfirmation: () => modal.open && !!modal.querySelector('#confirm-wall-change'),
-  execute: (label, operations, onDeferredApply) => run(operations, label, store.revision, onDeferredApply), select: (id, additive) => select(id, additive || multiSelection),
+  execute: (label, operations) => run(operations, label), select: (id, additive) => select(id, additive || multiSelection),
   focus: id => focusView(id), notice: notify,
   testDoor: (id, angle) => viewport.setDoorAngle(id, angle), getDoorAngle: id => viewport.getDoorAngle(id),
   toggleSwitch: id => viewport.toggleSwitch(id), setSwitchLevel: (id, level) => viewport.setSwitchLevel(id, level), getSwitchLevel: id => viewport.getSwitchLevel(id), onSources: () => intake.sources(), onReconstruct: () => intake.reconstruction(), onArchitect: architectLive ? openArchitect : undefined, onExport: exportProject,
@@ -648,7 +668,7 @@ function renderInspector() {
   const inspectorOptions = {
     selectionOnly: true,
     getScene: () => store.scene, getCatalog: () => catalog,
-    execute: (operations: Operation[], label: string, onDeferredApply?: () => void) => run(operations, label, store.revision, onDeferredApply),
+    execute: (operations: Operation[], label: string) => run(operations, label),
     notice: notify, refresh: renderInspector, showFullHeight, select: (id: string) => select(id),
     advanced: () => { switchPanel('renovation'); renovationUI?.setSelection(selectedId, selectionIds()); },
     getDoorAngle: (id: string) => viewport.getDoorAngle(id),
@@ -1074,7 +1094,9 @@ function refresh(){
   selectedFurnitureIds = expandFurnitureSelection(scene, selectedFurnitureIds);
   selectedWallIds = selectedWallIds.filter(id => scene.walls.some(wall => wall.id === id));
   if(selectedId&&!entityName(selectedId))selectedId=selectionIds().at(-1)??null;
-  viewport.setScene(scene,catalog);viewport.setSelection(selectedId, selectionIds());
+  // The architect temporarily owns this renderer; background catalog/save refreshes
+  // must not replace the streamed shell with the checked editor document mid-build.
+  if (!stage) { viewport.setScene(scene,catalog);viewport.setSelection(selectedId, selectionIds()); }
   floorPlan.setScene(scene,catalog);floorPlan.setSelection(selectedId, selectionIds());
   $('#project-name').textContent=scene.name;
   const area=scene.rooms.reduce((sum,r)=>sum+Math.abs(r.polygon.reduce((a,p,i)=>{const q=r.polygon[(i+1)%r.polygon.length]!;return a+p[0]*q[1]-q[0]*p[1];},0))/2,0);
@@ -1098,7 +1120,7 @@ function refresh(){
     publish.textContent = shareSession?.saving ? 'Publishing…' : shareSession?.savedRevision === store.revision ? 'Progress published' : 'Publish progress';
   }
   $('#apartment-height').innerHTML = heightControlMarkup(scene);
-  bindHeightControl($('#apartment-height'), { getScene: () => store.scene, execute: (operations, label, onDeferredApply) => run(operations, label, store.revision, onDeferredApply), notice: notify, showFullHeight });
+  bindHeightControl($('#apartment-height'), { getScene: () => store.scene, execute: (operations, label) => run(operations, label), notice: notify, showFullHeight });
   renderWallControls();
   renderHierarchy();renderInspector();renderProposal();
   renovationUI?.render();
@@ -1290,6 +1312,7 @@ let highQuality=false;$('#quality').onclick=()=>{highQuality=!highQuality;viewpo
 $('#suggest').onclick=()=>void requestProposal('designer');
 $('#help').onclick=()=>showModal('Keyboard & navigation',`<p class="modal-intro">Select walls, openings, rooms, furniture and systems in the canvas or Renovate panel. In Select mode, click a selected door or switch again to test it.</p><div class="shortcut-list">${[['1 / 2 / 3 / 4 / 5 / 6','Scene / Furniture / Assistant / Renovate / Materials / Ceilings'],['[','Toggle sidebar'],['P','Enter / exit preview'],['W A S D / arrows','Move around the scene (click canvas first)'],['Space + drag','Pan in 3D, Top or Plan'],['Drag / Esc','Look around / leave Inside'],['V / G / R / E','Select / Move / Rotate / Resize'],['F','Frame selection / apartment'],['⌘ / Ctrl + S',editorSession?'Save to My apartments':shareSession?'Save shared progress':'Save on this device'],['Shift + click','Add / remove walls or furniture from selection'],['⌘ / Ctrl + G','Group selected furniture'],['⌘ / Ctrl + Shift + G','Ungroup furniture'],['⌘ / Ctrl + D','Duplicate furniture'],['Delete / Backspace','Delete selected furniture'],['⌘ / Ctrl + Z','Undo'],['⌘ / Ctrl + Shift + Z','Redo'],['Esc','Cancel drag / clear selection / exit preview']].map(([key,label])=>`<div><span>${label}</span><kbd>${key}</kbd></div>`).join('')}</div><p class="modal-footnote">Plan: drag furniture, fixtures, walls, doors or windows to move them. Hold Space and drag, drag empty floor, Alt-drag, or right/middle drag to pan. Hold Shift for finer placement. Inside: standing eye height is 1.65 m above the current floor. Click the canvas, then use WASD or arrows to walk; drag to look around. Doors open for the walkthrough and restore when you leave. Click the canvas, then use WASD or arrows to move in 3D, Top or Plan. 3D: drag empty space to orbit, hold Space and drag or right drag to pan, scroll to zoom. Top: drag to pan. Hold Space to show the hand cursor and pan over selected items without moving them. Select a window to show handles: drag its center or the window to move along the wall and up/down; drag an edge or corner to resize. The vertical arrow raises or lowers it without changing its size. Top view offers sideways movement and width handles; use 3D for height. Select a door, choose Move (G), then drag it or its purple arrows along the wall. Openings stay inside their wall section and stop at neighbouring openings. Move snaps to 0.05 m for openings and walls. Wall corners also catch nearby straight and 90° alignments, including connected corners. Click Snap / Smooth in the toolbar to turn snapping on or off. Release to apply, Esc to cancel, or Undo to restore the previous position. Shift-click walls or models, or turn on Select multiple items, to build a selection. Choose Move to move the selection together; one Undo restores every selected item. Select a single wall and choose Move to drag it back or forth with its purple center arrows; connected walls and room boundaries follow. The endpoint spheres adjust individual corners; use Renovate for precise dimensions, evidence and service editing.</p>`);
 window.addEventListener('keydown',event=>{
+  if(stage)return; // The construction viewport owns navigation while the architect works.
   if(document.querySelector('dialog[open]') || (event.target instanceof HTMLElement && (event.target.closest('input,textarea,select') || event.target.isContentEditable)))return;
   const key=event.key.toLowerCase();const mod=event.metaKey||event.ctrlKey;
   if(key==='escape'){event.preventDefault();if(view==='inside'){const destination=insideReturnView;if(previewMode)setPreview(false);setView(destination);return;}if(activeFinish){chooseFinish(null);return;}if(previewMode){setPreview(false);return;}if(floorPlan.cancelInteraction())return;viewport.cancelInteraction();interacting=false;select(null);renderProposal();return;}

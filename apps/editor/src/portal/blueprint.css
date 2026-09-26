@@ -157,9 +157,6 @@
 .blueprint-flow.is-entering .blueprint-stage { opacity: 0; }
 .blueprint-flow.is-entering.is-handoff .blueprint-stage { opacity: 1; }
 .blueprint-stage .as-stage { background: var(--paper); }
-.bc-viewport { position: absolute; inset: 0; }
-.bc-viewport canvas { cursor: grab; }
-.bc-viewport canvas:active { cursor: grabbing; }
 .blueprint-stage .as-opening-hint { display: none; }
 .blueprint-stage .as-opening-actions { bottom: 10px; }
 .blueprint-stage .as-room-label { border-color: #e6f3f259; background: #0f414ad9; color: #f4fbfa; box-shadow: none; }
@@ -169,6 +166,8 @@
 .blueprint-flow-bottom { transition-delay: 260ms; }
 .blueprint-flow.is-entering :is(.blueprint-flow-top, .blueprint-flow-heading, .blueprint-flow-bottom) { opacity: 0; transform: translateY(12px); transition: none; }
 .blueprint-flow.is-handing-over { pointer-events: none; }
+.blueprint-flow.is-world-adopted { background: transparent; }
+.blueprint-flow.is-world-adopted .blueprint-stage { visibility: hidden; }
 .blueprint-flow.is-handing-over :is(.blueprint-flow-top, .blueprint-flow-heading, .blueprint-complete) { opacity: 0; transform: translateY(-10px); transition-delay: 0ms; }
 .blueprint-flow-top { position: absolute; top: 0; right: 0; left: 0; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 24px 35px; z-index: 3; }
 .blueprint-back { border: 0; padding: 8px 0; background: none; gap: 8px; font-size: 12px; color: #e6f3f2; }

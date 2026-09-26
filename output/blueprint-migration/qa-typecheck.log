@@ -1,0 +1,3 @@
+
+> @varpet/editor@0.0.0 typecheck /Users/davitstepanyan/Documents/varpet/apps/editor
+> tsc -p .

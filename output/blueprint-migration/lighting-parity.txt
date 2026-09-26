@@ -1,0 +1,88 @@
+COMPLETE 86 lighting parity checks
+PASS Captured actual lighting, exposure, grade and AO passes
+PASS Demo includes a real furniture lamp
+PASS balanced/studio/day enters Inside
+PASS balanced/studio/day preserves all lights and postprocessing
+PASS Entering Inside retains manual Sun settings
+PASS Inside creates no synthetic window-light rig
+PASS Returning to 3D retains the same lighting
+PASS balanced/studio/evening enters Inside
+PASS balanced/studio/evening preserves all lights and postprocessing
+PASS Entering Inside retains manual Sun settings
+PASS Inside creates no synthetic window-light rig
+PASS Returning to 3D retains the same lighting
+PASS balanced/daylight/day enters Inside
+PASS balanced/daylight/day preserves all lights and postprocessing
+PASS Entering Inside retains manual Sun settings
+PASS Inside creates no synthetic window-light rig
+PASS Returning to 3D retains the same lighting
+PASS balanced/daylight/evening enters Inside
+PASS balanced/daylight/evening preserves all lights and postprocessing
+PASS Entering Inside retains manual Sun settings
+PASS Inside creates no synthetic window-light rig
+PASS Returning to 3D retains the same lighting
+PASS balanced/sunset/day enters Inside
+PASS balanced/sunset/day preserves all lights and postprocessing
+PASS Entering Inside retains manual Sun settings
+PASS Inside creates no synthetic window-light rig
+PASS Returning to 3D retains the same lighting
+PASS balanced/sunset/evening enters Inside
+PASS balanced/sunset/evening preserves all lights and postprocessing
+PASS Entering Inside retains manual Sun settings
+PASS Inside creates no synthetic window-light rig
+PASS Returning to 3D retains the same lighting
+PASS balanced/overcast/day enters Inside
+PASS balanced/overcast/day preserves all lights and postprocessing
+PASS Entering Inside retains manual Sun settings
+PASS Inside creates no synthetic window-light rig
+PASS Returning to 3D retains the same lighting
+PASS balanced/overcast/evening enters Inside
+PASS balanced/overcast/evening preserves all lights and postprocessing
+PASS Entering Inside retains manual Sun settings
+PASS Inside creates no synthetic window-light rig
+PASS Returning to 3D retains the same lighting
+PASS high/studio/day enters Inside
+PASS high/studio/day preserves all lights and postprocessing
+PASS Entering Inside retains manual Sun settings
+PASS Inside creates no synthetic window-light rig
+PASS Returning to 3D retains the same lighting
+PASS high/studio/evening enters Inside
+PASS high/studio/evening preserves all lights and postprocessing
+PASS Entering Inside retains manual Sun settings
+PASS Inside creates no synthetic window-light rig
+PASS Returning to 3D retains the same lighting
+PASS high/daylight/day enters Inside
+PASS high/daylight/day preserves all lights and postprocessing
+PASS Entering Inside retains manual Sun settings
+PASS Inside creates no synthetic window-light rig
+PASS Returning to 3D retains the same lighting
+PASS high/daylight/evening enters Inside
+PASS high/daylight/evening preserves all lights and postprocessing
+PASS Entering Inside retains manual Sun settings
+PASS Inside creates no synthetic window-light rig
+PASS Returning to 3D retains the same lighting
+PASS high/sunset/day enters Inside
+PASS high/sunset/day preserves all lights and postprocessing
+PASS Entering Inside retains manual Sun settings
+PASS Inside creates no synthetic window-light rig
+PASS Returning to 3D retains the same lighting
+PASS high/sunset/evening enters Inside
+PASS high/sunset/evening preserves all lights and postprocessing
+PASS Entering Inside retains manual Sun settings
+PASS Inside creates no synthetic window-light rig
+PASS Returning to 3D retains the same lighting
+PASS high/overcast/day enters Inside
+PASS high/overcast/day preserves all lights and postprocessing
+PASS Entering Inside retains manual Sun settings
+PASS Inside creates no synthetic window-light rig
+PASS Returning to 3D retains the same lighting
+PASS high/overcast/evening enters Inside
+PASS high/overcast/evening preserves all lights and postprocessing
+PASS Entering Inside retains manual Sun settings
+PASS Inside creates no synthetic window-light rig
+PASS Returning to 3D retains the same lighting
+PASS Sun off stays off Inside without replacement daylight
+PASS Settled Inside view returns to idle rendering
+PASS View changes preserve document and history
+PASS Viewport reports no rendering errors
+[]

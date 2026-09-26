@@ -2,6 +2,8 @@
 
 For local checkpoint loading without architect requests, see [Blueprint test states](blueprint-test-states.md).
 
+Current rendering and ownership contract: [Blueprint world migration](blueprint-world-migration.md). The blueprint permanently replaces the studio pedestal, and construction transfers its live viewport into the editor.
+
 Verified 2026-09-26, Codex (GPT-6).
 
 The home page now asks for one blueprint. Sample apartments live behind a small disclosure; accounts and saved apartments keep their existing routes. Choosing, dropping, or pasting a valid image starts the architect request immediately after decoding, while its drawing and build action appear. Room photos are optional. Submit opens the construction view and reuses the request already underway.
@@ -172,15 +174,17 @@ Clipboard completion review — DONE: 7 of 7.
 
 Implemented 2026-09-27, Claude (Opus 5.5). Steps 3–5 of the motion pass below now run through the editor's renderer instead of `ArchitectStage`, so the construction view has the editor's lighting, cutaway walls, catalog door/window models and shadows from the first wall.
 
-- `render/blueprint-ground.ts`: blueprint paper, grid, shadow catcher and the traced sheet (pen-order trace, top-down sweep). `viewport.setBackdrop({paper})` swaps it for the studio pedestal and backdrop, keeps the camera above the paper, and turns the grade's vignette off. The background colour is solved through the grade and ACES so the canvas meets the page's `#155f6d` without an edge.
+- `render/blueprint-ground.ts`: permanent blueprint paper, grid, shadow catcher and the optional traced sheet (pen-order trace, top-down sweep). `viewport.setBackdrop({paper})` configures the existing ground, keeps the camera above the paper, and turns the grade's vignette off. The background colour is solved through the grade and ACES so the canvas meets the page's `#155f6d` without an edge.
 - `viewport.setLocked(true)`: orbit, pan, zoom and WASD only; presses never pick, tap or drag. Also `setCameraPose`, `riseStructure`, `loading`, `redraw`.
 - `portal/blueprint-construction.ts` drives one locked viewport from the stream (shell → rise, pieces wait beside the flat, placements carried in), registers the sheet under the walls, and keeps the camera until the person takes it (**Reset view** follows the build again).
-- Completion: heading "A plan. Now a place." for 1.3 s, then `openProject(scene, catalog, presentation)` boots the editor underneath with `EditorSession.presentation` = paper, the construction camera and `arriving`. The editor starts full-bleed and look-only with its tools held off-screen (`ui/arrival.css`), so both canvases show one picture; `editorView.ready()` waits for models, the overlay fades, and `editorView.arrive()` slides the header, designer column and tools in and unlocks the canvas.
-- A reload from a blueprint checkpoint keeps the blueprint ground. Apartments reopened from an account still use the studio (the ground is session presentation, not scene data).
+- Completion: heading "A plan. Now a place." for 1.3 s, then `openProject(scene, catalog, presentation)` boots the editor underneath. The editor takes the existing live viewport, including its camera and resources. It starts full-bleed and look-only with tools held off-screen (`ui/arrival.css`); `editorView.ready()` waits for models, the transparent overlay fades, and `editorView.arrive()` slides the header, designer column and tools in and unlocks the canvas.
+- Checkpoint reloads, saved apartments and the sandbox all keep the blueprint ground. The temporary traced source and handoff state remain session presentation, not scene data.
 
 Checked 2026-09-27 in the in-app browser with `?blueprintTest=` reading → walls → checking → complete: construction renders on paper, completion hands over into the editor on the same frame, a click after arrival selects furniture. `pnpm test` and `pnpm typecheck` green. Frame timing during arrival was not measured (hidden pane throttles rAF); the canvas resizes every frame while the designer column slides in.
 
 ## Motion pass: sheet → drawing → 3D → editor
+
+Historical implementation record. The transfer in step 5 is superseded by the single-viewport ownership contract above; the earlier motion sequence remains.
 
 Implemented 2026-09-26, Claude (Opus 5.5). One continuous sequence, no hard cuts:
 

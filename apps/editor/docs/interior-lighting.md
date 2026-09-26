@@ -1,5 +1,7 @@
 # Interior daylight and window rendering
 
+Current verification, 2026-09-27: [Blueprint world migration](blueprint-world-migration.md) restores the shared lighting contract below with ACES exposure **1.02**, removes the remaining production window-light override, and replaces the studio pedestal with permanent blueprint ground. All 86 lighting parity checks pass again. Earlier exposure values and measurements below are historical.
+
 ## Shared lighting when entering Inside
 
 2026-09-26, Codex (GPT-6). The owner expects the regular view's lighting from an

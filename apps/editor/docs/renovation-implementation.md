@@ -26,7 +26,7 @@ Hinged, double, sliding, pocket, fixed, casement and tilt mechanisms have 3D rep
 
 To change a window type, select its room or wall and use **Properties → Doors & windows → [window] → Window type**. This list remains available when cutaway hides the opening. Choose Fixed, Casement, Tilt, Sliding or Double; use **Open** to preview the mechanism. Locked openings or hosts still require unlocking in Renovate.
 
-Geometry changes affecting walls recorded as structural or with an unknown structural role now require confirmation, including connected walls and resized wall openings. The dialog distinguishes a recorded load-bearing wall from an unconfirmed role and distinguishes model correction from a renovation proposal. Cancel leaves the scene and history untouched; confirmation applies one checked, undoable command. Paint and window mechanism changes do not trigger this geometry confirmation. [Verification and implementation notes](window-wall-editing.md).
+The structural-role confirmation dialog is temporarily removed at the user's request (2026-09-27). Wall and opening edits apply directly as one checked, undoable command, including walls with an unknown or structural role. Geometry validation, edit locks, revision checks, and structural review metadata still apply. [Verification and implementation notes](window-wall-editing.md).
 
 Room elevation and ceiling height represent split levels and balconies. Railings, steps, columns, beams, service shafts, ceilings and bulkheads are editable components. Furniture from the original catalog remains at Y=0; use building components for elevated or mounted fixtures.
 

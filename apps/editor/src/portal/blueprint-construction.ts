@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { createViewport, type FinishViewport } from '../render/viewport';
+import { createViewport, type FinishViewport, type FinishViewportCallbacks } from '../render/viewport';
+import type { SceneNormalizer } from '../core/store';
 import type { BlueprintGround, SheetRect } from '../render/blueprint-ground';
 import { registerPlan } from '../ui/plan-registration';
 import { migrateScene } from '../core/renovation';
@@ -28,10 +29,17 @@ export interface BlueprintConstruction {
   finish(scene: SceneDocument, catalog: CatalogAsset[]): Promise<void>;
   /** The live camera, for the editor's first frame. */
   pose(): { position: Vec3; target: Vec3; fov: number } | null;
+  /** Transfer this exact world to the editor once; disposing the stage then leaves it alive. */
+  takeViewport(): FinishViewport | null;
+  /** Put a transferred world back on the completion screen if editor initialization fails. */
+  reclaimViewport(): void;
   dispose(): void;
 }
 
 export interface BlueprintConstructionOptions {
+  /** An existing editor world can host construction; take it back before disposing this stage. */
+  viewport?: FinishViewport;
+  normalizeScene?: SceneNormalizer;
   onPhase?(phase: StagePhase): void;
   ink: BlueprintInk;
   /** The traced plan: ink coverage in alpha and pen order in red. */
@@ -71,13 +79,20 @@ export function createBlueprintConstruction(host: HTMLElement, options: Blueprin
   host.append(root);
   const container = root.querySelector<HTMLElement>('.bc-viewport')!;
 
-  const viewport: FinishViewport = createViewport(container, {
+  const callbacks: FinishViewportCallbacks = {
     onSelect() {}, onTransform() {}, onInteraction() {},
     onError(message) { console.warn('[blueprint-construction]', message); },
-  });
+  };
+  const viewport = options.viewport ?? createViewport(container, callbacks, options.normalizeScene);
+  if (options.viewport) viewport.attach(container, callbacks, options.normalizeScene);
   viewport.setWalls('cutaway');
   viewport.setLocked(true);
   const ground: BlueprintGround | null = viewport.setBackdrop({ paper: options.paper });
+  if (ground) {
+    // A borrowed world may have completed an earlier build's sheet erase.
+    ground.erase = 0; ground.trace = null; ground.scan = null;
+    ground.gridOpacity = 1; ground.sheetOpacity = 1;
+  }
   ground?.setSheet(options.sheet);
   const aspect = options.ink.height / Math.max(1, options.ink.width);
 
@@ -88,7 +103,8 @@ export function createBlueprintConstruction(host: HTMLElement, options: Blueprin
   let traceFrame = 0, traceStart = 0, finished = false;
   /** The camera move under way before the walls arrive, so re-anchoring the sheet can carry it on. */
   let cameraGoal: { position: Vec3; target: Vec3; until: number } | null = null;
-  const tweens = new Set<number>(), timers = new Set<number>();
+  const tweens = new Map<number, () => void>(), timers = new Set<number>();
+  let transferred = false;
 
   const insets = () => options.insets?.() ?? { top: 0, bottom: 0 };
   // The legend sits just above the flow's own progress, whatever it currently shows.
@@ -155,11 +171,11 @@ export function createBlueprintConstruction(host: HTMLElement, options: Blueprin
       const step = (now: number) => {
         tweens.delete(frame);
         if (disposed) { resolve(); return; }
-        const t = Math.min(1, (now - started) / duration);
+        const t = reduced() ? 1 : Math.min(1, (now - started) / duration);
         apply(t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2); viewport.redraw();
-        if (t < 1) { frame = requestAnimationFrame(step); tweens.add(frame); } else resolve();
+        if (t < 1) { frame = requestAnimationFrame(step); tweens.set(frame, resolve); } else resolve();
       };
-      let frame = requestAnimationFrame(step); tweens.add(frame);
+      let frame = requestAnimationFrame(step); tweens.set(frame, resolve);
     });
   }
 
@@ -186,6 +202,24 @@ export function createBlueprintConstruction(host: HTMLElement, options: Blueprin
     traceFrame = requestAnimationFrame(step);
   }
   function stopTrace() { cancelAnimationFrame(traceFrame); traceFrame = 0; if (ground) { ground.trace = null; ground.scan = null; } }
+
+  const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
+  const onMotionPreference = () => {
+    if (disposed) return;
+    if (motionPreference.matches) { stopTrace(); viewport.redraw(); }
+    else if (entered && !shellSeen) startTrace(0);
+  };
+  motionPreference.addEventListener('change', onMotionPreference);
+
+  function releasePresentation() {
+    disposed = true; stopTrace(); resizing.disconnect();
+    for (const [frame, resolve] of tweens) { cancelAnimationFrame(frame); resolve(); }
+    tweens.clear(); timers.forEach(clearTimeout); timers.clear();
+    motionPreference.removeEventListener('change', onMotionPreference);
+    container.removeEventListener('pointerdown', onPress, true);
+    container.removeEventListener('keydown', onPress, true);
+    container.removeEventListener('wheel', onPress, true);
+  }
 
   /** The flat as streamed so far; pieces not placed yet wait in a line beside it. */
   function liveScene(): SceneDocument {
@@ -336,6 +370,7 @@ export function createBlueprintConstruction(host: HTMLElement, options: Blueprin
       const sweep = ground ? tween(1500, k => { ground.erase = k; }) : Promise.resolve();
       if (box && following) viewport.setCameraPose(framing(box, ELEVATION, 1.1), reduced() ? 0 : 1400);
       await sweep;
+      if (disposed) return;
       ground?.setSheet(null); viewport.redraw();
       // Give the arriving models a moment to land before the editor copies this picture.
       const waitUntil = performance.now() + 2500;
@@ -345,15 +380,27 @@ export function createBlueprintConstruction(host: HTMLElement, options: Blueprin
       const pose = viewport.cameraPose();
       return pose ? { position: pose.position, target: pose.target, fov: pose.fov } : null;
     },
+    takeViewport() {
+      if (disposed || transferred) return null;
+      transferred = true;
+      releasePresentation();
+      return viewport;
+    },
+    reclaimViewport() {
+      if (!transferred) return;
+      viewport.attach(container, callbacks, options.normalizeScene);
+      viewport.setLocked(true);
+      transferred = false; disposed = false;
+      resizing.observe(host);
+      container.addEventListener('pointerdown', onPress, true);
+      container.addEventListener('keydown', onPress, true);
+      container.addEventListener('wheel', onPress, { capture: true, passive: true });
+      motionPreference.addEventListener('change', onMotionPreference);
+    },
     dispose() {
-      if (disposed) return;
-      disposed = true; stopTrace(); resizing.disconnect();
-      tweens.forEach(cancelAnimationFrame); tweens.clear();
-      timers.forEach(clearTimeout); timers.clear();
-      container.removeEventListener('pointerdown', onPress, true);
-      container.removeEventListener('keydown', onPress, true);
-      container.removeEventListener('wheel', onPress, true);
-      viewport.dispose(); root.remove();
+      if (!disposed) releasePresentation();
+      if (!transferred) viewport.dispose();
+      root.remove();
     },
   };
 }

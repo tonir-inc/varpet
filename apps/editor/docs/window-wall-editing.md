@@ -1,5 +1,30 @@
 # Window selection and wall-change confirmation
 
+Update, 2026-09-27: the structural-role confirmation dialog is temporarily removed at the user's request. Human wall and opening edits now apply directly through the checked store with undo/redo. Structural classifications and review requirements remain project data. The confirmation behavior and checks below describe the original implementation.
+
+Verification of the removal, Codex (GPT-6): in a separate unsaved Avani sandbox on the production preview, changed Window 1.1's offset from 4.5 m to 4.6 m with **Apply to this window**. It applied immediately without a dialog. One Undo restored 4.5 m and disabled Undo; Redo restored 4.6 m. The editor remained unobstructed in the inspected screenshot. The independent reviewer returned **APPROVE**.
+
+```text
+VITEST_MAX_WORKERS=2 pnpm test
+packages/designer: Test Files 138 passed; Tests 652 passed
+packages/designer: Ran 204 tests; OK; Ran 81 tests; OK
+apps/editor: Domain 265; Renovation 102; Window dimensions 75; Opening transforms 512
+apps/editor: Node test groups 29 passed and 247 passed; Done
+apps/buyer: 10 passed; apps/showcase: 17 passed
+exit 0
+pnpm typecheck
+packages/engine, packages/designer, apps/buyer, apps/showcase, apps/editor: Done
+exit 0
+pnpm --filter @varpet/editor build
+built in 311ms; exit 0 (existing import-extension and chunk-size advisories)
+git diff --check
+exit 0
+```
+
+Definition-of-done audit: **DONE: 6 of 7**. (1) ✓ Browser actions and proving outputs above. (2) ✓ Untargeted root tests and typecheck passed. (3) ✗ No new tests for this temporary UI removal; existing tests and a direct browser check were used. (4) ✓ No test, fixture, schema, or protected contract changed. (5) ✓ Independent review: APPROVE. (6) ✓ The request is interpreted as removing both unknown-role and structural-role variants of the same dialog; domain checks and agent proposal review are unchanged. (7) ✓ This task edited only the command/adapter regions in `main.ts`, three related documents, and its board notice; unrelated shared-checkout edits were preserved under the editor coordination rule. Not proven: automated coverage of modal absence; a pointer-drag rerun (the numeric opening edit used the same command entry point).
+
+## Original implementation
+
 Verified 2026-09-26 with Codex (GPT-6), against the M6 template in the local editor.
 
 Success criteria: reach window-type controls from a selected room even when cutaway hides the window; change its mechanism with undo/redo; require confirmation before changing a structural or unclassified wall; cancellation must leave history unchanged.

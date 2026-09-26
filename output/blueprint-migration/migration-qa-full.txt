@@ -1,0 +1,75 @@
+PASS normal motion: source sheet has a projected handoff rectangle
+PASS normal motion: no apartment is invented before the shell arrives
+PASS normal motion: the original sheet keeps its working trace and reading band
+PASS normal motion: plan ink registers beneath the walls at its known metre scale and offset
+PASS normal motion: walls rise through intermediate rendered heights
+PASS normal motion: walls settle at their exact final height
+PASS normal motion: original ink erases with an intermediate drafting sweep
+PASS normal motion: completion removes the original sheet while preserving blueprint ground
+PASS normal motion: construction has no legacy presentation platform
+PASS normal motion: completed scene retains real furniture lighting
+PASS normal motion: construction transfers its live viewport
+PASS normal motion: viewport ownership transfers only once
+PASS normal motion: editor adopts the same canvas and construction releases it
+PASS normal motion: viewport surface and canvas helpers move together
+PASS normal motion: adoption preserves renderer, world, camera, geometry, materials, lights and environment
+PASS normal motion: adoption preserves the exact camera pose and releases held navigation
+PASS normal motion: disposing construction does not dispose editor rendering resources
+PASS normal motion: first editor scene sync preserves the existing projected resources
+PASS normal motion: adopted pointer events use editor callbacks
+PASS normal motion: adopted navigation reports editor interaction start and stop
+PASS normal motion: adopted editor returns to idle rendering
+PASS normal motion: final owner disposes the renderer, canvas and motion listeners exactly once
+PASS reduced motion: source sheet has a projected handoff rectangle
+PASS reduced motion: no apartment is invented before the shell arrives
+PASS reduced motion: plan ink registers beneath the walls at its known metre scale and offset
+PASS reduced motion: walls settle at their exact final height
+PASS reduced motion: completion removes the original sheet while preserving blueprint ground
+PASS reduced motion: construction has no legacy presentation platform
+PASS reduced motion: completed scene retains real furniture lighting
+PASS reduced motion: construction transfers its live viewport
+PASS reduced motion: viewport ownership transfers only once
+PASS reduced motion: editor adopts the same canvas and construction releases it
+PASS reduced motion: viewport surface and canvas helpers move together
+PASS reduced motion: adoption preserves renderer, world, camera, geometry, materials, lights and environment
+PASS reduced motion: adoption preserves the exact camera pose and releases held navigation
+PASS reduced motion: disposing construction does not dispose editor rendering resources
+PASS reduced motion: first editor scene sync preserves the existing projected resources
+PASS reduced motion: adopted pointer events use editor callbacks
+PASS reduced motion: adopted navigation reports editor interaction start and stop
+PASS reduced motion: adopted editor returns to idle rendering
+PASS reduced motion: final owner disposes the renderer, canvas and motion listeners exactly once
+PASS editor reconstruction borrows the existing canvas and helpers
+PASS editor reconstruction uses its original WebGL renderer
+PASS editor reconstruction returns the same borrowed viewport
+PASS closing reconstruction preserves the completed world in the editor
+PASS repeated reconstruction resets the previous erase sweep so the new source is visible
+PASS cancelled reconstruction returns its live renderer and clears the temporary source sheet
+PASS borrowed construction and final owner release all motion subscriptions
+PASS failed editor startup reclaims the same live world into the construction host
+PASS startup recovery preserves the exact camera
+PASS retry transfers the reclaimed viewport successfully
+PASS disposing recovered construction leaves the retried editor world alive
+PASS reclaim and retry release every motion subscription
+PASS perspective: cancelled construction restores the rendered camera and projection exactly
+PASS perspective: cancelled construction restores manual Sun settings and opening preview
+PASS perspective: cancelled construction restores the selected sky illumination
+PASS perspective: cancelled construction restores an explicitly switched-off circuit
+PASS perspective: restored circuit remembers its previous dimmer level
+PASS top: cancelled construction restores the rendered camera and projection exactly
+PASS top: cancelled construction restores manual Sun settings and opening preview
+PASS top: cancelled construction restores the selected sky illumination
+PASS top: cancelled construction restores an explicitly switched-off circuit
+PASS top: restored circuit remembers its previous dimmer level
+PASS inside: cancelled construction restores the rendered camera and projection exactly
+PASS inside: cancelled construction restores manual Sun settings and opening preview
+PASS inside: cancelled construction restores the selected sky illumination
+PASS inside: cancelled construction restores an explicitly switched-off circuit
+PASS inside: restored circuit remembers its previous dimmer level
+PASS cancelled Inside reconstruction retains its prior outside camera for exiting Inside
+PASS exiting restored Inside returns doors to their previous outside preview
+PASS presentation recovery never changes source scene or saved light defaults
+PASS disposing during completion settles the promise and removes its canvas
+PASS construction, navigation and adoption preserve input scene, catalog and shell
+PASS no rendering errors, uncaught browser errors or unintended document transformations
+COMPLETE 74 blueprint migration checks

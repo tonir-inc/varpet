@@ -8,7 +8,7 @@ Properties now puts **Apply to this window** directly below the dimensions. It b
 
 **Apply to other windows** offers **Match height** and **Match width & height**, each with the number of windows that would change. These actions use the selected window's applied dimensions and pause while it has a draft. Already matching windows, doors, removed windows and windows on removed walls are excluded. Locked changed targets block matching with an explanation; locks are never silently skipped. Copying a height does not align sills or window tops, and copying dimensions does not assert that these measurements describe the real apartment.
 
-`core/window-dimensions.ts` produces existing `update-opening` operations, with explicit v1 migration where needed. One command retains normal fit/collision validation, revision checks, structural-wall confirmation, assumption invalidation and undo/redo. A batch that exceeds the existing 100-operation limit is rejected. No scene schema or adapter contract changed.
+`core/window-dimensions.ts` produces existing `update-opening` operations, with explicit v1 migration where needed. One command retains normal fit/collision validation, revision checks, assumption invalidation and undo/redo. The structural-role confirmation dialog was temporarily removed at the user's request on 2026-09-27; edits now apply directly. A batch that exceeds the existing 100-operation limit is rejected. No scene schema or adapter contract changed.
 
 Browser verification used a disposable M6 template on a separate local port, with HMR disabled to prevent unrelated editor work reloading the page:
 

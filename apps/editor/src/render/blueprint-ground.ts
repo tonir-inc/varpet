@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+export { BLUEPRINT_PAPER } from './blueprint-theme';
 
 /**
  * The drafting ground an apartment built from a blueprint stands on: blueprint paper, a light grid
@@ -17,6 +18,8 @@ export class BlueprintGround {
   readonly group = new THREE.Group();
   /** Linear background colour that reaches the screen as the page's paper after grading and tone mapping. */
   readonly background = new THREE.Color();
+  /** The same paper for unlit Top, which bypasses the studio grade and tone mapping. */
+  readonly paperColor = new THREE.Color();
   private readonly gridUniforms = { uOpacity: { value: 1 }, uColor: { value: INK.clone() }, uCenter: { value: new THREE.Vector2() }, uReach: { value: new THREE.Vector2(8, 40) } };
   private readonly sheetUniforms = {
     uMap: { value: null as THREE.Texture | null }, uOpacity: { value: 0 }, uTrace: { value: -1 }, uTraceOn: { value: 0 }, uScan: { value: -1 }, uBand: { value: 0 },
@@ -81,7 +84,10 @@ export class BlueprintGround {
     this.layout();
   }
 
-  setPaper(paper: string, exposure: number): void { paperBackground(paper, exposure, this.background); }
+  setPaper(paper: string, exposure: number): void {
+    this.paperColor.set(paper);
+    paperBackground(paper, exposure, this.background);
+  }
 
   /** Follow the apartment: the grid stays centred under it and the ground sits just below its floor. */
   update(bounds: THREE.Box3): void {
@@ -121,8 +127,9 @@ export class BlueprintGround {
   set erase(value: number) { this.sheetUniforms.uErase.value = -0.1 + value * 1.2; }
 
   private layout(): void {
-    this.grid.position.set(0, this.floor - 0.012, 0);
-    this.shadow.position.set(0, this.floor - 0.008, 0);
+    const center = this.gridUniforms.uCenter.value;
+    this.grid.position.set(center.x, this.floor - 0.012, center.y);
+    this.shadow.position.set(center.x, this.floor - 0.008, center.y);
     this.sheet.position.set(this.rect.x, this.floor - 0.004, this.rect.z);
     this.sheet.scale.set(this.rect.width, this.rect.depth, 1);
     this.group.updateMatrixWorld(true);
