@@ -56,13 +56,15 @@ def search_furniture(
     price_max: int | None = None,
     exclude_ids: list[str] | None = None,
     limit: int = 10,
-    scope: str = "editor",
+    offset: int = 0,
+    scope: str = "placeable",
     room_items: list[str] | None = None,
 ) -> dict:
     """Find furniture. kind/max size/price are hard filters; colors (palette names), styles, materials
-    and free text rank the rest. Returns up to `limit` (max 20) items, or nearest_misses when none pass.
+    and free text rank the rest. Returns up to `limit` (max 20) items from `offset`, `candidates` (how many
+    passed) and `next_offset` for the next page (null at the end), or nearest_misses when none pass.
     `preview` is a render of the exact 3D model (null when missing); `image` is the shop photo.
-    scope 'editor' (default) searches only the items the editor has loaded, so any result can be placed;
+    scope 'placeable' (default; 'editor' is the old name) searches every item the editor can place;
     'all' searches the whole catalog.
     room_items: ids already in the flat, to prefer pieces that go with them (style and look)
     """
@@ -71,7 +73,8 @@ def search_furniture(
         box = [max_w or 99.0, max_d or 99.0, max_h or 99.0]
     q = Query(kind=kind, text=text, colors=colors or [], styles=styles or [], materials=materials or [],
               fit_box=box, allow_rotate=allow_rotate, target_size=target_size, price_max=price_max,
-              exclude_ids=exclude_ids or [], limit=min(limit, 20), scope=scope, room_items=room_items or [])
+              exclude_ids=exclude_ids or [], limit=min(limit, 20), offset=max(offset, 0), scope=scope,
+              room_items=room_items or [])
     with _conn() as c:
         return search(c, q)
 
@@ -86,7 +89,8 @@ def find_similar(
     cheaper_than_item: bool = False,
     price_max: int | None = None,
     limit: int = 10,
-    scope: str = "editor",
+    offset: int = 0,
+    scope: str = "placeable",
 ) -> dict:
     """Items that look like a catalog item (item_id) or a photo (image: URL or path). Optional: keep the
     same kind, stay within size_tolerance_m of the item's size, or only cheaper than the item."""
@@ -99,7 +103,7 @@ def find_similar(
             price_max = min(price_max or ref[2], ref[2] - 1)
         q = Query(kind=kind or (ref[0] if ref and same_kind else None), like_item=item_id, like_image=image,
                   fit_box=box, price_max=price_max, exclude_ids=[item_id] if item_id else [], limit=min(limit, 20),
-                  scope=scope)
+                  offset=max(offset, 0), scope=scope)
         return search(c, q)
 
 

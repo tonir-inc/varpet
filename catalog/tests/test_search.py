@@ -102,3 +102,47 @@ def test_turned_fits_only_when_straight_fails():
     assert turned_fits([2.0, 0.9, 0.8], [1.0, 2.2, 1.0])       # 2 m sofa into a 1 x 2.2 m niche: turned only
     assert not turned_fits([2.0, 0.9, 0.8], [2.2, 1.0, 1.0])   # fits straight
     assert not turned_fits([2.0, 0.9, 0.8], [1.0, 1.0, 1.0])   # fits neither way
+
+
+class FakeConn:
+    """Answers search()'s one row query; records the SQL so the scope filter can be checked."""
+
+    def __init__(self, rows):
+        self.rows, self.sql = rows, []
+
+    def execute(self, sql, args=()):
+        self.sql.append(sql)
+        return self
+
+    def fetchall(self):
+        return self.rows
+
+
+def _row(iid, price=1000, size=(1.0, 0.5, 0.8)):
+    return (iid, iid, "chair", list(size), "confirmed", price, [], [], [], [], None, None, f"https://x/{iid}.glb", {}, {}, 0.0)
+
+
+def test_search_pages_with_offset_in_a_stable_order():
+    from search import Query, search
+    rows = [_row(f"abo:{c}") for c in "dbeac"]  # no soft signal: every score ties, so id breaks ties
+    first = search(FakeConn(rows), Query(limit=2))
+    assert [r["id"] for r in first["results"]] == ["abo:a", "abo:b"] and first["next_offset"] == 2
+    last = search(FakeConn(rows), Query(limit=2, offset=4))
+    assert [r["id"] for r in last["results"]] == ["abo:e"] and last["next_offset"] is None
+    assert first["candidates"] == last["candidates"] == 5
+
+
+@pytest.mark.parametrize("scope", ["placeable", "editor"])
+def test_placeable_scope_uses_the_editor_rules_without_a_cap(scope):
+    from search import PLACEABLE, Query, search
+    conn = FakeConn([_row("abo:a")])
+    search(conn, Query(scope=scope))
+    assert PLACEABLE in conn.sql[0] and "editor_set" not in conn.sql[0]
+    assert "limit" not in PLACEABLE.lower()
+
+
+def test_all_scope_has_no_placeable_filter():
+    from search import PLACEABLE, Query, search
+    conn = FakeConn([_row("abo:a")])
+    search(conn, Query(scope="all"))
+    assert PLACEABLE not in conn.sql[0]

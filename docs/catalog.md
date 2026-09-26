@@ -101,10 +101,15 @@ Suggested use in the designer thread (Ashot's call): after `search_catalog`, cal
 Renders also expose broken source models (one "TV console" is a grey box floating over half a cabinet), which
 shop photos hide.
 
-## Lighter 3D models (opt-in)
-The 877 editor-set models also exist as optimized copies on the VM (1024 px WebP textures, 649 MB total vs
-~13.7 GB; median ~0.6 MB each), served at `http://100.107.246.46:8765/models/<asin>.glb` with a one-year cache.
-The VM is reachable only on the tailnet, so `glb_url` and `/editor/assets` keep the public S3 originals by
-default. On the tailnet, ask for the light ones with `GET /editor/assets?models=web`, or in the editor adapter
-`createCatalogHttpAdapter({ models: 'web' })` / `VITE_CATALOG_MODELS=web`. Rendered previews of the same models:
-`item.preview_url` (`/previews/<asin>.webp`), also returned as `preview` in search results.
+## Placeable products, paging and light models
+- **Placeable** (`search.PLACEABLE`): the editor-set rules without a count cap: an editor kind or a subtype in
+  `EDITOR_KIND_OF`, ABO, a mesh, a price, a name, no listing/mesh size conflict, not a sideways mesh, sizes
+  0.01-20 m. The 8 base kinds alone give 2,229 products (26 Sept) against the capped set's 877-900.
+  `search_furniture` and `find_similar` default to `scope="placeable"`; `"editor"` is an alias; `"all"` is everything.
+- **Paging:** both take `offset` and return `candidates` and `next_offset` (null at the end). Pages count
+  products after colour variants collapse; ties rank by id, so pages are stable.
+- **Light models:** 1024 px WebP copies in `/opt/varpet-catalog/models-web`, served at `/models/<asin>.glb` and
+  recorded in `glb_web_url` (`glb_url` stays the public S3 original). All 2,228 base-kind placeable products have
+  one (1.9 GB, 26 Sept); `optimize_models.py --all --upload --switch` covers the rest and skips done files.
+- The editor never touches the tailnet for models: its server relays `/api/catalog/models/<asin>.glb` and the
+  loader falls back to S3. `/editor/assets` (bulk, `editor_set`) is no longer used by the editor or the designer.

@@ -12,8 +12,20 @@ import numpy as np
 import psycopg
 
 from colors import PALETTE, listing_palette
+from select_editor_set import EDITOR_KIND_OF, EDITOR_KINDS
 
 DEFAULT_WEIGHTS = {"text": 1.0, "colour": 1.0, "tags": 0.5, "visual": 1.5, "size": 0.3, "room": 0.8}
+
+# Items the editor and the designer bridge can place exactly: an editor kind (or a mapped subtype), a mesh, a price, a name, one size
+# (no listing/mesh conflict, not a sideways mesh) inside the editor's 0.01-20 m. Everything that passes is
+# placeable; there is no count cap, so clients search and fetch by id instead of loading a set.
+PLACEABLE_KINDS = (*EDITOR_KINDS, *EDITOR_KIND_OF)  # subtypes the editor and the bridge map to an editor kind
+PLACEABLE = (
+    f"(kind in ({', '.join(repr(k) for k in PLACEABLE_KINDS)}) and source = 'abo'"
+    " and glb_url is not null and price is not null and name is not null and size_status <> 'conflict'"
+    " and not coalesce((size_evidence->>'wd_swapped')::boolean, false)"
+    " and least(size_m[1], size_m[2], size_m[3]) >= 0.01 and greatest(size_m[1], size_m[2], size_m[3]) <= 20)"
+)
 
 
 @dataclass
@@ -30,7 +42,7 @@ class Query:
     like_item: str | None = None                           # item id for visual similarity
     like_image: str | None = None                          # photo path or URL for visual similarity
     exclude_ids: list[str] = field(default_factory=list)
-    scope: str = "all"                                     # all | editor (only item.editor_set)
+    scope: str = "placeable"                               # placeable (editor is an alias) | all
     colour_mode: str = "astra"                            # Astra tags only: best on 20 photo-labelled queries (0.87 vs 0.81)
     text_mode: str = "vector"                             # SigLIP text-to-image: best in eval
     model: str = "siglip2-base-patch16-224"
@@ -38,6 +50,7 @@ class Query:
     limit: int = 10
     collapse_variants: bool = True
     room_items: list[str] = field(default_factory=list)     # catalog ids already in the flat
+    offset: int = 0
 
 
 _FAMILY_COLORS = set(PALETTE) | set(
@@ -163,8 +176,8 @@ def search(conn, q: Query):
     excluded = excluded_ids(q)
     if excluded:
         where.append("not (id = any(%s))"); args.append(excluded)
-    if q.scope == "editor":
-        where.append("editor_set")
+    if q.scope in ("placeable", "editor"):
+        where.append(PLACEABLE)
     tsq = "plainto_tsquery('english', %s)"
     rank = f"ts_rank_cd(fts, {tsq}, 32)" if q.text else "0"
     rows = conn.execute(
@@ -265,7 +278,8 @@ def search(conn, q: Query):
         used.add("room")
 
     total = sum(w[k] * scores[k] for k in used) if used else np.zeros(len(passed))
-    order = np.argsort(-total)
+    # Ties break on id, so offset pages are stable across calls.
+    order = sorted(range(len(passed)), key=lambda i: (-total[i], ids[i]))
     out = []
     for i in order:
         rec = _public(passed[i][0])
@@ -274,10 +288,12 @@ def search(conn, q: Query):
         out.append(rec)
     if q.collapse_variants:
         out = collapse_variants(out)
-    out = out[: q.limit]
-    for rec in out:
+    # Pages count products after variants collapse, so a page never repeats a family.
+    page = out[q.offset : q.offset + q.limit]
+    for rec in page:
         rec["score"] = round(rec["score"], 3)
-    return {"results": out, "candidates": len(passed)}
+    more = q.offset + q.limit < len(out)
+    return {"results": page, "candidates": len(passed), "next_offset": q.offset + q.limit if more else None}
 
 
 def _sims(conn, ids, model, modality, qv):
