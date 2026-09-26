@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1428 2519" data-printed="120.6 m2">
+  <polygon id="lounge" class="room" data-name="Reading room" points="71.0,86.0 372.0,86.0 372.0,163.0 437.0,163.0 437.0,684.0 169.0,684.0 169.0,593.0 71.0,593.0"/>
+  <polygon id="bedroom-1" class="room" data-name="Bedroom 1" points="449.0,124.0 834.0,124.0 834.0,409.0 912.0,409.0 912.0,684.0 449.0,684.0"/>
+  <polygon id="bedroom-2" class="room" data-name="Bedroom 2" points="845.0,124.0 1270.0,124.0 1270.0,163.0 1309.0,163.0 1309.0,684.0 924.0,684.0 924.0,398.0 845.0,398.0"/>
+  <polygon id="hall" class="room" data-name="Entrance hall" points="175.5,696.0 834.0,696.0 834.0,853.0 671.0,853.0 671.0,944.0 449.0,944.0 449.0,905.0 372.0,905.0 372.0,944.0 175.5,944.0"/>
+  <polygon id="lobby" class="room" data-name="Inner hall" points="846.0,696.0 1035.0,696.0 1035.0,853.0 846.0,853.0"/>
+  <polygon id="bathroom" class="room" data-name="Bathroom" points="683.0,865.0 1035.0,865.0 1035.0,1062.0 683.0,1062.0"/>
+  <polygon id="shower-room" class="room" data-name="Shower room" points="1047.0,696.0 1309.0,696.0 1309.0,905.0 1270.0,905.0 1270.0,982.0 1309.0,982.0 1309.0,1062.0 1047.0,1062.0"/>
+  <polygon id="living" class="room" data-name="Living room and kitchen" points="449.0,944.0 671.0,944.0 671.0,1113.0 1048.0,1113.0 1048.0,1171.0 1309.0,1171.0 1309.0,1231.0 1270.0,1231.0 1270.0,1360.0 1309.0,1360.0 1309.0,2089.0 1270.0,2089.0 1270.0,2120.0 737.0,2120.0 737.0,2089.0 655.7,2089.0 387.4,1359.0 540.0,1359.0 540.0,1283.0 410.0,1283.0 410.0,982.0 449.0,982.0"/>
+  <polygon id="balcony" class="room" data-name="Balcony" data-kind="balcony" points="737.0,2130.0 1270.0,2130.0 1270.0,2166.0 1309.0,2166.0 1309.0,2437.0 783.6,2437.0 684.0,2166.0 737.0,2166.0"/>
+  <polygon id="wall-glass-reading" class="wall main" points="65,74 410.5,74 410.5,86 65,86"/>
+  <polygon id="pier-top-left" class="wall main" points="372,80 449,80 449,163 372,163"/>
+  <polygon id="wall-glass-bedrooms" class="wall main" points="410.5,112 1273,112 1273,124 410.5,124"/>
+  <polygon id="pier-top-right" class="wall main" points="1270,124 1327.5,124 1327.5,163 1270,163"/>
+  <polygon id="wall-east-bedroom" class="wall main" points="1309,143.5 1346,143.5 1346,690 1309,690"/>
+  <polygon id="wall-east-shower" class="wall main" points="1309,690 1346,690 1346,1000 1309,1000"/>
+  <polygon id="wall-east-duct" class="wall main" points="1309,1000 1346,1000 1346,1150 1309,1150"/>
+  <polygon id="wall-east-living" class="wall main" points="1309,1150 1346,1150 1346,2089 1309,2089"/>
+  <polygon id="wall-east-balcony" class="wall main" points="1309,2089 1346,2089 1346,2437 1309,2437"/>
+  <polygon id="wall-west-reading" class="wall main" points="59,80 71,80 71,599 59,599"/>
+  <polygon id="wall-shaft-top" class="wall secondary" points="65,593 163,593 163,605 65,605"/>
+  <polygon id="wall-shaft-side" class="wall secondary" points="157,599 169,599 169,690 157,690"/>
+  <polygon id="wall-reading-bedroom" class="wall secondary" points="437,163 449,163 449,690 437,690"/>
+  <polygon id="wall-bedrooms-hall" class="wall secondary" points="163,684 1327.5,684 1327.5,696 163,696"/>
+  <polygon id="wall-closet-left" class="wall secondary" points="834,118 845,118 845,403.5 834,403.5"/>
+  <polygon id="wall-closet-mid" class="wall secondary" points="839.5,398 918,398 918,409 839.5,409"/>
+  <polygon id="wall-closet-right" class="wall secondary" points="912,403.5 924,403.5 924,690 912,690"/>
+  <polygon id="wall-entrance" class="wall main" points="150.5,690 175.5,690 175.5,963 150.5,963"/>
+  <polygon id="wall-core-top" class="wall main" points="163,944 391,944 391,982 163,982"/>
+  <polygon id="wall-core-side" class="wall main" points="372,905 410,905 410,1321 372,1321"/>
+  <polygon id="pier-hall" class="wall main" points="410,905 449,905 449,982 410,982"/>
+  <polygon id="pier-core-bottom" class="wall main" points="352.9675,1283 540,1283 540,1359 352.9675,1359"/>
+  <polygon id="wall-lobby" class="wall secondary" points="834,690 846,690 846,859 834,859"/>
+  <polygon id="wall-bath-top" class="wall secondary" points="677,853 1041,853 1041,865 677,865"/>
+  <polygon id="wall-bath-left" class="wall secondary" points="671,859 683,859 683,1106.5 671,1106.5"/>
+  <polygon id="wall-shower-left" class="wall secondary" points="1035,690 1047,690 1047,1067.5 1035,1067.5"/>
+  <polygon id="wall-bath-bottom" class="wall secondary" points="677,1062 1327.5,1062 1327.5,1073 677,1073"/>
+  <polygon id="wall-kitchen-top" class="wall secondary" points="677,1100 1054,1100 1054,1113 677,1113"/>
+  <polygon id="wall-duct-side" class="wall secondary" points="1048,1067.5 1060,1067.5 1060,1165 1048,1165"/>
+  <polygon id="wall-duct-bottom" class="wall secondary" points="1054,1159 1327.5,1159 1327.5,1171 1054,1171"/>
+  <polygon id="pier-shower" class="wall main" points="1270,905 1309,905 1309,982 1270,982"/>
+  <polygon id="pier-kitchen" class="wall main" points="1270,1231 1309,1231 1309,1360 1270,1360"/>
+  <polygon id="pier-balcony-left" class="wall main" points="641.35625,2089 737,2089 737,2166 641.35625,2166"/>
+  <polygon id="pier-balcony-right" class="wall main" points="1270,2089 1309,2089 1309,2166 1270,2166"/>
+  <polygon id="wall-glass-balcony" class="wall main" points="737,2120 1289.5,2120 1289.5,2130 737,2130"/>
+  <polygon id="wall-facade" class="wall main" points="334.9,1327.6 371.0,1314.4 781.2,2430.4 745.0,2443.6"/>
+  <line id="window-reading" class="window" x1="71" y1="80" x2="372" y2="80"/>
+  <line id="window-bedroom-1" class="window" x1="449" y1="118" x2="829" y2="118"/>
+  <line id="window-bedroom-2" class="window" x1="930" y1="118" x2="1270" y2="118"/>
+  <line id="door-reading" class="door" x1="306" y1="690" x2="423" y2="690"/>
+  <line id="door-bedroom-1" class="door" x1="703" y1="690" x2="820" y2="690"/>
+  <line id="door-bedroom-2" class="door" x1="927" y1="690" x2="1032" y2="690"/>
+  <line id="door-entrance" class="door" x1="163" y1="696" x2="163" y2="827"/>
+  <line id="door-inner-hall" class="door" x1="840" y1="716" x2="840" y2="833"/>
+  <line id="door-bathroom" class="door" x1="696" y1="859" x2="801" y2="859"/>
+  <line id="door-shower-room" class="door" x1="1041" y1="722" x2="1041" y2="827"/>
+  <line id="door-balcony" class="door" x1="740" y1="2125" x2="850" y2="2125"/>
+  <line id="window-balcony" class="window" x1="850" y1="2125" x2="1270" y2="2125"/>
+  <polygon id="bath" class="fixture" data-kind="bath" data-name="Bathtub" points="920,867 1033,867 1033,1060 920,1060"/>
+  <polygon id="bath-toilet" class="fixture" data-kind="toilet" data-name="Toilet" points="835,970 885,970 885,1060 835,1060"/>
+  <polygon id="bath-basin" class="fixture" data-kind="basin" data-name="Washbasin" points="685,995 799,995 799,1060 685,1060"/>
+  <polygon id="shower" class="fixture" data-kind="shower" data-name="Shower tray" points="1154,907 1268,907 1268,1060 1154,1060"/>
+  <polygon id="shower-toilet" class="fixture" data-kind="toilet" data-name="Toilet" points="1219,819 1307,819 1307,895 1219,895"/>
+  <polygon id="shower-basin" class="fixture" data-kind="basin" data-name="Washbasin" points="1244,698 1307,698 1307,784 1244,784"/>
+  <polygon id="washer" class="fixture" data-kind="washing_machine" data-name="Washing machine" points="1049,985 1125,985 1125,1060 1049,1060"/>
+  <polygon id="fridge" class="fixture" data-kind="fridge" data-name="Fridge" points="673,1115 747,1115 747,1198 673,1198"/>
+  <polygon id="oven-column" class="fixture" data-kind="oven" data-name="Oven column" points="751,1115 825,1115 825,1198 751,1198"/>
+  <polygon id="worktop-1" class="fixture" data-kind="worktop" data-name="Worktop" points="829,1115 883,1115 883,1203 829,1203"/>
+  <polygon id="kitchen-sink" class="fixture" data-kind="sink" data-name="Kitchen sink" points="887,1115 988,1115 988,1203 887,1203"/>
+  <polygon id="worktop-2" class="fixture" data-kind="worktop" data-name="Worktop" points="992,1115 1046,1115 1046,1203 992,1203"/>
+  <polygon id="worktop-3" class="fixture" data-kind="worktop" data-name="Worktop" points="1050,1173 1215,1173 1215,1203 1050,1203"/>
+  <polygon id="worktop-corner" class="fixture" data-kind="worktop" data-name="Worktop" points="1219,1173 1307,1173 1307,1229 1219,1229"/>
+  <polygon id="worktop-4" class="fixture" data-kind="worktop" data-name="Worktop" points="1219,1233 1268,1233 1268,1358 1219,1358"/>
+  <polygon id="worktop-5" class="fixture" data-kind="worktop" data-name="Worktop" points="1219,1362 1307,1362 1307,1378 1219,1378"/>
+  <polygon id="hob" class="fixture" data-kind="hob" data-name="Hob" points="1219,1382 1307,1382 1307,1468 1219,1468"/>
+  <polygon id="worktop-6" class="fixture" data-kind="worktop" data-name="Worktop" points="1219,1472 1307,1472 1307,1488 1219,1488"/>
+  <polygon id="convector" class="fixture" data-kind="radiator" data-name="Floor convector" points="557.0,1815.0 648.9,2065.0 690.2,2049.8 598.3,1799.8"/>
+  <polygon id="railing" class="fixture" data-kind="railing" data-name="Balcony railing" points="802,2428 1303,2428 1303,2434 802,2434"/>
+  <polygon id="reading-rug" class="furniture" data-kind="rug" data-name="Striped leather rug" data-front="down" data-asset="abo:B07B51T9SR" points="84.7,185.6 423.3,185.6 423.3,398.4 84.7,398.4"/>
+  <polygon id="reading-chair-1" class="furniture" data-kind="chair" data-name="Armchair" data-front="down" data-asset="abo:B082VMWB4G" points="90.4,175.3 199.6,175.3 199.6,288.7 90.4,288.7"/>
+  <polygon id="reading-chair-2" class="furniture" data-kind="chair" data-name="Armchair" data-front="down" data-asset="abo:B082VMWB4G" points="296.4,175.3 405.6,175.3 405.6,288.7 296.4,288.7"/>
+  <polygon id="reading-table" class="furniture" data-kind="table" data-name="Coffee table" data-front="down" data-asset="abo:B01LWVEZ1C" points="183.8,323.9 308.2,323.9 308.2,386.1 183.8,386.1"/>
+  <polygon id="reading-bookcase" class="furniture" data-kind="shelf" data-name="Bookcase" data-front="right" data-asset="abo:B07B7DL32H" points="73.0,407.1 121.4,407.1 121.4,532.9 73.0,532.9"/>
+  <polygon id="reading-lamp" class="furniture" data-kind="lamp" data-name="Floor lamp" data-front="down" data-asset="abo:B07374SBFN" points="219.0,121.0 277.0,121.0 277.0,179.0 219.0,179.0"/>
+  <polygon id="bed-1" class="furniture" data-kind="bed" data-name="Double bed" data-front="right" data-asset="abo:B07GFS1W12" points="451.0,279.1 721.9,279.1 721.9,502.9 451.0,502.9"/>
+  <polygon id="night-1a" class="furniture" data-kind="cabinet" data-name="Bedside table" data-front="right" data-asset="abo:B07RMZ83ZY" points="451.0,210.9 503.5,210.9 503.5,273.1 451.0,273.1"/>
+  <polygon id="night-1b" class="furniture" data-kind="cabinet" data-name="Bedside table" data-front="right" data-asset="abo:B07RMZ83ZY" points="451.0,508.9 503.5,508.9 503.5,571.1 451.0,571.1"/>
+  <polygon id="wardrobe-1" class="furniture" data-kind="wardrobe" data-name="Open wardrobe" data-front="left" data-asset="abo:B01LWRYSFS" points="843.7,424.2 910.0,424.2 910.0,668.8 843.7,668.8"/>
+  <polygon id="bed-2" class="furniture" data-kind="bed" data-name="Double bed" data-front="left" data-asset="abo:B07GFS1W12" points="1036.1,279.1 1307.0,279.1 1307.0,502.9 1036.1,502.9"/>
+  <polygon id="night-2a" class="furniture" data-kind="cabinet" data-name="Bedside table" data-front="left" data-asset="abo:B07RMZ83ZY" points="1254.5,210.9 1307.0,210.9 1307.0,273.1 1254.5,273.1"/>
+  <polygon id="night-2b" class="furniture" data-kind="cabinet" data-name="Bedside table" data-front="left" data-asset="abo:B07RMZ83ZY" points="1254.5,508.9 1307.0,508.9 1307.0,571.1 1254.5,571.1"/>
+  <polygon id="wardrobe-2" class="furniture" data-kind="wardrobe" data-name="Open wardrobe" data-front="right" data-asset="abo:B01LWRYSFS" points="847.0,138.7 913.3,138.7 913.3,383.3 847.0,383.3"/>
+  <polygon id="hall-console" class="furniture" data-kind="shelf" data-name="Hall console" data-front="up" data-asset="abo:B07DBFG1BH" points="190.8,887.1 355.2,887.1 355.2,941.0 190.8,941.0"/>
+  <polygon id="dining-table" class="furniture" data-kind="table" data-name="Round dining table" data-front="down" data-asset="abo:B0853Q3Z93" points="876.8,1367.8 1001.2,1367.8 1001.2,1492.2 876.8,1492.2"/>
+  <polygon id="dining-chair-n" class="furniture" data-kind="chair" data-name="Dining chair" data-front="down" data-asset="abo:B0853KR33B" points="905.1,1282.5 972.9,1282.5 972.9,1364.0 905.1,1364.0"/>
+  <polygon id="dining-chair-s" class="furniture" data-kind="chair" data-name="Dining chair" data-front="up" data-asset="abo:B0853KR33B" points="905.1,1496.0 972.9,1496.0 972.9,1577.5 905.1,1577.5"/>
+  <polygon id="dining-chair-w" class="furniture" data-kind="chair" data-name="Dining chair" data-front="right" data-asset="abo:B0853KR33B" points="791.5,1396.1 873.0,1396.1 873.0,1463.9 791.5,1463.9"/>
+  <polygon id="dining-chair-e" class="furniture" data-kind="chair" data-name="Dining chair" data-front="left" data-asset="abo:B0853KR33B" points="1005.0,1396.1 1086.5,1396.1 1086.5,1463.9 1005.0,1463.9"/>
+  <polygon id="living-rug" class="furniture" data-kind="rug" data-name="Handwoven ivory rug" data-front="left" data-asset="abo:B07QHL6SF2" points="989.3,1659.4 1200.7,1659.4 1200.7,1996.6 989.3,1996.6"/>
+  <polygon id="sofa" class="furniture" data-kind="sofa" data-name="Linen sofa" data-front="left" data-asset="abo:B075X4QMX3" points="1182.6,1676.0 1307.0,1676.0 1307.0,1980.0 1182.6,1980.0"/>
+  <polygon id="coffee-table" class="furniture" data-kind="table" data-name="Oval coffee table" data-front="left" data-asset="abo:B07GFG6JMM" points="1087.7,1753.4 1162.3,1753.4 1162.3,1902.6 1087.7,1902.6"/>
+  <polygon id="living-chair-1" class="furniture" data-kind="chair" data-name="Armchair" data-front="right" data-asset="abo:B082VMWB4G" points="943.3,1672.4 1056.7,1672.4 1056.7,1781.6 943.3,1781.6"/>
+  <polygon id="living-chair-2" class="furniture" data-kind="chair" data-name="Armchair" data-front="right" data-asset="abo:B082VMWB4G" points="943.3,1874.4 1056.7,1874.4 1056.7,1983.6 943.3,1983.6"/>
+  <polygon id="living-lamp" class="furniture" data-kind="lamp" data-name="Floor lamp" data-front="down" data-asset="abo:B07374SBFN" points="1247.0,1611.0 1305.0,1611.0 1305.0,1669.0 1247.0,1669.0"/>
+  <polygon id="balcony-table" class="furniture" data-kind="table" data-name="Bistro table" data-front="down" data-asset="abo:B07MF1V33V" points="1048.2,2228.2 1151.8,2228.2 1151.8,2331.8 1048.2,2331.8"/>
+  <polygon id="balcony-chair-1" class="furniture" data-kind="chair" data-name="Bistro chair" data-front="right" data-asset="abo:B0853KR33B" points="962.5,2246.1 1044.0,2246.1 1044.0,2313.9 962.5,2313.9"/>
+  <polygon id="balcony-chair-2" class="furniture" data-kind="chair" data-name="Bistro chair" data-front="left" data-asset="abo:B0853KR33B" points="1156.0,2246.1 1237.5,2246.1 1237.5,2313.9 1156.0,2313.9"/>
+</svg>
