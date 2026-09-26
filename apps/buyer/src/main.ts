@@ -53,6 +53,7 @@ const viewport = createViewport($('#viewport'), {
 });
 const marks = createRoomMarks($<SVGSVGElement>('#marks'), $('#cards'), viewport);
 viewport.setWalls('cutaway');
+if (params.get('sky')) viewport.setSkybox(params.get('sky') as Parameters<typeof viewport.setSkybox>[0]);
 viewport.setView('perspective');
 viewport.setTool('select');
 
