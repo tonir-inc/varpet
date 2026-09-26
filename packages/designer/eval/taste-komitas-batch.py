@@ -41,7 +41,8 @@ def main():
                    cwd=ROOT / 'packages/designer', check=True)
     source = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
     manifest = {'service_source': source, 'service_root': str(ROOT), 'ports': ports,
-                'cohort': cohort, 'catalog_sha256': hashlib.sha256(args.catalog.read_bytes()).hexdigest(),
+                'cohort': {key: cohort[key] for key in ('ids', 'inputs')},
+                'protocol': {'requests': ['living', 'bedroom', 'kids', 'sofa'], 'cases': 72, 'fresh_scene': True, 'fresh_catalog': True}, 'catalog_sha256': hashlib.sha256(args.catalog.read_bytes()).hexdigest(),
                 'runner_sha256': hashlib.sha256((HERE / 'taste-komitas-run.ts').read_bytes()).hexdigest(),
                 'started_at': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
                 'model': 'gpt-6-astra', 'effort': 'low', 'max_conversations': 4}
@@ -107,6 +108,8 @@ def main():
             try:
                 service.wait(timeout=30)
             except subprocess.TimeoutExpired:
+                pass
+            finally:
                 batch.terminate_group(service)
         for log in logs:
             log.close()
