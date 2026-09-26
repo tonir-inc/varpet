@@ -27,7 +27,8 @@ Keep native catalog kinds such as `desk`; editor kind mapping happens at the int
 - `search_furniture`: optional `kind`, `text`, `colors`, `styles`, `materials`, `max_w`, `max_d`,
   `max_h`, `allow_rotate=true`, `target_size`, `price_max`, `exclude_ids`, `limit=10`, `scope="editor"`.
   Colours, styles, materials and excluded IDs are lists; `target_size` is `[w, d, h]`.
-  Returns `results`; `limit` is capped at 20.
+  Returns `results`; `limit` is capped at 20. Pass `room_items` (ids already in the flat) to rank
+  pieces that go with them in look and style higher; they are excluded from the results.
 - `find_similar`: supply `item_id` or `image` (URL or path accessible to the server).
   Optional `same_kind=true`, `kind`, `size_tolerance_m`, `cheaper_than_item=false`, `price_max`,
   `limit=10` (max 20), `scope="editor"`. Explicit `kind` overrides the reference kind.
