@@ -46,9 +46,8 @@ git diff --check
 
 Observed in the browser: `multi-selection-qa.html` passed 19 assertions;
 `multi-selection-app-qa.html` passed 11 checks through the real application;
-`plan-multi-selection-qa.html` passed its original 9 assertions. A subsequent
-addition checks Plan wall movement and undo; the browser connection timed out
-before that expanded page could be rerun. The app page uses explicitly synthetic
+`plan-multi-selection-qa.html` passed 13 assertions, including free movement of
+multiple walls in both axes and one-step undo. The app page uses explicitly synthetic
 catalog transport and the normal import path; it does not prove remote GLB loads.
 Real editor controls also verified Shift-selected wall rows and a keyboard-driven
 numeric batch (one revision). Screenshot capture was unavailable.

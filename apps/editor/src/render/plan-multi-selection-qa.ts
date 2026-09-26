@@ -51,6 +51,9 @@ try {
   assert(drawing.querySelectorAll('.fp-wall.is-selected').length === 2, 'Shift-click highlights multiple walls');
   assert(drawing.querySelectorAll('.fp-endpoint').length === 0, 'wall group hides individual endpoint handles');
   for (const wall of store.scene.walls) if (!ids.includes(wall.id)) await click(wall.id, true);
+  // Make the 5 cm step exceed the intentional 4px click-versus-drag threshold.
+  for (let zoom = 0; zoom < 4; zoom++) container.querySelector<HTMLButtonElement>('[aria-label="Zoom in"]')!.click();
+  await tick();
   const wallsBefore = store.scene.walls;
   const wallStart = screen(-5, 0), wallEnd = screen(-4.95, 0.05);
   pointer(entity('wall-west'), 'pointerdown', wallStart); pointer(drawing, 'pointermove', wallEnd); await tick();
