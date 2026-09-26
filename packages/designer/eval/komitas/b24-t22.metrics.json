@@ -1,0 +1,70 @@
+{
+  "id": "b24-t22",
+  "architect_accepted": false,
+  "editor_accepted": false,
+  "bridge_accepted": false,
+  "accepted": false,
+  "architect_error": "RuntimeError: The architect could not produce a checked structure (faults left). Files: /var/folders/gm/0bvd7yfn75398h953rj6qh0c0000gn/T/varpet-komitas-9jkq7zpw/b24-t22/runs/architect-20260926-155605-9750",
+  "rooms": [
+    {
+      "id": "hall",
+      "name": "Entrance hall",
+      "area_m2": 13.003358999999996
+    },
+    {
+      "id": "living",
+      "name": "Living room",
+      "area_m2": 23.933972000000022
+    },
+    {
+      "id": "kitchen",
+      "name": "Kitchen",
+      "area_m2": 10.69706
+    },
+    {
+      "id": "bedroom_1",
+      "name": "Bedroom 1",
+      "area_m2": 8.455296000000004
+    },
+    {
+      "id": "bedroom_2",
+      "name": "Bedroom 2",
+      "area_m2": 13.977001000000007
+    },
+    {
+      "id": "bathroom_1",
+      "name": "Bathroom 1",
+      "area_m2": 3.9290160000000007
+    },
+    {
+      "id": "bathroom_2",
+      "name": "Bathroom 2",
+      "area_m2": 2.6686100000000006
+    },
+    {
+      "id": "balcony",
+      "name": "Balcony",
+      "area_m2": 3.3692939999999965
+    }
+  ],
+  "floor_area_m2": 80.03360800000003,
+  "doors": 7,
+  "windows": 3,
+  "northDeg": 0,
+  "editor_result": {
+    "ok": false,
+    "errors": [
+      "Door “bathroom_1_door” intersects wall “w27”. Move or resize the opening to keep it clear of that wall."
+    ],
+    "warnings": [],
+    "revision": 0
+  },
+  "validation": {
+    "ok": false,
+    "errors": [
+      "Door “bathroom_1_door” intersects wall “w27”. Move or resize the opening to keep it clear of that wall."
+    ],
+    "warnings": []
+  },
+  "bridge_error": "Error: Invalid editor scene: Door “bathroom_1_door” intersects wall “w27”. Move or resize the opening to keep it clear of that wall."
+}

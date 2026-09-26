@@ -1,0 +1,56 @@
+{
+  "id": "b20-t11",
+  "architect_accepted": false,
+  "editor_accepted": true,
+  "bridge_accepted": false,
+  "accepted": false,
+  "architect_error": "RuntimeError: The architect could not produce a checked structure (faults left). Files: /var/folders/gm/0bvd7yfn75398h953rj6qh0c0000gn/T/varpet-komitas-9jkq7zpw/b20-t11/runs/architect-20260926-155605-625",
+  "rooms": [
+    {
+      "id": "hall",
+      "name": "Entrance hall",
+      "area_m2": 7.817244999999996
+    },
+    {
+      "id": "living",
+      "name": "Living room",
+      "area_m2": 25.43938899999999
+    },
+    {
+      "id": "kitchen",
+      "name": "Kitchen",
+      "area_m2": 5.9653210000000065
+    },
+    {
+      "id": "bedroom",
+      "name": "Bedroom",
+      "area_m2": 19.020480000000003
+    },
+    {
+      "id": "bathroom",
+      "name": "Bathroom",
+      "area_m2": 3.555453999999994
+    },
+    {
+      "id": "balcony",
+      "name": "Balcony",
+      "area_m2": 3.9380489999999995
+    }
+  ],
+  "floor_area_m2": 65.735938,
+  "doors": 4,
+  "windows": 5,
+  "northDeg": 0,
+  "editor_result": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "revision": 1
+  },
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": []
+  },
+  "bridge_error": "Error: Wall w01_north_facade is not entirely a room boundary; interior obstacles require an explicit supported representation"
+}

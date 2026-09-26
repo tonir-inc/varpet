@@ -1,0 +1,12 @@
+[
+ {
+  "check": "limits",
+  "room": "hall",
+  "detail": "at most 32 polygon points"
+ },
+ {
+  "check": "wall",
+  "wall": "west_mid_pier_b",
+  "detail": "thickness 0.6098 or height 2.7 out of range"
+ }
+]

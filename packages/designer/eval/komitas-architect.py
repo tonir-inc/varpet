@@ -3,10 +3,10 @@ from __future__ import annotations
 import argparse
 import base64
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from dataclasses import asdict
 from http.server import ThreadingHTTPServer
 import json
 import os
+import shutil
 from pathlib import Path
 import subprocess
 import sys
@@ -23,6 +23,7 @@ import designer
 def worker(plan: Path, work: Path):
     from varpet_harness import codex_runner
     from varpet_harness.serve import handler
+    (work / 'revision.txt').write_text(subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip())
     original = codex_runner.quiet_guard
     latest = {}
     async def observed(stream, stall):
@@ -94,6 +95,12 @@ def main():
         if (work/'http.json').exists(): record.update(json.loads((work/'http.json').read_text()))
         elif (work/'usage.json').exists(): record.update(json.loads((work/'usage.json').read_text()))
         (output/(id+'.architect.json')).write_text(json.dumps(record,ensure_ascii=False,indent=2)+'\n')
+        for name in ('shell', 'faults'):
+            files = list(work.glob('runs/*/shell/' + name + '.json'))
+            if files: shutil.copyfile(files[-1], output / (id + '.' + name + '.json'))
+        if (work/'revision.txt').exists():
+            record['source_revision'] = (work/'revision.txt').read_text()
+            (output/(id+'.architect.json')).write_text(json.dumps(record,ensure_ascii=False,indent=2)+'\n')
         checked = subprocess.run([str(ROOT/'packages/designer/node_modules/.bin/tsx'), str(ROOT/'packages/designer/eval/komitas-validate.ts'), id], cwd=ROOT,capture_output=True,text=True)
         print(json.dumps({'id':id,'validation':checked.returncode,'message':checked.stdout or checked.stderr,'seconds':record['seconds']}),flush=True)
     with ThreadPoolExecutor(max_workers=args.parallel) as pool:

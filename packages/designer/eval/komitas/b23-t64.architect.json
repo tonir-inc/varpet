@@ -1,0 +1,52 @@
+{
+  "id": "b23-t64",
+  "work": "/var/folders/gm/0bvd7yfn75398h953rj6qh0c0000gn/T/varpet-komitas-9jkq7zpw/b23-t64",
+  "seconds": 191.28457829199033,
+  "returncode": 0,
+  "timed_out": false,
+  "cancelled": false,
+  "usage_limited": false,
+  "source_revision": "d2f18509db583f42d785dbe951900fd2a9920106",
+  "lines": [
+    {
+      "type": "progress",
+      "message": "Reading the plan with 0 photos"
+    },
+    {
+      "type": "progress",
+      "message": "shell: working"
+    },
+    {
+      "type": "progress",
+      "message": "shell: checking"
+    },
+    {
+      "type": "progress",
+      "message": "shell: fixing 11 faults"
+    },
+    {
+      "type": "error",
+      "message": "RuntimeError: The architect could not produce a checked structure (faults left). Files: /var/folders/gm/0bvd7yfn75398h953rj6qh0c0000gn/T/varpet-komitas-9jkq7zpw/b23-t64/runs/architect-20260926-155605-916"
+    }
+  ],
+  "thread_id": "01a0dd92-a69d-7bf1-b15d-02ac33ae952d",
+  "usage": {
+    "last": {
+      "cache_write_input_tokens": 0,
+      "cached_input_tokens": 45568,
+      "input_tokens": 47796,
+      "output_tokens": 4,
+      "reasoning_output_tokens": 0,
+      "total_tokens": 47800
+    },
+    "model_context_window": 258400,
+    "total": {
+      "cache_write_input_tokens": 0,
+      "cached_input_tokens": 429824,
+      "input_tokens": 489703,
+      "output_tokens": 7112,
+      "reasoning_output_tokens": 1225,
+      "total_tokens": 496815
+    }
+  }
+}
