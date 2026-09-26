@@ -1,5 +1,0 @@
-{
-  "repair_prompts": [
-    "The compiler rejected shell.json. Fix only these faults, keep the rest:\n[\n {\n  \"check\": \"format\",\n  \"detail\": \"1 validation error for Shell\\nprinted.kitchen.dims_m.1\\n  Field required [type=missing, input_value=[4.15], input_type=list]\\n    For further information visit https://errors.pydantic.dev/2.13/v/missing\"\n }\n]"
-  ]
-}

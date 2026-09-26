@@ -2,41 +2,41 @@
   "id": "b28-t31",
   "architect_accepted": true,
   "editor_accepted": true,
-  "bridge_accepted": false,
-  "accepted": false,
+  "bridge_accepted": true,
+  "accepted": true,
   "rooms": [
     {
       "id": "hall",
       "name": "Entrance hall",
-      "area_m2": 9.199130000000002
-    },
-    {
-      "id": "living",
-      "name": "Living room",
-      "area_m2": 24.083032000000006
+      "area_m2": 10.000209000000005
     },
     {
       "id": "kitchen",
       "name": "Kitchen",
-      "area_m2": 3.8005660000000003
+      "area_m2": 3.7998079999999996
     },
     {
-      "id": "bedroom",
+      "id": "living",
+      "name": "Living room",
+      "area_m2": 22.060118999999993
+    },
+    {
+      "id": "bed",
       "name": "Bedroom",
-      "area_m2": 14.418007
+      "area_m2": 13.871797999999998
     },
     {
-      "id": "bathroom",
+      "id": "bath",
       "name": "Bathroom",
-      "area_m2": 3.0625950000000017
+      "area_m2": 2.964572000000004
     },
     {
       "id": "balcony",
       "name": "Balcony",
-      "area_m2": 5.9551649999999965
+      "area_m2": 6.0345999999999975
     }
   ],
-  "floor_area_m2": 60.518495,
+  "floor_area_m2": 58.731106,
   "doors": 4,
   "windows": 2,
   "northDeg": 0,
@@ -51,5 +51,5 @@
     "errors": [],
     "warnings": []
   },
-  "bridge_error": "Error: Wall w01 is not entirely a room boundary; interior obstacles require an explicit supported representation"
+  "designer_rooms": 6
 }

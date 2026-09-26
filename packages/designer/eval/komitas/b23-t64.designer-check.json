@@ -1,0 +1,1012 @@
+{
+  "id": "b23-t64",
+  "accepted": true,
+  "seconds": 4.317652541999999,
+  "model_tokens": 0,
+  "editor_accepted": true,
+  "summary": true,
+  "sun_status": "known",
+  "sun_windows": 5,
+  "access": {
+    "rooms": 10,
+    "baseline_failed_paths": 5
+  },
+  "geometry_audit": {
+    "tolerance_m": 0.053,
+    "adjustments": [
+      {
+        "room_id": "hall",
+        "vertex": 0,
+        "before": [
+          4.053,
+          -4.544
+        ],
+        "after": [
+          4.0088,
+          -4.5351
+        ],
+        "distance_m": 0.04508713785549041
+      },
+      {
+        "room_id": "hall",
+        "vertex": 1,
+        "before": [
+          5.088,
+          -4.544
+        ],
+        "after": [
+          5.0614,
+          -4.5351
+        ],
+        "distance_m": 0.028049420671379367
+      },
+      {
+        "room_id": "hall",
+        "vertex": 2,
+        "before": [
+          5.088,
+          -7.316
+        ],
+        "after": [
+          5.0614,
+          -7.3246
+        ],
+        "distance_m": 0.027955679208347205
+      },
+      {
+        "room_id": "hall",
+        "vertex": 3,
+        "before": [
+          9.702,
+          -7.333
+        ],
+        "after": [
+          9.70175,
+          -7.3246
+        ],
+        "distance_m": 0.00840371941464011
+      },
+      {
+        "room_id": "hall",
+        "vertex": 4,
+        "before": [
+          9.702,
+          -10.193
+        ],
+        "after": [
+          9.70175,
+          -10.208005861756602
+        ],
+        "distance_m": 0.015007944131634548
+      },
+      {
+        "room_id": "hall",
+        "vertex": 5,
+        "before": [
+          9.07,
+          -10.193
+        ],
+        "after": [
+          9.07,
+          -10.192915199433042
+        ],
+        "distance_m": 0.00008480056695781002
+      },
+      {
+        "room_id": "hall",
+        "vertex": 6,
+        "before": [
+          9.07,
+          -11.491
+        ],
+        "after": [
+          9.07,
+          -11.5263
+        ],
+        "distance_m": 0.03530000000000122
+      },
+      {
+        "room_id": "hall",
+        "vertex": 7,
+        "before": [
+          6.754,
+          -11.491
+        ],
+        "after": [
+          6.754,
+          -11.5263
+        ],
+        "distance_m": 0.03530000000000122
+      },
+      {
+        "room_id": "hall",
+        "vertex": 9,
+        "before": [
+          4.053,
+          -9.649
+        ],
+        "after": [
+          4.008800000000001,
+          -9.649
+        ],
+        "distance_m": 0.04419999999999913
+      },
+      {
+        "room_id": "hall",
+        "vertex": 10,
+        "before": [
+          4.053,
+          -8.509
+        ],
+        "after": [
+          4.0088,
+          -8.509
+        ],
+        "distance_m": 0.04420000000000002
+      },
+      {
+        "room_id": "hall",
+        "vertex": 13,
+        "before": [
+          4.053,
+          -7.333
+        ],
+        "after": [
+          4.0088,
+          -7.333
+        ],
+        "distance_m": 0.04420000000000002
+      },
+      {
+        "room_id": "living",
+        "vertex": 0,
+        "before": [
+          0.105,
+          -1.649
+        ],
+        "after": [
+          0.10525,
+          -1.6491500000000006
+        ],
+        "distance_m": 0.0002915475947425423
+      },
+      {
+        "room_id": "living",
+        "vertex": 1,
+        "before": [
+          3.947,
+          -1.649
+        ],
+        "after": [
+          3.947,
+          -1.6491500000000001
+        ],
+        "distance_m": 0.0001500000000000945
+      },
+      {
+        "room_id": "living",
+        "vertex": 3,
+        "before": [
+          3.877,
+          -3.035
+        ],
+        "after": [
+          3.886,
+          -3.035
+        ],
+        "distance_m": 0.009000000000000341
+      },
+      {
+        "room_id": "living",
+        "vertex": 4,
+        "before": [
+          3.877,
+          -7.333
+        ],
+        "after": [
+          3.886,
+          -7.333
+        ],
+        "distance_m": 0.009000000000000341
+      },
+      {
+        "room_id": "living",
+        "vertex": 6,
+        "before": [
+          3.947,
+          -8.403
+        ],
+        "after": [
+          3.947,
+          -8.394699999999998
+        ],
+        "distance_m": 0.008300000000001972
+      },
+      {
+        "room_id": "living",
+        "vertex": 7,
+        "before": [
+          0.105,
+          -8.403
+        ],
+        "after": [
+          0.1052499999999994,
+          -8.394699999999998
+        ],
+        "distance_m": 0.008303764206673527
+      },
+      {
+        "room_id": "living",
+        "vertex": 8,
+        "before": [
+          0.105,
+          -7.333
+        ],
+        "after": [
+          0.10525,
+          -7.3263
+        ],
+        "distance_m": 0.006704662556758915
+      },
+      {
+        "room_id": "living",
+        "vertex": 9,
+        "before": [
+          0.789,
+          -7.333
+        ],
+        "after": [
+          0.789,
+          -7.3263
+        ],
+        "distance_m": 0.006700000000000372
+      },
+      {
+        "room_id": "living",
+        "vertex": 10,
+        "before": [
+          0.789,
+          -6.719
+        ],
+        "after": [
+          0.789,
+          -6.7263
+        ],
+        "distance_m": 0.007299999999999862
+      },
+      {
+        "room_id": "living",
+        "vertex": 11,
+        "before": [
+          0.509,
+          -6.719
+        ],
+        "after": [
+          0.50875,
+          -6.7263
+        ],
+        "distance_m": 0.007304279567486309
+      },
+      {
+        "room_id": "living",
+        "vertex": 12,
+        "before": [
+          0.509,
+          -6.035
+        ],
+        "after": [
+          0.50875,
+          -6.035
+        ],
+        "distance_m": 0.00024999999999997247
+      },
+      {
+        "room_id": "living",
+        "vertex": 13,
+        "before": [
+          0.105,
+          -6.035
+        ],
+        "after": [
+          0.10525000000000001,
+          -6.035
+        ],
+        "distance_m": 0.0002500000000000141
+      },
+      {
+        "room_id": "kitchen",
+        "vertex": 0,
+        "before": [
+          4,
+          -0.158
+        ],
+        "after": [
+          3.9894573973866754,
+          -0.1578999999999997
+        ],
+        "distance_m": 0.01054307686884997
+      },
+      {
+        "room_id": "kitchen",
+        "vertex": 1,
+        "before": [
+          6.175,
+          -0.158
+        ],
+        "after": [
+          6.175,
+          -0.1579
+        ],
+        "distance_m": 0.00009999999999998899
+      },
+      {
+        "room_id": "kitchen",
+        "vertex": 3,
+        "before": [
+          6.474,
+          -0.439
+        ],
+        "after": [
+          6.4737,
+          -0.439
+        ],
+        "distance_m": 0.000300000000000189
+      },
+      {
+        "room_id": "kitchen",
+        "vertex": 4,
+        "before": [
+          6.474,
+          -4.421
+        ],
+        "after": [
+          6.4737,
+          -4.4123
+        ],
+        "distance_m": 0.008705170877128304
+      },
+      {
+        "room_id": "kitchen",
+        "vertex": 5,
+        "before": [
+          4.053,
+          -4.421
+        ],
+        "after": [
+          4.0088,
+          -4.4123
+        ],
+        "distance_m": 0.045048085419915514
+      },
+      {
+        "room_id": "kitchen",
+        "vertex": 6,
+        "before": [
+          4.053,
+          -3.035
+        ],
+        "after": [
+          4.0088,
+          -3.035
+        ],
+        "distance_m": 0.04420000000000002
+      },
+      {
+        "room_id": "kitchen",
+        "vertex": 9,
+        "before": [
+          4,
+          -1.649
+        ],
+        "after": [
+          3.972459301655086,
+          -1.649
+        ],
+        "distance_m": 0.027540698344914016
+      },
+      {
+        "room_id": "bed1",
+        "vertex": 0,
+        "before": [
+          6.79,
+          -1.649
+        ],
+        "after": [
+          6.789499999999999,
+          -1.6491499999999997
+        ],
+        "distance_m": 0.0005220153254460124
+      },
+      {
+        "room_id": "bed1",
+        "vertex": 1,
+        "before": [
+          9.702,
+          -1.649
+        ],
+        "after": [
+          9.70175,
+          -1.6491500000000001
+        ],
+        "distance_m": 0.000291547594741814
+      },
+      {
+        "room_id": "bed1",
+        "vertex": 2,
+        "before": [
+          9.702,
+          -7.193
+        ],
+        "after": [
+          9.70175,
+          -7.2018
+        ],
+        "distance_m": 0.008803550420143792
+      },
+      {
+        "room_id": "bed1",
+        "vertex": 3,
+        "before": [
+          7.07,
+          -7.193
+        ],
+        "after": [
+          7.07,
+          -7.2018
+        ],
+        "distance_m": 0.008800000000000807
+      },
+      {
+        "room_id": "bed1",
+        "vertex": 4,
+        "before": [
+          7.07,
+          -6.719
+        ],
+        "after": [
+          7.07,
+          -6.71925
+        ],
+        "distance_m": 0.00024999999999941735
+      },
+      {
+        "room_id": "bed1",
+        "vertex": 5,
+        "before": [
+          6.79,
+          -6.719
+        ],
+        "after": [
+          6.789499999999999,
+          -6.71925
+        ],
+        "distance_m": 0.0005590169943752334
+      },
+      {
+        "room_id": "bed2",
+        "vertex": 0,
+        "before": [
+          3.018,
+          -9.719
+        ],
+        "after": [
+          3.008947268380359,
+          -9.710500000000001
+        ],
+        "distance_m": 0.012417807768572195
+      },
+      {
+        "room_id": "bed2",
+        "vertex": 1,
+        "before": [
+          6.684,
+          -9.719
+        ],
+        "after": [
+          6.684,
+          -9.710500000000001
+        ],
+        "distance_m": 0.008499999999997954
+      },
+      {
+        "room_id": "bed2",
+        "vertex": 2,
+        "before": [
+          6.684,
+          -12.877
+        ],
+        "after": [
+          6.684,
+          -12.89475
+        ],
+        "distance_m": 0.01774999999999949
+      },
+      {
+        "room_id": "bed2",
+        "vertex": 3,
+        "before": [
+          6.193,
+          -12.877
+        ],
+        "after": [
+          6.193,
+          -12.89475
+        ],
+        "distance_m": 0.01774999999999949
+      },
+      {
+        "room_id": "bed2",
+        "vertex": 9,
+        "before": [
+          3.018,
+          -13.193
+        ],
+        "after": [
+          3.017290078711894,
+          -13.193
+        ],
+        "distance_m": 0.0007099212881058747
+      },
+      {
+        "room_id": "bed3",
+        "vertex": 0,
+        "before": [
+          0.105,
+          -8.509
+        ],
+        "after": [
+          0.10525,
+          -8.5175
+        ],
+        "distance_m": 0.008503675675847205
+      },
+      {
+        "room_id": "bed3",
+        "vertex": 1,
+        "before": [
+          3.877,
+          -8.509
+        ],
+        "after": [
+          3.8860000000000006,
+          -8.5175
+        ],
+        "distance_m": 0.012379418403140333
+      },
+      {
+        "room_id": "bed3",
+        "vertex": 2,
+        "before": [
+          3.877,
+          -9.597
+        ],
+        "after": [
+          3.886,
+          -9.5877
+        ],
+        "distance_m": 0.012941792766073774
+      },
+      {
+        "room_id": "bed3",
+        "vertex": 3,
+        "before": [
+          2.895,
+          -9.597
+        ],
+        "after": [
+          2.8858527316196407,
+          -9.5877
+        ],
+        "distance_m": 0.01304463563394218
+      },
+      {
+        "room_id": "bed3",
+        "vertex": 4,
+        "before": [
+          2.895,
+          -13.281
+        ],
+        "after": [
+          2.8947005425018966,
+          -13.281
+        ],
+        "distance_m": 0.00029945749810345035
+      },
+      {
+        "room_id": "bed3",
+        "vertex": 6,
+        "before": [
+          1.105,
+          -12.877
+        ],
+        "after": [
+          1.105,
+          -12.87715
+        ],
+        "distance_m": 0.0001499999999996504
+      },
+      {
+        "room_id": "bed3",
+        "vertex": 7,
+        "before": [
+          0.105,
+          -12.877
+        ],
+        "after": [
+          0.10524999999999995,
+          -12.87715
+        ],
+        "distance_m": 0.0002915475947420497
+      },
+      {
+        "room_id": "bath1",
+        "vertex": 0,
+        "before": [
+          6.825,
+          -11.719
+        ],
+        "after": [
+          6.825,
+          -11.7017
+        ],
+        "distance_m": 0.01729999999999876
+      },
+      {
+        "room_id": "bath1",
+        "vertex": 1,
+        "before": [
+          8.86,
+          -11.719
+        ],
+        "after": [
+          8.85965,
+          -11.7017
+        ],
+        "distance_m": 0.017303540100221008
+      },
+      {
+        "room_id": "bath1",
+        "vertex": 2,
+        "before": [
+          8.86,
+          -13.193
+        ],
+        "after": [
+          8.85965,
+          -13.193
+        ],
+        "distance_m": 0.0003499999999991843
+      },
+      {
+        "room_id": "bath2",
+        "vertex": 0,
+        "before": [
+          5.21,
+          -5.246
+        ],
+        "after": [
+          5.184724216741521,
+          -5.2544
+        ],
+        "distance_m": 0.02663503743811172
+      },
+      {
+        "room_id": "bath2",
+        "vertex": 1,
+        "before": [
+          6.474,
+          -5.246
+        ],
+        "after": [
+          6.4737,
+          -5.2543999999999995
+        ],
+        "distance_m": 0.008405355435672222
+      },
+      {
+        "room_id": "bath2",
+        "vertex": 2,
+        "before": [
+          6.474,
+          -6.719
+        ],
+        "after": [
+          6.4737,
+          -6.71925
+        ],
+        "distance_m": 0.0003905124837951049
+      },
+      {
+        "room_id": "bath2",
+        "vertex": 3,
+        "before": [
+          5.895,
+          -6.719
+        ],
+        "after": [
+          5.895,
+          -6.71925
+        ],
+        "distance_m": 0.00024999999999941735
+      },
+      {
+        "room_id": "bath2",
+        "vertex": 4,
+        "before": [
+          5.895,
+          -7.193
+        ],
+        "after": [
+          5.895,
+          -7.2018
+        ],
+        "distance_m": 0.008800000000000807
+      },
+      {
+        "room_id": "bath2",
+        "vertex": 5,
+        "before": [
+          5.21,
+          -7.193
+        ],
+        "after": [
+          5.2012802209923175,
+          -7.2018
+        ],
+        "distance_m": 0.01238848440862863
+      },
+      {
+        "room_id": "balcony1",
+        "vertex": 2,
+        "before": [
+          3.684,
+          -1.456
+        ],
+        "after": [
+          3.684,
+          -1.4386500000000002
+        ],
+        "distance_m": 0.017349999999999755
+      },
+      {
+        "room_id": "balcony1",
+        "vertex": 3,
+        "before": [
+          1.018,
+          -1.456
+        ],
+        "after": [
+          1.0179999999999998,
+          -1.43865
+        ],
+        "distance_m": 0.017349999999999977
+      },
+      {
+        "room_id": "balcony2",
+        "vertex": 1,
+        "before": [
+          9.702,
+          -0.053
+        ],
+        "after": [
+          9.70175,
+          -0.053
+        ],
+        "distance_m": 0.00024999999999941735
+      },
+      {
+        "room_id": "balcony2",
+        "vertex": 2,
+        "before": [
+          9.702,
+          -1.456
+        ],
+        "after": [
+          9.70175,
+          -1.43865
+        ],
+        "distance_m": 0.017351801059256034
+      },
+      {
+        "room_id": "balcony2",
+        "vertex": 3,
+        "before": [
+          8.228,
+          -1.456
+        ],
+        "after": [
+          8.228,
+          -1.43865
+        ],
+        "distance_m": 0.017349999999999977
+      },
+      {
+        "room_id": "balcony2",
+        "vertex": 6,
+        "before": [
+          6.86,
+          -0.544
+        ],
+        "after": [
+          6.86,
+          -0.5083499999999999
+        ],
+        "distance_m": 0.03565000000000018
+      },
+      {
+        "room_id": "balcony2",
+        "vertex": 7,
+        "before": [
+          7.193,
+          -0.544
+        ],
+        "after": [
+          7.193,
+          -0.50835
+        ],
+        "distance_m": 0.03565000000000007
+      }
+    ],
+    "warnings": [],
+    "obstacle_wall_ids": [
+      "west_top_column",
+      "west_mid_pier",
+      "balcony1_right",
+      "kitchen_north",
+      "kitchen_column",
+      "balcony2_front",
+      "east",
+      "east_entry_return",
+      "entry",
+      "bath1_east",
+      "south",
+      "shaft_south",
+      "bath2_west",
+      "bed2_east"
+    ],
+    "opening_room_ids": {}
+  },
+  "fixed_obstacles": 16,
+  "placement": {
+    "room_id": "living",
+    "op": {
+      "type": "add",
+      "item": {
+        "id": "komitas-proof-chair",
+        "kind": "chair",
+        "name": "Terracotta lounge chair",
+        "size": [
+          0.82,
+          0.84,
+          0.8
+        ],
+        "sku": "chair-clay",
+        "price": 420,
+        "room_id": "living",
+        "pos": [
+          2.0514301769,
+          -4.9721003761
+        ],
+        "rot": 0,
+        "keep": false
+      }
+    },
+    "editor_result": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "revision": 1
+    },
+    "proposal_id": "proposal-1",
+    "baseline_notes": [
+      {
+        "check": "walkway",
+        "room_id": "hall",
+        "walkway": {
+          "from": "door:entrance",
+          "to": "door:bath1_door",
+          "reachable": false
+        },
+        "item_ids": [],
+        "at": [
+          9.10525015223859,
+          -10.955165674010486
+        ],
+        "deficit_m": 0.6,
+        "message": "Pre-existing, not worsened: door:entrance to door:bath1_door: no accessible path",
+        "severity": "soft",
+        "baseline": true
+      },
+      {
+        "check": "walkway",
+        "room_id": "hall",
+        "walkway": {
+          "from": "door:entrance",
+          "to": "door:kitchen_door",
+          "reachable": false
+        },
+        "item_ids": [],
+        "at": [
+          9.10525015223859,
+          -10.955165674010486
+        ],
+        "deficit_m": 0.6,
+        "message": "Pre-existing, not worsened: door:entrance to door:kitchen_door: no accessible path",
+        "severity": "soft",
+        "baseline": true
+      },
+      {
+        "check": "walkway",
+        "room_id": "hall",
+        "walkway": {
+          "from": "door:entrance",
+          "to": "door:bed1_door",
+          "reachable": false
+        },
+        "item_ids": [],
+        "at": [
+          9.10525015223859,
+          -10.955165674010486
+        ],
+        "deficit_m": 0.6,
+        "message": "Pre-existing, not worsened: door:entrance to door:bed1_door: no accessible path",
+        "severity": "soft",
+        "baseline": true
+      },
+      {
+        "check": "walkway",
+        "room_id": "hall",
+        "walkway": {
+          "from": "door:entrance",
+          "to": "door:bed3_door",
+          "reachable": false
+        },
+        "item_ids": [],
+        "at": [
+          9.10525015223859,
+          -10.955165674010486
+        ],
+        "deficit_m": 0.6,
+        "message": "Pre-existing, not worsened: door:entrance to door:bed3_door: no accessible path",
+        "severity": "soft",
+        "baseline": true
+      },
+      {
+        "check": "walkway",
+        "room_id": "hall",
+        "walkway": {
+          "from": "door:entrance",
+          "to": "door:bed2_door",
+          "reachable": false
+        },
+        "item_ids": [],
+        "at": [
+          9.10525015223859,
+          -10.955165674010486
+        ],
+        "deficit_m": 0.6,
+        "message": "Pre-existing, not worsened: door:entrance to door:bed2_door: no accessible path",
+        "severity": "soft",
+        "baseline": true
+      },
+      {
+        "check": "geometry_reconciliation",
+        "severity": "soft",
+        "item_ids": [],
+        "at": [
+          0,
+          0
+        ],
+        "location_unknown": true,
+        "message": "Layout checks use room-face corrections up to 53 mm and retain 14 walls as fixed structure. Original editor geometry is retained; dimensions need on-site confirmation. "
+      }
+    ]
+  },
+  "attempts": [
+    {
+      "room_id": "living",
+      "candidates": 3,
+      "rejections": {}
+    }
+  ]
+}

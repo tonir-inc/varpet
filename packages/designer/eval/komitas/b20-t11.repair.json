@@ -1,5 +1,0 @@
-{
-  "repair_prompts": [
-    "The compiler rejected shell.json. Fix only these faults, keep the rest:\n[\n {\n  \"check\": \"format\",\n  \"detail\": \"3 validation errors for Shell\\nprinted.hall.passage_width_m\\n  Extra inputs are not permitted [type=extra_forbidden, input_value=1.4, input_type=float]\\n    For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden\\nprinted.living.dimension_scope\\n  Extra inputs are not permitted [type=extra_forbidden, input_value='8.3 m spans living plus ...is maximum living depth', input_type=str]\\n    For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden\\nprinted.kitchen.dims_m.1\\n  Field required [type=missing, input_value=[4.15], input_type=list]\\n    For further information visit https://errors.pydantic.dev/2.13/v/missing\"\n }\n]"
-  ]
-}

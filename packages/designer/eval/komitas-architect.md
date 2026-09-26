@@ -1,5 +1,173 @@
 # Komitas Park: real plan → architect → editor → designer bridge
 
+## Live rerun after Felix's fixes — 26 September 2026
+
+**Measured, 17:19–17:33 Armenia time, gpt-6-astra / medium:** all ten original plans were rerun.
+Architect / EditorStore / bridge: **3/6/6 before → 10/10/9 after** (out of ten each).
+All four originally blocked flats now pass the entire chain: **b23-t64, b24-t22, b27-t79, b18-t1**.
+Nine fresh accepted empty scenes are published below. The fresh b25-t72 fails the bridge;
+its earlier accepted scene is withdrawn rather than attributed to this new run.
+
+The baseline is SERVICE's original architect/EditorStore results plus its six-flat bridge unlock,
+not the original report's pre-unlock 0/10 bridge result. The full precision before/after ledger is
+[komitas-rerun.json](komitas-rerun.json). The baseline artifacts remain available at
+[the pre-rerun snapshot](https://github.com/tonir-inc/varpet/tree/d09f870ba5085dd7ddea01d527cc7be9d03b5da7/packages/designer/eval/komitas).
+
+### Same live path and measurement rules
+
+Measured launch revision: `d09f870ba5085dd7ddea01d527cc7be9d03b5da7`, held fixed for all ten workers.
+It includes Felix's `a6748ba`, `08de65b` and `4ad97b5`. This measures the integrated current main,
+including subsequent flat-shell prompt changes; it is not an isolated causal comparison of those three commits.
+The unchanged SERVICE command was:
+
+```sh
+/tmp/varpet-designer-sdk/bin/python -u packages/designer/eval/komitas-architect.py --parallel 4 < /dev/null
+```
+
+Each request used the original local plan only, `photos: []`, and the real `/structure` handler on
+an ephemeral loopback port. Four concurrent workers, closed stdin, independent process groups,
+240-second inactivity watchdog, 1,200-second deadline. No retries, stubs, usage-limit cancellations
+or manual geometry repairs. No source plan images are committed. No `harness/varpet_harness` code changed.
+The result passed through SERVICE's unchanged `komitas-validate.ts`: reconstruction proposal,
+EditorStore execution, scene validation, and designer conversion with the existing bounded geometry
+reconciliation. Published editor room/wall geometry is identical to the final HTTP structure.
+
+Seconds measure HTTP POST to final response. Tokens are the latest cumulative SDK
+`usage.total.total_tokens`, including cached input across repair turns, not the last-turn progress count.
+The `*.architect.json` captures include every progress line and the final response. All ten
+architect checks passed; the sole remaining failure is downstream in the bridge.
+
+| Flat | Architect before → after | EditorStore before → after | Bridge before → after | Seconds before → after | Tokens before → after |
+|---|:---:|:---:|:---:|---:|---:|
+| b20-t11 | fail → pass | pass → pass | pass → pass | 175.79 → 176.51 | 519,416 → 509,923 |
+| b23-t64 | fail → pass | fail → pass | fail → pass | 191.28 → 249.86 | 496,815 → 906,921 |
+| b25-t72 | fail → pass | pass → pass | pass → fail | 165.99 → 317.21 | 444,385 → 1,156,177 |
+| b24-t22 | fail → pass | fail → pass | fail → pass | 158.96 → 282.15 | 382,736 → 1,072,521 |
+| b31-t46 | pass → pass | pass → pass | pass → pass | 177.26 → 323.65 | 470,256 → 1,166,263 |
+| b27-t79 | fail → pass | fail → pass | fail → pass | 166.02 → 235.34 | 521,743 → 706,410 |
+| b21-t13 | fail → pass | pass → pass | pass → pass | 172.46 → 243.41 | 588,966 → 839,725 |
+| b28-t31 | pass → pass | pass → pass | pass → pass | 192.57 → 231.66 | 795,994 → 730,007 |
+| b30-t35 | pass → pass | pass → pass | pass → pass | 155.56 → 272.49 | 526,991 → 947,839 |
+| b18-t1 | fail → pass | fail → pass | fail → pass | 91.39 → 193.00 | 277,346 → 733,516 |
+
+Derived totals: **1647.29 → 2525.28 summed request-seconds; 5,024,648 → 8,769,302 cumulative tokens**. Overlapping request durations are not batch wall time.
+
+### Published scenes and browser evidence
+
+| Flat | Zones | Polygon / developer area m² | Absolute area error | Doors / windows | Fresh artifacts |
+|---|---:|---:|---:|---:|---|
+| b20-t11 | 6 | 65.35 / 66.3 | 1.43% | 4 / 5 | [scene](komitas/b20-t11.scene.json); [top](komitas/b20-t11-top.png), [3D](komitas/b20-t11-3d.png) |
+| b23-t64 | 10 | 112.21 / 114.9 | 2.34% | 9 / 5 | [scene](komitas/b23-t64.scene.json); [top](komitas/b23-t64-top.png), [3D](komitas/b23-t64-3d.png) |
+| b25-t72 | 10 | 115.72 / 118 | 1.93% | 9 / 5 | **withheld**; [top](komitas/b25-t72-top.png), [3D](komitas/b25-t72-3d.png) |
+| b24-t22 | 8 | 81.16 / 83.2 | 2.45% | 7 / 3 | [scene](komitas/b24-t22.scene.json); [top](komitas/b24-t22-top.png), [3D](komitas/b24-t22-3d.png) |
+| b31-t46 | 8 | 86.83 / 89.4 | 2.88% | 7 / 3 | [scene](komitas/b31-t46.scene.json); [top](komitas/b31-t46-top.png), [3D](komitas/b31-t46-3d.png) |
+| b27-t79 | 8 | 84.79 / 87 | 2.54% | 7 / 6 | [scene](komitas/b27-t79.scene.json); [top](komitas/b27-t79-top.png), [3D](komitas/b27-t79-3d.png) |
+| b21-t13 | 5 | 40.45 / 41.3 | 2.07% | 5 / 2 | [scene](komitas/b21-t13.scene.json); [top](komitas/b21-t13-top.png), [3D](komitas/b21-t13-3d.png) |
+| b28-t31 | 6 | 58.73 / 60.9 | 3.56% | 4 / 2 | [scene](komitas/b28-t31.scene.json); [top](komitas/b28-t31-top.png), [3D](komitas/b28-t31-3d.png) |
+| b30-t35 | 8 | 69.73 / 74.1 | 5.89% | 7 / 4 | [scene](komitas/b30-t35.scene.json); [top](komitas/b30-t35-top.png), [3D](komitas/b30-t35-3d.png) |
+| b18-t1 | 6 | 65.55 / 65.6 | 0.07% | 4 / 5 | [scene](komitas/b18-t1.scene.json); [top](komitas/b18-t1-top.png), [3D](komitas/b18-t1-3d.png) |
+
+Measured: all twenty screenshots were captured through the browser plugin against the production
+editor viewport on spare port **5343**, with service URLs unset, at 1600×1200, ceilings off and
+cutaway walls. Renderer callbacks reported zero errors for every flat;
+[browser evidence](komitas/rerun-browser-check.json). The rejected b25 screenshots are visibly labelled
+“NOT ACCEPTED”. Source plans and generated top views were visually inspected; the broad shell
+outlines are recognizable, but this is not a pixel-level fidelity grade. In b31-t46, the small hallway
+partition segments should be checked against the plan's wardrobe symbols before treating them as built walls.
+
+Measured: all nine published scenes also passed the unchanged `komitas-unlock.ts` consumer checks
+in a scratch directory: scene summary, sun, access metrics, chair placement and editor approval.
+Their fresh `*.designer-check.json` files retain the geometry reconciliation audit and placement proof.
+The proof chair is not in the published empty scenes. These checks exercise consumers; they do not
+assert that all baseline access paths are clear. North remains **assumed 0°**, so computed sun is conditional.
+
+Assumed comparison convention: areas sum usable room polygons including balconies, not gross area;
+heights, sills, colours and unverified door swings remain photo-free assumptions. The current architect
+prompt can also produce fixture components, preserved in the raw response; this SERVICE path publishes
+only rooms and walls with `objects: []`. Fixture import, furnishing and exact plan fidelity are not proven.
+Original `*.rejected.json` files are retained byte-for-byte as existing regression inputs. They describe
+the earlier run, not these fresh metrics; the fresh failure is separately `b25-t72.rerun-rejected.json`.
+
+### Exact remaining fault for Felix
+
+**Measured b25-t72:** architect passes, EditorStore passes, bridge rejects with:
+
+```text
+Error: Opening living_window1: no unambiguous adjacent room within 0.053 m face tolerance
+```
+
+Reproduce without a model:
+
+```sh
+komitas_replay_dir=$(mktemp -d)
+cp packages/designer/eval/komitas/b25-t72.architect.json "$komitas_replay_dir/"
+packages/designer/node_modules/.bin/tsx packages/designer/eval/komitas-validate.ts b25-t72 "$komitas_replay_dir"
+```
+
+This reads the fresh architect capture and should exit 1; the scratch directory keeps regenerated
+diagnostics separate from the historical `.rejected.json` regression input. Evidence:
+[fresh rejected scene](komitas/b25-t72.rerun-rejected.json),
+[bridge diagnosis](komitas/b25-t72.bridge-fault.json), [gate result](komitas/b25-t72.metrics.json).
+The wall `facade_glazing` runs from `[14.4696, 9.7043]` to `[11.6522, 12.4174]`, thickness `0.22 m`.
+`living_window1` has offset `0.5535 m`, width `1.3775 m`. The corresponding living-room edge runs
+from `[14.348, 9.583]` to `[11.652, 12.278]`.
+
+**Derived diagnosis:** wall and room edge are not parallel. Signed offsets from the wall's inside face
+at the room-edge endpoints are **+61.72 mm and −9.45 mm**. The first exceeds the bridge's bounded
+53 mm whole-edge correction. The sampled window face itself is only 25.72–51.44 mm away; this is
+not a claim that the entire opening lies outside tolerance. Felix needs to emit a coherent wall/room
+face and include downstream bridge acceptance in the success check. Do not drop the window or
+increase the bridge tolerance to mask it. No harness or production fix was made in this evaluation.
+
+### Verification for this rerun
+
+Measured final verification after rebasing onto `98155b5` (26 September 2026):
+
+```text
+VITEST_MAX_WORKERS=1 pnpm test: exit 0
+Designer: Test Files 84 passed (84); Tests 420 passed (420)
+Python designer: Ran 123 tests — OK
+Python eval: Ran 38 tests — OK
+Node: showcase 12; editor server 24; editor application 123 — all passed
+All editor scripted checks passed
+pnpm typecheck: engine, designer, showcase and editor Done; exit 0
+pnpm --filter @varpet/editor build: built in 1.58s; exit 0
+cd harness && uv run pytest -q tests: 55 passed in 4.68s
+```
+
+The standalone harness pytest result was measured after `dda6c4e`; its source was unchanged by
+`98155b5`. The final pre-push rebase also included `8776f1a`, which changes only Python catalog
+service/selection files outside these test commands and the plan-only evaluation path.
+The measured architect launch revision remains `d09f870` regardless of those later merges.
+
+The fresh reviewer approved the artifacts and independently replayed all ten bridge conversions:
+9 pass, exactly the documented b25 failure. An earlier pre-push run hit the existing
+`place.test.ts:94` 5-second timeout at 5.37 seconds (407 other tests passed); host load measured
+112 on 8 logical CPUs. The unchanged untargeted retry passed, as did the later full runs after
+rebasing. No assertion, timeout, test or fixture was changed to obtain a pass.
+
+New `test/komitas-rerun.test.ts` first failed both tests without the ledger, then passed both after
+publication. It checks fresh capture provenance, per-flat measurements, all-three-gates publication,
+unchanged source geometry, empty scenes and both screenshots.
+
+DONE: 7 of 7 for the evaluation/publication task.
+- 1 ✓ Live proving command completed all ten requests; 10/10/9 gates, nine scenes, twenty screenshots; raw captures and per-flat table above.
+- 2 ✓ Untargeted root tests/typecheck and editor build passed; output and counts above.
+- 3 ✓ Added `test/komitas-rerun.test.ts`, demonstrated two red tests then two green tests.
+- 4 ✓ Only this report, `eval/komitas-rerun.json`, generated `eval/komitas/*` artifacts and the new test changed. No production, contract, schema, fixture or existing test changed to obtain a pass.
+- 5 ✓ Fresh read-only reviewer `komitas_rerun_review`: **APPROVE**, no blocking or high-severity findings; independently confirmed bridge 9/10 and raw capture consistency.
+- 6 ✓ North and photo-free assumptions stated above. Not proven: exact plan fidelity, fixture import, furnishing, or a successful bridge conversion for b25-t72.
+- 7 ✓ This lane alone wrote the listed evaluation files; reviewer was read-only and no teammate-owned source file was edited.
+
+
+---
+
+## Historical reports (pre-rerun)
+
+Everything below records earlier runs and Felix's offline replay, not the fresh 10/10/9 result above.
+Old artifact links refer to paths now refreshed by the rerun; use the linked pre-rerun Git snapshot
+for the matching historical files. The original rejected-scene regression inputs remain unchanged.
+
 Follow-up: [six captured flats now reach the designer](komitas-unlock.md); the historical measurements below remain unchanged.
 
 **Measured, 26 September 2026 (15:56–16:04 Armenia time), gpt-6-astra, medium:**

@@ -1,5 +1,0 @@
-{
-  "repair_prompts": [
-    "The compiler rejected shell.json. Fix only these faults, keep the rest:\n[\n {\n  \"check\": \"wall\",\n  \"wall\": \"w1\",\n  \"detail\": \"not on a room edge (0.45 m off)\"\n },\n {\n  \"check\": \"wall\",\n  \"wall\": \"w3\",\n  \"detail\": \"thickness 0.0351 or height 2.6 out of range\"\n },\n {\n  \"check\": \"wall\",\n  \"wall\": \"w3\",\n  \"detail\": \"not on a room edge (0.45 m off)\"\n },\n {\n  \"check\": \"wall\",\n  \"wall\": \"w4\",\n  \"detail\": \"not on a room edge (0.32 m off)\"\n },\n {\n  \"check\": \"wall\",\n  \"wall\": \"w5\",\n  \"detail\": \"not on a room edge (0.32 m off)\"\n },\n {\n  \"check\": \"wall\",\n  \"wall\": \"w8\",\n  \"detail\": \"not on a room edge (0.19 m off)\"\n },\n {\n  \"check\": \"wall\",\n  \"wall\": \"w14\",\n  \"detail\": \"thickness 0.0877 or height 1.1 out of range\"\n },\n {\n  \"check\": \"reachable\",\n  \"rooms\": [\n   \"balcony\",\n   \"bed\"\n  ],\n  \"detail\": \"no door or open passage links these to the rest\"\n },\n {\n  \"check\": \"printed\",\n  \"room\": \"hall\",\n  \"traced_m2\": 2.54,\n  \"printed_m2\": 2.3\n }\n]"
-  ]
-}

@@ -1,0 +1,231 @@
+{
+  "measurement": "measured",
+  "date": "2026-09-26",
+  "source_revision": "d09f870ba5085dd7ddea01d527cc7be9d03b5da7",
+  "profile": {
+    "model": "gpt-6-astra",
+    "effort": "medium",
+    "photos": 0,
+    "parallel": 4
+  },
+  "baseline_snapshot": "d09f870ba5085dd7ddea01d527cc7be9d03b5da7",
+  "flats": [
+    {
+      "id": "b20-t11",
+      "before": {
+        "seconds": 175.79288070800249,
+        "tokens": 519416,
+        "architect": false,
+        "editor": true,
+        "bridge": true,
+        "published": true
+      },
+      "after": {
+        "seconds": 176.50580666703172,
+        "tokens": 509923,
+        "architect": true,
+        "editor": true,
+        "bridge": true,
+        "published": true
+      }
+    },
+    {
+      "id": "b23-t64",
+      "before": {
+        "seconds": 191.28457829199033,
+        "tokens": 496815,
+        "architect": false,
+        "editor": false,
+        "bridge": false,
+        "published": false
+      },
+      "after": {
+        "seconds": 249.85825183294946,
+        "tokens": 906921,
+        "architect": true,
+        "editor": true,
+        "bridge": true,
+        "published": true
+      }
+    },
+    {
+      "id": "b25-t72",
+      "before": {
+        "seconds": 165.98906112497207,
+        "tokens": 444385,
+        "architect": false,
+        "editor": true,
+        "bridge": true,
+        "published": true
+      },
+      "after": {
+        "seconds": 317.20767541701207,
+        "tokens": 1156177,
+        "architect": true,
+        "editor": true,
+        "bridge": false,
+        "published": false
+      }
+    },
+    {
+      "id": "b24-t22",
+      "before": {
+        "seconds": 158.9566694580135,
+        "tokens": 382736,
+        "architect": false,
+        "editor": false,
+        "bridge": false,
+        "published": false
+      },
+      "after": {
+        "seconds": 282.1547964999918,
+        "tokens": 1072521,
+        "architect": true,
+        "editor": true,
+        "bridge": true,
+        "published": true
+      }
+    },
+    {
+      "id": "b31-t46",
+      "before": {
+        "seconds": 177.25811374996556,
+        "tokens": 470256,
+        "architect": true,
+        "editor": true,
+        "bridge": true,
+        "published": true
+      },
+      "after": {
+        "seconds": 323.65112787502585,
+        "tokens": 1166263,
+        "architect": true,
+        "editor": true,
+        "bridge": true,
+        "published": true
+      }
+    },
+    {
+      "id": "b27-t79",
+      "before": {
+        "seconds": 166.0224277920206,
+        "tokens": 521743,
+        "architect": false,
+        "editor": false,
+        "bridge": false,
+        "published": false
+      },
+      "after": {
+        "seconds": 235.33683574997121,
+        "tokens": 706410,
+        "architect": true,
+        "editor": true,
+        "bridge": true,
+        "published": true
+      }
+    },
+    {
+      "id": "b21-t13",
+      "before": {
+        "seconds": 172.4573362080264,
+        "tokens": 588966,
+        "architect": false,
+        "editor": true,
+        "bridge": true,
+        "published": true
+      },
+      "after": {
+        "seconds": 243.4111800409737,
+        "tokens": 839725,
+        "architect": true,
+        "editor": true,
+        "bridge": true,
+        "published": true
+      }
+    },
+    {
+      "id": "b28-t31",
+      "before": {
+        "seconds": 192.57453170896042,
+        "tokens": 795994,
+        "architect": true,
+        "editor": true,
+        "bridge": true,
+        "published": true
+      },
+      "after": {
+        "seconds": 231.6612357919803,
+        "tokens": 730007,
+        "architect": true,
+        "editor": true,
+        "bridge": true,
+        "published": true
+      }
+    },
+    {
+      "id": "b30-t35",
+      "before": {
+        "seconds": 155.5641131659504,
+        "tokens": 526991,
+        "architect": true,
+        "editor": true,
+        "bridge": true,
+        "published": true
+      },
+      "after": {
+        "seconds": 272.48884825001005,
+        "tokens": 947839,
+        "architect": true,
+        "editor": true,
+        "bridge": true,
+        "published": true
+      }
+    },
+    {
+      "id": "b18-t1",
+      "before": {
+        "seconds": 91.39385420799954,
+        "tokens": 277346,
+        "architect": false,
+        "editor": false,
+        "bridge": false,
+        "published": false
+      },
+      "after": {
+        "seconds": 193.0043398340349,
+        "tokens": 733516,
+        "architect": true,
+        "editor": true,
+        "bridge": true,
+        "published": true
+      }
+    }
+  ],
+  "totals": {
+    "before": {
+      "architect": 3,
+      "editor": 6,
+      "bridge": 6,
+      "published": 6,
+      "seconds": 1647.2935664159013,
+      "tokens": 5024648
+    },
+    "after": {
+      "architect": 10,
+      "editor": 10,
+      "bridge": 9,
+      "published": 9,
+      "seconds": 2525.280097958981,
+      "tokens": 8769302
+    }
+  },
+  "newly_published": [
+    "b23-t64",
+    "b24-t22",
+    "b27-t79",
+    "b18-t1"
+  ],
+  "withdrawn_after_fresh_failure": [
+    "b25-t72"
+  ]
+}

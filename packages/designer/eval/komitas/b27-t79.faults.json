@@ -1,7 +1,0 @@
-[
- {
-  "check": "limits",
-  "room": "hall",
-  "detail": "at most 32 polygon points"
- }
-]

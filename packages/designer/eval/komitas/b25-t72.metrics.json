@@ -1,63 +1,62 @@
 {
   "id": "b25-t72",
-  "architect_accepted": false,
+  "architect_accepted": true,
   "editor_accepted": true,
   "bridge_accepted": false,
   "accepted": false,
-  "architect_error": "RuntimeError: The architect could not produce a checked structure (faults left). Files: /var/folders/gm/0bvd7yfn75398h953rj6qh0c0000gn/T/varpet-komitas-9jkq7zpw/b25-t72/runs/architect-20260926-155605-4375",
   "rooms": [
     {
       "id": "hall",
       "name": "Entrance hall",
-      "area_m2": 22.840630500000003
+      "area_m2": 22.741506499999996
     },
     {
       "id": "living",
       "name": "Living and dining room",
-      "area_m2": 27.819964999999993
+      "area_m2": 27.84952799999998
     },
     {
       "id": "kitchen",
       "name": "Kitchen",
-      "area_m2": 5.805828
+      "area_m2": 6.051482499999997
     },
     {
-      "id": "bed4",
-      "name": "Bedroom 1",
-      "area_m2": 14.922517999999997
+      "id": "bed1",
+      "name": "Bedroom 4",
+      "area_m2": 14.948051499999991
     },
     {
-      "id": "bed5",
-      "name": "Bedroom 2",
-      "area_m2": 14.439503999999996
+      "id": "bed2",
+      "name": "Bedroom 5",
+      "area_m2": 14.535166000000007
     },
     {
-      "id": "bed6",
-      "name": "Bedroom 3",
-      "area_m2": 16.927192
+      "id": "bed3",
+      "name": "Bedroom 6",
+      "area_m2": 16.922184
     },
     {
-      "id": "bath7",
-      "name": "Bathroom",
-      "area_m2": 3.9938720000000014
+      "id": "bath",
+      "name": "Bathroom 7",
+      "area_m2": 4.028643000000002
     },
     {
-      "id": "bath8",
-      "name": "WC",
-      "area_m2": 2.2362140000000004
+      "id": "wc",
+      "name": "WC 8",
+      "area_m2": 2.4074295
     },
     {
-      "id": "balcony9",
-      "name": "Balcony 1",
-      "area_m2": 3.4260149999999996
+      "id": "balcony1",
+      "name": "Balcony 9",
+      "area_m2": 3.621614999999996
     },
     {
-      "id": "balcony10",
-      "name": "Balcony 2",
-      "area_m2": 2.520817000000008
+      "id": "balcony2",
+      "name": "Balcony 10",
+      "area_m2": 2.6169999999999902
     }
   ],
-  "floor_area_m2": 114.93255549999999,
+  "floor_area_m2": 115.72260599999996,
   "doors": 9,
   "windows": 5,
   "northDeg": 0,
@@ -72,5 +71,5 @@
     "errors": [],
     "warnings": []
   },
-  "bridge_error": "Error: Wall w1 is not entirely a room boundary; interior obstacles require an explicit supported representation"
+  "bridge_error": "Error: Opening living_window1: no unambiguous adjacent room within 0.053 m face tolerance"
 }

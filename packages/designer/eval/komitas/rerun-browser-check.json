@@ -1,0 +1,56 @@
+{
+  "measurement": "measured",
+  "source_revision": "d09f870ba5085dd7ddea01d527cc7be9d03b5da7",
+  "port": 5343,
+  "viewport": [
+    1600,
+    1200
+  ],
+  "views": [
+    "top",
+    "perspective"
+  ],
+  "screenshots": 20,
+  "flats": [
+    {
+      "id": "b20-t11",
+      "renderer_errors": []
+    },
+    {
+      "id": "b23-t64",
+      "renderer_errors": []
+    },
+    {
+      "id": "b25-t72",
+      "renderer_errors": []
+    },
+    {
+      "id": "b24-t22",
+      "renderer_errors": []
+    },
+    {
+      "id": "b31-t46",
+      "renderer_errors": []
+    },
+    {
+      "id": "b27-t79",
+      "renderer_errors": []
+    },
+    {
+      "id": "b21-t13",
+      "renderer_errors": []
+    },
+    {
+      "id": "b28-t31",
+      "renderer_errors": []
+    },
+    {
+      "id": "b30-t35",
+      "renderer_errors": []
+    },
+    {
+      "id": "b18-t1",
+      "renderer_errors": []
+    }
+  ]
+}

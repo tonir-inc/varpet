@@ -1,0 +1,79 @@
+{
+  "error": "Opening living_window1: no unambiguous adjacent room within 0.053 m face tolerance",
+  "wall": {
+    "id": "facade_glazing",
+    "start": [
+      14.4696,
+      9.7043
+    ],
+    "end": [
+      11.6522,
+      12.4174
+    ],
+    "height": 2.7,
+    "thickness": 0.22,
+    "color": "#f1eee7",
+    "openings": [
+      {
+        "id": "living_window1",
+        "kind": "window",
+        "offset": 0.5535,
+        "width": 1.3775,
+        "height": 2.1,
+        "sill": 0.4
+      },
+      {
+        "id": "living_window2",
+        "kind": "window",
+        "offset": 2.7305,
+        "width": 0.6519,
+        "height": 2.1,
+        "sill": 0.4
+      }
+    ]
+  },
+  "living_edge": [
+    [
+      14.348,
+      9.583
+    ],
+    [
+      11.652,
+      12.278
+    ]
+  ],
+  "signed_inside_face_offsets_m": [
+    0.061721701647775504,
+    -0.0094494900146921
+  ],
+  "window_face_samples": [
+    {
+      "offset_m": 0.5535,
+      "inside_face": [
+        13.994604878020054,
+        10.00899966211871
+      ],
+      "distance_to_living_m": 0.05144139056909471,
+      "distance_to_living_boundary_m": 0.05144139056909471
+    },
+    {
+      "offset_m": 1.2422499999999999,
+      "inside_face": [
+        13.49848856718672,
+        10.48674977318633
+      ],
+      "distance_to_living_m": 0.03858226290609019,
+      "distance_to_living_boundary_m": 0.03858226290609019
+    },
+    {
+      "offset_m": 1.931,
+      "inside_face": [
+        13.002372256353388,
+        10.964499884253952
+      ],
+      "distance_to_living_m": 0.025723135243085636,
+      "distance_to_living_boundary_m": 0.025723135243085636
+    }
+  ],
+  "interpretation": "Derived: the room edge and wall are not parallel; its first endpoint exceeds the bounded 53 mm whole-edge correction. Source geometry is unchanged."
+}

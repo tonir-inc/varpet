@@ -2,51 +2,51 @@
   "id": "b31-t46",
   "architect_accepted": true,
   "editor_accepted": true,
-  "bridge_accepted": false,
-  "accepted": false,
+  "bridge_accepted": true,
+  "accepted": true,
   "rooms": [
     {
       "id": "hall",
       "name": "Entrance hall",
-      "area_m2": 17.076220000000017
+      "area_m2": 16.937124000000004
     },
     {
       "id": "living",
       "name": "Living and dining room",
-      "area_m2": 28.34110100000001
+      "area_m2": 27.736497999999997
     },
     {
       "id": "kitchen",
       "name": "Kitchen",
-      "area_m2": 4.8216
+      "area_m2": 4.802928
     },
     {
-      "id": "bedroom_1",
-      "name": "Bedroom 1",
-      "area_m2": 13.186205999999995
+      "id": "bed4",
+      "name": "Bedroom 4",
+      "area_m2": 13.081287
     },
     {
-      "id": "bedroom_2",
-      "name": "Bedroom 2",
-      "area_m2": 12.176499999999995
+      "id": "bed5",
+      "name": "Bedroom 5",
+      "area_m2": 12.245144
     },
     {
-      "id": "bathroom_1",
-      "name": "Bathroom 1",
-      "area_m2": 3.921995000000001
+      "id": "bath6",
+      "name": "Bathroom 6",
+      "area_m2": 3.8336689999999995
     },
     {
-      "id": "bathroom_2",
-      "name": "Bathroom 2",
-      "area_m2": 3.8196549999999987
+      "id": "bath7",
+      "name": "Bathroom 7",
+      "area_m2": 3.619168000000001
     },
     {
       "id": "balcony",
       "name": "Balcony",
-      "area_m2": 4.484445000000015
+      "area_m2": 4.569825000000002
     }
   ],
-  "floor_area_m2": 87.82772200000002,
+  "floor_area_m2": 86.82564300000001,
   "doors": 7,
   "windows": 3,
   "northDeg": 0,
@@ -61,5 +61,5 @@
     "errors": [],
     "warnings": []
   },
-  "bridge_error": "Error: Wall west_bathroom_1 is not entirely a room boundary; interior obstacles require an explicit supported representation"
+  "designer_rooms": 8
 }

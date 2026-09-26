@@ -1,7 +1,7 @@
 {
   "id": "b20-t11",
   "accepted": true,
-  "seconds": 0.870273042,
+  "seconds": 1.9564047500000001,
   "model_tokens": 0,
   "editor_accepted": true,
   "summary": true,
@@ -15,119 +15,41 @@
     "tolerance_m": 0.053,
     "adjustments": [
       {
-        "room_id": "hall",
-        "vertex": 0,
-        "before": [
-          5.405,
-          -4.894
-        ],
-        "after": [
-          5.4049000000000005,
-          -4.894
-        ],
-        "distance_m": 0.00009999999999976694
-      },
-      {
-        "room_id": "hall",
-        "vertex": 1,
-        "before": [
-          6.796,
-          -4.894
-        ],
-        "after": [
-          6.7958,
-          -4.894
-        ],
-        "distance_m": 0.00020000000000042206
-      },
-      {
-        "room_id": "hall",
-        "vertex": 2,
-        "before": [
-          6.796,
-          -7.377
-        ],
-        "after": [
-          6.7958,
-          -7.376700000000001
-        ],
-        "distance_m": 0.00036055512754531234
-      },
-      {
-        "room_id": "hall",
-        "vertex": 3,
-        "before": [
-          8.504,
-          -7.377
-        ],
-        "after": [
-          8.50355,
-          -7.3767000000000005
-        ],
-        "distance_m": 0.000540832691318338
-      },
-      {
-        "room_id": "hall",
-        "vertex": 4,
-        "before": [
-          8.504,
-          -8.785
-        ],
-        "after": [
-          8.50355,
-          -8.78515
-        ],
-        "distance_m": 0.00047434164902415146
-      },
-      {
-        "room_id": "hall",
-        "vertex": 5,
-        "before": [
-          5.405,
-          -8.785
-        ],
-        "after": [
-          5.4049000000000005,
-          -8.78515
-        ],
-        "distance_m": 0.0001802775637727793
-      },
-      {
         "room_id": "living",
         "vertex": 0,
         "before": [
-          2.817,
-          -0.194
+          2.623,
+          0
         ],
         "after": [
-          2.81695,
-          -0.1936500000000001
+          2.621434082025593,
+          0.018199999999999994
         ],
-        "distance_m": 0.000353553390593227
+        "distance_m": 0.018267241146450442
       },
       {
         "room_id": "living",
         "vertex": 1,
         "before": [
-          6.813,
-          -0.194
+          6.532,
+          0
         ],
         "after": [
-          6.813,
-          -0.19365
+          6.532,
+          0.018200000000000008
         ],
-        "distance_m": 0.00035000000000001696
+        "distance_m": 0.018200000000000008
       },
       {
         "room_id": "living",
         "vertex": 3,
         "before": [
-          6.796,
-          -4.349
+          6.585,
+          -4.155
         ],
         "after": [
-          6.7958,
-          -4.349
+          6.5847999999999995,
+          -4.155
         ],
         "distance_m": 0.00020000000000042206
       },
@@ -135,429 +57,398 @@
         "room_id": "living",
         "vertex": 4,
         "before": [
-          6.796,
-          -4.894
+          6.585,
+          -4.683
         ],
         "after": [
-          6.7958,
-          -4.894399999999999
+          6.5847999999999995,
+          -4.6759
         ],
-        "distance_m": 0.0004472135954993129
+        "distance_m": 0.007102816342831357
       },
       {
         "room_id": "living",
         "vertex": 5,
         "before": [
-          0.211,
-          -4.894
+          0,
+          -4.683
         ],
         "after": [
-          0.21124999999999972,
-          -4.894399999999999
+          -0.000600000000000378,
+          -4.6759
         ],
-        "distance_m": 0.00047169905660189267
+        "distance_m": 0.0071253070109288975
       },
       {
         "room_id": "living",
         "vertex": 6,
         "before": [
-          0.211,
-          -2.113
+          0,
+          -1.901
         ],
         "after": [
-          0.21125,
-          -2.11265
+          -0.0006000000000000033,
+          -1.8749207227530928
         ],
-        "distance_m": 0.0004301162633521904
+        "distance_m": 0.02608617836558376
       },
       {
         "room_id": "living",
         "vertex": 7,
         "before": [
-          2.218,
-          -2.113
+          1.989,
+          -1.901
         ],
         "after": [
-          2.218,
-          -2.11265
+          1.9903000000000002,
+          -1.8581952621325675
         ],
-        "distance_m": 0.0003500000000000725
+        "distance_m": 0.04282447412286127
       },
       {
         "room_id": "living",
         "vertex": 8,
         "before": [
-          2.218,
-          -2.799
+          1.989,
+          -2.588
         ],
         "after": [
-          2.218,
-          -2.79925
+          1.9903,
+          -2.5696000000000003
         ],
-        "distance_m": 0.00024999999999986144
+        "distance_m": 0.018445866745696458
       },
       {
         "room_id": "living",
         "vertex": 9,
         "before": [
-          2.817,
-          -2.799
+          2.606,
+          -2.588
         ],
         "after": [
-          2.817,
-          -2.79925
+          2.606,
+          -2.5696000000000003
         ],
-        "distance_m": 0.00024999999999986144
+        "distance_m": 0.01839999999999975
+      },
+      {
+        "room_id": "living",
+        "vertex": 11,
+        "before": [
+          2.887,
+          -2.289
+        ],
+        "after": [
+          2.8865000000000003,
+          -2.289
+        ],
+        "distance_m": 0.0004999999999997229
       },
       {
         "room_id": "living",
         "vertex": 12,
         "before": [
-          3.099,
-          -1.901
+          2.887,
+          -1.69
         ],
         "after": [
-          3.099,
-          -1.9013999999999998
+          2.8865000000000003,
+          -1.69
         ],
-        "distance_m": 0.0003999999999997339
+        "distance_m": 0.0004999999999997229
       },
       {
         "room_id": "living",
         "vertex": 13,
         "before": [
-          2.817,
-          -1.901
+          2.623,
+          -1.69
         ],
         "after": [
-          2.81695,
-          -1.9013999999999998
+          2.6056224064181457,
+          -1.69
         ],
-        "distance_m": 0.00040311288741470407
+        "distance_m": 0.017377593581854534
       },
       {
         "room_id": "kitchen",
         "vertex": 0,
         "before": [
-          6.813,
-          -0.194
+          6.532,
+          0
         ],
         "after": [
-          6.813,
-          -0.19364999999999988
+          6.532,
+          0.018200000000001104
         ],
-        "distance_m": 0.000350000000000128
+        "distance_m": 0.018200000000001104
       },
       {
         "room_id": "kitchen",
         "vertex": 1,
         "before": [
-          8.204,
-          -0.194
+          7.975,
+          0
         ],
         "after": [
-          8.20425,
-          -0.19365
+          7.975999999999999,
+          0.018200000000000008
         ],
-        "distance_m": 0.0004301162633518065
+        "distance_m": 0.01822745182410309
       },
       {
         "room_id": "kitchen",
         "vertex": 2,
         "before": [
-          8.204,
-          -1.901
+          7.975,
+          -1.69
         ],
         "after": [
-          8.20425,
-          -1.9014
+          7.975999999999999,
+          -1.69
         ],
-        "distance_m": 0.00047169905660248405
-      },
-      {
-        "room_id": "kitchen",
-        "vertex": 3,
-        "before": [
-          7.588,
-          -1.901
-        ],
-        "after": [
-          7.588,
-          -1.9013999999999998
-        ],
-        "distance_m": 0.0003999999999997339
-      },
-      {
-        "room_id": "kitchen",
-        "vertex": 5,
-        "before": [
-          8.504,
-          -2.5
-        ],
-        "after": [
-          8.50355,
-          -2.5
-        ],
-        "distance_m": 0.00044999999999895124
-      },
-      {
-        "room_id": "kitchen",
-        "vertex": 6,
-        "before": [
-          8.504,
-          -4.349
-        ],
-        "after": [
-          8.50355,
-          -4.348599999999999
-        ],
-        "distance_m": 0.0006020797289393918
+        "distance_m": 0.0009999999999994458
       },
       {
         "room_id": "kitchen",
         "vertex": 7,
         "before": [
-          6.813,
-          -4.349
+          8.292,
+          -2.588
         ],
         "after": [
-          6.813,
-          -4.348599999999999
+          8.293099999999999,
+          -2.588
         ],
-        "distance_m": 0.0004000000000008441
+        "distance_m": 0.0010999999999992127
+      },
+      {
+        "room_id": "kitchen",
+        "vertex": 8,
+        "before": [
+          8.292,
+          -4.137
+        ],
+        "after": [
+          8.293099999999999,
+          -4.1376
+        ],
+        "distance_m": 0.0012529964086136567
+      },
+      {
+        "room_id": "kitchen",
+        "vertex": 9,
+        "before": [
+          6.532,
+          -4.137
+        ],
+        "after": [
+          6.532,
+          -4.1376
+        ],
+        "distance_m": 0.000600000000000378
       },
       {
         "room_id": "bedroom",
         "vertex": 0,
         "before": [
-          0.211,
-          -5
+          0,
+          -4.806
         ],
         "after": [
-          0.21125,
-          -5
+          -0.0006000000000000033,
+          -4.7959
         ],
-        "distance_m": 0.0002500000000000002
+        "distance_m": 0.010117806086301957
       },
       {
         "room_id": "bedroom",
         "vertex": 1,
         "before": [
-          2.253,
-          -5
+          2.042,
+          -4.806
         ],
         "after": [
-          2.2535500000000006,
-          -5
+          2.0507,
+          -4.7959
         ],
-        "distance_m": 0.0005500000000004945
+        "distance_m": 0.013330416347586882
       },
       {
         "room_id": "bedroom",
         "vertex": 2,
         "before": [
-          2.253,
-          -5.792
+          2.042,
+          -5.581
         ],
         "after": [
-          2.25355,
-          -5.792
+          2.0507,
+          -5.581
         ],
-        "distance_m": 0.0005500000000000504
+        "distance_m": 0.008700000000000152
       },
       {
         "room_id": "bedroom",
         "vertex": 3,
         "before": [
-          2.553,
-          -5.792
+          2.359,
+          -5.581
         ],
         "after": [
-          2.55285,
-          -5.792
+          2.3507,
+          -5.581
         ],
-        "distance_m": 0.0001500000000000945
+        "distance_m": 0.008300000000000196
       },
       {
         "room_id": "bedroom",
         "vertex": 4,
         "before": [
-          2.553,
-          -5
+          2.359,
+          -4.806
         ],
         "after": [
-          2.55285,
-          -5
+          2.3507,
+          -4.7959
         ],
-        "distance_m": 0.0001500000000000945
+        "distance_m": 0.013072872675889266
       },
       {
         "room_id": "bedroom",
         "vertex": 5,
         "before": [
-          5.299,
-          -5
+          5.088,
+          -4.806
         ],
         "after": [
-          5.2993,
-          -5
+          5.085800000000001,
+          -4.7959
         ],
-        "distance_m": 0.0002999999999993008
+        "distance_m": 0.010336827366266977
       },
       {
         "room_id": "bedroom",
         "vertex": 6,
         "before": [
-          5.299,
-          -8.785
+          5.088,
+          -8.591
         ],
         "after": [
-          5.2993,
-          -8.78515
+          5.0858,
+          -8.5746
         ],
-        "distance_m": 0.0003354101966241868
+        "distance_m": 0.01654690303349756
       },
       {
         "room_id": "bedroom",
         "vertex": 7,
         "before": [
-          0.211,
-          -8.785
+          0,
+          -8.574
         ],
         "after": [
-          0.21124999999999883,
-          -8.78515
+          -0.0006000000000012662,
+          -8.5746
         ],
-        "distance_m": 0.00029154759474108577
+        "distance_m": 0.0008485281374250197
       },
       {
-        "room_id": "bathroom",
+        "room_id": "bath",
         "vertex": 0,
         "before": [
-          6.901,
-          -5.053
+          6.69,
+          -4.841
         ],
         "after": [
-          6.901400000000001,
-          -5.0528
+          6.6898,
+          -4.841200000000001
         ],
-        "distance_m": 0.0004472135955005045
+        "distance_m": 0.0002828427124752159
       },
       {
-        "room_id": "bathroom",
+        "room_id": "bath",
         "vertex": 1,
         "before": [
-          8.504,
-          -5.053
+          8.292,
+          -4.841
         ],
         "after": [
-          8.50355,
-          -5.0528
+          8.293099999999999,
+          -4.841200000000001
         ],
-        "distance_m": 0.0004924428900886576
+        "distance_m": 0.0011180339887491956
       },
       {
-        "room_id": "bathroom",
+        "room_id": "bath",
         "vertex": 2,
         "before": [
-          8.504,
-          -7.271
+          8.292,
+          -7.077
         ],
         "after": [
-          8.50355,
-          -7.2711
+          8.293099999999999,
+          -7.0778
         ],
-        "distance_m": 0.00046097722286357005
+        "distance_m": 0.001360147050872856
       },
       {
-        "room_id": "bathroom",
+        "room_id": "bath",
         "vertex": 3,
         "before": [
-          6.901,
-          -7.271
+          6.69,
+          -7.077
         ],
         "after": [
-          6.901400000000001,
-          -7.2711
+          6.6898,
+          -7.0778
         ],
-        "distance_m": 0.00041231056256252845
-      },
-      {
-        "room_id": "balcony",
-        "vertex": 0,
-        "before": [
-          0.211,
-          -0.194
-        ],
-        "after": [
-          0.21125,
-          -0.19364999999999988
-        ],
-        "distance_m": 0.0004301162633522356
+        "distance_m": 0.000824621125123549
       },
       {
         "room_id": "balcony",
         "vertex": 1,
         "before": [
-          2.518,
-          -0.194
+          2.324,
+          0
         ],
         "after": [
-          2.51765,
-          -0.19365
+          2.341253621771609,
+          0
         ],
-        "distance_m": 0.0004949747468303325
+        "distance_m": 0.01725362177160905
       },
       {
         "room_id": "balcony",
         "vertex": 2,
         "before": [
-          2.518,
-          -1.901
+          2.324,
+          -1.637
         ],
         "after": [
-          2.51765,
-          -1.90135
+          2.3261009973895748,
+          -1.6369999999999998
         ],
-        "distance_m": 0.0004949747468303718
-      },
-      {
-        "room_id": "balcony",
-        "vertex": 3,
-        "before": [
-          0.211,
-          -1.901
-        ],
-        "after": [
-          0.21125000000000016,
-          -1.90135
-        ],
-        "distance_m": 0.0004301162633522872
+        "distance_m": 0.002100997389574921
       }
     ],
     "warnings": [
-      "Opening win_kitchen_north spans rooms living, kitchen; sunlight remains the full, unoccluded physical aperture."
+      "Room hall: snapping skipped: Room 4 has a degenerate or self-intersecting floor polygon.",
+      "Opening kitchen_north_window spans rooms living, kitchen; sunlight remains the full, unoccluded physical aperture."
     ],
     "obstacle_wall_ids": [
-      "w01_north_facade",
-      "w03_east_column",
-      "w04_east_facade",
-      "w05_south_facade",
-      "w06_west_facade",
-      "w07_balcony_living",
-      "w09_inner_column_upper",
-      "w13_wardrobe_return",
-      "w18_service_void_divider",
-      "w20_balcony_north_parapet"
+      "east_lower",
+      "south",
+      "bedroom_pier",
+      "balcony_south"
     ],
     "opening_room_ids": {
-      "win_kitchen_north": [
+      "kitchen_north_window": [
         "living",
         "kitchen"
       ]
     }
   },
-  "fixed_obstacles": 12,
+  "fixed_obstacles": 5,
   "placement": {
     "room_id": "living",
     "op": {
@@ -575,8 +466,8 @@
         "price": 420,
         "room_id": "living",
         "pos": [
-          3.9233333682,
-          -2.8203067699
+          3.6731781329,
+          -2.6104347581
         ],
         "rot": 0,
         "keep": false
@@ -599,7 +490,7 @@
           0
         ],
         "location_unknown": true,
-        "message": "Layout checks use room-face corrections up to 53 mm and retain 10 walls as fixed structure. Original editor geometry is retained; dimensions need on-site confirmation. Opening win_kitchen_north spans rooms living, kitchen; sunlight remains the full, unoccluded physical aperture."
+        "message": "Layout checks use room-face corrections up to 53 mm and retain 4 walls as fixed structure. Original editor geometry is retained; dimensions need on-site confirmation. Room hall: snapping skipped: Room 4 has a degenerate or self-intersecting floor polygon. Opening kitchen_north_window spans rooms living, kitchen; sunlight remains the full, unoccluded physical aperture."
       }
     ]
   },

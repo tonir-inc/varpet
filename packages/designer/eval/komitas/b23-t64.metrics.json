@@ -1,80 +1,75 @@
 {
   "id": "b23-t64",
-  "architect_accepted": false,
-  "editor_accepted": false,
-  "bridge_accepted": false,
-  "accepted": false,
-  "architect_error": "RuntimeError: The architect could not produce a checked structure (faults left). Files: /var/folders/gm/0bvd7yfn75398h953rj6qh0c0000gn/T/varpet-komitas-9jkq7zpw/b23-t64/runs/architect-20260926-155605-916",
+  "architect_accepted": true,
+  "editor_accepted": true,
+  "bridge_accepted": true,
+  "accepted": true,
   "rooms": [
     {
       "id": "hall",
       "name": "Entrance hall",
-      "area_m2": 21.276679000000023
+      "area_m2": 20.74345399999999
     },
     {
       "id": "living",
       "name": "Living room",
-      "area_m2": 24.381623
+      "area_m2": 24.95169600000001
     },
     {
       "id": "kitchen",
       "name": "Kitchen",
-      "area_m2": 10.548000000000009
+      "area_m2": 10.462643000000002
     },
     {
-      "id": "bedroom_4",
-      "name": "Bedroom 4",
-      "area_m2": 16.00898300000002
+      "id": "bed1",
+      "name": "Bedroom 1",
+      "area_m2": 16.01140799999999
     },
     {
-      "id": "bedroom_5",
-      "name": "Bedroom 5",
-      "area_m2": 12.419770999999997
+      "id": "bed2",
+      "name": "Bedroom 2",
+      "area_m2": 12.717895999999996
     },
     {
-      "id": "bedroom_6",
-      "name": "Bedroom 6",
-      "area_m2": 13.807961999999996
+      "id": "bed3",
+      "name": "Bedroom 3",
+      "area_m2": 13.978296000000004
     },
     {
-      "id": "bathroom_7",
-      "name": "Bathroom 7",
-      "area_m2": 3.134529999999998
+      "id": "bath1",
+      "name": "Bathroom 1",
+      "area_m2": 2.9995899999999978
     },
     {
-      "id": "bathroom_8",
-      "name": "WC 8",
-      "area_m2": 2.2491310000000055
+      "id": "bath2",
+      "name": "Bathroom 2",
+      "area_m2": 2.1865619999999915
     },
     {
-      "id": "balcony_9",
-      "name": "Balcony 9",
-      "area_m2": 4.417581
+      "id": "balcony1",
+      "name": "Balcony 1",
+      "area_m2": 4.474785000000001
     },
     {
-      "id": "balcony_10",
-      "name": "Balcony 10",
-      "area_m2": 3.8420949999999987
+      "id": "balcony2",
+      "name": "Balcony 2",
+      "area_m2": 3.6801830000000018
     }
   ],
-  "floor_area_m2": 112.08635500000005,
+  "floor_area_m2": 112.20651299999997,
   "doors": 9,
   "windows": 5,
   "northDeg": 0,
   "editor_result": {
-    "ok": false,
-    "errors": [
-      "Room 1 needs 3–32 finite polygon points within ±100 m."
-    ],
+    "ok": true,
+    "errors": [],
     "warnings": [],
-    "revision": 0
+    "revision": 1
   },
   "validation": {
-    "ok": false,
-    "errors": [
-      "Room 1 needs 3–32 finite polygon points within ±100 m."
-    ],
+    "ok": true,
+    "errors": [],
     "warnings": []
   },
-  "bridge_error": "Error: Invalid editor scene: Room 1 needs 3–32 finite polygon points within ±100 m."
+  "designer_rooms": 10
 }
