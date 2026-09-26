@@ -73,6 +73,8 @@ def main():
  stamp=datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ');output=HERE/'acceptance-runs'/stamp;output.mkdir(parents=True,exist_ok=False)
  manifest={'started_at':datetime.now(timezone.utc).isoformat(),'source':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),'runs':args.runs,'tier1_runs':args.tier1_runs or args.runs,'tier1_only':args.tier1_only,'flats':[args.flat,'avani'],'editor_port':args.editor_port,'service_port':args.service_port}
  (output/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
+ signal.signal(signal.SIGTERM,lambda *_:watch.STOP.set())
+ signal.signal(signal.SIGINT,lambda *_:watch.STOP.set())
  services=[];logs=[];temporary=tempfile.TemporaryDirectory(prefix='varpet-acceptance-')
  sdk=os.environ.get('VARPET_ACCEPTANCE_PYTHON','/tmp/varpet-designer-sdk/bin/python')
  env={**os.environ,'VARPET_DESIGNER_FAST_PATH':'1','VARPET_CATALOG_URL':'http://localhost:8765/mcp','VITE_DESIGNER_URL':f'http://127.0.0.1:{args.service_port}','VARPET_DATA_DIR':temporary.name+'/accounts','VARPET_SHARES_DIR':temporary.name+'/shares'}
@@ -97,7 +99,9 @@ def main():
    for repeat in range(1,manifest['tier1_runs']+1):
     if watch.STOP.is_set():break
     code=job(flat,repeat)
-    if code:print(json.dumps({'driver_exit':code,'flat':flat,'repeat':repeat}),flush=True)
+    if code:
+     print(json.dumps({'driver_exit':code,'flat':flat,'repeat':repeat}),flush=True)
+     watch.STOP.set();break
   with ThreadPoolExecutor(max_workers=args.jobs) as pool:
    for future in as_completed([pool.submit(per_flat,flat) for flat in manifest['flats']]):future.result();write_report(output,manifest)
  finally:
@@ -109,6 +113,6 @@ def main():
    except subprocess.TimeoutExpired:watch.terminate_group(service)
   for log in logs:log.close()
   temporary.cleanup();rows=write_report(output,manifest)
- print(json.dumps({'output':str(output),'passed':sum(r.get('pass',False) for r in rows),'total':len(rows),'usage_limit':watch.STOP.is_set()}),flush=True)
+ print(json.dumps({'output':str(output),'passed':sum(r.get('pass',False) for r in rows),'total':len(rows),'batch_stopped':watch.STOP.is_set()}),flush=True)
  if watch.STOP.is_set() or not all(r.get('pass',False) for r in rows):raise SystemExit(1)
 if __name__=='__main__':main()

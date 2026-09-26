@@ -49,11 +49,13 @@ async def main(args):
    await page.screenshot(path=str(out/(name+'.png')))
    return {'screenshot':str((out/(name+'.png')).relative_to(HERE)),'pending_models':sorted(pending),'page_errors':list(errors)}
   async def import_scene(scene):
+   previous=await export('pre-import')
+   expected=await page.evaluate('async ({scene,previous}) => {const {normalizeWallJunctions}=await import("/src/core/wall-junctions.ts");return normalizeWallJunctions(scene,previous);}',{'scene':scene,'previous':previous})
    await page.locator('#file-input').set_input_files({'name':'acceptance-state.json','mimeType':'application/json','buffer':json.dumps(scene).encode()})
    await page.wait_for_function('document.querySelector("#file-input").value === ""')
    # Export is the observable source of truth; import must really replace the store.
    got=await export('import-check')
-   if got!=scene:raise RuntimeError('Editor import did not preserve the requested scene')
+   if got!=expected:raise RuntimeError('Editor import differs from its normalised scene contract')
    await page.locator('.designer-new').click()
   def persist():save(out/'run.json',{'flat':args.flat,'repeat':args.repeat,'rows':rows,'catalog':list(assets.values()),'products':list(products.values())})
   async def request(key,text,tier,apply=True,prerequisite=None):
@@ -106,7 +108,7 @@ async def main(args):
    row.update(result);row.update(capture);row.update(seconds=seconds,tokens=grade.tokens(telemetry),outcome=reply.get('type'),editor_accepted=accepted,text=ui_text,reply=reply,telemetry=telemetry)
    rows.append(row);persist();print(json.dumps({'flat':args.flat,'key':key,'pass':row['pass'],'seconds':round(seconds,3),'tokens':row['tokens'],'failures':row['failures']}),flush=True)
    if key in ('living','cozier'):
-    rows.append({'key':key+'-apply','tier':1,'flat':args.flat,'repeat':args.repeat,'pass':accepted is True,'failures':[] if accepted else ['no_proposal_applied'],'seconds':row.get('apply_seconds',0),'tokens':0,'outcome':'apply','editor_accepted':accepted,**capture});persist()
+    rows.append({'key':key+'-apply','tier':1,'flat':args.flat,'repeat':args.repeat,'pass':accepted is True,'failures':[] if accepted else ['no_proposal_applied'],'seconds':row.get('apply_seconds'),'tokens':0,'outcome':'apply','editor_accepted':accepted,**capture});persist()
    usage_limited=bool((telemetry or {}).get('usage_limited')) or 'usage limit' in str(reply).lower()
    if usage_limited:raise RuntimeError('USAGE LIMIT: stop batch')
    return after
