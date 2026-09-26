@@ -2,6 +2,7 @@
 # Deploy the catalog MCP service to the team VM. Run from catalog/: ./deploy/deploy.sh
 # Needs VARPET_DB_URL (the tunnel URL; only the password is reused) and SSH access to the VM.
 set -euo pipefail
+cd "$(dirname "$0")/.."  # rsync mirrors ./ onto the VM: always the catalog/ dir, wherever this is run from
 HOST=${VARPET_SSH:-sergey@152.53.158.86}
 KEY=${VARPET_SSH_KEY:-$HOME/.ssh/varpet_ed25519}
 TS_IP=${VARPET_TS_IP:-100.107.246.46}
