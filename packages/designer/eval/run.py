@@ -210,7 +210,7 @@ def main():
     parser.add_argument("--without-place", action="store_true", help="Withhold place; allow coordinate generation")
     parser.add_argument("--speed-profile", choices=('without-place', 'one-batch'), help="Run only the six rearranges; preserve the original report/latest pointer")
     parser.add_argument("--effort", choices=('low', 'medium'), default='medium')
-    parser.add_argument("--context", choices=('full', 'trimmed', 'compact'), default='full')
+    parser.add_argument("--context", choices=('full', 'trimmed', 'compact', 'compact-base'), default='full')
     parser.add_argument("--round-cap", type=int, help="Hard observed model-round limit; defaults to 8 for one-batch")
     parser.add_argument("--concurrency", type=int, default=4, choices=range(1, 5))
     parser.add_argument("--idle-timeout", type=float, default=180)

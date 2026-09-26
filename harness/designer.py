@@ -333,7 +333,7 @@ def sdk_worker(job_path: Path) -> int:
         raise ValueError("Designer effort must be low or medium")
     runtime = job["runtime"]
     config = build_config(Path(runtime["scene"]))
-    from designer_profiles import TurnGuard, configure, prompt as profile_prompt
+    from designer_profiles import TurnGuard, configure, prompt as profile_prompt, base_instructions
     profile = job.get("profile", {})
     placement, context = profile.get("placement", "relations"), profile.get("context", "full")
     config = configure(config, placement, effort, context)
@@ -354,6 +354,8 @@ def sdk_worker(job_path: Path) -> int:
         state_path = Path(runtime["state"])
         options = dict(model=MODEL, approval_mode=ApprovalMode.deny_all, sandbox=Sandbox.read_only,
                        cwd=runtime["workspace"], developer_instructions=instructions)
+        if base_instructions(context) is not None:
+            options["base_instructions"] = base_instructions(context)
         if state_path.exists():
             saved = json.loads(state_path.read_text())
             thread = codex.thread_resume(saved["thread_id"], **options)

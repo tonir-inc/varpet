@@ -150,6 +150,16 @@ class SpeedProfilesTests(unittest.TestCase):
         self.assertEqual(record['tools'], ['propose','set_intent'])
         server.model_dump.assert_called_once_with(mode='json', by_alias=True)
 
+    def test_compact_base_replaces_coding_context_but_retains_skill_and_gates(self):
+        profiles = self.profiles()
+        config = profiles.configure(designer.build_config(Path('/scene.json')), 'without-place', 'low', 'compact-base')
+        self.assertNotIn('place', config['mcp_servers']['varpet-designer']['enabled_tools'])
+        self.assertIn('propose', config['mcp_servers']['varpet-designer']['enabled_tools'])
+        self.assertIn(designer.SKILL.read_text(), profiles.prompt('without-place', 'compact-base', designer.static_prefix()))
+        self.assertLess(len(profiles.base_instructions('compact-base')), 500)
+        self.assertIsNone(profiles.base_instructions('full'))
+        self.assertIsNone(profiles.base_instructions('compact'))
+
 
 if __name__ == '__main__':
     unittest.main()
