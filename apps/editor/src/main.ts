@@ -16,10 +16,24 @@ import { normalizeWallJunctions } from './core/wall-junctions';
 import { expandFurnitureSelection, furnitureMembers } from './core/grouping';
 import { validateScene } from './core/validation';
 import { OPENING_MOVE_SNAP } from './core/opening-move';
+<<<<<<< Updated upstream
 import { STORAGE_KEY, parseScene, saveLocal, serializeScene } from './core/persistence';
 import { createDesignerAdapter, structureAdapter as mockStructureAdapter } from './adapters/mock';
 import { createArchitectHttpAdapter } from './adapters/architect-http';
 import { createReconstructionProposal } from './core/reconstruction-proposal';
+||||||| Stash base
+import { loadLocal, parseScene, saveLocal, serializeScene } from './core/persistence';
+import { designerAdapter, structureAdapter as mockStructureAdapter } from './adapters/mock';
+import { loadEditorCatalog } from './adapters/catalog-bootstrap';
+import { CATALOG_CURRENCY } from './adapters/catalog-http';
+import { createArchitectHttpAdapter } from './adapters/architect-http';
+=======
+import { loadLocal, parseScene, saveLocal, serializeScene } from './core/persistence';
+import { designerAdapter, structureAdapter as mockStructureAdapter } from './adapters/mock';
+import { loadEditorCatalog } from './adapters/catalog-bootstrap';
+import { CATALOG_CURRENCY } from './adapters/catalog-http';
+import { createArchitectHttpAdapter, withBuiltPieces } from './adapters/architect-http';
+>>>>>>> Stashed changes
 import { createViewport } from './render/viewport';
 import { createFloorPlan } from './render/floor-plan';
 import { createCatalogPreviews } from './render/catalog-previews';
@@ -107,6 +121,16 @@ app.innerHTML = `
 const $ = <T extends HTMLElement = HTMLElement>(selector: string) => document.querySelector<T>(selector)!;
 const escape = (s: string) => s.replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]!));
 const uid = () => crypto.randomUUID();
+<<<<<<< Updated upstream
+||||||| Stash base
+const catalog: CatalogAsset[] = await loadEditorCatalog(import.meta.env.VITE_CATALOG_ASSETS_URL);
+const store = new EditorStore(demoScene, catalog);
+const catalogPrice = (asset: CatalogAsset) => localCatalog.some(local => local.id === asset.id) ? `$${asset.price.toLocaleString()}` : `${asset.price.toLocaleString()} ֏`;
+=======
+const catalog: CatalogAsset[] = await withBuiltPieces(await loadEditorCatalog(import.meta.env.VITE_CATALOG_ASSETS_URL), import.meta.env.VITE_ARCHITECT_URL, import.meta.env.VITE_ARCHITECT_RUN);
+const store = new EditorStore(demoScene, catalog);
+const catalogPrice = (asset: CatalogAsset) => localCatalog.some(local => local.id === asset.id) ? `$${asset.price.toLocaleString()}` : `${asset.price.toLocaleString()} ֏`;
+>>>>>>> Stashed changes
 const architectLive = Boolean(import.meta.env.VITE_ARCHITECT_URL);
 const structureAdapter = architectLive ? createArchitectHttpAdapter({ onProgress: message => notify(message) }) : mockStructureAdapter;
 let catalog: CatalogAsset[] = [];

@@ -1,4 +1,4 @@
-import { createArchitectHttpAdapter, splitPlan } from './architect-http';
+import { createArchitectHttpAdapter, splitPlan, withBuiltPieces } from './architect-http';
 import { structureAdapter as mock } from './mock';
 import { demoScene, localCatalog } from '../core/demo';
 import { EditorStore } from '../core/store';
@@ -42,4 +42,14 @@ const failing = createArchitectHttpAdapter({ pickFiles: async () => [file('plan.
 let error = '';
 try { await failing.reconstruct(); } catch (e) { error = String(e); }
 assert(error.includes('faults left'), 'service errors surface as messages');
+const built = { id: 'built-demo-sofa', name: 'Sofa', category: 'Built from your photos', kind: 'sofa' as const, dimensions: [2.2, 0.85, 0.95] as [number, number, number], color: '#e0ddd5', price: 0, source: { type: 'gltf' as const, url: 'http://architect.test/files/demo/sofa/piece.glb' } };
+const piecesFetch: typeof fetch = async url => new Response(JSON.stringify(String(url).endsWith('/runs') ? [{ run: 'demo', pieces: 1 }] : [built]));
+const merged = await withBuiltPieces(localCatalog, 'http://architect.test', undefined, piecesFetch);
+assert(merged.length === localCatalog.length + 1 && merged.at(-1)?.id === built.id, 'built pieces join the start-up catalog');
+const placing = new EditorStore({ ...structuredClone(demoScene), objects: [] }, merged);
+const placed = placing.execute({ id: 'place', label: 'Place built sofa', source: 'human', baseRevision: placing.revision, operations: [{ type: 'add', object: { id: 'sofa-1', name: 'Built sofa', assetId: built.id, position: [-2.6, 0, -2.2], rotation: 0, scale: [1, 1, 1] } }] }, true);
+assert(placed.ok, `a built piece can be placed: ${placed.errors.join(' ')}`);
+const down = await withBuiltPieces(localCatalog, 'http://architect.test', undefined, async () => { throw new TypeError('offline'); });
+assert(down === localCatalog, 'a dead service keeps the base catalog');
+assert(await withBuiltPieces(localCatalog, undefined) === localCatalog, 'no architect URL, no change');
 console.log('architect adapter check passed');

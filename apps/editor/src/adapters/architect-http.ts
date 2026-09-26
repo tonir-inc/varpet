@@ -1,5 +1,7 @@
 /// <reference types="vite/client" />
-import type {Room,StructureAdapter,Wall} from '../contracts';
+import type {CatalogAsset,Room,StructureAdapter,Wall} from '../contracts';
+import {demoScene} from '../core/demo';
+import {validateScene} from '../core/validation';
 
 /**
  * The architect service (harness: `uv run varpet-harness serve`) reads a developer plan and a few photos
@@ -43,6 +45,26 @@ function structureFrom(line:Record<string,unknown>):{rooms:Room[];walls:Wall[];n
   return {rooms:rooms as Room[],walls:walls as Wall[],notes:Array.isArray(notes)?notes.map(String):[]};
 }
 
+/**
+ * Pieces the architect built from photos, as catalog assets with GLB sources (newest run unless named).
+ * Display only for now: EditorStore validates placements against the catalog it was created with.
+ */
+export async function builtPieces(options:{url?:string;run?:string;fetch?:typeof globalThis.fetch}={}):Promise<{run:string;assets:CatalogAsset[]}>{
+  const base=(options.url??import.meta.env.VITE_ARCHITECT_URL??'http://127.0.0.1:8788').replace(/\/$/,'');
+  const request=options.fetch??globalThis.fetch.bind(globalThis);
+  let run=options.run;
+  if(!run){
+    const runs=await (await request(`${base}/runs`)).json() as {run:string;pieces:number}[];
+    if(!Array.isArray(runs)||!runs.length)throw new ArchitectServiceError('The architect has not built any pieces yet.');
+    run=runs[0]!.run;
+  }
+  const response=await request(`${base}/pieces?run=${encodeURIComponent(run)}`);
+  if(!response.ok)throw new ArchitectServiceError(`No built pieces for ${run} (HTTP ${response.status}).`);
+  const assets=await response.json() as CatalogAsset[];
+  if(!Array.isArray(assets))throw new ArchitectServiceError('The architect returned no piece list.');
+  return {run,assets};
+}
+
 export function createArchitectHttpAdapter(options:ArchitectHttpOptions={}):StructureAdapter{
   const base=(options.url??import.meta.env.VITE_ARCHITECT_URL??'http://127.0.0.1:8788').replace(/\/$/,'');
   const request=options.fetch??globalThis.fetch.bind(globalThis);
@@ -71,4 +93,22 @@ export function createArchitectHttpAdapter(options:ArchitectHttpOptions={}):Stru
       }
     },
   };
+}
+
+/**
+ * Start-up merge: the catalog is fixed for the session (the store validates placements against it),
+ * so built pieces join it here. Any failure keeps the base catalog and warns in the console.
+ */
+export async function withBuiltPieces(base:CatalogAsset[],url?:string,run?:string,fetcher?:typeof globalThis.fetch):Promise<CatalogAsset[]>{
+  if(!url?.trim())return base;
+  try{
+    const {assets}=await builtPieces({url,run:run?.trim()||undefined,fetch:fetcher});
+    const merged=[...base.filter(asset=>!assets.some(built=>built.id===asset.id)),...assets];
+    const checked=validateScene(demoScene,merged);
+    if(!checked.ok)throw new Error(checked.errors.join(' '));
+    return merged;
+  }catch(error){
+    console.warn('Built pieces unavailable, using the catalog without them',error);
+    return base;
+  }
 }
