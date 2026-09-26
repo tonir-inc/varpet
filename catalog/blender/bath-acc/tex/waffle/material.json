@@ -1,0 +1,10 @@
+{
+ "id": "waffle",
+ "family": "fabric",
+ "tile_m": 0.04,
+ "grain": false,
+ "default_color": "#f1ece3",
+ "metal": 0.0,
+ "source": "procedural",
+ "license": "CC0"
+}

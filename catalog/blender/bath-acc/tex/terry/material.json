@@ -1,0 +1,10 @@
+{
+ "id": "terry",
+ "family": "fabric",
+ "tile_m": 0.05,
+ "grain": false,
+ "default_color": "#e8e2d8",
+ "metal": 0.0,
+ "source": "procedural",
+ "license": "CC0"
+}
