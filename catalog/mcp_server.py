@@ -172,11 +172,12 @@ CATEGORY = {"sofa": "Living", "chair": "Living", "table": "Living", "bed": "Bedr
             "shelf": "Storage", "lamp": "Lighting", "rug": "Textiles", "desk": "Office",
             "dresser": "Bedroom", "wardrobe": "Bedroom", "nightstand": "Bedroom",
             "stool": "Living", "ottoman": "Living", "bench": "Living"}
+NATIVE_EDITOR_KINDS = {"desk", "wardrobe", "dresser"}
 
 
 def editor_kind(kind: str) -> str:
     """Map catalog subtypes only at the editor boundary; search keeps the real kind."""
-    return EDITOR_KIND_OF.get(kind, kind)
+    return kind if kind in NATIVE_EDITOR_KINDS else EDITOR_KIND_OF.get(kind, kind)
 
 
 def _cors(request, response):
@@ -271,15 +272,18 @@ except ImportError:
 
 
 def _preview_image(item_id, preview_url, photo_url, deadline):
-    """Local rendered preview when the service has it, else the shop photo over HTTP."""
+    """Return the image and its source: render, photo, or missing."""
     import io
     import urllib.request
     from PIL import Image as PILImage
-    asin = item_id.split(":", 1)[1]
+    asin = item_id.split(":", 1)[-1]
     local = os.path.join(MODELS_DIR, "previews", f"{asin}.webp")
     if os.path.isfile(local):
-        return PILImage.open(local).convert("RGB")
-    for url in (preview_url, photo_url):
+        try:
+            return PILImage.open(local).convert("RGB"), "render"
+        except OSError:
+            pass
+    for url, source in ((preview_url, "render"), (photo_url, "photo")):
         remaining = deadline - monotonic()
         if remaining <= 0:
             break
@@ -289,25 +293,25 @@ def _preview_image(item_id, preview_url, photo_url, deadline):
                     data = response.read()
                 if monotonic() >= deadline:
                     break
-                return PILImage.open(io.BytesIO(data)).convert("RGB")
+                return PILImage.open(io.BytesIO(data)).convert("RGB"), source
             except Exception:
                 continue
-    return None
+    return None, "missing"
 
 
 @server.tool()
 def show_candidates(item_ids: list[str], columns: int = 4) -> list:
     """Look at candidates before choosing: one image with a numbered tile per item (a render of the exact 3D
-    model that will be placed; the shop photo if no render exists), plus a legend: number, id, name, size, price.
+    model that will be placed; the shop photo if no render exists), plus a legend: number, id, name, size, price,
+    and tile source (render, photo, missing). Unknown ids keep their numbered empty tile.
     Use it to judge style and look against the request and the room (for example, not Scandinavian enough);
     pass at most 16 ids. The image is for your judgement only; it is not shown to the customer."""
     from PIL import Image as PILImage, ImageDraw
     from mcp.server.mcpserver import Image
-    ids = list(dict.fromkeys(item_ids))[:16]
+    ids = item_ids[:16]
     with _conn() as c:
         rows = {r[0]: r for r in c.execute(
             "select id, name, kind, size_m, price, preview_url, main_image_url from item where id = any(%s)", (ids,))}
-    ids = [i for i in ids if i in rows]
     if not ids:
         return ["No known item ids."]
     tile, cols = 256, max(1, min(columns, len(ids)))
@@ -316,16 +320,21 @@ def show_candidates(item_ids: list[str], columns: int = 4) -> list:
     legend = []
     deadline = monotonic() + 8
     for n, iid in enumerate(ids, 1):
-        _, name, kind, size, price, preview, photo = rows[iid]
-        img = _preview_image(iid, preview, photo, deadline) if monotonic() < deadline else None
+        img, source = None, "missing"
+        if iid in rows:
+            _, name, kind, size, price, preview, photo = rows[iid]
+            if monotonic() < deadline:
+                img, source = _preview_image(iid, preview, photo, deadline)
+            w, d, h = size
+            legend.append(f"{n}. {iid} | {kind} | {(name or '')[:60]} | {w:.2f} x {d:.2f} x {h:.2f} m | {price} AMD | {source}")
+        else:
+            legend.append(f"{n}. {iid} | unknown to the catalog | missing")
         x, y = ((n - 1) % cols) * tile, ((n - 1) // cols) * tile
         if img is not None:
             img.thumbnail((tile - 8, tile - 8))
             sheet.paste(img, (x + (tile - img.width) // 2, y + (tile - img.height) // 2))
         draw.rectangle([x + 4, y + 4, x + 34, y + 30], fill="black")
         draw.text((x + 10, y + 9), str(n), fill="white")
-        w, d, h = size
-        legend.append(f"{n}. {iid} | {kind} | {(name or '')[:60]} | {w:.2f} x {d:.2f} x {h:.2f} m | {price} AMD")
     buf = __import__("io").BytesIO()
     sheet.save(buf, "JPEG", quality=80)
     return ["\n".join(legend), Image(data=buf.getvalue(), format="jpeg")]

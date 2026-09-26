@@ -70,7 +70,7 @@ class Candidates:
 
 def row(iid, name, rank, price=100):
     return (iid, name, 'sofa', [2, 1, 1], 'confirmed', price, [], [], [], [],
-            None, None, None, {}, {}, rank)
+            None, None, None, {}, {}, rank, "AMD", "abo", "mock")
 
 
 def test_search_limits_families_after_filtering_and_can_disable_collapse():

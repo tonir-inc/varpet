@@ -182,14 +182,15 @@ def search(conn, q: Query):
     rank = f"ts_rank_cd(fts, {tsq}, 32)" if q.text else "0"
     rows = conn.execute(
         f"""select id, name, kind, coalesce(fit_size_m, size_m), size_status, price, color_std, colors_img, styles, materials,
-                   main_image_url, preview_url, glb_url, size_evidence, tags, {rank}
+                   main_image_url, preview_url, glb_url, size_evidence, tags, {rank}, currency, source, price_source
             from item where {' and '.join(where)}""",
         ([q.text] if q.text else []) + args,
     ).fetchall()
 
     passed, misses = [], []
     for r in rows:
-        (iid, name, kind, size, status, price, cstd, cimg, styles, mats, img, preview, glb, ev, tags, fts) = r
+        (iid, name, kind, size, status, price, cstd, cimg, styles, mats, img, preview, glb, ev, tags, fts,
+         currency, source, price_source) = r
         astra = {k: _words(v) for k, v in ((tags or {}).get("astra") or {}).items() if k in ("main_color", "other_colors", "materials", "style")}
         fail = []
         margins = fits(size, q.fit_box, q.allow_rotate) if q.fit_box else None
@@ -198,6 +199,7 @@ def search(conn, q: Query):
         if q.price_max is not None and (price is None or price > q.price_max):
             fail.append({"price_over": (price or 0) - q.price_max})
         rec = {"id": iid, "name": name, "kind": kind, "size_m": size, "size_status": status, "price": price,
+               "currency": currency, "source": source, "price_source": price_source, "size_evidence": ev,
                "colors_listing": listing_palette(cstd), "colors_image": [c["name"] for c in cimg or []],
                "styles": styles, "materials": mats, "image": img, "preview": preview, "glb_url": glb,
                "colors_astra": (astra.get("main_color") or []) + (astra.get("other_colors") or []),

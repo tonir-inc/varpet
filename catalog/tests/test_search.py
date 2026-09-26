@@ -119,7 +119,8 @@ class FakeConn:
 
 
 def _row(iid, price=1000, size=(1.0, 0.5, 0.8)):
-    return (iid, iid, "chair", list(size), "confirmed", price, [], [], [], [], None, None, f"https://x/{iid}.glb", {}, {}, 0.0)
+    return (iid, iid, "chair", list(size), "confirmed", price, [], [], [], [], None, None, f"https://x/{iid}.glb", {}, {}, 0.0,
+            "AMD", "abo", "mock")
 
 
 def test_search_pages_with_offset_in_a_stable_order():
@@ -146,3 +147,23 @@ def test_all_scope_has_no_placeable_filter():
     conn = FakeConn([_row("abo:a")])
     search(conn, Query(scope="all"))
     assert PLACEABLE not in conn.sql[0]
+
+
+@pytest.mark.parametrize("price_max, key", [(2000, "results"), (0, "nearest_misses")])
+@pytest.mark.parametrize("evidence", [{"wd_swapped": True, "from": "shop sheet"}, None])
+def test_search_preserves_provenance(price_max, key, evidence):
+    from search import Query, search
+    row = list(_row("shop:a"))
+    row[13] = evidence
+    row[-3:] = ["EUR", "shop", "listing"]
+    conn = FakeConn([tuple(row)])
+    result = search(conn, Query(price_max=price_max))[key][0]
+    assert {k: result[k] for k in ("currency", "source", "price_source", "size_evidence")} == {
+        "currency": "EUR", "source": "shop", "price_source": "listing", "size_evidence": evidence,
+    }
+    assert result["wd_swapped"] is bool(evidence)
+    assert result["glb_url"] == "https://x/shop:a.glb"
+    assert result["size_m"] == [1.0, 0.5, 0.8]
+    assert len(conn.sql) == 1
+    selected = conn.sql[0].split("from item")[0]
+    assert all(field in selected for field in ("currency", "source", "price_source", "size_evidence"))

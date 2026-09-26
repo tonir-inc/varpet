@@ -11,7 +11,7 @@ from select_editor_set import EDITOR_KIND_OF, SHARE, selection_counts
 
 
 @pytest.mark.parametrize("kind, expected", [
-    ("desk", "table"), ("dresser", "cabinet"), ("wardrobe", "cabinet"),
+    ("desk", "desk"), ("dresser", "dresser"), ("wardrobe", "wardrobe"),
     ("nightstand", "cabinet"), ("stool", "chair"), ("ottoman", "chair"),
     ("bench", "chair"),
     *[(kind, kind) for kind in (*SHARE, "plant", "unknown")],
@@ -27,6 +27,9 @@ def test_mapping_matches_designer_bridge():
     pairs = re.findall(r"(\w+)\s*:\s*['\"](\w+)['\"]", match.group(1))
     assert pairs
     assert EDITOR_KIND_OF == dict(pairs)
+    assert mcp_server.NATIVE_EDITOR_KINDS == {"desk", "wardrobe", "dresser"}
+    for kind, legacy_kind in pairs:
+        assert editor_kind(kind) == (kind if kind in mcp_server.NATIVE_EDITOR_KINDS else legacy_kind)
 
 
 @pytest.mark.parametrize("total", [0, 500, 960, 980, 1000])
@@ -57,7 +60,7 @@ def test_editor_assets_maps_kinds_and_categories(monkeypatch):
     assets = mcp_server.editor_assets()
     assert len(assets) == len(rows)
     for asset, kind in zip(assets, categories):
-        assert asset["kind"] == EDITOR_KIND_OF[kind]
+        assert asset["kind"] == (kind if kind in {"desk", "wardrobe", "dresser"} else EDITOR_KIND_OF[kind])
         assert asset["category"] == categories[kind]
         assert asset["dimensions"] == [1, 3, 2]
     assert [row[2] for row in rows] == list(categories)
