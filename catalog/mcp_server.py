@@ -170,14 +170,29 @@ def room_kit(
 
 
 @server.tool()
-def show_kit(kit: list[dict], columns: int = 4) -> list:
-    """Inspect room_kit's kit array as one exact-product contact sheet, numbered by role."""
+def show_kit(
+    room_type: str | None = None, room_size: list[float] | None = None,
+    style: str | None = None, colors: list[str] | None = None,
+    budget_amd: int | None = None, richness: str = "standard",
+    exclude_kinds: list[str] | None = None, exclude_ids: list[str] | None = None,
+    keep_ids: list[str] | None = None, seed: int = 0,
+    kit: list[dict] | None = None, columns: int = 4,
+) -> list:
+    """Build and render a kit with the same arguments as room_kit, or pass its kit array."""
+    notes = []
+    # Retain the original Python positional kit call and MCP kit= form.
+    if isinstance(room_type, list) and kit is None:
+        kit, room_type = room_type, None
+    if kit is None:
+        result = room_kit(room_type, room_size, style, colors, budget_amd, richness,
+                          exclude_kinds, exclude_ids, keep_ids, seed)
+        kit, notes = result['kit'], result['notes']
     if len(kit) > 16:
         raise ValueError("show_kit accepts at most 16 kit entries")
     result = show_candidates([entry["id"] for entry in kit], columns)
     roles = "\n".join(f'{n}. {entry["role"]} | {entry["id"]} | {entry["placement"]}'
                       for n, entry in enumerate(kit, 1))
-    return [roles + "\n" + result[0], *result[1:]]
+    return [roles + "\n" + "\n".join(notes) + "\n" + result[0], *result[1:]]
 
 
 @server.tool()

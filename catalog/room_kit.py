@@ -12,7 +12,7 @@ import numpy as np
 import search
 from colors import PALETTE, listing_palette
 
-# Conservative, documented room/surface constraints. Rugs count toward floor area.
+# Rugs overlap furniture and do not consume the furniture floor-area allowance.
 FLOOR_SHARE = .45
 SOFA_WALL_SHARE = .8
 BED_CLEARANCE = .6
@@ -34,6 +34,9 @@ class Slot:
 
 
 def slot(role, kinds, tier=0, placement='floor', share=1, repeat=False):
+    base = role.removesuffix('_2')
+    if base in ('vase', 'candle', 'books', 'plant', 'cushion'):
+        kinds = base + '|decor'
     return Slot(role, tuple(kinds.split('|')), tier, placement, share, repeat)
 
 
@@ -117,68 +120,108 @@ def _chair_count(table):
     return min(6, max(2, 2 * int(max(table['size_m'][:2]) / .6)))
 
 
-def _compatible(r, s, chosen, room, room_type, clear_bed=True):
+def _floor_area(r):
+    return math.prod(r['size_m'][:2]) if r.get('placement', 'floor')=='floor' and r['kind']!='rug' else 0
+
+
+def _floor_cap(room, room_type):
+    if room_type=='balcony':
+        return min(.35*math.prod(room), max(0, min(room)-.6)*max(room))
+    return FLOOR_SHARE*math.prod(room)
+
+
+def _bed_access(bed, chosen, room):
+    w, d, _ = bed['size_m']
+    widths = [v['size_m'][0] for k,v in chosen.items() if k.startswith('nightstand')]
+    # At least one clear long side; nightstands occupy the head-wall span.
+    span = w + (sum(widths)-max(widths)+max(BED_CLEARANCE, max(widths)) if widths else BED_CLEARANCE)
+    return any(span<=rw+1e-8 and d+BED_CLEARANCE<=rd+1e-8 for rw,rd in (room, room[::-1]))
+
+
+def _compatible(r, s, chosen, room, room_type):
+    return _rejection(r, s, chosen, room, room_type) is None
+
+
+def _rejection(r, s, chosen, room, room_type):
     w,d,h = r['size_m']
     if r['kind'] not in s.kinds:
-        return False
+        return 'kind mismatch'
+    base = s.role.removesuffix('_2')
+    if r['kind']=='decor' and not re.search(r'\b'+re.escape(base)+r's?\b', r['_text']):
+        return 'decor name does not match role'
+    if s.role in ('storage', 'shelf', 'sideboard') and (
+            h<.5 or d<.3 or re.search(r'mount|bracket|stand for monitor|tv mount', r['_text'])):
+        return 'storage dimensions or accessory name'
+    if room_type=='balcony':
+        if re.search(r'fire\s*pit|grill|heater|hanging|railing|rail mounted', r['_text']):
+            return 'balcony excludes firepits, grills, heaters and hanging/rail pieces'
+        if s.placement=='floor' and not _fits([w,d], [max(0,min(room)-.6),max(room)]):
+            return 'balcony 0.6 m walkway'
+        if base=='plant' and (max(w,d)>.4 or h>.8):
+            return 'balcony plant must be small and freestanding'
     mount = str((r.get('tags') or {}).get('extra',{}).get('placement','')).lower()
     if mount in ('wall','wall-mounted','ceiling','ceiling-mounted') and s.placement!='wall':
-        return False
+        return 'mounting requires wall or ceiling'
     if mount=='surface' and s.placement=='floor':
-        return False
+        return 'surface item cannot occupy a floor role'
     if room_type=='balcony' and r['kind'] in ('chair','bench','table') and not _outdoor(r):
-        return False
+        return 'no outdoor furniture evidence'
     if s.placement=='floor' and not _fits([w,d],room):
-        return False
+        return 'footprint exceeds room dimensions'
     if s.placement.startswith('on:'):
         parent = chosen.get(s.placement[3:])
-        if not parent or not _fits([w,d],parent['size_m'][:2],strict=True):
-            return False
+        if not parent:
+            return 'missing support '+s.placement[3:]
+        if not _fits([w,d],parent['size_m'][:2],strict=True):
+            return 'footprint exceeds support dimensions'
         used = sum(x['size_m'][0]*x['size_m'][1] for x in chosen.values() if x['placement']==s.placement)
         if used+w*d > SURFACE_SHARE*math.prod(parent['size_m'][:2])+1e-8:
-            return False
+            return 'support surface-area cap'
     if s.role=='sofa' and w>SOFA_WALL_SHARE*max(room):
-        return False
-    if s.role=='bed' and clear_bed and not _fits([w+2*BED_CLEARANCE,d+BED_CLEARANCE],room):
-        return False
+        return 'sofa exceeds wall-width limit'
+    if s.role=='bed' and not _bed_access(r, chosen, room):
+        return 'bed requires 0.6 m side and foot clearance'
     if s.role=='rug':
         if not all(RUG_MIN*b-1e-8<=a<=RUG_MAX*b+1e-8 for a,b in zip(sorted([w,d]),sorted(room))):
-            return False
+            return 'rug outside room-size range'
         table = chosen.get('coffee_table')
         if table and not _fits(table['size_m'][:2],[w,d],strict=True):
-            return False
+            return 'rug smaller than coffee table'
     if s.role=='coffee_table':
         sofa = chosen.get('sofa')
         if not sofa or not COFFEE_MIN*sofa['size_m'][0]<=w<=COFFEE_MAX*sofa['size_m'][0] or not .25<=h<=.6:
-            return False
+            return 'coffee table size or height incompatible with sofa'
         rug = chosen.get('rug')
         if rug and not _fits([w,d],rug['size_m'][:2],strict=True):
-            return False
+            return 'coffee table larger than rug'
     if s.role=='side_table' or s.role.startswith('nightstand'):
         parent = chosen.get('sofa' if s.role=='side_table' else 'bed')
-        target = parent['size_m'][2] if parent else .6
+        # Catalog height includes backrests/headboards, not the seat or mattress.
+        target = min(.65, parent['size_m'][2]) if parent else .6
         if max(w,d)>.85 or abs(h-target)>HEIGHT_TOLERANCE:
-            return False
+            return 'side table/nightstand width or height'
+    if s.role.startswith('nightstand') and 'bed' in chosen and not _bed_access(chosen['bed'], {**chosen,s.role:r}, room):
+        return 'nightstand would block bed side clearance'
     if s.role in ('dining_table','desk') and not .65<=h<=.85:
-        return False
+        return 'desk/dining table height'
     if s.role=='dining_table' and sum(k.startswith('dining_chair') for k in chosen)>_chair_count(r):
-        return False
+        return 'dining table seating capacity'
     if s.role=='balcony_table' and (max(w,d)>1 or not .4<=h<=.85):
-        return False
+        return 'balcony table size or height'
     if r['kind']=='lamp':
         if s.placement=='floor' and h<1:
-            return False
+            return 'floor lamp too short'
         if s.placement.startswith('on:') and h>.85:
-            return False
+            return 'supported lamp too tall'
     if s.role.startswith('dining_chair'):
         table = chosen.get('dining_table')
         if not table or max(w,d)>.7 or h>1.3:
-            return False
+            return 'dining chair size or missing table'
     if s.placement=='floor':
-        used = sum(math.prod(x['size_m'][:2]) for x in chosen.values() if x['placement']=='floor')
-        if used+w*d > FLOOR_SHARE*math.prod(room)+1e-8:
-            return False
-    return True
+        used = sum(_floor_area(x) for x in chosen.values())
+        if used+_floor_area(r) > _floor_cap(room, room_type)+1e-8:
+            return 'furniture floor-area cap'
+    return None
 
 
 def _noise(seed, role, iid):
@@ -211,7 +254,7 @@ def room_kit(conn, room_type, room_size, style=None, colors=None, budget_amd=Non
         raise ValueError('keep_ids must be placeable, sized, AMD-priced catalog ids and not excluded kinds')
     rows = [r for r in rows if r['id'] not in excluded and r['kind'] not in kinds]
     level = ('essential','standard','rich').index(richness)
-    slots = [s for s in PROGRAMS[room_type] if s.tier<=level and not set(s.kinds)<=kinds]
+    slots = [s for s in PROGRAMS[room_type] if s.tier<=level]
     chosen, notes, kept = {}, [], set(keep_ids)
     style = (style or ('outdoor' if room_type=='balcony' else '')).lower().strip()
     palette = palette_input[:]
@@ -250,29 +293,31 @@ def room_kit(conn, room_type, room_size, style=None, colors=None, budget_amd=Non
         role_match = role_words in r['_text']
         kind_preference = (len(s.kinds)-s.kinds.index(r['kind']))/len(s.kinds)
         paired = s.repeat and any(v['id']==r['id'] for v in chosen.values())
-        return 4*style_match + text_match + 2*shared + 2*col + visuals.get(r['id'],0) + .6*tier + role_match + .3*kind_preference + paired + .35*_noise(seed,s.role,r['id'])
+        compact = (3*bool(re.search(r'compact|bistro|folding', r['_text'])) - 3*math.prod(r['size_m'][:2])) if room_type=='balcony' else 0
+        bed_size = -4*max(0,r['size_m'][0]-1.65) if s.role=='bed' and min(room_size)<4 else 0
+        return compact + bed_size + 4*style_match + text_match + 2*shared + 2*col + visuals.get(r['id'],0) + .6*tier + role_match + .3*kind_preference + paired + .35*_noise(seed,s.role,r['id'])
 
     for pos,s in enumerate(slots):
         if budget_amd is not None and missing_essential and s.tier>0 and not any(by_id[i]['kind'] in s.kinds for i in kept):
+            notes.append(f'{s.role}: omitted; budget prioritizes missing essential slots.')
             continue
         if s.role.startswith('dining_chair'):
             table = chosen.get('dining_table')
             count = 2 if not table else _chair_count(table)
             n = int(s.role.rsplit('_',1)[1]) if s.role[-1].isdigit() else 1
             if n>count:
+                notes.append(f'{s.role}: omitted; dining table seating capacity.')
                 continue
         used = {r['id'] for r in chosen.values()}
         available = [r for r in rows if (r['id'] not in used or s.repeat and r['id'] not in kept)]
         valid = [r for r in available if _compatible(r,s,chosen,room_size,room_type)]
-        relaxed = False
-        if not valid and s.role=='bed':
-            valid = [r for r in available if _compatible(r,s,chosen,room_size,room_type,False)]
-            relaxed = bool(valid)
         owned = [r for r in valid if r['id'] in kept]
         left = budget_amd-spent if budget_amd is not None else None
         affordable = [r for r in valid if r['id'] in kept or left is None or r['price']<=left]
         if not affordable:
-            notes.append(f'{s.role}: omitted; no eligible item fits the size, support, floor-area and remaining budget constraints.')
+            matching = [r for r in available if r['kind'] in s.kinds]
+            reasons = sorted({_rejection(r,s,chosen,room_size,room_type) or 'remaining budget' for r in matching})
+            notes.append(f"{s.role}: omitted; " + ('; '.join(reasons) if reasons else 'no available candidates of required kinds (including exclusions or already selected items)') + '.')
             missing_essential |= s.tier==0
             continue
         target = left*s.share/sum(x.share for x in slots[pos:]) if left is not None else 0
@@ -285,6 +330,8 @@ def room_kit(conn, room_type, room_size, style=None, colors=None, budget_amd=Non
                 pool = [r['price'] if r['id'] not in kept else 0 for r in rows if r['kind'] in future.kinds]
                 reserve += min(pool, default=0)
         pool = owned or [r for r in affordable if left is None or r['price']<=left-reserve] or affordable
+        specific = [r for r in pool if r['kind']!='decor']
+        pool = specific or pool
         within = [r for r in pool if r['price']<=target or r['id'] in kept] if left is not None else pool
         pool = within or pool
         pick = max(pool,key=lambda r:(score(r,s,target),r['id']))
@@ -299,8 +346,6 @@ def room_kit(conn, room_type, room_size, style=None, colors=None, budget_amd=Non
             reasons.append(f"SigLIP similarity {visuals[pick['id']]:.3f}")
         if left is not None:
             reasons.append(f'within remaining {left} AMD; slot target {round(target)} AMD')
-        if relaxed:
-            notes.append('bed: full 0.6 m side/foot clearance unavailable; verify access in the editor.')
         chosen[s.role] = {**pick,'role':s.role,'placement':s.placement,'why':'; '.join(reasons)}
         selected_slots[s.role] = s
         spent += 0 if pick['id'] in kept else pick['price']
@@ -332,7 +377,7 @@ def room_kit(conn, room_type, room_size, style=None, colors=None, budget_amd=Non
                 continue
             replacement = {**r,'role':role,'placement':s.placement}
             trial = {**others,role:replacement}
-            if any(not _compatible(v,selected_slots[k],{a:b for a,b in trial.items() if a!=k},room_size,room_type,False) for k,v in others.items()):
+            if any(not _compatible(v,selected_slots[k],{a:b for a,b in trial.items() if a!=k},room_size,room_type) for k,v in others.items()):
                 continue
             candidates.append(r)
         alternatives[role] = [r['id'] for r in sorted(candidates,key=lambda r:(-score(r,s,current['price']),r['id']))[:2]]

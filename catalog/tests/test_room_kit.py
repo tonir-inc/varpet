@@ -230,3 +230,98 @@ def test_selection_at_catalog_scale(inventory, monkeypatch):
     assert result['kit']
     print(f'room_kit fake catalog: {len(inventory)} items, {elapsed:.3f}s')
     assert elapsed < 2
+
+
+def test_rich_living_large_rug_does_not_displace_furniture(inventory):
+    inventory.extend([item('large_rug', 'rug', [2.7, 4.7, .02]),
+                      item('second_art', 'wall_art', [.4, .03, .4])])
+    result = rk.room_kit(None, 'living', [3.7, 6.4], style='scandinavian', richness='rich')
+    assert {s.role for s in rk.PROGRAMS['living']} == {r['role'] for r in result['kit']}
+
+
+@pytest.mark.parametrize('role', ['vase', 'candle', 'books', 'plant', 'cushion'])
+def test_specific_decor_kinds_and_named_fallback(inventory, monkeypatch, role):
+    monkeypatch.setitem(rk.PROGRAMS, 'entry', [rk.slot(role, role+'|decor')])
+    inventory[:] = [item('Paddle_serving_board_oak', 'decor', [.1,.1,.1]),
+                    item('modern_'+role, 'decor', [.1,.1,.1]),
+                    item('specific', role, [.1,.1,.1], style='rustic')]
+    result = rk.room_kit(None, 'entry', [3,3], style='modern')
+    assert result['kit'][0]['id']=='specific'
+    inventory.pop()
+    assert rk.room_kit(None, 'entry', [3,3])['kit'][0]['id']=='modern_'+role
+    inventory.pop()
+    result = rk.room_kit(None, 'entry', [3,3])
+    assert not result['kit'] and any('decor name' in n for n in result['notes'])
+
+
+@pytest.mark.parametrize('name,size', [('AmazonBasics_Premium_Wall_Mount_Computer_Monitor_and_TV',[1,.4,.8]),
+                                     ('bracket',[1,.4,.8]), ('cabinet',[1,.2,.8]),
+                                     ('low_cabinet',[1,.4,.3])])
+def test_storage_rejects_accessories_and_implausible_sizes(inventory, name, size):
+    inventory[:] = [item(name,'cabinet',size)]
+    result = rk.room_kit(None,'bedroom',[3.64,3.78])
+    assert 'storage' not in {r['role'] for r in result['kit']}
+    assert any('storage: omitted' in n and 'storage dimensions' in n for n in result['notes'])
+
+
+def test_narrow_balcony_compact_safe_furniture(inventory):
+    inventory.extend([item('Outdoor_Patio_Firepit','table',[.91,.91,.7],style='outdoor'),
+                      item('outdoor_grill','table',[.4,.4,.7],style='outdoor'),
+                      item('outdoor_heater','lamp',[.2,.2,1.5],style='outdoor'),
+                      item('outdoor_lounge','chair',[.7,.88,.8],style='outdoor'),
+                      item('folding_bistro_chair','chair',[.4,.4,.7],style='outdoor'),
+                      item('hanging_plant','plant',[.1,.1,.2],style='outdoor')])
+    result = rk.room_kit(None,'balcony',[1.5,2.9],richness='rich')
+    roles = {r['role']:r for r in result['kit']}
+    assert roles['outdoor_chair']['id']=='folding_bistro_chair'
+    assert {'plant','lantern'} <= roles.keys()
+    assert not any(any(word in r['id'].lower() for word in ('firepit','grill','heater','hanging')) for r in result['kit'])
+    floor = [r for r in result['kit'] if r['placement']=='floor']
+    assert sum(r['size_m'][0]*r['size_m'][1] for r in floor)<=min(.35*1.5*2.9,.9*2.9)
+    assert all(min(r['size_m'][:2])<=.9 for r in floor)
+
+
+def test_bedroom_queen_and_nightstands_leave_access(inventory):
+    inventory[:] = [item('queen','bed',[1.6,2.1,.6]), item('king','bed',[2.02,2.1,.6]),
+                    item('nightstand','nightstand',[.66,.4,.6]),item('lamp','lamp',[.15,.15,.3])]
+    result = rk.room_kit(None,'bedroom',[3.64,3.78])
+    roles = {r['role']:r for r in result['kit']}
+    assert roles['bed']['id']=='queen'
+    assert {'nightstand','nightstand_2','bedside_lamp','bedside_lamp_2'} <= roles.keys()
+    assert roles['bed']['size_m'][0]+2*.66<=3.64
+    inventory[:] = [r for r in inventory if r['kind']!='nightstand']
+    result = rk.room_kit(None,'bedroom',[3.64,3.78])
+    assert not any(r['placement'].startswith('on:nightstand') for r in result['kit'])
+    assert any('missing support nightstand' in n for n in result['notes'])
+
+
+def test_bed_never_relaxes_required_access(inventory):
+    inventory[:] = [item('king','bed',[2.02,2.1,.6])]
+    result = rk.room_kit(None,'bedroom',[2.5,2.5])
+    assert not result['kit']
+    assert any('0.6 m side and foot' in n for n in result['notes'])
+
+
+def test_show_kit_same_arguments_returns_mcp_image(inventory, monkeypatch):
+    import asyncio
+    from unittest.mock import MagicMock
+    import mcp_server
+    conn = MagicMock()
+    conn.__enter__.return_value.execute.return_value.__iter__.return_value = iter([])
+    monkeypatch.setattr(mcp_server,'_conn',lambda: conn)
+    # Unknown thumbnail rows produce a real JPEG sheet without any fetch or DB.
+    result = asyncio.run(mcp_server.server.call_tool('show_kit', {
+        'room_type':'living','room_size':[3.7,6.4], 'style':'scandinavian',
+        'richness':'rich','seed':2,
+    }))
+    content = result.content
+    assert any(getattr(block,'type',None)=='image' for block in content)
+
+
+def test_headboard_and_sofa_back_height_do_not_reject_tables(inventory):
+    for r in inventory:
+        if r['kind'] in ('bed', 'sofa'):
+            r['size_m'][2] = 1.2
+    assert 'side_table' in {r['role'] for r in kit()['kit']}
+    result = rk.room_kit(None, 'bedroom', [3.64,3.78])
+    assert {'nightstand','nightstand_2'} <= {r['role'] for r in result['kit']}
