@@ -1,0 +1,901 @@
+{
+ "flat": "sunday-b12121",
+ "scale": "traced in pixels; scale 137.2 px/m from printed room areas",
+ "faults": [],
+ "empty_export": "ok",
+ "furniture": [
+  {
+   "id": "f-dining-table",
+   "kind": "table",
+   "room": "r-living",
+   "footprint_m": [
+    1.79,
+    0.88
+   ],
+   "asset": "abo:B075YPTG8S",
+   "asset_m": [
+    1.79,
+    0.88
+   ],
+   "name": "Amazon Brand \u2013 Rivet Industrial Mid-Century Modern Hairpin Dining Table, 70.9\"L,"
+  },
+  {
+   "id": "f-dchair-n0",
+   "kind": "chair",
+   "room": "r-living",
+   "footprint_m": [
+    0.49,
+    0.59
+   ],
+   "asset": "abo:B0853KR33B",
+   "asset_m": [
+    0.49,
+    0.59
+   ],
+   "name": "Amazon Brand \u2013 Rivet Eli Modern Curved-Back Dining Chair, Set of 2, 19.3\"W, Stuc"
+  },
+  {
+   "id": "f-dchair-n1",
+   "kind": "chair",
+   "room": "r-living",
+   "footprint_m": [
+    0.49,
+    0.59
+   ],
+   "asset": "abo:B0853KR33B",
+   "asset_m": [
+    0.49,
+    0.59
+   ],
+   "name": "Amazon Brand \u2013 Rivet Eli Modern Curved-Back Dining Chair, Set of 2, 19.3\"W, Stuc"
+  },
+  {
+   "id": "f-dchair-n2",
+   "kind": "chair",
+   "room": "r-living",
+   "footprint_m": [
+    0.49,
+    0.59
+   ],
+   "asset": "abo:B0853KR33B",
+   "asset_m": [
+    0.49,
+    0.59
+   ],
+   "name": "Amazon Brand \u2013 Rivet Eli Modern Curved-Back Dining Chair, Set of 2, 19.3\"W, Stuc"
+  },
+  {
+   "id": "f-dchair-n3",
+   "kind": "chair",
+   "room": "r-living",
+   "footprint_m": [
+    0.49,
+    0.59
+   ],
+   "asset": "abo:B0853KR33B",
+   "asset_m": [
+    0.49,
+    0.59
+   ],
+   "name": "Amazon Brand \u2013 Rivet Eli Modern Curved-Back Dining Chair, Set of 2, 19.3\"W, Stuc"
+  },
+  {
+   "id": "f-dchair-s0",
+   "kind": "chair",
+   "room": "r-living",
+   "footprint_m": [
+    0.49,
+    0.59
+   ],
+   "asset": "abo:B0853KR33B",
+   "asset_m": [
+    0.49,
+    0.59
+   ],
+   "name": "Amazon Brand \u2013 Rivet Eli Modern Curved-Back Dining Chair, Set of 2, 19.3\"W, Stuc"
+  },
+  {
+   "id": "f-dchair-s1",
+   "kind": "chair",
+   "room": "r-living",
+   "footprint_m": [
+    0.49,
+    0.59
+   ],
+   "asset": "abo:B0853KR33B",
+   "asset_m": [
+    0.49,
+    0.59
+   ],
+   "name": "Amazon Brand \u2013 Rivet Eli Modern Curved-Back Dining Chair, Set of 2, 19.3\"W, Stuc"
+  },
+  {
+   "id": "f-dchair-s2",
+   "kind": "chair",
+   "room": "r-living",
+   "footprint_m": [
+    0.49,
+    0.59
+   ],
+   "asset": "abo:B0853KR33B",
+   "asset_m": [
+    0.49,
+    0.59
+   ],
+   "name": "Amazon Brand \u2013 Rivet Eli Modern Curved-Back Dining Chair, Set of 2, 19.3\"W, Stuc"
+  },
+  {
+   "id": "f-dchair-s3",
+   "kind": "chair",
+   "room": "r-living",
+   "footprint_m": [
+    0.49,
+    0.59
+   ],
+   "asset": "abo:B0853KR33B",
+   "asset_m": [
+    0.49,
+    0.59
+   ],
+   "name": "Amazon Brand \u2013 Rivet Eli Modern Curved-Back Dining Chair, Set of 2, 19.3\"W, Stuc"
+  },
+  {
+   "id": "f-dchair-w",
+   "kind": "chair",
+   "room": "r-living",
+   "footprint_m": [
+    0.49,
+    0.59
+   ],
+   "asset": "abo:B0853KR33B",
+   "asset_m": [
+    0.49,
+    0.59
+   ],
+   "name": "Amazon Brand \u2013 Rivet Eli Modern Curved-Back Dining Chair, Set of 2, 19.3\"W, Stuc"
+  },
+  {
+   "id": "f-dchair-e",
+   "kind": "chair",
+   "room": "r-living",
+   "footprint_m": [
+    0.49,
+    0.59
+   ],
+   "asset": "abo:B0853KR33B",
+   "asset_m": [
+    0.49,
+    0.59
+   ],
+   "name": "Amazon Brand \u2013 Rivet Eli Modern Curved-Back Dining Chair, Set of 2, 19.3\"W, Stuc"
+  },
+  {
+   "id": "f-rug-living",
+   "kind": "rug",
+   "room": "r-living",
+   "footprint_m": [
+    3.04,
+    2.41
+   ],
+   "asset": "abo:B07QB8J5ML",
+   "asset_m": [
+    3.03,
+    2.41
+   ],
+   "name": "Amazon Brand \u2013 Stone & Beam Casual Handwoven Area Rug 8' x 10', Ivory"
+  },
+  {
+   "id": "f-sofa",
+   "kind": "sofa",
+   "room": "r-living",
+   "footprint_m": [
+    2.18,
+    0.95
+   ],
+   "asset": "abo:B07B4L6C47",
+   "asset_m": [
+    2.18,
+    0.95
+   ],
+   "name": "Amazon Brand \u2013 Stone & Beam Andover Modern Sofa Couch, 78\"W, Linen"
+  },
+  {
+   "id": "f-armchair-1",
+   "kind": "chair",
+   "room": "r-living",
+   "footprint_m": [
+    0.72,
+    0.9
+   ],
+   "asset": "abo:B07DB92GSY",
+   "asset_m": [
+    0.71,
+    0.9
+   ],
+   "name": "Amazon Brand \u2013 Ravenna Home Radford Modern Curved Arm Accent Chair, 28.15\"W, Bei"
+  },
+  {
+   "id": "f-armchair-2",
+   "kind": "chair",
+   "room": "r-living",
+   "footprint_m": [
+    0.72,
+    0.9
+   ],
+   "asset": "abo:B07DB92GSY",
+   "asset_m": [
+    0.71,
+    0.9
+   ],
+   "name": "Amazon Brand \u2013 Ravenna Home Radford Modern Curved Arm Accent Chair, 28.15\"W, Bei"
+  },
+  {
+   "id": "f-armchair-3",
+   "kind": "chair",
+   "room": "r-living",
+   "footprint_m": [
+    0.72,
+    0.9
+   ],
+   "asset": "abo:B07DB92GSY",
+   "asset_m": [
+    0.71,
+    0.9
+   ],
+   "name": "Amazon Brand \u2013 Ravenna Home Radford Modern Curved Arm Accent Chair, 28.15\"W, Bei"
+  },
+  {
+   "id": "f-armchair-4",
+   "kind": "chair",
+   "room": "r-living",
+   "footprint_m": [
+    0.72,
+    0.9
+   ],
+   "asset": "abo:B07DB92GSY",
+   "asset_m": [
+    0.71,
+    0.9
+   ],
+   "name": "Amazon Brand \u2013 Ravenna Home Radford Modern Curved Arm Accent Chair, 28.15\"W, Bei"
+  },
+  {
+   "id": "f-coffee-table",
+   "kind": "table",
+   "room": "r-living",
+   "footprint_m": [
+    1.06,
+    0.57
+   ],
+   "asset": "abo:B07DBDWL5H",
+   "asset_m": [
+    1.06,
+    0.57
+   ],
+   "name": "Amazon Brand \u2013 Ravenna Home Heights Wood Lift Top Storage Coffee Table, 43.3\"W, "
+  },
+  {
+   "id": "f-tv-unit",
+   "kind": "cabinet",
+   "room": "r-living",
+   "footprint_m": [
+    1.54,
+    0.38
+   ],
+   "asset": "abo:B074KMW499",
+   "asset_m": [
+    1.54,
+    0.38
+   ],
+   "name": "Amazon Brand \u2013 Stone & Beam Glenwood Entertainment TV Console Media Stand, 68\"W,"
+  },
+  {
+   "id": "f-stool-0",
+   "kind": "chair",
+   "room": "r-living",
+   "footprint_m": [
+    0.48,
+    0.57
+   ],
+   "asset": "abo:B0853KM5Q3",
+   "asset_m": [
+    0.48,
+    0.57
+   ],
+   "name": "Amazon Brand \u2013 Rivet Eli Modern Curved-Back Counter-Height Barstool, 38.2\"H, Stu"
+  },
+  {
+   "id": "f-stool-1",
+   "kind": "chair",
+   "room": "r-living",
+   "footprint_m": [
+    0.48,
+    0.57
+   ],
+   "asset": "abo:B0853KM5Q3",
+   "asset_m": [
+    0.48,
+    0.57
+   ],
+   "name": "Amazon Brand \u2013 Rivet Eli Modern Curved-Back Counter-Height Barstool, 38.2\"H, Stu"
+  },
+  {
+   "id": "f-stool-2",
+   "kind": "chair",
+   "room": "r-living",
+   "footprint_m": [
+    0.48,
+    0.57
+   ],
+   "asset": "abo:B0853KM5Q3",
+   "asset_m": [
+    0.48,
+    0.57
+   ],
+   "name": "Amazon Brand \u2013 Rivet Eli Modern Curved-Back Counter-Height Barstool, 38.2\"H, Stu"
+  },
+  {
+   "id": "f-stool-3",
+   "kind": "chair",
+   "room": "r-living",
+   "footprint_m": [
+    0.48,
+    0.57
+   ],
+   "asset": "abo:B0853KM5Q3",
+   "asset_m": [
+    0.48,
+    0.57
+   ],
+   "name": "Amazon Brand \u2013 Rivet Eli Modern Curved-Back Counter-Height Barstool, 38.2\"H, Stu"
+  },
+  {
+   "id": "f-entry-wardrobe",
+   "kind": "wardrobe",
+   "room": "r-entrance",
+   "footprint_m": [
+    1.78,
+    0.63
+   ],
+   "asset": "abo:B07GFS1VB6",
+   "asset_m": [
+    1.78,
+    0.63
+   ],
+   "name": "Amazon Brand - Movian Kolva Sliding 2-Door Wardrobe, 180 x 61 x 197cm, Light Bro"
+  },
+  {
+   "id": "f-rug-11",
+   "kind": "rug",
+   "room": "r-bedroom-11",
+   "footprint_m": [
+    2.44,
+    1.53
+   ],
+   "asset": "abo:B07QHL6SF2",
+   "asset_m": [
+    2.44,
+    1.53
+   ],
+   "name": "Amazon Brand \u2013 Stone & Beam Casual Handwoven Area Rug 5' x 8', Ivory"
+  },
+  {
+   "id": "f-bed-11",
+   "kind": "bed",
+   "room": "r-bedroom-11",
+   "footprint_m": [
+    1.51,
+    2.09
+   ],
+   "asset": "abo:B07B4W31C3",
+   "asset_m": [
+    1.51,
+    2.09
+   ],
+   "name": "Rivet Jonathan Mid-Century Modern Wood Full Bed, 59.5\"W, Walnut"
+  },
+  {
+   "id": "f-bedside-11a",
+   "kind": "cabinet",
+   "room": "r-bedroom-11",
+   "footprint_m": [
+    0.52,
+    0.44
+   ],
+   "asset": "abo:B07B4W2FFY",
+   "asset_m": [
+    0.52,
+    0.44
+   ],
+   "name": "Amazon Brand \u2013 Rivet Jonathan Mid-Century Modern Wood Bedside Nightstand, 20\", W"
+  },
+  {
+   "id": "f-bedside-11b",
+   "kind": "cabinet",
+   "room": "r-bedroom-11",
+   "footprint_m": [
+    0.52,
+    0.44
+   ],
+   "asset": "abo:B07B4W2FFY",
+   "asset_m": [
+    0.52,
+    0.44
+   ],
+   "name": "Amazon Brand \u2013 Rivet Jonathan Mid-Century Modern Wood Bedside Nightstand, 20\", W"
+  },
+  {
+   "id": "f-desk-11",
+   "kind": "desk",
+   "room": "r-bedroom-11",
+   "footprint_m": [
+    1.28,
+    0.61
+   ],
+   "asset": "abo:B075ZBW1SN",
+   "asset_m": [
+    1.28,
+    0.61
+   ],
+   "name": "Amazon Brand \u2013 Rivet Ventura Mid-Century Small Reversible Writing Home Office Co"
+  },
+  {
+   "id": "f-desk-chair-11",
+   "kind": "chair",
+   "room": "r-bedroom-11",
+   "footprint_m": [
+    0.49,
+    0.59
+   ],
+   "asset": "abo:B0853KR33B",
+   "asset_m": [
+    0.49,
+    0.59
+   ],
+   "name": "Amazon Brand \u2013 Rivet Eli Modern Curved-Back Dining Chair, Set of 2, 19.3\"W, Stuc"
+  },
+  {
+   "id": "f-wardrobe-11",
+   "kind": "wardrobe",
+   "room": "r-bedroom-11",
+   "footprint_m": [
+    1.78,
+    0.63
+   ],
+   "asset": "abo:B07GFS1VB6",
+   "asset_m": [
+    1.78,
+    0.63
+   ],
+   "name": "Amazon Brand - Movian Kolva Sliding 2-Door Wardrobe, 180 x 61 x 197cm, Light Bro"
+  },
+  {
+   "id": "f-bookcase-11",
+   "kind": "shelf",
+   "room": "r-bedroom-11",
+   "footprint_m": [
+    0.5,
+    0.43
+   ],
+   "asset": "abo:B075ZBW22K",
+   "asset_m": [
+    0.5,
+    0.43
+   ],
+   "name": "Amazon Brand \u2013 Stone & Beam Bryson Tall Narrow 3-Drawer Bookcase, 19.7\"W, Wood"
+  },
+  {
+   "id": "f-rug-6",
+   "kind": "rug",
+   "room": "r-bedroom-6",
+   "footprint_m": [
+    2.44,
+    1.53
+   ],
+   "asset": "abo:B07QHL6SF2",
+   "asset_m": [
+    2.44,
+    1.53
+   ],
+   "name": "Amazon Brand \u2013 Stone & Beam Casual Handwoven Area Rug 5' x 8', Ivory"
+  },
+  {
+   "id": "f-bed-6",
+   "kind": "bed",
+   "room": "r-bedroom-6",
+   "footprint_m": [
+    1.51,
+    2.09
+   ],
+   "asset": "abo:B07B4W31C3",
+   "asset_m": [
+    1.51,
+    2.09
+   ],
+   "name": "Rivet Jonathan Mid-Century Modern Wood Full Bed, 59.5\"W, Walnut"
+  },
+  {
+   "id": "f-bedside-6a",
+   "kind": "cabinet",
+   "room": "r-bedroom-6",
+   "footprint_m": [
+    0.52,
+    0.44
+   ],
+   "asset": "abo:B07B4W2FFY",
+   "asset_m": [
+    0.52,
+    0.44
+   ],
+   "name": "Amazon Brand \u2013 Rivet Jonathan Mid-Century Modern Wood Bedside Nightstand, 20\", W"
+  },
+  {
+   "id": "f-bedside-6b",
+   "kind": "cabinet",
+   "room": "r-bedroom-6",
+   "footprint_m": [
+    0.52,
+    0.44
+   ],
+   "asset": "abo:B07B4W2FFY",
+   "asset_m": [
+    0.52,
+    0.44
+   ],
+   "name": "Amazon Brand \u2013 Rivet Jonathan Mid-Century Modern Wood Bedside Nightstand, 20\", W"
+  },
+  {
+   "id": "f-desk-6",
+   "kind": "desk",
+   "room": "r-bedroom-6",
+   "footprint_m": [
+    1.28,
+    0.61
+   ],
+   "asset": "abo:B075ZBW1SN",
+   "asset_m": [
+    1.28,
+    0.61
+   ],
+   "name": "Amazon Brand \u2013 Rivet Ventura Mid-Century Small Reversible Writing Home Office Co"
+  },
+  {
+   "id": "f-desk-chair-6",
+   "kind": "chair",
+   "room": "r-bedroom-6",
+   "footprint_m": [
+    0.49,
+    0.59
+   ],
+   "asset": "abo:B0853KR33B",
+   "asset_m": [
+    0.49,
+    0.59
+   ],
+   "name": "Amazon Brand \u2013 Rivet Eli Modern Curved-Back Dining Chair, Set of 2, 19.3\"W, Stuc"
+  },
+  {
+   "id": "f-rug-9",
+   "kind": "rug",
+   "room": "r-bedroom-9",
+   "footprint_m": [
+    2.44,
+    1.53
+   ],
+   "asset": "abo:B07QHL6SF2",
+   "asset_m": [
+    2.44,
+    1.53
+   ],
+   "name": "Amazon Brand \u2013 Stone & Beam Casual Handwoven Area Rug 5' x 8', Ivory"
+  },
+  {
+   "id": "f-bed-9",
+   "kind": "bed",
+   "room": "r-bedroom-9",
+   "footprint_m": [
+    1.51,
+    2.09
+   ],
+   "asset": "abo:B07B4W31C3",
+   "asset_m": [
+    1.51,
+    2.09
+   ],
+   "name": "Rivet Jonathan Mid-Century Modern Wood Full Bed, 59.5\"W, Walnut"
+  },
+  {
+   "id": "f-bedside-9a",
+   "kind": "cabinet",
+   "room": "r-bedroom-9",
+   "footprint_m": [
+    0.52,
+    0.44
+   ],
+   "asset": "abo:B07B4W2FFY",
+   "asset_m": [
+    0.52,
+    0.44
+   ],
+   "name": "Amazon Brand \u2013 Rivet Jonathan Mid-Century Modern Wood Bedside Nightstand, 20\", W"
+  },
+  {
+   "id": "f-bedside-9b",
+   "kind": "cabinet",
+   "room": "r-bedroom-9",
+   "footprint_m": [
+    0.52,
+    0.44
+   ],
+   "asset": "abo:B07B4W2FFY",
+   "asset_m": [
+    0.52,
+    0.44
+   ],
+   "name": "Amazon Brand \u2013 Rivet Jonathan Mid-Century Modern Wood Bedside Nightstand, 20\", W"
+  },
+  {
+   "id": "f-desk-9",
+   "kind": "desk",
+   "room": "r-bedroom-9",
+   "footprint_m": [
+    1.28,
+    0.61
+   ],
+   "asset": "abo:B075ZBW1SN",
+   "asset_m": [
+    1.28,
+    0.61
+   ],
+   "name": "Amazon Brand \u2013 Rivet Ventura Mid-Century Small Reversible Writing Home Office Co"
+  },
+  {
+   "id": "f-desk-chair-9",
+   "kind": "chair",
+   "room": "r-bedroom-9",
+   "footprint_m": [
+    0.49,
+    0.59
+   ],
+   "asset": "abo:B0853KR33B",
+   "asset_m": [
+    0.49,
+    0.59
+   ],
+   "name": "Amazon Brand \u2013 Rivet Eli Modern Curved-Back Dining Chair, Set of 2, 19.3\"W, Stuc"
+  },
+  {
+   "id": "f-wardrobe-9",
+   "kind": "wardrobe",
+   "room": "r-bedroom-9",
+   "footprint_m": [
+    1.78,
+    0.63
+   ],
+   "asset": "abo:B07GFS1VB6",
+   "asset_m": [
+    1.78,
+    0.63
+   ],
+   "name": "Amazon Brand - Movian Kolva Sliding 2-Door Wardrobe, 180 x 61 x 197cm, Light Bro"
+  },
+  {
+   "id": "f-bookcase-9",
+   "kind": "shelf",
+   "room": "r-bedroom-9",
+   "footprint_m": [
+    0.5,
+    0.43
+   ],
+   "asset": "abo:B075ZBW22K",
+   "asset_m": [
+    0.5,
+    0.43
+   ],
+   "name": "Amazon Brand \u2013 Stone & Beam Bryson Tall Narrow 3-Drawer Bookcase, 19.7\"W, Wood"
+  },
+  {
+   "id": "f-lounger-4",
+   "kind": "chair",
+   "room": "r-balcony-4",
+   "footprint_m": [
+    0.7,
+    2.0
+   ],
+   "asset": "abo:B07YNFQCWM",
+   "asset_m": [
+    0.7,
+    2.0
+   ],
+   "name": "AmazonBasics All Weather Adjustable Outdoor Patio Pool Faux Wicker Chaise Lounge"
+  },
+  {
+   "id": "f-side-4",
+   "kind": "table",
+   "room": "r-balcony-4",
+   "footprint_m": [
+    0.51,
+    0.51
+   ],
+   "asset": "abo:B082VT4GGJ",
+   "asset_m": [
+    0.51,
+    0.51
+   ],
+   "name": "Amazon Brand - Ravenna Home Archer Outdoor Patio Steel Side Table with Panel Top"
+  },
+  {
+   "id": "f-lounger-13",
+   "kind": "chair",
+   "room": "r-balcony-13",
+   "footprint_m": [
+    0.7,
+    2.0
+   ],
+   "asset": "abo:B07YNFQCWM",
+   "asset_m": [
+    0.7,
+    2.0
+   ],
+   "name": "AmazonBasics All Weather Adjustable Outdoor Patio Pool Faux Wicker Chaise Lounge"
+  },
+  {
+   "id": "f-side-13",
+   "kind": "table",
+   "room": "r-balcony-13",
+   "footprint_m": [
+    0.51,
+    0.51
+   ],
+   "asset": "abo:B082VT4GGJ",
+   "asset_m": [
+    0.51,
+    0.51
+   ],
+   "name": "Amazon Brand - Ravenna Home Archer Outdoor Patio Steel Side Table with Panel Top"
+  },
+  {
+   "id": "f-lounger-8a",
+   "kind": "chair",
+   "room": "r-balcony-8",
+   "footprint_m": [
+    0.7,
+    2.0
+   ],
+   "asset": "abo:B07YNFQCWM",
+   "asset_m": [
+    0.7,
+    2.0
+   ],
+   "name": "AmazonBasics All Weather Adjustable Outdoor Patio Pool Faux Wicker Chaise Lounge"
+  },
+  {
+   "id": "f-side-8a",
+   "kind": "table",
+   "room": "r-balcony-8",
+   "footprint_m": [
+    0.51,
+    0.51
+   ],
+   "asset": "abo:B082VT4GGJ",
+   "asset_m": [
+    0.51,
+    0.51
+   ],
+   "name": "Amazon Brand - Ravenna Home Archer Outdoor Patio Steel Side Table with Panel Top"
+  },
+  {
+   "id": "f-lounger-8b",
+   "kind": "chair",
+   "room": "r-balcony-8",
+   "footprint_m": [
+    0.7,
+    2.0
+   ],
+   "asset": "abo:B07YNFQCWM",
+   "asset_m": [
+    0.7,
+    2.0
+   ],
+   "name": "AmazonBasics All Weather Adjustable Outdoor Patio Pool Faux Wicker Chaise Lounge"
+  },
+  {
+   "id": "f-side-8b",
+   "kind": "table",
+   "room": "r-balcony-8",
+   "footprint_m": [
+    0.51,
+    0.51
+   ],
+   "asset": "abo:B082VT4GGJ",
+   "asset_m": [
+    0.51,
+    0.51
+   ],
+   "name": "Amazon Brand - Ravenna Home Archer Outdoor Patio Steel Side Table with Panel Top"
+  }
+ ],
+ "furnished_export": "ok",
+ "rooms": [
+  {
+   "room": "Entrance",
+   "m2": 18.46,
+   "printed": 17.93
+  },
+  {
+   "room": "Hall closet",
+   "m2": 0.56,
+   "printed": null
+  },
+  {
+   "room": "Entrance closet",
+   "m2": 1.34,
+   "printed": null
+  },
+  {
+   "room": "Hall closet",
+   "m2": 0.9,
+   "printed": null
+  },
+  {
+   "room": "Living room",
+   "m2": 34.94,
+   "printed": 35.14
+  },
+  {
+   "room": "Kitchen",
+   "m2": 12.63,
+   "printed": 12.84
+  },
+  {
+   "room": "Balcony",
+   "m2": 13.03,
+   "printed": 13.25
+  },
+  {
+   "room": "Bathroom",
+   "m2": 4.99,
+   "printed": 5.09
+  },
+  {
+   "room": "Bedroom",
+   "m2": 17.08,
+   "printed": 17.24
+  },
+  {
+   "room": "Bathroom",
+   "m2": 5.34,
+   "printed": 5.43
+  },
+  {
+   "room": "Balcony",
+   "m2": 15.04,
+   "printed": 14.57
+  },
+  {
+   "room": "Bedroom",
+   "m2": 25.38,
+   "printed": 24.97
+  },
+  {
+   "room": "Bathroom",
+   "m2": 4.73,
+   "printed": 4.82
+  },
+  {
+   "room": "Bedroom",
+   "m2": 25.05,
+   "printed": 24.73
+  },
+  {
+   "room": "Bathroom",
+   "m2": 4.2,
+   "printed": 4.45
+  },
+  {
+   "room": "Balcony",
+   "m2": 7.76,
+   "printed": 8.17
+  }
+ ]
+}
