@@ -26,7 +26,7 @@ export function makeFlat(input: InputRecord): Flat {
   return { id, title: `Residence ${id.replace(/^b/, '').replace('-t', ' · ')}`, example: false, shell, furnished, catalog,
     area: developerArea ?? (shell ? areaOf(shell) : null), rooms: positive(facts.rooms ?? facts.room_count), areaSource: developerArea ? 'Developer plan' : 'Derived from the reconstructed floor',
     requests, requestOutcomes, pieces, total: furnished && pieces.every(piece => piece.price !== null) ? pieces.reduce((sum, piece) => sum + piece.price!, 0) : null,
-    issue, priceNote: 'Catalog estimates in AMD; not a retailer quotation. Paint and labour excluded.' };
+    issue, priceNote: furnished ? 'Catalog estimates in AMD; not a retailer quotation. Paint and labour excluded.' : 'Furniture selection and pricing are being prepared.' };
 }
 export function exampleFlat(): Flat {
   const shell = structuredClone(demoScene); shell.objects = [];
