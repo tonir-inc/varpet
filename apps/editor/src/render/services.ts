@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type { BuildingComponent, SceneDocument, ServiceSystem } from '../contracts';
 import { componentPosition } from '../core/renovation';
 import { disposeObject } from './assets';
+import { roomCeilingHeight } from '../core/heights';
 
 export interface ServiceProjection {
   group: THREE.Group;
@@ -87,7 +88,8 @@ function segment(parent: THREE.Object3D, start: THREE.Vector3, end: THREE.Vector
 function kelvinColor(kelvin: number): THREE.Color {
   const t = THREE.MathUtils.clamp((kelvin - 2200) / 4300, 0, 1); return new THREE.Color('#ffd18c').lerp(new THREE.Color('#e9f3ff'), t);
 }
-function makeComponent(component: BuildingComponent): THREE.Group {
+/** `drop` is the gap from the fixture's top to the ceiling; a hanging light draws its cord and canopy. */
+function makeComponent(component: BuildingComponent, drop = 0): THREE.Group {
   const group = new THREE.Group(); group.userData.entityId = component.id;
   const [w, h, d] = component.dimensions;
   const material = new THREE.MeshStandardMaterial({ color: component.color, roughness: 0.68 });
@@ -99,8 +101,16 @@ function makeComponent(component: BuildingComponent): THREE.Group {
   switch (component.kind) {
     case 'light': {
       const emission = new THREE.MeshStandardMaterial({ color: '#fff7df', roughness: 0.4, emissive: kelvinColor(component.light?.temperature ?? 3000), emissiveIntensity: component.phase === 'remove' || component.light?.enabled === false ? 0 : 1 });
-      box(group, w, h * 0.55, d, 0, h * 0.72, 0, material);
-      box(group, w * 0.85, h * 0.12, d * 0.85, 0, h * 0.42, 0, emission);
+      if (drop > 0) {
+        const radius = Math.min(w, d) / 2;
+        cylinder(group, radius, h * 0.8, v(0, h * 0.6, 0), material, radius * 0.35);
+        cylinder(group, radius * 0.9, 0.01, v(0, h * 0.2, 0), emission);
+        cylinder(group, 0.004, drop, v(0, h + drop / 2, 0), dark);
+        cylinder(group, 0.05, 0.02, v(0, h + drop - 0.01, 0), material);
+      } else {
+        box(group, w, h * 0.55, d, 0, h * 0.72, 0, material);
+        box(group, w * 0.85, h * 0.12, d * 0.85, 0, h * 0.42, 0, emission);
+      }
       const light = new THREE.PointLight(kelvinColor(component.light?.temperature ?? 3000), component.phase === 'remove' || component.light?.enabled === false ? 0 : (component.light?.brightness ?? 800) / 50, 9, 2);
       light.position.set(0, -0.08, 0); group.add(light); group.userData.light = light; group.userData.emission = emission;
       break;
@@ -220,7 +230,10 @@ export function makeServices(document: SceneDocument): ServiceProjection {
   for (const component of document.project?.components ?? []) {
     const assignment = document.project?.finishes.find(item => item.entityId === component.id && item.surface === 'component');
     const color = document.project?.materials.find(material => material.id === assignment?.materialId)?.color ?? component.color;
-    const projection = makeComponent({ ...component, color }); projection.name = component.name; projection.position.fromArray(componentPosition(document, component)); projection.rotation.y = component.rotation;
+    const position = componentPosition(document, component);
+    const room = component.kind === 'light' && !component.host ? document.rooms.find(item => item.id === component.roomId) : undefined;
+    const drop = room ? roomCeilingHeight(document, room) - (position[1] + component.dimensions[1]) : 0;
+    const projection = makeComponent({ ...component, color }, drop > 0.05 ? drop : 0); projection.name = component.name; projection.position.fromArray(position); projection.rotation.y = component.rotation;
     if (component.host) {
       const host = component.host; const wall = document.walls.find(item => item.id === host.wallId);
       if (wall) {

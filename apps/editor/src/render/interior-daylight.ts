@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { SceneDocument, Vec2, Vec3 } from '../contracts';
 import { wallSurfaceSpans } from '../core/wall-surfaces';
 
-export interface WindowPortal { id: string; roomId: string; position: Vec3; inward: Vec2; area: number; thickness: number }
+export interface WindowPortal { id: string; roomId: string; position: Vec3; inward: Vec2; area: number; thickness: number; top: number }
 /** Only an unambiguous outdoor-facing opening supplies diffuse sky light.
  * These are disposable lighting approximations, not evidence about site or north. */
 export function windowPortals(scene: SceneDocument): WindowPortal[] {
@@ -25,7 +25,8 @@ export function windowPortals(scene: SceneDocument): WindowPortal[] {
       const side = touching[0]!.front ? 1 : -1;
       result.push({ id: opening.id, roomId: room.id,
         position: [wall.start[0] + ux * along, (metadata[wall.id]?.elevation ?? 0) + opening.sill + opening.height * 0.7, wall.start[1] + uz * along],
-        inward: [-uz * side, ux * side], area: opening.width * opening.height, thickness: wall.thickness });
+        inward: [-uz * side, ux * side], area: opening.width * opening.height, thickness: wall.thickness,
+        top: (metadata[wall.id]?.elevation ?? 0) + opening.sill + opening.height });
     }
   }
   return result.sort((a, b) => b.area - a.area || a.id.localeCompare(b.id));
@@ -35,6 +36,7 @@ export class InteriorDaylight {
   private lights: THREE.SpotLight[] = [];
   private resolution = 512;
   private motionPending = false;
+  private level = 1;
   constructor() { this.group.name = 'Window daylight preview'; this.group.visible = false; }
   setScene(scene: SceneDocument): void {
     this.clear();
@@ -43,11 +45,14 @@ export class InteriorDaylight {
     for (const portal of all) if (!rooms.has(portal.roomId) && selected.length < 4) { selected.push(portal); rooms.add(portal.roomId); }
     for (const portal of all) if (selected.length < 4 && !selected.includes(portal)) selected.push(portal);
     for (const portal of selected) {
-      const light = new THREE.SpotLight('#edf4ff', Math.min(100, 30 * portal.area), 14, 1.32, 1, 2);
-      const offset = portal.thickness / 2 + 0.18;
-      light.position.set(portal.position[0] - portal.inward[0] * offset, portal.position[1], portal.position[2] - portal.inward[1] * offset);
-      light.target.position.set(portal.position[0] + portal.inward[0] * 3, portal.position[1] - 0.6, portal.position[2] + portal.inward[1] * 3);
+      const light = new THREE.SpotLight('#f1f5fc', Math.min(100, 30 * portal.area), 14, 1.32, 1, 2);
+      // Outside and level with the head of the window: light enters downward, as sky light does,
+      // so the ceiling is not striped by magnified mullion shadows from a source just behind the pane.
+      const offset = portal.thickness / 2 + 1;
+      light.position.set(portal.position[0] - portal.inward[0] * offset, portal.top + 0.05, portal.position[2] - portal.inward[1] * offset);
+      light.target.position.set(portal.position[0] + portal.inward[0] * 3, portal.top - 2.1, portal.position[2] + portal.inward[1] * 3);
       light.name = `Diffuse daylight · ${portal.id}`;
+      light.userData.baseIntensity = light.intensity; light.intensity *= this.level;
       light.castShadow = true;
       light.shadow.mapSize.set(this.resolution, this.resolution);
       light.shadow.camera.near = 0.04;
@@ -65,6 +70,11 @@ export class InteriorDaylight {
     }
   }
   setEnabled(enabled: boolean): void { this.group.visible = enabled; }
+  /** Scales the window sources with the clock and sky, e.g. `daylight` in [0, 1]. */
+  setLevel(level: number): void {
+    this.level = Math.max(0, level);
+    for (const light of this.lights) light.intensity = (light.userData.baseIntensity as number) * this.level;
+  }
   invalidateShadows(): void { for (const light of this.lights) light.shadow.needsUpdate = true; }
   /** update() reports remaining jobs; refresh once more for the completion frame. */
   updateMotion(active: boolean): void {

@@ -131,7 +131,7 @@ function makeOpening(wall: Wall, opening: Opening, metadata: EntityMetadata, ele
   const fixed = mechanism === 'fixed'; const right = metadata.hinge === 'right'; const swing = metadata.swing ?? 1;
   const trim = new THREE.MeshStandardMaterial({ color: '#ece7db', roughness: 0.65 });
   const leafMaterial = opening.kind === 'window'
-    ? new THREE.MeshPhysicalMaterial({ color: '#f2f7f8', roughness: 0.07, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.05, envMapIntensity: 0.8, transparent: true, opacity: 0.45, depthWrite: false })
+    ? new THREE.MeshPhysicalMaterial({ color: '#eef4f4', roughness: 0.05, metalness: 0, envMapIntensity: 0.15, transparent: true, opacity: 0.45, depthWrite: false })
     : new THREE.MeshStandardMaterial({ color: metadata.role === 'entrance' ? '#8c7460' : '#ddd6c7', roughness: 0.7 });
   if (opening.kind === 'window') {
     // Thin architectural glass: clear face-on, more reflective at grazing angles.

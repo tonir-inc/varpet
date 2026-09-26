@@ -44,6 +44,7 @@ import { DEFAULT_SUN, normalizeSun, fitSunShadow, effectiveSunlight, type SunSet
 import { timeOfDayLighting } from './time-of-day';
 import { SunOccluders } from './sun-occluders';
 import { SceneShadowCache } from './shadow-cache';
+import { InteriorDaylight } from './interior-daylight';
 import { TopLightingProjection } from './top-lighting';
 import { createFurnitureDrop } from './furniture-drop';
 
@@ -72,6 +73,13 @@ interface OpeningDrag {
 
 // Euler XYZ folds Y past 90 degrees into X/Z turns; read heading from the basis instead.
 const upAxis = new THREE.Vector3(0, 1, 0);
+// Eye-level interior look, tuned against real-estate photographs of daylit rooms.
+const INSIDE_TONE_MAPPING = THREE.NeutralToneMapping;
+const INSIDE_EXPOSURE = 1.0;
+const INSIDE_ENVIRONMENT = 0.2;
+const INSIDE_AMBIENT = 1;
+const INSIDE_WINDOW_LIGHT = 2;
+const INSIDE_TWILIGHT = 0.5;
 function yawOf(quaternion: THREE.Quaternion): number {
   const { x, y, z, w } = quaternion;
   return Math.atan2(2 * (x * z + w * y), 1 - 2 * (x * x + y * y));
@@ -189,6 +197,8 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   const skyboxes = new SkyboxResources(renderer);
   let skyboxPreset: SkyboxPreset = 'studio';
   const sunOccluders = new SunOccluders(); world.add(sunOccluders.group);
+  // Soft sky light entering through each outdoor window; only inside, by day.
+  const windowLight = new InteriorDaylight(); world.add(windowLight.group);
   const studioBackground = world.background;
   const daylightBackground = new THREE.Color('#dce9f1');
 
@@ -401,27 +411,43 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     sunOccluders.group.visible = inside || layers.shell;
     shadowCache.invalidate();
     // Unlit Top uses a stable background; lit views retain the selected clock and sky.
-    const sky = skyboxPreset !== 'studio' && view !== 'top' ? skyboxes.get(skyboxPreset, skySun) : null;
+    // Inside, windows always look out onto a sky, ground and skyline; the studio
+    // backdrop is a dollhouse presentation and reads as a void through glass.
+    // After dusk they show a blue-hour sky, the cool counterpoint to warm lamps.
+    const night = inside && daylight < 0.05;
+    const outdoor = night ? 'twilight' : skyboxPreset !== 'studio' ? skyboxPreset : inside ? 'daylight' : null;
+    const sky = outdoor && view !== 'top' ? skyboxes.get(outdoor, skySun) : null;
     stage.setSceneryVisible(!sky);
     stage.setDaylight(daylight);
     world.background = sky?.background ?? previewBackground.copy(eveningBackground).lerp(inside ? daylightBackground : studioBackground, daylight);
-    world.backgroundIntensity = THREE.MathUtils.lerp(0.012, 1, daylight);
+    world.backgroundIntensity = night ? INSIDE_TWILIGHT : THREE.MathUtils.lerp(inside && sky ? 0.15 : 0.012, 1, daylight);
     studioFog.color.copy(eveningBackground).lerp(studioBackground, daylight);
     world.fog = inside || sky || unlitTop ? null : studioFog;
     world.environment = sky?.environment ?? environment.texture;
-    world.environmentIntensity = THREE.MathUtils.lerp(0.008, sky ? 0.35 : 0.4, daylight);
-    ambient.intensity = THREE.MathUtils.lerp(0.035, 0.42, daylight);
+    world.environmentIntensity = inside
+      ? (night ? INSIDE_TWILIGHT * 0.25 : THREE.MathUtils.lerp(0.02, INSIDE_ENVIRONMENT, daylight))
+      : THREE.MathUtils.lerp(0.008, sky ? 0.35 : 0.4, daylight);
+    // Inside, directional window light and the sky IBL carry the fill; a strong
+    // hemisphere term would flatten every wall to the same value.
+    ambient.intensity = THREE.MathUtils.lerp(inside ? 0.02 : 0.035, inside ? INSIDE_AMBIENT : 0.42, daylight);
+    studioRenderer.setInterior(inside);
+    // Lamps at 2700 K photograph orange; balance toward them after dusk, as a photographer would.
+    const balance = inside ? 1 - daylight : 0;
+    studioRenderer.setWhiteBalance(1 - 0.1 * balance, 1 - 0.03 * balance, 1 + 0.14 * balance);
+    windowLight.setEnabled(inside && daylight > 0); windowLight.setLevel(INSIDE_WINDOW_LIGHT * daylight);
     // A light studio: soft sky above, warm paper below.
-    ambient.color.set('#dfe4ec');
-    ambient.groundColor.set('#a89580');
+    // Inside, a warmer bounce term white-balances the blue sky fill, as a photographer would.
+    ambient.color.set(inside ? '#8f8b85' : '#dfe4ec');
+    ambient.groundColor.set(inside ? '#f2ebe0' : '#a89580');
     const sun = effectiveSunlight(sunSettings);
     sunlight.color.set(sun.sunColor); sunlight.intensity = sun.sunIntensity;
     // Keep the studio readable without painting false pools of sunlight through walls.
     fill.visible = rim.visible = daylight > 0; fill.intensity = 0.08 * daylight; rim.intensity = 0.12 * daylight;
     warmPool.visible = secondPool.visible = false;
     applyPracticalLighting();
-    renderer.toneMappingExposure = 1.02;
-    renderer.toneMapping = unlitTop ? THREE.NoToneMapping : THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = inside ? INSIDE_EXPOSURE : 1.02;
+    // Inside uses a hue-preserving curve: finishes keep their colour, windows roll off softly.
+    renderer.toneMapping = unlitTop ? THREE.NoToneMapping : inside ? INSIDE_TONE_MAPPING : THREE.ACESFilmicToneMapping;
     renderer.shadowMap.enabled = !unlitTop;
   }
   function updateEndpointHandles(): void {
@@ -962,7 +988,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       if (ceilingDesigns) disposeObject(ceilingDesigns);
       ceilingDesigns = makeCeilingDesigns(next, ceilingRoomId); world.add(ceilingDesigns);
       structure = makeStructure(next, pendingFinishReveal); pendingFinishReveal = undefined;
-      sunOccluders.setScene(next);
+      sunOccluders.setScene(next); windowLight.setScene(next);
       structureKey = nextKey; world.add(structure.group, structure.ceilings, structure.dimensions);
       for (const [id, opening] of structure.openings) { const angle = opening.fixed ? 0 : doorAngles.get(id) ?? 0; if (opening.fixed) doorAngles.delete(id); opening.target = angle; opening.setAngle(angle); }
       for (const id of doorAngles.keys()) if (!structure.openings.has(id)) doorAngles.delete(id);
@@ -1609,7 +1635,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     setWalls(mode) { finishOpening(true); wallMove.finish(true); walls = mode; shadowCache.invalidate(); updateOpeningHandle(); wallMove.refresh(); renderer.domElement.style.cursor = ''; requestRender(); },
     setQuality(mode) {
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, mode === 'high' ? 2 : 1.5));
-      studioRenderer.setQuality(mode);
+      studioRenderer.setQuality(mode); windowLight.setQuality(mode);
       const resolution = mode === 'high' ? 4096 : 2048;
       sunlight.shadow.radius = mode === 'high' ? 2 : 1.5;
       if (sunlight.shadow.mapSize.x !== resolution) {
@@ -1657,7 +1683,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       if (structure) { disposeObject(structure.group); disposeObject(structure.ceilings); disposeObject(structure.dimensions); }
       if (ceilingDesigns) disposeObject(ceilingDesigns);
       if (services) disposeObject(services.group); if (comparison) disposeObject(comparison); disposeObject(annotations); disposeObject(endpointHandles); disposeObject(openingHandle); windowHandles.dispose();
-      stage.dispose(); sunOccluders.dispose(); loader.dispose(); sunlight.shadow.dispose(); topLighting.dispose();
+      stage.dispose(); sunOccluders.dispose(); windowLight.dispose(); loader.dispose(); sunlight.shadow.dispose(); topLighting.dispose();
       studioRenderer.dispose(); skyboxes.dispose(); environment.dispose(); renderer.dispose(); renderer.domElement.remove();
     },
   };
