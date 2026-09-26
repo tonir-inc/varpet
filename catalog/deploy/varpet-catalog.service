@@ -9,8 +9,9 @@ Group=varpet-catalog
 WorkingDirectory=/opt/varpet-catalog/app
 EnvironmentFile=/etc/varpet-catalog.env
 ExecStart=/opt/varpet-catalog/app/.venv/bin/python mcp_server.py
-Restart=on-failure
-RestartSec=5
+TimeoutStopSec=10
+Restart=always
+RestartSec=2
 # Shared box (a Minecraft server and other apps): cap what we can take.
 MemoryMax=2G
 CPUQuota=200%

@@ -22,6 +22,6 @@ vm "printf 'VARPET_DB_URL=postgresql://varpet:%s@localhost:5432/varpet\nCATALOG_
     [ -d /opt/varpet-catalog/models/siglip2-base-patch16-224-bf16 ] || sudo -n -u varpet-catalog env HF_HOME=/opt/varpet-catalog/hf .venv/bin/python -c \"
 import torch; from transformers import AutoModel, AutoProcessor; n='google/siglip2-base-patch16-224'; o='/opt/varpet-catalog/models/siglip2-base-patch16-224-bf16'
 AutoModel.from_pretrained(n, dtype=torch.bfloat16).save_pretrained(o); AutoProcessor.from_pretrained(n).save_pretrained(o)\" 2>&1 | tail -1
-    sudo -n cp deploy/varpet-catalog.service deploy/varpet-catalog-files.service /etc/systemd/system/
-    sudo -n systemctl daemon-reload && sudo -n systemctl enable --now varpet-catalog varpet-catalog-files && sudo -n systemctl restart varpet-catalog varpet-catalog-files
+    sudo -n cp deploy/varpet-catalog.service deploy/varpet-catalog-files.service deploy/varpet-catalog-watchdog.service deploy/varpet-catalog-watchdog.timer /etc/systemd/system/
+    sudo -n systemctl daemon-reload && sudo -n systemctl enable --now varpet-catalog varpet-catalog-files varpet-catalog-watchdog.timer && sudo -n systemctl restart varpet-catalog varpet-catalog-files
     sleep 3; systemctl --no-pager --lines=5 status varpet-catalog | head -12"

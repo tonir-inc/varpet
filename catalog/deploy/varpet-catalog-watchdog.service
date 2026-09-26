@@ -1,0 +1,8 @@
+[Unit]
+Description=Restart the catalog after three consecutive failed health checks
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'count_file=/run/varpet-catalog-watchdog.count; if /usr/bin/curl --fail --silent --show-error --noproxy "*" --max-time 10 --output /dev/null http://100.107.246.46:8765/health; then echo 0 > "$${count_file}"; else count=0; read -r count < "$${count_file}" 2>/dev/null || count=0; case "$${count}" in ""|*[!0-9]*) count=0;; esac; count=$$((count + 1)); echo "$${count}" > "$${count_file}"; if [ "$${count}" -ge 3 ]; then /usr/bin/systemctl restart varpet-catalog && echo 0 > "$${count_file}"; fi; fi'
+TimeoutStartSec=30

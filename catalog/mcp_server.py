@@ -6,8 +6,11 @@ colour, style, text and visual likeness only rank what passed.
 """
 import os
 import re
+from functools import wraps
 from pathlib import Path
-from time import perf_counter
+from time import monotonic, perf_counter
+
+from starlette.concurrency import run_in_threadpool
 
 import psycopg
 from mcp.server.mcpserver import MCPServer
@@ -28,7 +31,19 @@ server = MCPServer(
 
 
 def _conn():
-    return psycopg.connect(os.environ["VARPET_DB_URL"])
+    return psycopg.connect(os.environ["VARPET_DB_URL"], connect_timeout=5,
+                           options="-c statement_timeout=15000")
+
+
+def _threaded(fn):
+    """Run blocking custom route bodies off the event loop.
+
+    MCP 2.x already delegates synchronous tools in FuncMetadata.call_fn to AnyIO.
+    """
+    @wraps(fn)
+    async def route(*args, **kwargs):
+        return await run_in_threadpool(fn, *args, **kwargs)
+    return route
 
 
 @server.tool()
@@ -177,7 +192,8 @@ try:
     from starlette.responses import JSONResponse, Response
 
     @server.custom_route("/health", methods=["GET"])
-    async def health_route(request: Request) -> Response:
+    @_threaded
+    def health_route(request: Request) -> Response:
         try:
             with _conn() as c:
                 started = perf_counter()
@@ -197,7 +213,8 @@ try:
             headers={"Cache-Control": "no-store"}))
 
     @server.custom_route("/editor/assets", methods=["GET", "OPTIONS"])
-    async def editor_assets_route(request: Request) -> Response:
+    @_threaded
+    def editor_assets_route(request: Request) -> Response:
         if request.method == "OPTIONS":
             r = Response(status_code=204)
             r.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
@@ -214,7 +231,8 @@ try:
     from starlette.responses import FileResponse
 
     @server.custom_route("/models/{name}", methods=["GET", "HEAD"])
-    async def model_file(request: Request) -> Response:
+    @_threaded
+    def model_file(request: Request) -> Response:
         """Optimized GLBs (optimize_models.py). Immutable per id, so browsers cache them for a year."""
         name = request.path_params["name"]
         if not re.fullmatch(r"[A-Za-z0-9_-]{1,40}\.glb", name) or not os.path.isfile(os.path.join(MODELS_DIR, name)):
@@ -222,7 +240,8 @@ try:
         return _cors(request, FileResponse(os.path.join(MODELS_DIR, name), media_type="model/gltf-binary",
                                            headers={"Cache-Control": "public, max-age=31536000, immutable"}))
     @server.custom_route("/previews/{name}", methods=["GET", "HEAD"])
-    async def preview_file(request: Request) -> Response:
+    @_threaded
+    def preview_file(request: Request) -> Response:
         """Rendered previews of the same GLB the editor places (render_previews.py)."""
         name = request.path_params["name"]
         path = os.path.join(MODELS_DIR, "previews", name)
@@ -234,7 +253,7 @@ except ImportError:
     pass
 
 
-def _preview_image(item_id, preview_url, photo_url):
+def _preview_image(item_id, preview_url, photo_url, deadline):
     """Local rendered preview when the service has it, else the shop photo over HTTP."""
     import io
     import urllib.request
@@ -244,9 +263,16 @@ def _preview_image(item_id, preview_url, photo_url):
     if os.path.isfile(local):
         return PILImage.open(local).convert("RGB")
     for url in (preview_url, photo_url):
+        remaining = deadline - monotonic()
+        if remaining <= 0:
+            break
         if url:
             try:
-                return PILImage.open(io.BytesIO(urllib.request.urlopen(url, timeout=10).read())).convert("RGB")
+                with urllib.request.urlopen(url, timeout=min(5, remaining)) as response:
+                    data = response.read()
+                if monotonic() >= deadline:
+                    break
+                return PILImage.open(io.BytesIO(data)).convert("RGB")
             except Exception:
                 continue
     return None
@@ -271,9 +297,10 @@ def show_candidates(item_ids: list[str], columns: int = 4) -> list:
     sheet = PILImage.new("RGB", (cols * tile, ((len(ids) + cols - 1) // cols) * tile), "white")
     draw = ImageDraw.Draw(sheet)
     legend = []
+    deadline = monotonic() + 8
     for n, iid in enumerate(ids, 1):
         _, name, kind, size, price, preview, photo = rows[iid]
-        img = _preview_image(iid, preview, photo)
+        img = _preview_image(iid, preview, photo, deadline) if monotonic() < deadline else None
         x, y = ((n - 1) % cols) * tile, ((n - 1) // cols) * tile
         if img is not None:
             img.thumbnail((tile - 8, tile - 8))
