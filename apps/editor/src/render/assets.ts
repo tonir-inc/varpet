@@ -162,8 +162,8 @@ export function disposeObject(root: THREE.Object3D): void {
   const mats = new Set<THREE.Material>();
   const textures = new Set<THREE.Texture>();
   root.traverse(object => {
-    if (object instanceof THREE.Mesh || object instanceof THREE.LineSegments) {
-      geometries.add(object.geometry);
+    if (object instanceof THREE.Mesh || object instanceof THREE.Line || object instanceof THREE.Sprite) {
+      if (!(object instanceof THREE.Sprite)) geometries.add(object.geometry);
       for (const mat of Array.isArray(object.material) ? object.material : [object.material]) {
         mats.add(mat);
         for (const value of Object.values(mat)) if (value instanceof THREE.Texture) textures.add(value);

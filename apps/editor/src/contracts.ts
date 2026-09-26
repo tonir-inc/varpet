@@ -1,3 +1,5 @@
+import type { RenovationOperation, RenovationProject } from './renovation-contracts';
+export type * from './renovation-contracts';
 /** Editor-local v1 boundary. Deliberately does not define the future shared engine schema. */
 export type Vec2 = [number, number]; // x, z in metres
 export type Vec3 = [number, number, number]; // x, y, z in metres
@@ -27,7 +29,8 @@ export interface SceneObject {
 }
 export interface SceneDocument {
   format: 'varpet.editor';
-  version: 1;
+  version: 1 | 2;
+  project?: RenovationProject;
   id: string;
   name: string;
   units: 'm';
@@ -42,7 +45,8 @@ export type Operation =
   | { type: 'update'; id: string; patch: ObjectPatch }
   | { type: 'delete'; id: string }
   | { type: 'replace-structure'; rooms: Room[]; walls: Wall[] }
-  | { type: 'replace-scene'; scene: SceneDocument };
+  | { type: 'replace-scene'; scene: SceneDocument }
+  | RenovationOperation;
 export type CommandSource = 'human' | 'designer' | 'architect';
 export interface EditCommand { id: string; label: string; source: CommandSource; baseRevision: number; operations: Operation[] }
 export interface CommandResult { ok: boolean; errors: string[]; warnings: string[]; revision: number }
@@ -56,7 +60,13 @@ export type ToolMode = 'select' | 'move' | 'rotate' | 'scale';
 export type ViewMode = 'perspective' | 'top';
 export type WallMode = 'cutaway' | 'full' | 'hidden';
 export type QualityMode = 'balanced' | 'high';
+export type ViewportLayer = 'shell' | 'furniture' | 'services' | 'assumptions' | 'ceilings' | 'dimensions' | 'components' | 'clearances' | 'electrical' | 'water-hot' | 'water-cold' | 'waste' | 'ventilation' | 'heating' | 'gas' | 'data';
+export type ComponentTransformPatch = Partial<Pick<import('./renovation-contracts').BuildingComponent, 'position' | 'rotation' | 'dimensions' | 'host'>>;
 export interface ViewportCallbacks {
+  onComponentTransform?(id: string, patch: ComponentTransformPatch): void;
+  onWallEndpoint?(id: string, endpoint: 'start' | 'end', point: Vec2): void;
+  onWallMove?(id: string, start: Vec2, end: Vec2): void;
+  onOpeningMove?(id: string, offset: number): void;
   onSelect(id: string | null): void;
   onTransform(id: string, patch: ObjectPatch): void;
   onInteraction(active: boolean): void;
@@ -70,6 +80,13 @@ export interface Viewport {
   setSnap(enabled: boolean): void;
   setWalls(mode: WallMode): void;
   setQuality(mode: QualityMode): void;
+  setLayer(layer: ViewportLayer, visible: boolean): void;
+  setDoorAngle(id: string, angle: number): void;
+  getDoorAngle(id: string): number;
+  toggleSwitch(id: string): void;
+  setSwitchLevel(id: string, level: number): void;
+  getSwitchLevel(id: string): number;
+  setComparison(enabled: boolean): void;
   focus(id?: string): void;
   cancelInteraction(): void;
   dispose(): void;
