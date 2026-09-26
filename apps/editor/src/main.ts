@@ -2,6 +2,8 @@ import { createCeilingUI } from './ui/ceiling-design';
 import { bindHeightControl, heightControlMarkup } from './ui/height-controls';
 import { createSunControls, type SunControls } from './ui/sun-controls';
 import './ui/style.css';
+import { mountSharing } from './ui/sharing';
+import { createShareSnapshot, getSharedStartup, ShareCreation, SharingSession } from './core/sharing';
 import './ui/motion.css';
 import './ui/walkthrough.css';
 import './ui/designer-panel.css';
@@ -38,13 +40,14 @@ const designerLive = Boolean(import.meta.env.VITE_DESIGNER_URL);
 const app = document.querySelector<HTMLDivElement>('#app')!;
 app.innerHTML = `
   <header class="app-header">
-    <a class="brand" href="#" aria-label="Varpet home"><span class="brand-mark">v</span><span>varpet</span></a>
+    <a class="brand" href="/" aria-label="Varpet home"><span class="brand-mark">v</span><span>varpet</span></a>
     <span class="header-divider"></span>
     <div class="project-name"><strong id="project-name">Apartment 01</strong><span>Local project</span></div>
     <div class="header-actions"><span id="save-state" class="save-state">Empty apartment</span>
       <div class="history-buttons"><button id="undo" class="icon-button" title="Undo · ⌘Z" aria-label="Undo">${icon('undo')}</button><button id="redo" class="icon-button" title="Redo · ⌘⇧Z" aria-label="Redo">${icon('redo')}</button></div>
       <button id="file-menu" class="button quiet" aria-label="Project files">${icon('folder')} <span>File</span> <span class="caret">⌄</span></button>
       <button id="save" class="button primary" title="Save on this device · ⌘S">${icon('save')} <span>Save</span></button>
+      <button id="share" class="button quiet" aria-label="Share progress" aria-haspopup="dialog" aria-expanded="false">${icon('share')} <span>Share</span></button>
     </div>
   </header>
   <div class="workspace">
@@ -117,9 +120,14 @@ let builtProducts: CatalogProduct[] = [];
 let builtLoading = false;
 let builtError = '';
 const structureAdapter = architectLive ? createArchitectHttpAdapter({ onProgress: message => notify(message) }) : mockStructureAdapter;
-let catalog: CatalogAsset[] = [];
-const store = createApartmentStore(createInitialScene(), catalog);
-const catalogProducts = new Map<string, CatalogProduct>();
+const sharedStartup = getSharedStartup();
+let shareSession = sharedStartup ? new SharingSession(sharedStartup.reference, sharedStartup.project) : null;
+let sharedSceneId = sharedStartup?.project.scene.id;
+const shareCreation = new ShareCreation();
+let catalog: CatalogAsset[] = sharedStartup?.project.catalog ?? [];
+const store = createApartmentStore(sharedStartup?.project.scene ?? createInitialScene(), catalog);
+const catalogProducts = new Map<string, CatalogProduct>(catalog.map(asset => [asset.id, { asset,
+  priceSource: 'shared project · unverified', sizeStatus: 'shared project', attribution: 'Catalog captured with the shared project' }]));
 const designerCatalog = new DesignerProposalCatalog();
 let catalogResults: CatalogProduct[] = [];
 let catalogLoading = false;
@@ -154,7 +162,7 @@ let snap = true;
 let interacting = false;
 let selectionRevealFrame = 0;
 let interactionRevision = 0;
-let savedRevision = -1;
+let savedRevision = sharedStartup ? 0 : -1;
 let pending: AgentProposal | null = null;
 let busy = false;
 let assetCategory = '';
@@ -716,6 +724,10 @@ function showFullHeight() {
 function refresh(){
   designerCatalog.prune(store.revision);
   const scene=store.scene;
+  if (shareSession && scene.id !== sharedSceneId) {
+    shareSession = null; sharedSceneId = undefined; savedRevision = -1;
+    history.replaceState(null, '', location.pathname + location.search);
+  }
   selectedFurnitureIds = expandFurnitureSelection(scene, selectedFurnitureIds);
   if(selectedId&&!entityName(selectedId))selectedId=null;
   viewport.setScene(scene,catalog);viewport.setSelection(selectedId, selectedFurnitureIds);
@@ -726,7 +738,11 @@ function refresh(){
   $('#room-count').textContent=`${scene.rooms.length} rooms`;
   $('#revision').textContent=`Revision ${store.revision}`;
   $<HTMLButtonElement>('#undo').disabled=previewMode||!store.canUndo;$<HTMLButtonElement>('#redo').disabled=previewMode||!store.canRedo;
-  $('#save-state').textContent=store.revision===savedRevision?'Saved on this device':store.revision===0?'Empty apartment':'Unsaved changes';
+  $('#save-state').textContent=shareSession?.saving?'Saving shared progress…':store.revision===savedRevision?(shareSession?'Saved to shared project':'Saved on this device'):store.revision===0?'Empty apartment':'Unsaved changes';
+  $<HTMLButtonElement>('#save').disabled = proposalView || Boolean(shareSession?.saving);
+  $('#save').title = shareSession ? 'Save shared progress · ⌘S' : 'Save on this device · ⌘S';
+  $('.project-name > span').textContent = shareSession ? 'Shared project · Can edit' : 'Local project';
+  if (shareSession && $('#status-text').textContent === 'All changes stay on this device') $('#status-text').textContent = 'Save publishes progress to this shared project';
   $('#apartment-height').innerHTML = heightControlMarkup(scene);
   bindHeightControl($('#apartment-height'), { getScene: () => store.scene, execute: run, notice: notify, showFullHeight });
   renderHierarchy();renderInspector();renderProposal();
@@ -780,6 +796,28 @@ const designerPanel = mountDesignerPanel(designerHost, {
 window.addEventListener('beforeunload', () => designerPanel.dispose());
 
 const modal=$<HTMLDialogElement>('#modal');
+const sharingUI = mountSharing($<HTMLButtonElement>('#share'), {
+  async createLink(access) {
+    if (!shareSession) {
+      const revision = store.revision, sceneId = store.scene.id;
+      {
+        const created = await shareCreation.create(createShareSnapshot(store.scene, catalog), revision);
+        if (store.scene.id !== sceneId) throw new Error('The project changed while creating the link. Share your current project again.');
+        shareSession = created; sharedSceneId = sceneId; savedRevision = created.savedRevision;
+        history.replaceState(null, '', created.link('edit', location.href));
+        refresh();
+      }
+    }
+    return shareSession.link(access, location.href);
+  },
+  notice: message => notify(message),
+  warning() {
+    const messages: string[] = [];
+    if (shareSession && savedRevision !== store.revision) messages.push('There are unsaved changes. Save before sending the link to include your latest progress.');
+    if (catalog.some(asset => asset.source.type === 'gltf' && /localhost|127\.0\.0\.1|\/built\//.test(asset.source.url))) messages.push('Some custom models need the original model server to stay available.');
+    return messages.join(' ');
+  },
+});
 function showModal(title:string,body:string){$('#modal-content').innerHTML=`<div class="modal-heading"><h2>${title}</h2><button id="close-modal" class="icon-button" aria-label="Close dialog">${icon('close')}</button></div>${body}`;$('#close-modal').onclick=()=>modal.close();modal.showModal();}
 modal.onclick=e=>{if(e.target===modal)modal.close();};
 $('#integrations').onclick=()=>{
@@ -791,13 +829,25 @@ $('#integrations').onclick=()=>{
 $('#file-menu').onclick=()=>{
   showModal('Your apartment project',`<p class="modal-intro">Save locally or carry your apartment, assumptions and source evidence as versioned JSON. Loading and reconstruction can be undone.</p><div class="file-actions"><button id="new-shell" class="button primary">${icon('walls')} Build an empty apartment</button><button id="open-local" class="button">${icon('folder')} Load saved scene</button><button id="import-json" class="button">${icon('upload')} Import project JSON</button><button id="export-json" class="button">${icon('download')} Export project with evidence</button><button id="export-report" class="button">${icon('download')} Export review report</button><button id="export-schedule" class="button">${icon('download')} Export schedule CSV</button><button id="reset-apartment" class="button">${icon('home')} Restore empty apartment</button></div><p class="modal-footnote">Original source attachments are embedded in the project export. Catalog models remain references. Browser storage has a limited capacity; keep an exported copy.</p>`);
   $('#new-shell').onclick=()=>{modal.close();intake.reconstruction();};
-  $('#open-local').onclick=async()=>{const baseRevision=store.revision;try{const text=localStorage.getItem(STORAGE_KEY);if(!text){notify('No saved scene yet. Use Save first.',true);return;}const scene=await parseDatabaseScene(text);if(run([{type:'replace-scene',scene}],'Load saved scene',baseRevision)){savedRevision=store.revision;select(null);focusView();refresh();modal.close();}}catch(error){notify(error instanceof Error?error.message:String(error),true);}};
+  $('#open-local').onclick=async()=>{const baseRevision=store.revision;try{const text=localStorage.getItem(STORAGE_KEY);if(!text){notify('No saved scene yet. Use Save first.',true);return;}const scene=await parseDatabaseScene(text);if(run([{type:'replace-scene',scene}],'Load saved scene',baseRevision)){if(!shareSession)savedRevision=store.revision;select(null);focusView();refresh();modal.close();}}catch(error){notify(error instanceof Error?error.message:String(error),true);}};
   $('#import-json').onclick=()=>{modal.close();$<HTMLInputElement>('#file-input').click();};
   $('#export-json').onclick=()=>{exportProject('project');modal.close();};$('#export-report').onclick=()=>{exportProject('report');modal.close();};$('#export-schedule').onclick=()=>{exportProject('schedule');modal.close();};
   $('#reset-apartment').onclick=()=>{if(run([{type:'replace-scene',scene:createInitialScene()}],'Restore empty apartment')){select(null);focusView();modal.close();}};
 };
 $('#file-input').onchange=async event=>{const input=event.target as HTMLInputElement;const file=input.files?.[0];if(!file)return;const baseRevision=store.revision;try{if(file.size>24_000_000)throw new Error('Project file exceeds the 24 MB limit.');const scene=await parseDatabaseScene(await file.text());if(run([{type:'replace-scene',scene}],'Import scene',baseRevision)){select(null);focusView();}}catch(error){notify(error instanceof Error?error.message:String(error),true);}finally{input.value='';}};
-$('#save').onclick=()=>{try{saveLocal(store.scene);savedRevision=store.revision;refresh();notify('Scene saved on this device');}catch(error){notify(`Could not save: ${String(error)}`,true);}};
+$('#save').onclick=async()=>{
+  const session = shareSession, revision = store.revision;
+  if (session?.saving) return;
+  try {
+    if (session) {
+      const saving = session.save(createShareSnapshot(store.scene, catalog), revision);
+      refresh(); await saving;
+      if (shareSession === session) savedRevision = session.savedRevision;
+      notify('Shared progress saved. Anyone with the link can open this version.');
+    } else { saveLocal(store.scene); savedRevision=revision; notify('Scene saved on this device'); }
+  } catch(error) { notify(error instanceof Error ? error.message : 'Could not save your progress. Try again.', true); }
+  finally { refresh(); }
+};
 $('#undo').onclick=()=>{if(!interacting&&!previewMode){const r=store.undo();notify(r.ok?'Undo complete':r.errors.join(' '),!r.ok);}};$('#redo').onclick=()=>{if(!interacting&&!previewMode){const r=store.redo();notify(r.ok?'Redo complete':r.errors.join(' '),!r.ok);}};
 $('#scene-tab').onclick=()=>switchPanel('scene',true);$('#assets-tab').onclick=()=>switchPanel('assets',true);$('#assistant-tab').onclick=()=>switchPanel('assistant',true);
 $('#materials-tab').onclick=()=>switchPanel('materials',true);
@@ -852,5 +902,5 @@ window.addEventListener('keydown',event=>{
   else if(mod&&key==='s'){event.preventDefault();$('#save').click();}
   else if(!mod){if(['delete','backspace'].includes(key)){event.preventDefault();deleteSelected();}else if(key==='f')focusView(selectedId??undefined);else if(key==='v')setTool('select');else if(key==='g'&&view!=='plan')setTool('move');else if(key==='r'&&view!=='plan')setTool('rotate');else if(key==='s'&&view!=='plan')setTool('scale');else if(key==='1')switchPanel('scene');else if(key==='2')switchPanel('assets');else if(key==='3')switchPanel('assistant');else if(key==='4')switchPanel('renovation');else if(key==='5')switchPanel('materials');else if(key==='6')switchPanel('ceilings');else if(key==='[')switchPanel(activePanel,true);}
 });
-window.addEventListener('beforeunload',()=>{catalogRequest?.abort();clearTimeout(catalogSearchTimer);cancelAnimationFrame(selectionRevealFrame);materialsUI.dispose();ceilingUI.dispose();sunControls?.dispose();viewport.dispose();floorPlan.dispose();catalogPreviews.dispose();renovationUI?.destroy();intake.destroy();});
+window.addEventListener('beforeunload',()=>{sharingUI.destroy();catalogRequest?.abort();clearTimeout(catalogSearchTimer);cancelAnimationFrame(selectionRevealFrame);materialsUI.dispose();ceilingUI.dispose();sunControls?.dispose();viewport.dispose();floorPlan.dispose();catalogPreviews.dispose();renovationUI?.destroy();intake.destroy();});
 refresh();renderAssets();setTool('select');switchPanel('renovation');if(designerLive)switchPanel('renovation',true);void searchDatabase();void refreshBuiltPieces();

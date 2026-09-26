@@ -1,4 +1,5 @@
 const paths: Record<string,string> = {
+  share:'<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4"/>',
   sofa:'<path d="M5 12V7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v5M5 18v3M19 18v3M5 12H3v6h18v-6h-2v3H5Z"/>',
   'panel-close':'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16m7-11-3 3 3 3"/>',
   plus:'<path d="M12 5v14M5 12h14"/>',

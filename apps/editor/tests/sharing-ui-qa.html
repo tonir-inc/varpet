@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sharing UI QA</title>
+  <style>
+    body { margin: 0; font: 14px system-ui, sans-serif; }
+    nav { display: flex; gap: 16px; padding: 12px; flex-wrap: wrap; }
+    iframe { display: block; border: 0; }
+  </style>
+</head>
+<body>
+<script type="module">
+const query = new URLSearchParams(location.search);
+if (!query.has('frame')) {
+  const sizes = { 1440: 900, 1280: 800, 390: 844 };
+  const width = Number(query.get('width') ?? 1440);
+  if (!(width in sizes)) throw Error('Use a listed QA width');
+  const nav = document.createElement('nav');
+  nav.textContent = 'Sharing UI · isolated callbacks, no uploads';
+  for (const [w, h] of Object.entries(sizes).reverse()) {
+    const link = document.createElement('a');
+    link.href = `?width=${w}`; link.textContent = `${w} × ${h}`; nav.append(link);
+  }
+  const frame = document.createElement('iframe');
+  frame.title = 'Sharing interaction checks'; frame.width = String(width); frame.height = String(sizes[width]);
+  frame.src = '?frame=1'; document.body.append(nav, frame);
+} else {
+  await import('/src/ui/style.css');
+  const pageStyle = document.createElement('style');
+  pageStyle.textContent = `
+    body { padding: var(--space-6); min-height: 100dvh; background: var(--ground); }
+    main { max-width: 680px; display: grid; gap: var(--space-4); }
+    h1 { font-size: var(--text-lg); }
+    p { color: var(--muted); }
+    .qa-actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+    output { display: block; white-space: pre-wrap; font-size: var(--text-sm); }
+    .qa-pass { color: var(--positive); } .qa-fail { color: var(--danger); }
+  `;
+  document.head.append(pageStyle);
+  document.body.innerHTML = `<main><h1>Sharing interaction checks</h1><p>These checks use an injected callback. No project data is uploaded.</p><div class="qa-actions"><button id="open-share" class="button primary" type="button" aria-expanded="false" aria-controls="qa-results">Open share dialog</button><button id="run-checks" class="button" type="button">Run checks</button></div><output id="qa-results" role="status">Ready</output></main>`;
+  const output = document.querySelector('#qa-results');
+  const trigger = document.querySelector('#open-share');
+  const runButton = document.querySelector('#run-checks');
+  let sharing;
+  const tick = () => new Promise(resolve => setTimeout(resolve, 0));
+  const check = (condition, message) => { if (!condition) throw Error(message); output.textContent += `PASS ${message}\n`; };
+  let mountSharing;
+  try { ({ mountSharing } = await import(/* @vite-ignore */ '/src/ui/' + 'sharing.ts')); } catch { /* The first test reports the missing feature. */ }
+  async function runChecks() {
+    runButton.disabled = true; output.className = ''; output.textContent = '';
+    const originalClipboard = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
+    let controller;
+    try {
+      check(typeof mountSharing === 'function', 'sharing dialog is available');
+      sharing?.destroy();
+      const requests = [];
+      const notice = [];
+      controller = mountSharing(trigger, {
+        createLink: access => new Promise((resolve, reject) => requests.push({ access, resolve, reject })),
+        notice: message => notice.push(message),
+        warning: () => 'Some attachments are unavailable. <b>Warning stays plain text.</b>',
+      });
+      sharing = controller;
+      trigger.click();
+      const dialog = document.querySelector('dialog.sharing-dialog');
+      const view = dialog.querySelector('input[value="view"]');
+      const edit = dialog.querySelector('input[value="edit"]');
+      const action = dialog.querySelector('[data-share-action]');
+      const link = dialog.querySelector('[data-share-link]');
+      const result = dialog.querySelector('[data-share-result]');
+      const close = dialog.querySelector('[data-share-close]');
+      const select = radio => { radio.checked = true; radio.dispatchEvent(new Event('change', { bubbles: true })); };
+      check(dialog.open && view.checked && !edit.checked && requests.length === 0, 'opening defaults to view only without creating a link');
+      check(dialog.id && trigger.getAttribute('aria-controls') === dialog.id && trigger.getAttribute('aria-expanded') === 'true', 'open trigger identifies the expanded dialog');
+      check(document.activeElement === view, 'opening focuses the selected native radio');
+      action.focus(); action.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true }));
+      check(document.activeElement === close, 'Tab cycles from the last control to Close');
+      close.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true }));
+      check(document.activeElement === action, 'Shift+Tab cycles from Close to the last control');
+      check(dialog.querySelector('fieldset legend').textContent === 'Link access', 'access choices have a fieldset label');
+      check(dialog.textContent.includes('Links show the latest saved progress. Save publishes your changes.'), 'saved-progress behavior is explained');
+      check(dialog.textContent.includes('including attached photos, plans and notes'), 'link access includes attached evidence');
+      check(dialog.querySelector('[data-share-warning]').textContent.includes('<b>') && !dialog.querySelector('[data-share-warning] b'), 'attachment warning is displayed as plain text');
+      check(dialog.querySelector('[data-share-local]').hidden === false, 'localhost limit is visible');
+      action.click(); action.click();
+      check(requests.length === 1 && requests[0].access === 'view' && action.disabled, 'create runs once while busy and requests view access');
+      select(edit);
+      check(!action.disabled && action.textContent === 'Create link' && link.value === '' && result.hidden, 'switching access immediately clears the link and busy state');
+      requests[0].resolve('https://example.test/shared/old-view'); await tick();
+      check(link.value === '' && result.hidden, 'a stale success cannot surface the previous access link');
+      action.click();
+      requests[1].resolve('https://example.test/shared/project#edit=secret'); await tick();
+      check(requests[1].access === 'edit' && link.value.includes('#edit=secret') && !result.hidden && link.readOnly && action.textContent === 'Copy link', 'edit request yields a read-only link and copy action');
+      select(view);
+      check(link.value === '' && result.hidden && action.textContent === 'Create link', 'changing back to view removes an existing edit link immediately');
+      action.click(); requests[2].reject(new Error('Sharing service unavailable.')); await tick();
+      check(!action.disabled && action.textContent === 'Create link' && dialog.querySelector('[role="alert"]').textContent.includes('Sharing service unavailable'), 'creation failure exposes a retryable error');
+      action.click(); requests[3].resolve('https://example.test/shared/retried'); await tick();
+      check(link.value.endsWith('/retried') && dialog.querySelector('[role="alert"]').hidden, 'retry replaces an error with the requested link');
+      Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async () => { throw Error('Permission denied'); } } });
+      action.click(); await tick();
+      check(!action.disabled && document.activeElement === link && link.selectionStart === 0 && link.selectionEnd === link.value.length, 'clipboard rejection selects the entire link for manual copying');
+      check(dialog.querySelector('[data-share-status]').textContent.includes('Copy it manually'), 'clipboard failure explains manual copying');
+      const copied = [];
+      Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async text => copied.push(text) } });
+      action.click(); await tick();
+      check(copied[0] === link.value && notice.length === 1 && dialog.querySelector('[data-share-status]').textContent === 'Link copied.', 'copy retry writes exactly the visible link and confirms it');
+      select(edit); action.click(); close.click(); await tick(); trigger.click();
+      check(view.checked && !edit.checked && link.value === '' && !action.disabled && action.textContent === 'Create link', 'close and reopen reset edit access and pending state');
+      requests[4].reject(new Error('Old edit request')); await tick();
+      check(dialog.querySelector('[role="alert"]').hidden && link.value === '', 'failure from a closed dialog is ignored');
+      action.click(); requests[5].resolve('https://example.test/shared/view'); await tick();
+      check(link.value.endsWith('/view'), 'the reopened dialog can create a fresh view link');
+      close.click(); await tick();
+      check(document.activeElement === trigger, 'closing returns focus to the share trigger');
+      check(trigger.getAttribute('aria-expanded') === 'false', 'closing marks the trigger collapsed');
+      trigger.click(); action.click(); controller.destroy(); requests[6].resolve('https://example.test/after-destroy'); await tick();
+      trigger.click();
+      check(!document.querySelector('dialog.sharing-dialog'), 'destroy removes the dialog, ignores pending work, and detaches its trigger');
+      check(trigger.getAttribute('aria-controls') === 'qa-results' && trigger.getAttribute('aria-expanded') === 'false' && !trigger.hasAttribute('aria-haspopup'), 'destroy restores original trigger accessibility attributes');
+      output.textContent += `COMPLETE · ${output.textContent.split('\n').filter(line => line.startsWith('PASS')).length} browser checks · ${innerWidth} × ${innerHeight}`;
+      output.className = 'qa-pass';
+    } catch (error) { output.textContent += `FAIL ${error.message}`; output.className = 'qa-fail'; }
+    finally {
+      controller?.destroy();
+      if (originalClipboard) Object.defineProperty(navigator, 'clipboard', originalClipboard);
+      else delete navigator.clipboard;
+      if (typeof mountSharing === 'function') sharing = mountSharing(trigger, {
+        createLink: async access => `https://example.test/shared/review${access === 'edit' ? '#edit=example-capability' : ''}`,
+        warning: () => 'One attachment is unavailable. Reattach it before sharing if your recipient needs it.',
+      });
+      runButton.disabled = false;
+    }
+  }
+  runButton.addEventListener('click', () => void runChecks());
+  await runChecks();
+}
+</script>
+</body>
+</html>
