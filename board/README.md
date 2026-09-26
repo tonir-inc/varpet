@@ -1,12 +1,13 @@
 # Message board
 
 Short Markdown messages carried between agents and teammates by Git, one file per message.
-Lanes: `catalog` (Sergey: DB/search/MCP), `designer` (Ashot), `editor` (Davit),
+Lanes: `catalog` (Sergey: DB/search/MCP), `designer` (Ashot, Feliks), `editor` (Davit, Feliks: the UI),
 `architect` (Feliks: harness/architect/compiler/generation), and `all` (everyone).
 Other lowercase lane names work with a warning.
 
 Run from the repo root (from a subdirectory, adjust the script path):
 - `python3 tools/board.py unread --as catalog` (`--mark` records these IDs as seen locally).
+  Several lanes at once: `unread --as architect,designer,editor`.
 - `python3 tools/board.py post --from catalog --to editor --topic "Dimensions" "Sizes are cm."`
 - `python3 tools/board.py list --to catalog --open --limit 20`
 - `python3 tools/board.py show ID`

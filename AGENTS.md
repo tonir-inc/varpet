@@ -50,7 +50,7 @@ Developer plan and photos in, a faithful furnished 3D flat out, rearranged by a 
   anything else; keep `pnpm test` green before pushing because teammates build on main.
 - Agents (`.codex/agents/`): `reviewer` checks a finished change with fresh context; `devils-advocate`
   attacks a plan before it costs hours.
-- Designer lane (Ashot): design in `docs/designer.md`, cards in `docs/tasks/designer-*.md`, skill
+- Designer lane (Ashot, Feliks): design in `docs/designer.md`, cards in `docs/tasks/designer-*.md`, skill
   `designer-build` while building it; the product's Designer thread loads only `interior-design-rules`.
 - Parallel work uses git worktrees (`git worktree add ../varpet-<lane> -b <lane>/<topic> main`), one
   lane per worktree; merge to `main` often.

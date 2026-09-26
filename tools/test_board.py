@@ -100,6 +100,17 @@ class BoardTests(unittest.TestCase):
         self.assertIn(broadcast, self.cli('unread', '--as', 'designer').stdout)
         self.assertEqual(self.git('check-ignore', '.board-seen-editor'), '.board-seen-editor')
 
+    def test_unread_for_several_lanes_lists_each_message_once(self):
+        editor = self.post(to='editor')
+        both = self.post(to='editor,architect')
+        other = self.post(to='catalog')
+        first = self.cli('unread', '--as', 'architect,editor', '--mark').stdout
+        self.assertIn(editor, first)
+        self.assertEqual(first.count(both), 1)
+        self.assertNotIn(other, first)
+        self.assertEqual(self.cli('unread', '--as', 'editor').stdout, '')
+        self.assertEqual(self.cli('unread', '--as', 'architect').stdout, '')
+
     def test_concurrent_posts_have_distinct_files(self):
         # Separate clones model different teammates with independent indexes.
         roots = [self.root / f'clone{i}' for i in range(12)]

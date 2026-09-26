@@ -182,7 +182,8 @@ def parser():
     sub.add_argument('--from', dest='sender', type=lane)
     sub.add_argument('note', nargs='?')
     sub = commands.add_parser('unread', help='List unseen messages addressed to your lane or all')
-    sub.add_argument('--as', dest='lane', required=True, type=lane)
+    sub.add_argument('--as', dest='lane', required=True, type=recipients,
+                     help='Your lane, or several comma-separated')
     sub.add_argument('--mark', action='store_true', help='Mark displayed messages seen locally')
     commands.add_parser('sync', help='Pull --rebase and push outgoing board-only commits; requires a clean tree')
     return p
@@ -226,12 +227,17 @@ def main():
             all_messages = messages(root)
             selected = all_messages
             if args.command == 'unread':
-                seen_path = root / f'.board-seen-{args.lane}'
-                seen = set(seen_path.read_text(encoding='utf-8').splitlines()) if seen_path.exists() else set()
-                selected = [m for m in selected if addressed(m, args.lane) and m['id'] not in seen]
+                unseen = {}
+                for who in args.lane.split(','):
+                    seen_path = root / f'.board-seen-{who}'
+                    seen = set(seen_path.read_text(encoding='utf-8').splitlines()) if seen_path.exists() else set()
+                    unseen[seen_path] = [m for m in selected if addressed(m, who) and m['id'] not in seen]
+                ids = {m['id'] for found in unseen.values() for m in found}
+                selected = [m for m in selected if m['id'] in ids]
                 if args.mark:
-                    with seen_path.open('a', encoding='utf-8') as stream:
-                        stream.writelines(m['id'] + '\n' for m in selected)
+                    for seen_path, found in unseen.items():
+                        with seen_path.open('a', encoding='utf-8') as stream:
+                            stream.writelines(m['id'] + '\n' for m in found)
             else:
                 if args.to:
                     selected = [m for m in selected if addressed(m, args.to)]

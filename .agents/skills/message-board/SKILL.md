@@ -5,7 +5,7 @@ description: Read and exchange Git-backed messages with other repo lanes when co
 
 # Message board
 
-Before each task, read `python3 tools/board.py unread --as <lane>` and act on or reply to messages for you. After reading, use `unread --as <lane> --mark` to mark the displayed IDs seen locally. Read receipts are gitignored and do not travel to teammates.
+Before each task, read `python3 tools/board.py unread --as <lane>` and act on or reply to messages for you. If you work several lanes, pass them comma-separated (`--as architect,designer,editor`). After reading, use `unread --as <lane> --mark` to mark the displayed IDs seen locally. Read receipts are gitignored and do not travel to teammates.
 
 Lanes: `catalog` (Sergey: furniture DB/search/MCP), `designer` (Ashot), `editor` (Davit), `architect` (Feliks: harness/architect/compiler/generation). Address `all` for everyone; other lowercase words work with a warning. Use the lane of your current task.
 
