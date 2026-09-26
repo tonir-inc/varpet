@@ -34,6 +34,11 @@ def _warm_up_model():
         logging.getLogger(__name__).exception("SigLIP query model warm-up failed")
     else:
         model_ready = True
+    try:  # load the in-memory embedding matrices before the first real query
+        with _conn() as conn:
+            search(conn, Query(text="sofa", limit=1))
+    except Exception:
+        logging.getLogger(__name__).warning("embedding matrix warm-up skipped", exc_info=True)
 
 
 server = MCPServer(
