@@ -114,6 +114,6 @@ python3 -u packages/designer/eval/komitas-freeze.py < /dev/null
 python3 packages/designer/eval/komitas-freeze-report.py
 ```
 
-Run the frozen launcher from revision `46a4a27` (the product matches `baad342`); a newer runtime is deliberately refused by the source guard. The launcher refuses to overwrite existing conversations; use a fresh checkout/run directory to repeat. SDK runtime: `/tmp/varpet-designer-sdk/bin/python` with openai-codex installed. Each child has closed stdin, process-group cleanup and a 240-second output watchdog; service workers have a 180-second no-model-output watchdog. A usage limit stops the entire batch.
+Use product revision `baad342` with these eval scripts to reproduce the frozen setup; a newer runtime is deliberately refused by the source guard and needs a newly declared cohort before running. The launcher refuses to overwrite existing conversations; use a fresh checkout/run directory to repeat. SDK runtime: `/tmp/varpet-designer-sdk/bin/python` with openai-codex installed. Each child has closed stdin, process-group cleanup and a 240-second output watchdog; service workers have a 180-second no-model-output watchdog. A usage limit stops the entire batch.
 
 [Frozen input hashes and settings](komitas-freeze-cohort.json); [historical six-flat report and ten-plan handoff](komitas-pre-freeze.md); [verification](komitas-verification.md). Historical input and runtime failures are not pooled into this comparison. All unchanged source scenes remain SERVICE-owned.
