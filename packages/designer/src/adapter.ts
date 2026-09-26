@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { Scene, Wall } from './scene.js';
+import type { Scene, Wall, Op, Vec2 } from './scene.js';
 
 const num = z.number().finite();
 const point = z.tuple([num, num]);
@@ -45,12 +45,51 @@ export function parseScene(input: unknown): Scene {
   return scene;
 }
 
+/** Preview only. Kept and fixed items are immutable; all callers receive a fresh scene. */
+export function applyOps(scene: Scene, ops: readonly Op[] = []): Scene {
+  const copy = parseScene(scene);
+  for (const op of ops) {
+    if (op.type === 'add') {
+      if ([...copy.items,...copy.fixed,...copy.rooms,...copy.walls,...copy.openings].some(i=>i.id===op.item.id)) throw new Error(`Duplicate id: ${op.item.id}`);
+      copy.items.push(structuredClone(op.item));
+      continue;
+    }
+    const index = copy.items.findIndex(i=>i.id===op.id);
+    if (index < 0) throw new Error(`Unknown or fixed item: ${op.id}`);
+    const target = copy.items[index]!;
+    if (target.keep) throw new Error(`Kept item cannot change: ${op.id}`);
+    if (op.type === 'remove') copy.items.splice(index,1);
+    else if (op.type === 'move') {
+      target.pos = [...op.pos];
+      if (op.rot !== undefined) target.rot = op.rot;
+      if (op.room_id !== undefined) target.room_id = op.room_id;
+    } else throw new Error('Unknown operation');
+  }
+  return parseScene(copy);
+}
+
+export function wallOutward(scene: Scene, wall: Wall): Vec2 {
+  const polygon = scene.rooms.find(r => r.id === wall.room_id)!.polygon;
+  const inside = (point: Vec2) => {
+    let hit = false;
+    for (let i=0,j=polygon.length-1;i<polygon.length;j=i++) {
+      const a=polygon[i]!,b=polygon[j]!;
+      if ((a[1]>point[1]) !== (b[1]>point[1]) && point[0]<(b[0]-a[0])*(point[1]-a[1])/(b[1]-a[1])+a[0]) hit=!hit;
+    }
+    return hit;
+  };
+  const length = Math.hypot(wall.b[0]-wall.a[0],wall.b[1]-wall.a[1]);
+  const dx=(wall.b[1]-wall.a[1])/length,dy=(wall.a[0]-wall.b[0])/length;
+  const middle: Vec2=[(wall.a[0]+wall.b[0])/2,(wall.a[1]+wall.b[1])/2];
+  const positive=inside([middle[0]+dx*1e-5,middle[1]+dy*1e-5]);
+  const negative=inside([middle[0]-dx*1e-5,middle[1]-dy*1e-5]);
+  if (positive === negative) throw new Error(`Wall ${wall.id} is not on the boundary of room ${wall.room_id}`);
+  return positive ? [-dx,-dy] : [dx,dy];
+}
+
 export function wallCompass(scene: Scene, wall: Wall): string {
   if (scene.north_deg === undefined) return 'unknown';
-  const polygon = scene.rooms.find(r => r.id === wall.room_id)!.polygon;
-  const center = polygon.reduce((p,q) => [p[0]!+q[0]/polygon.length,p[1]!+q[1]/polygon.length], [0,0]);
-  let dx = wall.b[1]-wall.a[1], dy = wall.a[0]-wall.b[0];
-  if (dx*(center[0]!-(wall.a[0]+wall.b[0])/2)+dy*(center[1]!-(wall.a[1]+wall.b[1])/2)>0) { dx = -dx; dy = -dy; }
+  const [dx,dy]=wallOutward(scene,wall);
   const angle = ((Math.atan2(dx,dy)*180/Math.PI-scene.north_deg)%360+360)%360;
   return ['north','northeast','east','southeast','south','southwest','west','northwest'][Math.round(angle/45)%8]!;
 }
