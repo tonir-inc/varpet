@@ -36,7 +36,7 @@ NAME_KIND = [
     (r"\bpillow|cushion|throw\b|slipcover|\bcover\b", "decor"),
     (r"\brug\b|\bmat\b|runner\b", "rug"),
     (r"\b(sofa|console|coffee|side|end|accent|dining|kitchen|bistro|patio) table", "table"),
-    (r"\bnightstand|bedside|night stand", "nightstand"),
+    (r"\bnightstand|bedside|bed side|beside table|night stand|night table", "nightstand"),  # "Beside Table" is an ABO typo
     (r"\bchest of drawers|dresser", "dresser"),
     (r"\bmirror", "mirror"),
     (r"\bunder-?bed|storage drawer", "storage"),
