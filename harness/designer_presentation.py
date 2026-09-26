@@ -146,6 +146,16 @@ def format_presentation(saved, scene, translated_proposal, request):
         title = f"Partial layout for {location}"
         # Do not turn an honest incremental result into a complete-room claim.
         sentences.insert(0, rationale[:2200])
+    # Complete-room copy must retain the checked secondary-access compromise.
+    # Scope it to changed furniture; unrelated baseline bottlenecks are not new claims.
+    changed_routes = [route for route in new_room.get("walkways", [])
+                      if any(str(route.get(end, "")).startswith("item:") and
+                             str(route[end])[5:] in changed for end in ("from", "to"))]
+    if changed_routes and all(route.get("reachable") and _number(route.get("width_m")) and
+                              route["width_m"] >= .75 for route in changed_routes):
+        narrowest = min(route["width_m"] for route in changed_routes)
+        if narrowest < .9 and "secondary access" not in " ".join(sentences).lower():
+            sentences.append(f"Secondary access is {narrowest:.2f} m: acceptable at a 0.75 m minimum, below the comfortable 0.90 m target.")
     if adds:
         notes.append("Sample catalog price, not a shop quote." if re.search(r"\bmock\b|sample pric", rationale, re.I)
                      else "Confirm catalog prices with the shop.")
