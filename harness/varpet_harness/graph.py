@@ -27,6 +27,7 @@ class Job(BaseModel):
     size: list[float] | None = Field(
         default=None, min_length=3, max_length=3, description="[w, d, h] in metres, pieces only"
     )
+    count: int = Field(default=1, ge=1, description="how many identical copies the flat has")
     size_estimated: bool = Field(
         default=False, description="True when no plan or photo gives the size"
     )

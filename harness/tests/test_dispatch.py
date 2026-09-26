@@ -72,7 +72,9 @@ def test_settle_forces_low_piece_effort_and_plan_ref():
         {"id": "shell", "kind": "shell", "brief": "x", "effort": "high"},
         {"id": "sofa", "kind": "piece", "brief": "x", "size": [2, 1, 1], "effort": "medium"},
     ])
+    graph.jobs[1].refs = ["a.jpg", "b.jpg", "c.jpg", "d.jpg"]
     settle(graph, "fixtures/plan.png")
+    assert graph.jobs[1].refs == ["a.jpg", "b.jpg", "c.jpg"]
     assert graph.jobs[0].refs == ["fixtures/plan.png"] and graph.jobs[0].effort == "high"
     assert graph.jobs[1].effort == "low"
 
