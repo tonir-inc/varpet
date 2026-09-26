@@ -65,3 +65,5 @@
 ## Reproduce
 
 `fast-repeat.py --arm before|after` repeats Avani and the area proof. `fast-matrix.py` calls BENCH’s unmodified runner for the selected currently published scenes. `fast-subset.ts` repeats isolated classes with BENCH’s unmodified grader. `fast-catalog-search.ts` measures live cache I/O. `fast-promotion-report.py` rebuilds the knowledge/default registry; `fast-timing.py` rebuilds timing evidence. Explicit environment/profile overrides retain all-class opt-in and complete opt-out.
+
+[measured after incoming `ce81c1f`] Catalog-function and access checks changed source fingerprints. Offline recertification passed all nine Avani candidates (two rearrangements, one paint, six group moves) through the current proposal gate, unchanged independent grader and EditorStore. Fresh versioned recipes are published. This is current acceptance evidence; historical model latencies above are not relabelled as new runs.

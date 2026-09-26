@@ -4,8 +4,8 @@
   "rows": [
     {
       "scenario": "avani-living-rearrange",
-      "key": "fef4a66f7d8d9a40cf87da3cff987f48458cb11e2b6ca5763b6307ccdbe2c958",
-      "seconds": 7.418860124999999,
+      "key": "c35726ec5de02a91592af4ce215ac16aae527a15fa695eb69493dca33d5d233f",
+      "seconds": 3.182458917,
       "grades": [
         {
           "id": "slot-32756cd376362a83",
@@ -18,13 +18,13 @@
           "reasons": []
         }
       ],
-      "scene_fingerprint": "6b06f1adc611c295e87b110435d8981bcbe33f852ba37d4ef33c90b77a5698eb",
+      "scene_fingerprint": "2b14cecf5b864ff1b57b1c04f9ac1c954fc02f488690303de09097608b84af37",
       "catalog_fingerprint": "f6bdcb948bbd73806a70367865338ee8e18c78b8e3e5c172e9358ebbc2b60194"
     },
     {
       "scenario": "avani-wall-blue",
-      "key": "1ac9ef7cd9933794b2d7d55ccec795c9cfb055190e09f9b044f52ff0801f54b2",
-      "seconds": 0.0011894170000014128,
+      "key": "3febf6cf39bdcc2d842c82f63309f1e1e486430de9ca60fe450ac41ac367c0db",
+      "seconds": 0.004031750000000102,
       "grades": [
         {
           "id": "slot-5d4c65827cd8f859",
@@ -32,13 +32,13 @@
           "reasons": []
         }
       ],
-      "scene_fingerprint": "6b06f1adc611c295e87b110435d8981bcbe33f852ba37d4ef33c90b77a5698eb",
+      "scene_fingerprint": "2b14cecf5b864ff1b57b1c04f9ac1c954fc02f488690303de09097608b84af37",
       "catalog_fingerprint": "f6bdcb948bbd73806a70367865338ee8e18c78b8e3e5c172e9358ebbc2b60194"
     },
     {
       "scenario": "avani-grouped-lounge",
-      "key": "6d4580fd5a4cb3478e8385f7a2fff495d98c64cafd66253b26428c05460c450f",
-      "seconds": 4.909429333999999,
+      "key": "b13cfa40379ef1abcd9323d4d5d4a7669491d2683c8c95aecc8dfd094f03a8d2",
+      "seconds": 4.083546374999999,
       "grades": [
         {
           "id": "slot-ba5391841f0da1b5",
@@ -71,7 +71,7 @@
           "reasons": []
         }
       ],
-      "scene_fingerprint": "ef116b0717fdac2827700f0002c05e4b96968229ba931c0381b24aaf6644ff3b",
+      "scene_fingerprint": "ec84392103cfb69e9c8cfb5208fac5b5d703a4088101cc39fc0cb21340fa2935",
       "catalog_fingerprint": "f6bdcb948bbd73806a70367865338ee8e18c78b8e3e5c172e9358ebbc2b60194"
     }
   ]
