@@ -81,3 +81,6 @@
   .folio-toast { left: 10px; bottom: 58px; }
 }
 @media (prefers-reduced-motion: reduce) { .folio-quote, .folio-ib { transition: none; } }
+
+/* The details panel carries its own controls; the floating toolbar steps aside while it is open. */
+.folio.folio-inspect .folio-toolbar { display: none; }
