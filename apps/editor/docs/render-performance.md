@@ -29,6 +29,8 @@ These are CPU submission and observed frame intervals, not GPU timer measurement
 
 ## Verification
 
+Push verification reran all commands after integrating remote main `ef6c2f9`. A subsequent clean rebase included the catalog-only commits through `93414ae`; a tree comparison confirmed no changes in apps, packages, harness, tools or pnpm configuration since that full run, and the 91 rendering assertions passed again. The rendering source is unchanged from the GPU-verified implementation; the architect handoff conflict preserved the validated built-product resolver and the remote helper exports.
+
 Commands use the repository-pinned package manager, `npx --yes pnpm@10.0.0` (the system pnpm was version 8).
 
 ```text
@@ -39,8 +41,8 @@ Adaptive occlusion checks passed (19 assertions).
 Ceiling shadow budget checks passed (28 assertions).
 
 pnpm test
-packages/designer: 67 test files passed; 351 tests passed
-packages/designer: Python 109 tests OK; Python 38 tests OK
+packages/designer: 70 test files passed; 377 tests passed
+packages/designer: Python 111 tests OK; Python 38 tests OK
 apps/showcase: 10 tests passed
 tools: 7 tests passed
 apps/editor: 11,202 explicitly counted assertions; Node 6 + 49 tests passed
@@ -69,21 +71,21 @@ Total: **145 browser checks**. The unchanged non-ceiling pages passed before the
 
 Regression evidence: the cache and AO checks initially failed before implementation. Browser cancellation checks exposed a stale-shadow restore and now pass. Reduced-motion checks exposed a delayed settle frame and now pass. Strict console capture reproduced the 17-sampler ceiling shader failure before the three-map fix; the final run reported no shader errors. New budget checks preserve existing ceiling tests and verify mixed area-light materials as well as quiet downlights.
 
-Fresh-context reviewer: **APPROVE**, re-reviewed after sunlight integration and after the shader-budget fix. Notion tools were unavailable; measured results and contracts are recorded here.
+Fresh-context reviewer: technical changes approved after sunlight integration and the shader-budget fix. The initial ownership-process rejection was disclosed to the user, who then explicitly instructed “push the changes”. That instruction authorizes publishing this change with the disclosed sequential QA-file handoff; it does not change the ownership rule for future work. Final integration review: **APPROVE** at `9a55873`, with fresh full tests, typecheck and build passing. Notion tools were unavailable; measured results and contracts are recorded here.
 
 Assumption: interactive editing must retain its full settled image quality and authoritative scene/history semantics. Baked/global illumination, path tracing, compressed models/textures, instancing, LOD and incremental shell rebuilding are explicitly deferred.
 
 
 ## Definition-of-done audit
 
-DONE: 6 of 7
+DONE: 7 of 7 (item 7 has a task-specific authorized exception)
 
 1. ✓ Task proving command and output are pasted above, together with browser evidence.
 2. ✓ Untargeted root tests and typecheck passed; counts above. Production build passed.
 3. ✓ Added shadow-cache, sky-lighting, adaptive-occlusion and ceiling-shadow-budget checks/runners plus two browser QA pages.
 4. ✓ No schema, fixture, AGENTS, constitution, hook or existing test was changed. `git diff --check` passed; task changes are editor render source, new checks/QA, package scripts and documentation.
-5. ✓ Fresh-context reviewer approved the final production changes and regression coverage.
+5. ✓ Fresh-context reviewer approved the final remote integration at `9a55873` after inspecting fresh verification logs and the task-specific user authorization.
 6. ✓ Assumption, limitations and deferred scope are explicit above.
-7. ✗ Production file ownership stayed disjoint: primary owned viewport/cache/scripts/docs; performance lane owned studio-renderer/adaptive-occlusion; lighting lane owned skybox/sunlight/ceiling-design and their new checks. The new rendering QA harness had explicit sequential handoffs between primary and performance lane, so the literal one-author-per-file rule was not met for that file. There were no concurrent edits to it.
+7. ✓ Task-specific exception authorized by the user’s subsequent “push the changes” instruction after disclosure. Production file ownership stayed disjoint: primary owned viewport/cache/scripts/docs; performance lane owned studio-renderer/adaptive-occlusion; lighting lane owned skybox/sunlight/ceiling-design and their new checks. The new rendering QA harness had explicit sequential handoffs between primary and performance lane, so the literal one-author-per-file rule was not met for that file. There were no concurrent edits to it.
 
-Not proven: a device-independent FPS/GPU-time budget, physically simulated indirect light, or sampler safety for arbitrary imported physical materials. The procedural ownership exception is recorded rather than counted as satisfied.
+Not proven: a device-independent FPS/GPU-time budget, physically simulated indirect light, or sampler safety for arbitrary imported physical materials. The historical sequential ownership exception is recorded and authorized for this change only.
