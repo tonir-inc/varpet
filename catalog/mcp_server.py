@@ -52,15 +52,18 @@ def search_furniture(
     price_max: int | None = None,
     exclude_ids: list[str] | None = None,
     limit: int = 10,
+    scope: str = "editor",
 ) -> dict:
     """Find furniture. kind/max size/price are hard filters; colors (palette names), styles, materials
-    and free text rank the rest. Returns up to `limit` (max 20) items, or nearest_misses when none pass."""
+    and free text rank the rest. Returns up to `limit` (max 20) items, or nearest_misses when none pass.
+    scope 'editor' (default) searches only the items the editor has loaded, so any result can be placed;
+    'all' searches the whole catalog."""
     box = None
     if any(v is not None for v in (max_w, max_d, max_h)):
         box = [max_w or 99.0, max_d or 99.0, max_h or 99.0]
     q = Query(kind=kind, text=text, colors=colors or [], styles=styles or [], materials=materials or [],
               fit_box=box, allow_rotate=allow_rotate, target_size=target_size, price_max=price_max,
-              exclude_ids=exclude_ids or [], limit=min(limit, 20))
+              exclude_ids=exclude_ids or [], limit=min(limit, 20), scope=scope)
     with _conn() as c:
         return search(c, q)
 
@@ -75,6 +78,7 @@ def find_similar(
     cheaper_than_item: bool = False,
     price_max: int | None = None,
     limit: int = 10,
+    scope: str = "editor",
 ) -> dict:
     """Items that look like a catalog item (item_id) or a photo (image: URL or path). Optional: keep the
     same kind, stay within size_tolerance_m of the item's size, or only cheaper than the item."""
@@ -86,7 +90,8 @@ def find_similar(
         if ref and cheaper_than_item:
             price_max = min(price_max or ref[2], ref[2] - 1)
         q = Query(kind=kind or (ref[0] if ref and same_kind else None), like_item=item_id, like_image=image,
-                  fit_box=box, price_max=price_max, exclude_ids=[item_id] if item_id else [], limit=min(limit, 20))
+                  fit_box=box, price_max=price_max, exclude_ids=[item_id] if item_id else [], limit=min(limit, 20),
+                  scope=scope)
         return search(c, q)
 
 
@@ -115,6 +120,51 @@ def check_fit(item_id: str, max_w: float, max_d: float, max_h: float, allow_rota
         return {"error": f"no item {item_id}"}
     m = fits(row[0], [max_w, max_d, max_h], allow_rotate)
     return {"fits": min(m) >= 0, "margin_m": {"w": round(m[0], 3), "d": round(m[1], 3), "h": round(m[2], 3)}, "size_m": row[0]}
+
+
+EDITOR_ORIGINS = {"http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:5174", "http://127.0.0.1:5174"}
+CATEGORY = {"sofa": "Living", "chair": "Living", "table": "Living", "bed": "Bedroom", "cabinet": "Storage",
+            "shelf": "Storage", "lamp": "Lighting", "rug": "Textiles"}
+
+
+def _cors(request, response):
+    origin = request.headers.get("origin")
+    if origin in EDITOR_ORIGINS:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Vary"] = "Origin"
+    return response
+
+
+def editor_assets():
+    """The editor's CatalogAsset[] (apps/editor/src/contracts.ts) for every item in the editor set.
+    dimensions are [w, h, d]: the same size_m the designer gets from search, reindexed, so the editor
+    bridge's exact size check passes."""
+    with _conn() as c:
+        rows = c.execute("""select id, name, kind, size_m, colors_img, price, glb_url from item
+                            where editor_set order by kind, id""").fetchall()
+    out = []
+    for iid, name, kind, s, cimg, price, glb in rows:
+        colour = (cimg or [{}])[0].get("hex") or "#9a9a9a"
+        out.append({"id": iid, "name": (name or iid)[:80], "category": CATEGORY.get(kind, "Other"), "kind": kind,
+                    "dimensions": [s[0], s[2], s[1]], "color": colour, "price": price,
+                    "source": {"type": "gltf", "url": glb}})
+    return out
+
+
+try:
+    from starlette.requests import Request
+    from starlette.responses import JSONResponse, Response
+
+    @server.custom_route("/editor/assets", methods=["GET", "OPTIONS"])
+    async def editor_assets_route(request: Request) -> Response:
+        if request.method == "OPTIONS":
+            r = Response(status_code=204)
+            r.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+            r.headers["Access-Control-Allow-Headers"] = "Content-Type"
+            return _cors(request, r)
+        return _cors(request, JSONResponse(editor_assets(), headers={"Cache-Control": "max-age=300"}))
+except ImportError:  # stdio-only installs
+    pass
 
 
 @server.tool()

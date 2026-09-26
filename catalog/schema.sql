@@ -73,3 +73,5 @@ create table if not exists generation_request (
 );
 create index if not exists generation_request_status_idx on generation_request (status, created_at);
 grant all on generation_request to varpet;
+
+alter table item add column if not exists editor_set boolean not null default false;  -- see select_editor_set.py
