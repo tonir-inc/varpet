@@ -24,10 +24,9 @@ Developer plan and photos in, a faithful furnished 3D flat out, rearranged by a 
   your job names: `write-tests-first` before new behaviour in `packages/`, `definition-of-done` before
   saying done, `systematic-debugging` on a failure, `plan-to-scene` / `furnish-from-plan` /
   `scene-visual-check` for plan work (their output format is Tonir's until rewritten for our schema).
-- Hooks (`tools/hooks/`, registered in `.codex/hooks.json` and `.claude/settings.json`): edits to the
-  constitution, AGENTS.md, `fixtures/`, the hooks and the agent config are denied, and so are deleting,
-  skipping or weakening an existing test; adding a new test file is fine. When a turn ends, `pnpm test`
-  runs and reports (set `VARPET_STOP_BLOCK=1` to make it block).
+- Hooks: OFF for the hackathon (speed first). The scripts stay in `tools/hooks/` (a contract guard and a
+  test run on stop) and can be registered again after the event. Nothing blocks edits to AGENTS.md or
+  anything else; keep `pnpm test` green before pushing because teammates build on main.
 - Agents (`.codex/agents/`): `reviewer` checks a finished change with fresh context; `devils-advocate`
   attacks a plan before it costs hours.
 - Designer lane (Ashot): design in `docs/designer.md`, cards in `docs/tasks/designer-*.md`, skill
