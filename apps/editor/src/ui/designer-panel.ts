@@ -6,7 +6,7 @@ type AskDesigner = typeof askDesigner;
 interface MetricRow { label: string; value: string }
 type ProposalStatus = 'pending' | 'applied' | 'dismissed' | 'stale';
 export type ProposalAction = 'preview' | 'apply' | 'dismiss';
-interface Message { role: 'user' | 'designer'; text: string; metrics?: MetricRow[]; proposal?: AgentProposal; status?: ProposalStatus; options?: string[] }
+interface Message { role: 'user' | 'designer'; text: string; metrics?: MetricRow[]; proposal?: AgentProposal; status?: ProposalStatus; options?: string[]; notes?: string }
 interface Conversation { id: string; title: string; conversationId?: string; messages: Message[]; options: string[] }
 interface History { version: 1; activeId: string; conversations: Conversation[] }
 const record = (value: unknown): Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
@@ -26,6 +26,14 @@ function proposalMetrics(value: unknown): MetricRow[] {
     { label: 'Narrowest walkway · proposed', value: width === undefined ? 'Unknown' : `${width.toFixed(2)} m${blocked ? ' (blocked)' : ''}` },
     { label: 'Cost · furniture purchases', value: measured(score.cost_dram) && Number.isSafeInteger(score.cost_dram) ? `${score.cost_dram.toLocaleString('en-US')} ֏` : 'Unknown' },
   ];
+}
+
+function appendNotes(parent: HTMLElement, value?: string): void {
+  if (value === undefined) return;
+  const notes = document.createElement('details'); notes.className = 'designer-proposal-notes';
+  const summary = document.createElement('summary'); summary.textContent = 'Notes';
+  const content = document.createElement('p'); content.textContent = value;
+  notes.append(summary, content); parent.append(notes);
 }
 
 export interface DesignerPanelState {
@@ -86,6 +94,7 @@ export function createDesignerConversation(options: ConversationOptions) {
               || thread.options.some(item => typeof item !== 'string') || (thread.conversationId !== undefined && typeof thread.conversationId !== 'string')) throw Error('Invalid conversation');
             for (const message of thread.messages) {
               if (!message || !['user', 'designer'].includes(message.role) || typeof message.text !== 'string') throw Error('Invalid message');
+              if (message.notes !== undefined && (typeof message.notes !== 'string' || !message.notes.trim() || message.notes.length > 1600)) throw Error('Invalid notes');
               if (message.metrics && (!Array.isArray(message.metrics) || message.metrics.some(row => !row || typeof row.label !== 'string' || typeof row.value !== 'string'))) throw Error('Invalid metrics');
               if (message.options && (!Array.isArray(message.options) || message.options.some(option => typeof option !== 'string'))) throw Error('Invalid options');
               if (message.proposal) {
@@ -121,7 +130,7 @@ export function createDesignerConversation(options: ConversationOptions) {
   };
   loadHistory(); persist();
   const publish = (save = true) => { if (!disposed) { if (save) persist(); options.onChange?.(structuredClone(state)); } };
-  const reply = (text: string, metrics?: MetricRow[]) => state.messages.push({ role: 'designer', text, ...(metrics ? { metrics } : {}) });
+  const reply = (text: string, metrics?: MetricRow[], notes?: string) => state.messages.push({ role: 'designer', text, ...(metrics ? { metrics } : {}), ...(notes === undefined ? {} : { notes }) });
   const controller = {
     get state() { return structuredClone(state); },
     refreshSettings() {
@@ -210,8 +219,9 @@ export function createDesignerConversation(options: ConversationOptions) {
         if (result.type !== 'error') state.conversationId = result.conversationId;
         if (result.type === 'proposal') {
           if (options.history) state.messages.push({ role: 'designer', text: result.proposal.description, proposal: structuredClone(result.proposal),
-            status: result.proposal.command.baseRevision === options.snapshot().revision ? 'pending' : 'stale', metrics: proposalMetrics(result.metrics) });
-          else reply(`${result.proposal.title}\n${result.proposal.description}\nReview the proposed change below before applying it.`, proposalMetrics(result.metrics));
+            status: result.proposal.command.baseRevision === options.snapshot().revision ? 'pending' : 'stale', metrics: proposalMetrics(result.metrics),
+            ...(result.notes === undefined ? {} : { notes: result.notes }) });
+          else reply(`${result.proposal.title}\n${result.proposal.description}\nReview the proposed change below before applying it.`, proposalMetrics(result.metrics), result.notes);
           options.onProposal(result.proposal);
         } else if (result.type === 'question') {
           reply(result.question); state.options = [...result.options];
@@ -326,9 +336,10 @@ function mountMockDesignerPanel(host: HTMLElement, options: MountOptions) {
             const label = document.createElement('dt'), value = document.createElement('dd');
             label.textContent = row.label; value.textContent = row.value; numbers.append(label, value);
           }
-          const note = document.createElement('small'); note.textContent = 'Service estimates. Paint and labour are not priced here.';
-          item.append(numbers, note);
+          item.append(numbers);
+          if (message.notes === undefined) { const note = document.createElement('small'); note.textContent = 'Service estimates. Paint and labour are not priced here.'; item.append(note); }
         }
+        appendNotes(item, message.notes);
         log.append(item);
       }
       displayedMessages = state.messages.length;
@@ -428,8 +439,10 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
         if (message.metrics) {
           const metrics = document.createElement('dl'); metrics.className = 'designer-metrics';
           for (const row of message.metrics) { const dt = document.createElement('dt'), dd = document.createElement('dd'); dt.textContent = row.label; dd.textContent = row.value; metrics.append(dt, dd); }
-          const note = document.createElement('small'); note.textContent = 'Service estimates. Paint and labour are not priced here.'; item.append(metrics, note);
+          item.append(metrics);
+          if (message.notes === undefined) { const note = document.createElement('small'); note.textContent = 'Service estimates. Paint and labour are not priced here.'; item.append(note); }
         }
+        appendNotes(item, message.notes);
         if (message.proposal) {
           const status = document.createElement('p'); status.className = 'designer-proposal-status'; status.setAttribute('role', 'status');
           status.textContent = { pending: 'Ready for your review', applied: 'Applied', dismissed: 'Dismissed', stale: 'Stale · the scene changed or was reopened. Ask for a fresh proposal.' }[message.status ?? 'stale']; item.append(status);

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Designer notes QA</title>
+<style>body{margin:0;background:#191c22;color:#eef0f5;font:14px sans-serif}nav{padding:8px}nav a{color:inherit;margin-right:16px}iframe{display:block;border:0}#checks{position:fixed;right:8px;bottom:8px;max-width:120px;padding:8px;background:#23262d;color:#eef0f5;font-size:12px;z-index:10}#stage{flex:1;display:grid;place-items:center;color:#b1b7c5}</style></head><body>
+<script type="module">
+const query = new URLSearchParams(location.search);
+if (!query.has('frame')) {
+  const sizes = { 1440: 900, 1280: 800, 390: 844 }, width = Number(query.get('width') ?? 1440);
+  if (!(width in sizes)) throw Error('Use one of the three QA widths');
+  const nav = document.createElement('nav'); nav.textContent = 'Recorded UI test · ';
+  for (const [w, h] of Object.entries(sizes).reverse()) {
+    const link = document.createElement('a'); link.href = `?width=${w}`; link.textContent = `${w} × ${h}`; nav.append(link);
+  }
+  const frame = document.createElement('iframe'); frame.title = 'Designer notes test'; frame.width = String(width); frame.height = String(sizes[width]); frame.src = '?frame=1';
+  document.body.append(nav, frame);
+} else {
+  await import('/src/ui/style.css'); await import('/src/ui/designer-panel.css');
+  const { mountDesignerPanel } = await import('/src/ui/designer-panel.ts');
+  const { demoScene, localCatalog } = await import('/src/core/demo.ts');
+  document.body.style.cssText = 'display:flex;height:100vh';
+  const host = document.createElement('aside'), stage = document.createElement('main'), output = document.createElement('output');
+  stage.id = 'stage'; stage.textContent = 'Recorded proposal UI test'; output.id = 'checks'; output.setAttribute('role', 'status');
+  document.body.append(host, stage, output);
+  const proposal = { id: 'notes-qa', title: 'A softer colour for the lounge chair', description: 'Try sage on the lounge chair for a calmer living room.',
+    command: { id: 'notes-qa', label: 'Paint the chair', source: 'designer', baseRevision: 0, operations: [{ type: 'update', id: 'lounge-chair', patch: { color: '#81947a' } }] } };
+  const notes = 'Paint and labour are not priced. This preview changes the chair colour only.\nThe text <img src="x" onerror="alert(1)"> is displayed literally.';
+  const metrics = { before: { space: { free_area_m2: 23.4 } }, after: { space: { free_area_m2: 23.4, rooms: [{ walkways: [{ width_m: .9, reachable: true }] }] } }, cost_dram: 0 };
+  const options = { live: true, snapshot: () => ({ scene: demoScene, revision: 0, catalog: localCatalog }),
+    storage: { getItem: () => null, setItem() {}, removeItem() {} }, onProposal() {}, onProposalAction: () => ({ ok: true }) };
+  const check = (condition, label) => { if (!condition) throw Error(label); };
+  try {
+    const panel = mountDesignerPanel(host, { ...options, ask: async () => ({ type: 'proposal', conversationId: 'qa', proposal, metrics, notes }) });
+    await panel.controller.send('Give the lounge chair a softer colour');
+    const card = host.querySelector('.designer-proposal-card'), details = card.querySelector('details');
+    check(card.querySelectorAll('details').length === 1 && !details.open, 'One collapsed Notes disclosure');
+    check(details.querySelector('summary').textContent === 'Notes', 'Notes summary text');
+    check(details.querySelector('p').textContent === notes && !details.querySelector('img'), 'Notes are plain text');
+    check(!card.querySelector('small'), 'Caveats appear only inside Notes');
+    check([...card.querySelectorAll('button')].map(button => button.textContent).join(',') === 'Preview,Apply,Dismiss', 'Approval controls preserved');
+    const legacy = document.createElement('aside'); legacy.hidden = true; document.body.append(legacy);
+    const oldPanel = mountDesignerPanel(legacy, { ...options, ask: async () => ({ type: 'proposal', conversationId: 'old', proposal, metrics }) });
+    await oldPanel.controller.send('Show the legacy proposal');
+    check(!legacy.querySelector('.designer-proposal-card details'), 'Legacy proposal has no empty Notes');
+    check(legacy.querySelector('.designer-proposal-card small')?.textContent.includes('Service estimates'), 'Legacy footnote preserved');
+    oldPanel.dispose(); legacy.remove();
+    const nonHistory = document.createElement('aside'); nonHistory.hidden = true; document.body.append(nonHistory);
+    const mockPanel = mountDesignerPanel(nonHistory, { ...options, live: false, ask: async () => ({ type: 'proposal', conversationId: 'mock', proposal, metrics, notes }) });
+    await mockPanel.controller.send('Show notes without history');
+    const mockMessage = nonHistory.querySelector('.designer-message-designer');
+    check(mockMessage.querySelector('details p')?.textContent === notes && !mockMessage.querySelector('small'), 'Non-history notes retained without duplicate caveats');
+    mockPanel.dispose(); nonHistory.remove();
+    output.textContent = `PASS · 8 DOM checks · ${innerWidth} × ${innerHeight}`;
+  } catch (error) { output.textContent = `FAIL · ${error.message}`; throw error; }
+}
+</script></body></html>

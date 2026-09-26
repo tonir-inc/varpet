@@ -21,6 +21,7 @@ import re
 import uuid
 
 import designer
+from designer_presentation import format_presentation
 
 
 ORIGIN = "http://localhost:5173"
@@ -247,9 +248,21 @@ class DesignerService:
                             or not all(isinstance(command.get(key), str) for key in ("id", "label"))
                             or not isinstance(command.get("operations"), list)):
                         raise RuntimeError("Bridge returned an invalid AgentProposal or stale revision")
+                    presentation = format_presentation(saved, body["scene"], proposal, body["request"])
+                    if not isinstance(presentation, dict):
+                        raise RuntimeError("Invalid designer presentation")
+                    for key, limit in (("title", 160), ("description", 4000), ("notes", 1600)):
+                        if key == "notes" and key not in presentation:
+                            continue
+                        value = presentation.get(key)
+                        if not isinstance(value, str) or not value.strip() or len(value) > limit:
+                            raise RuntimeError(f"Invalid designer presentation {key}")
+                    proposal = {**proposal, "title": presentation["title"],
+                                "description": presentation["description"]}
                     outcome = "proposal"
                     return {"type": outcome, "conversationId": conversation_id, "proposal": proposal,
-                            "metrics": saved.get("score", {})}
+                            "metrics": saved.get("score", {}),
+                            **({"notes": presentation["notes"]} if "notes" in presentation else {})}
                 questions = [value for event in events for value in tool_values(event, "ask")
                              if value.get("type") == "question" and isinstance(value.get("question"), str)]
                 if questions:

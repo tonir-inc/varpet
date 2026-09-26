@@ -51,6 +51,16 @@ and `baseRevision` = the request's `revision`. Closing the connection aborts: th
 Designer thread's whole process group. CORS allows `http://localhost:5173` (the editor's dev server).
 A request takes 30–120 s; send a progress line at least every 10 s so proxies and the editor stay alive.
 
+Proposal replies may also carry `notes`, one nonempty string of at most 1,600 characters beside
+`proposal` and `metrics`. The panel displays it as a muted, collapsed **Notes** disclosure and retains
+it with conversation history. It is not part of the editor's command or `AgentProposal` contract.
+After bridge validation, `harness/designer_presentation.py` derives a specific title and one plain
+paragraph from the accepted edits and measured scores: what changes, the numbers, and one trade-off.
+Mock prices, missing sun direction, unverified door swings and unchanged access problems go in Notes;
+an actual tight clearance or shared-wall paint scope stays visible in the paragraph. Raw tool rationale,
+proposal IDs, operations, checks, scores, model prompts and eval grading remain unchanged. This adds
+no model call. Legacy custom bridges without accepted operations retain their original copy.
+
 ## Bridge CLI (TypeScript, run with the package's `tsx`)
 
 ```
@@ -185,7 +195,7 @@ export interface DesignerRequest {
   keep?: string[]; doorSwings?: Record<string, 'in-left' | 'in-right' | 'out-left' | 'out-right'>; northDeg?: number;
 }
 export type DesignerReply =
-  | { type: 'proposal'; conversationId: string; proposal: AgentProposal; metrics?: unknown }
+  | { type: 'proposal'; conversationId: string; proposal: AgentProposal; metrics?: unknown; notes?: string }
   | { type: 'question'; conversationId: string; question: string; options: string[] }
   | { type: 'decline'; conversationId: string; message: string }
   | { type: 'error'; message: string };

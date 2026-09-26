@@ -135,3 +135,7 @@
   .designer-workspace:has(.plan-mode) .workspace-nav { position: sticky; top: 0; align-self: start; height: calc(100dvh - 80px); }
   .designer-workspace:has(.plan-mode):has(.designer-collapsed) { grid-template-rows: 48px minmax(680px, calc(100dvh - 128px)); }
 }
+.designer-proposal-notes { margin-top: var(--space-3); color: var(--muted); font-size: var(--text-sm); }
+.designer-proposal-notes > summary { cursor: pointer; }
+.designer-proposal-notes > summary:hover { color: var(--ink); }
+.designer-proposal-notes > p { margin-top: var(--space-2); line-height: 1.5; }

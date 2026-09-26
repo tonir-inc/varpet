@@ -1,0 +1,48 @@
+{
+  "claim": "Measured formatter replay of three previously recorded accepted live proposals; no new model calls or grading changes.",
+  "source_evidence": "packages/designer/eval/latest-editor-live.json",
+  "rows": [
+    {
+      "request": "paint the bedroom walls sage",
+      "source_trace_sha256": "4beb3b1e6aba22030693a9277ae840c83ffef12cb4c72f99d56a9dbf0f4cad4e",
+      "before": {
+        "title": "Designer layout proposal",
+        "description": "Preview bedroom walls in a proposed muted sage #A3B18A, retaining all furniture positions and rotations. Wall colouring affects both faces and all segments sharing each selected source_id, including the adjoining living-room, kitchen and bathroom faces. No furniture purchases; paint and labour are unquoted."
+      },
+      "after": {
+        "title": "Fresh colour for the bedroom",
+        "description": "I’ve given 5 wall sections a fresh colour, keeping the layout just as it is. No furniture purchases are needed. The trade-off: the colour covers both sides of each selected wall, including shared walls.",
+        "notes": "Existing access problems remain; this proposal does not make them worse. Paint and labour are not priced."
+      },
+      "raw_proposal_and_grading_unchanged": true
+    },
+    {
+      "request": "make the living room feel bigger",
+      "source_trace_sha256": "bc95b65d6a5553f4570daa54e28cc3e49e1175470d0ea0f2a7f15b4d97907f64",
+      "before": {
+        "title": "Designer layout proposal",
+        "description": "Make the living room feel bigger with a zero-cost rearrangement retaining all existing furniture. Group seating at the lower wall and move the coffee table into this zone, enlarging the clear centre and circulation with a generous sofa access gap. Leave bedroom positions and rotations unchanged. Solar orientation and door-sweep clearance remain unverified."
+      },
+      "after": {
+        "title": "More room in the living and dining area",
+        "description": "I’ve moved the sofa, coffee table and chair into new positions. Your largest open area grows from 22.68 to 30.24 m². No furniture purchases are needed. The trade-off: the seats face each other less directly.",
+        "notes": "Sun direction still needs checking. Door swings still need checking. Existing access problems remain; this proposal does not make them worse."
+      },
+      "raw_proposal_and_grading_unchanged": true
+    },
+    {
+      "request": "add an armchair for reading by the window",
+      "source_trace_sha256": "8b36b401058924ab0e5bb7b94a77d1976630cf29ec2d3d8eff404770197d3e4f",
+      "before": {
+        "title": "Designer layout proposal",
+        "description": "Add one reading armchair beside the living-room window, facing into the room, retaining all existing furniture in its original position and rotation. Budget unconfirmed; catalog price 80000 AMD is mock pricing, not a shop quotation. Solar orientation and door-sweep clearance unverified."
+      },
+      "after": {
+        "title": "A reading corner by the window",
+        "description": "I’ve added a chair beside the window, giving you a place to settle in with a book. Your largest open area stays at 22.68 m². Catalog price: 80,000 ֏. The trade-off: a tight 21 cm gap behind the chair.",
+        "notes": "Sample catalog price, not a shop quote. Budget not set. Sun direction still needs checking. Door swings still need checking. Existing access problems remain; this proposal does not make them worse."
+      },
+      "raw_proposal_and_grading_unchanged": true
+    }
+  ]
+}
