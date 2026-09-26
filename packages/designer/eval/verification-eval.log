@@ -1,0 +1,5 @@
+
+> @varpet/designer@0.0.0 eval /Users/ashotarushanyan/AshProjects/varpet-bench/packages/designer
+> python3 eval/run.py
+
+Wrote /Users/ashotarushanyan/AshProjects/varpet-bench/packages/designer/eval/report.md: 19/19 recorded; with-place median seconds 158.906 (n=13); slowest seconds 298.293 (n=13); median tokens 302679 (n=13); pass rate 11/13 (84.6%); request-match rate 7/9 (77.8%).

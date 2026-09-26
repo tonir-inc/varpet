@@ -28,9 +28,11 @@ export class StudioStage {
   private readonly inlayMaterial = new THREE.MeshStandardMaterial({ color: '#625039', roughness: 0.52, metalness: 0.65 });
   private readonly inlays = new THREE.Group();
   private readonly backdropMaterial = new THREE.ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
     uniforms: {
       galleryHeight: { value: 32 },
-      galleryLower: { value: new THREE.Color('#202b36') },
+      galleryLower: { value: new THREE.Color('#232425') },
       galleryCurtain: { value: new THREE.Color('#80796e') },
       galleryLight: { value: new THREE.Color('#aaa18f') },
     },
@@ -51,10 +53,12 @@ export class StudioStage {
         float height = galleryUv.y * galleryHeight;
         float windowRise = smoothstep(1.8, 6.8, height);
         float panelPhase = (galleryUv.x * 9.0 + 0.17) * 6.2831853;
-        float panels = pow(0.5 + 0.5 * cos(panelPhase), 0.5);
+        float panels = sqrt(max(0.0, 0.5 + 0.5 * cos(panelPhase)));
         float folds = 0.5 + 0.5 * sin(panelPhase * 2.0 + 0.45);
-        float mullions = exp(-pow(sin(panelPhase * 0.5) * 8.0, 2.0));
-        float centerGlow = exp(-pow((galleryUv.x - 0.48) * 2.5, 2.0));
+        float mullionDistance = sin(panelPhase * 0.5) * 8.0;
+        float mullions = exp(-mullionDistance * mullionDistance);
+        float glowDistance = (galleryUv.x - 0.48) * 2.5;
+        float centerGlow = exp(-glowDistance * glowDistance);
         vec3 upper = mix(galleryCurtain, galleryLight, panels * 0.55 + folds * 0.05);
         upper *= 0.78 + centerGlow * 0.22;
         upper *= 1.0 - mullions * 0.30;
@@ -62,7 +66,10 @@ export class StudioStage {
         vec3 color = mix(lower, upper, windowRise);
         // Broad panel edges and folds are analytic gradients, not image scenery.
         color *= 0.92 + 0.08 * smoothstep(0.0, 12.0, height);
-        gl_FragColor = vec4(color, 1.0);
+        // Let the real floor show through at the base, avoiding a hard horizon
+        // where differently lit wall and floor materials meet.
+        float floorBlend = smoothstep(0.0, 3.4, height);
+        gl_FragColor = vec4(color, floorBlend);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
       }
@@ -114,6 +121,7 @@ export class StudioStage {
     this.group.name = 'Apartment presentation stage';
     this.group.visible = false;
     this.ground.name = 'Charcoal studio floor';
+    this.ground.userData.studioAO = false;
     this.ground.rotation.x = -Math.PI / 2;
     // The separate soft contact shadow anchors the exhibit without projecting
     // a distracting hard silhouette of the apartment across the studio floor.

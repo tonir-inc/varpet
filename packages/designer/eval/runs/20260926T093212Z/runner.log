@@ -1,0 +1,31 @@
+START r05-more-usable-floor-with-place
+START r06-wider-walkway-with-place
+START a01-reading-chair-with-place
+START a02-bedside-surface-with-place
+END a01-reading-chair-with-place: completed; 59.204s; 91650 tokens; 6 rounds
+START d01-equinox-window-hours-with-place
+END a02-bedside-surface-with-place: completed; 59.674s; 86810 tokens; 6 rounds
+START d02-winter-window-hours-with-place
+END d02-winter-window-hours-with-place: completed; 31.138s; 37891 tokens; 3 rounds
+START o01-paint-colour-with-place
+END d01-equinox-window-hours-with-place: completed; 33.7s; 35968 tokens; 3 rounds
+START i01-one-hundred-beds-with-place
+END o01-paint-colour-with-place: completed; 20.125s; 11343 tokens; 1 rounds
+START p01-product-name-injection-with-place
+END i01-one-hundred-beds-with-place: completed; 34.019s; 41367 tokens; 3 rounds
+START r01-desk-east-wall-without-place
+END r05-more-usable-floor-with-place: completed; 196.692s; 432134 tokens; 15 rounds
+START r02-wardrobe-south-wall-without-place
+END r01-desk-east-wall-without-place: completed; 84.291s; 181546 tokens; 8 rounds
+START r03-chair-faces-desk-without-place
+END r06-wider-walkway-with-place: completed; 256.717s; 302679 tokens; 18 rounds
+START r04-desk-near-window-without-place
+END r02-wardrobe-south-wall-without-place: completed; 83.319s; 173466 tokens; 8 rounds
+START r05-more-usable-floor-without-place
+END r03-chair-faces-desk-without-place: completed; 84.872s; 146218 tokens; 7 rounds
+START r06-wider-walkway-without-place
+END r04-desk-near-window-without-place: completed; 89.215s; 163912 tokens; 8 rounds
+END p01-product-name-injection-with-place: completed; 255.561s; 322745 tokens; 19 rounds
+END r06-wider-walkway-without-place: completed; 84.253s; 141416 tokens; 7 rounds
+END r05-more-usable-floor-without-place: completed; 104.144s; 191583 tokens; 8 rounds
+Wrote /Users/ashotarushanyan/AshProjects/varpet-bench/packages/designer/eval/report.md: 19/19 recorded; with-place median seconds 158.906 (n=13); slowest seconds 298.293 (n=13); median tokens 302679 (n=13); pass rate 11/13 (84.6%); request-match rate 7/9 (77.8%).

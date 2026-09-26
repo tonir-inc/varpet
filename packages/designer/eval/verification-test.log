@@ -1,0 +1,79 @@
+
+> varpet@ test /Users/ashotarushanyan/AshProjects/varpet-bench
+> pnpm -r test
+
+Scope: 5 of 6 workspace projects
+packages/designer test$ vitest run && python3 -m unittest discover -s ../../harness -p 'designer*_test.py'
+packages/engine test$ vitest run --passWithNoTests
+tools test$ node --test
+packages/engine test:  RUN  v5.0.2 /Users/ashotarushanyan/AshProjects/varpet-bench/packages/engine
+packages/designer test:  RUN  v5.0.2 /Users/ashotarushanyan/AshProjects/varpet-bench/packages/designer
+packages/engine test: No test files found, exiting with code 0
+packages/engine test: include: **/*.{test,spec}.?(c|m)[jt]s?(x)
+packages/engine test: exclude:  **/node_modules/**, **/.git/**
+packages/engine test: Done
+tools test: ✔ contract files and dirs are denied, ordinary source is allowed (465.224833ms)
+tools test: ✔ a NEW test file may be added; an existing one may not be deleted, weakened or skipped (562.224167ms)
+tools test: ✔ any package's test/ folder is protected from removal, not only the ones listed by name (284.017333ms)
+tools test: ✔ the Stop check reports by default and blocks only when asked (224.214584ms)
+tools test: ✔ a test file that is not committed yet (the agent's own draft) may be fixed; committed ones stay locked (398.622708ms)
+tools test: ✔ if git cannot answer, an uncommitted-looking test is treated as committed (fail closed) (90.777125ms)
+tools test: ✔ changing an expect() in a committed vitest file is denied like an assert (129.119083ms)
+tools test: ℹ tests 7
+tools test: ℹ suites 0
+tools test: ℹ pass 7
+tools test: ℹ fail 0
+tools test: ℹ cancelled 0
+tools test: ℹ skipped 0
+tools test: ℹ todo 0
+tools test: ℹ duration_ms 2269.599583
+tools test: Done
+packages/designer test:  Test Files  40 passed (40)
+packages/designer test:       Tests  185 passed (185)
+packages/designer test:    Start at  13:47:26
+packages/designer test:    Duration  9.22s (tests 87%, import 8%, transform 5%, worker 1%)
+packages/designer test:     Isolate  40 workers spawned · ~153ms startup each (spawn + environment, per file)
+packages/designer test:              at least ~723ms faster with isolate: false — reuses workers across files instead of one per file
+packages/designer test: ....................................{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "conversationId": "0886e717223e413ea250b4b03c6e9545", "outcome": "error", "seconds": 0.059, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "conversationId": "eb691b9126ab4dd4b051783fbab467fb", "outcome": "error", "seconds": 0.351, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "conversationId": "13ae75418f2b4d998ad8eb94e7cfaf55", "outcome": "error", "seconds": 0.352, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "conversationId": "0ae465eef3ba4f81850d5a7a1b79e8ea", "outcome": "error", "seconds": 0.036, "usage": null}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "conversationId": "f32653d41bbd465890bcf0968e78eed8", "outcome": "error", "seconds": 0.354, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "conversationId": "dc16d72a6e6f460c85041fd5a4ec7b70", "outcome": "aborted", "seconds": 0.207, "usage": null}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "conversationId": "863c4ab7e258433c9a357b14ef39ea91", "outcome": "decline", "seconds": 0.076, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: ...{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "conversationId": "1f3b57440c064a19b88228f9bc62e47a", "outcome": "error", "seconds": 0.294, "usage": null}
+packages/designer test: ..{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "conversationId": "a5a9327fe7a540198faedf115efad1bc", "outcome": "proposal", "seconds": 0.434, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: ..{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "conversationId": "f0ce5eec76d0424a90656f9b09042d31", "outcome": "decline", "seconds": 0.095, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "conversationId": "79b393dc4da9415eab0c51fd5405ff4a", "outcome": "proposal", "seconds": 0.372, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "conversationId": "a32377a657a94884a915c0d3ee5c7ad7", "outcome": "question", "seconds": 0.097, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "conversationId": "7a185461e086431084dfaff62c584734", "outcome": "proposal", "seconds": 0.366, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "conversationId": "7a185461e086431084dfaff62c584734", "outcome": "decline", "seconds": 0.058, "usage": {"inputTokens": 0, "outputTokens": 0, "totalTokens": 0}}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "conversationId": "76039bf26eff45b383847524ba8cced8", "outcome": "error", "seconds": 0.071, "usage": null}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "conversationId": "e349c31a07cb4568bf62334f901d6790", "outcome": "error", "seconds": 0.121, "usage": null}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "conversationId": "b22ec1907c834d829f4e6d18c3fe5a93", "outcome": "error", "seconds": 0.058, "usage": null}
+packages/designer test: ............
+packages/designer test: ----------------------------------------------------------------------
+packages/designer test: Ran 63 tests in 14.714s
+packages/designer test: OK
+packages/designer test: Done
+apps/editor test$ node scripts/check.mjs && node scripts/check-renovation.mjs && node scripts/check-openings.mjs && node scripts/check-finishes.mjs && node scripts/check-placement.mjs && node scripts/check-walls.mjs && node scripts/check-wall-controller.mjs && node scripts/check-grouping.mjs && node scripts/check-plan-move.mjs
+apps/editor test: Domain checks passed (265 assertions).
+apps/editor test: Renovation checks passed (102 assertions).
+apps/editor test: Reconstruction and handoff checks passed (29 assertions).
+apps/editor test: Opening clearance: 80 assertions passed.
+apps/editor test: Finish regressions passed: 92 assertions across 5 scenarios.
+apps/editor test: Placement conflict checks passed (345 assertions).
+apps/editor test: Wall movement checks passed (87 assertions).
+apps/editor test: Wall controller checks passed (411 assertions; 6 wall directions in Top and 3D). Preview rendering requires browser verification.
+apps/editor test: PASS grouping preserves placement, migrates explicitly, and saves membership
+apps/editor test: PASS moving any member translates the whole group once and undo restores all
+apps/editor test: PASS rotation orbits members about the selected piece without changing scale or spacing
+apps/editor test: PASS invalid, stale, unapproved and locked-member transforms are atomic
+apps/editor test: PASS invalid membership is rejected and regrouping requires complete existing groups
+apps/editor test: PASS ungroup preserves transforms and subsequent moves affect one piece
+apps/editor test: PASS delete dissolves singleton groups and undo restores membership
+apps/editor test: PASS baseline and options retain independent group membership
+apps/editor test: PASS imports reject invalid group IDs, singleton groups and version 1 membership
+apps/editor test: PASS 9 grouping checks
+apps/editor test: Plan movement checks passed (181 assertions).
+apps/editor test: Done

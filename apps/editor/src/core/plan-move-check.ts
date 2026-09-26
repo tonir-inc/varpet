@@ -54,6 +54,27 @@ for (const delta of [[0.25, 0], [-0.25, 0]] as Vec2[]) {
   assert(result.scene && near(objectIn(result.scene, 'coffee-table').position[0], -3.25 + delta[0]), 'repeated previews derive from the gesture origin rather than accumulate');
 }
 
+const grouped = structuredClone(source);
+for (const id of ['coffee-table', 'sofa']) {
+  objectIn(grouped, id).groupId = 'living-group';
+  grouped.project!.assumptions.push({ id: `recorded-${id}`, entityId: id, property: 'position', value: 'Recorded', status: 'accepted', sourceKind: 'observed', sourceIds: [], rationale: 'Before moving the group', alternatives: [] });
+}
+const groupSource = new EditorStore(grouped, localCatalog).scene;
+const groupPreview = preview(groupSource, 'coffee-table', [0.25, -0.25]);
+assert(equal(objectIn(groupPreview.scene, 'sofa').position, [-3, 0, 2.55]), 'moving a group member previews the same translation for every member');
+assert(equal(objectIn(groupPreview.scene, 'dining-table'), objectIn(groupSource, 'dining-table')), 'group preview leaves ungrouped furniture unchanged');
+assert(groupPreview.scene.project!.assumptions.every(assumption => assumption.status === 'stale'), 'group movement invalidates every moved member assumption');
+undoable(groupSource, groupPreview.operation, groupPreview.scene);
+const groupNoOp = previewPlanMove(gesture(groupSource, 'coffee-table'), [0, 0], true, localCatalog);
+assert(groupNoOp.scene === groupSource && groupNoOp.operation === null, 'group no-op preserves the exact scene and produces no history operation');
+const lockedGroup = structuredClone(grouped);
+lockedGroup.project!.metadata.sofa = { locked: true };
+assert(!createPlanMove(lockedGroup, 'coffee-table'), 'a locked group member prevents moving the group through another member');
+const distantGroup = structuredClone(grouped);
+objectIn(distantGroup, 'sofa').position[0] = 99.9;
+const invalidGroup = previewPlanMove(gesture(distantGroup, 'coffee-table'), [0.25, 0], false, localCatalog);
+assert(invalidGroup.scene === null && invalidGroup.operation === null && /out-of-range/.test(invalidGroup.error ?? ''), 'group preview rejects an invalid secondary-member position before commit');
+
 const opening = preview(source, 'door-kitchen', [3, 0.126], true);
 assert(opening.operation.type === 'update-opening' && near(opening.operation.patch.offset!, 2.05), 'opening projects the pointer along its host and snaps to 5 cm');
 undoable(source, opening.operation, opening.scene);

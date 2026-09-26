@@ -1,5 +1,6 @@
 import type { BuildingComponent, CatalogAsset, Operation, SceneDocument, SceneObject, Vec2, Wall } from '../contracts';
 import { wallLength } from './geometry';
+import { furnitureMembers, furnitureUpdates } from './grouping';
 import { constrainOpeningOffset, findOpeningMove, type OpeningMoveContext } from './opening-move';
 import { applyRenovationOperation, invalidateAssumptions } from './renovation';
 import { validateScene } from './validation';
@@ -37,7 +38,10 @@ export function createPlanMove(scene: SceneDocument, id: string, endpoint?: 'sta
   const context = findOpeningMove(scene, id);
   if (context) return { ...base, kind: 'opening', context, label: `Move ${context.opening.kind}` };
   const object = scene.objects.find(item => item.id === id);
-  if (object) return { ...base, kind: 'object', object, label: 'Move furniture' };
+  if (object) {
+    if (furnitureMembers(scene, id).some(member => scene.project?.metadata[member.id]?.locked)) return;
+    return { ...base, kind: 'object', object, label: 'Move furniture' };
+  }
   const component = scene.project?.components.find(item => item.id === id);
   if (component) {
     const host = component.host ? scene.walls.find(item => item.id === component.host!.wallId) : undefined;
@@ -105,9 +109,10 @@ export function previewPlanMove(move: PlanMove, delta: Vec2, snap: boolean, cata
     if (!operation) return { scene: move.source, operation: null };
     let candidate = structuredClone(move.source);
     if (operation.type === 'update') {
-      const object = candidate.objects.find(item => item.id === move.id)!;
-      Object.assign(object, operation.patch);
-      invalidateAssumptions(candidate, [move.id]);
+      const updates = furnitureUpdates(candidate, move.id, operation.patch);
+      const byId = new Map(updates.map(object => [object.id, object]));
+      candidate.objects = candidate.objects.map(object => byId.get(object.id) ?? object);
+      invalidateAssumptions(candidate, updates.map(object => object.id));
     } else candidate = applyRenovationOperation(candidate, operation);
     const validation = validateScene(candidate, catalog);
     return validation.ok ? { scene: candidate, operation } : reject(validation.errors.join(' '));

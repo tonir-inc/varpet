@@ -3,6 +3,7 @@ import type { EntityMetadata, Opening, Room, SceneDocument, Wall, WallMode } fro
 import { dimension3d, label3d } from './annotations';
 import { disposeObject } from './assets';
 import { finishAppearance, makeFinishMaterial, type FinishMaterialProjection, type FinishReveal } from './finish-material';
+import { MOTION, setProjectionOpacity } from './motion';
 
 export type { FinishReveal } from './finish-material';
 
@@ -24,7 +25,7 @@ export interface StructureProjection {
   dimensions: THREE.Group;
   previewOpeningOffset(id: string, offset: number): void;
   updateFinishes(now: number): boolean;
-  updateWalls(camera: THREE.Camera, mode: WallMode, top: boolean): void;
+  updateWalls(camera: THREE.Camera, mode: WallMode, top: boolean, now?: number, reduced?: boolean, selectedOpeningId?: string): boolean;
 }
 
 function floorShape(room: Room): THREE.Shape {
@@ -212,7 +213,8 @@ export function makeStructure(document: SceneDocument, reveal?: FinishReveal): S
       openingGroup.add(projection.group); entities.set(opening.id, projection.group);
     }
     dimensions.add(dimension3d(new THREE.Vector3(wall.start[0], elevation + 0.06, wall.start[1]), new THREE.Vector3(wall.end[0], elevation + 0.06, wall.end[1])));
-    return { full, low, openingGroup, midpoint: new THREE.Vector3((wall.start[0] + wall.end[0]) / 2, 0, (wall.start[1] + wall.end[1]) / 2) };
+    return { full, low, openingGroup, midpoint: new THREE.Vector3((wall.start[0] + wall.end[0]) / 2, 0, (wall.start[1] + wall.end[1]) / 2),
+      alpha: [1, 0, 1], from: [1, 0, 1], target: [1, 0, 1], started: 0, initialized: false, cut: false };
   });
   const direction = new THREE.Vector3(); const radial = new THREE.Vector3(); ceilings.visible = false; dimensions.visible = false;
   return {
@@ -230,13 +232,34 @@ export function makeStructure(document: SceneDocument, reveal?: FinishReveal): S
       if (!opening || !refreshWall || !Number.isFinite(offset) || opening.group.position.x === offset) return;
       opening.group.position.x = offset; refreshWall();
     },
-    updateWalls(camera, mode, top) {
+    updateWalls(camera, mode, top, now = performance.now(), reduced = false, selectedOpeningId) {
+      let active = false;
       direction.copy(camera.position).sub(center).setY(0).normalize();
       for (const wall of walls) {
-        radial.copy(wall.midpoint).sub(center).setY(0); const cut = top || radial.dot(direction) > -0.25;
-        wall.full.visible = mode === 'full' || (mode === 'cutaway' && !cut); wall.low.visible = mode === 'cutaway' && cut;
-        wall.openingGroup.visible = mode !== 'hidden';
+        radial.copy(wall.midpoint).sub(center).setY(0);
+        // A small dead band prevents flickering when orbit rests near the cutoff.
+        const threshold = wall.initialized ? (wall.cut ? -0.33 : -0.17) : -0.25;
+        wall.cut = top || radial.dot(direction) > threshold;
+        // Openings follow their cut wall; reveal its frames again while an
+        // opening is selected so inspection and direct manipulation stay clear.
+        const editingOpening = selectedOpeningId !== undefined && wall.openingGroup.children.some(opening => opening.userData.entityId === selectedOpeningId);
+        const target = [Number(mode === 'full' || (mode === 'cutaway' && !wall.cut)), Number(mode === 'cutaway' && wall.cut),
+          Number(mode === 'full' || (mode === 'cutaway' && (top || !wall.cut || editingOpening)))];
+        const t = Math.min(1, Math.max(0, (now - wall.started) / MOTION.wall));
+        const eased = 1 - (1 - t) ** 3;
+        wall.alpha = wall.from.map((value, i) => value + (wall.target[i]! - value) * eased);
+        if (!wall.initialized || reduced) {
+          wall.alpha = [...target]; wall.from = [...target]; wall.target = target; wall.started = now - MOTION.wall;
+        } else if (target.some((value, i) => value !== wall.target[i])) {
+          wall.from = [...wall.alpha]; wall.target = target; wall.started = now;
+        }
+        wall.initialized = true;
+        for (const [i, projection] of [wall.full, wall.low, wall.openingGroup].entries()) {
+          setProjectionOpacity(projection, wall.alpha[i]!);
+          if (wall.alpha[i] !== wall.target[i]) active = true;
+        }
       }
+      return active;
     },
   };
 }

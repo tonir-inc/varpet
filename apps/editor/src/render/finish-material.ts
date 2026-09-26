@@ -130,6 +130,8 @@ export function makeFinishMaterial(
   const pattern = (value: FinishAppearance) => new THREE.Vector4(value.pattern, value.size[0], value.size[1], value.roughness);
   const feather = transition ? Math.min(0.24, Math.max(0.10, transition.radius * 0.025)) : 0.1;
   const active = !!transition && !transition.reveal.reducedMotion;
+  const motionPreference = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+    ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
   const uniforms = {
     uFinishBase: { value: new THREE.Color(appearance.color) },
     uFinishAccent: { value: new THREE.Color(appearance.accent) },
@@ -181,7 +183,7 @@ export function makeFinishMaterial(
     material,
     update(now) {
       if (disposed || !active || uniforms.uFinishProgress.value >= 1 || !transition) return false;
-      const progress = THREE.MathUtils.clamp((now - transition.reveal.startedAt) / 1000, 0, 1);
+      const progress = motionPreference?.matches ? 1 : THREE.MathUtils.clamp((now - transition.reveal.startedAt) / 1000, 0, 1);
       const eased = progress * progress * (3 - 2 * progress);
       uniforms.uFinishProgress.value = progress;
       uniforms.uFinishRadius.value = -feather + eased * (transition.radius + feather * 2);
