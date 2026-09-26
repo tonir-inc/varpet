@@ -1,0 +1,333 @@
+{
+  "name": "white-bedside-cabinet",
+  "size": [
+    0.5,
+    0.4,
+    0.65
+  ],
+  "materials": {
+    "white": {
+      "finish": "white-laminate",
+      "color": "#deddd5"
+    },
+    "wood": {
+      "finish": "oak",
+      "color": "#b28c53"
+    },
+    "recess": {
+      "finish": "painted-wood-matte",
+      "color": "#393932"
+    }
+  },
+  "parts": [
+    {
+      "id": "bottom",
+      "shape": "box",
+      "size": [
+        0.5,
+        0.4,
+        0.018
+      ],
+      "material": "white",
+      "attach": {
+        "to": "piece",
+        "at": [
+          0.5,
+          0.5,
+          0
+        ],
+        "self": [
+          0.5,
+          0.5,
+          0
+        ],
+        "offset": [
+          0,
+          0,
+          0.32
+        ]
+      }
+    },
+    {
+      "id": "left-side",
+      "shape": "box",
+      "size": [
+        0.018,
+        0.4,
+        0.294
+      ],
+      "material": "white",
+      "attach": {
+        "to": "bottom",
+        "at": [
+          0,
+          0.5,
+          1
+        ],
+        "self": [
+          0,
+          0.5,
+          0
+        ],
+        "offset": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "right-side",
+      "shape": "box",
+      "size": [
+        0.018,
+        0.4,
+        0.294
+      ],
+      "material": "white",
+      "attach": {
+        "to": "bottom",
+        "at": [
+          1,
+          0.5,
+          1
+        ],
+        "self": [
+          1,
+          0.5,
+          0
+        ],
+        "offset": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "top",
+      "shape": "box",
+      "size": [
+        0.5,
+        0.4,
+        0.018
+      ],
+      "material": "white",
+      "attach": {
+        "to": "left-side",
+        "at": [
+          0,
+          0.5,
+          1
+        ],
+        "self": [
+          0,
+          0.5,
+          0
+        ],
+        "offset": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "back",
+      "shape": "box",
+      "size": [
+        0.464,
+        0.018,
+        0.294
+      ],
+      "material": "white",
+      "attach": {
+        "to": "bottom",
+        "at": [
+          0.5,
+          1,
+          1
+        ],
+        "self": [
+          0.5,
+          1,
+          0
+        ],
+        "offset": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "drawer-front",
+      "shape": "box",
+      "size": [
+        0.458,
+        0.018,
+        0.282
+      ],
+      "material": "white",
+      "attach": {
+        "to": "bottom",
+        "at": [
+          0.5,
+          0,
+          1
+        ],
+        "self": [
+          0.5,
+          0,
+          0
+        ],
+        "offset": [
+          0,
+          0.004,
+          0.006
+        ]
+      }
+    },
+    {
+      "id": "drawer-base",
+      "shape": "box",
+      "size": [
+        0.458,
+        0.354,
+        0.012
+      ],
+      "material": "white",
+      "attach": {
+        "to": "drawer-front",
+        "at": [
+          0.5,
+          1,
+          0
+        ],
+        "self": [
+          0.5,
+          0,
+          0
+        ],
+        "offset": [
+          0,
+          0,
+          0.014
+        ]
+      }
+    },
+    {
+      "id": "routed-line",
+      "shape": "box",
+      "size": [
+        0.398,
+        0.001,
+        0.002
+      ],
+      "material": "recess",
+      "attach": {
+        "to": "drawer-front",
+        "at": [
+          0.5,
+          0,
+          0
+        ],
+        "self": [
+          0.5,
+          0,
+          0
+        ],
+        "offset": [
+          0,
+          -0.001,
+          0.066
+        ]
+      },
+      "repeat": {
+        "axis": "z",
+        "count": 3,
+        "step": 0.055
+      }
+    },
+    {
+      "id": "recessed-pull",
+      "shape": "rounded_box",
+      "radius": 0.001,
+      "size": [
+        0.116,
+        0.003,
+        0.039
+      ],
+      "material": "recess",
+      "attach": {
+        "to": "drawer-front",
+        "at": [
+          0.5,
+          0,
+          1
+        ],
+        "self": [
+          0.5,
+          0,
+          1
+        ],
+        "offset": [
+          0,
+          -0.003,
+          -0.018
+        ]
+      }
+    },
+    {
+      "id": "pull-lower-lip",
+      "shape": "box",
+      "size": [
+        0.12,
+        0.004,
+        0.019
+      ],
+      "material": "white",
+      "attach": {
+        "to": "drawer-front",
+        "at": [
+          0.5,
+          0,
+          1
+        ],
+        "self": [
+          0.5,
+          0,
+          1
+        ],
+        "offset": [
+          0,
+          -0.004,
+          -0.038
+        ]
+      }
+    },
+    {
+      "id": "wood-leg",
+      "shape": "cylinder",
+      "size": [
+        0.026,
+        0.026,
+        0.32
+      ],
+      "material": "wood",
+      "grain": "z",
+      "between": {
+        "bottom": "floor",
+        "top": "bottom",
+        "at": [
+          0.1,
+          0.12
+        ]
+      },
+      "mirror": [
+        "x",
+        "y"
+      ]
+    }
+  ]
+}

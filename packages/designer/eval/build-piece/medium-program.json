@@ -1,0 +1,22 @@
+{
+  "name": "white-bedside-cabinet",
+  "size": [0.5, 0.4, 0.65],
+  "materials": {
+    "white": {"finish": "white-laminate", "color": "#e3e0d5"},
+    "wood": {"finish": "oak", "color": "#b2925d"},
+    "recess": {"finish": "painted-wood-matte", "color": "#302f29"}
+  },
+  "parts": [
+    {"id": "bottom", "shape": "box", "size": [0.5, 0.38, 0.018], "material": "white", "attach": {"to": "piece", "at": [0.5, 1, 0], "self": [0.5, 1, 0], "offset": [0, 0, 0.4]}},
+    {"id": "side", "shape": "box", "size": [0.018, 0.38, 0.214], "material": "white", "attach": {"to": "bottom", "at": [0, 0.5, 1], "self": [0, 0.5, 0]}, "mirror": ["x"]},
+    {"id": "back", "shape": "box", "size": [0.464, 0.012, 0.214], "material": "white", "attach": {"to": "bottom", "at": [0.5, 1, 1], "self": [0.5, 1, 0]}},
+    {"id": "top", "shape": "box", "size": [0.5, 0.4, 0.018], "material": "white", "attach": {"to": "piece", "at": [0.5, 0.5, 1], "self": [0.5, 0.5, 1]}},
+    {"id": "leg", "shape": "cylinder", "size": [0.026, 0.026, 0.4], "material": "wood", "grain": "z", "between": {"bottom": "floor", "top": "bottom", "at": [0.085, 0.095]}, "mirror": ["x", "y"]},
+    {"id": "drawer-front", "shape": "box", "size": [0.458, 0.012, 0.208], "material": "white", "attach": {"to": "bottom", "at": [0.5, 0, 1], "self": [0.5, 0, 0], "offset": [0, -0.012, 0]}},
+    {"id": "drawer-left-stile", "shape": "box", "size": [0.021, 0.008, 0.208], "material": "white", "attach": {"to": "drawer-front", "at": [0, 0, 0.5], "self": [0, 1, 0.5]}, "mirror": ["x"]},
+    {"id": "drawer-top-rail", "shape": "box", "size": [0.416, 0.008, 0.032], "material": "white", "attach": {"to": "drawer-front", "at": [0.5, 0, 1], "self": [0.5, 1, 1]}},
+    {"id": "drawer-bottom-rail", "shape": "box", "size": [0.416, 0.008, 0.03], "material": "white", "attach": {"to": "drawer-front", "at": [0.5, 0, 0], "self": [0.5, 1, 0]}},
+    {"id": "drawer-horizontal-slat", "shape": "box", "size": [0.416, 0.008, 0.045], "material": "white", "attach": {"to": "drawer-front", "at": [0.5, 0, 0], "self": [0.5, 1, 0], "offset": [0, 0, 0.033]}, "repeat": {"axis": "z", "count": 3, "step": 0.048}},
+    {"id": "recessed-pull", "shape": "rounded_box", "radius": 0.002, "size": [0.108, 0.006, 0.025], "material": "recess", "grain": "x", "attach": {"to": "drawer-top-rail", "at": [0.5, 0, 0], "self": [0.5, 0, 0], "offset": [0, 0, 0.001]}}
+  ]
+}

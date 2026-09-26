@@ -245,3 +245,45 @@ proposal title, warm paragraph and collapsed Notes remain unchanged.
 become changes. Design knowledge remains owned by QUALITY; routing and acceleration remain owned
 by FAST. This change adds the shared conversation policy and transport/UI, without a new classifier.
 Measured browser evidence and limitations: `apps/editor/docs/conversation-pass/README.md`.
+
+## Picture lane handoff: custom slots and queued builds
+
+[Derived integration proposal, 2026-09-26 UTC; PICTURE owns tools/build controller, CHAT owns
+wire events and final asset delivery, SERVICE owns images/lifetime.] Keep the editor contracts
+unchanged. A slot record has `source: "custom"`; its nested editor `asset.source` is
+`{type:"procedural"}` while grey, then `{type:"gltf",url:...}` when built. Do not put
+`source:"custom"` into an editor CatalogAsset. Asset dimensions are **W/H/D**; stored
+`size_wdh_m` is **W/D/H** and never changes after reservation.
+
+The planned filesystem boundary mirrors `VARPET_PROPOSALS_DIR`:
+
+- SERVICE gives the MCP process `VARPET_BUILDS_DIR=<conversation root>/builds`,
+  `VARPET_CONVERSATION_ID=<service ID>` and `VARPET_TURN_ID=<fresh turn ID>`.
+- `reserve_slot(kind,size_wdh_m,note)` atomically persists `slots/<slotId>.json` and returns
+  `{slotId,source:"custom",size_wdh_m,asset,item,estimate}`. IDs are code-generated;
+  kind allowlist is cabinet/table/shelf (boxy only). No sofa, chair/armchair or upholstered bed.
+  Three new slots per turn; stored sizes, kind and price are checked again on proposal.
+- After an accepted checked layout includes the slot, `build_piece(slotId)` writes
+  `requests/<slotId>.json` and returns `{slotId,state:"queued"}` immediately. Repeated calls
+  are idempotent; unknown or unproposed slots fail. It starts no model inside the MCP process.
+- PICTURE adds `harness/designer_builds.py`: a service-owned controller watches that queue,
+  uses Felix's runner/dispatch without changing `varpet_harness/`, and limits all conversations
+  to four live builders. SERVICE supplies the current turn's private local image paths to it.
+  It writes `states/<slotId>.json`, exposes assets for the bridge/final response, and cancels
+  its builds on the request cancellation event before image/temp cleanup.
+- CHAT consumes controller records with exactly
+  `{type:"build",slotId,state:"queued"|"building"|"fixing"|"done"|"failed",glb?,reason?}`;
+  emit them only when `events:true`. `done.glb` is
+  `/designer/files/<conversationId>/<slotId>.glb`. Failed builds retain their grey asset
+  and a reason. The final proposal waits for all referenced builds to reach a terminal state
+  and carries `assets: CatalogAsset[]`, which clients register **before** validating the command.
+- SERVICE merges the conversation's slot assets with the request catalog for the bridge;
+  custom assets remain private, never entering the shared catalog. CHAT serves only known
+  successful GLBs from that conversation and owns the HTTP/file route and editor delivery.
+- QUALITY owns price provenance. Until its shared estimate function lands, PICTURE's slot
+  estimate will be explicitly assumed, sample AMD per volume, labelled
+  `estimate, the workshop confirms`; a workshop contact is an example, not a claimed partner.
+
+[Assumed limits, explicit task scope] Four concurrent builds and three custom pieces per turn
+supersede the Notion doc's six-lane wording. Step 0 evidence is in
+`packages/designer/eval/build-piece.md`; owner likeness is still unrated.

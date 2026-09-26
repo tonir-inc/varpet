@@ -1,0 +1,171 @@
+{
+  "source_commit": "8dd8b77",
+  "compiler_commit": "0a18e32",
+  "model": "gpt-6-astra",
+  "measured_date_utc": "2026-09-26",
+  "photo_sha256": "75d3b10a1314c3f0ecd2246ce3c14d2c2cc967a3b93ebe6fb120f86953a34012",
+  "photo_name": "IMG_5207.JPG",
+  "slot_wdh_m": [
+    0.5,
+    0.4,
+    0.65
+  ],
+  "runs": {
+    "low": {
+      "runner": {
+        "id": "cabinet-bedside-low",
+        "status": "ok",
+        "tokens": 55310,
+        "seconds": 127.84914454101818,
+        "turns": 2,
+        "error": null
+      },
+      "turns": [
+        {
+          "seconds": 65.53880945796845,
+          "usage": {
+            "last": {
+              "cache_write_input_tokens": 0,
+              "cached_input_tokens": 23680,
+              "input_tokens": 24296,
+              "output_tokens": 42,
+              "reasoning_output_tokens": 0,
+              "total_tokens": 24338
+            },
+            "model_context_window": 258400,
+            "total": {
+              "cache_write_input_tokens": 0,
+              "cached_input_tokens": 111616,
+              "input_tokens": 129744,
+              "output_tokens": 1954,
+              "reasoning_output_tokens": 229,
+              "total_tokens": 131698
+            }
+          }
+        },
+        {
+          "seconds": 17.546430333983153,
+          "usage": {
+            "last": {
+              "cache_write_input_tokens": 0,
+              "cached_input_tokens": 30464,
+              "input_tokens": 30927,
+              "output_tokens": 45,
+              "reasoning_output_tokens": 0,
+              "total_tokens": 30972
+            },
+            "model_context_window": 258400,
+            "total": {
+              "cache_write_input_tokens": 0,
+              "cached_input_tokens": 191872,
+              "input_tokens": 217197,
+              "output_tokens": 2344,
+              "reasoning_output_tokens": 237,
+              "total_tokens": 219541
+            }
+          }
+        }
+      ],
+      "checks": [
+        {
+          "seconds": 0.0049802500288933516,
+          "faults": [
+            {
+              "check": "program",
+              "detail": "1 validation error for Program\nparts.8\n  Value error, recessed-pull: radius too big for the smallest side [type=value_error, input_value={'id': 'recessed-pull', '...': [0, -0.003, -0.018]}}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error"
+            }
+          ],
+          "actual_wdh_m": null
+        },
+        {
+          "seconds": 0.5950022499891929,
+          "faults": [],
+          "actual_wdh_m": [
+            0.5,
+            0.4000000059604645,
+            0.6499999761581421
+          ]
+        }
+      ],
+      "cumulative_tokens": 219541
+    },
+    "medium": {
+      "runner": {
+        "id": "cabinet-bedside-medium",
+        "status": "ok",
+        "tokens": 52782,
+        "seconds": 111.30034474999411,
+        "turns": 2,
+        "error": null
+      },
+      "turns": [
+        {
+          "seconds": 68.37164383300114,
+          "usage": {
+            "last": {
+              "cache_write_input_tokens": 0,
+              "cached_input_tokens": 22016,
+              "input_tokens": 24073,
+              "output_tokens": 42,
+              "reasoning_output_tokens": 0,
+              "total_tokens": 24115
+            },
+            "model_context_window": 258400,
+            "total": {
+              "cache_write_input_tokens": 0,
+              "cached_input_tokens": 96256,
+              "input_tokens": 108271,
+              "output_tokens": 2511,
+              "reasoning_output_tokens": 459,
+              "total_tokens": 110782
+            }
+          }
+        },
+        {
+          "seconds": 26.146277374995407,
+          "usage": {
+            "last": {
+              "cache_write_input_tokens": 0,
+              "cached_input_tokens": 28032,
+              "input_tokens": 28621,
+              "output_tokens": 46,
+              "reasoning_output_tokens": 0,
+              "total_tokens": 28667
+            },
+            "model_context_window": 258400,
+            "total": {
+              "cache_write_input_tokens": 0,
+              "cached_input_tokens": 172416,
+              "input_tokens": 189532,
+              "output_tokens": 2942,
+              "reasoning_output_tokens": 466,
+              "total_tokens": 192474
+            }
+          }
+        }
+      ],
+      "checks": [
+        {
+          "seconds": 0.027101374987978488,
+          "faults": [
+            {
+              "check": "program",
+              "detail": "1 validation error for Program\nparts.10\n  Value error, recessed-pull: radius too big for the smallest side [type=value_error, input_value={'id': 'recessed-pull', '...offset': [0, 0, 0.001]}}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error"
+            }
+          ],
+          "actual_wdh_m": null
+        },
+        {
+          "seconds": 1.9619388749706559,
+          "faults": [],
+          "actual_wdh_m": [
+            0.5,
+            0.4000000059604645,
+            0.6499999761581421
+          ]
+        }
+      ],
+      "cumulative_tokens": 192474
+    }
+  }
+}
