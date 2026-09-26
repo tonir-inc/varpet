@@ -17,14 +17,14 @@ const scene = { objects: [object('sofa-1', 'sofa'), object('chair-1', 'chair'), 
 const original = new Set(['sofa-1', 'chair-1', 'chair-2', 'wardrobe-1']);
 const group = (quote, id) => quote.groups.find(g => g.id === id)?.lines ?? [];
 
-test('owned pieces cost nothing, placeholders are still to buy, custom pieces are estimates', () => {
+test('owned pieces cost nothing, the developer\'s furniture is still to buy, custom pieces are estimates', () => {
   const quote = buildQuote({ scene, catalog, original, ownership: new Map([['sofa-1', 'owned']]), custom: new Set(['slot-1']), keys: new Map() });
   assert.deepEqual(group(quote, 'yours').map(l => [l.name, l.unit]), [['sofa', 0]]);
-  assert.deepEqual(group(quote, 'developer').map(l => [l.name, l.count, l.unit, l.note]), [['chair', 2, 100, undefined], ['wardrobe', 1, null, 'placeholder, not for sale']]);
+  assert.deepEqual(group(quote, 'developer').map(l => [l.name, l.count, l.unit, l.note]), [['chair', 2, 100, undefined], ['wardrobe', 1, null, 'not sold separately']]);
   assert.deepEqual(group(quote, 'workshop').map(l => [l.name, l.unit, l.note]), [['slot-1', 950, 'estimate, the workshop confirms']]);
   assert.deepEqual(group(quote, 'shop').map(l => [l.name, l.unit]), [['bought', 300]]);
   assert.equal(quote.total, 100 * 2 + 950 + 300);
-  assert.equal(quote.real, 2, 'the owned sofa and the shop piece; placeholders and estimates are not real');
+  assert.equal(quote.real, 4, 'the owned sofa, two priced developer chairs and the shop piece; estimates and unpriced pieces are not');
   assert.equal(quote.pieces, 6);
 });
 
