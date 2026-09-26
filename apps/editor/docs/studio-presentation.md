@@ -66,3 +66,18 @@ DONE: 5 of 7
 - 7 ✗ Within this task, exclusive owners were `studio-stage.ts` (stage agent), `studio-renderer.ts` (pipeline agent), and `assets.ts`/`furniture-materials.ts` (furniture agent). The primary changed lighting, framing and integration in `viewport.ts`, the cutaway opening condition/signature in `structure.ts`, and rendering documentation. Reviewers wrote nothing. Independent chats also edited viewport/structure during the session, so repository-wide exclusive ownership cannot be proven; narrow patches preserved their motion/editing work.
 
 Not proven: permanent automated visual regressions; exclusive file ownership across independent chats; measured GPU performance; mobile coverage; visual parity with the reference's detailed furniture.
+
+## Recovered final antialiasing pass · 26 September 2026
+
+The earlier “Add antialiasing” chat left its final pass in the isolated
+`viewport-antialiasing` worktree. That focused change is now applied to the active
+editor: `StudioRenderer` runs Three's `FXAAPass` after output conversion and
+selection outlines, in addition to the existing 2×/4× geometry MSAA. Composer
+resize supplies physical pixel dimensions; renderer disposal releases the pass.
+The newer adaptive occlusion and shadow optimizations are preserved.
+
+The user also authorized coordinated contributions to editor files. The local
+`apps/editor/AGENTS.md` policy supersedes the exclusive-ownership requirement
+mentioned in the historical audit above. Its historical test/performance limits
+remain unchanged. See [the chat recovery audit](chat-recovery.md) for current
+verification and remaining scope decisions.

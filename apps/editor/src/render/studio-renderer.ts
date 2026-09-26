@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { FXAAPass } from 'three/addons/postprocessing/FXAAPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
@@ -84,6 +85,7 @@ export class StudioRenderer {
   private readonly grade: ShaderPass;
   private readonly output = new OutputPass();
   private readonly selection: SelectionOutline;
+  private readonly antialias = new FXAAPass();
   private disposed = false;
   private interior = false;
 
@@ -134,6 +136,8 @@ export class StudioRenderer {
     this.composer.addPass(this.grade);
     this.composer.addPass(this.output);
     this.composer.addPass(this.selection);
+    // Smooth AO and outline edges too, after tone mapping into display space.
+    this.composer.addPass(this.antialias);
     this.setQuality('balanced');
     const size = renderer.getSize(new THREE.Vector2());
     this.setSize(size.x, size.y);
@@ -196,6 +200,7 @@ export class StudioRenderer {
     this.grade.dispose();
     this.output.dispose();
     this.selection.dispose();
+    this.antialias.dispose();
     this.composer.dispose();
   }
 }
