@@ -1,0 +1,75 @@
+{
+  "provenance": "Measured: exported using File \u2192 Export project with evidence after opening View \u2192 Start with this plan from the real editor portal on 2026-09-26. Browser baseline and after UI checks are additional to repeated HTTP \u2192 bridge \u2192 EditorStore runs.",
+  "portal": "http://127.0.0.1:8812",
+  "flats": [
+    {
+      "label": "The Avani Apartment",
+      "template": "avani",
+      "file": "avani.scene.json",
+      "sha256": "88ef04904efc5667ce7cfb021194b28e4e4211080396f7b66466da305381ecd4",
+      "scene_id": "e4b37a71-26f3-466f-b1c6-9c372d28394e",
+      "objects": 0,
+      "rooms": [
+        {
+          "id": "room-living",
+          "name": "Living & dining"
+        },
+        {
+          "id": "room-kitchen",
+          "name": "Kitchen"
+        },
+        {
+          "id": "room-bath",
+          "name": "Bathroom"
+        },
+        {
+          "id": "room-bedroom",
+          "name": "Bedroom"
+        }
+      ]
+    },
+    {
+      "label": "The Balcony Apartment",
+      "template": "m6",
+      "file": "balcony.scene.json",
+      "sha256": "9689be83cf15cf48894512de3c8d195a39f94628b23c2904e0be9785c878c209",
+      "scene_id": "b35d200a-4ac0-41b1-892e-83d7ec247af1",
+      "objects": 0,
+      "rooms": [
+        {
+          "id": "room-hall",
+          "name": "Entrance hall"
+        },
+        {
+          "id": "room-bathroom",
+          "name": "Bathroom"
+        },
+        {
+          "id": "room-kitchen",
+          "name": "Kitchen"
+        },
+        {
+          "id": "room-living",
+          "name": "Living & dining"
+        },
+        {
+          "id": "room-bedroom-large",
+          "name": "Bedroom 1"
+        },
+        {
+          "id": "room-bedroom-small",
+          "name": "Bedroom 2"
+        },
+        {
+          "id": "room-balcony-east",
+          "name": "Balcony \u00b7 living room"
+        },
+        {
+          "id": "room-balcony-south",
+          "name": "Balcony \u00b7 both bedrooms"
+        }
+      ]
+    }
+  ],
+  "developer_flat": "../komitas/b21-t13.scene.json"
+}
