@@ -113,7 +113,7 @@ export function createIntake(options: IntakeOptions) {
         readRows();
         const revision = options.getRevision();
         const scene = keepSources(measuredShell(query<HTMLInputElement>('#shell-name').value, rows, query<HTMLInputElement>('#shell-thickness').valueAsNumber, query<HTMLInputElement>('#site-measured').checked));
-        propose(scene, 'Measured empty apartment', `${scene.rooms.length} spaces and ${scene.walls.length} connected wall segments. This replaces the current apartment and furnishings with an empty shell, keeping source evidence. Add openings after review. The complete replacement can be undone.`, revision);
+        propose(scene, 'Measured empty apartment', `${scene.rooms.length} spaces and ${scene.walls.length} connected wall segments. This replaces the current apartment and furnishings with an unfurnished shell, keeping source evidence. Starter ceiling lighting and room switches are editable design choices where they fit. Add openings after review. The complete replacement can be undone.`, revision);
       } catch (error) { fail(error); }
     };
   }
@@ -160,7 +160,7 @@ export function createIntake(options: IntakeOptions) {
         if (pendingPoint) throw new Error('Finish the current partition or undo its first point.');
         source.calibration = { metres, pixels, origin: outline[0] ?? scalePoints[0]!, rotation: 0 };
         const scene = keepSources(tracedShell({ name: 'Apartment from blueprint', outline, partitions, pixelsPerMetre: pixels / metres, origin: source.calibration.origin, source, height: query<HTMLInputElement>('#trace-height').valueAsNumber, thickness: query<HTMLInputElement>('#trace-thickness').valueAsNumber }));
-        propose(scene, 'Calibrated blueprint reconstruction', `${scene.rooms.length} enclosed spaces and ${scene.walls.length} wall segments traced from ${source.name}. Replaces the current apartment and furnishings with an empty shell, preserving evidence. Heights, thicknesses and structural roles remain assumptions; add doors and windows in Shell.`, options.getRevision());
+        propose(scene, 'Calibrated blueprint reconstruction', `${scene.rooms.length} enclosed spaces and ${scene.walls.length} wall segments traced from ${source.name}. Replaces the current apartment and furnishings with an unfurnished shell, preserving evidence. Starter ceiling lighting and room switches are editable design choices where they fit. Heights, thicknesses and structural roles remain assumptions; add doors and windows in Shell.`, options.getRevision());
       } catch (error) { fail(error); }
     };
   }

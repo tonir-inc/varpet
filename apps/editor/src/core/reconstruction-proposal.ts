@@ -2,6 +2,7 @@ import type { AgentProposal, CatalogAsset, SceneDocument, StructureAdapter } fro
 import { createApartmentStore } from './apartment-store';
 import { migrateScene } from './renovation';
 import { isRecord } from './validation';
+import { decorateGeneratedCeilings } from './generated-ceilings';
 
 type Structure = Awaited<ReturnType<StructureAdapter['reconstruct']>>;
 
@@ -38,9 +39,10 @@ export function createReconstructionProposal(scene: SceneDocument, revision: num
     return {
       id, title: 'Reconstruction review',
       description: [result.components?.length ? 'Start with an unfurnished reconstructed apartment and its fixed fixtures.' : 'Start with an empty reconstructed apartment.',
+        'Editable starter ceiling lighting and room switches are proposed where they fit; these are design choices to review, not reconstructed evidence.',
         'Applying replaces the current shell, furniture, systems, finishes and renovation options. Original source attachments are kept without room assignments. Undo restores the previous apartment.', ...result.notes].join(' '),
       command: { id, label: 'Import empty reconstructed apartment', source: 'architect', baseRevision: revision,
-        operations: [{ type: 'replace-scene', scene: apartment }] },
+        operations: [{ type: 'replace-scene', scene: decorateGeneratedCeilings(apartment) }] },
     };
   }
   return { id, title: 'Import reconstructed structure', description: result.notes.join(' '),

@@ -1,0 +1,311 @@
+
+> @varpet/editor@0.0.0 test /Users/davitstepanyan/Documents/varpet/apps/editor
+> node scripts/check.mjs && node scripts/check-renovation.mjs && node scripts/check-openings.mjs && node scripts/check-finishes.mjs && node scripts/check-continuous-wall-finishes.mjs && node scripts/check-continuous-finish-render.mjs && node scripts/check-finish-texture-presets.mjs && node scripts/check-finish-textures.mjs && node scripts/check-placement.mjs && node scripts/check-furniture-placement.mjs && node scripts/check-walls.mjs && node scripts/check-wall-controller.mjs && node scripts/check-grouping.mjs && node scripts/check-plan-move.mjs && node scripts/check-inspector.mjs && node scripts/check-inspector-openings.mjs && node scripts/check-structural-wall-confirmation.mjs && node scripts/check-motion.mjs && node scripts/check-transform-motion.mjs && node scripts/check-projection-motion.mjs && node scripts/check-cutaway.mjs && node scripts/check-balcony-cutaway.mjs && node scripts/check-wall-junctions.mjs && node scripts/check-apartment-junctions.mjs && node scripts/check-plan-layers.mjs && node scripts/check-plan-measurements.mjs && node scripts/check-selection-camera.mjs && node scripts/check-room-camera.mjs && node scripts/check-walkthrough.mjs && node scripts/check-structural-surfaces.mjs && node scripts/check-heights.mjs && node scripts/check-interior-lighting.mjs && node scripts/check-skybox.mjs && node scripts/check-sunlight.mjs && node scripts/check-sun-occluders.mjs && node scripts/check-walkthrough-camera.mjs && node scripts/check-keyboard-navigation.mjs && node scripts/check-database-catalog.mjs && node scripts/check-assets.mjs && node --test server/*.test.mjs && node scripts/check-walkthrough-view.mjs && node scripts/check-architect.mjs && node scripts/check-reconstruction-proposal.mjs && node scripts/check-ceiling-design.mjs && node scripts/check-ceiling-render.mjs && node scripts/check-ceiling-visibility.mjs && node scripts/check-ceiling-seams.mjs && node scripts/check-catalog-http.mjs && node --test tests/*.test.mjs && node scripts/check-shadow-cache.mjs && node scripts/check-sky-lighting.mjs && node scripts/check-adaptive-occlusion.mjs && node scripts/check-ceiling-shadow-budget.mjs && node scripts/check-architect-project.mjs && node scripts/check-window-dimensions.mjs && node scripts/check-opening-transform.mjs && node scripts/check-opening-preview.mjs && node scripts/check-generated-ceilings.mjs && node scripts/check-ceiling-controls.mjs
+
+Domain checks passed (265 assertions).
+Renovation checks passed (102 assertions).
+Reconstruction and handoff checks passed (29 assertions).
+Opening clearance: 80 assertions passed.
+Finish regressions passed: 157 assertions across 5 scenarios.
+Continuous wall finish regressions passed: 76 assertions across 21 scenarios.
+Continuous finish rendering checks passed (29 assertions).
+Finish texture preset checks passed (33 assertions).
+Finish texture checks passed (24 assertions).
+Door barrier checks passed (5922 assertions).
+Placement conflict checks passed (358 assertions).
+Furniture placement checks passed (12 assertions).
+Wall movement checks passed (87 assertions).
+Wall controller checks passed (423 assertions; 6 wall directions in Top and 3D). Preview rendering requires browser verification.
+PASS grouping preserves placement, migrates explicitly, and saves membership
+PASS moving any member translates the whole group once and undo restores all
+PASS rotation orbits members about the selected piece without changing scale or spacing
+PASS invalid, stale, unapproved and locked-member transforms are atomic
+PASS invalid membership is rejected and regrouping requires complete existing groups
+PASS ungroup preserves transforms and subsequent moves affect one piece
+PASS delete dissolves singleton groups and undo restores membership
+PASS baseline and options retain independent group membership
+PASS imports reject invalid group IDs, singleton groups and version 1 membership
+PASS 9 grouping checks
+Plan movement checks passed (283 assertions).
+Inspector regressions passed: 102 assertions across 10 scenarios.
+Inspector opening selection checks passed (12 assertions).
+Structural wall confirmation checks passed (266 assertions).
+Editor motion checks passed (52 assertions).
+Transform motion checks passed (11 assertions).
+Projection motion checks passed (16 assertions).
+Cutaway checks passed (520 assertions).
+Balcony cutaway checks passed (442 assertions).
+Wall junction checks passed (64 assertions).
+Apartment wall junction checks passed (35 assertions).
+Plan layers checks passed (51 assertions).
+Plan selection measurements: 92 assertions passed.
+Selection camera checks passed (78 assertions).
+Room camera checks passed (1012 assertions).
+Walkthrough geometry: 36 assertions passed.
+Structural surface checks passed (155 assertions).
+Height checks passed: legacy ceilings meet the wall tops.
+Height configuration checks passed: 35 assertions.
+Interior lighting checks passed (25 assertions).
+Skybox checks passed (94 assertions).
+Sunlight checks passed (222 assertions).
+Sun occluder checks passed (25 assertions).
+Walkthrough camera checks passed (98 assertions).
+Keyboard navigation checks passed (313 assertions).
+Database catalog store checks passed
+Database catalog mapping checks passed
+Database startup and saved-reference checks passed
+Database import, browsing, and currency checks passed
+assets: 354 checks passed
+(node:48312) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ registration authenticates with a private cookie; logout revokes it and login verifies the password (296.373041ms)
+✔ apartments preserve the complete project and catalog across a server restart (90.672417ms)
+✔ one user cannot read or update another user’s saved apartment (160.006167ms)
+✔ concurrent saves accept one version and reject a stale overwrite with the current apartment (78.66275ms)
+✔ credential validation rejects empty names, malformed email, weak passwords and duplicate normalized accounts (71.752875ms)
+✔ mutations reject cross-origin and missing-origin requests, invalid JSON and wrong content types (7.623125ms)
+✔ body limits and scene validation reject invalid saves without damaging a saved apartment (74.774ms)
+✔ rate limits bound repeated authentication attempts (143.016ms)
+✔ the database contains salted password hashes and hashed session tokens, and expired sessions cannot authenticate (77.264208ms)
+✔ new accounts require passwords with at least twelve characters (4.875875ms)
+✔ saved apartments preserve database catalog product wrappers and attribution (74.828583ms)
+✔ unexpected database failures emit safe diagnostics without exposing private request data (78.293458ms)
+✔ apartment sharing references persist privately across restart without entering project data or lists (85.196833ms)
+✔ only an authenticated apartment owner can change its sharing reference from the same origin (156.744541ms)
+✔ competing apartment sharing changes use the same version guard as scene saves (109.619667ms)
+✔ scene saves preserve sharing only for the same scene and apartment copies start without it (99.117583ms)
+✔ invalid sharing references and versions leave the saved apartment unchanged (105.615833ms)
+✔ a failed sharing association rolls back its apartment version change (95.171042ms)
+✔ search uses the real SDK, honors session/SSE, and merges raw dimensions, model and provenance (47.870584ms)
+✔ saved item hydration deduplicates ids and reports missing records without fake products (12.340584ms)
+✔ vocabulary is returned directly from the database tool (4.037042ms)
+✔ remote errors and invalid detail identities return sanitized unavailable responses (14.483834ms)
+✔ the request deadline aborts stalled upstream requests (63.980125ms)
+✔ invalid or mutating requests never call the catalog and unrelated routes pass through (4.622ms)
+✔ light model files are relayed from the catalog service with a one-year cache (4.071458ms)
+✔ a model without a light copy is an uncached 404 so the browser falls back to the original (2.896541ms)
+✔ model routes accept only GET of a plain .glb name and never reach the catalog otherwise (2.54425ms)
+✔ search pages forward an offset and return where the next page starts (19.81975ms)
+✔ long extra model names up to 120 characters are relayed (2.097667ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 29
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1961.688125
+Walkthrough view checks passed (41 assertions).
+Built pieces unavailable, using the catalog without them TypeError: offline
+    at file:///private/var/folders/2s/g_x43drx6vsdf2rpxxbby8hw0000gn/T/varpet-architect-check-huHUH2/check.mjs:3083:8
+    at builtPieces (file:///private/var/folders/2s/g_x43drx6vsdf2rpxxbby8hw0000gn/T/varpet-architect-check-huHUH2/check.mjs:2423:29)
+    at withBuiltPieces (file:///private/var/folders/2s/g_x43drx6vsdf2rpxxbby8hw0000gn/T/varpet-architect-check-huHUH2/check.mjs:2479:28)
+    at file:///private/var/folders/2s/g_x43drx6vsdf2rpxxbby8hw0000gn/T/varpet-architect-check-huHUH2/check.mjs:3082:14
+architect adapter check passed
+Reconstruction proposal checks passed (41 assertions).
+Ceiling design contract checks passed: 46 assertions.
+Ceiling design checks passed: 406 assertions.
+Ceiling rendering checks passed (150 assertions).
+Ceiling visibility checks passed (141 assertions).
+Ceiling seam checks passed (177 assertions).
+catalog HTTP checks passed
+✔ every selectable plan is valid, empty, and copied independently for each apartment (16.712292ms)
+✔ account save preserves full renovation evidence and copies exact referenced catalog metadata (276.128083ms)
+✔ reopen rejects malformed projects or missing furniture instead of silently dropping content (0.876333ms)
+✔ reopening matching shared progress restores its version and marks revision zero saved (8.266292ms)
+✔ different shared scenes or catalog snapshots stay dirty without replacing account progress (77.567958ms)
+✔ a restored account share rejects saving from a copied apartment with the same scene ID (4.123875ms)
+✔ account scene exports and copied apartment payloads exclude the durable sharing capability (2.677667ms)
+✔ sharing read failures propagate while the saved account snapshot remains unchanged (54.531125ms)
+✔ a sharing record for another scene cannot restore an account sharing session (38.471166ms)
+✔ view-only sharing access cannot become the account’s editing session (2.643042ms)
+✔ absent or locally stale sharing references do not load a shared apartment (12.833875ms)
+✔ simultaneous link choices attach the same share once at the account record version (5.087959ms)
+✔ account share attachment refuses a different apartment owner before writing (4.210375ms)
+✔ permission choices join link creation while the account attachment is still pending (34.305834ms)
+✔ the complete sharing creation pipeline keeps copied account apartments independent (8.120042ms)
+✔ architect fixtures survive HTTP, reconstruction preview, Apply and Undo (33.060416ms)
+✔ architect rejects malformed components and broken room references before offering a proposal (7.480458ms)
+✔ legacy architect response without components remains valid (0.583792ms)
+✔ paper is the common tone and ink the far side of it (1.518833ms)
+✔ a light room fill is faint shading, a wall is full ink (0.621292ms)
+✔ dark ink on paper: only the strokes are ink, drawn along the line (0.9125ms)
+✔ light ink on a blueprint: only the strokes are ink, drawn along the line (0.689833ms)
+✔ an empty sheet has no ink and no pen order (0.108334ms)
+✔ uploaded plan and photos retain exact original bytes through editor save and reopen (112.473042ms)
+✔ existing evidence and reviewed project metadata survive upload attachment independently (1.583458ms)
+✔ reattaching the same original does not duplicate existing plan evidence (0.457583ms)
+✔ unsupported, empty and oversized uploads fail before reading their bytes (0.883666ms)
+✔ exact upload byte limits fit the existing encoded evidence and parser limits (2569.240541ms)
+✔ photo-count and combined existing evidence limits reject without changing service state (34.17375ms)
+✔ long uploaded filenames become valid evidence names without changing original bytes (0.462417ms)
+✔ transport names cannot overwrite the blueprint when originals collide after server sanitizing and truncation (0.442292ms)
+✔ built assets become registrable products with explicit unpriced, unverified provenance (20.1475ms)
+✔ saved older-run references hydrate alongside database furniture including option references (1.623417ms)
+✔ missing service or missing built pieces reject hydration without falling back to database records (1.355375ms)
+✔ malformed or shop-priced built payloads cannot enter the product catalog (21.060416ms)
+✔ designer can propose remote ABO products while existing product identity and provenance stay authoritative (8.324542ms)
+✔ remote discovery never reintroduces demo or procedural furniture (0.45725ms)
+✔ browsing the same designer-added SKU preserves its registered appearance and updates provenance (1.193292ms)
+✔ discovery fits the catalog bound without dropping current scene or history references (12.581791ms)
+✔ proposal survives a catalog search, requires approval, and undo restores the empty apartment (7.034833ms)
+✔ same-revision conversations retain only added products and immutable snapshots (0.527ms)
+✔ reused proposal IDs cannot substitute a different command or bypass revisions (0.295917ms)
+✔ message, suggestions and streamed text cross the HTTP boundary (88.261708ms)
+✔ message suggestions reject malformed values and enforce the four-chip boundary (94.068875ms)
+✔ follow-up answers retain proposal context, suggestions, notes and approval state (3.558834ms)
+✔ streamed draft is replaced once by the final answer and ignored after cancellation (0.309458ms)
+✔ retry resends the failed request in the same thread without applying anything (0.299375ms)
+✔ light markdown renders emphasis and lists while all HTML and links stay inert (0.472667ms)
+✔ recorded demo answers a design question without proposing an edit (132.178708ms)
+✔ cancel clears streamed text immediately and rejects late chunks (0.582416ms)
+✔ opt-in adapter streams tool/build events before final answer and sends the flag (23.488958ms)
+✔ legacy request stays opt-out; malformed or unsolicited events cannot reach callbacks (62.700334ms)
+✔ events after a terminal reply remain a protocol error (1.19975ms)
+✔ chat opts in, shows slot state in the existing progress line and ignores late events (5.481333ms)
+✔ custom assets validate together with the proposal before delivery; source URL uses the service origin (182.393167ms)
+✔ chat HTTP wrapper opts in and delivers events before the final network chunk (9.089208ms)
+✔ opt-in records are validated even without an event callback (2.248333ms)
+✔ published recorded event sample conforms to the adapter contract (2.425ms)
+✔ optional notes travel outside the unchanged AgentProposal and never apply the scene (105.613042ms)
+✔ legacy proposals without notes remain valid and do not emit a notes callback (22.0445ms)
+✔ notes accept the 1600-character boundary and reject malformed, blank or oversized values (167.073333ms)
+✔ notes cannot escape proposal validation or appear on another terminal response (7.545167ms)
+✔ askDesigner returns envelope notes without changing the proposal (8.604584ms)
+✔ proposal notes persist as plain text and do not change preview, apply or stale-history rules (8.931ms)
+✔ invalid restored notes cannot enter conversation state (8.430708ms)
+✔ old saved messages without notes remain readable (0.53925ms)
+✔ non-history panel callers retain notes without changing their review callback (2.570458ms)
+✔ reload restores messages, choices and service conversationId; new conversation retains selectable history (14.403208ms)
+✔ scene changes abort work, isolate history and ignore late replies (0.291625ms)
+✔ stored pending proposals become stale even when a reloaded store has the same revision (0.400791ms)
+✔ preview, apply and dismiss are explicit actions; terminal state persists and cannot apply twice (0.429792ms)
+✔ failed approval stays pending and reports the editor error; revision changes mark it stale (0.278875ms)
+✔ storage failures and malformed history do not break requests or scene-local session history (0.551917ms)
+✔ legacy mock mode does not load or save conversation history (0.11625ms)
+✔ preview applies through a scratch command store, checks staleness and leaves the original untouched (114.596125ms)
+✔ a new conversation confirms storage availability before reporting its persistence status (0.510459ms)
+✔ successfully stored long history remains readable on reload (4.971709ms)
+✔ recorded HTTP proposal requires approval, applies through the editor store, and undo restores every object (380.508584ms)
+✔ recorded HTTP question continues the conversation and declines preserve keeps (469.414459ms)
+✔ a scene edited after the request rejects its stale proposal atomically (37.684333ms)
+✔ empty input and overlapping submissions do not start requests (2.277208ms)
+✔ streams progress and sends a captured scene, revision and existing keep ids (0.837708ms)
+✔ question option is the next message in the same conversation (2.962333ms)
+✔ proposal is sent to review once without changing the scene (9.957292ms)
+✔ cancel aborts the signal immediately and ignores late progress and proposals (0.756833ms)
+✔ a cancelled request cannot clear the busy state of a newer request (0.462042ms)
+✔ service errors and network errors are visible and allow retry (0.351167ms)
+✔ disposing aborts without publishing a late reply (0.522792ms)
+✔ recorded demo has proposal, question, decline and respects keeps (15.114375ms)
+✔ proposal numbers come from service score, including zero cost and blocked walkways (8.70975ms)
+✔ missing or malformed proposal numbers remain unknown instead of becoming zero (0.279834ms)
+✔ valid score reports minimum across rooms and whole dram purchases (0.18825ms)
+✔ no door routes or missing metrics are not reported as measured clearance (0.871583ms)
+✔ north is unknown by default, validates degrees, persists per scene and is sent with Suggest (0.610208ms)
+✔ unavailable browser storage preserves north for this session without claiming it was saved (0.208625ms)
+✔ elapsed seconds use elapsed time, reset on retry, and stop after cancellation and disposal (0.3385ms)
+✔ empty flat keeps the four original examples (33.230666ms)
+✔ empty rooms get actionable starters and edits recompute without mutation (15.551625ms)
+✔ unknown furniture and ambiguous cabinets never become false empty or missing-storage claims (3.552375ms)
+✔ native wardrobe kind counts as storage even when its product name gives no clue (1.398458ms)
+✔ room polygons, boundaries and floors determine which room contains furniture (29.792125ms)
+✔ built-in storage and removed entities respect renovation metadata (57.965333ms)
+✔ west-facing wording requires known north and survives reversed wall endpoints (6.093333ms)
+✔ interior, removed and explicitly shared windows never claim west exposure (0.281541ms)
+✔ only four deterministic, distinct suggestions are shown in a large flat (0.239792ms)
+✔ elevated built-in cabinets count without roomId and stay on their own floor (0.316792ms)
+✔ built-in occupancy uses the same shell-derived ceiling as the editor (0.134958ms)
+✔ the recorded event stream becomes plain-English steps (14.117125ms)
+✔ tool calls without ids close the latest open call; errors and failed checks stay visible (0.537792ms)
+✔ piece names come only from known nouns in the slot id, and clocks read m:ss (0.3925ms)
+✔ an unfinished build is not reported as done, and the summary counts it (0.68625ms)
+✔ a turn shows live steps, then moves them onto its reply; damaged stored steps are dropped (4.466125ms)
+✔ a queued message waits for the turn, can be removed, and Stop hands it back instead of sending it (1.548916ms)
+✔ switching conversation drops the queue instead of sending it into another thread (0.511083ms)
+✔ context prefixes only what the buyer typed, and proposal chips price only known pieces (0.428167ms)
+✔ lens choices accept only the supported names and the editor starts with photo framing (1.257792ms)
+✔ photo reveals more of the room at the screenshot aspect, and wide reveals more again (1.597417ms)
+✔ resizing each lens respects both field limits and preserves the standing pose and clipping distances (1.166041ms)
+✔ omitting the optional lens retains the existing standard framing across viewport shapes (0.50875ms)
+✔ invalid lens names and viewport aspects fall back without corrupting the projection (0.798375ms)
+✔ the M6 repaired outside corner also blocks light in the hidden physical shell (103.33425ms)
+✔ repeated opening previews dispose replaced wall prisms without disposing live shared frame boxes (30.780833ms)
+✔ adjacent selected walls move from the original junctions exactly once, independently of order (12.81675ms)
+✔ collinear selection inserts room junctions once and a T branch follows the original host (10.738833ms)
+✔ multi-wall movement preserves hosts and routes and invalidates affected evidence (11.319875ms)
+✔ locks on selected and dependent geometry reject a whole multi-wall command atomically (6.688875ms)
+✔ wall selection rejects room reversal, disconnected T hosts and shortened opening bounds (1.201458ms)
+✔ walls and rooms on a separate level stay fixed during batch translation (1.309958ms)
+✔ batch room connections use the original inferred ceiling height before walls move (0.707292ms)
+✔ batch recognition cannot sanitize malformed endpoints into an accepted command (1.773667ms)
+✔ temporary furniture selection translates and rotates loose pieces without changing membership (2.252792ms)
+✔ two persistent furniture groups and a loose object receive one rigid transform apiece (1.083625ms)
+✔ selection previews use checked commit semantics including normalization, bounds and member locks (58.796375ms)
+✔ creation returns independent capabilities and JSON responses disable caching and CORS (79.802875ms)
+✔ view reads include the exact snapshot but never either secret or editable access (76.8675ms)
+✔ editors can recover the viewer capability and publish a validated newer snapshot (51.738125ms)
+✔ viewer PUT cannot elevate permission through headers, query parameters, or a forged body (27.375542ms)
+✔ missing, malformed and unrelated tokens fail without exposing identifiers or secrets (56.731334ms)
+✔ concurrent expected-version writes serialize the entire compare and atomic save (37.871041ms)
+✔ a new server instance reads the committed disk snapshot with the same capabilities (33.881667ms)
+✔ invalid scenes, catalogs, spoofed creation fields and versions are rejected without changing disk (61.610667ms)
+✔ an edit capability cannot silently replace an unrelated project identity (17.631791ms)
+✔ JSON media type, parsing, size and same-origin checks apply to writes (162.108167ms)
+✔ an explicit public origin supports HTTPS proxies without trusting forwarded headers (27.937125ms)
+✔ a configured public origin must be an exact HTTP or HTTPS origin without credentials or a path (3.388792ms)
+✔ storage locations inside served roots, including symlink aliases, are rejected (3.027625ms)
+✔ storage errors return generic JSON without disclosing local paths (2.700125ms)
+✔ the sharing plugin registers the API on real Vite development and preview servers (320.6605ms)
+✔ capabilities live only in URL fragments and permission labels cannot elevate access (3.744583ms)
+✔ landing anchors stay in-page while changed share fragments reload, including malformed links (0.254125ms)
+✔ shared snapshots contain the exact scene and only its referenced catalog (5.237458ms)
+✔ receiving a view capability stays view-only and sends token in Authorization (7.340208ms)
+✔ invalid or mismatched shared data never becomes editable startup data (9.416958ms)
+✔ new sharing publishes current progress and generates distinct view and edit links (2.465916ms)
+✔ saving captures the submitted local revision and rejects a duplicate in-flight save (3.422167ms)
+✔ conflict preserves the local draft, saved revision and server version (3.858041ms)
+✔ save responses and scene identity are checked before marking progress saved (6.33625ms)
+✔ the same scene cannot publish through a different account apartment or an unowned editor (5.756875ms)
+✔ project matching distinguishes account records, drafts, direct shares and replaced scenes (1.986166ms)
+✔ newly created sharing sessions retain their account apartment identity (19.240709ms)
+✔ pending link creation stays with its source project after close, replace and reopen (13.202833ms)
+✔ pending link creation separates account apartments that contain the same scene (2.010917ms)
+✔ clock accepts fractional hours, clamps endpoints, and safely normalizes invalid input (2.962333ms)
+✔ noon is bright and both midnight endpoints are dark with automatic lights on (0.195042ms)
+✔ dawn brightens smoothly and dusk dims smoothly while automatic lights follow the opposite curve (0.368792ms)
+✔ daylight is continuous at each dawn/dusk boundary and remains finite across the full clock (0.215291ms)
+✔ time lighting results are independent values (0.062ms)
+✔ default and legacy manual sunlight retain the existing elevation and strength (0.204458ms)
+✔ clock edits derive elevation without mutating the previous settings or patch (0.377583ms)
+✔ compass, strength and auto-light edits preserve the selected time (0.074ms)
+✔ an explicit elevation edit returns to manual positioning, and reset clears the clock (0.099709ms)
+✔ invalid solar edits preserve a valid active clock and numeric settings (0.20575ms)
+✔ effective sun is absent at night, proportional at dusk, and obeys direct-sun and evening switches (0.108625ms)
+✔ automatic lighting changes only the preview fallback and leaves authored components untouched (0.298791ms)
+✔ switch off wins over night auto-lighting and a dimmer setting survives day/night changes (0.134208ms)
+✔ disabled and removed light fixtures stay off when automatic night lighting is active (0.072125ms)
+✔ unequal walls meet at the outer miter for either orientation and arbitrary corner angle (1.785958ms)
+✔ disconnected, vertically separate and removed walls cannot pull a corner into a false join (0.450958ms)
+✔ almost straight unequal-width and acute joins keep a bounded solid instead of remote miter spikes (0.997375ms)
+✔ T joins and short returns retain positive solid coverage without pushing a corner into an opening (2.080125ms)
+✔ a door beginning at a T junction cannot remove the neighbouring solid corner (9.660542ms)
+✔ M6 bedroom entrance corner has continuous painted faces and skirting in full and cutaway projections (107.436041ms)
+ℹ tests 182
+ℹ suites 0
+ℹ pass 182
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4545.741625
+Shadow cache checks passed (8 assertions).
+Sky lighting checks passed (36 assertions).
+Adaptive occlusion checks passed (19 assertions).
+Ceiling shadow budget checks passed (28 assertions).
+architect project check passed
+Window dimension checks passed: 75 assertions across 9 scenarios.
+Opening transform checks passed: 512 assertions across 12 scenarios.
+Opening preview checks passed (49 assertions).
+Generated ceiling and room switch checks passed (56 assertions).
+Ceiling control checks passed (59 assertions).

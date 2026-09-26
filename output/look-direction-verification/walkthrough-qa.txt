@@ -1,0 +1,20 @@
+PASS Inside places the eyes exactly 1.65 m above the floor
+PASS Inside uses a perspective camera
+PASS Inside uses the aspect-correct lens within 95 horizontal and 65 vertical degrees
+PASS Key-release easing travels at most 7.5 cm
+PASS S walks backwards rather than changing the editing tool
+PASS Walking remains grounded at standing eye height
+PASS Releasing movement stops the camera
+PASS Walkthrough returns to idle rendering
+PASS Typing in an input does not move the camera
+PASS Window blur clears held movement
+PASS Camera navigation does not change scene JSON or history
+PASS Leaving Inside restores the previous exterior camera
+PASS Top camera remains usable after walking
+PASS Raised floors add their elevation to the 1.65 m eye height
+PASS Framing a room in Inside keeps the camera at eye height
+PASS W moves the exterior camera after leaving Inside
+PASS Exterior W follows the restored full viewing direction, including pitch
+PASS Exterior movement stops immediately on key release
+PASS Real renderer completed without reported errors
+COMPLETE 19 browser checks.

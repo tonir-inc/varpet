@@ -1,0 +1,228 @@
+{
+  "results": [
+    {
+      "pass": true,
+      "label": "Probe loaded real editor without JS errors",
+      "data": []
+    },
+    {
+      "pass": true,
+      "label": "Space shows grab cursor"
+    },
+    {
+      "pass": true,
+      "label": "Space + mouse down shows grabbing cursor"
+    },
+    {
+      "pass": true,
+      "label": "Pointer release retains hand while Space held"
+    },
+    {
+      "pass": true,
+      "label": "Space release restores normal cursor"
+    },
+    {
+      "pass": true,
+      "label": "3D Space pan equals right pan and preserves orientation",
+      "data": {
+        "right": [
+          13.823257905817652,
+          17.069087187872437,
+          22.974306002581237
+        ],
+        "hand": [
+          13.823257905817655,
+          17.06908718787244,
+          22.974306002581237
+        ]
+      }
+    },
+    {
+      "pass": true,
+      "label": "3D hand pan does not select or edit",
+      "data": {
+        "select": 0,
+        "edit": 0,
+        "finish": 0,
+        "button": 0
+      }
+    },
+    {
+      "pass": true,
+      "label": "3D hand pan balances interaction begin/end",
+      "data": [
+        true,
+        false
+      ]
+    },
+    {
+      "pass": true,
+      "label": "Space drag over selected furniture preserves selection and object",
+      "data": {
+        "select": 0,
+        "edit": 0,
+        "finish": 0,
+        "button": 0
+      }
+    },
+    {
+      "pass": true,
+      "label": "Space click over selected furniture does not select or edit"
+    },
+    {
+      "pass": true,
+      "label": "Space drag and click do not apply active finish brush"
+    },
+    {
+      "pass": true,
+      "label": "Releasing Space before mouse stops pan without click/edit",
+      "data": {
+        "position": [
+          15.115135589944433,
+          16.42714088219019,
+          22.531212357876164
+        ],
+        "target": [
+          -0.5543019474246706,
+          0.26287900153574223,
+          0.264116910035859
+        ],
+        "quaternion": [
+          -0.25233901544599335,
+          0.29105811767490025,
+          0.07988718598849646,
+          0.9193629484235973
+        ],
+        "zoom": 1,
+        "counts": {
+          "select": 0,
+          "edit": 0,
+          "finish": 0,
+          "button": 0
+        },
+        "interactions": [
+          true,
+          false
+        ],
+        "selected": "sofa",
+        "errors": [],
+        "cursor": "auto",
+        "planCursor": "grab",
+        "focus": "CANVAS"
+      }
+    },
+    {
+      "pass": true,
+      "label": "Typing a space is unaffected"
+    },
+    {
+      "pass": true,
+      "label": "Focused button still activates with Space"
+    },
+    {
+      "pass": true,
+      "label": "Window blur clears active hand and interaction"
+    },
+    {
+      "pass": true,
+      "label": "Wheel during active Space drag keeps interaction active",
+      "data": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "pass": true,
+      "label": "Space drag with wheel ends interaction on release"
+    },
+    {
+      "pass": true,
+      "label": "Native browser tab blur clears active hand pan"
+    },
+    {
+      "pass": true,
+      "label": "Normal left drag still orbits"
+    },
+    {
+      "pass": true,
+      "label": "Top Space pan equals right pan and preserves orientation",
+      "data": {
+        "right": [
+          -1.0555555555555554,
+          25.000021358783286,
+          -0.5212222217288314
+        ],
+        "hand": [
+          -1.0555555555555554,
+          25.000021358783286,
+          -0.5212222217288314
+        ]
+      }
+    },
+    {
+      "pass": true,
+      "label": "Space click over paintable floor suppresses a valid active finish brush"
+    },
+    {
+      "pass": true,
+      "label": "Normal click at the same floor applies brush after Space release"
+    },
+    {
+      "pass": true,
+      "label": "Normal 3D object selection still works after hand pan"
+    },
+    {
+      "pass": true,
+      "label": "Plan Space shows grab cursor"
+    },
+    {
+      "pass": true,
+      "label": "Plan dragging shows grabbing cursor"
+    },
+    {
+      "pass": true,
+      "label": "Plan Space drag moves world transform without edits or selection",
+      "data": {
+        "before": "translate(680 475) scale(63.48837209302326)",
+        "after": "translate(750 510) scale(63.48837209302326)",
+        "counts": {
+          "select": 0,
+          "edit": 0,
+          "finish": 0,
+          "button": 0
+        }
+      }
+    },
+    {
+      "pass": true,
+      "label": "Plan hand pan balances interaction begin/end",
+      "data": [
+        true,
+        false
+      ]
+    },
+    {
+      "pass": true,
+      "label": "Plan normal empty-space drag still pans"
+    },
+    {
+      "pass": true,
+      "label": "Plan normal furniture click still selects"
+    },
+    {
+      "pass": true,
+      "label": "Plan Space drag over selected object preserves selection and does not edit"
+    },
+    {
+      "pass": true,
+      "label": "Plan Space click does not edit or select"
+    },
+    {
+      "pass": true,
+      "label": "No browser exceptions during gesture checks",
+      "data": []
+    }
+  ],
+  "errors": []
+}

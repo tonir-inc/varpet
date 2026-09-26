@@ -9,13 +9,13 @@ const movementKeys = new Set(['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrow
 export class WalkthroughControls {
   private active = false;
   private keys = new Set<string>();
-  private pointer: { id: number; x: number; y: number } | null = null;
+  private pointer: { id: number; x: number; y: number; startX: number; startY: number; moved: boolean } | null = null;
   private angles = new THREE.Euler(0, 0, 0, 'YXZ');
   private lastTime: number | null = null;
   private velocity: Vec2 = [0, 0];
   private reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   constructor(private camera: THREE.PerspectiveCamera, private canvas: HTMLCanvasElement,
-    private move: (position: Vec3, delta: Vec2) => Vec3, private render: () => void) {
+    private move: (position: Vec3, delta: Vec2) => Vec3, private render: () => void, private tap?: (event: PointerEvent) => void) {
     canvas.addEventListener('pointerdown', this.down, true);
     canvas.addEventListener('pointermove', this.look, true);
     canvas.addEventListener('pointerup', this.up, true);
@@ -56,13 +56,14 @@ export class WalkthroughControls {
     if (!this.active || event.button !== 0 || document.hidden || document.querySelector('dialog[open]')) return;
     event.preventDefault(); event.stopImmediatePropagation();
     this.canvas.focus({ preventScroll: true });
-    this.pointer = { id: event.pointerId, x: event.clientX, y: event.clientY };
+    this.pointer = { id: event.pointerId, x: event.clientX, y: event.clientY, startX: event.clientX, startY: event.clientY, moved: false };
     this.canvas.setPointerCapture(event.pointerId); this.canvas.style.cursor = 'grabbing';
   };
   private look = (event: PointerEvent): void => {
     if (!this.active || !this.pointer || this.pointer.id !== event.pointerId) return;
     if (this.blocked()) { this.cancel(); return; }
     event.preventDefault(); event.stopImmediatePropagation();
+    if (Math.hypot(event.clientX - this.pointer.startX, event.clientY - this.pointer.startY) > 5) this.pointer.moved = true;
     this.angles.y -= (event.clientX - this.pointer.x) * 0.003;
     this.angles.x = THREE.MathUtils.clamp(this.angles.x - (event.clientY - this.pointer.y) * 0.003, -Math.PI * 0.45, Math.PI * 0.45);
     this.camera.quaternion.setFromEuler(this.angles);
@@ -70,7 +71,10 @@ export class WalkthroughControls {
   };
   private up = (event: PointerEvent): void => {
     if (!this.active) return;
+    const pointer = this.pointer;
+    const tapped = pointer && pointer.id === event.pointerId && event.button === 0 && !pointer.moved && Math.hypot(event.clientX - pointer.startX, event.clientY - pointer.startY) <= 5 && !this.blocked();
     event.stopImmediatePropagation(); this.releasePointer();
+    if (tapped) this.tap?.(event);
   };
   private context = (event: Event): void => { if (this.active) event.preventDefault(); };
   private releasePointer(): void {

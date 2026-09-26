@@ -1,6 +1,8 @@
 # Selection properties
 
-Selecting an item opens Properties on the right and preserves the left workspace panel. Close Properties or press Escape to clear selection. Grouped furniture keeps its existing group controls; ungroup it to edit one piece.
+Selecting a different item opens the single Properties panel on the right. The toolbar has one Selection properties toggle; clicking it again or closing Properties hides the panel without clearing selection. Selecting the same item or refreshing the scene respects a closed panel. Escape clears selection and its content. Grouped furniture keeps its existing group controls; ungroup it to edit one piece.
+
+The right panel contains only the current selection. Rooms and walls do not list their unselected openings, and selected windows do not offer batch edits of other windows. General tools share the left workspace with Designer; closing a tool restores the conversation. Costs use a centered dialog. These are view-state changes, with no scene-contract or history changes.
 
 - Windows: fixed, casement, tilt, sliding, and double mechanisms.
 - Doors: hinged, double, sliding, and pocket mechanisms.
@@ -9,7 +11,7 @@ Selecting an item opens Properties on the right and preserves the left workspace
 - Rooms: choose a floor finish. Walls: choose finishes independently for sides A and B.
 - Building components: change the base finish color. More in Renovate opens complete geometry, evidence, classification, and system controls.
 
-Type choices are explicit project data. An unspecified opening remains visibly unspecified even when provisional geometry renders as a fixed window or hinged door. Applying dimensions does not confirm untouched provisional frame or hinge settings. Raised opening bases survive dimension edits.
+Type choices are explicit project data. An unspecified opening remains visibly unspecified even when provisional geometry renders as a casement window or hinged door. Applying dimensions does not confirm untouched provisional frame or hinge settings. Raised opening bases survive dimension edits.
 
 All persisted changes use the existing checked command/history path. Selection and test-opening motion do not create revisions. Type changes migrate v1 deliberately; failed operations leave the scene unchanged. Locked or removed elements cannot be changed through these new controls. Existing structural/circulation review requirements remain part of renovation commands.
 
@@ -50,3 +52,87 @@ DONE: 7 of 7
 - 7 ✓ Task ownership: root wrote `main.ts`, the test-chain addition in `package.json`, `ui/inspector.ts`, `ui/inspector.css`, `ui/inspector-dom-check.ts`, `inspector-options-qa.html`, and this document. The command worker exclusively wrote `core/inspector-edits.ts`, `core/inspector-edits-check.ts`, and `scripts/check-inspector.mjs`. Review and exploration agents were read-only. Main integration followed completion of the overlapping grouping chat and retained its multi-selection controls.
 
 Not proven: mobile/cross-browser layout, external model-specific product fidelity, or end-to-end export/import through a file picker. Serialization and history are covered by command regressions. Notion documentation was unavailable through this task's connected tools; implementation findings are recorded here.
+
+## Single selection panel (26 September 2026)
+
+One explicit `inspectorOpen` flag controls Properties. DOM classes project it; neither
+selection type nor a tool panel owns it. A changed selection opens it, a repeated
+selection preserves its state, and clearing/deleting selection closes it and clears
+its content. The sole toolbar toggle exposes `aria-controls`, `aria-expanded`, and
+`aria-pressed`; Close returns focus to that toggle. No scene revision is created.
+
+The application opts into `selectionOnly` rendering. The reusable inspector's
+existing broader mode remains available to its standalone checks. General tools
+now replace Designer on the left while open, so Ask must close those tools and
+expand Designer, and recorded proposals must keep the conversation visible. The
+cost dialog uses native modal focus, backdrop dismissal and Escape handling.
+
+Measured with Codex (GPT-6), isolated browser session and a local demo scene:
+
+```text
+node output/selection-panel-verification/probe.cjs
+{"passed":15,"pageErrors":0}
+
+pnpm --filter @varpet/editor test
+182 Node tests passed, 0 failed; all domain and rendering check scripts passed.
+
+pnpm typecheck
+packages/engine: Done
+apps/showcase: Done
+apps/buyer: Done
+packages/designer: Done
+apps/editor: Done
+
+pnpm --filter @varpet/designer exec vitest run --testTimeout=30000 --maxWorkers=1
+Test Files 123 passed (123)
+Tests 551 passed (551)
+```
+
+Desktop and 390 px screenshots were inspected. Checks cover toggle/reopen,
+selection replacement, current-room/current-window scope, left tool placement,
+cost-dialog focus and Escape, undo while closed, deletion, reduced motion and
+clearing selection. Browser evidence lives in `output/selection-panel-verification/`.
+Fresh-context review: APPROVE after the two Designer visibility fixes.
+
+Untargeted `pnpm test` is not green: the unchanged Designer test “live furnishing
+discovers real products even when the editor has registered none” exceeded its
+5-second limit. An isolated run with a 30-second CLI limit passed in 7,030 ms;
+profiling found deterministic geometry search and zero network fetches. No test,
+fixture, schema or timeout configuration was edited. Typecheck also exposed two
+mechanical type errors in concurrent blueprint/navigation work; explicit typed-array
+index certainty and camera-class narrowing fixed those without changing behavior.
+
+The shared checkout contained unfinished editor work and was behind remote main.
+Fetch/log/contract inspection completed; synchronization was deferred under the
+editor coordination rules. Notion tooling and the named definition-of-done skill
+were unavailable; the contract and measured results are recorded here.
+
+Final follow-up verification:
+
+```text
+node output/selection-panel-verification/followup.cjs
+{"passed":8,"pageErrors":0}
+
+python3 -m unittest discover -s ../../harness -p 'designer*_test.py'
+Ran 197 tests in 24.910s
+OK
+
+python3 -m unittest discover -s eval -p 'test_*.py'
+Ran 81 tests in 3.367s
+OK
+
+pnpm --filter @varpet/editor build
+built in 369ms (existing bundle-size advisory)
+
+git diff --check
+exit 0
+```
+
+These eight additional browser checks cover Ask restoring/expanding Designer,
+recorded proposal review actions, explicit Assistant review and return, multiple
+selection, the same Properties toggle in Plan, and preview clearing selection.
+Recorded Designer review controls follow the visible conversation/Assistant view;
+architect review controls remain in Assistant. No conversation contract changed.
+Plan exposes only the Properties toggle from the 3D tool row. Final read-only
+review approved this routing. The first Python attempt hit the existing 0.2-second
+process-list timeout under concurrent load; its unchanged retry passed above.

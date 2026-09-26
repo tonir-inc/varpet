@@ -1,0 +1,15 @@
+PASS Production viewport rendered the near-front camera
+PASS Near-front: left/right/back walls full, foreground lowered
+PASS Near-front: all interior partitions stay full-height
+PASS Corner: both foreground walls lowered
+PASS Corner: all interior partitions stay full-height
+PASS Top: all interior partitions stay full-height
+PASS Camera inside: every wall stays full-height
+PASS Returning to near-front restores the left wall
+PASS Full mode restores foreground walls
+PASS Hidden mode hides full walls
+PASS Camera and wall display preserve scene and revision
+PASS No viewport render errors
+12 checks passed. Final view: near-front, cutaway.
+
+PASS 18 GPU and control checks

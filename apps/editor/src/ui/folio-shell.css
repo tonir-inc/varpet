@@ -1,6 +1,5 @@
 /* Folio buyer workspace: designer left, flat centre, tools only where you touch them. */
 .folio .workspace-nav,
-.folio .tool-rail,
 .folio .status-bar,
 .folio .canvas-label,
 .folio .canvas-bottom,
@@ -11,12 +10,31 @@
 .folio .view-options #preview,
 .folio .header-actions #file-menu { display: none !important; }
 
-/* Order: designer, flat, tool drawer on the right. */
+/* General tools share the left workspace; only selection properties live on the right. */
 .folio .workspace > .viewport-shell { order: 1; }
 .folio .workspace > .left-panel,
-.folio .designer-workspace .left-panel { order: 2; position: relative; inset: auto; left: auto; width: 320px; max-width: none; border-left: 1px solid var(--line); border-right: 0; box-shadow: none; }
+.folio .designer-workspace .left-panel { order: 0; position: relative; inset: auto; flex-shrink: 0; width: 320px; max-width: none; max-height: none; border: 0; border-right: 1px solid var(--line); border-radius: 0; box-shadow: none; }
+.folio .designer-workspace:not(.left-collapsed) > section { display: none; }
 .folio .right-panel { display: none !important; }
 .folio.folio-inspect .right-panel:not([hidden]) { display: flex !important; }
+.folio.folio-inspect .preview-mode .right-panel,
+.folio.folio-inspect .inside-mode .right-panel { display: none !important; }
+.folio .viewport-shell { container-type: inline-size; }
+/* Selection stays a single floating card as the left workspace changes. */
+.folio .viewport-shell .right-panel { top: 74px; right: 12px; bottom: 100px; max-height: calc(100% - 174px); z-index: 15; }
+
+/* Direct editing stays visible without bringing back the old navigation rail. */
+.folio .folio-edit-tools { top: 12px; bottom: auto; left: 12px; transform: none; max-width: calc(100% - 24px); padding: 3px; gap: 2px; flex-wrap: wrap; border-radius: var(--radius-md); box-shadow: var(--shadow-1); }
+.folio .folio-edit-tools button { width: 36px; height: 36px; color: var(--ink); }
+.folio .folio-edit-tools button.active { background: var(--select); }
+.folio .folio-edit-tools button kbd { font-size: 10px; }
+.folio .folio-edit-tools #snap { min-width: 0; padding: 0 6px; }
+.folio .folio-edit-tools #snap strong { font-size: 12px; padding: 2px 4px; }
+.folio .folio-edit-tools [data-folio=inspect][aria-pressed=true] { background: var(--select); }
+.folio .folio-edit-tools .tool-divider { height: 24px; }
+/* Plan keeps its own editing tools, with the same single Properties toggle. */
+.folio .viewport-shell.plan-mode .folio-edit-tools { display: flex !important; left: auto; right: 12px; }
+.folio .plan-mode .folio-edit-tools > :not([data-folio=inspect]) { display: none; }
 
 /* Icons for actions, words for things: header and view buttons keep their titles and labels for screen readers. */
 .folio .header-actions #share { font-size: 0; gap: 0; }
@@ -31,7 +49,7 @@
 .folio-ib.on { background: var(--select); }
 .folio-ib svg { width: 18px; height: 18px; }
 
-.folio-dock { position: absolute; left: 0; right: 0; bottom: 16px; z-index: 14; display: flex; justify-content: center; gap: 8px; pointer-events: none; }
+.folio-dock { position: absolute; left: 12px; right: 12px; bottom: 16px; z-index: 14; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; pointer-events: none; }
 .folio-seg { display: flex; align-items: center; gap: 2px; padding: 3px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md); box-shadow: var(--shadow-1); pointer-events: auto; }
 .folio-seg:empty { display: none; }
 .folio-dock .view-switch { display: flex; gap: 2px; padding: 0; background: none; border: 0; box-shadow: none; }
@@ -39,13 +57,24 @@
 .folio-dock .view-switch button svg, .folio-dock #sun svg { width: 18px; height: 18px; }
 .folio-dock .view-switch button.active, .folio-dock .view-switch button[aria-pressed=true] { background: var(--accent); color: var(--on-accent); }
 .folio-dock #sun[aria-pressed=true], .folio-dock #sun.active { background: var(--select); }
+.folio-dock #sun, .folio-dock #top-lighting, .folio-action { width: auto; min-height: 34px; padding: 0 9px; gap: 6px; font-size: 13px; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--ink); white-space: nowrap; }
+.folio-dock #top-lighting[aria-pressed=true], .folio-action[aria-expanded=true] { background: var(--select); }
+.folio-dock #sun:hover, .folio-dock #top-lighting:hover, .folio-action:hover { background: var(--hover); }
+.folio-dock #sun[aria-expanded=true] { background: var(--select); }
+.folio-action { font-weight: 600; }
+.folio-dock .folio-preview { width: 36px; height: 34px; padding: 0; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--ink); }
+.folio-dock .folio-preview span { display: none; }
+.folio-dock .folio-preview:hover { background: var(--hover); }
+.folio-dock .folio-preview[aria-pressed=true] { background: var(--select); }
 
-.folio-menu { position: absolute; right: calc(50% - 190px); bottom: 64px; z-index: 16; display: flex; flex-direction: column; min-width: 240px; padding: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md); box-shadow: var(--shadow-2); }
+.folio-menu { position: absolute; right: 12px; bottom: 108px; z-index: 16; display: flex; flex-direction: column; width: min(280px, calc(100% - 24px)); max-height: calc(100% - 126px); overflow-y: auto; padding: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md); box-shadow: var(--shadow-2); }
 .folio-menu button { justify-content: flex-start; gap: 10px; height: 36px; padding: 0 10px; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--ink); text-align: left; }
+.folio-menu button { flex-shrink: 0; }
 .folio-menu button:hover { background: var(--hover); }
 
 .folio-toolbar { position: absolute; left: 0; top: 0; z-index: 13; display: flex; align-items: center; gap: 1px; padding: 3px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md); box-shadow: var(--shadow-2); white-space: nowrap; }
 .folio-toolbar.offscreen { opacity: .35; }
+.folio-toolbar { max-width: calc(100% - 24px); flex-wrap: wrap; }
 .folio-who { display: flex; flex-direction: column; padding: 2px 12px 2px 8px; margin-right: 2px; border-right: 1px solid var(--line); line-height: 1.2; }
 .folio-who strong { font-size: 13px; max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
 .folio-who span { font-size: 13px; color: var(--muted); }
@@ -53,7 +82,7 @@
 
 .folio-toast { position: absolute; left: 16px; bottom: 16px; z-index: 14; display: flex; align-items: center; gap: 6px; height: 40px; padding: 0 4px 0 12px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md); box-shadow: var(--shadow-1); font-size: 13.5px; }
 
-.folio-drawer { position: absolute; top: 0; right: 0; bottom: 0; z-index: 17; width: min(400px, 100%); overflow: auto; padding: 18px 20px; background: var(--surface); border-left: 1px solid var(--line); box-shadow: var(--shadow-2); }
+.folio-drawer { position: fixed; inset: 0; margin: auto; width: min(480px, calc(100vw - 32px)); max-height: calc(100dvh - 48px); overflow: auto; padding: 18px 20px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-2); }
 .folio-drawer header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .folio-drawer h2 { font-size: 22px; }
 .folio-group { padding: 12px 0; border-top: 1px solid var(--line); }
@@ -76,7 +105,7 @@
 @media (max-width: 760px) {
   .folio .app-header .portal-link, .folio .app-header #my-apartments, .folio .app-header .save-state { display: none; }
   .folio-dock { bottom: 10px; gap: 6px; }
-  .folio-menu { right: 10px; bottom: 58px; }
+  .folio-menu { right: 10px; }
   .folio-toolbar .folio-who strong { max-width: 110px; }
   .folio-toast { left: 10px; bottom: 58px; }
 }
@@ -89,3 +118,29 @@
 .folio-dock .skybox-control { position: static; display: flex; align-items: center; gap: 4px; height: 34px; margin: 0; padding: 0 4px 0 6px; border: 0; border-radius: var(--radius-sm); background: transparent; box-shadow: none; color: var(--ink); }
 .folio-dock .skybox-control > span, .folio-dock .skybox-control > svg { display: none; }
 .folio-dock .skybox-control select { height: 30px; border: 0; background: transparent; color: var(--ink); font: inherit; font-size: 13px; }
+
+.folio .preview-mode .folio-edit-tools,
+.folio .inside-mode .folio-edit-tools,
+.folio .preview-mode .folio-toolbar,
+.folio .preview-mode [data-folio=add] { display: none !important; }
+.folio .preview-mode .folio-dock #preview { display: inline-flex; }
+
+@container (max-width: 540px) {
+  .folio-edit-tools button { width: 30px !important; }
+  .folio-edit-tools #snap { width: auto !important; }
+  .folio-edit-tools #snap svg { display: none; }
+  .folio-edit-tools #snap strong { font-size: 11px !important; }
+  .folio-edit-tools .tool-divider { margin: 0 1px; }
+  .folio-dock { gap: 4px; bottom: 10px; }
+  .folio-dock .view-switch button { width: 32px; }
+  .folio-dock .skybox-control { max-width: 86px; padding: 0 2px; }
+  .folio-dock .skybox-control select { min-width: 0; width: 100%; }
+  .folio-dock #top-lighting { padding: 0 5px; }
+  .folio-dock #top-lighting span { display: none; }
+  .folio-dock [data-slot=actions] { flex-basis: auto; }
+}
+
+@media (max-width: 600px) {
+  .folio .folio-sandbox { font-size: 12px; padding-inline: 6px; }
+  .folio .viewport-shell .right-panel { top: 94px; bottom: 112px; max-height: calc(100% - 206px); }
+}

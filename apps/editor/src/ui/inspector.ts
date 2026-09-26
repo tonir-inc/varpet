@@ -12,6 +12,8 @@ import { icon } from './icons';
 import { fillFinishSwatches } from './finish-swatch';
 
 interface InspectorOptions {
+  /** Hide navigation and batch actions that target other scene elements. */
+  selectionOnly?: boolean;
   getScene(): SceneDocument;
   getCatalog(): CatalogAsset[];
   execute(operations: Operation[], label: string, onDeferredApply?: () => void): boolean;
@@ -100,14 +102,14 @@ export function renderEntityInspector(container: HTMLElement, id: string, config
   let body = '';
   if (opening && wall) {
     const types = OPENING_TYPES[opening.kind];
-    const mechanism = meta.mechanism ?? (opening.kind === 'window' ? 'fixed' : 'hinged');
+    const mechanism = meta.mechanism ?? (opening.kind === 'window' ? 'casement' : 'hinged');
     const angle = config.getDoorAngle(id);
     const travel = mechanism === 'sliding' || mechanism === 'pocket';
     const currentType = types.find(t => t.value === meta.mechanism)?.label ?? (meta.mechanism ? pretty(meta.mechanism) : 'Unspecified');
     body = `<section class="property-section"><div class="property-label">${pretty(opening.kind)} type<span>${esc(currentType)}</span></div><div class="inspector-types" role="group" aria-label="${pretty(opening.kind)} type">${types.map(type => `<button type="button" data-opening-type="${type.value}" aria-pressed="${type.value === meta.mechanism}" ${disabled}>${esc(type.label)}</button>`).join('')}</div>${!meta.mechanism ? `<p class="field-note inspector-assumption">Type is unspecified. Preview uses ${mechanism}. Choose a type to record it.</p>` : ''}</section>`;
     if (mechanism !== 'fixed') body += `<section class="property-section inspector-preview"><div class="property-label">Test opening <output id="inspector-angle-output">${travel ? Math.round(angle / (Math.PI / 2) * 100) + '%' : Math.round(angle * 180 / Math.PI) + '°'}</output></div><input id="inspector-angle" aria-label="Test opening ${travel ? 'travel' : 'angle'}" type="range" min="0" max="90" step="1" value="${Math.round(angle * 180 / Math.PI)}"><div class="inspector-preview-actions"><button type="button" class="button" data-angle="0">Close</button><button type="button" class="button" data-angle="90">Open</button></div><p class="field-note">Preview only. Does not change the saved design.</p></section>`;
     body += `<form id="inspector-opening"><fieldset ${disabled}><div class="property-label">Opening dimensions <span>m</span></div><div class="field-grid two">${number('width','Opening width',opening.width,0.2)}${number('height','Opening height',opening.height,0.2)}${number('offset','Offset along wall',opening.offset)}${number('sill',opening.kind === 'window' ? 'Sill height' : 'Opening base',opening.sill)}</div><p class="field-note">Width and height resize the wall opening; sill height sets its distance above the wall base.</p><button class="button primary full" id="apply-opening-dimensions" type="submit" disabled>Apply to this ${opening.kind}</button><p class="field-note" id="opening-edit-state" aria-live="polite">Change dimensions, then apply.</p><details class="inspector-details"><summary>Frame &amp; orientation</summary><div class="field-grid two">${number('frameWidth','Frame width',meta.frameWidth ?? 0.05)}${number('leafThickness','Leaf thickness',meta.leafThickness ?? 0.04,0.001)}</div>${choices('hinge','Hinge side',meta.hinge ?? '',[['','Unspecified'],['left','Left at wall start'],['right','Right at wall end']])}${choices('swing','Opening direction',meta.swing === undefined ? '' : String(meta.swing),[['','Unspecified'],['1','Wall side A'],['-1','Wall side B']])}<p class="field-note">Frame dimensions reduce usable space. Unspecified values are provisional.</p></details></fieldset><p class="inspector-error" role="alert" hidden></p></form>`;
-    if (opening.kind === 'window') body += windowMatchMarkup(scene, id, disabled);
+    if (opening.kind === 'window' && !config.selectionOnly) body += windowMatchMarkup(scene, id, disabled);
   } else if (room || selectedWall) {
     const surfaces = room ? [['floor','Floor finish']] as const : [['wall-front','Wall side A'],['wall-back','Wall side B']] as const;
     const spans = selectedWall ? wallSurfaceSpans(selectedWall, scene.rooms, scene.project?.metadata) : [];
@@ -127,7 +129,7 @@ export function renderEntityInspector(container: HTMLElement, id: string, config
     }).join('');
     if (config.onFinishDragStart && config.onFinishDragEnd && !disabled) body = `<p class="field-note">Drag a finish onto ${room ? 'a floor' : 'a room-facing wall surface'}, or click to apply it here.</p>${body}`;
     if (selectedWall || (room && hasRoomCeiling(scene, room))) body = heightControlMarkup(scene, { kind: selectedWall ? 'wall' : 'room', id }, !!disabled) + body;
-    if (config.select) body = openingChoices(scene, id) + body;
+    if (config.select && !config.selectionOnly) body = openingChoices(scene, id) + body;
   } else if (component) {
     body = `<section class="property-section"><div class="property-label">Finish</div><div class="finish-row"><input id="component-color" type="color" aria-label="Component finish color" value="${esc(component.color)}" ${disabled}><span>${esc(component.color)}</span></div></section><div class="property-section"><div class="property-label">Dimensions <span>m</span></div><p class="field-note">${component.dimensions.map(d => Number(d.toFixed(3))).join(' × ')}</p></div>`;
   } else if (route) body = `<p class="field-note">${esc(pretty(route.system))} route · ${route.points.length} points</p>`;

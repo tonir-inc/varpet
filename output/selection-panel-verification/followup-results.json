@@ -1,0 +1,13 @@
+{
+  "checks": [
+    "Ask designer restores and expands Designer from a tool panel",
+    "recorded proposal stays visible in Designer",
+    "explicit Assistant keeps existing proposal review reachable",
+    "returning to Designer restores recorded proposal actions",
+    "multi-selection uses the same single panel",
+    "Properties toggle works in Plan view",
+    "preview hides editing properties",
+    "preview clears selection without restoring stale properties"
+  ],
+  "pageErrors": []
+}

@@ -10,7 +10,9 @@ const LIGHT_BUDGET = 8;
 // Reserve the remaining three for ceiling shadows, independently of illumination.
 const SHADOW_BUDGET = 3;
 let areaLightsInitialized = false;
-interface LightSource { element: CeilingElement; layout: CeilingLayout; group: THREE.Group; emission: THREE.MeshStandardMaterial }
+interface LightSource { element: CeilingElement; layout: CeilingLayout; group: THREE.Group; emission: THREE.MeshStandardMaterial; light?: THREE.Light; intensity?: number; releaseLight?: () => void }
+interface CeilingProjection { sourcesByRoom: LightSource[][]; activeRoomId?: string }
+const projections = new WeakMap<THREE.Group, CeilingProjection>();
 
 function ceilingLightColor(temperature: number): THREE.Color {
   return new THREE.Color('#ffbd76').lerp(new THREE.Color('#e9f3ff'), THREE.MathUtils.clamp((temperature - 2200) / 4300, 0, 1));
@@ -20,8 +22,19 @@ function ceilingLightColor(temperature: number): THREE.Color {
 export function applyCeilingIndirectLight(material: THREE.MeshStandardMaterial, design?: CeilingDesign | null): void {
   // Real-time downlights have no bounce. Use the finish's albedo so this
   // approximation needs no extra lights and cannot leak through room walls.
-  material.emissiveIntensity = design?.enabled ? .22 * design.brightness / 100 : 0;
+  material.userData.ceilingIndirectIntensity = design ? .22 * design.brightness / 100 : 0;
+  material.emissiveIntensity = design?.enabled ? material.userData.ceilingIndirectIntensity : 0;
   if (design) material.emissive.copy(material.color).multiply(ceilingLightColor(design.temperature));
+}
+
+/** Update reflected ceiling light without changing the saved initially-on setting. */
+export function updateCeilingIndirectLighting(root: THREE.Object3D, level: number): void {
+  root.traverse(object => {
+    if (!(object instanceof THREE.Mesh)) return;
+    for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
+      if (material instanceof THREE.MeshStandardMaterial && typeof material.userData.ceilingIndirectIntensity === 'number') material.emissiveIntensity = material.userData.ceilingIndirectIntensity * level;
+    }
+  });
 }
 
 function addMesh(group: THREE.Group, geometry: THREE.BufferGeometry, material: THREE.Material, y: number): THREE.Mesh {
@@ -100,8 +113,11 @@ function addLight(source: LightSource, castShadow: boolean): void {
     light.shadow.bias = -0.0001; light.shadow.normalBias = 0.008; light.shadow.radius = 2;
     // The normal projection disposal visits materials, including shadow resources
     // owned by that fixture; it does not require a second lifetime API.
-    emission.addEventListener('dispose', () => light.shadow.dispose());
+    const disposeShadow = () => light.shadow.dispose();
+    emission.addEventListener('dispose', disposeShadow);
+    source.releaseLight = () => { emission.removeEventListener('dispose', disposeShadow); light.shadow.dispose(); group.remove(light, light.target); };
     light.name = `Ceiling downlight · ${layout.roomId}`; group.add(light, light.target);
+    source.light = light; source.intensity = light.intensity;
   } else {
     if (!areaLightsInitialized) { RectAreaLightUniformsLib.init(); areaLightsInitialized = true; }
     const bounce = element.kind === 'panel';
@@ -114,6 +130,7 @@ function addLight(source: LightSource, castShadow: boolean): void {
     if (bounce) light.userData.indirectApproximation = true;
     light.name = `${bounce ? 'Ceiling approximate bounce' : indirect ? 'Ceiling cove wash' : 'Ceiling linear light'} · ${layout.roomId}`;
     group.add(light);
+    source.light = light; source.intensity = light.intensity; source.releaseLight = () => group.remove(light);
   }
 }
 
@@ -131,11 +148,29 @@ export function makeCeilingDesigns(scene: SceneDocument, activeRoomId?: string):
     const sources: LightSource[] = [];
     for (const element of layout.elements) {
       const visual = makeElement(element, layout); roomGroup.add(visual.group);
-      if (visual.emission && layout.design.enabled && layout.design.brightness > 0) sources.push({ element, layout, group: visual.group, emission: visual.emission });
+      if (visual.emission) sources.push({ element, layout, group: visual.group, emission: visual.emission });
     }
     projection.add(roomGroup); sourcesByRoom.push(sources);
   }
 
+  projections.set(projection, { sourcesByRoom, activeRoomId });
+  updateCeilingDesignLighting(projection, id => scene.project?.metadata[id]?.ceilingDesign?.enabled ? 1 : 0);
+  return projection;
+}
+
+/** Explicit switch levels take priority over automatic light; no fixture geometry is rebuilt. */
+export function updateCeilingDesignLighting(projection: THREE.Group, levelForRoom: (id: string) => number): void {
+  const state = projections.get(projection); if (!state) return;
+  const { activeRoomId } = state;
+  const levels = new Map<string, number>();
+  for (const sources of state.sourcesByRoom) {
+    const roomId = sources[0]?.layout.roomId; if (!roomId) continue;
+    const value = levelForRoom(roomId), level = Number.isFinite(value) ? THREE.MathUtils.clamp(value, 0, 1) : 0;
+    levels.set(roomId, level);
+    for (const source of sources) source.emission.emissiveIntensity = 3 * source.layout.design.brightness / 100 * level;
+  }
+  for (const room of projection.children) updateCeilingIndirectLighting(room, levels.get(room.userData.entityId) ?? 0);
+  const sourcesByRoom = state.sourcesByRoom.map(sources => sources.filter(source => (levels.get(source.layout.roomId) ?? 0) > 0 && source.layout.design.brightness > 0));
   // Focused interiors get their complete lighting first. Otherwise distribute
   // sources across rooms before assigning a second source to any one room.
   const selected = sourcesByRoom.find(sources => sources[0]?.layout.roomId === activeRoomId) ?? [];
@@ -156,8 +191,20 @@ export function makeCeilingDesigns(scene: SceneDocument, activeRoomId?: string):
       shadowed.add(pool[position]!);
     }
   }
-  for (const source of illuminated) addLight(source, shadowed.has(source));
-  return projection;
+  const active = new Set(illuminated);
+  for (const source of state.sourcesByRoom.flat()) {
+    if (!active.has(source)) {
+      source.releaseLight?.(); source.releaseLight = undefined; source.light = undefined;
+      continue;
+    }
+    if (!source.light) addLight(source, shadowed.has(source));
+    const light = source.light!;
+    if (light instanceof THREE.SpotLight && light.castShadow !== shadowed.has(source)) {
+      if (light.castShadow) { light.shadow.dispose(); light.shadow.map = null; light.shadow.mapPass = null; }
+      light.castShadow = shadowed.has(source);
+    }
+    light.intensity = source.intensity! * (levels.get(source.layout.roomId) ?? 0);
+  }
 }
 
 const ceilingCameraPosition = new THREE.Vector3();

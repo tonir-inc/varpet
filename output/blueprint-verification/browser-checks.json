@@ -1,0 +1,15 @@
+{
+  "checks": [
+    "390px landing has no horizontal overflow",
+    "PDF rejected before build",
+    "PNG upload enables build",
+    "Stub NDJSON builds actual 3D stage and reaches explicit Open action",
+    "Completion heading remains terminal after stage settles",
+    "Stage opening keyboard control opens and closes",
+    "Back retains chosen plan",
+    "Service failure shows retry while retaining upload",
+    "Back cancels pending build and ignores late completion",
+    "Explicit Open installs reviewed scene and exact original evidence into editor session"
+  ],
+  "errors": []
+}

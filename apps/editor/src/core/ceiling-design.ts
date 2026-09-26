@@ -2,9 +2,9 @@ import type { CeilingDesign, CeilingStyle, Operation, Room, SceneDocument, Vec2,
 import { hasRoomCeiling, roomCeilingHeight } from './heights';
 
 export const CEILING_PRESETS: ReadonlyArray<{ id: CeilingStyle; name: string; description: string; design: CeilingDesign }> = [
-  { id: 'quiet', name: 'Quiet', description: 'A simple ceiling with a calm arrangement of recessed spots.', design: { style: 'quiet', drop: 0, inset: .55, brightness: 70, temperature: 3000, enabled: true } },
-  { id: 'soft-glow', name: 'Soft Glow', description: 'An inset floating panel with concealed light along its edges.', design: { style: 'soft-glow', drop: .16, inset: .35, brightness: 65, temperature: 2700, enabled: true } },
-  { id: 'architectural', name: 'Architectural', description: 'Two parallel ceiling tracks with continuous linear lights.', design: { style: 'architectural', drop: .06, inset: .6, brightness: 80, temperature: 3000, enabled: true } },
+  { id: 'quiet', name: 'Recessed spots', description: 'Small, flush downlights arranged across a simple ceiling.', design: { style: 'quiet', drop: 0, inset: .55, brightness: 70, temperature: 3000, enabled: true } },
+  { id: 'soft-glow', name: 'LED cove', description: 'A dropped plaster panel with concealed LED strips and a soft edge glow.', design: { style: 'soft-glow', drop: .16, inset: .35, brightness: 65, temperature: 2700, enabled: true } },
+  { id: 'architectural', name: 'Track lights', description: 'Two slim black ceiling rails with continuous linear LED lights.', design: { style: 'architectural', drop: .06, inset: .6, brightness: 80, temperature: 3000, enabled: true } },
 ];
 
 export function defaultCeilingDesign(style: CeilingStyle): CeilingDesign {

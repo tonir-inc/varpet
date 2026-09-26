@@ -38,8 +38,9 @@ export async function checkFinishPreviews(container: HTMLElement, fallback = fal
   render();
   renderEntityInspector(paint, 'wall-spine', config);
   const unsubscribe = store.subscribe(render);
+  const floorCount = FINISH_PRESETS.filter(p => p.category === 'floor').length;
   try {
-    check(properties.querySelectorAll('.finish-swatch').length === 8, 'All floor choices have previews');
+    check(properties.querySelectorAll('.finish-swatch').length === floorCount, 'All floor choices have previews');
     const imageSources = new Set<string>();
     for (const preset of FINISH_PRESETS.filter(p => p.category === 'floor')) {
       const inInspector = properties.querySelector<HTMLElement>(`[data-finish-preview="${preset.id}"]`)!;
@@ -65,7 +66,7 @@ export async function checkFinishPreviews(container: HTMLElement, fallback = fal
         check(colors.size > 20, `${preset.id}: preview contains material detail, not a uniform color`);
       }
     }
-    if (!fallback) check(imageSources.size === 8, 'All eight material samples remain distinct');
+    if (!fallback) check(imageSources.size === floorCount, 'All floor material samples remain distinct');
     const paintSwatches = [...paint.querySelectorAll<HTMLElement>('.finish-swatch')];
     check(paintSwatches.length === 16, 'Both wall sides retain all paint choices');
     check(paintSwatches.every(swatch => getComputedStyle(swatch).backgroundImage === 'none' && swatch.getBoundingClientRect().height === 30), 'Paint stays compact and has no invented material pattern');

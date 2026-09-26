@@ -1,0 +1,109 @@
+{
+  "command": "node output/clipboard-verification/probe.cjs",
+  "baseURL": "http://127.0.0.1:5173",
+  "executablePath": "/Users/davitstepanyan/Library/Caches/ms-playwright/chromium_headless_shell-1243/chrome-headless-shell-mac-arm64/chrome-headless-shell",
+  "checks": [
+    {
+      "name": "desktop paste hint visible",
+      "status": "passed"
+    },
+    {
+      "name": "actual ClipboardItem image write and keyboard Meta+V selects plan",
+      "status": "passed"
+    },
+    {
+      "name": "items fallback replaces selected plan",
+      "status": "passed"
+    },
+    {
+      "name": "ordinary text paste is untouched",
+      "status": "passed"
+    },
+    {
+      "name": "unsupported image MIME uses existing validation and retains plan",
+      "status": "passed"
+    },
+    {
+      "name": "oversized clipboard image uses existing 2 MB validation",
+      "status": "passed"
+    },
+    {
+      "name": "undecodable clipboard image reports error and retains plan",
+      "status": "passed"
+    },
+    {
+      "name": "valid replacement clears previous errors",
+      "status": "passed"
+    },
+    {
+      "name": "already-handled image paste is untouched",
+      "status": "passed"
+    },
+    {
+      "name": "qa-input image paste is untouched",
+      "status": "passed"
+    },
+    {
+      "name": "qa-textarea image paste is untouched",
+      "status": "passed"
+    },
+    {
+      "name": "qa-select image paste is untouched",
+      "status": "passed"
+    },
+    {
+      "name": "qa-editable-child image paste is untouched",
+      "status": "passed"
+    },
+    {
+      "name": "actual text clipboard still pastes into input",
+      "status": "passed"
+    },
+    {
+      "name": "open account modal blocks background image paste",
+      "status": "passed"
+    },
+    {
+      "name": "browse files still selects a plan",
+      "status": "passed"
+    },
+    {
+      "name": "drag and drop still selects a plan",
+      "status": "passed"
+    },
+    {
+      "name": "build screen blocks clipboard plan replacement",
+      "status": "passed"
+    },
+    {
+      "name": "returning from build re-enables clipboard replacement",
+      "status": "passed"
+    },
+    {
+      "name": "390px mobile hint fits without horizontal overflow",
+      "status": "passed"
+    },
+    {
+      "name": "detached landing ignores image paste",
+      "status": "passed"
+    },
+    {
+      "name": "disposed landing removes its global paste listener",
+      "status": "passed"
+    }
+  ],
+  "pageErrors": [],
+  "blockedServices": [
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&family=Noto+Serif+Armenian:wght@400..700&family=Sofia+Sans:wght@300..700&family=Sofia+Sans+Condensed:wght@500..700&family=Noto+Sans+Armenian:wdth,wght@62.5..100,300..700&display=swap",
+      "method": "GET"
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&family=Noto+Serif+Armenian:wght@400..700&family=Sofia+Sans:wght@300..700&family=Sofia+Sans+Condensed:wght@500..700&family=Noto+Sans+Armenian:wdth,wght@62.5..100,300..700&display=swap",
+      "method": "GET"
+    }
+  ],
+  "browser": "153.0.8010.12",
+  "status": "passed",
+  "passed": 22
+}

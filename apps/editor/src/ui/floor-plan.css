@@ -12,6 +12,8 @@
 .fp-entity.is-movable, .fp-endpoint { cursor: move; }
 .fp-drawing.is-moving, .fp-drawing.is-moving * { cursor: grabbing; }
 .fp-drawing.is-invalid, .fp-drawing.is-invalid * { cursor: not-allowed; }
+.fp-drawing[data-hand-pan="grab"], .fp-drawing[data-hand-pan="grab"] * { cursor: grab; }
+.fp-drawing[data-hand-pan="grabbing"], .fp-drawing[data-hand-pan="grabbing"] * { cursor: grabbing; }
 .fp-furniture polygon { stroke: var(--plan-accent); stroke-width: 1; fill-opacity: .6; }
 .fp-furniture:hover polygon, .fp-furniture.is-selected polygon { stroke: var(--plan-accent); stroke-width: 2.5; fill-opacity: .85; }
 .fp-furniture-label { pointer-events: none; fill: var(--plan-ink); paint-order: stroke; stroke: var(--plan-ground); stroke-width: 3px; vector-effect: non-scaling-stroke; }

@@ -1,5 +1,4 @@
-/* Construction view: fills whatever host it is given (the editor's 3D viewport). No text overlay;
- * only in-scene labels, sized to the host via container units but never below a legible 16px. */
+/* Construction view: the source plan and actual streamed geometry share one 3D scene. */
 .as-stage {
   position: absolute;
   inset: 0;
@@ -9,12 +8,63 @@
   color: var(--ink);
   font-family: inherit;
   /* The architect is an agent at work, so it draws in the designer's green. */
-  --as-accent: var(--designer);
-  --as-muted: var(--muted);
+  --as-accent: var(--designer, #0c6a55);
+  --as-muted: var(--muted, #69796f);
 }
 .as-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .as-labels, .as-labels > div { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .as-veil { position: absolute; inset: 0; background: var(--ground); opacity: 0; pointer-events: none; }
+.as-opening-hint {
+  position: absolute;
+  bottom: 26px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: calc(100% - 32px);
+  padding: 8px 15px;
+  border: 1px solid #cad6ca;
+  border-radius: 24px;
+  background: #f7faf2e8;
+  color: #476053;
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.as-opening-hint[hidden] { display: none; }
+.as-opening-actions {
+  position: absolute;
+  bottom: 62px;
+  left: 16px;
+  right: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+.as-opening-actions button {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+.as-opening-actions:focus-within button:not(:disabled) {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: 8px 12px;
+  clip-path: none;
+  border: 1px solid #b5c8ba;
+  border-radius: 8px;
+  background: #f7faf2;
+  color: #254c39;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.as-opening-actions button:focus-visible { outline: 2px solid var(--as-accent); outline-offset: 3px; }
 
 .as-room-label {
   display: flex;

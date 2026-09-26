@@ -3,6 +3,7 @@ import { editorSession, apartmentPayload, restoreApartmentSharing, ApartmentShar
 import { api, AccountError } from './portal/api';
 import { showAuth } from './portal/auth';
 import { createCeilingUI } from './ui/ceiling-design';
+import { decorateGeneratedCeilings } from './core/generated-ceilings';
 import { bindHeightControl, heightControlMarkup } from './ui/height-controls';
 import { createSunControls, type SunControls } from './ui/sun-controls';
 import './ui/style.css';
@@ -46,7 +47,9 @@ import { downloadText, projectReport, projectSchedule } from './features/handoff
 import { buildFinishOperations, getFinishPreset, type FinishPreset } from './core/finish-presets';
 import { createMaterialsUI } from './ui/materials';
 import { renderEntityInspector, renderAssetChoices } from './ui/inspector';
+import { renderWallSelectionFinishes, type WallFinishSelectionState } from './ui/wall-selection-finishes';
 import { bindFurnitureDragCard } from './ui/furniture-drag';
+import { mountThemeToggle } from './ui/theme';
 
 const designerLive = Boolean(import.meta.env.VITE_DESIGNER_URL);
 const app = document.querySelector<HTMLDivElement>('#app')!;
@@ -118,8 +121,8 @@ app.innerHTML = `
       <div class="canvas-label">${icon('layers')} <span>Ground floor</span><span class="pill">1 level</span></div>
       <div class="selection-chip" hidden><span id="selected-name"></span><button id="focus-selected" class="icon-button" aria-label="Frame selected object" title="Frame selection · F">${icon('focus')}</button></div>
       <div class="tool-rail" role="toolbar" aria-label="Object tools">${(['select','move','rotate','scale'] as ToolMode[]).map((tool, i) => `<button data-tool="${tool}" class="${i === 0 ? 'active' : ''}" aria-label="${{select:'Select',move:'Move',rotate:'Rotate',scale:'Resize'}[tool]} tool" title="${{select:'Select · V',move:'Move · G',rotate:'Rotate · R',scale:'Resize · E'}[tool]}">${icon(tool)}<kbd>${['V','G','R','E'][i]}</kbd></button>`).join('')}<div class="tool-divider"></div><button id="multi-select" aria-label="Select multiple items" aria-pressed="false" title="Select several walls or models · Shift-click">${icon('layers')}</button><button id="focus" aria-label="Focus selection" title="Frame selection / apartment · F">${icon('focus')}<kbd>F</kbd></button><div class="tool-divider"></div><button id="snap" aria-pressed="true" class="snap active" title="Toggle grid snapping">${icon('grid')}<strong>0.25 m</strong></button></div>
-      <div class="canvas-bottom"><span id="view-hint">WASD / arrows to move <b>·</b> Drag to orbit <b>·</b> Scroll to zoom</span></div>
-      <aside class="right-panel" aria-label="Selection properties" hidden><div class="inspector-heading"><span>Properties</span><button id="close-inspector" class="icon-button" aria-label="Close properties" title="Clear selection · Esc">${icon('close')}</button></div><div id="inspector" class="inspector"></div></aside>
+      <div class="canvas-bottom"><span id="view-hint">WASD / arrows to move <b>·</b> Drag to orbit <b>·</b> Space + drag to pan <b>·</b> Scroll to zoom</span></div>
+      <aside id="selection-properties" class="right-panel" aria-label="Selection properties" hidden><div class="inspector-heading"><span>Properties</span><button id="close-inspector" class="icon-button" aria-label="Close properties" title="Close properties">${icon('close')}</button></div><div id="inspector" class="inspector"></div></aside>
       <div id="toast" class="toast" role="status" aria-live="polite"></div>
       <div id="render-error" class="render-error" hidden></div>
     </main>
@@ -130,6 +133,8 @@ app.innerHTML = `
 `;
 
 const $ = <T extends HTMLElement = HTMLElement>(selector: string) => document.querySelector<T>(selector)!;
+const disposeThemeToggle = mountThemeToggle($('.header-actions'));
+window.addEventListener('pagehide', event => { if (!event.persisted) disposeThemeToggle(); });
 const escape = (s: string) => s.replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]!));
 const uid = () => crypto.randomUUID();
 const architectLive = Boolean(import.meta.env.VITE_ARCHITECT_URL);
@@ -173,8 +178,10 @@ async function parseDatabaseScene(text: string) {
   return parseScene(text, catalog);
 }
 let selectedId: string | null = null;
+let inspectorOpen = false;
 let selectedFurnitureIds: string[] = [];
 let selectedWallIds: string[] = [];
+const wallFinishSelection: WallFinishSelectionState = { selection: '', surface: 'both' };
 let multiSelection = false;
 const selectionIds = () => [...selectedFurnitureIds, ...selectedWallIds];
 let tool: ToolMode = 'select';
@@ -218,9 +225,11 @@ function notify(message: string, error = false) {
 }
 
 const viewport = createViewport($('#viewport'), {
+  onLightingChange: () => ceilingUI.syncLighting(),
   onSunChange: settings => {
     sunControls?.refresh(settings);
     renovationUI?.setSelection(selectedId, selectionIds());
+    ceilingUI.syncLighting();
   },
   onFinish: (presetId, target) => {
     if (previewMode || proposalView || view === 'plan') return false;
@@ -304,6 +313,8 @@ const floorPlan = createFloorPlan($('#floor-plan'), (id, additive) => select(id,
 }, normalizeWallJunctions);
 const ceilingUI = createCeilingUI($('#ceilings-panel'), {
   getScene: () => store.scene, execute: run, select, notice: notify,
+  toggleSwitch: id => viewport.toggleSwitch(id),
+  getSwitchLevel: id => viewport.getSwitchLevel(id),
   inspect: (id, evening) => {
     if (previewMode) { notify('Exit preview to inspect a ceiling design.'); return; }
     if (!viewport.inspectCeiling(id)) return;
@@ -407,9 +418,9 @@ function architectDeps(): ArchitectFlatDeps {
         .catch(error => { stopStage(); throw error; });
     },
     onProject: async project => {
-      const scene = await parseDatabaseScene(JSON.stringify(project));
+      const scene = decorateGeneratedCeilings(await parseDatabaseScene(JSON.stringify(project)));
       const title = 'Furnished apartment from your plan and photos';
-      pending = { id: uid(), title, description: 'The architect read your plan, built the furniture from your photos and placed it where the photos show it. Applying replaces the current apartment; undo restores it.', command: { id: uid(), label: title, source: 'architect', baseRevision: store.revision, operations: [{ type: 'replace-scene', scene }] } };
+      pending = { id: uid(), title, description: 'The architect read your plan, built the furniture from your photos and placed it where the photos show it. Rooms without recorded lighting receive editable ceiling spots and proposed wall switches where they fit. Applying replaces the current apartment; undo restores it.', command: { id: uid(), label: title, source: 'architect', baseRevision: store.revision, operations: [{ type: 'replace-scene', scene }] } };
       switchPanel('assistant'); renderProposal(); notify('Your apartment is ready. Inspect it in 3D, then apply or dismiss it.');
       await stage?.finish(); stopStage();
       if (!previewMode) setPreview(true);
@@ -493,6 +504,7 @@ function selectedGroupId(): string | undefined {
 function select(id: string | null, additive = false) {
   cancelAnimationFrame(selectionRevealFrame);
   if (interacting) return;
+  const previousSelection = JSON.stringify([selectedId, ...selectionIds()]);
   const members = id ? furnitureMembers(store.scene, id).map(object => object.id) : [];
   const wall = id ? store.scene.walls.find(item => item.id === id) : undefined;
   if (additive && members.length) {
@@ -520,28 +532,39 @@ function select(id: string | null, additive = false) {
     const dot = button.querySelector<HTMLElement>('.selected-dot');
     if (dot) dot.hidden = !selected;
   });
+  if (!selectedId) inspectorOpen = false;
+  else if (previousSelection !== JSON.stringify([selectedId, ...selectionIds()])) inspectorOpen = true;
   renderInspector();
   renovationUI?.setSelection(selectedId, selectionIds());
   ceilingUI.setSelection(selectedId);
   $('#selection-status').textContent = selectionLabel();
   renderViewportHints();
-  // Let pointer-up finish and the newly opened panel take its final layout first.
-  // Ordinary inspector refreshes intentionally do not move the camera.
-  if (selectedId) selectionRevealFrame = requestAnimationFrame(revealSelection);
+  if (selectedId) scheduleSelectionReveal();
   folioShell?.update();
+}
+function scheduleSelectionReveal() {
+  cancelAnimationFrame(selectionRevealFrame);
+  // Opening Properties can close a tool drawer and resize the canvas. Let its
+  // ResizeObserver update the projection before framing the selection.
+  selectionRevealFrame = requestAnimationFrame(() => {
+    selectionRevealFrame = requestAnimationFrame(revealSelection);
+  });
 }
 function revealSelection(): boolean {
   selectionRevealFrame = 0;
   if (!selectedId || interacting || previewMode || view === 'plan' || view === 'inside') return false;
   const panel = $('.right-panel'), canvas = $('#viewport');
-  if (!panel.offsetWidth || !canvas.clientWidth) return false;
-  const chip = $('.selection-chip'), toolbar = $('.tool-rail'), viewControls = $('.viewport-top');
-  // offsetLeft excludes the panel's 6px entrance transform, so its final edge is safe.
+  if (!canvas.clientWidth) return false;
+  const toolbar = $('.tool-rail'), dock = $('.folio-dock');
+  // Properties is optional: room selection must still frame when it is closed.
+  // The tool drawer already resizes the canvas. Only reserve space for a visible
+  // Properties overlay; layout offsets exclude its entrance animation.
+  const right = panel.offsetWidth ? Math.min(canvas.clientWidth, panel.offsetLeft - canvas.offsetLeft) : canvas.clientWidth;
   const available = {
     left: 24,
-    right: panel.offsetLeft - canvas.offsetLeft - 24,
-    top: Math.max(chip.offsetTop + chip.offsetHeight, viewControls.offsetTop + viewControls.offsetHeight) + 16,
-    bottom: toolbar.offsetTop - 16,
+    right: right - 24,
+    top: toolbar.offsetTop + toolbar.offsetHeight + 16,
+    bottom: dock.offsetTop - 16,
   };
   if (available.right - available.left < 64 || available.bottom - available.top < 64) return false;
   viewport.revealSelection(available);
@@ -591,13 +614,24 @@ function renderHierarchy() {
   });
 }
 
+function setInspectorOpen(open: boolean) {
+  inspectorOpen = open && !!selectedId;
+  renderInspector();
+  folioShell?.update();
+  if (inspectorOpen) scheduleSelectionReveal();
+  else cancelAnimationFrame(selectionRevealFrame);
+}
+
 function renderInspector() {
   const object = store.scene.objects.find(o=>o.id===selectedId);
   const name = selectedId ? entityName(selectedId) : undefined;
-  $('.right-panel').hidden = !name;
+  if (!name) inspectorOpen = false;
+  $('.right-panel').hidden = !inspectorOpen;
+  document.body.classList.toggle('folio-inspect', inspectorOpen);
   $('.selection-chip').hidden = !name;
   $('#selected-name').textContent = name ? selectionLabel() : '';
   const inspectorOptions = {
+    selectionOnly: true,
     getScene: () => store.scene, getCatalog: () => catalog,
     execute: (operations: Operation[], label: string, onDeferredApply?: () => void) => run(operations, label, store.revision, onDeferredApply),
     notice: notify, refresh: renderInspector, showFullHeight, select: (id: string) => select(id),
@@ -611,11 +645,13 @@ function renderInspector() {
     const walls = store.scene.walls.filter(wall => selectedWallIds.includes(wall.id));
     const locked = walls.some(wall => store.scene.project?.metadata[wall.id]?.locked);
     $('#inspector').innerHTML = `<div class="selected-asset-heading"><span class="asset-symbol">${icon('layers')}</span><div><span class="eyebrow">Multiple selection</span><h2>${walls.length} walls</h2></div></div>
+      <div id="wall-selection-finishes"></div>
       <p class="field-note">Move these walls together. Connected corners, openings and room boundaries follow.</p>
       <button id="move-selection" class="button primary full" ${locked ? 'disabled' : ''}>${icon('move')} Move selected walls</button>
       <div class="property-section"><div class="property-label">Move by <span>m</span></div><div class="field-grid two">${([0, 1] as const).map(axis => `<label class="number-field"><span>${axis === 0 ? 'X' : 'Z'}</span><input type="number" data-wall-move-axis="${axis}" aria-label="Move selected walls ${axis === 0 ? 'X' : 'Z'}" value="0" step="${snap ? '0.05' : '0.01'}" ${locked ? 'disabled' : ''}></label>`).join('')}</div></div>
       <ul class="group-members">${walls.map(wall => `<li>${escape(entityName(wall.id) ?? wall.id)}</li>`).join('')}</ul>
       <p class="field-note">${locked ? 'Unlock selected walls in Renovate before moving.' : 'Shift-click or use Select multiple items to add or remove walls. Esc clears the selection.'}</p>`;
+    renderWallSelectionFinishes($('#wall-selection-finishes'), selectedWallIds, inspectorOptions, wallFinishSelection);
     $('#move-selection').onclick = () => setTool('move');
     $('#inspector').querySelectorAll<HTMLInputElement>('[data-wall-move-axis]').forEach(input => input.onchange = () => {
       if (!Number.isFinite(input.valueAsNumber)) { notify('Enter a finite distance.', true); renderInspector(); return; }
@@ -628,6 +664,8 @@ function renderInspector() {
     });
     return;
   }
+  wallFinishSelection.selection = '';
+  wallFinishSelection.surface = 'both';
   if (!object) {
     if (!selectedId || !renderEntityInspector($('#inspector'), selectedId, inspectorOptions)) $('#inspector').innerHTML = '';
     return;
@@ -808,6 +846,8 @@ function switchPanel(panel:Panel, toggle=false){
   if(panel==='assets' && panelOpen)renderAssets();
   if(panel==='renovation' && panelOpen)renovationUI?.render();
   if(panel==='ceilings' && panelOpen)ceilingUI.render();
+  if(pending)renderProposal();
+  folioShell?.update();
 }
 function renderViewportHints() {
   if (view === 'inside') {
@@ -819,7 +859,7 @@ function renderViewportHints() {
     return;
   }
   if (view === 'plan') {
-    $('#view-hint').textContent = 'Shift-click or Select several · Drag selection to move · WASD / arrows to pan · Esc to cancel';
+    $('#view-hint').textContent = 'Shift-click or Select several · Drag selection to move · Space + drag to pan · Esc to cancel';
     return;
   }
   const openingWall = store.scene.walls.find(w => w.openings.some(o => o.id === selectedId));
@@ -834,7 +874,7 @@ function renderViewportHints() {
   $('#snap').title = wallSnap ? 'Toggle wall snapping: 90° alignments and 0.05 m steps · Off for smooth movement' : `Toggle ${snapStep.toFixed(2)} m snapping${opening && tool === 'move' ? ' along wall' : ''} · Off for smooth movement`;
   $('#snap').setAttribute('aria-label', `${snap ? 'Disable' : 'Enable'} ${wallSnap ? 'wall angle and grid' : `${snapStep.toFixed(2)} m`} snapping`);
 
-  const navigation = view === 'top' ? 'WASD / arrows to move <b>·</b> Drag to pan <b>·</b> Scroll to zoom' : 'WASD / arrows to move <b>·</b> Drag to orbit <b>·</b> Scroll to zoom';
+  const navigation = view === 'top' ? 'WASD / arrows to move <b>·</b> Drag or Space + drag to pan <b>·</b> Scroll to zoom' : 'WASD / arrows to move <b>·</b> Drag to orbit <b>·</b> Space + drag to pan <b>·</b> Scroll to zoom';
   let hint = navigation;
   if (previewMode) hint = `${navigation} <b>·</b> P or Esc to exit preview`;
   else if (multiSelection) { hint = 'Click walls or models to add or remove them <b>·</b> Choose Move when ready'; }
@@ -903,6 +943,7 @@ function setView(next:ApartmentView){
   }
   renderWallControls();
   renderViewportHints();
+  folioShell?.update();
 }
 function setPreview(enabled:boolean){
   if (activeFinish) chooseFinish(null);
@@ -916,6 +957,8 @@ function setPreview(enabled:boolean){
   select(null);
   app.classList.toggle('preview-mode',enabled);
   $('#preview').setAttribute('aria-pressed',String(enabled));
+  $('#preview').setAttribute('aria-label', enabled ? 'Exit preview' : 'Preview apartment');
+  $('#preview').title = enabled ? 'Exit preview · P' : 'Preview apartment · P';
   $('#preview').classList.toggle('active',enabled);
   $('#preview').innerHTML=`${icon(enabled?'close':'eye')} <span>${enabled?'Exit preview':'Preview'}</span>`;
   $<HTMLButtonElement>('#file-menu').disabled=enabled;
@@ -928,6 +971,7 @@ function setPreview(enabled:boolean){
     setView(previousView);
   }
   if (view !== 'inside') requestAnimationFrame(()=>focusView());
+  folioShell?.update();
 }
 
 function applyPendingProposal(){
@@ -940,6 +984,11 @@ function renderProposal(){
   $('#proposal-badge').hidden=!pending;
   const el=$('#proposal');if(!pending){el.innerHTML='';return;}
   if(designerLive && pending.command.source==='designer'){el.innerHTML='';return;}
+  // Recorded replies keep their existing review controls beside the conversation.
+  // Explicit Assistant and reconstruction workflows retain their own review home.
+  const reviewHost = !designerLive && pending.command.source === 'designer' && !(panelOpen && activePanel === 'assistant')
+    ? designerHost.querySelector('.designer-chat-scroll') : $('#assistant-panel .assistant-card');
+  if (reviewHost && el.parentElement !== reviewHost) reviewHost.append(el);
   const stale=pending.command.baseRevision!==store.revision;
   const canInspect = pending.command.operations.some(o => o.type === 'replace-scene' || o.type === 'replace-structure');
   el.innerHTML=`<div class="proposal"><span class="eyebrow">${pending.command.source==='architect'?'Reconstruction review':'Proposed change'}</span><strong>${escape(pending.title)}</strong><p>${escape(pending.description)}</p>${stale?'<p class="proposal-warning">The scene has changed. Request a fresh proposal.</p>':interacting?'<p class="proposal-warning">Finish your current edit before applying.</p>':''}${canInspect?`<button id="inspect-proposal" class="button full" ${stale||interacting?'disabled':''}>Inspect proposed 3D apartment</button>`:''}<div><button id="apply-proposal" class="button primary" ${stale||interacting||previewMode?'disabled':''}>Apply change</button><button id="reject-proposal" class="button quiet">Dismiss</button></div></div>`;
@@ -954,7 +1003,7 @@ function renderProposal(){
   $('#reject-proposal').onclick=()=>{pending=null;renderProposal();notify('Proposal dismissed');};
 }
 async function requestProposal(kind:'designer'|'architect'){
-  if(kind==='designer' && designerLive){designerPanel.open();await designerPanel.controller.suggest();return;}
+  if(kind==='designer' && designerLive){if(panelOpen)switchPanel(activePanel,true);designerPanel.open();await designerPanel.controller.suggest();return;}
   if(busy)return;switchPanel('assistant');busy=true;$<HTMLButtonElement>('#suggest').disabled=true;$('#suggest').innerHTML=`${icon('sparkles')} Considering your space…`;
   const revision=store.revision;const scene=store.scene;
   try{
@@ -1018,7 +1067,7 @@ function refresh(){
     : store.revision === 0 ? editorSession ? 'Not saved yet' : 'Empty apartment' : 'Unsaved changes';
   $<HTMLButtonElement>('#save').disabled = proposalView || saving;
   $('#save').title = editorSession ? 'Save to My apartments · ⌘S' : shareSession ? 'Save shared progress · ⌘S' : 'Save on this device · ⌘S';
-  $('.project-name > span').textContent = editorSession ? editorSession.apartment ? 'My apartment' : 'Plan copy' : shareSession ? 'Shared project · Can edit' : 'Local project';
+  $('.project-name > span').textContent = editorSession ? editorSession.apartment ? 'My apartment' : 'Plan copy' : shareSession ? 'Shared project · Can edit' : 'Sandbox · local project';
   if (shareSession && !editorSession && $('#status-text').textContent === 'All changes stay on this device') $('#status-text').textContent = 'Save publishes progress to this shared project';
   const publish = document.querySelector<HTMLButtonElement>('#publish-progress');
   if (publish) {
@@ -1038,7 +1087,7 @@ function refresh(){
 }
 store.subscribe(refresh);
 const designerHost = document.createElement('section');
-// Folio: the designer is always the left column, live or replayed.
+// Designer and general tools share the left workspace.
 $('.workspace').classList.add('designer-workspace');$('.left-panel').before(designerHost);
 const designerPanel = mountDesignerPanel(designerHost, {
   ask: designerLive ? async (request, options) => {
@@ -1060,7 +1109,7 @@ const designerPanel = mountDesignerPanel(designerHost, {
   live: designerLive, snapshot: () => ({ scene: store.scene, revision: store.revision, catalog, catalogCurrency: CATALOG_CURRENCY }),
   subscribe: listener => store.subscribe(listener), canRequest: () => !busy && !previewMode,
   onBusyChange: waiting => { busy = waiting; $<HTMLButtonElement>('#suggest').disabled = waiting; },
-  onProposal: proposal => { pending = proposal; if(!designerLive)switchPanel('assistant'); renderProposal(); },
+  onProposal: proposal => { pending = proposal; renderProposal(); },
   onResetReview: () => { if(pending?.command.source==='designer'){if(proposalView)setPreview(false);pending=null;renderProposal();} },
   onProposalAction: (proposal, action) => {
     if(interacting)return {ok:false,message:'Finish your current edit before reviewing a proposal.'};
@@ -1079,15 +1128,18 @@ const designerPanel = mountDesignerPanel(designerHost, {
 folioShell = mountFolioShell({
   viewport, currency: CATALOG_CURRENCY === 'AMD' ? 'AMD' : null,
   getScene: () => store.scene, getCatalog: () => catalog, getSelectedId: () => selectedId, getView: () => view,
-  setTool, openPanel: panel => switchPanel(panel), closePanel: () => { if (panelOpen) switchPanel(activePanel, true); }, isPanelOpen: () => panelOpen,
-  remove: deleteSelected, undo: () => $<HTMLButtonElement>('#undo').click(), openInspector: () => document.body.classList.add('folio-inspect'),
+  setTool, openPanel: panel => switchPanel(panel), closePanel: () => { if (panelOpen) switchPanel(activePanel, true); }, isPanelOpen: panel => panelOpen && (!panel || activePanel === panel),
+  remove: deleteSelected, undo: () => $<HTMLButtonElement>('#undo').click(),
+  toggleInspector: () => setInspectorOpen(!inspectorOpen), isInspectorOpen: () => inspectorOpen,
   askAbout: (id, label) => {
+    if (panelOpen) switchPanel(activePanel, true);
+    designerPanel.open();
     const panel = designerPanel as unknown as { setContext?(context: { id: string; label: string } | null): void };
     if (panel.setContext) panel.setContext({ id, label });
     else { const input = designerHost.querySelector<HTMLTextAreaElement | HTMLInputElement>('textarea, input[type=text]'); if (input) { input.value = `About the ${label}: `; input.focus(); } }
   },
 });
-window.addEventListener('pagehide', event => { if (!event.persisted) designerPanel.dispose(); });
+window.addEventListener('pagehide', event => { if (!event.persisted) { designerPanel.dispose(); folioShell?.dispose(); } });
 
 const modal=$<HTMLDialogElement>('#modal');
 if (architectLive && new URLSearchParams(location.search).has('architect')) queueMicrotask(replayMode ? () => void replayArchitect() : openArchitect);
@@ -1181,7 +1233,7 @@ $('#scene-tab').onclick=()=>switchPanel('scene',true);$('#assets-tab').onclick=(
 $('#materials-tab').onclick=()=>switchPanel('materials',true);
 $('#ceilings-tab').onclick=()=>switchPanel('ceilings',true);
 $('#renovation-tab').onclick=()=>switchPanel('renovation',true);$('#edit-shell').onclick=()=>switchPanel('renovation');
-$('#collapse-panel').onclick=()=>{switchPanel(activePanel,true);$(`#${activePanel}-tab`).focus();};
+$('#collapse-panel').onclick=()=>{switchPanel(activePanel,true);$(`[data-folio=${activePanel==='assets'?'add':'more'}]`).focus();};
 $('#browse-assets').onclick=()=>switchPanel('assets');
 $<HTMLSelectElement>('#asset-category').innerHTML += Object.entries({ Furniture: catalogKinds.filter(kind => !Object.values(catalogCategories).some(kinds => kinds.includes(kind))), ...catalogCategories }).map(([label, kinds]) => `<optgroup label="${label}">${kinds.map(kind => `<option value="${kind}">${kind.charAt(0).toUpperCase()+kind.slice(1).replaceAll('_', ' ')}</option>`).join('')}</optgroup>`).join('');
 if(architectLive)$<HTMLSelectElement>('#asset-category').add(new Option(BUILT_CATEGORY, BUILT_CATEGORY));
@@ -1189,7 +1241,7 @@ $('#asset-category').onchange=()=>{assetCategory=$<HTMLSelectElement>('#asset-ca
 $('#catalog-retry').onclick=()=>{void searchDatabase();void refreshBuiltPieces();};
 $('#asset-search').oninput=()=>{catalogRequest?.abort();clearTimeout(catalogSearchTimer);catalogResults=[];catalogLoading=true;catalogError='';$('#catalog-scroll').scrollTop=0;renderAssets();catalogSearchTimer=setTimeout(()=>void searchDatabase(),300);};
 $('#scene-search').oninput=renderHierarchy;
-$('#close-inspector').onclick=()=>{viewport.cancelInteraction();select(null);$('#viewport canvas')?.focus();};
+$('#close-inspector').onclick=()=>{setInspectorOpen(false);$('[data-folio=inspect]').focus();};
 $('#focus-selected').onclick=()=>focusView(selectedId??undefined);
 $('#preview').onclick=()=>setPreview(!previewMode);
 $('#inside-view').onclick=()=>setView('inside');$('#perspective').onclick=()=>setView('perspective');$('#top-view').onclick=()=>setView('top');$('#plan-view').onclick=()=>setView('plan');
@@ -1208,7 +1260,7 @@ $<HTMLSelectElement>('#skybox').onchange = event => {
 };
 let highQuality=false;$('#quality').onclick=()=>{highQuality=!highQuality;viewport.setQuality(highQuality?'high':'balanced');$('#quality span').textContent=highQuality?'High quality':'Balanced';$('#quality').setAttribute('aria-pressed',String(highQuality));};
 $('#suggest').onclick=()=>void requestProposal('designer');
-$('#help').onclick=()=>showModal('Keyboard & navigation',`<p class="modal-intro">Select walls, openings, rooms, furniture and systems in the canvas or Renovate panel. In Select mode, click a selected door or switch again to test it.</p><div class="shortcut-list">${[['1 / 2 / 3 / 4 / 5 / 6','Scene / Furniture / Assistant / Renovate / Materials / Ceilings'],['[','Toggle sidebar'],['P','Enter / exit preview'],['W A S D / arrows','Move around the scene (click canvas first)'],['Drag / Esc','Look around / leave Inside'],['V / G / R / E','Select / Move / Rotate / Resize'],['F','Frame selection / apartment'],['⌘ / Ctrl + S',editorSession?'Save to My apartments':shareSession?'Save shared progress':'Save on this device'],['Shift + click','Add / remove walls or furniture from selection'],['⌘ / Ctrl + G','Group selected furniture'],['⌘ / Ctrl + Shift + G','Ungroup furniture'],['⌘ / Ctrl + D','Duplicate furniture'],['Delete / Backspace','Delete selected furniture'],['⌘ / Ctrl + Z','Undo'],['⌘ / Ctrl + Shift + Z','Redo'],['Esc','Cancel drag / clear selection / exit preview']].map(([key,label])=>`<div><span>${label}</span><kbd>${key}</kbd></div>`).join('')}</div><p class="modal-footnote">Plan: drag furniture, fixtures, walls, doors or windows to move them. Drag empty floor, Alt-drag, or right/middle drag to pan. Hold Shift for finer placement. Inside: standing eye height is 1.65 m above the current floor. Click the canvas, then use WASD or arrows to walk; drag to look around. Doors open for the walkthrough and restore when you leave. Click the canvas, then use WASD or arrows to move in 3D, Top or Plan. 3D: drag empty space to orbit, right drag to pan, scroll to zoom. Top: drag to pan. Select a window to show handles: drag its center or the window to move along the wall and up/down; drag an edge or corner to resize. The vertical arrow raises or lowers it without changing its size. Top view offers sideways movement and width handles; use 3D for height. Select a door, choose Move (G), then drag it or its purple arrows along the wall. Openings stay inside their wall section and stop at neighbouring openings. Move snaps to 0.05 m for openings and walls. Wall corners also catch nearby straight and 90° alignments, including connected corners. Click Snap / Smooth in the toolbar to turn snapping on or off. Release to apply, Esc to cancel, or Undo to restore the previous position. Shift-click walls or models, or turn on Select multiple items, to build a selection. Choose Move to move the selection together; one Undo restores every selected item. Select a single wall and choose Move to drag it back or forth with its purple center arrows; connected walls and room boundaries follow. The endpoint spheres adjust individual corners; use Renovate for precise dimensions, evidence and service editing.</p>`);
+$('#help').onclick=()=>showModal('Keyboard & navigation',`<p class="modal-intro">Select walls, openings, rooms, furniture and systems in the canvas or Renovate panel. In Select mode, click a selected door or switch again to test it.</p><div class="shortcut-list">${[['1 / 2 / 3 / 4 / 5 / 6','Scene / Furniture / Assistant / Renovate / Materials / Ceilings'],['[','Toggle sidebar'],['P','Enter / exit preview'],['W A S D / arrows','Move around the scene (click canvas first)'],['Space + drag','Pan in 3D, Top or Plan'],['Drag / Esc','Look around / leave Inside'],['V / G / R / E','Select / Move / Rotate / Resize'],['F','Frame selection / apartment'],['⌘ / Ctrl + S',editorSession?'Save to My apartments':shareSession?'Save shared progress':'Save on this device'],['Shift + click','Add / remove walls or furniture from selection'],['⌘ / Ctrl + G','Group selected furniture'],['⌘ / Ctrl + Shift + G','Ungroup furniture'],['⌘ / Ctrl + D','Duplicate furniture'],['Delete / Backspace','Delete selected furniture'],['⌘ / Ctrl + Z','Undo'],['⌘ / Ctrl + Shift + Z','Redo'],['Esc','Cancel drag / clear selection / exit preview']].map(([key,label])=>`<div><span>${label}</span><kbd>${key}</kbd></div>`).join('')}</div><p class="modal-footnote">Plan: drag furniture, fixtures, walls, doors or windows to move them. Hold Space and drag, drag empty floor, Alt-drag, or right/middle drag to pan. Hold Shift for finer placement. Inside: standing eye height is 1.65 m above the current floor. Click the canvas, then use WASD or arrows to walk; drag to look around. Doors open for the walkthrough and restore when you leave. Click the canvas, then use WASD or arrows to move in 3D, Top or Plan. 3D: drag empty space to orbit, hold Space and drag or right drag to pan, scroll to zoom. Top: drag to pan. Hold Space to show the hand cursor and pan over selected items without moving them. Select a window to show handles: drag its center or the window to move along the wall and up/down; drag an edge or corner to resize. The vertical arrow raises or lowers it without changing its size. Top view offers sideways movement and width handles; use 3D for height. Select a door, choose Move (G), then drag it or its purple arrows along the wall. Openings stay inside their wall section and stop at neighbouring openings. Move snaps to 0.05 m for openings and walls. Wall corners also catch nearby straight and 90° alignments, including connected corners. Click Snap / Smooth in the toolbar to turn snapping on or off. Release to apply, Esc to cancel, or Undo to restore the previous position. Shift-click walls or models, or turn on Select multiple items, to build a selection. Choose Move to move the selection together; one Undo restores every selected item. Select a single wall and choose Move to drag it back or forth with its purple center arrows; connected walls and room boundaries follow. The endpoint spheres adjust individual corners; use Renovate for precise dimensions, evidence and service editing.</p>`);
 window.addEventListener('keydown',event=>{
   if(document.querySelector('dialog[open]') || (event.target instanceof HTMLElement && (event.target.closest('input,textarea,select') || event.target.isContentEditable)))return;
   const key=event.key.toLowerCase();const mod=event.metaKey||event.ctrlKey;
@@ -1283,13 +1335,21 @@ async function saveToAccount(copy = false) {
 
 if (editorSession) {
   const publish=document.createElement('button');publish.id='publish-progress';publish.className='button';publish.hidden=true;publish.onclick=()=>void publishProgress();$('#share').before(publish);
-  const profile=document.createElement('a');profile.href='/?view=apartments';profile.className='button quiet';profile.textContent='My apartments';
+  const profile=document.createElement('a');profile.id='my-apartments';profile.href='/?view=apartments';profile.className='button quiet';profile.textContent='My apartments';
   $('.header-actions').prepend(profile);
   $('.project-name > span').textContent=editorSession.apartment?'My apartment':'Plan copy';
   $('#save').title='Save to My apartments · ⌘S';
   $('#status-text').textContent=editorSession.sharingError ? 'Apartment loaded. Open Share to retry reconnecting your existing link.' : 'Make this apartment yours. Save to keep it in My apartments.';
   window.addEventListener('beforeunload',event=>{if(accountSaving || (store.revision>0 && store.revision!==savedRevision)){event.preventDefault();event.returnValue='';}});
 }
+const sandboxLink = document.createElement('a');
+sandboxLink.href = '/?editor=sandbox'; sandboxLink.target = '_blank'; sandboxLink.rel = 'noopener';
+sandboxLink.className = 'button quiet folio-sandbox'; sandboxLink.textContent = 'Sandbox';
+sandboxLink.title = 'Open a separate sandbox to experiment'; sandboxLink.setAttribute('aria-label', 'Open sandbox in a new tab');
+$('.header-actions').prepend(sandboxLink);
 refresh();renderAssets();setTool('select');switchPanel(editorSession?'scene':'renovation');if(designerLive)switchPanel('renovation',true);void searchDatabase();void refreshBuiltPieces();
 // Folio: tool panels open only when the buyer asks for them (Add, More, or a piece's toolbar).
 if (panelOpen) switchPanel(activePanel, true);
+
+/** Read-only: lets the blueprint construction view hand over to this editor's first 3D frame. */
+export const editorView = { cameraPose: () => viewport.cameraPose(), element: () => $('#viewport'), onFrame: (listener: () => void) => viewport.onFrame(listener) };

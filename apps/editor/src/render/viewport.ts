@@ -2,7 +2,7 @@ import { placeFurniture, canRestOnFurniture, isDescendant, followSupports, type 
 import { createFurnitureSurfaceResolver, furniturePointerSurface } from './furniture-surfaces';
 import { registerDesignerRenderer } from '../adapters/designer-vision';
 import { ceilingDesignRoomAt, layoutCeilingDesign } from '../core/ceiling-design';
-import { makeCeilingDesigns, updateCeilingDesignVisibility } from './ceiling-design';
+import { makeCeilingDesigns, updateCeilingDesignVisibility, updateCeilingDesignLighting, updateCeilingIndirectLighting } from './ceiling-design';
 import * as THREE from 'three';
 import { snapWallEndpoint } from '../core/wall-snapping';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -13,6 +13,7 @@ import { AssetLoader, disposeObject, makeFurniture, poseWallDecoration } from '.
 import { makeStructure, type StructureProjection } from './structure';
 import { installComponentModel, LightingPreview, makeServices, type ServiceProjection } from './services';
 import { installOpeningModel, openingModel } from './opening-models';
+import { OpeningAssetLoader } from './opening-assets';
 import { label3d } from './annotations';
 import { createWallMove } from './wall-move';
 import type { SceneNormalizer } from '../core/store';
@@ -21,7 +22,7 @@ import { findOpeningMove, constrainOpeningOffset, type OpeningMoveContext } from
 import { constrainOpeningTransform, findOpeningTransform, type OpeningDimensions, type OpeningTransformContext, type OpeningTransformMode } from '../core/opening-transform';
 import { OpeningHandles } from './opening-handles';
 import { SelectionFrame, resizeTransformControls, styleTransformControls } from './selection-style';
-import { StudioStage } from './studio-stage';
+import { STUDIO_BACKGROUND, StudioStage } from './studio-stage';
 import { SkyboxResources, isSkyboxPreset, type SkyboxPreset } from './skybox';
 import { StudioRenderer } from './studio-renderer';
 import { placementConflicts } from '../core/placement-conflicts';
@@ -40,6 +41,7 @@ import { roomCeilingHeight } from '../core/heights';
 import { findWalkSpawn, moveWalkPosition } from '../core/walkthrough';
 import { WalkthroughControls } from './walkthrough-controls';
 import { KeyboardNavigationControls } from './keyboard-navigation';
+import { HandPanControls } from './hand-pan';
 import { configureInsideCamera, isInsideLens, type InsideLens } from './walkthrough-camera';
 import { DEFAULT_SUN, normalizeSun, fitSunShadow, effectiveSunlight, type SunSettings } from './sunlight';
 import { timeOfDayLighting } from './time-of-day';
@@ -107,8 +109,10 @@ export interface FinishViewport extends Viewport {
   animateAssembly(id: string): void;
   /** Hides these furniture objects in the view (an overlay may draw them instead); the scene is unchanged. */
   setHidden(ids: string[]): void;
+  /** The current 3D camera and backdrop, read-only, so another view can hand over to this one. Null outside perspective. */
+  cameraPose(): { position: Vec3; target: Vec3; fov: number; background: string | null } | null;
 }
-export function createViewport(container: HTMLElement, callbacks: ViewportCallbacks & { onSunChange?(settings: SunSettings): void; onFinish?(presetId: string, target: FinishTarget): boolean; onFurnitureDrop?(assetId: string, position: SceneObject['position']): void }, normalizeScene?: SceneNormalizer): FinishViewport {
+export function createViewport(container: HTMLElement, callbacks: ViewportCallbacks & { onSunChange?(settings: SunSettings): void; onLightingChange?(): void; onFinish?(presetId: string, target: FinishTarget): boolean; onFurnitureDrop?(assetId: string, position: SceneObject['position']): void }, normalizeScene?: SceneNormalizer): FinishViewport {
   let renderer: THREE.WebGLRenderer;
   try {
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
@@ -118,9 +122,9 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     message.textContent = '3D view unavailable. Enable browser hardware acceleration and reload.';
     message.style.cssText = 'margin:auto;padding:2rem;color:#6a5849;max-width:28rem;text-align:center';
     container.append(message);
-    return { furnitureSurface() { return undefined; }, setFurnitureDrag() {}, setInsideLens() {}, setSkybox() { return false; }, getSun() { return { ...DEFAULT_SUN }; }, setSun() {}, setTopLighting() {}, setLightingMood() {}, inspectCeiling() { return false; }, project() { return null; }, onFrame() { return () => {}; }, animateAssembly() {}, setHidden() {}, setFinishBrush() {}, setAdditiveSelection() {}, revealSelection() {}, setScene() {}, animatePlacement() {}, setSelection() {}, setTool() {}, setView() {}, setSnap() {}, setWalls() {}, setQuality() {}, setLayer() {}, setDoorAngle() {}, getDoorAngle() { return 0; }, toggleSwitch() {}, setSwitchLevel() {}, getSwitchLevel() { return 0; }, setComparison() {}, focus() {}, cancelInteraction() {}, dispose() { message.remove(); } };
+    return { furnitureSurface() { return undefined; }, setFurnitureDrag() {}, setInsideLens() {}, setSkybox() { return false; }, getSun() { return { ...DEFAULT_SUN }; }, setSun() {}, setTopLighting() {}, setLightingMood() {}, inspectCeiling() { return false; }, project() { return null; }, onFrame() { return () => {}; }, animateAssembly() {}, setHidden() {}, cameraPose() { return null; }, setFinishBrush() {}, setAdditiveSelection() {}, revealSelection() {}, setScene() {}, animatePlacement() {}, setSelection() {}, setTool() {}, setView() {}, setSnap() {}, setWalls() {}, setQuality() {}, setLayer() {}, setDoorAngle() {}, getDoorAngle() { return 0; }, toggleSwitch() {}, setSwitchLevel() {}, getSwitchLevel() { return 0; }, setComparison() {}, focus() {}, cancelInteraction() {}, dispose() { message.remove(); } };
   }
-  renderer.setClearColor('#e2e2dd');
+  renderer.setClearColor(STUDIO_BACKGROUND);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.02;
@@ -129,15 +133,15 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
   renderer.domElement.style.cssText = 'display:block;width:100%;height:100%;outline:none;touch-action:none';
   renderer.domElement.tabIndex = 0;
-  renderer.domElement.setAttribute('aria-label', 'Interactive 3D apartment. Click rooms, walls, openings, furniture, or building services to select. Shift-click walls or furniture to select several and move them together. Select a window, then drag its center to move or its edge handles to resize. Choose Move to drag a selected door along its wall. In Select, click a selected door or switch again to test it. Drag empty space to orbit, right drag to pan, and scroll to zoom. Click the canvas, then use W A S D or arrow keys to move around.');
+  renderer.domElement.setAttribute('aria-label', 'Interactive 3D apartment. Click rooms, walls, openings, furniture, or building services to select. Tap a door or window in Select to open or close it. Shift-click walls or furniture to select several and move them together. Select a window, then drag its center to move or its edge handles to resize. Choose Move to drag a selected door along its wall. Click a selected switch again to test it. Drag empty space to orbit, hold Space and drag or right drag to pan, and scroll to zoom. Click the canvas, then use W A S D or arrow keys to move around.');
   container.appendChild(renderer.domElement);
 
   const world = new THREE.Scene();
   const shadowCache = new SceneShadowCache(world);
   const topLighting = new TopLightingProjection();
   let topLightingEnabled = false;
-  world.background = new THREE.Color('#e2e2dd');
-  const studioFog = new THREE.Fog('#e2e2dd', 40, 125);
+  world.background = new THREE.Color(STUDIO_BACKGROUND);
+  const studioFog = new THREE.Fog(STUDIO_BACKGROUND, 40, 125);
   world.fog = studioFog;
   const perspective = new THREE.PerspectiveCamera(32, 1, 0.05, 250);
   perspective.position.set(11, 12, 15);
@@ -152,7 +156,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   orbit.minDistance = 1;
   orbit.maxDistance = 65;
   orbit.minPolarAngle = 0.05;
-  orbit.maxPolarAngle = Math.PI / 2 - 0.05;
+  orbit.maxPolarAngle = Math.PI - 0.05;
   orbit.mouseButtons.LEFT = THREE.MOUSE.ROTATE;
   orbit.mouseButtons.MIDDLE = THREE.MOUSE.DOLLY;
   orbit.mouseButtons.RIGHT = THREE.MOUSE.PAN;
@@ -235,6 +239,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   const layers: Record<ViewportLayer, boolean> = { shell: true, furniture: true, services: true, assumptions: false, ceilings: false, dimensions: false, components: true, clearances: false, electrical: true, 'water-hot': true, 'water-cold': true, waste: true, ventilation: true, heating: true, gas: true, data: true };
   const lightingPreview = new LightingPreview();
   const doorAngles = new Map<string, number>();
+  const openingAssets = new OpeningAssetLoader();
   let lastAnimation = 0;
   let snapEnabled = true;
   const endpointHandles = new THREE.Group(); world.add(endpointHandles);
@@ -258,6 +263,8 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   let pendingFinishReveal: FinishReveal | undefined;
   let sceneGeneration = 0;
   let selectedId: string | null = null;
+  // Rooms retain one semantic ID; picking their ceiling changes only the mask.
+  let ceilingSelectionId: string | null = null;
   let selectedIds: string[] = [];
   let selectedFurnitureIds: string[] = [];
   let additiveSelection = false;
@@ -290,7 +297,11 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   const size = new THREE.Vector3();
   const center = new THREE.Vector3();
   const walk = new WalkthroughControls(insideCamera, renderer.domElement,
-    (position, delta) => documentState ? moveWalkPosition(documentState, catalogState, position, delta) : position, requestRender);
+    (position, delta) => documentState ? moveWalkPosition(documentState, catalogState, position, delta) : position, requestRender, event => {
+      pointerRay(event);
+      const id = pickEntity()?.id;
+      if (id && documentState?.project?.components.some(component => component.id === id && component.kind === 'switch' && component.phase !== 'remove')) toggleSwitch(id);
+    });
   let outsideView: { view: ViewMode; position: THREE.Vector3; quaternion: THREE.Quaternion; target: THREE.Vector3; zoom: number } | null = null;
   let previousDoorAngles = new Map<string, number>();
   const orbitLabel = renderer.domElement.getAttribute('aria-label')!;
@@ -377,14 +388,14 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   function applyPracticalLighting(): void {
     const automaticLevel = automaticLightLevel();
     lightingPreview.setAutomaticLevel(automaticLevel);
-    for (const projection of [services, wallPreviewServices]) projection?.applyLighting(lightingPreview.levels, automaticLevel);
+    for (const projection of [services, wallPreviewServices]) projection?.applyLighting(lightingPreview.levels, automaticLevel, id => lightingPreview.getSwitchLevel(id));
     const level = automaticLevel ?? 1;
     for (const record of rendered.values()) if (record.group.userData.previewLamp) scalePracticalProjection(record.group, level);
-    for (const shell of [structure, wallPreview]) if (shell) scalePracticalProjection(shell.ceilings, level);
+    for (const shell of [structure, wallPreview]) if (shell) for (const ceiling of shell.ceilings.children) updateCeilingIndirectLighting(ceiling, lightingPreview.getLightLevel(ceiling.userData.entityId));
     if (ceilingDesigns) {
       ceilingDesigns.visible = (view === 'inside' || layers.shell) && !wallPreview;
       updateCeilingDesignVisibility(ceilingDesigns, camera);
-      scalePracticalProjection(ceilingDesigns, level);
+      updateCeilingDesignLighting(ceilingDesigns, id => lightingPreview.getLightLevel(id));
     }
   }
   function applyLayers(): void {
@@ -527,10 +538,10 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     lastAnimation = performance.now(); requestRender();
   }
   function toggleSwitch(id: string): void {
-    lightingPreview.toggleSwitch(id); applyPracticalLighting(); requestRender();
+    lightingPreview.toggleSwitch(id); applyPracticalLighting(); shadowCache.invalidate(); requestRender(); callbacks.onLightingChange?.();
   }
   function setSwitchLevel(id: string, level: number): void {
-    lightingPreview.setSwitchLevel(id, level); applyPracticalLighting(); requestRender();
+    lightingPreview.setSwitchLevel(id, level); applyPracticalLighting(); shadowCache.invalidate(); requestRender(); callbacks.onLightingChange?.();
   }
   function requestRender(): void {
     if (disposed || frame) return;
@@ -591,7 +602,10 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       // Resolve live roots, including wall-drag projections and loaded models.
       const selectedRoots = new Set<THREE.Object3D>();
       for (const id of selectedIds) {
-        const root = id ? entity(id) : undefined;
+        const shell = wallPreview ?? structure;
+        const root = id === ceilingSelectionId
+          ? shell?.ceilings.children.find(object => object.userData.entityId === id)
+          : entity(id);
         if (root) selectedRoots.add(root);
       }
       studioRenderer.setSelection(view === 'inside' ? [] : [...selectedRoots]);
@@ -629,7 +643,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     transform.detach();
     const chosen = selectedId ? entity(selectedId) : undefined;
     if (chosen && view !== 'inside') {
-      if (tool !== 'select') {
+      if (tool !== 'select' && !chosen.userData.selectionSurface) {
         selection = new SelectionFrame(selectionBounds(chosen));
         world.add(selection);
       }
@@ -1001,15 +1015,16 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     if (drag || endpointDrag || openingDrag || wallMove.active) { pendingScene = { scene: next, catalog }; return; }
     const previousObjects = new Map(documentState?.objects.map(object => [object.id, object]));
     const animate = initialized && documentState?.id === next.id;
+    if (documentState?.id !== next.id) ceilingSelectionId = null;
     sceneGeneration++;
-    lightingPreview.setComponents(next.project?.components ?? []);
+    lightingPreview.setScene(next);
     documentState = next; catalogState = catalog;
     const nextKey = JSON.stringify([next.rooms, next.walls, next.project?.metadata, next.project?.finishes, next.project?.materials]);
     if (structureKey !== nextKey) {
       if (structure) { disposeObject(structure.group); disposeObject(structure.ceilings); disposeObject(structure.dimensions); }
       if (ceilingDesigns) disposeObject(ceilingDesigns);
       ceilingDesigns = makeCeilingDesigns(next, ceilingRoomId); world.add(ceilingDesigns);
-      structure = makeStructure(next, pendingFinishReveal); pendingFinishReveal = undefined;
+      structure = makeStructure(next, pendingFinishReveal, { openingAssets, onAssetReady() { shadowCache.invalidate(); updateSelection(); requestRender(); } }); pendingFinishReveal = undefined;
       sunOccluders.setScene(next); windowLight.setScene(next);
       structureKey = nextKey; world.add(structure.group, structure.ceilings, structure.dimensions);
       loadOpeningModels(structure, next);
@@ -1165,6 +1180,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       camera = next === 'top' ? orthographic : perspective;
       orbit.object = camera; transform.camera = camera; orbit.enabled = true; transform.enabled = true;
       orbit.enableRotate = next !== 'top'; orbit.minPolarAngle = next === 'top' ? 0 : 0.05;
+      orbit.maxPolarAngle = next === 'top' ? Math.PI / 2 - 0.05 : Math.PI - 0.05;
       orbit.mouseButtons.LEFT = next === 'top' ? THREE.MOUSE.PAN : THREE.MOUSE.ROTATE;
       orbit.mouseButtons.RIGHT = THREE.MOUSE.PAN;
       if (leavingInside) {
@@ -1186,6 +1202,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   }
 
   function setTool(next: ToolMode): void {
+    handPan.cancel();
     furnitureDrop.cancel();
     if (drag) finishDrag(true); if (endpointDrag) finishEndpoint(true); if (openingDrag) finishOpening(true); wallMove.finish(true);
     tool = next; renderer.domElement.style.cursor = '';
@@ -1200,7 +1217,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   }
 
   function revealSelection(available: ScreenRect): void {
-    if (disposed || view === 'inside' || drag || endpointDrag || openingDrag || wallMove.active || furnitureDrop.active || orbitWasActive || keyboardNavigation.active) return;
+    if (disposed || view === 'inside' || drag || endpointDrag || openingDrag || wallMove.active || furnitureDrop.active || orbitWasActive || handPan.active || keyboardNavigation.active) return;
     cameraMotion.sample('camera'); cameraMotion.cancel('camera');
     const chosen = selectedId ? entity(selectedId) : undefined;
     if (!chosen) return;
@@ -1239,7 +1256,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   }
 
   function focus(id?: string, animate = true): void {
-    keyboardNavigation.cancel();
+    handPan.cancel(); keyboardNavigation.cancel();
     if (view === 'inside') {
       const spawn = walkSpawn(id);
       if (spawn) { insideCamera.position.fromArray(spawn.position); insideCamera.lookAt(new THREE.Vector3(...spawn.target)); walk.orient(); requestRender(); }
@@ -1257,7 +1274,11 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     else if (structure) { box.copy(structure.bounds); if (view !== 'top') box.union(stage.bounds); }
     else box.set(new THREE.Vector3(-3, 0, -3), new THREE.Vector3(3, 1, 3));
     box.getCenter(center); box.getSize(size);
-    if (!chosen) center.y = (structure?.bounds.min.y ?? 0) + 0.55;
+    if (!chosen) {
+      const floorTarget = (structure?.bounds.min.y ?? 0) + 0.55;
+      // Include the tall plinth in the composition while keeping the rooms prominent.
+      center.y = view === 'top' ? floorTarget : THREE.MathUtils.lerp(floorTarget, center.y, 0.45);
+    }
     const radius = Math.max(size.x, size.y, size.z, 1.2);
     orbit.target.copy(center);
     if (view === 'top') {
@@ -1311,16 +1332,17 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     const rect = renderer.domElement.getBoundingClientRect();
     pointer.set((event.clientX - rect.left) / rect.width * 2 - 1, -(event.clientY - rect.top) / rect.height * 2 + 1); raycaster.setFromCamera(pointer, camera);
   }
-  function pickEntity(): { id: string; point: THREE.Vector3 } | undefined {
+  function pickEntity(): { id: string; point: THREE.Vector3; ceiling: boolean } | undefined {
     const pickables: THREE.Object3D[] = [];
-    for (const root of [furniture, structure?.group, ceilingDesigns, services?.group, annotations]) if (root?.visible) root.traverseVisible(object => {
+    for (const root of [furniture, structure?.group, structure?.ceilings, ceilingDesigns, services?.group, annotations]) if (root?.visible) root.traverseVisible(object => {
       if (object instanceof THREE.Mesh || object instanceof THREE.Sprite) pickables.push(object);
     });
     for (const intersection of raycaster.intersectObjects(pickables, false)) {
       let parent: THREE.Object3D | null = intersection.object;
       while (parent && !parent.userData.objectId && !parent.userData.entityId) parent = parent.parent;
       const id = parent?.userData.objectId ?? parent?.userData.entityId;
-      if (id) return { id: id as string, point: intersection.point };
+      if (id) return { id: id as string, point: intersection.point,
+        ceiling: parent?.userData.shellPart === 'ceiling' || parent?.userData.ceilingDesign === true };
     }
     return undefined;
   }
@@ -1472,10 +1494,12 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     if (!event.composedPath().includes(renderer.domElement)) return;
     if (Math.hypot(event.clientX - start.x, event.clientY - start.y) > 5) return;
     pointerRay(event);
-    const id = pickEntity()?.id ?? null;
-    if (!event.shiftKey && !additiveSelection && id && id === selectedId && tool === 'select') {
+    const hit = pickEntity();
+    const id = hit?.id ?? null;
+    ceilingSelectionId = hit?.ceiling ? id : null;
+    if (!event.shiftKey && !additiveSelection && id && tool === 'select') {
       const opening = structure?.openings.get(id); if (opening && !opening.fixed) setDoorAngle(id, opening.target > 0.01 ? 0 : Math.PI / 2);
-      if (documentState?.project?.components.find(component => component.id === id)?.control) toggleSwitch(id);
+      if (id === selectedId && documentState?.project?.components.find(component => component.id === id)?.control) toggleSwitch(id);
     }
     callbacks.onSelect(id, event.shiftKey || additiveSelection);
   }
@@ -1485,7 +1509,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     // Escape or an explicit editor cancellation, not this browser handoff.
     if (event?.type === 'pointercancel' && furnitureDrop.active) return;
     furnitureDrop.cancel();
-    walk.cancel(); keyboardNavigation.cancel();
+    handPan.cancel(); walk.cancel(); keyboardNavigation.cancel();
     pointerStart = null; finishDrag(true); finishEndpoint(true); finishOpening(true); wallMove.finish(true);
     if (orbitWasActive) { orbitWasActive = false; callbacks.onInteraction(false); }
   }
@@ -1496,7 +1520,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   }
   function onContextLoss(event: Event): void { event.preventDefault(); onPointerCancel(); callbacks.onError('The graphics context was interrupted. Reload the page to restore the 3D view; saved scenes remain available.'); }
   function reportNavigationInteraction(): void {
-    callbacks.onInteraction(keyboardNavigation.active || orbitWasActive || !!drag || !!endpointDrag || !!openingDrag || wallMove.active || furnitureDrop.active);
+    callbacks.onInteraction(keyboardNavigation.active || orbitWasActive || handPan.active || !!drag || !!endpointDrag || !!openingDrag || wallMove.active || furnitureDrop.active);
   }
   function onOrbitStart(): void { cameraMotion.cancel('camera'); if (!drag) { orbitWasActive = true; reportNavigationInteraction(); } }
   function onOrbitEnd(): void { if (orbitWasActive) { orbitWasActive = false; reportNavigationInteraction(); } }
@@ -1536,6 +1560,13 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     },
     apply: (assetId, position) => callbacks.onFurnitureDrop?.(assetId, position),
   });
+  const handPan = new HandPanControls(renderer.domElement, {
+    enabled: () => view !== 'inside' && orbit.enabled && !drag && !endpointDrag && !openingDrag
+      && !wallMove.active && !finishInteraction.active && !furnitureDrop.active && !pointerStart,
+    start() { cameraMotion.cancel('camera'); pointerStart = null; suppressPick = true; reportNavigationInteraction(); },
+    move(dx, dy) { orbit.pan(dx * orbit.panSpeed, dy * orbit.panSpeed); },
+    stop: reportNavigationInteraction,
+  });
   transform.addEventListener('mouseDown', startDrag);
   transform.addEventListener('mouseUp', endDrag);
   transform.addEventListener('objectChange', changedTransform);
@@ -1553,11 +1584,16 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   renderer.domElement.addEventListener('webglcontextlost', onContextLoss);
   window.addEventListener('blur', onPointerCancel);
   resize(); setTool('select');
-  const unregisterDesignerSnapshot = registerDesignerRenderer(renderer.domElement, renderScene, () => drag || endpointDrag || openingDrag || wallMove.active || furnitureDrop.active ? null : documentState);
+  const unregisterDesignerSnapshot = registerDesignerRenderer(renderer.domElement, renderScene, () => drag || endpointDrag || openingDrag || wallMove.active || furnitureDrop.active || handPan.active ? null : documentState);
 
   return {
     furnitureSurface,
     setScene,
+    cameraPose() {
+      if (disposed || view !== 'perspective') return null;
+      const background = world.background instanceof THREE.Color ? `#${world.background.getHexString()}` : null;
+      return { position: perspective.position.toArray(), target: orbit.target.toArray(), fov: perspective.fov, background };
+    },
     setFurnitureDrag(asset) {
       onPointerCancel();
       if (asset) finishInteraction.setBrush(null);
@@ -1585,6 +1621,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     onFrame(listener) { frameListeners.add(listener); return () => { frameListeners.delete(listener); }; },
     setHidden(ids) { hiddenIds = new Set(ids); applyHidden(); shadowCache.invalidate(); requestRender(); },
     setSelection(id, ids) {
+      if (id !== ceilingSelectionId) ceilingSelectionId = null;
       const requested = id ? [...new Set([id, ...(ids ?? [])])] : [];
       const furnitureIds = documentState ? expandFurnitureSelection(documentState, requested) : [];
       const nextIds = [...new Set([...requested, ...furnitureIds])];
@@ -1683,7 +1720,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       finishInteraction.dispose();
       furnitureDrop.dispose();
       stopFinishTextureUpdates();
-      walk.dispose(); keyboardNavigation.dispose();
+      handPan.dispose(); walk.dispose(); keyboardNavigation.dispose();
       cancelAnimationFrame(frame); clearTimeout(settleTimer); clearTimeout(skyUpdateTimer); resizeObserver.disconnect();
       window.removeEventListener('blur', onPointerCancel);
       renderer.domElement.removeEventListener('pointerdown', onPointerDown, true);
@@ -1706,7 +1743,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       if (structure) { disposeObject(structure.group); disposeObject(structure.ceilings); disposeObject(structure.dimensions); }
       if (ceilingDesigns) disposeObject(ceilingDesigns);
       if (services) disposeObject(services.group); if (comparison) disposeObject(comparison); disposeObject(annotations); disposeObject(endpointHandles); disposeObject(openingHandle); windowHandles.dispose();
-      stage.dispose(); sunOccluders.dispose(); windowLight.dispose(); loader.dispose(); sunlight.shadow.dispose(); topLighting.dispose();
+      stage.dispose(); sunOccluders.dispose(); windowLight.dispose(); loader.dispose(); openingAssets.dispose(); sunlight.shadow.dispose(); topLighting.dispose();
       studioRenderer.dispose(); skyboxes.dispose(); environment.dispose(); renderer.dispose(); renderer.domElement.remove();
     },
   };

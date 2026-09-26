@@ -1,6 +1,7 @@
 import type { CeilingDesign, Operation, SceneDocument } from '../contracts';
 import { CEILING_PRESETS, buildCeilingDesignOperations, defaultCeilingDesign } from '../core/ceiling-design';
 import { hasRoomCeiling, roomCeilingHeight } from '../core/heights';
+import { buildCeilingSwitchOperations } from '../core/generated-ceilings';
 import './ceiling-design.css';
 
 export interface CeilingUIOptions {
@@ -9,6 +10,8 @@ export interface CeilingUIOptions {
   select(id: string): void;
   inspect(id: string, evening: boolean): void;
   notice(message: string, error?: boolean): void;
+  toggleSwitch?(id: string): void;
+  getSwitchLevel?(id: string): number;
 }
 
 const esc = (value: string) => value.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
@@ -20,6 +23,14 @@ export function createCeilingUI(container: HTMLElement, options: CeilingUIOption
   let dirty = false;
   let evening = true;
   const readDesign = () => options.getScene().project?.metadata[roomId]?.ceilingDesign;
+
+  function syncLighting() {
+    container.querySelectorAll<HTMLButtonElement>('[data-ceiling-switch]').forEach(button => {
+      const on = (options.getSwitchLevel?.(button.dataset.ceilingSwitch!) ?? (readDesign()?.enabled ? 1 : 0)) > 0;
+      button.textContent = on ? 'Turn off' : 'Turn on';
+      button.setAttribute('aria-pressed', String(on));
+    });
+  }
 
   function error(message: string) {
     const output = container.querySelector<HTMLElement>('[data-ceiling-error]');
@@ -41,6 +52,7 @@ export function createCeilingUI(container: HTMLElement, options: CeilingUIOption
     // History/import updates replace the draft; unrelated scene refreshes preserve typing.
     if (key !== sourceKey) { draft = saved ? { ...saved } : defaultCeilingDesign('quiet'); sourceKey = key; dirty = false; }
     const locked = scene.project?.metadata[roomId]?.locked;
+    const switches = scene.project?.components.filter(component => component.kind === 'switch' && component.phase !== 'remove' && scene.project?.metadata[component.id]?.phase !== 'remove' && component.control?.targets.includes(roomId)) ?? [];
     container.innerHTML = `
       <p class="ceiling-intro">Shape the ceiling and the light beneath it. Choose a room, then make the design your own.</p>
       <label class="text-field">Room<select data-ceiling-room>${rooms.map(r => `<option value="${esc(r.id)}" ${r.id === roomId ? 'selected' : ''}>${esc(r.name)}</option>`).join('')}</select></label>
@@ -53,12 +65,13 @@ export function createCeilingUI(container: HTMLElement, options: CeilingUIOption
           <label class="ceiling-range"><span>Brightness <output data-output="brightness">${draft.brightness}%</output></span><input aria-label="Ceiling brightness" name="brightness" type="range" min="0" max="100" step="1" value="${draft.brightness}"></label>
           <label class="ceiling-range"><span>Light warmth <output data-output="temperature">${draft.temperature} K</output></span><input aria-label="Ceiling light warmth" name="temperature" type="range" min="2200" max="6500" step="100" value="${draft.temperature}"><small><span>Warm</span><span>Cool</span></small></label>
           <div class="ceiling-dimensions"><label class="text-field">${draft.style === 'soft-glow' ? 'Panel drop' : 'Fixture drop'} (m)<input name="drop" type="number" step="0.01" min="${draft.style === 'soft-glow' ? '.1' : '0'}" max=".6" value="${draft.drop}" required></label><label class="text-field">Inset (m)<input name="inset" type="number" step="0.05" min=".15" max="2" value="${draft.inset}" required></label></div>
-          <label class="ceiling-toggle"><input name="enabled" type="checkbox" ${draft.enabled ? 'checked' : ''}>Lights on</label>
+          <label class="ceiling-toggle"><input name="enabled" type="checkbox" ${draft.enabled ? 'checked' : ''}>Start with lights on</label>
           <button type="submit" class="button primary full">${dirty ? 'Apply changes' : 'Apply ceiling design'}</button>
         </fieldset>
         <p class="ceiling-error" data-ceiling-error role="alert" hidden></p>
       </form>
       ${locked ? '<p class="ceiling-note">This room is locked. Unlock it in Renovate to change its ceiling.</p>' : ''}
+      ${saved ? `<div class="ceiling-preview"><strong>Room switches</strong><p>Try the lights here, tap a wall switch in Inside, or click a selected switch in 3D. Switching is a temporary preview.</p>${switches.map(component => `<div class="ceiling-switch"><span>${esc(component.name)}</span><button type="button" class="button" data-ceiling-switch="${esc(component.id)}" aria-pressed="${(options.getSwitchLevel?.(component.id) ?? (saved.enabled ? 1 : 0)) > 0}" ${!options.toggleSwitch ? 'disabled' : ''}>${(options.getSwitchLevel?.(component.id) ?? (saved.enabled ? 1 : 0)) > 0 ? 'Turn off' : 'Turn on'}</button></div>`).join('')}${!switches.length ? `<button type="button" class="button full" data-ceiling-add-switch ${locked ? 'disabled' : ''}>Add a wall switch</button><p class="ceiling-note">Adds a proposed switch on an available wall in this room.</p>` : ''}</div>` : ''}
       <div class="ceiling-preview"><strong>See it from inside</strong><p>Look up to explore the ceiling. Evening makes the lighting easier to compare.</p><label class="ceiling-toggle"><input data-ceiling-evening type="checkbox" ${evening ? 'checked' : ''}>Evening preview</label><button type="button" class="button full" data-ceiling-inspect>View this room</button></div>
       <button type="button" class="button quiet full" data-ceiling-remove ${!saved || locked ? 'disabled' : ''}>Restore original ceiling</button>
       <p class="ceiling-note">Presets fit inside the room and follow its height. Applied designs save with your apartment. Individual fixture placement comes later.</p>`;
@@ -104,10 +117,22 @@ export function createCeilingUI(container: HTMLElement, options: CeilingUIOption
       try { if (options.execute(buildCeilingDesignOperations(options.getScene(), roomId, null), 'Restore original ceiling')) { sourceKey = ''; render(); } }
       catch (cause) { error(cause instanceof Error ? cause.message : 'Could not restore the ceiling.'); }
     };
+    container.querySelectorAll<HTMLButtonElement>('[data-ceiling-switch]').forEach(button => button.onclick = () => {
+      options.toggleSwitch?.(button.dataset.ceilingSwitch!); syncLighting();
+    });
+    const addSwitch = container.querySelector<HTMLButtonElement>('[data-ceiling-add-switch]');
+    if (addSwitch) addSwitch.onclick = () => {
+      try {
+        const operations = buildCeilingSwitchOperations(options.getScene(), roomId);
+        if (!operations.length) { options.notice('No clear wall position is available for a switch. Place and connect one in Renovate → Systems.', true); return; }
+        if (options.execute(operations, 'Add ceiling light switch')) render();
+      } catch (cause) { options.notice(cause instanceof Error ? cause.message : 'Could not add a switch.', true); }
+    };
   }
   render();
   return {
     render,
+    syncLighting,
     setSelection(id: string | null) {
       const scene = options.getScene();
       if (id && id !== roomId && scene.rooms.some(room => room.id === id && hasRoomCeiling(scene, room))) { roomId = id; sourceKey = ''; render(); }

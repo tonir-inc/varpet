@@ -1,0 +1,369 @@
+{
+  "checks": [
+    "desktop active dots visible with unchanged accessible status text",
+    "active frames change opacity and keep status text fixed",
+    "live reduced motion settles visible dots without animation",
+    "restoring motion restarts dots",
+    "stream failure removes indicator and active animations",
+    "retry starts a new active indicator",
+    "returning to plan cancels request and removes animations",
+    "390px mobile status and dots remain visible without horizontal overflow",
+    "checking remains visibly active until completion",
+    "project validation and finish choreography keep indicator active",
+    "finished apartment hides indicator and leaves no dot animation",
+    "reduced-motion startup keeps active indicator static",
+    "disposal removes dot animations"
+  ],
+  "pageErrors": [],
+  "blockedServices": [
+    "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&family=Noto+Serif+Armenian:wght@400..700&family=Sofia+Sans:wght@300..700&family=Sofia+Sans+Condensed:wght@500..700&family=Noto+Sans+Armenian:wdth,wght@62.5..100,300..700&display=swap"
+  ],
+  "screenshots": [
+    "/Users/davitstepanyan/Documents/varpet/output/progress-verification/desktop-working.png",
+    "/Users/davitstepanyan/Documents/varpet/output/progress-verification/desktop-reduced-motion.png",
+    "/Users/davitstepanyan/Documents/varpet/output/progress-verification/desktop-error.png",
+    "/Users/davitstepanyan/Documents/varpet/output/progress-verification/mobile-working.png",
+    "/Users/davitstepanyan/Documents/varpet/output/progress-verification/mobile-complete.png"
+  ],
+  "desktopFrames": [
+    {
+      "text": "Reading the plan: rooms, walls, doors and windows",
+      "textRect": [
+        556.984375,
+        197.734375,
+        306.78125,
+        18
+      ],
+      "hidden": false,
+      "count": 3,
+      "dotStyles": [
+        {
+          "opacity": "0.25",
+          "transform": "matrix(1, 0, 0, 1, 0, 0)",
+          "animation": "blueprint-working-dot"
+        },
+        {
+          "opacity": "0.326273",
+          "transform": "matrix(1, 0, 0, 1, 0, -0.237971)",
+          "animation": "blueprint-working-dot"
+        },
+        {
+          "opacity": "0.826482",
+          "transform": "matrix(1, 0, 0, 1, 0, -1.79862)",
+          "animation": "blueprint-working-dot"
+        }
+      ]
+    },
+    {
+      "text": "Reading the plan: rooms, walls, doors and windows",
+      "textRect": [
+        556.984375,
+        197.734375,
+        306.78125,
+        18
+      ],
+      "hidden": false,
+      "count": 3,
+      "dotStyles": [
+        {
+          "opacity": "0.25",
+          "transform": "matrix(1, 0, 0, 1, 0, 0)",
+          "animation": "blueprint-working-dot"
+        },
+        {
+          "opacity": "0.25",
+          "transform": "matrix(1, 0, 0, 1, 0, 0)",
+          "animation": "blueprint-working-dot"
+        },
+        {
+          "opacity": "0.542569",
+          "transform": "matrix(1, 0, 0, 1, 0, -0.912815)",
+          "animation": "blueprint-working-dot"
+        }
+      ]
+    },
+    {
+      "text": "Reading the plan: rooms, walls, doors and windows",
+      "textRect": [
+        556.984375,
+        197.734375,
+        306.78125,
+        18
+      ],
+      "hidden": false,
+      "count": 3,
+      "dotStyles": [
+        {
+          "opacity": "0.25",
+          "transform": "matrix(1, 0, 0, 1, 0, 0)",
+          "animation": "blueprint-working-dot"
+        },
+        {
+          "opacity": "0.25",
+          "transform": "matrix(1, 0, 0, 1, 0, 0)",
+          "animation": "blueprint-working-dot"
+        },
+        {
+          "opacity": "0.287491",
+          "transform": "matrix(1, 0, 0, 1, 0, -0.116971)",
+          "animation": "blueprint-working-dot"
+        }
+      ]
+    },
+    {
+      "text": "Reading the plan: rooms, walls, doors and windows",
+      "textRect": [
+        556.984375,
+        197.734375,
+        306.78125,
+        18
+      ],
+      "hidden": false,
+      "count": 3,
+      "dotStyles": [
+        {
+          "opacity": "0.25",
+          "transform": "matrix(1, 0, 0, 1, 0, 0)",
+          "animation": "blueprint-working-dot"
+        },
+        {
+          "opacity": "0.25",
+          "transform": "matrix(1, 0, 0, 1, 0, 0)",
+          "animation": "blueprint-working-dot"
+        },
+        {
+          "opacity": "0.25",
+          "transform": "matrix(1, 0, 0, 1, 0, 0)",
+          "animation": "blueprint-working-dot"
+        }
+      ]
+    },
+    {
+      "text": "Reading the plan: rooms, walls, doors and windows",
+      "textRect": [
+        556.984375,
+        197.734375,
+        306.78125,
+        18
+      ],
+      "hidden": false,
+      "count": 3,
+      "dotStyles": [
+        {
+          "opacity": "0.25",
+          "transform": "matrix(1, 0, 0, 1, 0, 0)",
+          "animation": "blueprint-working-dot"
+        },
+        {
+          "opacity": "0.25",
+          "transform": "matrix(1, 0, 0, 1, 0, 0)",
+          "animation": "blueprint-working-dot"
+        },
+        {
+          "opacity": "0.25",
+          "transform": "matrix(1, 0, 0, 1, 0, 0)",
+          "animation": "blueprint-working-dot"
+        }
+      ]
+    },
+    {
+      "text": "Reading the plan: rooms, walls, doors and windows",
+      "textRect": [
+        556.984375,
+        197.734375,
+        306.78125,
+        18
+      ],
+      "hidden": false,
+      "count": 3,
+      "dotStyles": [
+        {
+          "opacity": "0.332429",
+          "transform": "matrix(1, 0, 0, 1, 0, -0.257179)",
+          "animation": "blueprint-working-dot"
+        },
+        {
+          "opacity": "0.25",
+          "transform": "matrix(1, 0, 0, 1, 0, 0)",
+          "animation": "blueprint-working-dot"
+        },
+        {
+          "opacity": "0.25",
+          "transform": "matrix(1, 0, 0, 1, 0, 0)",
+          "animation": "blueprint-working-dot"
+        }
+      ]
+    },
+    {
+      "text": "Reading the plan: rooms, walls, doors and windows",
+      "textRect": [
+        556.984375,
+        197.734375,
+        306.78125,
+        18
+      ],
+      "hidden": false,
+      "count": 3,
+      "dotStyles": [
+        {
+          "opacity": "0.577009",
+          "transform": "matrix(1, 0, 0, 1, 0, -1.02027)",
+          "animation": "blueprint-working-dot"
+        },
+        {
+          "opacity": "0.250479",
+          "transform": "matrix(1, 0, 0, 1, 0, -0.00149487)",
+          "animation": "blueprint-working-dot"
+        },
+        {
+          "opacity": "0.25",
+          "transform": "matrix(1, 0, 0, 1, 0, 0)",
+          "animation": "blueprint-working-dot"
+        }
+      ]
+    },
+    {
+      "text": "Reading the plan: rooms, walls, doors and windows",
+      "textRect": [
+        556.984375,
+        197.734375,
+        306.78125,
+        18
+      ],
+      "hidden": false,
+      "count": 3,
+      "dotStyles": [
+        {
+          "opacity": "0.895463",
+          "transform": "matrix(1, 0, 0, 1, 0, -2.01385)",
+          "animation": "blueprint-working-dot"
+        },
+        {
+          "opacity": "0.386853",
+          "transform": "matrix(1, 0, 0, 1, 0, -0.42698)",
+          "animation": "blueprint-working-dot"
+        },
+        {
+          "opacity": "0.25",
+          "transform": "matrix(1, 0, 0, 1, 0, 0)",
+          "animation": "blueprint-working-dot"
+        }
+      ]
+    }
+  ],
+  "mobileFrames": [
+    {
+      "text": "Reading the plan: rooms, walls, doors and windows",
+      "textRect": [
+        54.359375,
+        157,
+        265,
+        15
+      ],
+      "hidden": false,
+      "count": 3,
+      "dotStyles": [
+        {
+          "opacity": "0.464102",
+          "transform": "matrix(1, 0, 0, 1, 0, -0.56523)",
+          "animation": "blueprint-working-dot"
+        },
+        {
+          "opacity": "0.25",
+          "transform": "matrix(1, 0, 0, 1, 0, 0)",
+          "animation": "blueprint-working-dot"
+        },
+        {
+          "opacity": "0.25",
+          "transform": "matrix(1, 0, 0, 1, 0, 0)",
+          "animation": "blueprint-working-dot"
+        }
+      ]
+    },
+    {
+      "text": "Reading the plan: rooms, walls, doors and windows",
+      "textRect": [
+        54.359375,
+        157,
+        265,
+        15
+      ],
+      "hidden": false,
+      "count": 3,
+      "dotStyles": [
+        {
+          "opacity": "0.853789",
+          "transform": "matrix(1, 0, 0, 1, 0, -1.594)",
+          "animation": "blueprint-working-dot"
+        },
+        {
+          "opacity": "0.346594",
+          "transform": "matrix(1, 0, 0, 1, 0, -0.255007)",
+          "animation": "blueprint-working-dot"
+        },
+        {
+          "opacity": "0.25",
+          "transform": "matrix(1, 0, 0, 1, 0, 0)",
+          "animation": "blueprint-working-dot"
+        }
+      ]
+    },
+    {
+      "text": "Reading the plan: rooms, walls, doors and windows",
+      "textRect": [
+        54.359375,
+        157,
+        265,
+        15
+      ],
+      "hidden": false,
+      "count": 3,
+      "dotStyles": [
+        {
+          "opacity": "0.999509",
+          "transform": "matrix(1, 0, 0, 1, 0, -1.9787)",
+          "animation": "blueprint-working-dot"
+        },
+        {
+          "opacity": "0.719487",
+          "transform": "matrix(1, 0, 0, 1, 0, -1.23945)",
+          "animation": "blueprint-working-dot"
+        },
+        {
+          "opacity": "0.275147",
+          "transform": "matrix(1, 0, 0, 1, 0, -0.066389)",
+          "animation": "blueprint-working-dot"
+        }
+      ]
+    },
+    {
+      "text": "Reading the plan: rooms, walls, doors and windows",
+      "textRect": [
+        54.359375,
+        157,
+        265,
+        15
+      ],
+      "hidden": false,
+      "count": 3,
+      "dotStyles": [
+        {
+          "opacity": "0.816555",
+          "transform": "matrix(1, 0, 0, 1, 0, -1.4957)",
+          "animation": "blueprint-working-dot"
+        },
+        {
+          "opacity": "0.984593",
+          "transform": "matrix(1, 0, 0, 1, 0, -1.93933)",
+          "animation": "blueprint-working-dot"
+        },
+        {
+          "opacity": "0.56525",
+          "transform": "matrix(1, 0, 0, 1, 0, -0.83226)",
+          "animation": "blueprint-working-dot"
+        }
+      ]
+    }
+  ],
+  "status": "passed"
+}

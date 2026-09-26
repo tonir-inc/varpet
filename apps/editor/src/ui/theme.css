@@ -1,0 +1,246 @@
+/* Appearance is a local UI preference. These tokens never change apartment
+ * materials, renderer lighting, source images, or the plan's paper colours.
+ * Attribute specificity keeps the palette stable when route CSS loads later. */
+:root[data-theme] {
+  --accent: #3454d1;
+  --accent-dark: #21399d;
+  --accent-hover: #2945b8;
+  --accent-ink: #3454d1;
+  --accent-wash: #eaf0ff;
+  --on-accent: #ffffff;
+  --select: #e0e8ff;
+  --select-wash: #eaf0ff;
+  --designer: var(--accent-ink);
+  --designer-soft: #8ea3eb;
+  --designer-wash: var(--accent-wash);
+  --focus: var(--accent-ink);
+  --blueprint-ground: #f5f5f0;
+  --blueprint-grid: #3454d10a;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --ground: #1e1f22;
+  --surface: #26272b;
+  --raised: #2e2f34;
+  --hover: #37393f;
+  --line: #3d3f46;
+  --control-line: #64666e;
+  --ink: #f1f0eb;
+  --muted: #b0b0ac;
+  --accent: #4b68dc;
+  --accent-hover: #526ddb;
+  --accent-dark: #3454d1;
+  --accent-ink: #a1b3ff;
+  --accent-wash: #2a365c;
+  --select: #32416b;
+  --select-wash: var(--accent-wash);
+  --designer-soft: #8ea3eb;
+  --positive: #8ad2aa;
+  --positive-wash: #233c30;
+  --warning: #edc578;
+  --warning-wash: #423721;
+  --danger: #ff9eaa;
+  --danger-wash: #482b31;
+  --scrim: #17181be6;
+  --shadow-color: #00000038;
+  --blueprint-ground: var(--ground);
+  --blueprint-grid: #a1b3ff09;
+  color-scheme: dark;
+}
+
+:root[data-theme] body {
+  background: var(--ground);
+  color: var(--ink);
+}
+
+:root[data-theme] ::selection { background: var(--select); color: var(--ink); }
+
+/* Blue text is lighter on charcoal; filled actions retain the same cobalt. */
+:root[data-theme] :is(
+  .brand-dot,
+  .nav-button.active,
+  .object-row.selected,
+  .object-row.selected svg,
+  .category-list button.active,
+  .view-switch button.active,
+  .view-options button.active,
+  .tool-rail button.active,
+  .tool-rail button.active kbd,
+  .selected-asset-heading h2,
+  .assistant-icon,
+  .suggestion,
+  .renovation-nav button[aria-selected="true"],
+  .rv-entity-row[aria-pressed="true"],
+  .rv-subtle,
+  .rv-test output,
+  .rv-meter,
+  .rv-source-link,
+  .inspector-types button[aria-pressed="true"],
+  .inspector-preview output,
+  .materials-tabs button[aria-selected="true"],
+  .sun-presets .button[aria-pressed="true"],
+  .af-hint u,
+  .intake-actions .active,
+  .portal-text-button:hover,
+  .portal-text-button:active,
+  .portal-card-link:hover,
+  .portal-card-link:active,
+  .portal-own-plan-stage
+) { color: var(--accent-ink); }
+
+:root[data-theme] .tool-rail #snap:not(.active) strong { color: var(--accent-ink); }
+:root[data-theme] .designer-product-index,
+:root[data-theme] .as-part-label { background: var(--accent); color: var(--on-accent); }
+
+/* Only the current editing tool and view get a solid blue tile. */
+:root[data-theme] .folio .folio-edit-tools button.active,
+:root[data-theme] .folio .folio-edit-tools [data-folio="inspect"][aria-pressed="true"],
+:root[data-theme] .folio-dock .view-switch button.active,
+:root[data-theme] .folio-dock .view-switch button[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+:root[data-theme] .folio .folio-edit-tools button.active kbd { color: var(--on-accent); }
+:root[data-theme] .folio .folio-edit-tools #snap.active { background: transparent; color: var(--ink); }
+:root[data-theme] .folio .folio-edit-tools #snap.active kbd { color: var(--muted); }
+:root[data-theme] .portal-filters button[aria-pressed="true"] {
+  background: var(--accent-wash);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+:root[data-theme] .designer-input { border-color: var(--control-line); }
+:root[data-theme] .designer-input:focus-within { border-color: var(--focus); box-shadow: 0 0 0 1px var(--focus); }
+:root[data-theme] .designer-keep-list input { accent-color: var(--accent); }
+:root[data-theme] .designer-about-chip .designer-icon-button:hover:not(:disabled) { background: var(--accent-wash); }
+:root[data-theme] .button.primary:hover:not(:disabled) { border-color: var(--accent-hover); }
+:root[data-theme] .sun-compass-bearing,
+:root[data-theme] .sun-compass-handle,
+:root[data-theme] .sun-compass-glyph { stroke: var(--accent-ink); }
+:root[data-theme] .sun-compass-center { fill: var(--accent-ink); }
+:root[data-theme] .rv-field input:focus,
+:root[data-theme] .rv-field select:focus,
+:root[data-theme] .rv-field textarea:focus,
+:root[data-theme] .rv-filter:focus,
+:root[data-theme] .inside-lens select:focus-visible,
+:root[data-theme] .sun-compass:focus-visible { outline-color: var(--focus); }
+
+/* One compact, persistent appearance control on every page. */
+:root[data-theme] .theme-toggle {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 9px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+:root[data-theme] .theme-toggle:hover { background: var(--raised); border-color: var(--control-line); color: var(--ink); }
+:root[data-theme] .theme-toggle:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+:root[data-theme] .theme-toggle svg { width: 16px; height: 16px; }
+
+/* Blueprint intake uses the same paper/charcoal palette as the workspace. */
+:root[data-theme] .portal.blueprint-home { background: var(--blueprint-ground); }
+:root[data-theme] .blueprint-home .portal-header { border-bottom-color: var(--line); }
+:root[data-theme] .blueprint-home .portal-brand-mark { color: var(--on-accent); }
+:root[data-theme] .blueprint-welcome {
+  background-image: linear-gradient(var(--blueprint-grid) 1px, transparent 1px), linear-gradient(90deg, var(--blueprint-grid) 1px, transparent 1px);
+}
+:root[data-theme] .blueprint-welcome::before {
+  background: radial-gradient(ellipse at 50% 32%, var(--blueprint-ground) 10%, transparent 75%);
+}
+:root[data-theme] .blueprint-welcome .blueprint-eyebrow,
+:root[data-theme] .blueprint-heading h1 em,
+:root[data-theme] .blueprint-file button,
+:root[data-theme] .blueprint-samples summary > span { color: var(--accent-ink); }
+:root[data-theme] .blueprint-welcome .blueprint-eyebrow > span { background: var(--accent-ink); }
+:root[data-theme] .blueprint-heading > p:last-child,
+:root[data-theme] .blueprint-photos > button > span,
+:root[data-theme] .blueprint-build-note,
+:root[data-theme] .blueprint-bottom,
+:root[data-theme] .blueprint-samples,
+:root[data-theme] .blueprint-samples button span,
+:root[data-theme] .blueprint-flow-error p { color: var(--muted); }
+:root[data-theme] .blueprint-bottom > i { background: var(--line); }
+/* The drafting sheet and the construction flow are blueprint paper in both themes (see blueprint.css). */
+:root[data-theme] .blueprint-file,
+:root[data-theme] .blueprint-photos > button { color: var(--ink); }
+:root[data-theme] .blueprint-photo-list img { border-color: var(--control-line); }
+:root[data-theme] .blueprint-photo-list button,
+:root[data-theme] .blueprint-samples button { border-color: var(--line); background: var(--surface); color: var(--ink); }
+:root[data-theme] .blueprint-samples button:hover { border-color: var(--accent-ink); background: var(--raised); }
+:root[data-theme] .blueprint-flow-error { border-color: var(--line); background: var(--surface); color: var(--ink); box-shadow: var(--shadow-2); }
+:root[data-theme] .as-opening-hint,
+:root[data-theme] .as-opening-actions:focus-within button:not(:disabled) {
+  border-color: var(--line);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+/* Annotation chrome must stay readable above the unchanged, lit 3D scene. */
+:root[data-theme="dark"] .portal-hero-annotation,
+:root[data-theme="dark"] .portal-preview-caption,
+:root[data-theme="dark"] .canvas-label,
+:root[data-theme="dark"] #view-hint {
+  padding: 5px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--muted);
+}
+
+/* A short colour response follows the existing UI motion vocabulary. Layout,
+ * canvas rendering, and surface entrance/exit animations remain independent. */
+:root[data-theme] body,
+:root[data-theme] .app-header,
+:root[data-theme] .portal,
+:root[data-theme] .portal-header,
+:root[data-theme] .designer-column,
+:root[data-theme] .designer-composer,
+:root[data-theme] .left-panel,
+:root[data-theme] .right-panel,
+:root[data-theme] .folio-seg,
+:root[data-theme] .folio-menu,
+:root[data-theme] .folio-drawer,
+:root[data-theme] .tool-rail,
+:root[data-theme] dialog {
+  transition: background-color 180ms ease-out, border-color 180ms ease-out, color 180ms ease-out;
+}
+
+/* The portal's wrapped tablet header intentionally has no column gap. Keep
+ * account and appearance controls distinct without widening its mobile row. */
+@media (max-width: 800px) {
+  :root[data-theme] .portal-header-inner .theme-toggle { margin-left: 12px; }
+}
+@media (max-width: 720px) {
+  :root[data-theme] .blueprint-home .portal-header-inner .theme-toggle { margin-left: 0; }
+}
+@media (max-width: 760px) {
+  :root[data-theme] .theme-toggle { width: 32px; min-width: 32px; height: 32px; padding: 0; }
+  :root[data-theme] .theme-toggle > span { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-theme] body,
+  :root[data-theme] .app-header,
+  :root[data-theme] .portal,
+  :root[data-theme] .portal-header,
+  :root[data-theme] .designer-column,
+  :root[data-theme] .designer-composer,
+  :root[data-theme] .left-panel,
+  :root[data-theme] .right-panel,
+  :root[data-theme] .folio-seg,
+  :root[data-theme] .folio-menu,
+  :root[data-theme] .folio-drawer,
+  :root[data-theme] .tool-rail,
+  :root[data-theme] .theme-toggle,
+  :root[data-theme] dialog { transition: none; }
+}

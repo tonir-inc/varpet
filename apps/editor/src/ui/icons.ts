@@ -19,6 +19,7 @@ const paths: Record<string,string> = {
   top:'<rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 12h18M13 3v9M8 12v9"/>',
   walls:'<path d="M3 20V5h18v15M3 13h8v7M15 5v8h6"/>',
   sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M5 19l1.5-1.5M17.5 6.5 19 5"/>',
+  moon:'<path d="M20.5 13a8.5 8.5 0 0 1-9.5-9.5A8.5 8.5 0 1 0 20.5 13Z"/>',
   select:'<path d="m5 3 15 10-7 1-3 7Z"/>',
   move:'<path d="M12 3v18M3 12h18M9 6l3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3M18 9l3 3-3 3"/>',
   rotate:'<path d="M20 10a8 8 0 1 0-1 7M20 3v7h-7"/>',

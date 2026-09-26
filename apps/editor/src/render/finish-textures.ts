@@ -6,6 +6,9 @@ import oakMetadata from '../../../../catalog/materials/oak/material.json';
 import walnutColor from '../../../../catalog/materials/walnut/basecolor.jpg?url';
 import walnutRoughness from '../../../../catalog/materials/walnut/roughness.jpg?url';
 import walnutMetadata from '../../../../catalog/materials/walnut/material.json';
+import ashColor from '../../../../catalog/materials/ash-light/basecolor.jpg?url';
+import ashRoughness from '../../../../catalog/materials/ash-light/roughness.jpg?url';
+import ashMetadata from '../../../../catalog/materials/ash-light/material.json';
 import travertineColor from '../../../../catalog/materials/travertine/basecolor.jpg?url';
 import travertineRoughness from '../../../../catalog/materials/travertine/roughness.jpg?url';
 import travertineMetadata from '../../../../catalog/materials/travertine/material.json';
@@ -17,6 +20,7 @@ type FinishTextureId = NonNullable<FinishPreset['texture']>;
 const sources = {
   oak: { color: oakColor, roughness: oakRoughness, size: oakMetadata.tile_m },
   walnut: { color: walnutColor, roughness: walnutRoughness, size: walnutMetadata.tile_m },
+  ash: { color: ashColor, roughness: ashRoughness, size: ashMetadata.tile_m },
   travertine: { color: travertineColor, roughness: travertineRoughness, size: travertineMetadata.tile_m },
   marble: { color: marbleColor, roughness: marbleRoughness, size: marbleMetadata.tile_m },
 } satisfies Record<FinishTextureId, { color: string; roughness: string; size: number }>;
@@ -39,7 +43,7 @@ interface TextureEntry {
   disposed: boolean;
 }
 
-// Only these four catalog sets can enter the decoded-image cache. GPU textures
+// Only these catalog sets can enter the decoded-image cache. GPU textures
 // have a separate lifetime and are released when their final projection leaves.
 const decoded = new Map<FinishTextureId, Promise<ImagePair | undefined>>();
 const textures = new Map<FinishTextureId, TextureEntry>();

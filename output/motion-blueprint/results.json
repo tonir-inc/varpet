@@ -1,0 +1,83 @@
+{
+  "baseURL": "http://localhost:5173",
+  "plan": "/@fs/Users/davitstepanyan/Documents/varpet/output/motion-blueprint/teal-plan.png",
+  "frames": [
+    "00-intro-mid.png",
+    "01-intro-settled.png",
+    "02-drag-over.png",
+    "03-drop-landing.png",
+    "04-drop-dissolve.png",
+    "05-pen-early.png",
+    "06-pen-mid.png",
+    "07-pen-late.png",
+    "08-plan-drawn.png",
+    "09-handoff-grow.png",
+    "10-handoff-flood.png",
+    "11-handoff-land.png",
+    "12-tilt-start.png",
+    "13-tilt-mid.png",
+    "14-tilted.png",
+    "15-shell-traced.png",
+    "16-main-walls-rising.png",
+    "17-main-walls-up.png",
+    "18-partitions-rising.png",
+    "19-openings.png",
+    "20-shell-complete.png",
+    "21-complete.png",
+    "22-handover-text-out.png",
+    "23-handover-glide-early.png",
+    "24-handover-glide-mid.png",
+    "25-handover-glide-late.png",
+    "26-handover-crossfade.png",
+    "27-editor.png"
+  ],
+  "pageErrors": [],
+  "console": [
+    "warning: Canvas2D: Multiple readback operations using getImageData are faster with the willReadFrequently attribute set to true. See: https://html.spec.whatwg.org/multipage/canvas.html#concept-canvas-will-read-frequently"
+  ],
+  "checks": [
+    "PASS sheet frame is fully drawn after the intro",
+    "PASS plan ink is drawn progressively, not all at once",
+    "PASS build action appears after the plan is drawn",
+    "PASS the 2D sheet hands over to the 3D stage and is removed",
+    "PASS completion heading shown",
+    "PASS construction view hands over to the editor and is removed"
+  ],
+  "ink": [
+    2,
+    2,
+    344,
+    46328,
+    59749,
+    59801
+  ],
+  "events": [
+    [
+      301,
+      "progress"
+    ],
+    [
+      3502,
+      "shell"
+    ],
+    [
+      20002,
+      "project"
+    ]
+  ],
+  "editorPose": {
+    "position": [
+      15.669437537369106,
+      16.253641880654445,
+      22.26709544784031
+    ],
+    "target": [
+      0,
+      0.08937999999999992,
+      0
+    ],
+    "fov": 32,
+    "background": "#a6ada1"
+  },
+  "video": "flow.webm"
+}

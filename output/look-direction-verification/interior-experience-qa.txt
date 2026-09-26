@@ -1,0 +1,5 @@
+PASS Real Three.js scene and camera were captured during rendering
+PASS Inside eyes stand exactly 1.65 m above the floor
+PASS Rendered lens stays within 65° vertical and 95° horizontal
+PASS Rendered interior remains a usable room view
+FAIL Error: Window glass lets daylight through rather than casting opaque shadows

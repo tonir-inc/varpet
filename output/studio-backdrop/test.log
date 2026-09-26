@@ -1,0 +1,464 @@
+
+> varpet@ test /Users/davitstepanyan/Documents/varpet
+> pnpm -r test
+
+Scope: 6 of 7 workspace projects
+apps/buyer test$ node --test tests/*.test.mjs
+apps/showcase test$ node --test tests/*.test.mjs
+packages/designer test$ vitest run && python3 -m unittest discover -s ../../harness -p 'designer*_test.py' && python3 -m unittest discover -s eval -p 'test_*.py'
+packages/engine test$ vitest run --passWithNoTests
+packages/designer test:  RUN  v5.0.2 /Users/davitstepanyan/Documents/varpet/packages/designer
+packages/engine test:  RUN  v5.0.2 /Users/davitstepanyan/Documents/varpet/packages/engine
+packages/engine test: No test files found, exiting with code 0
+packages/engine test: include: **/*.{test,spec}.?(c|m)[jt]s?(x)
+packages/engine test: exclude:  **/node_modules/**, **/.git/**
+apps/buyer test: ✔ owned pieces cost nothing, the developer's furniture is still to buy, custom pieces are estimates (1.180959ms)
+apps/buyer test: ✔ a developer piece the designer picked counts as a shop purchase unless it is owned (0.1185ms)
+apps/buyer test: ✔ sizes read width, depth, height in centimetres (0.057959ms)
+packages/engine test: Done
+apps/showcase test: ✔ Avani is an explicit example with unquoted currency, not a Komitas or model result (1.238542ms)
+apps/showcase test: ✔ prices require explicit AMD and count only added pieces; factual room counts do not include inferred service rooms (4.292042ms)
+apps/showcase test: ✔ missing catalog does not pretend a furnished state is ready (0.564708ms)
+apps/showcase test: ✔ partial deliveries choose the available view and never advertise an absent example (0.258417ms)
+apps/showcase test: ✔ recorded request outcomes distinguish applied proposals, questions and declines (0.375541ms)
+apps/showcase test: ✔ facts-only real collection retains an explicitly labelled interactive example (0.133125ms)
+apps/showcase test: ✔ Avani never advertises a developer plan; real flats preserve explicit availability only (0.116084ms)
+apps/showcase test: ✔ developer drawings use their own catalog and disclose omitted pieces without claiming designer purchases (3.238542ms)
+apps/showcase test: ✔ missing drawing audit cannot imply a complete developer layout (1.057875ms)
+apps/showcase test: ✔ standalone model transport resolves editor optimization paths to the exact frozen public model (0.47025ms)
+apps/showcase test: ✔ an explicit model mirror preserves the exact SKU and leaves unrelated resources alone (0.13175ms)
+apps/showcase test: ✔ missing Komitas inputs returns no invented flats (13.339083ms)
+apps/showcase test: ✔ loads real shell, ground truth and furnished result as separate states (123.710042ms)
+apps/showcase test: ✔ local plans allow only flat IDs and supported image extensions (22.354875ms)
+apps/showcase test: ✔ uses the latest completed BENCH run with its exact final catalog, ignoring in-progress runs (45.459166ms)
+apps/showcase test: ✔ plan availability is explicit and only true for a supplied local original (39.19625ms)
+apps/showcase test: ✔ loads drawn-only residences with their frozen catalog and a compact omissions audit (8.063166ms)
+apps/showcase test: ℹ tests 17
+apps/showcase test: ℹ suites 0
+apps/showcase test: ℹ pass 17
+apps/showcase test: ℹ fail 0
+apps/showcase test: ℹ cancelled 0
+apps/showcase test: ℹ skipped 0
+apps/showcase test: ℹ todo 0
+apps/showcase test: ℹ duration_ms 415.681625
+apps/buyer test: ✔ progress and streamed text: deltas replace then append, progress waits while text streams (1.635084ms)
+apps/buyer test: ✔ tool lines move pieces from seen to searching, found, reserved; scripted is sticky (0.484834ms)
+apps/buyer test: ✔ propose, build, proposal, question, message, decline and error lines set their phases (0.274375ms)
+apps/showcase test: Done
+apps/buyer test: ✔ readLines skips blank, malformed, oversized and unknown lines and handles split chunks (17.284416ms)
+apps/buyer test: ✔ player emits every line in order, honours speed changes and skipToEnd (17.675083ms)
+apps/buyer test: ✔ fixture: sorted, scripted, real catalog assets, and plays through the reducer to done (3.898583ms)
+apps/buyer test: ✔ fixture: the proposal command executes on the Avani demo flat with the slot assets (7.569958ms)
+apps/buyer test: ℹ tests 10
+apps/buyer test: ℹ suites 0
+apps/buyer test: ℹ pass 10
+apps/buyer test: ℹ fail 0
+apps/buyer test: ℹ cancelled 0
+apps/buyer test: ℹ skipped 0
+apps/buyer test: ℹ todo 0
+apps/buyer test: ℹ duration_ms 456.225
+apps/buyer test: Done
+packages/designer test:  Test Files  123 passed (123)
+packages/designer test:       Tests  551 passed (551)
+packages/designer test:    Start at  23:13:45
+packages/designer test:    Duration  54.36s (tests 84%, import 14%, transform 2%, worker 1%)
+packages/designer test:     Isolate  123 workers spawned · ~87ms startup each (spawn + environment, per file)
+packages/designer test:              at least ~10.59s faster with isolate: false — reuses workers across files instead of one per file
+packages/designer test: ..{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"fast_path": true}, "conversationId": "644bb1ea771244a08be26a2d000c318d", "outcome": "decline", "seconds": 0.0, "usage": {"inputTokens": 0, "outputTokens": 0, "cachedInputTokens": 0, "totalTokens": 0}, "tool_calls": 0}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"fast_path": false}, "conversationId": "72a82067a2004502a29178d3fd166414", "outcome": "message", "seconds": 0.005, "usage": null, "tool_calls": 0}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"fast_path": true}, "conversationId": "cfbb297bec964b3798ea4881c8c75086", "outcome": "proposal", "seconds": 0.005, "usage": null, "tool_calls": 0}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"fast_path": true}, "conversationId": "cfbb297bec964b3798ea4881c8c75086", "outcome": "message", "seconds": 0.001, "usage": null, "tool_calls": 0}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"fast_path": true}, "conversationId": "cfbb297bec964b3798ea4881c8c75086", "outcome": "message", "seconds": 0.001, "usage": null, "tool_calls": 0}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "e9b22290238d4d4997f77e69ff1f9347", "outcome": "message", "seconds": 0.056, "usage": null, "tool_calls": 0}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "0e90a059e6a1405aa301081ce19a5f9b", "outcome": "proposal", "seconds": 0.057, "usage": null, "tool_calls": 0}
+packages/designer test: ........................{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "7022037ba4b643ba85ba19b0308d8777", "outcome": "message", "seconds": 0.005, "usage": null, "tool_calls": 0}
+packages/designer test: ..{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "e394b52bfe4e4e7a9a3446ceec9dd955", "outcome": "decline", "seconds": 0.003, "usage": null, "tool_calls": 0}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "b24f4c6f0e5a454a9f9a8adcbf95eada", "outcome": "message", "seconds": 0.003, "usage": null, "tool_calls": 0}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "e6a7f0ba96e84b5a894e398cbb582a15", "outcome": "message", "seconds": 0.003, "usage": null, "tool_calls": 0}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "0b71aedc33144485a9795a770f59a551", "outcome": "error", "seconds": 0.003, "usage": null, "tool_calls": 0}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "5fe1e53b69f64def9f3140650dd2bf5f", "outcome": "error", "seconds": 0.003, "usage": null, "tool_calls": 0}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "7cf9700e67ef43b3b7e0c95de447e89e", "outcome": "error", "seconds": 0.003, "usage": null, "tool_calls": 0}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "806ed1f076f5414997289bc15602cabe", "outcome": "error", "seconds": 0.003, "usage": null, "tool_calls": 0}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "231bafc26a534c3384247f6f1847b35c", "outcome": "error", "seconds": 0.003, "usage": null, "tool_calls": 0}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "f45275dc3e2948cc8ef340f279dd9eec", "outcome": "message", "seconds": 0.003, "usage": null, "tool_calls": 0}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "169b6a92696e45398d8ad6aef82c33cd", "outcome": "aborted", "seconds": 0.0, "usage": null, "tool_calls": 0}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"fast_path": true}, "conversationId": "a94bfb8eb4c640b7a13af7d8651623a3", "outcome": "message", "seconds": 0.003, "usage": null, "tool_calls": 0}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"fast_path": true}, "conversationId": "a94bfb8eb4c640b7a13af7d8651623a3", "outcome": "message", "seconds": 0.001, "usage": null, "tool_calls": 0}
+packages/designer test: {"kind": "tool_mode_audit", "tool_mode": "direct", "original_tool_mode": "code_mode_only", "sha256": "729ee0c2791ec69bd0967949495644629e7d7e799c9fb779589173f4bbea53a6"}
+packages/designer test: {"kind": "model_catalog_audit", "sha256": "11d358d6789111006d97d5df7a98cec4831d079d5ed5eebba13c0656364ab859", "client_version": "0.154.0", "fetched_at": "2026-09-26T19:14:41.593406Z"}
+packages/designer test: ....................{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "2e14b86d4f8442a98ebab07a4b0aac53", "outcome": "message", "seconds": 0.004, "usage": null, "tool_calls": 1}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "d7c61b985c2340a3aad210c4f3fa4880", "outcome": "message", "seconds": 0.004, "usage": null, "tool_calls": 1}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "db4b4f3f6c2f4256beffb4134cff98d5", "outcome": "message", "seconds": 0.004, "usage": null, "tool_calls": 1}
+packages/designer test: ..{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "15ef42d01a7048e2a8ceb8d9e7d50c9b", "outcome": "message", "seconds": 0.012, "usage": null, "tool_calls": 0}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "76d6440c8c844fee801d289454beca4f", "outcome": "message", "seconds": 0.006, "usage": null, "tool_calls": 1}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "6e601ace83a0425bb9da5f536c25b967", "outcome": "message", "seconds": 0.067, "usage": null, "tool_calls": 0}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "513dc7dc10c940249fb1aa90ae49c886", "outcome": "message", "seconds": 0.07, "usage": null, "tool_calls": 0}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "e4ff36f4b702429bac256a60643e1f1b", "outcome": "message", "seconds": 0.006, "usage": null, "tool_calls": 0}
+packages/designer test: .....{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"fast_path": true}, "conversationId": "a6c7aca5258a40aa9d421af8e51c7c59", "outcome": "decline", "seconds": 0.0, "usage": {"inputTokens": 0, "outputTokens": 0, "cachedInputTokens": 0, "totalTokens": 0}, "tool_calls": 0}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"fast_path": false}, "conversationId": "66f7df4f9a494f9b89bf55943306e4d7", "outcome": "error", "seconds": 0.004, "usage": null, "tool_calls": 0}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"fast_path": true}, "conversationId": "03e6f56006f040f5a2ec686019a5272b", "outcome": "error", "seconds": 0.004, "usage": null, "tool_calls": 0}
+packages/designer test: .......{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "6f25d4acf3ce4c76bbf895b2181000c3", "outcome": "aborted", "seconds": 0.005, "usage": null, "tool_calls": 0}
+packages/designer test: ..{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "ed021718b1d2477eba5db146095205d8", "outcome": "message", "seconds": 0.004, "usage": null, "tool_calls": 0}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "ed021718b1d2477eba5db146095205d8", "outcome": "message", "seconds": 0.061, "usage": null, "tool_calls": 0}
+packages/designer test: ...............................{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "82aeaeaa49f640c0b43cca85974a3117", "outcome": "proposal", "seconds": 0.004, "usage": null, "tool_calls": 0}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "183d6c7f3d55469189e333e4a76ea829", "outcome": "error", "seconds": 0.005, "usage": null, "tool_calls": 0}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "84a2176728ea456ababafdb0d5259703", "outcome": "error", "seconds": 0.004, "usage": null, "tool_calls": 0}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "b0891eaeb38e4f59bdede69f571ed8ef", "outcome": "error", "seconds": 0.003, "usage": null, "tool_calls": 0}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "6f2512f000284eaea37a57648848cd5d", "outcome": "error", "seconds": 0.003, "usage": null, "tool_calls": 0}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "040557c3f25c40ea8a7ca4c43f4ff432", "outcome": "error", "seconds": 0.002, "usage": null, "tool_calls": 0}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "62738034c0164064a82da408696c3aa8", "outcome": "error", "seconds": 0.003, "usage": null, "tool_calls": 0}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "5a4aff548a674ac28a4c6ca9935721d5", "outcome": "error", "seconds": 0.003, "usage": null, "tool_calls": 0}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "0ca03ae11a3a42e2911ab2310d00765d", "outcome": "error", "seconds": 0.003, "usage": null, "tool_calls": 0}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "2c9a2f46e92c4eaa83e8263af1258b05", "outcome": "error", "seconds": 0.003, "usage": null, "tool_calls": 0}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "c9ab8f51fa0b4ba997b20a2cc39978f8", "outcome": "error", "seconds": 0.002, "usage": null, "tool_calls": 0}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "fc85d951d8ac4b5a9404379b2fec4e8d", "outcome": "error", "seconds": 0.002, "usage": null, "tool_calls": 0}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "d227c492e6384f82a72966401fc4ae6d", "outcome": "error", "seconds": 0.002, "usage": null, "tool_calls": 0}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "6c2edfdc7c544a998fbac0099f36a357", "outcome": "error", "seconds": 0.002, "usage": null, "tool_calls": 0}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "b92777eb1d37443ea859a214b8d929a9", "outcome": "error", "seconds": 0.002, "usage": null, "tool_calls": 0}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "437dc5b570f5464a83a2485a7ff7a163", "outcome": "proposal", "seconds": 0.005, "usage": null, "tool_calls": 0}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "1d47bbd71fb944b5bcf424fb1b52b372", "outcome": "proposal", "seconds": 0.007, "usage": null, "tool_calls": 0}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "567c80730cab4cf896e99318ac946929", "outcome": "error", "seconds": 0.004, "usage": null, "tool_calls": 0}
+packages/designer test: ...........{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "1dcb555fde87430ca3022d62c114237a", "outcome": "decline", "seconds": 0.052, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "1dcb555fde87430ca3022d62c114237a", "outcome": "decline", "seconds": 0.047, "usage": {"inputTokens": 0, "outputTokens": 0, "totalTokens": 0}, "tool_calls": 0}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "1dcb555fde87430ca3022d62c114237a", "outcome": "proposal", "seconds": 0.348, "usage": {"inputTokens": 0, "outputTokens": 0, "totalTokens": 0}, "tool_calls": 0}
+packages/designer test: ....{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "9e441ae8ce5a4ac8bb900852aff8e7f1", "outcome": "proposal", "seconds": 0.005, "usage": null, "tool_calls": 0}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "924e06907bda4f04b12279b77915d9b4", "outcome": "message", "seconds": 0.004, "usage": null, "tool_calls": 0}
+packages/designer test: ...{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "9f83c2bf3fde40f9af37dae8da5348a2", "outcome": "error", "seconds": 0.053, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "c3d7eeae22444a1fb3869995c5f03b48", "outcome": "error", "seconds": 0.371, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "0a828fb01301424592e292112822bf3d", "outcome": "error", "seconds": 0.36, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "ea5ba2032dcd4972b30654a7479b7446", "outcome": "message", "seconds": 0.072, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "ea5ba2032dcd4972b30654a7479b7446", "outcome": "message", "seconds": 0.053, "usage": {"inputTokens": 0, "outputTokens": 0, "totalTokens": 0}, "tool_calls": 0}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "ccac85747ddd42b29c43f48bd078279c", "outcome": "error", "seconds": 0.35, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "75773f8393804f6b8426a27260937b30", "outcome": "aborted", "seconds": 0.208, "usage": null, "tool_calls": 0}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "84133cbcf7e744e09d73203a9b7b8be8", "outcome": "message", "seconds": 0.337, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "72abf3909cb64df281e9121050a6d33e", "outcome": "message", "seconds": 0.383, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "e3944d48ca664a6a980c672aec13a11b", "outcome": "decline", "seconds": 0.076, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "a2e4d6eb93254c6da24ed56d8ce60245", "outcome": "decline", "seconds": 0.076, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+packages/designer test: ...{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "e43005f9409e4647b43586af4f6b6185", "outcome": "error", "seconds": 0.33, "usage": null, "tool_calls": 0}
+packages/designer test: ..{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "af2f16bec14249dbb4edecd9af0bd315", "outcome": "proposal", "seconds": 0.399, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+packages/designer test: ..{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "e059afb88f0448e3bf4332a8f40de2b5", "outcome": "proposal", "seconds": 0.363, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "50eabcbed6ee45a28b0948d95c9c9ef3", "outcome": "question", "seconds": 0.071, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "30832a2f36214d0a9fe2788d754ce852", "outcome": "proposal", "seconds": 0.383, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "30832a2f36214d0a9fe2788d754ce852", "outcome": "decline", "seconds": 0.064, "usage": {"inputTokens": 0, "outputTokens": 0, "totalTokens": 0}, "tool_calls": 0}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "4117d834f81f4dff8b45e9e615f52e43", "outcome": "error", "seconds": 0.079, "usage": null, "tool_calls": 0}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "a9c8cc42d8c1429db4a349309102527f", "outcome": "error", "seconds": 0.143, "usage": null, "tool_calls": 0}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "85bff0dbca5a4ce394cc62dece573c36", "outcome": "error", "seconds": 0.052, "usage": null, "tool_calls": 0}
+packages/designer test: ...............................................
+packages/designer test: ----------------------------------------------------------------------
+packages/designer test: Ran 197 tests in 25.112s
+packages/designer test: OK
+packages/designer test: ..........................................EVAL_USAGE_LIMIT
+packages/designer test: {"flat": "sample", "exit_code": 9}
+packages/designer test: {"flat": "sample", "exit_code": 3}
+packages/designer test: ''
+packages/designer test: usage limit reached
+packages/designer test: usage limit reached
+packages/designer test: .......................................
+packages/designer test: ----------------------------------------------------------------------
+packages/designer test: Ran 81 tests in 2.746s
+packages/designer test: OK
+packages/designer test: Done
+apps/editor test$ node scripts/check.mjs && node scripts/check-renovation.mjs && node scripts/check-openings.mjs && node scripts/check-finishes.mjs && node scripts/check-continuous-wall-finishes.mjs && node scripts/check-continuous-finish-render.mjs && node scripts/check-finish-texture-presets.mjs && node scripts/check-finish-textures.mjs && node scripts/check-placement.mjs && node scripts/check-furniture-placement.mjs && node scripts/check-walls.mjs && node scripts/check-wall-controller.mjs && node scripts/check-grouping.mjs && node scripts/check-plan-move.mjs && node scripts/check-inspector.mjs && node scripts/check-inspector-openings.mjs && node scripts/check-structural-wall-confirmation.mjs && node scripts/check-motion.mjs && node scripts/check-transform-motion.mjs && node scripts/check-projection-motion.mjs && node scripts/check-cutaway.mjs && node scripts/check-balcony-cutaway.mjs && node scripts/check-wall-junctions.mjs && node scripts/check-apartment-junctions.mjs && node scripts/check-plan-layers.mjs && node scripts/check-plan-measurements.mjs && node scripts/check-selection-camera.mjs && node scripts/check-room-camera.mjs && node scripts/check-walkthrough.mjs && node scripts/check-structural-surfaces.mjs && node scripts/check-heights.mjs && node scripts/check-interior-lighting.mjs && node scripts/check-skybox.mjs && node scripts/check-sunlight.mjs && node scripts/check-sun-occluders.mjs && node scripts/check-walkthrough-camera.mjs && node scripts/check-keyboard-navigation.mjs && node scripts/check-database-catalog.mjs && node scripts/check-assets.mjs && node --test server/*.test.mjs && node scripts/check-walkthrough-view.mjs && node scripts/check-architect.mjs && node scripts/check-reconstruction-proposal.mjs && node scripts/check-ceiling-design.mjs && node scripts/check-ceiling-render.mjs && node scripts/check-ceiling-visibility.mjs && node scripts/check-ceiling-seams.mjs && node scripts/check-catalog-http.mjs && node --test tests/*.test.mjs && node scripts/check-shadow-cache.mjs && node scripts/check-sky-lighting.mjs && node scripts/check-adaptive-occlusion.mjs && node scripts/check-ceiling-shadow-budget.mjs && node scripts/check-architect-project.mjs && node scripts/check-window-dimensions.mjs && node scripts/check-opening-transform.mjs && node scripts/check-opening-preview.mjs && node scripts/check-generated-ceilings.mjs && node scripts/check-ceiling-controls.mjs
+apps/editor test: Domain checks passed (265 assertions).
+apps/editor test: Renovation checks passed (102 assertions).
+apps/editor test: Reconstruction and handoff checks passed (29 assertions).
+apps/editor test: Opening clearance: 80 assertions passed.
+apps/editor test: Finish regressions passed: 92 assertions across 5 scenarios.
+apps/editor test: Continuous wall finish regressions passed: 76 assertions across 21 scenarios.
+apps/editor test: Continuous finish rendering checks passed (29 assertions).
+apps/editor test: Finish texture preset checks passed (33 assertions).
+apps/editor test: Finish texture checks passed (24 assertions).
+apps/editor test: Door barrier checks passed (5922 assertions).
+apps/editor test: Placement conflict checks passed (358 assertions).
+apps/editor test: Furniture placement checks passed (12 assertions).
+apps/editor test: Wall movement checks passed (87 assertions).
+apps/editor test: Wall controller checks passed (423 assertions; 6 wall directions in Top and 3D). Preview rendering requires browser verification.
+apps/editor test: PASS grouping preserves placement, migrates explicitly, and saves membership
+apps/editor test: PASS moving any member translates the whole group once and undo restores all
+apps/editor test: PASS rotation orbits members about the selected piece without changing scale or spacing
+apps/editor test: PASS invalid, stale, unapproved and locked-member transforms are atomic
+apps/editor test: PASS invalid membership is rejected and regrouping requires complete existing groups
+apps/editor test: PASS ungroup preserves transforms and subsequent moves affect one piece
+apps/editor test: PASS delete dissolves singleton groups and undo restores membership
+apps/editor test: PASS baseline and options retain independent group membership
+apps/editor test: PASS imports reject invalid group IDs, singleton groups and version 1 membership
+apps/editor test: PASS 9 grouping checks
+apps/editor test: Plan movement checks passed (283 assertions).
+apps/editor test: Inspector regressions passed: 102 assertions across 10 scenarios.
+apps/editor test: Inspector opening selection checks passed (12 assertions).
+apps/editor test: Structural wall confirmation checks passed (266 assertions).
+apps/editor test: Editor motion checks passed (52 assertions).
+apps/editor test: Transform motion checks passed (11 assertions).
+apps/editor test: Projection motion checks passed (16 assertions).
+apps/editor test: Cutaway checks passed (520 assertions).
+apps/editor test: Balcony cutaway checks passed (442 assertions).
+apps/editor test: Wall junction checks passed (64 assertions).
+apps/editor test: Apartment wall junction checks passed (35 assertions).
+apps/editor test: Plan layers checks passed (51 assertions).
+apps/editor test: Plan selection measurements: 92 assertions passed.
+apps/editor test: Selection camera checks passed (78 assertions).
+apps/editor test: Room camera checks passed (1012 assertions).
+apps/editor test: Walkthrough geometry: 36 assertions passed.
+apps/editor test: Structural surface checks passed (155 assertions).
+apps/editor test: Height checks passed: legacy ceilings meet the wall tops.
+apps/editor test: Height configuration checks passed: 35 assertions.
+apps/editor test: Interior lighting checks passed (25 assertions).
+apps/editor test: Skybox checks passed (94 assertions).
+apps/editor test: Sunlight checks passed (222 assertions).
+apps/editor test: Sun occluder checks passed (25 assertions).
+apps/editor test: Walkthrough camera checks passed (98 assertions).
+apps/editor test: Keyboard navigation checks passed (239 assertions).
+apps/editor test: Database catalog store checks passed
+apps/editor test: Database catalog mapping checks passed
+apps/editor test: Database startup and saved-reference checks passed
+apps/editor test: Database import, browsing, and currency checks passed
+apps/editor test: assets: 354 checks passed
+apps/editor test: (node:10473) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+apps/editor test: (Use `node --trace-warnings ...` to show where the warning was created)
+apps/editor test: ✔ registration authenticates with a private cookie; logout revokes it and login verifies the password (194.128166ms)
+apps/editor test: ✔ apartments preserve the complete project and catalog across a server restart (59.605083ms)
+apps/editor test: ✔ one user cannot read or update another user’s saved apartment (109.260833ms)
+apps/editor test: ✔ concurrent saves accept one version and reject a stale overwrite with the current apartment (58.325459ms)
+apps/editor test: ✔ credential validation rejects empty names, malformed email, weak passwords and duplicate normalized accounts (56.299959ms)
+apps/editor test: ✔ mutations reject cross-origin and missing-origin requests, invalid JSON and wrong content types (5.019084ms)
+apps/editor test: ✔ body limits and scene validation reject invalid saves without damaging a saved apartment (56.92525ms)
+apps/editor test: ✔ rate limits bound repeated authentication attempts (104.784917ms)
+apps/editor test: ✔ the database contains salted password hashes and hashed session tokens, and expired sessions cannot authenticate (55.675125ms)
+apps/editor test: ✔ new accounts require passwords with at least twelve characters (3.631209ms)
+apps/editor test: ✔ saved apartments preserve database catalog product wrappers and attribution (54.405334ms)
+apps/editor test: ✔ unexpected database failures emit safe diagnostics without exposing private request data (59.08425ms)
+apps/editor test: ✔ apartment sharing references persist privately across restart without entering project data or lists (65.750542ms)
+apps/editor test: ✔ only an authenticated apartment owner can change its sharing reference from the same origin (114.409584ms)
+apps/editor test: ✔ competing apartment sharing changes use the same version guard as scene saves (57.272667ms)
+apps/editor test: ✔ scene saves preserve sharing only for the same scene and apartment copies start without it (57.749292ms)
+apps/editor test: ✔ invalid sharing references and versions leave the saved apartment unchanged (58.603666ms)
+apps/editor test: ✔ a failed sharing association rolls back its apartment version change (56.636292ms)
+apps/editor test: ✔ search uses the real SDK, honors session/SSE, and merges raw dimensions, model and provenance (30.182ms)
+apps/editor test: ✔ saved item hydration deduplicates ids and reports missing records without fake products (6.436417ms)
+apps/editor test: ✔ vocabulary is returned directly from the database tool (2.294709ms)
+apps/editor test: ✔ remote errors and invalid detail identities return sanitized unavailable responses (6.238833ms)
+apps/editor test: ✔ the request deadline aborts stalled upstream requests (63.625833ms)
+apps/editor test: ✔ invalid or mutating requests never call the catalog and unrelated routes pass through (3.388833ms)
+apps/editor test: ✔ light model files are relayed from the catalog service with a one-year cache (2.51225ms)
+apps/editor test: ✔ a model without a light copy is an uncached 404 so the browser falls back to the original (1.490292ms)
+apps/editor test: ✔ model routes accept only GET of a plain .glb name and never reach the catalog otherwise (1.5305ms)
+apps/editor test: ✔ search pages forward an offset and return where the next page starts (3.145458ms)
+apps/editor test: ✔ long extra model names up to 120 characters are relayed (0.748625ms)
+apps/editor test: ℹ tests 29
+apps/editor test: ℹ suites 0
+apps/editor test: ℹ pass 29
+apps/editor test: ℹ fail 0
+apps/editor test: ℹ cancelled 0
+apps/editor test: ℹ skipped 0
+apps/editor test: ℹ todo 0
+apps/editor test: ℹ duration_ms 1327.490333
+apps/editor test: Walkthrough view checks passed (41 assertions).
+apps/editor test: Built pieces unavailable, using the catalog without them TypeError: offline
+apps/editor test:     at file:///private/var/folders/2s/g_x43drx6vsdf2rpxxbby8hw0000gn/T/varpet-architect-check-ewjY71/check.mjs:3083:8
+apps/editor test:     at builtPieces (file:///private/var/folders/2s/g_x43drx6vsdf2rpxxbby8hw0000gn/T/varpet-architect-check-ewjY71/check.mjs:2423:29)
+apps/editor test:     at withBuiltPieces (file:///private/var/folders/2s/g_x43drx6vsdf2rpxxbby8hw0000gn/T/varpet-architect-check-ewjY71/check.mjs:2479:28)
+apps/editor test:     at file:///private/var/folders/2s/g_x43drx6vsdf2rpxxbby8hw0000gn/T/varpet-architect-check-ewjY71/check.mjs:3082:14
+apps/editor test: architect adapter check passed
+apps/editor test: Reconstruction proposal checks passed (41 assertions).
+apps/editor test: Ceiling design contract checks passed: 46 assertions.
+apps/editor test: Ceiling design checks passed: 406 assertions.
+apps/editor test: Ceiling rendering checks passed (150 assertions).
+apps/editor test: Ceiling visibility checks passed (141 assertions).
+apps/editor test: Ceiling seam checks passed (177 assertions).
+apps/editor test: catalog HTTP checks passed
+apps/editor test: ✔ every selectable plan is valid, empty, and copied independently for each apartment (9.306125ms)
+apps/editor test: ✔ account save preserves full renovation evidence and copies exact referenced catalog metadata (5.14225ms)
+apps/editor test: ✔ reopen rejects malformed projects or missing furniture instead of silently dropping content (0.285833ms)
+apps/editor test: ✔ reopening matching shared progress restores its version and marks revision zero saved (5.89575ms)
+apps/editor test: ✔ different shared scenes or catalog snapshots stay dirty without replacing account progress (4.277458ms)
+apps/editor test: ✔ a restored account share rejects saving from a copied apartment with the same scene ID (1.682417ms)
+apps/editor test: ✔ account scene exports and copied apartment payloads exclude the durable sharing capability (0.873542ms)
+apps/editor test: ✔ sharing read failures propagate while the saved account snapshot remains unchanged (2.29275ms)
+apps/editor test: ✔ a sharing record for another scene cannot restore an account sharing session (1.098542ms)
+apps/editor test: ✔ view-only sharing access cannot become the account’s editing session (1.200917ms)
+apps/editor test: ✔ absent or locally stale sharing references do not load a shared apartment (1.528375ms)
+apps/editor test: ✔ simultaneous link choices attach the same share once at the account record version (1.192417ms)
+apps/editor test: ✔ account share attachment refuses a different apartment owner before writing (0.946375ms)
+apps/editor test: ✔ permission choices join link creation while the account attachment is still pending (0.713917ms)
+apps/editor test: ✔ the complete sharing creation pipeline keeps copied account apartments independent (0.758333ms)
+apps/editor test: ✔ architect fixtures survive HTTP, reconstruction preview, Apply and Undo (8.374375ms)
+apps/editor test: ✔ architect rejects malformed components and broken room references before offering a proposal (2.586625ms)
+apps/editor test: ✔ legacy architect response without components remains valid (0.228375ms)
+apps/editor test: ✔ uploaded plan and photos retain exact original bytes through editor save and reopen (4.603709ms)
+apps/editor test: ✔ existing evidence and reviewed project metadata survive upload attachment independently (0.241084ms)
+apps/editor test: ✔ reattaching the same original does not duplicate existing plan evidence (0.199542ms)
+apps/editor test: ✔ unsupported, empty and oversized uploads fail before reading their bytes (0.679292ms)
+apps/editor test: ✔ exact upload byte limits fit the existing encoded evidence and parser limits (306.74425ms)
+apps/editor test: ✔ photo-count and combined existing evidence limits reject without changing service state (20.9775ms)
+apps/editor test: ✔ long uploaded filenames become valid evidence names without changing original bytes (0.295875ms)
+apps/editor test: ✔ transport names cannot overwrite the blueprint when originals collide after server sanitizing and truncation (0.334958ms)
+apps/editor test: ✔ built assets become registrable products with explicit unpriced, unverified provenance (7.917291ms)
+apps/editor test: ✔ saved older-run references hydrate alongside database furniture including option references (9.193166ms)
+apps/editor test: ✔ missing service or missing built pieces reject hydration without falling back to database records (0.568209ms)
+apps/editor test: ✔ malformed or shop-priced built payloads cannot enter the product catalog (1.588625ms)
+apps/editor test: ✔ designer can propose remote ABO products while existing product identity and provenance stay authoritative (2.681ms)
+apps/editor test: ✔ remote discovery never reintroduces demo or procedural furniture (0.111ms)
+apps/editor test: ✔ browsing the same designer-added SKU preserves its registered appearance and updates provenance (0.606333ms)
+apps/editor test: ✔ discovery fits the catalog bound without dropping current scene or history references (5.917833ms)
+apps/editor test: ✔ proposal survives a catalog search, requires approval, and undo restores the empty apartment (0.653292ms)
+apps/editor test: ✔ same-revision conversations retain only added products and immutable snapshots (0.149625ms)
+apps/editor test: ✔ reused proposal IDs cannot substitute a different command or bypass revisions (0.110125ms)
+apps/editor test: ✔ message, suggestions and streamed text cross the HTTP boundary (7.757708ms)
+apps/editor test: ✔ message suggestions reject malformed values and enforce the four-chip boundary (17.536208ms)
+apps/editor test: ✔ follow-up answers retain proposal context, suggestions, notes and approval state (1.240125ms)
+apps/editor test: ✔ streamed draft is replaced once by the final answer and ignored after cancellation (0.197667ms)
+apps/editor test: ✔ retry resends the failed request in the same thread without applying anything (0.216917ms)
+apps/editor test: ✔ light markdown renders emphasis and lists while all HTML and links stay inert (0.362375ms)
+apps/editor test: ✔ recorded demo answers a design question without proposing an edit (1.858625ms)
+apps/editor test: ✔ cancel clears streamed text immediately and rejects late chunks (0.257167ms)
+apps/editor test: ✔ opt-in adapter streams tool/build events before final answer and sends the flag (14.134917ms)
+apps/editor test: ✔ legacy request stays opt-out; malformed or unsolicited events cannot reach callbacks (10.9185ms)
+apps/editor test: ✔ events after a terminal reply remain a protocol error (0.889875ms)
+apps/editor test: ✔ chat opts in, shows slot state in the existing progress line and ignores late events (4.234375ms)
+apps/editor test: ✔ custom assets validate together with the proposal before delivery; source URL uses the service origin (5.532333ms)
+apps/editor test: ✔ chat HTTP wrapper opts in and delivers events before the final network chunk (3.211375ms)
+apps/editor test: ✔ opt-in records are validated even without an event callback (2.545041ms)
+apps/editor test: ✔ published recorded event sample conforms to the adapter contract (11.52125ms)
+apps/editor test: ✔ optional notes travel outside the unchanged AgentProposal and never apply the scene (11.777208ms)
+apps/editor test: ✔ legacy proposals without notes remain valid and do not emit a notes callback (3.237125ms)
+apps/editor test: ✔ notes accept the 1600-character boundary and reject malformed, blank or oversized values (11.522833ms)
+apps/editor test: ✔ notes cannot escape proposal validation or appear on another terminal response (1.8785ms)
+apps/editor test: ✔ askDesigner returns envelope notes without changing the proposal (7.556834ms)
+apps/editor test: ✔ proposal notes persist as plain text and do not change preview, apply or stale-history rules (1.152375ms)
+apps/editor test: ✔ invalid restored notes cannot enter conversation state (0.278959ms)
+apps/editor test: ✔ old saved messages without notes remain readable (0.10225ms)
+apps/editor test: ✔ non-history panel callers retain notes without changing their review callback (0.177583ms)
+apps/editor test: ✔ reload restores messages, choices and service conversationId; new conversation retains selectable history (2.266958ms)
+apps/editor test: ✔ scene changes abort work, isolate history and ignore late replies (0.222708ms)
+apps/editor test: ✔ stored pending proposals become stale even when a reloaded store has the same revision (0.311583ms)
+apps/editor test: ✔ preview, apply and dismiss are explicit actions; terminal state persists and cannot apply twice (0.312833ms)
+apps/editor test: ✔ failed approval stays pending and reports the editor error; revision changes mark it stale (0.209625ms)
+apps/editor test: ✔ storage failures and malformed history do not break requests or scene-local session history (0.419709ms)
+apps/editor test: ✔ legacy mock mode does not load or save conversation history (0.092917ms)
+apps/editor test: ✔ preview applies through a scratch command store, checks staleness and leaves the original untouched (1.899541ms)
+apps/editor test: ✔ a new conversation confirms storage availability before reporting its persistence status (0.09ms)
+apps/editor test: ✔ successfully stored long history remains readable on reload (1.727ms)
+apps/editor test: ✔ recorded HTTP proposal requires approval, applies through the editor store, and undo restores every object (45.256667ms)
+apps/editor test: ✔ recorded HTTP question continues the conversation and declines preserve keeps (20.315333ms)
+apps/editor test: ✔ a scene edited after the request rejects its stale proposal atomically (12.516458ms)
+apps/editor test: ✔ empty input and overlapping submissions do not start requests (1.7495ms)
+apps/editor test: ✔ streams progress and sends a captured scene, revision and existing keep ids (0.481042ms)
+apps/editor test: ✔ question option is the next message in the same conversation (0.198625ms)
+apps/editor test: ✔ proposal is sent to review once without changing the scene (0.727042ms)
+apps/editor test: ✔ cancel aborts the signal immediately and ignores late progress and proposals (0.34825ms)
+apps/editor test: ✔ a cancelled request cannot clear the busy state of a newer request (0.197875ms)
+apps/editor test: ✔ service errors and network errors are visible and allow retry (0.178542ms)
+apps/editor test: ✔ disposing aborts without publishing a late reply (0.129167ms)
+apps/editor test: ✔ recorded demo has proposal, question, decline and respects keeps (6.889083ms)
+apps/editor test: ✔ proposal numbers come from service score, including zero cost and blocked walkways (4.542916ms)
+apps/editor test: ✔ missing or malformed proposal numbers remain unknown instead of becoming zero (0.203417ms)
+apps/editor test: ✔ valid score reports minimum across rooms and whole dram purchases (0.134334ms)
+apps/editor test: ✔ no door routes or missing metrics are not reported as measured clearance (0.081208ms)
+apps/editor test: ✔ north is unknown by default, validates degrees, persists per scene and is sent with Suggest (0.2565ms)
+apps/editor test: ✔ unavailable browser storage preserves north for this session without claiming it was saved (0.091041ms)
+apps/editor test: ✔ elapsed seconds use elapsed time, reset on retry, and stop after cancellation and disposal (0.148708ms)
+apps/editor test: ✔ empty flat keeps the four original examples (1.246083ms)
+apps/editor test: ✔ empty rooms get actionable starters and edits recompute without mutation (0.561542ms)
+apps/editor test: ✔ unknown furniture and ambiguous cabinets never become false empty or missing-storage claims (0.118ms)
+apps/editor test: ✔ native wardrobe kind counts as storage even when its product name gives no clue (0.084ms)
+apps/editor test: ✔ room polygons, boundaries and floors determine which room contains furniture (0.09375ms)
+apps/editor test: ✔ built-in storage and removed entities respect renovation metadata (0.116ms)
+apps/editor test: ✔ west-facing wording requires known north and survives reversed wall endpoints (0.470208ms)
+apps/editor test: ✔ interior, removed and explicitly shared windows never claim west exposure (0.135583ms)
+apps/editor test: ✔ only four deterministic, distinct suggestions are shown in a large flat (0.137834ms)
+apps/editor test: ✔ elevated built-in cabinets count without roomId and stay on their own floor (0.178666ms)
+apps/editor test: ✔ built-in occupancy uses the same shell-derived ceiling as the editor (0.079709ms)
+apps/editor test: ✔ the recorded event stream becomes plain-English steps (10.129166ms)
+apps/editor test: ✔ tool calls without ids close the latest open call; errors and failed checks stay visible (0.174084ms)
+apps/editor test: ✔ piece names come only from known nouns in the slot id, and clocks read m:ss (0.073833ms)
+apps/editor test: ✔ an unfinished build is not reported as done, and the summary counts it (0.173416ms)
+apps/editor test: ✔ a turn shows live steps, then moves them onto its reply; damaged stored steps are dropped (1.112625ms)
+apps/editor test: ✔ a queued message waits for the turn, can be removed, and Stop hands it back instead of sending it (1.025583ms)
+apps/editor test: ✔ switching conversation drops the queue instead of sending it into another thread (0.548916ms)
+apps/editor test: ✔ context prefixes only what the buyer typed, and proposal chips price only known pieces (0.257709ms)
+apps/editor test: ✔ lens choices accept only the supported names and the editor starts with photo framing (0.794625ms)
+apps/editor test: ✔ photo reveals more of the room at the screenshot aspect, and wide reveals more again (0.822417ms)
+apps/editor test: ✔ resizing each lens respects both field limits and preserves the standing pose and clipping distances (0.383792ms)
+apps/editor test: ✔ omitting the optional lens retains the existing standard framing across viewport shapes (0.190166ms)
+apps/editor test: ✔ invalid lens names and viewport aspects fall back without corrupting the projection (0.353625ms)
+apps/editor test: ✔ the M6 repaired outside corner also blocks light in the hidden physical shell (16.219625ms)
+apps/editor test: ✔ repeated opening previews dispose replaced wall prisms without disposing live shared frame boxes (7.967167ms)
+apps/editor test: ✔ adjacent selected walls move from the original junctions exactly once, independently of order (4.748334ms)
+apps/editor test: ✔ collinear selection inserts room junctions once and a T branch follows the original host (1.001625ms)
+apps/editor test: ✔ multi-wall movement preserves hosts and routes and invalidates affected evidence (1.247042ms)
+apps/editor test: ✔ locks on selected and dependent geometry reject a whole multi-wall command atomically (0.97775ms)
+apps/editor test: ✔ wall selection rejects room reversal, disconnected T hosts and shortened opening bounds (0.551ms)
+apps/editor test: ✔ walls and rooms on a separate level stay fixed during batch translation (0.278ms)
+apps/editor test: ✔ batch room connections use the original inferred ceiling height before walls move (0.287584ms)
+apps/editor test: ✔ batch recognition cannot sanitize malformed endpoints into an accepted command (0.895375ms)
+apps/editor test: ✔ temporary furniture selection translates and rotates loose pieces without changing membership (1.674625ms)
+apps/editor test: ✔ two persistent furniture groups and a loose object receive one rigid transform apiece (0.892833ms)
+apps/editor test: ✔ selection previews use checked commit semantics including normalization, bounds and member locks (2.286834ms)
+apps/editor test: ✔ creation returns independent capabilities and JSON responses disable caching and CORS (35.600375ms)
+apps/editor test: ✔ view reads include the exact snapshot but never either secret or editable access (17.607958ms)
+apps/editor test: ✔ editors can recover the viewer capability and publish a validated newer snapshot (23.67375ms)
+apps/editor test: ✔ viewer PUT cannot elevate permission through headers, query parameters, or a forged body (14.4235ms)
+apps/editor test: ✔ missing, malformed and unrelated tokens fail without exposing identifiers or secrets (25.392125ms)
+apps/editor test: ✔ concurrent expected-version writes serialize the entire compare and atomic save (22.703417ms)
+apps/editor test: ✔ a new server instance reads the committed disk snapshot with the same capabilities (22.656792ms)
+apps/editor test: ✔ invalid scenes, catalogs, spoofed creation fields and versions are rejected without changing disk (21.237084ms)
+apps/editor test: ✔ an edit capability cannot silently replace an unrelated project identity (11.199583ms)
+apps/editor test: ✔ JSON media type, parsing, size and same-origin checks apply to writes (62.649458ms)
+apps/editor test: ✔ an explicit public origin supports HTTPS proxies without trusting forwarded headers (11.96725ms)
+apps/editor test: ✔ a configured public origin must be an exact HTTP or HTTPS origin without credentials or a path (0.875333ms)
+apps/editor test: ✔ storage locations inside served roots, including symlink aliases, are rejected (0.913042ms)
+apps/editor test: ✔ storage errors return generic JSON without disclosing local paths (0.861083ms)
+apps/editor test: ✔ the sharing plugin registers the API on real Vite development and preview servers (88.937417ms)
+apps/editor test: ✔ capabilities live only in URL fragments and permission labels cannot elevate access (1.263042ms)
+apps/editor test: ✔ landing anchors stay in-page while changed share fragments reload, including malformed links (0.11175ms)
+apps/editor test: ✔ shared snapshots contain the exact scene and only its referenced catalog (3.241667ms)
+apps/editor test: ✔ receiving a view capability stays view-only and sends token in Authorization (5.21275ms)
+apps/editor test: ✔ invalid or mismatched shared data never becomes editable startup data (5.235708ms)
+apps/editor test: ✔ new sharing publishes current progress and generates distinct view and edit links (1.668042ms)
+apps/editor test: ✔ saving captures the submitted local revision and rejects a duplicate in-flight save (2.549792ms)
+apps/editor test: ✔ conflict preserves the local draft, saved revision and server version (2.178417ms)
+apps/editor test: ✔ save responses and scene identity are checked before marking progress saved (2.413125ms)
+apps/editor test: ✔ the same scene cannot publish through a different account apartment or an unowned editor (3.241042ms)
+apps/editor test: ✔ project matching distinguishes account records, drafts, direct shares and replaced scenes (1.254ms)
+apps/editor test: ✔ newly created sharing sessions retain their account apartment identity (2.290666ms)
+apps/editor test: ✔ pending link creation stays with its source project after close, replace and reopen (2.095084ms)
+apps/editor test: ✔ pending link creation separates account apartments that contain the same scene (1.451292ms)
+apps/editor test: ✔ clock accepts fractional hours, clamps endpoints, and safely normalizes invalid input (0.830792ms)
+apps/editor test: ✔ noon is bright and both midnight endpoints are dark with automatic lights on (0.124166ms)
+apps/editor test: ✔ dawn brightens smoothly and dusk dims smoothly while automatic lights follow the opposite curve (0.218ms)
+apps/editor test: ✔ daylight is continuous at each dawn/dusk boundary and remains finite across the full clock (0.1335ms)
+apps/editor test: ✔ time lighting results are independent values (0.046458ms)
+apps/editor test: ✔ default and legacy manual sunlight retain the existing elevation and strength (0.130584ms)
+apps/editor test: ✔ clock edits derive elevation without mutating the previous settings or patch (0.269334ms)
+apps/editor test: ✔ compass, strength and auto-light edits preserve the selected time (0.050583ms)
+apps/editor test: ✔ an explicit elevation edit returns to manual positioning, and reset clears the clock (0.064625ms)
+apps/editor test: ✔ invalid solar edits preserve a valid active clock and numeric settings (0.12325ms)
+apps/editor test: ✔ effective sun is absent at night, proportional at dusk, and obeys direct-sun and evening switches (0.098375ms)
+apps/editor test: ✔ automatic lighting changes only the preview fallback and leaves authored components untouched (0.215375ms)
+apps/editor test: ✔ switch off wins over night auto-lighting and a dimmer setting survives day/night changes (0.109958ms)
+apps/editor test: ✔ disabled and removed light fixtures stay off when automatic night lighting is active (0.053583ms)
+apps/editor test: ✔ unequal walls meet at the outer miter for either orientation and arbitrary corner angle (1.192959ms)
+apps/editor test: ✔ disconnected, vertically separate and removed walls cannot pull a corner into a false join (0.30475ms)
+apps/editor test: ✔ almost straight unequal-width and acute joins keep a bounded solid instead of remote miter spikes (0.370084ms)
+apps/editor test: ✔ T joins and short returns retain positive solid coverage without pushing a corner into an opening (0.7915ms)
+apps/editor test: ✔ a door beginning at a T junction cannot remove the neighbouring solid corner (4.520208ms)
+apps/editor test: ✔ M6 bedroom entrance corner has continuous painted faces and skirting in full and cutaway projections (41.541541ms)
+apps/editor test: ℹ tests 177
+apps/editor test: ℹ suites 0
+apps/editor test: ℹ pass 177
+apps/editor test: ℹ fail 0
+apps/editor test: ℹ cancelled 0
+apps/editor test: ℹ skipped 0
+apps/editor test: ℹ todo 0
+apps/editor test: ℹ duration_ms 980.320792
+apps/editor test: Shadow cache checks passed (8 assertions).
+apps/editor test: Sky lighting checks passed (36 assertions).
+apps/editor test: Adaptive occlusion checks passed (19 assertions).
+apps/editor test: Ceiling shadow budget checks passed (28 assertions).
+apps/editor test: architect project check passed
+apps/editor test: Window dimension checks passed: 75 assertions across 9 scenarios.
+apps/editor test: Opening transform checks passed: 512 assertions across 12 scenarios.
+apps/editor test: Opening preview checks passed (49 assertions).
+apps/editor test: Generated ceiling and room switch checks passed (56 assertions).
+apps/editor test: Ceiling control checks passed (59 assertions).
+apps/editor test: Done

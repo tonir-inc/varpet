@@ -1,6 +1,7 @@
 import { createViewport } from '../render/viewport';
 import { readSharedProject, type ShareReference, type SharedProject } from '../core/sharing';
 import { icon } from './icons';
+import { mountThemeToggle } from './theme';
 
 /** View links never mount the editor, its store, or mutation/proposal controls. */
 export function mountSharedViewer(app: HTMLElement, reference: ShareReference, initial: SharedProject) {
@@ -10,6 +11,7 @@ export function mountSharedViewer(app: HTMLElement, reference: ShareReference, i
     <main class="shared-stage" aria-label="Shared apartment"><div id="shared-viewport"></div><div class="shared-view-controls" role="group" aria-label="Apartment view"><button class="button" data-shared-view="perspective" aria-pressed="true">${icon('cube')} 3D</button><button class="button" data-shared-view="top" aria-pressed="false">${icon('top')} Top</button><button class="button" id="shared-focus">${icon('focus')} Fit apartment</button></div><p class="shared-render-error" role="alert" hidden></p></main>
     <footer class="shared-footer"><div><strong>Shared progress</strong><p id="shared-updated"></p><p class="shared-help">Drag to look around. Refresh to see the latest saved progress.</p></div><button id="shared-refresh" class="button">Refresh progress</button><p id="shared-status" role="status"></p></footer>`;
   const status = app.querySelector<HTMLElement>('#shared-status')!;
+  const disposeThemeToggle = mountThemeToggle(app.querySelector<HTMLElement>('.app-header')!);
   const viewport = createViewport(app.querySelector<HTMLElement>('#shared-viewport')!, {
     onSelect() {}, onTransform() {}, onInteraction() {},
     onError(message) { const error = app.querySelector<HTMLElement>('.shared-render-error')!; error.hidden = false; error.textContent = message; },
@@ -37,5 +39,5 @@ export function mountSharedViewer(app: HTMLElement, reference: ShareReference, i
     } catch (error) { status.textContent = error instanceof Error ? error.message : 'Could not refresh. Your current view is still available.'; }
     finally { refresh.disabled = false; }
   };
-  window.addEventListener('pagehide', () => viewport.dispose(), { once: true });
+  window.addEventListener('pagehide', event => { if (!event.persisted) { disposeThemeToggle(); viewport.dispose(); } });
 }

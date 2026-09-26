@@ -398,7 +398,7 @@ function validateProject(scene: SceneDocument, catalog: CatalogAsset[]): string[
   if (errors.length) return errors;
   if (p.routes.reduce((sum, route) => sum + route.points.length, 0) > 6000) fail('Service routing exceeds the 6000-point interactive project limit.');
   for (const c of p.components) if (c.control && new Set(c.control.targets).size !== c.control.targets.length) fail(`Switch “${c.name}” contains a duplicated light target.`);
-  for (const c of p.components) if (c.control) for (const id of c.control.targets) if (!p.components.some(target => target.id === id && target.kind === 'light')) fail(`Switch “${c.name}” references a missing light. Disconnect it explicitly before deleting that light.`);
+  for (const c of p.components) if (c.control) for (const id of c.control.targets) if (!p.components.some(target => target.id === id && target.kind === 'light') && !scene.rooms.some(room => room.id === id)) fail(`Switch “${c.name}” references a missing light or ceiling room. Disconnect it explicitly before deleting its target.`);
   const compatible: Record<string, string[]> = {
     electrical: ['panel', 'junction', 'switch', 'outlet', 'light', 'appliance', 'ac', 'vent', 'thermostat', 'smoke-detector', 'security', 'network', 'radiator'],
     'water-hot': ['sink', 'shower', 'bath', 'valve', 'riser', 'appliance'],

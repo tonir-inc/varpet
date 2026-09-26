@@ -1,0 +1,89 @@
+PASS The real exterior perspective camera rendered
+PASS The visible scene canvas can receive keyboard focus
+PASS w moves in the expected full viewing direction relative to the camera
+PASS w translates the orbit target equally while preserving orientation and zoom
+PASS ArrowUp moves in the expected full viewing direction relative to the camera
+PASS ArrowUp translates the orbit target equally while preserving orientation and zoom
+PASS s moves in the expected full viewing direction relative to the camera
+PASS s translates the orbit target equally while preserving orientation and zoom
+PASS ArrowDown moves in the expected full viewing direction relative to the camera
+PASS ArrowDown translates the orbit target equally while preserving orientation and zoom
+PASS a moves in the expected full viewing direction relative to the camera
+PASS a translates the orbit target equally while preserving orientation and zoom
+PASS ArrowLeft moves in the expected full viewing direction relative to the camera
+PASS ArrowLeft translates the orbit target equally while preserving orientation and zoom
+PASS d moves in the expected full viewing direction relative to the camera
+PASS d translates the orbit target equally while preserving orientation and zoom
+PASS ArrowRight moves in the expected full viewing direction relative to the camera
+PASS ArrowRight translates the orbit target equally while preserving orientation and zoom
+PASS Orbit controls can look down before keyboard travel
+PASS w follows the full downward viewing direction with the expected vertical movement
+PASS w while looking down translates the target equally without changing orientation or zoom
+PASS s follows the full downward viewing direction with the expected vertical movement
+PASS s while looking down translates the target equally without changing orientation or zoom
+PASS Orbit controls can look up before keyboard travel
+PASS w follows the full upward viewing direction with the expected vertical movement
+PASS w while looking up translates the target equally without changing orientation or zoom
+PASS s follows the full upward viewing direction with the expected vertical movement
+PASS s while looking up translates the target equally without changing orientation or zoom
+PASS Exterior travel is 5 m/s (4.99 measured)
+PASS Diagonal travel stays at 5 m/s (4.99 measured)
+PASS Holding both aliases does not double movement speed
+PASS Releasing the last movement key stops immediately without camera drift
+PASS Holding W reports an active viewport interaction
+PASS The wheel zooms the real camera while W is held
+PASS Finishing a wheel gesture preserves the active keyboard interaction
+PASS Held W continues translating the camera and orbit target after wheel zoom
+PASS Releasing W after wheel zoom ends the interaction
+PASS Releasing W after wheel zoom stops immediately
+PASS Held W follows the changed heading while an orbit gesture remains active
+PASS Orbit and W preserve equal camera/target travel and report an active interaction
+PASS Releasing the mouse first keeps the held keyboard interaction active
+PASS W keeps moving after the orbit gesture ends
+PASS Releasing W last ends the combined orbit and keyboard interaction
+PASS Releasing both inputs leaves the camera still
+PASS W can start moving during an existing camera gesture
+PASS Mouse pan and held W both move the camera during one gesture
+PASS Releasing W first keeps the unfinished mouse interaction active
+PASS Releasing W stops keyboard travel while the mouse gesture remains active
+PASS The mouse can continue rotating after W is released
+PASS Releasing the mouse last ends the combined interaction
+PASS Ending the combined gesture leaves no remaining movement
+PASS Typing in an input leaves the camera and normal input handling alone
+PASS Moving focus away from the canvas clears held movement
+PASS Refocusing the canvas does not restart a canceled held key
+PASS Window blur clears held movement immediately
+PASS Window blur ends both mouse and keyboard interaction state
+PASS ctrlKey leaves camera navigation inactive
+PASS metaKey leaves camera navigation inactive
+PASS altKey leaves camera navigation inactive
+PASS isComposing leaves camera navigation inactive
+PASS Opening a modal clears held movement
+PASS Typing in a modal does not move the camera
+PASS Closing a modal does not restore held movement
+PASS An open dialog clears movement even while the canvas keeps focus
+PASS A selection gesture cancels held camera movement
+PASS An active selection gesture blocks fresh keyboard movement
+PASS A selection gesture cannot restart movement from a held repeat
+PASS A real furniture transform handle is attached for the edit-gesture check
+PASS An object-edit gesture cancels held camera movement
+PASS An active object-edit gesture blocks fresh keyboard movement
+PASS Blocking keyboard travel keeps the object-edit interaction active
+PASS Canceling the object-edit gesture ends its interaction without a scene edit
+PASS A hidden canvas clears held movement
+PASS Keyboard navigation takes over during camera framing
+PASS Interrupted framing cannot resume after the movement key is released
+PASS Top uses the real orthographic camera
+PASS Switching exterior view clears held movement after framing settles
+PASS Switching view clears both mouse and keyboard interaction state
+PASS Top arrow navigation pans on the floor while preserving camera height, orientation and zoom
+PASS Top arrow navigation translates its orbit target equally
+PASS Entering Inside switches to the existing grounded walking camera
+PASS Entering Inside does not inherit an exterior held key
+PASS Inside S walking remains active at standing eye height
+PASS Leaving Inside restores the exterior camera after keyboard navigation
+PASS Exterior keyboard navigation works again after leaving Inside
+PASS Navigation does not alter scene JSON, revision, history or editing callbacks
+PASS The real renderer returns to idle after navigation
+PASS The real renderer completed without reported errors
+COMPLETE 88 browser checks.

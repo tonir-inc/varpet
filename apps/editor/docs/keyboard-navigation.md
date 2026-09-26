@@ -1,6 +1,6 @@
 # Keyboard navigation
 
-Click the scene canvas, then hold WASD or arrows to move in 3D or Top. Forward and sideways follow the camera's ground-plane orientation. Movement translates camera and orbit target together, preserving height, viewing angle, zoom and distance. Exterior navigation pans freely; the existing Inside view remains the collision-aware walking mode. Plan accepts WASD as aliases for its existing arrow-key pan.
+Click the scene canvas, then hold WASD or arrows to move in 3D or Top. In 3D, W/S follows the full viewing direction, including pitch: looking down moves down and forward, and looking up moves up and forward. A/D strafes along the camera's right/left axis. The camera can orbit above or below its target to look down or up. Movement translates camera and orbit target together, preserving viewing angle, zoom and distance. Top retains ground-plane panning at a fixed height; Inside remains the collision-aware walking mode. Plan accepts WASD as aliases for its existing arrow-key pan.
 
 Mouse navigation works at the same time: drag to turn, right-drag to pan, or scroll to zoom while holding movement keys. Walking follows the latest camera direction. Either input can start first; releasing the mouse keeps keyboard travel active, and releasing the keys keeps an ongoing mouse gesture active. The application treats navigation as active until both inputs finish, and combined gestures cannot accidentally select scene objects.
 
@@ -39,7 +39,7 @@ Open `/keyboard-navigation-qa.html` and click **Run checks** for the isolated re
 
 Fresh-context review: **APPROVE**. Direct `setView` now clears both keyboard and mouse state through the common cancellation path. Finish painting and object/window/wall handles cancel held keys and block new travel until editing ends. The integrated editor separately confirmed S retains Select and E activates Resize, with revision 0 and Undo disabled. Plan moved 35 px for W and A; ArrowDown and ArrowRight returned it to the exact starting transform without changing scale or revision.
 
-The post-Inside assertions in `walkthrough-qa.ts` and `interior-experience-qa.ts` now require exterior X/Z travel, preserved height and an immediate stop. Their previous requirement that exterior movement be inactive was superseded by this feature; Inside collision and walking assertions are retained.
+The post-Inside assertions in `walkthrough-qa.ts` and `interior-experience-qa.ts` require exterior travel along the full camera look direction and an immediate stop. Inside collision and walking assertions are retained.
 
 Assumption: “moving in the scene” means camera navigation; furniture remains controlled by editing tools. No scene contracts, schema or fixtures changed. Notion tools and exports were unavailable, so this local page records the decision and measured evidence.
 
@@ -56,3 +56,72 @@ DONE: 7 of 7
 - 7 ✓ Shared-main editor coordination followed the editor-specific override. Root owned the controller, viewport integration, finish-interaction hook, main/Plan hints and this documentation; one agent owned deterministic checks/script wiring and the post-Inside assertions; another owned the browser harness. Concurrent inspector, sun-control, Inside lens, window-transform and viewport click-selection changes were preserved. Fetch confirmed newer remote changes were catalog-only; rebasing was deferred to preserve shared unfinished editor work.
 
 Not proven: the full older `walkthrough-qa.html` and `interior-experience-qa.html` pages were not rerun; the new browser suite directly exercised their changed exterior-navigation behavior and Inside transitions. Cross-browser/device performance was not measured.
+
+## Full viewing-direction movement
+
+2026-09-26, Codex (GPT-6). The user confirmed that W should move toward the exact
+viewing direction, including up/down. Perspective movement now rotates the normalized
+local movement vector by the live camera orientation instead of flattening it onto XZ.
+Orbit permits looking above the horizon; camera and target receive identical XYZ
+translations. Top keeps its map pan and Inside keeps its existing grounded collision
+behavior. These mode distinctions were stated during implementation.
+
+The new deterministic checks failed before the runtime change because perspective
+movement had no Y displacement. They now cover pitched and vertical views, backwards
+and diagonal travel, live pitch changes while holding W, and matched target movement.
+Only expectations superseded by the requested direction change were updated.
+
+```text
+node apps/editor/scripts/check-keyboard-navigation.mjs
+Keyboard navigation checks passed (313 assertions).
+
+node apps/editor/scripts/check-walkthrough-camera.mjs
+Walkthrough camera checks passed (98 assertions).
+
+VITEST_MAX_WORKERS=2 pnpm test
+packages/designer: Test Files 123 passed; Tests 551 passed
+packages/designer: Ran 197 tests; OK; Ran 81 tests; OK
+apps/showcase: tests 17; pass 17; fail 0
+apps/buyer: tests 10; pass 10; fail 0
+apps/editor: navigation, geometry and rendering checks passed
+apps/editor: integration tests 182; pass 182; fail 0; Done
+exit 0
+
+pnpm typecheck
+packages/engine, packages/designer, apps/showcase, apps/buyer, apps/editor: Done
+exit 0
+
+pnpm --filter @varpet/editor build
+Production build passed; existing bundle-size advisory remains.
+
+node output/look-direction-verification/probe.cjs
+keyboard-navigation-qa: COMPLETE 88 browser checks; no page errors
+walkthrough-qa: COMPLETE 19 browser checks; no page errors
+interior-experience-qa: FAIL Window glass lets daylight through rather than casting opaque shadows
+
+git diff --check
+exit 0
+```
+
+Browser evidence used normal Chrome with an isolated demo and HMR disabled. Screenshots
+were inspected. The additional interior lighting page stops at its glass assertion
+before its navigation checks; that separate lighting issue is outside this camera change.
+Its navigation scenarios are covered by the two completed pages. Initial unrestricted
+tests encountered two Designer timeouts under concurrent load; the complete suite
+passed with two Vitest workers. Headless software rendering also failed existing speed
+and release timing checks; normal Chrome passed them without changing their thresholds.
+Logs, screenshots and the reproducible browser script are in
+`output/look-direction-verification/`. Notion tooling was unavailable.
+
+DONE: 7 of 7
+
+- 1 ✓ Focused commands, output and browser results are recorded above.
+- 2 ✓ Untargeted root tests and typecheck passed, with counts above.
+- 3 ✓ Updated `keyboard-navigation-check.ts` and the three browser QA modules for the requested movement.
+- 4 ✓ No contract, schema, fixture or unrelated protection changed for this task; focused diff review passed.
+- 5 ✓ Fresh-context reviewer: APPROVE, no actionable findings.
+- 6 ✓ Scope: exterior 3D navigation. Top/Inside mode behavior and the separate lighting QA failure are explicit.
+- 7 ✓ Shared-main coordination followed the editor override. Root changed `keyboard-navigation.ts`, two orbit-limit lines in `viewport.ts`, this document and the exterior paragraph in `motion.md`; one agent owned deterministic checks, another the three QA modules. Other editor work was preserved.
+
+Not proven: the full interior lighting QA page, cross-browser/device performance, or
+free-flight movement inside the separate grounded walking mode.

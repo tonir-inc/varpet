@@ -2,7 +2,9 @@
 
 Inside walking-camera behavior and its verification are recorded in [Inside walkthrough](walkthrough.md): immediate room entry/exit, direct drag/look and grounded movement, input interruption, and idle rendering. The [current walking response](walkthrough-camera.md#walking-response) uses 2.8 m/s with elapsed-time movement on frames up to 250 ms and a release tail below 7.5 cm; avoid capping ordinary slow frames to 50 ms, which makes navigation slow down with rendering.
 
-Exterior [keyboard navigation](keyboard-navigation.md) uses direct, continuous 5 m/s ground movement in 3D and Top. Camera and orbit target move together; key release stops immediately. This intentional direct-input response also applies with reduced motion. Keyboard takeover cancels framing and queued selection reveal; mouse orbit, pan and zoom can continue alongside held movement keys. Report navigation as active until both mouse and keyboard finish; actual editing gestures still cancel and block keyboard travel. Frames run only while a direction is held, with no inertia or idle loop. Plan retains its existing 35 px key-repeat pan, with WASD aliases for arrows.
+Exterior [keyboard navigation](keyboard-navigation.md) uses direct, continuous 5 m/s movement along the full camera viewing direction in 3D, including up/down pitch; Top retains ground-plane panning. Camera and orbit target move together; key release stops immediately. This intentional direct-input response also applies with reduced motion. Keyboard takeover cancels framing and queued selection reveal; mouse orbit, pan and zoom can continue alongside held movement keys. Report navigation as active until both inputs finish; actual editing gestures still cancel and block keyboard travel. Frames run only while a direction is held, with no inertia or idle loop. Plan retains its existing 35 px key-repeat pan, with WASD aliases for arrows.
+
+The [Space hand tool](hand-pan.md) pans 3D, Top and Plan directly with the pointer. Open/closed hand feedback is immediate, and holding Space alone starts no render loop. Keep hand-drag activity separate from orbit activity so wheel zoom cannot prematurely end a simultaneous hand gesture.
 
 Motion should make the connection between an action and its result easy to follow. A visible state change must have an intentional transition or a documented reason to be immediate. These rules apply to future editor changes as well as the existing UI.
 
@@ -157,3 +159,34 @@ COMPLETE 17 browser checks.
 ```
 
 The furnished editor was also visually inspected using a native Chrome screenshot. In-app screenshot capture was unavailable. Sample counts include render passes and are not an FPS measurement.
+
+### Blueprint build activity
+
+The blueprint progress message uses three dots in a fixed-width inline slot, with a 1.2-second opacity/lift cycle staggered by 160 ms. The text stays still while the dots show ongoing work, including waiting for the service and checking the result. Start and retry enable the dots; completion, failure, back and disposal hide them and remove their CSS animations. Reduced motion, including changes during a build, displays a static ellipsis. The message is a polite status region; decorative dots are hidden from assistive technology and never rewrite the announced text on each frame. Trailing service ellipses are removed while the indicator is present to avoid duplicate punctuation. This adds no JavaScript timer or 3D render work.
+
+Verified 2026-09-26, Codex (GPT-6), with a fresh-context reviewer: APPROVE. Browser checks sampled different dot frames with identical text bounds and covered retry, failure, cancellation, completion, disposal, live reduced motion, and a 390 px mobile viewport. Desktop/mobile screenshots were visually inspected. Evidence: `output/progress-verification/`. The architect stream was mocked and external fonts were blocked; this verifies progress presentation, not a fresh model reconstruction.
+
+```text
+node output/progress-verification/probe.cjs
+{"status":"passed","checks":13,"pageErrors":0}
+
+pnpm test
+packages/designer test:  Test Files  123 passed (123)
+packages/designer test:       Tests  551 passed (551)
+packages/designer test: Ran 197 tests in 23.548s
+packages/designer test: Ran 81 tests in 2.885s
+packages/designer test: Done
+apps/editor test: Done
+
+pnpm typecheck
+packages/engine typecheck: Done
+apps/buyer typecheck: Done
+apps/showcase typecheck: Done
+packages/designer typecheck: Done
+apps/editor typecheck: Done
+
+pnpm --filter @varpet/editor build
+✓ built in 278ms
+```
+
+The first typecheck caught four unchecked typed-array counter accesses in concurrent `blueprint-ink.ts` work. Explicit definite-index assertions fixed those mechanically without changing runtime behavior. No tests, fixtures or schemas changed for the indicator. Existing bundle-size advisory remains. Shared unfinished work was preserved on `main`; synchronization was deferred under the editor's coordination rules. Notion required authentication, so these measurements are recorded locally.

@@ -66,6 +66,7 @@ function snapshot() {
     orientation: camera.quaternion.clone(), zoom: camera.zoom };
 }
 function forwardDirection(): THREE.Vector3 {
+  if (camera instanceof THREE.PerspectiveCamera) return camera.getWorldDirection(new THREE.Vector3());
   const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera!.quaternion);
   right.y = 0; right.normalize();
   return new THREE.Vector3(right.z, 0, -right.x);
@@ -106,17 +107,33 @@ document.querySelector<HTMLButtonElement>('#run')!.onclick = async event => {
     for (const [value, forward, sideways] of [['w', 1, 0], ['ArrowUp', 1, 0], ['s', -1, 0], ['ArrowDown', -1, 0],
       ['a', 0, -1], ['ArrowLeft', 0, -1], ['d', 0, 1], ['ArrowRight', 0, 1]] as const) {
       const heading = forwardDirection();
-      const right = new THREE.Vector3(-heading.z, 0, heading.x);
+      const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera!.quaternion);
       const expected = heading.multiplyScalar(forward).addScaledVector(right, sideways);
       const moved = await travel([value]);
       check(moved.delta.length() > 0.02 && moved.delta.clone().normalize().dot(expected) > 0.999,
-        `${value} moves in the expected ground direction relative to the camera`);
+        `${value} moves in the expected full viewing direction relative to the camera`);
       check(moved.before.target && moved.after.target
         && moved.after.target.clone().sub(moved.before.target).distanceTo(moved.delta) < 1e-8
-        && Math.abs(moved.after.position.y - moved.before.position.y) < 1e-8
         && moved.after.orientation.angleTo(moved.before.orientation) < 1e-7 && moved.after.zoom === moved.before.zoom,
-      `${value} translates the orbit target equally while preserving height, orientation and zoom`);
+      `${value} translates the orbit target equally while preserving orientation and zoom`);
     }
+    const pitchOrbit = navigationOrbit();
+    for (const [label, polarAngle, verticalSign] of [['down', Math.PI / 3, -1], ['up', 2 * Math.PI / 3, 1]] as const) {
+      pitchOrbit.rotateUp(pitchOrbit.getPolarAngle() - polarAngle);
+      const heading = forwardDirection();
+      check(heading.y * verticalSign > 0.4, `Orbit controls can look ${label} before keyboard travel`);
+      for (const [value, sign] of [['w', 1], ['s', -1]] as const) {
+        const moved = await travel([value]);
+        check(moved.delta.length() > 0.02 && moved.delta.y * verticalSign * sign > 0.01
+          && moved.delta.clone().normalize().dot(heading.clone().multiplyScalar(sign)) > 0.999,
+        `${value} follows the full ${label}ward viewing direction with the expected vertical movement`);
+        check(moved.before.target && moved.after.target
+          && moved.after.target.clone().sub(moved.before.target).distanceTo(moved.delta) < 1e-8
+          && moved.after.orientation.angleTo(moved.before.orientation) < 1e-7 && moved.after.zoom === moved.before.zoom,
+        `${value} while looking ${label} translates the target equally without changing orientation or zoom`);
+      }
+    }
+    await freshPerspective();
     const straight = await travel(['w'], 180);
     const straightSpeed = straight.delta.length() / straight.seconds;
     check(Math.abs(straightSpeed - 5) < 0.4, `Exterior travel is 5 m/s (${straightSpeed.toFixed(2)} measured)`);
@@ -148,11 +165,11 @@ document.querySelector<HTMLButtonElement>('#run')!.onclick = async event => {
     const orbit = navigationOrbit();
     canvas.focus(); key('keydown', 'w'); await delay(90);
     orbit.dispatchEvent({ type: 'start' });
-    const oldHeading = forwardDirection(); orbit.rotateLeft(Math.PI / 3);
+    const oldHeading = forwardDirection().setY(0).normalize(); orbit.rotateLeft(Math.PI / 3);
     const turnedHeading = forwardDirection(), turned = snapshot(); await delay(140);
     const afterTurn = snapshot();
     const turnedDelta = afterTurn.position.clone().sub(turned.position);
-    check(oldHeading.dot(turnedHeading) < 0.8 && turnedDelta.length() > 0.02
+    check(oldHeading.dot(turnedHeading.clone().setY(0).normalize()) < 0.8 && turnedDelta.length() > 0.02
       && turnedDelta.clone().normalize().dot(turnedHeading) > 0.999,
     'Held W follows the changed heading while an orbit gesture remains active');
     check(turned.target && afterTurn.target

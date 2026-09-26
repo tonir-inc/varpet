@@ -49,6 +49,7 @@ export interface BuildingComponent {
   price?: number;
   notes?: string;
   light?: { brightness: number; temperature: number; enabled: boolean; group?: string };
+  /** Targets identify light components or rooms' ceiling lights. Plain/outdoor/removed ceilings are inert. */
   control?: { type: 'single' | 'two-way' | 'dimmer' | 'multi-gang'; targets: string[]; gangs: number };
   clearance?: Vec3;
   /** Catalog asset drawn in place of the procedural shape, fitted to `dimensions`. Unknown ids fall back to the procedural shape. */
