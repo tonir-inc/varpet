@@ -4,7 +4,7 @@ import {catalogProduct} from '../../../apps/editor/src/adapters/database-catalog
 import { z } from 'zod';
 import type { CatalogAsset } from '../../../apps/editor/src/contracts.js';
 import { applyOps, parseOps, parseScene, wallOutward } from './adapter.js';
-import { checkLocalLayout, compareLayoutErrors, localGeometryErrors, outsidePoint } from './local-checks.js';
+import { checkLocalLayout, compareLayoutErrors, localGeometryErrors, outsidePoint, sourceFloorPolygon } from './local-checks.js';
 import { functionClearances } from './metrics/function.js';
 import { itemPolygon, physicalDoorSwingPolygon, spaceMetrics, polygonsOverlap, isFloorRug, rasterizeRoom } from './metrics/space.js';
 import { wallSolidPolygons } from './wall-geometry.js';
@@ -194,7 +194,7 @@ function generateSlots(scene:Scene,catalog:readonly CatalogAsset[],query:SlotQue
     if(moved.some(i=>{
       const polygon=itemPolygon(i),ownRoom=scene.rooms.find(r=>r.id===i.room_id)!;
       if(!solids.has(i.size[2]))solids.set(i.size[2],wallSolidPolygons(scene,i.size[2]).map(s=>s.polygon));
-      return outsidePoint(polygon,ownRoom.polygon)||solids.get(i.size[2])!.some(p=>polygonsOverlap(polygon,p))||(!isFloorRug(i)&&(obstacles.some(o=>o.room===i.room_id&&polygonsOverlap(polygon,o.polygon))||swings.some(p=>polygonsOverlap(polygon,p))));
+      return outsidePoint(polygon,ownRoom.polygon)||outsidePoint(polygon,sourceFloorPolygon(scene,ownRoom))||solids.get(i.size[2])!.some(p=>polygonsOverlap(polygon,p))||(!isFloorRug(i)&&(obstacles.some(o=>o.room===i.room_id&&polygonsOverlap(polygon,o.polygon))||swings.some(p=>polygonsOverlap(polygon,p))));
     }))continue;
     if(moved.some(i=>windowBlocked(after,i)))continue;
     if(query.nearWindow&&!checkRequest(after,after,[],{preferences:[{type:'near_window',item_id:item.id,max_distance_m:1.5}]},0).ok)continue;

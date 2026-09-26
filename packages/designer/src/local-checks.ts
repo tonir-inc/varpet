@@ -69,6 +69,12 @@ export function outsidePoint(footprint:Vec2[],room:Vec2[]):Vec2|undefined {
   return outsidePoints(footprint,room).next().value;
 }
 
+/** Reconciliation helps route analysis; it never adds floor to the editor. */
+export function sourceFloorPolygon(scene:Scene,room:Scene['rooms'][number]):Vec2[] {
+  const adjustments=scene.geometry_audit?.adjustments.filter(a=>a.room_id===room.id)??[];
+  return adjustments.length?room.polygon.map((point,index)=>adjustments.find(a=>a.vertex===index)?.before??point):room.polygon;
+}
+
 function boundaryDistance(point:Vec2,polygon:Vec2[]):number {
   return Math.min(...polygon.map((a,i)=>{
     const b=polygon[(i+1)%polygon.length]!,v=subtract(b,a),w=subtract(point,a);
@@ -97,9 +103,12 @@ export function localGeometryErrors(input:Scene):LayoutError[] {
     // A first-corner witness can improve while another corner rotates farther outside.
     // Use the largest deficit across all outside corners and boundary-cut edge intervals.
     let outside:Vec2|undefined,deficit=0;
-    for(const point of outsidePoints(footprints[i]!,room.polygon)) {
-      const distance=boundaryDistance(point,room.polygon);
+    const sourceFloor=sourceFloorPolygon(scene,room);
+    for(const polygon of sourceFloor===room.polygon?[room.polygon]:[room.polygon,sourceFloor]){
+     for(const point of outsidePoints(footprints[i]!,polygon)) {
+      const distance=boundaryDistance(point,polygon);
       if(!outside||distance>deficit) {outside=point;deficit=distance;}
+     }
     }
     if(outside) errors.push({check:'inside',room_id:room.id,item_ids:[item.id],at:outside,deficit_m:deficit,message:`${item.id} extends outside room ${room.id}`});
     // Rugs are floor coverings but cannot penetrate physical walls. Aggregate shared aliases
