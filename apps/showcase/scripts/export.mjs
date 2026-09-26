@@ -35,12 +35,13 @@ try {
   for (const [width, height] of [[1440, 900], [1280, 800], [390, 844]]) {
     await page.setViewportSize({ width, height });
     await capture('/', join(output, `gallery-${width}.png`));
-    if (flats[0]) await capture(`/flat/${flats[0].id}`, join(output, `${flats[0].id}-detail-${width}.png`));
+    const firstReady = flats.find(flat => flat.shell_ready || flat.furnished_ready) ?? flats[0];
+    if (firstReady) await capture(`/flat/${firstReady.id}`, join(output, `${firstReady.id}-detail-${width}.png`));
   }
   await page.setViewportSize({ width: 1440, height: 1000 });
   for (const flat of flats) {
-    if (!flat.shell_ready && !flat.furnished_ready) continue;
     await capture(`/flat/${flat.id}`, join(output, `${flat.id}-detail.png`));
+    if (!flat.shell_ready && !flat.furnished_ready) continue;
     if (flat.shell_ready) await capture(`/flat/${flat.id}?state=shell`, join(output, `${flat.id}-shell.png`), '.viewer');
     if (flat.furnished_ready) await capture(`/flat/${flat.id}?state=furnished`, join(output, `${flat.id}-furnished.png`), '.viewer');
     await capture(`/embed/${flat.id}`, join(output, `${flat.id}-embed.png`));

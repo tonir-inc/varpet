@@ -35,10 +35,10 @@ export function exampleFlat(): Flat {
     pieces: demoScene.objects.map(object => ({ id: object.id, name: object.name, price: null })), total: null, issue: '',
     priceNote: 'Example furniture. No designer run or AMD purchase quote is claimed.' };
 }
-export function buildFlats(records: InputRecord[]): Flat[] { return records.length ? records.map(makeFlat) : [exampleFlat()]; }
+export function buildFlats(records: InputRecord[]): Flat[] { const flats = records.map(makeFlat); return flats.some(flat => flat.shell || flat.furnished) ? flats : [...flats, exampleFlat()]; }
 export const number = (value: number) => value.toLocaleString('en-US', { maximumFractionDigits: 1 });
 export const price = (value: number | null) => value === null ? 'Not quoted' : `${number(value)} ֏`;
 export const summary = (flat: Flat) => ({ id: flat.id, title: flat.title, example: flat.example, area_m2: flat.area, area_source: flat.areaSource, rooms: flat.rooms, shell_ready: Boolean(flat.shell), furnished_ready: Boolean(flat.furnished), added_pieces: flat.pieces, total_amd: flat.total, price_note: flat.priceNote, requests: flat.requests, request_outcomes: flat.requestOutcomes });
 
 export const initialState = (flat: Flat, requested: string | null): 'shell' | 'furnished' => flat.furnished && (requested === 'furnished' || !flat.shell) ? 'furnished' : 'shell';
-export const collectionDescription = (flats: Flat[]) => flats.some(flat => flat.example) ? 'Ten Komitas Park residences are being prepared. Start with the Avani example.' : `${flats.length} residences · ${flats.filter(flat => flat.furnished).length} furnished views`;
+export const collectionDescription = (flats: Flat[]) => { const real = flats.filter(flat => !flat.example); return real.length ? `${real.length} residences · ${real.filter(flat => flat.furnished).length} furnished views${flats.some(flat => flat.example) ? ' · Avani example available' : ''}` : 'Ten Komitas Park residences are being prepared. Start with the Avani example.'; };

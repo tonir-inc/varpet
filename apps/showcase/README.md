@@ -34,7 +34,7 @@ The published BENCH layout is also read directly: sibling `komitas-runs/<run>/ru
 
 BENCH continues to own its Markdown report and artifacts. This app does not rewrite them. Unknown catalog IDs keep the furnished view pending instead of silently displaying incorrect furniture. Purchase totals count added object IDs only, and require explicit AMD currency; they are catalog estimates, not shop quotes.
 
-Before Komitas inputs arrive, Avani is shown as one explicitly labelled example. It is never counted as a real Komitas flat or a designer run. The shell is derived by removing furniture from the editor's Avani example; prices in its unlabelled demo catalog are not converted into dram.
+Until at least one accepted Komitas 3D view arrives, Avani remains one explicitly labelled interactive example beside any pending real-flat listings. Rejected diagnostic drafts are never loaded as accepted scenes. It is never counted as a real Komitas flat or a designer run. The shell is derived by removing furniture from the editor's Avani example; prices in its unlabelled demo catalog are not converted into dram.
 
 ## Private developer plans
 

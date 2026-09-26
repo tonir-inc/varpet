@@ -46,3 +46,11 @@ test('recorded request outcomes distinguish applied proposals, questions and dec
   } });
   assert.deepEqual(flat.requestOutcomes, ['Applied to this view', 'Designer asked a question', 'Designer declined this request']);
 });
+
+test('facts-only real collection retains an explicitly labelled interactive example', () => {
+  const flats = buildFlats([{ id: 'b1-t2', facts: { rooms: 2, area_m2: 70 }, shell: null, furnished: null, catalog: [], conversation: null }]);
+  assert.equal(flats.filter(flat => !flat.example).length, 1);
+  assert.equal(flats.filter(flat => flat.example && flat.furnished).length, 1);
+  assert.match(collectionDescription(flats), /1 residence/);
+  assert.match(collectionDescription(flats), /0 furnished/);
+});
