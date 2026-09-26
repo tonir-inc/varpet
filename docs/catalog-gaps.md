@@ -10,15 +10,15 @@ with the commit that fills it.
 | Product | Needed for | Status |
 |---|---|---|
 | Mattress + bedding (single 90x200, double 140x200, queen 160x200, king 180x200) | every bed; all four flats render beds as bare slats | live 27 Sept: 12 SKUs (kind `mattress`, 118–250k AMD) imported and embedded on mc-server |
-| Crib / cot | baby brief | missing |
-| Changing table | baby brief | missing |
-| Pet bed | baby brief (small dog) | missing |
-| Curtains, blackout blinds, roller blinds | bedrooms (privacy, a light sleeper) | missing; also needs a window-mounted placement in the editor |
-| Kitchen furnishing beyond carts (bar stools, kitchen storage, small dining sets for kitchens) | every kitchen | missing |
-| Bathroom furnishing (wet-room cabinets, towel storage, bath mats) | every bathroom; searches return farmhouse and filing cabinets | missing |
-| Small outdoor furniture (bistro set, balcony chairs, weather-proof side tables) | balconies in b24, b23 | missing: only indoor or oversized pieces |
-| Desktop PCs / towers | teen study rooms (b23) | missing: search returns stands and bookends |
-| Narrow wall mirrors (< 0.6 m wide) | small halls (b21) | missing |
+| Crib / cot | baby brief | live 27 Sept: 6 (`extra:bpy-nursery:*`, kind `crib` -> editor `bed`), 06ad102 |
+| Changing table | baby brief | live 27 Sept: 3 (kind `changing_table` -> editor `dresser`), 06ad102 |
+| Pet bed | baby brief (small dog) | live 27 Sept: 8 (kind `pet_bed` -> editor `decor`), 06ad102 |
+| Curtains, blackout blinds, roller blinds | bedrooms (privacy, a light sleeper) | live 27 Sept: 12 curtain pairs + 6 blinds (`bpy-curtains`); the 21 older curtains were not placeable until 8a2c22e; blinds hang like curtains (5412dfb) |
+| Kitchen furnishing beyond carts (bar stools, kitchen storage, small dining sets for kitchens) | every kitchen | live 27 Sept: 18 (`bpy-kitchen`: 8 stools, tables, chairs, trolley, rack, pantry, bench) |
+| Bathroom furnishing (wet-room cabinets, towel storage, bath mats) | every bathroom; searches return farmhouse and filing cabinets | live 27 Sept: 18 (`bpy-bathroom`: vanities with basin, cabinets, towel racks, hampers, mats, mirror cabinets) |
+| Small outdoor furniture (bistro set, balcony chairs, weather-proof side tables) | balconies in b24, b23 | live 27 Sept: 17 (`bpy-balcony`, tagged outdoor/balcony) |
+| Desktop PCs / towers | teen study rooms (b23) | live 27 Sept: 7 PCs + 2 monitors (`bpy-techmirror`) |
+| Narrow wall mirrors (< 0.6 m wide) | small halls (b21) | live 27 Sept: 6 (`bpy-techmirror`), plus 97 ABO mirrors placeable after the wd_swapped fix |
 | Wall art, mirrors, clocks, framed prints | every room | added 26 Sept (Met public-domain framed art, Poly Haven decor) |
 | Plants in pots | every room | available (`extra:home:plant-*`) |
 
