@@ -94,6 +94,11 @@ const structure = {
 
 For live reconstruction, `createReconstructionProposal` wraps the returned geometry in a fresh v2 apartment and one `replace-scene` operation. Preview and Apply use the same empty shell: old furniture, systems, finishes, baseline and options are removed together, so furniture from an unrelated footprint cannot prevent the import. Original source attachments survive without obsolete room assignments; the currency preference is retained. The review describes the replacement, and one undo restores the complete previous project. The live replacement includes supplied metadata in `scene.project.metadata`, so inspection and Apply use the same elevations and classifications. Default unknown structural classifications remain unless explicitly supplied. The local mock uses `replace-structure` followed by `set-metadata` operations when supplied, in one atomic undo entry. No-metadata imports keep their existing behavior.
 
+The architect's optional `components: BuildingComponent[]` also passes through the HTTP boundary's
+scene validation and into `project.components` in the live replacement. Preview and Apply retain the
+same fixed fixtures; Undo restores the previous project's fixtures. Invalid dimensions, duplicate IDs
+and missing room/host references reject the import. Legacy responses that omit components remain valid.
+
 Retain the revision from before the asynchronous request and show the change for approval. A newer edit makes the result stale; never replace the newer scene. Failed or rejected imports leave the current apartment untouched.
 
 With the architect harness available, run `cd harness && uv run varpet-harness serve` and start the editor with `VITE_ARCHITECT_URL=http://127.0.0.1:8788/`. Connect → Architect LIVE → Choose plan and photos sends the plan (the filename containing “plan”, or the first file) plus up to four photos to `/structure`. Streamed progress appears in the editor; the final result becomes a Reconstruction review proposal. `pnpm --filter @varpet/editor test:architect` checks transport and empty-shell approval/history behavior without calling a model.

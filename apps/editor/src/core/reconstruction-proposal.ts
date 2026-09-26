@@ -29,6 +29,7 @@ export function createReconstructionProposal(scene: SceneDocument, revision: num
         isRecord(metadata) ? { ...apartment.project!.metadata[entityId], ...structuredClone(metadata) } : metadata])),
     };
     apartment.project!.currency = scene.project?.currency ?? 'AMD';
+    apartment.project!.components = structuredClone(result.components ?? []);
     apartment.project!.sources = structuredClone(scene.project?.sources ?? []).map(source => {
       // Keep original evidence, but old room IDs cannot describe the new footprint.
       delete source.roomId;
@@ -36,7 +37,8 @@ export function createReconstructionProposal(scene: SceneDocument, revision: num
     });
     return {
       id, title: 'Reconstruction review',
-      description: ['Start with an empty reconstructed apartment. Applying replaces the current shell, furniture, systems, finishes and renovation options. Original source attachments are kept without room assignments. Undo restores the previous apartment.', ...result.notes].join(' '),
+      description: [result.components?.length ? 'Start with an unfurnished reconstructed apartment and its fixed fixtures.' : 'Start with an empty reconstructed apartment.',
+        'Applying replaces the current shell, furniture, systems, finishes and renovation options. Original source attachments are kept without room assignments. Undo restores the previous apartment.', ...result.notes].join(' '),
       command: { id, label: 'Import empty reconstructed apartment', source: 'architect', baseRevision: revision,
         operations: [{ type: 'replace-scene', scene: apartment }] },
     };

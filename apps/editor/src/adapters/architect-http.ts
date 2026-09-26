@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-import type {CatalogAsset,EntityMetadata,Room,StructureAdapter,Wall} from '../contracts';
+import type {BuildingComponent,CatalogAsset,EntityMetadata,Room,StructureAdapter,Wall} from '../contracts';
 import {demoScene} from '../core/demo';
 import {emptyProject} from '../core/renovation';
 import {validateScene} from '../core/validation';
@@ -40,15 +40,17 @@ async function encode(file:File):Promise<{name:string;data:string}>{
   return {name:file.name,data:btoa(binary)};
 }
 function structureFrom(line:Record<string,unknown>):Awaited<ReturnType<StructureAdapter['reconstruct']>>{
-  const {rooms,walls,notes,metadata}=line;
+  const {rooms,walls,notes,metadata,components}=line;
   if(!Array.isArray(rooms)||!Array.isArray(walls))throw new ArchitectServiceError('The architect returned no rooms or walls.');
   const result={rooms:rooms as Room[],walls:walls as Wall[],notes:Array.isArray(notes)?notes.map(String):[],
-    ...(metadata===undefined?{}:{metadata:metadata as Record<string,EntityMetadata>})};
+    ...(metadata===undefined?{}:{metadata:metadata as Record<string,EntityMetadata>}),
+    ...(components===undefined?{}:{components:components as BuildingComponent[]})};
   // Reuse the editor's metadata bounds and entity-reference checks on this empty shell.
   const checked=validateScene({
     format:'varpet.editor',version:2,id:'architect-structure',name:'Reconstructed apartment',units:'m',upAxis:'Y',
     rooms:result.rooms,walls:result.walls,objects:[],
-    project:{...emptyProject(),metadata:metadata===undefined?{}:result.metadata!},
+    project:{...emptyProject(),metadata:metadata===undefined?{}:result.metadata!,
+      components:components===undefined?[]:result.components!},
   },[]);
   if(!checked.ok)throw new ArchitectServiceError(`The architect returned an invalid structure: ${checked.errors.join(' ')}`);
   return result;
