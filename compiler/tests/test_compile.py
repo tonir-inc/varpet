@@ -77,3 +77,38 @@ def test_glb_root_carries_piece_frame_and_part_tags(tmp_path):
     assert all("extras" not in m for m in doc["meshes"])
     scene = trimesh.load(tmp_path / "out" / "piece.glb")  # still a valid GLB
     assert abs(scene.extents[1] - 0.85) < 0.01
+
+
+def test_sampled_colour_overrides_the_guess(tmp_path):
+    from PIL import Image
+
+    from partdsl import glb
+
+    img = Image.new("RGB", (400, 300), (240, 240, 240))
+    img.paste((92, 52, 30), (100, 60, 300, 240))  # dark wood block
+    img.paste((255, 255, 255), (190, 140, 210, 160))  # a highlight inside it
+    img.save(tmp_path / "photo.jpg", quality=95)
+    prog = chair()
+    prog["materials"]["oak"] = {"color": "#6a4028", "sample": {"photo": "photo.jpg", "box": [0.25, 0.2, 0.75, 0.8]}}
+    f = tmp_path / "program.json"
+    f.write_text(json.dumps(prog))
+    assert compile_file(f, tmp_path / "out") == []
+    doc, _ = glb.read((tmp_path / "out" / "piece.glb").read_bytes())
+    seat = next(n["extras"]["varpet"] for n in doc["nodes"] if n.get("name") == "seat")
+    r, g, b = (int(seat["tint"][i : i + 2], 16) for i in (1, 3, 5))
+    assert seat["tint_source"] == "photo" and abs(r - 92) < 8 and abs(g - 52) < 8 and abs(b - 30) < 8
+    prog["materials"]["oak"]["sample"]["photo"] = "missing.jpg"
+    f.write_text(json.dumps(prog))
+    assert compile_file(f, tmp_path / "out")[0]["check"] == "sample"
+
+
+def test_sample_far_from_the_guess_is_a_fault(tmp_path):
+    from PIL import Image
+
+    Image.new("RGB", (100, 100), (200, 215, 225)).save(tmp_path / "glare.jpg")  # a window reflection
+    prog = chair()
+    prog["materials"]["oak"] = {"color": "#161616", "sample": {"photo": "glare.jpg", "box": [0.2, 0.2, 0.8, 0.8]}}
+    f = tmp_path / "program.json"
+    f.write_text(json.dumps(prog))
+    fault = compile_file(f, tmp_path / "out")[0]
+    assert fault["check"] == "sample" and "reflection" in fault["detail"]

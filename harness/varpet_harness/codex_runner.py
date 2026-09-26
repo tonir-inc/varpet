@@ -163,6 +163,10 @@ class CodexRunner:
                 raise FileNotFoundError(f"skill {name} not in .agents/skills")
             lines += ["", f"# Skill: {name}", _strip_frontmatter(path.read_text())]
         items: list = [TextInput("\n".join(lines))]
+        photos = [str(self.repo / r) for r in job.refs if Path(r).suffix.lower() in IMAGE_SUFFIXES]
+        if photos and job.kind == "piece":
+            listing = "; ".join(f"{i + 1}: {p}" for i, p in enumerate(photos))
+            items[0] = TextInput(items[0].text + f"\nPhotos attached in this order: {listing}")
         for ref in job.refs:
             p = self.repo / ref
             if p.suffix.lower() in IMAGE_SUFFIXES:

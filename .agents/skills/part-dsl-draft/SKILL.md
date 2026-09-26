@@ -26,6 +26,11 @@ centre of the box it is placed on (four legs = one leg + mirror x,y); `repeat` {
 `materials`: name -> `{"finish": <id below>, "color": "#rrggbb", "roughness": 0..1 (optional)}`.
 - Pick the finish that matches what the photo shows (wood species, fabric weave, stone, metal).
 - `color` is the part's colour as seen in the photo; it tints the finish exactly. Leave it out for the usual colour.
+- Better than guessing a hex: `"sample": {"photo": "<path from the brief>", "box": [x0, y0, x1, y1]}`, the region of that
+  photo where this material shows, as fractions of the photo's width and height (0,0 top-left). Code measures the colour
+  there (ignoring highlights and shadows) and it replaces `color`. Put the box on a flat, evenly lit patch of the material,
+  not on an edge, a shadow or a reflection (glossy tops mirror windows). One sample per material the photos show clearly.
+  Always give your own `color` guess too: if the measured colour is far from it, you get a fault to move the box.
 - Mirrors and glass: `{"kind": "mirror"}` or `{"kind": "glass", "color": ...}`, no finish.
 - For wood and brushed metal set the part's `grain` to the axis the grain runs along (usually its longest side).
 - A part with no material is plain grey: avoid it.

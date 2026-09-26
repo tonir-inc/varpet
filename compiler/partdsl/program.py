@@ -20,12 +20,28 @@ Unit3 = tuple[float, float, float]
 Axis = Literal["x", "y", "z"]
 
 
+class Sample(BaseModel):
+    """Where in a photo this material shows: code measures its colour there."""
+
+    model_config = ConfigDict(extra="forbid")
+    photo: str = Field(description="photo path as given in the brief")
+    box: tuple[float, float, float, float] = Field(description="[x0, y0, x1, y1] as fractions of width and height")
+
+    @model_validator(mode="after")
+    def _box(self) -> Sample:
+        x0, y0, x1, y1 = self.box
+        if not (0 <= x0 < x1 <= 1 and 0 <= y0 < y1 <= 1):
+            raise ValueError("sample box is [x0, y0, x1, y1] with 0 <= x0 < x1 <= 1 and 0 <= y0 < y1 <= 1")
+        return self
+
+
 class Material(BaseModel):
-    """`finish` is a catalog/materials id; `color` tints it to the photo's colour."""
+    """`finish` is a catalog/materials id; `color` tints it; `sample` measures the tint from a photo."""
 
     model_config = ConfigDict(extra="forbid")
     finish: str | None = None
     color: str | None = Field(default=None, pattern=r"^#[0-9a-fA-F]{6}$")
+    sample: Sample | None = None
     roughness: float | None = Field(default=None, ge=0, le=1)
     kind: Literal["plain", "metal", "mirror", "glass", "fabric"] = "plain"
 

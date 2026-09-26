@@ -91,3 +91,9 @@ def test_size_source_is_a_closed_choice_in_the_strict_schema():
     assert job["enum"] == ["plan", "photo", "scan", "typical"]
     with pytest.raises(ValueError):
         Graph(flat="t", jobs=[{"id": "a", "kind": "piece", "brief": "x", "size": [1, 1, 1], "size_source": "guess"}])
+
+
+def test_old_graphs_with_size_estimated_still_load():
+    g = Graph(flat="t", jobs=[{"id": "a", "kind": "piece", "brief": "x", "size": [1, 1, 1], "size_estimated": True},
+                              {"id": "b", "kind": "piece", "brief": "x", "size": [1, 1, 1], "size_estimated": False}])
+    assert [j.size_source for j in g.jobs] == ["typical", "photo"]

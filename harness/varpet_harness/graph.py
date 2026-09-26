@@ -38,6 +38,16 @@ class Job(BaseModel):
     skills: list[str] = Field(default=[], description="Only the skills this job needs")
     effort: Effort = "low"
 
+    @model_validator(mode="before")
+    @classmethod
+    def _legacy(cls, data):
+        """Graphs saved before 26 Sept afternoon carry size_estimated instead of size_source."""
+        if isinstance(data, dict) and "size_estimated" in data:
+            data = dict(data)
+            estimated = data.pop("size_estimated")
+            data.setdefault("size_source", "typical" if estimated else "photo")
+        return data
+
 
 class Graph(BaseModel):
     model_config = ConfigDict(extra="forbid")

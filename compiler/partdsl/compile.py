@@ -18,7 +18,7 @@ import trimesh
 from pydantic import ValidationError
 from trimesh.visual import TextureVisuals
 
-from . import glb
+from . import glb, sample
 from .materials import box_uv, library, pbr
 from .program import Material, Part, Program
 
@@ -224,10 +224,34 @@ def export(prog: Program, parts: list[Instance], path: Path) -> None:
         mesh.visual = TextureVisuals(uv=p.mesh.visual.uv, material=pbr(m.finish, m.color, m.kind, m.roughness))
         scene.add_geometry(mesh, node_name=p.id, geom_name=p.id)
         tags[p.id] = {"part": p.id, "of": p.id.split("@")[0], "material": p.material, "finish": m.finish,
-                      "tint": m.color or (library()[m.finish].default_color if m.finish else None), "kind": m.kind}
+                      "tint": m.color or (library()[m.finish].default_color if m.finish else None), "kind": m.kind,
+                      "tint_source": "photo" if m.sample else ("model" if m.color else "default")}
     w, d, h = prog.size
     piece = {"name": prog.name, "size_m": {"width": w, "depth": d, "height": h}, "parts": len(parts)}
     path.write_bytes(glb.tag(scene.export(file_type="glb", include_normals=True), piece, tags))
+
+
+SAMPLE_DISAGREE = 25.0  # CIE76 delta E between the measured colour and the builder's own guess
+
+
+def _sample_colours(prog: Program, program_dir: Path) -> list[dict]:
+    """A material with `sample` gets its colour measured from the photo; it overrides `color`."""
+    faults = []
+    for name, m in prog.materials.items():
+        if m.sample is None:
+            continue
+        photo = sample.resolve(m.sample.photo, program_dir)
+        if not photo.is_file():
+            faults.append({"check": "sample", "material": name, "detail": f"photo not found: {m.sample.photo}"})
+            continue
+        measured = sample.measure(photo, m.sample.box)
+        if m.color and sample.delta_e(measured, m.color) > SAMPLE_DISAGREE:
+            faults.append({"check": "sample", "material": name, "measured": measured, "your_color": m.color,
+                           "detail": "the sampled colour is far from your colour: the box may be on a reflection, a "
+                                     "shadow, the floor or another object. Move the box onto the material, or drop sample."})
+            continue
+        m.color = measured
+    return faults
 
 
 def compile_file(program: Path, workdir: Path) -> list[dict]:
@@ -237,6 +261,9 @@ def compile_file(program: Path, workdir: Path) -> list[dict]:
         parts = build(prog)
     except (ValidationError, ValueError) as e:
         return [{"check": "program", "detail": str(e)}]
+    sample_faults = _sample_colours(prog, program.parent)
+    if sample_faults:
+        return sample_faults
     faults, summary = check(prog, parts)
     export(prog, parts, workdir / "piece.glb")
     (workdir / "report.json").write_text(json.dumps(summary | {"faults": len(faults)}, indent=1))
