@@ -142,7 +142,7 @@
 .portal-icon-button:active { background: var(--hover); }
 
 .portal-notice { padding: var(--space-3) var(--space-6); border-bottom: 1px solid var(--line); background: var(--warning-wash); color: var(--warning); text-align: center; }
-.portal-eyebrow { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: var(--text-xs); font-weight: 500; letter-spacing: 1.6px; line-height: 1.5; text-transform: uppercase; }
+.portal-eyebrow { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: var(--text-xs); font-weight: 500; letter-spacing: 0; line-height: 1.5; font-family: var(--serif); font-style: italic; font-size: 15px; }
 .portal-eyebrow > span { width: 6px; height: 6px; flex: 0 0 auto; border-radius: 50%; background: var(--positive); }
 
 .portal-hero {
@@ -358,7 +358,7 @@
   .portal-header-signup { padding-inline: 10px; }
   .portal-hero { gap: 28px; padding-top: 32px; }
   .portal-hero h1 { margin-block: 20px; font-size: 46px; letter-spacing: -2.4px; }
-  .portal-eyebrow { font-size: var(--text-xs); letter-spacing: 1.25px; }
+  .portal-eyebrow { font-size: 14px; letter-spacing: 0; }
   .portal-hero-description { max-width: 330px; font-size: var(--text-sm); line-height: 1.7; }
   .portal-hero-copy > .portal-button { min-height: 44px; margin-top: 24px; }
   .portal-hero-note { margin-top: 14px; }
@@ -391,7 +391,7 @@
   .portal-profile-heading > div > p:last-child { font-size: var(--text-sm); }
   .plan-dialog { max-width: calc(100vw - 24px); }
   .plan-dialog-heading { padding: 12px 16px; }
-  .plan-dialog-heading .portal-eyebrow { letter-spacing: .6px; }
+  .plan-dialog-heading .portal-eyebrow { letter-spacing: 0; }
   .plan-dialog-stage { min-height: 250px; }
   .plan-dialog-details { padding: 24px 20px; }
   .plan-dialog-details h2 { font-size: 30px; }
