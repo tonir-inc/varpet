@@ -76,7 +76,12 @@ def pool(conn):
 
 def score(conn):
     queries, out = run(conn)
-    labels = json.loads((HERE / "labels.json").read_text()) if (HERE / "labels.json").exists() else {}
+    # labels.json: judged by Claude from photos (q01-q10); labels_astra.json: Astra judge, 84% agreement
+    # with labels.json on q01-q10 (kappa 0.66). Claude's labels win where both exist.
+    labels = {}
+    for name in ("labels_astra.json", "labels.json"):
+        if (HERE / name).exists():
+            labels.update(json.loads((HERE / name).read_text()))
     labels.pop("_note", None)
     for name in VARIANTS:
         viol = empty_ok = empty_n = 0

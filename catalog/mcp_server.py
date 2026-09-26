@@ -117,6 +117,36 @@ def check_fit(item_id: str, max_w: float, max_d: float, max_h: float, allow_rota
     return {"fits": min(m) >= 0, "margin_m": {"w": round(m[0], 3), "d": round(m[1], 3), "h": round(m[2], 3)}, "size_m": row[0]}
 
 
+@server.tool()
+def request_generation(kind: str, w: float, d: float, h: float, description: str,
+                       reference_image_url: str | None = None) -> dict:
+    """Queue a piece nobody sells in this size: it is built to exactly [w, d, h] metres from the description
+    (colour, material, style, shape in plain words; optional reference photo URL). Use only after
+    search_furniture found nothing that fits. Returns a request id; poll get_generation (takes minutes)."""
+    if min(w, d, h) <= 0 or max(w, d, h) > 4:
+        return {"error": "sizes must be between 0 and 4 m"}
+    with _conn() as c:
+        rid = c.execute(
+            "insert into generation_request (kind, size_m, description, reference_image_url) values (%s,%s,%s,%s) returning id",
+            (kind, [w, d, h], description[:1000], reference_image_url)).fetchone()[0]
+    return {"request_id": rid, "status": "pending"}
+
+
+@server.tool()
+def get_generation(request_id: int) -> dict:
+    """Status of a queued piece: pending, building, done (with the new item, placeable like any other) or failed."""
+    with _conn() as c:
+        cur = c.execute("select id, kind, size_m, status, item_id, error, created_at, updated_at from generation_request where id=%s", (request_id,))
+        row = cur.fetchone()
+    if not row:
+        return {"error": f"no request {request_id}"}
+    rec = dict(zip([d.name for d in cur.description], row))
+    rec["created_at"], rec["updated_at"] = str(rec["created_at"]), str(rec["updated_at"])
+    if rec["item_id"]:
+        rec["item"] = get_item(rec["item_id"])
+    return rec
+
+
 if __name__ == "__main__":
     # Default stdio. For the shared service: CATALOG_HTTP_HOST=<tailscale ip> [CATALOG_HTTP_PORT=8765]
     host = os.environ.get("CATALOG_HTTP_HOST")

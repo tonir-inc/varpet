@@ -135,7 +135,8 @@ def search(conn, q: Query):
             over = max([x["price_over"] for x in f if "price_over" in x] or [0]) / 100_000
             return fit + over
         misses.sort(key=overshoot)
-        return {"results": [], "nearest_misses": [_public(m) for m in misses[:3]]}
+        return {"results": [], "nearest_misses": [_public(m) for m in misses[:3]],
+                "hint": "Nothing fits. Relax a constraint, or request_generation to build this exact size."}
 
     ids = [p[0]["id"] for p in passed]
     scores = {k: np.zeros(len(passed)) for k in DEFAULT_WEIGHTS}
