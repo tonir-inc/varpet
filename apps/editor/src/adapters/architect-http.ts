@@ -16,7 +16,18 @@ export interface ArchitectHttpOptions {
   pickFiles?:()=>Promise<File[]>;
   fetch?:typeof globalThis.fetch;
 }
-export class ArchitectServiceError extends Error {readonly name='ArchitectServiceError';}
+export class ArchitectServiceError extends Error {readonly name: string='ArchitectServiceError';}
+export class PlanRejectedError extends ArchitectServiceError {
+  readonly name = 'PlanRejectedError';
+  readonly kind: string;
+  readonly reason: string;
+  constructor(event: Record<string, unknown>) {
+    const kind = typeof event.kind === 'string' ? event.kind : 'another kind of image';
+    const reason = typeof event.reason === 'string' && event.reason.trim() ? event.reason : `The image looks like ${kind}.`;
+    super(`This doesn’t look like a floor plan. ${reason} Upload your flat’s floor plan (JPG, PNG or WebP).`);
+    this.kind = kind; this.reason = reason;
+  }
+}
 const MAX_PHOTOS=4,MAX_FILE=12_000_000;
 
 export function pickImages():Promise<File[]>{
@@ -98,6 +109,7 @@ export function createArchitectHttpAdapter(options:ArchitectHttpOptions={}):Stru
           const line=JSON.parse(raw) as Record<string,unknown>;
           if(line.type==='progress')options.onProgress?.(String(line.message));
           else if(line.type==='structure')return structureFrom(line);
+          else if(line.type==='rejected')throw new PlanRejectedError(line);
           else if(line.type==='error')throw new ArchitectServiceError(String(line.message));
         }
         if(done)throw new ArchitectServiceError('The architect service closed without a structure.');
@@ -169,6 +181,7 @@ export async function buildFurnishedFlat(input:{plan:File;photos:File[];name:str
       const line=JSON.parse(raw) as Record<string,unknown>;
       if(line.type==='progress')onProgress(String(line.message));
       else if(line.type==='project')return line.project;
+      else if(line.type==='rejected')throw new PlanRejectedError(line);
       else if(line.type==='error')throw new ArchitectServiceError(String(line.message));
       else options.onEvent?.(line); // shell, pieces, piece, placements: intermediate results for a live preview
     }

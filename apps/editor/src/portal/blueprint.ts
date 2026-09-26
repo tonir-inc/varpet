@@ -3,7 +3,7 @@ import { apartmentTemplates, type ApartmentTemplate } from './templates';
 import type { SceneDocument } from '../contracts';
 import type { CatalogProduct } from '../adapters/database-catalog';
 import type { ArchitectStage, StagePhase } from '../ui/architect-stage';
-import { BLUEPRINT_TOTAL_LIMIT, retainBlueprintEvidence, validateBlueprintFile } from './blueprint-evidence';
+import { BLUEPRINT_TOTAL_LIMIT, retainBlueprintEvidence, prepareBlueprintPlan, validateBlueprintFile } from './blueprint-evidence';
 import { startBlueprintBuild } from './blueprint-build';
 import { traceInk, type BlueprintInk } from './blueprint-ink';
 import './blueprint.css';
@@ -55,14 +55,15 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
             <button class="blueprint-drop" type="button" aria-describedby="blueprint-file-hint">
               <span class="blueprint-upload-mark" aria-hidden="true">${icon('upload')}</span>
               <strong data-idle="Drop your blueprint here" data-over="Release to place it on the sheet">Drop your blueprint here</strong><span>or <u>browse files</u></span>
-              <span>Paste an image with <kbd>${pasteShortcut}</kbd></span>
-              <small id="blueprint-file-hint">JPG, PNG or WebP · up to 2 MB</small>
+              <span>Paste an image or PDF with <kbd>${pasteShortcut}</kbd></span>
+              <small id="blueprint-file-hint">JPG, PNG or WebP · 2 MB · PDF · 20 MB</small>
             </button>
           </div>
-          <input type="file" class="blueprint-file-input" accept="image/jpeg,image/png,image/webp" hidden>
+          <input type="file" class="blueprint-file-input" accept="image/jpeg,image/png,image/webp,application/pdf" hidden>
         </div>
       </div>
       <div class="blueprint-next" hidden>
+        <small class="blueprint-pdf-note" role="status" hidden></small>
         <div class="blueprint-file"><span>${icon('layers')}<strong></strong></span><button type="button" data-change>Change plan</button></div>
         <div class="blueprint-photos"><button type="button" data-photos>${icon('plus')} Add room photos <span>optional</span></button><input type="file" accept="image/jpeg,image/png,image/webp" multiple hidden><div class="blueprint-photo-list"></div></div>
         <button type="button" class="portal-button portal-primary blueprint-build" disabled>Bring my plan to life ${icon('arrow')}</button>
@@ -105,12 +106,26 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
     reading?.cancel();
     const job = startBlueprintBuild(plan, photos, () => {
       if (disposed || reading !== job) return;
+      if (job.rejection) { rejectPlan(job.rejection.message); return; }
       q('.blueprint-build-note').textContent = job.status === 'ready'
         ? 'Your apartment is ready to preview.' : 'We couldn’t read your plan yet. Continue to try again.';
     });
     reading = job;
     q('.blueprint-build-note').textContent = 'Reading your blueprint while you get ready…';
     return job;
+  }
+  function rejectPlan(message: string) {
+    ++selection; // Stop any upload animation still drawing this rejected image.
+    plan = null; ink = undefined;
+    q('.blueprint-pdf-note').hidden = true;
+    back();
+    picker.value = ''; next.hidden = true; build.disabled = true;
+    inkCanvas.hidden = true; drop.hidden = false;
+    drop.getAnimations().forEach(animation => animation.cancel());
+    board.classList.remove('has-plan');
+    flights.forEach(node => node.remove()); flights.clear();
+    setTitle('Awaiting your plan');
+    report(message); drop.focus();
   }
   function renderPhotos() {
     photoUrls.splice(0).forEach(URL.revokeObjectURL);
@@ -138,15 +153,19 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
     const version = ++selection;
     let url = '';
     try {
-      validate(candidate);
-      if (candidate.size + photos.reduce((sum, file) => sum + file.size, 0) > MAX_TOTAL) throw new Error('Keep the plan and photos under 12 MB in total.');
       build.disabled = true;
-      url = URL.createObjectURL(candidate);
+      const prepared = await prepareBlueprintPlan(candidate);
+      if (disposed || version !== selection) return;
+      const image = prepared.file;
+      if (image.size + photos.reduce((sum, file) => sum + file.size, 0) > MAX_TOTAL) throw new Error('Keep the plan and photos under 12 MB in total.');
+      url = URL.createObjectURL(image);
       const probe = new Image(); probe.src = url; await probe.decode();
       if (disposed || version !== selection) { URL.revokeObjectURL(url); return; }
       const traced = inkOf(probe);
       probe.src = ''; URL.revokeObjectURL(url); url = '';
-      plan = candidate; ink = traced; error.hidden = true;
+      plan = image; ink = traced;
+      q('.blueprint-pdf-note').textContent = prepared.note;
+      q('.blueprint-pdf-note').hidden = !prepared.note; error.hidden = true;
       void warmBuild().catch(() => {}); // Submit reports any module-loading failure with a retry.
       if (files.length > 1) addPhotos(files.filter(file => file !== candidate), false);
       startReading();
@@ -334,9 +353,9 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
     if (document.querySelector('dialog[open]') || event.composedPath().some(target =>
       target instanceof HTMLElement && (target.isContentEditable || target.matches('input, textarea, select')))) return;
     const clipboard = event.clipboardData;
-    let images = [...clipboard.files].filter(file => file.type.startsWith('image/'));
+    let images = [...clipboard.files].filter(file => (file.type.startsWith('image/') || file.type === 'application/pdf' || /\.pdf$/i.test(file.name)));
     if (!images.length) images = [...clipboard.items]
-      .filter(item => item.kind === 'file' && item.type.startsWith('image/'))
+      .filter(item => item.kind === 'file' && (item.type.startsWith('image/') || item.type === 'application/pdf'))
       .map(item => item.getAsFile()).filter((file): file is File => file !== null);
     if (!images.length) return;
     event.preventDefault(); void chooseFiles(images, source());
@@ -488,6 +507,7 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
       q('.blueprint-complete').hidden = false; q('[data-open]').focus();
     } catch (cause) {
       if (disposed || version !== run || signal.aborted) return;
+      if (cause instanceof Error && cause.name === 'PlanRejectedError') { rejectPlan(cause.message); return; }
       job.cancel(); if (reading === job) reading = undefined;
       stage?.dispose(); stage = undefined;
       welcome.hidden = true; building(); board.style.visibility = ''; flow.querySelectorAll('.bp-ghost').forEach(node => node.remove());

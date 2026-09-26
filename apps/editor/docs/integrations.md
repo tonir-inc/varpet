@@ -283,3 +283,21 @@ vertical extent, so a planter over a sofa is not a clash. Validation checks the 
 `hangsFrom` or `host` is present, so older documents with a floor-standing planter stay valid.
 Changing a wall or ceiling height does not re-hang these items yet; validation then reports the
 stale mount (blocking in v1, a warning in v2) until the item is moved.
+
+## Floor-plan upload gate
+
+`POST /flat` and the legacy `POST /structure` first stream
+`{"type":"progress","message":"Checking the plan"}`. A single low-effort
+`gpt-6-astra` vision turn accepts 2D home layouts, including marketing plans,
+hand sketches, scanned/photographed plans and pages containing multiple plans.
+Confident non-plans (`is_plan: false`, confidence >= 0.6) end the NDJSON stream with
+`{"type":"rejected","kind":"room photo","reason":"This image shows a room."}`;
+no architect build runs. The landing page displays the explanation, clears the
+chosen plan and lets the user choose another image without opening the editor.
+
+`POST /plan-check` takes `{"plan":{"name":"plan.png","data":"<base64>"}}`
+and returns ordinary JSON with `is_plan`, `kind`, `confidence` (0–1), and `reason`.
+It does not build a project. Classifier errors, invalid output and the 45-second
+timeout are logged and fail open: `is_plan: true`, `kind: "unknown"`, confidence 0.
+The classifier disables tools and uses a private direct-mode copy of the local
+Codex model cache; missing model metadata also fails open. No global config changes.

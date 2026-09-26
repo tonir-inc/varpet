@@ -157,3 +157,17 @@ test('cancelling immediately prevents the deferred transport from starting', asy
   assert.equal(transport.requests.length, 0);
   assert.equal(settled, 0);
 });
+
+test('a rejected plan has a distinct landing state before submit', async t => {
+  const transport = fakeTransport(t);
+  let settled = 0;
+  const job = startBlueprintBuild(file(), [], () => { settled++; }), request = await transport.started;
+  const error = Object.assign(new Error('This image shows a room. Upload your flat’s floor plan (JPG, PNG or WebP).'),
+    { name: 'PlanRejectedError', kind: 'room photo', reason: 'This image shows a room.' });
+  request.reject(error);
+  const result = await job.result;
+  assert.equal(result.ok, false);
+  assert.equal(job.status, 'rejected');
+  assert.equal(job.rejection, error);
+  assert.equal(settled, 1);
+});

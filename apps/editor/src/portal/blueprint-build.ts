@@ -9,7 +9,8 @@ export function startBlueprintBuild(plan: File, photos: File[], onSettled: () =>
   const controller = new AbortController();
   const pending: Update[] = [];
   let listener: ((update: Update) => void) | undefined;
-  let status: 'reading' | 'ready' | 'failed' = 'reading';
+  let rejection: Error | undefined;
+  let status: 'reading' | 'ready' | 'failed' | 'rejected' = 'reading';
   const started = performance.now();
   const publish = (update: Update) => {
     if (controller.signal.aborted) return;
@@ -33,13 +34,15 @@ export function startBlueprintBuild(plan: File, photos: File[], onSettled: () =>
     status = 'ready';
     return { ok: true, project } as const;
   }, error => {
-    status = 'failed';
+    rejection = error instanceof Error && error.name === 'PlanRejectedError' ? error : undefined;
+    status = rejection ? 'rejected' : 'failed';
     return { ok: false, error } as const;
   });
   void result.then(() => { if (!controller.signal.aborted) onSettled(); });
   return {
     ...input, started, result,
     get status() { return status; },
+    get rejection() { return rejection; },
     get signal() { return controller.signal; },
     /** Drain the early events in wire order, then follow the same live request. */
     attach(onProgress: (message: string) => void, onEvent: (event: Record<string, unknown>) => void) {

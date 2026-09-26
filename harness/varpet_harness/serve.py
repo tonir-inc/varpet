@@ -13,6 +13,8 @@ from __future__ import annotations
 import asyncio
 import base64
 import json
+import logging
+import tempfile
 import re
 import sys
 import time
@@ -23,6 +25,7 @@ from pathlib import Path
 
 from urllib.parse import parse_qs, urlparse
 
+from .plan_gate import classify_plan, unavailable, Verdict, TIMEOUT
 from .graph import Job
 from .pieces import catalog, runs as list_runs
 from .shell import Shell, to_editor
@@ -137,7 +140,20 @@ def _compile_cmd(repo: Path) -> list[str]:
     return ["uv", "run", "--project", str(repo / "compiler"), "python", "-m", "partdsl.compile"]
 
 
-def handler(repo: Path, runs: Path, runner_factory=None):
+async def check_plan(body: dict, classifier=None) -> dict:
+    if not isinstance(body.get("plan"), dict):
+        raise ValueError("send a plan image")
+    with tempfile.TemporaryDirectory(prefix="varpet-plan-check-") as folder:
+        plan = _save(body["plan"], Path(folder), "plan.jpg")
+        try:
+            result = await asyncio.wait_for((classifier or classify_plan)(plan), timeout=TIMEOUT)
+            return Verdict.model_validate(result).model_dump()
+        except Exception:
+            logging.getLogger(__name__).warning("Plan gate unavailable; allowing reconstruction", exc_info=True)
+            return unavailable()
+
+
+def handler(repo: Path, runs: Path, runner_factory=None, *, classifier=None):
     class Handler(BaseHTTPRequestHandler):
         def _cors(self) -> None:
             self.send_header("Access-Control-Allow-Origin", "*")
@@ -186,13 +202,19 @@ def handler(repo: Path, runs: Path, runner_factory=None):
 
         def do_POST(self) -> None:
             route = self.path.rstrip("/")
-            if route not in ("/structure", "/flat"):
+            if route not in ("/structure", "/flat", "/plan-check"):
                 self.send_error(404)
                 return
             size = int(self.headers.get("Content-Length") or 0)
             if not 0 < size <= MAX_BODY:
                 self.send_error(413 if size else 411)
                 return
+            if route == "/plan-check":
+                try:
+                    body = json.loads(self.rfile.read(size))
+                    return self._json(200, asyncio.run(check_plan(body, classifier)))
+                except Exception as e:
+                    return self._json(400, {"error": f"{type(e).__name__}: {e}"})
             self.send_response(200)
             self._cors()
             self.send_header("Content-Type", "application/x-ndjson")
@@ -205,6 +227,11 @@ def handler(repo: Path, runs: Path, runner_factory=None):
             try:
                 body = json.loads(self.rfile.read(size))
                 progress = lambda m: line({"type": "progress", "message": _friendly(m)})
+                progress("Checking the plan")
+                verdict = asyncio.run(check_plan(body, classifier))
+                if not verdict["is_plan"] and verdict["confidence"] >= 0.6:
+                    line({"type": "rejected", "kind": verdict["kind"], "reason": verdict["reason"]})
+                    return
                 if route == "/flat":
                     project = asyncio.run(furnished_flat(body, repo, runs, progress, emit=line,
                                                          base_url=f"http://{self.headers.get('Host') or '127.0.0.1:8788'}"))

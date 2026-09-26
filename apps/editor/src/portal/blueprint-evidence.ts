@@ -7,8 +7,25 @@ export const BLUEPRINT_TOTAL_LIMIT = 12_000_000;
 const imageTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
 export function validateBlueprintFile(file: File): void {
-  if (!imageTypes.has(file.type)) throw new Error('Choose a JPG, PNG or WebP image. Export PDF plans as an image first.');
+  if (!imageTypes.has(file.type)) throw new Error('Choose a JPG, PNG or WebP image.');
   if (!file.size || file.size > BLUEPRINT_FILE_LIMIT) throw new Error(`${file.name} must be between 1 byte and 2 MB so your original can stay with the project.`);
+}
+
+/** Normalize plans before the image-only gate, transport and retained evidence boundary. */
+export async function prepareBlueprintPlan(file: File): Promise<{file: File; note: string}> {
+  if (file.type !== 'application/pdf' && !/\.pdf$/i.test(file.name)) {
+    validateBlueprintFile(file);
+    return {file, note: ''};
+  }
+  if (file.size > 20_000_000) throw new Error('Choose a PDF up to 20 MB.');
+  const unreadable = 'This PDF could not be read. Export the plan page as an image.';
+  if (!file.size) throw new Error(unreadable);
+  try {
+    const { renderBlueprintPdf } = await import('./blueprint-pdf');
+    return await renderBlueprintPdf(file);
+  } catch {
+    throw new Error(unreadable);
+  }
 }
 
 /** The architect stores inputs in one directory; original camera filenames can collide. */
