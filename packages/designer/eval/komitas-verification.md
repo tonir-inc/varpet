@@ -81,3 +81,5 @@ Ran 41 tests in 4.712s
 OK
 ```
 The latest fresh review approved the cleanup code; its CONCERN about incomplete full verification is resolved by this green run. Earlier two-worker and one-worker retries hit unchanged test timeouts while measured host load reached 161; no timeout or assertion was changed.
+
+Push policy update, measured 2026-09-26 13:53–13:55 UTC: Ashot explicitly authorized one prior full green suite plus typecheck and area checks after unrelated rebases, and immediate rebase/push on rejection. Root `pnpm typecheck` passed all four package scripts; explicit eval tsc passed; targeted grader 10/10 passed; eval Python 41/41 passed in 3.566s. Two non-forced push races were resolved by clean rebase and immediate retry; the nine verified commits reached main at `d355a85`. The prior full-suite evidence above remains the full-suite baseline. The follow-up report imports the ten architect measurements from `54643fc`, correctly records nine published shells, and leaves all 38 customer measurements unchanged.
