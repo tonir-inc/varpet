@@ -13,6 +13,7 @@
     <main class="stage" id="stage" aria-label="Your flat">
       <div class="viewport" id="viewport"></div>
       <svg class="marks" id="marks" aria-hidden="true"></svg>
+      <div class="cards" id="cards" aria-hidden="true"></div>
 
       <div class="modes" role="group" aria-label="How you want to work">
         <button data-mode="designer" aria-pressed="true">Designer</button>
@@ -21,7 +22,7 @@
 
       <figure class="reference for-designer" id="reference" hidden>
         <div class="ref-pic" id="ref-pic"></div>
-        <figcaption>Your picture. Read once, then deleted.</figcaption>
+        <figcaption id="ref-caption">Your picture. Read once, then deleted.</figcaption>
       </figure>
       <p class="replay-tag" id="replay-tag" hidden>Replay of a recorded run</p>
 

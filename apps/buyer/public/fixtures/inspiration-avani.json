@@ -665,14 +665,21 @@
    "at": 51.85,
    "line": {
     "type": "message_delta",
-    "delta": "stay grey while they "
+    "delta": "are drawn in blue "
    }
   },
   {
    "at": 52.2,
    "line": {
     "type": "message_delta",
-    "delta": "are being made. "
+    "delta": "while they are being "
+   }
+  },
+  {
+   "at": 52.55,
+   "line": {
+    "type": "message_delta",
+    "delta": "built. "
    }
   },
   {

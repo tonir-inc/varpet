@@ -68,7 +68,7 @@ at(38.7, { type: 'progress', message: 'Placing the pieces in your living room' }
 at(46.9, { type: 'progress', message: 'Checking the layout against walls, doors and windows' });
 tool(48.3, 'propose', 'start', 'Checking the layout');
 tool(49.6, 'propose', 'end', 'Layout checked', { proposal, assets: [sofa, table, sideboard, bookshelf] });
-say(50.1, 'Here is your living room. The sofa and the coffee table can be ordered now; the sideboard and the bookshelf stay grey while they are being made. ');
+say(50.1, 'Here is your living room. The sofa and the coffee table can be ordered now; the sideboard and the bookshelf are drawn in blue while they are being built. ');
 
 // Build timelines [state, seconds after queued]; the fix turn lands at 60-70 % of the build.
 const builds = [
