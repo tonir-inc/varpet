@@ -24,6 +24,8 @@ class DefaultSettingsTests(unittest.TestCase):
 
     def test_default_settings_are_fresh_and_shared_by_cli_and_worker(self):
         effort, profile = self.settings({})
+        self.assertEqual(effort, 'low')
+        self.assertEqual(profile, {'placement':'without-place','context':'compact-base'})
         self.assertEqual(designer.default_service_settings(), {'effort':effort,'profile':profile})
         profile['placement'] = 'mutated'
         self.assertNotEqual(self.settings({})[1]['placement'], 'mutated')

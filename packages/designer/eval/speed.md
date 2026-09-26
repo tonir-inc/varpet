@@ -2,7 +2,24 @@
 
 Measured on 2026-09-26, `gpt-6-astra`, pinned Codex SDK/CLI `0.157.1`.
 
-## Results
+## Validation after merging current main
+
+[measured] After rebasing onto `e4c961d`, the selected profile passed **6/6** again: **49.099 s median, 92.780 s maximum, 58,296 median tokens**, 444,088 total tokens, and **5/6 below 60 s**. The remaining slow request is r05 (larger empty rectangle). The per-request 60-second target remains unmet.
+
+[measured] This validation uses upstream changes to layout checks and metrics, including baseline-violation handling (`b34915b`), so it is a separate cohort, not a controlled additional row in A–L. These speed commits do not modify those checks, fixtures, bridge or adapter. Grader source is unchanged; transitive source hashes differ and are preserved in the manifest.
+
+[Manifest](runs/20260926T103550Z/manifest.json); source `efa8be9e36cd92c14a3e411805f814e5a7ad785f`; 2026-09-26T10:35:50.174492+00:00 through 2026-09-26T10:38:04.862814+00:00 UTC.
+
+| Scenario | Seconds | Tokens | Grade / policy | Evidence |
+|---|---:|---:|---|---|
+| r01-desk-east-wall | 41.542 | 48,432 | PASS / PASS | [record](runs/20260926T103550Z/r01-desk-east-wall-without-place-low-compact-base.json), [events](runs/20260926T103550Z/r01-desk-east-wall-without-place-low-compact-base.jsonl) |
+| r02-wardrobe-south-wall | 57.089 | 68,160 | PASS / PASS | [record](runs/20260926T103550Z/r02-wardrobe-south-wall-without-place-low-compact-base.json), [events](runs/20260926T103550Z/r02-wardrobe-south-wall-without-place-low-compact-base.jsonl) |
+| r03-chair-faces-desk | 40.324 | 48,248 | PASS / PASS | [record](runs/20260926T103550Z/r03-chair-faces-desk-without-place-low-compact-base.json), [events](runs/20260926T103550Z/r03-chair-faces-desk-without-place-low-compact-base.jsonl) |
+| r04-desk-near-window | 56.655 | 80,214 | PASS / PASS | [record](runs/20260926T103550Z/r04-desk-near-window-without-place-low-compact-base.json), [events](runs/20260926T103550Z/r04-desk-near-window-without-place-low-compact-base.jsonl) |
+| r05-more-usable-floor | 92.780 | 153,678 | PASS / PASS | [record](runs/20260926T103550Z/r05-more-usable-floor-without-place-low-compact-base.json), [events](runs/20260926T103550Z/r05-more-usable-floor-without-place-low-compact-base.jsonl) |
+| r06-wider-walkway | 32.290 | 45,356 | PASS / PASS | [record](runs/20260926T103550Z/r06-wider-walkway-without-place-low-compact-base.json), [events](runs/20260926T103550Z/r06-wider-walkway-without-place-low-compact-base.jsonl) |
+
+## Original controlled comparison
 
 [derived from measured records] Selection minimizes median elapsed worker time among 6/6 passing conditions. The selected configuration is **L: low / without-place / compact-base / static catalog**. It has a **50.001 s median, 127.981 s maximum, 66,498 median tokens**, and 4/6 passing requests below 60 s. **A sub-minute response for every request is NOT achieved.** No hard 60-second cutoff was added to turn slow successes into refusals.
 
@@ -110,8 +127,8 @@ settings; use `DesignerService(**designer.default_service_settings())` for the c
 Ordinary benchmark runs explicitly preserve their reference placement/context instead of inheriting
 product defaults.
 
-[assumed] To reproduce earlier runtime conditions exactly, use each manifest's recorded source
-revision and hashes. Current runtime code intentionally uses the local static catalog when available.
+[assumed] Earlier manifests retain the source hashes and original pre-rebase revision IDs. Rebasing
+rewrites those IDs; compare hashes when reconstructing an earlier runtime condition. Current runtime code intentionally uses the local static catalog when available.
 Within that revision, A uses `--speed-profile without-place --effort medium`; B uses
 `--speed-profile one-batch --effort medium --round-cap 8`; C changes A to `--effort low`;
 D adds `--context trimmed`. E/F use `--context compact`; K/L use `--context compact-base`.
