@@ -19,5 +19,18 @@ Developer plan and photos in, a faithful furnished 3D flat out, rearranged by a 
 - Fix in code when the fix is mechanical.
 - Two agents never write the same file.
 
+## Agent setup (Codex and Claude Code share it)
+- Skills: `.agents/skills/` (Claude Code reads the same folder through `.claude/skills`). Load only the one
+  your job names: `write-tests-first` before new behaviour in `packages/`, `definition-of-done` before
+  saying done, `systematic-debugging` on a failure, `plan-to-scene` / `furnish-from-plan` /
+  `scene-visual-check` for plan work (their output format is Tonir's until rewritten for our schema).
+- Hooks (`tools/hooks/`, registered in `.codex/hooks.json` and `.claude/settings.json`): edits to the
+  constitution, AGENTS.md, `fixtures/`, the hooks and the agent config are denied, and so are deleting,
+  skipping or weakening an existing test; adding a new test file is fine. When a turn ends, `pnpm test`
+  runs and reports (set `VARPET_STOP_BLOCK=1` to make it block).
+- Agents (`.codex/agents/`): `reviewer` checks a finished change with fresh context; `devils-advocate`
+  attacks a plan before it costs hours.
+- Done means: the task's command output pasted, `pnpm test` and `pnpm typecheck` green untargeted.
+
 ## Open (decide at 10:30)
 - Scene schema and axes. Pascal plugin or own editor. Is `gpt-6-astra` in the sandbox. Demo flat. Lanes.

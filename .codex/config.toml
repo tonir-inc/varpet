@@ -1,2 +1,38 @@
-# Project Codex config. Loads only once this folder is trusted in ~/.codex/config.toml.
-# Disable global MCP servers, plugins and memories here to cut thread start context.
+# Project Codex config. Loads only once this folder is trusted in ~/.codex/config.toml; the hooks in
+# .codex/hooks.json run once each person trusts them with /hooks (Codex reviews hooks by hash).
+# Kept small on purpose: every global MCP server costs start-up time and context in every thread,
+# and one thread per job multiplies that. Servers this project does not use are switched off here.
+
+[features]
+hooks = true
+
+# The team's specs live in Notion. Once per person: `codex mcp login notion`, and pick the TEAM workspace.
+[mcp_servers.notion]
+url = "https://mcp.notion.com/mcp"
+
+# Headless Blender for the compiler lane (the add-on must be running in Blender for the tools to work).
+[mcp_servers.blender]
+command = "uvx"
+args = ["mcp-for-blender"]
+default_tools_approval_mode = "approve"
+startup_timeout_sec = 30
+
+# Global servers not used in this repository (they exist on some teammates' machines).
+[mcp_servers.atlassian]
+enabled = false
+[mcp_servers.aws-knowledge]
+enabled = false
+[mcp_servers.cf-docs]
+enabled = false
+[mcp_servers.cloudflare-api]
+enabled = false
+[mcp_servers.edgar]
+enabled = false
+[mcp_servers.voicemode]
+enabled = false
+
+# Plugins that bring their own servers (Telegram; Datadog's shows up as "mcp").
+[plugins."telegram@claude-plugins-official"]
+enabled = false
+[plugins."datadog@claude-plugins-official"]
+enabled = false

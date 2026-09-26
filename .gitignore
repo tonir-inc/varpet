@@ -5,3 +5,8 @@ __pycache__/
 *.blend1
 assets/build/
 .DS_Store
+
+# team agent config is committed (a global gitignore may hide .claude/); personal overrides stay local
+!.claude/
+!.claude/**
+.claude/settings.local.json
