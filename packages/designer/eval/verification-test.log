@@ -1,0 +1,47 @@
+
+> varpet@ test /Users/ashotarushanyan/AshProjects/varpet-bench
+> pnpm -r test
+
+Scope: 5 of 6 workspace projects
+packages/designer test$ vitest run && python3 -m unittest discover -s ../../harness -p 'designer*_test.py'
+packages/engine test$ vitest run --passWithNoTests
+tools test$ node --test
+packages/engine test:  RUN  v5.0.2 /Users/ashotarushanyan/AshProjects/varpet-bench/packages/engine
+packages/designer test:  RUN  v5.0.2 /Users/ashotarushanyan/AshProjects/varpet-bench/packages/designer
+packages/engine test: No test files found, exiting with code 0
+packages/engine test: include: **/*.{test,spec}.?(c|m)[jt]s?(x)
+packages/engine test: exclude:  **/node_modules/**, **/.git/**
+packages/engine test: Done
+tools test: ✔ contract files and dirs are denied, ordinary source is allowed (480.655833ms)
+tools test: ✔ a NEW test file may be added; an existing one may not be deleted, weakened or skipped (650.879541ms)
+tools test: ✔ any package's test/ folder is protected from removal, not only the ones listed by name (339.751542ms)
+tools test: ✔ the Stop check reports by default and blocks only when asked (233.028542ms)
+tools test: ✔ a test file that is not committed yet (the agent's own draft) may be fixed; committed ones stay locked (385.863917ms)
+tools test: ✔ if git cannot answer, an uncommitted-looking test is treated as committed (fail closed) (91.242292ms)
+tools test: ✔ changing an expect() in a committed vitest file is denied like an assert (123.650208ms)
+tools test: ℹ tests 7
+tools test: ℹ suites 0
+tools test: ℹ pass 7
+tools test: ℹ fail 0
+tools test: ℹ cancelled 0
+tools test: ℹ skipped 0
+tools test: ℹ todo 0
+tools test: ℹ duration_ms 2412.923417
+tools test: Done
+packages/designer test:  Test Files  39 passed (39)
+packages/designer test:       Tests  174 passed (174)
+packages/designer test:    Start at  13:45:10
+packages/designer test:    Duration  8.62s (tests 84%, import 9%, transform 6%, worker 1%)
+packages/designer test:     Isolate  39 workers spawned · ~155ms startup each (spawn + environment, per file)
+packages/designer test:              at least ~706ms faster with isolate: false — reuses workers across files instead of one per file
+packages/designer test: ...........................................
+packages/designer test: ----------------------------------------------------------------------
+packages/designer test: Ran 43 tests in 3.644s
+packages/designer test: OK
+packages/designer test: Done
+apps/editor test$ node scripts/check.mjs && node scripts/check-renovation.mjs && node scripts/check-openings.mjs
+apps/editor test: Domain checks passed (265 assertions).
+apps/editor test: Renovation checks passed (102 assertions).
+apps/editor test: Reconstruction and handoff checks passed (29 assertions).
+apps/editor test: Opening clearance: 80 assertions passed.
+apps/editor test: Done
