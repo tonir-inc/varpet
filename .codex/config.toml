@@ -10,6 +10,14 @@ hooks = true
 [mcp_servers.notion]
 url = "https://mcp.notion.com/mcp"
 
+# The designer's tools (packages/designer). Started from the repository root of whichever checkout or
+# worktree the session runs in; tsx is called directly so nothing but MCP messages reaches stdout.
+[mcp_servers.varpet-designer]
+command = "sh"
+args = ["-c", "cd \"$(git rev-parse --show-toplevel)\" && export VARPET_SCENE=\"${VARPET_SCENE:-$PWD/packages/designer/test/fixtures/bedroom.json}\" && exec packages/designer/node_modules/.bin/tsx packages/designer/src/server.ts"]
+default_tools_approval_mode = "approve"
+startup_timeout_sec = 30
+
 # Headless Blender for the compiler lane (the add-on must be running in Blender for the tools to work).
 [mcp_servers.blender]
 command = "uvx"

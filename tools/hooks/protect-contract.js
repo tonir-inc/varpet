@@ -19,6 +19,7 @@
 // stdin: { tool_name, tool_input, ... }   deny: hookSpecificOutput.permissionDecision = "deny"
 import { posix, dirname, resolve } from 'node:path';
 import { statSync, existsSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
@@ -28,6 +29,8 @@ const CONTRACT_DIRS = ['fixtures', 'tools/hooks', '.codex', '.claude'];
 const TEST_DIRS = ['packages/engine/test', 'packages/agent-tools/test', 'apps/editor/test', 'tools/test'];
 const CHECKS_FILE = ''; // varpet: the engine's checks source once it exists; removing a check from it is denied
 const exists = (c) => existsSync(resolve(REPO, c));
+// a test is contract once it is COMMITTED; a test the agent wrote in this change is its own draft and may be fixed
+const committed = (c) => spawnSync('git', ['-C', REPO, 'cat-file', '-e', `HEAD:${c}`], { timeout: 5000 }).status === 0;
 const TEST_HOMES = []; // directories that HOLD test files among sources: the files count individually, the directory as a whole is protected from removal
 const SKIP_MARK = /\.(skip|only)\(|\bxit\(|\bxtest\(/;
 const TAUTOLOGY = /assert(?:\.ok)?\(\s*(?:true|1|-?\d+|'[^']*'|"[^"]*")\s*[,)]|assert\.(?:equal|strictEqual|deepEqual|deepStrictEqual|notEqual)\(\s*([^,()]+?)\s*,\s*\1\s*[,)]|expect\(\s*true\s*\)\.toBe\(\s*true\s*\)/;
@@ -57,7 +60,7 @@ function classify(p, cwd = '', mutation = false) {
   if (!c && !mutation) return null;
   if (CONTRACT_FILES.includes(c)) return c;
   const d = CONTRACT_DIRS.find((x) => under(c, x)); if (d) return `${d}/`;
-  if (isTestFile(c)) return `a test file (${c})`;
+  if (isTestFile(c) && committed(c)) return `a test file (${c})`;
   if (isTestDir(c)) return `a test directory (${c})`;
   if (mutation) {
     const all = [...CONTRACT_FILES, ...CONTRACT_DIRS, ...TEST_DIRS, ...TEST_HOMES];
@@ -109,7 +112,7 @@ process.stdin.on('data', (d) => (raw += d)).on('end', () => {
   /** A change to a test file or the checks file: existing assertions are a person's to change (rule 3); adding is free. */
   const judgeText = (label, file, removed, added) => {
     const c = canon(file);
-    if (isTestFile(c)) {
+    if (isTestFile(c) && committed(c)) {
       if (count(added, TEST_CALL) < count(removed, TEST_CALL)) deny(`${label} removes a test from "${c}".`);
       if (/\bassert\b/.test(String(removed || ''))) deny(`${label} changes or removes an existing assertion in "${c}"; existing tests are the contract, a person changes them in a reviewed commit. Add a new test instead.`);
       if (TAUTOLOGY.test(added)) deny(`${label} adds an assertion that cannot fail to "${c}".`);
@@ -126,7 +129,7 @@ process.stdin.on('data', (d) => (raw += d)).on('end', () => {
     if (isTestFile(canon(file))) {
       const edits = Array.isArray(input.edits) ? input.edits : [{ old_string: input.old_string, new_string: input.new_string }];
       for (const e of edits) judgeText('This edit', file, e.old_string, e.new_string);
-      if (input.content !== undefined) { if (SKIP_MARK.test(String(input.content))) deny(`This write adds a skip/only marker to "${canon(file)}".`); if (TAUTOLOGY.test(String(input.content))) deny(`This write adds an assertion that cannot fail to "${canon(file)}".`); if (/^Write$/i.test(tool) && exists(canon(file))) deny(`This write replaces the whole test file "${canon(file)}"; add tests with an edit, or let a person review the rewrite.`); }
+      if (input.content !== undefined) { if (SKIP_MARK.test(String(input.content))) deny(`This write adds a skip/only marker to "${canon(file)}".`); if (TAUTOLOGY.test(String(input.content))) deny(`This write adds an assertion that cannot fail to "${canon(file)}".`); if (/^Write$/i.test(tool) && committed(canon(file))) deny(`This write replaces the whole test file "${canon(file)}"; add tests with an edit, or let a person review the rewrite.`); }
     }
     process.exit(0);
   }
@@ -139,7 +142,7 @@ process.stdin.on('data', (d) => (raw += d)).on('end', () => {
       const f = files[k]; const c = canon(f.path); const hit = classify(f.path, '', f.verb !== 'Update');
       if (hit && !/^a test/.test(hit)) deny(`"${hit}" is part of the contract (schema, fixtures, constitution, AGENTS.md, the checks, the hooks and their config); the patch touches ${c}.`);
       // a NEW test file may be added (varpet starts with no tests); deleting, moving or re-adding an existing one is denied
-      if (isTestFile(c) && (f.verb === 'Delete' || f.verb === 'Move to' || (f.verb === 'Add' && exists(c)))) deny(`This patch ${f.verb.toLowerCase()}s the test file "${c}".`);
+      if (isTestFile(c) && committed(c) && (f.verb === 'Delete' || f.verb === 'Move to' || f.verb === 'Add')) deny(`This patch ${f.verb.toLowerCase()}s the test file "${c}".`);
       if (f.verb === 'Update' && (isTestFile(c) || (CHECKS_FILE && c === CHECKS_FILE))) {
         const hunk = patch.slice(f.index, k + 1 < files.length ? files[k + 1].index : undefined);
         const removed = hunk.split('\n').filter((l) => l.startsWith('-')).join('\n');

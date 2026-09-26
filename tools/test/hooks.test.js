@@ -50,3 +50,10 @@ test('the Stop check reports by default and blocks only when asked', () => {
   const blocked = JSON.parse(run({ VARPET_STOP_BLOCK: '1' }).stdout);
   assert.equal(blocked.decision, 'block');
 });
+
+test('a test file that is not committed yet (the agent\'s own draft) may be fixed; committed ones stay locked', () => {
+  const draft = `${ROOT}packages/designer/test/draft-not-committed.test.ts`;
+  assert.equal(guard(patch(`*** Update File: ${draft}\n@@\n-  expect(x).toBe(1);\n+  expect(x).toBe(2);`)), false);
+  assert.equal(guard(patch(`*** Delete File: ${draft}`)), false);
+  assert.equal(guard(patch(`*** Update File: ${THIS}\n@@\n-  assert.equal(1, 1);\n+  // gone`)), true);
+});
