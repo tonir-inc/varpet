@@ -30,6 +30,8 @@ NATIVE_EXTRA_KINDS = (
 # Only decoration aliases extend the existing extra-model allowlist.
 EXTRA_DECOR_KINDS = tuple(kind for kind, target in EDITOR_KIND_OF.items() if target in {"decor", "wall_art"})
 WALL_EXTRA_KINDS = ("wall_art", "mirror", "clock", "wall_hanging")
+# Floor and table lamps; wall lamps stay out through the wall-evidence rule (the editor does not wall-mount lamps).
+EXTRA_LAMP_KINDS = ("lamp",)
 
 def build_placeable_sql():
     """Combine unchanged ABO eligibility with extra models, including supported wall decorations."""
@@ -43,7 +45,7 @@ def build_placeable_sql():
     # Wall-only kinds (range_hood, mirror_bathroom, towel_rail, air_conditioner,
     # curtain) are deliberately absent from the allowlist.
     extra = (
-        f"(kind in ({', '.join(repr(k) for k in (*NATIVE_EXTRA_KINDS, *EXTRA_DECOR_KINDS))}) and source = 'extra'"
+        f"(kind in ({', '.join(repr(k) for k in (*NATIVE_EXTRA_KINDS, *EXTRA_DECOR_KINDS, *EXTRA_LAMP_KINDS))}) and source = 'extra'"
         " and glb_url is not null"
         f" and (kind in ({', '.join(repr(k) for k in WALL_EXTRA_KINDS)}) or (coalesce(split_part(id, ':', 3), '') !~* '(wall|mount|hang|lift)'"
         " and coalesce(tags->'extra'->>'notes', '') !~* '(wall|mount|hang|lift)')))"
