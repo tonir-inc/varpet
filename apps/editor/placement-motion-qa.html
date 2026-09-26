@@ -1,0 +1,36 @@
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><title>Item placement motion QA</title><style>body{margin:0;background:#171d25;color:#eee;font:14px system-ui}header{padding:12px}button{padding:8px;margin:3px}#view{position:absolute;inset:148px 0 0}#result{margin-top:8px;white-space:pre-wrap;font:12px monospace}</style></head><body><header><strong>Item placement motion — isolated demo</strong><br><button id="drop">Drop table</button><button id="move">Preview move</button><button id="release">Release move</button><button id="cancel">Cancel move</button><button id="invalid">Preview invalid move</button><button id="undo">Undo</button><button id="redo">Redo</button><button id="top">Top</button><button id="perspective">3D</button><button id="reduced">Reduced motion: off</button><div id="result">Loading</div></header><div id="view"></div><script type="module">
+import * as THREE from 'three';
+import { TransformControls } from 'three/addons/controls/TransformControls.js';
+import { createViewport } from '/src/render/viewport.ts';
+import { demoScene, localCatalog } from '/src/core/demo.ts';
+import { EditorStore } from '/src/core/store.ts';
+const result=document.querySelector('#result');
+let reduced=false;const mediaListeners=new Set();const realMatch=window.matchMedia.bind(window);
+window.matchMedia=query=>query==='(prefers-reduced-motion: reduce)'?{get matches(){return reduced},addEventListener(type,fn){mediaListeners.add(fn)},removeEventListener(type,fn){mediaListeners.delete(fn)}}:realMatch(query);
+let controls, dragging=false, root, samples=[], label='Ready', snapshot='';
+const setMode=TransformControls.prototype.setMode;
+TransformControls.prototype.setMode=function(...args){controls=this;return setMode.apply(this,args)};
+const render=THREE.WebGLRenderer.prototype.render;
+THREE.WebGLRenderer.prototype.render=function(world,camera){
+ world.traverse(object=>{if(object.userData.objectId==='coffee-table') root=object});
+ if(root){samples.push({y:root.position.y,visualY:root.children[0].position.y,scale:root.children[0].scale.toArray()});if(samples.length>120)samples.shift();}
+ const output=render.call(this,world,camera);show();return output;
+};
+const store=new EditorStore(demoScene,localCatalog);
+function show(){if(!root)return;const object=store.scene.objects.find(o=>o.id==='coffee-table');const ys=samples.map(s=>s.visualY);result.textContent=JSON.stringify({label,revision:store.revision,position:object.position,root:root.position.toArray(),visual:root.children[0].position.toArray(),scale:root.children[0].scale.toArray(),frames:samples.length,maxLift:Math.max(0,...ys),belowFloor:ys.some(y=>y<0),rootMovedVertically:samples.some(s=>s.y!==0),unchanged:snapshot===JSON.stringify(store.scene),reduced});}
+const viewport=createViewport(document.querySelector('#view'),{onSelect(id){viewport.setSelection(id)},onInteraction(active){dragging=active},onError(message){label=message;show()},onTransform(id,patch){const change=store.execute({id:crypto.randomUUID(),label:'QA move',source:'human',baseRevision:store.revision,operations:[{type:'update',id,patch}]},true);viewport.setScene(store.scene,localCatalog);label=change.ok?'Committed':`Rejected: ${change.errors.join(' ')}`;show()}});
+viewport.setScene(store.scene,localCatalog);viewport.setSelection('coffee-table');viewport.setTool('move');viewport.focus('coffee-table');
+function capture(name){samples=[];snapshot=JSON.stringify(store.scene);label=name;}
+function preview(invalid){capture(invalid?'Invalid preview':'Move preview');if(!dragging)controls.dispatchEvent({type:'mouseDown',mode:'translate'});const object=store.scene.objects.find(o=>o.id==='coffee-table');controls.object.position.set(invalid?999:object.position[0],0,invalid?999:object.position[2]-0.5);controls.object.updateMatrixWorld(true);controls.dispatchEvent({type:'objectChange'});show()}
+document.querySelector('#drop').onclick=()=>{capture('Drop');viewport.animatePlacement('coffee-table')};
+document.querySelector('#move').onclick=()=>preview(false);
+document.querySelector('#invalid').onclick=()=>preview(true);
+document.querySelector('#release').onclick=()=>{samples=[];controls.dispatchEvent({type:'mouseUp',mode:'translate'})};
+document.querySelector('#cancel').onclick=()=>{viewport.cancelInteraction();label='Cancelled';show()};
+document.querySelector('#undo').onclick=()=>{capture('Undo');store.undo();viewport.setScene(store.scene,localCatalog);show()};
+document.querySelector('#redo').onclick=()=>{capture('Redo');store.redo();viewport.setScene(store.scene,localCatalog);show()};
+document.querySelector('#top').onclick=()=>{viewport.setView('top');viewport.focus('coffee-table')};
+document.querySelector('#perspective').onclick=()=>{viewport.setView('perspective');viewport.focus('coffee-table')};
+document.querySelector('#reduced').onclick=event=>{reduced=!reduced;for(const listener of mediaListeners)listener({matches:reduced});event.target.textContent=`Reduced motion: ${reduced?'on':'off'}`;show()};
+snapshot=JSON.stringify(store.scene);
+</script></body></html>

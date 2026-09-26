@@ -1,4 +1,8 @@
 const paths: Record<string,string> = {
+  sofa:'<path d="M5 12V7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v5M5 18v3M19 18v3M5 12H3v6h18v-6h-2v3H5Z"/>',
+  'panel-close':'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16m7-11-3 3 3 3"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  eye:'<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>',
   undo:'<path d="M9 5 4 10l5 5M4 10h10a5 5 0 0 1 0 10"/>',
   redo:'<path d="m15 5 5 5-5 5m5-5H10a5 5 0 0 0 0 10"/>',
   folder:'<path d="M3 7V5h7l2 2h9v13H3Z"/>',

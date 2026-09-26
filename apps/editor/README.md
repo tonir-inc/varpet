@@ -1,6 +1,6 @@
 # Varpet editor
 
-A self-contained local 3D apartment editor in the existing `apps/editor` workspace. No account, service keys, image generation, or remote furniture downloads are needed. The current `packages/engine` placeholder is untouched; this editor's v1 document contract is deliberately local until the team agrees on the shared engine schema.
+A self-contained local 3D apartment and renovation editor in the existing `apps/editor` workspace. No account, service keys, image generation, or remote furniture downloads are needed. The current `packages/engine` placeholder is untouched; this editor's v1/v2 document contract is deliberately local until the team agrees on the shared engine schema.
 
 ## Run
 
@@ -17,33 +17,42 @@ To run from the application directory after the workspace install, `cd apps/edit
 
 ## Use
 
-- Click furniture in the 3D view or scene explorer. Use **G** to move, **R** to rotate, **S** to resize, **V** to select, and **F** to frame a selection. Position and dimensions are also editable in Properties.
+- Start in **Renovate**: **Shell** edits rooms, walls and openings; **Evidence** imports originals; **Assumptions** records uncertainty; **Systems** places components and service routes; **Options** compares renovation alternatives; **Review** checks issues, materials, quantities and tasks. See the [renovation guide](docs/renovation-implementation.md) for the complete workflow and limitations.
+- **Build from plan** constructs an empty apartment from measured spaces or calibrated tracing of an original image plan. Preview the proposed 3D shell and explicitly Apply it. Photo originals can be attached and referenced; automatic AI reconstruction is deferred by the user's choice.
+- The dark workspace keeps the apartment central, with a compact navigation rail and collapsible sidebar. Press **1**, **2**, **3**, or **4** to open **Scene**, **Furniture**, **Assistant**, or **Renovate**; **[** toggles the sidebar. Scene search filters object and room names, and room groups can be collapsed.
+- Click furniture in the 3D view or Scene panel. Properties appears for the selected object and closes when selection is cleared. Use **G** to move, **R** to rotate, **S** to resize, **V** to select, and **F** to frame a selection. Double-click an object in the Scene list to frame it. Position and dimensions are also editable in Properties.
 - Drag to orbit, right-drag to pan, scroll to zoom. Top view is an orthographic view of the same 3D scene. Switch between cutaway, full, and hidden walls. Selection respects visible opaque walls.
+- Choose **Plan** for a floor-plan chart with wall classifications, door/window symbols, room areas and interior dimensions. Select a room for edge measurements or a wall/opening for its existing inspector. See the [floor-plan guide](docs/floor-plan.md) for measurement conventions.
 - Snapping uses 0.25 m positions, 15° rotation, and 0.1 scale increments. Furniture stays grounded at Y=0. Changes that cross a wall or leave the floor are rejected; furniture overlap is advisory so rugs can sit under furniture.
-- Browse **Assets** to search/filter the 18 original procedural catalog pieces. Adding and duplicating seek a nearby valid, preferably unoccupied floor position. Delete furniture with the trash button or Delete/Backspace.
+- Browse **Furniture** to search/filter the 18 original procedural catalog pieces. Cards show live 3D miniatures rendered through one shared catalog WebGL context, without image assets or model downloads. Adding and duplicating seek a nearby valid, preferably unoccupied floor position. Delete furniture with the trash button or Delete/Backspace.
 - Use **⌘/Ctrl+Z** and **⌘/Ctrl+Shift+Z** for history; **⌘/Ctrl+D** duplicates. A drag is one undo action. Escape cancels a drag or clears selection.
-- **Save scene** stores an explicit snapshot in this browser. **Open** offers local load, JSON import/export, and demo restoration. Loading/restoring can be undone. Reload starts the demo; choose Load saved scene to resume a saved project. Scene JSON contains asset IDs, not embedded models or camera/history state.
-- **Integrations** demonstrates delayed architect, catalog, and designer adapters. **Suggest an edit** proposes a palette change. Review and Apply/Dismiss proposals; a new scene revision makes an old proposal stale. No service is called.
+- Press **P** or click **Preview** for a clear apartment view. Editing panels and tools are hidden; selection, history, and file mutations are blocked. **P** or **Escape** returns to editing. Camera navigation and saving remain available.
+- **Save** or **⌘/Ctrl+S** stores an explicit snapshot in this browser. **File** offers local load, JSON import/export, and demo restoration. Loading/restoring can be undone. Reload starts the demo; choose Load saved scene to resume a saved project. Scene JSON contains asset IDs, not embedded models or camera/history state.
+- **Connect** opens local source/reconstruction tools and clearly labeled demo adapters. **Assistant → Suggest an edit** proposes a palette change. Review and Apply/Dismiss proposals in Assistant; its navigation badge marks a pending proposal. A new scene revision makes an old proposal stale. No service is called.
 
-The demo is an original 80 m² apartment with four spaces and 20 furniture objects. Rooms, walls, doors, and windows are imported structure in this release. Direct wall/floor drawing, opening editing, multiple floors, and ceilings are out of scope.
+The demo is an original 80 m² apartment with four spaces and 20 furniture objects. Renovation editing adds wall endpoint manipulation, split/join, room polygons/elevations, balconies, editable openings, door/window testing, controlled lighting, physical service routes, ceilings, materials and baseline/options. Original v1 projects migrate to v2 on a renovation command.
 
 ## Checks and documentation
 
 ```sh
 pnpm typecheck
 pnpm test
+pnpm --filter @varpet/editor test:renovation
 pnpm --filter @varpet/editor build
 ```
 
 - [Architecture and implementation decisions](docs/architecture.md)
+- [Renovation workflow and implemented scope](docs/renovation-implementation.md)
+- [Editor instructions](AGENTS.md) and [full renovation checklist](docs/renovation-scope.md)
 - [Integration contracts and teammate handoffs](docs/integrations.md)
 - [Rendering design and quality tradeoffs](docs/rendering.md)
 - [Verification and remaining limitations](docs/verification.md)
+- [Renovation domain check coverage and limits](docs/renovation-domain-limitations.md)
 - [Pascal code review](docs/reference-pascal.md)
 - [Unreal Home Wizard code review](docs/reference-unreal.md)
 
 ## Boundaries
 
-There is no photo/plan reconstruction, model generation, live AI provider, or database connection in this app. GLTF loading has a cache, normalized dimensions, and fallback geometry, but the bundled demo intentionally exercises procedural assets only. External GLTF assets need CORS, correct units, acceptable complexity, and separate asset rights; compressed textures/Draco decoders and animation playback are not configured. Catalog contents are immutable for a store session. Refresh demo catalog returns the same catalog.
+Reconstruction is local measured input or calibrated plan tracing; there is no automatic photo inference, model generation, live AI provider, or database connection. GLTF loading has a cache, normalized dimensions, and fallback geometry, but the bundled demo intentionally exercises procedural assets only. Furniture cards always use procedural geometry derived from catalog kind, color, and dimensions; a GLTF card is an approximation, not a preview of the downloaded model. External GLTF assets need CORS, correct units, acceptable complexity, and separate asset rights; compressed textures/Draco decoders and animation playback are not configured. Catalog contents are immutable for a store session. Refresh demo catalog returns the same catalog.
 
-Validation is bounded to apartment-sized documents. It does not establish building-code compliance, door swing clearance, reachability, accurate product collision meshes, or photo fidelity. Concurrent editing uses revision rejection and explicit approval, not multi-user synchronization. Post-processing uses tone mapping and antialiasing; no SSAO/bloom dependency is added. The production bundle contains Three.js and is about 200 kB gzipped; Vite reports a chunk-size advisory.
+Validation is bounded to apartment-sized documents. Door swing and placement checks are approximate; they do not establish building-code compliance, reachability, product-specific collision, service performance, or photo fidelity. Concurrent editing uses revision rejection and explicit approval, not multi-user synchronization. Post-processing uses tone mapping and antialiasing; no SSAO/bloom dependency is added. The production bundle contains Three.js; Vite reports a chunk-size advisory.

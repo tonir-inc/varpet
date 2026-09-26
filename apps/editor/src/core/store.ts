@@ -1,5 +1,6 @@
 import type { CatalogAsset, CommandResult, EditCommand, SceneChange, SceneDocument, ValidationResult } from '../contracts';
-import { isRecord, validateScene } from './validation';
+import { isRecord, validateScene, renovationOperationError } from './validation';
+import { applyRenovationOperation, invalidateAssumptions } from './renovation';
 
 const HISTORY_LIMIT = 100;
 type HistoryEntry = { scene: SceneDocument; label: string };
@@ -26,7 +27,12 @@ function commandErrors(command: unknown): string[] {
       add: ['type', 'object'], update: ['type', 'id', 'patch'], delete: ['type', 'id'],
       'replace-structure': ['type', 'rooms', 'walls'], 'replace-scene': ['type', 'scene'],
     };
-    if (typeof operation.type !== 'string' || !Object.hasOwn(allowed, operation.type)) return ['Command contains an unsupported operation.'];
+    if (typeof operation.type !== 'string') return ['Command contains an unsupported operation.'];
+    if (!Object.hasOwn(allowed, operation.type)) {
+      const error = renovationOperationError(operation);
+      if (error) return [error];
+      continue;
+    }
     if (Object.keys(operation).some(key => !allowed[operation.type as string]!.includes(key))) return ['Operation contains unsupported fields.'];
     if (operation.type === 'update' || operation.type === 'delete') {
       if (typeof operation.id !== 'string' || !operation.id.trim() || operation.id.length > 100) return ['Operation needs a valid object ID.'];
@@ -106,15 +112,18 @@ export class EditorStore {
             const index = candidate.objects.findIndex(object => object.id === operation.id);
             if (index < 0) return this.rejection(`Object “${operation.id}” no longer exists.`);
             candidate.objects[index] = { ...candidate.objects[index]!, ...operation.patch };
+            invalidateAssumptions(candidate, [operation.id]);
             break;
           }
           case 'delete': {
             const index = candidate.objects.findIndex(object => object.id === operation.id);
             if (index < 0) return this.rejection(`Object “${operation.id}” no longer exists.`);
             candidate.objects.splice(index, 1);
+            if (candidate.project) delete candidate.project.metadata[operation.id];
             break;
           }
           case 'replace-structure':
+            invalidateAssumptions(candidate, [...candidate.rooms, ...candidate.walls, ...candidate.walls.flatMap(w => w.openings)].map(entity => entity.id));
             candidate.rooms = operation.rooms;
             candidate.walls = operation.walls;
             break;
@@ -125,6 +134,7 @@ export class EditorStore {
             candidate = operation.scene;
             break;
           }
+          default: candidate = applyRenovationOperation(candidate, operation);
         }
       }
       const validation = validateScene(candidate, this.catalog);
