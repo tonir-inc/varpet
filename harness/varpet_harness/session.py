@@ -34,6 +34,7 @@ from .graph import Graph, Job, SizeSource
 SHELL_CHECK = [sys.executable, "-m", "varpet_harness.shell"]
 FURNISH_CHECK = [sys.executable, "-m", "varpet_harness.furnish"]
 FIX_TURNS = 2
+MAX_SET = 4  # pieces one builder makes together
 REVIEW_ROUNDS = 2
 
 
@@ -45,6 +46,7 @@ class PieceSpec(BaseModel):
     size_source: SizeSource = "typical"
     count: int = Field(default=1, ge=1)
     refs: list[str] = []
+    set: str | None = Field(default=None, description="pieces sharing a set are built together by one builder")
 
 
 class Pieces(BaseModel):
@@ -81,6 +83,9 @@ Step 1 now. Write two files in this folder:
    the photos. Identical pieces are one entry with a count. size in metres; size_source: plan, photo (measured
    against something of known size such as a 2.0 m door), scan or typical. refs: the paths of the photos that
    show that piece best, best first, at most 3. brief: what it looks like, in one or two sentences.
+   set: give pieces that belong together the same short set name, so one builder makes them together with
+   matching materials: dining table + chairs, bed + bedside tables + bedside lamps, sofa + coffee table +
+   side table, desk + desk chair. At most 4 pieces per set. Pieces that match nothing get no set.
 
 Plan: {plan} (the first image). Photos, in the order attached after it:
 {photos}
@@ -122,6 +127,25 @@ def export_project(repo: Path, run_dir: Path, base_url: str = "http://127.0.0.1:
                           cwd=repo / "apps" / "editor", capture_output=True, text=True, stdin=subprocess.DEVNULL)
     (run_dir / "export.log").write_text(proc.stdout + proc.stderr)
     return out if proc.returncode == 0 and out.exists() else None
+
+
+class _GroupRunner:
+    """dispatch runs one unit per builder: a lone piece, or a set made by one thread."""
+
+    def __init__(self, runner: CodexRunner, groups: dict[str, list[Job]], run_dir: Path):
+        self.runner, self.groups, self.run_dir = runner, groups, run_dir
+
+    async def run(self, job: Job, workdir: Path, deps) -> "JobResult":
+        from .dispatch import JobResult
+
+        members = self.groups[job.id]
+        if len(members) == 1 and not job.id.startswith("set-"):
+            return await self.runner.run(members[0], workdir, deps)
+        results = await self.runner.run_set(job.id.removeprefix("set-"), members, self.run_dir)
+        ok = all(r.status == "ok" for r in results.values())
+        return JobResult(job.id, "ok" if ok else "failed", tokens=sum(r.tokens for r in results.values()),
+                         seconds=max(r.seconds for r in results.values()), turns=max(r.turns for r in results.values()),
+                         error=None if ok else "failed: " + ", ".join(k for k, r in results.items() if r.status != "ok"))
 
 
 def _read_pieces(path: Path) -> Pieces:
@@ -197,13 +221,23 @@ async def run_session(codex: AsyncCodex, repo: Path, flat: str, plan: str, photo
                     refs=p.refs[:MAX_PIECE_PHOTOS]) for p in pieces.pieces]
         graph = settle(Graph(flat=flat, jobs=[*jobs, Job(id="shell", kind="shell", brief="read by the architect"),
                                                  Job(id="furnish", kind="furnish", brief="placed by the architect")]), plan)
-        build = Graph(flat=flat, jobs=[j for j in graph.jobs if j.kind == "piece"])
-        progress(f"builders: {len(build.jobs)} pieces in parallel")
-        built = await dispatch(build, runner, run_dir, lanes)
+        pieces_by_id = {j.id: j for j in graph.jobs if j.kind == "piece"}
+        groups: dict[str, list[Job]] = {}
+        for spec in pieces.pieces:
+            key = f"set-{spec.set}" if spec.set else spec.id
+            groups.setdefault(key, []).append(pieces_by_id[spec.id])
+        for key in [k for k, v in groups.items() if k.startswith("set-") and len(v) > MAX_SET]:
+            members = groups.pop(key)  # too big for one builder: split into chunks
+            for i in range(0, len(members), MAX_SET):
+                groups[f"{key}-{i // MAX_SET + 1}"] = members[i : i + MAX_SET]
+        units = Graph(flat=flat, jobs=[Job(id=k, kind="piece", brief="set", size=v[0].size) for k, v in groups.items()])
+        progress(f"builders: {len(pieces_by_id)} pieces in {len(groups)} builders")
+        built = await dispatch(units, _GroupRunner(runner, groups, run_dir), run_dir, lanes)
         (run_dir / "graph.json").write_text(graph.model_dump_json(indent=1))  # dispatch wrote the build-only graph
         report.tokens += built.tokens
-        ok = [i for i, r in built.results.items() if r.status == "ok"]
-        report.step("build", t, built=len(ok), failed=sorted(set(built.results) - set(ok)))
+        ok = [pid for pid in pieces_by_id if (run_dir / pid / "piece.glb").exists()
+              and not (run_dir / pid / "faults.json").exists()]
+        report.step("build", t, built=len(ok), builders=len(groups), failed=sorted(set(pieces_by_id) - set(ok)))
 
         # 3. place them
         t = time.monotonic()

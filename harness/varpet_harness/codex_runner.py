@@ -131,6 +131,80 @@ class CodexRunner:
         finally:
             await self.codex.thread_archive(thread.id)
 
+    async def run_set(self, name: str, members: list[Job], run_dir: Path) -> dict[str, JobResult]:
+        """One builder thread makes a matching set (dining table + chairs, bed + bedside tables):
+        one thread start instead of one per piece, and the pieces share materials. Each piece is
+        still written to and checked in its own folder; failing pieces share one fix turn."""
+        t = time.monotonic()
+        lead = members[0]
+        thread = await self.codex.thread_start(approval_mode=ApprovalMode.deny_all, sandbox=Sandbox.workspace_write,
+                                               cwd=str(run_dir), model=self.model, config=self.config)
+        await thread.set_name(f"set {name}")
+        tokens = turns = 0
+        outs = {j.id: run_dir / j.id / OUTPUT["piece"] for j in members}
+        for j in members:
+            outs[j.id].parent.mkdir(parents=True, exist_ok=True)
+        try:
+            self.progress(f"set {name}: working on {', '.join(j.id for j in members)}")
+            first = await self._turn(thread, self._set_input(name, members, run_dir), lead)
+            tokens += _tokens(first)
+            turns += 1
+            cmd = self.checkers.get("piece")
+
+            def check(j: Job) -> str | None:
+                out = outs[j.id]
+                if not out.exists():
+                    return f"{j.id}/program.json was not written"
+                if cmd is None:
+                    return None
+                faults = self._compile(cmd, out, out.parent)
+                return faults if faults is not None else _detail(j, out.parent)
+
+            faults = {j.id: await asyncio.to_thread(check, j) for j in members}
+            for _ in range(self.fix_turns):
+                bad = {k: v for k, v in faults.items() if v is not None}
+                if not bad:
+                    break
+                self.progress(f"set {name}: fixing {', '.join(bad)}")
+                text = "Code checked your pieces. Fix only these, keep the rest:\n" + "\n".join(
+                    f"## {k}/program.json\n{v}" for k, v in bad.items())
+                fix = await self._turn(thread, [TextInput(text)], lead)
+                tokens += _tokens(fix)
+                turns += 1
+                for k in bad:
+                    faults[k] = await asyncio.to_thread(check, next(j for j in members if j.id == k))
+            share = tokens // len(members)
+            return {j.id: JobResult(j.id, "ok" if faults[j.id] is None else "failed",
+                                    output=str(outs[j.id]) if outs[j.id].exists() else None, tokens=share,
+                                    seconds=time.monotonic() - t, turns=turns,
+                                    error=None if faults[j.id] is None else "faults left") for j in members}
+        finally:
+            await self.codex.thread_archive(thread.id)
+
+    def _set_input(self, name: str, members: list[Job], run_dir: Path) -> list:
+        lines = [f"Build this matching set of {len(members)} pieces ({name}). Where the photos show the same wood, "
+                 "metal or fabric across the pieces, use the same finish and the same colour in every piece.",
+                 "Write each piece as its own part program to <piece id>/program.json in this folder.", ""]
+        photos: list[str] = []
+        for j in members:
+            lines.append(f"## {j.id}\n{j.brief}")
+            if j.size:
+                w, d, h = j.size
+                src = "typical estimate; take proportions from the photos" if j.size_source == "typical" else j.size_source
+                lines.append(f"Size in metres ({src}): w {w}, d {d}, h {h}.")
+            if j.count > 1:
+                lines.append(f"The flat has {j.count} identical copies; build one.")
+            for r in j.refs:
+                p = str(self.repo / r)
+                if Path(r).suffix.lower() in IMAGE_SUFFIXES and p not in photos:
+                    photos.append(p)
+            lines.append("")
+        photos = photos[:6]
+        lines.append("Photos attached in this order: " + "; ".join(f"{i + 1}: {p}" for i, p in enumerate(photos)))
+        skill = self.repo / ".agents" / "skills" / "part-dsl-draft" / "SKILL.md"
+        lines += ["", "# Skill: part-dsl-draft", _strip_frontmatter(skill.read_text())]
+        return [TextInput("\n".join(lines)), *(LocalImageInput(path=p) for p in photos)]
+
     async def _turn(self, thread, items, job: Job) -> TurnResult:
         # Watchdog: no event for `stall` seconds -> interrupt, retry once. A limit stops the batch.
         for attempt in range(2):
