@@ -24,7 +24,16 @@ try {
   const capture = async (url, path, selector) => {
     await page.goto(`${base}${url}`, { waitUntil: 'networkidle' });
     await page.waitForSelector('[data-ready="true"]', { timeout: 30000 });
-    await page.evaluate(() => document.fonts.ready);
+    await page.evaluate(async () => {
+      await document.fonts.ready;
+      // Full-page exports must settle images below the viewport as well.
+      await Promise.all(Array.from(document.images, image => new Promise(resolve => {
+        if (image.complete) { resolve(); return; }
+        image.addEventListener('load', resolve, { once: true });
+        image.addEventListener('error', resolve, { once: true });
+        image.loading = 'eager';
+      })));
+    });
     // The shared renderer loads meshes and finishes asynchronously; allow its first settled frame.
     await page.waitForTimeout(1800);
     if (await page.locator('.view-error').count()) throw Error(`Renderer failed for ${url}: ${await page.locator('.view-error').textContent()}`);

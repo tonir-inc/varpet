@@ -10,7 +10,7 @@ const arrow = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke
 const route = location.pathname.split('/').filter(Boolean), embed = route[0] === 'embed';
 let dispose = () => {};
 const area = (flat: Flat) => flat.area === null ? 'Area to confirm' : `${number(flat.area)} m²`;
-const rooms = (flat: Flat) => flat.rooms === null ? 'Room count to confirm' : `${number(flat.rooms)} rooms`;
+const rooms = (flat: Flat) => flat.rooms === null ? 'Room count to confirm' : `${number(flat.rooms)} ${flat.rooms === 1 ? 'room' : 'rooms'}`;
 const link = (flat: Flat) => `/flat/${encodeURIComponent(flat.id)}`;
 const plan = (flat: Flat) => `<div class="plan-image"><img src="/plans/${encodeURIComponent(flat.id)}" alt="Developer floor plan for ${escape(flat.title)}" loading="lazy"/><div class="plan-placeholder" hidden><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M10 10h44v44H10zM10 34h23V10m0 24v20m0-20h21"/></svg><strong>Developer plan</strong><span>The original plan is not available on this device.</span></div></div>`;
 function handleImages() { for (const image of app.querySelectorAll<HTMLImageElement>('.plan-image img')) { const absent = () => { image.hidden = true; image.parentElement!.querySelector<HTMLElement>('.plan-placeholder')!.hidden = false; }; image.onerror = absent; if (image.complete && !image.naturalWidth) absent(); } }
