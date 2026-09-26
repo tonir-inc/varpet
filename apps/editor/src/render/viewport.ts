@@ -6,7 +6,7 @@ import { snapWallEndpoint } from '../core/wall-snapping';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import type { BuildingComponent, CatalogAsset, ComponentTransformPatch, ObjectPatch, SceneDocument, SceneObject, ToolMode, ViewMode, Viewport, ViewportCallbacks, ViewportLayer, WallMode } from '../contracts';
+import type { BuildingComponent, CatalogAsset, ComponentTransformPatch, ObjectPatch, SceneDocument, SceneObject, ToolMode, Vec3, ViewMode, Viewport, ViewportCallbacks, ViewportLayer, WallMode } from '../contracts';
 import { AssetLoader, disposeObject, makeFurniture } from './assets';
 import { makeStructure, type StructureProjection } from './structure';
 import { LightingPreview, makeServices, type ServiceProjection } from './services';
@@ -79,6 +79,12 @@ export interface FinishViewport extends Viewport {
   getSun(): SunSettings;
   setSun(patch: Partial<SunSettings>): void;
   inspectCeiling(roomId: string): boolean;
+  /** A world point in canvas pixels, so overlays can follow the camera. `visible` is false behind the camera or off the canvas. */
+  project(point: Vec3): { x: number; y: number; visible: boolean } | null;
+  /** Calls the listener after every rendered frame. Returns an unsubscribe. */
+  onFrame(listener: () => void): () => void;
+  /** Drops a loaded model's parts into place one by one, bottom first; waits for the model if it is still loading. */
+  animateAssembly(id: string): void;
 }
 export function createViewport(container: HTMLElement, callbacks: ViewportCallbacks & { onSunChange?(settings: SunSettings): void; onFinish?(presetId: string, target: FinishTarget): boolean }, normalizeScene?: SceneNormalizer): FinishViewport {
   let renderer: THREE.WebGLRenderer;
@@ -90,7 +96,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     message.textContent = '3D view unavailable. Enable browser hardware acceleration and reload.';
     message.style.cssText = 'margin:auto;padding:2rem;color:#6a5849;max-width:28rem;text-align:center';
     container.append(message);
-    return { setInsideLens() {}, setSkybox() { return false; }, getSun() { return { ...DEFAULT_SUN }; }, setSun() {}, setLightingMood() {}, inspectCeiling() { return false; }, setFinishBrush() {}, setAdditiveSelection() {}, revealSelection() {}, setScene() {}, animatePlacement() {}, setSelection() {}, setTool() {}, setView() {}, setSnap() {}, setWalls() {}, setQuality() {}, setLayer() {}, setDoorAngle() {}, getDoorAngle() { return 0; }, toggleSwitch() {}, setSwitchLevel() {}, getSwitchLevel() { return 0; }, setComparison() {}, focus() {}, cancelInteraction() {}, dispose() { message.remove(); } };
+    return { setInsideLens() {}, setSkybox() { return false; }, getSun() { return { ...DEFAULT_SUN }; }, setSun() {}, setLightingMood() {}, inspectCeiling() { return false; }, project() { return null; }, onFrame() { return () => {}; }, animateAssembly() {}, setFinishBrush() {}, setAdditiveSelection() {}, revealSelection() {}, setScene() {}, animatePlacement() {}, setSelection() {}, setTool() {}, setView() {}, setSnap() {}, setWalls() {}, setQuality() {}, setLayer() {}, setDoorAngle() {}, getDoorAngle() { return 0; }, toggleSwitch() {}, setSwitchLevel() {}, getSwitchLevel() { return 0; }, setComparison() {}, focus() {}, cancelInteraction() {}, dispose() { message.remove(); } };
   }
   renderer.setClearColor('#171d25');
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -507,6 +513,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       if (cameraMotion.update(now)) animating = true;
       if (keyboardNavigation.update(now)) animating = true;
       if (placementMotion.update(now)) { animating = true; shadowsChanged = true; }
+      if (updateAssemblies(now)) { animating = true; shadowsChanged = true; }
       if (structure?.updateWalls(camera, view === 'inside' ? 'full' : walls, view === 'top', now, motion.reduced, selectedId ?? undefined)) { animating = true; shadowsChanged = true; }
       if (walk.update(now)) animating = true;
       if (documentState && view === 'inside') {
@@ -556,7 +563,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
         if (root) selectedRoots.add(root);
       }
       studioRenderer.setSelection(view === 'inside' ? [] : [...selectedRoots]);
-      try { studioRenderer.render(camera); }
+      try { studioRenderer.render(camera); for (const listener of frameListeners) listener(); }
       catch (error) {
         if (!renderFailed) { renderFailed = true; callbacks.onError(`The 3D view could not render: ${error instanceof Error ? error.message : 'unknown graphics error'}`); }
       }
@@ -610,13 +617,47 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     group.updateMatrixWorld(true);
   }
 
+  const frameListeners = new Set<() => void>();
+  const installedModels = new WeakSet<THREE.Object3D>();
+  const assemblyWanted = new Set<string>();
+  interface AssemblyPart { part: THREE.Object3D; y: number; lift: number }
+  let assemblies: { parts: AssemblyPart[]; start: number; stagger: number }[] = [];
+  const ASSEMBLY_PART_MS = 380;
+  function startAssembly(model: THREE.Object3D, height: number): void {
+    if (motion.reduced) return;
+    const meshes: THREE.Object3D[] = [];
+    model.traverse(child => { if (child instanceof THREE.Mesh) meshes.push(child); });
+    if (meshes.length < 2) return;
+    const box = new THREE.Box3(), scale = new THREE.Vector3();
+    const parts = meshes.map(part => ({ part, y: part.position.y, bottom: box.setFromObject(part).min.y, lift: height * 0.7 / Math.max(1e-6, part.parent?.getWorldScale(scale).y ?? 1) }))
+      .sort((a, b) => a.bottom - b.bottom).map(({ part, y, lift }) => ({ part, y, lift }));
+    for (const { part } of parts) part.visible = false;
+    assemblies.push({ parts, start: performance.now(), stagger: Math.min(140, 1400 / parts.length) });
+    requestRender();
+  }
+  function updateAssemblies(now: number): boolean {
+    if (!assemblies.length) return false;
+    assemblies = assemblies.filter(assembly => {
+      let active = false;
+      assembly.parts.forEach(({ part, y, lift }, index) => {
+        const k = Math.min(1, Math.max(0, (now - assembly.start - index * assembly.stagger) / ASSEMBLY_PART_MS));
+        part.visible = now >= assembly.start + index * assembly.stagger;
+        part.position.y = y + lift * (1 - (1 - (1 - k) ** 3));
+        if (k < 1) active = true;
+      });
+      return active && assembly.parts.every(({ part }) => part.parent);
+    });
+    return true;
+  }
+
   function installLoadedModels(): void {
     if (drag) return;
     for (const [id, pending] of pendingModels) {
       const current = rendered.get(id);
       if (disposed || !current || current.token !== pending.token) { disposeObject(pending.model); continue; }
       for (const child of [...current.visual.children]) disposeObject(child);
-      current.visual.add(pending.model);
+      current.visual.add(pending.model); installedModels.add(pending.model);
+      if (assemblyWanted.delete(id)) startAssembly(pending.model, current.dimensions[1]);
       if (pending.color) pending.model.traverse(child => {
         if (child instanceof THREE.Mesh) for (const mat of Array.isArray(child.material) ? child.material : [child.material]) {
           if (mat instanceof THREE.MeshStandardMaterial) mat.color.set(pending.color!);
@@ -1330,6 +1371,19 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       if (disposed || drag || !record) return;
       placementMotion.enter(id, record.visual, record.dimensions);
     },
+    animateAssembly(id) {
+      const record = rendered.get(id);
+      if (disposed || !record) return;
+      const model = record.visual.children.find(child => installedModels.has(child));
+      if (model) startAssembly(model, record.dimensions[1]); else assemblyWanted.add(id);
+    },
+    project(point) {
+      if (disposed) return null;
+      const v = new THREE.Vector3(...point).project(camera);
+      const width = renderer.domElement.clientWidth, height = renderer.domElement.clientHeight;
+      return { x: (v.x + 1) / 2 * width, y: (1 - v.y) / 2 * height, visible: v.z > -1 && v.z < 1 && Math.abs(v.x) <= 1 && Math.abs(v.y) <= 1 };
+    },
+    onFrame(listener) { frameListeners.add(listener); return () => { frameListeners.delete(listener); }; },
     setSelection(id, ids) {
       const requested = id ? [...new Set([id, ...(ids ?? [])])] : [];
       const furnitureIds = documentState ? expandFurnitureSelection(documentState, requested) : [];
@@ -1436,7 +1490,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       transform.removeEventListener('objectChange', changedTransform); transform.removeEventListener('change', requestRender);
       orbit.removeEventListener('change', requestRender); orbit.removeEventListener('start', onOrbitStart); orbit.removeEventListener('end', onOrbitEnd);
       wallMove.dispose(); transform.dispose(); orbit.dispose();
-      placementMotion.dispose();
+      placementMotion.dispose(); frameListeners.clear(); assemblies = [];
       motion.dispose(); cameraMotion.dispose();
       for (const group of retiring) disposeObject(group); retiring.clear();
       placementFeedback.dispose();
