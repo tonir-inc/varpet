@@ -103,7 +103,8 @@ SVG_PROMPT = """Here is a floor plan of a flat: {plan} (the attached image, {w} 
 - Each door and each window: `<line class="door" .../>` or `<line class="window" .../>` across its gap.
 - Each room: `<polygon class="room" data-name="Kitchen" data-printed="7.2 m2" points="...">` along its inside faces; data-printed copies what the plan prints for it ("14.3 m2" or "5.0 x 4.7 m"); a balcony adds data-kind="balcony".
 - Each fixture (toilet, shower, bath, sink, kitchen cabinets and worktop, appliances, radiator, railing): `<polygon class="fixture" data-kind="toilet" data-name="Toilet" points="4 corners">`.
-- Each dimension the plan prints: `<line class="dimension" data-m="5.0" .../>` laid exactly over its dimension line. This sets the scale.
+- Each dimension the plan prints: `<line class="dimension" data-m="5.0" .../>` laid exactly over its dimension line. This sets the scale; if the plan prints only the flat's total area, put it on the `<svg>` element as data-printed="56.2 m2".
+- A door or window sits in a wall: draw the wall band through it too. Balconies are rooms.
 
 When it is written, call submit_trace and fix what it reports until it answers ok.
 {furnish}"""

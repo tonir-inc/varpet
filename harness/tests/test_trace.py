@@ -58,3 +58,19 @@ def test_without_dimension_lines_the_scale_comes_from_the_printed_areas():
 def test_a_trace_with_no_scale_says_how_to_give_one():
     with pytest.raises(TraceError, match="dimension"):
         to_shell(svg().replace('data-printed="4.88 x 3.88 m" ', "").replace('data-printed="11.17 m2" ', ""))
+
+
+def test_a_window_drawn_without_a_wall_behind_it_gets_one():
+    # a glazed facade: the model draws the glass as a window line and no wall band under it
+    glazing = f'<line id="glass" class="window" x1="{OX + 1 * PX}" y1="{OY - 1 * PX}" x2="{OX + 4 * PX}" y2="{OY - 1 * PX}"/>'
+    shell = to_shell(svg('<line class="dimension" data-m="5.0" x1="40" y1="30" x2="540" y2="30"/>' + glazing))
+    host = next(w for w in shell["walls"] if any(o["id"] == "glass" for o in w["openings"]))
+    assert host["id"] == "wall-at-glass" and abs(host["thickness"] - 0.12) < 1e-6
+    assert abs(host["openings"][0]["width"] - 3.0) < 0.05
+
+
+def test_a_plan_that_prints_only_the_flat_total_scales_from_it():
+    bare = svg().replace('data-printed="4.88 x 3.88 m" ', "").replace('data-printed="11.17 m2" ', "")
+    shell = to_shell(bare.replace('viewBox="0 0 1000 600"', 'viewBox="0 0 1000 600" data-printed="33.4 m2"'))  # 8.12 x 4.12
+    assert "printed total" in shell["notes"][0]
+    assert abs(float(shell["notes"][0].split("scale ")[1].split(" ")[0]) - 100) < 2

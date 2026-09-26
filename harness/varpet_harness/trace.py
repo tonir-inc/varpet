@@ -49,7 +49,7 @@ def _elements(svg: str) -> list[tuple[str, set[str], dict, list[tuple[float, flo
         root = ET.fromstring(svg)
     except ET.ParseError as e:
         raise TraceError(f"trace.svg is not valid XML: {e}") from e
-    out = []
+    out = [("svg", {"flat"}, dict(root.attrib), [])]  # the <svg> element carries the flat's printed total
     for el in root.iter():
         tag = el.tag.split("}")[-1]
         classes = set((el.get("class") or "").split())
@@ -103,8 +103,15 @@ def scale_of(elements) -> tuple[float, str]:
             m2 += pr.get("area_m2") or pr["dims_m"][0] * pr["dims_m"][1]
     if m2:
         return math.sqrt(px / m2), "printed room areas"
-    raise TraceError("no scale: lay a <line class=\"dimension\" data-m=\"...\"> over printed dimensions, "
-                     "or give rooms data-printed areas")
+    total = next((_printed(a.get("data-printed")) for tag, c, a, p in elements if "flat" in c and a.get("data-printed")), None)
+    if total and total.get("area_m2"):
+        from shapely.ops import unary_union
+
+        shapes = [Polygon(p).buffer(0) for tag, c, a, p in elements if ("room" in c or "wall" in c) and len(p) >= 3]
+        if shapes:  # a printed total is gross: rooms and the walls between them
+            return math.sqrt(unary_union(shapes).area / total["area_m2"]), "the printed total area"
+    raise TraceError("no scale: lay a <line class=\"dimension\" data-m=\"...\"> over printed dimensions, give rooms "
+                     "data-printed areas, or put the flat's printed total on the <svg> element as data-printed")
 
 
 def to_shell(svg: str) -> dict:
@@ -135,11 +142,18 @@ def to_shell(svg: str) -> dict:
             continue
         mid = LineString(p).interpolate(0.5, normalized=True)
         hits = [(line.distance(mid), i) for i, (line, short) in enumerate(bodies) if line.distance(mid) <= short * 1.5 + 3]
-        if not hits:
-            continue
+        if not hits:  # glazing drawn without the wall band it sits in: that wall exists, give it the usual thickness
+            t_px = statistics.median(short for _, short in bodies)
+            start, end = p
+            walls.append({"id": f"wall-at-{a.get('id') or j + 1}", "start": m(start), "end": m(end), "height": WALL_HEIGHT,
+                          "thickness": round(max(t_px / px_per_m, 0.05), 3), "color": WHITE, "openings": []})
+            bodies.append((LineString([start, end]), t_px))
+            hits = [(0.0, len(bodies) - 1)]
         _, i = min(hits)
         line = bodies[i][0]
         t = sorted(line.project(Point(q)) for q in p)
+        if walls[i]["id"].startswith("wall-at-"):  # the made-up wall is the opening: leave a centimetre each end
+            t = [t[0] + 0.01 * px_per_m, t[1] - 0.01 * px_per_m]
         width = (t[1] - t[0]) / px_per_m
         if width < 0.2:
             continue
