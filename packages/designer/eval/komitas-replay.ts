@@ -12,9 +12,11 @@ for(const row of run.rows){
   const body=read(`${row.kind}-request.json`);assert.deepEqual(body.scene,store.scene);assert.equal(body.revision,store.revision);
   if(cid)assert.equal(body.conversationId,cid);
   const before=structuredClone(store.scene);let accepted:boolean|null=null;
+  const after=read(`${row.kind}-after.json`);
+  store.registerCatalogAssets(after.catalog);
   if(row.reply.type==='proposal')accepted=store.execute(row.reply.proposal.command,true).ok;
   assert.deepEqual(store.scene,read(`${row.kind}-after.json`).scene);
-  Object.assign(row,grade(row.kind,before,store.scene,initial.catalog,row.reply,accepted,run.roles));
+  Object.assign(row,grade(row.kind,before,store.scene,after.catalog,row.reply,accepted,run.roles));
   const events=readFileSync(join(directory,`${row.kind}-sdk.events.jsonl`),'utf8').split('\n').filter(Boolean).map(v=>JSON.parse(v));
   const telemetry=events.reverse().find(v=>v.kind==='turn_telemetry');
   row.actual_profile=telemetry?{model:telemetry.model,effort:telemetry.effort,...telemetry.profile}:null;

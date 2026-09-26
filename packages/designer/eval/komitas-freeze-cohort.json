@@ -1,6 +1,6 @@
 {
   "created_at": "2026-09-26T14:24:39.942468+00:00",
-  "product_source": "baad3427262fbd19d5bbab36a0909d5d368c90a3",
+  "product_source": "303677a3266d4cfd8af0c89e304d2e4f37e5f3f2",
   "ids": [
     "b18-t1",
     "b20-t11",
@@ -39,5 +39,8 @@
   "northDeg": 0,
   "catalogCurrency": "AMD",
   "catalog": "http://localhost:8765/mcp",
-  "assumptions": "One conversation per flat per arm, alternating arm order, independent initial scenes, no invented answers to questions; immutable original grading rules. Exclude separately furnished *.drawn.scene.json. Product source held fixed across both arms."
+  "assumptions": "One conversation per flat per arm, alternating arm order, independent initial scenes, no invented answers to questions; immutable original grading rules. Exclude separately furnished *.drawn.scene.json. Product source held fixed across both arms. Resumed after catalog recovery on latest main; retain the same nine input hashes. Snapshot starts with 900 live products plus local editor assets; proposal purchases outside it hydrate by ID using the editor converter.",
+  "previous_unrun_source": "baad3427262fbd19d5bbab36a0909d5d368c90a3",
+  "resumed_at": "2026-09-26T14:41:36.581460+00:00",
+  "catalog_preflight_assets": 900
 }

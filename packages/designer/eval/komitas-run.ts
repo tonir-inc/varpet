@@ -8,6 +8,7 @@ import {demoScene,localCatalog} from '../../../apps/editor/src/core/demo.js';
 import {EditorStore} from '../../../apps/editor/src/core/store.js';
 import {validateScene} from '../../../apps/editor/src/core/validation.js';
 import {createCatalogHttpAdapter,mergeCatalogs} from '../../../apps/editor/src/adapters/catalog-http.js';
+import {proposalCatalog} from './komitas-assets.js';
 import {requests,grade,flatContext,groundTruthForFlat} from './komitas-grade.js';
 const arg=(key:string,fallback:string)=>process.argv.includes(key)?process.argv[process.argv.indexOf(key)+1]!:fallback;
 const expectedFastPath=arg('--fast-path','');
@@ -24,7 +25,8 @@ async function main(){
   const truth=truthPath?read(resolve(ROOT,truthPath)):{};
   const context=flatContext(scene,groundTruthForFlat(truth,id));
   const remote=await createCatalogHttpAdapter({url:'http://localhost:8765/editor/assets'}).list();
-  const catalog=mergeCatalogs(localCatalog,remote),store=new EditorStore(scene,catalog),initial=validateScene(store.scene,catalog);
+  let catalog=mergeCatalogs(localCatalog,remote);
+  const store=new EditorStore(scene,catalog),initial=validateScene(store.scene,catalog);
   if(!initial.ok)throw new Error(`Invalid initial scene: ${JSON.stringify(initial)}`);
   save('initial.json',{scene:store.scene,catalog});
   const run:any={id,fast_path_env:expectedFastPath||null,source:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),started_at:new Date().toISOString(),scene_input:input,northDeg:0,catalogCurrency:'AMD',profile:{effort:'low',placement:'without-place',context:'compact-base'},...context,ground_truth:truth,rows:[]};
@@ -45,7 +47,12 @@ async function main(){
       lines=text.split('\n').filter(Boolean).map(line=>JSON.parse(line));
       reply=lines.filter(v=>v.type!=='progress').at(-1)??{type:'error',message:'No final response'};
       if(reply.conversationId)conversationId=reply.conversationId;
-      if(reply.type==='proposal'){result=store.execute(reply.proposal.command,true);accepted=result.ok;}
+      if(reply.type==='proposal'){
+        const privateAssets=(reply.assets??[]).map((asset:any)=>({...asset,source:asset.source.type==='gltf'?{...asset.source,url:new URL(asset.source.url,endpoint).href}:asset.source}));
+        catalog=await proposalCatalog(reply.proposal,mergeCatalogs(catalog,privateAssets));
+        store.registerCatalogAssets(catalog);
+        result=store.execute(reply.proposal.command,true);accepted=result.ok;
+      }
     }catch(error){reply={type:'error',message:String(error)};}
     const seconds=(performance.now()-start)/1000;
     const eventPath=join(events,`${runId}.events.jsonl`);
