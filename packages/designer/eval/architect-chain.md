@@ -106,4 +106,38 @@ CHAIN PASS: architect shell → EditorStore → two Designer proposals → Edito
 
 [measured] Regression: `test/architect-chain.test.ts`, 3 tests, including the real empty shell,
 catalog approval, unknown orientation preservation and rejection beyond physical wall thickness.
-Final post-rebase verification and reviewer verdict are recorded below before pushing.
+Post-rebase verification and reviewer verdict follow.
+
+
+[measured] Post-rebase verification on `323be6a` plus this lane (2026-09-26 15:37 GMT+4):
+
+```text
+PATH="$PWD/packages/designer/node_modules/.bin:$PATH" pnpm test
+Designer: 58 files / 293 tests passed
+Harness Designer/service unittest: Ran 89 tests — OK
+Eval unittest: Ran 31 tests — OK
+Tools: 7 passed; editor scripts passed, catalog server 6/6, panel/adapter tests 36/36
+Editor: 10,745 reported assertions plus 9 grouping checks (sum of script output counts)
+Exit 0
+pnpm typecheck: engine Done; designer Done; editor Done — exit 0
+cd harness && uv run --no-sync pytest -q
+110 passed, 41 subtests passed in 17.08s
+```
+
+[measured] Refreshed workspace links with `pnpm install --frozen-lockfile` after upstream added the
+editor MCP dependency; no dependency manifests changed in this lane. Local pnpm 10 in PATH avoids
+Corepack selecting pnpm 12 from subprocess cwd `/tmp`. The failed pre-refresh editor catalog tests
+were an absent dependency link, not absent middleware. The simulated `EVAL_USAGE_LIMIT` emitted by
+unit tests is their limit-handler test; no live call reported a usage limit.
+
+DONE: 7 of 7
+- 1 ✓ Real HTTP/browser chain and replay output above; both proposals accepted.
+- 2 ✓ Untargeted root tests/typecheck and harness pytest output above.
+- 3 ✓ Three new architect-chain regressions; initial red reproduced wall-boundary refusal, now green.
+- 4 ✓ No schema, contract, fixture directory, existing test, architect source or editor source changed.
+- 5 ✓ Fresh reviewer `architect_chain_review`: APPROVE on code and final live evidence/replay.
+- 6 ✓ Assumptions named above. Not proven: photo reconstruction, solar/swing clearance, GLB visual
+  quality, or the newly merged stock application's full click-through flow.
+- 7 ✓ This lane owns the changes to `harness/designer_profiles.py`, designer `editor-bridge.ts`,
+  `adapter.ts`, `metrics/space.ts`, new `test/architect-chain.test.ts`, and the new `eval/architect-chain*`
+  scripts/report plus `eval/chain-runs/20260926` evidence. Other sessions' main/panel/architect files untouched.
