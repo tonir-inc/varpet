@@ -3,7 +3,7 @@
   "family": "fabric",
   "tile_m": 0.284,
   "grain": false,
-  "default_color": "#ae2e48",
+  "default_color": "#5f6470",
   "metal": 0.0,
   "source": "polyhaven:velour_velvet",
   "license": "CC0"

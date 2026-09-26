@@ -34,15 +34,15 @@ centre of the box it is placed on (four legs = one leg + mirror x,y); `repeat` {
 | finish | family | usual colour | grain |
 |---|---|---|---|
 | `boucle` | fabric | #e9d3bc |  |
-| `linen` | fabric | #92acce |  |
-| `velvet` | fabric | #ae2e47 |  |
+| `linen` | fabric | #c8bca8 |  |
+| `velvet` | fabric | #5f6470 |  |
 | `wool-felt` | fabric | #a2a0a6 |  |
 | `white-laminate` | laminate | #eeeae9 |  |
 | `leather-brown` | leather | #512e11 |  |
 | `black-metal` | metal | #5c5c5e |  |
-| `brushed-steel` | metal | #929598 | yes |
+| `brushed-steel` | metal | #b9bbbd | yes |
 | `painted-wood-matte` | paint | #c7a87e | yes |
-| `marble-white` | stone | #adaeb7 |  |
+| `marble-white` | stone | #e6e3de |  |
 | `travertine` | stone | #dfccac |  |
 | `ash-light` | wood | #ac957d | yes |
 | `oak` | wood | #a27f58 | yes |
