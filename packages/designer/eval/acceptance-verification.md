@@ -1,5 +1,7 @@
 # Acceptance suite delivery verification
 
+## Original aa87b09 baseline
+
 Measured 26 September 2026. **DONE: 7 of 7 delivery checks. The demo acceptance targets FAIL.** These are different claims: the evaluator is delivered; the product is not certified.
 
 1. ✓ Proving command: `pnpm acceptance` ran the actual editor UI and HTTP service, fast path ON, b21-t13 and Avani, three repeats each. Original output: `{"passed":34,"total":114,"batch_stopped":false}`; exit 1 correctly signals missed targets. All 96 requests completed. Consistent offline corrections yield 41/114 step passes (six open-only passes plus 35 Tier 2 passes), not a golden success. [Original command output](acceptance-runs/20260926T155711Z/baseline-command.log), [audit](acceptance-runs/20260926T155711Z/evidence-audit.json), [report](acceptance.md).
@@ -11,3 +13,17 @@ Measured 26 September 2026. **DONE: 7 of 7 delivery checks. The demo acceptance 
 7. ✓ This lane alone wrote the acceptance launcher, observer, browser driver, independent grader/access helper, regrade/capture utilities, tests, report and evidence under `packages/designer/eval/`, plus the root script. Reviewer was read-only. Private editor/service used **53220/53221**, both verified closed after captures; protected ports were not started, stopped or restarted. The measured catalog-handoff gotcha was recorded in Notion Engineering / Codex harness.
 
 Not proven: a passing golden path, ≥8/10 Tier 2 reliability, complete human screenshot review, real-shop price provenance, or behavior of fixes landed after product source `aa87b09`. This is the requested baseline, not a successful demo claim.
+
+## Latest main rerun — d2d7966
+
+Measured 26 September 2026 UTC. **DONE: 7 of 7 delivery checks; product acceptance targets still FAIL.**
+
+1. ✓ `pnpm acceptance --include-balcony` completed **144 real HTTP requests / 171 step rows** on Avani, b21-t13 and portal M6, three repeats each. Output: `{"passed":63,"total":171,"batch_stopped":false}`; exit 1 is expected because targets fail. The disclosed wording-only regrade yields **69/171**, including open/Apply rows. Golden conversations remain **0/3 each**. [Command output](acceptance-runs/20260926T163635Z/command.log), [audit](acceptance-runs/20260926T163635Z/evidence-audit.json).
+2. ✓ Applied Ashot's explicit push rule: reuse the untargeted full-suite green result above; after a clean rebase run root typecheck and area tests, then push immediately. Current root **`pnpm typecheck` passes**; **78 eval Python tests pass**, including **30 focused acceptance tests**. No new full-suite claim is made for d2d7966. [Typecheck](acceptance-runs/20260926T163635Z/verification-typecheck.log), [area tests](acceptance-runs/20260926T163635Z/verification-area.log), [focused tests](acceptance-runs/20260926T163635Z/verification-focused.log).
+3. ✓ Added opt-in Balcony coverage and comparison controls (`test_acceptance_runner.py`, `test_acceptance_comparison.py`); `test_acceptance_phrasing.py` first failed for the honest “no movable furniture” reply, then passed while error/changed-scene negatives stayed rejected. All 96 earlier scores reproduce unchanged with the corrected grader; old artifacts are untouched. [Baseline recheck](acceptance-runs/20260926T163635Z/baseline-recheck.json).
+4. ✓ `git diff d2d7966 --name-only` is confined to `packages/designer/eval/**`. No product code, contracts, input fixtures or existing tests were weakened. Runtime source and input hashes match, as do original run hashes; no timings, replies, tokens or scenes were changed.
+5. ✓ Fresh read-only review: **APPROVE — no material findings**. Reviewer independently ran 30 tests, replayed all 144 new and 96 old grades, checked HTTP/telemetry, all 171 capture mappings and exact frozen runtime bytes against Git a74d92f.
+6. ✓ Same assumptions and human-signoff limits as the original baseline. Product source stayed d2d7966 throughout; later main changes are not retroactively measured. M6 is an additional cohort, never pooled into before/after timing deltas. Three repeats remain a baseline, not ten-repeat certification. The 10 s bathroom threshold is unchanged: M6's 10.063 s response fails it.
+7. ✓ This lane alone changed eval runner/comparison/grading/report files and raw evidence; reviewer was read-only. All model calls finished before grading correction or verification. Private ports **53220/53221** were verified closed; protected ports were not operated. [Cleanup](acceptance-runs/20260926T163635Z/cleanup.json). Findings were written to Notion Engineering / Codex harness.
+
+Not proven: passing golden paths, ten-repeat reliability, full human screenshot/explanation approval, or real shop-price provenance. No model or catalog responses were stubbed.

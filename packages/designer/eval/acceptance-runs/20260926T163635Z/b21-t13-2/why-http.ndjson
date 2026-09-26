@@ -1,0 +1,89 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Writing your answer"}
+{"type": "message_delta", "delta": "**I haven"}
+{"type": "message_delta", "delta": "’t"}
+{"type": "message_delta", "delta": " proposed"}
+{"type": "message_delta", "delta": " or"}
+{"type": "message_delta", "delta": " changed"}
+{"type": "message_delta", "delta": " a"}
+{"type": "message_delta", "delta": " layout"}
+{"type": "message_delta", "delta": " yet"}
+{"type": "message_delta", "delta": "."}
+{"type": "message_delta", "delta": "**"}
+{"type": "message_delta", "delta": " Your"}
+{"type": "message_delta", "delta": " scene"}
+{"type": "message_delta", "delta": " has"}
+{"type": "message_delta", "delta": " no"}
+{"type": "message_delta", "delta": " furniture"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": " so"}
+{"type": "message_delta", "delta": " I"}
+{"type": "message_delta", "delta": " asked"}
+{"type": "message_delta", "delta": " whether"}
+{"type": "message_delta", "delta": " you"}
+{"type": "message_delta", "delta": " wanted"}
+{"type": "message_delta", "delta": " to"}
+{"type": "message_delta", "delta": " focus"}
+{"type": "message_delta", "delta": " on"}
+{"type": "message_delta", "delta": " the"}
+{"type": "message_delta", "delta": " living"}
+{"type": "message_delta", "delta": " room"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": " bedroom"}
+{"type": "message_delta", "delta": " or"}
+{"type": "message_delta", "delta": " wall"}
+{"type": "message_delta", "delta": " colours"}
+{"type": "message_delta", "delta": ".\n\n"}
+{"type": "message_delta", "delta": "The"}
+{"type": "message_delta", "delta": " living"}
+{"type": "message_delta", "delta": "-room"}
+{"type": "message_delta", "delta": " suggestion"}
+{"type": "message_delta", "delta": "—"}
+{"type": "message_delta", "delta": "comfortable"}
+{"type": "message_delta", "delta": " seating"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": " a"}
+{"type": "message_delta", "delta": " rug"}
+{"type": "message_delta", "delta": " and"}
+{"type": "message_delta", "delta": " lamps"}
+{"type": "message_delta", "delta": "—"}
+{"type": "message_delta", "delta": "was"}
+{"type": "message_delta", "delta": " a"}
+{"type": "message_delta", "delta": " direction"}
+{"type": "message_delta", "delta": " for"}
+{"type": "message_delta", "delta": " coz"}
+{"type": "message_delta", "delta": "iness"}
+{"type": "message_delta", "delta": ":"}
+{"type": "message_delta", "delta": " seating"}
+{"type": "message_delta", "delta": " invites"}
+{"type": "message_delta", "delta": " relaxation"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": " a"}
+{"type": "message_delta", "delta": " rug"}
+{"type": "message_delta", "delta": " groups"}
+{"type": "message_delta", "delta": " the"}
+{"type": "message_delta", "delta": " seating"}
+{"type": "message_delta", "delta": " area"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": " and"}
+{"type": "message_delta", "delta": " lamps"}
+{"type": "message_delta", "delta": " offer"}
+{"type": "message_delta", "delta": " softer"}
+{"type": "message_delta", "delta": " evening"}
+{"type": "message_delta", "delta": " light"}
+{"type": "message_delta", "delta": "."}
+{"type": "message_delta", "delta": " No"}
+{"type": "message_delta", "delta": " pieces"}
+{"type": "message_delta", "delta": " or"}
+{"type": "message_delta", "delta": " positions"}
+{"type": "message_delta", "delta": " have"}
+{"type": "message_delta", "delta": " been"}
+{"type": "message_delta", "delta": " selected"}
+{"type": "message_delta", "delta": " or"}
+{"type": "message_delta", "delta": " checked"}
+{"type": "message_delta", "delta": " yet"}
+{"type": "message_delta", "delta": "."}
+{"type": "message", "message": "**I haven’t proposed or changed a layout yet.** Your scene has no furniture, so I asked whether you wanted to focus on the living room, bedroom or wall colours.\n\nThe living-room suggestion—comfortable seating, a rug and lamps—was a direction for coziness: seating invites relaxation, a rug groups the seating area, and lamps offer softer evening light. No pieces or positions have been selected or checked yet.", "conversationId": "b4a47993597942fd9c5cb0df282c0b8e"}

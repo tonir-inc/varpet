@@ -1,0 +1,49 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Writing your answer"}
+{"type": "message_delta", "delta": "I can’t create"}
+{"type": "message_delta", "delta": " a"}
+{"type": "message_delta", "delta": " checked"}
+{"type": "message_delta", "delta": " desk"}
+{"type": "message_delta", "delta": " preview"}
+{"type": "message_delta", "delta": " right"}
+{"type": "message_delta", "delta": " now"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": " so"}
+{"type": "message_delta", "delta": " nothing"}
+{"type": "message_delta", "delta": " has"}
+{"type": "message_delta", "delta": " been"}
+{"type": "message_delta", "delta": " added"}
+{"type": "message_delta", "delta": "."}
+{"type": "message_delta", "delta": " For"}
+{"type": "message_delta", "delta": " the"}
+{"type": "message_delta", "delta": " placement"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": " I"}
+{"type": "message_delta", "delta": "’d"}
+{"type": "message_delta", "delta": " aim"}
+{"type": "message_delta", "delta": " for"}
+{"type": "message_delta", "delta": " daylight"}
+{"type": "message_delta", "delta": " from"}
+{"type": "message_delta", "delta": " the"}
+{"type": "message_delta", "delta": " side"}
+{"type": "message_delta", "delta": " of"}
+{"type": "message_delta", "delta": " the"}
+{"type": "message_delta", "delta": " desk"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": " with"}
+{"type": "message_delta", "delta": " room"}
+{"type": "message_delta", "delta": " to"}
+{"type": "message_delta", "delta": " pull"}
+{"type": "message_delta", "delta": " out"}
+{"type": "message_delta", "delta": " the"}
+{"type": "message_delta", "delta": " chair"}
+{"type": "message_delta", "delta": " and"}
+{"type": "message_delta", "delta": " keep"}
+{"type": "message_delta", "delta": " window"}
+{"type": "message_delta", "delta": " access"}
+{"type": "message_delta", "delta": " clear"}
+{"type": "message_delta", "delta": "."}
+{"type": "message", "message": "I can’t create a checked desk preview right now, so nothing has been added. For the placement, I’d aim for daylight from the side of the desk, with room to pull out the chair and keep window access clear.\n\nI can discuss your flat, but cannot check or change its layout until its geometry is supported.", "conversationId": "b3fef3edf09248fd87010b32338cb022"}

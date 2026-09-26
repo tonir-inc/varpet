@@ -1,0 +1,5 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "message", "message": "I could not find a checked layout in the bounded search. This does not prove it impossible. Try a smaller piece or fewer pieces first.", "conversationId": "7256f9e35cd443b0a5b4954fb99806ed"}

@@ -1,0 +1,48 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Writing your answer"}
+{"type": "message_delta", "delta": "I understand"}
+{"type": "message_delta", "delta": " you"}
+{"type": "message_delta", "delta": " still"}
+{"type": "message_delta", "delta": " want"}
+{"type": "message_delta", "delta": " the"}
+{"type": "message_delta", "delta": " double"}
+{"type": "message_delta", "delta": " bed"}
+{"type": "message_delta", "delta": " **"}
+{"type": "message_delta", "delta": "in"}
+{"type": "message_delta", "delta": " the"}
+{"type": "message_delta", "delta": " bathroom"}
+{"type": "message_delta", "delta": "**"}
+{"type": "message_delta", "delta": "."}
+{"type": "message_delta", "delta": " Checked"}
+{"type": "message_delta", "delta": " edits"}
+{"type": "message_delta", "delta": " remain"}
+{"type": "message_delta", "delta": " unavailable"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": " so"}
+{"type": "message_delta", "delta": " I"}
+{"type": "message_delta", "delta": " can"}
+{"type": "message_delta", "delta": "’t"}
+{"type": "message_delta", "delta": " validate"}
+{"type": "message_delta", "delta": " a"}
+{"type": "message_delta", "delta": " different"}
+{"type": "message_delta", "delta": " placement"}
+{"type": "message_delta", "delta": " or"}
+{"type": "message_delta", "delta": " confirm"}
+{"type": "message_delta", "delta": " safe"}
+{"type": "message_delta", "delta": " access"}
+{"type": "message_delta", "delta": " around"}
+{"type": "message_delta", "delta": " the"}
+{"type": "message_delta", "delta": " bed"}
+{"type": "message_delta", "delta": " and"}
+{"type": "message_delta", "delta": " bathroom"}
+{"type": "message_delta", "delta": " fixtures"}
+{"type": "message_delta", "delta": "."}
+{"type": "message_delta", "delta": " Nothing"}
+{"type": "message_delta", "delta": " has"}
+{"type": "message_delta", "delta": " been"}
+{"type": "message_delta", "delta": " changed"}
+{"type": "message_delta", "delta": "."}
+{"type": "message", "message": "I understand you still want the double bed **in the bathroom**. Checked edits remain unavailable, so I can’t validate a different placement or confirm safe access around the bed and bathroom fixtures. Nothing has been changed.", "conversationId": "096ba00f7af44281a4b37bd27831ba2c"}

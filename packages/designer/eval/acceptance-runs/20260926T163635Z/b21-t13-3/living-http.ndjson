@@ -1,0 +1,5 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "message", "message": "I could not reach the furniture catalog, so I have not checked what is available. Please retry when the catalog connection is available.", "conversationId": "d0ceb0b608394fc1b159ad118458047f"}

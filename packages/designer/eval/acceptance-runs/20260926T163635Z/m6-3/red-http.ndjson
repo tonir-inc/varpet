@@ -1,0 +1,55 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Writing your answer"}
+{"type": "message_delta", "delta": "I’d use a"}
+{"type": "message_delta", "delta": " warm"}
+{"type": "message_delta", "delta": " brick"}
+{"type": "message_delta", "delta": " red"}
+{"type": "message_delta", "delta": " (**"}
+{"type": "message_delta", "delta": "#"}
+{"type": "message_delta", "delta": "A"}
+{"type": "message_delta", "delta": "343"}
+{"type": "message_delta", "delta": "36"}
+{"type": "message_delta", "delta": "**)"}
+{"type": "message_delta", "delta": " across"}
+{"type": "message_delta", "delta": " the"}
+{"type": "message_delta", "delta": " apartment"}
+{"type": "message_delta", "delta": "’s"}
+{"type": "message_delta", "delta": " interior"}
+{"type": "message_delta", "delta": " walls"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": " leaving"}
+{"type": "message_delta", "delta": " ceilings"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": " floors"}
+{"type": "message_delta", "delta": " and"}
+{"type": "message_delta", "delta": " rail"}
+{"type": "message_delta", "delta": "ings"}
+{"type": "message_delta", "delta": " unchanged"}
+{"type": "message_delta", "delta": ".\n\n"}
+{"type": "message_delta", "delta": "Checked"}
+{"type": "message_delta", "delta": " paint"}
+{"type": "message_delta", "delta": " previews"}
+{"type": "message_delta", "delta": " are"}
+{"type": "message_delta", "delta": " currently"}
+{"type": "message_delta", "delta": " unavailable"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": " so"}
+{"type": "message_delta", "delta": " **"}
+{"type": "message_delta", "delta": "nothing"}
+{"type": "message_delta", "delta": " has"}
+{"type": "message_delta", "delta": " been"}
+{"type": "message_delta", "delta": " changed"}
+{"type": "message_delta", "delta": "**"}
+{"type": "message_delta", "delta": "."}
+{"type": "message_delta", "delta": " Paint"}
+{"type": "message_delta", "delta": " and"}
+{"type": "message_delta", "delta": " labour"}
+{"type": "message_delta", "delta": " costs"}
+{"type": "message_delta", "delta": " remain"}
+{"type": "message_delta", "delta": " un"}
+{"type": "message_delta", "delta": "quoted"}
+{"type": "message_delta", "delta": "."}
+{"type": "message", "message": "I’d use a warm brick red (**#A34336**) across the apartment’s interior walls, leaving ceilings, floors and railings unchanged.\n\nChecked paint previews are currently unavailable, so **nothing has been changed**. Paint and labour costs remain unquoted.\n\nI can discuss your flat, but cannot check or change its layout until its geometry is supported.", "conversationId": "f704b094b73f45daa538141c7c3cee00"}

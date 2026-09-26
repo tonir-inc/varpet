@@ -1,0 +1,51 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Writing your answer"}
+{"type": "message_delta", "delta": "I still can"}
+{"type": "message_delta", "delta": "’t"}
+{"type": "message_delta", "delta": " produce"}
+{"type": "message_delta", "delta": " a"}
+{"type": "message_delta", "delta": " checked"}
+{"type": "message_delta", "delta": " bathroom"}
+{"type": "message_delta", "delta": " placement"}
+{"type": "message_delta", "delta": ":"}
+{"type": "message_delta", "delta": " checked"}
+{"type": "message_delta", "delta": " edits"}
+{"type": "message_delta", "delta": " are"}
+{"type": "message_delta", "delta": " unavailable"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": " and"}
+{"type": "message_delta", "delta": " the"}
+{"type": "message_delta", "delta": " summary"}
+{"type": "message_delta", "delta": " doesn"}
+{"type": "message_delta", "delta": "’t"}
+{"type": "message_delta", "delta": " establish"}
+{"type": "message_delta", "delta": " fixture"}
+{"type": "message_delta", "delta": " or"}
+{"type": "message_delta", "delta": " doorway"}
+{"type": "message_delta", "delta": " clear"}
+{"type": "message_delta", "delta": "ances"}
+{"type": "message_delta", "delta": "."}
+{"type": "message_delta", "delta": " **"}
+{"type": "message_delta", "delta": "No"}
+{"type": "message_delta", "delta": " bed"}
+{"type": "message_delta", "delta": " has"}
+{"type": "message_delta", "delta": " been"}
+{"type": "message_delta", "delta": " added"}
+{"type": "message_delta", "delta": "**,"}
+{"type": "message_delta", "delta": " and"}
+{"type": "message_delta", "delta": " I"}
+{"type": "message_delta", "delta": " can"}
+{"type": "message_delta", "delta": "’t"}
+{"type": "message_delta", "delta": " confirm"}
+{"type": "message_delta", "delta": " that"}
+{"type": "message_delta", "delta": " a"}
+{"type": "message_delta", "delta": " double"}
+{"type": "message_delta", "delta": " bed"}
+{"type": "message_delta", "delta": " would"}
+{"type": "message_delta", "delta": " fit"}
+{"type": "message_delta", "delta": " safely"}
+{"type": "message_delta", "delta": "."}
+{"type": "message", "message": "I still can’t produce a checked bathroom placement: checked edits are unavailable, and the summary doesn’t establish fixture or doorway clearances. **No bed has been added**, and I can’t confirm that a double bed would fit safely.", "conversationId": "f026300e75244cdaa9f6a1e0e2f7d073"}
