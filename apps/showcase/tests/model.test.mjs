@@ -38,3 +38,11 @@ test('partial deliveries choose the available view and never advertise an absent
   assert.doesNotMatch(collectionDescription([pending]), /Avani/);
   assert.match(collectionDescription([example]), /Avani/);
 });
+
+test('recorded request outcomes distinguish applied proposals, questions and declines', () => {
+  const example = exampleFlat();
+  const flat = makeFlat({ id: 'test', facts: {}, shell: example.shell, furnished: null, catalog: [], conversation: {
+    steps: [{ request: 'Add a sofa', outcome: 'proposal', editor_accepted: true }, { request: 'Add a desk', outcome: 'question' }, { request: 'Remove a wall', outcome: 'decline' }],
+  } });
+  assert.deepEqual(flat.requestOutcomes, ['Applied to this view', 'Designer asked a question', 'Designer declined this request']);
+});

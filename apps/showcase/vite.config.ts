@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { loadRecords, planFile } from './server/data.mjs';
 const root = fileURLToPath(new URL('.', import.meta.url));
 const dataDir = resolve(root, '../../packages/designer/eval/komitas');
+const runsDir = resolve(dataDir, '../komitas-runs');
 const plans = process.env.KOMITAS_PLANS_DIR ?? resolve(homedir(), 'AshProjects/tonir/apartment/komitas-park/data/plans');
 const moduleId = '\0virtual:showcase-data';
 function localPlans(server) {
@@ -19,13 +20,13 @@ function localPlans(server) {
   });
 }
 export default defineConfig({
-  publicDir: '../editor/public',
+  publicDir: false,
   plugins: [{ name: 'showcase-records',
     resolveId(id) { if (id === 'virtual:showcase-data') return moduleId; },
     async load(id) { if (id === moduleId) return `export default ${JSON.stringify(await loadRecords(dataDir))}`; },
     configureServer(server) {
-      localPlans(server); server.watcher.add(dataDir);
-      server.watcher.on('all', (_event, path) => { if (path.startsWith(dataDir)) { const module = server.moduleGraph.getModuleById(moduleId); if (module) server.moduleGraph.invalidateModule(module); server.ws.send({ type: 'full-reload' }); } });
+      localPlans(server); server.watcher.add([dataDir, runsDir]);
+      server.watcher.on('all', (_event, path) => { if (path.startsWith(dataDir) || path.startsWith(runsDir)) { const module = server.moduleGraph.getModuleById(moduleId); if (module) server.moduleGraph.invalidateModule(module); server.ws.send({ type: 'full-reload' }); } });
     },
     configurePreviewServer: localPlans,
   }],

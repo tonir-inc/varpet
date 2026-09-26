@@ -30,6 +30,8 @@ Read at dev start (watched for updates) and at build time from `packages/designe
 - `<id>.conversation.json`: `{requests: ["customer request", ...], catalogCurrency: "AMD"}`. Also accepts `.result.json` with `steps[].request`.
 - Directory equivalents `<id>/final.scene.json`, `<id>/catalog.json`, `<id>/conversation.json` are accepted.
 
+The published BENCH layout is also read directly: sibling `komitas-runs/<run>/run.json` plus `final.json` (`{scene, catalog}`). The latest `finished_at` run matching the flat ID takes precedence. Requests come from `run.rows[].request`; incomplete runs never replace the last completed view. Raw SDK transcripts are never bundled.
+
 BENCH continues to own its Markdown report and artifacts. This app does not rewrite them. Unknown catalog IDs keep the furnished view pending instead of silently displaying incorrect furniture. Purchase totals count added object IDs only, and require explicit AMD currency; they are catalog estimates, not shop quotes.
 
 Before Komitas inputs arrive, Avani is shown as one explicitly labelled example. It is never counted as a real Komitas flat or a designer run. The shell is derived by removing furniture from the editor's Avani example; prices in its unlabelled demo catalog are not converted into dram.

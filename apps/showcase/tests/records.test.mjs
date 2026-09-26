@@ -30,3 +30,21 @@ test('local plans allow only flat IDs and supported image extensions', async () 
     assert.equal(await planFile(dir, '../secret'), null); assert.equal(await planFile(dir, 'missing'), null);
   } finally { await rm(dir, { recursive: true }); }
 });
+
+test('uses the latest completed BENCH run with its exact final catalog, ignoring in-progress runs', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'showcase-bench-')), dir = join(root, 'komitas'), runs = join(root, 'komitas-runs');
+  try {
+    await mkdir(dir); await mkdir(runs);
+    await writeFile(join(dir, 'b31-t50.scene.json'), JSON.stringify({ objects: [] }));
+    for (const [name, finished] of [['old', '2026-09-26T12:00:00Z'], ['new', '2026-09-26T12:01:00Z'], ['pending', null]]) {
+      const runDir = join(runs, name); await mkdir(runDir);
+      await writeFile(join(runDir, 'run.json'), JSON.stringify({ id: 'b31-t50', finished_at: finished, catalogCurrency: 'AMD', rows: [{ request: name }] }));
+      await writeFile(join(runDir, 'final.json'), JSON.stringify({ scene: { objects: [{ id: name }] }, catalog: [{ id: name }] }));
+    }
+    const [flat] = await loadRecords(dir);
+    assert.equal(flat.furnished.objects[0].id, 'new');
+    assert.equal(flat.catalog[0].id, 'new');
+    assert.deepEqual(flat.conversation.requests, ['new']);
+    assert.equal(flat.conversation.catalogCurrency, 'AMD');
+  } finally { await rm(root, { recursive: true }); }
+});
