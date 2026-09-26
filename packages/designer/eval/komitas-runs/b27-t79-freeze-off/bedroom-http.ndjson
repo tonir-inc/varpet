@@ -1,0 +1,43 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Writing your answer"}
+{"type": "message_delta", "delta": "Which bedroom"}
+{"type": "message_delta", "delta": " should"}
+{"type": "message_delta", "delta": " I"}
+{"type": "message_delta", "delta": " furnish"}
+{"type": "message_delta", "delta": " with"}
+{"type": "message_delta", "delta": " the"}
+{"type": "message_delta", "delta": " double"}
+{"type": "message_delta", "delta": " bed"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": " two"}
+{"type": "message_delta", "delta": " night"}
+{"type": "message_delta", "delta": "stands"}
+{"type": "message_delta", "delta": " and"}
+{"type": "message_delta", "delta": " wardrobe"}
+{"type": "message_delta", "delta": ":"}
+{"type": "message_delta", "delta": " **"}
+{"type": "message_delta", "delta": "Bedroom"}
+{"type": "message_delta", "delta": " "}
+{"type": "message_delta", "delta": "4"}
+{"type": "message_delta", "delta": "**"}
+{"type": "message_delta", "delta": " ("}
+{"type": "message_delta", "delta": "bottom"}
+{"type": "message_delta", "delta": "-right"}
+{"type": "message_delta", "delta": " on"}
+{"type": "message_delta", "delta": " the"}
+{"type": "message_delta", "delta": " plan"}
+{"type": "message_delta", "delta": ")"}
+{"type": "message_delta", "delta": " or"}
+{"type": "message_delta", "delta": " **"}
+{"type": "message_delta", "delta": "Bedroom"}
+{"type": "message_delta", "delta": " "}
+{"type": "message_delta", "delta": "5"}
+{"type": "message_delta", "delta": "**"}
+{"type": "message_delta", "delta": " ("}
+{"type": "message_delta", "delta": "left"}
+{"type": "message_delta", "delta": " side"}
+{"type": "message_delta", "delta": ")?"}
+{"type": "message", "message": "Which bedroom should I furnish with the double bed, two nightstands and wardrobe: **Bedroom 4** (bottom-right on the plan) or **Bedroom 5** (left side)?", "conversationId": "d5e54116966f4ed59f8917b54d24a409"}

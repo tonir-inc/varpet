@@ -1,0 +1,5 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Writing your answer"}
+{"type": "decline", "message": "I can preview furniture and wall colours, but can’t remove walls or approve demolition. A qualified structural engineer must assess any proposed removal. I can instead plan furniture placement to make the kitchen and living room feel more connected.", "conversationId": "5d4de3ba00d1455abcfa52e045ef3561"}

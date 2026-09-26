@@ -1,0 +1,8 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Preparing a question"}
+{"type": "progress", "message": "Writing your answer"}
+{"type": "question", "conversationId": "e2982e07f0394cfe995719f2793d0443", "question": "Which bedroom should I furnish with the double bed, two nightstands and wardrobe?", "options": ["Bedroom 1", "Bedroom 2", "Bedroom 3"]}

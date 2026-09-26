@@ -1,0 +1,8 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Understanding the change you want"}
+{"type": "progress", "message": "Writing your answer"}
+{"type": "message", "message": "The supplied scene contains no sofa—or other movable furniture—so I can’t create a checked move preview yet. Nothing has changed.\n\nPlease load the scene containing your sofa, and I can position it to face a window.", "conversationId": "c394a783a7aa482ca9da78e429df3327"}

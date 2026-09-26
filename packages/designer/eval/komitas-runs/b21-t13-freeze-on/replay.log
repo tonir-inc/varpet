@@ -1,0 +1,7 @@
+living: FAIL; revision 0; outcome:message, request_mismatch
+bedroom: FAIL; revision 0; outcome:message, request_mismatch
+sofa: FAIL; revision 0; outcome:question, request_mismatch
+desk: PASS; revision 1; 
+paint: PASS; revision 2; 
+structural: PASS; revision 2; 
+Replay verified 6 sequential turns and their editor snapshots

@@ -1,0 +1,9 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Understanding the change you want"}
+{"type": "progress", "message": "Preparing a question"}
+{"type": "progress", "message": "Writing your answer"}
+{"type": "question", "conversationId": "ce10bdbc4add49dd863db6f55fcdb512", "question": "The supplied scene has no sofa to move. Can you add your sofa to the scene so I can position it facing the window?", "options": []}

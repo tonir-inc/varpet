@@ -1,0 +1,36 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Writing your answer"}
+{"type": "message_delta", "delta": "How many"}
+{"type": "message_delta", "delta": " children"}
+{"type": "message_delta", "delta": " will"}
+{"type": "message_delta", "delta": " use"}
+{"type": "message_delta", "delta": " the"}
+{"type": "message_delta", "delta": " room"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": " and"}
+{"type": "message_delta", "delta": " how"}
+{"type": "message_delta", "delta": " old"}
+{"type": "message_delta", "delta": " are"}
+{"type": "message_delta", "delta": " they"}
+{"type": "message_delta", "delta": "?"}
+{"type": "message_delta", "delta": " This"}
+{"type": "message_delta", "delta": " will"}
+{"type": "message_delta", "delta": " help"}
+{"type": "message_delta", "delta": " me"}
+{"type": "message_delta", "delta": " choose"}
+{"type": "message_delta", "delta": " suitable"}
+{"type": "message_delta", "delta": " beds"}
+{"type": "message_delta", "delta": " and"}
+{"type": "message_delta", "delta": " furniture"}
+{"type": "message_delta", "delta": " within"}
+{"type": "message_delta", "delta": " **"}
+{"type": "message_delta", "delta": "300"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": "000"}
+{"type": "message_delta", "delta": " ֏"}
+{"type": "message_delta", "delta": "**"}
+{"type": "message_delta", "delta": "."}
+{"type": "message", "message": "How many children will use the room, and how old are they? This will help me choose suitable beds and furniture within **300,000 ֏**.", "conversationId": "d5e54116966f4ed59f8917b54d24a409"}

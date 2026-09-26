@@ -1,0 +1,19 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Understanding the change you want"}
+{"type": "progress", "message": "Looking for suitable furniture"}
+{"type": "progress", "message": "Looking for suitable furniture"}
+{"type": "progress", "message": "Checking your design"}
+{"type": "progress", "message": "Checking your design"}
+{"type": "progress", "message": "Checking your design"}
+{"type": "progress", "message": "Checking your proposed change"}
+{"type": "progress", "message": "Checking your proposed change"}
+{"type": "progress", "message": "Checking your proposed change"}
+{"type": "progress", "message": "Understanding the change you want"}
+{"type": "progress", "message": "Checking your proposed change"}
+{"type": "progress", "message": "Writing your answer"}
+{"type": "progress", "message": "Preparing the checked layout preview"}
+{"type": "error", "message": "Editor rejected translated proposal: Object 1 has invalid fields or a non-finite/out-of-range transform.", "conversationId": "9f3a8a7cbe6243c2b57d63de55c000f6"}

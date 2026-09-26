@@ -1,0 +1,35 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Writing your answer"}
+{"type": "message_delta", "delta": "Which bedroom"}
+{"type": "message_delta", "delta": " should"}
+{"type": "message_delta", "delta": " I"}
+{"type": "message_delta", "delta": " paint"}
+{"type": "message_delta", "delta": " warm"}
+{"type": "message_delta", "delta": " white"}
+{"type": "message_delta", "delta": ":"}
+{"type": "message_delta", "delta": " **"}
+{"type": "message_delta", "delta": "Bedroom"}
+{"type": "message_delta", "delta": " "}
+{"type": "message_delta", "delta": "4"}
+{"type": "message_delta", "delta": "**"}
+{"type": "message_delta", "delta": " ("}
+{"type": "message_delta", "delta": "with"}
+{"type": "message_delta", "delta": " balcony"}
+{"type": "message_delta", "delta": " access"}
+{"type": "message_delta", "delta": ")"}
+{"type": "message_delta", "delta": " or"}
+{"type": "message_delta", "delta": " **"}
+{"type": "message_delta", "delta": "Bedroom"}
+{"type": "message_delta", "delta": " "}
+{"type": "message_delta", "delta": "5"}
+{"type": "message_delta", "delta": "**"}
+{"type": "message_delta", "delta": " ("}
+{"type": "message_delta", "delta": "the"}
+{"type": "message_delta", "delta": " left"}
+{"type": "message_delta", "delta": "-hand"}
+{"type": "message_delta", "delta": " bedroom"}
+{"type": "message_delta", "delta": ")?"}
+{"type": "message", "message": "Which bedroom should I paint warm white: **Bedroom 4** (with balcony access) or **Bedroom 5** (the left-hand bedroom)?", "conversationId": "3bb562682e2546638f71f1c0aee03414"}

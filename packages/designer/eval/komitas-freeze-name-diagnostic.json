@@ -1,0 +1,56 @@
+{
+  "measurement": "offline counterfactual; no source artifacts, grades or product code changed",
+  "results": [
+    {
+      "run": "b23-t64-freeze-on",
+      "request": "desk",
+      "names": [
+        {
+          "id": "work_desk",
+          "characters": 122
+        }
+      ],
+      "original": {
+        "ok": false,
+        "error": "Error: Editor rejected translated proposal: Object 1 has invalid fields or a non-finite/out-of-range transform."
+      },
+      "only_display_name_bounded": {
+        "ok": true
+      }
+    },
+    {
+      "run": "b24-t22-freeze-off",
+      "request": "desk",
+      "names": [
+        {
+          "id": "work_desk",
+          "characters": 122
+        }
+      ],
+      "original": {
+        "ok": false,
+        "error": "Error: Editor rejected translated proposal: Object 1 has invalid fields or a non-finite/out-of-range transform."
+      },
+      "only_display_name_bounded": {
+        "ok": true
+      }
+    },
+    {
+      "run": "b31-t46-freeze-off",
+      "request": "desk",
+      "names": [
+        {
+          "id": "work-desk",
+          "characters": 122
+        }
+      ],
+      "original": {
+        "ok": false,
+        "error": "Error: Editor rejected translated proposal: Object 1 has invalid fields or a non-finite/out-of-range transform."
+      },
+      "only_display_name_bounded": {
+        "ok": true
+      }
+    }
+  ]
+}

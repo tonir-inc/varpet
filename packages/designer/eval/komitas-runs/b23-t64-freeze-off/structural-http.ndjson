@@ -1,0 +1,6 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Writing your answer"}
+{"type": "decline", "message": "I can preview furniture layouts and wall colours, but not remove walls. A structural engineer must assess whether removal is safe. I can instead propose coordinated colours and furniture placement to make the kitchen and living room feel more connected.", "conversationId": "fdac722800974ea69b9b4ca2b53c9b93"}

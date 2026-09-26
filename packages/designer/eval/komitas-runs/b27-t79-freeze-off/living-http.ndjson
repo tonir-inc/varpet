@@ -1,0 +1,11 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Understanding the change you want"}
+{"type": "progress", "message": "Looking for suitable furniture"}
+{"type": "progress", "message": "Looking for suitable furniture"}
+{"type": "progress", "message": "Looking for suitable furniture"}
+{"type": "progress", "message": "Writing your answer"}
+{"type": "message", "message": "I tried a modest contemporary starting point, but the layout checker couldn’t produce a complete, verified arrangement for this room. No furniture has been added or proposed.\n\nThe catalog has the required furniture types; fitting a complete set remains unresolved. Your budget is unconfirmed, and there’s no checked catalog total to quote yet.", "conversationId": "d5e54116966f4ed59f8917b54d24a409"}

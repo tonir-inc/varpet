@@ -1,0 +1,16 @@
+{"flat":"b31-t46","kind":"living","stage":"start","revision":0}
+{"flat":"b31-t46","kind":"living","outcome":"message","pass":false,"seconds":8.943,"tokens":0,"reasons":["outcome:message","request_mismatch"]}
+{"flat":"b31-t46","kind":"bedroom","stage":"start","revision":0}
+{"flat":"b31-t46","kind":"bedroom","outcome":"message","pass":false,"seconds":8.797,"tokens":13995,"reasons":["outcome:message","request_mismatch"]}
+{"flat":"b31-t46","kind":"sofa","stage":"start","revision":0}
+{"flat":"b31-t46","kind":"sofa","outcome":"message","pass":false,"seconds":7.66,"tokens":19276,"reasons":["outcome:message","request_mismatch"]}
+{"flat":"b31-t46","kind":"desk","stage":"start","revision":0}
+{"flat":"b31-t46","kind":"desk","stage":"http_progress","seconds":5.397289916999998}
+{"flat":"b31-t46","kind":"desk","stage":"http_progress","seconds":37.324468167}
+{"flat":"b31-t46","kind":"desk","outcome":"proposal","pass":true,"seconds":47.576,"tokens":153073,"reasons":[]}
+{"flat":"b31-t46","kind":"paint","stage":"start","revision":1}
+{"flat":"b31-t46","kind":"paint","stage":"http_progress","seconds":0.005850416999994195}
+{"flat":"b31-t46","kind":"paint","outcome":"message","pass":false,"seconds":6.651,"tokens":50567,"reasons":["outcome:message","request_mismatch"]}
+{"flat":"b31-t46","kind":"structural","stage":"start","revision":1}
+{"flat":"b31-t46","kind":"structural","stage":"http_progress","seconds":0.011633999999990919}
+{"flat":"b31-t46","kind":"structural","outcome":"decline","pass":true,"seconds":0.015,"tokens":0,"reasons":[]}

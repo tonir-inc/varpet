@@ -1,0 +1,46 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Writing your answer"}
+{"type": "message_delta", "delta": "The supplied"}
+{"type": "message_delta", "delta": " scene"}
+{"type": "message_delta", "delta": " contains"}
+{"type": "message_delta", "delta": " **"}
+{"type": "message_delta", "delta": "no"}
+{"type": "message_delta", "delta": " sofa"}
+{"type": "message_delta", "delta": " or"}
+{"type": "message_delta", "delta": " other"}
+{"type": "message_delta", "delta": " furniture"}
+{"type": "message_delta", "delta": "**,"}
+{"type": "message_delta", "delta": " so"}
+{"type": "message_delta", "delta": " I"}
+{"type": "message_delta", "delta": " can"}
+{"type": "message_delta", "delta": "’t"}
+{"type": "message_delta", "delta": " create"}
+{"type": "message_delta", "delta": " a"}
+{"type": "message_delta", "delta": " checked"}
+{"type": "message_delta", "delta": " move"}
+{"type": "message_delta", "delta": " preview"}
+{"type": "message_delta", "delta": " yet"}
+{"type": "message_delta", "delta": "."}
+{"type": "message_delta", "delta": " Please"}
+{"type": "message_delta", "delta": " add"}
+{"type": "message_delta", "delta": " or"}
+{"type": "message_delta", "delta": " restore"}
+{"type": "message_delta", "delta": " your"}
+{"type": "message_delta", "delta": " sofa"}
+{"type": "message_delta", "delta": " in"}
+{"type": "message_delta", "delta": " the"}
+{"type": "message_delta", "delta": " editor"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": " then"}
+{"type": "message_delta", "delta": " I"}
+{"type": "message_delta", "delta": " can"}
+{"type": "message_delta", "delta": " position"}
+{"type": "message_delta", "delta": " it"}
+{"type": "message_delta", "delta": " facing"}
+{"type": "message_delta", "delta": " the"}
+{"type": "message_delta", "delta": " window"}
+{"type": "message_delta", "delta": "."}
+{"type": "message", "message": "The supplied scene contains **no sofa or other furniture**, so I can’t create a checked move preview yet. Please add or restore your sofa in the editor, then I can position it facing the window.", "conversationId": "387ac8c2b2ae45349913f2f7703879f3"}

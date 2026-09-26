@@ -1,0 +1,3 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Checking what can be changed"}
+{"type": "decline", "conversationId": "0d7254c6891c479da56b8decc79c8720", "message": "I cannot demolish structural walls. I can rearrange the furniture; consult a structural engineer about changing walls."}

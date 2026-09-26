@@ -1,0 +1,41 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Writing your answer"}
+{"type": "message_delta", "delta": "There’s no"}
+{"type": "message_delta", "delta": " sofa"}
+{"type": "message_delta", "delta": " in"}
+{"type": "message_delta", "delta": " the"}
+{"type": "message_delta", "delta": " current"}
+{"type": "message_delta", "delta": " scene"}
+{"type": "message_delta", "delta": "—the"}
+{"type": "message_delta", "delta": " earlier"}
+{"type": "message_delta", "delta": " living"}
+{"type": "message_delta", "delta": "-room"}
+{"type": "message_delta", "delta": " attempt"}
+{"type": "message_delta", "delta": " didn"}
+{"type": "message_delta", "delta": "’t"}
+{"type": "message_delta", "delta": " create"}
+{"type": "message_delta", "delta": " one"}
+{"type": "message_delta", "delta": "."}
+{"type": "message_delta", "delta": " Please"}
+{"type": "message_delta", "delta": " add"}
+{"type": "message_delta", "delta": " your"}
+{"type": "message_delta", "delta": " sofa"}
+{"type": "message_delta", "delta": " to"}
+{"type": "message_delta", "delta": " the"}
+{"type": "message_delta", "delta": " editor"}
+{"type": "message_delta", "delta": " so"}
+{"type": "message_delta", "delta": " I"}
+{"type": "message_delta", "delta": " can"}
+{"type": "message_delta", "delta": " check"}
+{"type": "message_delta", "delta": " a"}
+{"type": "message_delta", "delta": " window"}
+{"type": "message_delta", "delta": "-facing"}
+{"type": "message_delta", "delta": " placement"}
+{"type": "message_delta", "delta": " without"}
+{"type": "message_delta", "delta": " buying"}
+{"type": "message_delta", "delta": " a"}
+{"type": "message_delta", "delta": " replacement"}
+{"type": "message_delta", "delta": "."}
+{"type": "message", "message": "There’s no sofa in the current scene—the earlier living-room attempt didn’t create one. Please add your sofa to the editor so I can check a window-facing placement without buying a replacement.", "conversationId": "5d4de3ba00d1455abcfa52e045ef3561"}
