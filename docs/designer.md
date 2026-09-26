@@ -11,7 +11,8 @@ ghost over the room, and one short paragraph that explains it with numbers the c
 "frees 1.9 m² of open floor, the desk gets morning sun from the side and no glare on the screen, every
 door keeps a 90 cm path, costs 0 ֏". The customer taps yes and the moves play one by one, or asks for
 another option. It asks at most one question when the request is too vague to act on, and it says
-plainly what it does not do (paint colours, decor, moving walls).
+plainly what it does not do (moving walls, structural work, unsupported decor). Wall paint and furniture
+colours are in scope; finish previews are design choices, not supplier quotes (assumed cost unknown).
 
 ## Rules it is built on (each one measured before; sources in Notion and `research/`)
 
@@ -49,13 +50,13 @@ tree beyond that: architect/builder subagent trees lost to single calls this wee
 | tool | in | out |
 |---|---|---|
 | `scene_summary` | room ids (optional) | rooms, walls with compass side, openings with swing, items with `keep`, fixed items, current metrics |
-| `set_intent` | kinds and counts to add/remove/move, keeps, budget, preferences, room | the stored intent (the request check reads it) |
+| `set_intent` | kinds and counts to add/remove/move, keeps, budget, preferences, room, `colors:[{target:"wall"\|"item",id,color:"#RRGGBB"}]` | the stored intent (the request check reads it) |
 | `search_catalog` | kind, max w/d/h, max price, style words | sized products only, with SKU, size, price, vendor |
 | `place` | item or SKU, relation (`against_wall`, `beside`, `facing`, `in_corner`, `centered`, `near_window`, `away_from`), anchor, wall or compass side, exclusions | up to 3 candidate poses, each with the clearances it leaves |
 | `check_layout` | ops | pass/fail per check, errors with coordinates, ordered hard to soft; price; metrics |
 | `score_layout` | ops | the design metrics below, before and after |
 | `sun` | room or window, date, hours | sun hours per window, and which floor zones get direct sun when |
-| `propose` | ops, one-paragraph rationale | refused if a check or the request check fails; else a proposal id the viewer shows as a ghost |
+| `propose` | furniture ops or `{type:"color",target:"wall"\|"item",id,color:"#RRGGBB"}`, one-paragraph rationale | refused if a check or the request check fails; else a proposal id for approval |
 | `ask` | one question, 2–4 options | ends the turn; the customer's answer comes back as the next message |
 
 ## Design metrics (code; each one explainable in a sentence)
@@ -82,12 +83,19 @@ tree beyond that: architect/builder subagent trees lost to single calls this wee
 
 ## A conversation, step by step
 
-1. **Triage.** In scope: layout, furniture, small works priced from the catalog. Out of scope (colour,
-   decor, walls): one polite sentence saying so, then what it can do instead.
+1. **Triage.** In scope: layout, furniture, wall paint and furniture colours, finish previews, small
+   works priced from the catalog. Out of scope: moving walls, structural work and unsupported decor.
+   Current finish operations recolour walls and furniture; textured floor materials are not yet exposed
+   by designer tools. Paint, refinishing and labour remain unquoted, so a colour-work budget cannot be
+   verified from the furniture purchase total.
 2. **Intent.** `set_intent` from the message. If the request cannot be acted on ("make it cozier" with
    nothing else), `ask` one question with options, then stop.
 3. **Look.** `scene_summary`, and `sun` when light matters.
-4. **Place.** `place` for each piece by relation; `search_catalog` only when something new is needed.
+4. **Place or recolour.** `place` for each piece by relation; `search_catalog` only when something new
+   is needed. A group moves rigidly from one member's operation; do not move its members independently.
+   For colour, store the exact target IDs and hex values in `set_intent.colors`, then propose matching
+   colour ops. No placement or new furniture is needed for paint. One wall op paints both faces of the
+   physical wall, including split segments with the same `source_id`; mention this on shared walls.
 5. **Check and score.** `check_layout` until green (errors carry coordinates, so fixes converge);
    `score_layout` for the numbers.
 6. **Options.** When alternatives are real, the harness starts the explorers; the Designer keeps the
@@ -103,6 +111,10 @@ tree beyond that: architect/builder subagent trees lost to single calls this wee
 - **Scene field needed:** `north_deg` (the plan's north arrow, degrees clockwise from plan-up), or the
   daylight metric reports "unknown", never a guess.
 - **Viewer:** shows a proposal as a ghost and plays accepted ops one by one.
+  The editor bridge retains the full v2 source document. Only approved command operations change it;
+  project evidence, renovation data, options and existing materials survive. Existing editor semantics
+  can invalidate assumptions about an edited entity. Wall paint uses finish assignments when a material
+  already controls appearance or when renovation mode would otherwise mark the wall for replacement.
 - **Harness:** starts the Designer thread per conversation and the explorers in parallel (Python Codex
   SDK, `deny_all`, the designer MCP server with `default_tools_approval_mode = "approve"`).
 

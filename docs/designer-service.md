@@ -39,7 +39,7 @@ exactly one final line:
 {"type": "progress", "message": "Checking the walkway to the door"}
 {"type": "proposal", "conversationId": "c1", "proposal": { "id": "...", "title": "...", "description": "...", "command": { "id": "...", "label": "...", "source": "designer", "baseRevision": 12, "operations": [] } }, "metrics": {}}
 {"type": "question", "conversationId": "c1", "question": "Cozier how?", "options": ["warmer light", "fewer pieces", "softer seating"]}
-{"type": "decline", "conversationId": "c1", "message": "I place furniture; I don't pick paint colours."}
+{"type": "decline", "conversationId": "c1", "message": "Moving walls is outside my scope; I can help with furniture and finishes."}
 {"type": "error", "message": "..."}
 ```
 
@@ -73,7 +73,9 @@ Aborting the supplied signal cancels the HTTP stream and the service's worker pr
 Derived coordinate mapping: editor `[x, y, z]` maps to designer `[x, -z]`; rotation radians about +Y
 map to counterclockwise degrees; dimensions `[width, height, depth]` multiplied by object scale map
 to `[width, depth, height]`. Existing poses and scale survive the reverse conversion.
-Grouped, locked and retained objects become keeps. Unsupported elevations, building components,
+Locked and retained objects become keeps. The CLI moves groups together, using one anchor operation;
+programmatic bridge callers opt in with `groupPolicy: "move-together"` (the legacy default keeps groups).
+Unsupported elevations, building components,
 service routes, renovation removal/replacement phases and furniture spanning rooms fail explicitly.
 Assumed: rugs are floor coverings, so they retain containment and request checks but do not block
 usable floor, furniture or door sweeps. This does not measure real door under-clearance.
@@ -93,9 +95,18 @@ The HTTP unit tests exercise progress and disconnect cancellation with real sock
 bridge CLI, MCP proposal gate and proposal persistence to the editor's own `validateScene` and
 `EditorStore`. Only model reasoning is replaced with a deterministic worker; it does not measure
 live model latency or browser rendering. The store still requires approval and rejects stale edits.
-Measured 2026-09-26: all 20 objects and all openings in the editor demo convert, but a single-chair
-move still fails the designer's whole-scene walkway gate because the baseline has 29 hard walkway
-failures (including 0.15 m dining access). Conversion does not waive existing clearance requirements.
+Measured 2026-09-26: all 20 objects and all openings in the editor demo convert. The standing regression
+moves the living-room lounge chair and applies its accepted command in EditorStore despite 29 baseline
+walkway failures (including 0.15 m dining access). Existing non-worsened failures remain notes; new or
+worsened ones block. This is a preview comparison, not certification that the original flat is legal.
+
+Colour ops carry an explicit item/wall target and `#RRGGBB` value and must match `set_intent.colors`.
+Object colours become `update {patch:{color}}`. Simple wall colours become `update-wall {patch:{color}}`;
+material-backed or renovation-mode walls use appearance-only finish assignments so the paint is visible
+and does not mark the wall for structural replacement. The browser rejects geometry in wall patches.
+One wall colour affects both faces and all original-wall segments. V2 project data is retained on the
+original snapshot; only requested command effects and the editor's normal assumption invalidation apply.
+Finish work is unquoted; the reported incremental furniture purchase cost does not price paint or labour.
 
 ## Inside the editor (added 26 Sept 14:00: the editor owner is not adding designer UI, so we build it)
 

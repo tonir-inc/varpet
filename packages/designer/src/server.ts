@@ -67,7 +67,7 @@ export function createServer(input: Scene, options:{catalogQuery?:CatalogQuery; 
     catch(error) { return result(String(error),true); }
   });
   server.registerTool('set_intent', {
-    description: 'Store the request: room, kinds and counts to add/remove/move, kept items, optional dram budget and geometric preferences. Empty add/remove means rearrange existing furniture only.',
+    description: 'Store the request: room, kinds/counts to add/remove/move, kept items, optional dram budget and preferences. For paint or furniture colour set colors:[{target:"wall"|"item",id,color:"#RRGGBB"}]. Use matching color ops in propose. A wall colour paints both faces and all segments sharing source_id. Paint/labour costs are unquoted.',
     inputSchema: intentSchema,
   }, intent => {
     try { return result(session.setIntent(intent)); }
@@ -88,7 +88,7 @@ export function createServer(input: Scene, options:{catalogQuery?:CatalogQuery; 
     catch(error) { return result(String(error),true); }
   });
   server.registerTool('propose', {
-    description: 'Store a checked proposal for user review. Refuses failed physical checks or unmet intent. Returns a proposal ID and score without changing or applying the scene; explicit user acceptance remains required.',
+    description: 'Store checked furniture or colour ops for user review. Colour op: {type:"color",target:"wall"|"item",id,color:"#RRGGBB"}; declare exact colours in set_intent first. Group move ops transform all members. Refuses new/worsened physical violations or unmet intent. Returns an unapplied proposal; explicit user acceptance remains required.',
     inputSchema: {ops:opsToolSchema,rationale:z.string().min(1).max(4000)},
   }, async ({ops,rationale}) => {
     const proposal=session.propose(ops,rationale);

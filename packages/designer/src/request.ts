@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { wallCompass, wallOutward } from './adapter.js';
+import { colorTargetSchema, wallCompass, wallOutward } from './adapter.js';
 import { itemPolygon, polygonsOverlap } from './metrics/space.js';
 import type { Item, Op, Scene, Vec2 } from './scene.js';
 
@@ -15,6 +15,7 @@ const preferenceSchema = z.discriminatedUnion('type', [
 export const intentSchema = z.object({
   room_id: id.optional(), add: z.array(demand).optional(), remove: z.array(demand).optional(), move: z.array(demand).optional(),
   keeps: z.array(id).optional(), budget_dram: z.number().int().nonnegative().safe().optional(), preferences: z.array(preferenceSchema).optional(),
+  colors: z.array(colorTargetSchema).max(200).optional(),
 }).strict();
 export type Intent = z.infer<typeof intentSchema>;
 export type GeometricPreference = NonNullable<Intent['preferences']>[number];
@@ -39,7 +40,7 @@ function samePose(a: Item, b: Item): boolean {
 function identity(item: Item): string {
   return JSON.stringify([item.id, item.kind, item.name, item.size, item.keep, item.sku ?? null, item.price ?? null, item.vendor ?? null]);
 }
-function unchanged(a: Item, b: Item | undefined): boolean { return b !== undefined && samePose(a, b) && identity(a) === identity(b); }
+function unchanged(a: Item, b: Item | undefined): boolean { return b !== undefined && samePose(a, b) && identity(a) === identity(b) && a.color === b.color && a.group_id === b.group_id; }
 
 /** Augmenting paths find a maximum one-item-per-slot matching. Per-demand slots are
  * capped by the actual item count: huge missing counts never allocate huge arrays. */
@@ -150,26 +151,50 @@ export function checkRequest(before: Scene, after: Scene, ops: readonly Op[], in
   const additions = after.items.filter(item => !beforeById.has(item.id));
   const removals = before.items.filter(item => !afterById.has(item.id));
   const moves = after.items.filter(item => { const original = beforeById.get(item.id); return original !== undefined && !samePose(original, item); });
+  const recolored = after.items.filter(item => { const original = beforeById.get(item.id); return original !== undefined && original.color !== item.color; });
   const inScope = (items: Item[]) => intent.room_id === undefined ? items : items.filter(item => item.room_id === intent.room_id);
   if (intent.room_id !== undefined) {
     if (!before.rooms.some(room => room.id === intent.room_id)) errors.push({ check: 'request_room', message: `Unknown requested room: ${intent.room_id}` });
-    const outOfScope = [...additions, ...removals, ...moves].filter(item => item.room_id !== intent.room_id || (moves.includes(item) && beforeById.get(item.id)?.room_id !== intent.room_id));
+    const outOfScope = [...additions, ...removals, ...moves, ...recolored].filter(item => item.room_id !== intent.room_id || (moves.includes(item) && beforeById.get(item.id)?.room_id !== intent.room_id));
     if (outOfScope.length) errors.push({ check: 'request_room', message: `Changes outside requested room ${intent.room_id}: ${outOfScope.map(item => item.id).join(', ')}`, item_ids: outOfScope.map(item => item.id), at: [...outOfScope[0]!.pos] });
   }
   errors.push(...matchDemands(inScope(additions), intent.add ?? [], 'add', true), ...matchDemands(inScope(removals), intent.remove ?? [], 'remove', true));
   errors.push(...matchDemands(inScope(moves), intent.move ?? [], 'move', false));
+  if (intent.colors?.length && !intent.move?.length && moves.length) errors.push({ check: 'unrequested_move', message: 'A colour-only request must not move furniture', item_ids: moves.map(item => item.id) });
+
+  // Split wall segments refer to one physical editor wall: paint changes both faces.
+  const appearanceKey = (target: 'item'|'wall', id: string) => `${target}:${target === 'wall' ? before.walls.find(wall => wall.id === id)?.source_id ?? id : id}`;
+  const wanted = new Map<string,string>();
+  for (const color of intent.colors ?? []) {
+    const original = color.target === 'wall' ? before.walls.find(wall => wall.id === color.id) : beforeById.get(color.id);
+    const final = color.target === 'wall' ? after.walls.find(wall => wall.id === color.id) : afterById.get(color.id);
+    const key = appearanceKey(color.target,color.id);
+    if (wanted.has(key) && wanted.get(key) !== color.color) errors.push({ check: 'request_color', message: `Conflicting requested colours for ${color.id}` });
+    wanted.set(key,color.color);
+    if (!original || !final || final.color?.toLowerCase() !== color.color) errors.push({ check: 'request_color', message: `Requested ${color.color} on ${color.target} ${color.id} is missing` });
+    if (original && intent.room_id && original.room_id !== intent.room_id) errors.push({ check: 'request_room', message: `Colour target ${color.id} is outside requested room ${intent.room_id}` });
+  }
+  const auditColor = (target:'item'|'wall',id:string,color:string|undefined) => {
+    if (wanted.get(appearanceKey(target,id)) !== color?.toLowerCase() || color === undefined) errors.push({ check: 'unrequested_color', message: `Unrequested colour on ${target} ${id}` });
+  };
+  for (const item of recolored) auditColor('item',item.id,item.color);
+  for (const wall of after.walls) if (before.walls.find(original => original.id === wall.id)?.color !== wall.color) auditColor('wall',wall.id,wall.color);
+  for (const op of ops) if (op.type === 'color') auditColor(op.target,op.id,op.color);
 
   const originalItems = [...before.items, ...before.fixed], finalItems = [...after.items, ...after.fixed];
   const protectedIds = new Set([...(intent.keeps ?? []), ...before.items.filter(item => item.keep).map(item => item.id), ...before.fixed.map(item => item.id)]);
   for (const protectedId of protectedIds) {
     const original = originalItems.find(item => item.id === protectedId), final = finalItems.find(item => item.id === protectedId);
-    const touched = ops.some(op => op.type === 'add' ? op.item.id === protectedId : op.id === protectedId);
+    const touched = ops.some(op => op.type === 'add' ? op.item.id === protectedId : op.id === protectedId || (op.type === 'move' && original?.group_id !== undefined && originalItems.find(item => item.id === op.id)?.group_id === original.group_id));
     if (!original || !unchanged(original, final) || touched) errors.push({ check: 'keep', message: original ? `Kept or fixed item ${protectedId} must remain untouched` : `Unknown kept item: ${protectedId}`, item_ids: [protectedId], ...(original ? { at: [...original.pos] as Vec2 } : {}) });
   }
   for (const item of before.items) {
     const final = afterById.get(item.id);
     if (final && identity(item) !== identity(final) && !protectedIds.has(item.id)) errors.push({ check: 'item_identity', message: `Existing item ${item.id} changed identity, dimensions or metadata; only its pose may change`, item_ids: [item.id], at: [...item.pos] });
+    const dissolved = item.group_id && final?.group_id === undefined && after.items.filter(other => beforeById.get(other.id)?.group_id === item.group_id).length === 1;
+    if (final && final.group_id !== item.group_id && !dissolved) errors.push({ check: 'item_identity', message: `Group membership of ${item.id} cannot be changed by the designer`, item_ids: [item.id] });
   }
+  if (additions.some(item => item.group_id)) errors.push({ check: 'item_identity', message: 'New purchases cannot silently join furniture groups' });
   for (const item of after.fixed) if (!before.fixed.some(original => original.id === item.id)) errors.push({ check: 'fixed', message: `Unrequested fixed item ${item.id} cannot be added by a furniture layout`, item_ids: [item.id], at: [...item.pos] });
   for (const original of before.fixed) if (!after.fixed.some(item => item.id === original.id)) errors.push({ check: 'fixed', message: `Fixed item ${original.id} cannot become movable or disappear`, item_ids: [original.id], at: [...original.pos] });
   for (const op of ops) if (op.type === 'add' && (originalItems.some(item => item.id === op.item.id) || !afterById.has(op.item.id))) {
@@ -181,6 +206,7 @@ export function checkRequest(before: Scene, after: Scene, ops: readonly Op[], in
   if (cost_dram === null && (additions.length > 0 || ops.some(op => op.type === 'add'))) errors.push({ check: 'price_unknown', message: 'The price of an added item is unknown; resolve its price before proposing' });
   let budget: RequestCheck['budget'] = { status: 'skipped', cost_dram };
   if (intent.budget_dram !== undefined) {
+    if (intent.colors?.length) errors.push({ check: 'price_unknown', message: 'Paint, refinishing and labour are unquoted; cannot verify a colour-work budget' });
     const passes = priceValid && cost_dram <= intent.budget_dram;
     budget = { status: passes ? 'pass' : 'fail', cost_dram, limit_dram: intent.budget_dram };
     if (!passes) errors.push({ check: 'budget', message: priceValid ? `Price ${cost_dram} dram exceeds budget ${intent.budget_dram} dram by ${cost_dram - intent.budget_dram} dram` : `Cannot verify budget ${intent.budget_dram} dram while price is unknown or invalid` });

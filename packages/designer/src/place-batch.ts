@@ -12,10 +12,11 @@ export interface BatchCandidate {
 }
 export interface BatchResult {candidates:BatchCandidate[];reason?:string;search:{beam_width:number;max_pieces:number;exhaustive:false}}
 
-/** Temporarily lift the requested movable pieces, then place them on copies as a bounded beam.
+/** Ungrouped pieces may be temporarily lifted; group batches place sequentially on the full scene.
  * Only full-scene checked combinations are returned; no temporary removals escape as ops. */
 export function placeBatch(input:Scene,requests:PlaceRequest[],options:{compareBaseline?:boolean}={}):BatchResult {
-  const scene=parseScene(input),placements=placementsSchema.parse(requests),ids=new Set<string>();
+  const scene=parseScene(input),placements=placementsSchema.parse(requests),ids=new Set<string>(),groups=new Set<string>();
+  const hasGroups=placements.some(request=>scene.items.some(item=>item.id===request.item_id&&item.group_id));
   const prepared=placements.map(request=>{
     if((request.item_id===undefined)===(request.item===undefined)) throw new Error('Supply one item_id or sized item per placement');
     const id=request.item_id??request.item!.id;
@@ -28,10 +29,17 @@ export function placeBatch(input:Scene,requests:PlaceRequest[],options:{compareB
     const existing=scene.items.find(item=>item.id===id);
     if(!existing) throw new Error(`Unknown or fixed item: ${id}`);
     if(existing.keep) throw new Error(`Kept item cannot move: ${id}`);
+    if(existing.group_id) {
+      if(groups.has(existing.group_id)) throw new Error(`Duplicate group placement: ${existing.group_id}`);
+      groups.add(existing.group_id);
+      const blocked=[...scene.items,...scene.fixed].find(item=>item.group_id===existing.group_id&&(item.keep||scene.fixed.includes(item)));
+      if(blocked) throw new Error(`Kept or fixed group member ${blocked.id} prevents moving group ${existing.group_id}`);
+    }
+    if(hasGroups) return request;
     const {id:itemId,kind,name,size,sku,price,vendor}=existing;
     return {...request,item_id:undefined,item:{id:itemId,kind,name,size,sku,price,vendor}};
   });
-  const lifted=new Set(placements.flatMap(request=>request.item_id?[request.item_id]:[]));
+  const lifted=new Set(hasGroups?[]:placements.flatMap(request=>request.item_id?[request.item_id]:[]));
   const start={...scene,items:scene.items.filter(item=>!lifted.has(item.id))};
   let beam:{scene:Scene;ops:Op[];clearances:BatchCandidate['clearances']}[]=[{scene:start,ops:[],clearances:[]}];
   const failures:string[]=[];
