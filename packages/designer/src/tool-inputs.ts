@@ -10,6 +10,7 @@ export const opsToolSchema=z.array(z.discriminatedUnion('type',[
   operations[0].extend({pos:point}),
   operations[1].extend({item:operations[1].shape.item.extend({pos:point,size})}),
   operations[2],
+  operations[3],
 ])).max(200);
 
 const relations=placeInputSchema.shape.relations.element.options;

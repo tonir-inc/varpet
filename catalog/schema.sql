@@ -55,3 +55,23 @@ create table if not exists item_embedding (
 );
 
 alter table item add column if not exists fit_size_m real[];
+
+-- Pieces nobody sells in the size asked: an agent queues a request, a worker with a Codex login builds
+-- it (harness piece job: part program -> compiler -> GLB) and adds it to item as source = 'generated'.
+create table if not exists generation_request (
+  id           bigserial primary key,
+  kind         text not null,
+  size_m       real[] not null,                 -- [w, d, h] the piece must match
+  description  text not null,                   -- colour, material, style, shape in plain words
+  reference_image_url text,                     -- optional photo to copy
+  status       text not null default 'pending', -- pending | building | done | failed
+  item_id      text references item(id),
+  error        text,
+  worker       text,
+  created_at   timestamptz not null default now(),
+  updated_at   timestamptz not null default now()
+);
+create index if not exists generation_request_status_idx on generation_request (status, created_at);
+grant all on generation_request to varpet;
+
+alter table item add column if not exists editor_set boolean not null default false;  -- see select_editor_set.py

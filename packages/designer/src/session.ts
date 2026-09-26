@@ -56,7 +56,11 @@ export class DesignerSession {
     if(!this.intent) return {ok:false,errors:[{check:'intent',message:'Call set_intent before proposing a layout'}]};
     try {
       const ops=parseOps(input),paragraph=rationaleSchema.parse(rationale);
-      const checks=checkLayout(this.scene,ops);
+      const checks=checkLayout(this.scene,ops,{compareBaseline:true});
+      if (ops.some(op => op.type === 'color')) checks.notes = [...checks.notes ?? [], {
+        check: 'appearance_cost', severity: 'soft', item_ids: [], at: [0,0], location_unknown: true,
+        message: 'Colour is a visual finish proposal. Paint, refinishing and labour are unquoted; the purchase total counts furniture only.',
+      }];
       if(!checks.ok) return {ok:false,errors:checks.errors};
       const after=applyOps(this.scene,ops);
       const request=checkRequest(this.scene,after,ops,this.intent,checks.price.cost_dram);

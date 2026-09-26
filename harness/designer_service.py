@@ -17,12 +17,15 @@ import sys
 import tempfile
 import threading
 import time
+import re
 import uuid
 
 import designer
 
 
 ORIGIN = "http://localhost:5173"
+# any local editor dev server (vite moves to 5174, 5175... when 5173 is taken)
+LOCAL_ORIGIN = re.compile(r"^http://(localhost|127\.0\.0\.1)(:\d{1,5})?$")
 MAX_BODY = 16 * 1024 * 1024
 
 
@@ -89,9 +92,14 @@ class Conversation:
 
 class DesignerService:
     def __init__(self, *, bridge_command=None, worker_command=None, progress_interval=5.0,
-                 idle_timeout=designer.IDLE_TIMEOUT):
+                 idle_timeout=designer.IDLE_TIMEOUT, effort="medium", profile=None):
         if not 0 < progress_interval <= 10 or idle_timeout <= 0:
             raise ValueError("progress_interval must be in (0, 10]; idle_timeout must be positive")
+        if effort not in ("low", "medium"):
+            raise ValueError("effort must be low or medium")
+        # Preserve the original embedding API; the CLI passes the measured product defaults.
+        self.effort = effort
+        self.profile = dict(profile) if profile is not None else {"placement": "relations", "context": "full"}
         self.bridge_command = bridge_command or [
             str(designer.ROOT / "packages/designer/node_modules/.bin/tsx"),
             str(designer.ROOT / "packages/designer/src/editor-bridge.ts")]
@@ -176,7 +184,8 @@ class DesignerService:
                 proposals = root / "proposals"
                 proposals.mkdir()
                 job = root / "job.json"
-                job.write_text(json.dumps({"runtime": conversation.runtime, "request": body["request"], "effort": "medium"}))
+                job.write_text(json.dumps({"runtime": conversation.runtime, "request": body["request"],
+                                           "effort": self.effort, "profile": self.profile}))
                 env = {**os.environ, "VARPET_SCENE": conversation.runtime["scene"],
                        "VARPET_PROPOSALS_DIR": str(proposals)}
                 events, pending = [], ""
@@ -253,7 +262,7 @@ class DesignerService:
                 outcome = "decline"
                 return {"type": outcome, "conversationId": conversation_id, "message": response}
         finally:
-            print(json.dumps({"type": "service_summary", "model": designer.MODEL, "effort": "medium",
+            print(json.dumps({"type": "service_summary", "model": designer.MODEL, "effort": self.effort, "profile": self.profile,
                               "conversationId": conversation_id, "outcome": "aborted" if cancel.is_set() else outcome,
                               "seconds": round(time.monotonic() - started, 3), "usage": usage}), file=sys.stderr, flush=True)
             conversation.lock.release()
@@ -277,12 +286,13 @@ def make_server(service: DesignerService, port=8787) -> ThreadingHTTPServer:
             self.send_header("Connection", "close")
             self.send_header("Vary", "Origin")
             if self.headers_origin_allowed():
-                self.send_header("Access-Control-Allow-Origin", ORIGIN)
+                self.send_header("Access-Control-Allow-Origin", self.headers.get("Origin") or ORIGIN)
             self.end_headers()
             self.close_connection = True
 
         def headers_origin_allowed(self):
-            return self.headers.get("Origin") in (None, ORIGIN)
+            origin = self.headers.get("Origin")
+            return origin is None or bool(LOCAL_ORIGIN.match(origin))
 
         def write_line(self, record):
             self.wfile.write((json.dumps(record, ensure_ascii=False, allow_nan=False) + "\n").encode())
@@ -301,7 +311,7 @@ def make_server(service: DesignerService, port=8787) -> ThreadingHTTPServer:
                 self.send_headers(403)
                 return
             self.send_response(204)
-            self.send_header("Access-Control-Allow-Origin", ORIGIN)
+            self.send_header("Access-Control-Allow-Origin", self.headers.get("Origin") or ORIGIN)
             self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
             self.send_header("Access-Control-Allow-Headers", "Content-Type")
             self.send_header("Vary", "Origin")
@@ -369,7 +379,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--port", type=int, default=8787)
     args = parser.parse_args()
-    service = DesignerService()
+    service = DesignerService(**designer.default_service_settings())
     server = make_server(service, args.port)
     print(f"Designer service: http://127.0.0.1:{server.server_port}", flush=True)
     try:

@@ -1,7 +1,10 @@
 /** Deterministic evaluation. Expected intent belongs to the scenario, never the model. */
 import { readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
+import type { CatalogAsset, SceneDocument } from '../../../apps/editor/src/contracts.js';
+import { EditorStore } from '../../../apps/editor/src/core/store.js';
 import { applyOps, parseOps, parseScene } from '../src/adapter.js';
+import { editorToDesigner, proposalToEditor } from '../src/editor-bridge.js';
 import { checkLayout, scoreLayout, type LayoutMetrics } from '../src/layout.js';
 import { checkRequest, type Intent, type RequestCheck } from '../src/request.js';
 import { itemPolygon, polygonsOverlap } from '../src/metrics/space.js';
@@ -9,8 +12,11 @@ import type { Item, Op, Scene, Vec2 } from '../src/scene.js';
 
 export interface Scenario {
   id: string;
-  category: 'rearrange' | 'add-function' | 'daylight' | 'out-of-scope' | 'impossible' | 'injection';
+  category: 'rearrange' | 'appearance' | 'add-function' | 'daylight' | 'out-of-scope' | 'impossible' | 'injection';
   scene: string;
+  scene_source?: 'editor-demo' | 'json';
+  scene_variant?: 'original' | 'grouped-v2';
+  grading_assumption?: string;
   request: string;
   expected_intent: Intent;
   scene_patch?: {item_names: Record<string, string>};
@@ -26,7 +32,7 @@ export interface Scenario {
   };
 }
 export interface ToolCall {name: string; arguments?: unknown; result?: unknown; isError?: boolean}
-export interface MeasureInput {scene: Scene; scenario: Scenario; proposal?: unknown; final?: unknown; tool_calls?: ToolCall[]}
+export interface MeasureInput {scene: Scene; scenario: Scenario; proposal?: unknown; final?: unknown; tool_calls?: ToolCall[]; editor_scene?: SceneDocument; catalog?: CatalogAsset[]}
 interface CompactMetrics {free_area_m2: number; largest_free_rectangle_m2: number; narrowest_walkway_m: number | null}
 const record = (value: unknown): Record<string, unknown> | undefined => value !== null && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : undefined;
 const round = (value: number) => Math.round(value * 1e8) / 1e8;
@@ -87,6 +93,30 @@ function area(scene: Scene, roomId: string): number | undefined {
   return Math.abs(room.polygon.reduce((sum, p, i) => { const q = room.polygon[(i + 1) % room.polygon.length]!; return sum + p[0] * q[1] - q[0] * p[1]; }, 0)) / 2;
 }
 
+/** Recheck the real editor contract on a disposable store; never approve a customer scene. */
+function editorPreview(input:MeasureInput,proposal:unknown,expected:Scene):{ok:boolean;errors:string[]} {
+  try {
+    if(!input.editor_scene||!Array.isArray(input.catalog)) throw new Error('Exact editor_scene and catalog are required for this source');
+    const options={catalog:input.catalog,groupPolicy:'move-together' as const};
+    const translated=proposalToEditor(proposal,input.editor_scene,0,options);
+    const store=new EditorStore(input.editor_scene,input.catalog),applied=store.execute(translated.command,true);
+    if(!applied.ok) throw new Error(applied.errors.join(' '));
+    const actual=editorToDesigner(store.scene,options),items=[...actual.items,...actual.fixed],wanted=[...expected.items,...expected.fixed];
+    if(items.length!==wanted.length) throw new Error('Editor preview item count differs from the measured layout');
+    for(const item of wanted) {
+      const found=items.find(candidate=>candidate.id===item.id);
+      const angle=found?((found.rot-item.rot+180)%360+360)%360-180:Infinity;
+      if(!found||found.room_id!==item.room_id||found.group_id!==item.group_id||found.color!==item.color
+        ||Math.hypot(found.pos[0]-item.pos[0],found.pos[1]-item.pos[1])>1e-7||Math.abs(angle)>1e-7
+        ||found.size.some((size,index)=>Math.abs(size-item.size[index]!)>1e-7)) throw new Error(`Editor preview differs from the measured pose for ${item.id}`);
+    }
+    for(const wall of expected.walls) if(actual.walls.find(candidate=>candidate.id===wall.id)?.color!==wall.color) throw new Error(`Editor preview colour differs for ${wall.id}`);
+    return {ok:true,errors:[]};
+  } catch(error) {
+    return {ok:false,errors:[error instanceof Error?error.message:String(error)]};
+  }
+}
+
 export function measure(input: MeasureInput) {
   const scene = parseScene(input.scene), scenario = input.scenario, calls = input.tool_calls ?? [], reasons: string[] = [];
   const raw = payload(input.proposal), selected = raw?.ok === true ? payload(raw.proposal) : raw;
@@ -112,13 +142,16 @@ export function measure(input: MeasureInput) {
   let requestMatch: boolean | null = null;
   let trajectory: boolean | null = null;
   if (accepted) trajectory = !operationError && ops.every((_, index) => checkLayout(scene, ops.slice(0, index + 1)).ok);
-  const hard = !operationError && layoutCheck.ok;
+  const needsEditor=scenario.expect.kind==='proposal'&&(scenario.scene_source==='editor-demo'||input.editor_scene!==undefined||input.catalog!==undefined);
+  const editorCheck=needsEditor?editorPreview(input,selected,afterScene):null;
+  const hard = !operationError && layoutCheck.ok && editorCheck?.ok!==false;
   const rejectedCalls = calls.filter(call => named(call, 'propose') && payload(call.result)?.ok === false).length;
   let proof: {required_area_m2: number; room_area_m2: number; proven_impossible: boolean} | undefined;
 
   if (scenario.expect.kind === 'proposal') {
     if (!accepted) reasons.push('No accepted proposal with saved passing layout and request gates.');
     if (operationError) reasons.push(`Invalid proposed operations: ${operationError}`);
+    if (editorCheck?.ok===false) reasons.push(...editorCheck.errors.map(error=>`Editor preview failed: ${error}`));
     if (accepted && !hard) reasons.push('Authoritative final layout check failed.');
     if (!requestCheck.ok) reasons.push(...requestCheck.errors.map(error => `${error.check}: ${error.message}`));
     requestMatch = accepted && !operationError && requestCheck.ok;
@@ -204,9 +237,9 @@ export function measure(input: MeasureInput) {
   return {
     baseline, after, delta, cost_dram: scored.cost_dram,
     propose_accepted: accepted, request_match: requestMatch,
-    tiers: {hard_checks: hard, legal_trajectory: trajectory, preferences: scenario.expect.kind === 'proposal' ? requestCheck.ok : null, human_vote: 'unrated' as const},
+    tiers: {hard_checks: hard, editor_preview:editorCheck?.ok??null, legal_trajectory: trajectory, preferences: scenario.expect.kind === 'proposal' ? requestCheck.ok : null, human_vote: 'unrated' as const},
     pass: scenario.expect.kind === 'proposal' ? accepted && hard && requestMatch === true && reasons.length === 0 : reasons.length === 0,
-    reasons, baseline_check: baselineCheck, layout_check: layoutCheck, request_check: requestCheck,
+    reasons, baseline_check: baselineCheck, layout_check: layoutCheck, request_check: requestCheck, editor_check:editorCheck,
     rejected_propose_attempts: rejectedCalls,
     ...(proof ? {impossibility_proof: proof} : {}),
     measurement_scope: 'temporary_designer_scene; 5 cm raster; catalog purchase cost in AMD; no human vote; trajectory is reported separately from atomic final-layout pass',

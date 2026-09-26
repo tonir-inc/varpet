@@ -20,8 +20,17 @@ Runs land in `~/.varpet/runs` (or `$VARPET_RUNS`), outside the repo, so threads 
 From the repository root, install `harness/designer_requirements.txt` into your Python environment
 and run `python harness/designer_service.py --port 8787` (or
 `uv run --project harness python harness/designer_service.py --port 8787`). Uses the existing Codex
-login, `gpt-6-astra` at medium, only the designer MCP server and interior-design-rules skill.
+login, `gpt-6-astra` at low effort, only the designer MCP server and interior-design-rules skill.
 Requires `pnpm install` and the two `packages/designer/src/editor-bridge.ts` CLI commands.
+
+The service command and Designer REPL default to the measured `without-place` / `compact-base`
+profile: complete interior skill, a short furniture-specific base prompt, and `propose` performing
+the unchanged physical/request checks and scoring. Existing authenticated model metadata is
+snapshotted per conversation to avoid repeated catalog refreshes; missing metadata uses normal SDK
+discovery. [Measured comparison](../packages/designer/eval/speed.md): 6/6 rearranges pass after merging main, 48.0 s
+median, 68.2 s maximum, 55,973 median tokens. A sub-minute response is not guaranteed.
+For compatibility, the Python embedding constructor `DesignerService()` retains medium/full
+reference settings; pass `**designer.default_service_settings()` to use the service command's defaults.
 
 `GET http://127.0.0.1:8787/designer/health` returns `{"ok":true}`.
 POST the scene, revision and customer request from `docs/designer-service.md` to `/designer/propose`;

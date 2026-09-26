@@ -1,7 +1,8 @@
 import { z } from 'zod';
 import { applyOps, wallCompass, wallOutward } from './adapter.js';
-import { checkLocalLayout, localGeometryErrors } from './local-checks.js';
+import { checkLocalLayout, compareLayoutErrors, localGeometryErrors } from './local-checks.js';
 import { itemPolygon, isFloorRug, polygonsOverlap } from './metrics/space.js';
+import { innerWallFace, wallSolidPolygons } from './wall-geometry.js';
 import type { Item, Op, Room, Scene, Vec2, Wall } from './scene.js';
 
 const EPS = 1e-7, STEP = 0.05, RAD = Math.PI / 180;
@@ -98,7 +99,7 @@ function rayDistance(origin: Vec2, direction: Vec2, polygon: Vec2[]): number {
 }
 
 function clearances(scene: Scene, item: Item, room: Room, walkway_m: number | null): PlacementCandidate['clearances'] {
-  const polygons = [room.polygon, ...[...scene.items, ...scene.fixed].filter(other => other.id !== item.id && other.room_id === room.id && !isFloorRug(other)).map(itemPolygon)];
+  const polygons = [room.polygon, ...wallSolidPolygons(scene,item.size[2]).map(solid => solid.polygon), ...[...scene.items, ...scene.fixed].filter(other => other.id !== item.id && other.room_id === room.id && !isFloorRug(other)).map(itemPolygon)];
   const measure = (direction: Vec2, halfSize: number) => {
     const origin = add(item.pos, scale(direction, halfSize));
     return rounded(Math.min(...polygons.map(polygon => rayDistance(origin, direction, polygon))));
@@ -107,7 +108,7 @@ function clearances(scene: Scene, item: Item, room: Room, walkway_m: number | nu
   return { front_m: measure(f, item.size[1] / 2), back_m: measure(scale(f, -1), item.size[1] / 2), right_m: measure(r, item.size[0] / 2), left_m: measure(scale(r, -1), item.size[0] / 2), walkway_m };
 }
 
-export function place(scene: Scene, input: PlaceRequest): PlaceResult {
+export function place(scene: Scene, input: PlaceRequest, baseline: Scene = scene): PlaceResult {
   const request = placeInputSchema.parse(input);
   if ((request.item_id === undefined) === (request.item === undefined)) throw new Error('Supply exactly one existing item_id or sized item description');
   const room = scene.rooms.find(candidate => candidate.id === request.room_id);
@@ -122,6 +123,10 @@ export function place(scene: Scene, input: PlaceRequest): PlaceResult {
     const existing = scene.items.find(item => item.id === request.item_id);
     if (!existing) throw new Error(`Unknown item: ${request.item_id}`);
     if (existing.keep) throw new Error(`Kept item ${request.item_id} cannot move`);
+    if (existing.group_id) {
+      const blocked = [...scene.items, ...scene.fixed].find(item => item.group_id === existing.group_id && (item.keep || scene.fixed.includes(item)));
+      if (blocked) throw new Error(`Kept or fixed group member ${blocked.id} prevents moving group ${existing.group_id}`);
+    }
     base = { ...structuredClone(existing), room_id: room.id };
   } else {
     const item = request.item!;
@@ -136,7 +141,7 @@ export function place(scene: Scene, input: PlaceRequest): PlaceResult {
   };
   const getAnchor = (anchorId: string) => {
     const anchor = [...scene.items, ...scene.fixed].find(candidate => candidate.id === anchorId && candidate.room_id === room.id);
-    if (!anchor || anchor.id === base.id) throw new Error(`Unknown or self anchor ${anchorId} in room ${room.id}`);
+    if (!anchor || anchor.id === base.id || (base.group_id && anchor.group_id === base.group_id)) throw new Error(`Unknown or self/group anchor ${anchorId} in room ${room.id}`);
     return anchor;
   };
   const windows = scene.openings.filter(opening => opening.kind === 'window' && walls.some(wall => wall.id === opening.wall_id));
@@ -178,7 +183,7 @@ export function place(scene: Scene, input: PlaceRequest): PlaceResult {
   };
   const wallPoses = (wall: Wall) => {
     const delta = sub(wall.b, wall.a), span = length(delta), along = scale(delta, 1 / span), inward = scale(wallOutward(scene, wall), -1), rotation = facing(inward);
-    for (let offset = base.size[0] / 2; offset <= span - base.size[0] / 2 + EPS && !searchLimited; offset += STEP) addPose(add(add(wall.a, scale(along, offset)), scale(inward, base.size[1] / 2)), rotation);
+    for (let offset = base.size[0] / 2; offset <= span - base.size[0] / 2 + EPS && !searchLimited; offset += STEP) addPose(add(add(wall.a, scale(along, offset)), scale(inward, base.size[1] / 2 + (wall.thickness ?? 0) / 2)), rotation);
   };
   const against = request.relations.find(relation => relation.type === 'against_wall');
   const beside = request.relations.find(relation => relation.type === 'beside');
@@ -198,7 +203,7 @@ export function place(scene: Scene, input: PlaceRequest): PlaceResult {
       if (Math.abs(determinant) < EPS) continue;
       for (const rotation of [facing(n1), facing(n2)]) {
         const extent = (normal: Vec2) => Math.abs(dot(right(rotation), normal)) * base.size[0] / 2 + Math.abs(dot(front(rotation), normal)) * base.size[1] / 2;
-        const d1 = dot(n1, vertex) + extent(n1), d2 = dot(n2, vertex) + extent(n2);
+        const d1 = dot(n1, vertex) + extent(n1) + (a.thickness ?? 0) / 2, d2 = dot(n2, vertex) + extent(n2) + (b.thickness ?? 0) / 2;
         addPose([(d1 * n2[1] - n1[1] * d2) / determinant, (n1[0] * d2 - d1 * n2[0]) / determinant], rotation);
       }
     }
@@ -233,7 +238,7 @@ export function place(scene: Scene, input: PlaceRequest): PlaceResult {
     const minX = Math.min(...xs), minY = Math.min(...ys), maxX = Math.max(...xs), maxY = Math.max(...ys);
     for (let x = minX; x <= maxX + EPS && !searchLimited; x += STEP) for (let y = minY; y <= maxY + EPS && !searchLimited; y += STEP) for (const rotation of facingRelation ? [0] : [0, 90, 180, 270]) addPose([x, y], rotation);
   }
-  const touches = (item: Item, wall: Wall) => polygonDistance(itemPolygon(item), [wall.a, wall.b]) < EPS;
+  const touches = (item: Item, wall: Wall) => polygonDistance(itemPolygon(item), innerWallFace(scene,wall)) < EPS;
   function relationFits(item: Item, relation: PlacementRelation): boolean {
     const polygon = itemPolygon(item);
     switch (relation.type) {
@@ -271,20 +276,25 @@ export function place(scene: Scene, input: PlaceRequest): PlaceResult {
     }
     return score;
   };
+  const baselineCheck = checkLocalLayout(baseline);
   const rejections: Record<string, number> = {}, reject = (reason: string) => { rejections[reason] = (rejections[reason] ?? 0) + 1; };
-  const survivors = candidates.filter(item => {
-    if (!request.relations.every(relation => relationFits(item, relation))) { reject('relation constraint'); return false; }
-    if (walls.some(wall => excluded.has(wall.id) && touches(item, wall)) || openingExclusion(item)) { reject('excluded wall or opening'); return false; }
-    const preview = { ...scene, items: [...scene.items.filter(other => other.id !== base.id), item] };
-    const errors = localGeometryErrors(preview);
-    if (errors.length) { errors.forEach(error => reject(error.check)); return false; }
-    return true;
-  }).map(item => ({ item, score: rank(item) })).sort((a, b) => a.score - b.score || a.item.pos[0] - b.item.pos[0] || a.item.pos[1] - b.item.pos[1] || a.item.rot - b.item.rot);
-  const result: PlacementCandidate[] = [];
-  for (const { item } of survivors) {
+  const survivors = candidates.flatMap(item => {
+    if (!request.relations.every(relation => relationFits(item, relation))) { reject('relation constraint'); return []; }
     const op: Op = request.item_id ? { type: 'move', id: item.id, pos: item.pos, rot: item.rot, room_id: item.room_id } : { type: 'add', item };
+    // The adapter is the single source of rigid-group transforms. Replacing only the
+    // anchor would test a different scene and could reject its members' vacated poses.
+    const preview = applyOps(scene, [op]);
+    const moved = base.group_id ? preview.items.filter(other => other.group_id === base.group_id) : [item];
+    if (moved.some(member => walls.some(wall => excluded.has(wall.id) && touches(member, wall)) || openingExclusion(member))) { reject('excluded wall or opening'); return []; }
+    const { errors } = compareLayoutErrors(baselineCheck.errors, localGeometryErrors(preview));
+    if (errors.length) { errors.forEach(error => reject(error.check)); return []; }
+    return [{ item, op, score: rank(item) }];
+  }).sort((a, b) => a.score - b.score || a.item.pos[0] - b.item.pos[0] || a.item.pos[1] - b.item.pos[1] || a.item.rot - b.item.rot);
+  const result: PlacementCandidate[] = [];
+  for (const { item, op } of survivors) {
     const preview = applyOps(scene, [op]), checked = checkLocalLayout(preview);
-    if (!checked.ok) { checked.errors.forEach(error => reject(error.check)); continue; }
+    const { errors } = compareLayoutErrors(baselineCheck.errors, checked.errors);
+    if (errors.length) { errors.forEach(error => reject(error.check)); continue; }
     const walkways = checked.metrics.rooms.find(metrics => metrics.room_id === room.id)!.walkways;
     result.push({ item: structuredClone(item), op: structuredClone(op), clearances: clearances(preview, item, room, walkways.length ? Math.min(...walkways.map(walkway => walkway.width_m)) : null) });
     if (result.length === 3) break;
@@ -292,6 +302,6 @@ export function place(scene: Scene, input: PlaceRequest): PlaceResult {
   return {
     candidates: result, resolution_m: STEP, rejections,
     ...(result.length ? {} : { reason: `No checked pose fits ${base.kind} ${base.size[0]} × ${base.size[1]} m in room ${room.id}: ${Object.keys(rejections).join(', ') || 'wall spans, corner geometry or exclusions leave no candidate'}.${searchLimited ? ' Search stopped at the 200000-pose bound; infeasibility is not proven.' : ''}` }),
-    assumptions: ['Distances are metres; beside sides are relative to the anchor; front is local -y.', 'Near-window and away-from distances use full footprint edges, not centres.', 'Opening exclusions reserve the full inward strip across each opening span.', 'Clearances are measured from the midpoint of each furniture side; walkway_m is the narrowest checked door route, or null when there are no door routes.', 'New products require caller-supplied dimensions; catalog SKU lookup is not part of placement.', ...(searchLimited ? ['Search reached its deterministic 200000-pose bound.'] : [])],
+    assumptions: ['Distances are metres; beside sides are relative to the anchor; front is local -y.', 'Relations position the selected item; a grouped item rigidly moves all members, whose geometry, access and exclusions are checked together.', 'Near-window and away-from distances use full footprint edges, not centres.', 'Opening exclusions reserve the full inward strip across each opening span.', 'Clearances are measured from the midpoint of each furniture side; walkway_m is the narrowest checked door route, or null when there are no door routes.', 'New products require caller-supplied dimensions; catalog SKU lookup is not part of placement.', ...(searchLimited ? ['Search reached its deterministic 200000-pose bound.'] : [])],
   };
 }

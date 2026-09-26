@@ -1,0 +1,8 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "question", "conversationId": "5f509abc56e540638026ba15dea23a07", "question": "What would make the room feel cozier to you?", "options": ["A cozy reading spot", "A more social seating arrangement", "Warmer wall colours", "Softer furniture colours"]}

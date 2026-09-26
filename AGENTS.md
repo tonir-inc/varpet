@@ -24,6 +24,16 @@ Developer plan and photos in, a faithful furnished 3D flat out, rearranged by a 
   the Codex harness table; decisions go in the Decisions database with Area, Status and a one-line Why.
   Numbers with the date and the model. Short.
 
+## Before every task (any agent, any lane)
+- Start from the latest main: `git fetch origin && git rebase origin/main` in your worktree (commit or stash
+  first). Several lanes push every few minutes; work on a stale tree breaks at merge or, worse, builds
+  against contracts that changed.
+- Re-read the contracts of every lane you touch, from main, not from memory: the editor's
+  `apps/editor/src/contracts.ts` and `apps/editor/src/renovation-contracts.ts` (scene format, operations),
+  `apps/editor/docs/integrations.md`, `docs/designer-service.md`, `docs/catalog.md`. The editor's scene and
+  operations are the product's source of truth; other lanes adapt to them, at their own boundary.
+- Skim `git log --oneline -15 origin/main` for what landed since your last task.
+
 ## Rules
 - See `docs/CONSTITUTION.md`.
 - Do not edit tests, fixtures or the schema to make things pass.

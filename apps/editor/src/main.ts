@@ -3,6 +3,10 @@ import { bindHeightControl, heightControlMarkup } from './ui/height-controls';
 import './ui/style.css';
 import './ui/motion.css';
 import './ui/walkthrough.css';
+import './ui/designer-panel.css';
+import { mountDesignerPanel, previewDesignerProposal } from './ui/designer-panel';
+import { askDesigner } from './adapters/designer-http';
+import { DesignerProposalCatalog } from './core/designer-catalog';
 import type { AgentProposal, CatalogAsset, EditCommand, ObjectPatch, Operation, SceneDocument, SceneObject, ToolMode, ViewMode, ViewportLayer, WallMode } from './contracts';
 import { createInitialScene } from './core/initial-scene';
 import { databaseCatalog, catalogKinds, resolveSceneProducts, type CatalogProduct } from './adapters/database-catalog';
@@ -26,6 +30,7 @@ import { buildFinishOperations, getFinishPreset, type FinishPreset } from './cor
 import { createMaterialsUI } from './ui/materials';
 import { renderEntityInspector, renderAssetChoices } from './ui/inspector';
 
+const designerLive = Boolean(import.meta.env.VITE_DESIGNER_URL);
 const app = document.querySelector<HTMLDivElement>('#app')!;
 app.innerHTML = `
   <header class="app-header">
@@ -72,7 +77,7 @@ app.innerHTML = `
         <p class="muted catalog-note">Database furniture · prices in AMD, labeled with their source. Click a piece to add it.</p><p class="muted catalog-note">Models: <a href="https://amazon-berkeley-objects.s3.amazonaws.com/index.html" target="_blank" rel="noopener noreferrer">Amazon Berkeley Objects</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Models are centered, oriented and scaled to catalog fit dimensions.</p>
       </section>
       <section id="assistant-panel" class="panel-content" aria-label="Design assistant" hidden>
-        <section class="assistant-card"><div class="assistant-heading"><span class="assistant-icon">${icon('sparkles')}</span><div><strong>Design together</strong><span>Design assistant <span class="mock-label">DEMO</span></span></div></div><p>Explore a change to your apartment. Review the proposal before applying it.</p><button id="suggest" class="button suggestion">${icon('sparkles')} Suggest an edit ${icon('arrow')}</button><div id="proposal" aria-live="polite"></div></section>
+        <section class="assistant-card"><div class="assistant-heading"><span class="assistant-icon">${icon('sparkles')}</span><div><strong>Design together</strong><span>Design assistant <span class="mock-label">${designerLive ? 'LIVE' : 'DEMO'}</span></span></div></div><p>Explore a change to your apartment. Review the proposal before applying it.</p><button id="suggest" class="button suggestion">${icon('sparkles')} Suggest an edit ${icon('arrow')}</button><div id="proposal" aria-live="polite"></div></section>
         <div class="assistant-note">${icon('lock')} You're in control. Every change needs your approval and can be undone.</div>
       </section>
       <section id="renovation-panel" class="panel-content" aria-label="Apartment renovation workspace" hidden></section>
@@ -106,6 +111,7 @@ const structureAdapter = architectLive ? createArchitectHttpAdapter({ onProgress
 let catalog: CatalogAsset[] = [];
 const store = createApartmentStore(createInitialScene(), catalog);
 const catalogProducts = new Map<string, CatalogProduct>();
+const designerCatalog = new DesignerProposalCatalog();
 let catalogResults: CatalogProduct[] = [];
 let catalogLoading = false;
 let catalogError = '';
@@ -630,13 +636,20 @@ function setPreview(enabled:boolean){
   if (view !== 'inside') requestAnimationFrame(()=>focusView());
 }
 
+function applyPendingProposal(){
+  if(!pending||interacting||previewMode)return {ok:false,message:'Finish your current edit or preview before applying.'};
+  const proposal=pending;const result=store.execute(proposal.command,true);
+  if(result.ok){pending=null;renderProposal();select(null);focusView();notify(`${proposal.title} applied`);}else notify(result.errors.join(' '),true);
+  return {ok:result.ok,message:result.errors.join(' ')};
+}
 function renderProposal(){
   $('#proposal-badge').hidden=!pending;
   const el=$('#proposal');if(!pending){el.innerHTML='';return;}
+  if(designerLive && pending.command.source==='designer'){el.innerHTML='';return;}
   const stale=pending.command.baseRevision!==store.revision;
   const canInspect = pending.command.operations.some(o => o.type === 'replace-scene' || o.type === 'replace-structure');
   el.innerHTML=`<div class="proposal"><span class="eyebrow">${pending.command.source==='architect'?'RECONSTRUCTION REVIEW':'PROPOSED CHANGE'}</span><strong>${escape(pending.title)}</strong><p>${escape(pending.description)}</p>${stale?'<p class="proposal-warning">The scene has changed. Request a fresh proposal.</p>':interacting?'<p class="proposal-warning">Finish your current edit before applying.</p>':''}${canInspect?`<button id="inspect-proposal" class="button full" ${stale||interacting?'disabled':''}>Inspect proposed 3D apartment</button>`:''}<div><button id="apply-proposal" class="button primary" ${stale||interacting||previewMode?'disabled':''}>Apply change</button><button id="reject-proposal" class="button quiet">Dismiss</button></div></div>`;
-  $('#apply-proposal').onclick=()=>{if(!pending||interacting||previewMode)return;const proposal=pending;const result=store.execute(proposal.command,true);if(result.ok){pending=null;renderProposal();select(null);focusView();notify(`${proposal.title} applied`);}else notify(result.errors.join(' '),true);};
+  $('#apply-proposal').onclick=()=>{ applyPendingProposal(); };
   if(canInspect)$('#inspect-proposal').onclick=()=>{
     if(!pending||pending.command.baseRevision!==store.revision||interacting)return;
     let proposed:SceneDocument=structuredClone(store.scene);
@@ -646,6 +659,7 @@ function renderProposal(){
   $('#reject-proposal').onclick=()=>{pending=null;renderProposal();notify('Proposal dismissed');};
 }
 async function requestProposal(kind:'designer'|'architect'){
+  if(kind==='designer' && designerLive){designerPanel.open();await designerPanel.controller.suggest();return;}
   if(busy)return;switchPanel('assistant');busy=true;$<HTMLButtonElement>('#suggest').disabled=true;$('#suggest').innerHTML=`${icon('sparkles')} Considering your space…`;
   const revision=store.revision;const scene=store.scene;
   try{
@@ -662,6 +676,7 @@ function showFullHeight() {
 }
 
 function refresh(){
+  designerCatalog.prune(store.revision);
   const scene=store.scene;
   selectedFurnitureIds = expandFurnitureSelection(scene, selectedFurnitureIds);
   if(selectedId&&!entityName(selectedId))selectedId=null;
@@ -683,12 +698,43 @@ function refresh(){
   renderViewportHints();
 }
 store.subscribe(refresh);
+const designerHost = document.createElement('section');
+if(designerLive){$('.workspace').classList.add('designer-workspace');$('.left-panel').before(designerHost);}else $('#proposal').before(designerHost);
+const designerPanel = mountDesignerPanel(designerHost, {
+  ask: designerLive ? async (request, options) => {
+    const products = structuredClone([...catalogProducts.values()]);
+    const reply = await askDesigner({ ...request, catalog, catalogCurrency: 'AMD' }, options);
+    if (reply.type === 'proposal' && !options?.signal?.aborted && request.revision === store.revision) {
+      designerCatalog.remember(reply.proposal, products);
+    }
+    return reply;
+  } : undefined,
+  live: designerLive, snapshot: () => ({ scene: store.scene, revision: store.revision }),
+  subscribe: listener => store.subscribe(listener), canRequest: () => !busy && !previewMode,
+  onBusyChange: waiting => { busy = waiting; $<HTMLButtonElement>('#suggest').disabled = waiting; },
+  onProposal: proposal => { pending = proposal; if(!designerLive)switchPanel('assistant'); renderProposal(); },
+  onResetReview: () => { if(pending?.command.source==='designer'){if(proposalView)setPreview(false);pending=null;renderProposal();} },
+  onProposalAction: (proposal, action) => {
+    if(interacting)return {ok:false,message:'Finish your current edit before reviewing a proposal.'};
+    if(previewMode)setPreview(false);
+    pending=proposal;
+    if(action==='dismiss'){designerCatalog.forget(proposal);pending=null;renderProposal();notify('Proposal dismissed');return {ok:true};}
+    if(proposal.command.baseRevision!==store.revision)return {ok:false,message:'This proposal is stale. Request a fresh proposal.'};
+    const products = designerCatalog.products(proposal, store.revision);
+    if(products.length)registerProducts(products);
+    if(action==='apply')return applyPendingProposal();
+    const proposed=previewDesignerProposal(store.scene,store.revision,proposal,catalog);
+    setPreview(true);proposalView=true;$<HTMLButtonElement>('#save').disabled=true;viewport.setScene(proposed,catalog);focusView();
+    notify('Proposed change preview. Apply or dismiss it in the conversation.');return {ok:true};
+  },
+});
+window.addEventListener('beforeunload', () => designerPanel.dispose());
 
 const modal=$<HTMLDialogElement>('#modal');
 function showModal(title:string,body:string){$('#modal-content').innerHTML=`<div class="modal-heading"><h2>${title}</h2><button id="close-modal" class="icon-button" aria-label="Close dialog">${icon('close')}</button></div>${body}`;$('#close-modal').onclick=()=>modal.close();modal.showModal();}
 modal.onclick=e=>{if(e.target===modal)modal.close();};
 $('#integrations').onclick=()=>{
-  showModal('Sources & connections',`<p class="modal-intro">Local reconstruction tools are ready. Furniture comes from the shared database. ${architectLive?'Architect reconstruction is connected.':'Architect reconstruction is a local demo.'} Designer proposals are local demos.</p><div class="file-actions"><button id="local-sources" class="button">${icon('upload')} Attach photos and plans</button><button id="local-reconstruct" class="button primary">${icon('walls')} Build the apartment shell</button></div><div class="integration-row"><span>${icon('walls')}</span><div><h3>Architect <span class="mock-label">${architectLive?'LIVE':'DEMO'}</span></h3><p>${architectLive?'Read a floor plan and up to four photos into an empty apartment shell. Review before replacing your current apartment.':'Exercise the proposal workflow with the original demo structure.'}</p><button id="mock-structure" class="button">${architectLive?'Choose plan and photos':'Preview demo structural import'}</button></div></div><div class="integration-row"><span>${icon('sparkles')}</span><div><h3>Designer <span class="mock-label">DEMO</span></h3><p>Propose validated edits against a scene revision. You approve each batch.</p><button id="mock-designer" class="button">Request demo design proposal</button></div></div><div class="integration-row"><span>${icon('box')}</span><div><h3>Furniture database</h3><p>Real ABO 3D models, catalog dimensions and AMD prices with provenance. Requires a connection to the team catalog service.</p><button id="database-catalog" class="button">Browse database</button></div></div><p class="modal-footnote">Database browsing uses the configured catalog service. A proposal becomes stale if the scene changes before approval.</p>`);
+  showModal('Sources & connections',`<p class="modal-intro">Local reconstruction tools are ready. Furniture comes from the shared database. ${architectLive?'Architect reconstruction is connected.':'Architect reconstruction is a local demo.'} ${designerLive?'The designer is connected.':'Designer proposals are local demos.'}</p><div class="file-actions"><button id="local-sources" class="button">${icon('upload')} Attach photos and plans</button><button id="local-reconstruct" class="button primary">${icon('walls')} Build the apartment shell</button></div><div class="integration-row"><span>${icon('walls')}</span><div><h3>Architect <span class="mock-label">${architectLive?'LIVE':'DEMO'}</span></h3><p>${architectLive?'Read a floor plan and up to four photos into an empty apartment shell. Review before replacing your current apartment.':'Exercise the proposal workflow with the original demo structure.'}</p><button id="mock-structure" class="button">${architectLive?'Choose plan and photos':'Preview demo structural import'}</button></div></div><div class="integration-row"><span>${icon('sparkles')}</span><div><h3>Designer <span class="mock-label">${designerLive?'LIVE':'DEMO'}</span></h3><p>Propose validated edits against a scene revision. You approve each batch.</p><button id="mock-designer" class="button">${designerLive?'Ask the live designer':'Request demo design proposal'}</button></div></div><div class="integration-row"><span>${icon('box')}</span><div><h3>Furniture database</h3><p>Real ABO 3D models, catalog dimensions and AMD prices with provenance. Requires a connection to the team catalog service.</p><button id="database-catalog" class="button">Browse database</button></div></div><p class="modal-footnote">Database browsing uses the configured catalog service. A proposal becomes stale if the scene changes before approval.</p>`);
   $('#local-sources').onclick=()=>{modal.close();intake.sources();};$('#local-reconstruct').onclick=()=>{modal.close();intake.reconstruction();};
   $('#mock-structure').onclick=()=>{modal.close();void requestProposal('architect');};$('#mock-designer').onclick=()=>{modal.close();void requestProposal('designer');};
   $('#database-catalog').onclick=()=>{modal.close();switchPanel('assets');void searchDatabase();};
@@ -751,4 +797,4 @@ window.addEventListener('keydown',event=>{
   else if(!mod){if(['delete','backspace'].includes(key)){event.preventDefault();deleteSelected();}else if(key==='f')focusView(selectedId??undefined);else if(key==='v')setTool('select');else if(key==='g'&&view!=='plan')setTool('move');else if(key==='r'&&view!=='plan')setTool('rotate');else if(key==='s'&&view!=='plan')setTool('scale');else if(key==='1')switchPanel('scene');else if(key==='2')switchPanel('assets');else if(key==='3')switchPanel('assistant');else if(key==='4')switchPanel('renovation');else if(key==='5')switchPanel('materials');else if(key==='6')switchPanel('ceilings');else if(key==='[')switchPanel(activePanel,true);}
 });
 window.addEventListener('beforeunload',()=>{catalogRequest?.abort();clearTimeout(catalogSearchTimer);cancelAnimationFrame(selectionRevealFrame);materialsUI.dispose();ceilingUI.dispose();viewport.dispose();floorPlan.dispose();catalogPreviews.dispose();renovationUI?.destroy();intake.destroy();});
-refresh();renderAssets();setTool('select');switchPanel('renovation');void searchDatabase();
+refresh();renderAssets();setTool('select');switchPanel('renovation');if(designerLive)switchPanel('renovation',true);void searchDatabase();

@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import type {AgentProposal,CatalogAsset,DesignerAdapter,SceneDocument} from '../contracts';
 import {localCatalog} from '../core/demo';
 import {EditorStore} from '../core/store';
@@ -15,8 +16,20 @@ export interface DesignerHttpOptions {
   catalogCurrency?:'AMD';
   onProgress?:(message:string)=>void;
   onConversationId?:(conversationId:string)=>void;
+  onMetrics?:(metrics:unknown)=>void;
   fetch?:typeof globalThis.fetch;
 }
+export interface DesignerRequest {
+  scene:SceneDocument;revision:number;request:string;conversationId?:string;
+  keep?:string[];doorSwings?:Record<string,DesignerDoorSwing>;northDeg?:number;
+  catalog?:CatalogAsset[];catalogCurrency?:'AMD';
+}
+export type DesignerReply=
+  | {type:'proposal';conversationId:string;proposal:AgentProposal;metrics?:unknown}
+  | {type:'question';conversationId:string;question:string;options:string[]}
+  | {type:'decline';conversationId:string;message:string}
+  | {type:'error';message:string};
+export interface AskDesignerOptions {baseUrl?:string;onProgress?:(message:string)=>void;signal?:AbortSignal}
 export class DesignerServiceError extends Error {
   readonly name='DesignerServiceError';
   constructor(message:string,readonly code:'http'|'protocol'|'validation'|'service',readonly status?:number){super(message);}
@@ -56,29 +69,76 @@ function abortable<T>(work:Promise<T>,signal?:AbortSignal,onAbort?:()=>void):Pro
     if(signal.aborted)abort();
   });
 }
-function proposalFrom(value:unknown,revision:number,snapshot:SceneDocument,catalog:CatalogAsset[]):AgentProposal{
+function appearanceWall(snapshot:SceneDocument,id:unknown):string{
+  const wallId=text(id,'Wall ID',100),metadata=snapshot.project?.metadata[wallId];
+  if(!snapshot.walls.some(wall=>wall.id===wallId))fail('Wall appearance must target an existing wall.','validation');
+  if(metadata?.locked||['retain','remove','replace'].includes(metadata?.phase??''))fail('Wall appearance cannot change a locked, retained, removed or replaced wall.','validation');
+  return wallId;
+}
+function appearanceMaterial(value:unknown):Json{
+  const material=record(value,'Appearance material');
+  keys(material,['id','name','color','unit','unitCost','thickness','wastePercent','notes'],'Appearance material');
+  text(material.id,'Material ID',100);
+  if(material.unit!=='m2'||material.unitCost!==0||material.thickness!==.0002||material.wastePercent!==0)fail('Designer wall finishes require a conceptual paint material without a quoted cost.','validation');
+  return material;
+}
+function proposalFrom(value:unknown,revision:number,snapshot:SceneDocument,catalog:CatalogAsset[],keep:readonly string[]=[]):AgentProposal{
   const proposal=record(value,'Proposal');keys(proposal,['id','title','description','command'],'Proposal');
   text(proposal.id,'Proposal ID',120);text(proposal.title,'Proposal title',160);text(proposal.description,'Proposal description',4000);
   const command=record(proposal.command,'Command');keys(command,['id','label','source','baseRevision','operations'],'Command');
   text(command.id,'Command ID',120);text(command.label,'Command label',160);
   if(command.source!=='designer')fail('Proposal command source must be designer.','validation');
   if(command.baseRevision!==revision)fail('Designer proposal is stale or has a different base revision.','validation');
-  if(!Array.isArray(command.operations)||command.operations.length<1||command.operations.length>100)fail('A proposal needs 1–100 furniture operations.','validation');
-  for(const value of command.operations){
+  if(!Array.isArray(command.operations)||command.operations.length<1||command.operations.length>100)fail('A proposal needs 1–100 furniture or appearance operations.','validation');
+  const newMaterials=new Map<string,Json>(),usedMaterials=new Set<string>(),finishIds=new Set<string>(),finishFaces=new Set<string>();
+  let migrations=0,finishes=0;
+  // Validate the whole transaction before the disposable store applies any of it.
+  for(const [index,value] of command.operations.entries()){
     const operation=record(value,'Operation');
     if(operation.type==='add')keys(operation,['type','object'],'Add operation');
     else if(operation.type==='delete')keys(operation,['type','id'],'Delete operation');
     else if(operation.type==='update'){
       keys(operation,['type','id','patch'],'Update operation');
       keys(record(operation.patch,'Object patch'),['name','position','rotation','scale','color'],'Object patch');
-    }else fail('Designer supports only add, update and delete furniture operations.','validation');
+    }else if(operation.type==='update-wall'){
+      keys(operation,['type','id','patch'],'Wall appearance operation');
+      const wallId=appearanceWall(snapshot,operation.id),patch=record(operation.patch,'Wall colour patch');
+      keys(patch,['color'],'Wall colour patch');
+      if(typeof patch.color!=='string'||!/^#[0-9a-f]{6}$/i.test(patch.color))fail('Wall colour must be a six-digit hex value.','validation');
+      if(snapshot.project?.mode==='renovate'||snapshot.project?.finishes.some(finish=>finish.entityId===wallId&&['wall-front','wall-back'].includes(finish.surface)))fail('Use wall finish assignments for a renovated or material-backed wall.','validation');
+    }else if(operation.type==='migrate-project'){
+      keys(operation,['type'],'Appearance migration');
+      if(snapshot.version!==1||index!==0||++migrations>1)fail('Appearance migration must occur once at the start of a v1 proposal.','validation');
+    }else if(operation.type==='upsert-material'){
+      keys(operation,['type','material'],'Appearance material operation');
+      const material=appearanceMaterial(operation.material),id=material.id as string;
+      if(snapshot.project?.materials.some(existing=>existing.id===id)||newMaterials.has(id))fail('Designer appearance cannot overwrite an existing material.','validation');
+      newMaterials.set(id,material);
+    }else if(operation.type==='upsert-finish'){
+      keys(operation,['type','finish'],'Wall finish operation');
+      const finish=record(operation.finish,'Wall finish');keys(finish,['id','entityId','surface','materialId'],'Wall finish');
+      const id=text(finish.id,'Finish ID',100),wallId=appearanceWall(snapshot,finish.entityId),materialId=text(finish.materialId,'Finish material ID',100);
+      if(finish.surface!=='wall-front'&&finish.surface!=='wall-back')fail('Designer finishes support only wall-front and wall-back.','validation');
+      const existing=snapshot.project?.finishes.find(entry=>entry.id===id),face=`${wallId}:${finish.surface}`;
+      if(existing&&(existing.entityId!==wallId||existing.surface!==finish.surface))fail('A wall finish cannot replace an assignment on another surface.','validation');
+      if(snapshot.project?.finishes.some(entry=>entry.entityId===wallId&&entry.surface===finish.surface&&entry.id!==id)||finishIds.has(id)||finishFaces.has(face))fail('A wall face must retain its existing finish assignment without duplicates.','validation');
+      finishIds.add(id);finishFaces.add(face);usedMaterials.add(materialId);finishes++;
+    }else fail('Designer supports furniture changes and bounded wall appearance operations only.','validation');
   }
+  if(migrations&&!finishes)fail('Appearance migration requires a wall finish.','validation');
+  for(const id of newMaterials.keys())if(!usedMaterials.has(id))fail('Every new appearance material must be used by a wall finish.','validation');
+  for(const id of usedMaterials)appearanceMaterial(newMaterials.get(id)??snapshot.project?.materials.find(material=>material.id===id));
   const result=structuredClone(proposal) as unknown as AgentProposal;
   // This disposable store validates atomic editor semantics, including grouped moves.
   // Its revision is zero; the returned command retains the actual captured revision.
   const preview=new EditorStore(snapshot,catalog);
   const checked=preview.execute({...result.command,baseRevision:preview.revision},true);
   if(!checked.ok)fail(`Invalid designer proposal: ${checked.errors.join(' ')}`,'validation');
+  // The store applies rigid group transforms, so check implicit changes to kept members too.
+  for(const object of snapshot.objects){
+    const metadata=snapshot.project?.metadata[object.id];
+    if((keep.includes(object.id)||metadata?.locked||metadata?.phase==='retain')&&JSON.stringify(object)!==JSON.stringify(preview.scene.objects.find(candidate=>candidate.id===object.id)))fail('Designer proposal changes kept or locked furniture.','validation');
+  }
   return result;
 }
 
@@ -90,7 +150,7 @@ export function createDesignerHttpAdapter(options:DesignerHttpOptions={}):Design
     keep:options.keep===undefined?undefined:structuredClone(options.keep),
     northDeg:options.northDeg,doorSwings:options.doorSwings===undefined?undefined:structuredClone(options.doorSwings),
     conversationId:options.conversationId,catalog:options.catalog===undefined?undefined:structuredClone(options.catalog),
-    catalogCurrency:options.catalogCurrency,onProgress:options.onProgress,onConversationId:options.onConversationId,
+    catalogCurrency:options.catalogCurrency,onProgress:options.onProgress,onConversationId:options.onConversationId,onMetrics:options.onMetrics,
     fetch:options.fetch??globalThis.fetch.bind(globalThis),
   };
   return {async propose(scene,revision,signal){
@@ -162,7 +222,7 @@ export function createDesignerHttpAdapter(options:DesignerHttpOptions={}):Design
       if(final.type==='proposal'){
         keys(final,['type','conversationId','proposal','metrics'],'Proposal response');
         if(final.metrics!==undefined)record(final.metrics,'Metrics');
-        proposal=proposalFrom(final.proposal,revision,snapshot,catalog);
+        proposal=proposalFrom(final.proposal,revision,snapshot,catalog,configured.keep);
       }else if(final.type==='question'){
         keys(final,['type','conversationId','question','options'],'Question response');question=text(final.question,'Question',1000);
         if(final.options!==undefined){
@@ -174,7 +234,7 @@ export function createDesignerHttpAdapter(options:DesignerHttpOptions={}):Design
       }
       checkAbort(signal);
       if(conversationId)configured.onConversationId?.(conversationId);
-      if(proposal)return proposal;
+      if(proposal){if(final.metrics!==undefined)configured.onMetrics?.(structuredClone(final.metrics));return proposal;}
       if(final.type==='question')throw new DesignerQuestionError(question!,choices,conversationId);
       if(final.type==='decline')throw new DesignerDeclineError(message!,conversationId);
       throw new DesignerServiceError(message!,'service');
@@ -188,3 +248,42 @@ export function createDesignerHttpAdapter(options:DesignerHttpOptions={}):Design
     }
   }};
 }
+
+function serviceUrl(baseUrl?:string):string{
+  const env=import.meta.env as {VITE_DESIGNER_URL?:string}|undefined;
+  return (baseUrl??env?.VITE_DESIGNER_URL??'http://127.0.0.1:8787').replace(/\/+$/,'')+'/designer/propose';
+}
+
+/** Chat-facing wrapper; a canceled request rejects instead of becoming a chat error. */
+export async function askDesigner(req:DesignerRequest,opts:AskDesignerOptions={}):Promise<DesignerReply>{
+  let conversationId:string|undefined,metrics:unknown;
+  try{
+    checkAbort(opts.signal);
+    const adapter=createDesignerHttpAdapter({
+      url:serviceUrl(opts.baseUrl),request:req.request,conversationId:req.conversationId,
+      keep:req.keep,doorSwings:req.doorSwings,northDeg:req.northDeg,catalog:req.catalog,catalogCurrency:req.catalogCurrency,
+      onProgress:opts.onProgress,onConversationId:id=>{conversationId=id;},onMetrics:value=>{metrics=value;},
+    });
+    const proposal=await adapter.propose(req.scene,req.revision,opts.signal);
+    if(!conversationId)return {type:'error',message:'Designer response is missing its conversation ID.'};
+    return {type:'proposal',conversationId,proposal,...(metrics===undefined?{}:{metrics})};
+  }catch(error){
+    if(opts.signal?.aborted||(error instanceof Error&&error.name==='AbortError'))throw abortError();
+    if(error instanceof DesignerQuestionError){
+      if(!error.conversationId)return {type:'error',message:'Designer question is missing its conversation ID.'};
+      return {type:'question',conversationId:error.conversationId,question:error.question,options:error.options??[]};
+    }
+    if(error instanceof DesignerDeclineError){
+      if(!error.conversationId)return {type:'error',message:'Designer decline is missing its conversation ID.'};
+      return {type:'decline',conversationId:error.conversationId,message:error.message};
+    }
+    return {type:'error',message:error instanceof Error?error.message:'Designer request failed.'};
+  }
+}
+
+/** Existing Suggest workflow: a validated proposal with the default layout request. */
+export const designerHttpAdapter:DesignerAdapter={
+  async propose(scene,revision,signal){
+    return createDesignerHttpAdapter({url:serviceUrl()}).propose(scene,revision,signal);
+  },
+};

@@ -1,0 +1,50 @@
+{
+  "id": "decline",
+  "request": "Knock down the wall between the kitchen and living room",
+  "pass": true,
+  "reason": "",
+  "baseline_validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": []
+  },
+  "tokens": 14532,
+  "usage": {
+    "cacheWriteInputTokens": 0,
+    "cachedInputTokens": 7552,
+    "inputTokens": 14493,
+    "outputTokens": 39,
+    "reasoningOutputTokens": 0,
+    "totalTokens": 14532
+  },
+  "thread": {
+    "kind": "thread",
+    "thread_id": "01a0dd4e-9e27-7243-8fb7-7c2b1f844d6b",
+    "model": "gpt-6-astra",
+    "effort": "medium",
+    "approval_mode": "deny_all"
+  },
+  "bridge_stages": [
+    {
+      "stage": "to-designer",
+      "seconds": 0.33369416696950793,
+      "returncode": 0
+    },
+    {
+      "stage": "worker",
+      "seconds": 11.64096845901804,
+      "returncode": 0
+    }
+  ],
+  "reply": {
+    "type": "decline",
+    "conversationId": "66233724f8d349af87f376935b9ba14f",
+    "message": "I can’t remove walls or propose structural work, but I can help rearrange furniture to open up the route between your kitchen and living room, or coordinate their paint colours."
+  },
+  "http_status": 200,
+  "outcome": "decline",
+  "seconds": 11.991,
+  "description": "I can’t remove walls or propose structural work, but I can help rearrange furniture to open up the route between your kitchen and living room, or coordinate their paint colours.",
+  "elapsed_ms": 11991.063,
+  "proposal_description": null
+}

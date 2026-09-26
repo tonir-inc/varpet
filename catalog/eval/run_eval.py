@@ -76,11 +76,16 @@ def pool(conn):
 
 def score(conn):
     queries, out = run(conn)
-    labels = json.loads((HERE / "labels.json").read_text()) if (HERE / "labels.json").exists() else {}
+    # labels.json: judged by Claude from photos (q01-q10); labels_astra.json: Astra judge, 84% agreement
+    # with labels.json on q01-q10 (kappa 0.66). Claude's labels win where both exist.
+    labels = {}
+    for name in ("labels_astra.json", "labels.json"):
+        if (HERE / name).exists():
+            labels.update(json.loads((HERE / name).read_text()))
     labels.pop("_note", None)
     for name in VARIANTS:
         viol = empty_ok = empty_n = 0
-        p5 = []
+        p5, hits, possible = [], 0, 0
         for q in queries:
             res = out[(q["id"], name)]
             viol += violations(q["q"], res)
@@ -89,9 +94,13 @@ def score(conn):
                 empty_ok += not res["results"] and bool(res.get("nearest_misses"))
             elif q["id"] in labels:
                 rel = set(labels[q["id"]])
-                p5.append(sum(r["id"] in rel for r in res["results"][:5]) / 5)
+                h = sum(r["id"] in rel for r in res["results"][:5])
+                p5.append(h / 5)
+                # Queries the catalog can barely answer cap precision@5; count against what exists.
+                hits, possible = hits + h, possible + min(5, len(rel))
         prec = f"{sum(p5) / len(p5):.2f} on {len(p5)} queries" if p5 else "no labels"
-        print(f"{name:28s} violations {viol} | empty correct {empty_ok}/{empty_n} | precision@5 {prec}")
+        found = f"{hits / possible:.2f}" if possible else "-"
+        print(f"{name:28s} violations {viol} | empty correct {empty_ok}/{empty_n} | precision@5 {prec} | found of findable {found}")
 
 
 if __name__ == "__main__":

@@ -29,6 +29,7 @@ class Query:
     like_item: str | None = None                           # item id for visual similarity
     like_image: str | None = None                          # photo path or URL for visual similarity
     exclude_ids: list[str] = field(default_factory=list)
+    scope: str = "all"                                     # all | editor (only item.editor_set)
     colour_mode: str = "all"                              # listing+image+astra: best in eval (0.86)
     text_mode: str = "vector"                             # SigLIP text-to-image: best in eval
     model: str = "siglip2-base-patch16-224"
@@ -95,6 +96,8 @@ def search(conn, q: Query):
         where.append("kind = %s"); args.append(q.kind)
     if q.exclude_ids:
         where.append("not (id = any(%s))"); args.append(q.exclude_ids)
+    if q.scope == "editor":
+        where.append("editor_set")
     tsq = "plainto_tsquery('english', %s)"
     rank = f"ts_rank_cd(fts, {tsq}, 32)" if q.text else "0"
     rows = conn.execute(
@@ -135,7 +138,8 @@ def search(conn, q: Query):
             over = max([x["price_over"] for x in f if "price_over" in x] or [0]) / 100_000
             return fit + over
         misses.sort(key=overshoot)
-        return {"results": [], "nearest_misses": [_public(m) for m in misses[:3]]}
+        return {"results": [], "nearest_misses": [_public(m) for m in misses[:3]],
+                "hint": "Nothing fits. Relax a constraint: nearest_misses show by how much."}
 
     ids = [p[0]["id"] for p in passed]
     scores = {k: np.zeros(len(passed)) for k in DEFAULT_WEIGHTS}

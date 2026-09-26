@@ -160,6 +160,391 @@
    },
    "ask": "sofa under 50,000 dram",
    "must_be_empty": true
+  },
+  {
+   "id": "q11",
+   "q": {
+    "kind": "chair",
+    "colors": [
+     "white"
+    ],
+    "text": "scandinavian dining chair"
+   },
+   "ask": "Find a white scandinavian dining chair."
+  },
+  {
+   "id": "q12",
+   "q": {
+    "kind": "sofa",
+    "colors": [
+     "beige"
+    ],
+    "text": "linen loveseat",
+    "fit_box": [
+     1.8,
+     0.9,
+     0.9
+    ]
+   },
+   "ask": "Find a beige linen loveseat that fits within 1.8 x 0.9 x 0.9 m (width x depth x height)."
+  },
+  {
+   "id": "q13",
+   "q": {
+    "kind": "rug",
+    "colors": [
+     "orange"
+    ],
+    "text": "boho patterned rug"
+   },
+   "ask": "Find a orange boho patterned rug."
+  },
+  {
+   "id": "q14",
+   "q": {
+    "kind": "table",
+    "colors": [
+     "white"
+    ],
+    "text": "marble coffee table",
+    "fit_box": [
+     0.9,
+     0.6,
+     0.5
+    ]
+   },
+   "ask": "Find a white marble coffee table that fits within 0.9 x 0.6 x 0.5 m (width x depth x height)."
+  },
+  {
+   "id": "q15",
+   "q": {
+    "kind": "lamp",
+    "colors": [
+     "black"
+    ],
+    "text": "industrial desk lamp"
+   },
+   "ask": "Find a black industrial desk lamp."
+  },
+  {
+   "id": "q16",
+   "q": {
+    "kind": "stool",
+    "colors": [
+     "brown"
+    ],
+    "text": "oak counter stool",
+    "fit_box": [
+     0.45,
+     0.45,
+     0.9
+    ]
+   },
+   "ask": "Find a brown oak counter stool that fits within 0.45 x 0.45 x 0.9 m (width x depth x height)."
+  },
+  {
+   "id": "q17",
+   "q": {
+    "kind": "ottoman",
+    "colors": [
+     "green"
+    ],
+    "text": "velvet storage ottoman"
+   },
+   "ask": "Find a green velvet storage ottoman."
+  },
+  {
+   "id": "q18",
+   "q": {
+    "kind": "headboard",
+    "colors": [
+     "grey"
+    ],
+    "text": "upholstered headboard",
+    "fit_box": [
+     1.5,
+     0.15,
+     1.2
+    ]
+   },
+   "ask": "Find a grey upholstered headboard that fits within 1.5 x 0.15 x 1.2 m (width x depth x height)."
+  },
+  {
+   "id": "q19",
+   "q": {
+    "kind": "desk",
+    "colors": [
+     "brown"
+    ],
+    "text": "oak writing desk",
+    "fit_box": [
+     1,
+     0.55,
+     0.8
+    ]
+   },
+   "ask": "Find a brown oak writing desk that fits within 1 x 0.55 x 0.8 m (width x depth x height)."
+  },
+  {
+   "id": "q20",
+   "q": {
+    "kind": "cabinet",
+    "colors": [
+     "white"
+    ],
+    "text": "farmhouse storage cabinet"
+   },
+   "ask": "Find a white farmhouse storage cabinet."
+  },
+  {
+   "id": "q21",
+   "q": {
+    "kind": "mirror",
+    "colors": [
+     "black"
+    ],
+    "text": "industrial wall mirror"
+   },
+   "ask": "Find a black industrial wall mirror."
+  },
+  {
+   "id": "q22",
+   "q": {
+    "kind": "shelf",
+    "colors": [
+     "brown"
+    ],
+    "text": "rattan shelf",
+    "fit_box": [
+     0.7,
+     0.35,
+     1.5
+    ]
+   },
+   "ask": "Find a brown rattan shelf that fits within 0.7 x 0.35 x 1.5 m (width x depth x height)."
+  },
+  {
+   "id": "q23",
+   "q": {
+    "kind": "bed",
+    "colors": [
+     "beige"
+    ],
+    "text": "upholstered bed frame",
+    "fit_box": [
+     1.6,
+     2.15,
+     1.2
+    ]
+   },
+   "ask": "Find a beige upholstered bed frame that fits within 1.6 x 2.15 x 1.2 m (width x depth x height)."
+  },
+  {
+   "id": "q24",
+   "q": {
+    "kind": "dresser",
+    "colors": [
+     "white"
+    ],
+    "text": "scandinavian dresser",
+    "fit_box": [
+     0.9,
+     0.45,
+     0.85
+    ]
+   },
+   "ask": "Find a white scandinavian dresser that fits within 0.9 x 0.45 x 0.85 m (width x depth x height)."
+  },
+  {
+   "id": "q25",
+   "q": {
+    "kind": "nightstand",
+    "colors": [
+     "brown"
+    ],
+    "text": "oak nightstand",
+    "fit_box": [
+     0.45,
+     0.4,
+     0.6
+    ]
+   },
+   "ask": "Find a brown oak nightstand that fits within 0.45 x 0.4 x 0.6 m (width x depth x height)."
+  },
+  {
+   "id": "q26",
+   "q": {
+    "kind": "bench",
+    "colors": [
+     "brown"
+    ],
+    "text": "leather entryway bench",
+    "fit_box": [
+     1,
+     0.4,
+     0.5
+    ]
+   },
+   "ask": "Find a brown leather entryway bench that fits within 1 x 0.4 x 0.5 m (width x depth x height)."
+  },
+  {
+   "id": "q27",
+   "q": {
+    "kind": "wardrobe",
+    "colors": [
+     "white"
+    ],
+    "text": "minimalist wardrobe",
+    "fit_box": [
+     1,
+     0.6,
+     2
+    ]
+   },
+   "ask": "Find a white minimalist wardrobe that fits within 1 x 0.6 x 2 m (width x depth x height)."
+  },
+  {
+   "id": "q28",
+   "q": {
+    "kind": "chair",
+    "colors": [
+     "brown"
+    ],
+    "text": "boho rattan chair"
+   },
+   "ask": "Find a brown boho rattan chair."
+  },
+  {
+   "id": "q29",
+   "q": {
+    "kind": "sofa",
+    "colors": [
+     "black"
+    ],
+    "text": "leather sofa",
+    "fit_box": [
+     2,
+     0.95,
+     0.95
+    ]
+   },
+   "ask": "Find a black leather sofa that fits within 2 x 0.95 x 0.95 m (width x depth x height)."
+  },
+  {
+   "id": "q30",
+   "q": {
+    "kind": "table",
+    "colors": [
+     "brown"
+    ],
+    "text": "farmhouse oak dining table",
+    "fit_box": [
+     1.2,
+     0.75,
+     0.8
+    ]
+   },
+   "ask": "Find a brown farmhouse oak dining table that fits within 1.2 x 0.75 x 0.8 m (width x depth x height)."
+  },
+  {
+   "id": "q31",
+   "q": {
+    "kind": "ottoman",
+    "colors": [
+     "pink"
+    ],
+    "text": "glam velvet ottoman"
+   },
+   "ask": "Find a pink glam velvet ottoman."
+  },
+  {
+   "id": "q32",
+   "q": {
+    "kind": "rug",
+    "colors": [
+     "blue"
+    ],
+    "text": "geometric rug",
+    "fit_box": [
+     2,
+     1.4,
+     0.05
+    ]
+   },
+   "ask": "Find a blue geometric rug that fits within 2 x 1.4 x 0.05 m (width x depth x height)."
+  },
+  {
+   "id": "q33",
+   "q": {
+    "kind": "lamp",
+    "colors": [
+     "yellow"
+    ],
+    "text": "ceramic table lamp"
+   },
+   "ask": "Find a yellow ceramic table lamp."
+  },
+  {
+   "id": "q34",
+   "q": {
+    "kind": "chair",
+    "colors": [
+     "red"
+    ],
+    "text": "upholstered accent chair"
+   },
+   "ask": "Find a red upholstered accent chair."
+  },
+  {
+   "id": "q35",
+   "q": {
+    "kind": "stool",
+    "colors": [
+     "purple"
+    ],
+    "text": "velvet vanity stool"
+   },
+   "ask": "Find a purple velvet vanity stool."
+  },
+  {
+   "id": "q36",
+   "q": {
+    "kind": "sofa",
+    "like_item": "abo:B075X4QMW7"
+   },
+   "ask": "Find a sofa that looks like item abo:B075X4QMW7."
+  },
+  {
+   "id": "q37",
+   "q": {
+    "kind": "sofa",
+    "like_item": "abo:B07HZ6GJ5J"
+   },
+   "ask": "Find a sofa that looks like item abo:B07HZ6GJ5J."
+  },
+  {
+   "id": "q38",
+   "q": {
+    "kind": "sofa",
+    "like_item": "abo:B075X4QMW7"
+   },
+   "ask": "Find a sofa that looks like item abo:B075X4QMW7."
+  },
+  {
+   "id": "q39",
+   "q": {
+    "kind": "sofa",
+    "like_item": "abo:B07HZ6GJ5J"
+   },
+   "ask": "Find a sofa that looks like item abo:B07HZ6GJ5J."
+  },
+  {
+   "id": "q40",
+   "q": {
+    "kind": "sofa",
+    "like_item": "abo:B075X4QMW7"
+   },
+   "ask": "Find a sofa that looks like item abo:B075X4QMW7."
   }
  ]
 }

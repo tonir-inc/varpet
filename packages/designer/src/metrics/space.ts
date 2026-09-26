@@ -1,5 +1,6 @@
 import { applyOps, wallOutward } from '../adapter.js';
 import type { Item, Op, Opening, Room, Scene, Vec2 } from '../scene.js';
+import { wallSolidPolygons } from '../wall-geometry.js';
 
 export const SPACE_RESOLUTION_M = 0.05;
 const EPS = 1e-8;
@@ -105,6 +106,7 @@ export function doorSwingPolygon(scene: Scene, opening: Opening): Vec2[] | null 
 
 function obstaclesForRoom(scene: Scene, room: Room): Obstacle[] {
   const obstacles: Obstacle[] = [...scene.items, ...scene.fixed].filter(i => i.room_id === room.id && !isFloorRug(i)).map(item => ({ polygon: itemPolygon(item) }));
+  obstacles.push(...wallSolidPolygons(scene).map(solid => ({ polygon: solid.polygon })));
   for (const opening of scene.openings) {
     // The room tag belongs to the wall, not the physical space swept by its leaf.
     // Raster clipping below reserves only the portion actually inside this room.
@@ -126,10 +128,17 @@ export function rasterizeRoom(scene: Scene, room: Room, resolution = SPACE_RESOL
   const width = Math.ceil((Math.max(...room.polygon.map(p => p[0])) - x) / resolution - EPS);
   const height = Math.ceil((Math.max(...room.polygon.map(p => p[1])) - y) / resolution - EPS);
   if (width * height > 1_000_000) throw new Error(`Room ${room.id}: raster exceeds one million cells; split the room`);
-  const occupied = new Uint8Array(width * height), obstacles = obstaclesForRoom(scene, room);
+  const occupied = new Uint8Array(width * height), obstacles = obstaclesForRoom(scene, room).map(obstacle => ({
+    ...obstacle, minX: Math.min(...obstacle.polygon.map(point => point[0])), maxX: Math.max(...obstacle.polygon.map(point => point[0])),
+    minY: Math.min(...obstacle.polygon.map(point => point[1])), maxY: Math.max(...obstacle.polygon.map(point => point[1])),
+  }));
   for (let row = 0; row < height; row++) for (let col = 0; col < width; col++) {
     const cell = rectangle(x + col * resolution, y + row * resolution, resolution, resolution);
-    if (!containedCell(cell, room.polygon) || obstacles.some(o => polygonsOverlap(cell, o.polygon))) occupied[row * width + col] = 1;
+    // Most cells are nowhere near a wall or object. Keep exact polygon overlap for
+    // the few intersecting bounds instead of allocating SAT projections for every pair.
+    if (!containedCell(cell, room.polygon) || obstacles.some(o =>
+      o.maxX > cell[0]![0] + EPS && o.minX < cell[2]![0] - EPS && o.maxY > cell[0]![1] + EPS && o.minY < cell[2]![1] - EPS
+      && polygonsOverlap(cell, o.polygon))) occupied[row * width + col] = 1;
   }
   return { room_id: room.id, origin: [x, y], width, height, resolution, occupied };
 }
@@ -420,10 +429,23 @@ function walkway(grid: RoutingGrid, from: Endpoint, to: Endpoint): Walkway {
 
 export interface RoomSpaceMetrics { room_id: string; free_area_m2: number; largest_free_rectangle: FreeRectangle | null; walkways: Walkway[] }
 export interface SpaceMetrics { rooms: RoomSpaceMetrics[]; free_area_m2: number }
+// Checks, scores and translation repeatedly inspect identical geometry. Cache values,
+// never scene identities or mutable outputs; paint/name changes do not change floor space.
+const metricCache = new Map<string, SpaceMetrics>();
+function geometryKey(scene: Scene): string {
+  const items = (values: Item[]) => values.map(({id,room_id,kind,pos,rot,size}) => [id,room_id,kind,pos,rot,size]);
+  return JSON.stringify([
+    scene.rooms.map(({id,polygon}) => [id,polygon]),
+    scene.walls.map(({id,room_id,a,b,open,source_id,thickness,height}) => [id,room_id,a,b,open,source_id,thickness,height]),
+    scene.openings,items(scene.items),items(scene.fixed),
+  ]);
+}
 
 /** Pure conservative raster metrics; dimensions and returned coordinates are metres. */
 export function spaceMetrics(scene: Scene, ops: readonly Op[] = []): SpaceMetrics {
   const copy = applyOps(scene, ops);
+  const key = geometryKey(copy), cached = metricCache.get(key);
+  if (cached) return structuredClone(cached);
   const rooms = copy.rooms.map(room => {
     const raster = rasterizeRoom(copy, room), grid = routingGrid(raster), ends = endpoints(copy, room, grid), walkways: Walkway[] = [];
     for (let i = 0; i < ends.doors.length; i++) {
@@ -434,5 +456,8 @@ export function spaceMetrics(scene: Scene, ops: readonly Op[] = []): SpaceMetric
     const freeCells = raster.occupied.reduce((count, value) => count + (value === 0 ? 1 : 0), 0);
     return { room_id: room.id, free_area_m2: rounded(freeCells * raster.resolution ** 2), largest_free_rectangle: largestRectangle(raster), walkways };
   });
-  return { rooms, free_area_m2: rounded(rooms.reduce((sum, room) => sum + room.free_area_m2, 0)) };
+  const result = { rooms, free_area_m2: rounded(rooms.reduce((sum, room) => sum + room.free_area_m2, 0)) };
+  if (metricCache.size >= 32) metricCache.delete(metricCache.keys().next().value!);
+  metricCache.set(key,structuredClone(result));
+  return result;
 }

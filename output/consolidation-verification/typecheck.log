@@ -1,0 +1,11 @@
+
+> varpet@ typecheck /Users/davitstepanyan/Documents/varpet
+> pnpm -r typecheck
+
+Scope: 5 of 6 workspace projects
+packages/engine typecheck$ tsc -p .
+packages/designer typecheck$ tsc -p .
+packages/engine typecheck: Done
+packages/designer typecheck: Done
+apps/editor typecheck$ tsc -p .
+apps/editor typecheck: Done

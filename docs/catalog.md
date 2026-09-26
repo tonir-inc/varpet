@@ -42,3 +42,56 @@ pointing it at the MCP URL instead removes that need.
 - Logs: `ssh <vm> journalctl -u varpet-catalog -f`.
 - Load or refresh data from a laptop through a tunnel:
   `ssh -fN -L 15432:localhost:5432 <vm>`, then `uv run ingest_abo.py`, `colors.py`, `embed_siglip.py`.
+
+## Catalog → designer → editor (26 Sept)
+
+How the three connect, and what each side has to do. Verified end to end with the real code
+(`catalog/integration/editor_handoff.ts`): a SKU from our search goes through the designer's
+`DesignerSession` and `proposalToEditor`, and applies in the editor's `EditorStore` for sofa, chair,
+table, bed, cabinet, lamp, rug and shelf.
+
+1. **Editor set.** `item.editor_set` marks 877 items (`catalog/select_editor_set.py`) that pass the
+   bridge's exact checks: one of the editor's kinds, no size conflict, no sideways mesh, a GLB, an
+   integer price, every dimension 0.01–20 m. Plus the editor's 18 demo pieces that is 895, under the
+   designer service's 1,000-asset limit.
+2. **Search uses the same set.** The MCP tools `search_furniture` and `find_similar` default to
+   `scope="editor"`, so every SKU the designer gets is one the editor has. `scope="all"` searches
+   the whole catalog.
+3. **The editor loads it.** `GET http://100.107.246.46:8765/editor/assets` returns `CatalogAsset[]`
+   (CORS for any `http://localhost` or `127.0.0.1` port). `dimensions` are `[w, h, d]` from the same size the designer
+   gets, so the bridge's size check passes exactly. GLBs come from ABO's S3 (CORS open).
+
+### Current editor integration (26 Sept consolidation)
+
+The editor now starts with an empty shell and uses the database-only search and
+reference hydration described in `apps/editor/docs/database-furniture.md`. It does
+not restore demo furnishings or fall back to procedural catalog entries. The Vite
+server proxies the read-only MCP catalog routes; `VARPET_CATALOG_URL` configures
+that server connection.
+
+Live designer requests include the current validated `catalog` and
+`catalogCurrency: "AMD"`. Pending add proposals keep exact product records so
+browsing another category cannot invalidate preview or approval. A purchase must
+still reference a SKU present in that request snapshot; the full 877-item editor
+set is not preloaded. Live broad-catalog purchasing remains an integration gap.
+
+`createCatalogHttpAdapter`, `mergeCatalogs` and `CATALOG_CURRENCY` remain available
+for consumers of the `/editor/assets` endpoint, with `VITE_CATALOG_ASSETS_URL` as
+its override. The interactive editor currently uses its database search adapter.
+
+### Ashot (designer)
+Nothing needed for the 8 shared kinds. **Known gap: kinds the editor does not have.** The demo
+opener ("fit a desk by the window") needs `desk`, which the designer uses (daylight, request check)
+but the editor's `AssetKind` lacks, and the bridge compares kinds exactly
+(`editor-bridge.ts`, `op.item.kind !== kinds[asset.kind]`). So desks are not in the editor set and
+`search_catalog` finds none. Proposed fix, one of:
+- Bridge compatibility map (Ashot):
+  `const editorKindOf: Record<string, AssetKind> = { desk: 'table', dresser: 'cabinet', wardrobe: 'cabinet', nightstand: 'cabinet', stool: 'chair', ottoman: 'chair', bench: 'chair' };`
+  and compare `(editorKindOf[op.item.kind] ?? op.item.kind) !== asset.kind`. Then the catalog adds
+  those items to the editor set with the mapped editor kind (Sergey, one flag in
+  `select_editor_set.py` and the REST mapping).
+- Or Davit adds `desk` (and `wardrobe`/`dresser`) to `AssetKind` with procedural shapes.
+
+### Network
+Both need either Tailscale with `mc-server` shared (Felix), or an SSH tunnel to the VM
+(`ssh -fN -L 18765:100.107.246.46:8765 <vm>`; send Sergey your public key).

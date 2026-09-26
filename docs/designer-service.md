@@ -39,7 +39,7 @@ exactly one final line:
 {"type": "progress", "message": "Checking the walkway to the door"}
 {"type": "proposal", "conversationId": "c1", "proposal": { "id": "...", "title": "...", "description": "...", "command": { "id": "...", "label": "...", "source": "designer", "baseRevision": 12, "operations": [] } }, "metrics": {}}
 {"type": "question", "conversationId": "c1", "question": "Cozier how?", "options": ["warmer light", "fewer pieces", "softer seating"]}
-{"type": "decline", "conversationId": "c1", "message": "I place furniture; I don't pick paint colours."}
+{"type": "decline", "conversationId": "c1", "message": "Moving walls is outside my scope; I can help with furniture and finishes."}
 {"type": "error", "message": "..."}
 ```
 
@@ -65,14 +65,17 @@ must match the supplied snapshot. The translator checks the resulting command wi
 `createDesignerHttpAdapter` in `apps/editor/src/adapters/designer-http.ts` implements the existing
 `DesignerAdapter`. Configure `request`, `catalog`, the optional extras above, `onProgress(message)`
 and `onConversationId(id)` when constructing it; call `propose(scene, revision, signal)` as before.
-It returns a preview without applying it. The editor owner still wires the adapter and request UI.
+It returns a preview without applying it. The separate Designer panel session owns the chat UI and
+its wiring, using `askDesigner` and `designerHttpAdapter` described below.
 `DesignerQuestionError` and `DesignerDeclineError` preserve non-proposal outcomes for the UI.
 Aborting the supplied signal cancels the HTTP stream and the service's worker processes.
 
 Derived coordinate mapping: editor `[x, y, z]` maps to designer `[x, -z]`; rotation radians about +Y
 map to counterclockwise degrees; dimensions `[width, height, depth]` multiplied by object scale map
 to `[width, depth, height]`. Existing poses and scale survive the reverse conversion.
-Grouped, locked and retained objects become keeps. Unsupported elevations, building components,
+Locked and retained objects become keeps. The CLI moves groups together, using one anchor operation;
+programmatic bridge callers opt in with `groupPolicy: "move-together"` (the legacy default keeps groups).
+Unsupported elevations, building components,
 service routes, renovation removal/replacement phases and furniture spanning rooms fail explicitly.
 Assumed: rugs are floor coverings, so they retain containment and request checks but do not block
 usable floor, furniture or door sweeps. This does not measure real door under-clearance.
@@ -92,6 +95,46 @@ The HTTP unit tests exercise progress and disconnect cancellation with real sock
 bridge CLI, MCP proposal gate and proposal persistence to the editor's own `validateScene` and
 `EditorStore`. Only model reasoning is replaced with a deterministic worker; it does not measure
 live model latency or browser rendering. The store still requires approval and rejects stale edits.
-Measured 2026-09-26: all 20 objects and all openings in the editor demo convert, but a single-chair
-move still fails the designer's whole-scene walkway gate because the baseline has 29 hard walkway
-failures (including 0.15 m dining access). Conversion does not waive existing clearance requirements.
+Measured 2026-09-26: all 20 objects and all openings in the editor demo convert. The standing regression
+moves the living-room lounge chair and applies its accepted command in EditorStore despite baseline
+walkway failures. There are 31 with physical wall thickness included (the earlier centre-line model
+reported 29). Existing non-worsened failures remain notes; new or
+worsened ones block. This is a preview comparison, not certification that the original flat is legal.
+
+Colour ops carry an explicit item/wall target and `#RRGGBB` value and must match `set_intent.colors`.
+Object colours become `update {patch:{color}}`. Simple wall colours become `update-wall {patch:{color}}`;
+material-backed or renovation-mode walls use appearance-only finish assignments so the paint is visible
+and does not mark the wall for structural replacement. The browser rejects geometry in wall patches.
+One wall colour affects both faces and all original-wall segments. V2 project data is retained on the
+original snapshot; only requested command effects and the editor's normal assumption invalidation apply.
+Finish work is unquoted; the reported incremental furniture purchase cost does not price paint or labour.
+The Avani standing fixture also caught a rug penetrating the west wall by 5 mm. Wall thickness now
+crosses the bridge into preview checks, circulation and wall/corner placement; the same candidate is
+refused before translation. A smaller valid group move still passes the designer and editor gates.
+
+## Inside the editor (added 26 Sept 14:00: the editor owner is not adding designer UI, so we build it)
+
+`apps/editor/src/adapters/designer-http.ts` (main designer session) exports exactly:
+
+```ts
+export interface DesignerRequest {
+  scene: SceneDocument; revision: number; request: string; conversationId?: string;
+  keep?: string[]; doorSwings?: Record<string, 'in-left' | 'in-right' | 'out-left' | 'out-right'>; northDeg?: number;
+}
+export type DesignerReply =
+  | { type: 'proposal'; conversationId: string; proposal: AgentProposal; metrics?: unknown }
+  | { type: 'question'; conversationId: string; question: string; options: string[] }
+  | { type: 'decline'; conversationId: string; message: string }
+  | { type: 'error'; message: string };
+export function askDesigner(req: DesignerRequest,
+  opts?: { baseUrl?: string; onProgress?: (message: string) => void; signal?: AbortSignal }): Promise<DesignerReply>;
+export const designerHttpAdapter: DesignerAdapter; // propose(scene, revision) = askDesigner with a default request
+```
+
+Default `baseUrl`: `import.meta.env.VITE_DESIGNER_URL ?? 'http://127.0.0.1:8787'`.
+
+`apps/editor/src/ui/designer-panel.ts` (+ its CSS; the panel session) is the customer's chat: a text box, the
+conversation, a live progress line, option buttons for a question, the decline message, and for a proposal the
+editor's existing review/approve flow (the same one the Suggest button uses). Wiring in `apps/editor/src/main.ts`
+is kept to a few lines: mount the panel, and use `designerHttpAdapter` when `VITE_DESIGNER_URL` is set,
+otherwise the mock.

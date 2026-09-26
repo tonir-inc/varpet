@@ -1,0 +1,19 @@
+[Unit]
+Description=varpet generated furniture GLBs (static files, tailnet only)
+After=network-online.target tailscaled.service
+Wants=network-online.target
+
+[Service]
+User=varpet-catalog
+Group=varpet-catalog
+ExecStart=/usr/bin/python3 -m http.server 8766 --bind 100.107.246.46 --directory /opt/varpet-catalog/generated
+Restart=on-failure
+RestartSec=5
+MemoryMax=128M
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadOnlyPaths=/opt/varpet-catalog/generated
+
+[Install]
+WantedBy=multi-user.target

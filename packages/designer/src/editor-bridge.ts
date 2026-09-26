@@ -4,6 +4,8 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import type { AgentProposal, AssetKind, CatalogAsset, Operation, SceneDocument, Wall as EditorWall } from '../../../apps/editor/src/contracts.js';
 import { localCatalog } from '../../../apps/editor/src/core/demo.js';
+import { buildFinishOperations, type FinishPreset } from '../../../apps/editor/src/core/finish-presets.js';
+import { applyRenovationOperation, isRenovationOperation } from '../../../apps/editor/src/core/renovation.js';
 import { EditorStore } from '../../../apps/editor/src/core/store.js';
 import { isRecord, objectFootprint, placementIssues, validateScene } from '../../../apps/editor/src/core/validation.js';
 import { parseOps, parseScene } from './adapter.js';
@@ -18,6 +20,8 @@ export interface EditorBridgeOptions {
   doorSwings?: Record<string, 'in-left' | 'in-right' | 'out-left' | 'out-right'>;
   /** Catalog prices have no intrinsic currency. Purchases require explicit AMD provenance. */
   catalogCurrency?: 'AMD';
+  /** Legacy callers preserve groups; the service CLI opts into rigid group movement. */
+  groupPolicy?: 'preserve' | 'move-together';
 }
 
 const EPS = 1e-7;
@@ -33,6 +37,7 @@ function validatedEditor(input: unknown, catalog: CatalogAsset[]): SceneDocument
 }
 
 function checkSupported(scene: SceneDocument, options: EditorBridgeOptions): void {
+  if (options.groupPolicy !== undefined && !['preserve', 'move-together'].includes(options.groupPolicy)) throw new Error('Unsupported groupPolicy; use preserve or move-together');
   if (options.northDeg !== undefined && !Number.isFinite(options.northDeg)) throw new Error('northDeg must be finite');
   if (options.catalogCurrency !== undefined && options.catalogCurrency !== 'AMD') throw new Error('Only explicitly identified AMD catalog prices are supported');
   for (const id of options.keep ?? []) if (!scene.objects.some(object => object.id === id)) throw new Error(`Unknown keep object: ${id}`);
@@ -101,7 +106,13 @@ export function editorToDesigner(input: unknown, options: EditorBridgeOptions = 
   for (const wall of editor.walls) {
     const spans = wallSpans(wall, editor), length = Math.hypot(wall.end[0] - wall.start[0], wall.end[1] - wall.start[1]);
     const point = (offset: number): Vec2 => plan([wall.start[0] + (wall.end[0] - wall.start[0]) * offset / length, wall.start[1] + (wall.end[1] - wall.start[1]) * offset / length]);
-    for (const span of spans) scene.walls.push({ id: span.id!, room_id: span.roomId, a: point(span.from), b: point(span.to) });
+    const faceColors = ['wall-front', 'wall-back'].map(surface => {
+      const finish = editor.project?.finishes.find(finish => finish.entityId === wall.id && finish.surface === surface);
+      return (editor.project?.materials.find(material => material.id === finish?.materialId)?.color ?? wall.color).toLowerCase();
+    });
+    const metadata = editor.project?.metadata[wall.id];
+    for (const span of spans) scene.walls.push({ id: span.id!, room_id: span.roomId, a: point(span.from), b: point(span.to), source_id: wall.id, thickness: wall.thickness, height: wall.height,
+      keep: metadata?.locked === true || metadata?.phase === 'retain', ...(faceColors[0] === faceColors[1] ? { color: faceColors[0] } : {}) });
     for (const opening of wall.openings) {
       const span = spans.find(candidate => opening.offset >= candidate.from - EPS && opening.offset + opening.width <= candidate.to + EPS);
       if (!span) throw new Error(`Opening ${opening.id} crosses room boundaries and cannot be represented faithfully`);
@@ -119,7 +130,8 @@ export function editorToDesigner(input: unknown, options: EditorBridgeOptions = 
     const metadata = editor.project?.metadata[object.id];
     scene.items.push({ id: object.id, name: object.name, room_id: rooms[0]!.id, kind: kinds[asset.kind], pos: [object.position[0], -object.position[2]], rot: object.rotation * 180 / Math.PI,
       size: [asset.dimensions[0] * object.scale[0], asset.dimensions[2] * object.scale[2], asset.dimensions[1] * object.scale[1]],
-      keep: (options.keep ?? []).includes(object.id) || object.groupId !== undefined || metadata?.locked === true || metadata?.phase === 'retain', sku: asset.id });
+      keep: (options.keep ?? []).includes(object.id) || (object.groupId !== undefined && options.groupPolicy !== 'move-together') || metadata?.locked === true || metadata?.phase === 'retain', sku: asset.id,
+      color: object.color ?? asset.color, ...(object.groupId !== undefined && options.groupPolicy === 'move-together' ? { group_id: object.groupId } : {}) });
   }
   return parseScene(scene);
 }
@@ -147,11 +159,32 @@ export function proposalToEditor(input: unknown, editorInput: unknown, revision:
   session.setIntent(candidate.intent);
   const rechecked = session.propose(ops, candidate.rationale);
   if (!rechecked.ok) throw new Error(`Proposal no longer passes request/layout checks: ${JSON.stringify(rechecked.errors)}`);
-  const operations: Operation[] = ops.map(op => {
-    if (op.type === 'remove') return { type: 'delete', id: op.id };
-    if (op.type === 'move') return { type: 'update', id: op.id, patch: { position: [op.pos[0], 0, -op.pos[1]], ...(op.rot === undefined ? {} : { rotation: op.rot * Math.PI / 180 }) } };
-    return { type: 'add', object: { id: op.item.id, name: op.item.name, assetId: op.item.sku!, position: [op.item.pos[0], 0, -op.item.pos[1]], rotation: op.item.rot * Math.PI / 180, scale: [1, 1, 1] } };
-  });
+  const operations: Operation[] = [], paintedWalls = new Map<string, string>();
+  let finishDraft = structuredClone(editor);
+  for (const op of ops) {
+    if (op.type === 'remove') operations.push({ type: 'delete', id: op.id });
+    else if (op.type === 'move') operations.push({ type: 'update', id: op.id, patch: { position: [op.pos[0], 0, -op.pos[1]], ...(op.rot === undefined ? {} : { rotation: op.rot * Math.PI / 180 }) } });
+    else if (op.type === 'add') {
+      if (op.item.group_id !== undefined) throw new Error('Adding furniture to a group is not supported by this bridge');
+      operations.push({ type: 'add', object: { id: op.item.id, name: op.item.name, assetId: op.item.sku!, position: [op.item.pos[0], 0, -op.item.pos[1]], rotation: op.item.rot * Math.PI / 180, scale: [1, 1, 1], ...(op.item.color === undefined ? {} : { color: op.item.color }) } });
+    } else if (op.target === 'item') operations.push({ type: 'update', id: op.id, patch: { color: op.color } });
+    else {
+      const sourceId = scene.walls.find(wall => wall.id === op.id)!.source_id!;
+      if (paintedWalls.get(sourceId) === op.color) continue;
+      paintedWalls.set(sourceId, op.color);
+      const assigned = finishDraft.project?.finishes.some(finish => finish.entityId === sourceId && ['wall-front', 'wall-back'].includes(finish.surface));
+      if (!assigned && finishDraft.project?.mode !== 'renovate') operations.push({ type: 'update-wall', id: sourceId, patch: { color: op.color } });
+      else {
+        const preset: FinishPreset = { id: `designer-paint-${op.color.slice(1)}`, name: `Paint ${op.color}`, category: 'wall', color: op.color, accent: op.color, pattern: 'solid', size: [1, 1], roughness: .94, description: 'Conceptual wall colour; supplier and installation costs are unknown.' };
+        for (const surface of ['wall-front', 'wall-back'] as const) {
+          const finishOps = buildFinishOperations(finishDraft, preset, sourceId, surface);
+          operations.push(...finishOps);
+          // Plan the next face against the preceding material/assignment IDs without touching the source.
+          for (const operation of finishOps) if (isRenovationOperation(operation)) finishDraft = applyRenovationOperation(finishDraft, operation);
+        }
+      }
+    }
+  }
   const id = `designer-${digest({ snapshot: editor, revision, proposal: candidate })}`;
   const proposal: AgentProposal = { id, title: 'Designer layout proposal', description: candidate.rationale, command: { id, label: 'Apply designer layout', source: 'designer', baseRevision: revision, operations } };
   // This store is private and disposable; the caller's snapshot is never modified or approved.
@@ -166,7 +199,7 @@ async function jsonFile(path: string): Promise<unknown> { return JSON.parse(awai
 async function main(args: string[]): Promise<void> {
   const mode = args.shift(), count = mode === 'to-designer' ? 2 : mode === 'to-command' ? 4 : 0;
   if (!count || args.length < count) throw new Error('Usage: editor-bridge.ts to-designer <scene> <out> | to-command <proposal> <scene> <revision> <out> [--catalog file] [--keep id,id] [--north degrees] [--swings file] [--currency AMD]');
-  const paths = args.splice(0, count), options: EditorBridgeOptions = {};
+  const paths = args.splice(0, count), options: EditorBridgeOptions = { groupPolicy: 'move-together' };
   while (args.length) {
     const flag = args.shift(), value = args.shift();
     if (value === undefined) throw new Error(`Missing value for ${flag}`);

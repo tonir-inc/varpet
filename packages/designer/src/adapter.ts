@@ -4,15 +4,17 @@ import type { Scene, Wall, Op, Vec2 } from './scene.js';
 const num = z.number().finite();
 const point = z.tuple([num, num]);
 const id = z.string().min(1);
+export const colorSchema = z.string().regex(/^#[0-9a-f]{6}$/i, 'Use six-digit hex colour #RRGGBB').transform(value => value.toLowerCase());
+export const colorTargetSchema = z.object({ target: z.enum(['item','wall']), id, color: colorSchema }).strict();
 const item = z.object({
   id, room_id: id, kind: id, name: z.string(), pos: point, rot: num,
   size: z.tuple([num.positive(), num.positive(), num.positive()]), keep: z.boolean(),
-  sku: id.optional(), price: num.int().nonnegative().optional(), vendor: z.string().optional(),
+  sku: id.optional(), price: num.int().nonnegative().optional(), vendor: z.string().optional(), color: colorSchema.optional(), group_id: id.optional(),
 });
 const sceneInput = z.object({
   north_deg: num.optional(),
   rooms: z.array(z.object({ id, name: z.string().optional(), polygon: z.array(point).min(3) })),
-  walls: z.array(z.object({ id, room_id: id, a: point, b: point, open: z.boolean().optional() })),
+  walls: z.array(z.object({ id, room_id: id, a: point, b: point, open: z.boolean().optional(), color: colorSchema.optional(), source_id: id.optional(), keep: z.boolean().optional(), thickness: num.nonnegative().optional(), height: num.positive().optional() })),
   openings: z.array(z.object({
     id, wall_id: id, kind: z.enum(['door', 'window', 'passage']), offset: num.nonnegative(),
     width: num.positive(), height: num.positive(), sill: num.nonnegative(),
@@ -25,6 +27,7 @@ export const opsSchema = z.array(z.discriminatedUnion('type', [
   z.object({type:z.literal('move'),id,pos:point,rot:num.optional(),room_id:id.optional()}).strict(),
   z.object({type:z.literal('add'),item:item.strict()}).strict(),
   z.object({type:z.literal('remove'),id}).strict(),
+  colorTargetSchema.extend({type:z.literal('color')}).strict(),
 ])).max(200);
 
 export function parseOps(input:unknown):Op[] { return opsSchema.parse(input); }
@@ -62,12 +65,37 @@ export function applyOps(scene: Scene, ops: readonly Op[] = []): Scene {
       copy.items.push(structuredClone(op.item));
       continue;
     }
+    if (op.type === 'color' && op.target === 'wall') {
+      const wall = copy.walls.find(wall => wall.id === op.id);
+      if (!wall || wall.open) throw new Error(`Unknown or open wall: ${op.id}`);
+      const segments = copy.walls.filter(other => other.id === wall.id || (wall.source_id !== undefined && other.source_id === wall.source_id));
+      if (segments.some(segment => segment.keep)) throw new Error(`Kept or locked wall cannot change: ${op.id}`);
+      for (const segment of segments) segment.color = op.color;
+      continue;
+    }
     const index = copy.items.findIndex(i=>i.id===op.id);
     if (index < 0) throw new Error(`Unknown or fixed item: ${op.id}`);
     const target = copy.items[index]!;
     if (target.keep) throw new Error(`Kept item cannot change: ${op.id}`);
-    if (op.type === 'remove') copy.items.splice(index,1);
+    if (op.type === 'color') target.color = op.color;
+    else if (op.type === 'remove') {
+      copy.items.splice(index,1);
+      if (target.group_id) {
+        const remaining = copy.items.filter(item => item.group_id === target.group_id);
+        if (remaining.length === 1) delete remaining[0]!.group_id;
+      }
+    }
     else if (op.type === 'move') {
+      const members = target.group_id ? [...copy.items,...copy.fixed].filter(item => item.group_id === target.group_id) : [target];
+      if (members.some(item => item.keep || copy.fixed.includes(item))) throw new Error(`Kept or fixed group member cannot move: ${op.id}`);
+      const delta = (op.rot ?? target.rot) - target.rot, radians = delta * Math.PI / 180;
+      const cosine = Math.cos(radians), sine = Math.sin(radians), [x,y] = target.pos;
+      for (const member of members) if (member !== target) {
+        const dx = member.pos[0] - x, dy = member.pos[1] - y;
+        member.pos = [op.pos[0] + cosine * dx - sine * dy, op.pos[1] + sine * dx + cosine * dy];
+        member.rot += delta;
+        if (op.room_id !== undefined && op.room_id !== target.room_id) member.room_id = op.room_id;
+      }
       target.pos = [...op.pos];
       if (op.rot !== undefined) target.rot = op.rot;
       if (op.room_id !== undefined) target.room_id = op.room_id;
@@ -109,6 +137,8 @@ export function sceneSummary(scene: Scene, roomIds?: string[]) {
   return structuredClone({
     north_deg: scene.north_deg ?? null,
     coordinate_convention: 'metres; x right, y plan-up; rot counterclockwise; front local -y; north_deg clockwise from plan-up',
+    appearance: 'color ops accept #RRGGBB for item or wall. A wall color paints both faces and all segments sharing source_id. Missing wall color can mean mixed face finishes. Paint and labour are not quoted.',
+    groups: 'Moving one item with group_id rigidly moves and rotates every member; place and propose validate all members. Colour changes affect only the selected item.',
     rooms: scene.rooms.filter(r=>selected(r.id)),
     walls: walls.map(w=>({ ...w, compass: wallCompass(scene,w) })),
     openings: scene.openings.filter(o=>walls.some(w=>w.id===o.wall_id)),

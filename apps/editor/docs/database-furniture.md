@@ -17,3 +17,17 @@ The store retains validated search results plus every catalog reference used by 
 Catalog-only verification: `pnpm --filter @varpet/editor test:catalog` checks mapping, dimensions/orientation, registration/history, invalid records, empty startup, snapshot hydration, currency handling, renderer resources, transport sessions/SSE, deadlines and error sanitization. Full verification and live connectivity evidence are recorded with the task output. On 2026-09-26 the documented service timed out from this machine; live database success remains unproven until that connection is available.
 
 Notion could not be updated: no Notion connector or exported specs were available in this workspace. This document records the changed contract for the next contributor.
+
+## Designer chat integration
+
+The live designer receives the current validated catalog snapshot and explicit AMD
+price units. Assets added by pending proposals retain their exact product records
+until approval/dismissal or a scene revision change. A later library search may
+prune its normal cache; preview/apply re-register the proposed products without
+changing the document or its undo history. Multiple conversations at the same
+revision retain independent proposal products.
+
+This does not preload every database item: a purchase proposal must reference an
+asset present in the submitted catalog. Unsupported service-side kinds, elevations
+and building components continue to fail explicitly. End-to-end live purchasing
+against the remote catalog was not verified during consolidation.
