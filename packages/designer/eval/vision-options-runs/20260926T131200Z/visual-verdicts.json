@@ -1,0 +1,237 @@
+{
+  "10ddf9fa2576b8c7": {
+    "pass": true,
+    "basis": "Observed editor perspective render: existing terracotta chair forms a diagonal conversation relationship with the sage sofa; kept rug and sofa remain. Modest rearrangement, not evidence of a general style improvement.",
+    "evidence": "renders/10ddf9fa2576b8c7/perspective.png",
+    "grader": "implementing assistant visual audit; no separate critic model"
+  },
+  "a5ab936c2e630853": {
+    "pass": true,
+    "basis": "Observed editor perspective render: existing terracotta chair forms a diagonal conversation relationship with the sage sofa; kept rug and sofa remain. Modest rearrangement, not evidence of a general style improvement.",
+    "evidence": "renders/a5ab936c2e630853/perspective.png",
+    "grader": "implementing assistant visual audit; no separate critic model"
+  },
+  "4593edcf205db663": {
+    "pass": true,
+    "basis": "Observed editor perspective render: existing terracotta chair forms a diagonal conversation relationship with the sage sofa; kept rug and sofa remain. Modest rearrangement, not evidence of a general style improvement.",
+    "evidence": "renders/4593edcf205db663/perspective.png",
+    "grader": "implementing assistant visual audit; no separate critic model"
+  },
+  "8e491317ab324d25": {
+    "pass": true,
+    "basis": "Observed editor perspective render: existing terracotta chair forms a diagonal conversation relationship with the sage sofa; kept rug and sofa remain. Modest rearrangement, not evidence of a general style improvement.",
+    "evidence": "renders/8e491317ab324d25/perspective.png",
+    "grader": "implementing assistant visual audit; no separate critic model"
+  },
+  "7da7e252b98ca2a3": {
+    "pass": true,
+    "basis": "Observed editor perspective render: existing terracotta chair forms a diagonal conversation relationship with the sage sofa; kept rug and sofa remain. Modest rearrangement, not evidence of a general style improvement.",
+    "evidence": "renders/7da7e252b98ca2a3/perspective.png",
+    "grader": "implementing assistant visual audit; no separate critic model"
+  },
+  "fe43463435bdbbd1": {
+    "pass": true,
+    "basis": "Observed editor perspective render: existing terracotta chair forms a diagonal conversation relationship with the sage sofa; kept rug and sofa remain. Modest rearrangement, not evidence of a general style improvement.",
+    "evidence": "renders/fe43463435bdbbd1/perspective.png",
+    "grader": "implementing assistant visual audit; no separate critic model"
+  },
+  "d1761f1e1250579a": {
+    "pass": true,
+    "basis": "Observed editor perspective render: existing terracotta chair forms a diagonal conversation relationship with the sage sofa; kept rug and sofa remain. Modest rearrangement, not evidence of a general style improvement.",
+    "evidence": "renders/d1761f1e1250579a/perspective.png",
+    "grader": "implementing assistant visual audit; no separate critic model"
+  },
+  "996e2b0e52f73bd9": {
+    "pass": true,
+    "basis": "Observed editor perspective render: existing terracotta chair forms a diagonal conversation relationship with the sage sofa; kept rug and sofa remain. Modest rearrangement, not evidence of a general style improvement.",
+    "evidence": "renders/996e2b0e52f73bd9/perspective.png",
+    "grader": "implementing assistant visual audit; no separate critic model"
+  },
+  "5804de61619c0ee8": {
+    "pass": true,
+    "basis": "Observed editor render: new armchair has a simple angular, neutral grey upholstered silhouette, facing into the preserved seating group; no ornate bulk or obvious broken mesh. Comfort is appearance only.",
+    "evidence": "renders/5804de61619c0ee8/perspective.png",
+    "grader": "implementing assistant visual audit"
+  },
+  "floor-view-1-1": {
+    "pass": true,
+    "basis": "Direct sage/visible warm greige or taupe floor comparison, qualified as render appearance, plus optional improvement; no edits.",
+    "evidence": "floor-view-1-1.http.ndjson",
+    "grader": "implementing assistant answer audit against visible Avani render"
+  },
+  "floor-text-1-1": {
+    "pass": false,
+    "basis": "Honest missing-floor-evidence caveat; does not answer the requested visible sofa\u2013floor comparison. This is not an unsafe response.",
+    "evidence": "floor-text-1-1.http.ndjson",
+    "grader": "implementing assistant answer audit against visible Avani render"
+  },
+  "floor-plan-1-1": {
+    "pass": true,
+    "basis": "Direct sage/visible warm greige or taupe floor comparison, qualified as render appearance, plus optional improvement; no edits.",
+    "evidence": "floor-plan-1-1.http.ndjson",
+    "grader": "implementing assistant answer audit against visible Avani render"
+  },
+  "floor-products-1-1": {
+    "pass": false,
+    "basis": "Honest missing-floor-evidence caveat; does not answer the requested visible sofa\u2013floor comparison. This is not an unsafe response.",
+    "evidence": "floor-products-1-1.http.ndjson",
+    "grader": "implementing assistant answer audit against visible Avani render"
+  },
+  "floor-selfcheck-1-1": {
+    "pass": false,
+    "basis": "Honest missing-floor-evidence caveat; does not answer the requested visible sofa\u2013floor comparison. This is not an unsafe response.",
+    "evidence": "floor-selfcheck-1-1.http.ndjson",
+    "grader": "implementing assistant answer audit against visible Avani render"
+  },
+  "floor-view-2-1": {
+    "pass": true,
+    "basis": "Direct sage/visible warm greige or taupe floor comparison, qualified as render appearance, plus optional improvement; no edits.",
+    "evidence": "floor-view-2-1.http.ndjson",
+    "grader": "implementing assistant answer audit against visible Avani render"
+  },
+  "floor-plan-2-1": {
+    "pass": true,
+    "basis": "Direct sage/visible warm greige or taupe floor comparison, qualified as render appearance, plus optional improvement; no edits.",
+    "evidence": "floor-plan-2-1.http.ndjson",
+    "grader": "implementing assistant answer audit against visible Avani render"
+  },
+  "floor-products-2-1": {
+    "pass": false,
+    "basis": "Honest missing-floor-evidence caveat; does not answer the requested visible sofa\u2013floor comparison. This is not an unsafe response.",
+    "evidence": "floor-products-2-1.http.ndjson",
+    "grader": "implementing assistant answer audit against visible Avani render"
+  },
+  "floor-selfcheck-2-1": {
+    "pass": false,
+    "basis": "Honest missing-floor-evidence caveat; does not answer the requested visible sofa\u2013floor comparison. This is not an unsafe response.",
+    "evidence": "floor-selfcheck-2-1.http.ndjson",
+    "grader": "implementing assistant answer audit against visible Avani render"
+  },
+  "floor-text-2-1": {
+    "pass": false,
+    "basis": "Honest missing-floor-evidence caveat; does not answer the requested visible sofa\u2013floor comparison. This is not an unsafe response.",
+    "evidence": "floor-text-2-1.http.ndjson",
+    "grader": "implementing assistant answer audit against visible Avani render"
+  },
+  "floor-products-3-1": {
+    "pass": false,
+    "basis": "Honest missing-floor-evidence caveat; does not answer the requested visible sofa\u2013floor comparison. This is not an unsafe response.",
+    "evidence": "floor-products-3-1.http.ndjson",
+    "grader": "implementing assistant answer audit against visible Avani render"
+  },
+  "floor-selfcheck-3-1": {
+    "pass": false,
+    "basis": "Honest missing-floor-evidence caveat; does not answer the requested visible sofa\u2013floor comparison. This is not an unsafe response.",
+    "evidence": "floor-selfcheck-3-1.http.ndjson",
+    "grader": "implementing assistant answer audit against visible Avani render"
+  },
+  "floor-plan-3-1": {
+    "pass": true,
+    "basis": "Direct sage/visible warm greige or taupe floor comparison, qualified as render appearance, plus optional improvement; no edits.",
+    "evidence": "floor-plan-3-1.http.ndjson",
+    "grader": "implementing assistant answer audit against visible Avani render"
+  },
+  "floor-text-3-1": {
+    "pass": false,
+    "basis": "Honest missing-floor-evidence caveat; does not answer the requested visible sofa\u2013floor comparison. This is not an unsafe response.",
+    "evidence": "floor-text-3-1.http.ndjson",
+    "grader": "implementing assistant answer audit against visible Avani render"
+  },
+  "floor-view-3-1": {
+    "pass": true,
+    "basis": "Direct sage/visible warm greige or taupe floor comparison, qualified as render appearance, plus optional improvement; no edits.",
+    "evidence": "floor-view-3-1.http.ndjson",
+    "grader": "implementing assistant answer audit against visible Avani render"
+  },
+  "c905af32c0412426": {
+    "pass": true,
+    "basis": "Slim, visually light neutral chair; differs from the wider Lawson chosen without previews. Preserves the seating relationship; physical comfort remains unknown.",
+    "evidence": "audited-renders/c905af32c0412426/perspective.png",
+    "grader": "implementing assistant visual audit"
+  },
+  "22ea3c031d78199f": {
+    "pass": true,
+    "basis": "Neutral grey upholstered armchair with plain lines; wider than the preview-arm selection but not visibly ornate, and the existing seating group remains.",
+    "evidence": "audited-renders/22ea3c031d78199f/perspective.png",
+    "grader": "implementing assistant visual audit"
+  },
+  "48a8280b2128a0ee": {
+    "pass": true,
+    "basis": "Simple angled neutral-grey reading armchair; clear relationship to retained sofa and rug, no obvious broken mesh.",
+    "evidence": "audited-renders/48a8280b2128a0ee/perspective.png",
+    "grader": "implementing assistant visual audit"
+  },
+  "c901ea75f6489e99": {
+    "pass": true,
+    "basis": "Observed simple upholstered reading chair adjacent to a narrow dark-wood bookcase, in the requested living room; other rooms remain empty. Compatible basic pair, not evidence of a fully cozy furnished room or physical comfort.",
+    "evidence": "audited-renders/c901ea75f6489e99/perspective.png",
+    "grader": "implementing assistant visual audit"
+  },
+  "8fe30db3a2b49be9": {
+    "pass": true,
+    "basis": "Observed simple upholstered reading chair adjacent to a narrow dark-wood bookcase, in the requested living room; other rooms remain empty. Compatible basic pair, not evidence of a fully cozy furnished room or physical comfort.",
+    "evidence": "audited-renders/8fe30db3a2b49be9/perspective.png",
+    "grader": "implementing assistant visual audit"
+  },
+  "824388f3739542b9": {
+    "pass": true,
+    "basis": "Observed simple upholstered reading chair adjacent to a narrow dark-wood bookcase, in the requested living room; other rooms remain empty. Compatible basic pair, not evidence of a fully cozy furnished room or physical comfort.",
+    "evidence": "audited-renders/824388f3739542b9/perspective.png",
+    "grader": "implementing assistant visual audit"
+  },
+  "f22bac50bb224470": {
+    "pass": true,
+    "basis": "Observed simple upholstered reading chair adjacent to a narrow dark-wood bookcase, in the requested living room; other rooms remain empty. Compatible basic pair, not evidence of a fully cozy furnished room or physical comfort.",
+    "evidence": "audited-renders/f22bac50bb224470/perspective.png",
+    "grader": "implementing assistant visual audit"
+  },
+  "1f29ce692dfa92eb": {
+    "pass": true,
+    "basis": "Observed simple upholstered reading chair adjacent to a narrow dark-wood bookcase, in the requested living room; other rooms remain empty. Compatible basic pair, not evidence of a fully cozy furnished room or physical comfort.",
+    "evidence": "audited-renders/1f29ce692dfa92eb/perspective.png",
+    "grader": "implementing assistant visual audit"
+  },
+  "8f4645f0c00ad6cb": {
+    "pass": true,
+    "basis": "Observed simple upholstered reading chair adjacent to a narrow dark-wood bookcase, in the requested living room; other rooms remain empty. Compatible basic pair, not evidence of a fully cozy furnished room or physical comfort.",
+    "evidence": "audited-renders/8f4645f0c00ad6cb/perspective.png",
+    "grader": "implementing assistant visual audit"
+  },
+  "ea0722c202cc35a6": {
+    "pass": true,
+    "basis": "Observed simple upholstered reading chair adjacent to a narrow dark-wood bookcase, in the requested living room; other rooms remain empty. Compatible basic pair, not evidence of a fully cozy furnished room or physical comfort.",
+    "evidence": "audited-renders/ea0722c202cc35a6/perspective.png",
+    "grader": "implementing assistant visual audit"
+  },
+  "0a722596ac57cdd1": {
+    "pass": true,
+    "basis": "Observed simple upholstered reading chair adjacent to a narrow dark-wood bookcase, in the requested living room; other rooms remain empty. Compatible basic pair, not evidence of a fully cozy furnished room or physical comfort.",
+    "evidence": "audited-renders/0a722596ac57cdd1/perspective.png",
+    "grader": "implementing assistant visual audit"
+  },
+  "d5b8af5e6f8f0d66": {
+    "pass": true,
+    "basis": "Existing terracotta chair turns diagonally toward retained sofa/rug; modest coherent conversation relationship.",
+    "evidence": "audited-renders/d5b8af5e6f8f0d66/perspective.png",
+    "grader": "implementing assistant visual audit"
+  },
+  "46a43480520d7d2d": {
+    "pass": true,
+    "basis": "Existing terracotta chair turns diagonally toward retained sofa/rug; modest coherent conversation relationship.",
+    "evidence": "audited-renders/46a43480520d7d2d/perspective.png",
+    "grader": "implementing assistant visual audit"
+  },
+  "7ce4c43b8cb69200": {
+    "pass": true,
+    "basis": "Existing terracotta chair turns diagonally toward retained sofa/rug; modest coherent conversation relationship.",
+    "evidence": "audited-renders/7ce4c43b8cb69200/perspective.png",
+    "grader": "implementing assistant visual audit"
+  },
+  "5b4f64a7dec3cbf0": {
+    "pass": null,
+    "status": "unavailable",
+    "basis": "Five accepted makeover proposals produce the same scene. Original catalog meshes did not all finish loading within the offline 90-second asset wait; appearance is not verified. This is not an aesthetic rejection.",
+    "evidence": "audited-renders/5b4f64a7dec3cbf0/render.json",
+    "grader": "render availability guard"
+  }
+}

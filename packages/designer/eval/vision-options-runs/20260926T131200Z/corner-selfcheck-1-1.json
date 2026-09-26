@@ -1,0 +1,93 @@
+{
+  "id": "corner-selfcheck-1-1",
+  "scenario": "corner",
+  "flat": "avani",
+  "arm": "selfcheck",
+  "rep": 1,
+  "turn": 1,
+  "request": "Make THIS corner cozier with the furniture I own: turn the lounge chair toward the sofa to create a conversation corner, keeping the rug and sofa. No purchases.",
+  "seconds": 72.827397208,
+  "tokens": 65563,
+  "visual": {
+    "timestamp": "2026-09-26T13:14:39.407464+00:00",
+    "kind": "visual_confirmation",
+    "budget_seconds": 20,
+    "status": "timeout",
+    "tokens": null,
+    "render_seconds": 3.194883582997136,
+    "model_seconds": 16.856108999985736,
+    "usage": null,
+    "reason": "Visual confirmation did not finish within the time budget",
+    "seconds": 20.05860433296766
+  },
+  "tools": [
+    {
+      "name": "set_intent",
+      "status": "completed",
+      "arguments": {
+        "room_id": "room-living",
+        "budget_dram": 0,
+        "keeps": [
+          "living-rug",
+          "sofa"
+        ],
+        "add": [],
+        "remove": [],
+        "move": [
+          {
+            "count": 1,
+            "kinds": [
+              "chair"
+            ]
+          }
+        ],
+        "preferences": [
+          {
+            "type": "facing",
+            "item_id": "lounge-chair",
+            "anchor_id": "sofa",
+            "tolerance_deg": 10
+          }
+        ]
+      }
+    },
+    {
+      "name": "propose",
+      "status": "completed",
+      "arguments": {
+        "ops": [
+          {
+            "type": "move",
+            "id": "lounge-chair",
+            "pos": [
+              -1.7,
+              -1
+            ],
+            "rot": -41,
+            "room_id": "room-living"
+          }
+        ],
+        "rationale": "Create a useful conversation corner with owned furniture: bring the lounge chair around the rug's open corner and turn its front directly toward the sofa, with the coffee table between the seats. Keep the rug and sofa in their original positions and rotations, retain every piece, and leave all other furniture unchanged. No purchases or styling changes."
+      }
+    }
+  ],
+  "model_seconds": 51.5569185410277,
+  "total_tokens": null,
+  "outcome": "question",
+  "editor_accepted": null,
+  "scope_ok": true,
+  "technical_pass": false,
+  "visual_pass": null,
+  "reply": {
+    "type": "question",
+    "conversationId": "547a1fb3eef84d1cba46fe6630d5837e",
+    "question": "I haven’t confirmed that this preview meets the requested look. Visual confirmation did not finish within the time budget",
+    "options": [
+      "Adjust the style request",
+      "Try again without visual confirmation"
+    ]
+  },
+  "result": null,
+  "validation": null,
+  "conversationId": "547a1fb3eef84d1cba46fe6630d5837e"
+}

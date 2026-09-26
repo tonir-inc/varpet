@@ -1,0 +1,13 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "decline", "conversationId": "0f78b74edcd44e379294bfd654d755d1", "message": "I couldn’t generate a complete checked purchase preview: the catalog search returned no suitable bedroom compositions and flagged beds, bedside tables, lamps, storage and rugs as unavailable.\n\nThe intended scheme is a neutral upholstered bed, two light-wood bedside tables, two lamps, coordinated storage and a soft rug. Nothing has changed; exact pricing is unavailable and your budget remains unconfirmed. Door-sweep clearance is also unverified."}

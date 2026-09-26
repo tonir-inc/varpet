@@ -1,0 +1,8 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "decline", "conversationId": "046ecb5f5f284e83afe33f9c42809d30", "message": "The catalog is currently unavailable, so I can’t show product renders, verify their appearance, or create a priced purchase preview.\n\nThe planned set is a neutral upholstered bed, two light-wood bedside tables, two bedside lamps, and coordinating storage. Budget remains unconfirmed. No products have been selected or changes made; the complete preview will require your acceptance."}

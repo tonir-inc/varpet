@@ -1,0 +1,8 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "decline", "conversationId": "4ad4b0dac27145e1b0a31898a774653a", "message": "I couldn’t generate a complete, physically checked catalog composition for this bedroom, so no purchase preview was created.\n\nThe intended set is a neutral upholstered bed, two light-wood bedside tables, two lamps, storage and a soft rug. Catalog availability and fit remain unresolved; I can’t quote a verified total. Your budget remains unconfirmed, and the scene is unchanged."}

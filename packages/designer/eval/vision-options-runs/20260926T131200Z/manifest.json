@@ -1,0 +1,82 @@
+{
+  "started_at": "2026-09-26T13:11:20.666Z",
+  "revision": "a04fda888b5026b53989f7c3cc84ea1dfb5c3c89",
+  "scenarios": [
+    {
+      "id": "ashot",
+      "flat": "avani",
+      "turns": [
+        "Remake the living room in minimalistic style but cozy.",
+        "The accent chairs look odd and are lined up against a wall. Replace them with visually simple, compatible seating and arrange a useful cozy conversation area. You may replace the living-room furniture; keep the other rooms unchanged."
+      ],
+      "expect": "proposal"
+    },
+    {
+      "id": "floor",
+      "flat": "avani",
+      "turns": [
+        "Does the sofa colour go with the floor? Explain the visible palette and one optional small improvement. Do not change anything."
+      ],
+      "expect": "answer"
+    },
+    {
+      "id": "corner",
+      "flat": "avani",
+      "turns": [
+        "Make THIS corner cozier with the furniture I own: turn the lounge chair toward the sofa to create a conversation corner, keeping the rug and sofa. No purchases."
+      ],
+      "expect": "proposal"
+    },
+    {
+      "id": "accent",
+      "flat": "avani",
+      "turns": [
+        "Replace only the terracotta lounge chair with one visually simple, comfortable reading armchair in neutral fabric that suits the sage sofa and warm floor. Avoid bulky ornate shapes. Keep its useful seating relationship and everything else unchanged. Show a purchase preview; budget is unconfirmed."
+      ],
+      "expect": "proposal"
+    },
+    {
+      "id": "bedroom",
+      "flat": "b20-t11",
+      "turns": [
+        "Furnish the bedroom in a calm, cozy Scandinavian style. Include the sleeping and bedside essentials, visually light wood and neutral upholstery. Show a coherent purchase preview; budget is unconfirmed."
+      ],
+      "expect": "proposal"
+    },
+    {
+      "id": "reading",
+      "flat": "b28-t31",
+      "turns": [
+        "Make the living room a cozy place to read with one comfortable, visually simple armchair and a book shelf. Keep the rest of the apartment empty. Use the developer’s drawn furniture as a starting idea if the plan is available; show a purchase preview with budget unconfirmed."
+      ],
+      "expect": "proposal"
+    }
+  ],
+  "arms": [
+    "text",
+    "view",
+    "products",
+    "selfcheck",
+    "plan"
+  ],
+  "repetitions": 3,
+  "concurrency": 4,
+  "model": "gpt-6-astra",
+  "effort": "low",
+  "profile": {
+    "placement": "without-place",
+    "context": "compact-base"
+  },
+  "assumptions": "Ashot first-turn wording is supplied; second turn is a reconstructed correction from his reported failure, not an exact recovered transcript. JSON/source geometry, catalog and prompts stay paired. Plan bytes are local external inputs, never committed.",
+  "rubric": "Independent EditorStore/validateScene acceptance and request-specific operation checks; style/appearance is separately blind-reviewed from rendered results and answer text. Declines, clarification, render failure and timeouts do not pass actionable requests. No same-model critic is used as the evaluation grader.",
+  "source_hashes": {
+    "harness/designer.py": "676f738378fe0c88d2cb0b9f26527945bd1fd2cf0b5a0ef2ec8dd82409fc043b",
+    "harness/designer_service.py": "e4fab3f0b9fdbaa4ccf4093b9e3d04398b7e1a332f069def2a6a9b58bf199f26",
+    "harness/designer_vision.py": "a9c9cda48e7453982c541a99e0629420effe31da7c967a2d113bd66d1d422e39",
+    "harness/designer_vision_render.py": "c4ac745b5366f3a478bc9a3efcef97d0e020afa6db53f1bbeab7ed2e9d80ffe7",
+    "packages/designer/src/server.ts": "a4d2dfe93e5a572aeb906b05ebb73f4388d6ff47d2dbe7c83fb824069f5ca264",
+    "packages/designer/src/catalog-vision.ts": "90920623f55c332bcfccb0aa70861122ac5df00a5f02d852303a2489365ef8c5",
+    "packages/designer/eval/vision-options.ts": "97b5ce835562b6f1bb1e72bf8b35de836c8c32d8ff2b4f47d22c99a5345da6fa",
+    "packages/designer/eval/vision-options-service.py": "38c1b454ef69882909788bb46bdb9e3312138c0251bdd73ae9b86be606c7767e"
+  }
+}

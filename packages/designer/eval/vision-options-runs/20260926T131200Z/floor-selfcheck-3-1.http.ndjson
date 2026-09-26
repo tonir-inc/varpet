@@ -1,0 +1,9 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "decline", "conversationId": "53b86e5e845c46f6ad07982f2fc2da51", "message": "The sage-green sofa suits the room’s warm, earthy palette: a sandy beige rug, walnut and oak furniture, terracotta chair and brass accents, balanced by creamy walls.\n\nI can’t confirm the floor pairing specifically—the supplied scene has no floor colour or rendered image. If it’s warm-toned wood, sage should complement it nicely.\n\nOne optional small improvement: a slightly lighter cream rug could give the sofa more definition. Nothing has been changed."}

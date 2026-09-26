@@ -1,0 +1,12 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "decline", "conversationId": "5a02615656c64af3a300b463202fa268", "message": "I couldn’t produce a complete, physically checked Scandinavian bedroom preview: the tested compositions failed solid-wall headboard placement or bedside access checks.\n\nNo changes or purchases were made. Your budget remains unconfirmed; there’s no verified package price yet. Door-swing clearance is also unverified."}

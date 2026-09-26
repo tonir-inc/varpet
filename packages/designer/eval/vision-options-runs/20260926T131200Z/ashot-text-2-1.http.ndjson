@@ -1,0 +1,7 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "decline", "conversationId": "92df5d68bff744a786295062a515fa2b", "message": "I couldn’t create a complete checked preview: the catalog currently lacks a compatible, dimensioned furniture set.\n\nThe intended direction is simple upholstered seating, warm wood, a quiet rug and reachable reading light—minimal but cozy. Nothing has changed; other rooms remain untouched. Budget is unconfirmed, and no purchase total is available.\n\nWould you like a no-purchase rearrangement using your existing furniture instead?"}

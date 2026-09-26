@@ -1,0 +1,9 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "decline", "conversationId": "2379264bc1c447b0b841bd852f5eaa80", "message": "The catalog is unavailable, so I can’t show a valid purchase preview or exact price yet. Nothing has changed.\n\nThe replacement brief is one simple neutral-fabric reading armchair, retaining the terracotta chair’s position and orientation, with everything else untouched. Budget remains unconfirmed; any eventual preview will require your acceptance."}

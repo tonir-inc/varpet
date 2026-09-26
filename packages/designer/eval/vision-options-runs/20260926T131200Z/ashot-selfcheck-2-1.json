@@ -1,0 +1,55 @@
+{
+  "id": "ashot-selfcheck-2-1",
+  "scenario": "ashot",
+  "flat": "avani",
+  "arm": "selfcheck",
+  "rep": 2,
+  "turn": 1,
+  "request": "Remake the living room in minimalistic style but cozy.",
+  "seconds": 19.958294209000016,
+  "tokens": 36001,
+  "tools": [
+    {
+      "name": "set_intent",
+      "status": "completed",
+      "arguments": {
+        "room_id": "room-living",
+        "keeps": [
+          "kitchen-sideboard",
+          "kitchen-island",
+          "bathroom-vanity",
+          "bathroom-fern",
+          "bedroom-rug",
+          "bed",
+          "bedside-table",
+          "bedroom-wardrobe"
+        ]
+      }
+    },
+    {
+      "name": "search_catalog",
+      "status": "completed",
+      "arguments": {
+        "room_id": "room-living",
+        "style_request": "Remake the living room in minimalistic style but cozy. A bounded visual confirmation will inspect the actual rendered proposal before delivery; avoid token styling changes or chairs lined up without a useful seating relationship.",
+        "remake": true,
+        "excluded_roles": []
+      }
+    }
+  ],
+  "model_seconds": 19.32969958294416,
+  "total_tokens": 36001,
+  "outcome": "decline",
+  "editor_accepted": null,
+  "scope_ok": true,
+  "technical_pass": false,
+  "visual_pass": null,
+  "reply": {
+    "type": "decline",
+    "conversationId": "37c4f880111e438a8d925ff23d214146",
+    "message": "I couldn’t generate a complete checked preview: the catalog currently lacks a compatible, sized set for the sofa, rug, table, reading light and focal storage.\n\nThe direction is warm minimalism: simple upholstered seating, a quiet rug and warm wood, arranged for conversation—not lined-up chairs. Nothing has changed; other rooms remain untouched. Budget is unconfirmed, and an exact cost requires available catalog products."
+  },
+  "result": null,
+  "validation": null,
+  "conversationId": "37c4f880111e438a8d925ff23d214146"
+}

@@ -1,0 +1,8 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "decline", "conversationId": "d523eeadb6184a31abf18faa0daee2c7", "message": "The catalog is unavailable, including the separate chair search, so there are no product IDs or renders to inspect. I can’t honestly select compatible replacement seating or quote a purchase preview yet.\n\nNothing has changed; other rooms remain untouched. Your supplied scene contains one lounge chair plus four dining chairs. The budget remains unconfirmed. Please restore catalog access so I can visually check replacements and propose a checked conversation layout."}

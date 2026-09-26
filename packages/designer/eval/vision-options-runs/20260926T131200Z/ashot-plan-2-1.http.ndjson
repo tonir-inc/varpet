@@ -1,0 +1,7 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "decline", "conversationId": "dd0f5e7a13a7409d8551c2c99f9e70ae", "message": "The catalog currently lacks a complete, sized furniture set for a cozy minimalist remake, so I can’t produce a checked purchase preview. Nothing has changed; your budget remains unconfirmed.\n\nWould you like a zero-cost rearrangement of your existing furniture instead, keeping the sage sofa, woven rug and warm wood tones?"}

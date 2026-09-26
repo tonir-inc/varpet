@@ -1,0 +1,8 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "decline", "conversationId": "0e5205e3c06048cf90ea920be4532dca", "message": "I’ve recorded one reading armchair and one bookshelf for the living room, leaving the rest of the apartment empty and the budget unconfirmed.\n\nThe catalog is unavailable, so I can’t provide verified products, exact prices or a checked purchase preview. No changes were made. The supplied scene contains no drawn furniture to use as a starting idea."}

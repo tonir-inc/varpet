@@ -1,0 +1,38 @@
+[
+  {
+    "flat": "avani",
+    "view": "top",
+    "sha256": "aaddfcedeea882fabf4f397ee9f9ac3a35d16ee62438886ac6f63898727df1d5",
+    "file": "initial-views/avani-top.png"
+  },
+  {
+    "flat": "avani",
+    "view": "perspective",
+    "sha256": "9032755435bd273928e07eaa8ff3012932df53512043e111414619a7a042eae7",
+    "file": "initial-views/avani-perspective.png"
+  },
+  {
+    "flat": "b20-t11",
+    "view": "top",
+    "sha256": "e05a2dcd51ae95fceadd3953c7209d72d47c59faff18c0991519ecced42a2846",
+    "file": "initial-views/b20-t11-top.png"
+  },
+  {
+    "flat": "b20-t11",
+    "view": "perspective",
+    "sha256": "5af1ad509e30e5b727114acac3b866005e7c35f38dca1a5bd298431bf72b260f",
+    "file": "initial-views/b20-t11-perspective.png"
+  },
+  {
+    "flat": "b28-t31",
+    "view": "top",
+    "sha256": "5e23b9afa1a946ef781bdf0dfd7539d3bd149e9665e52c484b12facf21e5b5bf",
+    "file": "initial-views/b28-t31-top.png"
+  },
+  {
+    "flat": "b28-t31",
+    "view": "perspective",
+    "sha256": "0cecb814ebf7add2bec4dad01cd37a340af4535cd5d3743a3a89fcda140eea2a",
+    "file": "initial-views/b28-t31-perspective.png"
+  }
+]

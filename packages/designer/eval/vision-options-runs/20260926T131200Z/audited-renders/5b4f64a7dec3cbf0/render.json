@@ -1,0 +1,7 @@
+{
+  "errors": [
+    "Page.wait_for_function: Timeout 90000ms exceeded."
+  ],
+  "requests_failed": [],
+  "seconds": 90.87859570805449
+}

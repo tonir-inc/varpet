@@ -1,0 +1,55 @@
+{
+  "id": "ashot-plan-1-1",
+  "scenario": "ashot",
+  "flat": "avani",
+  "arm": "plan",
+  "rep": 1,
+  "turn": 1,
+  "request": "Remake the living room in minimalistic style but cozy.",
+  "seconds": 28.960720707999993,
+  "tokens": 36783,
+  "tools": [
+    {
+      "name": "set_intent",
+      "status": "completed",
+      "arguments": {
+        "room_id": "room-living",
+        "keeps": [
+          "kitchen-sideboard",
+          "kitchen-island",
+          "bathroom-vanity",
+          "bathroom-fern",
+          "bedroom-rug",
+          "bed",
+          "bedside-table",
+          "bedroom-wardrobe"
+        ]
+      }
+    },
+    {
+      "name": "search_catalog",
+      "status": "completed",
+      "arguments": {
+        "room_id": "room-living",
+        "style_request": "Remake the living room in minimalistic style but cozy.",
+        "remake": true,
+        "excluded_roles": []
+      }
+    }
+  ],
+  "model_seconds": 28.60319354198873,
+  "total_tokens": 36783,
+  "outcome": "decline",
+  "editor_accepted": null,
+  "scope_ok": true,
+  "technical_pass": false,
+  "visual_pass": null,
+  "reply": {
+    "type": "decline",
+    "conversationId": "f4612bb6c2f94e99a755b40b17e705ac",
+    "message": "I can preview a cozy minimalist remake, but the catalog currently lacks a complete, dimensioned furniture set, so I couldn’t produce a checked proposal or exact price. Your room remains unchanged; the budget is unconfirmed.\n\nWould you like a no-purchase rearrangement of your existing furniture instead, keeping the sage sofa, warm wood and woven rug?"
+  },
+  "result": null,
+  "validation": null,
+  "conversationId": "f4612bb6c2f94e99a755b40b17e705ac"
+}

@@ -1,0 +1,185 @@
+{
+  "id": "ashot-selfcheck-3-1",
+  "scenario": "ashot",
+  "flat": "avani",
+  "arm": "selfcheck",
+  "rep": 3,
+  "turn": 1,
+  "request": "Remake the living room in minimalistic style but cozy.",
+  "seconds": 81.47642345799994,
+  "tokens": 122188,
+  "visual": {
+    "timestamp": "2026-09-26T13:22:41.901122+00:00",
+    "kind": "visual_confirmation",
+    "budget_seconds": 20,
+    "status": "timeout",
+    "tokens": null,
+    "render_seconds": 20.483254833030514,
+    "model_seconds": 0,
+    "reason": "Visual rendering failed or exceeded its time budget: ",
+    "seconds": 20.488535333017353
+  },
+  "tools": [
+    {
+      "name": "set_intent",
+      "status": "completed",
+      "arguments": {
+        "room_id": "room-living",
+        "keeps": [
+          "kitchen-sideboard",
+          "kitchen-island",
+          "bathroom-vanity",
+          "bathroom-fern",
+          "bedroom-rug",
+          "bed",
+          "bedside-table",
+          "bedroom-wardrobe"
+        ]
+      }
+    },
+    {
+      "name": "search_catalog",
+      "status": "completed",
+      "arguments": {
+        "room_id": "room-living",
+        "style_request": "Remake the living room in minimalistic style but cozy. Avoid token styling changes or chairs lined up without a useful seating relationship.",
+        "remake": true,
+        "excluded_roles": []
+      }
+    },
+    {
+      "name": "set_intent",
+      "status": "completed",
+      "arguments": {
+        "room_id": "room-living",
+        "keeps": [
+          "kitchen-sideboard",
+          "kitchen-island",
+          "bathroom-vanity",
+          "bathroom-fern",
+          "bedroom-rug",
+          "bed",
+          "bedside-table",
+          "bedroom-wardrobe"
+        ],
+        "add": [
+          {
+            "kinds": [
+              "sofa"
+            ],
+            "count": 1
+          },
+          {
+            "kinds": [
+              "chair"
+            ],
+            "count": 1
+          },
+          {
+            "kinds": [
+              "table"
+            ],
+            "count": 1
+          },
+          {
+            "kinds": [
+              "rug"
+            ],
+            "count": 1
+          },
+          {
+            "kinds": [
+              "lamp"
+            ],
+            "count": 2
+          },
+          {
+            "kinds": [
+              "shelf"
+            ],
+            "count": 1
+          }
+        ],
+        "remove": [
+          {
+            "kinds": [
+              "rug"
+            ],
+            "count": 1
+          },
+          {
+            "kinds": [
+              "sofa"
+            ],
+            "count": 1
+          },
+          {
+            "kinds": [
+              "table"
+            ],
+            "count": 2
+          },
+          {
+            "kinds": [
+              "chair"
+            ],
+            "count": 5
+          },
+          {
+            "kinds": [
+              "lamp"
+            ],
+            "count": 1
+          },
+          {
+            "kinds": [
+              "cabinet"
+            ],
+            "count": 1
+          },
+          {
+            "kinds": [
+              "plant"
+            ],
+            "count": 1
+          }
+        ]
+      }
+    },
+    {
+      "name": "propose",
+      "status": "completed",
+      "arguments": {
+        "candidate_id": "composition-0-0-0.5-0.5",
+        "rationale": "Complete minimalist-but-cozy remake: a restrained grey loveseat and facing accent chair make a useful conversation group, anchored by a cotton-and-wool rug, with walnut book storage, a reachable table and two reading lamps. Other rooms remain untouched. Budget unconfirmed. This replaces the living/dining furnishings, sacrificing the existing dining setup. The equally scored alternative rotates the same conversation group 90 degrees; offer that alternative too. Preview only, requiring customer acceptance."
+      }
+    },
+    {
+      "name": "propose",
+      "status": "completed",
+      "arguments": {
+        "candidate_id": "composition-0-0-0.5-0.5",
+        "rationale": "Minimalist cozy conversation group with facing upholstered seats, wool/cotton rug, walnut shelving, side table and reading lamps. Other rooms unchanged; budget unconfirmed. Dining setup removed as trade-off. Equally scored alternative rotates group 90 degrees. Customer acceptance required."
+      }
+    }
+  ],
+  "model_seconds": 55.43943599995691,
+  "total_tokens": null,
+  "outcome": "question",
+  "editor_accepted": null,
+  "scope_ok": true,
+  "technical_pass": false,
+  "visual_pass": null,
+  "reply": {
+    "type": "question",
+    "conversationId": "dc8b03fcec224b418709d5b006c417da",
+    "question": "I haven’t confirmed that this preview meets the requested look. Visual rendering failed or exceeded its time budget: ",
+    "options": [
+      "Adjust the style request",
+      "Try again without visual confirmation"
+    ]
+  },
+  "result": null,
+  "validation": null,
+  "conversationId": "dc8b03fcec224b418709d5b006c417da"
+}

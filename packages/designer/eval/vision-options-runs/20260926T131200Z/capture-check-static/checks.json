@@ -1,0 +1,20 @@
+{
+  "3d": {
+    "sceneId": "apartment-avani",
+    "revision": 3,
+    "selectedIds": [
+      "lounge-chair"
+    ],
+    "seconds": 0.025099999964237212
+  },
+  "plan": {
+    "sceneId": "apartment-avani",
+    "revision": 3,
+    "selectedIds": [
+      "lounge-chair"
+    ],
+    "seconds": 0.0295
+  },
+  "stale_rejected": true,
+  "cancelled": true
+}

@@ -1,0 +1,7 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "decline", "conversationId": "d523eeadb6184a31abf18faa0daee2c7", "message": "I couldn’t create a complete checked preview: the catalog returned no compatible, sized furniture for the living-room set. No products were selected or changes made.\n\nThe budget remains unconfirmed. Once products are available, I’ll inspect their renders before proposing purchases. Alternatively, I can rearrange your existing furniture for a calmer, cozier feel without buying anything."}

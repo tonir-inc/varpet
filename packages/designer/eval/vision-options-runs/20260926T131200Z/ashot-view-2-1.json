@@ -1,0 +1,54 @@
+{
+  "id": "ashot-view-2-1",
+  "scenario": "ashot",
+  "flat": "avani",
+  "arm": "view",
+  "rep": 2,
+  "turn": 1,
+  "request": "Remake the living room in minimalistic style but cozy.",
+  "seconds": 22.775620208000007,
+  "tokens": 36769,
+  "tools": [
+    {
+      "name": "set_intent",
+      "status": "completed",
+      "arguments": {
+        "room_id": "room-living",
+        "keeps": [
+          "kitchen-sideboard",
+          "kitchen-island",
+          "bathroom-vanity",
+          "bathroom-fern",
+          "bedroom-rug",
+          "bed",
+          "bedside-table",
+          "bedroom-wardrobe"
+        ]
+      }
+    },
+    {
+      "name": "search_catalog",
+      "status": "completed",
+      "arguments": {
+        "room_id": "room-living",
+        "style_request": "Remake the living room in minimalistic style but cozy.",
+        "remake": true
+      }
+    }
+  ],
+  "model_seconds": 22.454786083020736,
+  "total_tokens": 36769,
+  "outcome": "decline",
+  "editor_accepted": null,
+  "scope_ok": true,
+  "technical_pass": false,
+  "visual_pass": null,
+  "reply": {
+    "type": "decline",
+    "conversationId": "0990daad7f90436f888b50d3e6237bac",
+    "message": "I’d aim for simple seating, warm wood, a soft neutral rug and reachable reading light—minimal but welcoming.\n\nThe catalog currently lacks a complete, sized furniture set, so I couldn’t generate a checked remake preview. Nothing has changed; other rooms remain untouched. Your budget is unconfirmed, and no purchase total is available.\n\nWould you like a no-purchase rearrangement using your existing furniture instead?"
+  },
+  "result": null,
+  "validation": null,
+  "conversationId": "0990daad7f90436f888b50d3e6237bac"
+}

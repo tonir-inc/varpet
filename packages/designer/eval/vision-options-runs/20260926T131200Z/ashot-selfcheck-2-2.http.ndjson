@@ -1,0 +1,8 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "decline", "conversationId": "37c4f880111e438a8d925ff23d214146", "message": "The catalog is currently unavailable, so I can’t source verified replacement seating, quote its cost or create a checked rendered preview.\n\nThe intended arrangement is simple upholstered seating facing inward around a shared coffee table and rug—not lined against a wall. Other rooms will remain unchanged. Nothing has been applied; budget remains unconfirmed."}

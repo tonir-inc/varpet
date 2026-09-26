@@ -1,0 +1,7 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "decline", "conversationId": "37c4f880111e438a8d925ff23d214146", "message": "I couldn’t generate a complete checked preview: the catalog currently lacks a compatible, sized set for the sofa, rug, table, reading light and focal storage.\n\nThe direction is warm minimalism: simple upholstered seating, a quiet rug and warm wood, arranged for conversation—not lined-up chairs. Nothing has changed; other rooms remain untouched. Budget is unconfirmed, and an exact cost requires available catalog products."}
