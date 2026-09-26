@@ -44,6 +44,10 @@ Audited 2026-09-26; recheck code when implementing changes.
 - Source changes and geometry edits must invalidate dependent inferences/checks when appropriate. Reconstruction reruns must surface conflicts with human corrections instead of overwriting them.
 - Evidence links, assumptions, decisions, and design options must survive project save/export/import. Chat text, adapter notes, and Three.js `userData` are not their authoritative storage.
 
+## Motion is part of editing
+
+Follow [the editor motion rules](docs/motion.md) when changing a visible interaction. Every state change needs an intentional visual response: preserve continuity for object transforms, wall display, camera framing, and interface surfaces. Direct manipulation stays attached to the pointer; committed changes ease from the currently displayed state. Check interruption, undo/redo, reduced motion, and idle rendering before considering the interaction finished. Update the rules with measured results and implementation lessons when new motion ships.
+
 ## Editing and architecture
 
 - One serializable scene/project document remains authoritative. The renderer projects it into disposable objects. Do not add a competing source of scene truth.

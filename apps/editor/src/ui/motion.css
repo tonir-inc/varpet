@@ -1,0 +1,127 @@
+/* Editor motion contract: docs/motion.md.
+ * Keep state and focus immediate. Only the entering surface animates; display:none
+ * and [hidden] continue to remove closed controls from pointer and keyboard use.
+ */
+:root {
+  --motion-feedback: 140ms;
+  --motion-surface: 220ms;
+  --motion-ease-out: cubic-bezier(.2, .8, .2, 1);
+}
+
+button {
+  transition:
+    background-color var(--motion-feedback) ease,
+    border-color var(--motion-feedback) ease,
+    color var(--motion-feedback) ease,
+    opacity var(--motion-feedback) ease,
+    transform var(--motion-feedback) var(--motion-ease-out);
+}
+
+/* The catalog has a separate WebGL canvas aligned with card rectangles. Keep
+ * those rectangles still so its preview never slips out of the card on press. */
+button:not(.asset-card):active:not(:disabled) { transform: translateY(1px); }
+
+.search,
+.number-field,
+.text-field input,
+.finish-row input,
+select,
+.hierarchy summary {
+  transition:
+    background-color var(--motion-feedback) ease,
+    border-color var(--motion-feedback) ease,
+    color var(--motion-feedback) ease,
+    box-shadow var(--motion-feedback) ease;
+}
+
+.object-row svg,
+.tool-rail button kbd,
+.tool-rail #snap strong {
+  transition:
+    background-color var(--motion-feedback) ease,
+    color var(--motion-feedback) ease;
+}
+
+.room-chevron {
+  display: inline-block;
+  transition: transform var(--motion-feedback) var(--motion-ease-out);
+}
+
+/* Persistent containers enter on reveal, not on every innerHTML edit. Never
+ * animate inspector fields or hierarchy rows whenever an edit rerenders them. */
+.left-panel:not([hidden]),
+.panel-content:not([hidden]),
+.right-panel:not([hidden]),
+.selection-chip:not([hidden]),
+.render-error:not([hidden]) {
+  animation: editor-surface-enter var(--motion-surface) var(--motion-ease-out);
+}
+
+/* Do not compound the sidebar and content entrance or move the independently
+ * rendered catalog previews. The sidebar occupies its final width immediately. */
+.left-panel:not([hidden]) { animation-name: editor-fade-in; }
+.panel-content#assets-panel { animation-name: none; }
+.left-panel:has(#assets-panel:not([hidden])) { animation-name: none; }
+.right-panel:not([hidden]) { animation-name: editor-inspector-enter; }
+.selection-chip:not([hidden]) { animation-name: editor-chip-enter; }
+
+/* Keep the rail's existing translateX(-50%) anchor untouched. */
+.tool-rail,
+.canvas-label {
+  animation: editor-fade-in var(--motion-surface) var(--motion-ease-out);
+}
+
+.toast {
+  transform: translate(-50%, 4px);
+  transition:
+    opacity var(--motion-surface) var(--motion-ease-out),
+    transform var(--motion-surface) var(--motion-ease-out),
+    background-color var(--motion-feedback) ease,
+    border-color var(--motion-feedback) ease,
+    color var(--motion-feedback) ease;
+}
+.toast.visible { transform: translate(-50%, 0); }
+
+/* Closing remains synchronous with dialog.close(): no delayed top-layer or
+ * focus trap. Keyframes also work where @starting-style is unavailable. */
+dialog[open] {
+  animation: editor-dialog-enter var(--motion-surface) var(--motion-ease-out);
+}
+dialog[open]::backdrop {
+  animation: editor-fade-in var(--motion-surface) var(--motion-ease-out);
+}
+
+@keyframes editor-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes editor-surface-enter {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes editor-inspector-enter {
+  from { opacity: 0; transform: translateX(6px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes editor-chip-enter {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes editor-dialog-enter {
+  from { opacity: 0; transform: translateY(6px) scale(.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Include pseudo-elements and future UI additions. Disabling the animation
+   * itself avoids invisible first frames and applies the final state at once. */
+  *,
+  *::before,
+  *::after,
+  dialog::backdrop {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+  button:not(.asset-card):active:not(:disabled) { transform: none; }
+}

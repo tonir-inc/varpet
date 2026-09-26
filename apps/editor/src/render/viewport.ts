@@ -12,14 +12,18 @@ import { analyzeProject, componentPosition } from '../core/renovation';
 import { findOpeningMove, constrainOpeningOffset, type OpeningMoveContext } from '../core/opening-move';
 import { SelectionFrame, resizeTransformControls, styleTransformControls } from './selection-style';
 import { StudioStage } from './studio-stage';
+import { StudioRenderer } from './studio-renderer';
 import { placementConflicts } from '../core/placement-conflicts';
+import { expandFurnitureSelection, furnitureMembers, furnitureUpdates } from '../core/grouping';
 import { PlacementFeedback } from './placement-feedback';
 import { PlacementMotion } from './placement-motion';
+import { MotionTimeline, MOTION, setProjectionOpacity } from './motion';
+import { transitionTransform } from './transform-motion';
 import { createFinishInteraction, type FinishTarget } from './finish-interaction';
 import type { FinishReveal } from './finish-material';
 
-interface RenderObject { group: THREE.Group; visual: THREE.Group; signature: string; token: object; dimensions: [number, number, number] }
-interface DragSnapshot { component?: BuildingComponent; id: string; position: THREE.Vector3; quaternion: THREE.Quaternion; scale: THREE.Vector3 }
+interface RenderObject { group: THREE.Group; pose: THREE.Group; visual: THREE.Group; signature: string; token: object; dimensions: [number, number, number]; opacity: number }
+interface DragSnapshot { members?: SceneObject[]; component?: BuildingComponent; id: string; position: THREE.Vector3; quaternion: THREE.Quaternion; scale: THREE.Vector3 }
 interface OpeningDrag {
   context: OpeningMoveContext;
   axis: THREE.Vector3;
@@ -55,20 +59,20 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   renderer.setClearColor('#171d25');
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 0.86;
+  renderer.toneMappingExposure = 0.78;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
   renderer.domElement.style.cssText = 'display:block;width:100%;height:100%;outline:none;touch-action:none';
   renderer.domElement.tabIndex = 0;
-  renderer.domElement.setAttribute('aria-label', 'Interactive 3D apartment. Click rooms, walls, openings, furniture, or building services to select. Choose Move to drag a selected door or window along its wall. In Select, click a selected door or switch again to test it. Drag empty space to orbit, right drag to pan, and scroll to zoom.');
+  renderer.domElement.setAttribute('aria-label', 'Interactive 3D apartment. Click rooms, walls, openings, furniture, or building services to select. Shift-click furniture to select several pieces for grouping. Choose Move to drag a selected door or window along its wall. In Select, click a selected door or switch again to test it. Drag empty space to orbit, right drag to pan, and scroll to zoom.');
   container.appendChild(renderer.domElement);
 
   const world = new THREE.Scene();
   world.background = new THREE.Color('#171d25');
   const studioFog = new THREE.Fog('#171d25', 40, 125);
   world.fog = studioFog;
-  const perspective = new THREE.PerspectiveCamera(34, 1, 0.05, 250);
+  const perspective = new THREE.PerspectiveCamera(32, 1, 0.05, 250);
   perspective.position.set(11, 12, 15);
   const orthographic = new THREE.OrthographicCamera(-8, 8, 8, -8, 0.05, 250);
   orthographic.up.set(0, 0, -1);
@@ -97,9 +101,9 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   world.add(transformHelper);
 
   const lighting = new THREE.Group();
-  const ambient = new THREE.HemisphereLight('#cbdcf4', '#88745c', 0.4);
+  const ambient = new THREE.HemisphereLight('#bccce6', '#6c4930', 0.18);
   lighting.add(ambient);
-  const sunlight = new THREE.DirectionalLight('#ffdb9f', 2.8);
+  const sunlight = new THREE.DirectionalLight('#ffd296', 0.95);
   sunlight.position.set(-7, 10, 7);
   sunlight.castShadow = true;
   sunlight.shadow.mapSize.set(2048, 2048);
@@ -109,9 +113,13 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   sunlight.shadow.normalBias = 0.025;
   sunlight.shadow.radius = 8;
   lighting.add(sunlight, sunlight.target);
-  const fill = new THREE.DirectionalLight('#c5d9ff', 0.5);
-  const rim = new THREE.DirectionalLight('#d7e7ff', 0.8);
-  lighting.add(fill, fill.target, rim, rim.target);
+  const fill = new THREE.DirectionalLight('#adc8f5', 0.18);
+  const rim = new THREE.DirectionalLight('#d7e7ff', 0.4);
+  // Broad photographic softboxes produce warm pools without flattening every
+  // wall with ambient light. They are presentation lights, outside scene data.
+  const warmPool = new THREE.SpotLight('#ffbd76', 75, 0, Math.PI / 3, 1, 2);
+  const secondPool = new THREE.SpotLight('#ffd29e', 24, 0, Math.PI / 3, 1, 2);
+  lighting.add(fill, fill.target, rim, rim.target, warmPool, warmPool.target, secondPool, secondPool.target);
   world.add(lighting);
   const stage = new StudioStage(); world.add(stage.group);
 
@@ -119,10 +127,12 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   const roomEnvironment = new RoomEnvironment();
   const environment = pmrem.fromScene(roomEnvironment, 0.04);
   world.environment = environment.texture;
-  world.environmentIntensity = 0.25;
+  world.environmentIntensity = 0.16;
   roomEnvironment.dispose(); pmrem.dispose();
+  const studioRenderer = new StudioRenderer(renderer, world, camera);
 
   const furniture = new THREE.Group(); world.add(furniture);
+  const outgoingFurniture = new THREE.Group(); world.add(outgoingFurniture);
   const placementFeedback = new PlacementFeedback(container); world.add(placementFeedback.group);
   const rendered = new Map<string, RenderObject>();
   const pendingModels = new Map<string, { model: THREE.Group; token: object; color?: string }>();
@@ -159,6 +169,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   let pendingFinishReveal: FinishReveal | undefined;
   let sceneGeneration = 0;
   let selectedId: string | null = null;
+  let selectedFurnitureIds: string[] = [];
   let selection: SelectionFrame | null = null;
   let tool: ToolMode = 'select';
   let view: ViewMode = 'perspective';
@@ -168,6 +179,8 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
   let disposed = false;
   let renderFailed = false;
   const placementMotion = new PlacementMotion(furniture, requestRender);
+  const motion = new MotionTimeline(requestRender);
+  const retiring = new Set<THREE.Group>();
   let initialized = false;
   let pointerStart: { x: number; y: number; pointerId: number; button: number } | null = null;
   let suppressPick = false;
@@ -190,6 +203,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       && !documentState?.project?.metadata[selectedId ?? '']?.locked,
     snap: () => snapEnabled, wallMode: () => walls, topView: () => view === 'top',
     onStart() {
+      motion.cancel('camera');
       pointerStart = null; suppressPick = true; orbit.enabled = false; endpointHandles.visible = false;
       renderer.domElement.style.cursor = 'grabbing'; callbacks.onInteraction(true);
     },
@@ -233,6 +247,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       shell.dimensions.visible = layers.dimensions && (!wallPreview || shell === wallPreview);
     }
     furniture.visible = layers.furniture;
+    outgoingFurniture.visible = layers.furniture;
     for (const projection of [services, wallPreviewServices]) if (projection) {
       projection.group.visible = layers.services && (!wallPreviewServices || projection === wallPreviewServices);
       for (const component of projection.components.values()) {
@@ -283,24 +298,45 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     frame = requestAnimationFrame(() => {
       frame = 0;
       if (disposed) return;
-      structure?.updateWalls(camera, walls, view === 'top'); wallMove.render();
       const now = performance.now(); const dt = Math.min((now - lastAnimation) / 1000, 0.06); lastAnimation = now;
-      let animating = placementMotion.update(now);
+      let animating = motion.update(now);
+      if (placementMotion.update(now)) animating = true;
+      if (structure?.updateWalls(camera, walls, view === 'top', now, motion.reduced, selectedId ?? undefined)) animating = true;
+      wallMove.render();
       if (structure?.updateFinishes(now)) animating = true;
       for (const [id, opening] of structure?.openings ?? []) {
         if (Math.abs(opening.target - opening.angle) > 0.001) {
+          if (motion.reduced) { opening.setAngle(opening.target); continue; }
           const step = Math.sign(opening.target - opening.angle) * Math.min(Math.abs(opening.target - opening.angle), Math.max(0.01, dt) * 4.2);
           opening.setAngle(opening.angle + step); animating = true;
         }
         opening.setCollision(selectedId === id && collisionIssues.has(id));
       }
-      if (selection && selectedId) { const chosen = entity(selectedId); if (chosen) entityBounds(chosen, selection.box); }
+      if (selection && selectedId) { const chosen = entity(selectedId); if (chosen) selectionBounds(chosen, selection.box); }
       if (animating) requestRender();
-      try { renderer.render(world, camera); }
+      stage.updateView(camera, view === 'top');
+      try { studioRenderer.render(camera); }
       catch (error) {
         if (!renderFailed) { renderFailed = true; callbacks.onError(`The 3D view could not render: ${error instanceof Error ? error.message : 'unknown graphics error'}`); }
       }
     });
+  }
+
+  function selectionBounds(chosen: THREE.Object3D, target = new THREE.Box3()): THREE.Box3 {
+    entityBounds(chosen, target);
+    for (const id of selectedFurnitureIds) {
+      const member = rendered.get(id)?.group;
+      if (member && member !== chosen) target.union(entityBounds(member));
+    }
+    return target;
+  }
+
+  function furnitureTransformAllowed(): boolean {
+    if (!documentState || !selectedId || !rendered.has(selectedId)) return false;
+    const members = furnitureMembers(documentState, selectedId);
+    if (members.some(object => documentState?.project?.metadata[object.id]?.locked)) return false;
+    if (selectedFurnitureIds.length > 1 && (members.length !== selectedFurnitureIds.length || !members.every(object => selectedFurnitureIds.includes(object.id)))) return false;
+    return tool !== 'scale' || members.length < 2;
   }
 
   function updateSelection(): void {
@@ -308,9 +344,9 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     transform.detach();
     const chosen = selectedId ? entity(selectedId) : undefined;
     if (chosen) {
-      selection = new SelectionFrame(entityBounds(chosen));
+      selection = new SelectionFrame(selectionBounds(chosen));
       world.add(selection);
-      if (tool !== 'select' && selectedId && (rendered.has(selectedId) || (services?.components.has(selectedId) && callbacks.onComponentTransform))) {
+      if (tool !== 'select' && selectedId && (furnitureTransformAllowed() || (services?.components.has(selectedId) && callbacks.onComponentTransform))) {
         const component = services?.components.has(selectedId); transform.minY = component ? -50 : chosen.position.y; transform.maxY = component ? 50 : chosen.position.y;
         transform.showY = tool === 'rotate' || tool === 'scale' || (Boolean(component) && tool === 'move'); transform.attach(chosen);
       }
@@ -365,6 +401,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     orbit.enabled = true;
     suppressPick = true;
     if (group && cancel) {
+      for (const member of previous.members ?? []) { const root = rendered.get(member.id)?.group; if (root) applyTransform(root, member); }
       group.position.copy(previous.position); group.quaternion.copy(previous.quaternion); group.scale.copy(previous.scale);
       group.updateMatrixWorld(true);
     }
@@ -397,10 +434,14 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     const committed = documentState?.objects.find(object => object.id === previous.id);
     const currentGroup = rendered.get(previous.id)?.group;
     if (currentGroup && committed) applyTransform(currentGroup, committed);
+    for (const member of previous.members ?? []) {
+      const root = rendered.get(member.id)?.group, current = documentState?.objects.find(object => object.id === member.id);
+      if (root && current) applyTransform(root, current);
+    }
     if (pendingModels.size) installLoadedModels();
     // A rejected/canceled/no-op drag must never play a successful landing.
     const record = rendered.get(previous.id);
-    if (!cancel && !previous.component && tool === 'move' && record && committed && releasedPosition
+    if (!cancel && !previous.component && (previous.members?.length ?? 1) < 2 && tool === 'move' && record && committed && releasedPosition
       && releasedPosition.distanceToSquared(previous.position) > 1e-10
       && record.group.position.distanceToSquared(releasedPosition) < 1e-10) {
       record.visual.position.y = releaseHeight;
@@ -414,10 +455,13 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     if (!selectedId) return;
     const component = callbacks.onComponentTransform ? documentState?.project?.components.find(item => item.id === selectedId) : undefined;
     const group = rendered.get(selectedId)?.group ?? (component ? services?.components.get(selectedId) : undefined);
-    if (!group) return;
-    drag = { component, id: selectedId, position: group.position.clone(), quaternion: group.quaternion.clone(), scale: group.scale.clone() };
+    if (!group || (!component && !furnitureTransformAllowed())) return;
+    const members = !component && documentState ? furnitureMembers(documentState, selectedId) : undefined;
+    motion.finish(group); motion.cancel('camera');
+    for (const member of members ?? []) { const root = rendered.get(member.id)?.group; if (root) motion.finish(root); }
+    drag = { members, component, id: selectedId, position: group.position.clone(), quaternion: group.quaternion.clone(), scale: group.scale.clone() };
     const record = rendered.get(selectedId);
-    if (!component && tool === 'move' && record) placementMotion.lift(selectedId, record.visual, record.dimensions);
+    if (!component && (members?.length ?? 1) < 2 && tool === 'move' && record) placementMotion.lift(selectedId, record.visual, record.dimensions);
     else placementMotion.stop(selectedId);
     suppressPick = true; orbit.enabled = false; callbacks.onInteraction(true);
     updatePlacementFeedback();
@@ -434,7 +478,13 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       rotation: yawOf(group.quaternion),
       scale: [group.scale.x, group.scale.y, group.scale.z],
     };
-    placementFeedback.update(placementConflicts(documentState, catalogState, candidate));
+    const updates = (drag.members ?? [original]).map(member => {
+      const root = rendered.get(member.id)?.group;
+      return root ? { ...member, position: root.position.toArray() as SceneObject['position'], rotation: yawOf(root.quaternion), scale: root.scale.toArray() as SceneObject['scale'] } : member;
+    });
+    const byId = new Map(updates.map(object => [object.id, object]));
+    const preview = { ...documentState, objects: documentState.objects.map(object => byId.get(object.id) ?? object) };
+    placementFeedback.update(updates.length > 1 ? updates.flatMap(object => placementConflicts(preview, catalogState, object)) : placementConflicts(documentState, catalogState, candidate));
   }
 
   function changedTransform(): void {
@@ -452,6 +502,12 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       group.quaternion.setFromAxisAngle(upAxis, yawOf(group.quaternion));
       group.scale.set(Math.max(0.1, Math.min(4, group.scale.x)), Math.max(0.1, Math.min(4, group.scale.y)), Math.max(0.1, Math.min(4, group.scale.z)));
       group.updateMatrixWorld(true);
+      if (!drag.component && documentState && (drag.members?.length ?? 0) > 1) {
+        const patch: ObjectPatch = tool === 'rotate' ? { rotation: yawOf(group.quaternion) } : { position: group.position.toArray() as SceneObject['position'] };
+        for (const object of furnitureUpdates(documentState, drag.id, patch)) {
+          const member = rendered.get(object.id)?.group; if (member) applyTransform(member, object);
+        }
+      }
       updatePlacementFeedback();
     }
     requestRender();
@@ -496,6 +552,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     if (disposed) return;
     if (drag || endpointDrag || openingDrag || wallMove.active) { pendingScene = { scene: next, catalog }; return; }
     const previousObjects = new Map(documentState?.objects.map(object => [object.id, object]));
+    const animate = initialized && documentState?.id === next.id;
     sceneGeneration++;
     lightingPreview.setComponents(next.project?.components ?? []);
     documentState = next; catalogState = catalog;
@@ -517,6 +574,12 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       fill.position.copy(center).addScaledVector(new THREE.Vector3(8, 5, 3), lightScale);
       rim.target.position.copy(center);
       rim.position.copy(center).addScaledVector(new THREE.Vector3(1, 9, -9), lightScale);
+      warmPool.position.set(center.x - size.x * 0.29, structure.bounds.min.y + Math.max(4.5, size.y * 1.5), center.z + size.z * 0.15);
+      warmPool.target.position.set(center.x - size.x * 0.28, structure.bounds.min.y, center.z - size.z * 0.15);
+      secondPool.position.set(center.x + size.x * 0.25, structure.bounds.min.y + Math.max(4.2, size.y * 1.4), center.z + size.z * 0.28);
+      secondPool.target.position.set(center.x + size.x * 0.24, structure.bounds.min.y, center.z + size.z * 0.14);
+      warmPool.intensity = 75 * lightScale * lightScale;
+      secondPool.intensity = 24 * lightScale * lightScale;
       Object.assign(sunlight.shadow.camera, { left: -shadowRadius, right: shadowRadius, top: shadowRadius, bottom: -shadowRadius, far: Math.max(65, lightScale * 45) });
       sunlight.shadow.camera.updateProjectionMatrix();
       studioFog.near = Math.max(40, size.length() * 3);
@@ -531,28 +594,45 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     const existingIds = new Set(next.objects.map(object => object.id));
     for (const [id, record] of rendered) if (!existingIds.has(id)) {
       placementMotion.stop(id);
+      motion.sample(record.group); motion.cancel(record.group);
+      motion.sample(record.pose); motion.cancel(record.pose);
       if (transform.object === record.group) transform.detach();
-      disposeObject(record.group); rendered.delete(id);
+      rendered.delete(id);
+      if (animate && !motion.reduced) {
+        outgoingFurniture.add(record.group); retiring.add(record.group);
+        const fromOpacity = record.opacity;
+        motion.animate(record.pose, MOTION.surface, t => setProjectionOpacity(record.group, fromOpacity * (1 - t)), () => {
+          retiring.delete(record.group); disposeObject(record.group);
+        });
+      } else disposeObject(record.group);
     }
     for (const object of next.objects) {
       const asset = catalogById.get(object.assetId);
       if (!asset) continue;
       const previous = previousObjects.get(object.id);
-      if (previous && (previous.rotation !== object.rotation
+      const transformChanged = previous && (previous.rotation !== object.rotation
         || previous.position.some((value, axis) => value !== object.position[axis])
-        || previous.scale.some((value, axis) => value !== object.scale[axis]))) placementMotion.stop(object.id);
+        || previous.scale.some((value, axis) => value !== object.scale[axis]));
+      if (transformChanged) placementMotion.stop(object.id);
       const signature = JSON.stringify([asset, object.color]);
       let record = rendered.get(object.id);
+      let created = false;
       if (!record || record.signature !== signature) {
         placementMotion.stop(object.id);
-        if (record) { if (transform.object === record.group) transform.detach(); disposeObject(record.group); }
+        if (record) { motion.cancel(record.group); motion.cancel(record.pose); if (transform.object === record.group) transform.detach(); disposeObject(record.group); }
         // Keep the authoritative transform on the root; only this inner visual moves.
         const group = new THREE.Group();
+        const pose = new THREE.Group(); pose.name = 'Committed edit motion'; pose.matrixAutoUpdate = false;
         const visual = new THREE.Group();
-        visual.add(makeFurniture(asset, object.color ?? asset.color)); group.add(visual);
+        visual.add(makeFurniture(asset, object.color ?? asset.color)); pose.add(visual); group.add(pose);
+        if (asset.kind === 'lamp') {
+          const practical = new THREE.PointLight('#ffb968', 10, 4, 2);
+          practical.position.y = asset.dimensions[1] * 0.8;
+          pose.add(practical);
+        }
         group.userData.objectId = object.id;
         group.name = object.name;
-        record = { group, visual, signature, token: {}, dimensions: [...asset.dimensions] };
+        record = { group, pose, visual, signature, token: {}, dimensions: [...asset.dimensions], opacity: 1 }; created = true;
         rendered.set(object.id, record); furniture.add(group);
         if (asset.source.type === 'gltf') {
           const token = record.token;
@@ -570,13 +650,19 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
         }
       }
       record.group.name = object.name;
-      applyTransform(record.group, object);
+      if (created || transformChanged || !animate) transitionTransform(motion, record.group, record.pose, object, animate && !created);
+      else applyTransform(record.group, object);
+      if (created && animate) {
+        const entering = record;
+        motion.animate(record.pose, MOTION.surface, t => { entering.opacity = t; setProjectionOpacity(entering.group, t); });
+      }
     }
     rebuildAnnotations(); rebuildComparison(catalog);
     collisionIssues = new Set(analyzeProject(next, catalog).issues.filter(issue => issue.id.startsWith('swing:') || issue.id.startsWith('swing-wall:')).map(issue => issue.entityId).filter((id): id is string => Boolean(id)));
     if (selectedId && !entity(selectedId)) selectedId = null;
+    selectedFurnitureIds = expandFurnitureSelection(next, selectedFurnitureIds);
     applyLayers(); updateSelection();
-    if (!initialized) { initialized = true; focus(); }
+    if (!initialized) { initialized = true; focus(undefined, false); }
     requestRender();
   }
 
@@ -593,9 +679,15 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     updateSelection();
   }
 
-  function focus(id?: string): void {
+  function focus(id?: string, animate = true): void {
+    motion.sample('camera');
+    const fromPosition = camera.position.clone(), fromTarget = orbit.target.clone(), fromZoom = camera.zoom;
     const chosen = id ? entity(id) : undefined;
-    if (chosen) entityBounds(chosen, box);
+    if (chosen) {
+      entityBounds(chosen, box);
+      if (documentState && id) for (const member of furnitureMembers(documentState, id)) { const root = rendered.get(member.id)?.group; if (root) box.union(entityBounds(root)); }
+      if (id === selectedId) selectionBounds(chosen, box);
+    }
     else if (structure) { box.copy(structure.bounds); if (view !== 'top') box.union(stage.bounds); }
     else box.set(new THREE.Vector3(-3, 0, -3), new THREE.Vector3(3, 1, 3));
     box.getCenter(center); box.getSize(size);
@@ -609,7 +701,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       orthographic.updateProjectionMatrix();
     } else {
       // Fit all eight corners in the actual camera basis, including the diagonal footprint.
-      const direction = new THREE.Vector3(0.95, 1.1, 1.35).normalize();
+      const direction = new THREE.Vector3(0.95, 0.98, 1.35).normalize();
       const right = new THREE.Vector3().crossVectors(upAxis, direction).normalize();
       const screenUp = new THREE.Vector3().crossVectors(direction, right).normalize();
       const tanVertical = Math.tan(THREE.MathUtils.degToRad(perspective.fov) / 2);
@@ -625,13 +717,22 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       perspective.far = Math.max(250, distance * 4); perspective.updateProjectionMatrix();
       camera.position.copy(center).addScaledVector(direction, distance);
     }
-    camera.lookAt(center); orbit.update(); requestRender();
+    const toPosition = camera.position.clone(), toTarget = orbit.target.clone(), toZoom = camera.zoom;
+    const framingCamera = camera;
+    motion.animate('camera', animate ? MOTION.camera : 0, t => {
+      framingCamera.position.lerpVectors(fromPosition, toPosition, t);
+      orbit.target.lerpVectors(fromTarget, toTarget, t);
+      framingCamera.zoom = fromZoom + (toZoom - fromZoom) * t;
+      framingCamera.updateProjectionMatrix();
+      framingCamera.lookAt(orbit.target); orbit.update();
+    });
   }
 
   function resize(): void {
     width = Math.max(container.clientWidth, 1); height = Math.max(container.clientHeight, 1);
     resizeTransformControls(transform, height);
     renderer.setSize(width, height, false);
+    studioRenderer.setSize(width, height);
     perspective.aspect = width / height; perspective.updateProjectionMatrix();
     const aspect = width / height;
     orthographic.left = -8 * aspect; orthographic.right = 8 * aspect; orthographic.top = 8; orthographic.bottom = -8;
@@ -657,6 +758,8 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     return undefined;
   }
   function onPointerDown(event: PointerEvent): void {
+    // Navigation must stop before computing any captured shell gesture's ray.
+    motion.cancel('camera');
     if (openingDrag || endpointDrag || wallMove.active) { event.stopImmediatePropagation(); return; }
     if (event.button === 0 && selectedId && openingHandle.visible && documentState) {
       pointerRay(event);
@@ -752,11 +855,11 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     if (Math.hypot(event.clientX - start.x, event.clientY - start.y) > 5) return;
     pointerRay(event);
     const id = pickEntity()?.id ?? null;
-    if (id && id === selectedId && tool === 'select') {
+    if (!event.shiftKey && id && id === selectedId && tool === 'select') {
       const opening = structure?.openings.get(id); if (opening && !opening.fixed) setDoorAngle(id, opening.target > 0.01 ? 0 : Math.PI / 2);
       if (documentState?.project?.components.find(component => component.id === id)?.control) toggleSwitch(id);
     }
-    callbacks.onSelect(id);
+    callbacks.onSelect(id, event.shiftKey);
   }
   function onPointerCancel(): void {
     pointerStart = null; finishDrag(true); finishEndpoint(true); finishOpening(true); wallMove.finish(true);
@@ -767,7 +870,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     if (openingDrag?.pointerId === event.pointerId) finishOpening(true);
   }
   function onContextLoss(event: Event): void { event.preventDefault(); callbacks.onError('The graphics context was interrupted. Reload the page to restore the 3D view; saved scenes remain available.'); }
-  function onOrbitStart(): void { if (!drag) { orbitWasActive = true; callbacks.onInteraction(true); } }
+  function onOrbitStart(): void { motion.cancel('camera'); if (!drag) { orbitWasActive = true; callbacks.onInteraction(true); } }
   function onOrbitEnd(): void { if (orbitWasActive) { orbitWasActive = false; callbacks.onInteraction(false); } }
   function endDrag(): void { finishDrag(false); }
 
@@ -811,12 +914,14 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       if (disposed || drag || !record) return;
       placementMotion.enter(id, record.visual, record.dimensions);
     },
-    setSelection(id) { if (wallMove.active && id !== selectedId) wallMove.finish(true); if (drag && id !== selectedId) finishDrag(true); if (endpointDrag) finishEndpoint(true); if (openingDrag && id !== selectedId) finishOpening(true); selectedId = id; renderer.domElement.style.cursor = ''; updateSelection(); },
+    setSelection(id, furnitureIds) { if (wallMove.active && id !== selectedId) wallMove.finish(true); if (drag && id !== selectedId) finishDrag(true); if (endpointDrag) finishEndpoint(true); if (openingDrag && id !== selectedId) finishOpening(true); selectedId = id; selectedFurnitureIds = documentState ? expandFurnitureSelection(documentState, furnitureIds ?? (id ? [id] : [])) : []; renderer.domElement.style.cursor = ''; updateSelection(); },
     setTool,
     setView(next) {
       if (next === view) return;
-      finishDrag(true); finishEndpoint(true); finishOpening(true); wallMove.finish(true); view = next;
+      finishDrag(true); finishEndpoint(true); finishOpening(true); wallMove.finish(true);
+      motion.sample('camera'); motion.cancel('camera'); const previousPosition = camera.position.clone(); view = next;
       camera = next === 'top' ? orthographic : perspective;
+      camera.position.copy(previousPosition);
       orbit.object = camera; transform.camera = camera;
       orbit.enableRotate = next !== 'top';
       orbit.minPolarAngle = next === 'top' ? 0 : 0.05;
@@ -828,6 +933,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
     setWalls(mode) { finishOpening(true); wallMove.finish(true); walls = mode; updateOpeningHandle(); wallMove.refresh(); renderer.domElement.style.cursor = ''; requestRender(); },
     setQuality(mode) {
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, mode === 'high' ? 2 : 1.5));
+      studioRenderer.setQuality(mode);
       const resolution = mode === 'high' ? 4096 : 2048;
       sunlight.shadow.radius = mode === 'high' ? 16 : 8;
       if (sunlight.shadow.mapSize.x !== resolution) {
@@ -862,6 +968,8 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       orbit.removeEventListener('change', requestRender); orbit.removeEventListener('start', onOrbitStart); orbit.removeEventListener('end', onOrbitEnd);
       wallMove.dispose(); transform.dispose(); orbit.dispose();
       placementMotion.dispose();
+      motion.dispose();
+      for (const group of retiring) disposeObject(group); retiring.clear();
       placementFeedback.dispose();
       if (selection) disposeObject(selection);
       rendered.forEach(record => disposeObject(record.group)); rendered.clear();
@@ -869,7 +977,7 @@ export function createViewport(container: HTMLElement, callbacks: ViewportCallba
       if (structure) { disposeObject(structure.group); disposeObject(structure.ceilings); disposeObject(structure.dimensions); }
       if (services) disposeObject(services.group); if (comparison) disposeObject(comparison); disposeObject(annotations); disposeObject(endpointHandles); disposeObject(openingHandle);
       stage.dispose(); loader.dispose(); sunlight.shadow.dispose();
-      environment.dispose(); renderer.dispose(); renderer.domElement.remove();
+      studioRenderer.dispose(); environment.dispose(); renderer.dispose(); renderer.domElement.remove();
     },
   };
 }

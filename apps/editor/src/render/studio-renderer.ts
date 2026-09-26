@@ -12,6 +12,32 @@ class ContactOcclusionPass extends GTAOPass {
   private readonly hidden: THREE.Object3D[] = [];
   private readonly clearColor = new THREE.Color();
 
+  constructor(scene: THREE.Scene, camera: StudioCamera, width: number, height: number) {
+    super(scene, camera, width, height);
+    // At grazing angles, floating point dot products can marginally exceed
+    // [-1, 1]. The stock r186 horizon integration feeds them into sqrt/acos,
+    // creating sparse non-finite pixels even across a perfectly flat floor.
+    this.gtaoMaterial.fragmentShader = this.gtaoMaterial.fragmentShader
+      .replace('vec2 sinHorizons = sqrt(1. - cosHorizons * cosHorizons);', `
+        cosHorizons = clamp(cosHorizons, vec2(-1.0), vec2(1.0));
+        vec2 sinHorizons = sqrt(max(vec2(0.0), 1.0 - cosHorizons * cosHorizons));
+      `)
+      .replace('ao = clamp(ao / float(DIRECTIONS), 0., 1.);', `
+        ao = ao / float(DIRECTIONS);
+        ao = isnan(ao) || isinf(ao) ? 1.0 : clamp(ao, 0.0, 1.0);
+      `);
+    // Excluded scenery has no surface in the G-buffer. Explicitly keep its
+    // blend factor white rather than relying on denoiser discard precision.
+    this.blendMaterial.uniforms.tStudioDepth = { value: this.depthTexture };
+    this.blendMaterial.fragmentShader = this.blendMaterial.fragmentShader
+      .replace('uniform float intensity;', 'uniform float intensity;\nuniform sampler2D tStudioDepth;')
+      .replace('vec4 texel = texture2D( tDiffuse, vUv );', `
+        float surfaceDepth = texture2D(tStudioDepth, vUv).r;
+        if (surfaceDepth >= 0.999999) { gl_FragColor = vec4(1.0); return; }
+        vec4 texel = texture2D(tDiffuse, vUv);
+      `);
+  }
+
   override render(
     renderer: THREE.WebGLRenderer,
     writeBuffer: THREE.WebGLRenderTarget,
@@ -140,7 +166,7 @@ export class StudioRenderer {
     if (this.disposed) return;
     const high = quality === 'high';
     this.occlusion.updateGtaoMaterial({ samples: high ? 32 : 16 });
-    this.occlusion.updatePdMaterial({ samples: high ? 16 : 8 });
+    this.occlusion.updatePdMaterial({ samples: high ? 32 : 16, radius: high ? 8 : 5 });
     const samples = Math.min(high ? 4 : 2, this.renderer.capabilities.maxSamples);
     for (const target of [this.composer.renderTarget1, this.composer.renderTarget2]) {
       if (target.samples !== samples) {

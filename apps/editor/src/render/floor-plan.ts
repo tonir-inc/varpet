@@ -534,6 +534,7 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
     const move = !pan && callbacks && id ? createPlanMove(documentScene, id, endpoint === 'start' || endpoint === 'end' ? endpoint : undefined) : undefined;
     event.preventDefault(); drawing.focus({ preventScroll: true });
     if (event.button === 0 && !event.altKey && id) onSelect(id);
+    if (!visible || (move && documentScene !== move.source)) return;
     pointer = { id: event.pointerId, x: event.clientX, y: event.clientY, panX, panY, scale,
       entityId: id, moved: false, pan, move, delta: [0, 0], snap: snapEnabled, started: false, dirty: false, operation: null };
     drawing.setPointerCapture(event.pointerId);
