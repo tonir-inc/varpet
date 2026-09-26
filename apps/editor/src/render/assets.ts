@@ -1,3 +1,5 @@
+import { wallMirrorLean } from '../core/furniture-bounds';
+import type { SceneObject } from '../contracts';
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -259,6 +261,18 @@ export function makeFurniture(asset: CatalogAsset, color = asset.color): THREE.G
       box(w * 0.8, h * 0.7, d * 0.06, 0, h * 0.48, d * 0.47, m.dark);
       break;
     }
+    case 'curtain': {
+      // A rod across the top with two gathered panels hanging from it.
+      cylinder(0.012, 0.012, w, 0, h - 0.02, 0, m.metal).rotation.z = Math.PI / 2;
+      for (const side of [-1, 1]) for (let i = 0; i < 4; i++) box(w * 0.11, h - 0.04, d * 0.5, side * (w * 0.445 - i * w * 0.1), (h - 0.04) / 2, (i % 2 ? 0.15 : -0.15) * d, m.main, 0.01);
+      break;
+    }
+    case 'decor':
+    case 'wall_art':
+    case 'mirror': {
+      box(w, h, d, 0, h / 2, 0, asset.kind === 'mirror' ? m.metal : m.main, Math.min(w, h, d) / 10);
+      break;
+    }
     case 'rug': {
       box(w, h, d, 0, h / 2, 0, m.main, Math.min(h / 3, 0.015));
       const trim = furnitureMaterial(new THREE.Color(color).lerp(new THREE.Color('#efeadf'), 0.3), 'textile');
@@ -332,6 +346,20 @@ export class AssetLoader {
     const [url, fragment = ''] = asset.source.url.split('#');
     const rotation = Number(new URLSearchParams(fragment).get('varpet-rotate-y') ?? 0);
     if (!url || !Number.isFinite(rotation)) throw new Error('Invalid model URL or orientation.');
+    const oriented = new THREE.Group();
+    oriented.add(await this.instance(url));
+    oriented.rotation.y = rotation * THREE.MathUtils.DEG2RAD;
+    try { return normalizeAsset(oriented, asset.dimensions); }
+    catch (error) { disposeObject(oriented); throw error; }
+  }
+
+  /** A model in its authored frame, neither rotated nor fitted (door and window models place by their own origin). */
+  async loadAuthored(url: string): Promise<THREE.Group> {
+    if (this.disposed) throw new Error('Asset loader disposed.');
+    return this.instance(url);
+  }
+
+  private async instance(url: string): Promise<THREE.Group> {
     let source = this.cache.get(url);
     if (!source) {
       const light = lightModelUrl(url);
@@ -371,11 +399,7 @@ export class AssetLoader {
         };
         object.material = Array.isArray(object.material) ? object.material.map(copyMaterial) : copyMaterial(object.material);
       });
-      const oriented = new THREE.Group();
-      oriented.add(instance);
-      oriented.rotation.y = rotation * THREE.MathUtils.DEG2RAD;
-      try { return normalizeAsset(oriented, asset.dimensions); }
-      catch (error) { disposeObject(oriented); throw error; }
+      return instance;
     } finally {
       source.users--;
       this.trimCache();
@@ -387,4 +411,12 @@ export class AssetLoader {
     this.cache.forEach(source => { void source.promise.then(disposeObject, () => undefined); });
     this.cache.clear();
   }
+}
+
+/** Keep a leaning mirror's projected footprint centred and its lowest point at y=0. */
+export function poseWallDecoration(model: THREE.Object3D, asset: CatalogAsset, object: SceneObject): void {
+  const angle = wallMirrorLean(object, asset);
+  model.rotation.x = -angle;
+  model.position.y = asset.dimensions[2] * Math.sin(angle) / 2;
+  model.position.z = asset.dimensions[1] * Math.sin(angle) / 2;
 }

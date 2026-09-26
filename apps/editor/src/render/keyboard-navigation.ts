@@ -13,7 +13,7 @@ interface NavigationOptions {
   render: () => void;
 }
 
-/** Direct ground-plane navigation for the exterior cameras; no scene edits or inertia. */
+/** Camera-relative 3D travel and ground-plane Top panning; no scene edits or inertia. */
 export class KeyboardNavigationControls {
   private keys = new Set<string>();
   private lastTime: number | null = null;
@@ -89,10 +89,16 @@ export class KeyboardNavigationControls {
     // Preserve ordinary slow-frame speed, while bounding travel after a suspended frame.
     const dt = elapsed > 0.25 ? 0.05 : elapsed;
     const camera = this.options.camera();
-    this.right.set(1, 0, 0).applyQuaternion(camera.quaternion);
-    this.right.y = 0; this.right.normalize();
-    this.delta.set(this.right.x * sideways + this.right.z * forward, 0,
-      this.right.z * sideways - this.right.x * forward).multiplyScalar(MOVE_SPEED * dt / magnitude);
+    if (camera instanceof THREE.PerspectiveCamera) {
+      this.delta.set(sideways, 0, -forward).applyQuaternion(camera.quaternion);
+    } else {
+      // Top remains a map pan: its downward look direction must not change height.
+      this.right.set(1, 0, 0).applyQuaternion(camera.quaternion);
+      this.right.y = 0; this.right.normalize();
+      this.delta.set(this.right.x * sideways + this.right.z * forward, 0,
+        this.right.z * sideways - this.right.x * forward);
+    }
+    this.delta.multiplyScalar(MOVE_SPEED * dt / magnitude);
     camera.position.add(this.delta);
     this.options.target.add(this.delta);
     this.options.change();

@@ -16,7 +16,8 @@ from .graph import Graph
 KINDS = [("lamp", ("lamp", "light", "pendant", "chandelier", "sconce")), ("rug", ("rug", "carpet")), ("sofa", ("sofa", "couch", "settee", "chaise")),
          ("chair", ("chair", "stool", "armchair")), ("bed", ("bed",)),
          ("table", ("table", "desk")),
-         ("plant", ("plant",)), ("shelf", ("shelf", "shelves", "bookcase", "bookshelf"))]
+         ("plant", ("plant",)), ("shelf", ("shelf", "shelves", "bookcase", "bookshelf")),
+         ("kitchen_counter", ("kitchen",)), ("sink", ("vanity", "basin"))]  # built fixtures
 CATEGORY = "Built from your photos"
 
 

@@ -137,13 +137,27 @@ export function createSunControls(trigger: HTMLButtonElement, host: HTMLElement,
     if (panel.hidden) return;
     const anchor = trigger.getBoundingClientRect();
     const bounds = host.getBoundingClientRect();
+    const viewport = window.visualViewport;
     const inset = 8;
-    panel.style.maxWidth = `${Math.max(0, bounds.width - inset * 2)}px`;
-    const left = Math.max(inset, Math.min(anchor.right - bounds.left - panel.offsetWidth, bounds.width - panel.offsetWidth - inset));
-    const top = Math.max(inset, anchor.bottom - bounds.top + inset);
-    panel.style.left = `${left}px`;
-    panel.style.top = `${top}px`;
-    panel.style.maxHeight = `${Math.max(0, bounds.height - top - inset)}px`;
+    const originX = bounds.left + host.clientLeft;
+    const originY = bounds.top + host.clientTop;
+    const minX = Math.max(originX, viewport?.offsetLeft ?? 0) + inset;
+    const minY = Math.max(originY, viewport?.offsetTop ?? 0) + inset;
+    const maxX = Math.min(originX + host.clientWidth, (viewport?.offsetLeft ?? 0) + (viewport?.width ?? window.innerWidth)) - inset;
+    const maxY = Math.min(originY + host.clientHeight, (viewport?.offsetTop ?? 0) + (viewport?.height ?? window.innerHeight)) - inset;
+    const above = Math.max(0, anchor.top - inset - minY);
+    const below = Math.max(0, maxY - anchor.bottom - inset);
+    // The same controls can live in the top toolbar or the bottom Folio dock.
+    // Use the roomy side and scroll inside the panel instead of clipping it below the dock.
+    const opensAbove = above > below;
+    panel.dataset.side = opensAbove ? 'above' : 'below';
+    panel.style.maxWidth = `${Math.max(0, maxX - minX)}px`;
+    panel.style.maxHeight = `${opensAbove ? above : below}px`;
+    const left = Math.max(minX, Math.min(anchor.right - panel.offsetWidth, maxX - panel.offsetWidth));
+    const proposedTop = opensAbove ? anchor.top - inset - panel.offsetHeight : anchor.bottom + inset;
+    const top = Math.max(minY, Math.min(proposedTop, maxY - panel.offsetHeight));
+    panel.style.left = `${left - originX + host.scrollLeft}px`;
+    panel.style.top = `${top - originY + host.scrollTop}px`;
   };
   const close = (restoreFocus = false) => {
     if (panel.hidden) return;
@@ -158,6 +172,7 @@ export function createSunControls(trigger: HTMLButtonElement, host: HTMLElement,
     refresh(); panel.hidden = false;
     trigger.setAttribute('aria-expanded', 'true');
     trigger.classList.add('active');
+    panel.scrollTop = 0;
     position(); time.focus({ preventScroll: true });
   }, { signal });
   get<HTMLButtonElement>('[data-sun-close]').addEventListener('click', () => close(true), { signal });
@@ -242,8 +257,12 @@ export function createSunControls(trigger: HTMLButtonElement, host: HTMLElement,
   });
   get<HTMLButtonElement>('[data-sun-reset]').addEventListener('click', () => update(DEFAULT_SUN), { signal });
   const resize = new ResizeObserver(position);
-  resize.observe(host); resize.observe(trigger);
+  resize.observe(host); resize.observe(trigger); resize.observe(panel);
+  get<HTMLDetailsElement>('.sun-advanced').addEventListener('toggle', position, { signal });
   window.addEventListener('resize', position, { signal });
+  window.addEventListener('scroll', position, { signal, capture: true });
+  window.visualViewport?.addEventListener('resize', position, { signal });
+  window.visualViewport?.addEventListener('scroll', position, { signal });
   refresh();
   return {
     refresh,

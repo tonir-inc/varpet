@@ -2,6 +2,79 @@
 
 Implemented 2026-09-26. This first pass adds three editable room-level compositions to the existing 3D editor. The checked scene document owns the settings; Three.js geometry and lights are disposable projections of those settings.
 
+## Generated lighting and room switches
+
+2026-09-26, Codex (GPT-6). The visible choices are now **Recessed spots**, **LED cove**,
+and **Track lights**. Their saved style IDs (`quiet`, `soft-glow`, `architectural`)
+remain compatible with existing scenes. Track lights are twin linear LED rails;
+the cove is a dropped plaster panel with concealed edge strips.
+
+New measured/traced shells and full architect reconstruction proposals include a
+fitted recessed starter design in eligible indoor rooms. Existing authored
+lighting, explicit plain ceilings (`null`), supplied designs, locks, removed rooms,
+and outdoor zones are preserved. Narrow rooms try smaller valid insets; a room
+that cannot fit a preset remains plain. These defaults are generation choices,
+recorded as unresolved `sourceKind: design` assumptions. Loading ordinary saved
+JSON never adds lights. The low-level architect project converter remains a
+faithful converter; the editor decorates its result at the generation boundary.
+
+Where a clear inward-facing wall is available, generation also proposes a wall
+switch at 1.10 m above the room floor, preferring a position beside a door. The
+placement clears openings and existing hosted components and records its own
+design assumption. No safe mounting location means no automatic switch. For an
+existing apartment, apply a ceiling design and choose **Add a wall switch** in
+Ceilings; its position and targets remain editable in Renovate → Systems.
+
+`BuildingComponent.control.targets` may now explicitly address a light component
+or a room's ceiling lighting. Systems exposes both target types. A room without
+an active design has an inert connection; restoring a plain ceiling does not
+break the switch. Physically deleting the room still requires disconnecting its
+control references. Several switches can control one room, and dimmers reuse
+the same temporary target level.
+
+Use the Ceilings panel's **Turn off / Turn on**, click a selected switch in 3D,
+or tap a wall switch in Inside. Dragging to look around never triggers the tap.
+Switching changes actual sources, visible emitters, panel glow and the structural
+ceiling's approximate reflected light together. Manual levels override automatic
+day/night lighting and restore the previous nonzero dimmer level after off/on.
+The saved **Start with lights on** setting is independent of this preview;
+switching does not change document revision, saved JSON, or renovation history.
+
+The renderer reallocates its existing eight-source/three-shadow budget when a
+room is switched off and invalidates the shadow cache when controls change.
+Physical fixture geometry stays in place. Light changes remain immediate, as
+specified in [motion rules](motion.md); settled views return to idle.
+
+Verification on the shared main checkout:
+
+```text
+pnpm test
+  Designer: 123 test files, 551 tests passed; Python 197 + 81 tests passed.
+  Generated ceiling and room switch checks passed (56 assertions).
+  Ceiling control checks passed (59 assertions).
+  Editor: Done; exit 0.
+pnpm typecheck
+  All workspace packages passed; exit 0.
+pnpm --filter @varpet/editor build
+  exit 0; existing bundle-size advisory remains.
+/ceiling-controls-qa.html
+  COMPLETE 32 ceiling lighting checks; no browser warnings or errors.
+```
+
+The browser page uses the actual renderer and Ceiling panel for all three styles,
+off/on/dimming, daylight override, plain-ceiling restoration, undo, and idle
+rendering. Logs: `/tmp/varpet-ceiling-switches-{test,typecheck,build}.log`.
+Native browser taps on the real wall switch also changed on → off → on in Inside
+while document revision stayed at 4. This was tested after the final UI refresh
+fix with no browser warnings/errors.
+The installed pnpm is version 8; the repository-pinned commands were run through
+`npx --yes pnpm@10.0.0`. New checks are registered in `test` and `test:ceilings`.
+Independent review found and resolved target-list persistence, Inside picking,
+selective reconstruction provenance, and switch name/elevation bounds. Existing
+tests and fixtures were retained. The referenced definition-of-done skill is
+still absent; the repository's explicit verification requirements were followed.
+The decision is recorded in [Notion / Decisions](https://app.notion.com/p/Generated-ceilings-offer-spots-LED-cove-and-rails-with-room-switches-3e7278ce74eb804498e2d52ce9ae51da), with Product area, Decided status, date and verification counts.
+
 ## Ceiling visibility correction
 
 2026-09-26, Codex (GPT-6). Indoor ceilings now stay in the shell in every camera
@@ -74,9 +147,9 @@ Open **Ceilings** in the sidebar (keyboard shortcut `6`), choose an indoor room,
 
 | Preset | Physical composition | Default settings |
 | --- | --- | --- |
-| Quiet | Up to six small recessed-style spots arranged inside the room. | Fixture drop 0 m; inset 0.55 m; brightness 70%; 3000 K. |
-| Soft Glow | One floating plaster panel, four concealed strips, and a thin warm perimeter reveal. | Panel drop 0.16 m; inset 0.35 m; brightness 65%; 2700 K. |
-| Architectural | Two parallel dark tracks, each with a continuous light strip. | Fixture drop 0.06 m; inset 0.60 m; brightness 80%; 3000 K. |
+| Recessed spots (`quiet`) | Up to six small recessed-style spots arranged inside the room. | Fixture drop 0 m; inset 0.55 m; brightness 70%; 3000 K. |
+| LED cove (`soft-glow`) | One floating plaster panel, four concealed strips, and a thin warm perimeter reveal. | Panel drop 0.16 m; inset 0.35 m; brightness 65%; 2700 K. |
+| Track lights (`architectural`) | Two parallel dark tracks, each with a continuous light strip. | Fixture drop 0.06 m; inset 0.60 m; brightness 80%; 3000 K. |
 
 Quiet and Architectural drop move fixtures relative to the structural ceiling; only Soft Glow creates a dropped panel. Turning lights off preserves physical fixture and panel geometry.
 
@@ -107,7 +180,7 @@ The projection renders all physical fixture geometry but allocates at most **eig
 
 Quiet uses downward spotlights with shadows. The continuous and concealed strips use area lights. Soft Glow includes a 20 mm underside diffuser reveal and a low-intensity downward area source tagged as approximate bounced room fill; these stay inside the authored panel volume and the same eight-source budget. This source provides a useful preview without simulating light transport. Brightness and warmth are visual preview controls. The renderer does not calculate lux, photometric distributions, reflected-light transport, or physically accurate bounced light. Area-light shadows and realistic indirect illumination are not claimed; cove lighting is a visual approximation.
 
-Individual fixture placement, furniture-aware positioning, pendants, switch/circuit planning, priced catalog fixtures, custom ceiling profiles, and room-wide multi-level surfaces are descoped from this pass.
+Individual ceiling fixture placement, furniture-aware positioning, pendants, physical circuit planning, priced catalog fixtures, custom ceiling profiles, and room-wide multi-level surfaces remain outside this pass. Logical room switch connections are supported as described above; no supply cable is inferred.
 
 ## Immediate changes and motion
 

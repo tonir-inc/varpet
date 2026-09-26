@@ -1,3 +1,4 @@
+import { openingMechanism } from '../core/opening-catalog';
 import { roomCeilingHeight } from '../core/heights';
 import * as THREE from 'three';
 import type { EntityMetadata, Opening, Room, SceneDocument, Wall, WallMode } from '../contracts';
@@ -10,6 +11,7 @@ import { MOTION, setProjectionOpacity } from './motion';
 import { wallFootprint, wallPrismGeometry } from './wall-geometry';
 import { applyCeilingIndirectLight } from './ceiling-design';
 import { makeCeilingGeometry } from './ceiling-geometry';
+import { previewOpeningMechanism, type OpeningAssetLoader, type OpeningAssetInstance } from './opening-assets';
 
 export type { FinishReveal } from './finish-material';
 
@@ -21,7 +23,10 @@ export interface OpeningProjection {
   fixed: boolean;
   setAngle(angle: number): void;
   setCollision(collision: boolean): void;
+  /** Called after a resize preview redraws the opening procedurally, so a catalog model can be drawn again. */
+  rebuilt?(opening: Opening): void;
 }
+export interface OpeningRenderOptions { openingAssets: OpeningAssetLoader; onAssetReady(): void }
 export interface StructureProjection {
   group: THREE.Group;
   bounds: THREE.Box3;
@@ -118,7 +123,7 @@ function wallGeometry(wall: Wall, height: number, elevation: number, spans: Wall
   for (const side of [-1, 1]) box(cursor, length, 0, Math.min(0.075, height), true, side);
   return group;
 }
-function makeOpening(wall: Wall, opening: Opening, metadata: EntityMetadata, elevation: number, previous?: OpeningProjection): OpeningProjection {
+export function makeOpening(wall: Wall, opening: Opening, metadata: EntityMetadata, elevation: number, previous?: OpeningProjection, options?: OpeningRenderOptions): OpeningProjection {
   // Selection and angle animation retain these identities across a drag preview.
   const group = previous?.group ?? new THREE.Group(); group.userData.entityId = opening.id;
   const angle = previous?.angle ?? 0, target = previous?.target ?? 0;
@@ -127,11 +132,12 @@ function makeOpening(wall: Wall, opening: Opening, metadata: EntityMetadata, ele
   group.position.set(opening.offset, opening.sill + elevation, 0);
   const frame = Math.min(metadata.frameWidth ?? 0.045, opening.width / 5, opening.height / 5);
   const width = Math.max(0.01, opening.width - frame * 2); const bottom = opening.kind === 'window' ? frame : Math.min(metadata.threshold ?? 0, opening.height / 4); const height = Math.max(0.01, opening.height - frame - bottom);
-  const thickness = metadata.leafThickness ?? 0.035; const mechanism = metadata.mechanism ?? (opening.kind === 'door' ? 'hinged' : 'fixed');
+  const thickness = metadata.leafThickness ?? 0.035;
+  const mechanism = opening.assetId ? openingMechanism(opening, metadata) : previewOpeningMechanism(opening, metadata);
   const fixed = mechanism === 'fixed'; const right = metadata.hinge === 'right'; const swing = metadata.swing ?? 1;
   const trim = new THREE.MeshStandardMaterial({ color: '#ece7db', roughness: 0.65 });
   const leafMaterial = opening.kind === 'window'
-    ? new THREE.MeshPhysicalMaterial({ color: '#f2f7f8', roughness: 0.07, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.05, envMapIntensity: 0.8, transparent: true, opacity: 0.45, depthWrite: false })
+    ? new THREE.MeshPhysicalMaterial({ color: '#eef4f4', roughness: 0.05, metalness: 0, envMapIntensity: 0.15, transparent: true, opacity: 0.45, depthWrite: false })
     : new THREE.MeshStandardMaterial({ color: metadata.role === 'entrance' ? '#8c7460' : '#ddd6c7', roughness: 0.7 });
   if (opening.kind === 'window') {
     // Thin architectural glass: clear face-on, more reflective at grazing angles.
@@ -181,6 +187,7 @@ function makeOpening(wall: Wall, opening: Opening, metadata: EntityMetadata, ele
   }
   group.add(envelope); group.userData.envelope = envelope;
   const warning = label3d('Swing envelope has an obstacle', '#9e302a', '#fff0ed'); warning.position.set(opening.width / 2, opening.height + 0.22, 0); warning.visible = false; group.add(warning);
+  let asset: OpeningAssetInstance | undefined;
   const projection: OpeningProjection = previous ?? { group, leaves, angle, target, fixed, setAngle() {}, setCollision() {} };
   Object.assign(projection, {
     group, leaves, angle, target, fixed,
@@ -193,15 +200,33 @@ function makeOpening(wall: Wall, opening: Opening, metadata: EntityMetadata, ele
         else if (mechanism === 'tilt') pivot.rotation.x = angle * 0.33 * swing;
         else pivot.rotation.y = -angle * sign * swing;
       });
+      asset?.setAngle(angle);
       group.updateMatrixWorld(true);
     },
     setCollision(collision: boolean) { group.userData.openingCollision = collision; warning.visible = collision; envelopeMaterial?.color.set(collision ? '#c54337' : '#5b8e94'); },
   });
   projection.setAngle(angle); projection.setCollision(Boolean(group.userData.openingCollision));
+  // Assigned catalog assets are installed by the viewport; unknown ids retain the procedural fallback.
+  if (options && !opening.assetId) {
+    // The first fallback mesh is disposed when a preview is rebuilt or its scene
+    // goes away. Its lifetime also cancels a late network result.
+    const fallback = group.children.filter(child => child !== envelope && child !== warning);
+    let live = true;
+    (fallback[0] as THREE.Mesh).geometry.addEventListener('dispose', () => { live = false; });
+    void options.openingAssets.load(wall, opening, metadata).then(loaded => {
+      if (!loaded) return;
+      if (!live) { disposeObject(loaded.group); return; }
+      const obsolete = new THREE.Group(); obsolete.add(...fallback); disposeObject(obsolete);
+      asset = loaded; group.add(loaded.group); projection.leaves = loaded.leaves;
+      group.userData.openingProduct = loaded.group.name;
+      projection.setAngle(projection.angle);
+      options.onAssetReady();
+    }).catch(() => { /* The measured procedural opening remains usable offline. */ });
+  }
   return projection;
 }
 
-export function makeStructure(document: SceneDocument, reveal?: FinishReveal): StructureProjection {
+export function makeStructure(document: SceneDocument, reveal?: FinishReveal, options?: OpeningRenderOptions): StructureProjection {
   const group = new THREE.Group(); const ceilings = new THREE.Group(); const dimensions = new THREE.Group();
   const entities = new Map<string, THREE.Object3D>(); const openings = new Map<string, OpeningProjection>();
   const openingPreviews = new Map<string, Opening>();
@@ -240,7 +265,7 @@ export function makeStructure(document: SceneDocument, reveal?: FinishReveal): S
   for (const room of document.rooms) {
     if (room.polygon.length < 3) continue;
     const meta = metadata[room.id] ?? {}; const elevation = meta.elevation ?? 0;
-    const roomGroup = new THREE.Group(); roomGroup.userData.entityId = room.id; group.add(roomGroup); entities.set(room.id, roomGroup);
+    const roomGroup = new THREE.Group(); roomGroup.userData.entityId = room.id; roomGroup.userData.selectionSurface = 'floor'; group.add(roomGroup); entities.set(room.id, roomGroup);
     room.polygon.forEach(([x, z]) => bounds.expandByPoint(new THREE.Vector3(x, elevation, z)));
     const geometry = new THREE.ExtrudeGeometry(floorShape(room), { depth: 0.14, bevelEnabled: false });
     // ExtrudeGeometry shares one material for both caps. Only its upward cap
@@ -271,7 +296,7 @@ export function makeStructure(document: SceneDocument, reveal?: FinishReveal): S
       applyCeilingIndirectLight(material, meta.ceilingDesign);
       const ceiling = new THREE.Mesh(makeCeilingGeometry(document, room), material);
       ceiling.position.y = elevation + roomCeilingHeight(document, room);
-      ceiling.receiveShadow = true; ceiling.userData.entityId = room.id; ceiling.userData.shellPart = 'ceiling';
+      ceiling.receiveShadow = true; ceiling.userData.entityId = room.id; ceiling.userData.shellPart = 'ceiling'; ceiling.userData.selectionSurface = 'ceiling';
       // SunOccluders owns the intact roof's shadow geometry in every view.
       ceilings.add(ceiling);
     }
@@ -286,7 +311,7 @@ export function makeStructure(document: SceneDocument, reveal?: FinishReveal): S
     const meta = metadata[wall.id] ?? {}; const elevation = meta.elevation ?? 0;
     bounds.expandByPoint(new THREE.Vector3(wall.start[0], wall.height + elevation, wall.start[1]));
     bounds.expandByPoint(new THREE.Vector3(wall.end[0], wall.height + elevation, wall.end[1]));
-    const wallGroup = new THREE.Group(); wallGroup.userData.entityId = wall.id; entities.set(wall.id, wallGroup);
+    const wallGroup = new THREE.Group(); wallGroup.userData.entityId = wall.id; wallGroup.userData.selectionSurface = 'wall'; entities.set(wall.id, wallGroup);
     wallGroup.position.set(wall.start[0], 0, wall.start[1]); wallGroup.rotation.y = -Math.atan2(wall.end[1] - wall.start[1], wall.end[0] - wall.start[0]); group.add(wallGroup);
     const wallAxis = new THREE.Vector3(wall.end[0] - wall.start[0], 0, wall.end[1] - wall.start[1]).normalize();
     const spans = wallSurfaceSpans(wall, document.rooms, metadata);
@@ -321,7 +346,7 @@ export function makeStructure(document: SceneDocument, reveal?: FinishReveal): S
       wallGroup.updateMatrixWorld(true);
     };
     for (const opening of wall.openings) {
-      const projection = makeOpening(wall, opening, metadata[opening.id] ?? {}, elevation); openings.set(opening.id, projection);
+      const projection = makeOpening(wall, opening, metadata[opening.id] ?? {}, elevation, undefined, options); openings.set(opening.id, projection);
       openingPreviews.set(opening.id, { ...opening });
       previewOpenings.set(opening.id, dimensions => {
         const current = openingPreviews.get(opening.id)!;
@@ -334,7 +359,10 @@ export function makeStructure(document: SceneDocument, reveal?: FinishReveal): S
         }
         if (next.offset === current.offset && next.sill === current.sill && next.width === current.width && next.height === current.height) return;
         openingPreviews.set(opening.id, next);
-        if (next.width !== current.width || next.height !== current.height) makeOpening(wall, next, metadata[opening.id] ?? {}, elevation, projection);
+        if (next.width !== current.width || next.height !== current.height) {
+          makeOpening(wall, next, metadata[opening.id] ?? {}, elevation, projection, options);
+          projection.rebuilt?.(next);
+        }
         else projection.group.position.set(next.offset, next.sill + elevation, 0);
         refreshWall();
       });

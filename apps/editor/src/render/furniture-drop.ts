@@ -1,3 +1,4 @@
+import { placeFurniture, canRestOnFurniture, type FurnitureSurfaceResolver } from '../core/furniture-support';
 import * as THREE from 'three';
 import type { CatalogAsset, SceneDocument, SceneObject, Vec3 } from '../contracts';
 import { floorSupported, validateScene } from '../core/validation';
@@ -6,6 +7,8 @@ import { FURNITURE_DRAG_TYPE } from '../ui/furniture-drag';
 import { PlacementFeedback } from './placement-feedback';
 
 export interface FurnitureDropOptions {
+  surfaceResolver?: FurnitureSurfaceResolver;
+  pointerSurface?(ray: THREE.Raycaster): THREE.Vector3 | undefined;
   canvas: HTMLCanvasElement;
   container: HTMLElement;
   world: THREE.Scene;
@@ -40,7 +43,7 @@ export function createFurnitureDrop(options: FurnitureDropOptions) {
   let asset: CatalogAsset | null = null;
   let candidateId = '';
   let disposed = false;
-  let last: { scene: SceneDocument; asset: CatalogAsset; x: number; z: number; valid: boolean; error?: string; warnings: boolean } | null = null;
+  let last: { scene: SceneDocument; asset: CatalogAsset; x: number; z: number; valid: boolean; error?: string; warnings: boolean; object: SceneObject } | null = null;
 
   function clearPreview(): void {
     bounds.visible = false; hint.hidden = true; feedback.clear(); last = null;
@@ -68,24 +71,27 @@ export function createFurnitureDrop(options: FurnitureDropOptions) {
     if (!rect.width || !rect.height || event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) { clearPreview(); return null; }
     pointer.set((event.clientX - rect.left) / rect.width * 2 - 1, 1 - (event.clientY - rect.top) / rect.height * 2);
     const camera = options.camera(); camera.updateMatrixWorld(); raycaster.setFromCamera(pointer, camera);
-    const point = raycaster.ray.intersectPlane(floor, new THREE.Vector3());
+    const surface = canRestOnFurniture(asset) ? options.pointerSurface?.(raycaster) : undefined;
+    const point = surface ?? raycaster.ray.intersectPlane(floor, new THREE.Vector3());
     if (!point || !Number.isFinite(point.x) || !Number.isFinite(point.z)) { clearPreview(); return null; }
     const x = options.snap() ? Math.round(point.x * 4) / 4 : point.x;
     const z = options.snap() ? Math.round(point.z * 4) / 4 : point.z;
-    if (!last || last.scene !== scene || last.asset !== asset || last.x !== x || last.z !== z) {
-      const object: SceneObject = { id: candidateId, name: asset.name, assetId: asset.id, position: [x, 0, z], rotation: 0, scale: [1, 1, 1] };
+    { // Re-evaluate geometry: the pointer may move between shelf boards at the same X/Z.
+      let object: SceneObject = { id: candidateId, name: asset.name, assetId: asset.id, position: [x, 0, z], rotation: 0, scale: [1, 1, 1] };
       const catalog = options.catalog();
-      const supported = floorSupported(object, asset, scene);
+      let mountingError: string | undefined;
+      try { object = placeFurniture(scene, catalog, object, undefined, options.surfaceResolver, surface ? surface.y + .02 : undefined); } catch (error) { mountingError = String(error); }
+      const supported = !mountingError && (!!object.host || !!object.restsOn || !!object.hangsFrom || floorSupported(object, asset, scene));
       const validation = validateScene({ ...scene, objects: [...scene.objects, object] }, catalog);
       const conflicts = placementConflicts(scene, catalog, object);
       const valid = supported && validation.ok;
-      const error = !supported ? 'Place the whole piece on the apartment floor.' : validation.errors[0];
-      last = { scene, asset, x, z, valid, error, warnings: conflicts.length > 0 };
+      const error = !supported ? mountingError ?? 'Place the whole piece on the apartment floor.' : validation.errors[0];
+      last = { scene, asset, x, z, valid, error, object, warnings: conflicts.length > 0 };
       feedback.update(conflicts);
       outline.material.color.set(valid && !conflicts.length ? '#65d6ad' : '#ff5660');
       hint.style.borderColor = valid && !conflicts.length ? '#65d6ad' : '#ff5660';
     }
-    bounds.visible = true; bounds.position.set(x, asset.dimensions[1] / 2, z);
+    bounds.visible = true; bounds.position.set(last.object.position[0], last.object.position[1] + asset.dimensions[1] / 2, last.object.position[2]); bounds.rotation.y = last.object.rotation;
     const host = options.container.getBoundingClientRect();
     hint.hidden = false;
     hint.style.left = `${Math.max(8, Math.min(host.width - 285, event.clientX - host.left + 18))}px`;
@@ -108,7 +114,7 @@ export function createFurnitureDrop(options: FurnitureDropOptions) {
     const target = id === current?.id ? hover(event) : null;
     // Release the host's interaction gate before submitting one revisioned add.
     cancel();
-    if (target?.valid && current) options.apply(current.id, [target.x, 0, target.z]);
+    if (target?.valid && current) options.apply(current.id, target.object.position);
     else options.error(target?.error ?? 'Drop furniture onto the apartment floor.');
   }
   function key(event: KeyboardEvent): void { if (event.key === 'Escape') cancel(); }

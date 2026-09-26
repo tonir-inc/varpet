@@ -105,7 +105,7 @@ With the architect harness available, run `cd harness && uv run varpet-harness s
 
 Before connecting real output, verify units, orientation, wall opening offsets, polygon validity, stable IDs, and the intended treatment of existing furniture. Do not guess the final shared-engine axes from this local contract.
 
-An opening's `offset` is the distance from the wall's `start` to the opening's left edge, measured along `start → end`; `width` extends in that direction. `sill` is the opening's bottom elevation and `height` its vertical size. A floor-level door has `sill: 0`. Keep the entire opening within its wall length and height.
+An opening's `offset` is the distance from the wall's `start` to the opening's left edge, measured along `start → end`; `width` extends in that direction. `sill` is the opening's bottom elevation and `height` its vertical size. A floor-level door has `sill: 0`. Keep the entire opening within its wall length and height. An optional `assetId` (`extra:openings:<stem>`, a model in `catalog/openings/`) draws that door or window model, scaled to the opening and mirrored by its `hinge` and `swing` metadata; an absent or unknown id keeps the procedural opening. The architect fills it when a model fits within 15%.
 
 ## Fokie: designer proposals
 
@@ -197,3 +197,107 @@ Save/load and JSON import resolve missing built IDs from their original architec
 The reported `catalog middleware must be implemented` assertion can mask a missing installed `@modelcontextprotocol/sdk`: the test's import guard matches the importing file path in the dependency error. Use the repository's pinned pnpm 10 (`npx --yes pnpm@10.0.0 install --frozen-lockfile` if the global pnpm is older), then run `node --test apps/editor/server/catalog.test.mjs`. The middleware and dependency declaration already exist.
 
 No Notion connector or exported Design doc/Hackathon plan was available in this session; this page records the changed contract for handoff.
+
+## Decorations and wall placement
+
+Native furniture kinds now include `decor`, `wall_art`, and `mirror`. Catalog dimensions
+accept 0.01–20 m on every axis, including thin (0.02 m) wall art. Database decoration
+subtypes map to these kinds; clocks and wall hangings map to `wall_art`.
+`add` and transform `update` commands snap wall art and mirrors to the nearest usable
+wall, with local +Z facing into a room. Optional furniture `host` uses
+`{wallId, offset, elevation, side}`; offset is the footprint centre along the wall.
+Position remains the authoritative world-space base. Default base height is
+`max(0.9, 1.5 - scaledHeight/2)` above the room floor; mirrors taller than 1.4 m
+remain floor-based, leaning 0.06 radians toward the wall. Their projected footprint
+and height include the lean; the complete mesh stays above the floor and clear of the wall.
+The lean is derived from kind, scaled height and host, without a new required scene field. No usable wall rejects placement.
+Overlap checks compare vertical extents, so art above a sofa does not overlap it.
+
+## Furniture resting on furniture (`on`)
+
+Placed furniture has optional `restsOn?: string`, the supporting furniture's scene ID.
+`position[1]` is always the item's world-space base height. Existing documents need no
+migration. `decor`, `plant`, `lamp`, small countertop electronics/appliances and flat-screen
+`tv`s (up to 2 m wide, 1.3 m high, 0.5 m deep) may rest on furniture; sofas, beds, tables,
+desks and storage furniture never stack. Wall art and
+mirrors retain their wall placement. These are furniture `add` / `update` operations
+from `contracts.ts`, not renovation `upsert-component` operations:
+
+```ts
+{ type: 'add', on: 'dining-table', object: {
+  id: 'vase', name: 'Vase', assetId: 'catalog-vase',
+  position: [2.2, 0, 3], rotation: 0, scale: [1, 1, 1]
+} }
+{ type: 'update', id: 'vase', on: 'sideboard', patch: { position: [4, 0, 2] } }
+{ type: 'update', id: 'vase', on: 'nightstand', patch: {} }
+{ type: 'update', id: 'vase', on: null, patch: { position: [1, 0, 1] } }
+```
+
+With `on`, omitting an add's `object.position` or an update's `patch.position` selects
+the support's footprint centre and highest surface there. A supplied position requests
+that X/Z; y=0 means search from above. A supplied positive base above the room floor
+limits the downward ray to just above that height, allowing lower shelf boards.
+`on: null` explicitly detaches to the room floor. Missing supports, cycles, large
+furniture, or no upward-facing surface at the requested centre reject the command.
+An explicit position outside the support footprint rejects rather than recentring.
+
+The browser installs `store.setSurfaceResolver(viewport.furnitureSurface)`. This casts
+straight down at the footprint centre against the normalized, rendered model meshes,
+using snapshot transforms (not animation transforms). Drag/drop first picks the visible
+furniture under the cursor so lower shelf boards remain reachable; the vertical ray
+then chooses the actual surface. Holes in loaded geometry do not fall back to a box.
+Without `on`, eligible moved/dropped items automatically use the surface under their
+centre, or the room floor if none is hit. The item itself and its dependants are excluded.
+
+**Headless / model still loading:** no WebGL is required. Missing mesh geometry uses
+scaled catalog height for table, desk, cabinet/nightstand, dresser, shelf and other
+supports; sofa/chair seat is `min(0.45, catalogHeight)`, bed is
+`min(0.55, catalogHeight)`. These are approximate surfaces, not model-specific shelves.
+A loaded mesh with no surface at the requested centre returns an error for explicit `on`.
+Register assets before placing items; meshes may still be loading at that time.
+
+Moving/rotating a support applies its rigid transform to all supported descendants.
+Deleting it drops direct dependants to their room floor and their own dependants follow.
+All of this is one command/history entry; saved relative offsets are derived from world
+transforms rather than duplicated in JSON. Supported items do not collide with their
+own support. Other items still use footprint overlap plus vertical extents, and a centre
+outside its support is a support issue. As with existing placement checks, invalid
+placement is blocking in v1 and a review warning in renovation v2; missing/cyclic IDs
+and unsupported kinds always reject.
+
+## Curtains and hanging planters
+
+`curtain` is a native furniture kind. Curtains mount like wall art (optional `host`, local +Z into
+the room) with two differences: if the requested point projects onto a window's span (± half the
+curtain width) the curtain centres on that window; and its top is a rod `CURTAIN_ROD_GAP` (0.03 m)
+below the ceiling (the lower of the wall top and the room's ceiling height). A curtain longer than
+that drop is hemmed: `add`/`update` reduce `scale[1]` so it just reaches the floor. No wall with
+0.5 m of drop or enough length rejects the command.
+
+Hanging planters (kind `plant` or `decor` whose name says "hanging" plant/planter/pot, or an id
+`…:hanging-…`; wall, deck, railing and balcony planters excluded) hang from the ceiling. Scene
+objects carry optional `hangsFrom: 'ceiling'`; `position[1]` is the room's ceiling height minus the
+scaled height, so the model's hanger touches the ceiling. `add`/`update` set it; `on` is rejected;
+nothing rests on a hanging item; outdoor spaces without a ceiling reject it. Overlap checks use
+vertical extent, so a planter over a sofa is not a clash. Validation checks the mount only when
+`hangsFrom` or `host` is present, so older documents with a floor-standing planter stay valid.
+Changing a wall or ceiling height does not re-hang these items yet; validation then reports the
+stale mount (blocking in v1, a warning in v2) until the item is moved.
+
+## Floor-plan upload gate
+
+`POST /flat` and the legacy `POST /structure` first stream
+`{"type":"progress","message":"Checking the plan"}`. A single low-effort
+`gpt-6-astra` vision turn accepts 2D home layouts, including marketing plans,
+hand sketches, scanned/photographed plans and pages containing multiple plans.
+Confident non-plans (`is_plan: false`, confidence >= 0.6) end the NDJSON stream with
+`{"type":"rejected","kind":"room photo","reason":"This image shows a room."}`;
+no architect build runs. The landing page displays the explanation, clears the
+chosen plan and lets the user choose another image without opening the editor.
+
+`POST /plan-check` takes `{"plan":{"name":"plan.png","data":"<base64>"}}`
+and returns ordinary JSON with `is_plan`, `kind`, `confidence` (0–1), and `reason`.
+It does not build a project. Classifier errors, invalid output and the 45-second
+timeout are logged and fail open: `is_plan: true`, `kind: "unknown"`, confidence 0.
+The classifier disables tools and uses a private direct-mode copy of the local
+Codex model cache; missing model metadata also fails open. No global config changes.

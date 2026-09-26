@@ -106,7 +106,7 @@ export class StudioRenderer {
     this.occlusion.updatePdMaterial({ radius: 5, lumaPhi: 8, depthPhi: 3, normalPhi: 4 });
     this.grade = new ShaderPass({
       name: 'StudioGrade',
-      uniforms: { tDiffuse: { value: null }, strength: { value: 1 } },
+      uniforms: { tDiffuse: { value: null }, strength: { value: 1 }, whiteBalance: { value: new THREE.Vector3(1, 1, 1) } },
       vertexShader: `
         varying vec2 vUv;
         void main() {
@@ -117,10 +117,11 @@ export class StudioRenderer {
       fragmentShader: `
         uniform sampler2D tDiffuse;
         uniform float strength;
+        uniform vec3 whiteBalance;
         varying vec2 vUv;
         void main() {
           vec4 source = texture2D(tDiffuse, vUv);
-          vec3 color = max(source.rgb, vec3(0.0));
+          vec3 color = max(source.rgb, vec3(0.0)) * whiteBalance;
           float luminance = dot(color, vec3(0.2126, 0.7152, 0.0722));
           // A slight warm highlight/cool shadow split supports the lighting;
           // real finish colors and selection feedback remain recognizable.
@@ -177,6 +178,11 @@ export class StudioRenderer {
   setInterior(inside: boolean): void {
     this.interior = inside;
     this.occlusion.blendIntensity = inside ? 0.65 : 0.82;
+  }
+
+  /** Per-channel gains in linear light, like a camera's white balance; (1, 1, 1) is neutral. */
+  setWhiteBalance(r: number, g: number, b: number): void {
+    (this.grade.uniforms.whiteBalance!.value as THREE.Vector3).set(r, g, b);
   }
 
   setQuality(quality: 'balanced' | 'high'): void {

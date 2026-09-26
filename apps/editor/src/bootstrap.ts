@@ -1,7 +1,9 @@
 import './ui/style.css';
 import './ui/shared-viewer.css';
+import { initializeTheme } from './ui/theme';
 import { parseShareReference, readSharedProject, setSharedStartup, shouldReloadShareNavigation } from './core/sharing';
 
+initializeTheme();
 const app = document.querySelector<HTMLElement>('#app')!;
 async function boot() {
   try {

@@ -1,7 +1,12 @@
 import type { FinishMaterial, Operation, SceneDocument } from '../contracts';
-import { resolveWallFinishTargets } from './wall-finish-targets';
+import { resolveWallFinishTargets, type WallFinishTarget } from './wall-finish-targets';
+import { wallSurfaceSpans } from './wall-surfaces';
 
-export type FinishPattern = 'solid' | 'tile' | 'wood' | 'terrazzo';
+export type FinishPattern = 'solid' | 'tile' | 'wood' | 'terrazzo' | 'herringbone' | 'chevron' | 'parquet';
+/** Plank layouts. `size` is [plank length, plank width]; herringbone and parquet
+ * round length / width to whole planks, chevron planks are cut at 45°. */
+export const WOOD_PATTERNS: readonly FinishPattern[] = ['wood', 'herringbone', 'chevron', 'parquet'];
+export const isWoodPattern = (pattern: FinishPattern): boolean => WOOD_PATTERNS.includes(pattern);
 export interface FinishPreset {
   id: string;
   name: string;
@@ -14,7 +19,7 @@ export interface FinishPreset {
   roughness: number;
   description: string;
   /** Bundled seamless surface maps; identity persists through the preset marker. */
-  texture?: 'oak' | 'walnut' | 'travertine' | 'marble';
+  texture?: 'oak' | 'walnut' | 'ash' | 'travertine' | 'marble';
 }
 
 export const FINISH_DRAG_TYPE = 'application/x-varpet-finish';
@@ -26,6 +31,14 @@ export const FINISH_PRESETS: FinishPreset[] = [
   { id: 'slate', name: 'Charcoal slate', category: 'floor', color: '#646c6b', accent: '#444c4c', pattern: 'tile', size: [0.6, 0.4], roughness: 0.86, description: '60 × 40 cm · honed stone' },
   { id: 'oak', name: 'Natural oak', category: 'floor', color: '#b9956b', accent: '#887050', pattern: 'wood', size: [1.2, 0.18], roughness: 0.72, texture: 'oak', description: '18 × 120 cm · oak planks' },
   { id: 'walnut', name: 'Smoked walnut', category: 'floor', color: '#806249', accent: '#543f31', pattern: 'wood', size: [1.2, 0.18], roughness: 0.68, texture: 'walnut', description: '18 × 120 cm · walnut planks' },
+  { id: 'ash', name: 'Pale ash', category: 'floor', color: '#cbb697', accent: '#9a8468', pattern: 'wood', size: [1.2, 0.18], roughness: 0.74, texture: 'ash', description: '18 × 120 cm · ash planks' },
+  { id: 'whitewashed-oak', name: 'Whitewashed oak', category: 'floor', color: '#dccdb4', accent: '#a8977c', pattern: 'wood', size: [1.2, 0.18], roughness: 0.78, texture: 'oak', description: '18 × 120 cm · limed oak planks' },
+  { id: 'ebony-oak', name: 'Ebony oak', category: 'floor', color: '#4d3c30', accent: '#2b211b', pattern: 'wood', size: [1.2, 0.18], roughness: 0.62, texture: 'oak', description: '18 × 120 cm · dark-stained oak' },
+  { id: 'oak-herringbone', name: 'Oak herringbone', category: 'floor', color: '#b58f63', accent: '#806548', pattern: 'herringbone', size: [0.6, 0.1], roughness: 0.70, texture: 'oak', description: '10 × 60 cm · oak herringbone' },
+  { id: 'walnut-herringbone', name: 'Walnut herringbone', category: 'floor', color: '#7b5d45', accent: '#4f3b2d', pattern: 'herringbone', size: [0.6, 0.1], roughness: 0.66, texture: 'walnut', description: '10 × 60 cm · walnut herringbone' },
+  { id: 'oak-chevron', name: 'Oak chevron', category: 'floor', color: '#bc996e', accent: '#8a6f51', pattern: 'chevron', size: [0.6, 0.12], roughness: 0.70, texture: 'oak', description: '12 × 60 cm · 45° oak chevron' },
+  { id: 'ash-chevron', name: 'Ash chevron', category: 'floor', color: '#cdb99c', accent: '#9d876b', pattern: 'chevron', size: [0.6, 0.12], roughness: 0.74, texture: 'ash', description: '12 × 60 cm · 45° ash chevron' },
+  { id: 'oak-parquet', name: 'Oak block parquet', category: 'floor', color: '#ae8a5f', accent: '#7c6245', pattern: 'parquet', size: [0.4, 0.08], roughness: 0.72, texture: 'oak', description: '40 × 40 cm blocks · 8 cm oak strips' },
   { id: 'terrazzo', name: 'Ivory terrazzo', category: 'floor', color: '#ddd8cc', accent: '#a69883', pattern: 'terrazzo', size: [0.6, 0.6], roughness: 0.66, description: '60 × 60 cm · fine aggregate' },
   { id: 'sage-terrazzo', name: 'Sage terrazzo', category: 'floor', color: '#a5afa3', accent: '#697b6c', pattern: 'terrazzo', size: [0.6, 0.6], roughness: 0.68, description: '60 × 60 cm · fine aggregate' },
   { id: 'chalk', name: 'Chalk white', category: 'wall', color: '#eeeae0', accent: '#d2cdc2', pattern: 'solid', size: [1, 1], roughness: 0.94, description: 'Warm white · matte paint' },
@@ -51,7 +64,7 @@ export function materialForPreset(preset: FinishPreset): FinishMaterial {
     color: preset.color,
     unit: 'm2',
     unitCost: 0,
-    thickness: preset.category === 'wall' ? 0.0002 : preset.pattern === 'wood' ? 0.014 : 0.01,
+    thickness: preset.category === 'wall' ? 0.0002 : isWoodPattern(preset.pattern) ? 0.014 : 0.01,
     wastePercent: 0,
     notes: `${materialMarker(preset)} Conceptual finish sample; no supplier or price has been specified. Set a quoted unit cost before budgeting.`,
   };
@@ -61,6 +74,49 @@ export function materialForPreset(preset: FinishPreset): FinishMaterial {
 export function getPresetForMaterial(material: FinishMaterial | undefined): FinishPreset | undefined {
   if (!material || material.unit !== 'm2') return undefined;
   return FINISH_PRESETS.find(preset => material.notes?.startsWith(`${materialMarker(preset)} `));
+}
+
+export type WallSelectionFinishSurface = 'both' | WallFinishTarget['surface'];
+
+/** Paint only room-facing sides of the explicit selection, without extending
+ * across continuous faces onto walls the person did not select.
+ */
+export function wallSelectionFinishTargets(
+  scene: SceneDocument,
+  wallIds: readonly string[],
+  surface: WallSelectionFinishSurface = 'both',
+): WallFinishTarget[] {
+  const targets: WallFinishTarget[] = [];
+  const metadata = scene.project?.metadata;
+  for (const entityId of new Set(wallIds)) {
+    const wall = scene.walls.find(item => item.id === entityId);
+    if (!wall) throw new Error('A selected wall no longer exists. Select the walls again before applying paint.');
+    const spans = wallSurfaceSpans(wall, scene.rooms, metadata);
+    if (surface !== 'wall-back' && spans.some(span => span.front)) targets.push({ entityId, surface: 'wall-front' });
+    if (surface !== 'wall-front' && spans.some(span => span.back)) targets.push({ entityId, surface: 'wall-back' });
+  }
+  return targets;
+}
+
+export function buildWallSelectionFinishOperations(
+  scene: SceneDocument,
+  preset: FinishPreset,
+  wallIds: readonly string[],
+  surface: WallSelectionFinishSurface = 'both',
+): Operation[] {
+  if (preset.category !== 'wall') throw new Error('Choose a wall paint for these walls.');
+  const targets = wallSelectionFinishTargets(scene, wallIds, surface);
+  // Validate the entire selection, including walls without a paintable face.
+  // A mixed selection must never silently apply only its unlocked subset.
+  for (const entityId of new Set(wallIds)) {
+    const metadata = scene.project?.metadata[entityId];
+    if (metadata?.locked) throw new Error('A selected wall is locked. Unlock it in its properties before applying paint.');
+    if (metadata?.phase === 'remove') throw new Error('A selected wall is marked for removal. Restore it before applying paint.');
+  }
+  if (!targets.length) throw new Error('The selected walls have no room-facing surfaces on this side. Choose another side or select walls bordering a room.');
+  const operations = buildFinishTargetOperations(scene, preset, targets);
+  if (operations.length > 100) throw new Error('This selection needs more than 100 finish operations. Select fewer walls and apply the paint again.');
+  return operations;
 }
 
 export function buildFinishOperations(
@@ -80,6 +136,15 @@ export function buildFinishOperations(
     if (metadata?.locked) throw new Error(`This ${floor ? 'room' : 'wall face includes a section that'} is locked. Unlock it in its properties before applying a finish.`);
     if (metadata?.phase === 'remove') throw new Error(`This ${floor ? 'room' : 'wall face includes a section that'} is marked for removal. Restore it before applying a finish.`);
   }
+  return buildFinishTargetOperations(scene, preset, targets);
+}
+
+function buildFinishTargetOperations(
+  scene: SceneDocument,
+  preset: FinishPreset,
+  targets: readonly { entityId: string; surface: 'floor' | WallFinishTarget['surface'] }[],
+): Operation[] {
+  const project = scene.project;
   // A tinted sample retains its pattern, but choosing the original swatch must
   // restore the original color without changing other surfaces using that tint.
   const matchesPreset = (material: FinishMaterial | undefined): boolean => getPresetForMaterial(material)?.id === preset.id && material?.color.toLowerCase() === preset.color.toLowerCase();

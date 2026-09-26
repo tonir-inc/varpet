@@ -1,0 +1,79 @@
+
+> @varpet/editor@0.0.0 build /Users/davitstepanyan/Documents/varpet/apps/editor
+> vite build
+
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "./server/sharing" without a file extension (vite.config.ts:4:31). Add the file extension
+  - import "../src/contracts" without a file extension (server/sharing.ts:8:50). Add the file extension
+  - import "../src/core/validation" without a file extension (server/sharing.ts:9:41). Add the file extension
+  - import "../contracts" without a file extension (src/core/validation.ts:1:132). Add the file extension
+  - import "./geometry" without a file extension (src/core/validation.ts:3:35). Add the file extension
+  - import "./opening-collision" without a file extension (src/core/validation.ts:4:61). Add the file extension
+  - import "./ceiling-design" without a file extension (src/core/validation.ts:5:57). Add the file extension
+  - import "./heights" without a file extension (src/core/validation.ts:6:32). Add the file extension
+  - import "../contracts" without a file extension (src/core/heights.ts:1:59). Add the file extension
+  - import "../contracts" without a file extension (src/core/opening-collision.ts:1:57). Add the file extension
+  - import "../contracts" without a file extension (src/core/ceiling-design.ts:1:94). Add the file extension
+  - import "../contracts" without a file extension (src/core/geometry.ts:1:73). Add the file extension
+  - import "./wall-surfaces" without a file extension (src/core/heights.ts:2:34). Add the file extension
+  - import "./geometry" without a file extension (src/core/opening-collision.ts:2:28). Add the file extension
+  - import "./heights" without a file extension (src/core/ceiling-design.ts:2:51). Add the file extension
+  - import "../contracts" without a file extension (src/core/wall-surfaces.ts:1:55). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+vite v8.3.1 building client environment for production...
+(node:58169) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+transforming...
+✓ 210 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                       1.92 kB │ gzip:   0.86 kB
+dist/assets/roughness-CvBUliYO.jpg                   67.93 kB
+dist/assets/window-oak-box-B6ZAKB1-.glb             148.03 kB
+dist/assets/basecolor-CII6jJTV.jpg                  180.32 kB
+dist/assets/door-shaker-sage-DdCud-75.glb           181.68 kB
+dist/assets/roughness-D99O-dXN.jpg                  182.37 kB
+dist/assets/door-flush-white-CACAuCbg.glb           190.94 kB
+dist/assets/window-panoramic-slider-BBg0cUp9.glb    192.76 kB
+dist/assets/basecolor-Dw9Lz3II.jpg                  222.84 kB
+dist/assets/basecolor-BtF-RFhP.jpg                  224.56 kB
+dist/assets/window-bath-hopper-BN7UT36G.glb         245.90 kB
+dist/assets/basecolor-ByAeVaum.jpg                  257.16 kB
+dist/assets/door-steel-french-CP_NSiHi.glb          284.24 kB
+dist/assets/window-pvc-tilt-turn-C8Nm6Hxq.glb       288.95 kB
+dist/assets/door-oak-glazed-C5-Tb1Js.glb            292.74 kB
+dist/assets/roughness-BrR4thzw.jpg                  328.38 kB
+dist/assets/window-alu-transom-We908v6M.glb         347.27 kB
+dist/assets/roughness-BEj5AgH4.jpg                  367.25 kB
+dist/assets/door-entrance-armored-DeBeL-n2.glb      368.92 kB
+dist/assets/basecolor-CmfNOeZl.jpg                  380.43 kB
+dist/assets/roughness-BfvNI1lq.jpg                  411.53 kB
+dist/assets/viewport-KF9VjJeK.css                     1.43 kB │ gzip:   0.56 kB
+dist/assets/architect-stage-D5RYhB9j.css              2.47 kB │ gzip:   0.88 kB
+dist/assets/portal-CEsInPtR.css                      17.21 kB │ gzip:   4.47 kB
+dist/assets/auth-CqZsESM1.css                        22.67 kB │ gzip:   4.34 kB
+dist/assets/index-5KgVY9qE.css                       45.58 kB │ gzip:   8.96 kB
+dist/assets/main-CmljB05N.css                        85.27 kB │ gzip:  15.06 kB
+dist/assets/preview-Cj3I8jt1.js                       1.48 kB │ gzip:   0.89 kB
+dist/assets/built-catalog-DiiQt8X-.js                 1.83 kB │ gzip:   0.94 kB
+dist/assets/RoomEnvironment-Ub8m_5qO.js               2.04 kB │ gzip:   0.88 kB
+dist/assets/shared-viewer-B-uoGheu.js                 2.78 kB │ gzip:   1.23 kB
+dist/assets/database-catalog-Mct3BBes.js              5.10 kB │ gzip:   2.41 kB
+dist/assets/architect-http-BdizSnea.js                5.42 kB │ gzip:   2.23 kB
+dist/assets/ceiling-design-BztMFUml.js                9.52 kB │ gzip:   3.92 kB
+dist/assets/auth-gv4oVoWI.js                         13.30 kB │ gzip:   5.24 kB
+dist/assets/renovation-CQIKjlBg.js                   23.66 kB │ gzip:   8.36 kB
+dist/assets/portal-B2woQ8O1.js                       32.89 kB │ gzip:  11.41 kB
+dist/assets/index-N2_m7Rq5.js                        41.37 kB │ gzip:  15.14 kB
+dist/assets/architect-stage-DEokPzjJ.js              62.01 kB │ gzip:  20.64 kB
+dist/assets/viewport-DypQu2Sz.js                    260.51 kB │ gzip:  76.08 kB
+dist/assets/main-CJxNVcnZ.js                        342.84 kB │ gzip: 112.43 kB
+dist/assets/structure-BJjjzOJ9.js                   989.14 kB │ gzip: 299.50 kB
+dist/assets/app-Y_o7L75_.js                       1,192.35 kB │ gzip: 838.73 kB
+
+✓ built in 450ms
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.

@@ -222,7 +222,8 @@ def render(run_dir: Path, out: Path, px_per_m: int = 90) -> Path:
     for w in shell.walls:
         line = LineString([w.start, w.end])
         if line.length > 0:
-            cv.poly(line.buffer(w.thickness / 2, cap_style="flat"), fill=INK)
+            # square ends fill the corner where two walls meet at their centrelines, as the editor's mitres do
+            cv.poly(line.buffer(w.thickness / 2, cap_style="square"), fill=INK)
     for w in shell.walls:
         line = LineString([w.start, w.end])
         for o in w.openings:

@@ -47,6 +47,9 @@ def thread_config(codex_home: Path = Path.home() / ".codex") -> dict:
         "project_doc_max_bytes": 0,
         "mcp_servers": {n: {"enabled": False} for n in live.get("mcp_servers", {})},
         "plugins": {n: {"enabled": False} for n in live.get("plugins", {})},
+        # 26 Sept, 0.157.1 source: the multi-agent role block and the skills list; 20.5k -> 13.5k input tokens
+        "agents": {"enabled": False},
+        "skills": {"include_instructions": False},
     }
 
 

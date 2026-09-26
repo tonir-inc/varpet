@@ -10,6 +10,8 @@ export const SKYBOX_PRESETS = [
 
 export type SkyboxPreset = typeof SKYBOX_PRESETS[number]['id'];
 type OutdoorPreset = Exclude<SkyboxPreset, 'studio'>;
+/** Captures also include the blue hour seen through windows after dusk; it is not a selectable preset. */
+export type SkyCapture = OutdoorPreset | 'twilight';
 
 export function isSkyboxPreset(value: unknown): value is SkyboxPreset {
   return SKYBOX_PRESETS.some(preset => preset.id === value);
@@ -19,12 +21,15 @@ interface SkyboxTextures { background: THREE.CubeTexture; environment: THREE.Tex
 interface CachedSkybox { key: string; textures: SkyboxTextures; background: THREE.WebGLCubeRenderTarget; environment: THREE.WebGLRenderTarget }
 
 const PALETTES = {
-  daylight: { zenith: '#729ecb', horizon: '#d5e2e8', nadir: '#a3b4c2', cloud: '#f1f3f1', coverage: 0.56, opacity: 0.58 },
-  sunset: { zenith: '#667f9f', horizon: '#edb18c', nadir: '#a194a1', cloud: '#ead0c4', coverage: 0.57, opacity: 0.5 },
-  overcast: { zenith: '#a5afb9', horizon: '#dce1e3', nadir: '#aab5bd', cloud: '#e5e9ea', coverage: 0.3, opacity: 0.72 },
-} satisfies Record<OutdoorPreset, object>;
+  // nadir is the horizon haze below eye level; ground/skyline give windows a
+  // readable outside (distant trees and roofs, then lawn and paving) instead of a void.
+  daylight: { zenith: '#4f86c6', horizon: '#cfdfea', nadir: '#b9c6cc', ground: '#7f8570', skyline: '#5d6f63', cloud: '#f6f7f5', coverage: 0.56, opacity: 0.62, radiance: 1.7 },
+  sunset: { zenith: '#5b7197', horizon: '#f0b186', nadir: '#b39c95', ground: '#5d5146', skyline: '#5a4e56', cloud: '#f2cdb9', coverage: 0.57, opacity: 0.5, radiance: 1.3 },
+  overcast: { zenith: '#a5afb9', horizon: '#dce1e3', nadir: '#bcc4c7', ground: '#737a6c', skyline: '#7d8784', cloud: '#e5e9ea', coverage: 0.3, opacity: 0.72, radiance: 1.35 },
+  twilight: { zenith: '#0b1a3a', horizon: '#3a4c78', nadir: '#1f2740', ground: '#12151b', skyline: '#080b12', cloud: '#26314f', coverage: 0.6, opacity: 0.35, radiance: 1 },
+} satisfies Record<SkyCapture, object>;
 
-function makeSkyMaterial(preset: OutdoorPreset, lighting: SunLighting): THREE.ShaderMaterial {
+function makeSkyMaterial(preset: SkyCapture, lighting: SunLighting): THREE.ShaderMaterial {
   const palette = PALETTES[preset];
   return new THREE.ShaderMaterial({
     name: `Skybox ${preset} capture`,
@@ -36,6 +41,9 @@ function makeSkyMaterial(preset: OutdoorPreset, lighting: SunLighting): THREE.Sh
       zenith: { value: new THREE.Color(palette.zenith) },
       horizon: { value: new THREE.Color(palette.horizon) },
       nadir: { value: new THREE.Color(palette.nadir) },
+      ground: { value: new THREE.Color(palette.ground) },
+      skyline: { value: new THREE.Color(palette.skyline) },
+      radiance: { value: palette.radiance },
       cloudColor: { value: new THREE.Color(palette.cloud) },
       coverage: { value: palette.coverage },
       cloudOpacity: { value: palette.opacity },
@@ -55,6 +63,9 @@ function makeSkyMaterial(preset: OutdoorPreset, lighting: SunLighting): THREE.Sh
       uniform vec3 zenith;
       uniform vec3 horizon;
       uniform vec3 nadir;
+      uniform vec3 ground;
+      uniform vec3 skyline;
+      uniform float radiance;
       uniform vec3 cloudColor;
       uniform float coverage;
       uniform float cloudOpacity;
@@ -81,20 +92,30 @@ function makeSkyMaterial(preset: OutdoorPreset, lighting: SunLighting): THREE.Sh
         vec3 direction = normalize(skyDirection);
         float height = direction.y;
         vec3 color = mix(horizon, zenith, pow(max(height, 0.0), 0.55));
-        // A full lower hemisphere gives orbit and off-origin views a soft
-        // background instead of exposing a black floor below a finite dome.
-        color = mix(color, nadir, smoothstep(0.0, 0.85, -height));
+        // Ground: haze at the horizon fading to lawn/paving below, with broad
+        // low-frequency patches so it reads as distance, not a flat fill.
+        vec3 groundPoint = direction / max(0.04, -height);
+        float patches = noise(vec3(groundPoint.x * 0.35, 0.0, groundPoint.z * 0.35)) * 0.6 + noise(vec3(groundPoint.x * 1.3, 3.1, groundPoint.z * 1.3)) * 0.4;
+        vec3 land = ground * mix(0.82, 1.12, patches);
+        color = mix(color, mix(nadir, land, smoothstep(0.0, 0.22, -height)), smoothstep(0.004, -0.004, height));
+        // A distant skyline of trees and low roofs just above the horizon.
+        vec3 ring = normalize(vec3(direction.x, 0.0, direction.z) + 1e-5);
+        float profile = noise(ring * 7.0 + vec3(3.7, 1.3, 9.1)) * 0.65 + noise(ring * 23.0 + vec3(1.1, 7.7, 2.3)) * 0.35;
+        float top = 0.012 + 0.05 * profile * profile;
+        float silhouette = smoothstep(top + 0.004, top - 0.004, height) * smoothstep(-0.01, 0.0, height);
+        color = mix(color, mix(skyline, horizon, 0.35), silhouette);
         // Direction-space noise stays continuous across cubemap boundaries.
         vec3 p = direction * vec3(5.0, 9.0, 5.0) + vec3(11.3, 4.7, 8.9);
         float clouds = noise(p) * 0.57 + noise(p * 2.07) * 0.28 + noise(p * 4.13) * 0.15;
         float cloudMask = smoothstep(coverage - 0.09, coverage + 0.2, clouds);
-        cloudMask *= smoothstep(-0.03, 0.18, height) * cloudOpacity;
+        cloudMask *= smoothstep(0.03, 0.2, height) * cloudOpacity;
         color = mix(color, cloudColor, cloudMask);
         // Broad, capped sunlight aligns with the scene key; no HDR disk that
         // blooms or creates distracting point reflections on polished floors.
         float sun = pow(max(dot(direction, sunDirection), 0.0), 24.0);
         // A fixed presentation scale bounds the broad glow; direction, color
         // and relative energy come from the same sun as the scene's shadows.
+        color *= radiance;
         color += sunColor * sun * sunIntensity * 0.07 * (1.0 - cloudMask * 0.75);
         // Store scene-linear radiance. The main renderer applies tone mapping
         // and display color conversion once when sampling this background.
@@ -106,12 +127,12 @@ function makeSkyMaterial(preset: OutdoorPreset, lighting: SunLighting): THREE.Sh
 
 /** Local, lazy sky resources; no meshes are added to the editable apartment. */
 export class SkyboxResources {
-  private readonly cache = new Map<OutdoorPreset, CachedSkybox>();
+  private readonly cache = new Map<SkyCapture, CachedSkybox>();
   private disposed = false;
 
   constructor(private readonly renderer: THREE.WebGLRenderer) {}
 
-  get(preset: OutdoorPreset, lighting = effectiveSunlight(DEFAULT_SUN)): SkyboxTextures {
+  get(preset: SkyCapture, lighting = effectiveSunlight(DEFAULT_SUN)): SkyboxTextures {
     if (this.disposed) throw new Error('Skybox resources have been disposed');
     if (!Object.hasOwn(PALETTES, preset)) throw new Error('Unknown outdoor skybox');
     const cached = this.cache.get(preset);

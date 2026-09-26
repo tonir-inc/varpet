@@ -1,3 +1,4 @@
+import { openingMechanism } from './opening-catalog';
 import type { SceneDocument, Vec2 } from '../contracts';
 
 export interface DoorBarrier {
@@ -95,7 +96,7 @@ export function doorBarriers(scene: SceneDocument): DoorBarrier[] {
       const bottom = Math.min(meta.threshold ?? 0, opening.height / 4);
       const height = Math.max(0.01, opening.height - frame - bottom);
       const thickness = meta.leafThickness ?? 0.035;
-      const mechanism = meta.mechanism ?? 'hinged';
+      const mechanism = openingMechanism(opening, meta);
       const swing = meta.swing ?? 1;
       const add = (polygon: Vec2[], low: number, high: number, kind: DoorBarrier['kind']) => {
         const world = hull(polygon.map(([along, across]): Vec2 => [

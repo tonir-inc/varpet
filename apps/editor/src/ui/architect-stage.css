@@ -1,5 +1,4 @@
-/* Construction view: fills whatever host it is given (the editor's 3D viewport). No text overlay;
- * only in-scene labels, sized to the host via container units but never below a legible 16px. */
+/* Construction view: the source plan and actual streamed geometry share one 3D scene. */
 .as-stage {
   position: absolute;
   inset: 0;
@@ -9,12 +8,129 @@
   color: var(--ink);
   font-family: inherit;
   /* The architect is an agent at work, so it draws in the designer's green. */
-  --as-accent: var(--designer);
-  --as-muted: var(--muted);
+  --as-accent: var(--designer, #0c6a55);
+  --as-muted: var(--muted, #69796f);
 }
-.as-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.as-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+.as-canvas.is-navigating { cursor: grabbing; }
+.as-canvas:focus-visible { outline: 2px solid var(--as-accent); outline-offset: -4px; }
+/* Navigation legend: drawn like the key on a drawing sheet, not a floating card. */
+.as-navigation {
+  --nav-ink: #254c39;
+  --nav-muted: #254c39a6;
+  --nav-line: #254c3940;
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100% - 32px);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 7px 7px 7px 12px;
+  border: 1px solid var(--nav-line);
+  border-radius: 2px;
+  outline: 1px solid color-mix(in srgb, var(--nav-line) 45%, transparent);
+  outline-offset: 3px;
+  background: #f7faf2e6;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  color: var(--nav-ink);
+  font-size: 11px;
+}
+.as-navigation[hidden], .as-navigation .as-touch-help { display: none; }
+.as-navigation button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--nav-line);
+  border-radius: 2px;
+  padding: 4px 8px;
+  background: transparent;
+  color: inherit;
+  font: 500 9px/1 ui-monospace, 'SF Mono', Menlo, monospace;
+  letter-spacing: .9px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 140ms ease-out, border-color 140ms ease-out;
+}
+.as-navigation button svg { width: 11px; height: 11px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; transition: transform 320ms cubic-bezier(.16, 1, .3, 1); }
+.as-navigation button:hover { border-color: currentColor; background: color-mix(in srgb, var(--nav-ink) 8%, transparent); }
+.as-navigation button:hover svg { transform: rotate(-60deg); }
+.as-navigation button:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+.as-navigation dl { display: flex; flex-wrap: wrap; align-items: center; margin: 0; padding-right: 14px; border-right: 1px solid var(--nav-line); }
+.as-navigation dl > div { display: flex; align-items: center; gap: 6px; padding: 0 12px; }
+.as-navigation dl > div:first-child { padding-left: 0; }
+.as-navigation dl > div:last-child { padding-right: 0; }
+.as-navigation dl > div + div { border-left: 1px solid var(--nav-line); }
+.as-navigation dt { padding: 2px 5px; border: 1px solid var(--nav-line); border-bottom-width: 2px; border-radius: 2px; font: 500 9px/1.2 ui-monospace, 'SF Mono', Menlo, monospace; letter-spacing: .4px; white-space: nowrap; }
+.as-navigation dd { margin: 0; color: var(--nav-muted); white-space: nowrap; }
+.as-stage.is-blueprint .as-navigation { --nav-ink: #e6f3f2; --nav-muted: #cfe3e1b3; --nav-line: #e6f3f240; background: #0d3a4299; }
+.as-stage.is-blueprint .as-canvas:focus-visible { outline-color: #e6f3f2; }
+.blueprint-flow.is-entering .as-navigation, .blueprint-flow.is-handing-over .as-navigation { visibility: hidden; }
+@media (pointer: coarse) {
+  .as-navigation .as-mouse-help { display: none; }
+  .as-navigation .as-touch-help { display: flex; }
+}
+@media (max-width: 560px) {
+  .as-navigation { flex-wrap: wrap; justify-content: center; row-gap: 8px; padding: 8px 10px; }
+  .as-navigation dl { justify-content: center; padding-right: 0; border-right: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .as-navigation button, .as-navigation button svg { transition: none; } }
 .as-labels, .as-labels > div { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .as-veil { position: absolute; inset: 0; background: var(--ground); opacity: 0; pointer-events: none; }
+.as-opening-hint {
+  position: absolute;
+  bottom: 26px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: calc(100% - 32px);
+  padding: 8px 15px;
+  border: 1px solid #cad6ca;
+  border-radius: 24px;
+  background: #f7faf2e8;
+  color: #476053;
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.as-opening-hint[hidden] { display: none; }
+.as-opening-actions {
+  position: absolute;
+  bottom: 62px;
+  left: 16px;
+  right: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+.as-opening-actions button {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+.as-opening-actions:focus-within button:not(:disabled) {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: 8px 12px;
+  clip-path: none;
+  border: 1px solid #b5c8ba;
+  border-radius: 8px;
+  background: #f7faf2;
+  color: #254c39;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.as-opening-actions button:focus-visible { outline: 2px solid var(--as-accent); outline-offset: 3px; }
 
 .as-room-label {
   display: flex;

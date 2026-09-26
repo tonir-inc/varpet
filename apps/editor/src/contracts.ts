@@ -3,7 +3,7 @@ export type * from './renovation-contracts';
 /** Editor-local v1 boundary. Deliberately does not define the future shared engine schema. */
 export type Vec2 = [number, number]; // x, z in metres
 export type Vec3 = [number, number, number]; // x, y, z in metres
-export type AssetKind = 'sofa' | 'chair' | 'table' | 'desk' | 'bed' | 'cabinet' | 'wardrobe' | 'dresser' | 'lamp' | 'plant' | 'rug' | 'shelf' | 'toilet' | 'sink' | 'bathtub' | 'shower' | 'fridge' | 'stove' | 'oven' | 'washing_machine' | 'dryer' | 'dishwasher' | 'microwave' | 'tv' | 'monitor' | 'computer' | 'laptop' | 'speaker' | 'printer' | 'game_console' | 'kitchen_cabinet' | 'kitchen_counter' | 'kitchen_island' | 'radiator' | 'fan' | 'coat_rack' | 'shoe_rack';
+export type AssetKind = 'sofa' | 'chair' | 'table' | 'desk' | 'bed' | 'cabinet' | 'wardrobe' | 'dresser' | 'lamp' | 'plant' | 'rug' | 'shelf' | 'toilet' | 'sink' | 'bathtub' | 'shower' | 'fridge' | 'stove' | 'oven' | 'washing_machine' | 'dryer' | 'dishwasher' | 'microwave' | 'tv' | 'monitor' | 'computer' | 'laptop' | 'speaker' | 'printer' | 'game_console' | 'kitchen_cabinet' | 'kitchen_counter' | 'kitchen_island' | 'radiator' | 'fan' | 'coat_rack' | 'shoe_rack' | 'decor' | 'wall_art' | 'mirror' | 'curtain';
 export interface CatalogAsset {
   id: string;
   name: string;
@@ -16,7 +16,11 @@ export interface CatalogAsset {
 }
 export interface Room { id: string; name: string; polygon: Vec2[]; color: string }
 /** Offset measures metres from wall.start to the near edge, toward wall.end. Doors have sill=0. */
-export interface Opening { id: string; kind: 'door' | 'window'; offset: number; width: number; height: number; sill: number }
+export interface Opening {
+  id: string; kind: 'door' | 'window'; offset: number; width: number; height: number; sill: number;
+  /** Catalog door/window model (`extra:openings:<stem>`) drawn in place of the procedural opening, fitted to its size. Unknown ids fall back to the procedural opening. */
+  assetId?: string;
+}
 export interface Wall { id: string; start: Vec2; end: Vec2; height: number; thickness: number; color: string; openings: Opening[] }
 export interface SceneObject {
   id: string;
@@ -24,7 +28,11 @@ export interface SceneObject {
   assetId: string;
   /** Flat furniture group membership, supported only in v2 documents. */
   groupId?: string;
-  position: Vec3; // floor-centred origin, base at y=0
+  restsOn?: string;
+  host?: import('./renovation-contracts').ComponentHost;
+  /** Hanging planters: the top touches the room's ceiling, so position[1] = ceiling - scaled height. */
+  hangsFrom?: 'ceiling';
+  position: Vec3; // footprint-centred origin at the base
   rotation: number; // radians about +Y
   scale: Vec3;
   color?: string;
@@ -41,12 +49,13 @@ export interface SceneDocument {
   walls: Wall[];
   objects: SceneObject[];
 }
-export type ObjectPatch = Partial<Pick<SceneObject, 'name' | 'position' | 'rotation' | 'scale' | 'color'>>;
+export type ObjectPatch = Partial<Pick<SceneObject, 'name' | 'position' | 'rotation' | 'scale' | 'color' | 'restsOn'>>;
 export type Operation =
   | { type: 'group'; id: string; objectIds: string[] }
   | { type: 'ungroup'; id: string }
-  | { type: 'add'; object: SceneObject }
-  | { type: 'update'; id: string; patch: ObjectPatch }
+  | { type: 'add'; object: SceneObject; on?: string | null }
+  | { type: 'add'; object: Omit<SceneObject, 'position'> & { position?: Vec3 }; on: string }
+  | { type: 'update'; id: string; patch: ObjectPatch; on?: string | null }
   | { type: 'delete'; id: string }
   | { type: 'replace-structure'; rooms: Room[]; walls: Wall[] }
   | { type: 'replace-scene'; scene: SceneDocument }

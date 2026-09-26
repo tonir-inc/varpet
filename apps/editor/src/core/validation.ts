@@ -1,3 +1,6 @@
+import { furnitureDimensions } from './furniture-bounds';
+import { canRestOnFurniture, floorHeight, isDescendant, supportContains } from './furniture-support';
+import { hangFromCeiling, hangsFromCeiling, mountDecoration, wallDecoration } from './decoration-placement';
 import type { CatalogAsset, SceneDocument, SceneObject, ValidationResult, Vec2, Wall, RenovationProject, RenovationSnapshot } from '../contracts';
 
 import { componentPosition } from './geometry';
@@ -8,7 +11,7 @@ import { hasRoomCeiling } from './heights';
 const EPS = 1e-5;
 const COORD_LIMIT = 100;
 const COLOR = /^#[0-9a-f]{6}$/i;
-const KINDS = new Set(['sofa', 'chair', 'table', 'desk', 'bed', 'cabinet', 'wardrobe', 'dresser', 'lamp', 'plant', 'rug', 'shelf', 'toilet', 'sink', 'bathtub', 'shower', 'fridge', 'stove', 'oven', 'washing_machine', 'dryer', 'dishwasher', 'microwave', 'tv', 'monitor', 'computer', 'laptop', 'speaker', 'printer', 'game_console', 'kitchen_cabinet', 'kitchen_counter', 'kitchen_island', 'radiator', 'fan', 'coat_rack', 'shoe_rack']);
+const KINDS = new Set(['sofa', 'chair', 'table', 'desk', 'bed', 'cabinet', 'wardrobe', 'dresser', 'lamp', 'plant', 'rug', 'shelf', 'toilet', 'sink', 'bathtub', 'shower', 'fridge', 'stove', 'oven', 'washing_machine', 'dryer', 'dishwasher', 'microwave', 'tv', 'monitor', 'computer', 'laptop', 'speaker', 'printer', 'game_console', 'kitchen_cabinet', 'kitchen_counter', 'kitchen_island', 'radiator', 'fan', 'coat_rack', 'shoe_rack', 'decor', 'wall_art', 'mirror', 'curtain']);
 type RecordValue = Record<string, unknown>;
 type Segment = [Vec2, Vec2];
 
@@ -53,6 +56,16 @@ function segmentIntersection(a: Vec2, b: Vec2, c: Vec2, d: Vec2): Vec2 | null {
     ? [a[0] + t * rx, a[1] + t * rz] : null;
 }
 
+export function pointInPolygon(point: Vec2, polygon: Vec2[]): boolean {
+  let inside = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const a = polygon[i]!, b = polygon[j]!;
+    if (onSegment(point, a, b)) return true;
+    if ((a[1] > point[1]) !== (b[1] > point[1]) && point[0] < (b[0] - a[0]) * (point[1] - a[1]) / (b[1] - a[1]) + a[0]) inside = !inside;
+  }
+  return inside;
+}
+
 function edges(polygon: Vec2[]): Segment[] {
   return polygon.map((point, i) => [point, polygon[(i + 1) % polygon.length]!] as Segment);
 }
@@ -75,8 +88,9 @@ function simplePolygon(polygon: Vec2[]): boolean {
 
 /** Exact vertical decomposition checks the entire rectangular footprint against a union of simple floor polygons. */
 export function floorSupported(object: SceneObject, asset: CatalogAsset, scene: SceneDocument): boolean {
-  const halfX = asset.dimensions[0] * object.scale[0] / 2;
-  const halfZ = asset.dimensions[2] * object.scale[2] / 2;
+  const dimensions = furnitureDimensions(object, asset);
+  const halfX = dimensions[0] / 2;
+  const halfZ = dimensions[2] / 2;
   const cosine = Math.cos(object.rotation), sine = Math.sin(object.rotation);
   const polygons = scene.rooms.filter(room => scene.project?.metadata[room.id]?.phase !== 'remove' && (scene.version === 1 || Math.abs((scene.project?.metadata[room.id]?.elevation ?? 0) - object.position[1]) < EPS)).map(room => room.polygon.map(([x, z]): Vec2 => {
     const dx = x - object.position[0], dz = z - object.position[2];
@@ -123,7 +137,8 @@ export function floorSupported(object: SceneObject, asset: CatalogAsset, scene: 
 }
 
 export function objectFootprint(object: SceneObject, asset: CatalogAsset): Vec2[] {
-  const x = asset.dimensions[0] * object.scale[0] / 2, z = asset.dimensions[2] * object.scale[2] / 2;
+  const dimensions = furnitureDimensions(object, asset);
+  const x = dimensions[0] / 2, z = dimensions[2] / 2;
   const cosine = Math.cos(object.rotation), sine = Math.sin(object.rotation);
   return ([[-x, -z], [x, -z], [x, z], [-x, z]] as Vec2[]).map(([dx, dz]) =>
     [object.position[0] + cosine * dx + sine * dz, object.position[2] - sine * dx + cosine * dz]);
@@ -148,10 +163,10 @@ export function wallFootprint(wall: Wall, from: number, to: number): Vec2[] {
 }
 
 export function wallCollision(object: SceneObject, asset: CatalogAsset, wall: Wall, footprint: Vec2[], elevation = 0): boolean {
-  if (object.position[1] + asset.dimensions[1] * object.scale[1] <= elevation + EPS || object.position[1] >= elevation + wall.height - EPS) return false;
+  if (object.position[1] + furnitureDimensions(object, asset)[1] <= elevation + EPS || object.position[1] >= elevation + wall.height - EPS) return false;
   const length = Math.hypot(wall.end[0] - wall.start[0], wall.end[1] - wall.start[1]);
   if (!polygonsOverlap(footprint, wallFootprint(wall, 0, length))) return false;
-  const objectHeight = asset.dimensions[1] * object.scale[1];
+  const objectHeight = furnitureDimensions(object, asset)[1];
   const passages = wall.openings.filter(o => o.kind === 'door' && elevation + o.sill <= object.position[1] + EPS && elevation + o.sill + o.height >= object.position[1] + objectHeight - EPS)
     .sort((a, b) => a.offset - b.offset);
   let cursor = 0;
@@ -214,7 +229,7 @@ export function validateScene(input: unknown, catalog: CatalogAsset[]): Validati
     for (const opening of wall.openings) {
       if (!isRecord(opening)) { fail(`Wall ${i + 1} contains an invalid opening.`); continue; }
       unique(opening.id, `Wall ${i + 1} opening`);
-      if (!keys(opening, ['id', 'kind', 'offset', 'width', 'height', 'sill']) || typeof opening.kind !== 'string' || !['door', 'window'].includes(opening.kind)
+      if (!keys(opening, ['id', 'kind', 'offset', 'width', 'height', 'sill', 'assetId']) || (opening.assetId !== undefined && !text(opening.assetId, 100)) || typeof opening.kind !== 'string' || !['door', 'window'].includes(opening.kind)
         || !finite(opening.offset, 0, length) || !finite(opening.width, 0.2, length) || !finite(opening.height, 0.2, wall.height)
         || !finite(opening.sill, 0, wall.height) || opening.offset + opening.width > length + EPS || opening.sill + opening.height > wall.height + EPS
         || (input.version === 1 && opening.kind === 'door' && opening.sill > EPS)) { fail(`Wall ${i + 1} has an opening outside its bounds or an unsupported raised door.`); continue; }
@@ -227,7 +242,7 @@ export function validateScene(input: unknown, catalog: CatalogAsset[]): Validati
   for (const [i, object] of (input.objects as unknown[]).entries()) {
     if (!isRecord(object)) { fail(`Object ${i + 1} must be an object.`); continue; }
     unique(object.id, `Object ${i + 1}`);
-    if (!keys(object, ['id', 'name', 'assetId', 'position', 'rotation', 'scale', 'color', 'groupId']) || !text(object.name) || !text(object.assetId, 100)
+    if (!keys(object, ['id', 'name', 'assetId', 'position', 'rotation', 'scale', 'color', 'groupId', 'host', 'restsOn', 'hangsFrom']) || !text(object.name) || !text(object.assetId, 100)
       || !vector(object.position, 3, -COORD_LIMIT, COORD_LIMIT) || !finite(object.rotation, -Math.PI * 100, Math.PI * 100)
       || !vector(object.scale, 3, 0.1, 4) || (object.color !== undefined && (typeof object.color !== 'string' || !COLOR.test(object.color)))) { fail(`Object ${i + 1} has invalid fields or a non-finite/out-of-range transform.`); continue; }
     if (object.groupId !== undefined) {
@@ -236,7 +251,10 @@ export function validateScene(input: unknown, catalog: CatalogAsset[]): Validati
     }
     const asset = assets.get(object.assetId);
     if (!asset) fail(`“${object.name}” references unknown catalog asset “${object.assetId}”.`);
-    if (input.version === 1 && Math.abs(object.position[1]!) > EPS) fail(`“${object.name}” must be supported on the floor at y = 0.`);
+    if (input.version === 1 && object.host === undefined && object.restsOn === undefined && object.hangsFrom === undefined && Math.abs(object.position[1]!) > EPS) fail(`“${object.name}” must be supported on the floor at y = 0.`);
+    if (object.host !== undefined && (!isRecord(object.host) || !text(object.host.wallId, 100) || !finite(object.host.offset, 0, 200) || !finite(object.host.elevation, -100, 100) || ![1, -1].includes(object.host.side as number) || !(input.walls as Wall[]).some(w => w.id === (object.host as RecordValue).wallId))) fail('Furniture has an invalid wall host.');
+    if (object.restsOn !== undefined && (!text(object.restsOn, 100) || object.host !== undefined || !asset || !canRestOnFurniture(asset))) fail('Furniture has an invalid support reference or kind.');
+    if (object.hangsFrom !== undefined && (object.hangsFrom !== 'ceiling' || object.host !== undefined || object.restsOn !== undefined || !asset || !hangsFromCeiling(asset))) fail('Furniture has an invalid ceiling mount or kind.');
     const scale = object.scale;
     if (asset && asset.dimensions.some((size, index) => size * scale[index]! > 20)) fail(`“${object.name}” is larger than the 20 m object limit.`);
   }
@@ -260,6 +278,7 @@ export function validateScene(input: unknown, catalog: CatalogAsset[]): Validati
     fail('This floor plan is too complex to validate interactively. Simplify room polygons or split the scene into smaller apartments.');
     return result();
   }
+  for (const object of scene.objects) if (object.restsOn && (!scene.objects.some(o => o.id === object.restsOn) || object.id === object.restsOn || isDescendant(scene, object.restsOn, object.id))) fail('Furniture support is missing or cyclic.');
   for (const issue of placementIssues(scene, catalog)) {
     if (issue.blocking && scene.version === 1) fail(issue.message); else warnings.push(issue.message);
   }
@@ -275,15 +294,40 @@ export function placementIssues(scene: SceneDocument, catalog: CatalogAsset[]): 
   for (const object of objects) {
     const asset = assets.get(object.assetId); if (!asset) continue;
     const footprint = objectFootprint(object, asset); footprints.set(object.id, footprint);
-    if (!floorSupported(object, asset, scene)) result.push({entityId:object.id,kind:'support',blocking:true,message:`“${object.name}” must fit completely inside the floor plan${scene.version === 2 ? ' at the room’s floor elevation' : ''}.`});
+    if (object.restsOn) {
+      const support = objects.find(o => o.id === object.restsOn), supportAsset = support && assets.get(support.assetId);
+      if (!support || !supportAsset || !supportContains(support, supportAsset, object) || object.position[1] <= support.position[1] || object.position[1] > support.position[1] + supportAsset.dimensions[1] * support.scale[1] + .001)
+        result.push({entityId:object.id,kind:'support',blocking:true,message:`“${object.name}” has no supporting surface under its footprint centre.`});
+    }
+    if (object.host) {
+      let valid = false;
+      try {
+        const mounted = mountDecoration(scene, object, asset);
+        valid = wallDecoration(asset) && mounted.host?.wallId === object.host.wallId
+          && mounted.position.every((v, i) => Math.abs(v - object.position[i]!) < EPS)
+          && Math.abs(mounted.rotation - object.rotation) < EPS
+          && mounted.host?.side === object.host.side && Math.abs(mounted.host.offset - object.host.offset) < EPS
+          && Math.abs(mounted.host.elevation - object.host.elevation) < EPS
+          && mounted.scale.every((v, i) => Math.abs(v - object.scale[i]!) < EPS);
+      } catch { /* Missing or too-small host is reported as a support issue. */ }
+      if (!valid) result.push({entityId:object.id,kind:'support',blocking:true,message:`“${object.name}” has an inconsistent wall mount.`});
+    }
+    if (object.hangsFrom) {
+      let valid = false;
+      try { valid = hangsFromCeiling(asset) && Math.abs(hangFromCeiling(scene, object, asset).position[1] - object.position[1]) < EPS; }
+      catch { /* No ceiling above is reported as a support issue. */ }
+      if (!valid) result.push({entityId:object.id,kind:'support',blocking:true,message:`“${object.name}” does not hang from the ceiling above it.`});
+    }
+    if (!floorSupported(object.host || object.restsOn || object.hangsFrom ? { ...object, position: [object.position[0], floorHeight(scene, object), object.position[2]] } : object, asset, scene)) result.push({entityId:object.id,kind:'support',blocking:true,message:`“${object.name}” must fit completely inside the floor plan${scene.version === 2 ? ' at the room’s floor elevation' : ''}.`});
     const collision = scene.walls.find(wall => scene.project?.metadata[wall.id]?.phase !== 'remove' && wallCollision(object, asset, wall, footprint, scene.project?.metadata[wall.id]?.elevation ?? 0));
     if (collision) result.push({entityId:object.id,kind:'wall',blocking:true,message:`“${object.name}” intersects wall “${collision.id}”. Move it clear of the wall or into a door opening.`});
   }
   let overlapCount = 0;
   for (let i = 0; i < objects.length; i++) for (let j = i + 1; j < objects.length; j++) {
     const a = objects[i]!, b = objects[j]!, assetA = assets.get(a.assetId), assetB = assets.get(b.assetId);
+    if (a.restsOn === b.id || b.restsOn === a.id) continue;
     if (!assetA || !assetB || assetA.kind === 'rug' || assetB.kind === 'rug' || overlapCount >= 8) continue;
-    if (a.position[1] >= b.position[1] + assetB.dimensions[1] * b.scale[1] || b.position[1] >= a.position[1] + assetA.dimensions[1] * a.scale[1]) continue;
+    if (a.position[1] >= b.position[1] + furnitureDimensions(b, assetB)[1] || b.position[1] >= a.position[1] + furnitureDimensions(a, assetA)[1]) continue;
     if (polygonsOverlap(footprints.get(a.id)!, footprints.get(b.id)!)) { result.push({entityId:a.id,kind:'overlap',blocking:false,message:`“${a.name}” and “${b.name}” overlap; check their placement.`}); overlapCount++; }
   }
   return result;
@@ -316,7 +360,7 @@ export function renovationOperationError(op: Record<string, unknown>): string | 
   if (op.offset !== undefined && !finite(op.offset, 0.05, 100)) return 'Split offset must be a finite distance.';
   if (op.patch !== undefined) {
     if (!isRecord(op.patch) || !Object.keys(op.patch).length) return 'Operation requires a non-empty property patch.';
-    const patches: Record<string, string[]> = { 'update-wall': ['start', 'end', 'height', 'thickness', 'color'], 'update-opening': ['kind', 'offset', 'width', 'height', 'sill'], 'update-room': ['name', 'polygon', 'color'], 'set-metadata': METADATA_KEYS, 'set-project': ['mode', 'currency'] };
+    const patches: Record<string, string[]> = { 'update-wall': ['start', 'end', 'height', 'thickness', 'color'], 'update-opening': ['kind', 'offset', 'width', 'height', 'sill', 'assetId'], 'update-room': ['name', 'polygon', 'color'], 'set-metadata': METADATA_KEYS, 'set-project': ['mode', 'currency'] };
     if (!keys(op.patch, patches[op.type] ?? [])) return 'Operation patch contains unsupported fields.';
   }
   for (const field of ['wall', 'opening', 'room', 'component', 'route', 'source', 'assumption', 'material', 'finish', 'task']) if (op[field] !== undefined && !isRecord(op[field])) return `Operation requires a ${field} object.`;
@@ -342,8 +386,8 @@ function validateProject(scene: SceneDocument, catalog: CatalogAsset[]): string[
     for (const value of values) { if (!isRecord(value) || !keys(value, fields)) { fail(`${label} contains invalid or unsupported fields.`); continue; } unique(value, label); check(value); }
   };
   const roomIds = new Set(scene.rooms.map(r => r.id));
-  checkRecords(p.components, 'Component', ['id', 'name', 'kind', 'position', 'dimensions', 'rotation', 'color', 'phase', 'host', 'roomId', 'price', 'notes', 'light', 'control', 'clearance'], c => {
-    if (!text(c.name) || !inEnum(c.kind, COMPONENT_KINDS) || !vector(c.position, 3, -100, 100) || !vector(c.dimensions, 3, 0.01, 30) || !finite(c.rotation, -Math.PI * 100, Math.PI * 100) || typeof c.color !== 'string' || !COLOR.test(c.color) || !inEnum(c.phase, PHASES) || !optionalText(c.notes) || (c.price !== undefined && !finite(c.price, 0, 1e9)) || (c.clearance !== undefined && !vector(c.clearance, 3, 0, 30))) fail(`Component “${String(c.id)}” has invalid geometry or properties.`);
+  checkRecords(p.components, 'Component', ['id', 'name', 'kind', 'position', 'dimensions', 'rotation', 'color', 'phase', 'host', 'roomId', 'price', 'notes', 'light', 'control', 'clearance', 'assetId'], c => {
+    if (!text(c.name) || !inEnum(c.kind, COMPONENT_KINDS) || !vector(c.position, 3, -100, 100) || !vector(c.dimensions, 3, 0.01, 30) || !finite(c.rotation, -Math.PI * 100, Math.PI * 100) || typeof c.color !== 'string' || !COLOR.test(c.color) || !inEnum(c.phase, PHASES) || !optionalText(c.notes) || (c.price !== undefined && !finite(c.price, 0, 1e9)) || (c.clearance !== undefined && !vector(c.clearance, 3, 0, 30)) || (c.assetId !== undefined && !text(c.assetId, 100))) fail(`Component “${String(c.id)}” has invalid geometry or properties.`);
     if (c.roomId !== undefined && (typeof c.roomId !== 'string' || !roomIds.has(c.roomId))) fail(`Component “${String(c.id)}” references a missing room.`);
     if (c.host !== undefined) {
       if (!isRecord(c.host) || !keys(c.host, ['wallId', 'offset', 'elevation', 'side']) || !text(c.host.wallId, 100) || !finite(c.host.offset, 0, 100) || !finite(c.host.elevation, -10, 20) || ![1, -1].includes(c.host.side as number)) fail(`Component “${String(c.id)}” has an invalid wall mount.`);
@@ -362,7 +406,7 @@ function validateProject(scene: SceneDocument, catalog: CatalogAsset[]): string[
   if (errors.length) return errors;
   if (p.routes.reduce((sum, route) => sum + route.points.length, 0) > 6000) fail('Service routing exceeds the 6000-point interactive project limit.');
   for (const c of p.components) if (c.control && new Set(c.control.targets).size !== c.control.targets.length) fail(`Switch “${c.name}” contains a duplicated light target.`);
-  for (const c of p.components) if (c.control) for (const id of c.control.targets) if (!p.components.some(target => target.id === id && target.kind === 'light')) fail(`Switch “${c.name}” references a missing light. Disconnect it explicitly before deleting that light.`);
+  for (const c of p.components) if (c.control) for (const id of c.control.targets) if (!p.components.some(target => target.id === id && target.kind === 'light') && !scene.rooms.some(room => room.id === id)) fail(`Switch “${c.name}” references a missing light or ceiling room. Disconnect it explicitly before deleting its target.`);
   const compatible: Record<string, string[]> = {
     electrical: ['panel', 'junction', 'switch', 'outlet', 'light', 'appliance', 'ac', 'vent', 'thermostat', 'smoke-detector', 'security', 'network', 'radiator'],
     'water-hot': ['sink', 'shower', 'bath', 'valve', 'riser', 'appliance'],

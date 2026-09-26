@@ -21,6 +21,7 @@ export function wallFootprint(wall: Wall, walls: readonly Wall[], metadata: Reco
     const hasOpeningAt = (source: Wall, offset: number) => source.openings.some(opening => offset >= opening.offset - EPS && offset <= opening.offset + opening.width + EPS);
     let openJunction = hasOpeningAt(wall, atEnd ? length : 0);
     let nearest: { direction: Vec2; half: number; angle: number } | undefined;
+    let through = false;
     for (const other of walls) {
       if (other.id === wall.id || Math.abs((metadata[other.id]?.elevation ?? 0) - base) > EPS || Math.abs(other.height - wall.height) > EPS
         || (metadata[other.id]?.phase === 'remove') !== (metadata[wall.id]?.phase === 'remove')) continue;
@@ -35,13 +36,18 @@ export function wallFootprint(wall: Wall, walls: readonly Wall[], metadata: Reco
       for (const directionSign of [-1, 1]) {
         if (directionSign < 0 ? along < EPS : along > otherLength - EPS) continue;
         const v: Vec2 = [directionSign * dx / otherLength, directionSign * dz / otherLength];
+        through ||= u[0] * v[0] + u[1] * v[1] < -1 + EPS;
         let angle = Math.atan2(side * cross(u, v), u[0] * v[0] + u[1] * v[1]);
         if (angle < 0) angle += 2 * Math.PI;
         if (angle < EPS || 2 * Math.PI - angle < EPS) continue;
         if (!nearest || angle < nearest.angle) nearest = { direction: v, half: other.thickness / 2 + padding, angle };
       }
     }
-    if (!nearest) return 0;
+    // A straight continuation makes this a section of a through wall (a T or
+    // cross host split at the junction). Its faces run on square, as if it were
+    // never split; the branch already stops at those faces. Mitring a section
+    // against the branch instead cuts a V-shaped hole into the host.
+    if (!nearest || through) return 0;
     const v = nearest.direction, determinant = cross(u, v);
     // Collinear joins need no extension.
     if (Math.abs(determinant) < EPS) return 0;

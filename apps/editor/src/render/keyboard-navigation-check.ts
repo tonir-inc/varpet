@@ -10,6 +10,9 @@ function assert(condition: unknown, message: string): void {
 function close(actual: number, expected: number, message: string): void {
   assert(Math.abs(actual - expected) < 1e-8, `${message}: expected ${expected}, got ${actual}`);
 }
+function closeVector(actual: THREE.Vector3, expected: THREE.Vector3, message: string): void {
+  assert(actual.distanceTo(expected) < 1e-8, `${message}: expected ${expected.toArray()}, got ${actual.toArray()}`);
+}
 function check(name: string, run: () => void): void {
   try { run(); } catch (error) { failures.push(`${name}: ${error instanceof Error ? error.message : String(error)}`); }
 }
@@ -81,12 +84,13 @@ check('all WASD and arrow directions move the exterior camera and its orbit targ
     ['a', -1, 0], ['ArrowLeft', -1, 0], ['d', 1, 0], ['ArrowRight', 1, 0], ['W', 0, -1]] as const) {
     withHarness(({ camera, target, controls, callbacks, key: send, step }) => {
       const before = camera.position.clone(), orientation = camera.quaternion.clone(), zoom = camera.zoom;
+      const expected = new THREE.Vector3(x, 0, z).applyQuaternion(orientation).multiplyScalar(0.5);
       assert(send('keydown', key).defaultPrevented, `${key} prevents browser scrolling or shortcuts`);
       assert(controls.active && callbacks.start === 1 && callbacks.render > 0, `${key} starts a renderable navigation interaction`);
       assert(step(0.1), `${key} keeps rendering while held`);
-      close(camera.position.x - before.x, x * 0.5, `${key} camera X`);
-      close(camera.position.z - before.z, z * 0.5, `${key} camera Z`);
-      close(camera.position.y, before.y, `${key} preserves camera height`);
+      close(camera.position.x - before.x, expected.x, `${key} camera X`);
+      close(camera.position.z - before.z, expected.z, `${key} camera Z`);
+      close(camera.position.y - before.y, expected.y, `${key} camera Y follows the look direction`);
       assert(target.distanceTo(camera.position.clone().sub(before)) < 1e-8, `${key} translates orbit target equally`);
       assert(camera.quaternion.equals(orientation) && camera.zoom === zoom, `${key} preserves orientation and zoom`);
       assert(callbacks.change === 1, `${key} reports its camera change`);
@@ -98,15 +102,37 @@ check('all WASD and arrow directions move the exterior camera and its orbit targ
   }
 });
 
-check('perspective movement follows the current ground heading', () => withHarness(({ camera, target, key, step }) => {
+check('perspective movement follows the full current look direction', () => withHarness(({ camera, target, key, step }) => {
   camera.position.set(11, 12, 15); camera.lookAt(target); camera.updateMatrixWorld();
-  const forward = camera.getWorldDirection(new THREE.Vector3()); forward.y = 0; forward.normalize();
+  const forward = camera.getWorldDirection(new THREE.Vector3());
   const start = camera.position.clone(); key('keydown', 'w'); step(0.2); key('keyup', 'w');
-  assert(camera.position.clone().sub(start).distanceTo(forward) < 1e-8, 'W advances one metre toward the ground-projected view heading');
-  const right = new THREE.Vector3().crossVectors(forward, new THREE.Vector3(0, 1, 0)).normalize();
+  closeVector(camera.position.clone().sub(start), forward, 'W advances one metre toward the exact point being viewed');
+  const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
   const turned = camera.position.clone(); key('keydown', 'd'); step(0.2);
-  assert(camera.position.clone().sub(turned).distanceTo(right) < 1e-8, 'D moves right relative to the view heading');
+  closeVector(camera.position.clone().sub(turned), right, 'D moves right relative to the view');
 }));
+
+check('pitched and vertical views retain full forward, backward and diagonal movement', () => {
+  for (const direction of [new THREE.Vector3(1, 1, -1), new THREE.Vector3(-1, -1, -1),
+    new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, -1, 0)]) {
+    direction.normalize();
+    for (const [keys, local] of [[['w'], new THREE.Vector3(0, 0, -1)], [['s'], new THREE.Vector3(0, 0, 1)],
+      [['w', 'd'], new THREE.Vector3(1, 0, -1).normalize()], [['s', 'a'], new THREE.Vector3(-1, 0, 1).normalize()]] as const) {
+      withHarness(({ camera, target, key, step }) => {
+        camera.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, -1), direction); camera.updateMatrixWorld();
+        const orientation = camera.quaternion.clone(), before = camera.position.clone(), beforeTarget = target.clone();
+        const expected = local.clone().applyQuaternion(orientation);
+        for (const value of keys) key('keydown', value);
+        step(0.2);
+        const delta = camera.position.clone().sub(before);
+        closeVector(delta, expected, `${keys.join('+')} follows the view basis at ${direction.toArray()}`);
+        close(delta.length(), 1, 'pitched and vertical movement retains normalized speed');
+        closeVector(target.clone().sub(beforeTarget), delta, 'orbit target receives the complete three-dimensional displacement');
+        assert(camera.quaternion.equals(orientation), 'pitched movement preserves camera orientation');
+      });
+    }
+  }
+});
 
 check('canvas pointer navigation preserves held keys and remains available to orbit controls', () => {
   for (const button of [0, 1, 2]) withHarness(({ canvas, camera, controls, callbacks, key, step }) => {
@@ -120,12 +146,12 @@ check('canvas pointer navigation preserves held keys and remains available to or
       canvas.dispatchEvent(down);
       assert(!down.defaultPrevented && orbitStarts === 1, `pointer button ${button} remains available to camera controls`);
       assert(controls.active && callbacks.stop === 0, `pointer button ${button} preserves the held W interaction`);
-      const before = camera.position.clone();
+      const before = camera.position.clone(), expected = camera.getWorldDirection(new THREE.Vector3()).multiplyScalar(0.5);
       assert(step(0.1), `pointer button ${button} keeps movement rendering`);
-      close(camera.position.z - before.z, -0.5, `pointer button ${button} keeps W moving at full speed`);
+      closeVector(camera.position.clone().sub(before), expected, `pointer button ${button} keeps W moving at full speed`);
       canvas.dispatchEvent(new Event('pointerup'));
       const releasedPointer = camera.position.clone(); step(0.1);
-      close(camera.position.z - releasedPointer.z, -0.5, `ending pointer button ${button} does not release W`);
+      closeVector(camera.position.clone().sub(releasedPointer), expected, `ending pointer button ${button} does not release W`);
       key('keyup', 'w');
       assert(callbacks.start === 1 && callbacks.stop === 1, `pointer button ${button} does not restart keyboard interaction`);
     } finally { canvas.removeEventListener('pointerdown', observePointer); }
@@ -137,32 +163,47 @@ check('held forward input follows live camera rotation during a pointer gesture'
   const turn = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / 2);
   camera.position.sub(target).applyQuaternion(turn).add(target); camera.lookAt(target); camera.updateMatrixWorld();
   canvas.dispatchEvent(new Event('pointermove'));
-  const before = camera.position.clone(), beforeTarget = target.clone(), height = camera.position.y;
+  const before = camera.position.clone(), beforeTarget = target.clone();
+  const expected = camera.getWorldDirection(new THREE.Vector3()).multiplyScalar(0.5);
   assert(controls.active && step(0.1), 'rotating the view needs no fresh W press');
-  const expected = new THREE.Vector3(-0.5, 0, 0);
-  assert(camera.position.clone().sub(before).distanceTo(expected) < 1e-8, 'held W immediately follows the rotated ground heading');
+  assert(camera.position.clone().sub(before).distanceTo(expected) < 1e-8, 'held W immediately follows the rotated look direction');
   assert(target.clone().sub(beforeTarget).distanceTo(expected) < 1e-8, 'orbit target follows the rotated movement direction');
-  close(camera.position.y, height, 'rotated keyboard movement preserves exterior height');
+  assert(camera.position.y < before.y, 'rotated keyboard movement continues along the downward view');
   assert(callbacks.start === 1 && callbacks.stop === 0, 'turning does not break the keyboard interaction');
   key('keyup', 'w'); canvas.dispatchEvent(new Event('pointerup'));
+}));
+
+check('held forward input follows pitch changes without a fresh key press', () => withHarness(({ camera, target, controls, callbacks, key, step }) => {
+  key('keydown', 'w'); step(0.1);
+  for (const direction of [new THREE.Vector3(1, -1, -1), new THREE.Vector3(-1, 1, -1), new THREE.Vector3(0, 1, 0)]) {
+    direction.normalize(); camera.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, -1), direction);
+    const before = camera.position.clone(), beforeTarget = target.clone();
+    assert(controls.active && step(0.1), 'changing pitch keeps the original W press active');
+    closeVector(camera.position.clone().sub(before), direction.clone().multiplyScalar(0.5), 'held W follows the new full look direction immediately');
+    closeVector(target.clone().sub(beforeTarget), direction.clone().multiplyScalar(0.5), 'orbit target follows each pitch change');
+  }
+  assert(callbacks.start === 1 && callbacks.stop === 0, 'pitch changes remain one keyboard interaction');
 }));
 
 check('movement keys can start and change while a pointer gesture is already active', () => withHarness(({ canvas, doc, camera, controls, key, step }) => {
   doc.activeElement = {}; doc.dispatchEvent(new Event('focusin'));
   canvas.dispatchEvent(new Event('pointerdown'));
   assert(doc.activeElement === canvas, 'starting a canvas gesture focuses keyboard navigation');
-  const start = camera.position.clone(); key('keydown', 'w'); step(0.1);
-  close(camera.position.z - start.z, -0.5, 'W starts during a held pointer gesture');
+  const start = camera.position.clone(), forward = camera.getWorldDirection(new THREE.Vector3());
+  const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
+  key('keydown', 'w'); step(0.1);
+  closeVector(camera.position.clone().sub(start), forward.clone().multiplyScalar(0.5), 'W starts during a held pointer gesture');
   canvas.dispatchEvent(new Event('pointermove')); key('keydown', 'd');
   const diagonalStart = camera.position.clone(); step(0.1);
   const diagonal = 0.5 / Math.sqrt(2);
-  close(camera.position.x - diagonalStart.x, diagonal, 'adding D during a drag adds rightward movement');
-  close(camera.position.z - diagonalStart.z, -diagonal, 'adding D during a drag preserves normalized forward movement');
+  const delta = camera.position.clone().sub(diagonalStart);
+  close(delta.dot(right), diagonal, 'adding D during a drag adds rightward movement');
+  close(delta.dot(forward), diagonal, 'adding D during a drag preserves normalized forward movement');
   key('keyup', 'w'); canvas.dispatchEvent(new Event('pointerup'));
   const sidewaysStart = camera.position.clone();
   assert(controls.active && step(0.1), 'ending the pointer gesture leaves D held');
-  close(camera.position.x - sidewaysStart.x, 0.5, 'D continues after the pointer gesture ends');
-  close(camera.position.z, sidewaysStart.z, 'released W does not resume after the pointer gesture');
+  closeVector(camera.position.clone().sub(sidewaysStart), right.clone().multiplyScalar(0.5), 'D continues after the pointer gesture ends');
+  close(camera.position.clone().sub(sidewaysStart).dot(forward), 0, 'released W does not resume after the pointer gesture');
   key('keyup', 'd');
 }));
 
@@ -213,17 +254,19 @@ check('diagonals, aliases, repeats and variable frame rates preserve speed', () 
 });
 
 check('changing a movement chord between frames retains every interval', () => withHarness(({ camera, target, key, step, elapse, callbacks }) => {
-  const start = camera.position.clone();
+  const start = camera.position.clone(), forward = camera.getWorldDirection(new THREE.Vector3());
+  const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
+  const distanceAlong = (direction: THREE.Vector3) => camera.position.clone().sub(start).dot(direction);
   key('keydown', 'w'); elapse(0.1); key('keydown', 'd');
-  close(camera.position.x - start.x, 0, 'adding D preserves the earlier straight interval');
-  close(camera.position.z - start.z, -0.5, 'adding D includes all forward travel since the last frame');
+  close(distanceAlong(right), 0, 'adding D preserves the earlier straight interval');
+  close(distanceAlong(forward), 0.5, 'adding D includes all forward travel since the last frame');
   elapse(0.1); key('keyup', 'w');
   const diagonal = 0.5 / Math.sqrt(2);
-  close(camera.position.x - start.x, diagonal, 'releasing W includes the diagonal interval before release');
-  close(camera.position.z - start.z, -0.5 - diagonal, 'the diagonal interval retains normalized forward speed');
+  close(distanceAlong(right), diagonal, 'releasing W includes the diagonal interval before release');
+  close(distanceAlong(forward), 0.5 + diagonal, 'the diagonal interval retains normalized forward speed');
   step(0.1); key('keyup', 'd');
-  close(camera.position.x - start.x, diagonal + 0.5, 'the remaining D covers its complete interval');
-  close(camera.position.z - start.z, -0.5 - diagonal, 'released W adds no later forward movement');
+  close(distanceAlong(right), diagonal + 0.5, 'the remaining D covers its complete interval');
+  close(distanceAlong(forward), 0.5 + diagonal, 'released W adds no later forward movement');
   assert(target.distanceTo(camera.position.clone().sub(start)) < 1e-8, 'orbit target follows all between-frame intervals');
   assert(callbacks.start === 1 && callbacks.stop === 1, 'chord changes remain one continuous interaction');
   const stopped = camera.position.clone();

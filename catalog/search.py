@@ -6,6 +6,7 @@ Every soft signal is optional and switchable so approaches can be compared on th
 import json
 import os
 import re
+import threading
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -24,12 +25,20 @@ NATIVE_EXTRA_KINDS = (
     "toilet", "sink", "bathtub", "shower", "fridge", "stove", "oven", "washing_machine",
     "dryer", "dishwasher", "microwave", "tv", "monitor", "computer", "laptop", "speaker",
     "printer", "game_console", "kitchen_cabinet", "kitchen_counter", "kitchen_island",
-    "radiator", "fan", "coat_rack", "shoe_rack", "plant",
+    "radiator", "fan", "coat_rack", "shoe_rack", "plant", "decor", "wall_art", "mirror",
 )
 
+# Only decoration aliases extend the existing extra-model allowlist.
+EXTRA_DECOR_KINDS = tuple(kind for kind, target in EDITOR_KIND_OF.items() if target in {"decor", "wall_art"})
+WALL_EXTRA_KINDS = ("wall_art", "mirror", "clock", "wall_hanging")
+# Floor and table lamps; wall lamps stay out through the wall-evidence rule (the editor does not wall-mount lamps).
+EXTRA_LAMP_KINDS = ("lamp",)
+# Furniture and window textiles from pipelines that normalise their models and record a placement
+# (tags.extra.placement: bpy lanes, Poly Haven, pilot). Older extra furniture without one stays out.
+EXTRA_FURNITURE_KINDS = (*(k for k in PLACEABLE_KINDS if k not in EXTRA_DECOR_KINDS), "curtain", "blind")
 
 def build_placeable_sql():
-    """Combine unchanged ABO eligibility with native extra models without wall mounting."""
+    """Combine unchanged ABO eligibility with extra models, including supported wall decorations."""
     abo = (
         f"(kind in ({', '.join(repr(k) for k in PLACEABLE_KINDS)}) and source = 'abo'"
         " and glb_url is not null and price is not null and name is not null and size_status <> 'conflict'"
@@ -38,14 +47,18 @@ def build_placeable_sql():
     )
     # IDs are extra:<group>:<slug>; group names are not mounting evidence.
     # Wall-only kinds (range_hood, mirror_bathroom, towel_rail, air_conditioner,
-    # clock, curtain) are deliberately absent from the native allowlist.
+    # curtain) are deliberately absent from the allowlist.
     extra = (
-        f"(kind in ({', '.join(repr(k) for k in NATIVE_EXTRA_KINDS)}) and source = 'extra'"
+        f"(kind in ({', '.join(repr(k) for k in (*NATIVE_EXTRA_KINDS, *EXTRA_DECOR_KINDS, *EXTRA_LAMP_KINDS))}) and source = 'extra'"
         " and glb_url is not null"
-        " and coalesce(split_part(id, ':', 3), '') !~* '(wall|mount|hang|lift)'"
-        " and coalesce(tags->'extra'->>'notes', '') !~* '(wall|mount|hang|lift)')"
+        f" and (kind in ({', '.join(repr(k) for k in WALL_EXTRA_KINDS)}) or (coalesce(split_part(id, ':', 3), '') !~* '(wall|mount|hang|lift)'"
+        " and coalesce(tags->'extra'->>'notes', '') !~* '(wall|mount|hang|lift)')))"
     )
-    return f"({abo} or {extra})"
+    furniture = (
+        f"(kind in ({', '.join(repr(k) for k in EXTRA_FURNITURE_KINDS)}) and source = 'extra'"
+        " and glb_url is not null and coalesce(tags->'extra'->>'placement', '') in ('floor', 'wall', 'surface'))"
+    )
+    return f"({abo} or {extra} or {furniture})"
 
 
 PLACEABLE = build_placeable_sql()
@@ -114,6 +127,15 @@ def turned_fits(size, box):
     straight = min(box[0] - size[0], box[1] - size[1], box[2] - size[2]) >= 0
     turned = min(box[0] - size[1], box[1] - size[0], box[2] - size[2]) >= 0
     return turned and not straight
+
+
+def size_limits(max_w=None, max_d=None, max_h=None, allow_rotate=True):
+    """Per-axis limits to (fit_box, rotate). Turning an item only helps fit a real w x d box: with one
+    horizontal bound the other is open, so any item passes turned and max_w/max_d alone would filter nothing."""
+    if all(v is None for v in (max_w, max_d, max_h)):
+        return None, allow_rotate
+    box = [99.0 if v is None else v for v in (max_w, max_d, max_h)]
+    return box, allow_rotate and max_w is not None and max_d is not None
 
 
 def fits(size, box, rotate=True):
@@ -321,10 +343,34 @@ def search(conn, q: Query):
     return {"results": page, "candidates": len(passed), "next_offset": q.offset + q.limit if more else None}
 
 
+# Embeddings held in memory per (model, modality): parsing ~8k vectors from text on every query cost ~0.5 s of
+# CPU and serialised concurrent searches (6-8 s each under 12 parallel calls). Reloaded when the row count changes.
+_EMB = {}
+_EMB_LOCK = threading.Lock()
+
+
+def _emb_matrix(conn, model, modality):
+    count = conn.execute("select count(*) from item_embedding where model=%s and modality=%s", (model, modality)).fetchone()[0]
+    cached = _EMB.get((model, modality))
+    if cached and cached[0] == count:
+        return cached[1], cached[2]
+    with _EMB_LOCK:
+        cached = _EMB.get((model, modality))
+        if cached and cached[0] == count:
+            return cached[1], cached[2]
+        rows = conn.execute("select item_id, emb::text from item_embedding where model=%s and modality=%s", (model, modality)).fetchall()
+        index = {iid: n for n, (iid, _) in enumerate(rows)}
+        matrix = np.array([np.array(e[1:-1].split(","), dtype=np.float32) for _, e in rows]) if rows else np.zeros((0, 1), np.float32)
+        _EMB[(model, modality)] = (count, index, matrix)
+        return index, matrix
+
+
 def _sims(conn, ids, model, modality, qv):
-    rows = dict(conn.execute("select item_id, emb::text from item_embedding where item_id = any(%s) and model=%s and modality=%s", (ids, model, modality)).fetchall())
-    qv = np.asarray(qv, dtype=float)
-    return np.array([float(np.dot(json.loads(rows[i]), qv)) if i in rows else -1.0 for i in ids])
+    index, matrix = _emb_matrix(conn, model, modality)
+    if not len(index):
+        return np.full(len(ids), -1.0)
+    scores = matrix @ np.asarray(qv, dtype=np.float32)
+    return np.array([float(scores[index[i]]) if i in index else -1.0 for i in ids])
 
 
 def _minmax(x):

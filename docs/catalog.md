@@ -138,10 +138,49 @@ For the demo, run the whole catalog on the laptop: no VM, tunnel or venue Wi-Fi 
 2. Start it: `catalog/demo/run_local.sh` (serves `http://127.0.0.1:8765/mcp`; `/health` answers when ready).
 3. Point tools at it: editor `VARPET_CATALOG_URL=http://127.0.0.1:8765/mcp pnpm dev`; designer/harness via
    `VARPET_CATALOG_URL` in `~/.config/varpet/env`.
+Full demo on one laptop (three processes; without the designer service the chat panel falls back to "Demo replay"):
+`catalog/demo/run_local.sh`;
+`cd harness && VARPET_CATALOG_URL=http://127.0.0.1:8765/mcp uv run python designer_service.py --port 8787`;
+`VITE_DESIGNER_URL=http://127.0.0.1:8787 VARPET_CATALOG_URL=http://127.0.0.1:8765/mcp pnpm dev`.
 Measured on Sergey's Mac: 8,113 items, 7,013 models, 2,471 previews (4.7 GB), searches 0.01–0.25 s.
 
 ## Doors and windows (26 Sept)
 The 10 opening models in `catalog/openings/` are catalog items too (`extra:openings:<file stem>`, kind `door` / `window`,
 source 'extra', mock prices, previews). They are not in the default `placeable` scope (the editor places openings its own
 way): search them with `kind=door|window` or `scope=all`. Place them per `catalog/openings/README.md` (no normalising).
+The editor draws them from `Opening.assetId` (bundled from `catalog/openings/`, no catalog server needed); the
+architect sets that id when a model fits the opening within 15%.
 All 169 extra items now have SigLIP embeddings (their render stands in for the photo), so text search finds them.
+
+## Decoration kinds (26 Sept)
+
+Placeable search includes native `decor`, `wall_art` and `mirror`, plus decoration subtypes
+mapped identically in `select_editor_set.EDITOR_KIND_OF` and the designer bridge. `planter`
+maps to `decor`; `clock` and `wall_hanging` map to `wall_art`; `plant` stays native.
+Extra wall art, mirrors, clocks and wall hangings may carry wall/mount/hang notes or slugs.
+Other extra kinds retain the mounting exclusion; curtains remain unsupported. ABO decorations
+retain existing size, conflict, orientation, model, name and price eligibility checks.
+The capped editor-set script draws quotas from `SHARE`, independently of the placeable kinds.
+
+## Decorations (26 Sept night)
+727 decoration items, `source='extra'`, groups under gitignored `catalog/data/extra/<group>/` (built by 8 Opus agents from
+CC0/CC-BY/public-domain sources; licence + attribution per row): art-prints 74, posters 112, plants 80, tabletop 92,
+textiles 124, wall-decor 57, shelf-styling 96, misc-decor 92. Catalog total 8,850.
+- Fine kinds map to editor kinds (EDITOR_KIND_OF = bridge editorKindOf): vase, candle, sculpture, books, cushion,
+  throw_blanket, basket, tray, bowl, lantern, picture_frame, toy, planter -> decor; clock, wall_hanging -> wall_art;
+  mirror, wall_art, decor native. Curtains are searchable but not placeable (no ceiling mounting yet).
+- The editor hangs wall_art/mirrors/clocks on the nearest wall and rests decor on furniture (`restsOn`, op `on`);
+  see apps/editor/docs/integrations.md.
+- Previews are Blender renders; the same render is the SigLIP "photo" (these items have no product photo), so text
+  and visual search find them.
+- Import a group: `catalog/import_extra_groups.sh <group>...` (VM + local DB rows, GLB upload, previews, embeddings).
+
+
+## Mattresses and size limits (27 Sept)
+- Catalog beds are frames (slats or a platform). `catalog/tools/bedding_models.py` builds 12 made-up mattresses
+  (fitted sheet, duvet, pillows): single 90x200, double 140x200, queen 160x200, king 180x200 in white, grey, beige,
+  118-250k AMD, group `bedding`, kind `mattress` (maps to editor `decor`). Import: `import_extra_groups.sh bedding`.
+- Place one with `on: <bed id>` and the bed's rot; the editor rests a mattress on the frame's deck (0.3 m), other decor on
+  a bed at the implied mattress top (0.55 m). The spike check fails a bed with no mattress on it.
+- `max_w` or `max_d` alone is now a real limit: turning an item 90 degrees counts only when both are given
+  (before, the open axis let any item pass turned).

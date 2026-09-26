@@ -10,7 +10,7 @@ import { buildFinishOperations, type FinishPreset } from '../../../apps/editor/s
 import { applyRenovationOperation, isRenovationOperation } from '../../../apps/editor/src/core/renovation.js';
 import { EditorStore } from '../../../apps/editor/src/core/store.js';
 import { isRecord, objectFootprint, placementIssues, validateScene } from '../../../apps/editor/src/core/validation.js';
-import { parseOps, parseScene, wallOutward } from './adapter.js';
+import { parseOps, parseScene, sceneDigest, wallOutward } from './adapter.js';
 import { catalogItems } from './catalog.js';
 import { outsidePoint } from './local-checks.js';
 import type { Opening, Scene, Vec2 } from './scene.js';
@@ -34,7 +34,11 @@ export interface EditorBridgeOptions {
 
 const EPS = 1e-7;
 /** Legacy catalog subtypes may share editor render kinds; native kinds retain exact semantics. */
-export const editorKindOf: Record<string, AssetKind> = { desk: 'table', dresser: 'cabinet', wardrobe: 'cabinet', nightstand: 'cabinet', stool: 'chair', ottoman: 'chair', bench: 'chair' };
+export const editorKindOf: Record<string, AssetKind> = { desk: 'table', dresser: 'cabinet', wardrobe: 'cabinet', nightstand: 'cabinet', stool: 'chair', ottoman: 'chair', bench: 'chair',
+  vase: 'decor', candle: 'decor', sculpture: 'decor', books: 'decor', cushion: 'decor',
+  throw_blanket: 'decor', basket: 'decor', tray: 'decor', bowl: 'decor', lantern: 'decor',
+  picture_frame: 'decor', toy: 'decor', planter: 'decor', mattress: 'decor', clock: 'wall_art', wall_hanging: 'wall_art',
+  crib: 'bed', changing_table: 'dresser', pet_bed: 'decor', blind: 'curtain', towel_rack: 'shelf' };
 const swings = { 'in-left': 'inward-left', 'in-right': 'inward-right', 'out-left': 'outward-left', 'out-right': 'outward-right' } as const;
 const plan = ([x, z]: Vec2): Vec2 => [x, -z];
 const digest = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
@@ -56,7 +60,8 @@ function checkSupported(scene: SceneDocument, options: EditorBridgeOptions): voi
     if (!openings.some(opening => opening.id === id && opening.kind === 'door')) throw new Error(`Unknown door swing ID: ${id}`);
     if (!Object.hasOwn(swings, swing)) throw new Error(`Unsupported door swing: ${swing}`);
   }
-  for (const object of scene.objects) if (Math.abs(object.position[1]) > EPS) throw new Error(`Unsupported elevated object: ${object.id}`);
+  // Furniture resting on furniture (restsOn), wall-hung (host) and ceiling-hung items are elevated by contract.
+  for (const object of scene.objects) if (Math.abs(object.position[1]) > EPS && object.restsOn === undefined && object.host === undefined && object.hangsFrom !== 'ceiling') throw new Error(`Unsupported elevated object: ${object.id}`);
   for (const opening of openings) if (opening.kind === 'door' && opening.sill > EPS) throw new Error(`Unsupported elevated door: ${opening.id}`);
   const project = scene.project;
   if (!project) return;
@@ -157,7 +162,8 @@ export function editorToDesigner(input: unknown, options: EditorBridgeOptions = 
   checkSupported(editor, options);
   const blocking = placementIssues(editor, catalog).filter(issue => issue.blocking);
   if (blocking.length) throw new Error(`Unsupported editor placement: ${blocking.map(issue => issue.message).join(' ')}`);
-  const scene: Scene = { rooms: editor.rooms.map(room => ({ id: room.id, name: room.name, polygon: room.polygon.map(plan) })), walls: [], openings: [], items: [], fixed: [] };
+  const zone = (id: string) => { const value = editor.project?.metadata[id]?.zone; return value && value !== 'interior' ? { zone: value } : {}; };
+  const scene: Scene = { rooms: editor.rooms.map(room => ({ id: room.id, name: room.name, polygon: room.polygon.map(plan), ...zone(room.id) })), walls: [], openings: [], items: [], fixed: [] };
   if (options.northDeg !== undefined) scene.north_deg = options.northDeg;
   if(reconciliation)scene.geometry_audit=reconciliation.audit;
   for (const wall of editor.walls) {
@@ -200,7 +206,9 @@ export function editorToDesigner(input: unknown, options: EditorBridgeOptions = 
     scene.items.push({ id: object.id, name: object.name, room_id: rooms[0]!.id, kind: catalogFunction(asset), pos: [object.position[0], -object.position[2]], rot: object.rotation * 180 / Math.PI,
       size: [asset.dimensions[0] * object.scale[0], asset.dimensions[2] * object.scale[2], asset.dimensions[1] * object.scale[1]],
       keep: (options.keep ?? []).includes(object.id) || (object.groupId !== undefined && options.groupPolicy !== 'move-together') || metadata?.locked === true || metadata?.phase === 'retain', sku: asset.id,
-      color: object.color ?? asset.color, ...(object.groupId !== undefined && options.groupPolicy === 'move-together' ? { group_id: object.groupId } : {}) });
+      color: object.color ?? asset.color, ...(object.groupId !== undefined && options.groupPolicy === 'move-together' ? { group_id: object.groupId } : {}), ...(object.restsOn === undefined ? {} : { on: object.restsOn }),
+      // A floor-leaning mirror keeps its host at y = 0 and still stands on the floor.
+      ...(object.hangsFrom === 'ceiling' ? { mount: 'ceiling' as const } : object.host !== undefined && object.position[1] > EPS ? { mount: 'wall' as const } : {}) });
   }
   return parseScene(scene);
 }
@@ -213,7 +221,7 @@ export function proposalToEditor(input: unknown, editorInput: unknown, revision:
     || candidate.requires_user_acceptance !== true || candidate.application_status !== 'not_applied' || candidate.validation_scope !== 'temporary_designer_scene'
     || !isRecord(candidate.checks) || candidate.checks.ok !== true || !isRecord(candidate.request_check) || candidate.request_check.ok !== true) throw new Error('Only accepted, request-checked, unapplied designer proposals can be translated');
   const catalog = options.catalog ?? localCatalog, editor = validatedEditor(editorInput, catalog), scene = editorToDesigner(editor, options);
-  if (candidate.base_scene_fingerprint !== digest(scene)) throw new Error('Stale proposal: source snapshot fingerprint does not match');
+  if (candidate.base_scene_fingerprint !== sceneDigest(scene)) throw new Error('Stale proposal: source snapshot fingerprint does not match');
   const ops = parseOps(candidate.ops);
   if (ops.length < 1 || ops.length > 100) throw new Error('Editor proposals require 1–100 operations');
   // Resolve purchase provenance before expensive geometry and before constructing an editor command.
@@ -229,13 +237,21 @@ export function proposalToEditor(input: unknown, editorInput: unknown, revision:
   const rechecked = session.propose(ops, candidate.rationale);
   if (!rechecked.ok) throw new Error(`Proposal no longer passes request/layout checks: ${JSON.stringify(rechecked.errors)}`);
   const operations: Operation[] = [], paintedWalls = new Map<string, string>();
+  // Current support per item as the ops run; a plain move keeps an item on its support.
+  const moved = new Map<string, string | undefined>(scene.items.flatMap(item => item.on === undefined ? [] : [[item.id, item.on] as [string, string]]));
   let finishDraft = structuredClone(editor);
   for (const op of ops) {
     if (op.type === 'remove') operations.push({ type: 'delete', id: op.id });
-    else if (op.type === 'move') operations.push({ type: 'update', id: op.id, patch: { position: [op.pos[0], 0, -op.pos[1]], ...(op.rot === undefined ? {} : { rotation: op.rot * Math.PI / 180 }) } });
+    else if (op.type === 'move') {
+      // y = 0 asks the editor to find the support's top under the footprint centre.
+      const support = op.on !== undefined ? op.on : moved.get(op.id);
+      operations.push({ type: 'update', id: op.id, ...(support === undefined ? {} : { on: support }), patch: { position: [op.pos[0], 0, -op.pos[1]], ...(op.rot === undefined ? {} : { rotation: op.rot * Math.PI / 180 }) } });
+      if (op.on !== undefined) moved.set(op.id, op.on ?? undefined);
+    }
     else if (op.type === 'add') {
       if (op.item.group_id !== undefined) throw new Error('Adding furniture to a group is not supported by this bridge');
-      operations.push({ type: 'add', object: { id: op.item.id, name: op.item.name, assetId: op.item.sku!, position: [op.item.pos[0], 0, -op.item.pos[1]], rotation: op.item.rot * Math.PI / 180, scale: [1, 1, 1], ...(op.item.color === undefined ? {} : { color: op.item.color }) } });
+      operations.push({ type: 'add', ...(op.item.on === undefined ? {} : { on: op.item.on }), object: { id: op.item.id, name: op.item.name, assetId: op.item.sku!, position: [op.item.pos[0], 0, -op.item.pos[1]], rotation: op.item.rot * Math.PI / 180, scale: [1, 1, 1], ...(op.item.color === undefined ? {} : { color: op.item.color }) } });
+      if (op.item.on !== undefined) moved.set(op.item.id, op.item.on);
     } else if (op.target === 'item') operations.push({ type: 'update', id: op.id, patch: { color: op.color } });
     else {
       const sourceId = scene.walls.find(wall => wall.id === op.id)!.source_id!;

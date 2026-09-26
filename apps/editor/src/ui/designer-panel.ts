@@ -26,10 +26,20 @@ function proposalMetrics(value: unknown): MetricRow[] {
   const paths = Array.isArray(rooms) ? rooms.flatMap(room => Array.isArray(record(room).walkways) ? record(room).walkways as unknown[] : [null]) : [];
   const knownPaths = paths.length > 0 && paths.every(path => measured(record(path).width_m));
   const width = knownPaths ? paths.reduce<number>((min, path) => Math.min(min, record(path).width_m as number), Infinity) : undefined;
-  const blocked = paths.some(path => record(path).reachable === false);
+  // A route blocked before the change is not the proposal's doing (the designer's checks reject new blocks).
+  const routes = (side: Record<string, unknown>) => Array.isArray(side.rooms) ? side.rooms.flatMap(room => {
+    const walkways = record(room).walkways;
+    return Array.isArray(walkways) ? walkways.map(path => ({ room: record(room).room_id, path: record(path) })) : [];
+  }) : [];
+  const key = ({ room, path }: { room: unknown; path: Record<string, unknown> }) =>
+    typeof room === 'string' && typeof path.from === 'string' && typeof path.to === 'string' ? JSON.stringify([room, ...[path.from, path.to].sort()]) : undefined;
+  const blockedBefore = new Set(routes(before).filter(route => route.path.reachable === false).map(key).filter(Boolean));
+  const blockedAfter = routes(after).filter(route => route.path.reachable === false);
+  const blocked = blockedAfter.length > 0;
+  const preexisting = blocked && blockedAfter.every(route => blockedBefore.has(key(route)));
   return [
     { label: 'Open floor · before → after', value: `${area(before.free_area_m2)} → ${area(after.free_area_m2)}${measured(before.free_area_m2) || measured(after.free_area_m2) ? ' m²' : ''}` },
-    { label: 'Narrowest walkway · proposed', value: width === undefined ? 'Unknown' : `${width.toFixed(2)} m${blocked ? ' (blocked)' : ''}` },
+    { label: 'Narrowest walkway · proposed', value: width === undefined ? 'Unknown' : `${width.toFixed(2)} m${preexisting ? ' (already blocked before this change)' : blocked ? ' (blocked)' : ''}` },
     { label: 'Cost · furniture purchases', value: measured(score.cost_dram) && Number.isSafeInteger(score.cost_dram) ? `${score.cost_dram.toLocaleString('en-US')} ֏` : 'Unknown' },
   ];
 }

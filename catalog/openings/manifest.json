@@ -303,5 +303,63 @@
   "parts": 17,
   "triangles": 1452,
   "bytes": 245900
+ },
+ {
+  "file": "window-pvc-tall.glb",
+  "kind": "window",
+  "mechanism": "tilt",
+  "about": "Tall narrow white PVC window, one tilt-and-turn sash, laminate sill board, steel weather sill.",
+  "opening_m": {
+   "width": 0.8,
+   "height": 1.9
+  },
+  "wall_m": 0.2,
+  "size_m": {
+   "width": 0.88,
+   "height": 1.9,
+   "depth": 0.28
+  },
+  "moving": {
+   "sash": {
+    "point_m": [
+     -0.343,
+     0,
+     0.017
+    ],
+    "motion": "turn: rotate about +Y 0..90deg into the room (+Z); tilt: top edge 0..10deg into the room about the bottom rail"
+   }
+  },
+  "parts": 17,
+  "triangles": 3324,
+  "bytes": 380420
+ },
+ {
+  "file": "window-pvc-single.glb",
+  "kind": "window",
+  "mechanism": "tilt",
+  "about": "Narrow white PVC window, one tilt-and-turn sash, laminate sill board, steel weather sill.",
+  "opening_m": {
+   "width": 0.8,
+   "height": 1.4
+  },
+  "wall_m": 0.2,
+  "size_m": {
+   "width": 0.88,
+   "height": 1.4,
+   "depth": 0.28
+  },
+  "moving": {
+   "sash": {
+    "point_m": [
+     -0.343,
+     0,
+     0.017
+    ],
+    "motion": "turn: rotate about +Y 0..90deg into the room (+Z); tilt: top edge 0..10deg into the room about the bottom rail"
+   }
+  },
+  "parts": 17,
+  "triangles": 3324,
+  "bytes": 380428
  }
 ]

@@ -13,6 +13,7 @@ TimeoutStopSec=10
 Restart=always
 RestartSec=2
 # Shared box (a Minecraft server and other apps): cap what we can take.
+MemoryHigh=1700M
 MemoryMax=2G
 CPUQuota=200%
 Nice=5

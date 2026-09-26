@@ -16,7 +16,7 @@ FLOOR_KINDS = (
 )
 
 
-def test_abo_predicate_is_unchanged():
+def test_abo_eligibility_is_unchanged():
     # Freeze the original predicate independently of the production kind constants.
     original = (
         "(kind in ('sofa', 'chair', 'table', 'bed', 'cabinet', 'lamp', 'rug', 'shelf', "
@@ -26,9 +26,9 @@ def test_abo_predicate_is_unchanged():
         " and least(size_m[1], size_m[2], size_m[3]) >= 0.01 and greatest(size_m[1], size_m[2], size_m[3]) <= 20)"
     )
     assert PLACEABLE == build_placeable_sql()
-    assert PLACEABLE.startswith(f"({original} or (")
+    assert PLACEABLE.split(" and source", 1)[1].split(" or ", 1)[0] == original.split(" and source", 1)[1]
     assert PLACEABLE.endswith("))")
-    assert NATIVE_EXTRA_KINDS == FLOOR_KINDS
+    assert NATIVE_EXTRA_KINDS == (*FLOOR_KINDS, "decor", "wall_art", "mirror")
 
 
 @pytest.fixture
@@ -60,7 +60,7 @@ def test_extra_floor_kinds_are_placeable(extra_matches, kind):
 
 
 @pytest.mark.parametrize("kind", [
-    "range_hood", "mirror_bathroom", "towel_rail", "air_conditioner", "clock", "curtain",
+    "range_hood", "mirror_bathroom", "towel_rail", "air_conditioner", "curtain",
     "chair", "unknown",
 ])
 def test_extra_unsupported_kinds_are_excluded(extra_matches, kind):
@@ -91,3 +91,27 @@ def test_extra_requires_glb(extra_matches):
 @pytest.mark.parametrize("source", ["abo", "shop", None])
 def test_extra_branch_cannot_bypass_other_sources_rules(extra_matches, source):
     assert not extra_matches(source=source)
+
+
+@pytest.mark.parametrize("kind", ["wall_art", "mirror", "clock", "wall_hanging"])
+@pytest.mark.parametrize("word", ["wall", "mounted", "hanging"])
+def test_wall_decorations_are_placeable(extra_matches, kind, word):
+    assert extra_matches(kind=kind, slug=f"{word}-model", tags={"extra": {"notes": word}})
+    assert not extra_matches(kind=kind, glb=None)
+
+
+@pytest.mark.parametrize("kind", ["decor", "vase", "candle", "sculpture", "books", "cushion",
+    "throw_blanket", "basket", "tray", "bowl", "lantern", "picture_frame", "toy", "planter"])
+def test_extra_decorations_are_placeable(extra_matches, kind):
+    assert extra_matches(kind=kind)
+    assert not extra_matches(kind=kind, slug="wall-mounted")
+
+
+def test_abo_decorations_use_abo_eligibility():
+    from search import PLACEABLE_KINDS
+    assert {"decor", "wall_art", "mirror", "planter"} <= set(PLACEABLE_KINDS)
+
+
+def test_extra_mattress_is_placeable(extra_matches):
+    assert extra_matches(kind="mattress", slug="mattress-double-140x200-grey", group="bedding",
+                         tags={"extra": {"notes": "Rests on a 140x200 bed frame; foot end faces +Z"}})

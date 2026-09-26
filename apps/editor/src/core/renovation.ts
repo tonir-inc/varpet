@@ -1,3 +1,4 @@
+import { openingMechanism } from './opening-catalog';
 import { roomCeilingHeight } from './heights';
 import type { BuildingComponent, CatalogAsset, EntityMetadata, Operation, ProjectAnalysis, RenovationOperation, RenovationProject, RenovationSnapshot, SceneDocument, Vec2, Vec3, Wall } from '../contracts';
 
@@ -379,9 +380,10 @@ export function analyzeProject(scene: SceneDocument, catalog: CatalogAsset[]): P
       if (!meta.mechanism) issue(`opening-type:${opening.id}`, opening.id, 'Opening mechanism not confirmed', 'Choose the installed door/window mechanism or record the unresolved alternatives. The preview uses a temporary default.', 'info');
       if (opening.kind !== 'door') continue;
       if (opening.width - (meta.frameWidth ?? 0.05) * 2 < 0.8) issue(`clearance:${opening.id}`, opening.id, 'Narrow door passage', 'The approximate clear opening is below 0.8 m. Check the intended route and applicable access requirements.');
-      if (['sliding', 'pocket', 'fixed'].includes(meta.mechanism ?? 'hinged')) continue;
+      const mechanism = openingMechanism(opening, meta);
+      if (['sliding', 'pocket', 'fixed'].includes(mechanism)) continue;
       const frame = Math.min(meta.frameWidth ?? 0.045, opening.width / 5, opening.height / 5);
-      const leafCount = meta.mechanism === 'double' ? 2 : 1, leafWidth = Math.max(0.01, opening.width - frame * 2) / leafCount;
+      const leafCount = mechanism === 'double' ? 2 : 1, leafWidth = Math.max(0.01, opening.width - frame * 2) / leafCount;
       const sweeps: Vec2[][] = [];
       for (let leaf = 0; leaf < leafCount; leaf++) {
         const right = leafCount === 2 ? leaf === 1 : meta.hinge === 'right';
@@ -414,7 +416,7 @@ export function analyzeProject(scene: SceneDocument, catalog: CatalogAsset[]): P
     if (component.phase === 'remove') continue;
     if (component.host && project.metadata[component.host.wallId]?.phase === 'remove') issue(`removed-host:${component.id}`, component.id, 'Mounted component needs relocation', 'Its supporting wall is marked for removal. Move the component and review its connected routes.');
     quantities.push({ id: component.id, name: component.name, quantity: 1, unit: 'each', cost: component.price ?? 0 });
-    if (component.kind === 'switch' && !component.control?.targets.some(id => activeComponent(id))) issue(`switch:${component.id}`, component.id, 'Switch has no active light targets', 'Connect this switch to one or more retained or new light fixtures.');
+    if (component.kind === 'switch' && !component.control?.targets.some(id => activeComponent(id) || (scene.rooms.some(room => room.id === id) && project.metadata[id]?.ceilingDesign && project.metadata[id]?.phase !== 'remove' && !['balcony', 'terrace'].includes(project.metadata[id]?.zone ?? 'interior')))) issue(`switch:${component.id}`, component.id, 'Switch has no active light targets', 'Connect this switch to one or more retained or new fixtures or room ceiling lights.');
     if (['light', 'outlet', 'panel', 'junction', 'appliance'].includes(component.kind) && !project.routes.some(r => activeRoute(r) && r.system === 'electrical' && (r.from === component.id || r.to === component.id))) issue(`supply:${component.id}`, component.id, 'Supply connection not drawn', 'Logical switch control is separate from the physical electrical circuit.', 'info');
     if (component.kind === 'light' && !project.components.some(c => c.phase !== 'remove' && c.control?.targets.includes(component.id))) issue(`control:${component.id}`, component.id, 'Light has no switch control', 'Connect a switch, dimmer or multi-location control.', 'info');
   }

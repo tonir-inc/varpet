@@ -1,0 +1,66 @@
+{
+ "scene": "fixtures/avani-empty.json",
+ "cases": [
+  {
+   "id": "a-japandi-living",
+   "room": "room-living",
+   "request": "Redesign the living room in Japandi style."
+  },
+  {
+   "id": "b-midcentury-bedroom",
+   "room": "room-bedroom",
+   "request": "Furnish the bedroom in a warm mid-century modern style."
+  },
+  {
+   "id": "c-inspo-bedroom",
+   "room": "room-bedroom",
+   "request": "Decorate the bedroom like this picture.",
+   "image": "fixtures/inspo-bedroom.jpg"
+  },
+  {
+   "id": "d-living-dining-four",
+   "room": "room-living",
+   "request": "Make the living & dining a cozy place for four people to eat and watch TV."
+  },
+  {
+   "id": "smoke",
+   "room": "room-living",
+   "smoke": true,
+   "request": "Describe the flat in three sentences. Do not change anything: leave draft.json empty and render nothing."
+  },
+  {
+   "id": "smoke-render",
+   "room": "room-living",
+   "smoke": true,
+   "request": "Plumbing test, do not design anything: run ./varpet render-plan plan.png and ./varpet render-view view.png --room room-living, look at both images with view_image, and say in one sentence each what you see. Leave draft.json empty."
+  },
+  {
+   "id": "e-family-b24",
+   "flat": "../eval/komitas/b24-t22.shell.json",
+   "rooms": "all",
+   "budget_dram": 3500000,
+   "request": "We just bought this flat and want it fully furnished before we move in. We are a couple with a 6-year-old daughter, Ani. I'm an architect and work from home three days a week, so I need a proper desk with room for a big monitor and for spreading out drawings, ideally with good daylight and a door I can close. My partner loves cooking and we eat together every evening; on Sundays the grandparents come, so we need to seat six for dinner. Ani draws all the time and has a lot of books and toys: she needs her own bed, a small desk for drawing, and storage she can reach herself. We like warm Scandinavian: light wood, soft textiles, nothing glossy, and a bit of colour in Ani's room. The hall should take coats and shoes for three, and we'd like the balcony for morning coffee for two. Total budget 3,500,000 AMD."
+  },
+  {
+   "id": "f-multigen-b23",
+   "flat": "../eval/komitas/b23-t64.shell.json",
+   "rooms": "all",
+   "budget_dram": 6000000,
+   "request": "Please design our whole apartment. Five of us live here: my husband and I, our two sons (14 and 16) and my mother, who is 78 and has bad knees. My mother should get the bedroom closest to the entrance; she needs a firm armchair to read in by good light, a TV of her own, and no rugs or clutter she could trip over. The boys each need their own room with a real study desk and a comfortable chair; both game on PC in the evening and have many books. My husband and I want a calm bedroom with a large wardrobe. We are a film family: the living room must seat all five facing a big TV, and relatives visit often, so the dining table should seat eight. Style: mid-century modern with deep green and walnut, warm lighting in the evenings. Budget 6,000,000 AMD."
+  },
+  {
+   "id": "g-baby-b21",
+   "flat": "../eval/komitas/b21-t13.shell.json",
+   "rooms": "all",
+   "budget_dram": 1200000,
+   "request": "We are a young couple and our first baby is due in three months. The flat is small: an open living room with the kitchen, one bedroom. The baby's crib and a changing table must fit in our bedroom for the first year. We both work from home on some days, so we need one desk we can share, somewhere quiet. We eat at home most days, just the two of us, with a friend or two sometimes. We have a small dog. We need a lot of closed storage because we hate visual clutter. Style: calm and minimal, white and oak. Safety matters now: no glass tables, rounded corners where possible, nothing that tips easily. Budget is tight: 1,200,000 AMD for everything."
+  },
+  {
+   "id": "h-climber-avani",
+   "flat": "avani",
+   "rooms": "all",
+   "budget_dram": 1800000,
+   "request": "I live alone and work remotely as a software engineer, so the desk matters most: two monitors, a good chair, and not facing a window glare. Outside work I boulder, so I need somewhere near the door for gear: shoes, chalk bags, a crash pad. I grow a lot of plants and want them to get light. Friends come over for board games once or twice a month, usually six of us around a table. I sleep badly, so the bedroom should feel dark and calm. Style: Japandi meeting a bit of industrial: wood, black metal, a darker accent wall is welcome. Budget 1,800,000 AMD."
+  }
+ ]
+}

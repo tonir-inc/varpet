@@ -1,0 +1,20 @@
+{
+  "checks": [
+    "one Properties toggle, initially disabled with no selection",
+    "general tools use the left workspace",
+    "single furniture selection opens current properties alongside left tools",
+    "toggle closes without deselecting; repeated selection respects closing",
+    "toggle reopens current selection and close button preserves it",
+    "new selection replaces and reopens properties",
+    "room properties contain no unselected openings",
+    "window properties replace room controls and omit other-window batch actions",
+    "costs use one centered native modal with focus containment",
+    "closing costs with Escape preserves selection and properties",
+    "undo refresh does not reopen closed properties",
+    "deleting selected object clears properties and disables toggle",
+    "reduced motion preserves toggle and selection",
+    "narrow screen properties and close control stay within viewport",
+    "Escape clears selection and stale panel content"
+  ],
+  "pageErrors": []
+}

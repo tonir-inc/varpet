@@ -1,6 +1,5 @@
-import { createHash } from 'node:crypto';
 import { z } from 'zod';
-import { applyOps, parseOps, parseScene } from './adapter.js';
+import { applyOps, parseOps, parseScene, sceneDigest } from './adapter.js';
 import { checkLayout, scoreLayout, type LayoutIssue } from './layout.js';
 import { checkRequest, intentSchema, type Intent, type RequestError } from './request.js';
 import type { Op, Scene } from './scene.js';
@@ -36,7 +35,7 @@ export class DesignerSession {
 
   constructor(scene:Scene, private readonly customerRequests:readonly string[] = []) {
     this.scene=parseScene(scene);
-    this.fingerprint=createHash('sha256').update(JSON.stringify(this.scene)).digest('hex');
+    this.fingerprint=sceneDigest(this.scene);
   }
 
   setIntent(input:unknown):Intent {

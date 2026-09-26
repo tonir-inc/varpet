@@ -344,3 +344,90 @@ def test_tidy_leaves_a_fixture_deep_in_a_wall_to_the_model():
     tidy(s)
     assert any(x.get("wall") == "w-e" for x in component_faults(s))
     assert s.components[-1].position[0] == 7.95
+
+
+def test_free_fixture_centred_outside_every_room_is_a_fault():
+    # the editor's architect project rejects it (architect-project.ts: "lies outside every room")
+    s = bathroom()
+    s.components.append(fixture("rail", "railing", [8.05, 0, 2.0], [0.05, 1.0, 1.0]))
+    assert any("outside every room" in x["detail"] for x in component_faults(s))
+
+
+def test_mounted_fixture_across_a_wall_junction_is_a_fault():
+    # the editor splits w-n where w-mid meets it (x = 5) and rejects a mounted component across that cut
+    s = bathroom()
+    s.components[0].host.offset = 5.0
+    assert any("junction" in x["detail"] for x in component_faults(s))
+
+
+def test_two_junctions_closer_than_5_cm_are_a_sliver():
+    # the editor splits a wall at every junction and rejects a section under 0.05 m between two of them
+    s = flat()
+    s.walls.append(Wall.model_validate(wall("stub-a", [2.0, 0], [2.0, 1.0])))
+    s.walls.append(Wall.model_validate(wall("stub-b", [2.03, 0], [2.03, 1.0])))
+    assert any(f["check"] == "junction" and f["wall"] == "w-n" for f in check(s))
+
+
+def _rotated(s, deg):
+    import math
+    c, n = math.cos(math.radians(deg)), math.sin(math.radians(deg))
+    rot = lambda p: (p[0] * c - p[1] * n, p[0] * n + p[1] * c)
+    for r in s.rooms:
+        r.polygon = [rot(p) for p in r.polygon]
+    for w in s.walls:
+        w.start, w.end = rot(w.start), rot(w.end)
+    return s
+
+
+def _off_axis(s):
+    import math
+    out = []
+    for w in s.walls:
+        a = abs(math.degrees(math.atan2(w.end[1] - w.start[1], w.end[0] - w.start[0]))) % 90
+        out.append(min(a, 90 - a))
+    return max(out)
+
+
+def test_a_wall_a_few_degrees_off_square_is_a_fault():
+    s = flat()
+    s.walls[4].end = (5.12, 4.0)  # the partition leans 1.7 degrees
+    s.rooms[0].polygon[2] = (5.12, 4.0)
+    s.rooms[1].polygon[3] = (5.12, 4.0)
+    assert any("off square" in f["detail"] and f["wall"] == "w-mid" for f in check(s))
+
+
+def test_tidy_turns_a_slightly_rotated_flat_square():
+    s = tidy(_rotated(flat(), 2.0))  # a phone photo of the plan, 2 degrees off
+    assert _off_axis(s) < 1e-6
+    assert check(s) == []
+
+
+def test_tidy_leaves_a_really_angled_wall_alone():
+    s = flat()
+    s.walls[4].end = (5.8, 4.0)  # 11 degrees: a bay or a splayed facade, drawn that way
+    s.rooms[0].polygon[2] = (5.8, 4.0)
+    s.rooms[1].polygon[3] = (5.8, 4.0)
+    tidy(s)
+    assert s.walls[4].end == (5.8, 4.0)
+
+
+def test_tidy_closes_a_wall_that_stops_short_of_another():
+    s = flat()
+    s.walls[4].end = (5.0, 3.85)  # the partition ends 15 cm before the south wall
+    tidy(s)
+    assert abs(s.walls[4].end[1] - 4.0) < 1e-6
+
+
+def test_tidy_closes_an_l_corner_where_both_walls_stop_short():
+    s = flat()
+    s.walls[0].start = (0.06, 0)  # north wall starts 6 cm in
+    s.walls[3].end = (0, 0.06)  # west wall ends 6 cm short: the corner is open
+    tidy(s)
+    assert max(map(abs, (*s.walls[0].start, *s.walls[3].end))) < 1e-6
+
+
+def test_tidy_leaves_a_free_standing_end_alone():
+    s = flat()
+    s.walls.append(Wall.model_validate(wall("island", [2.0, 1.5], [2.0, 2.5])))  # 1.5 m from anything
+    tidy(s)
+    assert s.walls[-1].start == (2.0, 1.5) and s.walls[-1].end == (2.0, 2.5)

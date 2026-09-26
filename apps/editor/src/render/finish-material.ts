@@ -28,7 +28,8 @@ export interface FinishMaterialProjection {
   update(now: number): boolean;
 }
 
-const patternIds = { solid: 0, tile: 1, wood: 2, terrazzo: 3 } as const;
+// 4 is the legacy joint pattern; wood layouts (2, 5-7) share the plank shader path.
+const patternIds = { solid: 0, tile: 1, wood: 2, terrazzo: 3, herringbone: 5, chevron: 6, parquet: 7 } as const;
 
 export function appearanceForPreset(preset: FinishPreset): FinishAppearance {
   return { color: preset.color, accent: preset.accent, pattern: patternIds[preset.pattern],
@@ -88,6 +89,71 @@ float finishJoint(vec2 p, vec2 dimensions, float width) {
   vec2 inside = smoothstep(vec2(width) - aa, vec2(width) + aa, edge);
   return 1.0 - min(inside.x, inside.y);
 }
+bool finishIsWood(float id) { return (id > 1.5 && id < 2.5) || id > 4.5; }
+/**
+ * Plank-local coordinates, x along the grain and y across it, in metres.
+ * \`axes\` maps surface derivatives into that frame, so joints and texture
+ * filtering stay antialiased where neighbouring planks change direction.
+ */
+vec2 finishPlank(vec2 p, vec4 spec, out vec2 dims, out vec2 cell, out mat2 axes) {
+  vec2 size = max(spec.yz, vec2(0.02));
+  float w = size.y;
+  const float c = 0.70710678;
+  if (spec.x < 2.5) {
+    // Straight boards with end joints staggered by thirds.
+    float row = floor(p.y / size.y);
+    vec2 plankPoint = vec2(p.x + mod(row, 3.0) * size.x / 3.0, p.y);
+    cell = floor(plankPoint / size);
+    dims = size; axes = mat2(1.0);
+    return plankPoint - cell * size;
+  }
+  if (spec.x < 5.5) {
+    // Herringbone at 45° to the walls: n:1 planks on the lattice (1,1),(n,-n)
+    // in plank-width units; a cell is horizontal when (x - y) mod 2n < n.
+    float n = max(1.0, floor(size.x / w + 0.5));
+    vec2 q = vec2(p.x - p.y, p.x + p.y) * c / w;
+    vec2 k = floor(q);
+    float d = mod(k.x - k.y, 2.0 * n);
+    bool horizontal = d < n;
+    vec2 hOrigin = vec2(k.x - d, k.y);
+    vec2 vOrigin = vec2(k.x, k.y - (2.0 * n - 1.0 - d));
+    cell = horizontal ? hOrigin : vOrigin + vec2(0.5, 0.25);
+    dims = vec2(n * w, w);
+    axes = horizontal ? mat2(c, c, -c, c) : mat2(c, c, c, -c);
+    return horizontal ? (q - hOrigin) * w : (q - vOrigin).yx * w;
+  }
+  if (spec.x < 6.5) {
+    // Chevron: columns of 45° planks, mirrored at every seam into a V.
+    float column = size.x * c;
+    float i = floor(p.x / column);
+    float x = p.x - i * column;
+    bool even = mod(i, 2.0) < 0.5;
+    float across = (p.y - (even ? x : column - x)) * c;
+    float row = floor(across / w);
+    cell = vec2(i, row);
+    dims = vec2(size.x, w);
+    axes = even ? mat2(1.41421356, -c, 0.0, c) : mat2(1.41421356, c, 0.0, c);
+    return vec2(x * 1.41421356, across - row * w);
+  }
+  // Block parquet: square blocks of parallel strips in alternating directions.
+  float n = max(1.0, floor(size.x / w + 0.5));
+  float block = n * w;
+  vec2 b = floor(p / block);
+  vec2 local = p - b * block;
+  bool along = mod(b.x + b.y, 2.0) < 0.5;
+  vec2 strip = along ? local : local.yx;
+  float index = floor(strip.y / w);
+  cell = vec2(b.x * (n + 1.0) + index, b.y);
+  dims = vec2(block, w);
+  axes = along ? mat2(1.0) : mat2(0.0, 1.0, 1.0, 0.0);
+  return vec2(strip.x, strip.y - index * w);
+}
+float finishPlankJoint(vec2 p, vec2 local, vec2 dims, mat2 axes, float width) {
+  vec2 aa = max(abs(axes * dFdx(p)) + abs(axes * dFdy(p)), vec2(0.0001));
+  vec2 edge = min(local, dims - local);
+  vec2 inside = smoothstep(vec2(width) - aa, vec2(width) + aa, edge);
+  return 1.0 - min(inside.x, inside.y);
+}
 vec3 finishColorAt(vec2 p, vec3 base, vec3 accent, vec4 spec) {
   vec2 size = max(spec.yz, vec2(0.02));
   if (spec.x < 0.5) return base;
@@ -98,18 +164,19 @@ vec3 finishColorAt(vec2 p, vec3 base, vec3 accent, vec4 spec) {
     vec3 ceramic = base * (1.0 + tone + stone);
     return mix(ceramic, accent, finishJoint(p, size, 0.0018) * 0.82);
   }
-  if (spec.x < 2.5) {
-    // Staggered end joints, individual plank tones, and fine longitudinal grain.
-    float row = floor(p.y / size.y);
-    vec2 plankPoint = vec2(p.x + mod(row, 3.0) * size.x / 3.0, p.y);
-    vec2 cell = floor(plankPoint / size);
+  if (finishIsWood(spec.x)) {
+    // Individual plank tones and fine grain along each plank.
+    vec2 dims; vec2 cell; mat2 axes;
+    vec2 local = finishPlank(p, spec, dims, cell, axes);
     float plankTone = finishHash(cell) - 0.5;
-    float grainNoise = finishNoise(vec2(p.x * 1.3, p.y * 47.0));
-    float phase = p.y * 190.0 + finishNoise(vec2(p.x * 0.55, p.y * 4.0)) * 12.0;
+    // Straight boards keep one continuous figure; laid patterns cut a new piece per plank.
+    vec2 g = spec.x < 2.5 ? p : local + vec2(finishHash(cell + 23.1), finishHash(cell + 59.7)) * 4.0;
+    float grainNoise = finishNoise(vec2(g.x * 1.3, g.y * 47.0));
+    float phase = g.y * 190.0 + finishNoise(vec2(g.x * 0.55, g.y * 4.0)) * 12.0;
     float grain = sin(phase) * (1.0 - smoothstep(0.8, 2.8, fwidth(phase)));
     vec3 wood = mix(base, accent, 0.14 + grainNoise * 0.13 + grain * 0.035);
     wood *= 1.0 + plankTone * 0.14;
-    return mix(wood, accent * 0.74, finishJoint(plankPoint, size, 0.0011) * 0.60);
+    return mix(wood, accent * 0.74, finishPlankJoint(p, local, dims, axes, 0.0011) * 0.60);
   }
   if (spec.x < 3.5) {
     // Two offset aggregate scales avoid a visible regular dot grid.
@@ -137,24 +204,25 @@ vec3 finishColorAt(vec2 p, vec3 base, vec3 accent, vec4 spec) {
   return mix(base, accent, joint * 0.095);
 }
 
-vec2 finishTextureUv(vec2 p, vec4 spec, vec2 repeatSize) {
-  if (spec.x > 1.5 && spec.x < 2.5) {
-    vec2 size = max(spec.yz, vec2(0.02));
-    float row = floor(p.y / size.y);
-    vec2 plankPoint = vec2(p.x + mod(row, 3.0) * size.x / 3.0, p.y);
-    vec2 cell = floor(plankPoint / size);
+vec4 finishTextureSample(sampler2D map, vec2 p, vec4 spec, vec2 repeatSize) {
+  vec2 uv = p / repeatSize;
+  mat2 axes = mat2(1.0);
+  if (finishIsWood(spec.x)) {
+    vec2 dims; vec2 cell;
+    vec2 local = finishPlank(p, spec, dims, cell, axes);
     // Every plank samples another part of the veneer, with grain along U.
-    return (plankPoint - cell * size) / repeatSize
-      + vec2(finishHash(cell + 23.1), finishHash(cell + 59.7));
+    uv = local / repeatSize + vec2(finishHash(cell + 23.1), finishHash(cell + 59.7));
   }
-  return p / repeatSize;
+  // Continuous gradients keep plank seams from dropping to the smallest mip.
+  return textureGrad(map, uv, axes * dFdx(p) / repeatSize, axes * dFdy(p) / repeatSize);
 }
 float finishTextureJoint(vec2 p, vec4 spec) {
   vec2 size = max(spec.yz, vec2(0.02));
   if (spec.x > 0.5 && spec.x < 1.5) return finishJoint(p, size, 0.0018);
-  if (spec.x > 1.5 && spec.x < 2.5) {
-    float row = floor(p.y / size.y);
-    return finishJoint(vec2(p.x + mod(row, 3.0) * size.x / 3.0, p.y), size, 0.0011);
+  if (finishIsWood(spec.x)) {
+    vec2 dims; vec2 cell; mat2 axes;
+    vec2 local = finishPlank(p, spec, dims, cell, axes);
+    return finishPlankJoint(p, local, dims, axes, 0.0011);
   }
   return 0.0;
 }
@@ -163,15 +231,15 @@ vec3 finishSurfaceAt(vec2 p, vec3 base, vec3 accent, vec4 spec,
   if (enabled < 0.5) return finishColorAt(p, base, accent, spec);
   // Catalog images are tint-ready: their average sRGB #c8 converts to this
   // linear value. Normalize it so an edited finish retains its chosen color.
-  vec3 sampled = texture2D(colorMap, finishTextureUv(p, spec, repeatSize)).rgb;
+  vec3 sampled = finishTextureSample(colorMap, p, spec, repeatSize).rgb;
   vec3 surface = base * sampled / 0.57758044;
   float joint = finishTextureJoint(p, spec);
-  bool wood = spec.x > 1.5 && spec.x < 2.5;
+  bool wood = finishIsWood(spec.x);
   return mix(surface, wood ? accent * 0.74 : accent, joint * (wood ? 0.60 : 0.82));
 }
 float finishRoughnessAt(vec2 p, vec4 spec, sampler2D roughnessMap, vec2 repeatSize, float enabled) {
   if (enabled < 0.5) return spec.w;
-  float detail = texture2D(roughnessMap, finishTextureUv(p, spec, repeatSize)).g;
+  float detail = finishTextureSample(roughnessMap, p, spec, repeatSize).g;
   float surface = clamp(spec.w * (0.75 + detail * 0.5), 0.04, 1.0);
   return mix(surface, 0.94, finishTextureJoint(p, spec));
 }
@@ -218,7 +286,7 @@ export function makeFinishMaterial(
     uFinishProgress: { value: active ? 0 : 1 },
   };
   const material = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: appearance.roughness });
-  material.customProgramCacheKey = () => 'varpet-finish-world-v2';
+  material.customProgramCacheKey = () => 'varpet-finish-world-v3';
   material.onBeforeCompile = shader => {
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = shader.vertexShader

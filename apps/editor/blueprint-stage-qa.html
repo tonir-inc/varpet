@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Blueprint construction verification</title>
+  <style>
+    body { margin: 0; background: #eef1e8; color: #284333; font: 13px system-ui, sans-serif; }
+    header { display: flex; gap: 16px; align-items: center; padding: 12px 20px; }
+    button { padding: 9px 13px; border: 1px solid #bbc9b6; background: #fcfdf9; color: inherit; border-radius: 7px; cursor: pointer; }
+    #stage { height: 70vh; min-height: 400px; position: relative; }
+    pre { padding: 10px 20px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <header><button id="run">Run construction checks</button><button id="restart">Replay reveal</button><span id="phase">Ready</span></header>
+  <div id="stage"></div><pre id="result">Uses the existing Avani reference plan and scene as an isolated construction replay.</pre>
+  <script type="module" src="/src/ui/blueprint-stage-qa.ts"></script>
+</body>
+</html>

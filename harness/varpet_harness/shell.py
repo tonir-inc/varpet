@@ -14,6 +14,7 @@ from __future__ import annotations
 import itertools
 import math
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Literal
@@ -21,6 +22,8 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from shapely.geometry import LineString, Point, Polygon
 from shapely.ops import unary_union
+
+from .openings import choose_model
 
 Vec2 = tuple[float, float]
 HEX = r"^#[0-9a-fA-F]{6}$"
@@ -48,6 +51,9 @@ DOOR_MIN_M = 0.6  # tidy() never clips a door narrower than this
 GAP_M = 2 * EDITOR_EPS  # clearance tidy() leaves between an opening and what it moved off
 FACE_M = 0.053  # the designer bridge's room-face tolerance (packages/designer/src/reconcile-geometry.ts)
 FACE_DEG = 5.0  # a room edge this close in angle to a wall is that wall's face
+GAP_CLOSE_M = 0.25  # a wall end this close to another wall meant to meet it; no passage is this narrow
+SQUARE_DEG = 5.0  # a wall this close to an axis is meant square: plans are, eyeballed pixels are not
+SKEW_MIN_DEG = 0.5  # below this a skew is rounding
 NUDGE_M = 0.10  # tidy() pushes a free fixture this far out of a wall body; deeper stays a fault for the model
 
 
@@ -59,6 +65,7 @@ class Opening(BaseModel):
     width: float = Field(gt=0)
     height: float = Field(gt=0)
     sill: float = Field(ge=0)
+    assetId: str | None = Field(default=None, description="catalog model for the rendered GLB, e.g. extra:openings:door-oak-glazed; absent renders the procedural opening")
 
 
 class Wall(BaseModel):
@@ -174,6 +181,10 @@ def check(shell: Shell) -> list[dict]:
         if length < 0.2:
             faults.append({"check": "wall", "wall": w.id, "detail": f"length {length:.2f} m"})
             continue
+        skew = abs(_axis_offset(w.start, w.end))
+        if SKEW_MIN_DEG < skew < SQUARE_DEG:
+            faults.append({"check": "wall", "wall": w.id, "detail": f"{skew:.1f} degrees off square; the plan draws it straight: "
+                           "make it exactly horizontal or vertical (move its gridline, not one end)"})
         parapet = not w.openings and PARAPET_M <= w.height < HEIGHT_M[0]
         if not 0.05 <= w.thickness <= 0.6 or not (HEIGHT_M[0] <= w.height <= HEIGHT_M[1] or parapet):
             faults.append({"check": "wall", "wall": w.id, "detail": f"thickness {w.thickness} or height {w.height} out of range"})
@@ -362,6 +373,18 @@ def _components(shell: Shell, polys: dict[str, Polygon]) -> list[dict]:
                     or c.host.elevation < -EDITOR_EPS or c.host.elevation + c.dimensions[1] > host.height + EDITOR_EPS:
                 faults.append({"check": "component", "component": c.id, "wall": host.id,
                                "detail": f"extends beyond its host wall (offset {c.host.offset:.2f} m is the centre; wall is {length:.2f} m long, {host.height} m tall)"})
+            for other in shell.walls:  # the editor splits the host where a wall meets it (wall-junctions.ts)
+                hit = _crossing(host, other) if other is not host else None
+                if hit is None or not -EDITOR_EPS / _len(other) <= hit[3] <= 1 + EDITOR_EPS / _len(other):
+                    continue
+                cut = hit[2] * length
+                if EDITOR_EPS < cut < length - EDITOR_EPS and c.host.offset - half < cut - EDITOR_EPS < cut + EDITOR_EPS < c.host.offset + half:
+                    faults.append({"check": "component", "component": c.id, "wall": host.id,
+                                   "detail": f"crosses the junction with wall {other.id} at {cut:.2f} m along {host.id}; "
+                                             "the editor splits the wall there: move it clear or split it in two"})
+        elif not any(p.contains(Point(c.position[0], c.position[2])) for p in polys.values()):
+            faults.append({"check": "component", "component": c.id,
+                           "detail": "its centre lies outside every room (the editor rejects it): move it inside or mount it on a wall"})
         fp = _footprint(shell, c)
         feet[c.id] = fp
         base = _host_pose(shell, c)[0][1]
@@ -403,12 +426,55 @@ def _door_segment(w: Wall, o: Opening) -> LineString:
 
 def to_editor(shell: Shell) -> dict:
     """Exactly what StructureAdapter.reconstruct returns, plus the project's components
-    (BuildingComponent, unset optionals left out) when there are any: `printed` stays behind."""
-    out = {"rooms": [r.model_dump() for r in shell.rooms], "walls": [w.model_dump() for w in shell.walls],
-           "notes": shell.notes}
+    (BuildingComponent, unset optionals left out) when there are any: `printed` stays behind.
+    An opening with no assetId gets one from the catalog when a model fits (openings.py); the
+    editor renders that GLB instead of the procedural opening."""
+    polys = {r.id: Polygon(r.polygon) for r in shell.rooms}
+    entrance = _entrance(shell, polys)
+    walls = []
+    for w in shell.walls:
+        wd = w.model_dump()
+        wd["openings"] = [_opening_dict(o, o.id == entrance) for o in w.openings]
+        walls.append(wd)
+    out = {"rooms": [r.model_dump() for r in shell.rooms], "walls": walls, "notes": shell.notes}
     if shell.components:
         out["components"] = [c.model_dump(exclude_none=True) for c in shell.components]
     return out
+
+
+def _opening_dict(o: Opening, entrance: bool) -> dict:
+    od = o.model_dump(exclude_none=True)
+    if o.assetId is None:
+        model = choose_model(o.kind, o.width, o.height, exterior=entrance)
+        if model:
+            od["assetId"] = model
+    return od
+
+
+def _sides(w: Wall, o: Opening, polys: dict[str, Polygon]) -> list[str | None]:
+    """The room just past each face of the wall at the opening's midpoint, or None."""
+    mid = _door_segment(w, o).interpolate(0.5, normalized=True)
+    length, reach = _len(w), w.thickness / 2 + 0.25
+    nx, nz = -(w.end[1] - w.start[1]) / length, (w.end[0] - w.start[0]) / length
+    return [next((rid for rid, p in polys.items() if p.contains(Point(mid.x + sign * nx * reach, mid.y + sign * nz * reach))), None)
+            for sign in (1, -1)]
+
+
+HALL = re.compile(r"entr|hall|corridor|foyer|lobby", re.I)
+
+
+def _entrance(shell: Shell, polys: dict[str, Polygon]) -> str | None:
+    """The flat's front door: a door with a room on one side only, from a hall-like room first, then
+    the widest. One per flat; balcony doors have the balcony room behind them and never qualify."""
+    names = {r.id: r.name for r in shell.rooms}
+    doors = []
+    for w in shell.walls:
+        for o in w.openings:
+            sides = _sides(w, o, polys) if o.kind == "door" else []
+            inside = [r for r in sides if r]
+            if len(inside) == 1:
+                doors.append((not HALL.search(names[inside[0]]), -o.width, o.id))
+    return min(doors)[2] if doors else None
 
 
 def _crossing(a: Wall, b: Wall) -> tuple[float, float, float, float] | None:
@@ -464,10 +530,52 @@ def _snap_junctions(shell: Shell) -> None:
                     _move_end(w, which, (x, z))
 
 
+def _close_gaps(shell: Shell) -> None:
+    """Wall ends that stop short of (or run past) the wall they meet, by up to GAP_CLOSE_M, move along their
+    own line to its centreline; where the crossing lies past the other wall's end too (an L corner), that
+    end moves as well. The model often ends a wall at the room's inside corner instead of the wall centre."""
+    for w in shell.walls:
+        for which, at in (("start", 0.0), ("end", 1.0)):
+            p, best = getattr(w, which), None
+            for o in shell.walls:
+                if o is w:
+                    continue
+                hit = _crossing(w, o)
+                if hit is None:
+                    continue
+                x, z, t, s_ = hit
+                lw, lo = _len(w), _len(o)
+                ux, uz = (w.end[0] - w.start[0]) / lw, (w.end[1] - w.start[1]) / lw
+                vx, vz = (o.end[0] - o.start[0]) / lo, (o.end[1] - o.start[1]) / lo
+                if abs(ux * vz - uz * vx) < 0.5:  # under 30 degrees apart: not a junction
+                    continue
+                move = abs(t - at) * lw
+                past = max(-s_ * lo, (s_ - 1) * lo, 0.0)  # how far the crossing lies beyond o's ends
+                if move <= EDITOR_EPS or move > GAP_CLOSE_M or past > GAP_CLOSE_M or (0 < t < 1 and move > SNAP_M and past):
+                    continue
+                if best is None or move + past < best[0]:
+                    best = (move + past, (x, z), o, s_)
+            if best is None:
+                continue
+            _, (x, z), o, s_ = best
+            point = (round(x, 4) + 0.0, round(z, 4) + 0.0)
+            other = w.end if which == "start" else w.start
+            o_end = "start" if s_ < 0 else "end" if s_ > 1 else None
+            o_keep = (o.end if o_end == "start" else o.start) if o_end else None
+            if LineString([point, other]).length < 0.2 or (o_keep and LineString([point, o_keep]).length < 0.2):
+                continue  # never shrink a wall below the minimum; that stub stays for the model
+            _move_end(w, which, point)
+            if s_ < 0:
+                _move_end(o, "start", point)
+            elif s_ > 1:
+                _move_end(o, "end", point)
+
+
 def _slivers(shell: Shell) -> list[dict]:
     """Crossings that would leave the editor a wall section under 5 cm."""
     faults = []
     for w in shell.walls:
+        L, cuts = _len(w), []
         for other in shell.walls:
             if other is w:
                 continue
@@ -475,14 +583,23 @@ def _slivers(shell: Shell) -> list[dict]:
             if hit is None:
                 continue
             _, _, t, s = hit
-            L, M = _len(w), _len(other)
+            M = _len(other)
             if not (-1e-6 <= s * M <= M + 1e-6 and -1e-6 <= t * L <= L + 1e-6):
                 continue
+            cuts.append((t * L, other.id))
             near = min(t * L, (1 - t) * L)
             if 1e-6 < near < SLIVER_M:
                 faults.append({"check": "junction", "wall": w.id, "other": other.id,
                                "detail": f"{other.id} meets {w.id} {near * 100:.1f} cm from its end; meet at the end or at least 5 cm in"})
                 break
+        else:  # two junctions close together leave a sliver between them (wall-junctions.ts)
+            cuts.sort()
+            for (a, ia), (b, ib) in zip(cuts, cuts[1:]):
+                if 1e-6 < b - a < SLIVER_M:
+                    faults.append({"check": "junction", "wall": w.id, "other": ib,
+                                   "detail": f"{ia} and {ib} meet {w.id} only {(b - a) * 100:.1f} cm apart; "
+                                             "make them meet at one point or at least 5 cm apart"})
+                    break
     return faults
 
 
@@ -644,6 +761,41 @@ def _unoverlap(w: Wall) -> None:
     w.openings = kept
 
 
+def _axis_offset(a: Vec2, b: Vec2) -> float:
+    """Signed degrees from the nearest axis, in (-45, 45]."""
+    deg = math.degrees(math.atan2(b[1] - a[1], b[0] - a[0]))
+    return (deg + 45) % 90 - 45
+
+
+def _unrotate(shell: Shell) -> None:
+    """A photo of a plan turns the whole flat a little: when most wall length shares one small angle, turn it back."""
+    near = sorted((_axis_offset(w.start, w.end), _len(w)) for w in shell.walls
+                  if _len(w) > 0.3 and abs(_axis_offset(w.start, w.end)) < SQUARE_DEG)
+    total = sum(length for _, length in near)
+    if not total:
+        return
+    acc, theta = 0.0, 0.0
+    for angle, length in near:  # length-weighted median
+        acc += length
+        if acc >= total / 2:
+            theta = angle
+            break
+    shared = sum(length for angle, length in near if abs(angle - theta) < 1.0)
+    if abs(theta) < 0.05 or shared < 0.6 * total:
+        return
+    c, n = math.cos(math.radians(-theta)), math.sin(math.radians(-theta))
+    rot = lambda p: (p[0] * c - p[1] * n, p[0] * n + p[1] * c)
+    for w in shell.walls:
+        w.start, w.end = rot(w.start), rot(w.end)
+    for r in shell.rooms:
+        r.polygon = [rot(p) for p in r.polygon]
+    for comp in shell.components:
+        if not comp.host:  # hosted ones follow their wall
+            x, z = rot((comp.position[0], comp.position[2]))
+            comp.position = (x, comp.position[1], z)
+            comp.rotation += math.radians(theta)
+
+
 def _dedupe_ids(shell: Shell) -> None:
     """Openings and components that reuse an id get a suffix; the first holder keeps it.
     Walls and rooms are referenced by id (hosts, roomId, printed), so their clashes stay with the model."""
@@ -689,7 +841,10 @@ def tidy(shell: Shell) -> Shell:
     """Mechanical fixes in code, not a model turn: drop collinear and near-duplicate
     polygon points (within 1 cm) and keep rooms under the editor's 32 points."""
     _dedupe_ids(shell)
+    _unrotate(shell)
     _snap_junctions(shell)
+    _close_gaps(shell)
+    _snap_junctions(shell)  # ends that closed onto a corner become that exact corner
     for r in shell.rooms:
         poly = Polygon(r.polygon)
         if poly.is_valid:

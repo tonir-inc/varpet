@@ -28,7 +28,7 @@ export function createMaterialsUI(container: HTMLElement, callbacks: MaterialsCa
       <button type="button" role="tab" data-material-category="floor" aria-selected="true" tabindex="0">Floors</button>
       <button type="button" role="tab" data-material-category="wall" aria-selected="false" tabindex="-1">Walls</button>
     </div>
-    <div class="materials-section-label"><span data-material-heading>Floor finishes</span><span>8 samples</span></div>
+    <div class="materials-section-label"><span data-material-heading>Floor finishes</span><span data-material-count>${FINISH_PRESETS.filter(preset => preset.category === 'floor').length} samples</span></div>
     <div class="materials-grid" role="tabpanel" aria-label="Floor finishes"></div>
     <div class="materials-instruction" aria-live="polite" aria-atomic="true"><span class="materials-instruction-icon" aria-hidden="true">↗</span><div><strong data-material-prompt>Pick a finish</strong><span data-material-detail>Drag it onto a floor in the 3D view.</span></div><button type="button" class="materials-cancel" aria-label="Stop painting" title="Stop painting · Esc" hidden>×</button></div>
     <p class="materials-note">Concept samples · pricing not included</p>`;
@@ -100,6 +100,7 @@ export function createMaterialsUI(container: HTMLElement, callbacks: MaterialsCa
     }
     const heading = category === 'floor' ? 'Floor finishes' : 'Wall paint';
     root.querySelector<HTMLElement>('[data-material-heading]')!.textContent = heading;
+    root.querySelector<HTMLElement>('[data-material-count]')!.textContent = `${FINISH_PRESETS.filter(preset => preset.category === category).length} samples`;
     grid.setAttribute('aria-label', heading);
     const preset = activeId ? getFinishPreset(activeId) : undefined;
     prompt.textContent = preset?.name ?? 'Pick a finish';

@@ -1,8 +1,11 @@
 import { api, type ApartmentSummary, type User } from './api';
-import { apartmentTemplates, getTemplate, mountPlanPreview, type ApartmentTemplate } from './templates';
+import { getTemplate, mountPlanPreview, type ApartmentTemplate } from './templates';
 import { showAuth } from './auth';
 import { icon } from '../ui/icons';
 import './portal.css';
+import { mountBlueprintLanding } from './blueprint';
+import { setEditorSession } from './session';
+import { mountThemeToggle } from '../ui/theme';
 
 type PortalView = 'explore' | 'apartments';
 const mounts = new WeakMap<HTMLElement, () => void>();
@@ -51,10 +54,10 @@ export async function mountPortal(host: HTMLElement, view: PortalView): Promise<
   window.addEventListener('pageshow', onPageShow);
   host.classList.add('portal-host');
   host.innerHTML = `
-    <div class="portal">
+    <div class="portal ${view === 'explore' ? 'blueprint-home' : ''}">
       <header class="portal-header"><div class="portal-header-inner">
         <a class="portal-brand" href="/" aria-label="Varpet home"><span class="portal-brand-mark" aria-hidden="true">v</span>varpet</a>
-        <nav class="portal-nav" aria-label="Main navigation"><a href="/" ${view === 'explore' ? 'aria-current="page"' : ''}>Explore apartments</a><a href="/?view=apartments" ${view === 'apartments' ? 'aria-current="page"' : ''}>My apartments</a></nav>
+        <nav class="portal-nav" aria-label="Main navigation"><a href="/" ${view === 'explore' ? 'aria-current="page"' : ''}>Start with a plan</a><a href="/?editor=sandbox" title="Explore an empty apartment and save on this device">Sandbox</a><a href="/?view=apartments" ${view === 'apartments' ? 'aria-current="page"' : ''}>My apartments</a></nav>
         <div class="portal-account"><span class="portal-account-loading" role="status">Checking account…</span></div>
       </div></header>
       <div class="portal-notice" role="status" hidden></div>
@@ -65,6 +68,7 @@ export async function mountPortal(host: HTMLElement, view: PortalView): Promise<
   const main = host.querySelector<HTMLElement>('.portal-main')!;
   const account = host.querySelector<HTMLElement>('.portal-account')!;
   const notice = host.querySelector<HTMLElement>('.portal-notice')!;
+  disposers.push(mountThemeToggle(host.querySelector<HTMLElement>('.portal-header-inner')!));
 
   function preview(element: HTMLElement, template: ApartmentTemplate, target: Array<() => void> = disposers): void {
     element.setAttribute('role', 'img');
@@ -105,50 +109,29 @@ export async function mountPortal(host: HTMLElement, view: PortalView): Promise<
   }
 
   function renderExplore(): void {
-    const featured = apartmentTemplates[0];
-    main.innerHTML = `
-      <section class="portal-hero" aria-labelledby="welcome-title"><div class="portal-hero-copy"><p class="portal-eyebrow"><span></span>A new perspective on home</p><h1 id="welcome-title">Your apartment.<br><span>Your way.</span></h1><p class="portal-hero-description">Start with a floor plan. Find room for your ideas. Turn the place you have into the home you imagine.</p><a class="portal-button portal-primary" href="#apartments">Explore apartments${icon('arrow')}</a><p class="portal-hero-note">From the first idea to your next move.</p></div>
-      ${featured ? `<div class="portal-hero-visual"><div class="portal-hero-annotation"><span>${icon('cube')}A plan with possibilities</span><span>01 / 0${apartmentTemplates.length}</span></div><div class="portal-preview portal-hero-preview"></div><button class="portal-featured-label" type="button" data-featured><span><span class="portal-kicker">Featured sample plan</span><strong>${escapeHtml(featured.name)}</strong><span class="portal-featured-meta">${featured.area} m² · ${bedroomLabel(featured.bedrooms)}</span></span><span class="portal-circle-arrow">${icon('arrow')}</span></button></div>` : ''}</section>
-      <section class="portal-collection" id="apartments" aria-labelledby="collection-title"><div class="portal-section-heading"><div><p class="portal-eyebrow">Find your starting point</p><h2 id="collection-title">Good plans. New possibilities.</h2><p>Explore a collection of sample developer floor plans.</p></div><span class="portal-collection-label">Sample collection${icon('layers')}</span></div>
-      <div class="portal-collection-toolbar"><div class="portal-filters" role="group" aria-label="Filter apartments by bedrooms"><button type="button" data-bedrooms="all" aria-pressed="true">All apartments</button><button type="button" data-bedrooms="1" aria-pressed="false">1 bedroom</button><button type="button" data-bedrooms="2" aria-pressed="false">2 bedrooms</button></div><p class="portal-result-count" role="status"></p></div><div class="portal-apartment-grid"></div></section>
-      <section class="portal-steps" aria-label="How Varpet works"><div><span class="portal-step-number">01</span><div><h3>Find your floor plan</h3><p>A considered starting point for your future home.</p></div></div><div><span class="portal-step-number">02</span><div><h3>Make it feel like you</h3><p>Explore the space in 3D and arrange it your way.</p></div></div><div><span class="portal-step-number">03</span><div><h3>Come back to your ideas</h3><p>Save your apartment and keep building next time.</p></div></div></section>`;
-    if (featured) {
-      preview(main.querySelector<HTMLElement>('.portal-hero-preview')!, featured);
-      main.querySelector('[data-featured]')!.addEventListener('click', () => showPlan(featured));
-    }
-    const grid = main.querySelector<HTMLElement>('.portal-apartment-grid')!;
-    const filters = Array.from(main.querySelectorAll<HTMLButtonElement>('[data-bedrooms]'));
-    /** Only when the architect service is connected: start from the buyer's own developer plan and photos. */
-    function ownPlanCard(): string {
-      return `<article class="portal-apartment-card portal-own-plan"><div class="portal-card-stage portal-own-plan-stage">${icon('cube')}<span class="portal-card-badge">Your plan</span></div><div class="portal-card-body"><p class="portal-kicker">Built by the architect</p><h3>Start from your own plan</h3><p class="portal-location">Upload the developer plan and a few photos. The architect builds the rooms, kitchen, bathroom and your furniture in 3D.</p><div class="portal-card-bottom"><div class="portal-card-facts"><span>About 8 minutes</span></div><a class="portal-card-link" href="/?editor&amp;architect=1">Upload plan${icon('arrow')}</a></div></div></article>`;
-    }
-
-    function renderCards(filter: string): void {
-      cardDisposers.splice(0).forEach((cleanup) => cleanup());
-      const matching = apartmentTemplates.filter((template) => filter === 'all' || template.bedrooms === Number(filter));
-      main.querySelector('.portal-result-count')!.textContent = `${matching.length} plan${matching.length === 1 ? '' : 's'} to make your own`;
-      filters.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.bedrooms === filter)));
-      grid.innerHTML = (filter === 'all' && import.meta.env.VITE_ARCHITECT_URL ? ownPlanCard() : '') + (matching.length ? matching.map((template, index) => `<article class="portal-apartment-card"><div class="portal-card-stage"><div class="portal-preview" data-plan-preview="${index}"></div><span class="portal-card-badge">${bedroomLabel(template.bedrooms)}</span></div><div class="portal-card-body"><p class="portal-kicker">${escapeHtml(template.developer)}</p><h3>${escapeHtml(template.name)}</h3><p class="portal-location">${escapeHtml(template.location)}</p><div class="portal-card-bottom"><div class="portal-card-facts">${templateFacts(template)}</div><button class="portal-card-link" type="button" data-plan="${index}" aria-label="View ${escapeHtml(template.name)}">View apartment${icon('arrow')}</button></div></div></article>`).join('') : `<div class="portal-filter-empty">${icon('home')}<h3>More room to explore</h3><p>There are no sample plans with this number of bedrooms yet.</p><button type="button" class="portal-button" data-clear-filter>See all apartments</button></div>`);
-      matching.forEach((template, index) => {
-        preview(grid.querySelector<HTMLElement>(`[data-plan-preview="${index}"]`)!, template, cardDisposers);
-        grid.querySelector(`[data-plan="${index}"]`)!.addEventListener('click', () => showPlan(template));
-      });
-      grid.querySelector('[data-clear-filter]')?.addEventListener('click', () => renderCards('all'));
-    }
-    filters.forEach((button) => button.addEventListener('click', () => renderCards(button.dataset.bedrooms!)));
-    renderCards('all');
+    disposers.push(mountBlueprintLanding(main, {
+      showSample: showPlan,
+      async openProject(scene, catalog) {
+        setEditorSession({ scene, catalog, user: currentUser, apartment: null, templateId: null });
+        // Opening the reviewed reconstruction is the person's explicit acceptance.
+        await import('../main');
+        dispose();
+        host.classList.remove('portal-host');
+        history.replaceState(null, '', '/?editor');
+      },
+    }));
   }
 
   function profileHeading(): string {
     const firstName = currentUser?.name.trim().split(/\s+/)[0];
-    return `<div class="portal-profile-heading"><div><p class="portal-eyebrow">Your personal collection</p><h1>${firstName ? `${escapeHtml(firstName)}'s apartments` : 'My apartments'}</h1><p>All your spaces. Every possibility.</p></div><a class="portal-button portal-primary" href="/#apartments">${icon('plus')}New apartment</a></div>`;
+    return `<div class="portal-profile-heading"><div><p class="portal-eyebrow">Your personal collection</p><h1>${firstName ? `${escapeHtml(firstName)}'s apartments` : 'My apartments'}</h1><p>All your spaces. Every possibility.</p></div><a class="portal-button portal-primary" href="/">${icon('plus')}New apartment</a></div>`;
   }
 
   async function renderApartments(): Promise<void> {
     const version = ++requestVersion;
     cardDisposers.splice(0).forEach((cleanup) => cleanup());
     if (!currentUser) {
-      main.innerHTML = `${profileHeading()}<section class="portal-empty"><span class="portal-empty-icon">${icon('home')}</span><p class="portal-eyebrow">A home for your ideas</p><h2>Your next chapter starts here.</h2><p>Sign in to find your saved apartments, or create an account and start making a space your own.</p><div class="portal-empty-actions"><button class="portal-button portal-primary" data-profile-login>Sign in${icon('arrow')}</button><button class="portal-button" data-profile-register>Create account</button></div><a class="portal-text-link" href="/#apartments">Explore the sample collection</a></section>`;
+      main.innerHTML = `${profileHeading()}<section class="portal-empty"><span class="portal-empty-icon">${icon('home')}</span><p class="portal-eyebrow">A home for your ideas</p><h2>Your next chapter starts here.</h2><p>Sign in to find your saved apartments, or create an account and start making a space your own.</p><div class="portal-empty-actions"><button class="portal-button portal-primary" data-profile-login>Sign in${icon('arrow')}</button><button class="portal-button" data-profile-register>Create account</button></div><a class="portal-text-link" href="/">Start with a blueprint</a></section>`;
       main.querySelector('[data-profile-login]')!.addEventListener('click', () => authenticate('login'));
       main.querySelector('[data-profile-register]')!.addEventListener('click', () => authenticate('register'));
       return;
@@ -158,7 +141,7 @@ export async function mountPortal(host: HTMLElement, view: PortalView): Promise<
       const apartments = await api.listApartments();
       if (disposed || version !== requestVersion) return;
       if (!apartments.length) {
-        main.innerHTML = `${profileHeading()}<section class="portal-empty"><span class="portal-empty-icon">${icon('home')}</span><p class="portal-eyebrow">Room for something new</p><h2>Your first apartment is waiting.</h2><p>Choose a floor plan, make it your own, and save it here. Your ideas will be ready whenever you are.</p><a class="portal-button portal-primary" href="/#apartments">Find a floor plan${icon('arrow')}</a></section>`;
+        main.innerHTML = `${profileHeading()}<section class="portal-empty"><span class="portal-empty-icon">${icon('home')}</span><p class="portal-eyebrow">Room for something new</p><h2>Your first apartment is waiting.</h2><p>Choose a floor plan, make it your own, and save it here. Your ideas will be ready whenever you are.</p><a class="portal-button portal-primary" href="/">Upload a floor plan${icon('arrow')}</a></section>`;
         return;
       }
       main.innerHTML = `${profileHeading()}<p class="portal-profile-count">${apartments.length} saved apartment${apartments.length === 1 ? '' : 's'}</p><div class="portal-apartment-grid portal-saved-grid">${apartments.map(savedCard).join('')}</div>`;
@@ -182,8 +165,8 @@ export async function mountPortal(host: HTMLElement, view: PortalView): Promise<
 
   function renderAccount(): void {
     account.innerHTML = currentUser
-      ? `<a class="portal-account-profile" href="/?view=apartments"><span class="portal-avatar" aria-hidden="true">${escapeHtml(currentUser.name.charAt(0).toUpperCase())}</span><span>${escapeHtml(currentUser.name)}</span></a><button class="portal-text-button portal-signout" type="button">Sign out</button>`
-      : '<button class="portal-text-button" type="button" data-login>Sign in</button><button class="portal-button portal-header-signup" type="button" data-register>Create account</button>';
+      ? `<a class="portal-account-profile" href="/?view=apartments" aria-label="${escapeHtml(currentUser.name)}’s apartments"><span class="portal-avatar" aria-hidden="true">${escapeHtml(currentUser.name.charAt(0).toUpperCase())}</span><span>${escapeHtml(currentUser.name)}</span></a><button class="portal-text-button portal-signout" type="button">Sign out</button>`
+      : `<button class="portal-text-button" type="button" data-login>Sign in</button>${view === 'apartments' ? '<button class="portal-button portal-header-signup" type="button" data-register>Create account</button>' : ''}`;
     account.querySelector('[data-login]')?.addEventListener('click', () => authenticate('login'));
     account.querySelector('[data-register]')?.addEventListener('click', () => authenticate('register'));
     account.querySelector('.portal-signout')?.addEventListener('click', async (event) => {

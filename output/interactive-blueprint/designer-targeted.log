@@ -1,0 +1,45 @@
+
+ RUN  v5.0.2 /Users/davitstepanyan/Documents/varpet/packages/designer
+
+ ❯ test/ashot-live.test.ts (16 tests | 1 failed) 9024ms
+   × live furnishing discovers real products even when the editor has registered none 8600ms
+ ❯ test/taste-contradictions.test.ts (7 tests | 1 failed) 10003ms
+   × one surviving fully checked composition is returned, with no-alternative disclosure 8061ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/ashot-live.test.ts > live furnishing discovers real products even when the editor has registered none
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ test/ashot-live.test.ts:7:1
+      5|
+      6| const empty = () => {const {scene}=createEditorDemoInput();scene.items…
+      7| test('live furnishing discovers real products even when the editor has…
+       | ^
+      8|   expect(fast).toHaveProperty('discoverFastCatalog');
+      9|   const calls:string[]=[];
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  test/taste-contradictions.test.ts > one surviving fully checked composition is returned, with no-alternative disclosure
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ test/taste-contradictions.test.ts:25:1
+     23|  expect(scoreComposition({...scene,items:[{...chair,sku:'unknown'}]},'…
+     24| });
+     25| test('one surviving fully checked composition is returned, with no-alt…
+       | ^
+     26|  const original=layout.checkLayout;let survivors=0;
+     27|  vi.spyOn(layout,'checkLayout').mockImplementation((...args)=>{
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  2 failed | 21 passed (23)
+   Start at  00:20:16
+   Duration  10.77s (tests 94%, transform 4%, import 2%)
+
+undefined
+/Users/davitstepanyan/Documents/varpet/packages/designer:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run test/ashot-live.test.ts test/taste-contradictions.test.ts

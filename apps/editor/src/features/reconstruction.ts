@@ -1,6 +1,7 @@
 import type { EntityMetadata, EvidenceSource, PropertyAssumption, Room, SceneDocument, Vec2, Wall } from '../contracts';
 import { migrateScene } from '../core/renovation';
 import { validateScene } from '../core/validation';
+import { decorateGeneratedCeilings } from '../core/generated-ceilings';
 
 export interface MeasuredRoom {
   name: string; x: number; z: number; width: number; depth: number;
@@ -143,7 +144,7 @@ export function measuredShell(name: string, inputs: MeasuredRoom[], thickness: n
     scene.walls.push(wall); project.metadata[wall.id] = { name: `Wall ${scene.walls.length}`, structuralRole: 'unknown', boundary: related.length > 1 ? 'interior' : 'exterior', phase: 'existing', elevation: base };
     project.assumptions.push(assumption(wall.id, 'structuralRole', 'unknown', source.id, false, 'Confirm structural function from appropriate evidence.'), assumption(wall.id, 'thickness', String(thickness), source.id, false, 'Measure wall thickness; the common value is provisional.'));
   }
-  return scene;
+  return decorateGeneratedCeilings(scene);
 }
 
 export function tracedShell(input: TraceInput): SceneDocument {
@@ -186,7 +187,7 @@ export function tracedShell(input: TraceInput): SceneDocument {
     project.metadata[wall.id] = { structuralRole: 'unknown', boundary: onBoundary(midpoint) ? 'exterior' : 'interior', phase: 'existing' };
     project.assumptions.push(assumption(wall.id, 'structuralRole', 'unknown', input.source.id, false, 'Confirm structural function; plan appearance alone is not verification.'), assumption(wall.id, 'thickness', String(input.thickness), input.source.id, false, 'Confirm wall thickness; tracing uses the entered common value.'));
   }
-  return scene;
+  return decorateGeneratedCeilings(scene);
 }
 
 export interface ReconstructionDifference { id: string; kind: 'room' | 'wall'; label: string; action: 'add' | 'update'; before: string; after: string }
@@ -228,8 +229,15 @@ export function mergeReconstruction(current: SceneDocument, incoming: SceneDocum
   if (incoming.project) {
     const sources = incoming.project.sources;
     for (const source of sources) if (!project.sources.some(s => s.id === source.id)) project.sources.push(structuredClone(source));
-    for (const [id, metadata] of Object.entries(incoming.project.metadata)) if (allowedIds.has(id) && !project.metadata[id]) project.metadata[id] = structuredClone(metadata as EntityMetadata);
-    for (const entry of incoming.project.assumptions) if (allowedIds.has(entry.entityId) && !project.assumptions.some(a => a.id === entry.id)) project.assumptions.push(structuredClone(entry));
+    const copiedMetadata = new Set<string>();
+    for (const [id, metadata] of Object.entries(incoming.project.metadata)) if (allowedIds.has(id) && !project.metadata[id]) {
+      project.metadata[id] = structuredClone(metadata as EntityMetadata); copiedMetadata.add(id);
+    }
+    for (const entry of incoming.project.assumptions) if (allowedIds.has(entry.entityId) && !project.assumptions.some(a => a.id === entry.id)) {
+      // Geometry corrections retain human ceiling choices; do not import a claim about a skipped design.
+      if (entry.property === 'ceilingDesign' && !copiedMetadata.has(entry.entityId)) continue;
+      project.assumptions.push(structuredClone(entry));
+    }
   }
   return candidate;
 }

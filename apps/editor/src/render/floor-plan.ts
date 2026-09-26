@@ -9,6 +9,7 @@ import type { SceneNormalizer } from '../core/store';
 import { defaultPlanLayers, planConnectionPoints, planRouteBands, routeEndpointLabel, routeLength, serviceColors, serviceLabels, visiblePlanRoutes, type PlanLayers } from '../core/plan-layers';
 import '../ui/floor-plan.css';
 import { drawPlanSelectionMeasurements, updatePlanMeasurementDetails } from './plan-measurements';
+import { HandPanControls } from './hand-pan';
 
 export interface FloorPlan {
   setScene(scene: SceneDocument, catalog?: CatalogAsset[]): void;
@@ -77,7 +78,7 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
   root.hidden = true;
   root.setAttribute('role', 'region');
   root.setAttribute('aria-label', 'Apartment floor plan');
-  const drawing = svg('svg', { class: 'fp-drawing', tabindex: '0', 'aria-label': 'Floor plan. Drag items to move. Click the plan, then use W A S D or arrow keys to pan. Drag empty floor or Alt-drag to pan. Scroll to zoom. Escape cancels a move. Select a room to show dimensions.' });
+  const drawing = svg('svg', { class: 'fp-drawing', tabindex: '0', 'aria-label': 'Floor plan. Drag items to move. Hold Space and drag to pan. Click the plan, then use W A S D or arrow keys to pan. Drag empty floor or Alt-drag to pan. Scroll to zoom. Escape cancels a move. Select a room to show dimensions.' });
   const header = html('div', 'fp-heading');
   const eyebrow = html('div', 'fp-eyebrow', 'APARTMENT PLAN');
   const headline = html('h2', 'fp-title', 'Floor plan');
@@ -148,7 +149,7 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
   });
   multiButton.setAttribute('aria-pressed', 'false');
   controls.append(multiButton, snapButton, zoomOut, scaleLabel, zoomIn, fitButton);
-  const hint = html('div', 'fp-hint', 'Shift-click to select several · Drag selection to move · WASD / arrows to pan · Esc to cancel');
+  const hint = html('div', 'fp-hint', 'Shift-click to select several · Drag selection to move · Space + drag to pan · Esc to cancel');
   const status = html('div', 'fp-drag-status');
   status.setAttribute('role', 'status'); status.hidden = true;
   const empty = html('div', 'fp-empty');
@@ -181,6 +182,15 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
     operation: Operation | null; operations?: Operation[]; movingIds?: string[]; error?: string;
   } | null = null;
   let world = svg('g');
+  const handPan = new HandPanControls(drawing, {
+    enabled: () => visible && !disposed && !!documentScene && !pointer,
+    start() { drawing.classList.add('is-panning'); callbacks?.onInteraction(true); },
+    move(dx, dy) {
+      viewAdjusted = true; panX += dx; panY += dy;
+      world.setAttribute('transform', `translate(${panX} ${panY}) scale(${scale})`);
+    },
+    stop() { drawing.classList.remove('is-panning'); callbacks?.onInteraction(false); },
+  });
   function meta(id: string): EntityMetadata { return scene?.project?.metadata[id] ?? {}; }
   function phase(id: string): EntityMetadata['phase'] {
     const component = scene?.project?.components.find(item => item.id === id);
@@ -657,8 +667,10 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
     status.textContent = result.error ? `Cannot move: ${result.error}` : `${pointer.move.label} · Release to apply · Esc to cancel`;
   }
   function cancelInteraction(): boolean {
+    const wasPanning = handPan.active;
+    handPan.cancel();
     const previous = pointer;
-    if (!previous) return false;
+    if (!previous) return wasPanning;
     pointer = null;
     if (drawing.hasPointerCapture(previous.id)) drawing.releasePointerCapture(previous.id);
     drawing.classList.remove('is-panning', 'is-moving', 'is-invalid'); status.hidden = true;
@@ -737,7 +749,7 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
     } else return;
     event.preventDefault(); event.stopPropagation();
   });
-  const unregisterDesignerSnapshot = registerDesignerRenderer(drawing, render, () => pointer ? null : documentScene);
+  const unregisterDesignerSnapshot = registerDesignerRenderer(drawing, render, () => pointer || handPan.active ? null : documentScene);
   return {
     setScene(nextScene, nextCatalog = catalog) {
       cancelInteraction();
@@ -758,6 +770,6 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
       else { cancelInteraction(); if (frame) { cancelAnimationFrame(frame); frame = 0; } }
     },
     focus,
-    dispose() { unregisterDesignerSnapshot(); cancelInteraction(); disposed = true; window.removeEventListener('blur', onBlur); resizeObserver.disconnect(); if (frame) cancelAnimationFrame(frame); root.remove(); },
+    dispose() { unregisterDesignerSnapshot(); cancelInteraction(); handPan.dispose(); disposed = true; window.removeEventListener('blur', onBlur); resizeObserver.disconnect(); if (frame) cancelAnimationFrame(frame); root.remove(); },
   };
 }

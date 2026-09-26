@@ -1,0 +1,486 @@
+Scope: 6 of 7 workspace projects
+
+> @varpet/buyer@0.0.0 test /Users/davitstepanyan/Documents/varpet/apps/buyer
+> node --test tests/*.test.mjs
+
+✔ owned pieces cost nothing, the developer's furniture is still to buy, custom pieces are estimates (1.492417ms)
+✔ a developer piece the designer picked counts as a shop purchase unless it is owned (0.13375ms)
+✔ sizes read width, depth, height in centimetres (0.065125ms)
+✔ progress and streamed text: deltas replace then append, progress waits while text streams (1.224333ms)
+✔ tool lines move pieces from seen to searching, found, reserved; scripted is sticky (0.543708ms)
+✔ propose, build, proposal, question, message, decline and error lines set their phases (0.295208ms)
+✔ readLines skips blank, malformed, oversized and unknown lines and handles split chunks (16.8865ms)
+✔ player emits every line in order, honours speed changes and skipToEnd (13.120667ms)
+✔ fixture: sorted, scripted, real catalog assets, and plays through the reducer to done (1.965875ms)
+✔ fixture: the proposal command executes on the Avani demo flat with the slot assets (8.704375ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 357.801583
+
+> @varpet/showcase@0.0.0 test /Users/davitstepanyan/Documents/varpet/apps/showcase
+> node --test tests/*.test.mjs
+
+✔ Avani is an explicit example with unquoted currency, not a Komitas or model result (1.402708ms)
+✔ prices require explicit AMD and count only added pieces; factual room counts do not include inferred service rooms (3.795792ms)
+✔ missing catalog does not pretend a furnished state is ready (0.707042ms)
+✔ partial deliveries choose the available view and never advertise an absent example (0.285125ms)
+✔ recorded request outcomes distinguish applied proposals, questions and declines (0.409666ms)
+✔ facts-only real collection retains an explicitly labelled interactive example (0.144708ms)
+✔ Avani never advertises a developer plan; real flats preserve explicit availability only (0.129ms)
+✔ developer drawings use their own catalog and disclose omitted pieces without claiming designer purchases (3.246ms)
+✔ missing drawing audit cannot imply a complete developer layout (1.649625ms)
+✔ standalone model transport resolves editor optimization paths to the exact frozen public model (0.571375ms)
+✔ an explicit model mirror preserves the exact SKU and leaves unrelated resources alone (0.253958ms)
+✔ missing Komitas inputs returns no invented flats (3.21ms)
+✔ loads real shell, ground truth and furnished result as separate states (5.295625ms)
+✔ local plans allow only flat IDs and supported image extensions (1.263166ms)
+✔ uses the latest completed BENCH run with its exact final catalog, ignoring in-progress runs (14.656334ms)
+✔ plan availability is explicit and only true for a supplied local original (3.173375ms)
+✔ loads drawn-only residences with their frozen catalog and a compact omissions audit (1.87275ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 243.301667
+
+> @varpet/designer@0.0.0 test /Users/davitstepanyan/Documents/varpet/packages/designer
+> vitest run && python3 -m unittest discover -s ../../harness -p 'designer*_test.py' && python3 -m unittest discover -s eval -p 'test_*.py'
+
+
+ RUN  v5.0.2 /Users/davitstepanyan/Documents/varpet/packages/designer
+
+
+ Test Files  123 passed (123)
+      Tests  551 passed (551)
+   Start at  23:38:28
+   Duration  61.60s (tests 82%, import 15%, transform 3%, worker 1%)
+
+    Isolate  123 workers spawned · ~101ms startup each (spawn + environment, per file)
+             at least ~12.38s faster with isolate: false — reuses workers across files instead of one per file
+
+..{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"fast_path": true}, "conversationId": "1c0876520598425e8036fa77a80db59d", "outcome": "decline", "seconds": 0.0, "usage": {"inputTokens": 0, "outputTokens": 0, "cachedInputTokens": 0, "totalTokens": 0}, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"fast_path": false}, "conversationId": "14e9b1a2c5e7421b875cf49d13c6e0ae", "outcome": "message", "seconds": 0.006, "usage": null, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"fast_path": true}, "conversationId": "d51d859d91764ebd914597a889b7732d", "outcome": "proposal", "seconds": 0.005, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"fast_path": true}, "conversationId": "d51d859d91764ebd914597a889b7732d", "outcome": "message", "seconds": 0.001, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"fast_path": true}, "conversationId": "d51d859d91764ebd914597a889b7732d", "outcome": "message", "seconds": 0.001, "usage": null, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "4a80c7492daf4fbf9a0c446c801db83c", "outcome": "message", "seconds": 0.057, "usage": null, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "1f5c0c96929348b287afbe6c1df3428e", "outcome": "proposal", "seconds": 0.057, "usage": null, "tool_calls": 0}
+........................{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "6ef0563161b3492b802240f4b7dfb81f", "outcome": "message", "seconds": 0.016, "usage": null, "tool_calls": 0}
+..{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "9717b6ada2bb497bbdde38f7979f1ac1", "outcome": "decline", "seconds": 0.009, "usage": null, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "3fbdf376967c4c4a95b7ccc4437f2187", "outcome": "message", "seconds": 0.014, "usage": null, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "679438c247014173b4f24f5df982f5c7", "outcome": "message", "seconds": 0.015, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "de3052d2b4f7408f925cfff086f1a902", "outcome": "error", "seconds": 0.011, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "194f1db9a33e4992986af35c46eb7edc", "outcome": "error", "seconds": 0.011, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "21b5e0b8a9604735976f09687ba03069", "outcome": "error", "seconds": 0.03, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "4a30aaaa1e0145c491d10bce14d831c0", "outcome": "error", "seconds": 0.011, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "3cd884fa783041fb826924712e526c06", "outcome": "error", "seconds": 0.014, "usage": null, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "10074e6b66a84c4ab9dac22319aba3a9", "outcome": "message", "seconds": 0.014, "usage": null, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "3ce8f5f09727471abe98f35e6368751f", "outcome": "aborted", "seconds": 0.002, "usage": null, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"fast_path": true}, "conversationId": "815aa4aba8d34db5863524567c7e8452", "outcome": "message", "seconds": 0.01, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"fast_path": true}, "conversationId": "815aa4aba8d34db5863524567c7e8452", "outcome": "message", "seconds": 0.001, "usage": null, "tool_calls": 0}
+.{"kind": "tool_mode_audit", "tool_mode": "direct", "original_tool_mode": "code_mode_only", "sha256": "729ee0c2791ec69bd0967949495644629e7d7e799c9fb779589173f4bbea53a6"}
+{"kind": "model_catalog_audit", "sha256": "11d358d6789111006d97d5df7a98cec4831d079d5ed5eebba13c0656364ab859", "client_version": "0.154.0", "fetched_at": "2026-09-26T19:39:31.675824Z"}
+...................{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "0f4c6a8e9c874f7393841b8c3e4d9cce", "outcome": "message", "seconds": 0.014, "usage": null, "tool_calls": 1}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "00a9bb4b1c9947ee8fc427e65b232cfe", "outcome": "message", "seconds": 0.012, "usage": null, "tool_calls": 1}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "09cb16c5cccf41b589f76475e05f8982", "outcome": "message", "seconds": 0.016, "usage": null, "tool_calls": 1}
+..{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "d94a4f2b7f95442cb87687003db4156f", "outcome": "message", "seconds": 0.019, "usage": null, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "55169c90a6c34f1d851a4fd216b04430", "outcome": "message", "seconds": 0.018, "usage": null, "tool_calls": 1}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "767b34aef3f44360a38632d40b4d474b", "outcome": "message", "seconds": 0.072, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "09fac1f33545402fbc24e03bc7dccd75", "outcome": "message", "seconds": 0.066, "usage": null, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "7dc65cae989546b8bed711fff0b4ba60", "outcome": "message", "seconds": 0.012, "usage": null, "tool_calls": 0}
+.....{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"fast_path": true}, "conversationId": "dd15162b26e4458dbe2b5e1f8b005766", "outcome": "decline", "seconds": 0.0, "usage": {"inputTokens": 0, "outputTokens": 0, "cachedInputTokens": 0, "totalTokens": 0}, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"fast_path": false}, "conversationId": "8997c9c595f142bdba7da85330375313", "outcome": "error", "seconds": 0.034, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"fast_path": true}, "conversationId": "797a84a109b54c05ba61c674f04d74cb", "outcome": "error", "seconds": 0.015, "usage": null, "tool_calls": 0}
+.......{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "8a8eb6b24bc649a78a617cc1e5348c81", "outcome": "aborted", "seconds": 0.014, "usage": null, "tool_calls": 0}
+..{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "1558dbd44eaf4b6a95fbfb4c3cd644e9", "outcome": "message", "seconds": 0.016, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "1558dbd44eaf4b6a95fbfb4c3cd644e9", "outcome": "message", "seconds": 0.211, "usage": null, "tool_calls": 0}
+...............................{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "e1d0e6b541a845dda6c2049a9475e1f2", "outcome": "proposal", "seconds": 0.002, "usage": null, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "df74bc20f389426092b06ce571214d46", "outcome": "error", "seconds": 0.003, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "8fdea8241a124e589937ea905f860230", "outcome": "error", "seconds": 0.002, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "f1d1298d614b46d88d6425eeb3091a27", "outcome": "error", "seconds": 0.002, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "6e539f69ec7f46f19e7976c2efcc1906", "outcome": "error", "seconds": 0.002, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "14132ed6827b4deb9b11fdfede241af5", "outcome": "error", "seconds": 0.002, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "5ed4c02f21624d818c8ba734dd60ccca", "outcome": "error", "seconds": 0.002, "usage": null, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "e82858c2b7044711b1c875bad6ceea58", "outcome": "error", "seconds": 0.002, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "4c409f30f2444819b5b58c5e1b8e207f", "outcome": "error", "seconds": 0.002, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "3861b2dc201549029d0a267cfc131453", "outcome": "error", "seconds": 0.002, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "a2adf6f955ff421199e1c38ce6c64d56", "outcome": "error", "seconds": 0.002, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "963168699f8d4bba813c3a98f258d0c1", "outcome": "error", "seconds": 0.002, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "6b13a4030765424b89cb9c4a415fe620", "outcome": "error", "seconds": 0.002, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "e3db4f2822a341d18368f4d0d12d1667", "outcome": "error", "seconds": 0.002, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "d5d958c629c24756b8436754f3c3e74e", "outcome": "error", "seconds": 0.002, "usage": null, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "8fa46b20e08f440288193d1318ead124", "outcome": "proposal", "seconds": 0.003, "usage": null, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "8e8da1e6cb9943068d23141db63e3f23", "outcome": "proposal", "seconds": 0.003, "usage": null, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "a749ab203e494cdda3b0379572eb1e43", "outcome": "error", "seconds": 0.002, "usage": null, "tool_calls": 0}
+...........{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "cebdc7e1d1ef4c249a5cf558ae4b8439", "outcome": "decline", "seconds": 0.059, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "cebdc7e1d1ef4c249a5cf558ae4b8439", "outcome": "decline", "seconds": 0.056, "usage": {"inputTokens": 0, "outputTokens": 0, "totalTokens": 0}, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "cebdc7e1d1ef4c249a5cf558ae4b8439", "outcome": "proposal", "seconds": 0.347, "usage": {"inputTokens": 0, "outputTokens": 0, "totalTokens": 0}, "tool_calls": 0}
+....{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "6d4672b672424145a2825dd18089d3b3", "outcome": "proposal", "seconds": 0.005, "usage": null, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "e3f02ba8d0f04bfaa4e8cb100bee75c2", "outcome": "message", "seconds": 0.004, "usage": null, "tool_calls": 0}
+...{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "24c5a1e8fb814846b39e5e93ceb3cff4", "outcome": "error", "seconds": 0.057, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "969d496eae314265bc82d313d15dd752", "outcome": "error", "seconds": 0.364, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "a6545955b0f24d38b7a6c42fa5cb6773", "outcome": "error", "seconds": 0.354, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "5170f4b20cff4f13b88be4113e709d8e", "outcome": "message", "seconds": 0.073, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "5170f4b20cff4f13b88be4113e709d8e", "outcome": "message", "seconds": 0.062, "usage": {"inputTokens": 0, "outputTokens": 0, "totalTokens": 0}, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "3b182de7d157411fa3583ff4a703ec86", "outcome": "error", "seconds": 0.346, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "b2015adf6c71497b96b4b64c9c768b44", "outcome": "aborted", "seconds": 0.216, "usage": null, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "cf488321fdb44b09980f1cc180f7a257", "outcome": "message", "seconds": 0.34, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "8453fd5c067947d3989852d584ed6fad", "outcome": "message", "seconds": 0.374, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "705b708167eb4cd99bda926e01da9306", "outcome": "decline", "seconds": 0.076, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "fb9467edc1a043f1993522a9b0e08aac", "outcome": "decline", "seconds": 0.081, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+...{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "b71d9495d98946ee89378351cb0c4731", "outcome": "error", "seconds": 0.314, "usage": null, "tool_calls": 0}
+..{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "701bd649977a40e98297e5b8ec33101f", "outcome": "proposal", "seconds": 0.383, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+..{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "6d335014033d497daec792f41e77b952", "outcome": "proposal", "seconds": 0.425, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "ac14fba73e1f4ab6a16ff29fdbebcb69", "outcome": "question", "seconds": 0.066, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "1da8e93ee2394242a4ec02f30abf0cf0", "outcome": "proposal", "seconds": 0.352, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "1da8e93ee2394242a4ec02f30abf0cf0", "outcome": "decline", "seconds": 0.058, "usage": {"inputTokens": 0, "outputTokens": 0, "totalTokens": 0}, "tool_calls": 0}
+.{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "2269049a865a457ebca7e995a7f81ebf", "outcome": "error", "seconds": 0.07, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "9fcf0087c4b148bda8ac39d2a1c6d42f", "outcome": "error", "seconds": 0.2, "usage": null, "tool_calls": 0}
+{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "37f9f20902cf48d596c07bb1381b06a2", "outcome": "error", "seconds": 0.078, "usage": null, "tool_calls": 0}
+...............................................
+----------------------------------------------------------------------
+Ran 197 tests in 27.651s
+
+OK
+..........................................EVAL_USAGE_LIMIT
+..{"flat": "sample", "exit_code": 9}
+.{"flat": "sample", "exit_code": 3}
+..''
+.usage limit reached
+.usage limit reached
+................................
+----------------------------------------------------------------------
+Ran 81 tests in 2.716s
+
+OK
+
+> @varpet/engine@0.0.0 test /Users/davitstepanyan/Documents/varpet/packages/engine
+> vitest run --passWithNoTests
+
+
+ RUN  v5.0.2 /Users/davitstepanyan/Documents/varpet/packages/engine
+
+No test files found, exiting with code 0
+
+include: **/*.{test,spec}.?(c|m)[jt]s?(x)
+exclude:  **/node_modules/**, **/.git/**
+
+
+> @varpet/editor@0.0.0 test /Users/davitstepanyan/Documents/varpet/apps/editor
+> node scripts/check.mjs && node scripts/check-renovation.mjs && node scripts/check-openings.mjs && node scripts/check-finishes.mjs && node scripts/check-continuous-wall-finishes.mjs && node scripts/check-continuous-finish-render.mjs && node scripts/check-finish-texture-presets.mjs && node scripts/check-finish-textures.mjs && node scripts/check-placement.mjs && node scripts/check-furniture-placement.mjs && node scripts/check-walls.mjs && node scripts/check-wall-controller.mjs && node scripts/check-grouping.mjs && node scripts/check-plan-move.mjs && node scripts/check-inspector.mjs && node scripts/check-inspector-openings.mjs && node scripts/check-structural-wall-confirmation.mjs && node scripts/check-motion.mjs && node scripts/check-transform-motion.mjs && node scripts/check-projection-motion.mjs && node scripts/check-cutaway.mjs && node scripts/check-balcony-cutaway.mjs && node scripts/check-wall-junctions.mjs && node scripts/check-apartment-junctions.mjs && node scripts/check-plan-layers.mjs && node scripts/check-plan-measurements.mjs && node scripts/check-selection-camera.mjs && node scripts/check-room-camera.mjs && node scripts/check-walkthrough.mjs && node scripts/check-structural-surfaces.mjs && node scripts/check-heights.mjs && node scripts/check-interior-lighting.mjs && node scripts/check-skybox.mjs && node scripts/check-sunlight.mjs && node scripts/check-sun-occluders.mjs && node scripts/check-walkthrough-camera.mjs && node scripts/check-keyboard-navigation.mjs && node scripts/check-database-catalog.mjs && node scripts/check-assets.mjs && node --test server/*.test.mjs && node scripts/check-walkthrough-view.mjs && node scripts/check-architect.mjs && node scripts/check-reconstruction-proposal.mjs && node scripts/check-ceiling-design.mjs && node scripts/check-ceiling-render.mjs && node scripts/check-ceiling-visibility.mjs && node scripts/check-ceiling-seams.mjs && node scripts/check-catalog-http.mjs && node --test tests/*.test.mjs && node scripts/check-shadow-cache.mjs && node scripts/check-sky-lighting.mjs && node scripts/check-adaptive-occlusion.mjs && node scripts/check-ceiling-shadow-budget.mjs && node scripts/check-architect-project.mjs && node scripts/check-window-dimensions.mjs && node scripts/check-opening-transform.mjs && node scripts/check-opening-preview.mjs && node scripts/check-generated-ceilings.mjs && node scripts/check-ceiling-controls.mjs
+
+Domain checks passed (265 assertions).
+Renovation checks passed (102 assertions).
+Reconstruction and handoff checks passed (29 assertions).
+Opening clearance: 80 assertions passed.
+Finish regressions passed: 157 assertions across 5 scenarios.
+Continuous wall finish regressions passed: 76 assertions across 21 scenarios.
+Continuous finish rendering checks passed (29 assertions).
+Finish texture preset checks passed (33 assertions).
+Finish texture checks passed (24 assertions).
+Door barrier checks passed (5922 assertions).
+Placement conflict checks passed (358 assertions).
+Furniture placement checks passed (12 assertions).
+Wall movement checks passed (87 assertions).
+Wall controller checks passed (423 assertions; 6 wall directions in Top and 3D). Preview rendering requires browser verification.
+PASS grouping preserves placement, migrates explicitly, and saves membership
+PASS moving any member translates the whole group once and undo restores all
+PASS rotation orbits members about the selected piece without changing scale or spacing
+PASS invalid, stale, unapproved and locked-member transforms are atomic
+PASS invalid membership is rejected and regrouping requires complete existing groups
+PASS ungroup preserves transforms and subsequent moves affect one piece
+PASS delete dissolves singleton groups and undo restores membership
+PASS baseline and options retain independent group membership
+PASS imports reject invalid group IDs, singleton groups and version 1 membership
+PASS 9 grouping checks
+Plan movement checks passed (283 assertions).
+Inspector regressions passed: 102 assertions across 10 scenarios.
+Inspector opening selection checks passed (12 assertions).
+Structural wall confirmation checks passed (266 assertions).
+Editor motion checks passed (52 assertions).
+Transform motion checks passed (11 assertions).
+Projection motion checks passed (16 assertions).
+Cutaway checks passed (520 assertions).
+Balcony cutaway checks passed (442 assertions).
+Wall junction checks passed (64 assertions).
+Apartment wall junction checks passed (35 assertions).
+Plan layers checks passed (51 assertions).
+Plan selection measurements: 92 assertions passed.
+Selection camera checks passed (78 assertions).
+Room camera checks passed (1012 assertions).
+Walkthrough geometry: 36 assertions passed.
+Structural surface checks passed (155 assertions).
+Height checks passed: legacy ceilings meet the wall tops.
+Height configuration checks passed: 35 assertions.
+Interior lighting checks passed (25 assertions).
+Skybox checks passed (94 assertions).
+Sunlight checks passed (222 assertions).
+Sun occluder checks passed (25 assertions).
+Walkthrough camera checks passed (98 assertions).
+Keyboard navigation checks passed (313 assertions).
+Database catalog store checks passed
+Database catalog mapping checks passed
+Database startup and saved-reference checks passed
+Database import, browsing, and currency checks passed
+assets: 354 checks passed
+(node:55222) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ registration authenticates with a private cookie; logout revokes it and login verifies the password (254.319417ms)
+✔ apartments preserve the complete project and catalog across a server restart (96.893291ms)
+✔ one user cannot read or update another user’s saved apartment (184.572875ms)
+✔ concurrent saves accept one version and reject a stale overwrite with the current apartment (87.857333ms)
+✔ credential validation rejects empty names, malformed email, weak passwords and duplicate normalized accounts (76.44875ms)
+✔ mutations reject cross-origin and missing-origin requests, invalid JSON and wrong content types (8.693875ms)
+✔ body limits and scene validation reject invalid saves without damaging a saved apartment (84.885958ms)
+✔ rate limits bound repeated authentication attempts (159.495208ms)
+✔ the database contains salted password hashes and hashed session tokens, and expired sessions cannot authenticate (89.555917ms)
+✔ new accounts require passwords with at least twelve characters (6.6305ms)
+✔ saved apartments preserve database catalog product wrappers and attribution (79.656791ms)
+✔ unexpected database failures emit safe diagnostics without exposing private request data (78.986917ms)
+✔ apartment sharing references persist privately across restart without entering project data or lists (85.867875ms)
+✔ only an authenticated apartment owner can change its sharing reference from the same origin (150.033542ms)
+✔ competing apartment sharing changes use the same version guard as scene saves (76.046917ms)
+✔ scene saves preserve sharing only for the same scene and apartment copies start without it (74.783291ms)
+✔ invalid sharing references and versions leave the saved apartment unchanged (74.606ms)
+✔ a failed sharing association rolls back its apartment version change (72.277917ms)
+✔ search uses the real SDK, honors session/SSE, and merges raw dimensions, model and provenance (42.566042ms)
+✔ saved item hydration deduplicates ids and reports missing records without fake products (9.967083ms)
+✔ vocabulary is returned directly from the database tool (4.621291ms)
+✔ remote errors and invalid detail identities return sanitized unavailable responses (13.597917ms)
+✔ the request deadline aborts stalled upstream requests (66.693458ms)
+✔ invalid or mutating requests never call the catalog and unrelated routes pass through (5.580209ms)
+✔ light model files are relayed from the catalog service with a one-year cache (3.501458ms)
+✔ a model without a light copy is an uncached 404 so the browser falls back to the original (2.624375ms)
+✔ model routes accept only GET of a plain .glb name and never reach the catalog otherwise (2.382333ms)
+✔ search pages forward an offset and return where the next page starts (6.953125ms)
+✔ long extra model names up to 120 characters are relayed (1.137458ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 29
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1879.655416
+Walkthrough view checks passed (41 assertions).
+Built pieces unavailable, using the catalog without them TypeError: offline
+    at file:///private/var/folders/2s/g_x43drx6vsdf2rpxxbby8hw0000gn/T/varpet-architect-check-ashls7/check.mjs:3083:8
+    at builtPieces (file:///private/var/folders/2s/g_x43drx6vsdf2rpxxbby8hw0000gn/T/varpet-architect-check-ashls7/check.mjs:2423:29)
+    at withBuiltPieces (file:///private/var/folders/2s/g_x43drx6vsdf2rpxxbby8hw0000gn/T/varpet-architect-check-ashls7/check.mjs:2479:28)
+    at file:///private/var/folders/2s/g_x43drx6vsdf2rpxxbby8hw0000gn/T/varpet-architect-check-ashls7/check.mjs:3082:14
+architect adapter check passed
+Reconstruction proposal checks passed (41 assertions).
+Ceiling design contract checks passed: 46 assertions.
+Ceiling design checks passed: 406 assertions.
+Ceiling rendering checks passed (150 assertions).
+Ceiling visibility checks passed (141 assertions).
+Ceiling seam checks passed (177 assertions).
+catalog HTTP checks passed
+✔ every selectable plan is valid, empty, and copied independently for each apartment (34.458625ms)
+✔ account save preserves full renovation evidence and copies exact referenced catalog metadata (51.532459ms)
+✔ reopen rejects malformed projects or missing furniture instead of silently dropping content (0.916958ms)
+✔ reopening matching shared progress restores its version and marks revision zero saved (24.032125ms)
+✔ different shared scenes or catalog snapshots stay dirty without replacing account progress (14.968583ms)
+✔ a restored account share rejects saving from a copied apartment with the same scene ID (6.215375ms)
+✔ account scene exports and copied apartment payloads exclude the durable sharing capability (2.340166ms)
+✔ sharing read failures propagate while the saved account snapshot remains unchanged (7.445ms)
+✔ a sharing record for another scene cannot restore an account sharing session (3.413833ms)
+✔ view-only sharing access cannot become the account’s editing session (1.806709ms)
+✔ absent or locally stale sharing references do not load a shared apartment (2.263084ms)
+✔ simultaneous link choices attach the same share once at the account record version (3.093458ms)
+✔ account share attachment refuses a different apartment owner before writing (2.845916ms)
+✔ permission choices join link creation while the account attachment is still pending (4.541375ms)
+✔ the complete sharing creation pipeline keeps copied account apartments independent (8.842917ms)
+✔ architect fixtures survive HTTP, reconstruction preview, Apply and Undo (54.533084ms)
+✔ architect rejects malformed components and broken room references before offering a proposal (3.014875ms)
+✔ legacy architect response without components remains valid (0.284375ms)
+✔ paper is the common tone and ink the far side of it (4.167958ms)
+✔ a light room fill is faint shading, a wall is full ink (1.509958ms)
+✔ dark ink on paper: only the strokes are ink, drawn along the line (1.627917ms)
+✔ light ink on a blueprint: only the strokes are ink, drawn along the line (0.698917ms)
+✔ an empty sheet has no ink and no pen order (0.134625ms)
+✔ uploaded plan and photos retain exact original bytes through editor save and reopen (11.467292ms)
+✔ existing evidence and reviewed project metadata survive upload attachment independently (2.797583ms)
+✔ reattaching the same original does not duplicate existing plan evidence (0.655875ms)
+✔ unsupported, empty and oversized uploads fail before reading their bytes (35.706042ms)
+✔ exact upload byte limits fit the existing encoded evidence and parser limits (843.612208ms)
+✔ photo-count and combined existing evidence limits reject without changing service state (48.480083ms)
+✔ long uploaded filenames become valid evidence names without changing original bytes (0.904375ms)
+✔ transport names cannot overwrite the blueprint when originals collide after server sanitizing and truncation (0.538583ms)
+✔ built assets become registrable products with explicit unpriced, unverified provenance (59.166458ms)
+✔ saved older-run references hydrate alongside database furniture including option references (3.551083ms)
+✔ missing service or missing built pieces reject hydration without falling back to database records (0.896208ms)
+✔ malformed or shop-priced built payloads cannot enter the product catalog (5.388083ms)
+✔ designer can propose remote ABO products while existing product identity and provenance stay authoritative (4.621375ms)
+✔ remote discovery never reintroduces demo or procedural furniture (0.395041ms)
+✔ browsing the same designer-added SKU preserves its registered appearance and updates provenance (2.308375ms)
+✔ discovery fits the catalog bound without dropping current scene or history references (16.512875ms)
+✔ proposal survives a catalog search, requires approval, and undo restores the empty apartment (1.731083ms)
+✔ same-revision conversations retain only added products and immutable snapshots (1.044917ms)
+✔ reused proposal IDs cannot substitute a different command or bypass revisions (0.461125ms)
+✔ message, suggestions and streamed text cross the HTTP boundary (19.607417ms)
+✔ message suggestions reject malformed values and enforce the four-chip boundary (63.73475ms)
+✔ follow-up answers retain proposal context, suggestions, notes and approval state (2.16375ms)
+✔ streamed draft is replaced once by the final answer and ignored after cancellation (0.9065ms)
+✔ retry resends the failed request in the same thread without applying anything (0.350042ms)
+✔ light markdown renders emphasis and lists while all HTML and links stay inert (1.630916ms)
+✔ recorded demo answers a design question without proposing an edit (4.072042ms)
+✔ cancel clears streamed text immediately and rejects late chunks (0.480917ms)
+✔ opt-in adapter streams tool/build events before final answer and sends the flag (20.107959ms)
+✔ legacy request stays opt-out; malformed or unsolicited events cannot reach callbacks (31.892667ms)
+✔ events after a terminal reply remain a protocol error (11.789333ms)
+✔ chat opts in, shows slot state in the existing progress line and ignores late events (34.1385ms)
+✔ custom assets validate together with the proposal before delivery; source URL uses the service origin (118.460709ms)
+✔ chat HTTP wrapper opts in and delivers events before the final network chunk (5.817125ms)
+✔ opt-in records are validated even without an event callback (2.767459ms)
+✔ published recorded event sample conforms to the adapter contract (9.2225ms)
+✔ optional notes travel outside the unchanged AgentProposal and never apply the scene (78.497042ms)
+✔ legacy proposals without notes remain valid and do not emit a notes callback (22.2695ms)
+✔ notes accept the 1600-character boundary and reject malformed, blank or oversized values (16.566916ms)
+✔ notes cannot escape proposal validation or appear on another terminal response (4.023667ms)
+✔ askDesigner returns envelope notes without changing the proposal (19.902ms)
+✔ proposal notes persist as plain text and do not change preview, apply or stale-history rules (8.784708ms)
+✔ invalid restored notes cannot enter conversation state (0.5525ms)
+✔ old saved messages without notes remain readable (0.170625ms)
+✔ non-history panel callers retain notes without changing their review callback (0.294542ms)
+✔ reload restores messages, choices and service conversationId; new conversation retains selectable history (3.463125ms)
+✔ scene changes abort work, isolate history and ignore late replies (0.286542ms)
+✔ stored pending proposals become stale even when a reloaded store has the same revision (0.757416ms)
+✔ preview, apply and dismiss are explicit actions; terminal state persists and cannot apply twice (0.466584ms)
+✔ failed approval stays pending and reports the editor error; revision changes mark it stale (0.293416ms)
+✔ storage failures and malformed history do not break requests or scene-local session history (1.516833ms)
+✔ legacy mock mode does not load or save conversation history (0.2915ms)
+✔ preview applies through a scratch command store, checks staleness and leaves the original untouched (44.286459ms)
+✔ a new conversation confirms storage availability before reporting its persistence status (0.266583ms)
+✔ successfully stored long history remains readable on reload (2.974458ms)
+✔ recorded HTTP proposal requires approval, applies through the editor store, and undo restores every object (218.618ms)
+✔ recorded HTTP question continues the conversation and declines preserve keeps (72.61525ms)
+✔ a scene edited after the request rejects its stale proposal atomically (16.111ms)
+✔ empty input and overlapping submissions do not start requests (2.166083ms)
+✔ streams progress and sends a captured scene, revision and existing keep ids (0.507959ms)
+✔ question option is the next message in the same conversation (0.190334ms)
+✔ proposal is sent to review once without changing the scene (0.312417ms)
+✔ cancel aborts the signal immediately and ignores late progress and proposals (0.182292ms)
+✔ a cancelled request cannot clear the busy state of a newer request (0.162125ms)
+✔ service errors and network errors are visible and allow retry (0.183625ms)
+✔ disposing aborts without publishing a late reply (0.127833ms)
+✔ recorded demo has proposal, question, decline and respects keeps (16.754334ms)
+✔ proposal numbers come from service score, including zero cost and blocked walkways (11.581792ms)
+✔ missing or malformed proposal numbers remain unknown instead of becoming zero (0.34425ms)
+✔ valid score reports minimum across rooms and whole dram purchases (0.2455ms)
+✔ no door routes or missing metrics are not reported as measured clearance (0.10175ms)
+✔ north is unknown by default, validates degrees, persists per scene and is sent with Suggest (0.690958ms)
+✔ unavailable browser storage preserves north for this session without claiming it was saved (0.261167ms)
+✔ elapsed seconds use elapsed time, reset on retry, and stop after cancellation and disposal (0.2435ms)
+✔ empty flat keeps the four original examples (3.579542ms)
+✔ empty rooms get actionable starters and edits recompute without mutation (0.744542ms)
+✔ unknown furniture and ambiguous cabinets never become false empty or missing-storage claims (0.139ms)
+✔ native wardrobe kind counts as storage even when its product name gives no clue (0.099666ms)
+✔ room polygons, boundaries and floors determine which room contains furniture (0.111542ms)
+✔ built-in storage and removed entities respect renovation metadata (0.134333ms)
+✔ west-facing wording requires known north and survives reversed wall endpoints (0.557666ms)
+✔ interior, removed and explicitly shared windows never claim west exposure (0.203958ms)
+✔ only four deterministic, distinct suggestions are shown in a large flat (0.160584ms)
+✔ elevated built-in cabinets count without roomId and stay on their own floor (0.1925ms)
+✔ built-in occupancy uses the same shell-derived ceiling as the editor (0.091083ms)
+✔ the recorded event stream becomes plain-English steps (11.799875ms)
+✔ tool calls without ids close the latest open call; errors and failed checks stay visible (0.385209ms)
+✔ piece names come only from known nouns in the slot id, and clocks read m:ss (0.137583ms)
+✔ an unfinished build is not reported as done, and the summary counts it (0.291125ms)
+✔ a turn shows live steps, then moves them onto its reply; damaged stored steps are dropped (1.788792ms)
+✔ a queued message waits for the turn, can be removed, and Stop hands it back instead of sending it (1.525459ms)
+✔ switching conversation drops the queue instead of sending it into another thread (0.33875ms)
+✔ context prefixes only what the buyer typed, and proposal chips price only known pieces (0.393625ms)
+✔ lens choices accept only the supported names and the editor starts with photo framing (1.107166ms)
+✔ photo reveals more of the room at the screenshot aspect, and wide reveals more again (1.285583ms)
+✔ resizing each lens respects both field limits and preserves the standing pose and clipping distances (1.071417ms)
+✔ omitting the optional lens retains the existing standard framing across viewport shapes (0.326083ms)
+✔ invalid lens names and viewport aspects fall back without corrupting the projection (0.565041ms)
+✔ the M6 repaired outside corner also blocks light in the hidden physical shell (34.62125ms)
+✔ repeated opening previews dispose replaced wall prisms without disposing live shared frame boxes (20.761167ms)
+✔ adjacent selected walls move from the original junctions exactly once, independently of order (10.15725ms)
+✔ collinear selection inserts room junctions once and a T branch follows the original host (1.663792ms)
+✔ multi-wall movement preserves hosts and routes and invalidates affected evidence (3.66675ms)
+✔ locks on selected and dependent geometry reject a whole multi-wall command atomically (1.645584ms)
+✔ wall selection rejects room reversal, disconnected T hosts and shortened opening bounds (0.925667ms)
+✔ walls and rooms on a separate level stay fixed during batch translation (3.256708ms)
+✔ batch room connections use the original inferred ceiling height before walls move (0.570209ms)
+✔ batch recognition cannot sanitize malformed endpoints into an accepted command (1.495041ms)
+✔ temporary furniture selection translates and rotates loose pieces without changing membership (3.502791ms)
+✔ two persistent furniture groups and a loose object receive one rigid transform apiece (2.355542ms)
+✔ selection previews use checked commit semantics including normalization, bounds and member locks (4.398667ms)
+✔ creation returns independent capabilities and JSON responses disable caching and CORS (77.665458ms)
+✔ view reads include the exact snapshot but never either secret or editable access (34.896333ms)
+✔ editors can recover the viewer capability and publish a validated newer snapshot (36.581875ms)
+✔ viewer PUT cannot elevate permission through headers, query parameters, or a forged body (22.766917ms)
+✔ missing, malformed and unrelated tokens fail without exposing identifiers or secrets (59.01125ms)
+✔ concurrent expected-version writes serialize the entire compare and atomic save (42.874291ms)
+✔ a new server instance reads the committed disk snapshot with the same capabilities (38.13225ms)
+✔ invalid scenes, catalogs, spoofed creation fields and versions are rejected without changing disk (51.128791ms)
+✔ an edit capability cannot silently replace an unrelated project identity (19.729708ms)
+✔ JSON media type, parsing, size and same-origin checks apply to writes (113.446625ms)
+✔ an explicit public origin supports HTTPS proxies without trusting forwarded headers (17.940166ms)
+✔ a configured public origin must be an exact HTTP or HTTPS origin without credentials or a path (1.492208ms)
+✔ storage locations inside served roots, including symlink aliases, are rejected (1.95375ms)
+✔ storage errors return generic JSON without disclosing local paths (2.15475ms)
+✔ the sharing plugin registers the API on real Vite development and preview servers (146.403417ms)
+✔ capabilities live only in URL fragments and permission labels cannot elevate access (2.196792ms)
+✔ landing anchors stay in-page while changed share fragments reload, including malformed links (0.153167ms)
+✔ shared snapshots contain the exact scene and only its referenced catalog (14.552375ms)
+✔ receiving a view capability stays view-only and sends token in Authorization (9.8265ms)
+✔ invalid or mismatched shared data never becomes editable startup data (12.015042ms)
+✔ new sharing publishes current progress and generates distinct view and edit links (3.213875ms)
+✔ saving captures the submitted local revision and rejects a duplicate in-flight save (6.200459ms)
+✔ conflict preserves the local draft, saved revision and server version (10.245375ms)
+✔ save responses and scene identity are checked before marking progress saved (5.825792ms)
+✔ the same scene cannot publish through a different account apartment or an unowned editor (7.861167ms)
+✔ project matching distinguishes account records, drafts, direct shares and replaced scenes (3.59ms)
+✔ newly created sharing sessions retain their account apartment identity (5.253167ms)
+✔ pending link creation stays with its source project after close, replace and reopen (3.343958ms)
+✔ pending link creation separates account apartments that contain the same scene (3.593125ms)
+✔ clock accepts fractional hours, clamps endpoints, and safely normalizes invalid input (1.320167ms)
+✔ noon is bright and both midnight endpoints are dark with automatic lights on (0.191208ms)
+✔ dawn brightens smoothly and dusk dims smoothly while automatic lights follow the opposite curve (0.365209ms)
+✔ daylight is continuous at each dawn/dusk boundary and remains finite across the full clock (0.221917ms)
+✔ time lighting results are independent values (0.063916ms)
+✔ default and legacy manual sunlight retain the existing elevation and strength (0.256375ms)
+✔ clock edits derive elevation without mutating the previous settings or patch (0.409ms)
+✔ compass, strength and auto-light edits preserve the selected time (0.073625ms)
+✔ an explicit elevation edit returns to manual positioning, and reset clears the clock (0.10225ms)
+✔ invalid solar edits preserve a valid active clock and numeric settings (0.191292ms)
+✔ effective sun is absent at night, proportional at dusk, and obeys direct-sun and evening switches (0.116208ms)
+✔ automatic lighting changes only the preview fallback and leaves authored components untouched (0.755208ms)
+✔ switch off wins over night auto-lighting and a dimmer setting survives day/night changes (0.465583ms)
+✔ disabled and removed light fixtures stay off when automatic night lighting is active (0.116417ms)
+✔ unequal walls meet at the outer miter for either orientation and arbitrary corner angle (2.55475ms)
+✔ disconnected, vertically separate and removed walls cannot pull a corner into a false join (0.527792ms)
+✔ almost straight unequal-width and acute joins keep a bounded solid instead of remote miter spikes (0.481209ms)
+✔ T joins and short returns retain positive solid coverage without pushing a corner into an opening (1.020959ms)
+✔ a door beginning at a T junction cannot remove the neighbouring solid corner (10.526167ms)
+✔ M6 bedroom entrance corner has continuous painted faces and skirting in full and cutaway projections (95.958041ms)
+ℹ tests 182
+ℹ suites 0
+ℹ pass 182
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1961.723625
+Shadow cache checks passed (8 assertions).
+Sky lighting checks passed (36 assertions).
+Adaptive occlusion checks passed (19 assertions).
+Ceiling shadow budget checks passed (28 assertions).
+architect project check passed
+Window dimension checks passed: 75 assertions across 9 scenarios.
+Opening transform checks passed: 512 assertions across 12 scenarios.
+Opening preview checks passed (49 assertions).
+Generated ceiling and room switch checks passed (56 assertions).
+Ceiling control checks passed (59 assertions).

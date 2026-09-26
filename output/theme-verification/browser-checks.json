@@ -1,0 +1,20 @@
+{
+  "checks": 14,
+  "passed": [
+    "Light remains the default even on a dark system",
+    "Keyboard toggle and accessible pressed state",
+    "Theme preference saved",
+    "Dark preference survives reload",
+    "Account dialog uses charcoal surface",
+    "Portal to editor preserves preference",
+    "Theme leaves scene revision and save state unchanged",
+    "Theme synchronizes between open tabs",
+    "Editor control remains usable after persisted page lifecycle",
+    "Clearing preferences resets other tabs to light",
+    "Reduced-motion preference disables theme transitions",
+    "Storage-blocked browser still switches themes",
+    "Saved dark background applies before app modules load",
+    "No browser runtime errors"
+  ],
+  "errors": []
+}

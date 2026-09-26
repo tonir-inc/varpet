@@ -60,3 +60,33 @@ DONE: 6 of 7
 - 7 ✗ This task's agents had exclusive file ownership, but unrelated chats also edited shared viewport/main/package/motion files during integration. Repository-wide exclusive ownership cannot be established; their changes were preserved.
 
 Not proven: repository-wide exclusive writer ownership, mobile layout coverage and frame-rate budgets. No commit or push was performed. The initial Notion export was absent and connector tooling unavailable; implementation evidence is recorded locally.
+
+## Hidden Properties regression — 2026-09-26, Codex (GPT-6)
+
+The Folio Renovation room list could select and highlight a room without moving the camera: `main.revealSelection` required the separate Properties overlay to have a nonzero width. The available rectangle now starts with the actual canvas width and reserves space only for a visible Properties overlay. Tool drawers already resize the canvas. The existing 650 ms room transition and renderer stay unchanged.
+
+`/room-camera-app-qa.html` loads the complete editor and clicks its actual Renovation rows. Before the fix, it failed `reselecting a room with Properties hidden moves the real camera`; after the fix, hidden and visible Properties paths frame the full room. It also checks intermediate GPU frames, rapid retargeting, Top zoom, explicit Focus, cancellation, reduced motion, and unchanged revision/history. Closing Properties preserves selection in the current UI, so the regression closes Properties and then reselects that same room.
+
+The older renderer-only room harness bypasses `main.ts` and could not catch this integration bug. Its 1,012 geometry assertions and the 78 selection-camera assertions passed even before the fix. Run the real-app harness as well when changing panel layout or selection scheduling. A test-only server with HMR and file watching disabled avoids other shared-checkout edits reloading the browser mid-run. One GPU intermediate-frame check failed under concurrent test/browser load and passed on rerun; diagnostic failures include frame samples and document visibility.
+
+Editor tests, repository typecheck, production build, and `git diff --check` pass. The initial untargeted test run hit two Designer 5 s timeouts; the one-worker rerun passed all 551 Designer TypeScript tests but hit an unrelated Python process-cleanup timeout. The final untargeted run below passed with workspace projects and Vitest workers serialized. No existing tests, fixtures, schemas, or validation expectations were weakened. Shared unfinished work was preserved on `main` under the editor coordination rules.
+
+```text
+/room-camera-app-qa.html → Run room integration
+COMPLETE 24 room app integration checks.
+
+VITEST_MAX_WORKERS=1 pnpm -r --workspace-concurrency=1 test
+exit 0 (all workspace projects)
+Designer: 123 test files, 551 tests passed; Python: 197 + 81 tests, OK
+
+pnpm --filter @varpet/editor test
+exit 0 (all editor suites, including 1,012 room-camera and 78 selection-camera assertions)
+
+pnpm typecheck
+exit 0 (all workspace projects)
+
+pnpm --filter @varpet/editor build
+✓ built in 537ms
+```
+
+Fresh read-only review found no blocking issues. The required Notion design/harness pages were read and the integration gotcha was recorded in [Codex harness](https://app.notion.com/p/Codex-harness-3e6278ce74eb81699d65da31b186f126). The referenced debugging/completion skills were absent from repository and local skill roots; no skill-based completion claim is made. This regression was verified on desktop Chrome; mobile overlay layouts were not exercised.

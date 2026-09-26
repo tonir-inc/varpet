@@ -78,3 +78,14 @@ def test_pieces_catalog_and_files(tmp_path):
         except urllib.error.HTTPError as e:
             assert e.code == 404
     server.shutdown()
+
+
+# This module's HTTP fixtures contain fake image bytes; never start a model for them.
+import pytest
+
+
+@pytest.fixture(autouse=True)
+def fake_upload_classifier(monkeypatch):
+    async def accepted(path):
+        return {'is_plan': True, 'kind': 'floor plan', 'confidence': 1.0, 'reason': 'A floor plan.'}
+    monkeypatch.setattr('varpet_harness.serve.classify_plan', accepted)

@@ -13,6 +13,7 @@ def main():
     p.add_argument('--catalog',type=Path,required=True)
     p.add_argument('--events',type=Path,required=True)
     p.add_argument('--service',required=True)
+    p.add_argument('--only',default='',help='Comma-separated request classes; omitted runs the whole suite')
     p.add_argument('--runs',type=Path,default=ROOT/'packages/designer/eval/typed-tools-runs')
     args=p.parse_args()
     if urlparse(args.service).hostname not in ('localhost','127.0.0.1') or urlparse(args.service).port in (5180,5190,8787,8788):raise ValueError('Use a spare local port')
@@ -24,6 +25,7 @@ def main():
         name,n=job;label=f'robustness-{name}' if args.phase=='robustness' else f'{args.phase}-portal-{name}-{n}'
         out=args.runs/label;out.mkdir(parents=True,exist_ok=True)
         cmd=[str(ROOT/'packages/designer/node_modules/.bin/tsx'),str(ROOT/'packages/designer/eval/typed-tools-run.ts'),'--scene',str(inputs[name]),'--id',name,'--catalog',str(args.catalog.resolve()),'--output',str(out.resolve()),'--events',str(args.events.resolve()),'--service',args.service,'--fast-path','0']
+        if args.only:cmd.extend(['--only',args.only])
         with (out/'console.log').open('w') as log:code=subprocess.call(cmd,cwd=args.source,stdout=log,stderr=subprocess.STDOUT)
         print((label,code),flush=True)
         return code

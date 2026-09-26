@@ -18,7 +18,7 @@ import psycopg
 from mcp.server.mcpserver import MCPServer
 
 from colors import PALETTE
-from search import Query, fits, search
+from search import Query, fits, search, size_limits
 from select_editor_set import EDITOR_KIND_OF
 
 model_ready = False
@@ -34,6 +34,11 @@ def _warm_up_model():
         logging.getLogger(__name__).exception("SigLIP query model warm-up failed")
     else:
         model_ready = True
+    try:  # load the in-memory embedding matrices before the first real query
+        with _conn() as conn:
+            search(conn, Query(text="sofa", limit=1))
+    except Exception:
+        logging.getLogger(__name__).warning("embedding matrix warm-up skipped", exc_info=True)
 
 
 server = MCPServer(
@@ -100,9 +105,7 @@ def search_furniture(
     'all' searches the whole catalog.
     room_items: ids already in the flat, to prefer pieces that go with them (style and look)
     """
-    box = None
-    if any(v is not None for v in (max_w, max_d, max_h)):
-        box = [max_w or 99.0, max_d or 99.0, max_h or 99.0]
+    box, allow_rotate = size_limits(max_w, max_d, max_h, allow_rotate)
     q = Query(kind=kind, text=text, colors=colors or [], styles=styles or [], materials=materials or [],
               fit_box=box, allow_rotate=allow_rotate, target_size=target_size, price_max=price_max,
               exclude_ids=exclude_ids or [], limit=min(limit, 20), offset=max(offset, 0), scope=scope,
@@ -172,7 +175,7 @@ CATEGORY = {"sofa": "Living", "chair": "Living", "table": "Living", "bed": "Bedr
             "shelf": "Storage", "lamp": "Lighting", "rug": "Textiles", "desk": "Office",
             "dresser": "Bedroom", "wardrobe": "Bedroom", "nightstand": "Bedroom",
             "stool": "Living", "ottoman": "Living", "bench": "Living"}
-NATIVE_EDITOR_KINDS = {"desk", "wardrobe", "dresser"}
+NATIVE_EDITOR_KINDS = {"desk", "wardrobe", "dresser", "decor", "wall_art", "mirror"}
 
 
 def editor_kind(kind: str) -> str:

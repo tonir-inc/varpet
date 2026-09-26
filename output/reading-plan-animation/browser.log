@@ -1,0 +1,14 @@
+PASS desktop active dots visible with unchanged accessible status text
+PASS active frames change opacity and keep status text fixed
+PASS live reduced motion settles visible dots without animation
+PASS restoring motion restarts dots
+PASS stream failure removes indicator and active animations
+PASS retry starts a new active indicator
+PASS returning to plan cancels request and removes animations
+PASS 390px mobile status and dots remain visible without horizontal overflow
+PASS checking remains visibly active until completion
+PASS project validation and finish choreography keep indicator active
+PASS finished apartment hides indicator and leaves no dot animation
+PASS reduced-motion startup keeps active indicator static
+PASS disposal removes dot animations
+{"status":"passed","checks":14,"pageErrors":0}

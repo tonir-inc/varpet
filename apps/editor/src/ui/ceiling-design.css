@@ -25,6 +25,9 @@
 .ceiling-preview p, .ceiling-note { color: var(--muted); font-size: var(--text-xs); line-height: 1.65; }
 .ceiling-preview p { margin: 8px 0; }
 .ceiling-note { margin: 0; }
+.ceiling-switch { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); margin-top: var(--space-3); font-size: var(--text-xs); }
+.ceiling-switch > span { min-width: 0; overflow-wrap: anywhere; }
+.ceiling-switch .button { flex-shrink: 0; }
 .ceiling-error { padding: 10px; border: 1px solid var(--danger); border-radius: var(--radius-sm); color: var(--danger); font-size: var(--text-xs); line-height: 1.55; }
 .ceiling-library fieldset:disabled { opacity: .6; }
 @media (prefers-reduced-motion: reduce) { .ceiling-preset { transition: none; } }

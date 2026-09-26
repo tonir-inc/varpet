@@ -6,7 +6,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {Client} from '@modelcontextprotocol/sdk/client/index.js';
 import {StreamableHTTPClientTransport} from '@modelcontextprotocol/sdk/client/streamableHttp.js';
-import {createHttpCatalogQuery,searchCatalogInputSchema} from './catalog.js';
+import {createHttpCatalogQuery,searchCatalogInputSchema,catalogUrl} from './catalog.js';
 import {SearchCache,curate,fitScene,compatibleProduct,verifiedGlb,type RawProduct} from './catalog-acceleration.js';
 import {FitPool} from './catalog-fit-worker.js';
 import {parseScene} from './adapter.js';
@@ -14,7 +14,7 @@ import type {EditorBridgeOptions} from './editor-bridge.js';
 import type {Scene} from './scene.js';
 import type {CatalogAsset} from '../../../apps/editor/src/contracts.js';
 
-const upstream=process.argv[2]??process.env.VARPET_CATALOG_URL??'http://100.107.246.46:8765/mcp';
+const upstream=process.argv[2]||catalogUrl();
 const cache=new SearchCache(createHttpCatalogQuery({url:upstream}));
 const fits=new FitPool();
 const prefixes=new Map<string,{results:RawProduct[];truncated:boolean;pending:boolean}>();

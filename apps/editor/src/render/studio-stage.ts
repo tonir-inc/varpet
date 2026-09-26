@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
 const ignoreRaycast: THREE.Object3D['raycast'] = () => {};
+export const STUDIO_BACKGROUND = '#a6ada1';
 
 /** Presentation furniture only: never part of the apartment or its selectable entities. */
 export class StudioStage {
@@ -9,33 +10,33 @@ export class StudioStage {
   /** Pedestal bounds for camera framing; deliberately excludes studio scenery. */
   readonly bounds = new THREE.Box3();
 
-  private readonly border = new THREE.MeshStandardMaterial({ color: '#b9b9b9', roughness: 0.9, metalness: 0 });
-  private readonly charcoal = new THREE.MeshStandardMaterial({ color: '#ecebe6', roughness: 0.6, metalness: 0.02 });
-  private readonly recess = new THREE.MeshStandardMaterial({ color: '#d6d4cd', roughness: 0.78 });
-  private readonly brass = new THREE.MeshStandardMaterial({ color: '#a88754', roughness: 0.36, metalness: 0.72 });
+  private readonly border = new THREE.MeshStandardMaterial({ color: '#777777', roughness: 0.9, metalness: 0 });
+  private readonly charcoal = new THREE.MeshStandardMaterial({ color: '#454b45', roughness: 0.86, metalness: 0.02 });
+  private readonly recess = new THREE.MeshStandardMaterial({ color: '#282e29', roughness: 0.78 });
+  private readonly brass = new THREE.MeshStandardMaterial({ color: '#968064', roughness: 0.48, metalness: 0.55 });
   private readonly groundMaterial = new THREE.MeshStandardMaterial({
-    color: '#e6e5e0', roughness: 0.94, metalness: 0,
-    emissive: '#ffffff', emissiveIntensity: 0.04,
+    color: '#898b7c', roughness: 0.94, metalness: 0,
+    emissive: '#a6ada1', emissiveIntensity: 0.04,
   });
   private readonly groundPoolScale = { value: new THREE.Vector2(1, 1) };
-  private readonly groundSpan = { value: 180 };
   private readonly cap = this.makeSlab(this.border);
   private readonly reveal = this.makeSlab(this.recess);
   private readonly body = this.makeSlab(this.charcoal);
   private readonly trim = this.makeSlab(this.brass);
   private readonly foot = this.makeSlab(this.recess);
   private readonly ground = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), this.groundMaterial);
-  private readonly inlayMaterial = new THREE.MeshStandardMaterial({ color: '#625039', roughness: 0.52, metalness: 0.65 });
+  // Preserve the scenery lookup/visibility contract without drawing floor lines.
   private readonly inlays = new THREE.Group();
   private readonly backdropMaterial = new THREE.ShaderMaterial({
     transparent: true,
     depthWrite: false,
     uniforms: {
-      galleryHeight: { value: 32 },
       daylight: { value: 1 },
-      galleryLower: { value: new THREE.Color('#d9d8d3') },
-      galleryCurtain: { value: new THREE.Color('#efeee9') },
-      galleryLight: { value: new THREE.Color('#ffffff') },
+      galleryLower: { value: new THREE.Color('#858b7c') },
+      galleryUpper: { value: new THREE.Color(STUDIO_BACKGROUND) },
+      galleryLight: { value: new THREE.Color('#dfc9a3') },
+      galleryStone: { value: new THREE.Color('#a79b87') },
+      galleryGreen: { value: new THREE.Color('#546d5d') },
     },
     vertexShader: `
       varying vec2 galleryUv;
@@ -45,32 +46,38 @@ export class StudioStage {
       }
     `,
     fragmentShader: `
-      uniform float galleryHeight;
       uniform float daylight;
       uniform vec3 galleryLower;
-      uniform vec3 galleryCurtain;
+      uniform vec3 galleryUpper;
       uniform vec3 galleryLight;
+      uniform vec3 galleryStone;
+      uniform vec3 galleryGreen;
       varying vec2 galleryUv;
+      // Broad signed-distance falloffs suggest an out-of-focus courtyard.
+      // They have no repeating seams and never blur the editable apartment.
+      float softBox(vec2 point, vec2 center, vec2 halfSize, float blur) {
+        vec2 edge = abs(point - center) - halfSize;
+        float distance = length(max(edge, 0.0)) + min(max(edge.x, edge.y), 0.0);
+        return 1.0 - smoothstep(-blur, blur, distance);
+      }
+      float softCanopy(vec2 point, vec2 center, vec2 radius) {
+        vec2 offset = (point - center) / radius;
+        return exp(-dot(offset, offset) * 1.6);
+      }
       void main() {
-        float height = galleryUv.y * galleryHeight;
-        float windowRise = smoothstep(1.8, 6.8, height);
-        float panelPhase = (galleryUv.x * 9.0 + 0.17) * 6.2831853;
-        float panels = sqrt(max(0.0, 0.5 + 0.5 * cos(panelPhase)));
-        float folds = 0.5 + 0.5 * sin(panelPhase * 2.0 + 0.45);
-        float mullionDistance = sin(panelPhase * 0.5) * 8.0;
-        float mullions = exp(-mullionDistance * mullionDistance);
-        float glowDistance = (galleryUv.x - 0.48) * 2.5;
-        float centerGlow = exp(-glowDistance * glowDistance);
-        vec3 upper = mix(galleryCurtain, galleryLight, panels * 0.55 + folds * 0.05);
-        upper *= 0.78 + centerGlow * 0.22;
-        upper *= 1.0 - mullions * 0.30;
-        vec3 lower = galleryLower * (0.65 + centerGlow * 0.35);
-        vec3 color = mix(lower, upper, windowRise);
-        // Broad panel edges and folds are analytic gradients, not image scenery.
-        color *= 0.92 + 0.08 * smoothstep(0.0, 12.0, height);
-        // Let the real floor show through at the base, avoiding a hard horizon
-        // where differently lit wall and floor materials meet.
-        float floorBlend = smoothstep(0.0, 3.4, height);
+        vec2 point = vec2((galleryUv.x - 0.5) * 7.0, galleryUv.y * 3.5);
+        vec3 color = mix(galleryLower, galleryUpper, smoothstep(0.0, 2.6, point.y));
+        float architecture = softBox(point, vec2(-1.15, 1.0), vec2(0.72, 0.55), 0.24);
+        architecture += softBox(point, vec2(1.7, 0.75), vec2(0.58, 0.32), 0.22) * 0.65;
+        color = mix(color, galleryStone, clamp(architecture, 0.0, 1.0) * 0.65);
+        float daylightOpening = softBox(point, vec2(0.35, 1.35), vec2(0.57, 0.68), 0.3);
+        color = mix(color, galleryLight, daylightOpening * 0.56);
+        float foliage = softCanopy(point, vec2(-1.85, 0.9), vec2(0.62, 0.8));
+        foliage += softCanopy(point, vec2(1.25, 1.1), vec2(0.57, 0.68));
+        foliage += softCanopy(point, vec2(2.1, 0.6), vec2(0.85, 0.45)) * 0.65;
+        color = mix(color, galleryGreen, clamp(foliage, 0.0, 1.0) * 0.65);
+        // Fade the distant environment into the real floor without a horizon line.
+        float floorBlend = smoothstep(0.0, 0.5, point.y);
         gl_FragColor = vec4(color * daylight, floorBlend);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
@@ -134,35 +141,28 @@ export class StudioStage {
     // retaining StandardMaterial's lighting, tone mapping and fog.
     this.groundMaterial.onBeforeCompile = shader => {
       shader.uniforms.studioPoolScale = this.groundPoolScale;
-      shader.uniforms.studioGroundSpan = this.groundSpan;
       shader.vertexShader = shader.vertexShader
         .replace('#include <common>', '#include <common>\nvarying vec2 vStudioFloorUv;')
         .replace('#include <begin_vertex>', '#include <begin_vertex>\nvStudioFloorUv = uv;');
       shader.fragmentShader = shader.fragmentShader
-        .replace('#include <common>', '#include <common>\nuniform vec2 studioPoolScale;\nuniform float studioGroundSpan;\nvarying vec2 vStudioFloorUv;')
+        .replace('#include <common>', '#include <common>\nuniform vec2 studioPoolScale;\nvarying vec2 vStudioFloorUv;')
         .replace('#include <color_fragment>', `
           #include <color_fragment>
           vec2 studioRadius = (vStudioFloorUv - 0.5) * studioPoolScale;
           float studioPool = exp(-dot(studioRadius, studioRadius));
-          diffuseColor.rgb *= mix(0.62, 1.32, studioPool);
-          vec2 floorPoint = (vStudioFloorUv - 0.5) * studioGroundSpan;
-          vec2 slabEdge = abs(fract((floorPoint + vec2(0.7, 1.1)) / 5.7) - 0.5) * 5.7;
-          float edgeDistance = min(slabEdge.x, slabEdge.y);
-          float edgeWidth = max(fwidth(edgeDistance), 0.012);
-          float slabJoint = 1.0 - smoothstep(0.008, 0.008 + edgeWidth, edgeDistance);
-          diffuseColor.rgb *= 1.0 - slabJoint * 0.24;
+          diffuseColor.rgb *= mix(0.78, 1.12, studioPool);
         `)
         .replace('#include <emissivemap_fragment>', `
           #include <emissivemap_fragment>
           totalEmissiveRadiance *= mix(0.4, 1.0, studioPool);
         `);
     };
-    this.groundMaterial.customProgramCacheKey = () => 'studio-floor-gallery-v2';
+    this.groundMaterial.customProgramCacheKey = () => 'studio-floor-courtyard-v3';
+    // Retain this lookup name for existing skybox integrations.
     this.backdrop.name = 'Softly lit gallery curtains';
     this.backdrop.userData.studioAO = false;
     this.backdrop.frustumCulled = false;
     this.inlays.name = 'Subtle brass floor inlay';
-    for (let i = 0; i < 4; i++) this.inlays.add(new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), this.inlayMaterial));
     this.shadow.name = 'Soft pedestal contact shadow';
     this.shadow.rotation.x = -Math.PI / 2;
     this.group.add(this.backdrop, this.ground, this.inlays, this.shadow, this.foot, this.body, this.trim, this.reveal, this.cap);
@@ -201,28 +201,23 @@ export class StudioStage {
     const depth = Math.max(1, this.size.z) + 0.96;
     // The scene's extruded floor slab extends 14 cm below its room elevation.
     const top = modelBounds.min.y - 0.14;
-    const groundY = top - 1.25;
+    // A tall exhibit plinth scales with the flat, while staying usable for small shells.
+    const pedestalHeight = THREE.MathUtils.clamp(Math.max(width, depth) * 0.32, 2.8, 5.5);
+    const groundY = top - pedestalHeight;
     this.groundY = groundY;
     this.studioSpan = Math.max(width, depth);
     this.resizeSlab(this.cap, width, 0.13, depth, top - 0.065, 0.023);
     this.resizeSlab(this.reveal, width - 0.1, 0.032, depth - 0.1, top - 0.146, 0.008);
-    this.resizeSlab(this.body, width - 0.12, 0.968, depth - 0.12, top - 0.646, 0.032);
-    this.resizeSlab(this.trim, width - 0.105, 0.023, depth - 0.105, top - 1.086, 0.006);
-    this.resizeSlab(this.foot, width - 0.38, 0.11, depth - 0.38, top - 1.185, 0.012);
+    const bodyTop = top - 0.162;
+    const bodyBottom = groundY + 0.12;
+    this.resizeSlab(this.body, width - 0.12, bodyTop - bodyBottom, depth - 0.12, (bodyTop + bodyBottom) / 2, 0.032);
+    this.resizeSlab(this.trim, width - 0.105, 0.023, depth - 0.105, groundY + 0.15, 0.006);
+    this.resizeSlab(this.foot, width - 0.38, 0.12, depth - 0.38, groundY + 0.06, 0.012);
 
     const groundSize = Math.max(180, width * 12, depth * 12);
     this.ground.scale.set(groundSize, groundSize, 1);
     this.ground.position.set(this.center.x, groundY, this.center.z);
     this.groundPoolScale.value.set(groundSize / (width * 0.95), groundSize / (depth * 0.95));
-    this.groundSpan.value = groundSize;
-    const inlayWidth = width + 2.8;
-    const inlayDepth = depth + 2.8;
-    this.inlays.children.forEach((line, index) => {
-      const horizontal = index < 2;
-      line.scale.set(horizontal ? inlayWidth : 0.018, 0.007, horizontal ? 0.018 : inlayDepth);
-      line.position.set(this.center.x + (horizontal ? 0 : (index === 2 ? -1 : 1) * inlayWidth / 2), groundY + 0.006,
-        this.center.z + (horizontal ? (index === 0 ? -1 : 1) * inlayDepth / 2 : 0));
-    });
     this.placeBackdrop();
     const feather = Math.max(0.85, Math.min(width, depth) * 0.13);
     const shadowWidth = width + feather * 2;
@@ -233,7 +228,7 @@ export class StudioStage {
     (this.shadowMaterial.uniforms.planeSize!.value as THREE.Vector2).set(shadowWidth, shadowDepth);
     this.shadowMaterial.uniforms.feather!.value = feather;
 
-    this.bounds.min.set(this.center.x - width / 2, top - 1.24, this.center.z - depth / 2);
+    this.bounds.min.set(this.center.x - width / 2, groundY, this.center.z - depth / 2);
     this.bounds.max.set(this.center.x + width / 2, top, this.center.z + depth / 2);
     this.group.updateMatrixWorld(true);
   }
@@ -242,7 +237,7 @@ export class StudioStage {
   setDaylight(level: number): void {
     const daylight = THREE.MathUtils.lerp(0.015, 1, THREE.MathUtils.clamp(level, 0, 1));
     this.backdropMaterial.uniforms.daylight!.value = daylight;
-    this.groundMaterial.emissiveIntensity = 0.16 * daylight;
+    this.groundMaterial.emissiveIntensity = 0.08 * daylight;
   }
 
   /** Keep the pedestal while letting a skybox replace the surrounding gallery. */
@@ -273,7 +268,6 @@ export class StudioStage {
     this.backdrop.position.set(this.center.x - this.viewDirection.x * distance, this.groundY + height / 2,
       this.center.z - this.viewDirection.z * distance);
     this.backdrop.rotation.y = Math.atan2(this.viewDirection.x, this.viewDirection.z);
-    this.backdropMaterial.uniforms.galleryHeight!.value = height;
     this.backdrop.updateMatrixWorld(true);
   }
 
@@ -281,7 +275,7 @@ export class StudioStage {
     if (this.disposed) return;
     this.disposed = true;
     this.group.traverse(object => { if (object instanceof THREE.Mesh) object.geometry.dispose(); });
-    for (const material of [this.border, this.charcoal, this.recess, this.brass, this.groundMaterial, this.shadowMaterial, this.inlayMaterial, this.backdropMaterial]) material.dispose();
+    for (const material of [this.border, this.charcoal, this.recess, this.brass, this.groundMaterial, this.shadowMaterial, this.backdropMaterial]) material.dispose();
     this.group.removeFromParent();
     this.group.clear();
     this.bounds.makeEmpty();

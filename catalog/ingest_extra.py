@@ -115,7 +115,8 @@ def build_row(group, entry):
         color_text=colors, color_std=colors, materials=entry["materials"],
         styles=[style] if style else [], keywords=[], image_urls=[],
         tags={"extra": {"group": group, **{k: entry.get(k) for k in (
-            "source_url", "license", "attribution", "notes")}},
+            "source_url", "license", "attribution", "notes")},
+                            **({"placement": entry["placement"]} if entry.get("placement") else {})},
               "astra": {"kind": entry["kind"], "main_color": colors[0],
                         "other_colors": colors[1:], "materials": entry["materials"], "style": style}},
         license=license_text, glb_url=url, glb_original_url=url, glb_web_url=url,

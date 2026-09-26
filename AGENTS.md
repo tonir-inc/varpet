@@ -50,11 +50,17 @@ Developer plan and photos in, a faithful furnished 3D flat out, rearranged by a 
   anything else; keep `pnpm test` green before pushing because teammates build on main.
 - Agents (`.codex/agents/`): `reviewer` checks a finished change with fresh context; `devils-advocate`
   attacks a plan before it costs hours.
-- Designer lane (Ashot): design in `docs/designer.md`, cards in `docs/tasks/designer-*.md`, skill
+- Designer lane (Ashot, Feliks): design in `docs/designer.md`, cards in `docs/tasks/designer-*.md`, skill
   `designer-build` while building it; the product's Designer thread loads only `interior-design-rules`.
 - Parallel work uses git worktrees (`git worktree add ../varpet-<lane> -b <lane>/<topic> main`), one
   lane per worktree; merge to `main` often.
 - Done means: the task's command output pasted, `pnpm test` and `pnpm typecheck` green untargeted.
+
+## Message board
+- Check `python3 tools/board.py qa list --lane <lane> --open`; log manual-test problems in the QA board, let the owning lane fix them later, and never delete issues.
+- Before every task run `python3 tools/board.py unread --as <your lane>`; act on or reply to messages for you.
+- Post when changing a contract/behaviour another lane uses, needing another lane, or leaving work half-done.
+- Close messages you resolved. Commands and examples: skill `message-board` (`.agents/skills/message-board/SKILL.md`), `board/README.md`.
 
 ## Open (decide at 10:30)
 - Scene schema and axes. Pascal plugin or own editor. Demo flat. Lanes. (`gpt-6-astra` runs on our Codex edu plan; the event sandbox is unchecked.)

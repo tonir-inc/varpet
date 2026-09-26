@@ -23,12 +23,14 @@ export function retainRegisteredProducts(products: readonly CatalogProduct[], kn
 }
 
 const kinds: Record<string, CatalogAsset['kind']> = {
+  decor: 'decor', wall_art: 'wall_art', mirror: 'mirror', curtain: 'curtain', clock: 'wall_art', wall_hanging: 'wall_art', blind: 'curtain', crib: 'bed', changing_table: 'dresser', pet_bed: 'decor', towel_rack: 'shelf',
+  vase: 'decor', candle: 'decor', book: 'decor', books: 'decor', throw_blanket: 'decor', cushion: 'decor', basket: 'decor', bowl: 'decor', tray: 'decor', sculpture: 'decor', lantern: 'decor', toy: 'decor', picture_frame: 'decor', mattress: 'decor', poster: 'wall_art', framed_print: 'wall_art', canvas: 'wall_art',
   sofa: 'sofa', chair: 'chair', table: 'table', desk: 'desk', bed: 'bed', cabinet: 'cabinet',
   dresser: 'dresser', wardrobe: 'wardrobe', nightstand: 'cabinet', storage: 'cabinet',
-  shelf: 'shelf', bench: 'chair', ottoman: 'chair', stool: 'chair', lamp: 'lamp', rug: 'rug', planter: 'plant', plant: 'plant',
+  shelf: 'shelf', bench: 'chair', ottoman: 'chair', stool: 'chair', lamp: 'lamp', rug: 'rug', planter: 'decor', plant: 'plant',
   toilet: 'toilet', sink: 'sink', bathtub: 'bathtub', shower: 'shower', fridge: 'fridge', stove: 'stove', oven: 'oven', washing_machine: 'washing_machine', dryer: 'dryer', dishwasher: 'dishwasher', microwave: 'microwave', tv: 'tv', monitor: 'monitor', computer: 'computer', laptop: 'laptop', speaker: 'speaker', printer: 'printer', game_console: 'game_console', kitchen_cabinet: 'kitchen_cabinet', kitchen_counter: 'kitchen_counter', kitchen_island: 'kitchen_island', radiator: 'radiator', fan: 'fan', coat_rack: 'coat_rack', shoe_rack: 'shoe_rack',
 };
-export const catalogCategories: Record<string, readonly string[]> = {"Bathroom": ["toilet", "sink", "bathtub", "shower"], "Appliances": ["fridge", "stove", "oven", "washing_machine", "dryer", "dishwasher", "microwave"], "Electronics": ["tv", "monitor", "computer", "laptop", "speaker", "printer", "game_console"], "Kitchen": ["kitchen_cabinet", "kitchen_counter", "kitchen_island"], "Home": ["radiator", "fan", "coat_rack", "shoe_rack", "plant"]};
+export const catalogCategories: Record<string, readonly string[]> = {"Decoration": ["decor", "wall_art", "mirror", "curtain"], "Bathroom": ["toilet", "sink", "bathtub", "shower"], "Appliances": ["fridge", "stove", "oven", "washing_machine", "dryer", "dishwasher", "microwave"], "Electronics": ["tv", "monitor", "computer", "laptop", "speaker", "printer", "game_console"], "Kitchen": ["kitchen_cabinet", "kitchen_counter", "kitchen_island"], "Home": ["radiator", "fan", "coat_rack", "shoe_rack", "plant"]};
 export function catalogCategory(kind: string): string {
   return Object.entries(catalogCategories).find(([, kinds]) => kinds.includes(kind))?.[0] ?? kind;
 }

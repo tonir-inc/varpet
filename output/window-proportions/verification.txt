@@ -1,0 +1,15 @@
+2026-09-26 — Default PVC window proportion fix
+Browser output:
+PASS: 224 checks across 32 aperture sizes. Frames stay 65 mm at ordinary sizes; panels stay rigid while opening; aperture data unchanged.
+Showing 2.7 × 1.45 m: before frame 117 mm → after 65 mm.
+PASS: 8 catalog variants load; moving leaves open and return to their exact closed pose.
+Source unchanged: true
+
+Commands:
+VITEST_MAX_WORKERS=1 pnpm test — exit 0 (untargeted)
+pnpm typecheck — exit 0 (untargeted)
+pnpm --filter @varpet/editor build — exit 0
+
+Independent code review: approved, no actionable findings.
+Scope: stock PVC pair, which supplies default/casement/hinged/double/tall-tilt window previews.
+Aperture width/height/offset/sill and saved metadata are unchanged.

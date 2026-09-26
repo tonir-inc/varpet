@@ -5,7 +5,7 @@ Two editable local projects:
 - `scene.json`: empty apartment shell with eight spaces, 38 source wall spans, eleven openings and five balcony railing runs.
 - `scene.furnished.json`: same shell plus an optional interpretation of the printed furniture (37 movable items and 12 fixtures). See `FURNISHING.md` for the catalog approximations.
 
-Open the running editor, choose **File → Import project JSON**, and select either file. The editor splits walls at junctions into 48 editable spans on import. The empty shell is left open in the task's browser. The app currently starts its original demo on reload; import this file again to return here. These files are durable copies; this task does not replace the browser's existing saved-project slot.
+Open the running editor, choose **File → Import project JSON**, and select either file. The editor splits walls at junctions into 47 editable spans on import. The empty shell is left open in the task's browser. The app currently starts its original demo on reload; import this file again to return here. These files are durable copies; this task does not replace the browser's existing saved-project slot.
 
 The original `source.png` is embedded in both projects under **Renovate → Evidence**. Per-property assumptions are preserved under **Assumptions** and survive JSON export/import. No existing application source, schema, protected fixture, or pre-existing test was edited for this task.
 
@@ -58,7 +58,7 @@ Task command output for each scene:
 ```text
 PASS: 8 rooms, 2 balconies, 11 openings; 3 balcony doors connect correctly;
 all internal doors connect floor; embedded source and assumptions survive normalized save/reimport.
-Raw wall spans 38; normalized wall spans 48; floor polygons 75.93 m².
+Raw wall spans 38; normalized wall spans 47; floor polygons 75.93 m².
 ```
 
 The checker also covers the Bedroom 2 swing, the living east/south and Bedroom 1 stepped facade floor coverage, and 15 floor-coverage samples across each non-entrance doorway. These are targeted checks, not a complete room reachability or building-compliance audit.

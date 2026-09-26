@@ -10,6 +10,7 @@ import unittest
 from unittest.mock import Mock, patch
 import designer
 import designer_fast
+import designer_typed_tools
 from designer_service import DesignerService
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -39,7 +40,7 @@ class ContextTests(unittest.TestCase):
             root=Path(directory); source=root/'scene.json'; source.write_text(json.dumps(scene))
             runtime={'scene':str(source),'state':str(root/'thread.json'),'workspace':directory,'home':directory}
             job=root/'job.json'; job.write_text(json.dumps({'runtime':runtime,'request':'Explain this apartment briefly.','profile':{'placement':'without-place','context':'compact-base','fast_path':False},**extra}))
-            with patch.dict(sys.modules,{'openai_codex':sdk,'openai_codex.generated.v2_all':generated}), patch.object(designer,'_forward_sdk_stderr'), patch.object(designer,'_isolate_skills'), contextlib.redirect_stdout(io.StringIO()):
+            with patch.dict(sys.modules,{'openai_codex':sdk,'openai_codex.generated.v2_all':generated}), patch.object(designer,'_forward_sdk_stderr'), patch.object(designer,'_isolate_skills'), patch.object(designer_typed_tools,'discover_models',return_value={'models':[{'slug':designer.MODEL}]}), contextlib.redirect_stdout(io.StringIO()):
                 self.assertEqual(designer.sdk_worker(job),0)
             self.assertEqual(json.loads(source.read_text()),scene)
             return thread.turn.call_args.args[0], sdk.Codex.call_args.args[0]

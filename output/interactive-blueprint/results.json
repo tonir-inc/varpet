@@ -1,0 +1,1208 @@
+{
+  "baseURL": "http://localhost:5173",
+  "checks": [
+    {
+      "label": "normal: taking control during the entry tilt preserves the displayed camera",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "label": "normal: drag orbits the uploaded plan while the architect is reading",
+      "pass": true,
+      "detail": 12.680318769906934
+    },
+    {
+      "label": "normal: canvas is keyboard focusable and names its controls",
+      "pass": true
+    },
+    {
+      "label": "normal: shell arrival preserves the manually chosen camera",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "label": "normal: Reset view reframes the streamed apartment",
+      "pass": true,
+      "detail": 21.97536214848647
+    },
+    {
+      "label": "normal: build navigation stays inside the viewport and clear of footer",
+      "pass": true,
+      "detail": {
+        "nav": {
+          "x": 511.6171875,
+          "y": 607.90625,
+          "width": 256.765625,
+          "height": 75.09375,
+          "top": 607.90625,
+          "right": 768.3828125,
+          "bottom": 683,
+          "left": 511.6171875
+        },
+        "footer": {
+          "x": 24,
+          "y": 702.5,
+          "width": 1232,
+          "height": 70.5,
+          "top": 702.5,
+          "right": 1256,
+          "bottom": 773,
+          "left": 24
+        },
+        "width": 1280,
+        "height": 800
+      }
+    },
+    {
+      "label": "normal: wheel zoom changes camera distance",
+      "pass": true,
+      "detail": 5.613013934286685
+    },
+    {
+      "label": "normal: right drag pans without rotating",
+      "pass": true
+    },
+    {
+      "label": "normal: Space drag pans without rotating",
+      "pass": true
+    },
+    {
+      "label": "normal: held W moves continuously through the 3D world",
+      "pass": true,
+      "detail": 4.009500000029773
+    },
+    {
+      "label": "normal: movement stops immediately after key release",
+      "pass": true
+    },
+    {
+      "label": "normal: released navigation restores the grab cursor",
+      "pass": true
+    },
+    {
+      "label": "normal: arrow keys navigate too",
+      "pass": true
+    },
+    {
+      "label": "normal: resize preserves the navigated camera pose",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "label": "normal: resize updates the projection",
+      "pass": true,
+      "detail": 1.4864864864864864
+    },
+    {
+      "label": "normal: Reset view recovers after moving far away",
+      "pass": true,
+      "detail": {
+        "travel": 9.748829379341016,
+        "resetError": 1.7763568394002505e-15
+      }
+    },
+    {
+      "label": "normal: a real rendered opening can be picked",
+      "pass": true,
+      "detail": {
+        "x": 675,
+        "y": 300,
+        "id": "window-kitchen"
+      }
+    },
+    {
+      "label": "normal: clicking an opening toggles its preview",
+      "pass": true
+    },
+    {
+      "label": "normal: orbit drag starting on an opening does not toggle it",
+      "pass": true
+    },
+    {
+      "label": "normal: one-finger touch drag orbits",
+      "pass": true
+    },
+    {
+      "label": "normal: two-finger pinch/pan moves the camera",
+      "pass": true
+    },
+    {
+      "label": "normal: multi-touch gestures do not toggle openings",
+      "pass": true
+    },
+    {
+      "label": "normal: touch release restores the grab cursor",
+      "pass": true
+    },
+    {
+      "label": "normal: completion preserves the navigated camera",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "label": "normal: finished world returns to idle rendering",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "label": "normal: completion navigation stays inside the viewport and clear of footer",
+      "pass": true,
+      "detail": {
+        "nav": {
+          "x": 511.6171875,
+          "y": 588.90625,
+          "width": 256.765625,
+          "height": 75.09375,
+          "top": 588.90625,
+          "right": 768.3828125,
+          "bottom": 664,
+          "left": 511.6171875
+        },
+        "footer": {
+          "x": 20,
+          "y": 683.5,
+          "width": 1240,
+          "height": 81.5,
+          "top": 683.5,
+          "right": 1260,
+          "bottom": 765,
+          "left": 20
+        },
+        "width": 1280,
+        "height": 800
+      }
+    },
+    {
+      "label": "normal: mobile completion navigation stays inside the viewport and clear of footer",
+      "pass": true,
+      "detail": {
+        "nav": {
+          "x": 66.6171875,
+          "y": 612.90625,
+          "width": 256.765625,
+          "height": 75.09375,
+          "top": 612.90625,
+          "right": 323.3828125,
+          "bottom": 688,
+          "left": 66.6171875
+        },
+        "footer": {
+          "x": 20,
+          "y": 708,
+          "width": 350,
+          "height": 101,
+          "top": 708,
+          "right": 370,
+          "bottom": 809,
+          "left": 20
+        },
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "label": "normal: Open my apartment hands the real shell to the editor",
+      "pass": true
+    },
+    {
+      "label": "normal: disposed stage removes its canvas and stops responding/rendering",
+      "pass": true
+    },
+    {
+      "label": "reduced: taking control during the entry tilt preserves the displayed camera",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "label": "reduced: drag orbits the uploaded plan while the architect is reading",
+      "pass": true,
+      "detail": 30.05497918034863
+    },
+    {
+      "label": "reduced: canvas is keyboard focusable and names its controls",
+      "pass": true
+    },
+    {
+      "label": "reduced: shell arrival preserves the manually chosen camera",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "label": "reduced: Reset view reframes the streamed apartment",
+      "pass": true,
+      "detail": 30.952224214282356
+    },
+    {
+      "label": "reduced: build navigation stays inside the viewport and clear of footer",
+      "pass": true,
+      "detail": {
+        "nav": {
+          "x": 511.6171875,
+          "y": 607.90625,
+          "width": 256.765625,
+          "height": 75.09375,
+          "top": 607.90625,
+          "right": 768.3828125,
+          "bottom": 683,
+          "left": 511.6171875
+        },
+        "footer": {
+          "x": 24,
+          "y": 702.5,
+          "width": 1232,
+          "height": 70.5,
+          "top": 702.5,
+          "right": 1256,
+          "bottom": 773,
+          "left": 24
+        },
+        "width": 1280,
+        "height": 800
+      }
+    },
+    {
+      "label": "reduced: wheel zoom changes camera distance",
+      "pass": true,
+      "detail": 5.613013934286685
+    },
+    {
+      "label": "reduced: right drag pans without rotating",
+      "pass": true
+    },
+    {
+      "label": "reduced: Space drag pans without rotating",
+      "pass": true
+    },
+    {
+      "label": "reduced: held W moves continuously through the 3D world",
+      "pass": true,
+      "detail": 4.009499999955267
+    },
+    {
+      "label": "reduced: movement stops immediately after key release",
+      "pass": true
+    },
+    {
+      "label": "reduced: released navigation restores the grab cursor",
+      "pass": true
+    },
+    {
+      "label": "reduced: arrow keys navigate too",
+      "pass": true
+    },
+    {
+      "label": "reduced: resize preserves the navigated camera pose",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "label": "reduced: resize updates the projection",
+      "pass": true,
+      "detail": 1.4864864864864864
+    },
+    {
+      "label": "reduced: Reset view recovers after moving far away",
+      "pass": true,
+      "detail": {
+        "travel": 9.76454746200562,
+        "resetError": 3.552713678800501e-15
+      }
+    },
+    {
+      "label": "reduced: a real rendered opening can be picked",
+      "pass": true,
+      "detail": {
+        "x": 675,
+        "y": 300,
+        "id": "window-kitchen"
+      }
+    },
+    {
+      "label": "reduced: clicking an opening toggles its preview",
+      "pass": true
+    },
+    {
+      "label": "reduced: orbit drag starting on an opening does not toggle it",
+      "pass": true
+    },
+    {
+      "label": "reduced: one-finger touch drag orbits",
+      "pass": true
+    },
+    {
+      "label": "reduced: two-finger pinch/pan moves the camera",
+      "pass": true
+    },
+    {
+      "label": "reduced: multi-touch gestures do not toggle openings",
+      "pass": true
+    },
+    {
+      "label": "reduced: touch release restores the grab cursor",
+      "pass": true
+    },
+    {
+      "label": "reduced: completion preserves the navigated camera",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "label": "reduced: finished world returns to idle rendering",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "label": "reduced: completion navigation stays inside the viewport and clear of footer",
+      "pass": true,
+      "detail": {
+        "nav": {
+          "x": 511.6171875,
+          "y": 588.90625,
+          "width": 256.765625,
+          "height": 75.09375,
+          "top": 588.90625,
+          "right": 768.3828125,
+          "bottom": 664,
+          "left": 511.6171875
+        },
+        "footer": {
+          "x": 20,
+          "y": 683.5,
+          "width": 1240,
+          "height": 81.5,
+          "top": 683.5,
+          "right": 1260,
+          "bottom": 765,
+          "left": 20
+        },
+        "width": 1280,
+        "height": 800
+      }
+    },
+    {
+      "label": "reduced: mobile completion navigation stays inside the viewport and clear of footer",
+      "pass": true,
+      "detail": {
+        "nav": {
+          "x": 66.6171875,
+          "y": 612.90625,
+          "width": 256.765625,
+          "height": 75.09375,
+          "top": 612.90625,
+          "right": 323.3828125,
+          "bottom": 688,
+          "left": 66.6171875
+        },
+        "footer": {
+          "x": 20,
+          "y": 708,
+          "width": 350,
+          "height": 101,
+          "top": 708,
+          "right": 370,
+          "bottom": 809,
+          "left": 20
+        },
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "label": "reduced: Open my apartment hands the real shell to the editor",
+      "pass": true
+    },
+    {
+      "label": "reduced: disposed stage removes its canvas and stops responding/rendering",
+      "pass": true
+    },
+    {
+      "label": "No browser page errors",
+      "pass": true,
+      "detail": []
+    }
+  ],
+  "cases": {
+    "normal": {
+      "screenshots": [
+        "normal-reading.png",
+        "normal-shell-reset.png",
+        "normal-navigated.png",
+        "normal-complete.png",
+        "normal-mobile-complete.png",
+        "normal-editor-handoff.png"
+      ],
+      "poses": {
+        "reading": {
+          "position": [
+            -0.2764551201390503,
+            22.830225377994143,
+            3.8159586782120996
+          ],
+          "quaternion": [
+            -0.6456123839184342,
+            -0.027595487884294657,
+            -0.023355764741152998,
+            0.7628090501776575
+          ],
+          "fov": 38,
+          "aspect": 1.6,
+          "count": 157
+        },
+        "reading-orbit": {
+          "position": [
+            -12.227421742279917,
+            19.628246537194528,
+            1.0388716421254482
+          ],
+          "quaternion": [
+            -0.3569528718621775,
+            -0.5917308905746659,
+            -0.32791131962402836,
+            0.6441376924784677
+          ],
+          "fov": 38,
+          "aspect": 1.6,
+          "count": 181
+        },
+        "after-shell": {
+          "position": [
+            -12.227421742279917,
+            19.628246537194528,
+            1.0388716421254482
+          ],
+          "quaternion": [
+            -0.3569528718621775,
+            -0.5917308905746659,
+            -0.32791131962402836,
+            0.6441376924784677
+          ],
+          "fov": 38,
+          "aspect": 1.6,
+          "count": 613
+        },
+        "shell-reset": {
+          "position": [
+            -8.826710982454689,
+            24.90207715378552,
+            22.099223455726477
+          ],
+          "quaternion": [
+            -0.3824104613794416,
+            -0.17395056153334215,
+            -0.0735451178119924,
+            0.9044857969121559
+          ],
+          "fov": 38,
+          "aspect": 1.6,
+          "count": 704
+        },
+        "zoom": {
+          "position": [
+            -7.376180319206164,
+            20.875547419721073,
+            18.467564809574945
+          ],
+          "quaternion": [
+            -0.3824104613794416,
+            -0.1739505615333421,
+            -0.07354511781199238,
+            0.9044857969121559
+          ],
+          "fov": 38,
+          "aspect": 1.6,
+          "count": 706
+        },
+        "right-pan": {
+          "position": [
+            -10.146346376490554,
+            21.389098728009476,
+            16.791735384465955
+          ],
+          "quaternion": [
+            -0.3824104613794416,
+            -0.17395056153334215,
+            -0.0735451178119924,
+            0.9044857969121559
+          ],
+          "fov": 38,
+          "aspect": 1.6,
+          "count": 718
+        },
+        "space-pan": {
+          "position": [
+            -7.30951408654362,
+            22.245017575156808,
+            16.975819187547255
+          ],
+          "quaternion": [
+            -0.3824104613794416,
+            -0.1739505615333421,
+            -0.07354511781199238,
+            0.9044857969121559
+          ],
+          "fov": 38,
+          "aspect": 1.6,
+          "count": 730
+        },
+        "keyboard-forward": {
+          "position": [
+            -6.273367951432114,
+            19.36877832867383,
+            14.381645092787371
+          ],
+          "quaternion": [
+            -0.38241046137944207,
+            -0.17395056153334204,
+            -0.07354511781199244,
+            0.9044857969121557
+          ],
+          "fov": 38,
+          "aspect": 1.6,
+          "count": 778
+        },
+        "keyboard-release": {
+          "position": [
+            -6.273367951432114,
+            19.36877832867383,
+            14.381645092787371
+          ],
+          "quaternion": [
+            -0.38241046137944207,
+            -0.17395056153334204,
+            -0.07354511781199244,
+            0.9044857969121557
+          ],
+          "fov": 38,
+          "aspect": 1.6,
+          "count": 779
+        },
+        "arrow-right": {
+          "position": [
+            -4.175050207388505,
+            19.36877832867383,
+            15.21973989340942
+          ],
+          "quaternion": [
+            -0.38241046137944207,
+            -0.1739505615333421,
+            -0.07354511781199247,
+            0.9044857969121557
+          ],
+          "fov": 38,
+          "aspect": 1.6,
+          "count": 806
+        },
+        "resize": {
+          "position": [
+            -4.175050207388505,
+            19.36877832867383,
+            15.21973989340942
+          ],
+          "quaternion": [
+            -0.38241046137944207,
+            -0.1739505615333421,
+            -0.07354511781199247,
+            0.9044857969121557
+          ],
+          "fov": 38,
+          "aspect": 1.4864864864864864,
+          "count": 808
+        },
+        "far-away": {
+          "position": [
+            -9.086633557880658,
+            33.00284819232073,
+            27.51675269916538
+          ],
+          "quaternion": [
+            -0.3824104613794415,
+            -0.17395056153334212,
+            -0.07354511781199236,
+            0.9044857969121561
+          ],
+          "fov": 38,
+          "aspect": 1.6,
+          "count": 1037
+        },
+        "reset-from-far": {
+          "position": [
+            -8.826710982454687,
+            24.90207715378552,
+            22.099223455726477
+          ],
+          "quaternion": [
+            -0.3824104613794416,
+            -0.1739505615333421,
+            -0.07354511781199238,
+            0.9044857969121559
+          ],
+          "fov": 38,
+          "aspect": 1.6,
+          "count": 1129
+        },
+        "touch-orbit": {
+          "position": [
+            -19.067465711748927,
+            28.323051704169355,
+            4.834586209960449
+          ],
+          "quaternion": [
+            -0.3634283368109284,
+            -0.5451127293995697,
+            -0.2827806664999413,
+            0.7005762277605792
+          ],
+          "fov": 38,
+          "aspect": 1.6,
+          "count": 1270
+        },
+        "touch-pinch": {
+          "position": [
+            -10.790419340108134,
+            17.13865971089396,
+            2.713242689087817
+          ],
+          "quaternion": [
+            -0.36342833681092834,
+            -0.5451127293995698,
+            -0.2827806664999413,
+            0.7005762277605792
+          ],
+          "fov": 38,
+          "aspect": 1.6,
+          "count": 1286
+        },
+        "completed": {
+          "position": [
+            -10.790419340108134,
+            17.13865971089396,
+            2.713242689087817
+          ],
+          "quaternion": [
+            -0.36342833681092834,
+            -0.5451127293995698,
+            -0.2827806664999413,
+            0.7005762277605792
+          ],
+          "fov": 38,
+          "aspect": 1.6,
+          "count": 1445
+        },
+        "disposed": {
+          "position": [
+            15.669437537369106,
+            16.253641880654445,
+            22.26709544784031
+          ],
+          "quaternion": [
+            -0.25233901544599335,
+            0.29105811767490025,
+            0.07988718598849645,
+            0.9193629484235973
+          ],
+          "fov": 32,
+          "aspect": 1.2834224598930482,
+          "count": 1829
+        }
+      },
+      "lastResetTarget": {
+        "rect": {
+          "x": 511.6171875,
+          "y": 588.90625,
+          "width": 256.765625,
+          "height": 75.09375,
+          "top": 588.90625,
+          "right": 768.3828125,
+          "bottom": 664,
+          "left": 511.6171875
+        },
+        "position": "absolute",
+        "bottom": "136px",
+        "text": "Explore your spaceReset view\n      Drag to orbit · Scroll to zoomSpace + drag or right-drag to pan · WASD / arrows to move\n      Drag to orbit · Pinch to zoom · Two fingers to pan"
+      },
+      "buildLayout": {
+        "nav": {
+          "x": 511.6171875,
+          "y": 607.90625,
+          "width": 256.765625,
+          "height": 75.09375,
+          "top": 607.90625,
+          "right": 768.3828125,
+          "bottom": 683,
+          "left": 511.6171875
+        },
+        "footer": {
+          "x": 24,
+          "y": 702.5,
+          "width": 1232,
+          "height": 70.5,
+          "top": 702.5,
+          "right": 1256,
+          "bottom": 773,
+          "left": 24
+        },
+        "width": 1280,
+        "height": 800
+      },
+      "openingPoint": {
+        "x": 675,
+        "y": 300,
+        "id": "window-kitchen"
+      },
+      "completionLayout": {
+        "nav": {
+          "x": 511.6171875,
+          "y": 588.90625,
+          "width": 256.765625,
+          "height": 75.09375,
+          "top": 588.90625,
+          "right": 768.3828125,
+          "bottom": 664,
+          "left": 511.6171875
+        },
+        "footer": {
+          "x": 20,
+          "y": 683.5,
+          "width": 1240,
+          "height": 81.5,
+          "top": 683.5,
+          "right": 1260,
+          "bottom": 765,
+          "left": 20
+        },
+        "width": 1280,
+        "height": 800
+      },
+      "mobile completionLayout": {
+        "nav": {
+          "x": 66.6171875,
+          "y": 612.90625,
+          "width": 256.765625,
+          "height": 75.09375,
+          "top": 612.90625,
+          "right": 323.3828125,
+          "bottom": 688,
+          "left": 66.6171875
+        },
+        "footer": {
+          "x": 20,
+          "y": 708,
+          "width": 350,
+          "height": 101,
+          "top": 708,
+          "right": 370,
+          "bottom": 809,
+          "left": 20
+        },
+        "width": 390,
+        "height": 844
+      },
+      "streamEvents": [
+        {
+          "type": "progress",
+          "at": 6299.5
+        },
+        {
+          "type": "shell",
+          "at": 8834.20000000298
+        },
+        {
+          "type": "project",
+          "at": 33061.29999999702
+        }
+      ]
+    },
+    "reduced": {
+      "screenshots": [
+        "reduced-reading.png",
+        "reduced-shell-reset.png",
+        "reduced-navigated.png",
+        "reduced-complete.png",
+        "reduced-mobile-complete.png",
+        "reduced-editor-handoff.png"
+      ],
+      "poses": {
+        "reading": {
+          "position": [
+            -4.4520384760915555,
+            25.81993666173176,
+            16.735631434963555
+          ],
+          "quaternion": [
+            -0.4666546969061976,
+            -0.11438046363110757,
+            -0.061009183507700473,
+            0.8748876401702342
+          ],
+          "fov": 38,
+          "aspect": 1.6,
+          "count": 37
+        },
+        "reading-orbit": {
+          "position": [
+            -25.74336220163007,
+            17.227322170289018,
+            -2.658911192975849
+          ],
+          "quaternion": [
+            -0.19387219229317465,
+            -0.7107569671665988,
+            -0.21492769911787632,
+            0.6411272813033871
+          ],
+          "fov": 38,
+          "aspect": 1.6,
+          "count": 49
+        },
+        "after-shell": {
+          "position": [
+            -25.74336220163007,
+            17.227322170289018,
+            -2.658911192975849
+          ],
+          "quaternion": [
+            -0.19387219229317465,
+            -0.7107569671665988,
+            -0.21492769911787632,
+            0.6411272813033871
+          ],
+          "fov": 38,
+          "aspect": 1.6,
+          "count": 51
+        },
+        "shell-reset": {
+          "position": [
+            -8.826710982454683,
+            24.90207715378552,
+            22.099223455726477
+          ],
+          "quaternion": [
+            -0.38241046137944174,
+            -0.17395056153334204,
+            -0.07354511781199236,
+            0.9044857969121559
+          ],
+          "fov": 38,
+          "aspect": 1.6,
+          "count": 52
+        },
+        "zoom": {
+          "position": [
+            -7.376180319206161,
+            20.875547419721073,
+            18.467564809574945
+          ],
+          "quaternion": [
+            -0.38241046137944174,
+            -0.17395056153334204,
+            -0.07354511781199236,
+            0.9044857969121559
+          ],
+          "fov": 38,
+          "aspect": 1.6,
+          "count": 54
+        },
+        "right-pan": {
+          "position": [
+            -10.146346376490548,
+            21.389098728009476,
+            16.791735384465955
+          ],
+          "quaternion": [
+            -0.3824104613794418,
+            -0.1739505615333421,
+            -0.07354511781199238,
+            0.9044857969121557
+          ],
+          "fov": 38,
+          "aspect": 1.6,
+          "count": 66
+        },
+        "space-pan": {
+          "position": [
+            -7.3095140865436115,
+            22.245017575156805,
+            16.975819187547255
+          ],
+          "quaternion": [
+            -0.38241046137944174,
+            -0.1739505615333419,
+            -0.0735451178119923,
+            0.9044857969121559
+          ],
+          "fov": 38,
+          "aspect": 1.6,
+          "count": 82
+        },
+        "keyboard-forward": {
+          "position": [
+            -6.2733679514513625,
+            19.368778328727267,
+            14.381645092835583
+          ],
+          "quaternion": [
+            -0.3824104613794419,
+            -0.17395056153334187,
+            -0.07354511781199233,
+            0.9044857969121559
+          ],
+          "fov": 38,
+          "aspect": 1.6,
+          "count": 130
+        },
+        "keyboard-release": {
+          "position": [
+            -6.2733679514513625,
+            19.368778328727267,
+            14.381645092835583
+          ],
+          "quaternion": [
+            -0.3824104613794419,
+            -0.17395056153334187,
+            -0.07354511781199233,
+            0.9044857969121559
+          ],
+          "fov": 38,
+          "aspect": 1.6,
+          "count": 131
+        },
+        "arrow-right": {
+          "position": [
+            -4.108186353618567,
+            19.368778328727267,
+            15.24644616726642
+          ],
+          "quaternion": [
+            -0.3824104613794419,
+            -0.17395056153334193,
+            -0.07354511781199237,
+            0.9044857969121557
+          ],
+          "fov": 38,
+          "aspect": 1.6,
+          "count": 160
+        },
+        "resize": {
+          "position": [
+            -4.108186353618567,
+            19.368778328727267,
+            15.24644616726642
+          ],
+          "quaternion": [
+            -0.3824104613794419,
+            -0.17395056153334193,
+            -0.07354511781199237,
+            0.9044857969121557
+          ],
+          "fov": 38,
+          "aspect": 1.4864864864864864,
+          "count": 161
+        },
+        "far-away": {
+          "position": [
+            -9.020415761059944,
+            33.00464158260145,
+            27.54507649022829
+          ],
+          "quaternion": [
+            -0.3824104613794408,
+            -0.17395056153334199,
+            -0.07354511781199213,
+            0.9044857969121562
+          ],
+          "fov": 38,
+          "aspect": 1.6,
+          "count": 389
+        },
+        "reset-from-far": {
+          "position": [
+            -8.826710982454687,
+            24.90207715378552,
+            22.099223455726477
+          ],
+          "quaternion": [
+            -0.3824104613794416,
+            -0.1739505615333421,
+            -0.07354511781199238,
+            0.9044857969121559
+          ],
+          "fov": 38,
+          "aspect": 1.6,
+          "count": 391
+        },
+        "touch-orbit": {
+          "position": [
+            -19.067465711748927,
+            28.323051704169355,
+            4.834586209960449
+          ],
+          "quaternion": [
+            -0.3634283368109284,
+            -0.5451127293995697,
+            -0.2827806664999413,
+            0.7005762277605792
+          ],
+          "fov": 38,
+          "aspect": 1.6,
+          "count": 425
+        },
+        "touch-pinch": {
+          "position": [
+            -10.790419340108134,
+            17.13865971089396,
+            2.713242689087817
+          ],
+          "quaternion": [
+            -0.36342833681092834,
+            -0.5451127293995698,
+            -0.2827806664999413,
+            0.7005762277605792
+          ],
+          "fov": 38,
+          "aspect": 1.6,
+          "count": 441
+        },
+        "completed": {
+          "position": [
+            -10.790419340108134,
+            17.13865971089396,
+            2.713242689087817
+          ],
+          "quaternion": [
+            -0.36342833681092834,
+            -0.5451127293995698,
+            -0.2827806664999413,
+            0.7005762277605792
+          ],
+          "fov": 38,
+          "aspect": 1.6,
+          "count": 443
+        },
+        "disposed": {
+          "position": [
+            15.669437537369106,
+            16.253641880654445,
+            22.26709544784031
+          ],
+          "quaternion": [
+            -0.25233901544599335,
+            0.29105811767490025,
+            0.07988718598849645,
+            0.9193629484235973
+          ],
+          "fov": 32,
+          "aspect": 1.2834224598930482,
+          "count": 450
+        }
+      },
+      "lastResetTarget": {
+        "rect": {
+          "x": 511.6171875,
+          "y": 588.90625,
+          "width": 256.765625,
+          "height": 75.09375,
+          "top": 588.90625,
+          "right": 768.3828125,
+          "bottom": 664,
+          "left": 511.6171875
+        },
+        "position": "absolute",
+        "bottom": "136px",
+        "text": "Explore your spaceReset view\n      Drag to orbit · Scroll to zoomSpace + drag or right-drag to pan · WASD / arrows to move\n      Drag to orbit · Pinch to zoom · Two fingers to pan"
+      },
+      "buildLayout": {
+        "nav": {
+          "x": 511.6171875,
+          "y": 607.90625,
+          "width": 256.765625,
+          "height": 75.09375,
+          "top": 607.90625,
+          "right": 768.3828125,
+          "bottom": 683,
+          "left": 511.6171875
+        },
+        "footer": {
+          "x": 24,
+          "y": 702.5,
+          "width": 1232,
+          "height": 70.5,
+          "top": 702.5,
+          "right": 1256,
+          "bottom": 773,
+          "left": 24
+        },
+        "width": 1280,
+        "height": 800
+      },
+      "openingPoint": {
+        "x": 675,
+        "y": 300,
+        "id": "window-kitchen"
+      },
+      "completionLayout": {
+        "nav": {
+          "x": 511.6171875,
+          "y": 588.90625,
+          "width": 256.765625,
+          "height": 75.09375,
+          "top": 588.90625,
+          "right": 768.3828125,
+          "bottom": 664,
+          "left": 511.6171875
+        },
+        "footer": {
+          "x": 20,
+          "y": 683.5,
+          "width": 1240,
+          "height": 81.5,
+          "top": 683.5,
+          "right": 1260,
+          "bottom": 765,
+          "left": 20
+        },
+        "width": 1280,
+        "height": 800
+      },
+      "mobile completionLayout": {
+        "nav": {
+          "x": 66.6171875,
+          "y": 612.90625,
+          "width": 256.765625,
+          "height": 75.09375,
+          "top": 612.90625,
+          "right": 323.3828125,
+          "bottom": 688,
+          "left": 66.6171875
+        },
+        "footer": {
+          "x": 20,
+          "y": 708,
+          "width": 350,
+          "height": 101,
+          "top": 708,
+          "right": 370,
+          "bottom": 809,
+          "left": 20
+        },
+        "width": 390,
+        "height": 844
+      },
+      "streamEvents": [
+        {
+          "type": "progress",
+          "at": 1036.8999999910593
+        },
+        {
+          "type": "shell",
+          "at": 1762.3999999910593
+        },
+        {
+          "type": "project",
+          "at": 13370.39999999106
+        }
+      ]
+    }
+  },
+  "pageErrors": [],
+  "console": []
+}

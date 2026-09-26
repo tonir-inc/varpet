@@ -1,4 +1,6 @@
-import type { CatalogAsset, CommandResult, EditCommand, SceneChange, SceneDocument, ValidationResult } from '../contracts';
+import { placeFurniture, followSupports, floorHeight, type FurnitureSurfaceResolver } from './furniture-support';
+import { rehangObjects } from './decoration-placement';
+import type { CatalogAsset, CommandResult, EditCommand, SceneChange, SceneDocument, SceneObject, ValidationResult } from '../contracts';
 import { isRecord, validateScene, renovationOperationError } from './validation';
 import { applyRenovationOperation, applyWallTranslationBatch, invalidateAssumptions, migrateScene } from './renovation';
 
@@ -29,7 +31,7 @@ function commandErrors(command: unknown): string[] {
     if (!isRecord(operation)) return ['Each operation must be an object.'];
     const allowed: Record<string, string[]> = {
       group: ['type', 'id', 'objectIds'], ungroup: ['type', 'id'],
-      add: ['type', 'object'], update: ['type', 'id', 'patch'], delete: ['type', 'id'],
+      add: ['type', 'object', 'on'], update: ['type', 'id', 'patch', 'on'], delete: ['type', 'id'],
       'replace-structure': ['type', 'rooms', 'walls'], 'replace-scene': ['type', 'scene'],
     };
     if (typeof operation.type !== 'string') return ['Command contains an unsupported operation.'];
@@ -47,9 +49,10 @@ function commandErrors(command: unknown): string[] {
     }
     if (['group', 'ungroup'].includes(operation.type) && ['__proto__', 'prototype', 'constructor'].includes(operation.id as string)) return ['Group needs a non-reserved ID.'];
     if (operation.type === 'update') {
-      if (!isRecord(operation.patch) || Object.keys(operation.patch).length < 1
-        || Object.keys(operation.patch).some(key => !['name', 'position', 'rotation', 'scale', 'color'].includes(key))) return ['Update contains an empty or unsupported object patch.'];
+      if (!isRecord(operation.patch) || (Object.keys(operation.patch).length < 1 && operation.on === undefined)
+        || Object.keys(operation.patch).some(key => !['name', 'position', 'rotation', 'scale', 'color', 'restsOn'].includes(key))) return ['Update contains an empty or unsupported object patch.'];
     }
+    if (operation.on !== undefined && operation.on !== null && (typeof operation.on !== 'string' || !operation.on.trim() || operation.on.length > 100)) return ['Support on must be a furniture ID or null.'];
     if (operation.type === 'add' && !isRecord(operation.object)) return ['Add operation needs an object.'];
     if (operation.type === 'replace-scene' && !isRecord(operation.scene)) return ['Replace operation needs a scene object.'];
     if (operation.type === 'replace-structure' && (!Array.isArray(operation.rooms) || !Array.isArray(operation.walls))) return ['Structure operation needs room and wall arrays.'];
@@ -60,6 +63,8 @@ function commandErrors(command: unknown): string[] {
 /** The only write boundary: every successful command commits one fully checked, frozen snapshot. */
 export class EditorStore {
   private current: SceneDocument;
+  private surfaceResolver?: FurnitureSurfaceResolver;
+  setSurfaceResolver(resolver: FurnitureSurfaceResolver): void { this.surfaceResolver = resolver; }
   private catalog: CatalogAsset[];
   private currentRevision = 0;
   private past: HistoryEntry[] = [];
@@ -154,23 +159,45 @@ export class EditorStore {
             for (const object of members) delete object.groupId;
             break;
           }
-          case 'add':
+          case 'add': {
             if (candidate.objects.some(object => object.id === operation.object.id)) return this.rejection(`Object “${operation.object.id}” already exists.`);
-            candidate.objects.push(operation.object);
+            const position = operation.object.position ?? (operation.on ? candidate.objects.find(o => o.id === operation.on)?.position : undefined);
+            if (!position) return this.rejection('Add needs a position or an existing furniture support on.');
+            const object: SceneObject = { ...operation.object, position: [...position] };
+            candidate.objects.push(placeFurniture(candidate, this.catalog, object, operation.on !== undefined ? operation.on : object.restsOn, this.surfaceResolver, operation.object.position && object.position[1] > floorHeight(candidate, object) ? object.position[1] + .02 : undefined));
             break;
+          }
           case 'update': {
             const index = candidate.objects.findIndex(object => object.id === operation.id);
             if (index < 0) return this.rejection(`Object “${operation.id}” no longer exists.`);
-            const updates = furnitureUpdates(candidate, operation.id, operation.patch);
-            const byId = new Map(updates.map(object => [object.id, object]));
+            const before = structuredClone(candidate);
+            let patch = operation.patch;
+            if (operation.on && !patch.position) {
+              const support = candidate.objects.find(o => o.id === operation.on);
+              if (!support) return this.rejection(`Unknown furniture support “${operation.on}”.`);
+              patch = { ...patch, position: [...support.position] };
+            }
+            const updates = furnitureUpdates(candidate, operation.id, patch);
+            const transforming = patch.position || patch.rotation !== undefined || patch.scale
+              || operation.on !== undefined || patch.restsOn !== undefined;
+            const byId = new Map(updates.map(object => {
+              if (!transforming) return [object.id, object] as const;
+              const on = operation.on !== undefined ? operation.on : patch.restsOn ?? (!patch.position ? object.restsOn : undefined);
+              const useHeight = operation.patch.position || (operation.on === undefined && object.restsOn);
+              const ceiling = useHeight && object.position[1] > floorHeight(candidate, object) ? object.position[1] + .02 : undefined;
+              return [object.id, placeFurniture(candidate, this.catalog, object, on, this.surfaceResolver, ceiling)] as const;
+            }));
             candidate.objects = candidate.objects.map(object => byId.get(object.id) ?? object);
+            followSupports(before, candidate, new Set(updates.map(o => o.id)), this.catalog);
             invalidateAssumptions(candidate, updates.map(object => object.id));
             break;
           }
           case 'delete': {
             const index = candidate.objects.findIndex(object => object.id === operation.id);
             if (index < 0) return this.rejection(`Object “${operation.id}” no longer exists.`);
+            const before = structuredClone(candidate);
             candidate.objects.splice(index, 1);
+            followSupports(before, candidate, new Set(), this.catalog);
             removeSingletonGroups(candidate);
             if (candidate.project) delete candidate.project.metadata[operation.id];
             break;
@@ -201,6 +228,8 @@ export class EditorStore {
         if (!draftValidation.ok) return { ...draftValidation, revision: this.revision };
         candidate = this.normalize(candidate, previous);
       }
+      const shape = (scene: SceneDocument) => JSON.stringify([scene.walls, scene.rooms, scene.project?.metadata]);
+      if (shape(candidate) !== shape(this.current)) candidate = rehangObjects(candidate, this.catalog);
       const validation = validateScene(candidate, this.catalog);
       if (!validation.ok) return { ...validation, revision: this.revision };
       this.past.push({ scene: this.current, label: command.label });

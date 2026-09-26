@@ -16,6 +16,13 @@ async function start() {
     await mountPortal(host, route.get('view') === 'apartments' ? 'apartments' : 'explore');
     return;
   }
+  if (!templateId && !apartmentId && route.has('editor')) {
+    // The sandbox uses the editor's local project and save/load path. Opening it
+    // must not depend on an account service or turn the draft into a plan copy.
+    host.innerHTML = '<main class="portal-loading" role="status">Opening the sandbox…</main>';
+    await import('./main');
+    return;
+  }
   host.innerHTML = '<main class="portal-loading" role="status">Opening your apartment…</main>';
   let user = await api.session();
   if (apartmentId && !user) {

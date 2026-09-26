@@ -143,3 +143,65 @@ def test_piece_ids_are_normalised(tmp_path):
     f = tmp_path / "pieces.json"
     f.write_text(json.dumps({"pieces": [{"id": "Wood_Dining Chair", "brief": "x", "size": [0.4, 0.5, 0.9]}]}))
     assert S._read_pieces(f).pieces[0].id == "wood-dining-chair"
+
+
+def test_a_photographed_fixture_is_built_to_its_component_and_shown_in_its_place(tmp_path, monkeypatch):
+    from test_shell import bathroom
+
+    answers = {}
+
+    async def play(tools, n, text, run):
+        (run / "shell" / "shell.json").write_text(bathroom().model_dump_json())
+        await tools["build_pieces"].run({"pieces": [SOFA]})
+        answers["fixture"] = await tools["build_pieces"].run({"pieces": [
+            {**SOFA, "id": "shower-tray", "size": [9, 9, 9], "fixture": "shower"}]})  # size comes from the component
+        answers["wait"] = await tools["wait_for_pieces"].run({})
+        (run / "furnish" / "placements.json").write_text(json.dumps({"placements": [
+            {"piece": "sofa", "room": "living", "x": 2.5, "z": 0.55, "rotation": 0}]}))
+        answers["placed"] = await tools["submit_placements"].run({})
+
+    report, *_ = session(tmp_path, monkeypatch, play)
+    run = tmp_path / "run"
+    assert answers["fixture"].startswith("started 1") and answers["placed"] == "ok"
+    assert "shower-tray" not in answers["wait"].split("# Skill")[0]  # not furniture to place
+    assert json.loads((run / "shower-tray" / "program.json").read_text())["size"] == [0.9, 0.9, 2.0]  # w, d, h
+    shown = S._with_models(run, [{"id": "shower"}, {"id": "wc"}], "http://h")
+    assert shown[0]["assetId"].endswith("shower-tray") and "assetId" not in shown[1]
+
+
+def test_a_fixture_piece_needs_its_component_first(tmp_path, monkeypatch):
+    async def play(tools, n, text, run):
+        (run / "shell" / "shell.json").write_text(flat().model_dump_json())
+        answer = await tools["build_pieces"].run({"pieces": [{**SOFA, "id": "kitchen-run", "fixture": "kitchen"}]})
+        assert answer.startswith("no component kitchen")
+
+    session(tmp_path, monkeypatch, play)
+
+
+def test_code_builds_the_kitchen_from_the_photos_without_being_asked(tmp_path, monkeypatch):
+    from test_shell import bathroom, fixture
+
+    async def play(tools, n, text, run):
+        s = bathroom()
+        s.components.append(fixture("kitchen-run", "cabinet", [2.5, 0, 0.4], [2.0, 0.9, 0.6], room="living"))
+        (run / "shell" / "shell.json").write_text(s.model_dump_json())
+        await tools["submit_shell"].run({})  # the model never mentions the kitchen
+        (run / "furnish" / "placements.json").write_text(json.dumps({"placements": []}))
+
+    report, *_ = session(tmp_path, monkeypatch, play)
+    run = tmp_path / "run"
+    assert report.architect_turns == 1
+    assert json.loads((run / "fixtures.json").read_text()) == {"fixture-kitchen-run": "kitchen-run"}
+    assert json.loads((run / "fixture-kitchen-run" / "program.json").read_text())["size"] == [2.0, 0.6, 0.9]
+    shown = S._with_models(run, [{"id": "kitchen-run"}], "http://h")
+    assert shown[0]["assetId"].endswith("fixture-kitchen-run")
+
+
+def test_a_fixture_model_a_few_cm_off_still_shows_because_the_editor_scales_it(tmp_path):
+    f = tmp_path / "faults.json"
+    f.write_text(json.dumps([{"check": "size", "axis": "d", "want_m": 0.58, "got_m": 0.613}]))
+    assert S._fits(f)
+    f.write_text(json.dumps([{"check": "size", "axis": "d", "want_m": 0.58, "got_m": 0.9}]))
+    assert not S._fits(f)
+    f.write_text(json.dumps([{"check": "floor", "detail": "floats"}]))
+    assert not S._fits(f)

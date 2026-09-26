@@ -1,7 +1,8 @@
 import type {CatalogAsset} from '../../../apps/editor/src/contracts.js';
 import type {CatalogInput,CatalogQuery} from './catalog.js';
 import {SceneAnalysisCache} from './fast-path.js';
-import type {Scene} from './scene.js';
+import type {Scene,Op} from './scene.js';
+import {mountOf,mountPoses} from './mounts.js';
 import {editorKindOf} from './editor-bridge.js';
 import {validateBytes} from 'gltf-validator';
 
@@ -56,10 +57,18 @@ const slotCache=new SceneAnalysisCache();
 export function fitProducts(scene:Scene,rows:RawProduct[],roomId?:string,maxChecks=2,catalog:readonly CatalogAsset[]=[]):any[]{
  const rooms=scene.rooms.filter(r=>!roomId||r.id===roomId),result:any[]=[];
  for(const row of rows.slice(0,20)){
-  if(!row.size_m?.every(v=>Number.isFinite(v)&&v>0)||!['sofa','chair','table','desk','bed','cabinet','wardrobe','dresser','lamp','plant','rug','shelf'].includes(row.kind)&&!editorKindOf[row.kind])continue;
+  if(!row.size_m?.every(v=>Number.isFinite(v)&&v>0)||!['sofa','chair','table','desk','bed','cabinet','wardrobe','dresser','lamp','plant','rug','shelf','decor','wall_art','mirror','curtain'].includes(row.kind)&&!editorKindOf[row.kind])continue;
   const asset:CatalogAsset={id:row.id,name:row.name??row.id,kind:(catalog.find(a=>a.id===row.id)?.kind??(['desk','wardrobe','dresser'].includes(row.kind)?row.kind:editorKindOf[row.kind]??row.kind)) as CatalogAsset['kind'],category:row.kind,dimensions:[row.size_m[0]!,row.size_m[2]!,row.size_m[1]!],price:row.price,color:'#888888',source:{type:'gltf',url:row.glb_url??''}};
+  // Curtains and hanging planters get hung poses (window, ceiling), not floor slots.
+  const piece={kind:row.kind,name:row.name??row.id,size:[row.size_m[0]!,row.size_m[1]!,row.size_m[2]!] as [number,number,number],sku:row.id};
+  if(mountOf(piece)){
+   const hung=rooms.flatMap(room=>mountPoses(scene,room.id,piece).slice(0,2).map((pose,i)=>({id:`hung-${room.id}-${i}-${row.id}`,room_id:room.id,score:1,
+    ops:[{type:'add',item:{id:`hung-${i}-${row.id}`.slice(0,200),room_id:room.id,kind:row.kind,name:piece.name.slice(0,120),pos:pose.pos,rot:pose.rot,size:piece.size,keep:false,sku:row.id,price:row.price,mount:pose.mount}}] as Op[]})));
+   if(hung.length)result.push({...row,fit_slots:hung});
+   continue;
+  }
   const assets=catalog.length?catalog:[asset];
-  const slots=rooms.flatMap(room=>slotCache.slots(scene,assets,{roomId:room.id,catalogId:asset.id,maxChecks}).slice(0,2).map(slot=>({id:slot.id,room_id:room.id,ops:slot.ops,score:slot.score})));
+  const slots=rooms.flatMap(room=>slotCache.slots(scene,assets,{roomId:room.id,catalogId:asset.id,maxChecks,solidHeadboard:row.kind==='bed'}).slice(0,2).map(slot=>({id:slot.id,room_id:room.id,ops:slot.ops,score:slot.score})));
   if(slots.length)result.push({...row,fit_slots:slots});
  }
  return result;

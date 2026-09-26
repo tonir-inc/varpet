@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
-import {createHttpCatalogQuery, type CatalogQuery} from './catalog.js';
+import {isOutdoorRoom} from './balcony.js';
+import {createHttpCatalogQuery, mapLimited, CATALOG_CONCURRENCY, type CatalogQuery} from './catalog.js';
 import {catalogProduct} from '../../../apps/editor/src/adapters/database-catalog.js';
 import { z } from 'zod';
 import type { CatalogAsset } from '../../../apps/editor/src/contracts.js';
@@ -12,7 +13,7 @@ import { strategyMetrics } from './metrics/strategy.js';
 import { sun } from './metrics/sun.js';
 import { checkRequest, type Intent } from './request.js';
 import { DesignerSession } from './session.js';
-import type { Item, Op, Scene, Vec2 } from './scene.js';
+import { onFloor, type Item, type Op, type Scene, type Vec2 } from './scene.js';
 
 export const FAST_VERSION = 'slots-v6';
 const hash = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
@@ -60,7 +61,7 @@ function roomId(scene:Scene,recipe:Recipe):string|undefined {
   if(recipe.room==='bathroom'){const baths=scene.rooms.filter(r=>/bathroom|bath room|լոգ|ванн/i.test(r.name??''));return baths.length===1?baths[0]!.id:undefined;}
   if(recipe.room==='kids') return bedrooms[1]?.id;
   if(recipe.room==='bedroom') return bedrooms.length===1?bedrooms[0]!.id:undefined;
-  if(recipe.room==='living') {const living=scene.rooms.filter(r=>/living|հյուր|гостин/i.test(r.name??''));return living.length===1?living[0]!.id:undefined;}
+  if(recipe.room==='living') {const living=scene.rooms.filter(r=>!isOutdoorRoom(r)&&/living|հյուր|гостин/i.test(r.name??''));return living.length===1?living[0]!.id:undefined;}
   if(recipe.kind==='sofa') { const rooms=[...new Set(scene.items.filter(i=>i.kind==='sofa').map(i=>i.room_id))]; return rooms.length===1?rooms[0]:undefined; }
   // An unqualified desk belongs to the only living room with a window; otherwise ask the general agent.
   const windowed=scene.rooms.filter(r=>windows(scene,r.id).length>0);
@@ -111,7 +112,7 @@ function coarseOpenFloor(scene:Scene,room:Scene['rooms'][number]):number {
   return best*.25**2;
 }
 export interface Candidate { id:string; catalog_ids:string[]; ops:Op[]; intent?:Intent; score:number; scores:{daylight:number;zoning:number;facing:number;open_floor:number}; description:string }
-export interface SlotQuery {roomId:string;catalogId?:string;itemId?:string;nearWindow?:boolean;faceWindow?:boolean;openFloor?:boolean;maxChecks?:number;solidHeadboard?:boolean}
+export interface SlotQuery {roomId:string;catalogId?:string;itemId?:string;nearWindow?:boolean;faceWindow?:boolean;openFloor?:boolean;maxChecks?:number;solidHeadboard?:boolean;diverse?:boolean;sideReserve?:number}
 export function supportedHeadboard(scene:Scene,item:Item){
  const t=item.rot*Math.PI/180,back:Vec2=[item.pos[0]-Math.sin(t)*item.size[1]/2,item.pos[1]+Math.cos(t)*item.size[1]/2];
  return scene.walls.some(w=>{
@@ -174,7 +175,7 @@ function generateSlots(scene:Scene,catalog:readonly CatalogAsset[],query:SlotQue
   if(owned) for(const dx of [-.5,-.25,-.1,0,.1,.25,.5])for(const dy of [-.5,-.25,-.1,0,.1,.25,.5])rotations([owned.pos[0]+dx,owned.pos[1]+dy],owned.rot);
   for(const wall of scene.walls.filter(w=>w.room_id===room.id&&!w.open)){
     const dx=wall.b[0]-wall.a[0],dy=wall.b[1]-wall.a[1],length=Math.hypot(dx,dy),out=wallOutward(scene,wall),rot=Math.atan2(-out[0],out[1])*180/Math.PI;
-    for(const inset of [0,.65,1])for(let offset=base.size[0]/2+(wall.thickness??0)/2;offset<=length-base.size[0]/2-(wall.thickness??0)/2+1e-7;offset+=.25){
+    for(const inset of query.diverse?[0,.025,.65,1]:[0,.65,1])for(let offset=base.size[0]/2+(wall.thickness??0)/2;offset<=length-base.size[0]/2-(wall.thickness??0)/2+1e-7;offset+=.25){
       const depth=base.size[1]/2+(wall.thickness??0)/2+inset;
       rotations([wall.a[0]+dx*offset/length-out[0]*depth,wall.a[1]+dy*offset/length-out[1]*depth],rot);
     }
@@ -182,7 +183,7 @@ function generateSlots(scene:Scene,catalog:readonly CatalogAsset[],query:SlotQue
   for(let x=box.minX+.5;x<box.maxX&&poses.length<1000;x+=.5)for(let y=box.minY+.5;y<box.maxY&&poses.length<1000;y+=.5)for(const rot of [0,90,180,270])rotations([x,y],rot);
   const previous=localGeometryErrors(scene),baseline=checkLocalLayout(scene),deficits=deficitMap(scene,catalog);
   const beforeFloor=baseline.metrics.rooms.find(r=>r.room_id===room.id)?.largest_free_rectangle?.area_m2??0;
-  const obstacles=[...scene.items,...scene.fixed].filter(i=>i.id!==base.id&&!(base.group_id&&i.group_id===base.group_id)&&!isFloorRug(i)).map(i=>({room:i.room_id,polygon:itemPolygon(i)}));
+  const obstacles=[...scene.items,...scene.fixed].filter(i=>i.id!==base.id&&!(base.group_id&&i.group_id===base.group_id)&&!isFloorRug(i)&&onFloor(i)).map(i=>({room:i.room_id,polygon:itemPolygon(i)}));
   const swings=scene.openings.map(o=>physicalDoorSwingPolygon(scene,o)).filter((p):p is Vec2[]=>p!==null);
   const solids=new Map<number,Vec2[][]>();
   const cheap:{item:Item;op:Op;after:Scene;score:number}[]=[];
@@ -197,6 +198,7 @@ function generateSlots(scene:Scene,catalog:readonly CatalogAsset[],query:SlotQue
       return outsidePoint(polygon,ownRoom.polygon)||outsidePoint(polygon,sourceFloorPolygon(scene,ownRoom))||solids.get(i.size[2])!.some(p=>polygonsOverlap(polygon,p))||(!isFloorRug(i)&&(obstacles.some(o=>o.room===i.room_id&&polygonsOverlap(polygon,o.polygon))||swings.some(p=>polygonsOverlap(polygon,p))));
     }))continue;
     if(moved.some(i=>windowBlocked(after,i)))continue;
+    if(query.sideReserve!==undefined&&functionClearances(after).some(c=>c.item_id===item.id&&c.function==='bed_side'&&c.clearance_m<query.sideReserve!-1e-6))continue;
     if(query.nearWindow&&!checkRequest(after,after,[],{preferences:[{type:'near_window',item_id:item.id,max_distance_m:1.5}]},0).ok)continue;
     const edge=Math.min(item.pos[0]-box.minX,box.maxX-item.pos[0],item.pos[1]-box.minY,box.maxY-item.pos[1]);
     const distance=spans.length?Math.min(...spans.map(w=>Math.hypot(item.pos[0]-(w.a[0]+w.b[0])/2,item.pos[1]-(w.a[1]+w.b[1])/2))):10;
@@ -227,6 +229,19 @@ function generateSlots(scene:Scene,catalog:readonly CatalogAsset[],query:SlotQue
     const before=coarseOpenFloor(scene,room);
     for(const c of cheap)c.score=coarseOpenFloor(c.after,room)-before;
     cheap.sort((a,b)=>b.score-a.score||JSON.stringify(a.op).localeCompare(JSON.stringify(b.op)));
+  }
+  // Room programs need alternatives on different walls/positions, not six adjacent slots.
+  if(query.diverse){
+    const pool=cheap.splice(0),ranked:typeof cheap=[];
+    while(pool.length&&ranked.length<(query.maxChecks??24)){
+      let index=0;
+      if(ranked.length){let best=-Infinity;for(let i=0;i<pool.length;i++){
+        const c=pool[i]!,distance=Math.min(...ranked.map(p=>Math.hypot(c.item.pos[0]-p.item.pos[0],c.item.pos[1]-p.item.pos[1])+Math.abs(Math.sin((c.item.rot-p.item.rot)*Math.PI/360))));
+        const merit=distance+.1*c.score;if(merit>best){best=merit;index=i;}
+      }}
+      ranked.push(pool.splice(index,1)[0]!);
+    }
+    cheap.push(...ranked);
   }
   const output:Candidate[]=[];
   for(const {item,op,after} of cheap.slice(0,query.maxChecks??24)){
@@ -315,7 +330,7 @@ export function prepareFastRequest(input:Scene,request:string,catalog:readonly C
     }
     const candidates:Candidate[]=[];
     for(const i of targets){
-      candidates.push(...cache.slots(scene,catalog,{roomId:room,itemId:i.id,faceWindow:classId==='move.face-window',openFloor:classId==='rearrange.open-floor',maxChecks:classId==='rearrange.open-floor'?6:24,...limits}));
+      candidates.push(...cache.slots(scene,catalog,{roomId:room,itemId:i.id,solidHeadboard:i.kind==='bed',faceWindow:classId==='move.face-window',openFloor:classId==='rearrange.open-floor',maxChecks:classId==='rearrange.open-floor'?6:24,...limits}));
       if(candidates.length>=1)break;
     }
     const kinds=[...new Set(targets.map(i=>i.kind))];
@@ -358,7 +373,7 @@ export function prepareFastRequest(input:Scene,request:string,catalog:readonly C
     const choices=assets(kind),offset=limits.variant?limits.variant%Math.max(1,choices.length):0;
     const varied=[...choices.slice(offset),...choices.slice(0,offset)];
     for(const state of beam.slice(0,2))for(const asset of varied.slice(0,3)){
-      const slots=cache.slots(state.scene,catalog,{roomId:room,catalogId:asset.id,nearWindow:kind==='desk',...limits});
+      const slots=cache.slots(state.scene,catalog,{roomId:room,catalogId:asset.id,solidHeadboard:asset.kind==='bed',nearWindow:kind==='desk',...limits});
       for(const slot of slots.slice(0,2)){
         const ops=[...state.ops,...slot.ops];if(recipe.budget!==undefined&&ops.reduce((n,o)=>n+(o.type==='add'?o.item.price??Infinity:0),0)>recipe.budget)continue;
         next.push({scene:applyOps(state.scene,slot.ops),ops,score:state.score+slot.score});
@@ -393,7 +408,7 @@ export async function discoverFastCatalog(scene:Scene,request:string,owned:reado
   const recipe=classifyRequest(request);
   if(!recipe||!(recipe.classId.startsWith('furnish.')||recipe.classId.startsWith('add.')))return [...owned];
   const kinds=recipe.classId==='furnish.living'?['sofa','table']:recipe.classId==='furnish.bedroom'?['bed','wardrobe','nightstand']:recipe.classId==='furnish.kids'?['bed','desk','cabinet']:[recipe.kind!];
-  const pages=await Promise.all(kinds.map(kind=>query({kind,limit:12})));
+  const pages=await mapLimited(kinds,CATALOG_CONCURRENCY,kind=>query({kind,limit:12}));
   const merged=new Map<string,CatalogAsset>();
   for(const page of pages){
     if(!page||typeof page!=='object'||!Array.isArray((page as {results?:unknown}).results))throw Error('Catalog returned no product list');

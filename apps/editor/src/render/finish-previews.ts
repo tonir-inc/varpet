@@ -6,6 +6,8 @@ const previews = new Map<string, string>();
 const previewWidth = 320;
 const previewHeight = 200;
 let pending: Promise<void> | undefined;
+// Metres across each sample: whole planks, a few laid repeats, or fine aggregate.
+const previewWidths: Record<FinishPreset['pattern'], number> = { solid: 1.8, tile: 1.8, wood: 2.4, terrazzo: 0.8, herringbone: 1.5, chevron: 1.7, parquet: 1.6 };
 
 /**
  * Snapshot the same procedural materials used in the room. One temporary WebGL
@@ -53,7 +55,7 @@ async function renderPreviews(): Promise<void> {
       try {
         // Metre-based framing reveals plank lengths and the smaller aggregate,
         // while the matching camera/image aspect ratio preserves square tiles.
-        const width = preset.pattern === 'wood' ? 2.4 : preset.pattern === 'terrazzo' ? 0.8 : 1.8;
+        const width = previewWidths[preset.pattern];
         const height = width * previewHeight / previewWidth;
         camera.left = -width / 2;
         camera.right = width / 2;

@@ -1,19 +1,23 @@
 import * as THREE from 'three';
 import type { BuildingComponent, SceneDocument, ServiceSystem } from '../contracts';
 import { componentPosition } from '../core/renovation';
+import { disposeObject } from './assets';
+import { hasRoomCeiling, roomCeilingHeight } from '../core/heights';
 
 export interface ServiceProjection {
   group: THREE.Group;
   entities: Map<string, THREE.Object3D>;
   components: Map<string, THREE.Group>;
   routes: Map<string, { group: THREE.Group; system: ServiceSystem }>;
-  applyLighting(levels: ReadonlyMap<string, number>, automaticLevel?: number | null): void;
+  applyLighting(levels: ReadonlyMap<string, number>, automaticLevel?: number | null, switchLevel?: (id: string) => number): void;
 }
 /** Interactive circuit state belongs to the preview, never to the saved project. */
 export class LightingPreview {
   readonly levels = new Map<string, number>();
   private lastLevels = new Map<string, number>();
   private components = new Map<string, BuildingComponent>();
+  private lightTargets = new Map<string, { enabled: boolean; kind: 'light' | 'ceiling' }>();
+  private sceneId?: string;
   private automaticLevel: number | null = null;
 
   /** Only the fallback follows the clock; explicit switch/dimmer choices win. */
@@ -21,42 +25,59 @@ export class LightingPreview {
     this.automaticLevel = level !== null && Number.isFinite(level) ? THREE.MathUtils.clamp(level, 0, 1) : null;
   }
 
-  setComponents(components: BuildingComponent[]): void {
-    const next = new Map(components.map(component => [component.id, component]));
-    for (const id of this.levels.keys()) if (!next.has(id)) { this.levels.delete(id); this.lastLevels.delete(id); }
-    for (const id of this.lastLevels.keys()) if (!next.has(id)) this.lastLevels.delete(id);
-    for (const component of components) {
-      const previous = this.components.get(component.id);
-      if (previous?.kind !== component.kind || previous?.light?.enabled !== component.light?.enabled) {
-        this.levels.delete(component.id); this.lastLevels.delete(component.id);
+  setScene(scene: SceneDocument): void {
+    if (this.sceneId !== scene.id) { this.levels.clear(); this.lastLevels.clear(); }
+    this.sceneId = scene.id;
+    this.setComponents(scene.project?.components ?? [], scene);
+  }
+
+  setComponents(components: BuildingComponent[], scene?: SceneDocument): void {
+    const next = new Map(components.map(component => [component.id, scene?.project?.metadata[component.id]?.phase === 'remove' ? { ...component, phase: 'remove' as const } : component]));
+    const targets = new Map<string, { enabled: boolean; kind: 'light' | 'ceiling' }>();
+    for (const component of next.values()) if (component.kind === 'light' && component.phase !== 'remove') targets.set(component.id, { enabled: component.light?.enabled !== false, kind: 'light' });
+    if (scene) for (const room of scene.rooms) {
+      const metadata = scene.project?.metadata[room.id];
+      if (metadata?.ceilingDesign && metadata.phase !== 'remove' && hasRoomCeiling(scene, room)) targets.set(room.id, { enabled: metadata.ceilingDesign.enabled, kind: 'ceiling' });
+    }
+    for (const id of this.levels.keys()) if (!targets.has(id)) { this.levels.delete(id); this.lastLevels.delete(id); }
+    for (const id of this.lastLevels.keys()) if (!targets.has(id)) this.lastLevels.delete(id);
+    for (const [id, target] of targets) {
+      const previous = this.lightTargets.get(id);
+      if (previous?.kind !== target.kind || previous.enabled !== target.enabled) {
+        this.levels.delete(id); this.lastLevels.delete(id);
       }
     }
-    this.components = next;
+    this.components = next; this.lightTargets = targets;
   }
-  private targets(id: string): BuildingComponent[] {
+  private targets(id: string): string[] {
     const control = this.components.get(id);
-    if (control?.phase === 'remove') return [];
-    return (control?.control?.targets ?? []).map(target => this.components.get(target)).filter((component): component is BuildingComponent => component?.kind === 'light' && component.phase !== 'remove');
+    if (control?.kind !== 'switch' || control.phase === 'remove') return [];
+    return (control.control?.targets ?? []).filter(target => this.lightTargets.has(target));
+  }
+  getLightLevel(id: string): number {
+    const target = this.lightTargets.get(id); if (!target) return 0;
+    const level = this.levels.get(id) ?? (target.enabled ? this.automaticLevel ?? 1 : 0);
+    return Number.isFinite(level) ? THREE.MathUtils.clamp(level, 0, 1) : 0;
   }
   getSwitchLevel(id: string): number {
-    return Math.max(0, ...this.targets(id).map(component => previewLightLevel(component, this.levels, this.automaticLevel)));
+    return Math.max(0, ...this.targets(id).map(target => this.getLightLevel(target)));
   }
   setSwitchLevel(id: string, level: number): void {
     if (!Number.isFinite(level)) return;
     const next = THREE.MathUtils.clamp(level, 0, 1);
-    for (const component of this.targets(id)) {
-      const previous = previewLightLevel(component, this.levels, this.automaticLevel);
-      if (next > 0) this.lastLevels.set(component.id, next);
-      else if (previous > 0) this.lastLevels.set(component.id, previous);
-      this.levels.set(component.id, next);
+    for (const target of this.targets(id)) {
+      const previous = this.getLightLevel(target);
+      if (next > 0) this.lastLevels.set(target, next);
+      else if (previous > 0) this.lastLevels.set(target, previous);
+      this.levels.set(target, next);
     }
   }
   toggleSwitch(id: string): void {
-    const targets = this.targets(id); const on = targets.some(component => previewLightLevel(component, this.levels, this.automaticLevel) > 0);
-    for (const component of targets) {
-      const previous = previewLightLevel(component, this.levels, this.automaticLevel);
-      if (on) { if (previous > 0) this.lastLevels.set(component.id, previous); this.levels.set(component.id, 0); }
-      else this.levels.set(component.id, this.lastLevels.get(component.id) ?? 1);
+    const targets = this.targets(id); const on = targets.some(target => this.getLightLevel(target) > 0);
+    for (const target of targets) {
+      const previous = this.getLightLevel(target);
+      if (on) { if (previous > 0) this.lastLevels.set(target, previous); this.levels.set(target, 0); }
+      else this.levels.set(target, this.lastLevels.get(target) ?? 1);
     }
   }
 }
@@ -86,8 +107,10 @@ function segment(parent: THREE.Object3D, start: THREE.Vector3, end: THREE.Vector
 function kelvinColor(kelvin: number): THREE.Color {
   const t = THREE.MathUtils.clamp((kelvin - 2200) / 4300, 0, 1); return new THREE.Color('#ffd18c').lerp(new THREE.Color('#e9f3ff'), t);
 }
-function makeComponent(component: BuildingComponent): THREE.Group {
+/** `drop` is the gap from the fixture's top to the ceiling; a hanging light draws its cord and canopy. */
+function makeComponent(component: BuildingComponent, drop = 0): THREE.Group {
   const group = new THREE.Group(); group.userData.entityId = component.id;
+  if (component.kind === 'ceiling') group.userData.selectionSurface = 'ceiling';
   const [w, h, d] = component.dimensions;
   const material = new THREE.MeshStandardMaterial({ color: component.color, roughness: 0.68 });
   const ceramic = new THREE.MeshStandardMaterial({ color: '#f0f0e8', roughness: 0.22 });
@@ -98,8 +121,16 @@ function makeComponent(component: BuildingComponent): THREE.Group {
   switch (component.kind) {
     case 'light': {
       const emission = new THREE.MeshStandardMaterial({ color: '#fff7df', roughness: 0.4, emissive: kelvinColor(component.light?.temperature ?? 3000), emissiveIntensity: component.phase === 'remove' || component.light?.enabled === false ? 0 : 1 });
-      box(group, w, h * 0.55, d, 0, h * 0.72, 0, material);
-      box(group, w * 0.85, h * 0.12, d * 0.85, 0, h * 0.42, 0, emission);
+      if (drop > 0) {
+        const radius = Math.min(w, d) / 2;
+        cylinder(group, radius, h * 0.8, v(0, h * 0.6, 0), material, radius * 0.35);
+        cylinder(group, radius * 0.9, 0.01, v(0, h * 0.2, 0), emission);
+        cylinder(group, 0.004, drop, v(0, h + drop / 2, 0), dark);
+        cylinder(group, 0.05, 0.02, v(0, h + drop - 0.01, 0), material);
+      } else {
+        box(group, w, h * 0.55, d, 0, h * 0.72, 0, material);
+        box(group, w * 0.85, h * 0.12, d * 0.85, 0, h * 0.42, 0, emission);
+      }
       const light = new THREE.PointLight(kelvinColor(component.light?.temperature ?? 3000), component.phase === 'remove' || component.light?.enabled === false ? 0 : (component.light?.brightness ?? 800) / 50, 9, 2);
       light.position.set(0, -0.08, 0); group.add(light); group.userData.light = light; group.userData.emission = emission;
       break;
@@ -200,12 +231,29 @@ function makeComponent(component: BuildingComponent): THREE.Group {
   return group;
 }
 
+/**
+ * Swap a component's procedural shape for its catalog model (already fitted to the component's
+ * dimensions, floor-centred). The group keeps its pose, entity id and clearance helper, so selection,
+ * transform and layers behave exactly as for the procedural shape.
+ */
+export function installComponentModel(projection: THREE.Group, component: BuildingComponent, model: THREE.Group): void {
+  const clearance = projection.userData.clearance as THREE.Object3D | undefined;
+  for (const child of [...projection.children]) if (child !== clearance && !(child instanceof THREE.Light)) disposeObject(child);
+  delete projection.userData.toggles; delete projection.userData.emission;
+  model.userData.componentModel = true;
+  if (component.phase === 'remove') model.traverse(object => { if (object instanceof THREE.Mesh) for (const mat of Array.isArray(object.material) ? object.material : [object.material]) { mat.transparent = true; mat.opacity = 0.3; } });
+  projection.add(model);
+}
+
 export function makeServices(document: SceneDocument): ServiceProjection {
   const group = new THREE.Group(); const entities = new Map<string, THREE.Object3D>(); const components = new Map<string, THREE.Group>(); const routes = new Map<string, { group: THREE.Group; system: ServiceSystem }>();
   for (const component of document.project?.components ?? []) {
     const assignment = document.project?.finishes.find(item => item.entityId === component.id && item.surface === 'component');
     const color = document.project?.materials.find(material => material.id === assignment?.materialId)?.color ?? component.color;
-    const projection = makeComponent({ ...component, color }); projection.name = component.name; projection.position.fromArray(componentPosition(document, component)); projection.rotation.y = component.rotation;
+    const position = componentPosition(document, component);
+    const room = component.kind === 'light' && !component.host ? document.rooms.find(item => item.id === component.roomId) : undefined;
+    const drop = room ? roomCeilingHeight(document, room) - (position[1] + component.dimensions[1]) : 0;
+    const projection = makeComponent({ ...component, color }, drop > 0.05 ? drop : 0); projection.name = component.name; projection.position.fromArray(position); projection.rotation.y = component.rotation;
     if (component.host) {
       const host = component.host; const wall = document.walls.find(item => item.id === host.wallId);
       if (wall) {
@@ -225,16 +273,16 @@ export function makeServices(document: SceneDocument): ServiceProjection {
   }
   return {
     group, entities, components, routes,
-    applyLighting(levels, automaticLevel = null) {
+    applyLighting(levels, automaticLevel = null, switchLevel) {
       for (const component of document.project?.components ?? []) {
         const projection = components.get(component.id); if (!projection) continue;
         if (component.kind === 'light') {
-          const level = previewLightLevel(component, levels, automaticLevel);
+          const level = document.project?.metadata[component.id]?.phase === 'remove' ? 0 : previewLightLevel(component, levels, automaticLevel);
           const light = projection.userData.light as THREE.PointLight | undefined; if (light) light.intensity = level * (component.light?.brightness ?? 800) / 50;
           const emission = projection.userData.emission as THREE.MeshStandardMaterial | undefined; if (emission) emission.emissiveIntensity = level;
         }
         if (component.control) {
-          const on = component.phase !== 'remove' && component.control.targets.some(id => { const target = document.project?.components.find(item => item.id === id); return target ? previewLightLevel(target, levels, automaticLevel) > 0 : false; });
+          const on = component.phase !== 'remove' && (switchLevel ? switchLevel(component.id) > 0 : component.control.targets.some(id => { const target = document.project?.components.find(item => item.id === id); return target ? previewLightLevel(target, levels, automaticLevel) > 0 : false; }));
           for (const rocker of (projection.userData.toggles ?? []) as THREE.Group[]) rocker.rotation.x = on ? 0.13 : -0.13;
         }
       }

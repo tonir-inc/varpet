@@ -6,7 +6,7 @@ import {randomUUID} from 'node:crypto';
 import {parseScene,applyOps} from './adapter.js';
 import {DesignerSession} from './session.js';
 import {SceneAnalysisCache} from './fast-path.js';
-import {searchCatalog,searchCatalogInputSchema,proxyCatalogQuery,type CatalogQuery} from './catalog.js';
+import {searchCatalog,searchCatalogInputSchema,proxyCatalogQuery,mapLimited,CATALOG_CONCURRENCY,type CatalogQuery} from './catalog.js';
 import {candidateSheet} from './catalog-vision.js';
 import {planIncrementally,intentFor,slotAsset} from './incremental-room.js';
 import {place,placeInputSchema} from './place.js';
@@ -16,9 +16,16 @@ import type {Scene,Op} from './scene.js';
 import type {Intent} from './request.js';
 import {spaceMetrics} from './metrics/space.js';
 import {functionClearances} from './metrics/function.js';
+import {canRestOn,isSurface,surfacePoses,surfacesFor} from './support.js';
+import {mountOf,mountPoses} from './mounts.js';
+import type {CatalogProduct} from './catalog.js';
+
+/** TVs, table lamps and small decor only make sense on furniture; other restable pieces may also use the floor. */
+const surfaceOnly=(p:{kind:string;size:[number,number,number]})=>p.kind==='tv'||p.kind==='lamp'&&p.size[2]<.8||p.kind!=='plant'&&p.kind!=='lamp'&&p.size[2]<.5;
+const supportOp=(product:CatalogProduct,support:{id:string;room_id:string},pose:{pos:[number,number];rot:number},index:number):Op=>({type:'add',item:{...product.item,name:product.name.slice(0,120),id:`on-${support.id}-${index}-${product.sku}`.slice(0,200),room_id:support.room_id,keep:false,pos:pose.pos,rot:pose.rot,on:support.id}});
 
 const id=z.string().trim().min(1).max(200);
-const planSchema=z.object({room_id:id,program:z.enum(['living','bedroom','kids','office','dining','entry','kitchen','bathroom']),style:z.string().max(500).optional(),budget:z.number().int().nonnegative().safe().optional(),keep:z.array(id).max(200).optional(),history:z.array(z.string().max(2000)).max(12).optional()}).strict();
+const planSchema=z.object({room_id:id,program:z.enum(['living','bedroom','kids','office','dining','entry','kitchen','bathroom','balcony']),style:z.string().max(500).optional(),budget:z.number().int().nonnegative().safe().optional(),keep:z.array(id).max(200).optional(),history:z.array(z.string().max(2000)).max(12).optional()}).strict();
 interface Option {ops:Op[];intent:Intent;note:string;missing:string[];complete:boolean;epoch:number}
 export interface TypedOptions {catalogQuery?:CatalogQuery;proposalsDir?:string;customerRequests?:readonly string[];images?:(ids:string[])=>Promise<unknown>}
 
@@ -26,7 +33,7 @@ export interface TypedOptions {catalogQuery?:CatalogQuery;proposalsDir?:string;c
 export function createTypedServer(input:Scene,config:TypedOptions={}){
  const scene=parseScene(input),server=new McpServer({name:'varpet-designer',version:'1.0.0'}),cache=new SceneAnalysisCache();
  const options=new Map<string,Option>(),slots=new Map<string,{piece:string;ops:Op[];epoch:number}>(),seen=new Set<string>();
- const evidence=new Map<string,unknown>(),dir=config.proposalsDir??process.env.VARPET_PROPOSALS_DIR,history=config.customerRequests??[];
+ const evidence=new Map<string,unknown>(),dir=config.proposalsDir??process.env.VARPET_PROPOSALS_DIR,history=config.customerRequests??[],searched=new Map<string,CatalogProduct>();
  const session=new DesignerSession(scene,history);
  let staged:Op[]=[],epoch=0,asked=false;
  const preview=()=>applyOps(scene,staged);
@@ -57,14 +64,14 @@ export function createTypedServer(input:Scene,config:TypedOptions={}){
    if(epoch!==startedEpoch)throw new Error('Layout changed during planning. Your staged edits are preserved; propose them or plan again.');
    const evidenceId=randomUUID();evidence.set(evidenceId,plan);
    if(dir){await mkdir(join(dir,'evidence'),{recursive:true});await writeFile(join(dir,'evidence',evidenceId+'.json'),JSON.stringify(plan),{flag:'wx',mode:0o600});}
-   if(!plan.ops.length)return receipt({ok:false,complete:false,missing:plan.missing,reason:plan.reason,next:'No new anchor fit was found. Try a smaller single product with search_catalog; do not claim impossibility.'},true);
+   if(!plan.ops.length)return receipt({ok:false,complete:false,missing:plan.missing_text,reason:plan.reason,next:'No new anchor fit was found. Try a smaller single product with search_catalog; do not claim impossibility.'},true);
    const valid=checked(plan.ops,plan.intent,plan.reason);if(!valid.ok)return receipt({ok:false,errors:valid.errors.slice(0,3)},true);
    const ids=[...new Set(plan.products.map(p=>p.sku))];
-   const option_id=saveOption({...plan,note:plan.reason});
+   const option_id=saveOption({...plan,missing:plan.missing_text,note:plan.reason});
    const images=[];let inspection='Exact SKU previews attached; check appearance before proposing.';
    try{for(let i=0;i<ids.length;i+=12)images.push(...await inspect(ids.slice(i,i+12)));}catch{inspection='Previews unavailable. Layout retained: call show_candidates for the listed products before propose.';}
    if(epoch!==startedEpoch){options.delete(option_id);throw new Error('Layout changed during preview inspection. Plan again after proposing your staged edits.');}
-   const out=receipt({ok:true,options:[{option_id,complete:plan.complete,missing:plan.missing,cost_dram:valid.proposal.checks.price.cost_dram,products:ids.map((catalog_id,index)=>({tile:index+1,catalog_id})),note:plan.reason.slice(0,500)}],evidence_id:evidenceId,timing:plan.timing,inspection,next:'One checked incremental layout found. Inspect products then propose(option_id). Catalog mock prices are estimates.'});
+   const out=receipt({ok:true,options:[{option_id,complete:plan.complete,missing:plan.missing_text,cost_dram:valid.proposal.checks.price.cost_dram,products:ids.map((catalog_id,index)=>({tile:index+1,catalog_id})),note:plan.reason.slice(0,500)}],evidence_id:evidenceId,timing:plan.timing,inspection,next:'One checked incremental layout found. Inspect products then propose(option_id). Catalog mock prices are estimates.'});
    return {...out,content:[...out.content,...images]};
   }catch(e){return error(e);}
  });
@@ -72,11 +79,35 @@ export function createTypedServer(input:Scene,config:TypedOptions={}){
   try{
    if(!scene.rooms.some(r=>r.id===room_id))throw new Error('Unknown room_id');
    const startedEpoch=epoch;
-   const results=await Promise.all(queries.map(q=>searchCatalog({...q,limit:Math.min(q.limit??4,4)},query(room_id))));
+   const unique=[...new Map(queries.map(q=>[JSON.stringify(q),q])).values()];
+   const results=await mapLimited(unique,CATALOG_CONCURRENCY,q=>searchCatalog({...q,limit:Math.min(q.limit??4,4)},query(room_id)));
    if(epoch!==startedEpoch)throw new Error('Layout changed during catalog search. Search again for current slots.');
-   const products=results.flatMap(r=>r.results).slice(0,6),candidates=[];
+   const products=results.flatMap(r=>r.results).slice(0,6),candidates=[],hints=new Set<string>();
    for(const product of products){
-    const found=cache.slots(preview(),[slotAsset(product)],{roomId:room_id,catalogId:product.sku,maxChecks:16});
+    searched.set(product.sku,product);
+    // Curtains hang over a window and hanging planters from the ceiling; the editor fixes the exact mount.
+    if(mountOf(product)){
+     for(const [index,pose] of mountPoses(preview(),room_id,product).entries()){
+      const op:Op={type:'add',item:{...product.item,name:product.name.slice(0,120),id:`hung-${index}-${product.sku}`.slice(0,200),room_id,keep:false,pos:pose.pos,rot:pose.rot,mount:pose.mount}};
+      const ops=[...staged,op],intent=intentFor(scene,ops,{room_id});if(!checked(ops,intent).ok)continue;
+      const slot_id=`slot-${randomUUID()}`;slots.set(slot_id,{piece:product.sku,ops:[op],epoch});
+      const option_id=saveOption({ops,intent,note:`Hang ${product.name.slice(0,100)} ${pose.mount==='wall'?'over the window':'from the ceiling by the window'}.`,missing:[],complete:true});
+      candidates.push({catalog_id:product.sku,slot_id,option_id,mount:pose.mount,name:product.name.slice(0,80),price:product.price,price_source:product.price_source});break;
+     }
+     hints.add(mountOf(product)==='wall'?'Curtains hang over a window; this room has no uncurtained window with enough wall.':'Hanging planters need a window in a room with a ceiling; outdoor spaces have none.');
+     continue;
+    }
+    // Restable products first try the tops of furniture in the room (TV on the TV unit, lamp on a nightstand).
+    const current=preview(),onTop=surfacesFor(current,room_id,product.kind,product.size).slice(0,2);
+    for(const support of onTop){
+     const pose=surfacePoses(current,support,product.size)[0]!,op=supportOp(product,support,pose,current.items.length);
+     const ops=[...staged,op],intent=intentFor(scene,ops,{room_id});if(!checked(ops,intent).ok)continue;
+     const slot_id=`slot-${randomUUID()}`;slots.set(slot_id,{piece:product.sku,ops:[op],epoch});
+     const option_id=saveOption({ops,intent,note:`Add ${product.name.slice(0,100)} on the ${support.name.slice(0,60)}.`,missing:[],complete:true});
+     candidates.push({catalog_id:product.sku,slot_id,option_id,on:support.id,on_name:support.name.slice(0,60),name:product.name.slice(0,80),price:product.price,price_source:product.price_source});break;
+    }
+    if(canRestOn(product.kind,product.size)&&surfaceOnly(product)){if(!onTop.length)hints.add(`A ${product.kind==='tv'?'TV':product.kind==='lamp'?'table lamp':product.kind} stands on furniture: add a TV unit, table, desk, nightstand, cabinet or shelf with a free top first.`);continue;}
+    const found=cache.slots(preview(),[slotAsset(product)],{roomId:room_id,catalogId:product.sku,maxChecks:16,solidHeadboard:product.kind==='bed'});
     for(const candidate of found.slice(0,1)){
      const ops=[...staged,...candidate.ops],intent=intentFor(scene,ops,{room_id});if(!checked(ops,intent).ok)continue;
      const slot_id=`slot-${randomUUID()}`;slots.set(slot_id,{piece:product.sku,ops:candidate.ops,epoch});
@@ -84,13 +115,35 @@ export function createTypedServer(input:Scene,config:TypedOptions={}){
      candidates.push({catalog_id:product.sku,slot_id,option_id,name:product.name.slice(0,80),price:product.price,price_source:product.price_source});
     }
    }
-   const images=candidates.length?await inspect([...new Set(candidates.map(c=>c.catalog_id))]):[];
-   const out=receipt({ok:!!candidates.length,candidates,reason:candidates.length?'Inspect the attached products, then propose one option ID.':'No checked product fit found; try a different kind or room. This is not proof of impossibility.',catalog_status:results.map(r=>r.status)});
+   // A slow preview must not discard checked slots: propose still refuses products not yet inspected.
+   let images:Awaited<ReturnType<typeof inspect>>=[],previewNote:string|undefined;
+   if(candidates.length)try{images=await inspect([...new Set(candidates.map(c=>c.catalog_id))]);}catch(e){previewNote=(e instanceof Error?e.message:String(e)).slice(0,400)+' Call show_candidates for these catalog IDs before propose.';}
+   const busy=results.find(r=>r.retryable)?.reason;
+   const out=receipt({ok:!!candidates.length,candidates,reason:candidates.length?(previewNote??'Inspect the attached products, then propose one option ID.'):(busy??['No checked product fit found; try a different kind or room.',...hints,'This is not proof of impossibility.'].join(' ')),catalog_status:results.map(r=>r.status),...(busy||previewNote?{retryable:true}:{})});
    return {...out,content:[...out.content,...images]};
   }catch(e){return error(e);}
  });
  server.registerTool('place',{description:'Stage an exact catalog or owned piece in a returned slot. Code composes and checks the operation. Call propose afterward.',inputSchema:z.object({piece_or_catalog_id:id,slot_id:id}).strict()},async({piece_or_catalog_id,slot_id})=>{
   const slot=slots.get(slot_id);if(!slot||slot.piece!==piece_or_catalog_id||slot.epoch!==epoch)return error('Unknown, mismatched or stale slot. Search again after changing the layout.');return saveStage(slot.ops);
+ });
+ server.registerTool('place_on',{description:'Stage a piece on top of existing furniture: an owned item ID (moved onto it) or a catalog_id returned by search_catalog. For a TV on a TV unit, a lamp on a nightstand or desk, decor on a shelf. Code picks a pose that fits wholly on the top and checks it. Call propose afterward.',inputSchema:z.object({piece_or_catalog_id:id,support_id:id}).strict()},async({piece_or_catalog_id,support_id})=>{
+  try{
+   const current=preview(),support=current.items.find(i=>i.id===support_id);
+   if(!support||!isSurface(support))throw new Error('support_id must be a table, desk, nightstand, cabinet, dresser, shelf or TV unit in the scene; seats, beds, rugs and wardrobes cannot hold items.');
+   const owned=current.items.find(i=>i.id===piece_or_catalog_id),product=owned?undefined:searched.get(piece_or_catalog_id);
+   if(!owned&&!product)throw new Error('Unknown piece: use an owned item ID or a catalog_id returned by search_catalog in this conversation.');
+   if(owned&&(owned.keep||owned.group_id))throw new Error('Kept or grouped items cannot be moved onto furniture.');
+   const kind=owned?.kind??product!.kind,size=owned?.size??product!.size;
+   if(!canRestOn(kind,size))throw new Error(`A ${kind} cannot stand on furniture; only lamps, plants, decor, TVs and small electronics can.`);
+   if(owned&&owned.room_id!==support.room_id)throw new Error('Choose a support in the same room as the item.');
+   const poses=surfacePoses(owned?{...current,items:current.items.filter(i=>i.id!==owned.id)}:current,support,size);
+   if(!poses.length)throw new Error(`The top of ${support.id} is too small or already occupied for this ${kind}. Choose a larger support.`);
+   for(const pose of poses){
+    const op:Op=owned?{type:'move',id:owned.id,pos:pose.pos,rot:pose.rot,on:support.id}:supportOp(product!,support,pose,current.items.length);
+    if(checked([...staged,op],intentFor(scene,[...staged,op],{room_id:support.room_id})).ok)return saveStage([op]);
+   }
+   throw new Error('No checked pose on that support. Try another support.');
+  }catch(e){return error(e);}
  });
  server.registerTool('move',{description:'Stage moving an existing item by a semantic relation or returned slot. Kept items and rigid groups remain protected.',inputSchema:z.object({item_id:id,slot_id:id.optional(),relation:relationsToolSchema.element.optional()}).strict()},async({item_id,slot_id,relation})=>{
   try{

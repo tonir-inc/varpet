@@ -13,15 +13,16 @@ Decided with Felix on 26 Sept after rejecting a pink sheet and a dark UI. Mockup
   for measurements. Noto Sans/Serif Armenian cover Armenian (֏ included); all families cover Cyrillic. Fonts load with
   `display=swap`; the system fallbacks are acceptable if the venue blocks Google Fonts.
 - **Shape**: 2–4 px corners, no clouds, no tilted cards, no spaced capitals.
-- **Stage**: a light studio (`#e2e2dd`), white plinth, ink selection edge inside a yellow halo.
+- **Stage**: a muted sage studio (`#a6ada1`), tall charcoal plinth and softly blurred courtyard forms, ink selection edge inside a yellow halo.
 
 ## Where it lives
 
 - Tokens: `apps/editor/src/ui/style.css :root` (every editor stylesheet reads them), `apps/showcase/src/style.css :root`,
   `apps/buyer/src/style.css :root`. Old token names are kept, so no selector changed meaning.
-- The buyer workspace: `apps/editor/src/ui/folio-shell.ts|css` (designer column on the left, flat in the middle, tool
-  drawer on the right, floating toolbar on the selected piece, bottom dock with views and light, More menu for every other
-  panel, quote drawer). Panels are moved, not rebuilt; ids, handlers and keyboard shortcuts are unchanged.
+- The buyer workspace: `apps/editor/src/ui/folio-shell.ts|css` (Designer and general tools share the left column,
+  flat in the middle, one selection Properties panel on the right, floating toolbar on the selected piece,
+  bottom dock with views and light, More menu for general tools, centered costs dialog).
+  Panels are moved, not rebuilt; ids, handlers and keyboard shortcuts are unchanged.
 
 ## Done means
 

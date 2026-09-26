@@ -127,9 +127,11 @@ document.querySelector<HTMLButtonElement>('#run')!.onclick = async event => {
     check(world.getObjectByName('Window daylight preview')?.visible === false, 'Window daylight preview is hidden in Studio');
     check(ceilings().length === store.scene.rooms.length && ceilings().every(mesh => !mesh.castShadow), 'Studio ceilings stop casting interior shadows');
     check(backgroundKey() === studioBackground, 'Studio background is restored after leaving Inside');
-    const exited = camera.position.clone(); canvas.focus(); key('keydown', 'w'); await delay(130); key('keyup', 'w');
-    check(Math.hypot(camera.position.x - exited.x, camera.position.z - exited.z) > 0.02, 'W moves the exterior camera after leaving Inside');
-    check(Math.abs(camera.position.y - exited.y) < 1e-7, 'Exterior movement preserves its restored camera height');
+    const exited = camera.position.clone(), exteriorHeading = camera.getWorldDirection(new THREE.Vector3());
+    canvas.focus(); key('keydown', 'w'); await delay(130); key('keyup', 'w');
+    const exteriorDelta = camera.position.clone().sub(exited);
+    check(exteriorDelta.length() > 0.02, 'W moves the exterior camera after leaving Inside');
+    check(exteriorDelta.normalize().dot(exteriorHeading) > 0.999, 'Exterior W follows the restored full viewing direction, including pitch');
     const exteriorStopped = camera.position.clone(); await delay(150);
     check(camera.position.equals(exteriorStopped), 'Exterior movement stops immediately on key release');
     store.execute({ id: 'raise-interior-qa', label: 'Elevated floor QA', source: 'human', baseRevision: 0,
