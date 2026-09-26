@@ -209,6 +209,9 @@ catalog/schema.sql
 catalog/search.py
 catalog/select_editor_set.py
 catalog/tests/test_generate_worker.py
+compiler/partdsl/compile.py
+compiler/partdsl/glb.py
+compiler/tests/test_compile.py
 docs/catalog.md
 docs/designer-service.md
 docs/designer.md
@@ -245,6 +248,7 @@ output/ceiling-designs/task-diffstat.txt
 output/ceiling-designs/test.log
 output/ceiling-designs/typecheck.log
 output/consolidation-verification/build.log
+output/consolidation-verification/compiler-tests.log
 output/consolidation-verification/files.txt
 output/consolidation-verification/tests.log
 output/consolidation-verification/typecheck.log

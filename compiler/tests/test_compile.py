@@ -61,3 +61,19 @@ def test_fully_rounded_knob_is_allowed(tmp_path):
     prog["parts"].append({"id": "knob", "shape": "rounded_box", "size": [0.03, 0.02, 0.03], "radius": 0.01,
                           "attach": {"to": "seat", "at": [0.5, 0.5, 0], "self": [0.5, 0.5, 1]}})
     assert run(tmp_path, prog) == []
+
+
+def test_glb_root_carries_piece_frame_and_part_tags(tmp_path):
+    from partdsl import glb
+
+    assert run(tmp_path, chair()) == []
+    doc, _ = glb.read((tmp_path / "out" / "piece.glb").read_bytes())
+    root = doc["nodes"][doc["scenes"][0]["nodes"][0]]
+    meta = root["extras"]["varpet"]
+    assert meta["schema"] == "varpet.piece.v1" and meta["frame"]["front"] == "+Z"
+    assert meta["size_m"] == {"width": 0.45, "depth": 0.5, "height": 0.85}
+    legs = [doc["nodes"][i]["extras"]["varpet"] for i in root["children"] if doc["nodes"][i]["name"].startswith("leg")]
+    assert len(legs) == 4 and {l["of"] for l in legs} == {"leg"}
+    assert all("extras" not in m for m in doc["meshes"])
+    scene = trimesh.load(tmp_path / "out" / "piece.glb")  # still a valid GLB
+    assert abs(scene.extents[1] - 0.85) < 0.01

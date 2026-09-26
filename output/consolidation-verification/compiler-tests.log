@@ -1,0 +1,15 @@
+   Building varpet-compiler @ file:///Users/davitstepanyan/Documents/varpet/compiler
+Downloading pygments (1.2MiB)
+Downloading scipy (19.5MiB)
+Downloading pydantic-core (1.8MiB)
+Downloading pillow (4.6MiB)
+Downloading numpy (5.2MiB)
+      Built varpet-compiler @ file:///Users/davitstepanyan/Documents/varpet/compiler
+ Downloaded pygments
+ Downloaded pydantic-core
+ Downloaded pillow
+ Downloaded numpy
+ Downloaded scipy
+Installed 15 packages in 49ms
+.........                                                                [100%]
+9 passed in 20.65s

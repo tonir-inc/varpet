@@ -18,6 +18,7 @@ import trimesh
 from pydantic import ValidationError
 from trimesh.visual import TextureVisuals
 
+from . import glb
 from .materials import box_uv, library, pbr
 from .program import Material, Part, Program
 
@@ -216,13 +217,17 @@ def _groups(parts: list[Instance], idx: list[int]) -> list[list[int]]:
 def export(prog: Program, parts: list[Instance], path: Path) -> None:
     scene = trimesh.Scene()
     mats = {"default": Material()} | prog.materials
+    tags = {}
     for p in parts:
         m = mats[p.material]
         mesh = p.mesh.copy().apply_transform(Z_UP_TO_GLTF)
         mesh.visual = TextureVisuals(uv=p.mesh.visual.uv, material=pbr(m.finish, m.color, m.kind, m.roughness))
-        mesh.metadata["extras"] = {"finish": m.finish, "tint": m.color}
         scene.add_geometry(mesh, node_name=p.id, geom_name=p.id)
-    path.write_bytes(scene.export(file_type="glb", include_normals=True))
+        tags[p.id] = {"part": p.id, "of": p.id.split("@")[0], "material": p.material, "finish": m.finish,
+                      "tint": m.color or (library()[m.finish].default_color if m.finish else None), "kind": m.kind}
+    w, d, h = prog.size
+    piece = {"name": prog.name, "size_m": {"width": w, "depth": d, "height": h}, "parts": len(parts)}
+    path.write_bytes(glb.tag(scene.export(file_type="glb", include_normals=True), piece, tags))
 
 
 def compile_file(program: Path, workdir: Path) -> list[dict]:

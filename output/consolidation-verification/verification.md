@@ -1,7 +1,7 @@
 # Consolidation verification — 2026-09-26
 
 Scope: preserve and push completed Varpet chat work, integrate origin/main at
-`7f5e2c9`, and resolve integration regressions. Snapshot commit: `63617ed`.
+`620aa6b`, and resolve integration regressions. Snapshot commit: `63617ed`.
 All relevant writer chats were idle before Git integration. Six lane worktrees
 were audited: no unique source files or commits remained outside the primary
 workspace. Window-view concepts did not change the editor.
@@ -74,3 +74,11 @@ Final review also checked remote-add-then-browse identity reconciliation and the
 endpoint presentation differences; genuine kind/price/size/source changes still
 reach strict store validation. Two additional red-green tests prove these cases.
 Reviewer verdict after correction: **APPROVE**.
+
+A final clean merge incorporates the upstream compiler GLB piece-root metadata
+change at `620aa6b`. Root tests and typecheck passed again after that merge.
+Fresh-context review of the compiler delta: **APPROVE**; existing tests remain
+intact and the GLB binary chunk and geometry extents are preserved.
+Compiler `uv run pytest -q`: **9 passed in 20.65s**, exit 0. The first
+dependency download timed out; retrying with `UV_HTTP_TIMEOUT=120` succeeded.
+Full compiler output is in `compiler-tests.log`.

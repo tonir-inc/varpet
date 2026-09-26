@@ -4,21 +4,21 @@
 
 Scope: 5 of 6 workspace projects
 packages/designer test$ vitest run && python3 -m unittest discover -s ../../harness -p 'designer*_test.py' && python3 -m unittest discover -s eval -p 'test_*.py'
-tools test$ node --test
 packages/engine test$ vitest run --passWithNoTests
-packages/engine test:  RUN  v5.0.2 /Users/davitstepanyan/Documents/varpet/packages/engine
+tools test$ node --test
 packages/designer test:  RUN  v5.0.2 /Users/davitstepanyan/Documents/varpet/packages/designer
+packages/engine test:  RUN  v5.0.2 /Users/davitstepanyan/Documents/varpet/packages/engine
 packages/engine test: No test files found, exiting with code 0
 packages/engine test: include: **/*.{test,spec}.?(c|m)[jt]s?(x)
 packages/engine test: exclude:  **/node_modules/**, **/.git/**
 packages/engine test: Done
-tools test: ✔ contract files and dirs are denied, ordinary source is allowed (469.314916ms)
-tools test: ✔ a NEW test file may be added; an existing one may not be deleted, weakened or skipped (666.581583ms)
-tools test: ✔ any package's test/ folder is protected from removal, not only the ones listed by name (255.945916ms)
-tools test: ✔ the Stop check reports by default and blocks only when asked (285.56925ms)
-tools test: ✔ a test file that is not committed yet (the agent's own draft) may be fixed; committed ones stay locked (527.421875ms)
-tools test: ✔ if git cannot answer, an uncommitted-looking test is treated as committed (fail closed) (100.649458ms)
-tools test: ✔ changing an expect() in a committed vitest file is denied like an assert (210.817708ms)
+tools test: ✔ contract files and dirs are denied, ordinary source is allowed (394.201166ms)
+tools test: ✔ a NEW test file may be added; an existing one may not be deleted, weakened or skipped (769.332333ms)
+tools test: ✔ any package's test/ folder is protected from removal, not only the ones listed by name (262.271667ms)
+tools test: ✔ the Stop check reports by default and blocks only when asked (239.713042ms)
+tools test: ✔ a test file that is not committed yet (the agent's own draft) may be fixed; committed ones stay locked (576.538583ms)
+tools test: ✔ if git cannot answer, an uncommitted-looking test is treated as committed (fail closed) (106.047792ms)
+tools test: ✔ changing an expect() in a committed vitest file is denied like an assert (167.807334ms)
 tools test: ℹ tests 7
 tools test: ℹ suites 0
 tools test: ℹ pass 7
@@ -26,40 +26,40 @@ tools test: ℹ fail 0
 tools test: ℹ cancelled 0
 tools test: ℹ skipped 0
 tools test: ℹ todo 0
-tools test: ℹ duration_ms 2616.142042
+tools test: ℹ duration_ms 2614.030375
 tools test: Done
 packages/designer test:  Test Files  60 passed (60)
 packages/designer test:       Tests  315 passed (315)
-packages/designer test:    Start at  15:23:56
-packages/designer test:    Duration  4.25s (tests 80%, import 10%, transform 10%, worker 1%)
-packages/designer test:     Isolate  60 workers spawned · ~143ms startup each (spawn + environment, per file)
-packages/designer test:              at least ~518ms faster with isolate: false — reuses workers across files instead of one per file
-packages/designer test: .............................................{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "b86d341377b04f7598bfebeb93bc5e78", "outcome": "proposal", "seconds": 0.007, "usage": null}
-packages/designer test: ...{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "7bf1c98c3fb74a709e45ad68518ba76d", "outcome": "error", "seconds": 0.059, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
-packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "e4a042dbdc994bae820546b01b977901", "outcome": "error", "seconds": 0.374, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
-packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "94b5d25380254dd6a894ecde0426dd7a", "outcome": "error", "seconds": 0.366, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
-packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "10af24a365a940bea98d3b038570f324", "outcome": "error", "seconds": 0.037, "usage": null}
-packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "365e96732a89489bb60e532ff7f0a0f3", "outcome": "error", "seconds": 0.366, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
-packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "5fa7cf2c316543298902868f90bb15b9", "outcome": "aborted", "seconds": 0.194, "usage": null}
-packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "7c795822a8214a42b1f8a56c4fc87234", "outcome": "decline", "seconds": 0.078, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
-packages/designer test: ...{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "1d2c439e46644c89b8de7d281fe7a233", "outcome": "error", "seconds": 0.322, "usage": null}
-packages/designer test: ..{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "fb0e3ad882c541388f5e0b49bde70973", "outcome": "proposal", "seconds": 0.397, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
-packages/designer test: ..{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "aa1cdd5d7f384539a3feec17fc28dcd5", "outcome": "decline", "seconds": 0.064, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
-packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "567bda07eba44137ac7e04de9af677ed", "outcome": "proposal", "seconds": 0.374, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
-packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "5a910e2611554ad9a583e9f7e95c26ea", "outcome": "question", "seconds": 0.066, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
-packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "a4d38337e2274fd69aa9b9befbdad823", "outcome": "proposal", "seconds": 0.363, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
-packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "a4d38337e2274fd69aa9b9befbdad823", "outcome": "decline", "seconds": 0.068, "usage": {"inputTokens": 0, "outputTokens": 0, "totalTokens": 0}}
-packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "d085bef717d94007b6b82a900c2d15d7", "outcome": "error", "seconds": 0.077, "usage": null}
-packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "1523e19d26bf42459fc05b55fb19d27d", "outcome": "error", "seconds": 0.143, "usage": null}
-packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "0798423491f4489191e1ccfb0fd93d3e", "outcome": "error", "seconds": 0.058, "usage": null}
+packages/designer test:    Start at  15:27:31
+packages/designer test:    Duration  3.94s (tests 80%, transform 10%, import 9%, worker 1%)
+packages/designer test:     Isolate  60 workers spawned · ~146ms startup each (spawn + environment, per file)
+packages/designer test:              at least ~527ms faster with isolate: false — reuses workers across files instead of one per file
+packages/designer test: .............................................{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "7d58b6184aaf4894b650d1d076864564", "outcome": "proposal", "seconds": 0.006, "usage": null}
+packages/designer test: ...{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "c631f1969b6a41839a75176f84a90296", "outcome": "error", "seconds": 0.064, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "54cef06d48c3400eba1a6c0fbf502b1c", "outcome": "error", "seconds": 0.376, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "b806bf82557242d5a4d7d484c9225342", "outcome": "error", "seconds": 0.355, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "d6eb01217e434f3cab0d89ea37271b67", "outcome": "error", "seconds": 0.038, "usage": null}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "588cfe12ff164916a4da3dd242111d12", "outcome": "error", "seconds": 0.368, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "d311a410d9454e12ad678727c2f295e7", "outcome": "aborted", "seconds": 0.2, "usage": null}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "b1f107a82de0438fb3c5d8484283106f", "outcome": "decline", "seconds": 0.088, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: ...{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "ba98bda7dd8c49d1b7a47548a3579146", "outcome": "error", "seconds": 0.305, "usage": null}
+packages/designer test: ..{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "1e22d0f4392f49b89842dc00ca9983e9", "outcome": "proposal", "seconds": 0.393, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: ..{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "1d6615e45df54d22bc19783c8e576127", "outcome": "decline", "seconds": 0.079, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "c1defad40dfb4149a3749813093ddc1b", "outcome": "proposal", "seconds": 0.377, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "04195a5ced9749a7a8cf954cbd2848ca", "outcome": "question", "seconds": 0.066, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "e07dadc17bd2496b900db30ffaab8f3d", "outcome": "proposal", "seconds": 0.362, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "e07dadc17bd2496b900db30ffaab8f3d", "outcome": "decline", "seconds": 0.056, "usage": {"inputTokens": 0, "outputTokens": 0, "totalTokens": 0}}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "8a1bfc43ca8b4504b91edac6abdcf191", "outcome": "error", "seconds": 0.083, "usage": null}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "6916a55b2b224658ae41dd2c30414940", "outcome": "error", "seconds": 0.145, "usage": null}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "56b45bcb6f09416b81c44e19c893746c", "outcome": "error", "seconds": 0.057, "usage": null}
 packages/designer test: ..........................
 packages/designer test: ----------------------------------------------------------------------
-packages/designer test: Ran 89 tests in 15.056s
+packages/designer test: Ran 89 tests in 15.071s
 packages/designer test: OK
 packages/designer test: ............EVAL_USAGE_LIMIT
 packages/designer test: ...................
 packages/designer test: ----------------------------------------------------------------------
-packages/designer test: Ran 31 tests in 1.687s
+packages/designer test: Ran 31 tests in 1.694s
 packages/designer test: OK
 packages/designer test: Done
 apps/editor test$ node scripts/check.mjs && node scripts/check-renovation.mjs && node scripts/check-openings.mjs && node scripts/check-finishes.mjs && node scripts/check-continuous-wall-finishes.mjs && node scripts/check-continuous-finish-render.mjs && node scripts/check-finish-texture-presets.mjs && node scripts/check-finish-textures.mjs && node scripts/check-placement.mjs && node scripts/check-walls.mjs && node scripts/check-wall-controller.mjs && node scripts/check-grouping.mjs && node scripts/check-plan-move.mjs && node scripts/check-inspector.mjs && node scripts/check-motion.mjs && node scripts/check-transform-motion.mjs && node scripts/check-projection-motion.mjs && node scripts/check-cutaway.mjs && node scripts/check-wall-junctions.mjs && node scripts/check-apartment-junctions.mjs && node scripts/check-plan-layers.mjs && node scripts/check-plan-measurements.mjs && node scripts/check-selection-camera.mjs && node scripts/check-room-camera.mjs && node scripts/check-walkthrough.mjs && node scripts/check-structural-surfaces.mjs && node scripts/check-heights.mjs && node scripts/check-interior-lighting.mjs && node scripts/check-walkthrough-camera.mjs && node scripts/check-database-catalog.mjs && node scripts/check-assets.mjs && node --test server/catalog.test.mjs && node scripts/check-walkthrough-view.mjs && node scripts/check-architect.mjs && node scripts/check-reconstruction-proposal.mjs && node scripts/check-ceiling-design.mjs && node scripts/check-ceiling-render.mjs && node scripts/check-catalog-http.mjs && node --test tests/*.test.mjs
@@ -109,12 +109,12 @@ apps/editor test: Database catalog mapping checks passed
 apps/editor test: Database startup and saved-reference checks passed
 apps/editor test: Database import, browsing, and currency checks passed
 apps/editor test: assets: 22 checks passed
-apps/editor test: ✔ search uses the real SDK, honors session/SSE, and merges raw dimensions, model and provenance (32.99925ms)
-apps/editor test: ✔ saved item hydration deduplicates ids and reports missing records without fake products (7.36575ms)
-apps/editor test: ✔ vocabulary is returned directly from the database tool (2.687584ms)
-apps/editor test: ✔ remote errors and invalid detail identities return sanitized unavailable responses (6.920084ms)
-apps/editor test: ✔ the request deadline aborts stalled upstream requests (62.545583ms)
-apps/editor test: ✔ invalid or mutating requests never call the catalog and unrelated routes pass through (4.059292ms)
+apps/editor test: ✔ search uses the real SDK, honors session/SSE, and merges raw dimensions, model and provenance (39.817083ms)
+apps/editor test: ✔ saved item hydration deduplicates ids and reports missing records without fake products (7.63275ms)
+apps/editor test: ✔ vocabulary is returned directly from the database tool (2.854208ms)
+apps/editor test: ✔ remote errors and invalid detail identities return sanitized unavailable responses (7.137375ms)
+apps/editor test: ✔ the request deadline aborts stalled upstream requests (64.670417ms)
+apps/editor test: ✔ invalid or mutating requests never call the catalog and unrelated routes pass through (3.663125ms)
 apps/editor test: ℹ tests 6
 apps/editor test: ℹ suites 0
 apps/editor test: ℹ pass 6
@@ -122,7 +122,7 @@ apps/editor test: ℹ fail 0
 apps/editor test: ℹ cancelled 0
 apps/editor test: ℹ skipped 0
 apps/editor test: ℹ todo 0
-apps/editor test: ℹ duration_ms 276.734667
+apps/editor test: ℹ duration_ms 285.931583
 apps/editor test: Walkthrough view checks passed (41 assertions).
 apps/editor test: architect adapter check passed
 apps/editor test: Reconstruction proposal checks passed (16 assertions).
@@ -130,42 +130,42 @@ apps/editor test: Ceiling design contract checks passed: 46 assertions.
 apps/editor test: Ceiling design checks passed: 406 assertions.
 apps/editor test: Ceiling rendering checks passed (150 assertions).
 apps/editor test: catalog HTTP checks passed
-apps/editor test: ✔ designer can propose remote ABO products while existing product identity and provenance stay authoritative (2.3665ms)
-apps/editor test: ✔ remote discovery never reintroduces demo or procedural furniture (0.083042ms)
-apps/editor test: ✔ browsing the same designer-added SKU preserves its registered appearance and updates provenance (0.565709ms)
-apps/editor test: ✔ discovery fits the catalog bound without dropping current scene or history references (4.795958ms)
-apps/editor test: ✔ proposal survives a catalog search, requires approval, and undo restores the empty apartment (0.532166ms)
-apps/editor test: ✔ same-revision conversations retain only added products and immutable snapshots (0.132417ms)
-apps/editor test: ✔ reused proposal IDs cannot substitute a different command or bypass revisions (0.102083ms)
-apps/editor test: ✔ reload restores messages, choices and service conversationId; new conversation retains selectable history (1.919208ms)
-apps/editor test: ✔ scene changes abort work, isolate history and ignore late replies (0.193875ms)
-apps/editor test: ✔ stored pending proposals become stale even when a reloaded store has the same revision (0.287583ms)
-apps/editor test: ✔ preview, apply and dismiss are explicit actions; terminal state persists and cannot apply twice (0.3005ms)
-apps/editor test: ✔ failed approval stays pending and reports the editor error; revision changes mark it stale (0.207375ms)
-apps/editor test: ✔ storage failures and malformed history do not break requests or scene-local session history (0.407542ms)
-apps/editor test: ✔ legacy mock mode does not load or save conversation history (0.088875ms)
-apps/editor test: ✔ preview applies through a scratch command store, checks staleness and leaves the original untouched (1.775375ms)
-apps/editor test: ✔ a new conversation confirms storage availability before reporting its persistence status (0.083917ms)
-apps/editor test: ✔ successfully stored long history remains readable on reload (1.690917ms)
-apps/editor test: ✔ recorded HTTP proposal requires approval, applies through the editor store, and undo restores every object (30.175833ms)
-apps/editor test: ✔ recorded HTTP question continues the conversation and declines preserve keeps (15.83325ms)
-apps/editor test: ✔ a scene edited after the request rejects its stale proposal atomically (7.532709ms)
-apps/editor test: ✔ empty input and overlapping submissions do not start requests (1.315584ms)
-apps/editor test: ✔ streams progress and sends a captured scene, revision and existing keep ids (0.446625ms)
-apps/editor test: ✔ question option is the next message in the same conversation (0.229041ms)
-apps/editor test: ✔ proposal is sent to review once without changing the scene (0.287625ms)
-apps/editor test: ✔ cancel aborts the signal immediately and ignores late progress and proposals (0.159667ms)
-apps/editor test: ✔ a cancelled request cannot clear the busy state of a newer request (0.145792ms)
-apps/editor test: ✔ service errors and network errors are visible and allow retry (0.176167ms)
-apps/editor test: ✔ disposing aborts without publishing a late reply (0.105833ms)
-apps/editor test: ✔ recorded demo has proposal, question, decline and respects keeps (5.685125ms)
-apps/editor test: ✔ proposal numbers come from service score, including zero cost and blocked walkways (2.979541ms)
-apps/editor test: ✔ missing or malformed proposal numbers remain unknown instead of becoming zero (0.155ms)
-apps/editor test: ✔ valid score reports minimum across rooms and whole dram purchases (0.117ms)
-apps/editor test: ✔ no door routes or missing metrics are not reported as measured clearance (0.067667ms)
-apps/editor test: ✔ north is unknown by default, validates degrees, persists per scene and is sent with Suggest (0.233041ms)
-apps/editor test: ✔ unavailable browser storage preserves north for this session without claiming it was saved (0.080292ms)
-apps/editor test: ✔ elapsed seconds use elapsed time, reset on retry, and stop after cancellation and disposal (0.135917ms)
+apps/editor test: ✔ designer can propose remote ABO products while existing product identity and provenance stay authoritative (2.340833ms)
+apps/editor test: ✔ remote discovery never reintroduces demo or procedural furniture (0.089208ms)
+apps/editor test: ✔ browsing the same designer-added SKU preserves its registered appearance and updates provenance (0.562167ms)
+apps/editor test: ✔ discovery fits the catalog bound without dropping current scene or history references (5.00975ms)
+apps/editor test: ✔ proposal survives a catalog search, requires approval, and undo restores the empty apartment (0.629542ms)
+apps/editor test: ✔ same-revision conversations retain only added products and immutable snapshots (0.144125ms)
+apps/editor test: ✔ reused proposal IDs cannot substitute a different command or bypass revisions (0.113333ms)
+apps/editor test: ✔ reload restores messages, choices and service conversationId; new conversation retains selectable history (2.074667ms)
+apps/editor test: ✔ scene changes abort work, isolate history and ignore late replies (0.210125ms)
+apps/editor test: ✔ stored pending proposals become stale even when a reloaded store has the same revision (0.295708ms)
+apps/editor test: ✔ preview, apply and dismiss are explicit actions; terminal state persists and cannot apply twice (0.312125ms)
+apps/editor test: ✔ failed approval stays pending and reports the editor error; revision changes mark it stale (0.227375ms)
+apps/editor test: ✔ storage failures and malformed history do not break requests or scene-local session history (0.41125ms)
+apps/editor test: ✔ legacy mock mode does not load or save conversation history (0.087375ms)
+apps/editor test: ✔ preview applies through a scratch command store, checks staleness and leaves the original untouched (1.724834ms)
+apps/editor test: ✔ a new conversation confirms storage availability before reporting its persistence status (0.081792ms)
+apps/editor test: ✔ successfully stored long history remains readable on reload (1.732875ms)
+apps/editor test: ✔ recorded HTTP proposal requires approval, applies through the editor store, and undo restores every object (30.968625ms)
+apps/editor test: ✔ recorded HTTP question continues the conversation and declines preserve keeps (16.415417ms)
+apps/editor test: ✔ a scene edited after the request rejects its stale proposal atomically (6.532042ms)
+apps/editor test: ✔ empty input and overlapping submissions do not start requests (1.376834ms)
+apps/editor test: ✔ streams progress and sends a captured scene, revision and existing keep ids (0.432584ms)
+apps/editor test: ✔ question option is the next message in the same conversation (0.155708ms)
+apps/editor test: ✔ proposal is sent to review once without changing the scene (0.327583ms)
+apps/editor test: ✔ cancel aborts the signal immediately and ignores late progress and proposals (0.216083ms)
+apps/editor test: ✔ a cancelled request cannot clear the busy state of a newer request (0.171ms)
+apps/editor test: ✔ service errors and network errors are visible and allow retry (0.19625ms)
+apps/editor test: ✔ disposing aborts without publishing a late reply (0.133375ms)
+apps/editor test: ✔ recorded demo has proposal, question, decline and respects keeps (4.60375ms)
+apps/editor test: ✔ proposal numbers come from service score, including zero cost and blocked walkways (3.270958ms)
+apps/editor test: ✔ missing or malformed proposal numbers remain unknown instead of becoming zero (0.194875ms)
+apps/editor test: ✔ valid score reports minimum across rooms and whole dram purchases (0.145042ms)
+apps/editor test: ✔ no door routes or missing metrics are not reported as measured clearance (0.079042ms)
+apps/editor test: ✔ north is unknown by default, validates degrees, persists per scene and is sent with Suggest (0.26675ms)
+apps/editor test: ✔ unavailable browser storage preserves north for this session without claiming it was saved (0.086208ms)
+apps/editor test: ✔ elapsed seconds use elapsed time, reset on retry, and stop after cancellation and disposal (0.149375ms)
 apps/editor test: ℹ tests 36
 apps/editor test: ℹ suites 0
 apps/editor test: ℹ pass 36
@@ -173,5 +173,5 @@ apps/editor test: ℹ fail 0
 apps/editor test: ℹ cancelled 0
 apps/editor test: ℹ skipped 0
 apps/editor test: ℹ todo 0
-apps/editor test: ℹ duration_ms 261.837
+apps/editor test: ℹ duration_ms 262.958084
 apps/editor test: Done
