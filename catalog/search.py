@@ -5,12 +5,13 @@ Every soft signal is optional and switchable so approaches can be compared on th
 """
 import json
 import os
+import re
 from dataclasses import dataclass, field
 
 import numpy as np
 import psycopg
 
-from colors import listing_palette
+from colors import PALETTE, listing_palette
 
 DEFAULT_WEIGHTS = {"text": 1.0, "colour": 1.0, "tags": 0.5, "visual": 1.5, "size": 0.3}
 
@@ -35,6 +36,40 @@ class Query:
     model: str = "siglip2-base-patch16-224"
     weights: dict = field(default_factory=dict)
     limit: int = 10
+    collapse_variants: bool = True
+
+
+_FAMILY_COLORS = set(PALETTE) | set(
+    "navy charcoal ivory cream walnut espresso oak grey gray black white blue green "
+    "beige brown red pink yellow orange purple gold silver brass natural light dark".split()
+)
+_SIZE = re.compile(r'\b\d+(?:\.\d+)?\s*(?:["″”][wdh]?|(?:cm|mm|inches|inch|in)\b)', re.I)
+
+
+def family_key(name, kind):
+    """Normalised product name and kind; None means an ungroupable unnamed item."""
+    if name is None:
+        return None
+    name = _SIZE.sub(" ", name.lower().rsplit(",", 1)[0])
+    words = re.sub(r"[\W_]+", " ", name).split()
+    return kind, " ".join(word for word in words if word not in _FAMILY_COLORS)
+
+
+def collapse_variants(items):
+    """Collapse filtered records by descending score without modifying the inputs."""
+    families, out = {}, []
+    for item in sorted(items, key=lambda item: item["score"], reverse=True):
+        key = family_key(item["name"], item["kind"])
+        if key is None or key not in families:
+            representative = {**item, "variants": []}
+            out.append(representative)
+            if key is not None:
+                families[key] = representative
+        elif len(families[key]["variants"]) < 8:
+            families[key]["variants"].append({
+                field: item[field] for field in ("id", "colors_astra", "price", "size_m")
+            })
+    return out
 
 
 def turned_fits(size, box):
@@ -189,13 +224,18 @@ def search(conn, q: Query):
         scores["size"] = np.array([1 / (1 + np.abs(np.array(p[0]["size_m"]) - t).sum()) for p in passed]); used.add("size")
 
     total = sum(w[k] * scores[k] for k in used) if used else np.zeros(len(passed))
-    order = np.argsort(-total)[: q.limit]
+    order = np.argsort(-total)
     out = []
     for i in order:
         rec = _public(passed[i][0])
-        rec["score"] = round(float(total[i]), 3)
+        rec["score"] = float(total[i])
         rec["why"] = {k: round(float(scores[k][i]), 3) for k in used}
         out.append(rec)
+    if q.collapse_variants:
+        out = collapse_variants(out)
+    out = out[: q.limit]
+    for rec in out:
+        rec["score"] = round(rec["score"], 3)
     return {"results": out, "candidates": len(passed)}
 
 
