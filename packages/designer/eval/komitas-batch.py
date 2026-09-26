@@ -16,6 +16,8 @@ STOP=threading.Event()
 REPORT_LOCK=threading.Lock()
 
 def terminate_group(process):
+    # Reap the leader, but still signal descendants that retained the process group.
+    process.poll()
     try:os.killpg(process.pid,signal.SIGKILL)
     except ProcessLookupError:pass
     except PermissionError:
@@ -23,6 +25,9 @@ def terminate_group(process):
         # failure to stop a live leader; preserve the batch stop after exit.
         if process.poll() is None:raise
     process.wait()
+
+stop_process_group = terminate_group
+
 
 def watched(command,log):
     process=subprocess.Popen(command,cwd=ROOT,stdin=subprocess.DEVNULL,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,start_new_session=True)
@@ -45,8 +50,7 @@ def watched(command,log):
         return process.wait()
     finally:
         selector.close()
-        if process.poll() is None:
-            terminate_group(process)
+        terminate_group(process)
         process.stdout.close()
 
 

@@ -5,6 +5,7 @@ import {StreamableHTTPClientTransport} from '@modelcontextprotocol/sdk/client/st
 import {editorToDesigner} from '../src/editor-bridge.js';
 import {scoreComposition} from '../src/taste/composition.js';
 import {tasteCases} from './taste-cases.js';
+import {enrichTasteEvidence} from './taste-evidence.js';
 import {seatingRubric} from './taste-rubric.js';
 import {requestPolicy} from '../src/request-policy.js';
 import {resolveStyles} from '../knowledge/styles/index.js';
@@ -22,11 +23,11 @@ const ids=[...new Set(cases.flatMap(r=>r.data.scene?.objects.map((o:any)=>o.asse
 const client=new Client({name:'taste-eval',version:'1'}),transport=new StreamableHTTPClientTransport(new URL('http://localhost:8765/mcp'));
 const payload=(r:any)=>r.structuredContent??JSON.parse(r.content.find((c:any)=>c.type==='text').text);
 const missingStyles=Object.entries(metadata).filter(([,m]:[string,any])=>m.styles_inferred===undefined&&m.style_astra===undefined);
-if(ids.length||missingStyles.length){await client.connect(transport);for(let i=0;i<ids.length;i+=4){await Promise.all(ids.slice(i,i+4).map(async id=>{metadata[id]=payload(await client.callTool({name:'get_item',arguments:{item_id:id}}));}));writeFileSync(metadataPath,JSON.stringify(metadata,null,2));}for(const [id,m] of missingStyles as [string,any][]){
- const found=payload(await client.callTool({name:'search_furniture',arguments:{kind:m.kind,text:m.name,limit:20}}));
- const exact=found.results?.find((r:any)=>r.id===id);if(exact)metadata[id]={...m,styles_inferred:exact.style_astra??[],style_evidence:'search_furniture.style_astra (inferred)'};
- writeFileSync(metadataPath,JSON.stringify(metadata,null,2));
- }await client.close();}
+if(ids.length||missingStyles.length){
+ await client.connect(transport);
+ try{await enrichTasteEvidence(metadata,ids as string[],async(name,args)=>payload(await client.callTool({name,arguments:args})),()=>writeFileSync(metadataPath,JSON.stringify(metadata,null,2)));}
+ finally{await client.close();}
+}
 const evidence=Object.fromEntries(Object.entries(metadata).map(([id,m]:[string,any])=>[id,{styles:m.styles??[],styles_inferred:m.styles_inferred??m.style_astra??m.tags?.astra?.style??[],colors_image:m.colors_image??m.colors_img?.map((c:any)=>c.name)??[]}]));
 const rows=[];
 for(const c of cases){
