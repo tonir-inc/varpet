@@ -96,8 +96,9 @@ bridge CLI, MCP proposal gate and proposal persistence to the editor's own `vali
 `EditorStore`. Only model reasoning is replaced with a deterministic worker; it does not measure
 live model latency or browser rendering. The store still requires approval and rejects stale edits.
 Measured 2026-09-26: all 20 objects and all openings in the editor demo convert. The standing regression
-moves the living-room lounge chair and applies its accepted command in EditorStore despite 29 baseline
-walkway failures (including 0.15 m dining access). Existing non-worsened failures remain notes; new or
+moves the living-room lounge chair and applies its accepted command in EditorStore despite baseline
+walkway failures. There are 31 with physical wall thickness included (the earlier centre-line model
+reported 29). Existing non-worsened failures remain notes; new or
 worsened ones block. This is a preview comparison, not certification that the original flat is legal.
 
 Colour ops carry an explicit item/wall target and `#RRGGBB` value and must match `set_intent.colors`.
@@ -107,6 +108,9 @@ and does not mark the wall for structural replacement. The browser rejects geome
 One wall colour affects both faces and all original-wall segments. V2 project data is retained on the
 original snapshot; only requested command effects and the editor's normal assumption invalidation apply.
 Finish work is unquoted; the reported incremental furniture purchase cost does not price paint or labour.
+The Avani standing fixture also caught a rug penetrating the west wall by 5 mm. Wall thickness now
+crosses the bridge into preview checks, circulation and wall/corner placement; the same candidate is
+refused before translation. A smaller valid group move still passes the designer and editor gates.
 
 ## Inside the editor (added 26 Sept 14:00: the editor owner is not adding designer UI, so we build it)
 

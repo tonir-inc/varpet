@@ -31,6 +31,56 @@ ABLATION = (
 )
 
 
+def suite_paths(suite="bedroom"):
+    if suite not in ("bedroom", "avani"):
+        raise ValueError(f"Unknown benchmark suite: {suite}")
+    return {"scenarios": HERE / ("avani-benchmark-scenarios.json" if suite == "avani" else "benchmark-scenarios.json"),
+            "latest": HERE / ("latest-avani.json" if suite == "avani" else "latest.json"),
+            "runs": HERE / "runs" / "avani" if suite == "avani" else HERE / "runs"}
+
+
+def build_jobs(scenarios, *, without_place=False, with_place_only=False):
+    if without_place and with_place_only:
+        raise ValueError("Choose either --without-place or --with-place-only")
+    jobs = [(scenario, "without-place" if without_place else "with-place") for scenario in scenarios]
+    if not (without_place or with_place_only):
+        jobs.extend((scenario, "without-place") for scenario in scenarios if scenario["category"] == "rearrange")
+    return jobs
+
+
+def json_hash(value):
+    return hashlib.sha256(json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+
+
+def load_scene_input(scenario):
+    """Load the current declared source and retain the exact editor input, never a copied demo fixture."""
+    kind = scenario.get("scene_source", "json")
+    if kind == "editor-demo":
+        variant = scenario.get("scene_variant", "original")
+        if variant not in ("original", "grouped-v2"):
+            raise ValueError(f"Unknown editor demo variant: {variant}")
+        if "scene_path" in scenario:
+            raise ValueError("editor-demo cannot also specify a JSON scene_path")
+        result = subprocess.run([str(ROOT / "packages/designer/node_modules/.bin/tsx"), str(HERE / "editor-demo.ts"), variant, "--bundle"],
+                                text=True, capture_output=True, stdin=subprocess.DEVNULL, timeout=30)
+        if result.returncode:
+            raise RuntimeError(result.stderr)
+        source = json.loads(result.stdout)
+        provenance = {"kind": kind, "variant": variant, "editor_source": "apps/editor/src/core/demo.ts",
+                      "group_policy": "move-together", "editor_scene_sha256": json_hash(source["editor_scene"]),
+                      "catalog_sha256": json_hash(source["catalog"])}
+    elif kind == "json":
+        path = scenario.get("scene_path", "packages/designer/test/fixtures/bedroom.json")
+        source = {"scene": json.loads((ROOT / path).read_text())}
+        provenance = {"kind": kind, "path": path}
+    else:
+        raise ValueError(f"Unknown scene_source: {kind}")
+    for item in source["scene"]["items"]:
+        item["name"] = scenario.get("scene_patch", {}).get("item_names", {}).get(item["id"], item["name"])
+    provenance["scene_sha256"] = json_hash(source["scene"])
+    return {**source, "scene_source": provenance}
+
+
 def worker_config(scene_path: Path, without_place=False):
     config = ORIGINAL_CONFIG(scene_path)
     if without_place:
@@ -117,11 +167,10 @@ def execute(scenario, mode, batch, args, cancel):
     run_id = scenario["id"] + "-" + mode
     path = batch / (run_id + ".jsonl")
     transcript = designer.Transcript(path)
-    scene = json.loads((ROOT / scenario.get("scene_path", "packages/designer/test/fixtures/bedroom.json")).read_text())
-    for item in scene["items"]:
-        item["name"] = scenario.get("scene_patch", {}).get("item_names", {}).get(item["id"], item["name"])
+    source = load_scene_input(scenario)
+    scene = source["scene"]
     transcript.write("benchmark", scenario=scenario, mode=mode, model=designer.MODEL, effort="medium",
-                     scene=scene, ablation=ABLATION if mode == "without-place" else None)
+                     **source, ablation=ABLATION if mode == "without-place" else None)
     events, pending, stderr_tail = [], "", ""
 
     def output(channel, chunk):
@@ -157,7 +206,7 @@ def execute(scenario, mode, batch, args, cancel):
     if result.usage_limited:
         cancel.set()
     status = "usage_limit" if result.usage_limited else "idle_timeout" if result.timed_out else "deadline" if result.deadline_exceeded else "cancelled" if result.cancelled else summary["status"]
-    record = {**summary, "id": run_id, "scenario": scenario, "scene": scene, "mode": mode,
+    record = {**summary, "id": run_id, "scenario": scenario, **source, "mode": mode,
               "seconds": round(result.seconds, 3), "status": status, "returncode": result.returncode,
               "transcript": str(path.relative_to(HERE)), "measured_at": datetime.now(timezone.utc).isoformat()}
     # A partial thread can yield a checked proposal before its deadline; keep both facts.
@@ -166,16 +215,26 @@ def execute(scenario, mode, batch, args, cancel):
     record_path.write_text(json.dumps(record, ensure_ascii=False, indent=2) + "\n")
     record["measurement"] = score(record)
     record["grader_sha256"] = hashlib.sha256((HERE / "measure.ts").read_bytes()).hexdigest()
-    transcript.write("benchmark_summary", **{k: v for k, v in record.items() if k not in ("scene", "tool_calls", "scenario")})
+    transcript.write("benchmark_summary", **{k: v for k, v in record.items() if k not in ("scene", "editor_scene", "catalog", "tool_calls", "scenario")})
     record_path.write_text(json.dumps(record, ensure_ascii=False, indent=2) + "\n")
     print(f"END {run_id}: {status}; {record['seconds']}s; {record['tokens']} tokens; {record['rounds']} rounds", flush=True)
     return record
 
 
-def source_hashes():
-    paths = [ROOT / "harness/designer.py", ROOT / "harness/designer_prompt.md", HERE / "benchmark-scenarios.json"]
+def source_hashes(suite="bedroom"):
+    paths = [ROOT / "harness/designer.py", ROOT / "harness/designer_prompt.md", suite_paths(suite)["scenarios"],
+             ROOT / ".agents/skills/interior-design-rules/SKILL.md", HERE / "run.py", HERE / "report.py", HERE / "measure.ts"]
     paths.extend(sorted((ROOT / "packages/designer/src").rglob("*.ts")))
+    if suite == "avani":
+        paths.extend([HERE / "editor-demo.ts", ROOT / "apps/editor/src/contracts.ts", ROOT / "apps/editor/src/renovation-contracts.ts"])
+        paths.extend(sorted((ROOT / "apps/editor/src/core").glob("*.ts")))
     return {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest() for path in paths}
+
+
+def git_state():
+    revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
+    dirty = bool(subprocess.check_output(["git", "status", "--porcelain"], cwd=ROOT, text=True).strip())
+    return {"git_revision": revision, "git_dirty": dirty}
 
 
 def restore_settings(args, manifest):
@@ -190,8 +249,11 @@ def restore_settings(args, manifest):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--worker", type=Path, help=argparse.SUPPRESS)
-    parser.add_argument("--live", action="store_true", help="Start a new live 19-run batch; default replays the saved measurements")
-    parser.add_argument("--without-place", action="store_true", help="Withhold place; allow coordinate generation")
+    parser.add_argument("--suite", choices=("bedroom", "avani"), help="Named input suite; defaults to bedroom, or the selected batch's suite")
+    parser.add_argument("--live", action="store_true", help="Start a new live suite batch; default replays saved measurements")
+    modes = parser.add_mutually_exclusive_group()
+    modes.add_argument("--without-place", action="store_true", help="Withhold place; allow coordinate generation")
+    modes.add_argument("--with-place-only", action="store_true", help="Run each selected request once, without an ablation repeat")
     parser.add_argument("--concurrency", type=int, default=4, choices=range(1, 5))
     parser.add_argument("--idle-timeout", type=float, default=180)
     parser.add_argument("--timeout", type=float, default=600)
@@ -207,9 +269,18 @@ def main():
             prefix = designer.static_prefix
             designer.static_prefix = lambda: prefix() + ABLATION
         return designer.sdk_worker(args.worker)
-    if args.report_only or not (args.live or args.resume_batch or args.only or args.without_place):
+    selected_batch = args.resume_batch or args.batch
+    selected_manifest = json.loads((selected_batch / "manifest.json").read_text()) if selected_batch else None
+    recorded_suite = selected_manifest.get("suite", "bedroom") if selected_manifest else None
+    if args.suite and recorded_suite and args.suite != recorded_suite:
+        parser.error("Selected batch belongs to a different suite")
+    args.suite = args.suite or recorded_suite or "bedroom"
+    paths = suite_paths(args.suite)
+    if args.report_only or not (args.live or args.resume_batch or args.only or args.without_place or args.with_place_only):
         from report import write_report
-        batch = args.batch or HERE / (HERE / "latest.json").read_text().strip('"\n')
+        if not args.batch and not paths["latest"].exists():
+            parser.error(f"No saved {args.suite} batch; run --suite {args.suite} --live first")
+        batch = args.batch or HERE / json.loads(paths["latest"].read_text())
         if args.rescore:
             rescore(batch)
         write_report(batch)
@@ -217,19 +288,17 @@ def main():
     if importlib.util.find_spec("openai_codex") is None:
         # Replay has no third-party dependencies; live runs provision the pinned SDK.
         os.execvp("uv", ["uv", "run", "--no-project", "--with", "openai-codex==0.157.1", "python", str(HERE / "run.py"), *sys.argv[1:]])
-    scenarios = json.loads((HERE / "benchmark-scenarios.json").read_text())
+    scenarios = json.loads(paths["scenarios"].read_text())
     if args.only:
         scenarios = [s for s in scenarios if s["id"] in args.only.split(",")]
         if not scenarios:
             parser.error("No matching scenarios")
-    jobs = [(s, "without-place" if args.without_place else "with-place") for s in scenarios]
-    if not args.without_place:
-        jobs.extend((s, "without-place") for s in scenarios if s["category"] == "rearrange")
-    batch = args.resume_batch.resolve() if args.resume_batch else HERE / "runs" / datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    jobs = build_jobs(scenarios, without_place=args.without_place, with_place_only=args.with_place_only)
+    batch = args.resume_batch.resolve() if args.resume_batch else paths["runs"] / datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     if args.resume_batch:
         manifest = json.loads((batch / "manifest.json").read_text())
         restore_settings(args, manifest)
-        if manifest["source_hashes"] != source_hashes():
+        if manifest["source_hashes"] != source_hashes(args.suite):
             parser.error("Cannot resume against different designer source/scenarios; start a new batch")
         by_id = {s["id"]: s for s in scenarios}
         jobs = [(by_id[j["scenario"]], j["mode"]) for j in manifest["jobs"]
@@ -240,13 +309,16 @@ def main():
         manifest.setdefault("resumed_at", []).append(datetime.now(timezone.utc).isoformat())
     else:
         batch.mkdir(parents=True)
-        manifest = {"started_at": datetime.now(timezone.utc).isoformat(), "model": designer.MODEL, "effort": "medium",
+        manifest = {"suite": args.suite, "scenario_file": paths["scenarios"].name, "scenarios": scenarios,
+                "started_at": datetime.now(timezone.utc).isoformat(), "model": designer.MODEL, "effort": "medium",
                 "concurrency": args.concurrency, "idle_timeout_seconds": args.idle_timeout, "deadline_seconds": args.timeout,
-                "jobs": [{"scenario": s["id"], "mode": m} for s, m in jobs], "source_hashes": source_hashes(),
-                "git_revision": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
-                    "ablation": ABLATION, "bedroom_sha256": hashlib.sha256((ROOT / "packages/designer/test/fixtures/bedroom.json").read_bytes()).hexdigest()}
+                "jobs": [{"scenario": s["id"], "mode": m} for s, m in jobs], "source_hashes": source_hashes(args.suite),
+                **git_state(),
+                    "ablation": ABLATION}
+        if args.suite == "bedroom":
+            manifest["bedroom_sha256"] = hashlib.sha256((ROOT / "packages/designer/test/fixtures/bedroom.json").read_bytes()).hexdigest()
     (batch / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
-    (HERE / "latest.json").write_text(json.dumps(str(batch.relative_to(HERE))) + "\n")
+    paths["latest"].write_text(json.dumps(str(batch.relative_to(HERE))) + "\n")
     cancel = threading.Event()
     pending_jobs = iter(jobs)
     failures = []

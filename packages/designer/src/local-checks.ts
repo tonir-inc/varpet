@@ -1,12 +1,14 @@
 import { parseScene } from './adapter.js';
 import { physicalDoorSwingPolygon, itemPolygon, isFloorRug, pointInPolygon, polygonsOverlap, spaceMetrics } from './metrics/space.js';
 import type { Scene, Vec2 } from './scene.js';
+import { wallSolidPolygons } from './wall-geometry.js';
 
 export interface LayoutError {
-  check: 'inside' | 'overlap' | 'door_swing' | 'walkway';
+  check: 'inside' | 'overlap' | 'door_swing' | 'walkway' | 'wall_collision';
   item_ids: string[]; at: Vec2; message: string; deficit_m?: number;
   room_id: string;
   opening_id?: string;
+  wall_id?: string;
   walkway?: { from: string; to: string; reachable: boolean };
 }
 const EPS=1e-8;
@@ -22,6 +24,7 @@ export function layoutErrorKey(error:LayoutError):string|undefined {
     return JSON.stringify([error.check,error.room_id,[path.from,path.to].sort()]);
   }
   if(!error.item_ids.length||(error.check==='door_swing'&&!error.opening_id)) return undefined;
+  if(error.check==='wall_collision') return error.wall_id ? JSON.stringify([error.check,error.room_id,[...error.item_ids].sort(),error.wall_id]) : undefined;
   return JSON.stringify([error.check,error.room_id,[...error.item_ids].sort(),error.opening_id??null]);
 }
 
@@ -99,6 +102,14 @@ export function localGeometryErrors(input:Scene):LayoutError[] {
       if(!outside||distance>deficit) {outside=point;deficit=distance;}
     }
     if(outside) errors.push({check:'inside',room_id:room.id,item_ids:[item.id],at:outside,deficit_m:deficit,message:`${item.id} extends outside room ${room.id}`});
+    // Rugs are floor coverings but cannot penetrate physical walls. Aggregate shared aliases
+    // and split spans by source wall so the greatest penetration controls baseline comparison.
+    const wallHits = new Map<string, LayoutError>();
+    for(const solid of wallSolidPolygons(scene, item.size[2])) if(polygonsOverlap(footprints[i]!,solid.polygon)) {
+      const depth = penetration(footprints[i]!,solid.polygon), previous = wallHits.get(solid.wall_id);
+      if(!previous || depth > previous.deficit_m!) wallHits.set(solid.wall_id, {check:'wall_collision',room_id:room.id,wall_id:solid.wall_id,item_ids:[item.id],at:[...item.pos],deficit_m:depth,message:`${item.id} intersects wall ${solid.wall_id} by ${depth.toFixed(3)} m`});
+    }
+    errors.push(...wallHits.values());
     for(let j=i+1;j<items.length;j++) {
       const other=items[j]!;
       if(!isFloorRug(item)&&!isFloorRug(other)&&other.room_id===item.room_id&&polygonsOverlap(footprints[i]!,footprints[j]!)) {

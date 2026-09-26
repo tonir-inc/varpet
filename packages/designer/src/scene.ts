@@ -3,7 +3,7 @@
  * This temporary model is isolated from the engine by adapter.ts. */
 export type Vec2 = [number, number];
 export interface Room { id: string; name?: string; polygon: Vec2[] }
-export interface Wall { id: string; room_id: string; a: Vec2; b: Vec2; open?: boolean; color?: string; source_id?: string; keep?: boolean }
+export interface Wall { id: string; room_id: string; a: Vec2; b: Vec2; open?: boolean; color?: string; source_id?: string; keep?: boolean; thickness?: number; height?: number }
 export interface Opening {
   id: string; wall_id: string; kind: 'door' | 'window' | 'passage';
   offset: number; width: number; height: number; sill: number;

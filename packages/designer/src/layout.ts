@@ -9,7 +9,7 @@ import type { Op, Scene, Vec2 } from './scene.js';
 export interface LayoutIssue {
   check: string; severity: 'hard'|'soft'; message: string; item_ids: string[]; at: Vec2;
   deficit_m?: number; overlap_depth_m?: number;
-  room_id?: string; opening_id?: string; walkway?: LayoutError['walkway'];
+  room_id?: string; opening_id?: string; wall_id?: string; walkway?: LayoutError['walkway'];
   /** A measured pre-existing violation that this preview does not worsen. */
   baseline?: true;
   /** If true, at is only a finite serialization sentinel, not a measured location. */
@@ -81,8 +81,8 @@ export function checkLayout(scene:Scene,ops:readonly Op[]=[],options:LayoutCheck
   const comparison=(options.compareBaseline??ops.length>0)
     ? compareLayoutErrors(checkLocalLayout(scene).errors,local.errors) : {errors:local.errors,notes:[]};
   const issue=(error:LayoutError,severity:LayoutIssue['severity']):LayoutIssue=>({
-    ...error,check:error.check==='inside'?'containment':error.check==='overlap'?'collision':error.check,severity,
-    ...(error.check==='overlap'?{overlap_depth_m:error.deficit_m}:{}),
+    ...error,check:error.check==='inside'?'containment':error.check==='overlap'||error.check==='wall_collision'?'collision':error.check,severity,
+    ...(error.check==='overlap'||error.check==='wall_collision'?{overlap_depth_m:error.deficit_m}:{}),
   });
   const errors:LayoutIssue[]=comparison.errors.map(error=>issue(error,'hard'));
   const notes:LayoutIssue[]=comparison.notes.map(error=>({...issue(error,'soft'),baseline:true,message:`Pre-existing, not worsened: ${error.message}`}));

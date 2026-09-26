@@ -62,7 +62,9 @@ tree beyond that: architect/builder subagent trees lost to single calls this wee
 ## Design metrics (code; each one explainable in a sentence)
 
 - **Open floor:** free area in m² and the largest free rectangle (the space you can actually use), per
-  room, before and after.
+  room, before and after. Physical wall thickness is occupied floor; wall-based placements touch the
+  inner face. Rugs can underlie furniture but must still clear physical walls. Floor-reaching doors
+  create wall passages only for furniture that fits below the door head.
 - **Circulation:** a walkway from every door to every item's front and between doors, on a 5 cm grid;
   narrowest width fails under 0.6 m, warns under 0.75 m, good from 0.9 m.
   Proposals and placement compare each violation against the original snapshot. Unchanged or improved
@@ -124,6 +126,12 @@ The four tiers from Notion (hard checks, legal trajectory, preferences, pairwise
 request check, on 12 scenarios on the demo flat: 6 rearranges, 2 add-a-function, 2 daylight questions,
 1 out of scope, 1 impossible (must decline and say why). Log rounds, seconds and tokens per run. The
 prompt-injection row (instructions hidden in product names) stays in the set.
+
+The editor's actual Avani demo is a standing source imported directly from `apps/editor/src/core/demo.ts`
+by designer tests and the separate `--suite avani` benchmark. Tests cover the real MCP colour/preview
+schemas, HTTP adapter, editor approval and revision checks, scoped rearrangement, grouped v2 data,
+and physical wall thickness. Benchmark grading also requires the editor to accept the translated
+proposal. Historical bedroom measurements keep their original source and results.
 
 ## Build order
 

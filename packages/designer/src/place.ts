@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { applyOps, wallCompass, wallOutward } from './adapter.js';
 import { checkLocalLayout, compareLayoutErrors, localGeometryErrors } from './local-checks.js';
 import { itemPolygon, isFloorRug, polygonsOverlap } from './metrics/space.js';
+import { innerWallFace, wallSolidPolygons } from './wall-geometry.js';
 import type { Item, Op, Room, Scene, Vec2, Wall } from './scene.js';
 
 const EPS = 1e-7, STEP = 0.05, RAD = Math.PI / 180;
@@ -98,7 +99,7 @@ function rayDistance(origin: Vec2, direction: Vec2, polygon: Vec2[]): number {
 }
 
 function clearances(scene: Scene, item: Item, room: Room, walkway_m: number | null): PlacementCandidate['clearances'] {
-  const polygons = [room.polygon, ...[...scene.items, ...scene.fixed].filter(other => other.id !== item.id && other.room_id === room.id && !isFloorRug(other)).map(itemPolygon)];
+  const polygons = [room.polygon, ...wallSolidPolygons(scene,item.size[2]).map(solid => solid.polygon), ...[...scene.items, ...scene.fixed].filter(other => other.id !== item.id && other.room_id === room.id && !isFloorRug(other)).map(itemPolygon)];
   const measure = (direction: Vec2, halfSize: number) => {
     const origin = add(item.pos, scale(direction, halfSize));
     return rounded(Math.min(...polygons.map(polygon => rayDistance(origin, direction, polygon))));
@@ -182,7 +183,7 @@ export function place(scene: Scene, input: PlaceRequest, baseline: Scene = scene
   };
   const wallPoses = (wall: Wall) => {
     const delta = sub(wall.b, wall.a), span = length(delta), along = scale(delta, 1 / span), inward = scale(wallOutward(scene, wall), -1), rotation = facing(inward);
-    for (let offset = base.size[0] / 2; offset <= span - base.size[0] / 2 + EPS && !searchLimited; offset += STEP) addPose(add(add(wall.a, scale(along, offset)), scale(inward, base.size[1] / 2)), rotation);
+    for (let offset = base.size[0] / 2; offset <= span - base.size[0] / 2 + EPS && !searchLimited; offset += STEP) addPose(add(add(wall.a, scale(along, offset)), scale(inward, base.size[1] / 2 + (wall.thickness ?? 0) / 2)), rotation);
   };
   const against = request.relations.find(relation => relation.type === 'against_wall');
   const beside = request.relations.find(relation => relation.type === 'beside');
@@ -202,7 +203,7 @@ export function place(scene: Scene, input: PlaceRequest, baseline: Scene = scene
       if (Math.abs(determinant) < EPS) continue;
       for (const rotation of [facing(n1), facing(n2)]) {
         const extent = (normal: Vec2) => Math.abs(dot(right(rotation), normal)) * base.size[0] / 2 + Math.abs(dot(front(rotation), normal)) * base.size[1] / 2;
-        const d1 = dot(n1, vertex) + extent(n1), d2 = dot(n2, vertex) + extent(n2);
+        const d1 = dot(n1, vertex) + extent(n1) + (a.thickness ?? 0) / 2, d2 = dot(n2, vertex) + extent(n2) + (b.thickness ?? 0) / 2;
         addPose([(d1 * n2[1] - n1[1] * d2) / determinant, (n1[0] * d2 - d1 * n2[0]) / determinant], rotation);
       }
     }
@@ -237,7 +238,7 @@ export function place(scene: Scene, input: PlaceRequest, baseline: Scene = scene
     const minX = Math.min(...xs), minY = Math.min(...ys), maxX = Math.max(...xs), maxY = Math.max(...ys);
     for (let x = minX; x <= maxX + EPS && !searchLimited; x += STEP) for (let y = minY; y <= maxY + EPS && !searchLimited; y += STEP) for (const rotation of facingRelation ? [0] : [0, 90, 180, 270]) addPose([x, y], rotation);
   }
-  const touches = (item: Item, wall: Wall) => polygonDistance(itemPolygon(item), [wall.a, wall.b]) < EPS;
+  const touches = (item: Item, wall: Wall) => polygonDistance(itemPolygon(item), innerWallFace(scene,wall)) < EPS;
   function relationFits(item: Item, relation: PlacementRelation): boolean {
     const polygon = itemPolygon(item);
     switch (relation.type) {

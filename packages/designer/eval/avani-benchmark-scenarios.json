@@ -1,0 +1,24 @@
+[
+  {
+    "id": "avani-living-rearrange", "category": "rearrange", "scene": "Avani editor demo",
+    "scene_source": "editor-demo", "scene_variant": "original",
+    "request": "Make the living room feel bigger.",
+    "expected_intent": {"room_id":"room-living","add":[],"remove":[],"budget_dram":0,"move":[{"kinds":["sofa","chair","table","cabinet","lamp","plant","rug"],"count":1}]},
+    "expect": {"kind":"proposal","min_largest_rectangle_delta_m2":0.1},
+    "grading_assumption": "Interpret feel bigger as at least 0.10 square metres more largest empty floor rectangle, retaining furniture and buying nothing; this is a declared benchmark proxy, not a measured aesthetic preference."
+  },
+  {
+    "id": "avani-wall-blue", "category": "appearance", "scene": "Avani editor demo",
+    "scene_source": "editor-demo", "scene_variant": "original",
+    "request": "Make the living room west wall blue, exactly #3366cc. Keep all furniture, geometry and other colours unchanged. Propose the colour edit; do not claim that paint or labour has been priced.",
+    "expected_intent": {"room_id":"room-living","add":[],"remove":[],"colors":[{"target":"wall","id":"wall-west","color":"#3366cc"}]},
+    "expect": {"kind":"proposal"}
+  },
+  {
+    "id": "avani-grouped-lounge", "category": "rearrange", "scene": "Avani editor demo, explicit grouped v2 variant",
+    "scene_source": "editor-demo", "scene_variant": "grouped-v2",
+    "request": "Move the grouped lounge chair and living rug together to a different valid location in the living room. Preserve their relative arrangement and all other furniture poses. Keep every item, buy nothing, and propose the checked group move.",
+    "expected_intent": {"room_id":"room-living","add":[],"remove":[],"budget_dram":0,"move":[{"kinds":["chair"],"count":1},{"kinds":["rug"],"count":1}],"keeps":["sofa","coffee-table","floor-lamp","media-console","dining-table","dining-chair-north","dining-chair-south","dining-chair-west","dining-chair-east","living-olive"]},
+    "expect": {"kind":"proposal"}
+  }
+]

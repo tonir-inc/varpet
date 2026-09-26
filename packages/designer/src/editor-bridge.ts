@@ -111,7 +111,7 @@ export function editorToDesigner(input: unknown, options: EditorBridgeOptions = 
       return (editor.project?.materials.find(material => material.id === finish?.materialId)?.color ?? wall.color).toLowerCase();
     });
     const metadata = editor.project?.metadata[wall.id];
-    for (const span of spans) scene.walls.push({ id: span.id!, room_id: span.roomId, a: point(span.from), b: point(span.to), source_id: wall.id,
+    for (const span of spans) scene.walls.push({ id: span.id!, room_id: span.roomId, a: point(span.from), b: point(span.to), source_id: wall.id, thickness: wall.thickness, height: wall.height,
       keep: metadata?.locked === true || metadata?.phase === 'retain', ...(faceColors[0] === faceColors[1] ? { color: faceColors[0] } : {}) });
     for (const opening of wall.openings) {
       const span = spans.find(candidate => opening.offset >= candidate.from - EPS && opening.offset + opening.width <= candidate.to + EPS);

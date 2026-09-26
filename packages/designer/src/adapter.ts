@@ -14,7 +14,7 @@ const item = z.object({
 const sceneInput = z.object({
   north_deg: num.optional(),
   rooms: z.array(z.object({ id, name: z.string().optional(), polygon: z.array(point).min(3) })),
-  walls: z.array(z.object({ id, room_id: id, a: point, b: point, open: z.boolean().optional(), color: colorSchema.optional(), source_id: id.optional(), keep: z.boolean().optional() })),
+  walls: z.array(z.object({ id, room_id: id, a: point, b: point, open: z.boolean().optional(), color: colorSchema.optional(), source_id: id.optional(), keep: z.boolean().optional(), thickness: num.nonnegative().optional(), height: num.positive().optional() })),
   openings: z.array(z.object({
     id, wall_id: id, kind: z.enum(['door', 'window', 'passage']), offset: num.nonnegative(),
     width: num.positive(), height: num.positive(), sill: num.nonnegative(),

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { colorTargetSchema, wallCompass, wallOutward } from './adapter.js';
 import { itemPolygon, polygonsOverlap } from './metrics/space.js';
+import { innerWallFace } from './wall-geometry.js';
 import type { Item, Op, Scene, Vec2 } from './scene.js';
 
 const id = z.string().trim().min(1), distance = z.number().finite().nonnegative();
@@ -130,7 +131,7 @@ function preferenceError(scene: Scene, preference: GeometricPreference): Request
     const walls = scene.walls.filter(wall => wall.room_id === item.room_id && !wall.open && (!preference.wall_id || wall.id === preference.wall_id) && (!preference.compass || wallCompass(scene, wall) === preference.compass));
     if (!walls.length) return fail(`Preference against_wall: no matching wall ${preference.wall_id ?? preference.compass ?? ''} in room ${item.room_id}`);
     const front: Vec2 = [Math.sin(item.rot * RAD), -Math.cos(item.rot * RAD)];
-    const distances = walls.map(wall => footprintDistance(polygon, [wall.a, wall.b]));
+    const distances = walls.map(wall => footprintDistance(polygon, innerWallFace(scene,wall)));
     const passed = walls.some((wall, index) => { const outward = wallOutward(scene, wall); return distances[index]! < EPS && -dot(front, outward) >= 1 - EPS; });
     return passed ? undefined : fail(`${item.id} must have its back against wall ${preference.wall_id ?? preference.compass ?? 'in this room'} and face inward`, Math.min(...distances));
   }
