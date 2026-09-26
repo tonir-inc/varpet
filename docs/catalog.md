@@ -139,3 +139,9 @@ For the demo, run the whole catalog on the laptop: no VM, tunnel or venue Wi-Fi 
 3. Point tools at it: editor `VARPET_CATALOG_URL=http://127.0.0.1:8765/mcp pnpm dev`; designer/harness via
    `VARPET_CATALOG_URL` in `~/.config/varpet/env`.
 Measured on Sergey's Mac: 8,113 items, 7,013 models, 2,471 previews (4.7 GB), searches 0.01–0.25 s.
+
+## Doors and windows (26 Sept)
+The 10 opening models in `catalog/openings/` are catalog items too (`extra:openings:<file stem>`, kind `door` / `window`,
+source 'extra', mock prices, previews). They are not in the default `placeable` scope (the editor places openings its own
+way): search them with `kind=door|window` or `scope=all`. Place them per `catalog/openings/README.md` (no normalising).
+All 169 extra items now have SigLIP embeddings (their render stands in for the photo), so text search finds them.
