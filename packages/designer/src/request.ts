@@ -1,3 +1,4 @@
+import {requestPolicy,canonicalKind} from './request-policy.js';
 import { z } from 'zod';
 import { colorTargetSchema, wallCompass, wallOutward } from './adapter.js';
 import { itemPolygon, polygonsOverlap } from './metrics/space.js';
@@ -146,9 +147,11 @@ function preferenceError(scene: Scene, preference: GeometricPreference): Request
 
 /** Pure request gate. Actions use actual scene deltas, with operations audited separately
  * to prevent temporary purchases/replacements and touch-then-restore changes to keeps. */
-export function checkRequest(before: Scene, after: Scene, ops: readonly Op[], input: Intent, cost_dram: number | null): RequestCheck {
+export function checkRequest(before: Scene, after: Scene, ops: readonly Op[], input: Intent, cost_dram: number | null, customerRequests: readonly string[] = []): RequestCheck {
   const intent = intentSchema.parse(input), errors: RequestError[] = [];
   const beforeById = new Map(before.items.map(item => [item.id, item])), afterById = new Map(after.items.map(item => [item.id, item]));
+  const blocked=new Set(requestPolicy(customerRequests).blocked_kinds);
+  for(const op of ops)if(op.type==='add'&&blocked.has(canonicalKind(op.item.kind)))errors.push({check:'removed_kind',message:`The customer removed ${op.item.kind}; only a new explicit customer request may add that kind again.`,item_ids:[op.item.id]});
   const additions = after.items.filter(item => !beforeById.has(item.id));
   const removals = before.items.filter(item => !afterById.has(item.id));
   const moves = after.items.filter(item => { const original = beforeById.get(item.id); return original !== undefined && !samePose(original, item); });

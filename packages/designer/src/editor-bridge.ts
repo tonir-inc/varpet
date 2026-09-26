@@ -15,6 +15,7 @@ import { snapRoomFaces, reconciledWall } from './reconcile-geometry.js';
 import { DesignerSession } from './session.js';
 
 export interface EditorBridgeOptions {
+  customerRequests?: readonly string[];
   /** V2 editor snapshots reconcile by default; legacy v1 callers retain strict conversion. */
   geometryPolicy?: 'strict' | 'reconcile';
   catalog?: CatalogAsset[];
@@ -172,7 +173,7 @@ export function proposalToEditor(input: unknown, editorInput: unknown, revision:
     if (!Number.isSafeInteger(asset.price) || op.item.price !== asset.price) throw new Error(`Addition ${op.item.id} must carry the exact catalog price in AMD`);
     if ((editorKindOf[op.item.kind] ?? op.item.kind) !== asset.kind || op.item.size.some((size, index) => Math.abs(size - [asset.dimensions[0], asset.dimensions[2], asset.dimensions[1]][index]!) > EPS)) throw new Error(`Addition ${op.item.id} does not match catalog asset kind and dimensions`);
   }
-  const session = new DesignerSession(scene);
+  const session = new DesignerSession(scene,options.customerRequests);
   session.setIntent(candidate.intent);
   const rechecked = session.propose(ops, candidate.rationale);
   if (!rechecked.ok) throw new Error(`Proposal no longer passes request/layout checks: ${JSON.stringify(rechecked.errors)}`);
@@ -221,6 +222,7 @@ async function main(args: string[]): Promise<void> {
     const flag = args.shift(), value = args.shift();
     if (value === undefined) throw new Error(`Missing value for ${flag}`);
     if (flag === '--catalog') options.catalog = await jsonFile(value) as CatalogAsset[];
+    else if (flag === '--customer-requests') { const valueParsed=await jsonFile(value); if(!Array.isArray(valueParsed)||!valueParsed.every(v=>typeof v==='string'))throw new Error('Customer requests must be strings'); options.customerRequests=valueParsed; }
     else if (flag === '--keep') options.keep = value.split(',').filter(Boolean);
     else if (flag === '--north') options.northDeg = Number(value);
     else if (flag === '--swings') { const parsed = await jsonFile(value); if (!isRecord(parsed)) throw new Error('Door swings must be an object keyed by door ID'); options.doorSwings = parsed as EditorBridgeOptions['doorSwings']; }

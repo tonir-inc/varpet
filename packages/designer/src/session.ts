@@ -32,7 +32,7 @@ export class DesignerSession {
   private readonly proposals=new Map<string,Proposal>();
   private nextId=1;
 
-  constructor(scene:Scene) {
+  constructor(scene:Scene, private readonly customerRequests:readonly string[] = []) {
     this.scene=parseScene(scene);
     this.fingerprint=createHash('sha256').update(JSON.stringify(this.scene)).digest('hex');
   }
@@ -65,7 +65,7 @@ export class DesignerSession {
       }];
       if(!checks.ok) return {ok:false,errors:checks.errors};
       const after=applyOps(this.scene,ops);
-      const request=checkRequest(this.scene,after,ops,this.intent,checks.price.cost_dram);
+      const request=checkRequest(this.scene,after,ops,this.intent,checks.price.cost_dram,this.customerRequests);
       if(!request.ok) return {ok:false,errors:request.errors};
       const score=scoreLayout(this.scene,ops);
       const id=`proposal-${this.nextId++}`;

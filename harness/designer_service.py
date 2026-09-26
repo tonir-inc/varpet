@@ -97,6 +97,7 @@ def tool_values(event: dict, tool: str) -> list[dict]:
 @dataclass
 class Conversation:
     root: Path
+    customer_requests: list[str] = field(default_factory=list)
     runtime: dict | None = None
     usage: dict | None = None
     usage_known: bool = True
@@ -198,6 +199,9 @@ class DesignerService:
                     conversation.runtime = designer.prepare_runtime(conversation.root / "runtime", scene)
                 else:
                     Path(conversation.runtime["scene"]).write_text(json.dumps(scene, ensure_ascii=False))
+                conversation.customer_requests.append(body["request"])
+                customer_requests = Path(conversation.runtime["scene"] + ".requests.json")
+                customer_requests.write_text(json.dumps(conversation.customer_requests, ensure_ascii=False))
                 proposals = root / "proposals"
                 proposals.mkdir()
                 job = root / "job.json"
@@ -264,7 +268,7 @@ class DesignerService:
                     target = root / "command.json"
                     progress("Preparing the checked layout preview")
                     self._process(self.bridge_command + ["to-command", str(proposal_file), str(editor_scene),
-                                                         str(body["revision"]), str(target)] + extras, cancel)
+                                                         str(body["revision"]), str(target)] + extras + ["--customer-requests", str(customer_requests)], cancel)
                     proposal = json.loads(target.read_text())
                     command = proposal.get("command", {})
                     if (not all(isinstance(proposal.get(key), str) for key in ("id", "title", "description"))

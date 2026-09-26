@@ -23,10 +23,10 @@ export function result(data: unknown, isError = false) {
   return { content: [{ type: 'text' as const, text: typeof data === 'string' ? data : JSON.stringify(data) }], ...(isError ? { isError: true } : {}) };
 }
 
-export function createServer(input: Scene, options:{catalogQuery?:CatalogQuery; proposalsDir?:string}={}) {
+export function createServer(input: Scene, options:{catalogQuery?:CatalogQuery; proposalsDir?:string; customerRequests?:readonly string[]}={}) {
   const scene = parseScene(input);
   const proposalsDir = options.proposalsDir ?? process.env.VARPET_PROPOSALS_DIR;
-  const session = new DesignerSession(scene);
+  const session = new DesignerSession(scene,options.customerRequests);
   let styleCandidates:DesignCandidate[]=[];
   let stylePlanning=false;
   const server = new McpServer({ name: 'varpet-designer', version: '0.0.0' });
@@ -125,7 +125,7 @@ export function createServer(input: Scene, options:{catalogQuery?:CatalogQuery; 
       stylePlanning=true;styleCandidates=[];
       try{
         if(!room_id)throw new Error('Style requests require room_id');
-        const plan=await designRoom(scene,{room_id,style_request,remake,remove_ids,excluded_roles},options.catalogQuery);
+        const plan=await designRoom(scene,{room_id,style_request,remake,remove_ids,excluded_roles,customer_requests:options.customerRequests},options.catalogQuery);
         styleCandidates=plan.candidates;
         return result({knowledge:plan.knowledge,missing_kinds:plan.catalog.missing_kinds,unavailable_kinds:plan.catalog.unavailable_kinds,retried_kinds:plan.catalog.retried_kinds,reason:plan.reason,selected_id:plan.selected_id,
           candidates:plan.candidates.map(c=>({id:c.id,intent:c.intent,composition:c.composition,items:c.ops.filter(op=>op.type==='add').map(op=>op.item),physical_checks_passed:c.checks.ok,cost_dram:c.checks.price.cost_dram}))});
@@ -146,7 +146,12 @@ async function main() {
   const scenePath = sceneArg >= 0 ? process.argv[sceneArg+1] : process.env.VARPET_SCENE;
   if (!scenePath) throw new Error('Supply --scene /absolute/path/to/scene.json or VARPET_SCENE');
   const scene = parseScene(JSON.parse(await readFile(scenePath,'utf8')));
-  await createServer(scene).connect(new StdioServerTransport());
+  let customerRequests:string[]=[];
+  try { const value:unknown=JSON.parse(await readFile(`${scenePath}.requests.json`,'utf8'));
+    if(!Array.isArray(value)||!value.every(v=>typeof v==='string'))throw new Error('Customer requests must be strings');
+    customerRequests=value;
+  } catch(error) { if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error; }
+  await createServer(scene,{customerRequests}).connect(new StdioServerTransport());
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch(error => { console.error(error); process.exitCode = 1; });

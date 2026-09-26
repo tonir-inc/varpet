@@ -8,7 +8,8 @@ shared colors. Style matching reads catalog `styles` and `colors_image`, never p
 FAST recipes can import `styles`, `resolveStyles`, `stylePalette` from `./index.js`, and
 `roomPrograms`, `inferRoomProgram` from `../room-programs.js`. Programs expose `search_kinds`,
 `essentials` (role/kinds/count), and `relations`. Explicit customer exclusions override roles;
-removing a particular couch does not exclude a replacement seating anchor.
+removing a couch excludes sofas until the customer explicitly requests one again. Two facing chairs
+can supply the seating anchor. Customer history is enforced at MCP and editor proposal gates.
 
 `src/taste/catalog.ts:searchRoomCatalog(program, styles, query?)` searches every program kind in
 bounded batches, filters metadata, and orders confirmed sizes first. Empty groups remain explicit gaps.

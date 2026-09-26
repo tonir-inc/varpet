@@ -1,3 +1,4 @@
+import {requestPolicy,canonicalKind} from '../request-policy.js';
 import type {Scene,Op,Item,Vec2} from '../scene.js';
 import {applyOps} from '../adapter.js';
 import {checkLayout} from '../layout.js';
@@ -8,22 +9,26 @@ import {resolveStyles,styles} from '../../knowledge/styles/index.js';
 import {inferRoomProgram,roomPrograms} from '../../knowledge/room-programs.js';
 import {scoreComposition,type TasteOptions} from './composition.js';
 import type {CatalogQuery,CatalogProduct} from '../catalog.js';
-export interface DesignRequest {room_id:string;style_request:string;remake?:boolean;remove_ids?:string[];excluded_roles?:string[]}
+export interface DesignRequest {room_id:string;style_request:string;remake?:boolean;remove_ids?:string[];excluded_roles?:string[];customer_requests?:readonly string[]}
 export interface DesignCandidate {id:string;ops:Op[];intent:{room_id:string;add:{kinds:string[];count:number}[];remove:{kinds:string[];count:number}[]};checks:ReturnType<typeof checkLayout>;composition:ReturnType<typeof scoreComposition>}
 /** Geometry recipes enumerate poses. Composition grading is independent of these construction rules. */
 export async function designRoom(scene:Scene,request:DesignRequest,query?:CatalogQuery){
  const room=scene.rooms.find(r=>r.id===request.room_id);if(!room)throw new Error('Unknown room');
  const program=inferRoomProgram(room.name??room.id),styleIds=resolveStyles(request.style_request);
  if(!program||!styleIds.length)throw new Error('A supported room and explicit style are required');
+ const blocked=new Set(requestPolicy(request.customer_requests?.length?request.customer_requests:[request.style_request]).blocked_kinds);
+ const anchorAlternative=blocked.has('sofa');
+ const excludedRoles=[...request.excluded_roles??[],...anchorAlternative?['seating_anchor']:[]];
  const catalog=await searchRoomCatalog(program,styleIds,query,true);
- const knowledge={program:roomPrograms[program],styles:styleIds.map(id=>({id,...styles[id]}))};
+ for(const kind of Object.keys(catalog.products))if(blocked.has(canonicalKind(kind)))catalog.products[kind]=[];
+ const knowledge={blocked_kinds:[...blocked],program:roomPrograms[program],styles:styleIds.map(id=>({id,...styles[id]}))};
  const base={knowledge,catalog,candidates:[] as DesignCandidate[],selected_id:null as string|null,reason:''};
  if(program==='bedroom'){
-  const candidates=bedroomCandidates(scene,request,catalog.products,{program,styles:styleIds,catalog:Object.fromEntries(Object.values(catalog.products).flat().map(p=>[p.sku,p])),excluded_roles:request.excluded_roles});
+  const candidates=bedroomCandidates(scene,request,catalog.products,{program,styles:styleIds,catalog:Object.fromEntries(Object.values(catalog.products).flat().map(p=>[p.sku,p])),excluded_roles:excludedRoles});
   return {...base,candidates,selected_id:candidates[0]?.id??null,reason:candidates.length?'Two complete checked bedroom compositions.':'No two complete bedroom compositions fit with a solid headboard wall and reachable bedside furniture.'};
  }
  if(program!=='living')return {...base,reason:'Room program and catalog supplied; automatic composition currently supports living rooms and bedrooms. Use relation placement for this program.'};
- const products=catalog.products,excluded=new Set(request.excluded_roles??[]);
+ const products=catalog.products,excluded=new Set(excludedRoles);
  const target:Record<string,number>={sofa:1.8,chair:.8,table:.5,lamp:.3,shelf:.65,rug:3};
  const pick=(kind:string,predicate:(p:CatalogProduct)=>boolean=()=>true)=>(products[kind]?.filter(predicate)??[]).sort((a,b)=>Number(b.size_status==='confirmed')-Number(a.size_status==='confirmed')||Math.abs(a.size[0]-(target[kind]??1))-Math.abs(b.size[0]-(target[kind]??1))).slice(0,4);
  const sofas=pick(excluded.has('seating_anchor')?'chair':'sofa',p=>p.size[0]>=(excluded.has('seating_anchor')?.6:1.4)&&p.size[0]<=2.8&&p.size[1]<=1.2),chairs=pick('chair',p=>p.size[0]>=.6&&p.size[0]<=1.1&&p.size[1]<=1.15);
@@ -36,7 +41,7 @@ export async function designRoom(scene:Scene,request:DesignRequest,query?:Catalo
  const lifted=applyOps(scene,remove.map(i=>({type:'remove' as const,id:i.id})));
  const xs=room.polygon.map(p=>p[0]),ys=room.polygon.map(p=>p[1]),minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
  const evidence=Object.fromEntries(Object.values(products).flat().map(p=>[p.sku,p]));
- const options:TasteOptions={program,styles:styleIds,catalog:evidence,excluded_roles:request.excluded_roles};
+ const options:TasteOptions={program,styles:styleIds,catalog:evidence,excluded_roles:excludedRoles,alternative_seating:anchorAlternative};
  const rejected:Record<string,number>={};const reject=(code:string)=>{rejected[code]=(rejected[code]??0)+1;};
  const candidates:DesignCandidate[]=[],baselineGeometry=localGeometryErrors(scene);
  const counts=(items:Item[])=>Object.entries(items.reduce<Record<string,number>>((m,i)=>(m[i.kind]=(m[i.kind]??0)+1,m),{})).map(([kind,count])=>({kinds:[kind],count}));

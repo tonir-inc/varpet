@@ -2,7 +2,7 @@ import type {Scene,Item,Vec2} from '../scene.js';
 import {itemPolygon,polygonsOverlap} from '../metrics/space.js';
 import {roomPrograms} from '../../knowledge/room-programs.js';
 import {styleMatches,stylePalette,styleFamilies} from '../../knowledge/styles/index.js';
-export interface TasteOptions {program:string;styles?:string[];catalog?:Record<string,{styles:string[];styles_inferred?:string[];colors_image:string[]}>;excluded_roles?:string[]}
+export interface TasteOptions {program:string;styles?:string[];catalog?:Record<string,{styles:string[];styles_inferred?:string[];colors_image:string[]}>;excluded_roles?:string[];alternative_seating?:boolean}
 export interface TasteIssue {code:string;item_ids:string[];message:string}
 const EPS=1e-6;
 const seats=(i:Item)=>['sofa','chair','armchair','loveseat'].includes(i.kind);
@@ -43,6 +43,7 @@ export function scoreComposition(scene:Scene,roomId:string,options:TasteOptions)
   check(role.role,count>=role.count,role.role==='seating_anchor'?3:1,`Needs ${role.count} ${role.role.replaceAll('_',' ')} (${role.kinds.join(' or ')}).`);
  }
  if(options.program==='living'){
+  if(options.alternative_seating)check('alternative_seating_anchor',items.filter(i=>i.kind==='chair').length>=2&&!items.some(i=>i.kind==='sofa'),3,'Replace the removed sofa with at least two seats of another kind.');
   const group=items.filter(seats),rugs=items.filter(i=>i.kind==='rug'),lamps=items.filter(i=>i.kind==='lamp'),surfaces=items.filter(tables);
   const focal=items.filter(i=>['tv','tv_unit','shelf','cabinet','fireplace'].includes(i.kind));
   check('seat_facing',group.length>0&&group.every(a=>focal.some(b=>facing(a,b.pos)&&distance(a,b)<=4.5)||group.some(b=>a!==b&&facing(a,b.pos)&&facing(b,a.pos))),2,'Every seat must face a focal point or another seat.',group.map(i=>i.id));

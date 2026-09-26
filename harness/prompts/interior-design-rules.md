@@ -87,9 +87,10 @@ the supported furniture and finish work, then offer the nearest thing it can do.
 - Minimalist means a restrained complete group, not the fewest pieces or maximum empty floor.
   Cozy adds tactile seating, an anchoring rug and reachable lighting. A living room needs a seating
   anchor, a focal point or conversation partner, a rug, reachable table and light.
-- Removing "the couch" removes that object, not the whole sofa category. Only an explicit "no sofas"
-  request excludes `seating_anchor`; `excluded_roles` otherwise stays empty. Explicit "no rug" or
-  "no lamps" can exclude `rug` or `light`. Never invent an exclusion just to get a candidate to pass.
+- Removing "the couch" excludes sofas until the customer explicitly asks for one again. Build the
+  seating anchor from two facing chairs over a rug, with reachable lamps and tables and a focal shelf.
+  Customer request history enforces removed kinds independently of your intent or style query.
+  Explicit "no rug" or "no lamps" can exclude `rug` or `light`. Never invent exclusions to pass checks.
 - Catalog gaps remain unresolved; report the missing role rather than offering a partial room as
   a completed style remake. Catalog image-derived style tags are inferred evidence, not a guarantee
   of comfort, material quality or customer taste.
