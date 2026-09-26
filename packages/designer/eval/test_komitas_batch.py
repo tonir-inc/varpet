@@ -4,7 +4,7 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 spec=importlib.util.spec_from_file_location('komitas_batch',Path(__file__).with_name('komitas-batch.py'))
 m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
 
@@ -22,6 +22,25 @@ class Batch(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             with self.assertRaisesRegex(RuntimeError,'Batch stopped'):
                 m.watched([sys.executable,'-c','print("usage limit reached",flush=True)'],Path(directory)/'run.log')
+            self.assertTrue(m.STOP.is_set())
+
+    def test_signal_permission_failure_for_live_child_is_not_hidden(self):
+        child=Mock(pid=123);child.poll.return_value=None
+        with patch.object(m.os,'killpg',side_effect=PermissionError('denied')):
+            with self.assertRaises(PermissionError):m.terminate_group(child)
+        child.wait.assert_not_called()
+
+    def test_usage_limit_preserved_if_group_signal_races_with_child_exit(self):
+        original=m.subprocess.Popen;children=[]
+        def launch(*args,**kwargs):
+            child=original(*args,**kwargs);children.append(child);return child
+        def exited_group(*args):
+            children[0].wait(timeout=5)
+            raise PermissionError('group already exited')
+        with tempfile.TemporaryDirectory() as directory:
+            with patch.object(m.subprocess,'Popen',side_effect=launch),patch.object(m.os,'killpg',side_effect=exited_group):
+                with self.assertRaisesRegex(RuntimeError,'Batch stopped'):
+                    m.watched([sys.executable,'-c','print("usage limit reached",flush=True)'],Path(directory)/'run.log')
             self.assertTrue(m.STOP.is_set())
 
     def test_failed_capture_makes_whole_batch_fail(self):

@@ -15,6 +15,15 @@ ROOT=HERE.parents[2]
 STOP=threading.Event()
 REPORT_LOCK=threading.Lock()
 
+def terminate_group(process):
+    try:os.killpg(process.pid,signal.SIGKILL)
+    except ProcessLookupError:pass
+    except PermissionError:
+        # macOS can deny signaling an already-exited group. Never hide a
+        # failure to stop a live leader; preserve the batch stop after exit.
+        if process.poll() is None:raise
+    process.wait()
+
 def watched(command,log):
     process=subprocess.Popen(command,cwd=ROOT,stdin=subprocess.DEVNULL,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,start_new_session=True)
     selector=selectors.DefaultSelector();selector.register(process.stdout,selectors.EVENT_READ)
@@ -23,9 +32,8 @@ def watched(command,log):
         with log.open('wb') as stream:
             while True:
                 if STOP.is_set() or time.monotonic()-last>240:
-                    try:os.killpg(process.pid,signal.SIGKILL)
-                    except ProcessLookupError:pass
-                    process.wait();raise RuntimeError('Batch stopped or no output for 240 seconds')
+                    terminate_group(process)
+                    raise RuntimeError('Batch stopped or no output for 240 seconds')
                 ready=selector.select(1)
                 if ready:
                     chunk=os.read(process.stdout.fileno(),65536)
@@ -38,7 +46,7 @@ def watched(command,log):
     finally:
         selector.close()
         if process.poll() is None:
-            os.killpg(process.pid,signal.SIGKILL);process.wait()
+            terminate_group(process)
         process.stdout.close()
 
 
