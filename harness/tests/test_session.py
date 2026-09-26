@@ -143,3 +143,36 @@ def test_piece_ids_are_normalised(tmp_path):
     f = tmp_path / "pieces.json"
     f.write_text(json.dumps({"pieces": [{"id": "Wood_Dining Chair", "brief": "x", "size": [0.4, 0.5, 0.9]}]}))
     assert S._read_pieces(f).pieces[0].id == "wood-dining-chair"
+
+
+def test_a_photographed_fixture_is_built_to_its_component_and_shown_in_its_place(tmp_path, monkeypatch):
+    from test_shell import bathroom
+
+    answers = {}
+
+    async def play(tools, n, text, run):
+        (run / "shell" / "shell.json").write_text(bathroom().model_dump_json())
+        await tools["build_pieces"].run({"pieces": [SOFA]})
+        answers["fixture"] = await tools["build_pieces"].run({"pieces": [
+            {**SOFA, "id": "shower-tray", "size": [9, 9, 9], "fixture": "shower"}]})  # size comes from the component
+        answers["wait"] = await tools["wait_for_pieces"].run({})
+        (run / "furnish" / "placements.json").write_text(json.dumps({"placements": [
+            {"piece": "sofa", "room": "living", "x": 2.5, "z": 0.55, "rotation": 0}]}))
+        answers["placed"] = await tools["submit_placements"].run({})
+
+    report, *_ = session(tmp_path, monkeypatch, play)
+    run = tmp_path / "run"
+    assert answers["fixture"].startswith("started 1") and answers["placed"] == "ok"
+    assert "shower-tray" not in answers["wait"].split("# Skill")[0]  # not furniture to place
+    assert json.loads((run / "shower-tray" / "program.json").read_text())["size"] == [0.9, 0.9, 2.0]  # w, d, h
+    shown = S._with_models(run, [{"id": "shower"}, {"id": "wc"}], "http://h")
+    assert shown[0]["assetId"].endswith("shower-tray") and "assetId" not in shown[1]
+
+
+def test_a_fixture_piece_needs_its_component_first(tmp_path, monkeypatch):
+    async def play(tools, n, text, run):
+        (run / "shell" / "shell.json").write_text(flat().model_dump_json())
+        answer = await tools["build_pieces"].run({"pieces": [{**SOFA, "id": "kitchen-run", "fixture": "kitchen"}]})
+        assert answer.startswith("no component kitchen")
+
+    session(tmp_path, monkeypatch, play)

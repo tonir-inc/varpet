@@ -344,3 +344,17 @@ def test_tidy_leaves_a_fixture_deep_in_a_wall_to_the_model():
     tidy(s)
     assert any(x.get("wall") == "w-e" for x in component_faults(s))
     assert s.components[-1].position[0] == 7.95
+
+
+def test_free_fixture_centred_outside_every_room_is_a_fault():
+    # the editor's architect project rejects it (architect-project.ts: "lies outside every room")
+    s = bathroom()
+    s.components.append(fixture("rail", "railing", [8.05, 0, 2.0], [0.05, 1.0, 1.0]))
+    assert any("outside every room" in x["detail"] for x in component_faults(s))
+
+
+def test_mounted_fixture_across_a_wall_junction_is_a_fault():
+    # the editor splits w-n where w-mid meets it (x = 5) and rejects a mounted component across that cut
+    s = bathroom()
+    s.components[0].host.offset = 5.0
+    assert any("junction" in x["detail"] for x in component_faults(s))

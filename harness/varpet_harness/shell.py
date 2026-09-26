@@ -362,6 +362,18 @@ def _components(shell: Shell, polys: dict[str, Polygon]) -> list[dict]:
                     or c.host.elevation < -EDITOR_EPS or c.host.elevation + c.dimensions[1] > host.height + EDITOR_EPS:
                 faults.append({"check": "component", "component": c.id, "wall": host.id,
                                "detail": f"extends beyond its host wall (offset {c.host.offset:.2f} m is the centre; wall is {length:.2f} m long, {host.height} m tall)"})
+            for other in shell.walls:  # the editor splits the host where a wall meets it (wall-junctions.ts)
+                hit = _crossing(host, other) if other is not host else None
+                if hit is None or not -EDITOR_EPS / _len(other) <= hit[3] <= 1 + EDITOR_EPS / _len(other):
+                    continue
+                cut = hit[2] * length
+                if EDITOR_EPS < cut < length - EDITOR_EPS and c.host.offset - half < cut - EDITOR_EPS < cut + EDITOR_EPS < c.host.offset + half:
+                    faults.append({"check": "component", "component": c.id, "wall": host.id,
+                                   "detail": f"crosses the junction with wall {other.id} at {cut:.2f} m along {host.id}; "
+                                             "the editor splits the wall there: move it clear or split it in two"})
+        elif not any(p.contains(Point(c.position[0], c.position[2])) for p in polys.values()):
+            faults.append({"check": "component", "component": c.id,
+                           "detail": "its centre lies outside every room (the editor rejects it): move it inside or mount it on a wall"})
         fp = _footprint(shell, c)
         feet[c.id] = fp
         base = _host_pose(shell, c)[0][1]

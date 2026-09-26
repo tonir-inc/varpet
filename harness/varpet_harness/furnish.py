@@ -149,9 +149,10 @@ def load_run(run_dir: Path) -> tuple[Shell, dict[str, tuple[float, float, float]
     shell = Shell.model_validate_json((run_dir / "shell" / "shell.json").read_text())
     graph = Graph.model_validate_json((run_dir / "graph.json").read_text())
     sizes, counts = {}, {}
+    fixtures = json.loads((run_dir / "fixtures.json").read_text()) if (run_dir / "fixtures.json").exists() else {}
     for j in graph.jobs:
         prog = run_dir / j.id / "program.json"
-        if j.kind == "piece" and (run_dir / j.id / "piece.glb").exists():
+        if j.kind == "piece" and j.id not in fixtures and (run_dir / j.id / "piece.glb").exists():  # fixtures are not placed
             size = json.loads(prog.read_text()).get("size") if prog.exists() else j.size
             sizes[j.id] = tuple(size)
             counts[j.id] = j.count

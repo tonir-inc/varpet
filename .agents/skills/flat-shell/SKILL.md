@@ -5,7 +5,7 @@ description: Read a developer's floor plan and the flat's photos into rooms and 
 
 # Flat shell from a plan and photos
 
-Write `shell.json`. Code checks it and sends faults back once.
+Write `shell.json`, then call submit_shell: it answers with the faults to fix and the room areas against the printed ones.
 
 ## Output
 ```json
@@ -22,6 +22,7 @@ Write `shell.json`. Code checks it and sends faults back once.
 - A wall is a centreline from `start` to `end`. `offset` is metres from `start` to the near edge of the opening.
 - Where two rooms meet with no drawn wall (hall to living, living to kitchen), draw no wall there: that edge is an open passage.
 - `printed`: copy the numbers the plan prints for each room (dimensions or area). Do not compute them from your polygon; code compares the two.
+  If the plan prints only the flat's total area, put it under `total`: `"total": {"area_m2": 56.2}` (usually gross, walls included).
 - `color`: room = floor colour in the photos; wall = wall paint colour in the photos.
 
 ## Fixtures (`components`)
@@ -42,6 +43,18 @@ Everything built in: toilets, showers, baths, basins/sinks, kitchen worktops and
   (lower on the plan); a wall running +z has side 1 on its -x face. -1 is the other face.
   For a hosted fixture the editor places it on that face; its rotation then adds to the wall's direction.
 - Keep 0.5 m clear in front of every door. Fixtures sit inside their room and never inside a wall.
+
+## Method: gridlines first, one set of numbers (how an architect traces)
+1. Read the plan into **gridlines** before any room or wall: every x position where a wall face runs vertically,
+   every z position where one runs horizontally, each named (x_a, x_b, ...; z_a, ...), measured in image pixels
+   off a crop. Angled walls get their two end points. Keep them in one Python dict.
+2. **Scale** maps pixels to metres. With printed dimensions, take it from those. With areas only, choose the
+   scale (and, for a photo of a plan, a separate x and z scale) that makes all printed areas agree at once;
+   never fit it to one room.
+3. Build **every room polygon and every wall from those named lines** in the same script: a wall centreline sits
+   half its thickness outside the room face it bounds. Rooms and walls then share their numbers exactly.
+4. When a check or an area is off, **move a gridline or the scale**, rebuild everything from the script, and
+   submit again. Never patch a single corner by hand.
 
 ## Reading the plan (measured on real developer plans; each rule is a mistake a first read made)
 1. **Scale** from three or more printed dimensions that agree. Zoom by cropping the image (`sips` on macOS, or Python) into this folder; do not guess small text.
