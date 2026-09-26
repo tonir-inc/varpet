@@ -1,0 +1,20 @@
+{
+  "name": "dining-chair",
+  "size": [0.45, 0.5, 0.85],
+  "materials": {
+    "oak": {"color": "#a57c52", "roughness": 0.55},
+    "linen": {"color": "#d9d2c5", "roughness": 0.9, "kind": "fabric"}
+  },
+  "parts": [
+    {"id": "seat", "size": [0.45, 0.5, 0.04], "material": "oak",
+     "attach": {"to": "piece", "at": [0.5, 0.5, 0], "self": [0.5, 0.5, 0], "offset": [0, 0, 0.42]}},
+    {"id": "cushion", "shape": "rounded_box", "size": [0.41, 0.42, 0.05], "radius": 0.02, "material": "linen",
+     "attach": {"to": "seat", "at": [0.5, 0.45, 1], "self": [0.5, 0.5, 0]}},
+    {"id": "leg", "shape": "cylinder", "size": [0.04, 0.04, 0], "material": "oak",
+     "between": {"bottom": "floor", "top": "seat", "at": [0.08, 0.08]}, "mirror": ["x", "y"]},
+    {"id": "back-post", "size": [0.04, 0.03, 0.39], "material": "oak",
+     "attach": {"to": "seat", "at": [0.06, 1, 1], "self": [0.5, 1, 0]}, "mirror": ["x"]},
+    {"id": "back-rail", "size": [0.37, 0.02, 0.06], "material": "oak",
+     "attach": {"to": "back-post", "at": [1, 0.5, 1], "self": [0, 0.5, 1]}, "repeat": {"axis": "z", "count": 3, "step": -0.12}}
+  ]
+}

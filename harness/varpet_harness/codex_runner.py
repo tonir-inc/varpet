@@ -20,7 +20,6 @@ from openai_codex import (
     AsyncCodex,
     LocalImageInput,
     Sandbox,
-    SkillInput,
     TextInput,
     TurnResult,
 )
@@ -140,12 +139,14 @@ class CodexRunner:
         for dep_id, r in deps.items():
             lines.append(f"Input from {dep_id}: {r.output}")
         lines.append(f"Write your result to {out.name} in this folder. Nothing else.")
-        items: list = [TextInput("\n".join(lines))]
+        # Skill text goes inline: SkillInput names a skill but delivers nothing unless
+        # Codex discovered it itself (checked 26 Sept), and discovery loads by description.
         for name in job.skills:
             path = self.repo / ".agents" / "skills" / name / "SKILL.md"
             if not path.exists():
                 raise FileNotFoundError(f"skill {name} not in .agents/skills")
-            items.append(SkillInput(name=name, path=str(path)))
+            lines += ["", f"# Skill: {name}", _strip_frontmatter(path.read_text())]
+        items: list = [TextInput("\n".join(lines))]
         for ref in job.refs:
             p = self.repo / ref
             if p.suffix.lower() in IMAGE_SUFFIXES:
@@ -178,6 +179,14 @@ class CodexRunner:
             turns=turns,
             error=error,
         )
+
+
+def _strip_frontmatter(text: str) -> str:
+    if text.startswith("---"):
+        end = text.find("\n---", 3)
+        if end != -1:
+            return text[end + 4 :].lstrip()
+    return text
 
 
 def _tokens(result: TurnResult) -> int:

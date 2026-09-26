@@ -2,13 +2,13 @@
   "flat": "demo",
   "jobs": [
     {"id": "shell", "kind": "shell", "brief": "Read the developer plan into the flat shell: walls, openings, fixed items.", "refs": ["fixtures/demo-plan.png"], "skills": ["plan-to-scene"], "effort": "medium"},
-    {"id": "sofa", "kind": "piece", "brief": "Three-seat sofa from the owner's photo.", "size": [2.2, 0.95, 0.85], "skills": ["part-dsl"]},
-    {"id": "bed", "kind": "piece", "brief": "Double bed with a tall padded headboard.", "size": [1.7, 2.1, 1.1], "skills": ["part-dsl"]},
-    {"id": "wardrobe", "kind": "piece", "brief": "Two-door wardrobe, plain fronts, round handles.", "size": [1.2, 0.6, 2.2], "skills": ["part-dsl"]},
-    {"id": "desk", "kind": "piece", "brief": "Desk with one drawer and four square legs.", "size": [1.2, 0.6, 0.75], "skills": ["part-dsl"]},
-    {"id": "dining-chair", "kind": "piece", "brief": "Dining chair; four identical copies, build once.", "size": [0.45, 0.5, 0.9], "skills": ["part-dsl"]},
-    {"id": "tv-unit", "kind": "piece", "brief": "Low media unit, slanted front, two open shelves.", "size": [1.6, 0.4, 0.5], "skills": ["part-dsl"]},
-    {"id": "bookcase", "kind": "piece", "brief": "Five-shelf open bookcase.", "size": [0.8, 0.3, 1.9], "skills": ["part-dsl"]},
+    {"id": "sofa", "kind": "piece", "brief": "Three-seat sofa from the owner's photo.", "size": [2.2, 0.95, 0.85], "skills": ["part-dsl-draft"]},
+    {"id": "bed", "kind": "piece", "brief": "Double bed with a tall padded headboard.", "size": [1.7, 2.1, 1.1], "skills": ["part-dsl-draft"]},
+    {"id": "wardrobe", "kind": "piece", "brief": "Two-door wardrobe, plain fronts, round handles.", "size": [1.2, 0.6, 2.2], "skills": ["part-dsl-draft"]},
+    {"id": "desk", "kind": "piece", "brief": "Desk with one drawer and four square legs.", "size": [1.2, 0.6, 0.75], "skills": ["part-dsl-draft"]},
+    {"id": "dining-chair", "kind": "piece", "brief": "Dining chair; four identical copies, build once.", "size": [0.45, 0.5, 0.9], "skills": ["part-dsl-draft"]},
+    {"id": "tv-unit", "kind": "piece", "brief": "Low media unit, slanted front, two open shelves.", "size": [1.6, 0.4, 0.5], "skills": ["part-dsl-draft"]},
+    {"id": "bookcase", "kind": "piece", "brief": "Five-shelf open bookcase.", "size": [0.8, 0.3, 1.9], "skills": ["part-dsl-draft"]},
     {"id": "layout", "kind": "designer", "deps": ["shell", "sofa", "bed", "wardrobe", "desk", "dining-chair", "tv-unit", "bookcase"], "brief": "Place every piece with walkways clear; propose ops only.", "skills": ["clearance-check"]}
   ]
 }
