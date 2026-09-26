@@ -50,7 +50,7 @@ How the three connect, and what each side has to do. Verified end to end with th
 `DesignerSession` and `proposalToEditor`, and applies in the editor's `EditorStore` for sofa, chair,
 table, bed, cabinet, lamp, rug and shelf.
 
-1. **Editor set.** `item.editor_set` marks 877 items (`catalog/select_editor_set.py`) that pass the
+1. **Editor set.** `item.editor_set` marks 900 items (incl. 40 desks, 15 dressers, 15 nightstands, 10 wardrobes, 10 stools, 5 ottomans, 5 benches, sent to the editor under the bridge's mapped kinds) (`catalog/select_editor_set.py`) that pass the
    bridge's exact checks: one of the editor's kinds, no size conflict, no sideways mesh, a GLB, an
    integer price, every dimension 0.01–20 m. Plus the editor's 18 demo pieces that is 895, under the
    designer service's 1,000-asset limit.
@@ -83,16 +83,7 @@ for consumers of the `/editor/assets` endpoint, with `VITE_CATALOG_ASSETS_URL` a
 its override. The interactive editor currently uses its database search adapter.
 
 ### Ashot (designer)
-The editor now supports native `desk`, `wardrobe` and `dresser` kinds, including
-procedural shapes, both catalog adapters, validation, and designer round-trips.
-The demo opener ("fit a desk by the window") can retain `desk` semantics for
-daylight and request checks. Legacy desk-to-table and storage-to-cabinet aliases
-remain accepted for older callers.
-
-**Catalog follow-up (Sergey):** add these kinds to `EDITOR_KINDS` and their allocation
-shares in `select_editor_set.py`, then refresh the editor set. `/editor/assets` can
-return the native kind strings unchanged. No catalog products or selection flags
-were changed by the editor update; live discovery awaits that catalog refresh.
+Done: the bridge maps designer kinds to editor kinds (`editorKindOf`: desk→table, dresser/wardrobe/nightstand→cabinet, stool/ottoman/bench→chair); the catalog sends the same mapped kinds in `/editor/assets` (kept identical by a test). Checked end to end for all 15 kinds, desk included. Still open: call `show_candidates` before adding a catalog piece (see below).
 
 ### Network
 Both need either Tailscale with `mc-server` shared (Felix), or an SSH tunnel to the VM
