@@ -73,6 +73,10 @@ app.innerHTML = `
         <label class="search">${icon('search')}<input id="scene-search" placeholder="Find an object…" aria-label="Search scene" /></label>
         <div class="scene-root">${icon('home')}<strong>Ground floor</strong><span class="pill">3D</span></div>
         <div id="apartment-height" class="apartment-height"></div>
+        <div class="wall-visibility">
+          <label><input id="show-outer-walls" type="checkbox" aria-describedby="wall-visibility-note">Show outer walls</label>
+          <p id="wall-visibility-note" class="field-note"></p>
+        </div>
         <div id="hierarchy" class="hierarchy"></div>
         <button id="browse-assets" class="button full">${icon('plus')} Add furniture <span class="shortcut">2</span></button>
         <button id="edit-shell" class="button full" style="margin-top:8px">${icon('walls')} Edit apartment & systems <span class="shortcut">4</span></button>
@@ -276,7 +280,7 @@ function chooseFinish(preset: FinishPreset | null) {
     setTool('select');
     // Paint needs a visible wall face; a cutaway exposes only a narrow stub.
     if (preset.category === 'wall' && wallMode !== 'full') {
-      wallMode = 'full'; viewport.setWalls(wallMode); $('#walls span').textContent = 'Full walls';
+      setWallMode('full');
     }
   }
   activeFinish = preset;
@@ -717,6 +721,7 @@ function setView(next:ApartmentView){
     $(`#${id}`).classList.toggle('active',view===mode);
     $(`#${id}`).setAttribute('aria-pressed',String(view===mode));
   }
+  renderWallControls();
   renderViewportHints();
 }
 function setPreview(enabled:boolean){
@@ -780,9 +785,32 @@ async function requestProposal(kind:'designer'|'architect'){
   finally{busy=false;$<HTMLButtonElement>('#suggest').disabled=false;$('#suggest').innerHTML=`${icon('sparkles')} Suggest an edit ${icon('arrow')}`;}
 }
 
+function renderWallControls() {
+  const inside = view === 'inside';
+  const mode = inside ? 'full' : wallMode;
+  const checkbox = $<HTMLInputElement>('#show-outer-walls');
+  checkbox.checked = mode === 'full';
+  checkbox.disabled = inside || view === 'plan';
+  const walls = $<HTMLButtonElement>('#walls');
+  walls.disabled = checkbox.disabled;
+  walls.title = inside ? 'Inside view always shows full walls' : view === 'plan' ? 'Change wall visibility in 3D or Top view' : 'Cycle wall visibility';
+  $('#walls span').textContent = { cutaway: 'Cutaway', full: 'Full walls', hidden: 'Walls hidden' }[mode];
+  $('#wall-visibility-note').textContent = inside ? 'Inside view always shows full walls.'
+    : view === 'plan' ? 'Switch to 3D or Top to change wall visibility.'
+    : mode === 'full' ? 'All walls, doors and windows are shown at full height.'
+    : mode === 'hidden' ? 'All walls are hidden. Check to show them at full height.'
+    : 'Cutaway lowers nearby outer walls to reveal the rooms.';
+}
+
+function setWallMode(next: WallMode) {
+  wallMode = next;
+  viewport.setWalls(wallMode);
+  renderWallControls();
+}
+
 function showFullHeight() {
   if (view === 'plan' || view === 'top') setView('perspective');
-  wallMode = 'full'; viewport.setWalls(wallMode); $('#walls span').textContent = 'Full walls';
+  setWallMode('full');
 }
 
 function refresh(){
@@ -820,6 +848,7 @@ function refresh(){
   }
   $('#apartment-height').innerHTML = heightControlMarkup(scene);
   bindHeightControl($('#apartment-height'), { getScene: () => store.scene, execute: run, notice: notify, showFullHeight });
+  renderWallControls();
   renderHierarchy();renderInspector();renderProposal();
   renovationUI?.render();
   ceilingUI.render();
@@ -978,7 +1007,8 @@ document.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach(b=>b.onclick
 $('#multi-select').onclick=()=>{const enabled=!multiSelection;if(enabled)setTool('select');setMultiSelection(enabled);};
 $('#focus').onclick=()=>focusView(selectedId??undefined);
 $('#snap').onclick=()=>{snap=!snap;viewport.setSnap(snap);floorPlan.setSnap(snap);renderViewportHints();renderInspector();};
-$('#walls').onclick=()=>{wallMode=wallMode==='cutaway'?'full':wallMode==='full'?'hidden':'cutaway';viewport.setWalls(wallMode);$('#walls span').textContent={cutaway:'Cutaway',full:'Full walls',hidden:'Walls hidden'}[wallMode];};
+$('#walls').onclick=()=>setWallMode(wallMode==='cutaway'?'full':wallMode==='full'?'hidden':'cutaway');
+$<HTMLInputElement>('#show-outer-walls').onchange = event => setWallMode((event.currentTarget as HTMLInputElement).checked ? 'full' : 'cutaway');
 $<HTMLSelectElement>('#skybox').onchange = event => {
   const select = event.currentTarget as HTMLSelectElement;
   if (isSkyboxPreset(select.value) && viewport.setSkybox(select.value)) selectedSkybox = select.value;

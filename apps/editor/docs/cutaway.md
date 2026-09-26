@@ -1,5 +1,54 @@
 # Cutaway side-wall visibility
 
+## Balcony facades and outer-wall checkbox · 26 September 2026
+
+The M6 plan's balcony door/window walls remained full-height because balcony
+floors and interior doorway thresholds occupied both sides of the finish spans.
+Cutaway adjacency now uses enclosed rooms and solid spans outside floor-level
+door openings. Balcony, terrace and loggia floors do not make an apartment
+facade an interior partition. Walls bounding only an outdoor floor fall back to
+all active room floors, preserving balcony-edge and loggia-glazing cutaways.
+Full-width doors retain unambiguous floor-side evidence when no solid span exists.
+Finish coverage, explicit interior/shared protection, angular fades, selection
+reveals, and Top opening visibility remain unchanged.
+
+Scene → **Show outer walls** checks Full and unchecks Cutaway. The existing
+toolbar, painting and Show full height actions synchronize the checkbox. Inside
+shows it checked and disabled; Plan disables it with a 3D/Top hint. This is
+session view state: scene data, save state and undo history do not change.
+
+Measured by Codex (GPT-6), 26 September 2026. Regression before the fix:
+
+```text
+Error: Balcony cutaway: wall-bedroom-large-balcony should be cut away
+```
+
+Final command output (repository-pinned pnpm 10.0.0):
+
+```text
+node apps/editor/scripts/check-balcony-cutaway.mjs
+Balcony cutaway checks passed (442 assertions).
+node apps/editor/scripts/check-cutaway.mjs
+Cutaway checks passed (520 assertions).
+node apps/editor/scripts/check-structural-surfaces.mjs
+Structural surface checks passed (155 assertions).
+pnpm test: exit 0 (untargeted workspace suite)
+pnpm typecheck: exit 0 (engine, designer, editor, showcase)
+pnpm --filter @varpet/editor build: exit 0 (existing chunk-size advisory)
+git diff --check: exit 0
+```
+
+Browser verification used the production editor with the unchanged M6 template:
+cutaway hides balcony openings, checking restores the facade, Space toggles the
+checkbox, the toolbar and Show full height synchronize it, and Inside/Plan
+disable it as described. Returning from Inside restores Cutaway. Revision stayed
+0 throughout. Cutaway and Full were visually inspected; later attempts to save
+screenshots returned `Unable to capture screenshot`, so no screenshot artifact
+is attached. A read-only reviewer independently verified the outdoor-only loggia
+case and approved the final correction. No schema, fixtures or existing test
+expectations changed. Notion tooling and the referenced definition-of-done skill
+were unavailable; this records the behavior and required verification locally.
+
 ## Exterior-only cutaway update · 26 September 2026
 
 The current behavior supersedes the midpoint policy documented below. Automatic

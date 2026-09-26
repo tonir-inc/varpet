@@ -244,6 +244,10 @@ kbd { font-family: inherit; }
 .scene-root { display: flex; align-items: center; gap: var(--space-2); padding: 8px 6px 15px; }
 .scene-root svg { width: 15px; height: 15px; color: var(--muted); }
 .scene-root strong { font-size: var(--text-xs); font-weight: 550; }
+.wall-visibility { margin: 14px 0 18px; padding: 12px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.wall-visibility label { display: flex; align-items: center; gap: var(--space-2); min-height: 28px; font-weight: 550; cursor: pointer; }
+.wall-visibility input { width: 16px; height: 16px; margin: 0; flex-shrink: 0; cursor: inherit; }
+.wall-visibility label:has(input:disabled) { color: var(--muted); cursor: default; }
 .pill { margin-left: auto; padding: 3px 5px; border: 1px solid var(--line); border-radius: var(--radius-sm); color: var(--muted); font-size: var(--text-xs); }
 .hierarchy details { margin-bottom: 8px; }
 .hierarchy summary { display: flex; align-items: center; gap: 6px; padding: 7px 5px; border-radius: var(--radius-sm); color: var(--muted); font-size: var(--text-xs); list-style: none; cursor: pointer; }

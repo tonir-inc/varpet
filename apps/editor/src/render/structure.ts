@@ -45,6 +45,27 @@ function cameraOverRoom(camera: THREE.Camera, room: Room): boolean {
   }
   return inside;
 }
+function cutawaySides(wall: Wall, rooms: Room[], metadata: Record<string, EntityMetadata>): { front: boolean; back: boolean } {
+  const spans = wallSurfaceSpans(wall, rooms, metadata);
+  const doors = wall.openings.filter(opening => opening.kind === 'door' && opening.sill === 0)
+    .sort((a, b) => a.offset - b.offset);
+  // A room floor can cross the wall plane at a doorway threshold. Only solid
+  // wall spans identify the room-facing side; finish coverage still uses all floors.
+  const solidSpans = spans.filter(span => {
+    let cursor = span.start;
+    for (const door of doors) {
+      if (door.offset + door.width <= cursor) continue;
+      if (Math.min(span.end, door.offset) - cursor > 1e-5) return true;
+      cursor = Math.max(cursor, door.offset + door.width);
+      if (cursor >= span.end - 1e-5) return false;
+    }
+    return span.end - cursor > 1e-5;
+  });
+  const front = solidSpans.some(span => span.front), back = solidSpans.some(span => span.back);
+  // A full-width door can leave no solid sample. Retain an unambiguous floor
+  // side if available, otherwise keep the wall at full height.
+  return front || back ? { front, back } : { front: spans.some(span => span.front), back: spans.some(span => span.back) };
+}
 function meshBox(parent: THREE.Object3D, dimensions: [number, number, number], position: [number, number, number], material: THREE.Material): THREE.Mesh {
   const mesh = new THREE.Mesh(new THREE.BoxGeometry(...dimensions), material);
   mesh.position.set(...position); mesh.castShadow = true; mesh.receiveShadow = true; parent.add(mesh); return mesh;
@@ -173,6 +194,8 @@ export function makeStructure(document: SceneDocument, reveal?: FinishReveal): S
     return finish.material;
   };
   const bounds = new THREE.Box3(); const metadata = document.project?.metadata ?? {};
+  const activeRooms = document.rooms.filter(room => metadata[room.id]?.phase !== 'remove');
+  const interiorRooms = activeRooms.filter(room => !['balcony', 'terrace', 'loggia'].includes(metadata[room.id]?.zone ?? 'interior'));
   // A structural split does not split the visible painted face. Every member
   // measures the same spreading wave from the original world-space drop.
   const wallReveal = (() => {
@@ -275,9 +298,11 @@ export function makeStructure(document: SceneDocument, reveal?: FinishReveal): S
       openingGroup.add(projection.group); entities.set(opening.id, projection.group);
     }
     dimensions.add(dimension3d(new THREE.Vector3(wall.start[0], elevation + 0.06, wall.start[1]), new THREE.Vector3(wall.end[0], elevation + 0.06, wall.end[1])));
-    // Only an unambiguous perimeter wall can be cut. Incomplete room traces
-    // must not override an explicitly interior/shared boundary.
-    const front = spans.some(span => span.front), back = spans.some(span => span.back);
+    // Outdoor floors and doorway thresholds do not make the enclosing facade
+    // an interior partition. Incomplete traces still cannot override protected boundaries.
+    let { front, back } = cutawaySides(wall, interiorRooms, metadata);
+    // A balcony's own outer edge can have no indoor neighbor at all.
+    if (!front && !back) ({ front, back } = cutawaySides(wall, activeRooms, metadata));
     const protectedBoundary = meta.boundary === 'interior' || meta.boundary === 'shared';
     const exterior = !protectedBoundary && front !== back;
     const outward = new THREE.Vector3(-wallAxis.z, 0, wallAxis.x).multiplyScalar(front ? -1 : 1);
@@ -305,7 +330,7 @@ export function makeStructure(document: SceneDocument, reveal?: FinishReveal): S
     },
     updateWalls(camera, mode, top, now = performance.now(), reduced = false, selectedOpeningId) {
       let active = false;
-      const inside = !top && document.rooms.some(room => metadata[room.id]?.phase !== 'remove' && cameraOverRoom(camera, room));
+      const inside = !top && interiorRooms.some(room => cameraOverRoom(camera, room));
       direction.copy(camera.position).sub(center).setY(0).normalize();
       for (const wall of walls) {
         toCamera.copy(camera.position).sub(wall.midpoint).setY(0);
