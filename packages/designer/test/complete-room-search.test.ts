@@ -71,3 +71,11 @@ test('an owned ordinary shelf cannot replace the media target used to orient the
  const plan=await planIncrementally(input,{room_id:'r',program:'living',style:'Scandinavian'},query);
  expect(plan.products.some(p=>p.name==='Media console')).toBe(true);expect(plan.ops.some(o=>o.type==='remove')).toBe(false);
 });
+test('a media unit behind an owned sofa cannot borrow the facing score of an ordinary shelf ahead',async()=>{
+ const sizes:Record<string,[number,number,number]>={sofa:[2,.9,.8],rug:[3,2,.02],table:[.45,.45,.4],lamp:[.2,.2,1.4],shelf:[1,.3,1.2],cabinet:[1,.3,.7]};
+ const query=async(p:{kind?:string})=>({results:sizes[p.kind!]? [{id:p.kind,kind:p.kind,name:p.kind==='cabinet'?'Media console':p.kind,size_m:sizes[p.kind!],price:100,currency:'AMD',styles:['Scandinavian'],colors_image:['beige']}]:[]});
+ const positioned=(kind:string,pos:Item['pos'],name=kind):Item=>({...bed,id:kind,kind,name,pos,size:sizes[kind]!});
+ const input={...scene,items:[positioned('sofa',[4,4]),positioned('rug',[4,2.8]),positioned('table',[2.725,2.69]),positioned('lamp',[5.2,4]),positioned('shelf',[4,1.5]),positioned('cabinet',[4,6.5],'Media console')]};
+ const plan=await planIncrementally(input,{room_id:'r',program:'living',style:'Scandinavian'},query);
+ expect(plan.complete).toBe(false);expect(plan.missing.some(m=>m.includes('actual media unit'))).toBe(true);expect(plan.ops).toHaveLength(0);
+});

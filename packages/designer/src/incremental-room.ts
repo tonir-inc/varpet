@@ -11,7 +11,7 @@ import {requestPolicy,canonicalKind} from './request-policy.js';
 import {scoreComposition} from './taste/composition.js';
 import type {CatalogProduct,CatalogQuery} from './catalog.js';
 import type {CatalogAsset} from '../../../apps/editor/src/contracts.js';
-import type {Scene,Op,Item} from './scene.js';
+import type {Scene,Op,Item,Vec2} from './scene.js';
 import type {Intent} from './request.js';
 
 export const counts=(items:Item[])=>Object.entries(items.reduce<Record<string,number>>((a,i)=>(a[i.kind]=(a[i.kind]??0)+1,a),{})).map(([kind,count])=>({kinds:[kind],count}));
@@ -97,6 +97,12 @@ export async function planIncrementally(scene:Scene,request:RoomPlanRequest,quer
  // Room-facing anchors must retain a real media focal point, not silently fall
  // back to an unrelated shelf when the media units fail to fit.
  if(media.length){pools[focalIndex]=media;requireMedia=true;}
+ const faces=(item:Item,target:Vec2)=>{const t=item.rot*Math.PI/180,dx=target[0]-item.pos[0],dy=target[1]-item.pos[1];return (Math.sin(t)*dx-Math.cos(t)*dy)/Math.max(1e-9,Math.hypot(dx,dy))>=Math.cos(Math.PI/9);};
+ const windowTargets=scene.openings.filter(o=>o.kind==='window').flatMap(o=>{
+  const wall=scene.walls.find(w=>w.id===o.wall_id);if(!wall||wall.room_id!==request.room_id&&!o.room_ids?.includes(request.room_id))return [];
+  const dx=wall.b[0]-wall.a[0],dy=wall.b[1]-wall.a[1],length=Math.hypot(dx,dy);
+  return [o.offset,o.offset+o.width/2,o.offset+o.width].map(d=>[wall.a[0]+dx*d/length,wall.a[1]+dy*d/length] as Vec2);
+ });
  const baselineGeometry=localGeometryErrors(scene),baselineFunctions=functionClearances(scene);
  // Keep all existing proposal checks. New access routes must also be at least 0.75 m.
  // Existing shell bottlenecks may be retained only under the unchanged baseline rule.
@@ -152,6 +158,7 @@ export async function planIncrementally(scene:Scene,request:RoomPlanRequest,quer
        const reach=Math.abs(x)-anchor.size[0]/2-w/2;
        if(side*x<=(role.role==='nightstands'?anchor.size[0]/2:0)||y<anchor.size[1]/2-.9||reach>(role.role==='nightstands'?.6:.9)+1e-6)continue;
       }
+      if(requireMedia&&role.role==='focal_point'&&anchor&&op.type==='add'&&!faces(anchor,op.item.pos))continue;
       const related:Record<string,string[]>={rug:['rug_anchor'],table:['seat_table'],light:['seat_light'],focal_point:['seat_facing'],work_seat:['work_seat_facing','work_reach'],task_light:['task_light_reach'],nightstands:n===role.count-1?['nightstand_each_open_side']:[],bedside_lights:n===role.count-1?['light_each_bedside']:[]};
       if(related[role.role]?.length){const c=scoreComposition(applyOps(preview,[op]),request.room_id,{program:request.program});if(c.issues.some(i=>related[role.role]!.includes(i.code)))continue;}
       const checked=evaluate([...ops,op],role.role,p.sku);
@@ -167,6 +174,10 @@ export async function planIncrementally(scene:Scene,request:RoomPlanRequest,quer
   }
   const composition=scoreComposition(preview,request.room_id,{program:request.program});
   for(const issue of composition.issues)missing.push(issue.message);
+  if(request.program==='living'&&(media.length||windowTargets.length)){
+   const targets=[...windowTargets,...preview.items.filter(i=>i.room_id===request.room_id&&roles[focalIndex]!.kinds.includes(i.kind)&&/\btv\b|television|media/i.test(i.name)).map(i=>i.pos)];
+   if(preview.items.some(i=>i.room_id===request.room_id&&i.kind==='sofa'&&!targets.some(t=>faces(i,t))))missing.push('Face every sofa toward a window or the actual media unit; a different shelf cannot substitute for that target.');
+  }
   return {ops,products:chosen,missing:[...new Set(missing)],complete:!missing.length,composition,paths};
  };
  let best:Variant|undefined;
