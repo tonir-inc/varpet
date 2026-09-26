@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
-from shapely.geometry import LineString, Polygon
+from shapely.geometry import LineString, Point, Polygon
 from shapely.ops import unary_union
 
 Vec2 = tuple[float, float]
@@ -32,6 +32,13 @@ CLAMP_M = 0.02  # overshoot tidy() treats as rounding
 JUNCTION_M = 0.35  # a joining wall end this wide in an opening is a junction, not a mistake
 SNAP_M = 0.08  # wall ends this close to a corner or crossing are the same point
 SLIVER_M = 0.05  # the editor splits walls at every crossing and rejects shorter sections
+POINTS_MAX = 32  # the editor's polygon limit (validation.ts)
+JOG_M = 0.08  # a notch this shallow (a door recess in a thick wall) flattens first when a room has too many points
+SIMPLIFY_M = (0.01, 0.02, 0.03, 0.05)  # then Douglas-Peucker, never as far as ON_EDGE_M
+HEIGHT_M = (2.1, 4.0)  # a full-height wall
+PARAPET_M = 0.9  # a lower wall with no openings is a parapet or balcony rail
+DOOR_MIN_M = 0.6  # tidy() never clips a door narrower than this
+GAP_M = 2 * EDITOR_EPS  # clearance tidy() leaves between an opening and what it moved off
 
 
 class Opening(BaseModel):
@@ -93,11 +100,11 @@ def check(shell: Shell) -> list[dict]:
     if len(shell.rooms) > 32 or len(shell.walls) > 160:
         faults.append({"check": "limits", "detail": "at most 32 rooms and 160 walls"})
     for r in shell.rooms:
-        if len(r.polygon) > 32:
-            faults.append({"check": "limits", "room": r.id, "detail": "at most 32 polygon points"})
+        if len(r.polygon) > POINTS_MAX:
+            faults.append({"check": "limits", "room": r.id, "detail": f"at most {POINTS_MAX} polygon points"})
     for w in shell.walls:
         spans = sorted((o.offset, o.offset + o.width) for o in w.openings)
-        if len(spans) > 16 or any(b[0] < a[1] - 0.001 for a, b in zip(spans, spans[1:])):
+        if len(spans) > 16 or any(b[0] < a[1] - EDITOR_EPS for a, b in zip(spans, spans[1:])):
             faults.append({"check": "opening", "wall": w.id, "detail": "openings overlap or more than 16 on one wall"})
         if any(o.width < 0.2 or o.height < 0.2 for o in w.openings):
             faults.append({"check": "opening", "wall": w.id, "detail": "openings are at least 0.2 m wide and tall"})
@@ -123,7 +130,8 @@ def check(shell: Shell) -> list[dict]:
         if length < 0.2:
             faults.append({"check": "wall", "wall": w.id, "detail": f"length {length:.2f} m"})
             continue
-        if not 0.05 <= w.thickness <= 0.6 or not 2.1 <= w.height <= 4.0:
+        parapet = not w.openings and PARAPET_M <= w.height < HEIGHT_M[0]
+        if not 0.05 <= w.thickness <= 0.6 or not (HEIGHT_M[0] <= w.height <= HEIGHT_M[1] or parapet):
             faults.append({"check": "wall", "wall": w.id, "detail": f"thickness {w.thickness} or height {w.height} out of range"})
         off = max(boundaries.distance(line.interpolate(t, normalized=True)) for t in (0, 0.5, 1))
         if off > ON_EDGE_M + w.thickness / 2:
@@ -172,6 +180,9 @@ def _reachable(shell: Shell, polys: dict[str, Polygon]) -> list[dict]:
         if door or open_len >= OPEN_MIN_M:
             links[a].add(b)
             links[b].add(a)
+    for a, b in _through_doors(shell, polys):
+        links[a].add(b)
+        links[b].add(a)
     start = next(iter(links))
     seen, todo = {start}, [start]
     while todo:
@@ -180,6 +191,28 @@ def _reachable(shell: Shell, polys: dict[str, Polygon]) -> list[dict]:
             todo.append(n)
     cut = sorted(set(polys) - seen)
     return [{"check": "reachable", "rooms": cut, "detail": "no door or open passage links these to the rest"}] if cut else []
+
+
+def _through_doors(shell: Shell, polys: dict[str, Polygon]) -> list[tuple[str, str]]:
+    """Room pairs a door joins across its wall's thickness: the rooms just past each face."""
+    pairs = []
+    for w in shell.walls:
+        length = _len(w)
+        nx, nz = -(w.end[1] - w.start[1]) / length, (w.end[0] - w.start[0]) / length
+        reach = w.thickness / 2 + ON_EDGE_M
+        for o in w.openings:
+            if o.kind != "door":
+                continue
+            mid = _door_segment(w, o).interpolate(0.5, normalized=True)
+            sides = []
+            for sign in (1, -1):
+                probe = Point(mid.x + sign * nx * reach, mid.y + sign * nz * reach)
+                near = min(((p.distance(probe), rid) for rid, p in polys.items()), default=(ON_EDGE_M + 1, None))
+                sides.append(near[1] if near[0] <= ON_EDGE_M else None)
+            if sides[0] and sides[1] and sides[0] != sides[1]:
+                pairs.append((sides[0], sides[1]))
+    return pairs
+
 
 
 def _obstacles(shell: Shell, host: Wall, o: Opening) -> list[tuple[str, float, float]]:
@@ -310,14 +343,99 @@ def _slivers(shell: Shell) -> list[dict]:
     return faults
 
 
+def _flatten_jog(pts: list[Vec2]) -> list[Vec2] | None:
+    """Drop the shallowest notch a, b, c, d (short stubs a-b and c-d running opposite ways,
+    so a and d sit on one line): the room keeps its silhouette and its right angles."""
+    n, best = len(pts), None
+    for i in range(n):
+        a, b, c, d = (pts[(i + k) % n] for k in range(4))
+        ab, cd = (b[0] - a[0], b[1] - a[1]), (d[0] - c[0], d[1] - c[1])
+        stub = max(LineString([a, b]).length, LineString([c, d]).length)
+        if stub > JOG_M or abs(ab[0] + cd[0]) > 0.01 or abs(ab[1] + cd[1]) > 0.01:
+            continue
+        loss = Polygon([a, b, c, d]).area
+        if best is None or loss < best[0]:
+            best = (loss, {(i + 1) % n, (i + 2) % n})
+    return None if best is None else [p for j, p in enumerate(pts) if j not in best[1]]
+
+
+def _fit_points(poly: Polygon) -> Polygon:
+    """Under the editor's point limit with the least change: flatten door recesses, then simplify."""
+    poly = poly.simplify(0.01, preserve_topology=True)
+    while len(poly.exterior.coords) - 1 > POINTS_MAX:
+        pts = _flatten_jog(list(poly.exterior.coords)[:-1])
+        flat = Polygon(pts).simplify(1e-6, preserve_topology=True) if pts and len(pts) >= 3 else None
+        if flat is None or not flat.is_valid:
+            break
+        poly = flat
+    for tol in SIMPLIFY_M:
+        if len(poly.exterior.coords) - 1 <= POINTS_MAX:
+            break
+        poly = poly.simplify(tol, preserve_topology=True)
+    return poly
+
+
+def _free(shell: Shell, w: Wall, o: Opening) -> list[tuple[float, float]]:
+    """Stretches of w clear of joining walls and of its other openings, at o's height."""
+    taken = sorted([(s, e) for _, s, e in _obstacles(shell, w, o)]
+                   + [(p.offset, p.offset + p.width) for p in w.openings if p is not o])
+    free, cursor = [], 0.0
+    for s, e in taken + [(_len(w), _len(w))]:
+        if s - cursor > 2 * GAP_M:
+            free.append((cursor + GAP_M if cursor else 0.0, s - GAP_M))
+        cursor = max(cursor, e)
+    return free
+
+
+def _clear(shell: Shell, w: Wall) -> None:
+    """An opening a joining wall cuts into slides clear, or is clipped a little, never through a real wall."""
+    for o in w.openings:
+        hits = _blocked(shell, w, o)
+        if not hits or any(e - s > JUNCTION_M for _, s, e in hits):
+            continue
+        free, a, b = _free(shell, w, o), o.offset, o.offset + o.width
+        fits = [min(max(a, lo), hi - o.width) for lo, hi in free if hi - lo >= o.width]
+        to = min(fits, key=lambda x: abs(x - a), default=None)
+        if to is not None and abs(to - a) <= JUNCTION_M:
+            o.offset = to
+            continue
+        near = [(lo, hi) for lo, hi in free if min(b, hi) > max(a, lo) or abs(lo - b) <= JUNCTION_M or abs(hi - a) <= JUNCTION_M]
+        lo, hi = max(near, key=lambda s: s[1] - s[0], default=(0.0, 0.0))
+        if hi - lo >= (DOOR_MIN_M if o.kind == "door" else 0.2) and o.width - (hi - lo) <= JUNCTION_M:
+            o.offset, o.width = lo, hi - lo
+
+
+def _unoverlap(w: Wall) -> None:
+    """Openings that overlap by a rounding error are trimmed apart; two of a kind that overlap
+    further are one opening. A door over a window stays a fault for the model."""
+    kept: list[Opening] = []
+    for o in sorted(w.openings, key=lambda o: o.offset):
+        prev = kept[-1] if kept else None
+        over = prev.offset + prev.width - o.offset if prev else 0.0
+        if prev is None or over <= 0:
+            kept.append(o)
+        elif over <= CLAMP_M and o.width - over - GAP_M >= 0.2:
+            o.offset, o.width = o.offset + over + GAP_M, o.width - over - GAP_M
+            kept.append(o)
+        elif prev.kind == o.kind:
+            top = max(prev.sill + prev.height, o.sill + o.height)
+            prev.width = max(prev.offset + prev.width, o.offset + o.width) - prev.offset
+            prev.sill = min(prev.sill, o.sill)
+            prev.height = top - prev.sill
+        else:
+            kept.append(o)
+    w.openings = kept
+
+
+
 def tidy(shell: Shell) -> Shell:
     """Mechanical fixes in code, not a model turn: drop collinear and near-duplicate
-    polygon points (within 1 cm), which also keeps rooms under the editor's 32 points."""
+    polygon points (within 1 cm) and keep rooms under the editor's 32 points."""
     _snap_junctions(shell)
     for r in shell.rooms:
         poly = Polygon(r.polygon)
         if poly.is_valid:
-            simple = poly.simplify(0.01, preserve_topology=True)
+            simple = _fit_points(poly)
             r.polygon = [(round(x, 3), round(z, 3)) for x, z in list(simple.exterior.coords)[:-1]]
     for w in shell.walls:  # openings that overshoot their wall by a rounding error are clamped
         length = _len(w)
@@ -328,17 +446,12 @@ def tidy(shell: Shell) -> Shell:
             over = o.sill + o.height - w.height
             if 0 < over <= CLAMP_M:
                 o.height -= over + EDITOR_EPS
-    for w in shell.walls:  # an opening at a junction slides clear of the joining wall's end
-        length = _len(w)
-        for o in w.openings:
-            for _, s, e in _blocked(shell, w, o):
-                if e - s > JUNCTION_M:
-                    continue
-                if s <= o.offset + EDITOR_EPS and e + o.width <= length:
-                    o.offset = e + 2 * EDITOR_EPS
-                elif e >= o.offset + o.width - EDITOR_EPS and s - o.width >= 0:
-                    o.offset = s - o.width - 2 * EDITOR_EPS
+    for w in shell.walls:
+        _unoverlap(w)
+    for w in shell.walls:
+        _clear(shell, w)
     return shell
+
 
 
 def check_file(path: Path, workdir: Path) -> list[dict]:
