@@ -129,4 +129,13 @@ catalog (no shell, no sudo, no other ports).
      (the designer's MCP launcher reads it).
    - Codex: `codex mcp add varpet-catalog --url http://localhost:18765/mcp`;
      Claude Code: `claude mcp add --transport http varpet-catalog http://localhost:18765/mcp`.
-For the demo itself, a local copy of the catalog on the demo laptop is more reliable than any tunnel (planned).
+
+## Local catalog on the demo laptop (26 Sept)
+For the demo, run the whole catalog on the laptop: no VM, tunnel or venue Wi-Fi in the path.
+1. Once (needs VM SSH access, ~5 GB disk): `catalog/demo/setup_local.sh`. It installs Postgres 17 + pgvector
+   (Homebrew), restores the VM database, copies light models and previews into gitignored `catalog/data/demo/web`,
+   and writes `~/.config/varpet/local.env`. Re-run it to pick up new data.
+2. Start it: `catalog/demo/run_local.sh` (serves `http://127.0.0.1:8765/mcp`; `/health` answers when ready).
+3. Point tools at it: editor `VARPET_CATALOG_URL=http://127.0.0.1:8765/mcp pnpm dev`; designer/harness via
+   `VARPET_CATALOG_URL` in `~/.config/varpet/env`.
+Measured on Sergey's Mac: 8,113 items, 7,013 models, 2,471 previews (4.7 GB), searches 0.01–0.25 s.
