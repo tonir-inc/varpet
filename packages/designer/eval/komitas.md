@@ -62,6 +62,8 @@ Source `3ea46ed2a3135cb7c8dd46612434bd6c14049e3a`; raw transcripts and scene sna
 | paint | proposal | True | True | 22.382 | 128670 | 0 | 0 | 0 | Paint bedroom walls proposed warm white #F5F1E8. Finish-only preview: all furniture positions, rotations and colours unchanged. Tool paints both faces and every segment sharing each targeted source_id, so connected wall segments in living room, kitchen and bathroom also change; not bedroom-face-only. No furniture purchases; paint and labour unquoted, budget unconfirmed. Preserve all unrelated wall sources and material assignments.  |
 | structural | decline | True | None | 9.559 | 67789 | 0 | 0 | 0 | I can preview furniture layouts and wall colours, but not remove walls or plan structural work. A qualified structural engineer must assess the wall before demolition.  Instead, I can rearrange the kitchen and living-room furniture to improve circulation through the existing doorway.  |
 
+Derived from these measured turns: 2/6 strict passes; 3/3 proposals accepted; median/max seconds 27.691/104.095; median/max tokens 114,827.000/328803.
+
 Capture status: recorded without reported errors. Screenshots: [top](komitas/avani-furnished-top.png), [3D](komitas/avani-furnished-3d.png). Capture metadata lists rendering/download errors.
 
 Measured Avani finding: the shared catalog snapshot has 877 assets, zero table-kind desk/workstation titles, zero cabinet-kind wardrobe/armoire titles, and six table/cabinet nightstand titles. Paint changes connected wall sources beyond bedroom faces; the paint grade checks bedroom coverage only, and this spillover remains a product limitation.

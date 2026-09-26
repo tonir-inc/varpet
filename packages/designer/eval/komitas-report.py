@@ -56,6 +56,9 @@ for path,run in runs:
   description=str(row.get('description','')).replace('|','/').replace('\n',' ')
   reason=', '.join(row.get('reasons',[]))
   text.append(f'| {row["kind"]} | {row["outcome"]} | {row["pass"]} | {row.get("editor_accepted")} | {row["seconds"]:.3f} | {fmt(row.get("tokens"))} | {len(row.get("new_failures",[]))} | {len(row.get("catalog_pieces",[]))} | {fmt(row.get("cost_dram"))} | {description} {reason} |')
+ if run['rows']:
+  times=[row['seconds'] for row in run['rows']];tokens=[row['tokens'] for row in run['rows'] if row.get('tokens') is not None]
+  text+=['',f'Derived from these measured turns: {sum(row["pass"] for row in run["rows"])}/{len(run["rows"])} strict passes; {sum(row.get("editor_accepted") is True for row in run["rows"])}/{sum(row["outcome"]=="proposal" for row in run["rows"])} proposals accepted; median/max seconds {median(times):.3f}/{max(times):.3f}; median/max tokens {fmt(median(tokens) if tokens else None)}/{fmt(max(tokens) if tokens else None)}.']
  capture=HERE/'komitas'/f'{run["id"]}-capture.json'
  manifest=json.loads(capture.read_text()) if capture.exists() else {}
  state=Path(manifest.get('state',''))
