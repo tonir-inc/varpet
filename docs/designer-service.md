@@ -141,8 +141,9 @@ map to counterclockwise degrees; dimensions `[width, height, depth]` multiplied 
 to `[width, depth, height]`. Existing poses and scale survive the reverse conversion.
 Locked and retained objects become keeps. The CLI moves groups together, using one anchor operation;
 programmatic bridge callers opt in with `groupPolicy: "move-together"` (the legacy default keeps groups).
-Unsupported elevations, building components,
-service routes, renovation removal/replacement phases and furniture spanning rooms fail explicitly.
+Unsupported room/furniture elevations, shell removal/replacement phases and furniture spanning
+rooms still fail conversion. Building components and service routes become immutable, unpriced
+structural obstacles, using editor world transforms and conservative segment prisms.
 Assumed: rugs are floor coverings, so they retain containment and request checks but do not block
 usable floor, furniture or door sweeps. This does not measure real door under-clearance.
 
@@ -178,8 +179,8 @@ disabled and null values survive unrelated designer edits, along with sources, a
 finishes, tasks, baseline and inactive options. The `inside` camera view is editor UI state. After an
 architect's approved `replace-scene`, the next request captures that fresh v2 apartment and revision;
 designer approval preserves it instead of restoring the previous apartment. Registered photo-built GLB
-assets also pass through when supplied in the request catalog. Active building components, service
-routes and elevated rooms remain explicit unsupported geometry, rather than being silently discarded.
+assets also pass through when supplied in the request catalog. Active building components and service
+routes participate in collision and access checks; elevated rooms remain unsupported for layout edits.
 Coverage: `test/editor-current-v2.test.ts` and `test/editor-http-current-v2.test.ts` in the designer package.
 Finish work is unquoted; the reported incremental furniture purchase cost does not price paint or labour.
 The Avani standing fixture also caught a rug penetrating the west wall by 5 mm. Wall thickness now
@@ -287,3 +288,16 @@ The planned filesystem boundary mirrors `VARPET_PROPOSALS_DIR`:
 [Assumed limits, explicit task scope] Four concurrent builds and three custom pieces per turn
 supersede the Notion doc's six-lane wording. Step 0 evidence is in
 `packages/designer/eval/build-piece.md`; owner likeness is still unrated.
+
+[derived contract, 2026-09-26] Fixtures and route segments retain their vertical extents;
+circulation reserves 2 m walking headroom. Planned removals remain obstacles until actually removed
+from the editor snapshot. Entirely below-floor solids do not obstruct this floor. Route prisms
+conservatively enclose sloping runs and end caps. Fixtures/routes never enter furniture pricing or ops.
+If conversion fails, the worker receives the raw editor snapshot with fast path and layout MCP disabled.
+Conversation continues in the same thread; the service appends one limitation notice per conversation
+and rejects proposal artifacts until conversion succeeds.
+
+[measured, 2026-09-26, gpt-6-astra low] A real HTTP smoke on ephemeral port 51785 with
+VARPET_DESIGNER_FAST_PATH=1 answered a pure question on the editor demo augmented with a kitchen
+sink, bath and two pipe segments in 10.085 s (zero tool calls). A resumed question with an unsupported
+room elevation answered in 8.470 s (zero tool calls), with the limitation notice.

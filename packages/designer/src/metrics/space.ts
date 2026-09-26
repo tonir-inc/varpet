@@ -106,7 +106,8 @@ export function doorSwingPolygon(scene: Scene, opening: Opening): Vec2[] | null 
 
 function obstaclesForRoom(scene: Scene, room: Room): Obstacle[] {
   const obstacles: Obstacle[] = [...scene.items, ...scene.fixed].filter(i => i.room_id === room.id && !i.structure && !isFloorRug(i)).map(item => ({ polygon: itemPolygon(item) }));
-  obstacles.push(...wallSolidPolygons(scene).map(solid => ({ polygon: solid.polygon })));
+  // A walking person needs headroom: raised fixtures/pipes still obstruct circulation.
+  obstacles.push(...wallSolidPolygons(scene, 2).map(solid => ({ polygon: solid.polygon })));
   for (const opening of scene.openings) {
     // The room tag belongs to the wall, not the physical space swept by its leaf.
     // Raster clipping below reserves only the portion actually inside this room.

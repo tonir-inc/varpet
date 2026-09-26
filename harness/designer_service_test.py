@@ -324,14 +324,28 @@ print(json.dumps({"kind": "worker_summary", "status": "completed", "response": "
         self.assertEqual([entry["usage"]["totalTokens"] if entry["usage"] else None for entry in summaries],
                          [10, 10, 10])
 
-    def test_bridge_errors_return_error_without_wrong_followup(self):
+    def test_conversion_failure_starts_conversation_but_command_failure_stays_an_error(self):
+        # This worker responds conversationally to a pure question; proposal mode retains
+        # the existing persisted-proposal path so conversion and command gates are exercised.
+        self.worker.write_text(self.worker.read_text().replace(
+            'response="DECLINE: I place furniture; I don\'t pick paint colours."',
+            'response="Sage complements the warm wood."'))
         self.start()
-        for mode in ("bridge-error", "command-error"):
-            with self.subTest(mode=mode):
-                final, _ = self.post(self.payload(scene={"format": "varpet.editor", "mode": mode}))
-                self.assertEqual(final["type"], "error")
-                self.assertTrue(final["message"])
-        self.assertEqual(len(self.records("worker.jsonl")), 1, "failed scene conversion started a worker")
+        raw = {"format": "varpet.editor", "mode": "bridge-error"}
+        final, _ = self.post(self.payload("Why sage?", scene=raw))
+        self.assertEqual(final["type"], "message")
+        self.assertIn("Sage complements", final["message"])
+        self.assertIn("cannot check or change", final["message"])
+        resumed, _ = self.post(self.payload("Why sage?", scene=raw, conversationId=final["conversationId"]))
+        self.assertEqual(resumed["message"], "Sage complements the warm wood.")
+        records = self.records("worker.jsonl")
+        self.assertEqual(len(records), 2)
+        self.assertEqual(records[0]["scene"], raw)
+        self.assertTrue(records[0]["job"]["conversion_error"])
+        final, _ = self.post(self.payload(scene={"format": "varpet.editor", "mode": "command-error"}))
+        self.assertEqual(final["type"], "error")
+        self.assertTrue(final["message"])
+        self.assertEqual(len(self.records("worker.jsonl")), 3)
 
     def test_bridge_cannot_return_wrong_command_source_or_revision(self):
         self.start()

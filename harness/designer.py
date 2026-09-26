@@ -372,7 +372,7 @@ def sdk_worker(job_path: Path) -> int:
     job = json.loads(job_path.read_text())
     effort, profile = runtime_settings(job)
     from designer_fast import enabled as fast_enabled, run as fast_run
-    if fast_enabled(profile, os.environ):
+    if not job.get("conversion_error") and fast_enabled(profile, os.environ):
         fast_result = fast_run(job, job_path)
         if fast_result is not None:
             return fast_result
@@ -386,6 +386,9 @@ def sdk_worker(job_path: Path) -> int:
         config["model_catalog_json"] = runtime["model_catalog"]
     _emit("model_catalog_audit", **runtime.get("model_catalog_audit", {"source": "sdk_discovery"}))
     instructions = profile_prompt(placement, context, static_prefix())
+    if job.get("conversion_error"):
+        config["mcp_servers"]["varpet-designer"]["enabled"] = False
+        instructions += "\n" + (ROOT / "harness/prompts/designer-conversion-fallback.md").read_text()
     guard = TurnGuard(profile.get("max_rounds"), placement == "one-batch")
     stopped = None
     _forward_sdk_stderr()

@@ -7,6 +7,9 @@ import { createReconstructionProposal } from '../../../apps/editor/src/core/reco
 import { migrateScene, projectSnapshot } from '../../../apps/editor/src/core/renovation.js';
 import { validateScene } from '../../../apps/editor/src/core/validation.js';
 import { editorToDesigner, proposalToEditor, type EditorBridgeOptions } from '../src/editor-bridge.js';
+import { localGeometryErrors } from '../src/local-checks.js';
+import { spaceMetrics, itemPolygon, pointInPolygon } from '../src/metrics/space.js';
+import { applyOps } from '../src/adapter.js';
 import { DesignerSession } from '../src/session.js';
 
 const ceiling: CeilingDesign = { style: 'soft-glow', drop: .15, inset: .3, brightness: 65, temperature: 3000, enabled: true };
@@ -106,13 +109,31 @@ test('an approved architect replacement remains the fresh apartment when a regis
   expect(store.redo().ok).toBe(true); expect(store.scene.objects[0]!.assetId).toBe(photoChair.id);
 });
 
-test.each(['components', 'routes', 'elevation'] as const)('current unmodeled %s remain explicit errors without mutating the v2 document', kind => {
+test.each(['components', 'routes', 'elevation'] as const)('current %s preserves the v2 document with fixed services or an explicit elevation error', kind => {
   const scene = enrichedDemo();
   if (kind === 'components') scene.project!.components = structuredClone(scene.project!.baseline!.components);
   if (kind === 'routes') scene.project!.routes = structuredClone(scene.project!.baseline!.routes);
   if (kind === 'elevation') scene.project!.metadata['room-living']!.elevation = .2;
   const original = structuredClone(scene);
   expect(validateScene(scene, catalog).ok).toBe(true);
-  expect(() => editorToDesigner(scene, options)).toThrow(/component|route|elevat|floor|obstacle/i);
+  if (kind === 'elevation') expect(() => editorToDesigner(scene, options)).toThrow(/elevat|floor/i);
+  else {
+    const converted = editorToDesigner(scene, options), obstacle = converted.fixed[0]!;
+    expect(converted.fixed).toHaveLength(1);
+    expect(obstacle.keep).toBe(true);
+    expect(obstacle.structure!.wall_id).toContain(kind === 'components' ? 'stored-radiator' : 'stored-route');
+    expect(obstacle.price).toBeUndefined();
+    expect(() => applyOps(converted, [{ type: 'remove', id: obstacle.id }])).toThrow(/fixed/);
+    const probe = { id: 'probe', name: 'Chair', kind: 'chair', room_id: 'room-living', pos: obstacle.pos, rot: 0, size: [.2, .2, .8] as [number, number, number], keep: false };
+    expect(localGeometryErrors({ ...converted, items: [probe] }).some(error => error.wall_id === obstacle.structure!.wall_id)).toBe(true);
+    const circulation = spaceMetrics(converted);
+    expect(circulation.free_area_m2).toBeLessThan(spaceMetrics({ ...converted, fixed: [] }).free_area_m2);
+    const paths = circulation.rooms.flatMap(room => room.walkways).filter(walk => walk.reachable);
+    expect(paths.length).toBeGreaterThan(0);
+    for (const walk of paths) for (let i = 1; i < walk.path.length; i++) {
+      const a = walk.path[i - 1]!, b = walk.path[i]!, steps = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / .01));
+      for (let step = 0; step <= steps; step++) expect(pointInPolygon([a[0] + (b[0] - a[0]) * step / steps, a[1] + (b[1] - a[1]) * step / steps], itemPolygon(obstacle))).toBe(false);
+    }
+  }
   expect(scene).toEqual(original);
 });

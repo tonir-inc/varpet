@@ -3,6 +3,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import type { AgentProposal, AssetKind, CatalogAsset, Operation, SceneDocument, Wall as EditorWall } from '../../../apps/editor/src/contracts.js';
+import { componentPosition, componentRotation } from '../../../apps/editor/src/core/geometry.js';
 import { localCatalog } from '../../../apps/editor/src/core/demo.js';
 import { buildFinishOperations, type FinishPreset } from '../../../apps/editor/src/core/finish-presets.js';
 import { applyRenovationOperation, isRenovationOperation } from '../../../apps/editor/src/core/renovation.js';
@@ -57,7 +58,6 @@ function checkSupported(scene: SceneDocument, options: EditorBridgeOptions): voi
   for (const opening of openings) if (opening.kind === 'door' && opening.sill > EPS) throw new Error(`Unsupported elevated door: ${opening.id}`);
   const project = scene.project;
   if (!project) return;
-  if (project.components.length || project.routes.length) throw new Error('Building components and service-route obstacles are not represented by the designer bridge');
   for (const [id, metadata] of Object.entries(project.metadata)) {
     if (metadata.elevation !== undefined && Math.abs(metadata.elevation) > EPS) throw new Error(`Unsupported elevation on ${id}`);
     if (metadata.phase === 'remove' || metadata.phase === 'replace') throw new Error(`Unsupported renovation phase ${metadata.phase} on ${id}`);
@@ -108,6 +108,42 @@ function wallSpans(wall: EditorWall, scene: SceneDocument): Span[] {
   return spans;
 }
 
+/** Use the existing global structural-solid path for fixtures and conservative route prisms.
+ * Height is retained, so overhead equipment does not consume floor-level furniture space.
+ * Even planned removals stay fixed until the editor actually removes them from the snapshot. */
+function addServiceObstacles(editor: SceneDocument, scene: Scene): void {
+  if (!editor.project) return;
+  const ids = new Set([...scene.rooms, ...scene.walls, ...scene.openings, ...scene.fixed, ...editor.objects].map(value => value.id));
+  const add = (source: string, name: string, pos: Vec2, rot: number, size: [number, number, number], bottom: number) => {
+    const top = bottom + size[2];
+    if (top <= 0) return; // Entirely below the supported floor plane.
+    const owner = scene.rooms.find(room => outsidePoint([pos], room.polygon) === undefined) ?? scene.rooms[0];
+    if (!owner) return;
+    let id = `structure:${source}`;
+    while (ids.has(id)) id += ':';
+    ids.add(id);
+    scene.fixed.push({ id, name, kind: 'structural_obstacle', room_id: owner.id, pos, rot,
+      size: [size[0], size[1], top - Math.max(0, bottom)], keep: true,
+      structure: { wall_id: source, bottom_m: Math.max(0, bottom) } });
+  };
+  for (const component of editor.project.components) {
+    const [x, y, z] = componentPosition(editor, component), [width, height, depth] = component.dimensions;
+    add(component.id, component.name, [x, -z], componentRotation(editor, component) * 180 / Math.PI,
+      [width, depth, height], y);
+  }
+  for (const route of editor.project.routes) {
+    for (let i = 1; i < route.points.length; i++) {
+      const a = route.points[i - 1]!, b = route.points[i]!, diameter = route.diameter;
+      const dx = b[0] - a[0], dz = b[2] - a[2];
+      // Includes end caps and vertical risers, and conservatively encloses sloping runs.
+      add(`${route.id}:${i - 1}`, route.name, [(a[0] + b[0]) / 2, -(a[2] + b[2]) / 2],
+        Math.atan2(-dz, dx) * 180 / Math.PI,
+        [Math.hypot(dx, dz) + diameter, diameter, Math.abs(b[1] - a[1]) + diameter],
+        Math.min(a[1], b[1]) - diameter / 2);
+    }
+  }
+}
+
 /** Convert a validated editor snapshot without inferring orientation, currency, or furniture function. */
 export function editorToDesigner(input: unknown, options: EditorBridgeOptions = {}): Scene {
   const catalog = options.catalog ?? localCatalog;
@@ -140,6 +176,7 @@ export function editorToDesigner(input: unknown, options: EditorBridgeOptions = 
       scene.openings.push(converted);
     }
   }
+  addServiceObstacles(editor, scene);
   for (const object of editor.objects) {
     const asset = catalog.find(candidate => candidate.id === object.assetId)!;
     const footprint = objectFootprint(object, asset).map(plan);

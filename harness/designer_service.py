@@ -99,6 +99,7 @@ class Conversation:
     root: Path
     customer_requests: list[str] = field(default_factory=list)
     runtime: dict | None = None
+    conversion_notice_sent: bool = False
     usage: dict | None = None
     usage_known: bool = True
     general_usage: dict | None = None
@@ -193,8 +194,16 @@ class DesignerService:
                     swings.write_text(json.dumps(body["doorSwings"]))
                     extras += ["--swings", str(swings)]
                 progress("Reading the room layout")
-                self._process(self.bridge_command + ["to-designer", str(editor_scene), str(converted)] + extras, cancel)
-                scene = json.loads(converted.read_text())
+                conversion_error = None
+                try:
+                    self._process(self.bridge_command + ["to-designer", str(editor_scene), str(converted)] + extras, cancel)
+                    scene = json.loads(converted.read_text())
+                except (RuntimeError, ValueError) as error:
+                    if cancel.is_set():
+                        raise
+                    conversion_error = str(error)
+                    # Keep the actual snapshot as conversational context; no fabricated empty flat.
+                    scene = body["scene"]
                 if conversation.runtime is None:
                     conversation.runtime = designer.prepare_runtime(conversation.root / "runtime", scene)
                 else:
@@ -207,6 +216,7 @@ class DesignerService:
                 job = root / "job.json"
                 job.write_text(json.dumps({"runtime": conversation.runtime, "request": body["request"],
                                            "effort": self.effort, "profile": self.profile, "images": self.image_paths,
+                                           "conversion_error": conversion_error,
                                            "catalog": body.get("catalog"), "catalogCurrency": body.get("catalogCurrency")}))
                 env = {**os.environ, "VARPET_SCENE": conversation.runtime["scene"],
                        "VARPET_PROPOSALS_DIR": str(proposals)}
@@ -256,6 +266,8 @@ class DesignerService:
                 summary = summaries[-1]
                 accepted = [value for event in events for value in tool_values(event, "propose") if value.get("ok") is True]
                 files = sorted(proposals.glob("*.json"), key=lambda path: path.stat().st_mtime_ns)
+                if conversion_error and (accepted or files):
+                    raise RuntimeError("Layout proposals are unavailable until scene conversion succeeds")
                 if accepted:
                     proposal_id = accepted[-1].get("proposal_id")
                     # Select only a file in this request's directory, never a path supplied by the model.
@@ -303,6 +315,10 @@ class DesignerService:
                 if not isinstance(response, str) or not response.strip():
                     raise RuntimeError("Designer completed without a proposal, question or response")
                 reply = conversational_reply(response)
+                if conversion_error and not conversation.conversion_notice_sent:
+                    notice = "\n\nI can discuss your flat, but cannot check or change its layout until its geometry is supported."
+                    reply["message"] = reply["message"][:4000 - len(notice)].rstrip() + notice
+                    conversation.conversion_notice_sent = True
                 outcome = reply["type"]
                 return {**reply, "conversationId": conversation_id}
         finally:

@@ -8,6 +8,9 @@ import { demoScene, localCatalog } from '../../../apps/editor/src/core/demo.js';
 import { emptyProject } from '../../../apps/editor/src/core/renovation.js';
 import { EditorStore } from '../../../apps/editor/src/core/store.js';
 import { validateScene } from '../../../apps/editor/src/core/validation.js';
+import { localGeometryErrors } from '../src/local-checks.js';
+import { spaceMetrics, itemPolygon, pointInPolygon } from '../src/metrics/space.js';
+import { applyOps } from '../src/adapter.js';
 import { DesignerSession, type Proposal } from '../src/session.js';
 import { editorToDesigner, proposalToEditor } from '../src/editor-bridge.js';
 
@@ -68,12 +71,24 @@ test('safe v2 preserves metadata while groups, locks and retained objects become
   expect(editorToDesigner(input, { catalog }).items.every(item => item.keep)).toBe(true);
 });
 
-test('unsupported elevations, obstacles and removed shell are rejected instead of flattened', () => {
+test('fixtures become fixed obstacles while unsupported elevations and removed shell still fail', () => {
   const input = scene(); input.version = 2; input.project = emptyProject();
   input.project.metadata.room = { elevation: 1 };
   expect(() => editorToDesigner(input, { catalog })).toThrow(/elevat/i);
   input.project.metadata = {}; input.project.components.push({ id: 'radiator', name: 'Radiator', kind: 'radiator', position: [2, 0, 1], dimensions: [1, 1, .3], rotation: 0, color: '#ffffff', phase: 'existing' });
-  expect(() => editorToDesigner(input, { catalog })).toThrow(/component|obstacle/i);
+  const converted = editorToDesigner(input, { catalog }), obstacle = converted.fixed[0]!;
+  expect(obstacle).toMatchObject({ pos: [2, -1], size: [1, .3, 1], keep: true, structure: { wall_id: 'radiator', bottom_m: 0 } });
+  expect(obstacle.price).toBeUndefined();
+  expect(() => applyOps(converted, [{ type: 'move', id: obstacle.id, pos: [3, -3] }])).toThrow(/fixed/);
+  expect(localGeometryErrors({ ...converted, items: [{ ...converted.items[0]!, pos: [2, -1] }] }).some(error => error.wall_id === 'radiator')).toBe(true);
+  const circulation = spaceMetrics(converted);
+  expect(circulation.free_area_m2).toBeLessThan(spaceMetrics({ ...converted, fixed: [] }).free_area_m2);
+  const paths = circulation.rooms.flatMap(room => room.walkways).filter(walk => walk.reachable);
+  expect(paths.length).toBeGreaterThan(0);
+  for (const walk of paths) for (let i = 1; i < walk.path.length; i++) {
+    const a = walk.path[i - 1]!, b = walk.path[i]!, steps = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / .01));
+    for (let step = 0; step <= steps; step++) expect(pointInPolygon([a[0] + (b[0] - a[0]) * step / steps, a[1] + (b[1] - a[1]) * step / steps], itemPolygon(obstacle))).toBe(false);
+  }
   input.project.components = []; input.project.metadata.wall = { phase: 'remove' };
   expect(() => editorToDesigner(input, { catalog })).toThrow(/phase|remov/i);
 });
