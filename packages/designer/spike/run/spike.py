@@ -337,7 +337,8 @@ def run_thread(workspace: Path, case: dict, args, events_path: Path, result: dic
         try:
             last = session.turn(turn_input, "request")
             result["question"] = last["final_message"] if is_question(last["final_message"], workspace) else None
-            for n, answer in enumerate(args.followup or [], 1):
+            answers = ([args.if_asked] if args.if_asked and result["question"] else []) + list(args.followup or [])
+            for n, answer in enumerate(answers, 1):
                 if last["status"] != "completed":
                     break
                 brief += f"\nCustomer follow-up: {answer}"
@@ -472,6 +473,7 @@ def main() -> int:
     parser.add_argument("--cli", type=Path, default=SPIKE / "cli.ts", help="CLI to expose (stub for plumbing tests)")
     parser.add_argument("--no-render", action="store_true", help="skip the final check/render report")
     parser.add_argument("--followup", action="append", help="a scripted customer answer sent as the next turn on the same thread (repeatable)")
+    parser.add_argument("--if-asked", help="the customer's answer, sent only when the first turn ends with a question")
     parser.add_argument("--critic-rounds", type=int, default=2, help="independent critic rounds after the design (default 2)")
     parser.add_argument("--no-critic", action="store_true", help="skip the critic")
     parser.add_argument("--parallel", default="auto", choices=("auto", "on", "off"),
