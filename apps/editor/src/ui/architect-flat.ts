@@ -32,25 +32,97 @@ interface Run { step: number; message: string; started: number; done: boolean; e
 let current: Run | null = null;
 let timer: ReturnType<typeof setInterval> | undefined;
 
+const MAX_PHOTOS = 10;
+const isImage = (file: File) => file.type.startsWith('image/');
+
 export function openArchitectFlat(deps: ArchitectFlatDeps): void {
   if (current && !current.done) { renderProgress(deps); return; }
   deps.showModal('Build with the architect', `
     <p class="modal-intro">Give the architect your developer's floor plan and a few photos of the flat. It draws the rooms, kitchen and bathroom, builds each piece of furniture from the photos and places it where the photos show it. You review the result before anything changes.</p>
     <form id="af-form" class="af-form">
-      <label class="af-drop"><span class="af-label">Floor plan</span><span class="af-hint">One image of the plan with room sizes</span><input id="af-plan" type="file" accept="image/*" required></label>
-      <label class="af-drop"><span class="af-label">Photos of the flat</span><span class="af-hint">Up to 10 photos that show the rooms and furniture</span><input id="af-photos" type="file" accept="image/*" multiple></label>
+      <div class="af-drop" data-zone="plan" tabindex="0" role="button" aria-describedby="af-plan-hint">
+        <span class="af-label">Floor plan</span>
+        <span class="af-hint" id="af-plan-hint">Drop or paste one image of the plan with room sizes, or <u>choose a file</u></span>
+        <input id="af-plan" type="file" accept="image/*" hidden>
+        <div class="af-thumbs" data-thumbs="plan"></div>
+      </div>
+      <div class="af-drop" data-zone="photos" tabindex="0" role="button" aria-describedby="af-photos-hint">
+        <span class="af-label">Photos of the flat</span>
+        <span class="af-hint" id="af-photos-hint">Drop or paste up to ${MAX_PHOTOS} photos of the rooms and furniture, or <u>choose files</u></span>
+        <input id="af-photos" type="file" accept="image/*" multiple hidden>
+        <div class="af-thumbs" data-thumbs="photos"></div>
+      </div>
       <label class="af-field"><span class="af-label">Name</span><input id="af-name" type="text" maxlength="40" placeholder="My flat"></label>
-      <p class="af-note">Takes about 8 minutes. You can close this window; the architect keeps working and tells you when it is done.</p>
+      <p class="af-note">Tip: drop everything at once onto this window; a file with “plan” in its name becomes the plan. Takes about 8 minutes, and you can close this window while the architect works.</p>
       <button class="button primary full" type="submit">Build my apartment</button>
     </form>`);
+  let plan: File | null = null;
+  let photos: File[] = [];
   const form = document.querySelector<HTMLFormElement>('#af-form')!;
+  const urls: string[] = [];
+  const render = () => {
+    urls.splice(0).forEach(URL.revokeObjectURL);
+    const thumb = (file: File, zone: string, index: number) => {
+      const url = URL.createObjectURL(file); urls.push(url);
+      return `<figure class="af-thumb"><img src="${url}" alt=""><figcaption>${esc(file.name)}</figcaption><button type="button" class="af-remove" data-remove="${zone}" data-index="${index}" aria-label="Remove ${esc(file.name)}">×</button></figure>`;
+    };
+    form.querySelector('[data-thumbs="plan"]')!.innerHTML = plan ? thumb(plan, 'plan', 0) : '';
+    form.querySelector('[data-thumbs="photos"]')!.innerHTML = photos.map((f, i) => thumb(f, 'photos', i)).join('');
+    form.querySelector('[data-zone="plan"]')!.classList.toggle('af-filled', !!plan);
+    form.querySelector('[data-zone="photos"]')!.classList.toggle('af-filled', photos.length > 0);
+  };
+  /** zone: where the files were dropped; undefined = anywhere, so sort the plan out of the batch. */
+  const add = (files: File[], zone?: 'plan' | 'photos') => {
+    files = files.filter(isImage);
+    if (!files.length) { deps.notify('Only images can be used for the plan and photos.', true); return; }
+    if (zone === 'plan') { plan = files[0]!; photos.push(...files.slice(1)); }
+    else if (zone === 'photos') photos.push(...files);
+    else {
+      const named = files.find(f => /plan/i.test(f.name));
+      if (!plan) { plan = named ?? files[0]!; files = files.filter(f => f !== plan); }
+      photos.push(...files);
+    }
+    if (photos.length > MAX_PHOTOS) { deps.notify(`Keeping the first ${MAX_PHOTOS} photos.`); photos = photos.slice(0, MAX_PHOTOS); }
+    render();
+  };
+  for (const zone of ['plan', 'photos'] as const) {
+    const box = form.querySelector<HTMLElement>(`[data-zone="${zone}"]`)!;
+    const input = box.querySelector<HTMLInputElement>('input[type=file]')!;
+    box.onclick = event => { if (!(event.target as HTMLElement).closest('.af-remove')) input.click(); };
+    box.onkeydown = event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); input.click(); } };
+    input.onchange = () => { add([...input.files ?? []], zone); input.value = ''; };
+    box.ondragover = event => { event.preventDefault(); event.stopPropagation(); box.classList.add('af-over'); };
+    box.ondragleave = () => box.classList.remove('af-over');
+    box.ondrop = event => { event.preventDefault(); event.stopPropagation(); box.classList.remove('af-over'); add([...event.dataTransfer?.files ?? []], zone); };
+  }
+  // Drop anywhere on the form: sort a whole batch at once (the form is rebuilt each time the dialog opens).
+  form.ondragover = event => { event.preventDefault(); form.classList.add('af-dragging'); };
+  form.ondragleave = event => { if (!form.contains(event.relatedTarget as Node | null)) form.classList.remove('af-dragging'); };
+  form.ondrop = event => { event.preventDefault(); form.classList.remove('af-dragging'); if (event.dataTransfer?.files.length) add([...event.dataTransfer.files]); };
+  // Paste: screenshots or copied images.
+  const onPaste = (event: ClipboardEvent) => {
+    if (!document.body.contains(form)) { document.removeEventListener('paste', onPaste); return; }
+    const files = [...event.clipboardData?.files ?? []].filter(isImage)
+      .map((f, i) => f.name && f.name !== 'image.png' ? f : new File([f], `pasted-${Date.now()}-${i + 1}.png`, { type: f.type }));
+    if (!files.length) return;
+    event.preventDefault();
+    add(files);
+  };
+  document.addEventListener('paste', onPaste);
+  form.onclick = event => {
+    const remove = (event.target as HTMLElement).closest<HTMLElement>('.af-remove');
+    if (!remove) return;
+    event.stopPropagation();
+    if (remove.dataset.remove === 'plan') plan = null; else photos.splice(Number(remove.dataset.index), 1);
+    render();
+  };
   form.onsubmit = event => {
     event.preventDefault();
-    const plan = document.querySelector<HTMLInputElement>('#af-plan')!.files?.[0];
-    const photos = [...document.querySelector<HTMLInputElement>('#af-photos')!.files ?? []].slice(0, 10);
     const name = document.querySelector<HTMLInputElement>('#af-name')!.value.trim() || 'My flat';
-    if (!plan) { deps.notify('Choose a floor plan image first.', true); return; }
-    void start(deps, { plan, photos, name });
+    if (!plan) { deps.notify('Add a floor plan image first: drop it, paste it or choose a file.', true); return; }
+    document.removeEventListener('paste', onPaste);
+    urls.splice(0).forEach(URL.revokeObjectURL);
+    void start(deps, { plan, photos: photos.slice(0, MAX_PHOTOS), name });
   };
 }
 

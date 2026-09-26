@@ -20,3 +20,14 @@
 .af-status { padding: var(--space-3); border-radius: var(--radius-sm); background: var(--accent-wash); font-size: var(--text-sm); }
 @keyframes af-pulse { 50% { background: var(--accent); } }
 @media (prefers-reduced-motion: reduce) { .af-active .af-dot { animation: none; background: var(--accent-wash); } }
+.af-drop { cursor: pointer; transition: border-color .15s, background .15s; }
+.af-drop:focus-visible, .af-drop.af-over, .af-dragging .af-drop { border-color: var(--accent); background: var(--accent-wash); }
+.af-drop.af-filled { border-style: solid; }
+.af-hint u { color: var(--accent); text-decoration: none; }
+.af-thumbs { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.af-thumbs:empty { display: none; }
+.af-thumb { position: relative; width: 84px; margin: 0; }
+.af-thumb img { display: block; width: 84px; height: 64px; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--line); }
+.af-thumb figcaption { overflow: hidden; margin-top: 2px; color: var(--muted); font-size: 11px; white-space: nowrap; text-overflow: ellipsis; }
+.af-remove { position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; padding: 0; border: 1px solid var(--line); border-radius: 50%; background: var(--surface); color: inherit; font-size: 14px; line-height: 1; cursor: pointer; }
+.af-remove:hover, .af-remove:focus-visible { border-color: var(--danger); color: var(--danger); }
