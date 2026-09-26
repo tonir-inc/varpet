@@ -617,7 +617,7 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
     }
     // The submit button stays in the form and disabled while busy: automation waits on it to learn the turn ended.
     sendButton.disabled = state.busy; sendButton.hidden = state.busy; stopButton.hidden = !state.busy;
-    input.placeholder = state.busy ? 'Add a message for when the designer finishes' : 'Ask anything';
+    input.placeholder = state.busy ? 'Queue your next message' : 'Ask anything';
     find<HTMLElement>('.designer-compose-hint').textContent = state.busy ? 'Enter queues your message · Shift+Enter for a new line' : 'Enter to send · Shift+Enter for a new line';
     for (const control of host.querySelectorAll<HTMLButtonElement>('.designer-examples button')) control.disabled = state.busy;
     if (document.activeElement !== north && !state.northError) north.value = state.northDeg === undefined ? '' : String(state.northDeg);
