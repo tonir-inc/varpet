@@ -124,6 +124,17 @@ def export_project(repo: Path, run_dir: Path, base_url: str = "http://127.0.0.1:
     return out if proc.returncode == 0 and out.exists() else None
 
 
+def _read_pieces(path: Path) -> Pieces:
+    """Mechanical fixes in code: ids are lowercase with hyphens (wood_dining_chair -> wood-dining-chair)."""
+    import re
+
+    data = json.loads(path.read_text())
+    for p in data.get("pieces", []):
+        if isinstance(p.get("id"), str):
+            p["id"] = re.sub(r"[^a-z0-9-]+", "-", p["id"].lower()).strip("-")
+    return Pieces.model_validate(data)
+
+
 def _fix_prompt(what: str, faults: str) -> str:
     return f"Code checked {what} and found faults. Fix only these, keep the rest:\n{faults}"
 
@@ -168,7 +179,16 @@ async def run_session(codex: AsyncCodex, repo: Path, flat: str, plan: str, photo
                                     shell_skill=_skill(repo, "flat-shell"))
         await turn([TextInput(prompt), *images])
         shell_faults = await checked("shell/shell.json", SHELL_CHECK, run_dir / "shell" / "shell.json")
-        pieces = Pieces.model_validate_json((run_dir / "pieces.json").read_text())
+        pieces = None
+        for attempt in range(FIX_TURNS + 1):
+            try:
+                pieces = _read_pieces(run_dir / "pieces.json")
+                break
+            except (ValueError, OSError) as e:
+                if attempt == FIX_TURNS:
+                    raise
+                progress("architect: fixing pieces.json")
+                await turn([TextInput(_fix_prompt("pieces.json", str(e)[:3000]))])
         report.step("read", t, shell_ok=shell_faults is None, pieces=len(pieces.pieces))
 
         # 2. build the pieces in parallel

@@ -61,3 +61,9 @@ def test_session_reads_builds_places(tmp_path, monkeypatch):
     assert report.steps[2]["ok"] and report.architect_turns == 3  # read, place, one fix
     graph = json.loads((run / "graph.json").read_text())
     assert {j["kind"] for j in graph["jobs"]} == {"piece", "shell", "furnish"}
+
+
+def test_piece_ids_are_normalised(tmp_path):
+    f = tmp_path / "pieces.json"
+    f.write_text(json.dumps({"pieces": [{"id": "Wood_Dining Chair", "brief": "x", "size": [0.4, 0.5, 0.9]}]}))
+    assert S._read_pieces(f).pieces[0].id == "wood-dining-chair"
