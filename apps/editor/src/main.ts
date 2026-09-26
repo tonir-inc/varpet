@@ -18,8 +18,9 @@ import { validateScene } from './core/validation';
 import { OPENING_MOVE_SNAP } from './core/opening-move';
 import { STORAGE_KEY, parseScene, saveLocal, serializeScene } from './core/persistence';
 import { createDesignerAdapter, structureAdapter as mockStructureAdapter } from './adapters/mock';
-import { createArchitectHttpAdapter, withBuiltPieceResolver } from './adapters/architect-http';
-import { createReconstructionProposal } from './core/reconstruction-proposal';
+import { createArchitectHttpAdapter } from './adapters/architect-http';
+import { BUILT_CATEGORY, loadBuiltProducts, resolveFurnitureProducts } from './adapters/built-catalog';
+import { createReconstructionProposal, previewReconstructionProposal } from './core/reconstruction-proposal';
 import { createViewport } from './render/viewport';
 import { SKYBOX_PRESETS, isSkyboxPreset, type SkyboxPreset } from './render/skybox';
 import { createFloorPlan } from './render/floor-plan';
@@ -74,9 +75,9 @@ app.innerHTML = `
         <label class="search">${icon('search')}<input id="asset-search" placeholder="Search furniture…" aria-label="Search furniture" /></label>
         <label class="text-field">Category<select id="asset-category" aria-label="Furniture category"><option value="">All furniture</option></select></label>
         <div id="catalog-status" role="status" aria-live="polite"></div>
-        <button id="catalog-retry" class="button full" hidden>Retry database connection</button>
+        <button id="catalog-retry" class="button full" hidden>Retry furniture connections</button>
         <div id="catalog-scroll"><div id="asset-list" class="asset-list"></div></div>
-        <p class="muted catalog-note">Database furniture · prices in AMD, labeled with their source. Click a piece to add it.</p><p class="muted catalog-note">Models: <a href="https://amazon-berkeley-objects.s3.amazonaws.com/index.html" target="_blank" rel="noopener noreferrer">Amazon Berkeley Objects</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Models are centered, oriented and scaled to catalog fit dimensions.</p>
+        <p class="muted catalog-note">Shop prices in AMD, labeled with their source. Pieces built from your photos are not priced. Click a piece to add it.</p><p class="muted catalog-note">Models: <a href="https://amazon-berkeley-objects.s3.amazonaws.com/index.html" target="_blank" rel="noopener noreferrer">Amazon Berkeley Objects</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Models are centered, oriented and scaled to catalog fit dimensions.</p>
       </section>
       <section id="assistant-panel" class="panel-content" aria-label="Design assistant" hidden>
         <section class="assistant-card"><div class="assistant-heading"><span class="assistant-icon">${icon('sparkles')}</span><div><strong>Design together</strong><span>Design assistant <span class="mock-label">${designerLive ? 'LIVE' : 'DEMO'}</span></span></div></div><p>Explore a change to your apartment. Review the proposal before applying it.</p><button id="suggest" class="button suggestion">${icon('sparkles')} Suggest an edit ${icon('arrow')}</button><div id="proposal" aria-live="polite"></div></section>
@@ -110,8 +111,11 @@ const $ = <T extends HTMLElement = HTMLElement>(selector: string) => document.qu
 const escape = (s: string) => s.replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]!));
 const uid = () => crypto.randomUUID();
 const architectLive = Boolean(import.meta.env.VITE_ARCHITECT_URL);
+const builtOptions = { url: import.meta.env.VITE_ARCHITECT_URL, run: import.meta.env.VITE_ARCHITECT_RUN };
+let builtProducts: CatalogProduct[] = [];
+let builtLoading = false;
+let builtError = '';
 const structureAdapter = architectLive ? createArchitectHttpAdapter({ onProgress: message => notify(message) }) : mockStructureAdapter;
-const builtPieceResolver = withBuiltPieceResolver(ids => databaseCatalog.resolve(ids), (asset): CatalogProduct => ({ asset, priceSource: 'built from photos', sizeStatus: 'estimated', attribution: 'Built by the varpet architect from your photos' }));
 let catalog: CatalogAsset[] = [];
 const store = createApartmentStore(createInitialScene(), catalog);
 const catalogProducts = new Map<string, CatalogProduct>();
@@ -124,16 +128,16 @@ let catalogRequest: AbortController | undefined;
 let catalogSearchTimer: ReturnType<typeof setTimeout>;
 function registerProducts(products: CatalogProduct[]) {
   // Imports must not invalidate the cards still visible in the current search.
-  products = retainRegisteredProducts([...catalogResults, ...products], catalogProducts);
+  products = retainRegisteredProducts([...builtProducts, ...catalogResults, ...products], catalogProducts);
   catalog = store.registerCatalogAssets(products.map(product => product.asset));
   products.forEach(product => catalogProducts.set(product.asset.id, product));
   const retained = new Set(catalog.map(asset => asset.id));
   for (const id of catalogProducts.keys()) if (!retained.has(id)) catalogProducts.delete(id);
 }
-const priceLabel = (asset: CatalogAsset) => `${asset.price.toLocaleString()} AMD · ${catalogProducts.get(asset.id)?.priceSource ?? 'unverified'}`;
+const priceLabel = (asset: CatalogAsset) => asset.id.startsWith('built-') ? 'Not priced · built from your photos' : `${asset.price.toLocaleString()} AMD · ${catalogProducts.get(asset.id)?.priceSource ?? 'unverified'}`;
 async function parseDatabaseScene(text: string) {
   if (text.length > 24_000_000) throw new Error('Project file exceeds the 24 MB limit.');
-  registerProducts(await resolveSceneProducts(JSON.parse(text), catalogProducts, architectLive ? builtPieceResolver : undefined));
+  registerProducts(await resolveSceneProducts(JSON.parse(text), catalogProducts, ids => resolveFurnitureProducts(ids, builtOptions)));
   return parseScene(text, catalog);
 }
 let selectedId: string | null = null;
@@ -500,13 +504,25 @@ function addAsset(asset:CatalogAsset, original?:SceneObject) {
 }
 function duplicateSelected(){if(selectedFurnitureIds.length>1){notify('Ungroup to duplicate an individual piece.');return;}const o=store.scene.objects.find(o=>o.id===selectedId);const a=catalog.find(a=>a.id===o?.assetId);if(o&&a)addAsset(a,o);}
 
+async function refreshBuiltPieces() {
+  if (!architectLive || builtLoading) return;
+  builtLoading = true; builtError = ''; renderAssets();
+  try {
+    const result = await loadBuiltProducts(builtOptions);
+    registerProducts(result.products);
+    builtProducts = result.products.map(product => catalogProducts.get(product.asset.id)!);
+    renderInspector();
+  } catch (error) {
+    builtError = error instanceof Error ? error.message : 'Built furniture unavailable.';
+  } finally { builtLoading = false; renderAssets(); }
+}
 async function searchDatabase() {
   clearTimeout(catalogSearchTimer);
   catalogRequest?.abort();
   const request = new AbortController(); catalogRequest = request;
   catalogLoading = true; catalogError = ''; catalogResults = []; catalogExcluded = 0; renderAssets();
   try {
-    const result = await databaseCatalog.search($<HTMLInputElement>('#asset-search').value.trim(), assetCategory, request.signal);
+    const result = assetCategory === BUILT_CATEGORY ? { products: [], excluded: 0 } : await databaseCatalog.search($<HTMLInputElement>('#asset-search').value.trim(), assetCategory, request.signal);
     if (request.signal.aborted) return;
     registerProducts(result.products);
     catalogResults = result.products; catalogExcluded = result.excluded;
@@ -519,13 +535,19 @@ async function searchDatabase() {
   }
 }
 function renderAssets(){
-  $('#asset-count').textContent = String(catalogResults.length);
-  $('#catalog-status').textContent = catalogLoading ? 'Searching furniture database…' : catalogError || `${catalogResults.length} database options${catalogExcluded ? ` · ${catalogExcluded} unavailable or unsupported models omitted` : ''}`;
-  $('#catalog-retry').hidden = !catalogError;
-  $('#asset-list').setAttribute('aria-busy', String(catalogLoading));
-  $('#asset-list').innerHTML = catalogResults.length ? catalogResults.map(({asset:a,sizeStatus})=>`<button class="asset-card" data-asset="${escape(a.id)}" aria-label="Add ${escape(a.name)}"><div class="asset-preview" data-preview="${escape(a.id)}">${icon('box')}</div><span class="asset-add" aria-hidden="true">+</span><strong class="asset-title">${escape(a.name)}</strong><span class="asset-meta"><span>${a.dimensions[0].toFixed(2)} × ${a.dimensions[2].toFixed(2)} m · ${escape(sizeStatus)}</span></span><span class="asset-price">${escape(priceLabel(a))}</span></button>`).join('') : `<p class="empty-message">${catalogLoading ? 'Loading database options…' : catalogError ? 'Connect to the furniture database to browse models.' : 'No matching 3D furniture. Try a different search or category.'}</p>`;
+  const query = $<HTMLInputElement>('#asset-search').value.trim().toLowerCase();
+  const built = builtProducts.filter(({asset}) => (!assetCategory || assetCategory === BUILT_CATEGORY || asset.kind === assetCategory)
+    && `${asset.name} ${asset.category} ${asset.kind}`.toLowerCase().includes(query));
+  const results = [...built, ...catalogResults];
+  const loading = catalogLoading || builtLoading;
+  const errors = [catalogError, builtError].filter(Boolean).join(' ');
+  $('#asset-count').textContent = String(results.length);
+  $('#catalog-status').textContent = [loading ? 'Loading furniture…' : `${catalogResults.length} database options · ${built.length} built pieces${catalogExcluded ? ` · ${catalogExcluded} unavailable or unsupported models omitted` : ''}`, errors].filter(Boolean).join(' ');
+  $('#catalog-retry').hidden = !errors;
+  $('#asset-list').setAttribute('aria-busy', String(loading));
+  $('#asset-list').innerHTML = results.length ? results.map(({asset:a,sizeStatus})=>`<button class="asset-card" data-asset="${escape(a.id)}" aria-label="Add ${escape(a.name)}"><div class="asset-preview" data-preview="${escape(a.id)}">${icon('box')}</div><span class="asset-add" aria-hidden="true">+</span><strong class="asset-title">${escape(a.name)}</strong><span class="asset-meta"><span>${a.dimensions[0].toFixed(2)} × ${a.dimensions[2].toFixed(2)} m · ${escape(sizeStatus)}</span></span><span class="asset-price">${escape(priceLabel(a))}</span></button>`).join('') : `<p class="empty-message">${loading ? 'Loading furniture…' : errors ? 'Check the furniture connections, then retry.' : 'No matching 3D furniture. Try a different search or category.'}</p>`;
   $('#asset-list').querySelectorAll<HTMLButtonElement>('[data-asset]').forEach(b=>b.onclick=()=>{const asset=catalog.find(a=>a.id===b.dataset.asset);if(asset)addAsset(asset);});
-  catalogPreviews.setAssets(catalogResults.map(product => product.asset));
+  catalogPreviews.setAssets(results.map(product => product.asset));
 }
 function switchPanel(panel:Panel, toggle=false){
   if (panel !== 'materials' && activeFinish) chooseFinish(null);
@@ -659,9 +681,10 @@ function renderProposal(){
   $('#apply-proposal').onclick=()=>{ applyPendingProposal(); };
   if(canInspect)$('#inspect-proposal').onclick=()=>{
     if(!pending||pending.command.baseRevision!==store.revision||interacting)return;
-    let proposed:SceneDocument=structuredClone(store.scene);
-    for(const op of pending.command.operations){if(op.type==='replace-scene')proposed=op.scene;else if(op.type==='replace-structure'){proposed.rooms=op.rooms;proposed.walls=op.walls;}}
-    setPreview(true);proposalView=true;$<HTMLButtonElement>('#save').disabled=true;viewport.setScene(proposed,catalog);focusView();notify('Proposed apartment preview. Exit Preview to apply or dismiss it.');
+    try {
+      const proposed = previewReconstructionProposal(store.scene, store.revision, pending, catalog);
+      setPreview(true);proposalView=true;$<HTMLButtonElement>('#save').disabled=true;viewport.setScene(proposed,catalog);focusView();notify('Proposed apartment preview. Exit Preview to apply or dismiss it.');
+    } catch (error) { notify(error instanceof Error ? error.message : String(error), true); }
   };
   $('#reject-proposal').onclick=()=>{pending=null;renderProposal();notify('Proposal dismissed');};
 }
@@ -775,8 +798,9 @@ $('#renovation-tab').onclick=()=>switchPanel('renovation',true);$('#edit-shell')
 $('#collapse-panel').onclick=()=>{switchPanel(activePanel,true);$(`#${activePanel}-tab`).focus();};
 $('#browse-assets').onclick=()=>switchPanel('assets');
 $<HTMLSelectElement>('#asset-category').innerHTML += catalogKinds.map(kind=>`<option value="${kind}">${kind.charAt(0).toUpperCase()+kind.slice(1)}</option>`).join('');
+if(architectLive)$<HTMLSelectElement>('#asset-category').add(new Option(BUILT_CATEGORY, BUILT_CATEGORY));
 $('#asset-category').onchange=()=>{assetCategory=$<HTMLSelectElement>('#asset-category').value;$('#catalog-scroll').scrollTop=0;void searchDatabase();};
-$('#catalog-retry').onclick=()=>void searchDatabase();
+$('#catalog-retry').onclick=()=>{void searchDatabase();void refreshBuiltPieces();};
 $('#asset-search').oninput=()=>{catalogRequest?.abort();clearTimeout(catalogSearchTimer);catalogResults=[];catalogLoading=true;catalogError='';$('#catalog-scroll').scrollTop=0;renderAssets();catalogSearchTimer=setTimeout(()=>void searchDatabase(),300);};
 $('#scene-search').oninput=renderHierarchy;
 $('#close-inspector').onclick=()=>{viewport.cancelInteraction();select(null);$('#viewport canvas')?.focus();};
@@ -821,4 +845,4 @@ window.addEventListener('keydown',event=>{
   else if(!mod){if(['delete','backspace'].includes(key)){event.preventDefault();deleteSelected();}else if(key==='f')focusView(selectedId??undefined);else if(key==='v')setTool('select');else if(key==='g'&&view!=='plan')setTool('move');else if(key==='r'&&view!=='plan')setTool('rotate');else if(key==='s'&&view!=='plan')setTool('scale');else if(key==='1')switchPanel('scene');else if(key==='2')switchPanel('assets');else if(key==='3')switchPanel('assistant');else if(key==='4')switchPanel('renovation');else if(key==='5')switchPanel('materials');else if(key==='6')switchPanel('ceilings');else if(key==='[')switchPanel(activePanel,true);}
 });
 window.addEventListener('beforeunload',()=>{catalogRequest?.abort();clearTimeout(catalogSearchTimer);cancelAnimationFrame(selectionRevealFrame);materialsUI.dispose();ceilingUI.dispose();viewport.dispose();floorPlan.dispose();catalogPreviews.dispose();renovationUI?.destroy();intake.destroy();});
-refresh();renderAssets();setTool('select');switchPanel('renovation');if(designerLive)switchPanel('renovation',true);void searchDatabase();
+refresh();renderAssets();setTool('select');switchPanel('renovation');if(designerLive)switchPanel('renovation',true);void searchDatabase();void refreshBuiltPieces();

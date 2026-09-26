@@ -1,4 +1,4 @@
-import type { RenovationOperation, RenovationProject } from './renovation-contracts';
+import type { EntityMetadata, RenovationOperation, RenovationProject } from './renovation-contracts';
 export type * from './renovation-contracts';
 /** Editor-local v1 boundary. Deliberately does not define the future shared engine schema. */
 export type Vec2 = [number, number]; // x, z in metres
@@ -57,7 +57,8 @@ export interface CommandResult { ok: boolean; errors: string[]; warnings: string
 export interface SceneChange { scene: SceneDocument; revision: number; label: string; source: CommandSource | 'history'; canUndo: boolean; canRedo: boolean }
 export interface ValidationResult { ok: boolean; errors: string[]; warnings: string[] }
 export interface AgentProposal { id: string; title: string; description: string; command: EditCommand }
-export interface StructureAdapter { reconstruct(signal?: AbortSignal): Promise<{ rooms: Room[]; walls: Wall[]; notes: string[] }> }
+/** Metadata keys identify returned rooms, walls or openings; omitted metadata preserves legacy adapters. */
+export interface StructureAdapter { reconstruct(signal?: AbortSignal): Promise<{ rooms: Room[]; walls: Wall[]; notes: string[]; metadata?: Record<string, EntityMetadata> }> }
 export interface CatalogAdapter { list(signal?: AbortSignal): Promise<CatalogAsset[]> }
 export interface DesignerAdapter { propose(scene: SceneDocument, revision: number, signal?: AbortSignal): Promise<AgentProposal> }
 export type ToolMode = 'select' | 'move' | 'rotate' | 'scale';

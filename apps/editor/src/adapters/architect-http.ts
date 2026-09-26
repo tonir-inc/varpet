@@ -1,6 +1,7 @@
 /// <reference types="vite/client" />
-import type {CatalogAsset,Room,StructureAdapter,Wall} from '../contracts';
+import type {CatalogAsset,EntityMetadata,Room,StructureAdapter,Wall} from '../contracts';
 import {demoScene} from '../core/demo';
+import {emptyProject} from '../core/renovation';
 import {validateScene} from '../core/validation';
 
 /**
@@ -38,16 +39,24 @@ async function encode(file:File):Promise<{name:string;data:string}>{
   for(let i=0;i<bytes.length;i+=0x8000)binary+=String.fromCharCode(...bytes.subarray(i,i+0x8000));
   return {name:file.name,data:btoa(binary)};
 }
-function structureFrom(line:Record<string,unknown>):{rooms:Room[];walls:Wall[];notes:string[]}{
-  const {rooms,walls,notes}=line;
+function structureFrom(line:Record<string,unknown>):Awaited<ReturnType<StructureAdapter['reconstruct']>>{
+  const {rooms,walls,notes,metadata}=line;
   if(!Array.isArray(rooms)||!Array.isArray(walls))throw new ArchitectServiceError('The architect returned no rooms or walls.');
-  // Full validation happens when the proposal is applied (store.execute validates the scene).
-  return {rooms:rooms as Room[],walls:walls as Wall[],notes:Array.isArray(notes)?notes.map(String):[]};
+  const result={rooms:rooms as Room[],walls:walls as Wall[],notes:Array.isArray(notes)?notes.map(String):[],
+    ...(metadata===undefined?{}:{metadata:metadata as Record<string,EntityMetadata>})};
+  // Reuse the editor's metadata bounds and entity-reference checks on this empty shell.
+  const checked=validateScene({
+    format:'varpet.editor',version:2,id:'architect-structure',name:'Reconstructed apartment',units:'m',upAxis:'Y',
+    rooms:result.rooms,walls:result.walls,objects:[],
+    project:{...emptyProject(),metadata:metadata===undefined?{}:result.metadata!},
+  },[]);
+  if(!checked.ok)throw new ArchitectServiceError(`The architect returned an invalid structure: ${checked.errors.join(' ')}`);
+  return result;
 }
 
 /**
  * Pieces the architect built from photos, as catalog assets with GLB sources (newest run unless named).
- * Display only for now: EditorStore validates placements against the catalog it was created with.
+ * Register returned products through the editor catalog path before placement.
  */
 export async function builtPieces(options:{url?:string;run?:string;fetch?:typeof globalThis.fetch}={}):Promise<{run:string;assets:CatalogAsset[]}>{
   const base=(options.url??import.meta.env.VITE_ARCHITECT_URL??'http://127.0.0.1:8788').replace(/\/$/,'');
@@ -96,8 +105,8 @@ export function createArchitectHttpAdapter(options:ArchitectHttpOptions={}):Stru
 }
 
 /**
- * Start-up merge: the catalog is fixed for the session (the store validates placements against it),
- * so built pieces join it here. Any failure keeps the base catalog and warns in the console.
+ * Legacy startup merge for consumers with a fixed catalog. The interactive editor registers built
+ * products at runtime instead. Any failure keeps the base catalog and warns in the console.
  */
 export async function withBuiltPieces(base:CatalogAsset[],url?:string,run?:string,fetcher?:typeof globalThis.fetch):Promise<CatalogAsset[]>{
   if(!url?.trim())return base;

@@ -1,4 +1,4 @@
-import { createArchitectHttpAdapter, splitPlan, withBuiltPieces } from './architect-http';
+import { ArchitectServiceError, createArchitectHttpAdapter, splitPlan, withBuiltPieces } from './architect-http';
 import { structureAdapter as mock } from './mock';
 import { demoScene, localCatalog } from '../core/demo';
 import { EditorStore } from '../core/store';
@@ -34,6 +34,38 @@ const structure = await adapter.reconstruct();
 assert(sent?.plan.name === 'plan.jpg' && sent.photos.length === 1, 'plan and photos are posted');
 assert(progress.some(message => message.includes('checking')), 'progress lines reach the editor');
 assert(structure.notes[0] === 'scale from 3 printed dimensions', 'notes pass through');
+assert(structure.metadata === undefined, 'legacy responses remain metadata-free');
+const roomId = real.rooms[0]!.id;
+const wall = real.walls.find(candidate => candidate.openings.length)!;
+const metadata = {
+  [roomId]: { elevation: 0.3, ceilingHeight: 2.75, zone: 'balcony', notes: 'Floor rise measured from plan A.' },
+  [wall.id]: { elevation: 0.3, notes: 'Wall height checked against photo 2.' },
+  [wall.openings[0]!.id]: { role: 'entrance', notes: 'Entrance marked by the architect.' },
+};
+const withMetadata = (value: unknown) => createArchitectHttpAdapter({
+  pickFiles: async () => [file('plan.jpg')],
+  fetch: async () => stream([{ type: 'structure', rooms: real.rooms, walls: real.walls, notes: [], metadata: value }]),
+}).reconstruct();
+assert(JSON.stringify((await withMetadata(metadata)).metadata) === JSON.stringify(metadata), 'room, wall and opening metadata pass through the HTTP boundary unchanged');
+assert(Object.keys((await withMetadata({})).metadata!).length === 0, 'an empty metadata map is a valid no-op');
+for (const [label, invalid] of [
+  ['null map', null], ['array map', []], ['string map', 'metadata'],
+  ['missing reference', { 'not-in-this-shell': { elevation: 0.3 } }],
+  ['furniture reference', { [demoScene.objects[0]!.id]: { notes: 'Old furniture is not part of a reconstruction.' } }],
+  ['reserved reference', JSON.parse('{"__proto__":{"notes":"reserved"}}')],
+  ['null entry', { [roomId]: null }], ['array entry', { [roomId]: [] }],
+  ['unknown property', { [roomId]: { provenance: 'Invented field' } }],
+  ['non-numeric elevation', { [roomId]: { elevation: '0.3' } }],
+  ['out-of-range elevation', { [wall.id]: { elevation: 21 } }],
+  ['out-of-range ceiling', { [roomId]: { ceilingHeight: 0.1 } }],
+  ['invalid zone', { [roomId]: { zone: 'roof' } }],
+  ['invalid entrance role', { [wall.openings[0]!.id]: { role: 'front' } }],
+  ['non-string notes', { [roomId]: { notes: ['plan A'] } }],
+] as const) {
+  let rejected: unknown;
+  try { await withMetadata(invalid); } catch (error) { rejected = error; }
+  assert(rejected instanceof ArchitectServiceError, `${label} rejects at the architect HTTP boundary`);
+}
 const store = new EditorStore(demoScene, localCatalog);
 const applied = store.execute({ id: 'architect', label: 'Import structure', source: 'architect', baseRevision: store.revision, operations: [{ type: 'replace-structure', rooms: structure.rooms, walls: structure.walls }] }, true);
 assert(applied.ok, `the store accepts the structure: ${applied.errors.join(' ')}`);

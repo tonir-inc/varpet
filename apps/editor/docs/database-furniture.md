@@ -1,6 +1,6 @@
 # Database furniture
 
-The editor starts with the editable apartment shell and no demo furnishings. Furniture search and category filters query the shared catalog database. The File menu restores an empty apartment. Procedural examples remain only for isolated fixtures and the local proposal example; database furniture never uses their geometry.
+The editor starts with the editable apartment shell and no demo furnishings. Shop furniture search and category filters query the shared catalog database. With `VITE_ARCHITECT_URL`, photo-built pieces also register through the same checked catalog path; see [Architect-built furniture](integrations.md#architect-built-furniture-26-september-2026). The File menu restores an empty apartment. Procedural examples remain only for isolated fixtures and the local proposal example; database furniture never uses their geometry.
 
 Run `pnpm dev`. The Vite development and preview servers expose read-only `/api/catalog/search`, `/api/catalog/items` and `/api/catalog/vocab` routes. They connect to `http://100.107.246.46:8765/mcp`, or the server-only `VARPET_CATALOG_URL` environment override. A static host must provide these routes separately. Restart Vite after changing the endpoint. The shared endpoint requires the team's network connection; database credentials never enter the browser. Each request has a 15-second server deadline. Failure shows an empty library and Retry; there is no sample-data fallback.
 

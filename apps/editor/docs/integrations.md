@@ -19,6 +19,7 @@ interface StructureAdapter {
   reconstruct(signal?: AbortSignal): Promise<{
     rooms: Room[];
     walls: Wall[];
+    metadata?: Record<string, EntityMetadata>;
     notes: string[];
   }>;
 }
@@ -61,7 +62,7 @@ This is application-wiring pseudocode; `initialScene`, `catalog`, `proposal`, an
 
 ## Snek: structural reconstruction
 
-Implement `StructureAdapter`. Configure its constructor or factory with the approved plan/photo inputs; the current `reconstruct` signature has no upload or input argument. Convert the result into room floor polygons and wall segments in the editor coordinate system. Return uncertainty and reconstruction notes separately from geometry.
+Implement `StructureAdapter`. Configure its constructor or factory with the approved plan/photo inputs; the current `reconstruct` signature has no upload or input argument. Convert the result into room floor polygons and wall segments in the editor coordinate system. Return uncertainty and reconstruction notes separately from geometry. Optional `metadata` maps returned room, wall and opening IDs to the existing `EntityMetadata` contract. It supports elevations and ceiling heights in metres, balcony zones, entrance roles and provenance notes. The HTTP adapter validates geometry, metadata fields and entity references before returning a proposal; omitted metadata remains backward compatible.
 
 An example response shape is:
 
@@ -75,11 +76,15 @@ const structure = {
     id: 'wall-north', start: [0, 0], end: [5, 0],
     height: 2.7, thickness: 0.15, color: '#eee9df', openings: [],
   }],
-  notes: ['Ceiling height is inferred; confirm against a measurement.'],
+  metadata: {
+    'room-living': { elevation: 0.15, ceilingHeight: 2.7, notes: 'Ceiling measured; raised floor inferred from photos.' },
+    'wall-north': { elevation: 0.15, notes: 'Base follows the raised floor.' },
+  },
+  notes: ['Raised floor height is inferred; confirm against a measurement.'],
 };
 ```
 
-For live reconstruction, `createReconstructionProposal` wraps the returned geometry in a fresh v2 apartment and one `replace-scene` operation. Preview and Apply use the same empty shell: old furniture, systems, finishes, baseline and options are removed together, so furniture from an unrelated footprint cannot prevent the import. Original source attachments survive without obsolete room assignments; the currency preference is retained. The review describes the replacement, and one undo restores the complete previous project. The local mock still uses `replace-structure`, preserving its existing behavior.
+For live reconstruction, `createReconstructionProposal` wraps the returned geometry in a fresh v2 apartment and one `replace-scene` operation. Preview and Apply use the same empty shell: old furniture, systems, finishes, baseline and options are removed together, so furniture from an unrelated footprint cannot prevent the import. Original source attachments survive without obsolete room assignments; the currency preference is retained. The review describes the replacement, and one undo restores the complete previous project. The live replacement includes supplied metadata in `scene.project.metadata`, so inspection and Apply use the same elevations and classifications. Default unknown structural classifications remain unless explicitly supplied. The local mock uses `replace-structure` followed by `set-metadata` operations when supplied, in one atomic undo entry. No-metadata imports keep their existing behavior.
 
 Retain the revision from before the asynchronous request and show the change for approval. A newer edit makes the result stale; never replace the newer scene. Failed or rejected imports leave the current apartment untouched.
 
@@ -167,3 +172,15 @@ If the scene revision changes during a request or before approval, the result is
 6. Map to the shared engine contract explicitly when available; preserve scene identity and coordinate conversions in one place.
 
 The acceptance record separately identifies tested behavior; documented APIs and source inspection alone do not establish browser or service-integration success.
+
+## Architect-built furniture (26 September 2026)
+
+With `VITE_ARCHITECT_URL` configured, the editor loads `GET /runs` and `GET /pieces?run=<name>` through `builtPieces()`, converts the returned assets to `CatalogProduct` records and registers them through `registerProducts` / `EditorStore.registerCatalogAssets`. `VITE_ARCHITECT_RUN` optionally chooses a run; otherwise the newest run is shown. `withBuiltPieces()` remains a legacy startup helper and is not used by the database-driven editor.
+
+Built pieces appear in the Furniture library and its **Built from your photos** category, support local name/kind search, and remain available if the shop database is offline. Their stored price remains zero, displayed as **Not priced**, and reconstructed dimensions are labeled unverified. Registration changes neither the scene revision nor undo history. Shop and built models share the renderer and checked placement path.
+
+Save/load and JSON import resolve missing built IDs from their original architect runs, including baseline and option references, while shop IDs use database hydration. The service and original run files must remain available after reopening. Missing or invalid assets reject an import without replacing the current apartment. Built pieces remain floor-grounded; shell split levels do not enable elevated catalog furniture.
+
+The reported `catalog middleware must be implemented` assertion can mask a missing installed `@modelcontextprotocol/sdk`: the test's import guard matches the importing file path in the dependency error. Use the repository's pinned pnpm 10 (`npx --yes pnpm@10.0.0 install --frozen-lockfile` if the global pnpm is older), then run `node --test apps/editor/server/catalog.test.mjs`. The middleware and dependency declaration already exist.
+
+No Notion connector or exported Design doc/Hackathon plan was available in this session; this page records the changed contract for handoff.
