@@ -252,11 +252,70 @@ export const EYE_FOV = 55, EYE_HEIGHT = 1.4;
 
 /** Eye poses a photographer would pick: standing in a corner or along a wall, clear of every door swing and tall piece,
  * no door within a few metres in frame, aimed at the furniture centroid; ranked by how many items fall in frame. */
-export function cornerPoses(scene: Scene, draft: Draft, roomId: string): { eye: [number, number, number]; target: [number, number, number] }[] {
+/** Wider lens for doorway shots of small rooms (about 22 mm on full frame). */
+export const DOORWAY_FOV = 68;
+type EyePose = { eye: [number, number, number]; target: [number, number, number]; fov?: number };
+
+/** Poses standing just inside each door of the room, aimed at the farthest point of the room in view from there (down a
+ * corridor, across a bathroom to the basin wall). Best door first; a room with one door gets a second aim to the other side. */
+function doorwayPoses(scene: Scene, polygon: [number, number][], items: DraftItem[]): EyePose[] {
+  const xs = polygon.map(p => p[0]), ys = polygon.map(p => p[1]);
+  const [minX, maxX, minY, maxY] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+  const points: [number, number][] = [];
+  for (let i = 0; i <= 16; i++) for (let j = 0; j <= 16; j++) {
+    const point: [number, number] = [minX + (maxX - minX) * (0.03 + 0.94 * i / 16), minY + (maxY - minY) * (0.03 + 0.94 * j / 16)];
+    if (inside(polygon, point)) points.push(point);
+  }
+  // Tall pieces (wardrobes, fridges, shelving) block the line of sight; low ones are seen over.
+  const tall = items.filter(item => item.size[2] > 1.2 && item.wall_id === undefined).map(item => {
+    const turned = Math.abs(Math.sin(item.rot * Math.PI / 180)) > 0.7;
+    return { x: item.pos[0], y: item.pos[1], w: (turned ? item.size[1] : item.size[0]) / 2 + 0.1, d: (turned ? item.size[0] : item.size[1]) / 2 + 0.1 };
+  });
+  const clear = ([x, y]: [number, number]) => inside(polygon, [x, y]) && !tall.some(box => Math.abs(box.x - x) < box.w && Math.abs(box.y - y) < box.d);
+  const visible = (from: [number, number], to: [number, number]) => Array.from({ length: 24 }, (_, i) => (i + 1) / 25).every(t => clear([from[0] + (to[0] - from[0]) * t, from[1] + (to[1] - from[1]) * t]));
+  const views = scene.openings.filter(opening => opening.kind === 'door').flatMap(opening => {
+    const wall = scene.walls.find(candidate => candidate.id === opening.wall_id);
+    if (!wall) return [];
+    const dx = wall.b[0] - wall.a[0], dy = wall.b[1] - wall.a[1], length = Math.hypot(dx, dy) || 1, t = (opening.offset + opening.width / 2) / length;
+    const at: [number, number] = [wall.a[0] + dx * t, wall.a[1] + dy * t], normal: [number, number] = [-dy / length, dx / length];
+    // Past the wall face and the traced room edge, clear of the jambs.
+    const step = (wall.thickness ?? 0.1) / 2 + 0.15;
+    const side = [1, -1].find(sign => inside(polygon, [at[0] + normal[0] * sign * step, at[1] + normal[1] * sign * step]));
+    if (side === undefined) return [];
+    const inward: [number, number] = [normal[0] * side, normal[1] * side], eye: [number, number] = [at[0] + inward[0] * step, at[1] + inward[1] * step];
+    const seen = points.flatMap(point => {
+      const vx = point[0] - eye[0], vy = point[1] - eye[1], distance = Math.hypot(vx, vy);
+      if (distance < 0.5) return [];
+      const cross = inward[0] * vy - inward[1] * vx, cosine = (inward[0] * vx + inward[1] * vy) / distance;
+      return cosine > Math.cos(70 * Math.PI / 180) && visible(eye, point) ? [{ point, distance, heading: Math.atan2(vy, vx) }] : [];
+    }).sort((a, b) => b.distance - a.distance);
+    if (!seen.length) return [];
+    // A second aim 20-50 degrees off the first: another wall of the room, not the jamb beside the lens.
+    const best = seen[0]!, turn = (view: { heading: number }) => Math.abs(Math.atan2(Math.sin(view.heading - best.heading), Math.cos(view.heading - best.heading))) * 180 / Math.PI;
+    const other = seen.find(view => turn(view) >= 20 && turn(view) <= 50 && view.distance >= 0.6 * best.distance) ?? best;
+    return [{ eye, best, other }];
+  }).sort((a, b) => b.best.distance - a.best.distance);
+  if (!views.length) return [];
+  // About 15 degrees down: the floor, the fittings and the far wall, not a close-up of the tiles.
+  const pose = (eye: [number, number], target: [number, number]): EyePose => ({ eye: [eye[0], eye[1], 1.5], target: [target[0], target[1], Math.max(0.9, 1.5 - Math.hypot(target[0] - eye[0], target[1] - eye[1]) * 0.27)], fov: DOORWAY_FOV });
+  const first = views[0]!, second = views[1];
+  return [pose(first.eye, first.best.point), second ? pose(second.eye, second.best.point) : pose(first.eye, first.other.point)];
+}
+
+/** The editor document's fixed fittings (sanitary ware, kitchen runs, fitted cupboards) as designer items, so cameras
+ * neither stand in a toilet nor stare into a fitted wardrobe; the designer scene does not list them. */
+export function fittingItems(doc: SceneDocument): DraftItem[] {
+  return (doc.project?.components ?? []).filter(component => component.kind !== 'light' && component.position[1] < 1 && component.phase !== 'remove')
+    .map(component => ({ id: component.id, room_id: component.roomId ?? '', kind: component.kind, name: component.name, keep: true,
+      pos: [component.position[0], -component.position[2]], rot: component.rotation * 180 / Math.PI,
+      size: [component.dimensions[0], component.dimensions[2], component.dimensions[1]] }) as DraftItem);
+}
+
+export function cornerPoses(scene: Scene, draft: Draft, roomId: string, fittings: DraftItem[] = []): EyePose[] {
   const polygon = scene.rooms.find(room => room.id === roomId)!.polygon as [number, number][];
   const xs = polygon.map(p => p[0]), ys = polygon.map(p => p[1]);
   const cx = xs.reduce((a, b) => a + b) / xs.length, cy = ys.reduce((a, b) => a + b) / ys.length;
-  const items = [...scene.items, ...draft.items].filter(item => item.room_id === roomId || inside(polygon, item.pos));
+  const items = [...scene.items, ...draft.items, ...fittings].filter(item => item.room_id === roomId || inside(polygon, item.pos));
   // Furniture centroid, weighted by footprint so a sofa pulls harder than a vase; rugs frame, they do not aim.
   const weighted = items.filter(item => item.kind !== 'rug').map(item => ({ at: item.pos, w: Math.min(3, Math.max(0.05, item.size[0] * item.size[1])) }));
   const total = weighted.reduce((sum, item) => sum + item.w, 0);
@@ -268,7 +327,12 @@ export function cornerPoses(scene: Scene, draft: Draft, roomId: string): { eye: 
     return [{ at: [wall.a[0] + (wall.b[0] - wall.a[0]) * t, wall.a[1] + (wall.b[1] - wall.a[1]) * t] as [number, number], reach: opening.width + 0.45, roomId: wall.room_id }];
   });
   const doors = openings('door'), windows = openings('window').filter(window => window.roomId === roomId);
-  const blocked = (p: [number, number]) => doors.some(door => Math.hypot(door.at[0] - p[0], door.at[1] - p[1]) < door.reach) || items.some(item => Math.abs(item.pos[0] - p[0]) < item.size[0] / 2 + 0.25 && Math.abs(item.pos[1] - p[1]) < item.size[1] / 2 + 0.25 && item.size[2] > 1);
+  const blocked = (p: [number, number]) => doors.some(door => Math.hypot(door.at[0] - p[0], door.at[1] - p[1]) < door.reach) || items.some(item => {
+    // Nobody stands inside a wardrobe or on a basin: tall pieces keep 25 cm clear, low ones 15 cm (wall-hung ones do not count).
+    if (item.kind === 'rug' || (item.size[2] <= 1 && (item as DraftItem).wall_id !== undefined)) return false;
+    const margin = item.size[2] > 1 ? 0.25 : 0.15, turned = Math.abs(Math.sin(item.rot * Math.PI / 180)) > 0.7, w = turned ? item.size[1] : item.size[0], d = turned ? item.size[0] : item.size[1];
+    return Math.abs(item.pos[0] - p[0]) < w / 2 + margin && Math.abs(item.pos[1] - p[1]) < d / 2 + margin;
+  });
   // Horizontal half angle of the still frame (3:2), with a margin for the edges.
   const half = Math.atan(Math.tan(EYE_FOV * Math.PI / 360) * 1.5);
   const bearing = (from: [number, number], to: [number, number], heading: number) => { const a = Math.atan2(to[1] - from[1], to[0] - from[0]) - heading; return Math.abs(Math.atan2(Math.sin(a), Math.cos(a))); };
@@ -291,14 +355,21 @@ export function cornerPoses(scene: Scene, draft: Draft, roomId: string): { eye: 
     const close = items.filter(item => item.size[2] > 0.5 && bearing(eye, item.pos, heading) < half && Math.hypot(item.pos[0] - eye[0], item.pos[1] - eye[1]) - Math.max(item.size[0], item.size[1]) / 2 < 1.3).length;
     // A window in frame shows the daylight and the view out, as listing photographs do.
     const windowInFrame = windows.some(window => bearing(eye, window.at, heading) < half * 0.85);
-    return { eye, score: seen + Math.min(far, 5) * 0.6 + (windowInFrame ? 3 : 0) - close * 4 - (doorInFrame ? 100 : 0) - (far < 2 ? 50 : 0) };
+    return { eye, far, score: seen + Math.min(far, 5) * 0.6 + (windowInFrame ? 3 : 0) - close * 4 - (doorInFrame ? 100 : 0) - (far < 2 ? 50 : 0) };
   });
-  if (!poses.length) poses.push({ eye: [cx, cy], score: 0 });
+  // Too small for a corner shot (no clear standing spot 2 m or more from what it looks at): stand just inside a
+  // doorway and look into the room, as a photographer does in a bathroom, a WC or a narrow hall.
+  const doorway = () => doorwayPoses(scene, polygon, items);
+  if (!poses.some(pose => pose.far >= 1.5)) { const shots = doorway(); if (shots.length) return shots; }
+  if (!poses.length) poses.push({ eye: [cx, cy], far: 0, score: 0 });
   poses.sort((a, b) => b.score - a.score);
   const best = poses[0]!;
   // The second angle looks back from the far side of the room, ideally from well away from the first.
-  const opposite = poses.find(pose => Math.hypot(pose.eye[0] - best.eye[0], pose.eye[1] - best.eye[1]) > Math.hypot(aim[0] - best.eye[0], aim[1] - best.eye[1])) ?? poses[1] ?? best;
-  return [best, opposite].map(({ eye }) => ({ eye: [eye[0], eye[1], EYE_HEIGHT], target: [aim[0], aim[1], 0.9] }));
+  // Only from a spot with some distance to the furniture: a second angle 60 cm from the basin shows only the basin.
+  const roomy = poses.filter(pose => pose.far >= 1.5);
+  const opposite = roomy.find(pose => Math.hypot(pose.eye[0] - best.eye[0], pose.eye[1] - best.eye[1]) > Math.hypot(aim[0] - best.eye[0], aim[1] - best.eye[1])) ?? roomy.find(pose => Math.hypot(pose.eye[0] - best.eye[0], pose.eye[1] - best.eye[1]) > 1);
+  const corner = ({ eye }: { eye: [number, number] }): EyePose => ({ eye: [eye[0], eye[1], EYE_HEIGHT], target: [aim[0], aim[1], 0.9] });
+  return [corner(best), opposite ? corner(opposite) : doorway()[0] ?? corner(poses[1] ?? best)];
 }
 
 /** The room, the walls that face it, and what stands, hangs or shines inside it; every wall of the result bounds only this
@@ -365,7 +436,7 @@ export async function renderPayload(scene: Scene, draft: Draft, roomId: string |
   // A room overview is a dollhouse of that room alone: neighbouring rooms, their partitions and furniture would stand
   // between the orbit camera and a small room (a WC seen over the hall), and the editor only cuts exterior walls.
   const document = roomId !== undefined && camera === 'overview' ? { ...full, scene: isolateRoom(full.scene, full.catalog, roomId) } : full;
-  const explicit = typeof camera === 'object' ? camera : roomId !== undefined && (camera === 'eye' || camera === 'eye2') ? cornerPoses(scene, draft, roomId)[camera === 'eye' ? 0 : 1] : undefined;
-  const pose = explicit ? { position: editorPoint(explicit.eye, EYE_HEIGHT), target: editorPoint(explicit.target, 0.9), fov: EYE_FOV } : null;
+  const explicit = typeof camera === 'object' ? camera : roomId !== undefined && (camera === 'eye' || camera === 'eye2') ? cornerPoses(scene, draft, roomId, fittingItems(full.scene))[camera === 'eye' ? 0 : 1] : undefined;
+  const pose = explicit ? { position: editorPoint(explicit.eye, EYE_HEIGHT), target: editorPoint(explicit.target, 0.9), fov: ('fov' in explicit && typeof explicit.fov === 'number' ? explicit.fov : EYE_FOV) } : null;
   return { ...document, roomId, pose, time, view: explicit ? 'inside' : camera === 'top' ? 'top' : 'perspective', walls: explicit ? 'full' : 'cutaway' };
 }
