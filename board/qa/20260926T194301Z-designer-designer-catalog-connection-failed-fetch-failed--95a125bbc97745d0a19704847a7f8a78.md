@@ -1,7 +1,7 @@
 ---
 id: "20260926T194301Z-designer-designer-catalog-connection-failed-fetch-failed--95a125bbc97745d0a19704847a7f8a78"
 lane: "designer"
-severity: "blocker"
+severity: "major"
 status: "open"
 title: "Designer 'catalog connection failed' (fetch failed): preview step ignores the configured catalog URL"
 reported_by: "Sergey"
