@@ -39,6 +39,11 @@ def validate_request(body) -> dict:
     if "conversationId" in body and (not isinstance(body["conversationId"], str)
                                      or not body["conversationId"]):
         raise ValueError("conversationId must be a non-empty string")
+    if "catalog" in body and (not isinstance(body["catalog"], list) or len(body["catalog"]) > 1000
+                               or any(not isinstance(asset, dict) for asset in body["catalog"])):
+        raise ValueError("catalog must be an array of at most 1000 editor assets")
+    if "catalogCurrency" in body and body["catalogCurrency"] != "AMD":
+        raise ValueError("catalogCurrency must be AMD when supplied; other currencies are not converted")
     if "keep" in body and (not isinstance(body["keep"], list)
                            or any(not isinstance(item, str) or not item or "," in item for item in body["keep"])):
         raise ValueError("keep must be an array of object ids without commas")
@@ -146,17 +151,23 @@ class DesignerService:
                 root = Path(directory)
                 editor_scene, converted = root / "editor.json", root / "designer.json"
                 editor_scene.write_text(json.dumps(body["scene"], ensure_ascii=False))
-                arguments = ["to-designer", str(editor_scene), str(converted)]
+                extras = []
+                if "catalog" in body:
+                    catalog = root / "catalog.json"
+                    catalog.write_text(json.dumps(body["catalog"], ensure_ascii=False))
+                    extras += ["--catalog", str(catalog)]
+                if "catalogCurrency" in body:
+                    extras += ["--currency", body["catalogCurrency"]]
                 if body.get("keep"):
-                    arguments += ["--keep", ",".join(body["keep"])]
+                    extras += ["--keep", ",".join(body["keep"])]
                 if "northDeg" in body:
-                    arguments += ["--north", str(body["northDeg"])]
+                    extras += ["--north", str(body["northDeg"])]
                 if "doorSwings" in body:
                     swings = root / "swings.json"
                     swings.write_text(json.dumps(body["doorSwings"]))
-                    arguments += ["--swings", str(swings)]
+                    extras += ["--swings", str(swings)]
                 progress("Reading the room layout")
-                self._process(self.bridge_command + arguments, cancel)
+                self._process(self.bridge_command + ["to-designer", str(editor_scene), str(converted)] + extras, cancel)
                 scene = json.loads(converted.read_text())
                 if conversation.runtime is None:
                     conversation.runtime = designer.prepare_runtime(conversation.root / "runtime", scene)
@@ -218,7 +229,7 @@ class DesignerService:
                     target = root / "command.json"
                     progress("Preparing the checked layout preview")
                     self._process(self.bridge_command + ["to-command", str(proposal_file), str(editor_scene),
-                                                         str(body["revision"]), str(target)], cancel)
+                                                         str(body["revision"]), str(target)] + extras, cancel)
                     proposal = json.loads(target.read_text())
                     command = proposal.get("command", {})
                     if (not all(isinstance(proposal.get(key), str) for key in ("id", "title", "description"))

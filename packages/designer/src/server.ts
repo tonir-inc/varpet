@@ -1,4 +1,6 @@
-import { readFile } from 'node:fs/promises';
+import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { randomUUID } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
@@ -20,8 +22,9 @@ export function result(data: unknown, isError = false) {
   return { content: [{ type: 'text' as const, text: typeof data === 'string' ? data : JSON.stringify(data) }], ...(isError ? { isError: true } : {}) };
 }
 
-export function createServer(input: Scene, options:{catalogQuery?:CatalogQuery}={}) {
+export function createServer(input: Scene, options:{catalogQuery?:CatalogQuery; proposalsDir?:string}={}) {
   const scene = parseScene(input);
+  const proposalsDir = options.proposalsDir ?? process.env.VARPET_PROPOSALS_DIR;
   const session = new DesignerSession(scene);
   const server = new McpServer({ name: 'varpet-designer', version: '0.0.0' });
   server.registerTool('scene_summary', {
@@ -87,8 +90,20 @@ export function createServer(input: Scene, options:{catalogQuery?:CatalogQuery}=
   server.registerTool('propose', {
     description: 'Store a checked proposal for user review. Refuses failed physical checks or unmet intent. Returns a proposal ID and score without changing or applying the scene; explicit user acceptance remains required.',
     inputSchema: {ops:opsToolSchema,rationale:z.string().min(1).max(4000)},
-  }, ({ops,rationale}) => {
+  }, async ({ops,rationale}) => {
     const proposal=session.propose(ops,rationale);
+    if (proposal.ok && proposalsDir) {
+      const temporary = join(proposalsDir, `.${proposal.proposal_id}-${randomUUID()}.tmp`);
+      try {
+        await mkdir(proposalsDir, { recursive: true });
+        await writeFile(temporary, JSON.stringify(proposal.proposal), { flag: 'wx', mode: 0o600 });
+        await rename(temporary, join(proposalsDir, `${proposal.proposal_id}.json`));
+      } catch {
+        await rm(temporary, { force: true }).catch(() => {});
+        return result({ ok: false, errors: [{ check: 'persistence',
+          message: 'Could not save the checked proposal for the editor; retry after checking the proposal directory.' }] }, true);
+      }
+    }
     return result(proposal,!proposal.ok);
   });
   server.registerTool('search_catalog', {

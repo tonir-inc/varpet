@@ -57,9 +57,13 @@ Engine checks are explicitly unavailable until the engine exports a concrete sch
 these results validate only the temporary designer scene. Window sunlight does not model furniture
 occlusion or glare. Conservative raster open-floor changes can reflect grid alignment after rotation.
 
-Decision: proposals remain in memory for the life of this server and are never applied to the
-scene. User acceptance, persistence and viewer integration remain separate work. Restarting the
-server discards its intent and proposals; the harness re-establishes intent on each customer turn.
+Decision: proposals are never applied to the scene. When `VARPET_PROPOSALS_DIR` is set, accepted
+proposals are atomically saved there for the local editor service; otherwise they remain in memory.
+Restarting the server discards its intent; the harness re-establishes it on each customer turn.
+The editor bridge and streaming browser adapter preserve snapshots, catalog asset IDs and revisions.
+Run the service with the harness Python environment: `python harness/designer_service.py --port 8787`.
+See [the service contract](../../docs/designer-service.md) for adapter wiring, optional request/keep/
+north/door-swing inputs, catalog provenance, progress and cancellation.
 
 Run a customer conversation with an authenticated Codex CLI:
 

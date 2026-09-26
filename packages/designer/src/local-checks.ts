@@ -1,5 +1,5 @@
 import { parseScene } from './adapter.js';
-import { physicalDoorSwingPolygon, itemPolygon, pointInPolygon, polygonsOverlap, spaceMetrics } from './metrics/space.js';
+import { physicalDoorSwingPolygon, itemPolygon, isFloorRug, pointInPolygon, polygonsOverlap, spaceMetrics } from './metrics/space.js';
 import type { Scene, Vec2 } from './scene.js';
 
 export interface LayoutError {
@@ -59,7 +59,7 @@ export function localGeometryErrors(input:Scene):LayoutError[] {
     if(outside) errors.push({check:'inside',item_ids:[item.id],at:outside,deficit_m:boundaryDistance(outside,room.polygon),message:`${item.id} extends outside room ${room.id}`});
     for(let j=i+1;j<items.length;j++) {
       const other=items[j]!;
-      if(other.room_id===item.room_id&&polygonsOverlap(footprints[i]!,footprints[j]!)) {
+      if(!isFloorRug(item)&&!isFloorRug(other)&&other.room_id===item.room_id&&polygonsOverlap(footprints[i]!,footprints[j]!)) {
         errors.push({check:'overlap',item_ids:[item.id,other.id],at:[(item.pos[0]+other.pos[0])/2,(item.pos[1]+other.pos[1])/2],deficit_m:penetration(footprints[i]!,footprints[j]!),message:`${item.id} overlaps ${other.id}`});
       }
     }
@@ -67,7 +67,7 @@ export function localGeometryErrors(input:Scene):LayoutError[] {
   for(const opening of scene.openings) {
     const swing=physicalDoorSwingPolygon(scene,opening);
     if(!swing) continue;
-    for(let i=0;i<items.length;i++) if(polygonsOverlap(footprints[i]!,swing)) {
+    for(let i=0;i<items.length;i++) if(!isFloorRug(items[i]!)&&polygonsOverlap(footprints[i]!,swing)) {
       const item=items[i]!;
       errors.push({check:'door_swing',item_ids:[item.id],at:[...item.pos],deficit_m:penetration(footprints[i]!,swing),message:`${item.id} blocks door ${opening.id} swing`});
     }
