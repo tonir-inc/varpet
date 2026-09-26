@@ -83,3 +83,25 @@ OK
 The latest fresh review approved the cleanup code; its CONCERN about incomplete full verification is resolved by this green run. Earlier two-worker and one-worker retries hit unchanged test timeouts while measured host load reached 161; no timeout or assertion was changed.
 
 Push policy update, measured 2026-09-26 13:53–13:55 UTC: Ashot explicitly authorized one prior full green suite plus typecheck and area checks after unrelated rebases, and immediate rebase/push on rejection. Root `pnpm typecheck` passed all four package scripts; explicit eval tsc passed; targeted grader 10/10 passed; eval Python 41/41 passed in 3.566s. Two non-forced push races were resolved by clean rebase and immediate retry; the nine verified commits reached main at `d355a85`. The prior full-suite evidence above remains the full-suite baseline. The follow-up report imports the ten architect measurements from `54643fc`, correctly records nine published shells, and leaves all 38 customer measurements unchanged.
+
+## Final paired rerun readiness — 2026-09-26 UTC
+
+Product source frozen at `baad342`; all requested fixes (`d88635b`, `cd113f2`, `b25e5bb`, `a4723fb`, `2c82892`) are ancestors, verified with `git merge-base --is-ancestor`. Nine published empty scenes and ground truth are hashed in `komitas-freeze-cohort.json`; separately furnished `*.drawn.scene.json` files are excluded. Planned 58 turns per arm / 116 total. Explicit fast-path environment 1 versus 0, four total conversations, independent stores. No production files changed.
+
+Measured checks after installing the newly declared `gltf-validator` dependency with `pnpm install --frozen-lockfile` (no lockfile change):
+```text
+VITEST_MAX_WORKERS=1 pnpm test: exit 0
+Designer: 108 files passed; 494 tests passed
+Harness: Ran 178 tests in 22.899s — OK
+Eval Python: Ran 47 tests in 2.575s — OK
+Showcase: 12 passed; editor server: 24 passed; editor application: 139 passed
+All remaining editor check scripts: Done
+pnpm typecheck: all four workspace typecheck scripts Done; exit 0
+pnpm --filter @varpet/designer exec tsc -p eval/komitas-tsconfig.json: exit 0
+Focused Python after provenance guards: Ran 13 tests — OK
+```
+The first full-suite attempt found `gltf-validator` absent locally: three suites failed to load, 486 tests passed. Installing the locked dependency resolved it; no production/test assertion or timeout changed. The new arm telemetry and frozen-input/unknown-token report tests were observed red before implementation.
+
+Fresh read-only reviewer `komitas_live_review`: APPROVE after fixes for hash enforcement, pre-spawn overwrite refusal, replay arm verification and unknown measurement rendering. The protected production paths match the frozen revision, including tracked working-tree changes; inputs are rehashed before each job. Reviewer independently passed 13 focused tests. All new files/edits remain in `packages/designer/eval/`; SERVICE input scenes and ground truth remain untouched.
+
+NOT COMPLETE: no live customer turns are proven while the shared catalog HTTP endpoint is unresponsive. A service listener, successful unit tests or prepared runner is not an end-to-end benchmark. The original six-flat measurements are preserved separately in `komitas-pre-freeze.md`; they are not attributed to the current fixes. The freeze launcher has not started its private services or any model workers. No process on ports 5180, 5190, 8787 or 8788 was started, stopped or restarted by this task.

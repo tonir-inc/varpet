@@ -62,6 +62,9 @@ def main():
             '## Side-by-side results', '',
             '| Request | Fast ON pass | OFF pass | ON editor | OFF editor | ON median/max s | OFF median/max s | ON median/max tokens | OFF median/max tokens |',
             '|---|---:|---:|---:|---:|---:|---:|---:|---:|']
+    measured = sum(len(rows) for rows in arms.values())
+    if measured < 2 * cohort['planned_turns_per_arm']:
+        text.insert(2, f'**INCOMPLETE: {measured}/{2 * cohort["planned_turns_per_arm"]} customer turns measured. N/A means unrun, not a measured failure or zero latency.**\n')
     for kind in KINDS + ['all']:
         stats = {arm: summary([r for r in rows if kind == 'all' or r['kind'] == kind]) for arm, rows in arms.items()}
         a, b = stats['on'], stats['off']
@@ -100,7 +103,7 @@ def main():
     text += ['', '## Reproduce and provenance', '', '```sh',
              'python3 -u packages/designer/eval/komitas-freeze.py < /dev/null',
              'python3 packages/designer/eval/komitas-freeze-report.py', '```', '',
-             'The launcher refuses to overwrite existing conversations; use a fresh checkout/run directory to repeat. SDK runtime: `/tmp/varpet-designer-sdk/bin/python` with openai-codex installed. Each child has closed stdin, process-group cleanup and a 240-second output watchdog; service workers have a 180-second no-model-output watchdog. A usage limit stops the entire batch.', '',
+             'Run the frozen launcher from revision `46a4a27` (the product matches `baad342`); a newer runtime is deliberately refused by the source guard. The launcher refuses to overwrite existing conversations; use a fresh checkout/run directory to repeat. SDK runtime: `/tmp/varpet-designer-sdk/bin/python` with openai-codex installed. Each child has closed stdin, process-group cleanup and a 240-second output watchdog; service workers have a 180-second no-model-output watchdog. A usage limit stops the entire batch.', '',
              '[Frozen input hashes and settings](komitas-freeze-cohort.json); [historical six-flat report and ten-plan handoff](komitas-pre-freeze.md); [verification](komitas-verification.md). Historical input and runtime failures are not pooled into this comparison. All unchanged source scenes remain SERVICE-owned.']
     (HERE / 'komitas.md').write_text('\n'.join(text) + '\n')
     print(json.dumps({arm: summary(rows) for arm, rows in arms.items()}))
