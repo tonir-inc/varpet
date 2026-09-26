@@ -1,0 +1,690 @@
+{
+  "base_commit": "baad342",
+  "measured_date": "2026-09-26",
+  "timezone": "+04:00",
+  "rows": [
+    {
+      "mode": "off-fixed",
+      "step": "portal open Avani",
+      "status": "PASS",
+      "seconds": 26.43,
+      "screenshot": "integration-final-screenshots/off-fixed-portal.png"
+    },
+    {
+      "mode": "fast-fixed",
+      "step": "portal open Avani",
+      "status": "PASS",
+      "seconds": 27.571,
+      "screenshot": "integration-final-screenshots/fast-fixed-portal.png"
+    },
+    {
+      "mode": "fast-fixed",
+      "step": "architect Komitas import",
+      "status": "PASS",
+      "seconds": 187.125,
+      "text": "RECONSTRUCTION REVIEW\nReconstruction review\n\nStart with an unfurnished reconstructed apartment and its fixed fixtures. Applying replaces the current shell, furniture, systems, finishes and renovation options. Original source attachments are kept without room assignments. Undo restores the previous apartment. Printed: plan identifies section 4, apartment type 13, total 41.3 m2. Table room numbers: 1 entrance hall 2.3; 2 living room 16.8; 3 bedroom 14.2; 4 bathroom 4.6; 5 balcony 3.4 m2. Measured: scale 56.86 pixels/m from living 327 pixels/5.750 m, bedroom 290 pixels/5.100 m and bathroom 145 pixels/2.550 m. Living height 190 pixels/3.350 m provides an independent vertical check. Origin is the upper-left nominal interior datum (456,393) on the source image. Measured: traced wall bands, stepped bathroom outline, three structural-column intrusions, entrance cupboard recess and two balcony doors. Thin cyan dimension lines are not walls. Hall/living boundary is an assumed zoning line across continuous floor, with no partition. Measured: bathroom shower at upper left, toilet below it, cyan-cross washing-machine footprint by the north column and basin at north wall. Kitchen hob, sink and refrigerator are drawn along the north wall. Gray crossed boxes beside and below the bathroom are service shafts, represented as solid wall masses. Assumed: no photographs were supplied. All floor and paint colours, ceiling height 2.6 m, door heights, window sills 0.35 m and heads 2.55 m, cabinet heights and materials are placeholders, not photo measurements. Assumed: cyan crossed balcony fixture is an outdoor service/AC unit; its function is not labelled. Upper kitchen cabinets and built-in cupboard heights are inferred. No separate oven or radiator is identifiable, so none is invented. Derived: printed room areas sum to 41.3 m2. Dimensioned bounding rectangles differ from usable room areas because of recesses, shafts, columns and open hall zoning; polygons follow the drawing rather than forcing the table areas. Measured: exterior balcony edge between its solid end piers is a railing, not a full-height wall. Door/window openings span their raster gaps.\n\nInspect proposed 3D apartment\nApply change\nDismiss"
+    },
+    {
+      "mode": "fast-fixed",
+      "step": "architect Preview",
+      "status": "PASS",
+      "seconds": 3.929,
+      "screenshot": "integration-final-screenshots/fast-fixed-architect-preview.png"
+    },
+    {
+      "mode": "fast-fixed",
+      "step": "architect Apply",
+      "status": "PASS",
+      "seconds": 2.76,
+      "rooms": 5,
+      "walls": 24,
+      "components": 14
+    },
+    {
+      "mode": "fast-fixed",
+      "step": "architect Undo",
+      "status": "PASS",
+      "seconds": 2.964
+    },
+    {
+      "mode": "fast-fixed",
+      "step": "Furnish the living room",
+      "status": "UNRESOLVED",
+      "seconds": 14.035,
+      "text": "Designer\n\nI could not find a checked layout within the search budget. This does not prove the request impossible. Try one piece at a time or a different room.\n\nShow me another option\nMake it warmer\nWhat would it cost?",
+      "screenshot": "integration-final-screenshots/fast-fixed-0-response.png"
+    },
+    {
+      "mode": "fast-fixed",
+      "step": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+      "status": "UNRESOLVED",
+      "seconds": 5.394,
+      "text": "Designer\n\nI could not find a checked layout in the bounded search. This does not prove it impossible. Try a smaller piece or fewer pieces first.\n\nShow me another option\nMake it warmer\nWhat would it cost?",
+      "screenshot": "integration-final-screenshots/fast-fixed-1-response.png"
+    },
+    {
+      "mode": "fast-fixed",
+      "step": "Move the sofa so it faces the window",
+      "status": "UNRESOLVED",
+      "seconds": 18.426,
+      "text": "Designer\n\nI don’t see a sofa in the supplied scene. Could you add your existing sofa to the scene so I can check a position facing the window?",
+      "screenshot": "integration-final-screenshots/fast-fixed-2-response.png"
+    },
+    {
+      "mode": "off-fixed",
+      "step": "architect Komitas import",
+      "status": "PASS",
+      "seconds": 238.973,
+      "text": "RECONSTRUCTION REVIEW\nReconstruction review\n\nStart with an unfurnished reconstructed apartment and its fixed fixtures. Applying replaces the current shell, furniture, systems, finishes and renovation options. Original source attachments are kept without room assignments. Undo restores the previous apartment. Printed: apartment type 13, section 4, total 41.3 m2. Schedule: hall 2.3, living 16.8, bedroom 14.2, bathroom 4.6, balcony 3.4 m2. Measured: scale approximately 57 pixels/metre, cross-checked against living width 5750 mm (328 px), bedroom width 5100 mm (290 px), bedroom depth 2750 mm (157 px), bathroom width 2550 mm (145 px), and living depth 3350 mm (191 px). Coordinates use plan-right +x and plan-down +z. Printed: bathroom depth 2100 mm; balcony width 1000 mm and length 3150 mm. These and the schedule are transcribed independently of polygon areas. Derived: hall and living/kitchen have an open shared boundary. Their division is inferred from room number positions; no wall has been added on this division. Hall polygon includes the recessed cupboard floor, which can explain an area difference from the schedule. Measured: structural columns, the kitchen service shaft, the bathroom southwest shaft and the stepped exterior have been retained as solid wall footprints, excluding their interiors from room floors. Measured: both balcony door gaps, the bedroom door, bathroom door and exterior entrance are represented over the full drawn gap. East balcony facade is open railing, not a full-height wall. Assumed: no photographs were supplied. All floor, wall and fixture colours, 2.6 m ceiling, 2.05–2.2 m door heights, window sill 0.25 m and window height 2.25 m are provisional and not photograph measurements. Measured: plan shows shower, toilet, basin, kitchen hob/sink/appliance, built-in cupboards and a cyan balcony utility symbol. Assumed: the latter is an outdoor utility appliance; the upper-left bathroom rectangle is a storage unit. Kitchen upper cabinets, oven, fixture heights and cabinet depths are inferred; no radiators or washing machine are identifiable. Derived: printed room areas are not substituted for traced geometry. Balcony schedule area 3.4 m2 differs from its approximately 1.0 by 3.15 m dimension rectangle; bedroom and bathroom also include local recesses or structural exclusions. Verification limitation: standalone output folder has no project test/build command or supplied geometry checker. JSON structure, opening bounds and reference integrity checked locally; downstream application validation remains separate. Verification limitation: top-down raster rendering could not run because the Python imaging library is unavailable. Geometry was compared directly to the cropped plan.\n\nInspect proposed 3D apartment\nApply change\nDismiss"
+    },
+    {
+      "mode": "fast-fixed",
+      "step": "Paint the bedroom walls warm white",
+      "status": "PASS",
+      "seconds": 4.68,
+      "text": "Designer\nFresh colour for the bedroom\n\nI’ve given 9 wall sections a fresh colour, keeping the layout just as it is. No furniture purchases are needed. The trade-off: the colour covers both sides of each selected wall, including shared walls.\n\nOpen floor · before → after\n34.22 → 34.22 m²\nNarrowest walkway · proposed\n0.70 m\nCost · furniture purchases\n0 ֏\nNotes\n\nReady for your review\n\nPreview\nApply\nDismiss\nShow me another option\nWhy this layout?\nMake it warmer\nWhat would it cost?",
+      "screenshot": "integration-final-screenshots/fast-fixed-3-response.png"
+    },
+    {
+      "mode": "off-fixed",
+      "step": "architect Preview",
+      "status": "PASS",
+      "seconds": 4.206,
+      "screenshot": "integration-final-screenshots/off-fixed-architect-preview.png"
+    },
+    {
+      "mode": "fast-fixed",
+      "step": "3 Preview",
+      "status": "FAIL",
+      "seconds": 5.809,
+      "screenshot": "integration-final-screenshots/fast-fixed-3-preview.png"
+    },
+    {
+      "mode": "off-fixed",
+      "step": "architect Apply",
+      "status": "PASS",
+      "seconds": 10.19,
+      "rooms": 5,
+      "walls": 24,
+      "components": 15
+    },
+    {
+      "mode": "fast-fixed",
+      "step": "3 Apply",
+      "status": "PASS",
+      "seconds": 7.751,
+      "objects": 0
+    },
+    {
+      "mode": "off-fixed",
+      "step": "architect Undo",
+      "status": "PASS",
+      "seconds": 3.167
+    },
+    {
+      "mode": "fast-fixed",
+      "step": "3 Undo",
+      "status": "PASS",
+      "seconds": 2.948
+    },
+    {
+      "mode": "fast-fixed",
+      "step": "Why did you put the sofa there?",
+      "status": "PASS",
+      "seconds": 13.545,
+      "text": "Designer\n\nI haven’t placed or moved the sofa yet—the supplied scene contains no sofa. My previous message asked you to add your existing sofa so I could check a position facing the window, as you requested. No layout preview has been made.\n\nShow me another option\nMake it warmer\nWhat would it cost?",
+      "screenshot": "integration-final-screenshots/fast-fixed-4-response.png"
+    },
+    {
+      "mode": "fast-fixed",
+      "step": "Knock down the wall between the kitchen and the living room",
+      "status": "PASS",
+      "seconds": 0.842,
+      "text": "Designer\n\nI cannot demolish structural walls. I can rearrange the furniture; consult a structural engineer about changing walls.",
+      "screenshot": "integration-final-screenshots/fast-fixed-5-response.png"
+    },
+    {
+      "mode": "off-fixed",
+      "step": "Furnish the living room",
+      "status": "UNRESOLVED",
+      "seconds": 48.253,
+      "text": "Designer\n\nI tried a modest contemporary scheme with a sofa, rug, table, lamp and focal storage, retaining the fixed kitchen.\n\nThe layout search couldn’t produce the required complete, physically checked options for this room. Nothing has been changed, and I don’t yet have a checked preview or confirmed catalog total to offer.\n\nShow me another option\nMake it warmer\nWhat would it cost?",
+      "screenshot": "integration-final-screenshots/off-fixed-0-response.png"
+    },
+    {
+      "mode": "off-fixed",
+      "step": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+      "status": "UNRESOLVED",
+      "seconds": 59.983,
+      "text": "Designer\n\nI found matching options for all four pieces, but couldn’t produce a checked bedroom preview. The room planner couldn’t resolve a solid-wall headboard position with reachable bedside furniture, and the separate layout attempt was also rejected.\n\nThe shortlisted set totals 544,000 AMD in mock catalog prices, not a shop quotation. Your built-in cupboard remains untouched; nothing has been applied or purchased.\n\nShow me another option\nMake it warmer\nWhat would it cost?",
+      "screenshot": "integration-final-screenshots/off-fixed-1-response.png"
+    },
+    {
+      "mode": "off-fixed",
+      "step": "Move the sofa so it faces the window",
+      "status": "UNRESOLVED",
+      "seconds": 8.633,
+      "text": "Designer\n\nThere’s no sofa in the current scene—the earlier furnishing attempt didn’t add one. Please add or select your sofa in the editor so I can preview it facing the living-room window.\n\nShow me another option\nMake it warmer\nWhat would it cost?",
+      "screenshot": "integration-final-screenshots/off-fixed-2-response.png"
+    },
+    {
+      "mode": "off-fixed",
+      "step": "Paint the bedroom walls warm white",
+      "status": "PASS",
+      "seconds": 22.149,
+      "text": "Designer\nFresh colour for the bedroom\n\nI’ve given 7 wall sections a fresh colour, keeping the layout just as it is. No furniture purchases are needed. The trade-off: the colour covers both sides of each selected wall, including shared walls.\n\nOpen floor · before → after\n33.85 → 33.85 m²\nNarrowest walkway · proposed\n0.75 m\nCost · furniture purchases\n0 ֏\nNotes\n\nReady for your review\n\nPreview\nApply\nDismiss\nShow me another option\nWhy this layout?\nMake it warmer\nWhat would it cost?",
+      "screenshot": "integration-final-screenshots/off-fixed-3-response.png"
+    },
+    {
+      "mode": "off-fixed",
+      "step": "3 Preview",
+      "status": "FAIL",
+      "seconds": 3.348,
+      "screenshot": "integration-final-screenshots/off-fixed-3-preview.png"
+    },
+    {
+      "mode": "off-fixed",
+      "step": "3 Apply",
+      "status": "PASS",
+      "seconds": 2.639,
+      "objects": 0
+    },
+    {
+      "mode": "off-fixed",
+      "step": "3 Undo",
+      "status": "PASS",
+      "seconds": 1.424
+    },
+    {
+      "mode": "off-fixed",
+      "step": "Why did you put the sofa there?",
+      "status": "PASS",
+      "seconds": 12.292,
+      "text": "Designer\n\nI haven’t placed a sofa—the earlier living-room furnishing attempt didn’t produce a checked layout, and there’s no sofa in the current scene. Sorry for the confusion.\n\nIf you’re seeing one in the editor, send a screenshot so I can understand which placement you mean.\n\nShow me another option\nMake it warmer\nWhat would it cost?",
+      "screenshot": "integration-final-screenshots/off-fixed-4-response.png"
+    },
+    {
+      "mode": "off-fixed",
+      "step": "Knock down the wall between the kitchen and the living room",
+      "status": "PASS",
+      "seconds": 10.923,
+      "text": "Designer\n\nI can preview furniture layouts and wall colours, but not remove walls. Demolition needs an on-site structural assessment and any required approvals.\n\nYour supplied plan already shows the kitchen and living area as one room. I can help make them feel more connected through coordinated wall colours and furniture placement instead.",
+      "screenshot": "integration-final-screenshots/off-fixed-5-response.png"
+    }
+  ],
+  "showcase_fast": [
+    {
+      "mode": "fast",
+      "flat": "b18-t1",
+      "states": [
+        "shell"
+      ],
+      "seconds": 1.055,
+      "status": "PASS",
+      "embed": true
+    },
+    {
+      "mode": "fast",
+      "flat": "b20-t11",
+      "states": [
+        "shell",
+        "furnished"
+      ],
+      "seconds": 1.088,
+      "status": "PASS",
+      "embed": true
+    },
+    {
+      "mode": "fast",
+      "flat": "b21-t13",
+      "states": [
+        "shell",
+        "furnished"
+      ],
+      "seconds": 0.951,
+      "status": "PASS",
+      "embed": true
+    },
+    {
+      "mode": "fast",
+      "flat": "b23-t64",
+      "states": [
+        "shell"
+      ],
+      "seconds": 1.35,
+      "status": "PASS",
+      "embed": true
+    },
+    {
+      "mode": "fast",
+      "flat": "b24-t22",
+      "states": [
+        "shell"
+      ],
+      "seconds": 0.963,
+      "status": "PASS",
+      "embed": true
+    },
+    {
+      "mode": "fast",
+      "flat": "b25-t72",
+      "states": [
+        "furnished"
+      ],
+      "seconds": 1.052,
+      "status": "PASS",
+      "embed": true
+    },
+    {
+      "mode": "fast",
+      "flat": "b27-t79",
+      "states": [
+        "shell"
+      ],
+      "seconds": 1.325,
+      "status": "PASS",
+      "embed": true
+    },
+    {
+      "mode": "fast",
+      "flat": "b28-t31",
+      "states": [
+        "shell",
+        "furnished"
+      ],
+      "seconds": 1.963,
+      "status": "PASS",
+      "embed": true
+    },
+    {
+      "mode": "fast",
+      "flat": "b30-t35",
+      "states": [
+        "shell",
+        "furnished"
+      ],
+      "seconds": 1.609,
+      "status": "PASS",
+      "embed": true
+    },
+    {
+      "mode": "fast",
+      "flat": "b31-t46",
+      "states": [
+        "shell",
+        "furnished"
+      ],
+      "seconds": 1.315,
+      "status": "PASS",
+      "embed": true
+    }
+  ],
+  "showcase_off": [
+    {
+      "mode": "off",
+      "flat": "b18-t1",
+      "states": [
+        "shell"
+      ],
+      "seconds": 1.135,
+      "status": "PASS",
+      "embed": true
+    },
+    {
+      "mode": "off",
+      "flat": "b20-t11",
+      "states": [
+        "shell",
+        "furnished"
+      ],
+      "seconds": 1.332,
+      "status": "PASS",
+      "embed": true
+    },
+    {
+      "mode": "off",
+      "flat": "b21-t13",
+      "states": [
+        "shell",
+        "furnished"
+      ],
+      "seconds": 0.986,
+      "status": "PASS",
+      "embed": true
+    },
+    {
+      "mode": "off",
+      "flat": "b23-t64",
+      "states": [
+        "shell"
+      ],
+      "seconds": 1.132,
+      "status": "PASS",
+      "embed": true
+    },
+    {
+      "mode": "off",
+      "flat": "b24-t22",
+      "states": [
+        "shell"
+      ],
+      "seconds": 1.133,
+      "status": "PASS",
+      "embed": true
+    },
+    {
+      "mode": "off",
+      "flat": "b25-t72",
+      "states": [
+        "furnished"
+      ],
+      "seconds": 0.904,
+      "status": "PASS",
+      "embed": true
+    },
+    {
+      "mode": "off",
+      "flat": "b27-t79",
+      "states": [
+        "shell"
+      ],
+      "seconds": 1.039,
+      "status": "PASS",
+      "embed": true
+    },
+    {
+      "mode": "off",
+      "flat": "b28-t31",
+      "states": [
+        "shell",
+        "furnished"
+      ],
+      "seconds": 1.106,
+      "status": "PASS",
+      "embed": true
+    },
+    {
+      "mode": "off",
+      "flat": "b30-t35",
+      "states": [
+        "shell",
+        "furnished"
+      ],
+      "seconds": 0.88,
+      "status": "PASS",
+      "embed": true
+    },
+    {
+      "mode": "off",
+      "flat": "b31-t46",
+      "states": [
+        "shell",
+        "furnished"
+      ],
+      "seconds": 1.043,
+      "status": "PASS",
+      "embed": true
+    }
+  ],
+  "service": {
+    "fast": {
+      "turns": 6,
+      "service_seconds": 42.265,
+      "tool_calls": 1,
+      "turns_data": [
+        {
+          "type": "service_summary",
+          "model": "gpt-6-astra",
+          "effort": "low",
+          "profile": {
+            "placement": "without-place",
+            "context": "compact-base"
+          },
+          "conversationId": "b6f9480ebf6e49e0a0d10ba883c512a2",
+          "outcome": "message",
+          "seconds": 8.848,
+          "usage": {
+            "inputTokens": 0,
+            "outputTokens": 0,
+            "cachedInputTokens": 0,
+            "totalTokens": 0
+          },
+          "tool_calls": 0
+        },
+        {
+          "type": "service_summary",
+          "model": "gpt-6-astra",
+          "effort": "low",
+          "profile": {
+            "placement": "without-place",
+            "context": "compact-base"
+          },
+          "conversationId": "b6f9480ebf6e49e0a0d10ba883c512a2",
+          "outcome": "message",
+          "seconds": 5.034,
+          "usage": {
+            "inputTokens": 0,
+            "outputTokens": 0,
+            "cachedInputTokens": 0,
+            "totalTokens": 0
+          },
+          "tool_calls": 0
+        },
+        {
+          "type": "service_summary",
+          "model": "gpt-6-astra",
+          "effort": "low",
+          "profile": {
+            "placement": "without-place",
+            "context": "compact-base"
+          },
+          "conversationId": "b6f9480ebf6e49e0a0d10ba883c512a2",
+          "outcome": "question",
+          "seconds": 18.094,
+          "usage": {
+            "cacheWriteInputTokens": 0,
+            "cachedInputTokens": 31104,
+            "inputTokens": 42221,
+            "outputTokens": 164,
+            "reasoningOutputTokens": 16,
+            "totalTokens": 42385
+          },
+          "tool_calls": 1
+        },
+        {
+          "type": "service_summary",
+          "model": "gpt-6-astra",
+          "effort": "low",
+          "profile": {
+            "placement": "without-place",
+            "context": "compact-base"
+          },
+          "conversationId": "b6f9480ebf6e49e0a0d10ba883c512a2",
+          "outcome": "proposal",
+          "seconds": 2.056,
+          "usage": {
+            "inputTokens": 0,
+            "outputTokens": 0,
+            "cachedInputTokens": 0,
+            "totalTokens": 0
+          },
+          "tool_calls": 0
+        },
+        {
+          "type": "service_summary",
+          "model": "gpt-6-astra",
+          "effort": "low",
+          "profile": {
+            "placement": "without-place",
+            "context": "compact-base"
+          },
+          "conversationId": "b6f9480ebf6e49e0a0d10ba883c512a2",
+          "outcome": "message",
+          "seconds": 8.233,
+          "usage": {
+            "cacheWriteInputTokens": 0,
+            "cachedInputTokens": 14080,
+            "inputTokens": 19394,
+            "outputTokens": 51,
+            "reasoningOutputTokens": 0,
+            "totalTokens": 19445
+          },
+          "tool_calls": 0
+        },
+        {
+          "type": "service_summary",
+          "model": "gpt-6-astra",
+          "effort": "low",
+          "profile": {
+            "placement": "without-place",
+            "context": "compact-base"
+          },
+          "conversationId": "b6f9480ebf6e49e0a0d10ba883c512a2",
+          "outcome": "decline",
+          "seconds": 0.0,
+          "usage": {
+            "inputTokens": 0,
+            "outputTokens": 0,
+            "cachedInputTokens": 0,
+            "totalTokens": 0
+          },
+          "tool_calls": 0
+        }
+      ]
+    },
+    "off": {
+      "turns": 6,
+      "service_seconds": 149.471,
+      "tool_calls": 12,
+      "turns_data": [
+        {
+          "type": "service_summary",
+          "model": "gpt-6-astra",
+          "effort": "low",
+          "profile": {
+            "placement": "without-place",
+            "context": "compact-base"
+          },
+          "conversationId": "0ba686f558ef4554a568f02eddc3844f",
+          "outcome": "message",
+          "seconds": 39.939,
+          "usage": {
+            "cacheWriteInputTokens": 0,
+            "cachedInputTokens": 48256,
+            "inputTokens": 61476,
+            "outputTokens": 414,
+            "reasoningOutputTokens": 27,
+            "totalTokens": 61890
+          },
+          "tool_calls": 3
+        },
+        {
+          "type": "service_summary",
+          "model": "gpt-6-astra",
+          "effort": "low",
+          "profile": {
+            "placement": "without-place",
+            "context": "compact-base"
+          },
+          "conversationId": "0ba686f558ef4554a568f02eddc3844f",
+          "outcome": "message",
+          "seconds": 59.718,
+          "usage": {
+            "cacheWriteInputTokens": 0,
+            "cachedInputTokens": 138624,
+            "inputTokens": 152339,
+            "outputTokens": 1027,
+            "reasoningOutputTokens": 166,
+            "totalTokens": 153366
+          },
+          "tool_calls": 7
+        },
+        {
+          "type": "service_summary",
+          "model": "gpt-6-astra",
+          "effort": "low",
+          "profile": {
+            "placement": "without-place",
+            "context": "compact-base"
+          },
+          "conversationId": "0ba686f558ef4554a568f02eddc3844f",
+          "outcome": "message",
+          "seconds": 8.325,
+          "usage": {
+            "cacheWriteInputTokens": 0,
+            "cachedInputTokens": 28544,
+            "inputTokens": 34312,
+            "outputTokens": 41,
+            "reasoningOutputTokens": 0,
+            "totalTokens": 34353
+          },
+          "tool_calls": 0
+        },
+        {
+          "type": "service_summary",
+          "model": "gpt-6-astra",
+          "effort": "low",
+          "profile": {
+            "placement": "without-place",
+            "context": "compact-base"
+          },
+          "conversationId": "0ba686f558ef4554a568f02eddc3844f",
+          "outcome": "proposal",
+          "seconds": 21.793,
+          "usage": {
+            "cacheWriteInputTokens": 0,
+            "cachedInputTokens": 114304,
+            "inputTokens": 130872,
+            "outputTokens": 376,
+            "reasoningOutputTokens": 0,
+            "totalTokens": 131248
+          },
+          "tool_calls": 2
+        },
+        {
+          "type": "service_summary",
+          "model": "gpt-6-astra",
+          "effort": "low",
+          "profile": {
+            "placement": "without-place",
+            "context": "compact-base"
+          },
+          "conversationId": "0ba686f558ef4554a568f02eddc3844f",
+          "outcome": "message",
+          "seconds": 9.11,
+          "usage": {
+            "cacheWriteInputTokens": 0,
+            "cachedInputTokens": 50304,
+            "inputTokens": 56016,
+            "outputTokens": 59,
+            "reasoningOutputTokens": 0,
+            "totalTokens": 56075
+          },
+          "tool_calls": 0
+        },
+        {
+          "type": "service_summary",
+          "model": "gpt-6-astra",
+          "effort": "low",
+          "profile": {
+            "placement": "without-place",
+            "context": "compact-base"
+          },
+          "conversationId": "0ba686f558ef4554a568f02eddc3844f",
+          "outcome": "decline",
+          "seconds": 10.586,
+          "usage": {
+            "cacheWriteInputTokens": 0,
+            "cachedInputTokens": 55808,
+            "inputTokens": 61578,
+            "outputTokens": 65,
+            "reasoningOutputTokens": 0,
+            "totalTokens": 61643
+          },
+          "tool_calls": 0
+        }
+      ]
+    }
+  },
+  "preview_audit_note": "The driver checked body.preview-mode instead of #app.preview-mode. Both paint Preview rows were visually verified from captured screenshots showing Proposed change / Not applied and unchanged revision; raw false-negative flags are retained here."
+}
