@@ -11,6 +11,16 @@
 .designer-options:empty { display: none; }
 .designer-options .button { white-space: normal; text-align: left; height: auto; min-height: 30px; }
 .designer-progress { color: var(--accent); line-height: 1.5; overflow-wrap: anywhere; }
+.designer-progress-stage, .designer-elapsed, .designer-progress small { display: block; }
+.designer-elapsed { font-variant-numeric: tabular-nums; margin-top: 4px; }
+.designer-progress small, .designer-message small { color: var(--muted); font-size: 10px; line-height: 1.5; }
+.designer-metrics { display: grid; gap: 3px; padding-top: 10px; border-top: 1px solid var(--line); margin: 12px 0 8px; }
+.designer-metrics dt { font-size: 10px; color: var(--muted); }
+.designer-metrics dd { margin: 0 0 8px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.designer-north { display: grid; grid-template-columns: 1fr 85px; gap: 6px 10px; align-items: center; }
+.designer-north label { color: var(--muted); }
+.designer-north input { width: 100%; padding: 6px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; color: var(--ink); }
+.designer-north small { grid-column: 1 / -1; color: var(--muted); line-height: 1.4; font-size: 10px; }
 .designer-form { display: grid; gap: 8px; }
 .designer-form label { font-size: 11px; color: var(--muted); }
 .designer-form textarea { width: 100%; min-height: 76px; max-height: 180px; resize: vertical; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--ink); padding: 10px; font: inherit; line-height: 1.5; }

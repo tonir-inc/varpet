@@ -2,7 +2,6 @@ import './ui/style.css';
 import './ui/motion.css';
 import './ui/designer-panel.css';
 import { mountDesignerPanel } from './ui/designer-panel';
-import { designerHttpAdapter } from './adapters/designer-http';
 import type { AgentProposal, CatalogAsset, EditCommand, ObjectPatch, Operation, SceneDocument, SceneObject, ToolMode, ViewMode, ViewportLayer, WallMode } from './contracts';
 import { demoScene, localCatalog } from './core/demo';
 import { EditorStore } from './core/store';
@@ -10,7 +9,7 @@ import { expandFurnitureSelection, furnitureMembers } from './core/grouping';
 import { validateScene } from './core/validation';
 import { OPENING_MOVE_SNAP } from './core/opening-move';
 import { loadLocal, parseScene, saveLocal, serializeScene } from './core/persistence';
-import { catalogAdapter, designerAdapter as mockDesignerAdapter, structureAdapter as mockStructureAdapter } from './adapters/mock';
+import { catalogAdapter, designerAdapter, structureAdapter as mockStructureAdapter } from './adapters/mock';
 import { createArchitectHttpAdapter } from './adapters/architect-http';
 import { createViewport } from './render/viewport';
 import { createFloorPlan } from './render/floor-plan';
@@ -23,6 +22,7 @@ import { buildFinishOperations, getFinishPreset, type FinishPreset } from './cor
 import { createMaterialsUI } from './ui/materials';
 import { renderEntityInspector, renderAssetChoices } from './ui/inspector';
 
+const designerLive = Boolean(import.meta.env.VITE_DESIGNER_URL);
 const app = document.querySelector<HTMLDivElement>('#app')!;
 app.innerHTML = `
   <header class="app-header">
@@ -65,7 +65,7 @@ app.innerHTML = `
         <p class="muted catalog-note">Click a piece to add it to your space.</p>
       </section>
       <section id="assistant-panel" class="panel-content" aria-label="Design assistant" hidden>
-        <section class="assistant-card"><div class="assistant-heading"><span class="assistant-icon">${icon('sparkles')}</span><div><strong>Design together</strong><span>Design assistant <span class="mock-label">DEMO</span></span></div></div><p>Explore a change to your apartment. Review the proposal before applying it.</p><button id="suggest" class="button suggestion">${icon('sparkles')} Suggest an edit ${icon('arrow')}</button><div id="proposal" aria-live="polite"></div></section>
+        <section class="assistant-card"><div class="assistant-heading"><span class="assistant-icon">${icon('sparkles')}</span><div><strong>Design together</strong><span>Design assistant <span class="mock-label">${designerLive ? 'LIVE' : 'DEMO'}</span></span></div></div><p>Explore a change to your apartment. Review the proposal before applying it.</p><button id="suggest" class="button suggestion">${icon('sparkles')} Suggest an edit ${icon('arrow')}</button><div id="proposal" aria-live="polite"></div></section>
         <div class="assistant-note">${icon('lock')} You're in control. Every change needs your approval and can be undone.</div>
       </section>
       <section id="renovation-panel" class="panel-content" aria-label="Apartment renovation workspace" hidden></section>
@@ -94,7 +94,6 @@ const escape = (s: string) => s.replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&l
 const uid = () => crypto.randomUUID();
 let catalog: CatalogAsset[] = localCatalog;
 const store = new EditorStore(demoScene, catalog);
-const designerAdapter = import.meta.env.VITE_DESIGNER_URL ? designerHttpAdapter : mockDesignerAdapter;
 const architectLive = Boolean(import.meta.env.VITE_ARCHITECT_URL);
 const structureAdapter = architectLive ? createArchitectHttpAdapter({ onProgress: message => notify(message) }) : mockStructureAdapter;
 let selectedId: string | null = null;
@@ -551,6 +550,7 @@ function renderProposal(){
   $('#reject-proposal').onclick=()=>{pending=null;renderProposal();notify('Proposal dismissed');};
 }
 async function requestProposal(kind:'designer'|'architect'){
+  if(kind==='designer' && designerLive){switchPanel('assistant');await designerPanel.controller.suggest();return;}
   if(busy)return;switchPanel('assistant');busy=true;$<HTMLButtonElement>('#suggest').disabled=true;$('#suggest').innerHTML=`${icon('sparkles')} Considering your space…`;
   const revision=store.revision;const scene=store.scene;
   try{
@@ -583,7 +583,7 @@ store.subscribe(refresh);
 const designerHost = document.createElement('section');
 $('#proposal').before(designerHost);
 const designerPanel = mountDesignerPanel(designerHost, {
-  live: Boolean(import.meta.env.VITE_DESIGNER_URL), snapshot: () => ({ scene: store.scene, revision: store.revision }),
+  live: designerLive, snapshot: () => ({ scene: store.scene, revision: store.revision }),
   subscribe: listener => store.subscribe(listener), canRequest: () => !busy && !previewMode,
   onBusyChange: waiting => { busy = waiting; $<HTMLButtonElement>('#suggest').disabled = waiting; },
   onProposal: proposal => { pending = proposal; switchPanel('assistant'); renderProposal(); },
@@ -594,7 +594,7 @@ const modal=$<HTMLDialogElement>('#modal');
 function showModal(title:string,body:string){$('#modal-content').innerHTML=`<div class="modal-heading"><h2>${title}</h2><button id="close-modal" class="icon-button" aria-label="Close dialog">${icon('close')}</button></div>${body}`;$('#close-modal').onclick=()=>modal.close();modal.showModal();}
 modal.onclick=e=>{if(e.target===modal)modal.close();};
 $('#integrations').onclick=()=>{
-  showModal('Sources & connections',`<p class="modal-intro">Local reconstruction tools are ready. Provider integrations remain explicit demo adapters until connected.</p><div class="file-actions"><button id="local-sources" class="button">${icon('upload')} Attach photos and plans</button><button id="local-reconstruct" class="button primary">${icon('walls')} Build the apartment shell</button></div><div class="integration-row"><span>${icon('walls')}</span><div><h3>Architect <span class="mock-label">${architectLive?'LIVE':'DEMO'}</span></h3><p>${architectLive?'Read a floor plan and up to four photos into checked rooms and walls. Takes about four minutes; you review it before anything changes.':'Exercise the proposal workflow with the original demo structure.'}</p><button id="mock-structure" class="button">${architectLive?'Choose plan and photos':'Preview demo structural import'}</button></div></div><div class="integration-row"><span>${icon('sparkles')}</span><div><h3>Designer <span class="mock-label">DEMO</span></h3><p>Propose validated edits against a scene revision. You approve each batch.</p><button id="mock-designer" class="button">Request demo design proposal</button></div></div><div class="integration-row"><span>${icon('box')}</span><div><h3>Catalog <span class="mock-label">DEMO</span></h3><p>Stable asset IDs, metre dimensions, material defaults, and procedural or GLB sources.</p><button id="mock-catalog" class="button">Refresh demo catalog</button></div></div><p class="modal-footnote">No network services or credentials are needed. A proposal becomes stale if the scene changes before approval.</p>`);
+  showModal('Sources & connections',`<p class="modal-intro">Local reconstruction tools are ready. Provider integrations remain explicit demo adapters until connected.</p><div class="file-actions"><button id="local-sources" class="button">${icon('upload')} Attach photos and plans</button><button id="local-reconstruct" class="button primary">${icon('walls')} Build the apartment shell</button></div><div class="integration-row"><span>${icon('walls')}</span><div><h3>Architect <span class="mock-label">${architectLive?'LIVE':'DEMO'}</span></h3><p>${architectLive?'Read a floor plan and up to four photos into checked rooms and walls. Takes about four minutes; you review it before anything changes.':'Exercise the proposal workflow with the original demo structure.'}</p><button id="mock-structure" class="button">${architectLive?'Choose plan and photos':'Preview demo structural import'}</button></div></div><div class="integration-row"><span>${icon('sparkles')}</span><div><h3>Designer <span class="mock-label">${designerLive ? 'LIVE' : 'DEMO'}</span></h3><p>Propose validated edits against a scene revision. You approve each batch.</p><button id="mock-designer" class="button">${designerLive ? 'Ask the live designer' : 'Request demo design proposal'}</button></div></div><div class="integration-row"><span>${icon('box')}</span><div><h3>Catalog <span class="mock-label">DEMO</span></h3><p>Stable asset IDs, metre dimensions, material defaults, and procedural or GLB sources.</p><button id="mock-catalog" class="button">Refresh demo catalog</button></div></div><p class="modal-footnote">${designerLive || architectLive ? 'Live requests use your connected services.' : 'No network services or credentials are needed.'} A proposal becomes stale if the scene changes before approval.</p>`);
   $('#local-sources').onclick=()=>{modal.close();intake.sources();};$('#local-reconstruct').onclick=()=>{modal.close();intake.reconstruction();};
   $('#mock-structure').onclick=()=>{modal.close();void requestProposal('architect');};$('#mock-designer').onclick=()=>{modal.close();void requestProposal('designer');};
   $('#mock-catalog').onclick=async()=>{modal.close();try{catalog=await catalogAdapter.list();renderAssets();viewport.setScene(store.scene,catalog);switchPanel('assets');notify('Demo catalog refreshed');}catch(error){notify(String(error),true);}};

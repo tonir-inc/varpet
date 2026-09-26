@@ -1,5 +1,6 @@
 // UI-only recorded HTTP service: node apps/editor/tests/designer-panel-service.mjs [port]
 // Pair with: VITE_DESIGNER_URL=http://127.0.0.1:8789 pnpm dev
+// Add --m3 after the port for a 5-second reply with example score numbers and request logging.
 import { createServer } from 'node:http';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -14,7 +15,8 @@ await build({ root, configFile: false, publicDir: false, logLevel: 'error', buil
   minify: false, rolldownOptions: { output: { entryFileNames: 'panel.mjs' } },
 } });
 const { createRecordedDesigner } = await import(pathToFileURL(join(output, 'panel.mjs')));
-const ask = createRecordedDesigner(1200);
+const m3 = process.argv.includes('--m3');
+const ask = createRecordedDesigner(m3 ? 5000 : 1200);
 const port = Number(process.argv[2] ?? 8789);
 const server = createServer(async (req, res) => {
   const origin = req.headers.origin;
@@ -29,10 +31,16 @@ const server = createServer(async (req, res) => {
     let body = '';
     for await (const chunk of req) { body += chunk; if (body.length > 4_000_000) throw new Error('Request too large'); }
     const request = JSON.parse(body);
+    if (m3) console.log(JSON.stringify({ request: request.request, northDeg: request.northDeg }));
     res.setHeader('Content-Type', 'application/x-ndjson'); res.flushHeaders();
     const started = performance.now();
     const reply = await ask(request, { signal: controller.signal,
       onProgress: message => res.write(`${JSON.stringify({ type: 'progress', message })}\n`) });
+    if (m3 && reply.type === 'proposal') reply.metrics = {
+      before: { space: { free_area_m2: 12.35 } },
+      after: { space: { free_area_m2: 14.5, rooms: [{ walkways: [{ width_m: 0.75, reachable: true }] }] } },
+      cost_dram: 0,
+    };
     res.end(`${JSON.stringify(reply)}\n`);
     console.log(`${reply.type} ${(performance.now() - started).toFixed(0)}ms`);
   } catch (error) {

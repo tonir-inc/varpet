@@ -112,3 +112,86 @@ test('recorded demo has proposal, question, decline and respects keeps', async (
   assert.equal((await ask({ ...req, request: 'Pick paint colours' })).type, 'decline');
   assert.equal((await ask({ ...req, keep: ['coffee-table'] })).type, 'decline');
 });
+
+test('proposal numbers come from service score, including zero cost and blocked walkways', async () => {
+  const metrics = { before: { space: { free_area_m2: 12.345 } },
+    after: { space: { free_area_m2: 14.5, rooms: [
+      { walkways: [{ width_m: 0.9, reachable: true }] },
+      { walkways: [{ width_m: 0, reachable: false }] },
+    ] } }, cost_dram: 0 };
+  const { controller } = setup(async () => ({ type: 'proposal', conversationId: 'c1', proposal, metrics }));
+  await controller.send('Open up the room');
+  assert.deepEqual(controller.state.messages.at(-1).metrics, [
+    { label: 'Open floor · before → after', value: '12.35 → 14.50 m²' },
+    { label: 'Narrowest walkway · proposed', value: '0.00 m (blocked)' },
+    { label: 'Cost · furniture purchases', value: '0 ֏' },
+  ]);
+});
+test('missing or malformed proposal numbers remain unknown instead of becoming zero', async () => {
+  const { controller } = setup(async () => ({ type: 'proposal', conversationId: 'c1', proposal,
+    metrics: { before: { space: { free_area_m2: '12' } }, after: { space: { free_area_m2: -1,
+      rooms: [{ walkways: [{ width_m: 0.9 }, { width_m: null }] }] } }, cost_dram: null } }));
+  await controller.send('Move');
+  assert.deepEqual(controller.state.messages.at(-1).metrics.map(row => row.value), ['Unknown → Unknown', 'Unknown', 'Unknown']);
+});
+test('valid score reports minimum across rooms and whole dram purchases', async () => {
+  const { controller } = setup(async () => ({ type: 'proposal', conversationId: 'c1', proposal,
+    metrics: { before: { space: { free_area_m2: 0 } }, after: { space: { free_area_m2: 2,
+      rooms: [{ walkways: [{ width_m: 1.1 }] }, { walkways: [{ width_m: 0.75 }] }] } }, cost_dram: 125000 } }));
+  await controller.send('Move');
+  assert.deepEqual(controller.state.messages.at(-1).metrics.map(row => row.value), ['0.00 → 2.00 m²', '0.75 m', '125,000 ֏']);
+});
+test('no door routes or missing metrics are not reported as measured clearance', async () => {
+  const { controller } = setup(async () => ({ type: 'proposal', conversationId: 'c1', proposal,
+    metrics: { after: { space: { rooms: [{ walkways: [] }] } } } }));
+  await controller.send('Move');
+  assert.equal(controller.state.messages.at(-1).metrics[1].value, 'Unknown');
+});
+function memoryStorage() {
+  const data = new Map();
+  return { getItem: key => data.get(key) ?? null, setItem: (key, value) => data.set(key, value), removeItem: key => data.delete(key) };
+}
+test('north is unknown by default, validates degrees, persists per scene and is sent with Suggest', async () => {
+  const storage = memoryStorage(), requests = []; let current = scene;
+  const options = { storage, snapshot: () => ({ scene: current, revision: 12 }), onProposal() {},
+    ask: async req => { requests.push(req); return { type: 'question', conversationId: 'north-chat', question: 'Which room?', options: ['Living', 'Bedroom'] }; } };
+  const controller = createDesignerConversation(options);
+  assert.equal(controller.state.northDeg, undefined);
+  for (const invalid of ['-1', '360', 'NaN', 'Infinity', 'north']) assert.equal(controller.setNorth(invalid), false);
+  assert.equal(controller.setNorth('359.5'), true);
+  assert.equal(createDesignerConversation(options).state.northDeg, 359.5);
+  await controller.suggest();
+  assert.equal(requests[0].request, 'Suggest one improvement for this room');
+  assert.equal(requests[0].northDeg, 359.5);
+  assert.equal(controller.state.messages[0].text, requests[0].request);
+  controller.setNorth('0'); await controller.send('Living');
+  assert.equal(requests[1].northDeg, 0); assert.equal(requests[1].conversationId, 'north-chat');
+  current = { ...scene, id: 'different-flat' }; controller.refreshSettings();
+  assert.equal(controller.state.northDeg, undefined);
+  current = scene; controller.refreshSettings(); assert.equal(controller.state.northDeg, 0);
+  controller.setNorth(''); await controller.send('Living');
+  assert.equal('northDeg' in requests[2], false);
+  assert.equal(createDesignerConversation(options).state.northDeg, undefined);
+});
+test('unavailable browser storage preserves north for this session without claiming it was saved', () => {
+  const controller = createDesignerConversation({ snapshot: () => ({ scene, revision: 0 }), onProposal() {},
+    ask: async () => ({ type: 'error', message: 'unused' }),
+    storage: { getItem() { throw Error('blocked'); }, setItem() { throw Error('full'); }, removeItem() { throw Error('blocked'); } } });
+  assert.equal(controller.setNorth('90'), true); assert.equal(controller.state.northDeg, 90);
+  assert.equal(controller.state.northPersisted, false);
+});
+test('elapsed seconds use elapsed time, reset on retry, and stop after cancellation and disposal', async () => {
+  let now = 1000; const first = deferred(), second = deferred(); let calls = 0;
+  const controller = createDesignerConversation({ snapshot: () => ({ scene, revision: 0 }), onProposal() {}, now: () => now,
+    ask: () => ++calls === 1 ? first.promise : second.promise });
+  const run = controller.suggest();
+  now = 4200; controller.tick(); assert.equal(controller.state.elapsedSeconds, 3);
+  controller.cancel(); now = 9000; controller.tick(); assert.equal(controller.state.elapsedSeconds, 3);
+  const retry = controller.suggest(); assert.equal(controller.state.elapsedSeconds, 0);
+  now = 12000; controller.tick(); assert.equal(controller.state.elapsedSeconds, 3);
+  first.resolve({ type: 'decline', conversationId: 'old', message: 'late' }); await run;
+  assert.equal(controller.state.busy, true); assert.equal(controller.state.elapsedSeconds, 3);
+  second.resolve({ type: 'decline', conversationId: 'new', message: 'done' }); await retry;
+  now = 19000; controller.tick(); assert.equal(controller.state.elapsedSeconds, 3);
+  controller.dispose(); controller.tick(); assert.equal(controller.state.elapsedSeconds, 3);
+});
