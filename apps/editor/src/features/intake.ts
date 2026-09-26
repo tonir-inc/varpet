@@ -128,7 +128,7 @@ export function createIntake(options: IntakeOptions) {
     function draw() {
       const w = img.naturalWidth || 1, h = img.naturalHeight || 1; svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
       const stroke = Math.max(2, w / 400); const line = (ps: Vec2[], color: string, closed = false) => `<polyline points="${[...ps, ...(closed && ps.length > 2 ? [ps[0]!] : [])].map(p => p.join(',')).join(' ')}" fill="${closed ? '#c2b6fa20' : 'none'}" stroke="${color}" stroke-width="${stroke}" />`;
-      svg.innerHTML = line(scalePoints, '#ffbb55') + line(outline, '#ac85ff', true) + partitions.map(p => line(p, '#69dcb4')).join('') + [...scalePoints, ...outline, ...(pendingPoint ? [pendingPoint] : [])].map(p => `<circle cx="${p[0]}" cy="${p[1]}" r="${stroke * 2}" fill="#ffffff" stroke="#463356" stroke-width="${stroke}"/>`).join('');
+      svg.innerHTML = line(scalePoints, '#e0b800') + line(outline, '#151515', true) + partitions.map(p => line(p, '#69dcb4')).join('') + [...scalePoints, ...outline, ...(pendingPoint ? [pendingPoint] : [])].map(p => `<circle cx="${p[0]}" cy="${p[1]}" r="${stroke * 2}" fill="#ffffff" stroke="#151515" stroke-width="${stroke}"/>`).join('');
       query('#trace-status').textContent = mode === 'scale' ? `Scale: ${scalePoints.length}/2 points. Click the two ends of a known dimension.` : mode === 'outline' ? `${outline.length} perimeter points. Click in order around the outer wall centerline.` : `${partitions.length} partitions. ${pendingPoint ? 'Click the other end.' : 'Click the start and end of each partition.'}`;
       dialog.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach(button => button.classList.toggle('active', button.dataset.mode === mode));
     }

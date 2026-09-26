@@ -66,7 +66,7 @@ export function createRoomMarks(svg: SVGSVGElement, cards: HTMLElement, viewport
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   let cloudShownAt = 0, cloudKey = '';
   const finished = new Map<string, number>();
-  svg.innerHTML = `<defs><pattern id="bp-hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="7" stroke="#0C6A55" stroke-width="1.6"/></pattern></defs><g class="layer"></g>`;
+  svg.innerHTML = `<defs><pattern id="bp-hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="7" style="stroke:var(--draft)" stroke-width="1.6"/></pattern></defs><g class="layer"></g>`;
   const layer = svg.querySelector('g.layer')!;
 
   const draw = () => {
