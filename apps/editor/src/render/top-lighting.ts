@@ -9,13 +9,19 @@ export class TopLightingProjection {
     this.unlit.value = unlit;
     // Wrap in every view so entering or leaving Top only flips a uniform, never recompiles.
     // Includes newly loaded models, live wall previews and replacement finishes.
-    scene.traverseVisible(object => {
+    this.wrap(scene, true);
+  }
+
+  /** Give a subtree's materials their final program key, e.g. a model before it is precompiled. */
+  wrap(root: THREE.Object3D, visibleOnly = false): void {
+    const visit = (object: THREE.Object3D) => {
       if (!(object instanceof THREE.Mesh)) return;
       for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
         if (material instanceof THREE.MeshStandardMaterial || material instanceof THREE.MeshLambertMaterial
           || material instanceof THREE.MeshPhongMaterial || material instanceof THREE.MeshToonMaterial) this.prepareMaterial(material);
       }
-    });
+    };
+    if (visibleOnly) root.traverseVisible(visit); else root.traverse(visit);
   }
 
   private prepareMaterial(material: THREE.Material): void {

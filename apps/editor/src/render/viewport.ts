@@ -655,15 +655,18 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
     warmTimer = setTimeout(() => {
       warmTimer = undefined;
       if (disposed) return;
-      if (loadingModels > 0 || pendingModels.size || drag || interactionUntil > performance.now()) { scheduleWarmUp(); return; }
+      // A pending frame means something is animating; warm up only when the view is at rest.
+      if (frame || loadingModels > 0 || pendingModels.size || drag || interactionUntil > performance.now()) { scheduleWarmUp(); return; }
       warmUp();
     }, 400);
   }
   const warmed = new WeakSet<THREE.Material>();
   function warmUp(): void {
     try {
-      skyboxes.get('daylight', effectiveSunlight({ ...sunSettings, timeOfDay: 12, enabled: true }));
-      skyboxes.get('twilight', effectiveSunlight(normalizeSun({ timeOfDay: 22, enabled: false }, sunSettings)));
+      // One capture per preset is cached: pre-capture the other mood exactly as setLightingMood will ask for it.
+      const night = sunSettings.timeOfDay != null && timeOfDayLighting(sunSettings.timeOfDay).daylight < 0.05;
+      skyboxes.get('daylight', night ? effectiveSunlight(normalizeSun({ timeOfDay: 12, enabled: true }, sunSettings)) : skySun);
+      skyboxes.get('twilight', night ? skySun : effectiveSunlight(normalizeSun({ timeOfDay: 22, enabled: false }, sunSettings)));
     } catch { /* The sky is captured again on use; a failure is reported there. */ }
     // Cutaway walls and entering furniture fade through transparent materials, a separate program.
     const flipped: THREE.Material[] = [];
@@ -1180,7 +1183,7 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
           const token = record.token;
           loadingModels++;
           // Compile the model's programs off the frame before it appears (parallel shader compile).
-          void loader.load(asset).then(model => studioRenderer.compile(() => renderer.compileAsync(model, camera, world)).catch(() => undefined).then(() => model))
+          void loader.load(asset).then(model => (topLighting.wrap(model), studioRenderer.compile(() => renderer.compileAsync(model, camera, world)).catch(() => undefined).then(() => model)))
             .finally(() => { loadingModels--; }).then(model => {
             const current = rendered.get(object.id);
             if (disposed || !current || current.token !== token) { disposeObject(model); return; }
@@ -1840,7 +1843,13 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
       if (structure) fitSunShadow(sunlight, structure.bounds.clone().union(new THREE.Box3().setFromObject(sunOccluders.group)), sunSettings);
       applyLayers(); callbacks.onSunChange?.({ ...sunSettings }); requestRender();
     },
-    setLightingMood(mood) { this.setSun({ timeOfDay: mood === 'day' ? 12 : 22, enabled: mood === 'day' }); },
+    setLightingMood(mood) {
+      // A discrete switch, not a slider: capture its sky once, now, instead of a stale then a debounced one.
+      sunSettings = normalizeSun({ timeOfDay: mood === 'day' ? 12 : 22, enabled: mood === 'day' }, sunSettings);
+      clearTimeout(skyUpdateTimer); skyUpdateTimer = undefined; skySun = effectiveSunlight(sunSettings);
+      if (structure) fitSunShadow(sunlight, structure.bounds.clone().union(new THREE.Box3().setFromObject(sunOccluders.group)), sunSettings);
+      applyLayers(); callbacks.onSunChange?.({ ...sunSettings }); requestRender();
+    },
     setSkybox(preset) {
       if (disposed || !isSkyboxPreset(preset)) return false;
       if (preset === skyboxPreset) return true;
