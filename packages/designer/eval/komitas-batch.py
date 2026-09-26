@@ -19,7 +19,7 @@ def terminate_group(process):
     try:os.killpg(process.pid,signal.SIGKILL)
     except ProcessLookupError:pass
     except PermissionError:
-        # macOS can deny signaling an already-exited group. Never hide a
+        # Tolerate a denied signal only after confirming exit. Never hide a
         # failure to stop a live leader; preserve the batch stop after exit.
         if process.poll() is None:raise
     process.wait()
