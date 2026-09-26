@@ -7,6 +7,7 @@ import { dimension3d, label3d } from './annotations';
 import { disposeObject } from './assets';
 import { finishAppearance, makeFinishMaterial, type FinishMaterialProjection, type FinishReveal } from './finish-material';
 import { MOTION, setProjectionOpacity } from './motion';
+import { wallFootprint, wallPrismGeometry } from './wall-geometry';
 
 export type { FinishReveal } from './finish-material';
 
@@ -71,17 +72,24 @@ function meshBox(parent: THREE.Object3D, dimensions: [number, number, number], p
   mesh.position.set(...position); mesh.castShadow = true; mesh.receiveShadow = true; parent.add(mesh); return mesh;
 }
 
-function wallGeometry(wall: Wall, height: number, elevation: number, spans: WallSurfaceSpan[], front: THREE.Material | undefined, back: THREE.Material | undefined): THREE.Group {
+function wallGeometry(wall: Wall, height: number, elevation: number, spans: WallSurfaceSpan[], front: THREE.Material | undefined, back: THREE.Material | undefined, walls: readonly Wall[], metadata: Record<string, EntityMetadata>): THREE.Group {
   const group = new THREE.Group();
   const length = Math.hypot(wall.end[0] - wall.start[0], wall.end[1] - wall.start[1]);
   const plaster = new THREE.MeshStandardMaterial({ color: '#999999', roughness: 0.94 });
   const trim = new THREE.MeshStandardMaterial({ color: '#f4f0e8', roughness: 0.65 });
-  const box = (start: number, end: number, bottom: number, top: number, depth: number, skirting = false, z = 0) => {
+  const footprint = wallFootprint(wall, walls, metadata);
+  const innerTrim = wallFootprint(wall, walls, metadata, -0.0025), outerTrim = wallFootprint(wall, walls, metadata, 0.0125);
+  const trimFront = [innerTrim[3]!, innerTrim[2]!, outerTrim[2]!, outerTrim[3]!];
+  const trimBack = [outerTrim[0]!, outerTrim[1]!, innerTrim[1]!, innerTrim[0]!];
+  const box = (start: number, end: number, bottom: number, top: number, skirting = false, side = 1) => {
     if (end - start <= 0.001 || top - bottom <= 0.001) return;
     for (const span of spans) {
       const left = Math.max(start, span.start); const right = Math.min(end, span.end);
-      if (right - left <= 0.001 || (skirting && !(z > 0 ? span.front : span.back))) continue;
-      const mesh = meshBox(group, [right - left, top - bottom, depth], [(left + right) / 2, elevation + (bottom + top) / 2, z], skirting ? trim : plaster);
+      if (right - left <= 0.001 || (skirting && !(side > 0 ? span.front : span.back))) continue;
+      const geometry = wallPrismGeometry(skirting ? (side > 0 ? trimFront : trimBack) : footprint,
+        elevation + bottom, elevation + top, left <= 1e-6 ? -Infinity : left, right >= length - 1e-6 ? Infinity : right);
+      const mesh: THREE.Mesh = new THREE.Mesh(geometry, skirting ? trim : plaster);
+      mesh.castShadow = true; mesh.receiveShadow = true; group.add(mesh);
       if (!skirting) {
         mesh.material = [plaster, plaster, plaster, plaster, span.front ? front! : plaster, span.back ? back! : plaster];
         mesh.userData.finishEntityId = wall.id;
@@ -93,18 +101,18 @@ function wallGeometry(wall: Wall, height: number, elevation: number, spans: Wall
   const openings = [...wall.openings].sort((a, b) => a.offset - b.offset);
   for (const opening of openings) {
     const left = Math.max(0, opening.offset); const right = Math.min(length, left + opening.width);
-    box(cursor, left, 0, height, wall.thickness);
-    box(left, right, 0, Math.min(opening.sill, height), wall.thickness);
-    box(left, right, opening.sill + opening.height, height, wall.thickness);
+    box(cursor, left, 0, height);
+    box(left, right, 0, Math.min(opening.sill, height));
+    box(left, right, opening.sill + opening.height, height);
     cursor = Math.max(cursor, right);
   }
-  box(cursor, length, 0, height, wall.thickness);
+  box(cursor, length, 0, height);
   cursor = 0;
   for (const opening of openings.filter(o => o.sill === 0)) {
-    for (const z of [-1, 1]) box(cursor, opening.offset, 0, Math.min(0.075, height), 0.015, true, z * (wall.thickness / 2 + 0.005));
+    for (const side of [-1, 1]) box(cursor, opening.offset, 0, Math.min(0.075, height), true, side);
     cursor = opening.offset + opening.width;
   }
-  for (const z of [-1, 1]) box(cursor, length, 0, Math.min(0.075, height), 0.015, true, z * (wall.thickness / 2 + 0.005));
+  for (const side of [-1, 1]) box(cursor, length, 0, Math.min(0.075, height), true, side);
   return group;
 }
 function makeOpening(wall: Wall, opening: Opening, metadata: EntityMetadata, elevation: number): OpeningProjection {
@@ -277,7 +285,7 @@ export function makeStructure(document: SceneDocument, reveal?: FinishReveal): S
     const makeWallProjection = (source: Wall, height: number) => {
       const projection = wallGeometry(source, height, elevation, spans,
         spans.some(span => span.front) ? makeWallFinish('wall-front') : undefined,
-        spans.some(span => span.back) ? makeWallFinish('wall-back') : undefined);
+        spans.some(span => span.back) ? makeWallFinish('wall-back') : undefined, document.walls, metadata);
       if (meta.phase === 'remove') projection.traverse(object => { if (object instanceof THREE.Mesh) for (const material of Array.isArray(object.material) ? object.material : [object.material]) { material.transparent = true; material.opacity = 0.25; } });
       return projection;
     };

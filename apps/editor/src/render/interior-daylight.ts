@@ -54,7 +54,11 @@ export class InteriorDaylight {
       light.shadow.camera.far = 14;
       light.shadow.bias = -0.00015;
       light.shadow.normalBias = 0.012;
-      light.shadow.radius = 3;
+      // A broad PCF kernel on this wide-angle near-window map reaches behind
+      // thin door leaves and across grazing wall/ceiling depths. It produces
+      // repeated self-shadow bands, not a larger physical daylight emitter.
+      // Keep filtering local; preserve the small depth bias and solid blockers.
+      light.shadow.radius = 0.5;
       light.shadow.autoUpdate = false;
       light.shadow.needsUpdate = true;
       this.lights.push(light); this.group.add(light, light.target);

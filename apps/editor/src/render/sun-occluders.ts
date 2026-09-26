@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { EntityMetadata, Opening, Room, SceneDocument, Wall } from '../contracts';
 import { roomCeilingHeight } from '../core/heights';
+import { wallFootprint, wallPrismGeometry } from './wall-geometry';
 
 /** The physical shell stays intact in shadow maps while its editor projection
  * cuts walls and roofs away. This projection owns only cheap, untextured geometry;
@@ -10,7 +11,7 @@ export class SunOccluders {
   private readonly box = new THREE.BoxGeometry(1, 1, 1);
   private readonly wallMaterial = new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, transparent: true, opacity: 0 });
   private readonly roofMaterial = new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, transparent: true, opacity: 0, shadowSide: THREE.FrontSide });
-  private readonly roofGeometries: THREE.BufferGeometry[] = [];
+  private readonly shellGeometries = new Set<THREE.BufferGeometry>();
   private readonly angles = new Map<string, number>();
   private readonly offsets = new Map<string, number>();
   private readonly setAngles = new Map<string, (angle: number) => void>();
@@ -44,7 +45,11 @@ export class SunOccluders {
     const wall = this.scene.walls.find(wall => wall.openings.some(opening => opening.id === id));
     if (!wall || !this.wallGroups.has(wall.id)) return;
     this.offsets.set(id, offset);
-    this.wallGroups.get(wall.id)!.removeFromParent();
+    const previous = this.wallGroups.get(wall.id)!;
+    previous.traverse(object => {
+      if (object instanceof THREE.Mesh && this.shellGeometries.delete(object.geometry)) object.geometry.dispose();
+    });
+    previous.removeFromParent();
     for (const opening of wall.openings) this.setAngles.delete(opening.id);
     this.addWall(wall); this.group.updateMatrixWorld(true);
   }
@@ -66,7 +71,7 @@ export class SunOccluders {
     const shape = new THREE.Shape();
     room.polygon.forEach(([x, z], index) => { if (index === 0) shape.moveTo(x, -z); else shape.lineTo(x, -z); });
     shape.closePath();
-    const geometry = new THREE.ShapeGeometry(shape); this.roofGeometries.push(geometry);
+    const geometry = new THREE.ShapeGeometry(shape); this.shellGeometries.add(geometry);
     const mesh = this.mesh(this.group, geometry, this.roofMaterial);
     mesh.rotation.x = -Math.PI / 2; mesh.position.y = (metadata.elevation ?? 0) + height;
   }
@@ -81,8 +86,13 @@ export class SunOccluders {
     group.rotation.y = -Math.atan2(wall.end[1] - wall.start[1], wall.end[0] - wall.start[0]);
     this.group.add(group); this.wallGroups.set(wall.id, group);
     const openings = wall.openings.map(opening => ({ ...opening, offset: this.offsets.get(opening.id) ?? opening.offset })).sort((a, b) => a.offset - b.offset);
-    const span = (left: number, right: number, bottom: number, top: number) => this.block(group,
-      [right - left, top - bottom, wall.thickness], [(left + right) / 2, (bottom + top) / 2, 0]);
+    const footprint = wallFootprint(wall, this.scene!.walls, metadata);
+    const span = (left: number, right: number, bottom: number, top: number) => {
+      if (right - left <= .0001 || top - bottom <= .0001) return;
+      const geometry = wallPrismGeometry(footprint, bottom, top,
+        left <= 1e-6 ? -Infinity : left, right >= length - 1e-6 ? Infinity : right);
+      this.shellGeometries.add(geometry); this.mesh(group, geometry, this.wallMaterial);
+    };
     let cursor = 0;
     for (const opening of openings) {
       const left = Math.max(0, opening.offset), right = Math.min(length, opening.offset + opening.width);
@@ -139,8 +149,8 @@ export class SunOccluders {
   }
 
   private clear(): void {
-    for (const geometry of this.roofGeometries) geometry.dispose();
-    this.roofGeometries.length = 0; this.group.clear(); this.wallGroups.clear(); this.setAngles.clear();
+    for (const geometry of this.shellGeometries) geometry.dispose();
+    this.shellGeometries.clear(); this.group.clear(); this.wallGroups.clear(); this.setAngles.clear();
   }
 
   dispose(): void {
