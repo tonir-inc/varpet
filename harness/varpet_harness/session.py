@@ -319,6 +319,7 @@ class _Architect:
 
         try:
             shell = to_shell((self.run_dir / "trace.svg").read_text())
+            shell.pop("transform", None)
         except (OSError, TraceError, ValueError) as e:
             return f"trace.svg: {e}"
         (self.run_dir / "shell" / "shell.json").write_text(json.dumps(shell, indent=1))
@@ -478,7 +479,9 @@ class _Architect:
             from .trace import TraceError, to_shell
 
             try:
-                shell.write_text(json.dumps(to_shell((self.run_dir / "trace.svg").read_text()), indent=1))
+                converted = to_shell((self.run_dir / "trace.svg").read_text())
+                converted.pop("transform", None)
+                shell.write_text(json.dumps(converted, indent=1))
             except (OSError, TraceError, ValueError) as e:
                 return f"Code read trace.svg and could not use it: {e}. Fix trace.svg, then submit_trace."
         faults = check_shell(shell, shell.parent) if shell.exists() else [{"check": "file", "detail": "shell/shell.json was not written"}]

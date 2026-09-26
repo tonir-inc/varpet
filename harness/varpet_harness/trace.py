@@ -188,12 +188,15 @@ def to_shell(svg: str) -> dict:
                            "roomId": room})
 
     return {"rooms": rooms, "walls": walls, "components": components, "printed": printed,
-            "notes": [f"traced in pixels; scale {px_per_m:.1f} px/m from {how}"]}
+            "notes": [f"traced in pixels; scale {px_per_m:.1f} px/m from {how}"],
+            "transform": {"px_per_m": px_per_m, "origin": [ox, oy]}}  # not part of the shell: pop it before Shell()
 
 
 def main() -> None:
     svg, out = Path(sys.argv[1]), Path(sys.argv[2])
-    out.write_text(json.dumps(to_shell(svg.read_text()), indent=1))
+    shell = to_shell(svg.read_text())
+    shell.pop("transform")
+    out.write_text(json.dumps(shell, indent=1))
 
 
 if __name__ == "__main__":
