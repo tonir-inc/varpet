@@ -25,3 +25,5 @@ plan_room(bed116, bedroom, keep heater) -> every role 'no checked fit' (19.7 s);
 ![Screenshot 1](img/20260926T215720Z-designer-imported-flat-nothing-fits-in-an-empty-3-64-x-3--eb60627a492a4c57bf973b65a34f521e-1.png)
 
 **Notes**
+
+- 2026-09-26T22:02:53.790603Z: ROOT CAUSE (diagnosed): packages/designer/src/fast-path.ts:78 requires 0.75 m door->item circulation; door ED118 is 0.74879 m wide, so every new path has a 0.00121 m deficit and line 82 rejects it -> 0 slots for bed/dresser/nightstand (313/298/343 poses, 25/244/296 geometrically eligible, all rejected on access). Documented hard minimum is 0.60 m (layout.ts:94, 0.75 preferred). Fix: use 0.6 there (verified in scratch: 6 slots each, first passes propose()), or better only reject when an item worsens the baseline deficit. Repro: catalog/data/debug-bed116/repro.ts (Sergey's laptop). Affects any imported flat with ~75 cm bedroom doors.
