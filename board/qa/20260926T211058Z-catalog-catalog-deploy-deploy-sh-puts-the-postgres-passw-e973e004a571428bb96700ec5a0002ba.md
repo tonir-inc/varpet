@@ -2,10 +2,11 @@
 id: "20260926T211058Z-catalog-catalog-deploy-deploy-sh-puts-the-postgres-passw-e973e004a571428bb96700ec5a0002ba"
 lane: "catalog"
 severity: "minor"
-status: "open"
+status: "fixed"
 title: "catalog/deploy/deploy.sh puts the Postgres password in the remote ssh command line (visible in ps on the shared VM)"
 reported_by: "bughunt-security"
 created: "2026-09-26T21:10:58.224680Z"
+fixed_in: "ef67ec7"
 ---
 
 **Steps**
@@ -25,3 +26,5 @@ sshd runs the whole block as 'bash -c "<script with the password inlined>"'. The
 
 
 **Notes**
+
+- 2026-09-26T21:24:07.602482Z: Fixed in ef67ec7; data applied on VM + local (fixes/2026-09-27-bughunt.sql, reclassify_names.py); deployed to VM.

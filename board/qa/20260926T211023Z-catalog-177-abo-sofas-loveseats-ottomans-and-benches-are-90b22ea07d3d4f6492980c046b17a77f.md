@@ -2,10 +2,11 @@
 id: "20260926T211023Z-catalog-177-abo-sofas-loveseats-ottomans-and-benches-are-90b22ea07d3d4f6492980c046b17a77f"
 lane: "catalog"
 severity: "major"
-status: "open"
+status: "fixed"
 title: "177 ABO sofas, loveseats, ottomans and benches are kind 'decor' (slipcover/pillow/cushion name rule wins over the sofa rule)"
 reported_by: "bughunt-catalog"
 created: "2026-09-26T21:10:23.564774Z"
+fixed_in: "ef67ec7"
 ---
 
 **Steps**
@@ -25,3 +26,5 @@ They are kind 'decor'. 177 ABO decor rows name a seating/bed noun; 78 of the 129
 
 
 **Notes**
+
+- 2026-09-26T21:24:06.378480Z: Fixed in ef67ec7; data applied on VM + local (fixes/2026-09-27-bughunt.sql, reclassify_names.py); deployed to VM.

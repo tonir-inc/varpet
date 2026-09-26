@@ -2,10 +2,11 @@
 id: "20260926T211041Z-catalog-find-similar-with-an-unknown-or-missing-item-id--991e898f686b4bada443f63772a7c301"
 lane: "catalog"
 severity: "minor"
-status: "open"
+status: "fixed"
 title: "find_similar with an unknown or missing item_id silently returns arbitrary items of any kind"
 reported_by: "bughunt-catalog"
 created: "2026-09-26T21:10:41.415789Z"
+fixed_in: "ef67ec7"
 ---
 
 **Steps**
@@ -25,3 +26,5 @@ Both return 10 unrelated items across kinds (console table, chest of drawers, si
 
 
 **Notes**
+
+- 2026-09-26T21:24:07.353611Z: Fixed in ef67ec7; data applied on VM + local (fixes/2026-09-27-bughunt.sql, reclassify_names.py); deployed to VM.

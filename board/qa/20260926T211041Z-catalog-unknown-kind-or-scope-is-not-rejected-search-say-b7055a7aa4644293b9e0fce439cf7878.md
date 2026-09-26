@@ -2,10 +2,11 @@
 id: "20260926T211041Z-catalog-unknown-kind-or-scope-is-not-rejected-search-say-b7055a7aa4644293b9e0fce439cf7878"
 lane: "catalog"
 severity: "minor"
-status: "open"
+status: "fixed"
 title: "Unknown kind (or scope) is not rejected: search says 'Nothing fits. Relax a constraint' / silently searches the whole catalog"
 reported_by: "bughunt-catalog"
 created: "2026-09-26T21:10:41.560136Z"
+fixed_in: "ef67ec7"
 ---
 
 **Steps**
@@ -25,3 +26,5 @@ kind 'sofaz' -> results [], nearest_misses [], hint 'Nothing fits. Relax a const
 
 
 **Notes**
+
+- 2026-09-26T21:24:07.480179Z: Fixed in ef67ec7; data applied on VM + local (fixes/2026-09-27-bughunt.sql, reclassify_names.py); deployed to VM.

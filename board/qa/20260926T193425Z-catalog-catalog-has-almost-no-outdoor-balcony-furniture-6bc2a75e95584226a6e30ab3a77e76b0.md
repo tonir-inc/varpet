@@ -2,10 +2,11 @@
 id: "20260926T193425Z-catalog-catalog-has-almost-no-outdoor-balcony-furniture-6bc2a75e95584226a6e30ab3a77e76b0"
 lane: "catalog"
 severity: "minor"
-status: "open"
+status: "fixed"
 title: "Outdoor/balcony furniture exists but is not tagged, so the designer can't find it"
 reported_by: "Sergey"
 created: "2026-09-26T19:34:25.658750Z"
+fixed_in: "ef67ec7"
 ---
 
 **Steps**
@@ -25,3 +26,5 @@ A small balcony range: bistro table + chairs, folding chairs, outdoor bench/loun
 ![Screenshot 1](img/20260926T193425Z-catalog-catalog-has-almost-no-outdoor-balcony-furniture-6bc2a75e95584226a6e30ab3a77e76b0-1.png)
 
 **Notes**
+
+- 2026-09-26T21:24:06.867978Z: Fixed in ef67ec7; data applied on VM + local (fixes/2026-09-27-bughunt.sql, reclassify_names.py); deployed to VM.

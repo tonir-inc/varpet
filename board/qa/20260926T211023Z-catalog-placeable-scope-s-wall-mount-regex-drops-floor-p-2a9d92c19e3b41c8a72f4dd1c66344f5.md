@@ -2,10 +2,11 @@
 id: "20260926T211023Z-catalog-placeable-scope-s-wall-mount-regex-drops-floor-p-2a9d92c19e3b41c8a72f4dd1c66344f5"
 lane: "catalog"
 severity: "major"
-status: "open"
+status: "fixed"
 title: "Placeable scope's wall-mount regex drops floor pieces: no kitchen island or shower is placeable, also a toilet, bathtub, monitor, bicycles"
 reported_by: "bughunt-catalog"
 created: "2026-09-26T21:10:23.809380Z"
+fixed_in: "ef67ec7"
 ---
 
 **Steps**
@@ -25,3 +26,5 @@ Both searches return 'Nothing fits' (0 of 4 islands, 0 of 2 showers). catalog/se
 
 
 **Notes**
+
+- 2026-09-26T21:24:06.620776Z: Fixed in ef67ec7; data applied on VM + local (fixes/2026-09-27-bughunt.sql, reclassify_names.py); deployed to VM.

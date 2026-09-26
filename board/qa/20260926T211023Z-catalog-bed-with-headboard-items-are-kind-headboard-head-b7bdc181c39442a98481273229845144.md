@@ -2,10 +2,11 @@
 id: "20260926T211023Z-catalog-bed-with-headboard-items-are-kind-headboard-head-b7bdc181c39442a98481273229845144"
 lane: "catalog"
 severity: "major"
-status: "open"
+status: "fixed"
 title: "'Bed with Headboard' items are kind 'headboard' (headboard rule before bed rule), so ~40 real beds are not placeable"
 reported_by: "bughunt-catalog"
 created: "2026-09-26T21:10:23.690565Z"
+fixed_in: "ef67ec7"
 ---
 
 **Steps**
@@ -25,3 +26,5 @@ catalog/ingest_abo.py:64 (r'\bheadboard' -> headboard) fires before :65 (r'\bbed
 
 
 **Notes**
+
+- 2026-09-26T21:24:06.504223Z: Fixed in ef67ec7; data applied on VM + local (fixes/2026-09-27-bughunt.sql, reclassify_names.py); deployed to VM.

@@ -2,10 +2,11 @@
 id: "20260926T211041Z-catalog-placeable-sofas-beds-whose-mesh-is-0-2-0-5-m-nar-1bf8665a92b147e6ba8097b34f819afd"
 lane: "catalog"
 severity: "minor"
-status: "open"
+status: "fixed"
 title: "Placeable sofas/beds whose mesh is 0.2-0.5 m narrower than both the listing and the name width still pass fit checks at mesh size"
 reported_by: "bughunt-catalog"
 created: "2026-09-26T21:10:41.120544Z"
+fixed_in: "ef67ec7"
 ---
 
 **Steps**
@@ -25,3 +26,5 @@ compare() (catalog/ingest_abo.py:139-147) only widens fit size on 'conflict' (>1
 
 
 **Notes**
+
+- 2026-09-26T21:24:07.113139Z: Fixed in ef67ec7; data applied on VM + local (fixes/2026-09-27-bughunt.sql, reclassify_names.py); deployed to VM.

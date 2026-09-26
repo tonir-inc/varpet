@@ -2,10 +2,11 @@
 id: "20260926T211049Z-catalog-catalog-find-similar-image-fetches-any-url-and-o-36ace52005844fc4a7033ea8baacba98"
 lane: "catalog"
 severity: "major"
-status: "open"
+status: "fixed"
 title: "Catalog find_similar(image=...) fetches any URL and opens any local path on the VM (blind SSRF, unbounded read)"
 reported_by: "bughunt-security"
 created: "2026-09-26T21:10:49.449802Z"
+fixed_in: "ef67ec7"
 ---
 
 **Steps**
@@ -25,3 +26,5 @@ embed_siglip_query.py:49-53: any string starting with 'http' goes to urllib.requ
 
 
 **Notes**
+
+- 2026-09-26T21:24:06.745779Z: Fixed in ef67ec7; data applied on VM + local (fixes/2026-09-27-bughunt.sql, reclassify_names.py); deployed to VM.

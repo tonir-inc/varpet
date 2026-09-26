@@ -2,10 +2,11 @@
 id: "20260926T210908Z-catalog-no-curtain-is-placeable-all-21-catalog-curtains--882cb096d27d4a41a9f3b5d0dabcda14"
 lane: "catalog"
 severity: "major"
-status: "open"
+status: "fixed"
 title: "No curtain is placeable: all 21 catalog curtains lack tags.extra.placement, so editor and designer curtain paths always find nothing"
 reported_by: "bughunt-contracts"
 created: "2026-09-26T21:09:08.103929Z"
+fixed_in: "ef67ec7"
 ---
 
 **Steps**
@@ -25,3 +26,5 @@ search.py:59 requires tags.extra.placement in (floor, wall, surface) for extra f
 
 
 **Notes**
+
+- 2026-09-26T21:24:06.239942Z: Fixed in ef67ec7; data applied on VM + local (fixes/2026-09-27-bughunt.sql, reclassify_names.py); deployed to VM.

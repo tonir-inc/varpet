@@ -2,10 +2,11 @@
 id: "20260926T210904Z-catalog-deploy-sh-and-import-extra-groups-sh-report-succ-8fb7bdf1e0f34379b2a75fcdcda0f181"
 lane: "catalog"
 severity: "minor"
-status: "open"
+status: "fixed"
 title: "deploy.sh and import_extra_groups.sh report success when a step fails (pipes hide the exit code)"
 reported_by: "bughunt-tooling"
 created: "2026-09-26T21:09:04.046431Z"
+fixed_in: "ef67ec7"
 ---
 
 **Steps**
@@ -27,3 +28,5 @@ deploy.sh: the remote block run over 'vm "..."' has no set -e or pipefail. At de
 **Notes**
 
 - 2026-09-26T21:09:08.229431Z: Line correction: the systemctl status | head is deploy.sh:36, and the ingest pipe is import_extra_groups.sh:10.
+
+- 2026-09-26T21:24:06.996134Z: Fixed in ef67ec7; data applied on VM + local (fixes/2026-09-27-bughunt.sql, reclassify_names.py); deployed to VM.
