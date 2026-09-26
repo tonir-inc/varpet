@@ -10,7 +10,9 @@ import { startBlueprintBuild } from './blueprint-build';
 import { clearBlueprintCheckpoint } from './blueprint-checkpoint';
 import type { BlueprintInk } from './blueprint-ink';
 import { inkOf, inkSheet } from './blueprint-source';
+import { blueprintJourneyMarkup, updateBlueprintJourney } from './blueprint-journey';
 import './blueprint.css';
+import './blueprint-journey.css';
 
 const MAX_TOTAL = BLUEPRINT_TOTAL_LIMIT;
 const PHASES: [StagePhase, string, string][] = [
@@ -89,7 +91,9 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
       <div class="blueprint-stage"></div>
       <div class="blueprint-flow-top"><button type="button" class="blueprint-back">${icon('undo')} Back to my plan</button><span class="blueprint-flow-name"></span><span class="blueprint-live"><i></i>CREATING YOUR SPACE<time class="blueprint-elapsed" aria-hidden="true">0:00</time></span></div>
       <div class="blueprint-flow-heading"><p class="blueprint-eyebrow">FROM YOUR PLAN, INTO YOUR SPACE</p><h2 role="status">Getting to know your plan.</h2><p class="blueprint-flow-message" role="status"><span class="blueprint-flow-message-text">Reading the plan</span><span class="blueprint-flow-dots" aria-hidden="true" hidden><span>.</span><span>.</span><span>.</span></span></p></div>
-      <div class="blueprint-flow-bottom"><ol aria-label="Build progress">${PHASES.map(([phase, label], i) => `<li data-phase="${phase}"><span>${String(i + 1).padStart(2, '0')}</span>${label}</li>`).join('')}</ol><p>Your original plan becomes the foundation for your 3D home.</p></div>
+      <div class="blueprint-flow-bottom">${options.preview
+        ? `<ol aria-label="Build progress">${PHASES.map(([phase, label], i) => `<li data-phase="${phase}"><span>${String(i + 1).padStart(2, '0')}</span>${label}</li>`).join('')}</ol><p>Your original plan becomes the foundation for your 3D home.</p>`
+        : `${blueprintJourneyMarkup('build')}<p class="blueprint-plan-done"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8 3 3 7-7"/></svg>Plan drawn. Let’s bring it to life.</p>`}</div>
       <div class="blueprint-complete" hidden><p>Tap doors and windows to try them. Open your apartment to correct any detail.</p><button type="button" class="portal-button portal-primary" data-open>Open my apartment ${icon('arrow')}</button></div>
       <div class="blueprint-flow-error" role="alert" hidden><h3>Let’s give that another look.</h3><p></p><button type="button" class="portal-button" data-retry>Try again</button><button type="button" class="portal-text-button" data-return>Change my plan</button></div>
     </section>`;
@@ -391,6 +395,13 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
   });
 
   function updatePhase(phase: StagePhase) {
+    if (!options.preview) {
+      const journey = phase === 'reading' || phase === 'walls' ? 'build' : 'design';
+      updateBlueprintJourney(flow, journey);
+      swap(q('.blueprint-flow-heading h2'), phase === 'done' ? 'Your space. Your next move.'
+        : journey === 'build' ? 'Your apartment is taking shape.' : 'Making room for real life.');
+      return;
+    }
     const index = phase === 'done' ? PHASES.length : PHASES.findIndex(item => item[0] === phase);
     flow.querySelectorAll<HTMLElement>('[data-phase]').forEach((element, i) => {
       element.classList.toggle('is-current', i === index); element.classList.toggle('is-done', i < index);
@@ -419,7 +430,7 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
     if (!reduced()) element.animate([{opacity: 0, transform: 'translateY(8px)', filter: 'blur(3px)'}, {opacity: 1, transform: 'none', filter: 'none'}], {duration: 460, easing: easeOut});
   }
   const say = (message: string) => swap(q('.blueprint-flow-message-text'),
-    /^Reading (?:the|your) plan\b/i.test(message) ? 'Reading the plan' : message.replace(/(?:…|\.{3})\s*$/, ''));
+    /^Reading (?:the|your) plan\b/i.test(message) ? (options.preview ? 'Reading the plan' : 'Building your apartment') : message.replace(/(?:…|\.{3})\s*$/, ''));
   /** While the architect works: the live dot breathes, the current step shimmers and time counts up. */
   let clock = 0;
   function working(on: boolean) {
@@ -529,6 +540,7 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
       if (disposed || version !== run) return;
       if (!result.ok) throw result.error;
       const raw = result.project;
+      updatePhase('checking');
       say('Checking your apartment before you step inside…');
       const known = new Map(options.preview?.catalog.map(product => [product.asset.id, product]));
       const catalog = await resolveSceneProducts(raw, known, ids => resolveFurnitureProducts(ids, {url}));
@@ -540,9 +552,9 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
       await stage!.finish(scene, assets);
       if (disposed || version !== run) return;
       completed = {scene, catalog};
-      updatePhase('done'); say('Built from your blueprint. Ready for your ideas.'); working(false);
-      q('.blueprint-live').hidden = true; q('.blueprint-flow-bottom').hidden = true;
-      // The finished apartment becomes the editor in place: a beat to read the heading, then the tools arrive.
+      updatePhase('done'); say(options.preview ? 'Built from your blueprint. Ready for your ideas.' : 'Your apartment is ready. Let’s make it yours.'); working(false);
+      q('.blueprint-live').hidden = true; q('.blueprint-flow-bottom').hidden = Boolean(options.preview);
+      // Keep this exact world for Design. The full editing tools arrive when the person customizes.
       await new Promise(resolve => setTimeout(resolve, reduced() ? 0 : 1300));
       if (disposed || version !== run) return;
       void openApartment();
@@ -568,8 +580,10 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
   function resetOpening() {
     reloadToOpen = false;
     const button = flow.querySelector<HTMLButtonElement>('[data-open]')!;
-    button.disabled = false; button.innerHTML = `Open my apartment ${icon('arrow')}`;
-    flow.querySelector('.blueprint-complete p')!.textContent = 'Tap doors and windows to try them. Open your apartment to correct any detail.';
+    button.disabled = false; button.innerHTML = `${options.preview ? 'Open my apartment' : 'Continue to design'} ${icon('arrow')}`;
+    flow.querySelector('.blueprint-complete p')!.textContent = options.preview
+      ? 'Tap doors and windows to try them. Open your apartment to correct any detail.'
+      : 'Your apartment is ready. Design it together, or customize it yourself.';
     // Resetting the landing does not require an attached browser URL.
     if (typeof location === 'undefined') return;
     const route = new URL(location.href), checkpoint = route.searchParams.get('blueprint');
@@ -589,6 +603,7 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
     document.body.append(flow); flow.classList.add('is-handing-over');
     try { await options.openProject(completed.scene, completed.catalog, {
       paper: PAPER, camera: view?.pose() ?? undefined, arriving: true,
+      ...(!options.preview ? {workflow: 'design' as const} : {}),
       takeViewport() {
         const viewport = view?.takeViewport() ?? null;
         // Only the construction labels fade. The same canvas is now inside the editor.

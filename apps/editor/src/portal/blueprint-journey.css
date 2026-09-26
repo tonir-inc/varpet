@@ -1,0 +1,23 @@
+.blueprint-journey {
+  display: flex; justify-content: center; gap: 8px; list-style: none; margin: 0; padding: 0;
+  --journey-text: #cfe3e199; --journey-current: #fff; --journey-done: #cfe3e1;
+  --journey-line: #e6f3f233; --journey-fill: #ffffff14;
+}
+.blueprint-journey > li {
+  display: flex; align-items: center; justify-content: center; gap: 9px;
+  min-width: 116px; padding: 13px 18px; border-bottom: 1px solid var(--journey-line);
+  color: var(--journey-text); font-size: 13px;
+  transition: color 220ms ease-out, border-color 220ms ease-out, background-color 220ms ease-out;
+}
+.blueprint-journey .journey-number { font: 10px ui-monospace, monospace; opacity: .7; }
+.blueprint-journey > .is-current { color: var(--journey-current); border-color: currentColor; background: var(--journey-fill); }
+.blueprint-journey > .is-done { color: var(--journey-done); border-color: var(--journey-done); }
+.blueprint-plan-done { display: flex; justify-content: center; gap: 7px; align-items: center; }
+.blueprint-plan-done svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.5; }
+@media (max-width: 600px) {
+  .blueprint-journey { gap: 6px; }
+  .blueprint-journey > li { min-width: 0; flex: 1; gap: 6px; padding: 12px 9px; font-size: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .blueprint-journey > li { transition: none; }
+}

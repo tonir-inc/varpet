@@ -319,6 +319,14 @@ export function createBlueprintConstruction(host: HTMLElement, options: Blueprin
         if (animate) objects.filter(o => !before.has(o.id)).forEach(o => viewport.animatePlacement(o.id));
       }
     } else if (event.type === 'project') setPhase('checking');
+    else if (event.type === 'progress') {
+      // Announce the work when it starts, before the corresponding geometry arrives.
+      // Initial plan validation and checks of individual pieces are not final review.
+      const message = event.message.trim();
+      if (/^Building\b/i.test(message)) setPhase('building');
+      else if (/^Placing (?:the )?furniture\b/i.test(message)) setPhase('placing');
+      else if (/^Checking (?:the result|your apartment)\b/i.test(message)) setPhase('checking');
+    }
   }
 
   return {
@@ -352,7 +360,7 @@ export function createBlueprintConstruction(host: HTMLElement, options: Blueprin
       viewport.setCameraPose(pose, duration);
     },
     event(event) { apply(event, true); },
-    progress() {},
+    progress(message) { apply({ type: 'progress', message }, true); },
     async hydrate(events, next) {
       for (const event of events) apply(event, false);
       setPhase(next);

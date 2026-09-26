@@ -4,15 +4,19 @@ For local checkpoint loading without architect requests, see [Blueprint test sta
 
 Current rendering and ownership contract: [Blueprint world migration](blueprint-world-migration.md). The blueprint permanently replaces the studio pedestal, and construction transfers its live viewport into the editor.
 
+Current product journey: [Build → Design → Customize](build-design-customize.md). The source drawing is complete before Build; the same world continues into a furnishing proposal and the full editing workspace.
+
 Verified 2026-09-26, Codex (GPT-6).
 
 The home page now asks for one blueprint. Sample apartments live behind a small disclosure; accounts and saved apartments keep their existing routes. Choosing, dropping, or pasting a valid image starts the architect request immediately after decoding, while its drawing and build action appear. Room photos are optional. Submit opens the construction view and reuses the request already underway.
 
 The upload area shows the platform's paste shortcut (⌘V on Apple devices, Ctrl+V elsewhere). Image paste works anywhere on the landing page, including replacing a selected plan, through the same validation and decode path as file selection. Clipboard file items are a fallback when the file list has no images. Text and non-image paste are left alone; editable fields, open dialogs, construction, and disposed landing pages do not capture images. Paste uses the browser's paste event and requires no clipboard-read permission.
 
-`portal/blueprint.ts` consumes the existing `buildFurnishedFlat` NDJSON workflow. Progress and geometry come from the service's events. The full-screen construction view is the editor's own viewport (see *One view* below): the traced plan lies on blueprint paper, walls rise out of it, pieces arrive, and the source sheet is swept away. Completion opens the result in the editor session automatically; no account write occurs until the person saves. **Open my apartment** remains only as the retry when opening fails.
+`portal/blueprint.ts` consumes the existing `buildFurnishedFlat` NDJSON workflow. Progress and geometry come from the service's events. The full-screen construction view is the editor's own viewport (see *One view* below): the traced plan lies on blueprint paper, walls rise out of it, pieces arrive, and the source sheet is swept away. Completion transfers that world into the editor's guided Design screen; the person can request and review furnishing, or choose **Customize myself**. **Use this design** applies a checked proposal before the editing tools arrive. No account write occurs until the person saves. **Continue to design** remains available when opening fails.
 
 Back aborts the stream and invalidates late results. Failure retains selected files and exposes retry/change-plan actions. The stage and object URLs are disposed on return or handoff. A terminal completion heading cannot be overwritten by queued phase events.
+
+The live tracker has three steps: **Build**, **Design**, **Customize**, with **Plan drawn** shown separately as complete. Reading and shell events belong to Build; furniture construction, placement and final checks belong to Design. Earlier buffered events cannot regress the phase. Explicit development checkpoints retain their low-level Read/Draw/Build/Place/Review states for diagnosis; they do not initiate a new designer request.
 
 ### Reading before submission
 
