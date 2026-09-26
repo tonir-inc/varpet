@@ -27,3 +27,5 @@ search_catalog returns {ok:false, message:'fetch failed'} after ~10 s whenever i
 **Notes**
 
 - 2026-09-26T19:51:08.074412Z: Update: probably not an env problem. Later failures are intermittent (one search with candidates + preview succeeded in 3.4 s), and the catalog slows to 6-8 s under concurrent requests, so the designer's 10-12 s timeouts trip - see 20260926T195100Z-catalog-catalog-search-slows. The env fallback to the tailnet URL is real but may not be what users hit; verify after the catalog latency fix. Severity lowered to major.
+
+- 2026-09-26T20:01:49.966123Z: Env hypothesis DISPROVED: captured the designer tool process env during a turn - VARPET_CATALOG_URL=http://127.0.0.1:8765/mcp is set. The fetch failures matched the catalog slowdown (fixed in the catalog lane: in-memory embedding matrix). The latest turn has no fetch failures. Candidate for close as duplicate if it doesn't recur.
