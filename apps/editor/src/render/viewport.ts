@@ -298,6 +298,7 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
   let openingMoveCache: { scene: SceneDocument; id: string; context?: OpeningMoveContext } | undefined;
   let endpointDrag: { id: string; endpoint: 'start' | 'end'; point: THREE.Vector3; plane: THREE.Plane; pointerId: number } | null = null;
   let collisionIssues = new Set<string>();
+  let collisionTimer: ReturnType<typeof setTimeout> | undefined;
   let documentState: SceneDocument | null = null;
   let pendingFinishReveal: FinishReveal | undefined;
   let sceneGeneration = 0;
@@ -578,6 +579,7 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
       frame = 0;
       if (disposed) return;
       const now = performance.now(); const dt = Math.min((now - lastAnimation) / 1000, 0.06); lastAnimation = now;
+      if (pendingModels.size) installLoadedModels(4);
       const geometryMoving = motion.update(now);
       let animating = geometryMoving;
       let shadowsChanged = geometryMoving;
@@ -777,11 +779,20 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
     return true;
   }
 
-  function installLoadedModels(): void {
+  /** A budget (ms) spreads a burst of arriving models, with their texture uploads, over several frames. */
+  function installLoadedModels(budget = Infinity): void {
     if (drag) return;
+    const started = performance.now();
     for (const [id, pending] of pendingModels) {
+      if (performance.now() - started > budget) { requestRender(); break; }
+      pendingModels.delete(id);
       const current = rendered.get(id);
       if (disposed || !current || current.token !== pending.token) { disposeObject(pending.model); continue; }
+      if (budget !== Infinity) pending.model.traverse(child => {
+        if (child instanceof THREE.Mesh) for (const material of Array.isArray(child.material) ? child.material : [child.material]) {
+          for (const value of Object.values(material)) if (value instanceof THREE.Texture) renderer.initTexture(value);
+        }
+      });
       for (const child of [...current.visual.children]) disposeObject(child);
       current.visual.add(pending.model); installedModels.add(pending.model);
       const object = documentState?.objects.find(o => o.id === id), asset = catalogState.find(a => a.id === object?.assetId);
@@ -793,7 +804,6 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
         }
       });
     }
-    pendingModels.clear();
     applyPracticalLighting(); shadowCache.invalidate();
     updateSelection(); requestRender();
   }
@@ -1177,7 +1187,7 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
             const stale = pendingModels.get(object.id);
             if (stale) disposeObject(stale.model);
             pendingModels.set(object.id, { model, token, color: object.color });
-            installLoadedModels();
+            requestRender();
           }).catch(error => {
             if (!disposed) callbacks.onError(`Could not load ${asset.name}; showing its measured bounds. ${error instanceof Error ? error.message : ''}`);
           });
@@ -1193,7 +1203,13 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
       }
     }
     rebuildAnnotations(); rebuildComparison(catalog);
-    collisionIssues = new Set(analyzeProject(next, catalog).issues.filter(issue => issue.id.startsWith('swing:') || issue.id.startsWith('swing-wall:')).map(issue => issue.entityId).filter((id): id is string => Boolean(id)));
+    // Door-swing warnings only tint a selected door; analyse after this frame, not inside the edit's task.
+    clearTimeout(collisionTimer);
+    collisionTimer = setTimeout(() => {
+      if (disposed || documentState !== next) return;
+      collisionIssues = new Set(analyzeProject(next, catalog).issues.filter(issue => issue.id.startsWith('swing:') || issue.id.startsWith('swing-wall:')).map(issue => issue.entityId).filter((id): id is string => Boolean(id)));
+      requestRender();
+    }, 32);
     if (selectedId && !entity(selectedId)) selectedId = null;
     selectedFurnitureIds = expandFurnitureSelection(next, selectedFurnitureIds);
     applyLayers(); updateSelection(); applyHidden();
@@ -1886,7 +1902,7 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
       furnitureDrop.dispose();
       stopFinishTextureUpdates();
       handPan.dispose(); walk.dispose(); keyboardNavigation.dispose();
-      cancelAnimationFrame(frame); clearTimeout(settleTimer); clearTimeout(warmTimer); clearTimeout(skyUpdateTimer); resizeObserver.disconnect();
+      cancelAnimationFrame(frame); clearTimeout(settleTimer); clearTimeout(warmTimer); clearTimeout(collisionTimer); clearTimeout(skyUpdateTimer); resizeObserver.disconnect();
       window.removeEventListener('blur', onPointerCancel);
       renderer.domElement.removeEventListener('pointerdown', onPointerDown, true);
       window.removeEventListener('pointerup', onPointerUp);
