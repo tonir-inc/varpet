@@ -3,7 +3,7 @@ id: "20260926T193425Z-catalog-catalog-has-almost-no-outdoor-balcony-furniture-6b
 lane: "catalog"
 severity: "minor"
 status: "open"
-title: "Catalog has almost no outdoor/balcony furniture"
+title: "Outdoor/balcony furniture exists but is not tagged, so the designer can't find it"
 reported_by: "Sergey"
 created: "2026-09-26T19:34:25.658750Z"
 ---
