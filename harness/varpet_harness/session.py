@@ -75,27 +75,34 @@ def _skill(repo: Path, name: str) -> str:
     return _strip_frontmatter((repo / ".agents" / "skills" / name / "SKILL.md").read_text())
 
 
-ARCHITECT_PROMPT = """You are the architect for the flat "{flat}". Rebuild it as it is today from the plan{and_photos}.
-People watch the flat appear, so work in this order and call each tool the moment its part is done:
-{steps}
-A tool that checks your work answers ok or lists faults: fix them and call it again until it answers ok.
-Work in this folder. Plan (the first image): {plan}{photo_list}
+# Measured 27 Sept (7 plans, plan only): this minimal prompt plus submit_shell beat the 7,100-character one that
+# pasted the flat-shell skill: room error 2.2% vs 3.3%, 7/7 through editor and designer either way. The check tool
+# does the teaching; the model reads plans well and only needs the format.
+ARCHITECT_PROMPT = """Here is a floor plan of a flat: {plan} (the attached image){photo_clause}. Write shell/shell.json describing the flat, in this format:
 
-# Skill: flat-shell
-{shell_skill}"""
+```json
+{{
+  "rooms": [{{"id": "living", "name": "Living room", "polygon": [[x, z], ...], "color": "#rrggbb"}}],
+  "walls": [{{"id": "w1", "start": [x, z], "end": [x, z], "height": 2.6, "thickness": 0.12, "color": "#rrggbb",
+             "openings": [{{"id": "d1", "kind": "door", "offset": 0.4, "width": 0.8, "height": 2.05, "sill": 0}}]}}],
+  "components": [{{"id": "wc", "name": "Toilet", "kind": "toilet", "roomId": "bath", "position": [x, 0, z],
+                  "dimensions": [0.38, 0.8, 0.68], "rotation": 0, "color": "#f4f4f2", "phase": "existing"}}],
+  "notes": [],
+  "printed": {{"living": {{"area_m2": 20.9}}, "bed": {{"dims_m": [3.2, 4.1]}}, "total": {{"area_m2": 56.2}}}}
+}}
+```
 
-STEPS_FURNISHED = """1. Rooms and walls with their doors and windows into shell/shell.json, per the flat-shell skill below. submit_shell.
-2. build_pieces with every movable piece the photos show. Builders make them in parallel while you go on.
-3. The fixtures (`components`) into shell/shell.json: every one the plan or photos show. submit_shell.
-   Once they pass, code sends the kitchen run and any vanity to builders with the photos; you do not.
-4. wait_for_pieces: it answers with the built sizes and the rules for placing them. Place them into
-   furnish/placements.json. submit_placements.
-5. render_top_view and compare it with the photos, piece by piece and fixture by fixture: which wall, what is
-   next to it, which way it faces. Fix what does not match and submit again."""
+Metres; x runs right on the plan, z runs down. A wall is its centreline; an opening's offset is metres from the wall's start. Room polygons follow the inside faces of the walls. `components` are the built-in fixtures (kind: sink, toilet, shower, bath, cabinet, worktop, appliance, radiator, railing): position is the footprint centre with y the bottom, dimensions are [width, height, depth], rotation is radians about the vertical. `printed` holds the areas or dimensions the plan prints per room, and the flat's total if printed.
 
-STEPS_BARE = """1. Rooms and walls with their doors and windows into shell/shell.json, per the flat-shell skill below. submit_shell.
-2. The fixtures (`components`) into shell/shell.json: every one the plan shows. submit_shell.
-There are no photos, so there is no furniture to build: you are done after step 2."""
+When it is written, call submit_shell and fix what it reports until it answers ok.
+{furnish}"""
+
+FURNISH = """
+Then build_pieces with every movable piece of furniture the photos show (builders make them while you wait;
+code builds the kitchen and other fitted units itself), wait_for_pieces, place them into furnish/placements.json
+and submit_placements until it answers ok. render_top_view shows your result to compare with the photos."""
+
+BARE = """There are no photos, so there is no furniture: you are done when submit_shell answers ok."""
 
 PIECE_SCHEMA = {
     "type": "object", "additionalProperties": False, "required": ["id", "brief", "size", "size_source", "count", "refs"],
@@ -458,8 +465,9 @@ class _Architect:
 async def run_session(codex: AsyncCodex, repo: Path, flat: str, plan: str, photos: list[str], run_dir: Path,
                       compile_cmd: list[str] | None, model: str = "gpt-6-astra", lanes: int = 6,
                       review: bool = True, progress=print, emit=None,
-                      base_url: str = "http://127.0.0.1:8788", shell_skill: str | None = None,
-                      area_feedback: bool = True) -> SessionReport:
+                      base_url: str = "http://127.0.0.1:8788",
+                      area_feedback: bool = False, prompt: str | None = None, offer: set[str] | None = None,
+                      fix_turns: int = FIX_TURNS) -> SessionReport:
     """One architect thread, one turn, tools for every step. emit(event) receives intermediate results
     for a live preview: shell, pieces, piece, placements, activity."""
     t0 = time.monotonic()
@@ -474,7 +482,8 @@ async def run_session(codex: AsyncCodex, repo: Path, flat: str, plan: str, photo
     arch.area_feedback = area_feedback
     arch.photos = [str((repo / p).resolve()) for p in photos]
     furnish = bool(photos)
-    thread = await start_thread(codex, arch.tools(furnish, look=furnish and review), model=model, cwd=str(run_dir),
+    tools = [t for t in arch.tools(furnish, look=furnish and review) if offer is None or t.name in offer]
+    thread = await start_thread(codex, tools, model=model, cwd=str(run_dir),
                                 config=thread_config(), name=f"architect {flat}")
     if activity:
         router.on_call = lambda tid, name, args: tid == thread.id and activity("architect", "command", name)
@@ -488,14 +497,12 @@ async def run_session(codex: AsyncCodex, repo: Path, flat: str, plan: str, photo
     try:
         progress("architect: reading the plan and photos")
         abs_photos = [str((repo / p).resolve()) for p in photos]
-        prompt = ARCHITECT_PROMPT.format(
-            flat=flat, and_photos=" and photos" if photos else "", steps=STEPS_FURNISHED if furnish else STEPS_BARE,
-            plan=(repo / plan).resolve(),
-            photo_list="".join(f"\nPhoto {i + 1}: {p}" for i, p in enumerate(abs_photos)),
-            shell_skill=shell_skill or _skill(repo, "flat-shell"))
+        text = (prompt or ARCHITECT_PROMPT).format(
+            plan=(repo / plan).resolve(), furnish=FURNISH if furnish else BARE,
+            photo_clause="".join(f"; photo {i + 1}: {p}" for i, p in enumerate(abs_photos)) + (" (attached after it)" if abs_photos else ""))
         images = [LocalImageInput(path=str((repo / plan).resolve()))] + [LocalImageInput(path=p) for p in abs_photos]
-        await turn([TextInput(prompt), *images])
-        for _ in range(FIX_TURNS):
+        await turn([TextInput(text), *images])
+        for _ in range(fix_turns):
             left = await asyncio.to_thread(arch.unfinished, furnish)
             if left is None:
                 break
