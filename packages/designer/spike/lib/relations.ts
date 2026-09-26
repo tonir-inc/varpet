@@ -10,7 +10,7 @@ function toFootprint(p: V, item: DraftItem): number {
   const lx = dx * Math.cos(r) - dy * Math.sin(r), ly = dx * Math.sin(r) + dy * Math.cos(r);
   return Math.hypot(Math.max(Math.abs(lx) - item.size[0] / 2, 0), Math.max(Math.abs(ly) - item.size[1] / 2, 0));
 }
-const isChair = (item: DraftItem) => /chair|stool|bench/.test(item.kind) && item.size[2] > 0.6 && !/arm|accent|lounge|rocking/i.test(item.name);
+const isChair = (item: DraftItem) => /chair|stool|bench/.test(item.kind) && item.size[2] > 0.6 && !/\barm(chair)?s?\b|accent|lounge|rocking/i.test(item.name);
 /** A table people sit at: desk or dining height. Coffee and side tables are lower. */
 const isSeatTable = (item: DraftItem) => /table|desk/.test(item.kind) && item.size[2] >= 0.65;
 const SEATING = /sofa|armchair|chair/;
