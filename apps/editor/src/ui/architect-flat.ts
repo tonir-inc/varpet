@@ -1,3 +1,5 @@
+import type { BuildingComponent, CatalogAsset, Room, SceneDocument, SceneObject, Wall } from '../contracts';
+import { migrateScene } from '../core/renovation';
 import './architect-flat.css';
 
 /**
@@ -10,6 +12,8 @@ export interface ArchitectFlatDeps {
   isOpen(): boolean;
   notify(message: string, error?: boolean): void;
   build(input: { plan: File; photos: File[]; name: string }, onProgress: (message: string) => void): Promise<unknown>;
+  /** Optional: the service's intermediate results, for a live 3D preview. */
+  onEvent?(event: Record<string, unknown>): void;
   onProject(project: unknown): Promise<void>;
 }
 
@@ -52,6 +56,7 @@ export function openArchitectFlat(deps: ArchitectFlatDeps): void {
 
 async function start(deps: ArchitectFlatDeps, input: { plan: File; photos: File[]; name: string }): Promise<void> {
   current = { step: 0, message: 'Sending your plan and photos', started: Date.now(), done: false };
+  resetLivePreview();
   renderProgress(deps);
   timer = setInterval(() => { if (deps.isOpen()) updateProgress(); }, 1000);
   try {
@@ -92,4 +97,50 @@ function updateProgress(): void {
     <p class="af-status" role="status" aria-live="polite">${esc(current.error ? `Stopped: ${current.error}` : current.message)}</p>
     <p class="af-elapsed">${current.done ? 'Finished' : 'Working'} · ${elapsed}</p>
     ${current.done && !current.error ? '<p class="af-note">The apartment is in the Assistant panel. Inspect it in 3D, then apply or dismiss it.</p>' : '<p class="af-note">You can close this window; the architect keeps working.</p>'}`;
+}
+
+/* Live preview: the flat fills up while the architect works. Walls and fixtures first, then each piece
+   as its builder finishes (lined up beside the flat, waiting to be carried in), then the placements. */
+
+interface Live {
+  rooms: Room[]; walls: Wall[]; components: BuildingComponent[];
+  assets: Map<string, CatalogAsset>; objects: SceneObject[] | null; lights: BuildingComponent[];
+}
+let live: Live | null = null;
+
+export function resetLivePreview(): void { live = null; }
+
+/** Feed one service event; returns true when the preview changed. */
+export function applyLiveEvent(event: Record<string, unknown>): boolean {
+  if (event.type === 'shell') {
+    live = { rooms: event.rooms as Room[], walls: event.walls as Wall[], components: (event.components as BuildingComponent[] | undefined) ?? [],
+      assets: live?.assets ?? new Map(), objects: live?.objects ?? null, lights: live?.lights ?? [] };
+    return true;
+  }
+  if (!live) return false;
+  if (event.type === 'piece') { const asset = event.asset as CatalogAsset; live.assets.set(asset.id, asset); return true; }
+  if (event.type === 'placements') { live.objects = event.objects as SceneObject[]; live.lights = (event.lights as BuildingComponent[]) ?? []; return true; }
+  return false;
+}
+
+export function liveScene(): { scene: SceneDocument; assets: CatalogAsset[] } | null {
+  if (!live || !live.rooms.length) return null;
+  const assets = [...live.assets.values()];
+  let objects = live.objects;
+  if (!objects) {
+    // Not placed yet: line the finished pieces up beside the flat.
+    const xs = live.rooms.flatMap(r => r.polygon.map(p => p[0])), zs = live.rooms.flatMap(r => r.polygon.map(p => p[1]));
+    let z = Math.min(...zs);
+    const x0 = Math.max(...xs) + 1.2;
+    objects = assets.map(asset => {
+      const [w, , d] = asset.dimensions;
+      const object: SceneObject = { id: `waiting-${asset.id}`, name: asset.name, assetId: asset.id, position: [x0 + w / 2, 0, z + d / 2], rotation: 0, scale: [1, 1, 1] };
+      z += d + 0.35;
+      return object;
+    });
+  }
+  const scene = migrateScene({ format: 'varpet.editor', version: 1, id: 'architect-live', name: 'The architect at work', units: 'm', upAxis: 'Y',
+    rooms: structuredClone(live.rooms), walls: structuredClone(live.walls), objects: objects.filter(o => live!.assets.has(o.assetId)) });
+  scene.project!.components = [...live.components, ...live.lights].map(c => ({ ...structuredClone(c), phase: 'existing' as const }));
+  return { scene, assets };
 }

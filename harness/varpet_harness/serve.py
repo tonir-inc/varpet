@@ -86,6 +86,12 @@ def _friendly(message: str) -> str:
         if message.startswith(prefix):
             detail = message.split(":", 1)[1].strip() if prefix == "builders:" else ""
             return f"{text} ({detail})" if detail else text
+    if message.startswith("set ") and ": fixing " in message:
+        return "Improving " + message.split(": fixing ", 1)[1].replace("-", " ")
+    if ": fixing" in message:
+        return "Improving " + message.split(":", 1)[0].replace("-", " ")
+    if ": checking" in message:
+        return "Checking " + message.split(":", 1)[0].replace("-", " ")
     if message.startswith("set ") and ": working on " in message:
         return "Building " + message.split(": working on ", 1)[1].replace("-", " ")
     if ": working" in message:
@@ -93,7 +99,8 @@ def _friendly(message: str) -> str:
     return message
 
 
-async def furnished_flat(body: dict, repo: Path, runs: Path, progress: Callable[[str], None]) -> dict:
+async def furnished_flat(body: dict, repo: Path, runs: Path, progress: Callable[[str], None], emit=None,
+                         base_url: str = "http://127.0.0.1:8788") -> dict:
     """Plan + photos -> the whole architect session -> the editor project (furniture and fixtures)."""
     from openai_codex import AsyncCodex
 
@@ -112,7 +119,7 @@ async def furnished_flat(body: dict, repo: Path, runs: Path, progress: Callable[
     try:
         report = await run_session(codex, repo, name, str(plan), [str(p) for p in photos], run_dir,
                                    _compile_cmd(repo),
-                                   progress=progress)
+                                   progress=progress, emit=emit, base_url=base_url)
     finally:
         await codex.close()
     project = run_dir / "project.json"
@@ -195,7 +202,8 @@ def handler(repo: Path, runs: Path, runner_factory=None):
                 body = json.loads(self.rfile.read(size))
                 progress = lambda m: line({"type": "progress", "message": _friendly(m)})
                 if route == "/flat":
-                    project = asyncio.run(furnished_flat(body, repo, runs, progress))
+                    project = asyncio.run(furnished_flat(body, repo, runs, progress, emit=line,
+                                                         base_url=f"http://{self.headers.get('Host') or '127.0.0.1:8788'}"))
                     line({"type": "project", "project": project})
                 else:
                     structure = asyncio.run(reconstruct(body, repo, runs, progress, runner_factory))

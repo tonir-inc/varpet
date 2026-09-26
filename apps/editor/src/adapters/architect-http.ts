@@ -149,7 +149,7 @@ export function withBuiltPieceResolver<P>(resolve:(ids:string[])=>Promise<P[]>,w
  * The whole architect session: plan + photos -> a furnished editor project (rooms, walls, fixtures, built
  * furniture). About 8 minutes; progress lines are already written for people.
  */
-export async function buildFurnishedFlat(input:{plan:File;photos:File[];name:string},onProgress:(message:string)=>void,options:{url?:string;fetch?:typeof globalThis.fetch;signal?:AbortSignal}={}):Promise<unknown>{
+export async function buildFurnishedFlat(input:{plan:File;photos:File[];name:string},onProgress:(message:string)=>void,options:{url?:string;fetch?:typeof globalThis.fetch;signal?:AbortSignal;onEvent?:(event:Record<string,unknown>)=>void}={}):Promise<unknown>{
   const base=(options.url??import.meta.env.VITE_ARCHITECT_URL??'http://127.0.0.1:8788').replace(/\/$/,'');
   const request=options.fetch??globalThis.fetch.bind(globalThis);
   const body=JSON.stringify({name:input.name,plan:await encode(input.plan),photos:await Promise.all(input.photos.slice(0,10).map(encode))});
@@ -168,6 +168,7 @@ export async function buildFurnishedFlat(input:{plan:File;photos:File[];name:str
       if(line.type==='progress')onProgress(String(line.message));
       else if(line.type==='project')return line.project;
       else if(line.type==='error')throw new ArchitectServiceError(String(line.message));
+      else options.onEvent?.(line); // shell, pieces, piece, placements: intermediate results for a live preview
     }
     if(done)throw new ArchitectServiceError('The architect service closed before the apartment was ready.');
   }

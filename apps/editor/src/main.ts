@@ -25,7 +25,7 @@ import { OPENING_MOVE_SNAP } from './core/opening-move';
 import { STORAGE_KEY, parseScene, saveLocal, serializeScene } from './core/persistence';
 import { createDesignerAdapter, structureAdapter as mockStructureAdapter } from './adapters/mock';
 import { buildFurnishedFlat, createArchitectHttpAdapter } from './adapters/architect-http';
-import { openArchitectFlat } from './ui/architect-flat';
+import { applyLiveEvent, liveScene, openArchitectFlat } from './ui/architect-flat';
 import { BUILT_CATEGORY, loadBuiltProducts, resolveFurnitureProducts } from './adapters/built-catalog';
 import { createReconstructionProposal, previewReconstructionProposal } from './core/reconstruction-proposal';
 import { createViewport } from './render/viewport';
@@ -359,14 +359,29 @@ function entityName(id: string): string | undefined {
 function openArchitect() {
   openArchitectFlat({
     showModal: (title, body) => showModal(title, body), isOpen: () => modal.open, notify,
-    build: (input, onProgress) => buildFurnishedFlat(input, message => { onProgress(message); if (!modal.open) notify(message); }),
+    build: (input, onProgress) => { liveEntered = false; liveStopped = false; return buildFurnishedFlat(input, message => { onProgress(message); if (!modal.open) notify(message); }, { onEvent: showLive }); },
     onProject: async project => {
       const scene = await parseDatabaseScene(JSON.stringify(project));
       const title = 'Furnished apartment from your plan and photos';
       pending = { id: uid(), title, description: 'The architect read your plan, built the furniture from your photos and placed it where the photos show it. Applying replaces the current apartment; undo restores it.', command: { id: uid(), label: title, source: 'architect', baseRevision: store.revision, operations: [{ type: 'replace-scene', scene }] } };
       switchPanel('assistant'); renderProposal(); notify('Your apartment is ready. Inspect it in 3D, then apply or dismiss it.');
+      if (liveEntered && !liveStopped && previewMode) viewport.setScene(scene, catalog);
     },
   });
+}
+
+/* Live preview while the architect works: walls first, then pieces as they are built, then placements. */
+let liveEntered = false, liveStopped = false;
+function showLive(event: Record<string, unknown>) {
+  if (!applyLiveEvent(event) || liveStopped) return;
+  if (liveEntered && !previewMode) { liveStopped = true; return; } // the person left the preview: stop following
+  const live = liveScene();
+  if (!live) return;
+  if (!liveEntered && modal.open) modal.close();
+  if (!previewMode) setPreview(true);
+  proposalView = true; $<HTMLButtonElement>('#save').disabled = true;
+  viewport.setScene(live.scene, [...catalog, ...live.assets]);
+  if (!liveEntered) { liveEntered = true; focusView(); notify('The walls are in. Watch the furniture arrive; the architect keeps working.'); }
 }
 
 const intake = createIntake({

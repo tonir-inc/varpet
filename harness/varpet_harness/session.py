@@ -131,19 +131,45 @@ def export_project(repo: Path, run_dir: Path, base_url: str = "http://127.0.0.1:
     return out if proc.returncode == 0 and out.exists() else None
 
 
+def _emit_placements(emit, run_dir: Path, base_url: str) -> None:
+    if not emit:
+        return
+    from .export import lights, scene
+
+    try:
+        emit({"type": "placements", "objects": scene(run_dir, base_url)["objects"], "lights": lights(run_dir, base_url)})
+    except (ValueError, OSError):
+        pass
+
+
 class _GroupRunner:
     """dispatch runs one unit per builder: a lone piece, or a set made by one thread."""
 
-    def __init__(self, runner: CodexRunner, groups: dict[str, list[Job]], run_dir: Path):
-        self.runner, self.groups, self.run_dir = runner, groups, run_dir
+    def __init__(self, runner: CodexRunner, groups: dict[str, list[Job]], run_dir: Path, emit=None,
+                 base_url: str = "http://127.0.0.1:8788"):
+        self.runner, self.groups, self.run_dir, self.emit, self.base_url = runner, groups, run_dir, emit, base_url
+
+    def _announce(self, members: list[Job]) -> None:
+        if not self.emit:
+            return
+        from .pieces import asset
+
+        for m in members:
+            if not (self.run_dir / m.id / "faults.json").exists():
+                a = asset(self.run_dir, m, self.base_url)
+                if a:
+                    self.emit({"type": "piece", "piece": m.id, "count": m.count, "asset": a})
 
     async def run(self, job: Job, workdir: Path, deps) -> "JobResult":
         from .dispatch import JobResult
 
         members = self.groups[job.id]
         if len(members) == 1 and not job.id.startswith("set-"):
-            return await self.runner.run(members[0], workdir, deps)
+            result = await self.runner.run(members[0], workdir, deps)
+            self._announce(members)
+            return result
         results = await self.runner.run_set(job.id.removeprefix("set-"), members, self.run_dir)
+        self._announce(members)
         ok = all(r.status == "ok" for r in results.values())
         return JobResult(job.id, "ok" if ok else "failed", tokens=sum(r.tokens for r in results.values()),
                          seconds=max(r.seconds for r in results.values()), turns=max(r.turns for r in results.values()),
@@ -167,7 +193,9 @@ def _fix_prompt(what: str, faults: str) -> str:
 
 async def run_session(codex: AsyncCodex, repo: Path, flat: str, plan: str, photos: list[str], run_dir: Path,
                       compile_cmd: list[str] | None, model: str = "gpt-6-astra", lanes: int = 6,
-                      review: bool = True, progress=print) -> SessionReport:
+                      review: bool = True, progress=print, emit=None,
+                      base_url: str = "http://127.0.0.1:8788") -> SessionReport:
+    """emit(event) receives intermediate results for a live preview: shell, pieces, piece, placements."""
     t0 = time.monotonic()
     run_dir.mkdir(parents=True, exist_ok=True)
     for sub in ("shell", "furnish", "review"):
@@ -216,6 +244,14 @@ async def run_session(codex: AsyncCodex, repo: Path, flat: str, plan: str, photo
                 progress("architect: fixing pieces.json")
                 await turn([TextInput(_fix_prompt("pieces.json", str(e)[:3000]))])
         report.step("read", t, shell_ok=shell_faults is None, pieces=len(pieces.pieces))
+        if emit:
+            from .shell import Shell, to_editor
+
+            try:
+                emit({"type": "shell", **to_editor(Shell.model_validate_json((run_dir / "shell" / "shell.json").read_text()))})
+            except ValueError:
+                pass
+            emit({"type": "pieces", "pieces": [{"id": p.id, "size": p.size, "count": p.count} for p in pieces.pieces]})
 
         # 2. build the pieces in parallel
         t = time.monotonic()
@@ -234,7 +270,7 @@ async def run_session(codex: AsyncCodex, repo: Path, flat: str, plan: str, photo
                 groups[f"{key}-{i // MAX_SET + 1}"] = members[i : i + MAX_SET]
         units = Graph(flat=flat, jobs=[Job(id=k, kind="piece", brief="set", size=v[0].size) for k, v in groups.items()])
         progress(f"builders: {len(pieces_by_id)} pieces in {len(groups)} builders")
-        built = await dispatch(units, _GroupRunner(runner, groups, run_dir), run_dir, lanes)
+        built = await dispatch(units, _GroupRunner(runner, groups, run_dir, emit, base_url), run_dir, lanes)
         (run_dir / "graph.json").write_text(graph.model_dump_json(indent=1))  # dispatch wrote the build-only graph
         report.tokens += built.tokens
         ok = [pid for pid in pieces_by_id if (run_dir / pid / "piece.glb").exists()
@@ -249,6 +285,7 @@ async def run_session(codex: AsyncCodex, repo: Path, flat: str, plan: str, photo
         await turn([TextInput(PLACE_PROMPT.format(brief=furnish_brief(run_dir), furnish_skill=_skill(repo, "flat-furnish")))])
         place_faults = await checked("furnish/placements.json", FURNISH_CHECK, run_dir / "furnish" / "placements.json")
         report.step("place", t, ok=place_faults is None)
+        _emit_placements(emit, run_dir, base_url)
 
         # 4. look at the result and fix
         if review:
@@ -264,6 +301,8 @@ async def run_session(codex: AsyncCodex, repo: Path, flat: str, plan: str, photo
                 shell_faults = CodexRunner._compile(SHELL_CHECK, run_dir / "shell" / "shell.json", run_dir / "shell")
                 place_faults = await checked("furnish/placements.json", FURNISH_CHECK, run_dir / "furnish" / "placements.json")
                 report.step("look", t, round=round_ + 1, changed=changed, ok=place_faults is None and shell_faults is None)
+                if changed:
+                    _emit_placements(emit, run_dir, base_url)
                 if not changed:
                     break
             render(run_dir, run_dir / "review" / "top.png")

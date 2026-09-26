@@ -49,26 +49,28 @@ def runs(root: Path) -> list[dict]:
     return out
 
 
+def asset(run_dir: Path, job, base_url: str) -> dict | None:
+    """One built piece as a catalog asset, as soon as its GLB exists."""
+    glb, program = run_dir / job.id / "piece.glb", run_dir / job.id / "program.json"
+    if job.kind != "piece" or not glb.exists() or not program.exists():
+        return None
+    prog = json.loads(program.read_text())
+    w, d, h = prog.get("size") or job.size
+    return {
+        "id": f"built-{run_dir.name}-{job.id}"[:100],
+        "name": job.id.replace("-", " ").capitalize(),
+        "category": CATEGORY,
+        "kind": kind_of(job.id),
+        "dimensions": [round(w, 3), round(h, 3), round(d, 3)],  # editor Vec3 is x, y (up), z
+        "color": _colour(prog),
+        "price": 0,
+        "source": {"type": "gltf", "url": f"{base_url}/files/{run_dir.name}/{job.id}/piece.glb"},
+    }
+
+
 def catalog(run_dir: Path, base_url: str) -> list[dict]:
     graph = Graph.model_validate_json((run_dir / "graph.json").read_text())
-    assets = []
-    for job in graph.jobs:
-        glb, program = run_dir / job.id / "piece.glb", run_dir / job.id / "program.json"
-        if job.kind != "piece" or not glb.exists() or not program.exists():
-            continue
-        prog = json.loads(program.read_text())
-        w, d, h = prog.get("size") or job.size
-        assets.append({
-            "id": f"built-{run_dir.name}-{job.id}"[:100],
-            "name": job.id.replace("-", " ").capitalize(),
-            "category": CATEGORY,
-            "kind": kind_of(job.id),
-            "dimensions": [round(w, 3), round(h, 3), round(d, 3)],  # editor Vec3 is x, y (up), z
-            "color": _colour(prog),
-            "price": 0,
-            "source": {"type": "gltf", "url": f"{base_url}/files/{run_dir.name}/{job.id}/piece.glb"},
-        })
-    return assets
+    return [a for a in (asset(run_dir, job, base_url) for job in graph.jobs) if a]
 
 
 # Detail bar: parts after mirror/repeat copies. Below it a piece reads as a block, not furniture.
