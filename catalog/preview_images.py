@@ -33,8 +33,8 @@ def main():
         key = os.path.expanduser(os.environ.get("VARPET_SSH_KEY", "~/.ssh/varpet_ed25519"))
         subprocess.run(["rsync", "-rltzO", "-e", f"ssh -i {key}", f"{OUT}/", f"{host}:/opt/varpet-catalog/models-web/previews/"], check=True)
     if a.switch:
-        with psycopg.connect(os.environ["VARPET_DB_URL"]) as c:
-            c.execute("alter table item add column if not exists preview_url text")
+        with psycopg.connect(os.environ["VARPET_DB_URL"], options="-c lock_timeout=3000 -c statement_timeout=120000") as c:
+            # (column exists; see schema.sql. No ALTER here: it locks item and freezes the live service.)
             with c.cursor() as cur:
                 cur.executemany("update item set preview_url = %s where id = %s",
                                 [(f"{BASE}/{asin}.webp", f"abo:{asin}") for asin in made])

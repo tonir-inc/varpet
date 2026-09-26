@@ -8,6 +8,14 @@ TS_IP=${VARPET_TS_IP:-100.107.246.46}
 PW=$(sed -E 's#.*://[^:]+:([^@]+)@.*#\1#' <<<"$VARPET_DB_URL")
 vm() { ssh -i "$KEY" "$HOST" "$@"; }
 
+# rsync --delete mirrors this tree onto the VM, so deploy only exactly what is on origin/main:
+# an older or dirty tree once put an old search.py back over a teammate's change.
+git fetch -q origin
+if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ] || [ -n "$(git status --porcelain -- .)" ]; then
+  echo "refusing to deploy: catalog/ must be clean and HEAD must equal origin/main (git pull --rebase, commit, push first)" >&2
+  exit 1
+fi
+
 vm 'sudo -n useradd --system --home /opt/varpet-catalog --shell /usr/sbin/nologin varpet-catalog 2>/dev/null || true
     sudo -n mkdir -p /opt/varpet-catalog/app /opt/varpet-catalog/hf /opt/varpet-catalog/uv-cache
     sudo -n chown -R sergey:varpet-catalog /opt/varpet-catalog/app'

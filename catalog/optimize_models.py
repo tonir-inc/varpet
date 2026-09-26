@@ -52,8 +52,8 @@ def main():
     a = ap.parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
     RAW.mkdir(parents=True, exist_ok=True)
-    with psycopg.connect(os.environ["VARPET_DB_URL"]) as c:
-        c.execute("alter table item add column if not exists glb_original_url text")
+    with psycopg.connect(os.environ["VARPET_DB_URL"], options="-c lock_timeout=3000 -c statement_timeout=120000") as c:
+        # (column exists; see schema.sql. No ALTER here: it locks item and freezes the live service.)
         c.execute("update item set glb_original_url = glb_url where glb_original_url is null")
         scope = "source = 'abo'" if a.all else "editor_set"
         rows = c.execute(f"select id, glb_original_url from item where {scope} order by editor_set desc, id").fetchall()
@@ -71,7 +71,7 @@ def main():
         subprocess.run(["rsync", "-rltzO", "-e", f"ssh -i {key}", f"{OUT}/", f"{host}:/opt/varpet-catalog/models-web/"], check=True)
         print("uploaded")
     if a.switch:
-        with psycopg.connect(os.environ["VARPET_DB_URL"]) as c, c.cursor() as cur:
+        with psycopg.connect(os.environ["VARPET_DB_URL"], options="-c lock_timeout=3000 -c statement_timeout=120000") as c, c.cursor() as cur:
             cur.executemany("update item set glb_web_url = %s where id = %s",
                             [(f"{BASE}/{iid.split(':', 1)[1]}.glb", iid) for iid in done])
         print("switched", len(done), "items to", BASE)

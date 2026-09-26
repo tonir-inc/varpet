@@ -40,8 +40,8 @@ def main():
     ap.add_argument("--total", type=int, default=960)
     a = ap.parse_args()
     counts = selection_counts(a.total)
-    with psycopg.connect(os.environ["VARPET_DB_URL"]) as c:
-        c.execute("alter table item add column if not exists editor_set boolean not null default false")
+    with psycopg.connect(os.environ["VARPET_DB_URL"], options="-c lock_timeout=3000 -c statement_timeout=120000") as c:
+        # (column exists; see schema.sql. No ALTER here: it locks item and freezes the live service.)
         c.execute("update item set editor_set = false")
         for kind, n in counts.items():
             # Confirmed sizes first, then the most-tagged; md5 order is a stable, varied pick within ties.
