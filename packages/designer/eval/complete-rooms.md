@@ -85,3 +85,33 @@ kids chairs in front of the desk leave the desk's own front approach at 0.35 m (
 access check would be a checker-semantics decision, not taken); the cheapest kids program found is 316,000 AMD
 against the unchanged 300,000 AMD request. Balcony · living room now gets the balcony program (chair, bistro table,
 plant, 0.30 m from the railing), editor accepted.
+
+## Work zone, bedside access, fill mode — 27 September 2026
+
+Measured the same way (deterministic `planIncrementally` replay of the first-repeat scenes, live catalog, unchanged
+BENCH/QUALITY graders, editor `EditorStore`), load average 5–13, one run per row. Before = f40cca5, after = 70a1d49.
+
+| Program | QUALITY complete before → after | BENCH before → after |
+| --- | ---: | ---: |
+| living | 2/3 → 2/3 | 2/3 → 2/3 |
+| bedroom | 1/3 → 2/3 (Balcony now complete) | 1/3 → 0/3 (mattress SKU, see below) |
+| kids | 0/3 → 0/3 | 2/3 → 2/3 |
+
+- **Checker semantics change (taken; graders import it):** in `metrics/space.ts` a chair, office chair or stool whose
+  front faces a desk or table within 0.50 m is reached from behind, and the desk's access is that seat's access when
+  the seat is in its 0.45 m front strip. Nothing else in front of a desk is exempt; both routes keep the 0.75 m rule.
+  Walkway output on all 45 recorded scenes (initial and accepted) is identical before and after.
+- Kids: chairs are tried pulled up (0.05–0.40 m, ±0.15 m) and a desk is kept only if its chair fits. Avani and
+  b21-t13 now get bed, desk, chair and storage (297,000 AMD); only the desk lamp is missing. Cheapest full kids
+  program found is 313,000 AMD (no bed under 186,000; searches now also look below each pool's minimum price), so the
+  300,000 AMD request cannot complete, and the proposal says so. Balcony kids: no bed pose keeps the unchanged 0.60 m
+  access on both sides next to the entry swing; nothing placed.
+- Bedrooms: bed poses are ranked by probe stands at both bedsides. Balcony was losing its second stand to a 0.57 m gap
+  between the bed corner and the entry door swing. b21-t13: no wall run of this room is bed width + 2 × (0.60 m +
+  stand) long and clear of doors (the north wall belongs to the living room), so both stands stay unplaced.
+- Mattresses are live: bare frames get a head-aligned made-up mattress. The unchanged BENCH counts its `extra:` SKU as
+  `non_catalog_purchase`, so Avani's otherwise passing bedroom fails BENCH; QUALITY is unaffected.
+- Fill mode on top of these plans: 2–12 pieces per room (Avani living 12 in 17.9 s), all accepted by the editor, no new
+  composition issue, no new or worsened walkway or clearance. BENCH flags every filled room `non_catalog_purchase`
+  because decor, plants, art and curtains are `extra:` SKUs added after that grader. Accent chairs rarely fit: they
+  must stand on the group's rug, face a seat and keep every route at 0.75 m.
