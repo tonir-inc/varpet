@@ -26,7 +26,7 @@ with the commit that fills it.
 
 | Problem | Effect | Status |
 |---|---|---|
-| `bed` kind includes bare support frames, bed bases, box springs | bed renders as a metal skeleton (Balcony Bedroom 1 bug) | in progress (shared filter) |
+| `bed` kind includes bare support frames, bed bases, box springs | bed renders as a metal skeleton (Balcony Bedroom 1 bug) | filtered out of search in 226858c; retagging at import still open |
 | `decor` kind contains sofas and armchairs at 16–23k AMD | wrong products offered as decor | missing fix |
 | Size filters (`max_w/d/h`) return larger products | model must re-check every size | in progress (spike/beds agent) |
 | Contact-sheet images blank for some `extra:` products | model cannot inspect them | missing fix |
