@@ -1,0 +1,38 @@
+[
+  {
+    "id": "abo:B07FJVXVNW",
+    "name": null,
+    "kind": "bed",
+    "size_m": [
+      0.7874,
+      1.905,
+      0.3556
+    ],
+    "price": 42000,
+    "glb_url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/W/B07FJVXVNW.glb"
+  },
+  {
+    "id": "abo:B07GFG2XYC",
+    "name": null,
+    "kind": "bed",
+    "size_m": [
+      0.8999,
+      1.8999,
+      0.4551
+    ],
+    "price": 160000,
+    "glb_url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/C/B07GFG2XYC.glb"
+  },
+  {
+    "id": "abo:B07GFFKVG3",
+    "name": null,
+    "kind": "bed",
+    "size_m": [
+      0.8999,
+      1.8999,
+      0.5258
+    ],
+    "price": 160000,
+    "glb_url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/3/B07GFFKVG3.glb"
+  }
+]

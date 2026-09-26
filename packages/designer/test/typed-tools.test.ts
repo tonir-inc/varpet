@@ -55,9 +55,10 @@ test('an anchor fit survives missing later products as an honest partial layout'
  expect(plan.ops.some(o=>o.type==='add'&&o.item.kind==='sofa')).toBe(true);
  expect(plan.complete).toBe(false);expect(plan.missing.some(m=>m.startsWith('rug'))).toBe(true);
 });
-test('existing pieces cannot fill two roles and a single bed does not satisfy a double bed',async()=>{
+test('existing pieces cannot fill two roles and a single bed does not satisfy a requested double bed',async()=>{
  const item={id:'bed',room_id:'living',name:'bed',kind:'bed',pos:[2,2] as [number,number],size:[1,2,.5] as [number,number,number],rot:0,keep:true};
- const one=await planIncrementally({...scene,items:[item]},{room_id:'living',program:'bedroom'},async()=>({results:[]}));
+ // Generic bedrooms prefer a double but accept a single (bed-regression.test.ts); an explicit double request still refuses one.
+ const one=await planIncrementally({...scene,items:[item]},{room_id:'living',program:'bedroom',history:['a double bed please']},async()=>({results:[]}));
  expect(one.missing.some(m=>m.startsWith('bed '))).toBe(true);
  const cabinet={...item,id:'cabinet',kind:'cabinet',name:'cabinet',pos:[5,5] as [number,number],size:[.4,.4,.6] as [number,number,number]};
  const two=await planIncrementally({...scene,items:[{...item,size:[1.5,2,.5]},cabinet]},{room_id:'living',program:'bedroom'},async()=>({results:[]}));

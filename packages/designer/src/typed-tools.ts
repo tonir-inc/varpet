@@ -76,7 +76,7 @@ export function createTypedServer(input:Scene,config:TypedOptions={}){
    if(epoch!==startedEpoch)throw new Error('Layout changed during catalog search. Search again for current slots.');
    const products=results.flatMap(r=>r.results).slice(0,6),candidates=[];
    for(const product of products){
-    const found=cache.slots(preview(),[slotAsset(product)],{roomId:room_id,catalogId:product.sku,maxChecks:16});
+    const found=cache.slots(preview(),[slotAsset(product)],{roomId:room_id,catalogId:product.sku,maxChecks:16,solidHeadboard:product.kind==='bed'});
     for(const candidate of found.slice(0,1)){
      const ops=[...staged,...candidate.ops],intent=intentFor(scene,ops,{room_id});if(!checked(ops,intent).ok)continue;
      const slot_id=`slot-${randomUUID()}`;slots.set(slot_id,{piece:product.sku,ops:candidate.ops,epoch});

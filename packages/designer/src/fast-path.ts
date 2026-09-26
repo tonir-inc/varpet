@@ -329,7 +329,7 @@ export function prepareFastRequest(input:Scene,request:string,catalog:readonly C
     }
     const candidates:Candidate[]=[];
     for(const i of targets){
-      candidates.push(...cache.slots(scene,catalog,{roomId:room,itemId:i.id,faceWindow:classId==='move.face-window',openFloor:classId==='rearrange.open-floor',maxChecks:classId==='rearrange.open-floor'?6:24,...limits}));
+      candidates.push(...cache.slots(scene,catalog,{roomId:room,itemId:i.id,solidHeadboard:i.kind==='bed',faceWindow:classId==='move.face-window',openFloor:classId==='rearrange.open-floor',maxChecks:classId==='rearrange.open-floor'?6:24,...limits}));
       if(candidates.length>=1)break;
     }
     const kinds=[...new Set(targets.map(i=>i.kind))];
@@ -372,7 +372,7 @@ export function prepareFastRequest(input:Scene,request:string,catalog:readonly C
     const choices=assets(kind),offset=limits.variant?limits.variant%Math.max(1,choices.length):0;
     const varied=[...choices.slice(offset),...choices.slice(0,offset)];
     for(const state of beam.slice(0,2))for(const asset of varied.slice(0,3)){
-      const slots=cache.slots(state.scene,catalog,{roomId:room,catalogId:asset.id,nearWindow:kind==='desk',...limits});
+      const slots=cache.slots(state.scene,catalog,{roomId:room,catalogId:asset.id,solidHeadboard:asset.kind==='bed',nearWindow:kind==='desk',...limits});
       for(const slot of slots.slice(0,2)){
         const ops=[...state.ops,...slot.ops];if(recipe.budget!==undefined&&ops.reduce((n,o)=>n+(o.type==='add'?o.item.price??Infinity:0),0)>recipe.budget)continue;
         next.push({scene:applyOps(state.scene,slot.ops),ops,score:state.score+slot.score});

@@ -77,7 +77,8 @@ export async function planIncrementally(scene:Scene,request:RoomPlanRequest,quer
  const roles=[...program.essentials];
  if(request.program==='living')roles.sort((a,b)=>['seating_anchor','rug','table','light','focal_point'].indexOf(a.role)-['seating_anchor','rug','table','light','focal_point'].indexOf(b.role));
  // The current scene adapter places purchases on the floor; tabletop lights cannot be floor substitutes.
- const qualifies=(kind:string,size:Item['size'],role:string)=>!(kind==='lamp'&&size[2]<.8)&&!(role==='bed'&&request.program==='bedroom'&&size[0]<1.4)&&!(role==='storage'&&kind==='wardrobe'&&(size[1]<.4||size[2]<1.4));
+ const requiresDouble=[...history,...request.history??[],request.style??''].some(text=>/\b(?:double|queen|king)(?:[ -]size(?:d)?)?\s+bed\b/i.test(text));
+ const qualifies=(kind:string,size:Item['size'],role:string)=>!(kind==='lamp'&&size[2]<.8)&&!(role==='bed'&&requiresDouble&&size[0]<1.4)&&!(role==='storage'&&kind==='wardrobe'&&(size[1]<.4||size[2]<1.4));
  const pools=roles.map(role=>{
   const kinds=role.preferred_kinds??role.kinds;
   return [...new Map(kinds.flatMap(kind=>catalog.products[kind]??[]).filter(p=>!blocked.has(canonicalKind(p.kind))&&qualifies(p.kind,p.size,role.role)&&!(role.role==='work_surface'&&/desk extender|rolling cart|pedestal|printer stand|monitor stand/i.test(p.name))).map(p=>[p.sku,p])).values()]
@@ -154,17 +155,26 @@ export async function planIncrementally(scene:Scene,request:RoomPlanRequest,quer
  else {
   // Round-robin catalog sizes as well as anchor positions: one SKU must not
   // spend the whole attempt budget before compact alternatives are considered.
-  const anchors=pools[0]!.slice(0,4).filter(p=>p.price<=(request.budget??Infinity)).map(p=>({p,poses:pieceOps(scene,p,request.room_id,cache,roles[0]!.role)}));
-  let active=true;
-  while(active&&performance.now()<deadline&&attempt<12){
-   active=false;
-   for(const entry of anchors){
-    if(performance.now()>deadline||attempt>=12)break;
-    const next=entry.poses.next();if(next.done)continue;active=true;
-    attempt++;consider(build(next.value,entry.p));
-    if(best?.complete)break;
+  const preferDouble=request.program==='bedroom'&&roles[0]!.role==='bed';
+  const groups=preferDouble?[pools[0]!.filter(p=>p.size[0]>=1.4),pools[0]!.filter(p=>p.size[0]<1.4)]:[pools[0]!];
+  for(const group of groups){
+   // Give the compact fallback its own bounded attempts; failed doubles must not exhaust it.
+   const groupDeadline=preferDouble&&group===groups[0]?Math.min(deadline,performance.now()+15000):deadline;
+   const attemptLimit=attempt+12;
+   const anchors=group.filter(p=>p.price<=(request.budget??Infinity)).slice(0,4).map(p=>({p,poses:pieceOps(scene,p,request.room_id,cache,roles[0]!.role)}));
+   let active=true;
+   while(active&&performance.now()<groupDeadline&&attempt<attemptLimit){
+    active=false;
+    for(const entry of anchors){
+     if(performance.now()>groupDeadline||attempt>=attemptLimit)break;
+     const next=entry.poses.next();if(next.done)continue;active=true;
+     attempt++;consider(build(next.value,entry.p));
+     if(best?.complete)break;
+    }
+    if(best?.complete||request.budget!==undefined&&requiredMinimum>request.budget&&attempt>=2)break;
    }
-   if(best?.complete||request.budget!==undefined&&requiredMinimum>request.budget&&attempt>=2)break;
+   // Prefer any checked double anchor, even if later bedroom roles remain missing.
+   if(best?.ops.some(o=>o.type==='add'&&roles[0]!.kinds.includes(o.item.kind)))break;
   }
  }
 
