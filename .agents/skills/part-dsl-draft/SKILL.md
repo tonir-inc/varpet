@@ -31,6 +31,23 @@ centre of the box it is placed on (four legs = one leg + mirror x,y); `repeat` {
 - A part with no material is plain grey: avoid it.
 
 <!-- finishes:start -->
+| finish | family | usual colour | grain |
+|---|---|---|---|
+| `boucle` | fabric | #e9d3bc |  |
+| `linen` | fabric | #92acce |  |
+| `velvet` | fabric | #ae2e47 |  |
+| `wool-felt` | fabric | #a2a0a6 |  |
+| `white-laminate` | laminate | #eeeae9 |  |
+| `leather-brown` | leather | #512e11 |  |
+| `black-metal` | metal | #5c5c5e |  |
+| `brushed-steel` | metal | #929598 | yes |
+| `painted-wood-matte` | paint | #c7a87e | yes |
+| `marble-white` | stone | #adaeb7 |  |
+| `travertine` | stone | #dfccac |  |
+| `ash-light` | wood | #ac957d | yes |
+| `oak` | wood | #a27f58 | yes |
+| `rattan` | wood | #9c8159 | yes |
+| `walnut` | wood | #aa8a72 | yes |
 <!-- finishes:end -->
 
 ## Checks (you get these back as faults)

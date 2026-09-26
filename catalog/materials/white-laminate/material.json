@@ -1,0 +1,10 @@
+{
+  "id": "white-laminate",
+  "family": "laminate",
+  "tile_m": 0.5,
+  "grain": false,
+  "default_color": "#eeeae9",
+  "metal": 0.0,
+  "source": "ambientcg:Plastic013A",
+  "license": "CC0"
+}

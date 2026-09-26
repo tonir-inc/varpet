@@ -1,0 +1,10 @@
+{
+  "id": "boucle",
+  "family": "fabric",
+  "tile_m": 0.336,
+  "grain": false,
+  "default_color": "#e9d3bc",
+  "metal": 0.0,
+  "source": "polyhaven:curly_teddy_natural",
+  "license": "CC0"
+}

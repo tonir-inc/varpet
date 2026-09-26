@@ -22,6 +22,11 @@ VARIANTS = {
     "colour=both text=fts": {"colour_mode": "both", "text_mode": "fts"},
     "colour=both text=vector": {"colour_mode": "both", "text_mode": "vector"},
     "colour=both text=both": {"colour_mode": "both", "text_mode": "both"},
+    "colour=astra text=vector": {"colour_mode": "astra", "text_mode": "vector"},
+    "colour=all text=vector": {"colour_mode": "all", "text_mode": "vector"},
+    "colour=all text=openai": {"colour_mode": "all", "text_mode": "openai"},
+    "colour=all text=vector+openai": {"colour_mode": "all", "text_mode": "vector+openai"},
+    "colour=all text=all": {"colour_mode": "all", "text_mode": "all"},
 }
 
 

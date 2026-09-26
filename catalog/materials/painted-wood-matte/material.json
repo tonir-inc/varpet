@@ -1,0 +1,10 @@
+{
+  "id": "painted-wood-matte",
+  "family": "paint",
+  "tile_m": 1.0,
+  "grain": true,
+  "default_color": "#c7a87e",
+  "metal": 0.0,
+  "source": "ambientcg:PaintedWood006C",
+  "license": "CC0"
+}

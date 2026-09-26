@@ -136,6 +136,8 @@ class CodexRunner:
         if job.size:
             w, d, h = job.size
             lines.append(f"True size in metres: w {w}, d {d}, h {h}.")
+        if job.count > 1:
+            lines.append(f"The flat has {job.count} identical copies; build one.")
         for dep_id, r in deps.items():
             lines.append(f"Input from {dep_id}: {r.output}")
         lines.append(f"Write your result to {out.name} in this folder. Nothing else.")

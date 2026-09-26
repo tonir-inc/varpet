@@ -1,0 +1,10 @@
+{
+  "id": "leather-brown",
+  "family": "leather",
+  "tile_m": 0.4,
+  "grain": false,
+  "default_color": "#512e11",
+  "metal": 0.0,
+  "source": "polyhaven:brown_leather",
+  "license": "CC0"
+}
