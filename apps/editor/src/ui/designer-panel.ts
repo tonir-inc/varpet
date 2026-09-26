@@ -10,7 +10,7 @@ import { askDesigner, type DesignerHealth, type DesignerPartial, type DesignerPr
 type AskDesigner = typeof askDesigner;
 
 interface MetricRow { label: string; value: string }
-type ProposalStatus = 'pending' | 'applied' | 'dismissed' | 'stale';
+type ProposalStatus = 'pending' | 'applied' | 'undone' | 'dismissed' | 'stale';
 export type ProposalAction = 'preview' | 'apply' | 'dismiss';
 interface Message { role: 'user' | 'designer'; text: string; metrics?: MetricRow[]; proposal?: AgentProposal; status?: ProposalStatus; options?: string[]; notes?: string; suggestions?: string[]; retryRequest?: string; steps?: DesignerTurnSteps; preview?: DesignerPreview }
 interface Conversation { id: string; title: string; conversationId?: string; messages: Message[]; options: string[] }
@@ -110,6 +110,15 @@ interface ConversationOptions {
   isPreviewing?: () => boolean;
 }
 
+/** Is an applied proposal still in the flat? Judged by the pieces it added (their ids are unique to it); a proposal
+ * that adds nothing keeps its status. */
+export function proposalInScene(proposal: AgentProposal, scene: SceneDocument): 'applied' | 'undone' | undefined {
+  const added = proposal.command.operations.flatMap(operation => operation.type === 'add' ? [operation.object.id] : []);
+  if (!added.length) return undefined;
+  const ids = new Set(scene.objects.map(object => object.id));
+  return added.some(id => ids.has(id)) ? 'applied' : 'undone';
+}
+
 /** A turn without typed events still reads as steps: each new progress line closes the previous one. */
 export function progressStep(steps: DesignerStep[], message: string, at: number): DesignerStep[] {
   const label = message.trim();
@@ -170,7 +179,7 @@ export function createDesignerConversation(options: ConversationOptions) {
               if (message.proposal) {
                 if (typeof message.proposal.id !== 'string' || typeof message.proposal.title !== 'string' || typeof message.proposal.description !== 'string') throw Error('Invalid proposal');
                 // The editor revision is session-local. Reloaded commands must never become executable again.
-                if (!['applied', 'dismissed'].includes(message.status ?? '')) message.status = 'stale';
+                if (!['applied', 'undone', 'dismissed'].includes(message.status ?? '')) message.status = 'stale';
               }
             }
           }
@@ -226,6 +235,12 @@ export function createDesignerConversation(options: ConversationOptions) {
       if (options.history) {
         for (const thread of history.conversations) for (const message of thread.messages) {
           if (message.status === 'pending' && message.proposal?.command.baseRevision !== revision) message.status = 'stale';
+        }
+        // Undo and Redo move an applied proposal out of the flat and back: follow what the scene holds now.
+        for (const message of state.messages) {
+          if ((message.status !== 'applied' && message.status !== 'undone') || !message.proposal) continue;
+          const status = proposalInScene(message.proposal, scene);
+          if (status) message.status = status;
         }
       }
       publish();
@@ -670,7 +685,7 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
         if (message.preview) item.append(previewFigure(message.preview));
         if (message.proposal) {
           const status = document.createElement('p'); status.className = 'designer-proposal-status'; status.setAttribute('role', 'status');
-          status.textContent = { pending: 'Ready for your review', applied: 'Applied', dismissed: 'Dismissed', stale: 'Stale · the scene changed or was reopened. Ask for a fresh proposal.' }[message.status ?? 'stale']; item.append(status);
+          status.textContent = { pending: 'Ready for your review', applied: 'Applied', undone: 'Undone · no longer in your flat', dismissed: 'Dismissed', stale: 'Stale · the scene changed or was reopened. Ask for a fresh proposal.' }[message.status ?? 'stale']; item.append(status);
           if (message.status === 'pending') {
             const actions = document.createElement('div'); actions.className = 'designer-proposal-actions';
             const act = (action: ProposalAction) => () => controller.act(message.proposal!.id, action);

@@ -99,8 +99,16 @@ try {
       await page.click('#undo');
       await page.waitForTimeout(2500);
       timings.undo_seconds = Math.round((Date.now() - undoAt) / 100) / 10 - 2.5;
-      log('undo', { toast: await page.locator('#toast').textContent().catch(() => '') });
+      const cards = () => page.locator('.designer-proposal-status').allTextContents();
+      log('undo', { toast: await page.locator('#toast').textContent().catch(() => ''), cards: await cards() });
       await screenshot('undo');
+      if (!(await cards()).at(-1)?.startsWith('Undone')) fail('follow-up card does not read Undone after Undo');
+      // Undo the first design too: its card follows.
+      await page.click('#undo'); await page.waitForTimeout(2500);
+      const after = await cards();
+      log('undo-first', { cards: after });
+      await screenshot('undo-first');
+      if (!after.every(text => text.startsWith('Undone'))) fail('cards do not read Undone after undoing both designs');
     }
   }
 } catch (error) {

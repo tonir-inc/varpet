@@ -15,7 +15,7 @@ await build({ root, configFile: false, publicDir: false, logLevel: 'error', buil
   ssr: join(root, 'src/ui/designer-panel.ts'), target: 'node22', outDir: output,
   minify: false, rolldownOptions: { output: { entryFileNames: 'panel.mjs' } },
 } });
-const { createDesignerConversation, progressStep } = await import(pathToFileURL(join(output, 'panel.mjs')));
+const { createDesignerConversation, progressStep, proposalInScene } = await import(pathToFileURL(join(output, 'panel.mjs')));
 const scene = { format: 'varpet.editor', version: 1, id: 'flat', name: 'Flat', units: 'm', upAxis: 'Y', rooms: [], walls: [], objects: [] };
 const proposal = (id = 'p1') => ({ id, title: 'Living room', description: 'A warm living room.',
   command: { id, label: 'Design', source: 'designer', baseRevision: 3, operations: [] } });
@@ -77,4 +77,20 @@ test('a thread the restarted service forgot is started again with the same words
   await new Promise(resolve => setTimeout(resolve, 5));
   assert.equal(controller.state.conversationId, 'new');
   assert.equal(controller.state.messages.filter(message => message.text === 'Make it warmer').length, 1);
+});
+
+test('an applied card reads Undone after Undo and Applied again after Redo', async () => {
+  const added = { id: 'p-lamp', title: 'Lamp', description: 'A lamp.', command: { id: 'p-lamp', label: 'Lamp', source: 'designer', baseRevision: 3,
+    operations: [{ type: 'add', object: { id: 'lamp-1', name: 'Lamp', assetId: 'lamp', position: [0, 0, 0], rotation: 0, scale: [1, 1, 1] } }] } };
+  let objects = [];
+  const controller = createDesignerConversation({ history: true, snapshot: () => ({ scene: { ...scene, objects }, revision: 3 }), onProposal: () => {},
+    ask: async () => ({ type: 'proposal', conversationId: 'c1', proposal: added }), onProposalAction: () => { objects = [added.command.operations[0].object]; return { ok: true }; } });
+  await controller.send('Add a lamp');
+  controller.act('p-lamp', 'apply');
+  assert.equal(controller.state.messages.at(-1).status, 'applied');
+  objects = []; controller.refreshSettings();
+  assert.equal(controller.state.messages.at(-1).status, 'undone');
+  objects = [added.command.operations[0].object]; controller.refreshSettings();
+  assert.equal(controller.state.messages.at(-1).status, 'applied');
+  assert.equal(proposalInScene(proposal(), scene), undefined);
 });
