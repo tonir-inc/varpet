@@ -113,6 +113,11 @@ def listing_size(dims):
     return size if all(size) else None
 
 
+def flat_front(mesh):
+    """A panel facing +Z (wall art, mirrors): depth is thin and far below width and height."""
+    return mesh[1] <= 0.12 and mesh[1] * 3 <= min(mesh[0], mesh[2])
+
+
 def compare(mesh, listing):
     """Size status and a conservative fit size.
 
@@ -133,7 +138,7 @@ def compare(mesh, listing):
     diff = [round(a - b, 3) for a, b in zip(mesh, listing)]
     status = "confirmed" if straight or swapped else "conflict" if conflict else "estimated"
     fit = [round(max(a, b), 4) for a, b in zip(mesh, aligned)] if conflict else mesh
-    return status, {"from": "mesh", "listing_m": listing, "mesh_minus_listing_m": diff, "wd_swapped": swapped and not straight}, fit
+    return status, {"from": "mesh", "listing_m": listing, "mesh_minus_listing_m": diff, "wd_swapped": swapped and not straight and not flat_front(mesh)}, fit
 
 
 def name_width(name):
