@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Architect stage · replay</title>
+    <style>
+      body { margin: 0; background: #191c22; color: #b1b7c5; font: 16px system-ui, sans-serif; }
+      main { max-width: 1480px; margin: 0 auto; padding: 16px; }
+      #stage { position: relative; height: 820px; max-height: calc(100dvh - 90px); min-height: 420px; border-radius: 12px; overflow: hidden; border: 1px solid #444955; }
+      #replay-bar { display: flex; gap: 16px; align-items: center; padding: 10px 2px; }
+      #replay-phase { color: #c2b6fa; font-weight: 600; text-transform: capitalize; }
+      #replay-bar button { padding: 8px 14px; border-radius: 8px; border: 1px solid #444955; background: #23262d; color: #eef0f5; cursor: pointer; }
+      #replay-bar button[hidden] { display: none; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div id="replay-bar"><span id="replay-phase"></span><span id="replay-message"></span><span id="replay-clock"></span><button id="replay-again" hidden>Replay again</button></div>
+      <div id="stage"></div>
+    </main>
+    <script type="module" src="/src/ui/architect-stage-dev.ts"></script>
+  </body>
+</html>

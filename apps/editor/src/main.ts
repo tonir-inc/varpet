@@ -24,8 +24,9 @@ import { validateScene } from './core/validation';
 import { OPENING_MOVE_SNAP } from './core/opening-move';
 import { STORAGE_KEY, parseScene, saveLocal, serializeScene } from './core/persistence';
 import { createDesignerAdapter, structureAdapter as mockStructureAdapter } from './adapters/mock';
-import { buildFurnishedFlat, createArchitectHttpAdapter } from './adapters/architect-http';
-import { applyLiveEvent, liveScene, openArchitectFlat } from './ui/architect-flat';
+import { buildFurnishedFlat, createArchitectHttpAdapter, replayFurnishedFlat } from './adapters/architect-http';
+import { applyLiveEvent, liveScene, logArchitectActivity, openArchitectFlat, startArchitectFlat, type ArchitectFlatDeps } from './ui/architect-flat';
+import { createArchitectStage, type ArchitectStage } from './ui/architect-stage';
 import { BUILT_CATEGORY, loadBuiltProducts, resolveFurnitureProducts } from './adapters/built-catalog';
 import { createReconstructionProposal, previewReconstructionProposal } from './core/reconstruction-proposal';
 import { createViewport } from './render/viewport';
@@ -94,6 +95,7 @@ app.innerHTML = `
         <p class="muted catalog-note">Shop prices in AMD, labeled with their source. Pieces built from your photos are not priced. Click a piece to add it.</p><p class="muted catalog-note">Models: <a href="https://amazon-berkeley-objects.s3.amazonaws.com/index.html" target="_blank" rel="noopener noreferrer">Amazon Berkeley Objects</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Models are centered, oriented and scaled to catalog fit dimensions.</p>
       </section>
       <section id="assistant-panel" class="panel-content" aria-label="Design assistant" hidden>
+        <section id="architect-progress" class="af-panel" aria-live="polite" hidden></section>
         <section class="assistant-card"><div class="assistant-heading"><span class="assistant-icon">${icon('sparkles')}</span><div><strong>Design together</strong><span>Design assistant <span class="mock-label">${designerLive ? 'LIVE' : 'DEMO'}</span></span></div></div><p>Explore a change to your apartment. Review the proposal before applying it.</p><button id="suggest" class="button suggestion">${icon('sparkles')} Suggest an edit ${icon('arrow')}</button><div id="proposal" aria-live="polite"></div></section>
         <div class="assistant-note">${icon('lock')} You're in control. Every change needs your approval and can be undone.</div>
       </section>
@@ -103,6 +105,7 @@ app.innerHTML = `
     </aside>
     <main class="viewport-shell" aria-label="Apartment editor">
       <div id="viewport"></div>
+      <div id="architect-stage" class="architect-stage-host" hidden></div>
       <div id="floor-plan" hidden></div>
       <div class="viewport-top"><div class="view-switch" role="group" aria-label="Apartment view"><button id="perspective" class="active" aria-pressed="true" title="Perspective camera">${icon('cube')} 3D</button><button id="top-view" aria-pressed="false" title="Orthographic camera">${icon('top')} Top</button><button id="inside-view" aria-pressed="false" title="Walk inside at standing eye height">${icon('eye')} Inside</button><button id="plan-view" aria-pressed="false" title="Floor plan with room dimensions">${icon('room')} Plan</button></div><div class="view-options"><button id="walls" title="Cycle wall visibility">${icon('walls')} <span>Cutaway</span></button><button id="sun" aria-label="Sun controls" aria-haspopup="dialog" aria-expanded="false" aria-controls="sun-controls" title="Adjust sunlight">${icon('sun')} <span>Sun</span></button><button id="quality" aria-pressed="false" title="Toggle rendering quality">${icon('sun')} <span>Balanced</span></button><button id="preview" aria-pressed="false" title="Preview apartment · P">${icon('eye')} <span>Preview</span></button></div></div>
       <label class="skybox-control" title="Choose a sky for 3D and Inside views">${icon('sun')}<span>Sky</span><select id="skybox" aria-label="Skybox">${SKYBOX_PRESETS.map(preset => `<option value="${preset.id}">${preset.label}</option>`).join('')}</select></label>
@@ -356,21 +359,51 @@ function entityName(id: string): string | undefined {
   return scene.project?.components.find(c => c.id === id)?.name ?? scene.project?.routes.find(r => r.id === id)?.name;
 }
 
-function openArchitect() {
-  openArchitectFlat({
+const replayMode = new URLSearchParams(location.search).get('architect') === 'replay';
+function architectDeps(): ArchitectFlatDeps {
+  return {
     showModal: (title, body) => showModal(title, body), isOpen: () => modal.open, notify,
-    build: (input, onProgress) => { liveEntered = false; liveStopped = false; return buildFurnishedFlat(input, message => { onProgress(message); if (!modal.open) notify(message); }, { onEvent: showLive }); },
+    progressHost: () => document.querySelector<HTMLElement>('#architect-progress'),
+    onStarted: () => { if (modal.open) modal.close(); switchPanel('assistant'); },
+    build: (input, onProgress) => {
+      startStage(input.plan, input.photos);
+      return buildFurnishedFlat(input, message => { onProgress(message); stage?.progress(message); }, { onEvent: event => { logArchitectActivity(event); stage?.event(event as never); } })
+        .catch(error => { stopStage(); throw error; });
+    },
     onProject: async project => {
       const scene = await parseDatabaseScene(JSON.stringify(project));
       const title = 'Furnished apartment from your plan and photos';
       pending = { id: uid(), title, description: 'The architect read your plan, built the furniture from your photos and placed it where the photos show it. Applying replaces the current apartment; undo restores it.', command: { id: uid(), label: title, source: 'architect', baseRevision: store.revision, operations: [{ type: 'replace-scene', scene }] } };
       switchPanel('assistant'); renderProposal(); notify('Your apartment is ready. Inspect it in 3D, then apply or dismiss it.');
-      if (liveEntered && !liveStopped && previewMode) viewport.setScene(scene, catalog);
+      await stage?.finish(); stopStage();
+      if (!previewMode) setPreview(true);
+      proposalView = true; $<HTMLButtonElement>('#save').disabled = true;
+      viewport.setScene(scene, catalog); focusView();
     },
-  });
+  };
+}
+function openArchitect() { openArchitectFlat(architectDeps()); }
+async function replayArchitect() {
+  const base = '/architect-replay/';
+  const file = async (name: string) => new File([await (await fetch(base + name)).blob()], name, { type: 'image/jpeg' });
+  const plan = await file('plan.jpg');
+  const photos = await Promise.all(['photo-01.jpg', 'photo-02.jpg', 'photo-03.jpg', 'photo-05.jpg', 'photo-06.jpg'].map(file));
+  const deps = architectDeps();
+  const speed = Number(new URLSearchParams(location.search).get('speed') ?? '1');
+  await startArchitectFlat({ ...deps, build: (input, onProgress) => { startStage(input.plan, input.photos); return replayFurnishedFlat(base + 'n3.json', message => { onProgress(message); stage?.progress(message); }, event => { logArchitectActivity(event); stage?.event(event as never); }, speed); } }, { plan, photos, name: 'Replay' });
 }
 
-/* Live preview while the architect works: walls first, then pieces as they are built, then placements. */
+/* The construction view: the flat being built live in the 3D area, over the editor, while the architect works. */
+let stage: ArchitectStage | null = null;
+function startStage(plan: File, photos: File[]) {
+  stopStage();
+  const host = $('#architect-stage'); host.hidden = false;
+  stage = createArchitectStage(host);
+  stage.start(plan, photos);
+}
+function stopStage() { stage?.dispose(); stage = null; const host = document.querySelector<HTMLElement>('#architect-stage'); if (host) { host.hidden = true; host.replaceChildren(); } }
+
+/* Earlier live preview in the editor itself (kept for reference; the construction view replaced it). */
 let liveEntered = false, liveStopped = false;
 function showLive(event: Record<string, unknown>) {
   if (!applyLiveEvent(event) || liveStopped) return;
@@ -973,7 +1006,7 @@ const designerPanel = mountDesignerPanel(designerHost, {
 window.addEventListener('pagehide', event => { if (!event.persisted) designerPanel.dispose(); });
 
 const modal=$<HTMLDialogElement>('#modal');
-if (architectLive && new URLSearchParams(location.search).has('architect')) queueMicrotask(openArchitect);
+if (architectLive && new URLSearchParams(location.search).has('architect')) queueMicrotask(replayMode ? () => void replayArchitect() : openArchitect);
 const sharingUI = mountSharing($<HTMLButtonElement>('#share'), {
   async createLink(access) {
     if (accountSaving) throw new Error('Wait for your apartment to finish saving, then try again.');

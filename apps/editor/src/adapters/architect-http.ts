@@ -175,3 +175,20 @@ export async function buildFurnishedFlat(input:{plan:File;photos:File[];name:str
     if(done)throw new ArchitectServiceError('The architect service closed before the apartment was ready.');
   }
 }
+
+/**
+ * Replays a recorded run (harness: python -m varpet_harness.replay) through the same callbacks as
+ * buildFurnishedFlat: for testing the construction view and for a demo that cannot depend on the network.
+ */
+export async function replayFurnishedFlat(url:string,onProgress:(message:string)=>void,onEvent:(event:Record<string,unknown>)=>void,speed=1):Promise<unknown>{
+  const events=await (await fetch(url)).json() as ({t:number;type:string}&Record<string,unknown>)[];
+  const started=performance.now();
+  for(const event of events){
+    const wait=event.t*1000/speed-(performance.now()-started);
+    if(wait>0)await new Promise(resolve=>setTimeout(resolve,wait));
+    if(event.type==='progress')onProgress(String(event.message));
+    else if(event.type==='project')return event.project;
+    else onEvent(event);
+  }
+  throw new ArchitectServiceError('The replay ended without a finished apartment.');
+}

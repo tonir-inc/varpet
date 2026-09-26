@@ -14,6 +14,10 @@ export interface ArchitectFlatDeps {
   build(input: { plan: File; photos: File[]; name: string }, onProgress: (message: string) => void): Promise<unknown>;
   /** Optional: the service's intermediate results, for a live 3D preview. */
   onEvent?(event: Record<string, unknown>): void;
+  /** The side panel element that shows the steps and the live log while the architect works. */
+  progressHost(): HTMLElement | null;
+  /** Called when a build starts: close the dialog, open the panel that holds progressHost. */
+  onStarted?(): void;
   onProject(project: unknown): Promise<void>;
 }
 
@@ -36,7 +40,7 @@ const MAX_PHOTOS = 10;
 const isImage = (file: File) => file.type.startsWith('image/');
 
 export function openArchitectFlat(deps: ArchitectFlatDeps): void {
-  if (current && !current.done) { renderProgress(deps); return; }
+  if (current && !current.done) { deps.onStarted?.(); updateProgress(); return; }
   deps.showModal('Build with the architect', `
     <p class="modal-intro">Give the architect your developer's floor plan and a few photos of the flat. It draws the rooms, kitchen and bathroom, builds each piece of furniture from the photos and places it where the photos show it. You review the result before anything changes.</p>
     <form id="af-form" class="af-form">
@@ -126,49 +130,73 @@ export function openArchitectFlat(deps: ArchitectFlatDeps): void {
   };
 }
 
+/** Start a build without the dialog (replay mode). */
+export function startArchitectFlat(deps: ArchitectFlatDeps, input: { plan: File; photos: File[]; name: string }): Promise<void> { return start(deps, input); }
+
 async function start(deps: ArchitectFlatDeps, input: { plan: File; photos: File[]; name: string }): Promise<void> {
   current = { step: 0, message: 'Sending your plan and photos', started: Date.now(), done: false };
   resetLivePreview();
-  renderProgress(deps);
-  timer = setInterval(() => { if (deps.isOpen()) updateProgress(); }, 1000);
+  log.splice(0);
+  host = deps.progressHost;
+  deps.onStarted?.();
+  updateProgress();
+  timer = setInterval(updateProgress, 1000);
   try {
     const project = await deps.build(input, message => {
       if (!current) return;
       const step = stepOf(message);
       if (step >= 0) current.step = Math.max(current.step, step);
       current.message = message;
-      if (deps.isOpen()) updateProgress();
+      pushLog(message);
+      updateProgress();
     });
     current.done = true; current.step = STEPS.length; current.message = 'Your apartment is ready to review';
-    if (deps.isOpen()) updateProgress();
+    updateProgress();
     await deps.onProject(project);
   } catch (error) {
     if (current) { current.done = true; current.error = error instanceof Error ? error.message : String(error); }
-    if (deps.isOpen()) updateProgress();
+    updateProgress();
     deps.notify(`The architect could not finish: ${current?.error ?? ''}`, true);
   } finally {
     clearInterval(timer);
   }
 }
 
-function renderProgress(deps: ArchitectFlatDeps): void {
-  deps.showModal('Build with the architect', `<div class="af-progress" id="af-progress"></div>`);
+let host: () => HTMLElement | null = () => null;
+const log: { at: number; text: string; kind: string }[] = [];
+
+function pushLog(text: string, kind = 'step'): void {
+  if (log[0]?.text === text) return;
+  log.unshift({ at: Date.now(), text, kind });
+  log.splice(40);
+}
+
+/** Activity from the service (commands run, files written) for the side panel log. */
+export function logArchitectActivity(event: Record<string, unknown>): void {
+  if (event.type !== 'activity') return;
+  const who = String(event.who ?? '').replace(/-/g, ' '), text = String(event.text ?? '');
+  const line = event.kind === 'file' ? `${who === 'architect' ? 'Architect' : who} wrote ${text}`
+    : event.kind === 'command' ? `${who === 'architect' ? 'Architect' : who}: ${text.replace(/^\/bin\/zsh -lc\s*/, '').replace(/^['"]|['"]$/g, '')}`
+    : `${who}: ${text}`;
+  pushLog(line, String(event.kind));
   updateProgress();
 }
 
 function updateProgress(): void {
-  const el = document.querySelector<HTMLElement>('#af-progress');
+  const el = host();
   if (!el || !current) return;
+  el.hidden = false;
   const seconds = Math.round((Date.now() - current.started) / 1000);
   const elapsed = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
-  el.innerHTML = `
+  el.innerHTML = `<h3 class="af-panel-title">The architect is building your apartment</h3>
     <ol class="af-steps">${STEPS.map(([title, hint], i) => {
       const state = current!.error && i === current!.step ? 'failed' : i < current!.step ? 'done' : i === current!.step && !current!.done ? 'active' : current!.done && !current!.error ? 'done' : 'waiting';
       return `<li class="af-step af-${state}"><span class="af-dot" aria-hidden="true"></span><div><strong>${title}</strong><span>${hint}</span></div></li>`;
     }).join('')}</ol>
     <p class="af-status" role="status" aria-live="polite">${esc(current.error ? `Stopped: ${current.error}` : current.message)}</p>
     <p class="af-elapsed">${current.done ? 'Finished' : 'Working'} · ${elapsed}</p>
-    ${current.done && !current.error ? '<p class="af-note">The apartment is in the Assistant panel. Inspect it in 3D, then apply or dismiss it.</p>' : '<p class="af-note">You can close this window; the architect keeps working.</p>'}`;
+    ${current.done && !current.error ? '<p class="af-note">Your apartment is below. Inspect it in 3D, then apply or dismiss it.</p>' : ''}
+    <ol class="af-log" aria-label="What the architect is doing">${log.slice(0, 14).map((entry, i) => `<li class="af-log-${esc(entry.kind)}" style="opacity:${Math.max(0.35, 1 - i * 0.07)}">${esc(entry.text)}</li>`).join('')}</ol>`;
 }
 
 /* Live preview: the flat fills up while the architect works. Walls and fixtures first, then each piece
