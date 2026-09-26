@@ -28,7 +28,8 @@ export function intentFor(scene:Scene,ops:Op[],extra:Intent={}):Intent{
 // This descriptor is used only by the geometric slot cache. Publication still resolves the real SKU through the editor catalog bridge.
 export const slotAsset=(p:CatalogProduct):CatalogAsset=>({id:p.sku,name:p.name.slice(0,120),kind:p.kind as CatalogAsset['kind'],category:p.kind,dimensions:[p.size[0],p.size[2],p.size[1]],price:p.price,color:'#b8b4ad',source:{type:'procedural'}});
 export interface RoomPlanRequest {room_id:string;program:string;style?:string;budget?:number;keep?:string[];history?:string[]}
-export interface RoomPlan {ops:Op[];intent:Intent;missing:string[];complete:boolean;reason:string;products:CatalogProduct[];timing:{catalog_ms:number;placement_ms:number};evidence:unknown}
+/** missing keeps role/check codes for tests and eval; missing_text is what the model and customer read. */
+export interface RoomPlan {ops:Op[];intent:Intent;missing:string[];missing_text:string[];complete:boolean;reason:string;products:CatalogProduct[];timing:{catalog_ms:number;placement_ms:number};evidence:unknown}
 
 const tableLamp=(p:{kind:string;size:[number,number,number]})=>p.kind==='lamp'&&p.size[2]<.8;
 /** Related poses first; ranked single-piece slots are the common fallback. */
@@ -249,5 +250,6 @@ export async function planIncrementally(scene:Scene,request:RoomPlanRequest,quer
  const unmet=[...new Set([...composition.issues.map(i=>i.code),...missing.some(m=>m.startsWith('Face every sofa'))?['seat_facing']:[]])].filter(c=>!missingRoles.includes(c)&&!roles.some(r=>r.role===c)&&c in CHECK_PHRASES);
  const placedText=products.length?`placed ${phrase(products.map(p=>p.kind.replaceAll('_',' ')))}`:'nothing placed yet';
  const partial=`Partial layout: ${placedText}.${missingRoles.length?` No checked fit found for ${phrase(missingRoles.map(r=>ROLE_PHRASES[r]!))}.`:''}${unmet.length?` Still missing ${phrase(unmet.map(c=>CHECK_PHRASES[c]!))}.`:''} This bounded search does not prove impossibility.`;
- return {ops,intent:intentFor(scene,ops,extra),missing,complete,products,timing:{catalog_ms:catalogMs,placement_ms:performance.now()-started-catalogMs},reason:(complete?`Placed the ${products.map(p=>p.kind).join(', ')} as a complete checked ${request.program} arrangement.`:partial)+overrideNote+accessNote+budgetNote,evidence:{catalog,failures,attempts,composition,minimum_found_program_dram:requiredMinimum,style_basis:catalog.style_basis,requested_program:program,program_name:request.program,...outdoor?{outdoor:true,requested_program_name:requestedProgram,railing_segments:railings.length}:{}}};
+ const missingText=[...missingRoles.map(r=>`${ROLE_PHRASES[r]!}: no checked fit`),...unmet.map(c=>`still missing ${CHECK_PHRASES[c]!}`)];
+ return {ops,intent:intentFor(scene,ops,extra),missing,missing_text:missingText,complete,products,timing:{catalog_ms:catalogMs,placement_ms:performance.now()-started-catalogMs},reason:(complete?`Placed the ${products.map(p=>p.kind).join(', ')} as a complete checked ${request.program} arrangement.`:partial)+overrideNote+accessNote+budgetNote,evidence:{catalog,failures,attempts,composition,minimum_found_program_dram:requiredMinimum,style_basis:catalog.style_basis,requested_program:program,program_name:request.program,...outdoor?{outdoor:true,requested_program_name:requestedProgram,railing_segments:railings.length}:{}}};
 }

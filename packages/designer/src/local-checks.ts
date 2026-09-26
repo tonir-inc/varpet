@@ -2,7 +2,9 @@ import { parseScene } from './adapter.js';
 import { physicalDoorSwingPolygon, itemPolygon, isFloorRug, pointInPolygon, polygonsOverlap, spaceMetrics } from './metrics/space.js';
 import type { Scene, Vec2 } from './scene.js';
 import { wallSolidPolygons } from './wall-geometry.js';
-import { supportErrors, onFloor } from './support.js';
+import { supportErrors } from './support.js';
+import { mountErrors } from './mounts.js';
+import { onFloor } from './scene.js';
 
 export interface LayoutError {
   check: 'inside' | 'overlap' | 'door_swing' | 'walkway' | 'wall_collision' | 'support';
@@ -98,7 +100,7 @@ function penetration(a:Vec2[],b:Vec2[]):number {
 /** Cheap deterministic prefilter before computing circulation. */
 export function localGeometryErrors(input:Scene):LayoutError[] {
   // Items resting on furniture occupy no floor; supportErrors owns their fit.
-  const scene=parseScene(input),errors:LayoutError[]=supportErrors(scene),items=[...scene.items.filter(onFloor),...scene.fixed.filter(i=>!i.structure)];
+  const scene=parseScene(input),errors:LayoutError[]=[...supportErrors(scene),...mountErrors(scene)],items=[...scene.items.filter(onFloor),...scene.fixed.filter(i=>!i.structure)];
   const footprints=items.map(itemPolygon);
   for(let i=0;i<items.length;i++) {
     const item=items[i]!,room=scene.rooms.find(r=>r.id===item.room_id)!;

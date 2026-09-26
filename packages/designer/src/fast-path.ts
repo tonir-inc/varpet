@@ -13,7 +13,7 @@ import { strategyMetrics } from './metrics/strategy.js';
 import { sun } from './metrics/sun.js';
 import { checkRequest, type Intent } from './request.js';
 import { DesignerSession } from './session.js';
-import type { Item, Op, Scene, Vec2 } from './scene.js';
+import { onFloor, type Item, type Op, type Scene, type Vec2 } from './scene.js';
 
 export const FAST_VERSION = 'slots-v6';
 const hash = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
@@ -183,7 +183,7 @@ function generateSlots(scene:Scene,catalog:readonly CatalogAsset[],query:SlotQue
   for(let x=box.minX+.5;x<box.maxX&&poses.length<1000;x+=.5)for(let y=box.minY+.5;y<box.maxY&&poses.length<1000;y+=.5)for(const rot of [0,90,180,270])rotations([x,y],rot);
   const previous=localGeometryErrors(scene),baseline=checkLocalLayout(scene),deficits=deficitMap(scene,catalog);
   const beforeFloor=baseline.metrics.rooms.find(r=>r.room_id===room.id)?.largest_free_rectangle?.area_m2??0;
-  const obstacles=[...scene.items,...scene.fixed].filter(i=>i.id!==base.id&&!(base.group_id&&i.group_id===base.group_id)&&!isFloorRug(i)).map(i=>({room:i.room_id,polygon:itemPolygon(i)}));
+  const obstacles=[...scene.items,...scene.fixed].filter(i=>i.id!==base.id&&!(base.group_id&&i.group_id===base.group_id)&&!isFloorRug(i)&&onFloor(i)).map(i=>({room:i.room_id,polygon:itemPolygon(i)}));
   const swings=scene.openings.map(o=>physicalDoorSwingPolygon(scene,o)).filter((p):p is Vec2[]=>p!==null);
   const solids=new Map<number,Vec2[][]>();
   const cheap:{item:Item;op:Op;after:Scene;score:number}[]=[];

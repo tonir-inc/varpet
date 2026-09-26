@@ -289,8 +289,11 @@ TV, small electronics), a surface support (table, desk, nightstand, cabinet, dre
 the whole footprint on its top. Moving a support carries its items; removing one that still holds items is
 refused. Typed tool `place_on` and `search_catalog` surface slots use it; `plan_room` puts bedside table
 lamps on nightstands and a kids desk lamp on the desk. Outdoor rooms (editor zone, else name) always get
-the `balcony` program with 0.30 m kept clear of railings. Coverage: `test/furniture-support.test.ts`,
-`test/typed-place-on.test.ts`, `test/support-programs.test.ts`.
+the `balcony` program with 0.30 m kept clear of railings. Hung items (editor `host` wall art/curtains,
+`hangsFrom: 'ceiling'` planters) import as `Item.mount` with no floor footprint; `search_catalog` and
+`fitProducts` offer curtains centred over uncurtained windows and hanging planters by a window (never
+outdoors); the editor computes the exact mount. Coverage: `test/furniture-support.test.ts`,
+`test/typed-place-on.test.ts`, `test/support-programs.test.ts`, `test/mounts.test.ts`.
 Coverage: `test/editor-current-v2.test.ts` and `test/editor-http-current-v2.test.ts` in the designer package.
 Finish work is unquoted; the reported incremental furniture purchase cost does not price paint or labour.
 The Avani standing fixture also caught a rug penetrating the west wall by 5 mm. Wall thickness now

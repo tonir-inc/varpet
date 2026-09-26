@@ -59,8 +59,8 @@ function checkSupported(scene: SceneDocument, options: EditorBridgeOptions): voi
     if (!openings.some(opening => opening.id === id && opening.kind === 'door')) throw new Error(`Unknown door swing ID: ${id}`);
     if (!Object.hasOwn(swings, swing)) throw new Error(`Unsupported door swing: ${swing}`);
   }
-  // Furniture resting on furniture (restsOn) is elevated by contract; other elevated objects stay unsupported.
-  for (const object of scene.objects) if (Math.abs(object.position[1]) > EPS && (object.restsOn === undefined || object.host !== undefined)) throw new Error(`Unsupported elevated object: ${object.id}`);
+  // Furniture resting on furniture (restsOn), wall-hung (host) and ceiling-hung items are elevated by contract.
+  for (const object of scene.objects) if (Math.abs(object.position[1]) > EPS && object.restsOn === undefined && object.host === undefined && object.hangsFrom !== 'ceiling') throw new Error(`Unsupported elevated object: ${object.id}`);
   for (const opening of openings) if (opening.kind === 'door' && opening.sill > EPS) throw new Error(`Unsupported elevated door: ${opening.id}`);
   const project = scene.project;
   if (!project) return;
@@ -205,7 +205,9 @@ export function editorToDesigner(input: unknown, options: EditorBridgeOptions = 
     scene.items.push({ id: object.id, name: object.name, room_id: rooms[0]!.id, kind: catalogFunction(asset), pos: [object.position[0], -object.position[2]], rot: object.rotation * 180 / Math.PI,
       size: [asset.dimensions[0] * object.scale[0], asset.dimensions[2] * object.scale[2], asset.dimensions[1] * object.scale[1]],
       keep: (options.keep ?? []).includes(object.id) || (object.groupId !== undefined && options.groupPolicy !== 'move-together') || metadata?.locked === true || metadata?.phase === 'retain', sku: asset.id,
-      color: object.color ?? asset.color, ...(object.groupId !== undefined && options.groupPolicy === 'move-together' ? { group_id: object.groupId } : {}), ...(object.restsOn === undefined ? {} : { on: object.restsOn }) });
+      color: object.color ?? asset.color, ...(object.groupId !== undefined && options.groupPolicy === 'move-together' ? { group_id: object.groupId } : {}), ...(object.restsOn === undefined ? {} : { on: object.restsOn }),
+      // A floor-leaning mirror keeps its host at y = 0 and still stands on the floor.
+      ...(object.hangsFrom === 'ceiling' ? { mount: 'ceiling' as const } : object.host !== undefined && object.position[1] > EPS ? { mount: 'wall' as const } : {}) });
   }
   return parseScene(scene);
 }

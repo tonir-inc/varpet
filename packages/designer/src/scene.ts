@@ -19,7 +19,11 @@ export interface Item {
   sku?: string; price?: number; vendor?: string; color?: string; group_id?: string;
   /** Supporting furniture's item ID (editor `restsOn`): the item stands on that piece's top, not on the floor. */
   on?: string;
+  /** Hung on a wall (editor `host`: wall art, curtains) or from the ceiling (editor `hangsFrom`): no floor footprint. */
+  mount?: 'wall' | 'ceiling';
 }
+/** Only items standing on the floor occupy floor space; supported and mounted items do not. */
+export const onFloor = (item: Pick<Item, 'on' | 'mount'>) => item.on === undefined && item.mount === undefined;
 export interface Scene {
   rooms: Room[]; walls: Wall[]; openings: Opening[]; items: Item[]; fixed: Item[];
   north_deg?: number;

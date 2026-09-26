@@ -17,6 +17,7 @@ import type {Intent} from './request.js';
 import {spaceMetrics} from './metrics/space.js';
 import {functionClearances} from './metrics/function.js';
 import {canRestOn,isSurface,surfacePoses,surfacesFor} from './support.js';
+import {mountOf,mountPoses} from './mounts.js';
 import type {CatalogProduct} from './catalog.js';
 
 /** TVs, table lamps and small decor only make sense on furniture; other restable pieces may also use the floor. */
@@ -63,14 +64,14 @@ export function createTypedServer(input:Scene,config:TypedOptions={}){
    if(epoch!==startedEpoch)throw new Error('Layout changed during planning. Your staged edits are preserved; propose them or plan again.');
    const evidenceId=randomUUID();evidence.set(evidenceId,plan);
    if(dir){await mkdir(join(dir,'evidence'),{recursive:true});await writeFile(join(dir,'evidence',evidenceId+'.json'),JSON.stringify(plan),{flag:'wx',mode:0o600});}
-   if(!plan.ops.length)return receipt({ok:false,complete:false,missing:plan.missing,reason:plan.reason,next:'No new anchor fit was found. Try a smaller single product with search_catalog; do not claim impossibility.'},true);
+   if(!plan.ops.length)return receipt({ok:false,complete:false,missing:plan.missing_text,reason:plan.reason,next:'No new anchor fit was found. Try a smaller single product with search_catalog; do not claim impossibility.'},true);
    const valid=checked(plan.ops,plan.intent,plan.reason);if(!valid.ok)return receipt({ok:false,errors:valid.errors.slice(0,3)},true);
    const ids=[...new Set(plan.products.map(p=>p.sku))];
-   const option_id=saveOption({...plan,note:plan.reason});
+   const option_id=saveOption({...plan,missing:plan.missing_text,note:plan.reason});
    const images=[];let inspection='Exact SKU previews attached; check appearance before proposing.';
    try{for(let i=0;i<ids.length;i+=12)images.push(...await inspect(ids.slice(i,i+12)));}catch{inspection='Previews unavailable. Layout retained: call show_candidates for the listed products before propose.';}
    if(epoch!==startedEpoch){options.delete(option_id);throw new Error('Layout changed during preview inspection. Plan again after proposing your staged edits.');}
-   const out=receipt({ok:true,options:[{option_id,complete:plan.complete,missing:plan.missing,cost_dram:valid.proposal.checks.price.cost_dram,products:ids.map((catalog_id,index)=>({tile:index+1,catalog_id})),note:plan.reason.slice(0,500)}],evidence_id:evidenceId,timing:plan.timing,inspection,next:'One checked incremental layout found. Inspect products then propose(option_id). Catalog mock prices are estimates.'});
+   const out=receipt({ok:true,options:[{option_id,complete:plan.complete,missing:plan.missing_text,cost_dram:valid.proposal.checks.price.cost_dram,products:ids.map((catalog_id,index)=>({tile:index+1,catalog_id})),note:plan.reason.slice(0,500)}],evidence_id:evidenceId,timing:plan.timing,inspection,next:'One checked incremental layout found. Inspect products then propose(option_id). Catalog mock prices are estimates.'});
    return {...out,content:[...out.content,...images]};
   }catch(e){return error(e);}
  });
@@ -81,9 +82,21 @@ export function createTypedServer(input:Scene,config:TypedOptions={}){
    const unique=[...new Map(queries.map(q=>[JSON.stringify(q),q])).values()];
    const results=await mapLimited(unique,CATALOG_CONCURRENCY,q=>searchCatalog({...q,limit:Math.min(q.limit??4,4)},query(room_id)));
    if(epoch!==startedEpoch)throw new Error('Layout changed during catalog search. Search again for current slots.');
-   const products=results.flatMap(r=>r.results).slice(0,6),candidates=[];
+   const products=results.flatMap(r=>r.results).slice(0,6),candidates=[],hints=new Set<string>();
    for(const product of products){
     searched.set(product.sku,product);
+    // Curtains hang over a window and hanging planters from the ceiling; the editor fixes the exact mount.
+    if(mountOf(product)){
+     for(const [index,pose] of mountPoses(preview(),room_id,product).entries()){
+      const op:Op={type:'add',item:{...product.item,name:product.name.slice(0,120),id:`hung-${index}-${product.sku}`.slice(0,200),room_id,keep:false,pos:pose.pos,rot:pose.rot,mount:pose.mount}};
+      const ops=[...staged,op],intent=intentFor(scene,ops,{room_id});if(!checked(ops,intent).ok)continue;
+      const slot_id=`slot-${randomUUID()}`;slots.set(slot_id,{piece:product.sku,ops:[op],epoch});
+      const option_id=saveOption({ops,intent,note:`Hang ${product.name.slice(0,100)} ${pose.mount==='wall'?'over the window':'from the ceiling by the window'}.`,missing:[],complete:true});
+      candidates.push({catalog_id:product.sku,slot_id,option_id,mount:pose.mount,name:product.name.slice(0,80),price:product.price,price_source:product.price_source});break;
+     }
+     hints.add(mountOf(product)==='wall'?'Curtains hang over a window; this room has no uncurtained window with enough wall.':'Hanging planters need a window in a room with a ceiling; outdoor spaces have none.');
+     continue;
+    }
     // Restable products first try the tops of furniture in the room (TV on the TV unit, lamp on a nightstand).
     const current=preview(),onTop=surfacesFor(current,room_id,product.kind,product.size).slice(0,2);
     for(const support of onTop){
@@ -93,7 +106,7 @@ export function createTypedServer(input:Scene,config:TypedOptions={}){
      const option_id=saveOption({ops,intent,note:`Add ${product.name.slice(0,100)} on the ${support.name.slice(0,60)}.`,missing:[],complete:true});
      candidates.push({catalog_id:product.sku,slot_id,option_id,on:support.id,on_name:support.name.slice(0,60),name:product.name.slice(0,80),price:product.price,price_source:product.price_source});break;
     }
-    if(canRestOn(product.kind,product.size)&&surfaceOnly(product))continue;
+    if(canRestOn(product.kind,product.size)&&surfaceOnly(product)){if(!onTop.length)hints.add(`A ${product.kind==='tv'?'TV':product.kind==='lamp'?'table lamp':product.kind} stands on furniture: add a TV unit, table, desk, nightstand, cabinet or shelf with a free top first.`);continue;}
     const found=cache.slots(preview(),[slotAsset(product)],{roomId:room_id,catalogId:product.sku,maxChecks:16,solidHeadboard:product.kind==='bed'});
     for(const candidate of found.slice(0,1)){
      const ops=[...staged,...candidate.ops],intent=intentFor(scene,ops,{room_id});if(!checked(ops,intent).ok)continue;
@@ -106,7 +119,7 @@ export function createTypedServer(input:Scene,config:TypedOptions={}){
    let images:Awaited<ReturnType<typeof inspect>>=[],previewNote:string|undefined;
    if(candidates.length)try{images=await inspect([...new Set(candidates.map(c=>c.catalog_id))]);}catch(e){previewNote=(e instanceof Error?e.message:String(e)).slice(0,400)+' Call show_candidates for these catalog IDs before propose.';}
    const busy=results.find(r=>r.retryable)?.reason;
-   const out=receipt({ok:!!candidates.length,candidates,reason:candidates.length?(previewNote??'Inspect the attached products, then propose one option ID.'):(busy??'No checked product fit found; try a different kind or room. This is not proof of impossibility.'),catalog_status:results.map(r=>r.status),...(busy||previewNote?{retryable:true}:{})});
+   const out=receipt({ok:!!candidates.length,candidates,reason:candidates.length?(previewNote??'Inspect the attached products, then propose one option ID.'):(busy??['No checked product fit found; try a different kind or room.',...hints,'This is not proof of impossibility.'].join(' ')),catalog_status:results.map(r=>r.status),...(busy||previewNote?{retryable:true}:{})});
    return {...out,content:[...out.content,...images]};
   }catch(e){return error(e);}
  });

@@ -12,7 +12,7 @@ const item = z.object({
   size: z.tuple([num.positive(), num.positive(), num.positive()]), keep: z.boolean(),
   structure: z.object({wall_id:id,bottom_m:num.nonnegative()}).optional(),
   sku: id.optional(), price: num.int().nonnegative().optional(), vendor: z.string().optional(), color: colorSchema.optional(), group_id: id.optional(),
-  on: id.optional(),
+  on: id.optional(), mount: z.enum(['wall','ceiling']).optional(),
 });
 const sceneInput = z.object({
   north_deg: num.optional(),
@@ -59,7 +59,8 @@ export function parseScene(input: unknown): Scene {
     if (!scene.rooms.some(r => r.id === entity.room_id)) throw new Error(`${entity.id}: unknown room ${entity.room_id}`);
   }
   if(scene.items.some(i=>i.structure))throw new Error('Structural obstacles must be fixed');
-  if(scene.fixed.some(i=>i.on!==undefined))throw new Error('Fixed items cannot rest on furniture');
+  if(scene.fixed.some(i=>i.on!==undefined||i.mount!==undefined))throw new Error('Fixed items cannot rest on furniture or hang');
+  if(scene.items.some(i=>i.on!==undefined&&i.mount!==undefined))throw new Error('An item either rests on furniture or hangs, not both');
   // Supports are movable furniture. Fit (surface kind, footprint) is a layout check, not a parse error.
   for (const item of scene.items) {
     const seen = new Set<string>([item.id]);

@@ -19,8 +19,8 @@ export function canRestOn(kind:string,size:Size):boolean{
  if(kind==='tv')return size[0]<=2&&size[2]<=1.3&&size[1]<=.5;
  return ELECTRONICS.has(kind)&&size.every(s=>s<=1);
 }
-export const isSurface=(item:Pick<Item,'kind'|'on'>)=>SURFACE_KINDS.has(item.kind)&&item.on===undefined;
-export const onFloor=(item:Pick<Item,'on'>)=>item.on===undefined;
+export const isSurface=(item:Pick<Item,'kind'|'on'|'mount'>)=>SURFACE_KINDS.has(item.kind)&&item.on===undefined&&item.mount===undefined;
+export {onFloor} from './scene.js';
 
 function outsideDepth(points:Vec2[],support:Item):number{
  const t=support.rot*Math.PI/180;let depth=0;
