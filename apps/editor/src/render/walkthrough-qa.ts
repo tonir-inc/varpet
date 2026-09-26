@@ -36,8 +36,8 @@ document.querySelector<HTMLButtonElement>('#run')!.onclick = async event => {
     const lens = camera as THREE.PerspectiveCamera;
     const horizontal = THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(lens.getEffectiveFOV() / 2)) * lens.aspect));
     const expectedLens = lens.clone(); configureInsideCamera(expectedLens, lens.aspect);
-    check(lens.getEffectiveFOV() <= 60 + 1e-7 && horizontal <= 80 + 1e-7 && Math.abs(lens.fov - expectedLens.fov) < 1e-7,
-      'Inside uses the aspect-correct lens within 80 horizontal and 60 vertical degrees');
+    check(lens.getEffectiveFOV() <= 65 + 1e-7 && horizontal <= 95 + 1e-7 && Math.abs(lens.fov - expectedLens.fov) < 1e-7,
+      'Inside uses the aspect-correct lens within 95 horizontal and 65 vertical degrees');
     const start = camera!.position.clone();
     canvas.focus(); key('keydown', 's'); await delay(180); key('keyup', 's');
     const released = camera!.position.clone(); await delay(400);

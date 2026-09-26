@@ -20,8 +20,8 @@ check('inside lens preserves believable room proportions across viewport sizes',
     camera.position.set(4, 1.65, 3); camera.lookAt(3, 1.65, -3); camera.zoom = 2;
     const position = camera.position.clone(), orientation = camera.quaternion.clone(); configure(camera, aspect);
     const vertical = camera.getEffectiveFOV(), horizontal = THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(vertical / 2)) * aspect));
-    assert(vertical <= 60 + 1e-8 && horizontal <= 80 + 1e-8, `lens limits distortion for aspect ${aspect}`);
-    assert(Math.abs(vertical - 60) < 1e-8 || Math.abs(horizontal - 80) < 1e-8, 'lens uses available view without unnecessary cropping');
+    assert(vertical <= 65 + 1e-8 && horizontal <= 95 + 1e-8, `lens limits distortion for aspect ${aspect}`);
+    assert(Math.abs(vertical - 65) < 1e-8 || Math.abs(horizontal - 95) < 1e-8, 'lens uses available view without unnecessary cropping');
     assert(camera.aspect === aspect && camera.zoom === 1, 'inside resize updates aspect and clears unrelated lens zoom');
     assert(camera.position.equals(position) && camera.quaternion.equals(orientation), 'lens resize preserves standing height and look direction');
     assert(camera.near === 0.03 && camera.far === 250, 'lens configuration preserves collision-scale clipping distances');

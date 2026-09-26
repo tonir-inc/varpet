@@ -4,14 +4,14 @@
 
 ## Room proportions
 
-Inside uses at most **80° horizontal** and **60° vertical** field of view. Three.js measures `PerspectiveCamera.fov` vertically: the previous fixed 65° vertical lens expanded to about 97° horizontally on a 16:9 view, exaggerating foreground furniture and apparent room depth. Capping horizontal spread keeps the room more consistent across window widths.
+Inside uses at most **95° horizontal** and **65° vertical** field of view. These presentation defaults were widened from 80°/60° on 2026-09-26 (Codex, GPT-6) after the user reported a restricted view. Three.js measures `PerspectiveCamera.fov` vertically, so the lens derives its vertical field from the viewport aspect and horizontal limit. The two caps show more of the room while bounding edge stretching on wide monitors and vertical spread on tall windows; they do not reproduce the full human peripheral visual field.
 
 | Viewport aspect | Vertical field | Horizontal field |
 | --- | ---: | ---: |
-| 16:9 | 50.53° | 80° |
-| 21:9 | 39.56° | 80° |
-| 4:3 | 60° | 75.18° |
-| 9:16 | 60° | 35.98° |
+| 16:9 | 63.09° | 95° |
+| 21:9 | 50.13° | 95° |
+| 4:3 | 65° | 80.69° |
+| 9:16 | 65° | 39.43° |
 
 `configureInsideCamera(camera, aspect)` sets the lens and updates its projection matrix on construction and resize. It preserves camera position, orientation and clipping planes, resets lens zoom to 1, and uses a square aspect if the viewport size is temporarily invalid. It does not change the exterior camera.
 
@@ -48,7 +48,7 @@ Full repository verification, a fresh-context review and actual browser visual i
 Two browser pages exercise the real renderer:
 
 - `/interior-experience-qa.html` starts in the living room and includes Living, Kitchen, Bedroom and Studio buttons. Its diagnostic shows actual rendered horizontal/vertical fields of view, camera height, glass count and daylight visibility. Run interior checks exercises 29 assertions covering rendered camera motion, the bounded release tail, eye height, idle rendering, focus and blur, Escape, window glass shadow behavior, daylight preview and ceiling shadow visibility, studio background restoration, elevated floors and document immutability. Escape is wired through this page's own navigation handler, calling the actual viewport API.
-- `/walkthrough-qa.html` retains its original checks and now has 17 assertions. Its obsolete fixed 65° comparison was updated to the aspect-correct 80° horizontal/60° vertical caps. Release waits 400 ms and explicitly checks that the tail travels at most 7.5 cm.
+- `/walkthrough-qa.html` retains its original checks and now has 17 assertions. Its lens comparison uses the aspect-correct 95° horizontal/65° vertical caps. Release waits 400 ms and explicitly checks that the tail travels at most 7.5 cm.
 
 The integrated interior-experience page completed all 29 browser checks and the original walkthrough page completed all 17 checks in Chrome on 2026-09-26. Their isolated demo stores are never saved to the user's application document.
 
@@ -105,3 +105,60 @@ DONE: 7 of 7
 - 7 ✓ Only the primary agent edited files: `src/render/walkthrough-controls.ts`, `src/render/walkthrough-camera-check.ts`, `src/render/interior-experience-qa.ts`, `docs/walkthrough-camera.md`, and `docs/motion.md`. Explorer and reviewer were read-only; unrelated workspace changes were preserved.
 
 Not proven: subjective comfort at the new pace, mobile controls, general renderer performance or device frame budgets.
+
+## Wider Inside view verification
+
+2026-09-26, Codex (GPT-6). User requested a wider Inside view. The lens caps are now
+95° horizontal / 65° vertical, yielding 95° × 63.09° on a 16:9 viewport. Existing
+camera checks and both browser harnesses use these requested limits; pose, clipping,
+invalid-aspect, zoom-reset, movement, collision and interruption checks are retained.
+
+```text
+node apps/editor/scripts/check-walkthrough-camera.mjs
+Walkthrough camera checks passed (98 assertions).
+
+pnpm test
+packages/designer: Test Files 88 passed; Tests 438 passed
+packages/designer: Ran 136 tests; OK; Ran 41 tests; OK
+apps/editor: Walkthrough camera checks passed (98 assertions).
+apps/editor: tests 123; pass 123; fail 0
+apps/editor: Done
+exit 0
+
+pnpm typecheck
+packages/engine: Done
+apps/showcase: Done
+packages/designer: Done
+apps/editor: Done
+exit 0
+
+pnpm --filter @varpet/editor build
+built in 296ms; exit 0
+Existing advisory: some JavaScript chunks exceed 500 kB.
+
+/interior-experience-qa.html
+COMPLETE 29 browser checks.
+/walkthrough-qa.html
+COMPLETE 17 browser checks.
+
+git diff --check
+exit 0
+```
+
+Both browser runs used an isolated demo on a temporary Vite server with HMR disabled.
+The rendered diagnostic reported 95.0° horizontal; collapsing the checks panel
+changed the vertical field from 57.6° to 60.8°, confirming resize recalculation.
+In-app screenshot capture was unavailable, so subjective visual comfort remains unverified.
+Notion tools and cached exports were unavailable; the changed default and evidence are recorded here.
+
+DONE: 7 of 7
+
+- 1 ✓ Focused proving command and browser results are pasted above.
+- 2 ✓ Untargeted root tests and typecheck exited 0; output counts are above.
+- 3 ✓ Updated `walkthrough-camera-check.ts`, `walkthrough-qa.ts`, and `interior-experience-qa.ts` for the requested lens limits.
+- 4 ✓ No schema, fixtures, constitution or agent instructions changed. All existing assertions remain; only the requested FOV expectations and their descriptions changed.
+- 5 ✓ Fresh-context reviewer: APPROVE, no actionable findings.
+- 6 ✓ Assumption: 95°/65° is a desktop presentation preference. An adjustable FOV control and matching full human peripheral vision are outside this fix.
+- 7 ✓ Only the primary agent edited this task's six files: `src/render/walkthrough-camera.ts`, `src/render/walkthrough-camera-check.ts`, `src/render/walkthrough-qa.ts`, `src/render/interior-experience-qa.ts`, `docs/walkthrough-camera.md`, and `docs/walkthrough.md`. Reviewers were read-only; unrelated inspector work was preserved.
+
+Not proven: subjective comfort, screenshot-based visual review, mobile/device performance.

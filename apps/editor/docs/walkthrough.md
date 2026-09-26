@@ -2,7 +2,7 @@
 
 Implemented and checked 2026-09-26, Codex (GPT-6). Choose **Inside** beside 3D and Top. Drag the canvas to look; WASD or arrow keys walk at 1.4 m/s. Escape returns to the view used before entering. Select a room before entering to start there when it has standing space. F resets the standing position near the selected room/object.
 
-Eyes stay **1.65 m above the floor underneath the camera**, including room metadata elevations. The camera uses a 65° vertical field of view and a 3 cm near plane. Looking up/down never changes walking height or forward speed. Diagonal movement is normalized. There is no bobbing, gravity animation, or free flight.
+Eyes stay **1.65 m above the floor underneath the camera**, including room metadata elevations. The camera uses an aspect-correct field of view capped at 95° horizontal and 65° vertical, and a 3 cm near plane (see the [current lens contract](walkthrough-camera.md#room-proportions)). Looking up/down never changes walking height or forward speed. Diagonal movement is normalized. There is no bobbing, gravity animation, or free flight.
 
 Entry searches for clear floor space rather than trusting a bounding-box centre, which can fall outside a concave room or inside furniture. Walls, windows, fixed doors, furniture and building-component bounds block movement. Short movement steps prevent tunnelling. Floor gaps, rises/drops above 25 cm and insufficient headroom block passage. Thin rugs remain walkable.
 

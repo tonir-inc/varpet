@@ -93,7 +93,7 @@ document.querySelector<HTMLButtonElement>('#run')!.onclick = async event => {
     showRoom('room-living'); await delay(650);
     check(Math.abs(camera.position.y - 1.65) < 1e-7, 'Inside eyes stand exactly 1.65 m above the floor');
     const fov = fieldOfView();
-    check(fov && fov.vertical <= 60 + 1e-7 && fov.horizontal <= 80 + 1e-7, 'Rendered lens stays within 60° vertical and 80° horizontal');
+    check(fov && fov.vertical <= 65 + 1e-7 && fov.horizontal <= 95 + 1e-7, 'Rendered lens stays within 65° vertical and 95° horizontal');
     check(fov.vertical > 20 && fov.horizontal > 40, 'Rendered interior remains a usable room view');
     check(glasses().length >= 4 && glasses().every(mesh => !mesh.castShadow), 'Window glass lets daylight through rather than casting opaque shadows');
     check(world.getObjectByName('Window daylight preview')?.visible, 'Window daylight preview is visible Inside');
