@@ -343,7 +343,7 @@ The planned filesystem boundary mirrors `VARPET_PROPOSALS_DIR`:
   Three new slots per turn; stored sizes, kind and price are checked again on proposal.
 - After an accepted checked layout includes the slot, `build_piece(slotId)` writes
   `requests/<slotId>.json` and returns `{slotId,state:"queued"}` immediately. Repeated calls
-  are idempotent; unknown or unproposed slots fail. It starts no model inside the MCP process.
+  are idempotent within the turn; unknown, unproposed or older-turn slots fail explicitly. It starts no model inside the MCP process.
 - PICTURE adds `harness/designer_builds.py`: a service-owned controller watches that queue,
   uses Felix's runner/dispatch without changing `varpet_harness/`, and limits all conversations
   to four live builders. SERVICE supplies the current turn's private local image paths to it.
@@ -389,3 +389,40 @@ selection fetches one grid (at most 12 unique SKUs, 8 s catalog / 10 s process d
 it to its existing single structured model call; rearrangements incur no preview request. Failed
 previews withhold the purchase, and blank/visibly broken tiles must be rejected by the selector.
 Native desk, wardrobe and dresser kinds are retained; legacy aliases remain compatible.
+
+[Implemented PICTURE boundary, pending lane integration verification]
+`BuildPool` lives once on `DesignerService.build_pool`. `pool.turn(builds_dir,
+conversation_id, turn_id, image_paths, cancel_event, emit)` is a context manager that
+watches requests immediately; `finish()` waits for terminal results, and `assets(slot_ids)`
+returns the fixed-size editor records. Context exit cancels and joins before turn cleanup.
+The service currently passes its local fixture `self.image_paths`; SERVICE must pass the
+current turn's upload paths to this same argument when image input lands. Builders use a
+conversation-local SDK home, so their SDK logs are also removed at conversation cleanup.
+
+The service's build callback currently emits ordinary progress text. CHAT owns replacing
+that callback with opt-in typed records and treating `build` as nonterminal in the HTTP
+loop. The callback receives the exact build record described above. Final `assets` are
+already supplied by PICTURE after joining builds; CHAT must accept/register them in the
+browser and implement its agreed GLB route. Successful files live at
+`<conversation root>/builds/work/<slotId>/piece.glb`; serve only when
+`builds/states/<slotId>.json` says `done`, and never expose sibling runtime/SDK/program files.
+The bridge CLI now accepts `--custom-assets file` to append private slot assets to either
+the explicitly supplied catalog or the legacy local catalog, rejecting ID replacement.
+Custom provisional assets render as neutral bounds, not invented procedural furniture.
+
+[Measured integration evidence] The real controller ran a low-effort cabinet through
+Felix's runner and immutable-size compiler adapter in 54.351 s, 86,193 cumulative tokens,
+one turn and zero remaining faults. This later run used an explicit radius constraint in
+its brief and lower machine load; it does not replace the frozen step-0 comparison.
+`packages/designer/test/custom-slots.test.ts` checks the real Avani demo through placement,
+CLI bridge and EditorStore approval. `harness/designer_builds_test.py` checks queueing,
+shared four-lane concurrency, three-per-turn cap, idempotency, cancellation, rate limits
+and failed-build placeholders with deterministic workers.
+
+[Measured final builder check, 2026-09-26 13:50 UTC, gpt-6-astra low] With the
+conversation-local SDK home enabled, the real controller completed the same cabinet in
+77.272 s wall time (runner: 72.557 s), 47,835 cumulative tokens, one turn, zero faults.
+The actual GLB W/D/H was 0.5 / 0.400000006 / 0.649999976 m. At 13:56 UTC, a focused
+Chrome render check loaded this GLB beside the actual editor neutral-slot renderer.
+Both displayed with the stored W/H/D 0.50 / 0.65 / 0.40 m. This verifies rendering only;
+CHAT's HTTP asset delivery and SERVICE's upload lifetime are separate lane checks.

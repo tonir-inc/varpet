@@ -209,7 +209,8 @@ def designer_mcp_env() -> dict[str, str]:
     from urllib.parse import urlsplit
 
     forwarded = {name: os.environ[name] for name in (
-        "VARPET_SCENE", "VARPET_PROPOSALS_DIR", "VARPET_CATALOG_URL") if name in os.environ}
+        "VARPET_SCENE", "VARPET_PROPOSALS_DIR", "VARPET_CATALOG_URL",
+        "VARPET_BUILDS_DIR", "VARPET_CONVERSATION_ID", "VARPET_TURN_ID") if name in os.environ}
     if "VARPET_CATALOG_URL" in forwarded:
         return forwarded
     settings = Path.home() / ".config" / "varpet" / "env"
@@ -258,7 +259,9 @@ def build_config(scene_path: Path) -> dict:
             "env": designer_mcp_env(),
             "default_tools_approval_mode": "approve",
             "enabled_tools": ["scene_summary", "set_intent", "search_catalog", "place",
-                              "check_layout", "score_layout", "sun", "propose", "ask"],
+                              "check_layout", "score_layout", "sun", "propose", "ask"]
+                             + (["reserve_slot", "build_piece"] if all(os.environ.get(name) for name in
+                                ("VARPET_BUILDS_DIR", "VARPET_CONVERSATION_ID", "VARPET_TURN_ID")) else []),
         }},
     }
 

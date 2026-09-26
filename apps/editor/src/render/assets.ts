@@ -62,7 +62,7 @@ export function makeAssetPlaceholder(asset: CatalogAsset): THREE.Group {
 }
 
 export function makeFurniture(asset: CatalogAsset, color = asset.color): THREE.Group {
-  if (asset.source.type === 'gltf') return makeAssetPlaceholder(asset);
+  if (asset.source.type === 'gltf' || /^custom-[a-zA-Z0-9-]+-\d+$/.test(asset.id)) return makeAssetPlaceholder(asset);
   const group = new THREE.Group();
   const m = materials(asset, color);
   const [w, h, d] = asset.dimensions;

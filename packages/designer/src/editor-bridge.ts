@@ -256,10 +256,12 @@ async function main(args: string[]): Promise<void> {
   const mode = args.shift(), count = mode === 'to-designer' ? 2 : mode === 'to-command' ? 4 : 0;
   if (!count || args.length < count) throw new Error('Usage: editor-bridge.ts to-designer <scene> <out> | to-command <proposal> <scene> <revision> <out> [--catalog file] [--keep id,id] [--north degrees] [--swings file] [--currency AMD]');
   const paths = args.splice(0, count), options: EditorBridgeOptions = { groupPolicy: 'move-together' };
+  let customAssets:CatalogAsset[]=[];
   while (args.length) {
     const flag = args.shift(), value = args.shift();
     if (value === undefined) throw new Error(`Missing value for ${flag}`);
     if (flag === '--catalog') options.catalog = await jsonFile(value) as CatalogAsset[];
+    else if (flag === '--custom-assets') { const valueParsed=await jsonFile(value); if(!Array.isArray(valueParsed)||valueParsed.some(asset=>!isRecord(asset)||typeof asset.id!=='string'||!/^custom-[a-zA-Z0-9-]+-\d+$/.test(asset.id)))throw new Error('Custom assets must be conversation slot assets'); customAssets=valueParsed as CatalogAsset[]; }
     else if (flag === '--customer-requests') { const valueParsed=await jsonFile(value); if(!Array.isArray(valueParsed)||!valueParsed.every(v=>typeof v==='string'))throw new Error('Customer requests must be strings'); options.customerRequests=valueParsed; }
     else if (flag === '--keep') options.keep = value.split(',').filter(Boolean);
     else if (flag === '--north') options.northDeg = Number(value);
@@ -267,6 +269,7 @@ async function main(args: string[]): Promise<void> {
     else if (flag === '--currency') { if (value !== 'AMD') throw new Error('Only explicit AMD catalog currency is supported'); options.catalogCurrency = value; }
     else throw new Error(`Unknown option ${flag}`);
   }
+  if(customAssets.length){const catalog=options.catalog??localCatalog;if(customAssets.some(asset=>catalog.some(existing=>existing.id===asset.id)))throw new Error('A custom slot cannot replace an existing catalog asset');options.catalog=[...catalog,...customAssets];}
   const output = mode === 'to-designer' ? editorToDesigner(await jsonFile(paths[0]!), options) : proposalToEditor(await jsonFile(paths[0]!), await jsonFile(paths[1]!), Number(paths[2]), options);
   await writeFile(paths.at(-1)!, `${JSON.stringify(output, null, 2)}\n`, 'utf8');
 }

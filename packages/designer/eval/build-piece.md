@@ -95,3 +95,55 @@ completed successfully, with no test edits: designer 81 files / 406 tests, harne
 eval 38 tests, showcase 12 tests, and all editor assertion scripts and Node tests passed.
 `pnpm typecheck` also passed all workspace packages. The earlier timeout failures are
 retained above as measurement context. Step 0 review: APPROVE. Production feature work follows.
+
+## Production boundary follow-up (step 0 above stays frozen)
+
+[Measured, 2026-09-26] The implemented service controller plus immutable slot-size adapter
+built the same local cabinet with gpt-6-astra low in **77.272 s**, **47,835 cumulative
+tokens**, **one turn / zero faults**, with a private SDK home. Runner time was 72.557 s;
+actual GLB W/D/H was 0.5 / 0.400000006 / 0.649999976 m. The brief now explicitly bounds
+rounded radii, and host load differed, so this is not a replacement low/medium comparison.
+Local artifact: `/tmp/varpet-picture-private-controller/work/custom-livecabinet-1/`.
+[Measured] A focused Chrome check displayed the actual editor neutral slot and this GLB
+at the same stored dimensions. Owner likeness remains unrated.
+
+[Implemented] No compiler or `harness/varpet_harness/` internals were edited. The separate
+adapter supports Felix's existing runner/dispatch, supplies explicit kind and layout size,
+checks actual GLB dimensions to an inclusive 1 cm, and captures cumulative SDK token usage.
+The old-turn queue review finding is fixed by explicit rejection; retries reserve a new slot.
+[Assumed] Custom prices use a sample volume rate, with an example workshop contact and
+“estimate, the workshop confirms”; QUALITY owns the final pricing provenance integration.
+[Handoff] SERVICE owns per-turn uploaded picture paths and conversation expiry; CHAT owns
+opt-in typed build events and browser GLB delivery. Their exact controller hook, event shape,
+and private file paths are documented in `docs/designer-service.md`. Full buyer UI is not
+claimed verified by the controller and renderer checks here.
+
+## PICTURE completion evidence
+
+DONE: 7 of 7 for changes 1 and 5, with the separate lane handoffs above.
+
+- 1 ✓ Real runner/dispatch + size adapter: `result.json` status `ok`, one turn, actual
+  W/D/H `[0.5,0.4000000059604645,0.6499999761581421]`, cumulative total 47,835.
+  Chrome rendered that GLB and the actual neutral-slot renderer side by side.
+- 2 ✓ Untargeted root `VITEST_MAX_WORKERS=1 pnpm test` exited 0: designer **91 files /
+  444 tests passed**, harness **145 tests OK**, eval **41 tests OK**, showcase **12 passed**,
+  all editor assertion scripts and Node tests passed (`apps/editor test: Done`).
+  `pnpm typecheck` exited 0 for every workspace; `pnpm --filter @varpet/editor build`
+  exited 0 (`built in 565ms`, existing chunk-size advisory). Full logs are local at
+  `/tmp/varpet-picture-rebased-{test,typecheck}.log` and `/tmp/varpet-picture-editor-build.log`.
+- 3 ✓ New tests: `custom-slots.test.ts`, `custom-slot-turn.test.ts`,
+  `custom-slot-placeholder.test.ts`, `designer_builds_test.py`,
+  `designer_build_service_test.py`, `designer_picture_prompt_test.py`.
+- 4 ✓ No compiler, harness-runner internals, contract/schema, fixture, or existing test
+  changes. `git diff --check` is clean; only the boundary, prompt, renderer and new tests change.
+- 5 ✓ Fresh-context reviewer APPROVE, including the old-turn regression fix and rebase.
+- 6 ✓ Sample pricing and unrated likeness are explicit assumptions/limits; SERVICE/CHAT
+  integration remains their assigned work, with the concrete handoff in the service contract.
+- 7 ✓ PICTURE owns new `custom-slots.ts`, `designer_builds.py`, `designer_piece_worker.py`,
+  `designer_build_check.py` and the six new test files. Coordinated boundary edits are in
+  `server.ts`, `editor-bridge.ts`, `designer.py`, `designer_service.py`, the runtime prompt,
+  `render/assets.ts`, `docs/designer-service.md` and this report. Other lanes' changes were
+  preserved by rebasing and resolving their vision/event-contract additions.
+
+Not proven: end-to-end uploaded-picture → live website slot replacement, final workshop
+quotation, or owner-rated likeness; these are not established by the local builder smoke.

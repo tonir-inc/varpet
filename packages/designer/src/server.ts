@@ -1,3 +1,4 @@
+import { CustomSlots, reserveSlotSchema, buildPieceSchema } from './custom-slots.js';
 import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -24,10 +25,12 @@ export function result(data: unknown, isError = false) {
   return { content: [{ type: 'text' as const, text: typeof data === 'string' ? data : JSON.stringify(data) }], ...(isError ? { isError: true } : {}) };
 }
 
-export function createServer(input: Scene, options:{catalogQuery?:CatalogQuery; proposalsDir?:string; customerRequests?:readonly string[]}={}) {
+export function createServer(input: Scene, options:{catalogQuery?:CatalogQuery; proposalsDir?:string; customerRequests?:readonly string[];buildsDir?:string;conversationId?:string;turnId?:string}={}) {
   const scene = parseScene(input);
   const proposalsDir = options.proposalsDir ?? process.env.VARPET_PROPOSALS_DIR;
   const session = new DesignerSession(scene,options.customerRequests);
+  const buildsDir=options.buildsDir??process.env.VARPET_BUILDS_DIR;
+  const slots=buildsDir?new CustomSlots({buildsDir,conversationId:options.conversationId??process.env.VARPET_CONVERSATION_ID??'',turnId:options.turnId??process.env.VARPET_TURN_ID??''}):undefined;
   let styleCandidates:DesignCandidate[]=[];
   let stylePlanning=false;
   const productVision=process.env.VARPET_VISION_PRODUCTS==='1',seenProducts=new Set<string>();
@@ -39,7 +42,11 @@ export function createServer(input: Scene, options:{catalogQuery?:CatalogQuery; 
     try {const sheet=await candidateSheet(item_ids);item_ids.forEach(id=>seenProducts.add(id));return sheet;}
     catch(error){return result(String(error),true);}
   });
-  server.registerTool('scene_summary' , {
+  if(slots){
+    server.registerTool('reserve_slot',{description:'Search the catalog first. Reserve a private grey custom cabinet, table or shelf only when no product fits size and style. Boxy pieces only; no sofas, armchairs or upholstered beds. Never copy a named design: choose a generic function and size. Size W/D/H comes from scene geometry, not the picture. Maximum three per turn; estimate is sample AMD, workshop confirms.',inputSchema:reserveSlotSchema},async input=>{try{const slot=await slots.reserve(input);stylePlanning=false;return result(slot);}catch(error){return result(String(error),true);}});
+    server.registerTool('build_piece',{description:'After propose passes the layout checks, queue this stored custom slot for a separate builder. Returns immediately; never write the part program yourself or wait for the build. The service runs up to four builders and enforces the stored dimensions within 1 cm.',inputSchema:buildPieceSchema},async({slotId})=>{try{return result(await slots.queue(slotId));}catch(error){return result(String(error),true);}});
+  }
+  server.registerTool('scene_summary', {
     description: 'Rooms, walls with compass directions, openings, furniture, keeps and fixed items. An empty room_ids selects none.',
     inputSchema: { room_ids: z.array(z.string()).optional() },
   }, ({ room_ids }) => {
@@ -111,15 +118,17 @@ export function createServer(input: Scene, options:{catalogQuery?:CatalogQuery; 
       ops=candidate.ops;session.setIntent({...declared,...candidate.intent});
     }else if(stylePlanning)return result({ok:false,errors:[{check:'composition',message:'Style plans require choosing one of the two checked candidate IDs.'}]},true);
     if(productVision){
-      const missing=(ops??[]).filter(op=>op.type==='add'&&!seenProducts.has(op.item.sku??'')).map(op=>op.type==='add'?op.item.sku:undefined);
+      const missing=(ops??[]).filter(op=>op.type==='add'&&!op.item.sku?.startsWith('custom-')&&!seenProducts.has(op.item.sku??'')).map(op=>op.type==='add'?op.item.sku:undefined);
       if(missing.length)return result({ok:false,errors:[{check:'visual_evidence',message:'Call show_candidates before selecting these products; inspect appearance and retry.',item_ids:missing}]},true);
     }
+    let assets:Awaited<ReturnType<CustomSlots['validateOps']>>=[];
+    try{assets=slots?await slots.validateOps(parseOps(ops)):[];}catch(error){return result(String(error),true);}
     const proposal=session.propose(ops,rationale);
     if (proposal.ok && proposalsDir) {
       const temporary = join(proposalsDir, `.${proposal.proposal_id}-${randomUUID()}.tmp`);
       try {
         await mkdir(proposalsDir, { recursive: true });
-        await writeFile(temporary, JSON.stringify(proposal.proposal), { flag: 'wx', mode: 0o600 });
+        await writeFile(temporary, JSON.stringify({...proposal.proposal,...(assets?.length?{assets}:{})}), { flag: 'wx', mode: 0o600 });
         await rename(temporary, join(proposalsDir, `${proposal.proposal_id}.json`));
       } catch {
         await rm(temporary, { force: true }).catch(() => {});
@@ -127,7 +136,8 @@ export function createServer(input: Scene, options:{catalogQuery?:CatalogQuery; 
           message: 'Could not save the checked proposal for the editor; retry after checking the proposal directory.' }] }, true);
       }
     }
-    return result(proposal,!proposal.ok);
+    if(proposal.ok&&assets?.length)await slots!.markProposed(assets);
+    return result({...proposal,...(assets?.length?{assets}:{})},!proposal.ok);
   });
   server.registerTool('search_catalog', {
     description:'For ANY whole-room style request, use room_id plus style_request (the customer words), remake:true and optional remove_ids/excluded_roles. Searches every program kind and returns two complete physically checked compositions ranked by taste. Propose candidate_id; do not write coordinates or omit essentials. For single products, find sized, priced catalog furniture. Returns item descriptions for place, plus size/price provenance. Mock prices are explicitly labeled; unavailable catalog is never replaced with invented products.',
@@ -146,6 +156,7 @@ export function createServer(input: Scene, options:{catalogQuery?:CatalogQuery; 
       }catch(error){return result({ok:false,reason:String(error)},true);}
     }
     const catalog=await searchCatalog(productQuery,query);
+    if(catalog.status==='available')slots?.searchedCatalog(productQuery.kind);
     return result(catalog,catalog.status==='unavailable');
   });
   server.registerTool('ask', {

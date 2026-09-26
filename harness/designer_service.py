@@ -23,6 +23,7 @@ import uuid
 import designer
 import designer_vision
 from designer_presentation import format_presentation
+from designer_builds import BuildPool
 from designer_conversation import conversational_reply, ConversationStream
 
 
@@ -133,6 +134,7 @@ class DesignerService:
         self.active: set[threading.Event] = set()
         self.condition = threading.Condition()
         self.closed = False
+        self.build_pool = BuildPool()
         self.catalog_acceleration = None
         if catalog_acceleration or os.environ.get('VARPET_CATALOG_ACCELERATE') == '1':
             self.start_catalog_acceleration()
@@ -152,6 +154,7 @@ class DesignerService:
             for cancel in self.active:
                 cancel.set()
             self.condition.wait_for(lambda: not self.active)
+        self.build_pool.close()
         self.directory.cleanup()
         if self.catalog_acceleration:
             self.catalog_acceleration.close()
@@ -191,6 +194,7 @@ class DesignerService:
         usage = None
         outcome = "error"
         stream = ConversationStream(progress)
+        build_turn_id = uuid.uuid4().hex
         try:
             from designer_fast import routing_classes
             import re
@@ -206,7 +210,9 @@ class DesignerService:
                 outcome = 'decline'
                 return {'type':outcome,'conversationId':conversation_id,
                         'message':'I cannot demolish structural walls. I can rearrange the furniture; consult a structural engineer about changing walls.'}
-            with tempfile.TemporaryDirectory(prefix="turn-", dir=conversation.root) as directory:
+            with tempfile.TemporaryDirectory(prefix="turn-", dir=conversation.root) as directory, self.build_pool.turn(
+                    conversation.root / "builds", conversation_id, build_turn_id, self.image_paths, cancel,
+                    lambda event: progress("Custom piece: " + event["state"])) as builds:
                 root = Path(directory)
                 editor_scene, converted = root / "editor.json", root / "designer.json"
                 editor_scene.write_text(json.dumps(body["scene"], ensure_ascii=False))
@@ -257,7 +263,8 @@ class DesignerService:
                                                "vision": {key: value for key, value in body["vision"].items() if key not in ("view", "plan")},
                                                "vision_guidance": designer_vision.guidance(body["vision"])} if body.get("vision") else {})}))
                 env = {**os.environ, "VARPET_SCENE": conversation.runtime["scene"],
-                       "VARPET_PROPOSALS_DIR": str(proposals)}
+                       "VARPET_PROPOSALS_DIR": str(proposals), "VARPET_BUILDS_DIR": str(conversation.root / "builds"),
+                       "VARPET_CONVERSATION_ID": conversation_id, "VARPET_TURN_ID": build_turn_id}
                 events, pending = [], ""
                 previous_usage, usage_known = conversation.general_usage, conversation.general_usage_known
                 previous_total = conversation.usage
@@ -315,6 +322,17 @@ class DesignerService:
                 if files:
                     proposal_file = files[-1]
                     saved = json.loads(proposal_file.read_text())
+                    custom_ids = [op["item"]["sku"] for op in saved.get("ops", [])
+                                  if op.get("type") == "add" and str(op.get("item", {}).get("sku", "")).startswith("custom-")]
+                    builds.finish()
+                    custom_assets = builds.assets(custom_ids)
+                    if custom_assets:
+                        custom_path = root / "custom-assets.json"
+                        custom_path.write_text(json.dumps(custom_assets))
+                        extras += ["--custom-assets", str(custom_path)]
+                        additions = [op for op in saved.get("ops", []) if op.get("type") == "add"]
+                        if "catalogCurrency" not in body and len(additions) == len(custom_ids):
+                            extras += ["--currency", "AMD"]
                     target = root / "command.json"
                     progress("Preparing the checked layout preview")
                     self._process(self.bridge_command + ["to-command", str(proposal_file), str(editor_scene),
@@ -336,6 +354,11 @@ class DesignerService:
                         value = presentation.get(key)
                         if not isinstance(value, str) or not value.strip() or len(value) > limit:
                             raise RuntimeError(f"Invalid designer presentation {key}")
+                    if custom_assets:
+                        custom_note = "Custom prices are sample estimates; the workshop confirms. Workshop contacts are examples."
+                        if any(asset["source"]["type"] != "gltf" for asset in custom_assets):
+                            custom_note += " A custom build is unresolved and remains grey; choose a catalog alternative."
+                        presentation["notes"] = (custom_note + " " + presentation.get("notes", ""))[:1600]
                     proposal = {**proposal, "title": presentation["title"],
                                 "description": presentation["description"]}
                     visual = None
@@ -349,6 +372,7 @@ class DesignerService:
                     outcome = "proposal"
                     return {"type": outcome, "conversationId": conversation_id, "proposal": proposal,
                             "metrics": {**saved.get("score", {}), **({"visualConfirmation": visual} if visual else {})},
+                            **({"assets": custom_assets} if custom_assets else {}),
                             **({"notes": presentation["notes"]} if "notes" in presentation else {})}
                 questions = [value for event in events for value in tool_values(event, "ask")
                              if value.get("type") == "question" and isinstance(value.get("question"), str)]
