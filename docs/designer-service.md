@@ -119,6 +119,9 @@ These are private conversation assets with fixed dimensions and prices: provisio
 `source:{type:"procedural"}`, finished `source:{type:"gltf",url:"/designer/files/...glb"}`.
 Consumers validate the assets and command together, then register assets before preview/application.
 The file route serves only known successful GLBs for that conversation, never arbitrary files.
+The adapter resolves these relative GLB URLs against the configured service origin. Assets are
+delivered only after the complete proposal passes a disposable `EditorStore` check; neither a
+build event nor receipt of an asset applies the proposal. Existing asset IDs cannot be replaced.
 Progress and message-delta records retain their old shape. Existing callers need not opt in merely
 to receive a checked proposal. The editor adapter exposes `onEvent(event)` and the chat opts in,
 using the same single progress line with elapsed time; websites may render a richer timeline.
@@ -128,7 +131,7 @@ using the same single progress line with elapsed time; websites may render a ric
 `packages/designer/eval/event-stream-sample.ndjson` is a **composite replay of measured recordings**,
 not a claim that custom building and the industrial proposal ran in one live request. Its designer
 starts/ends, candidate IDs, checks, quote and final proposal are projected from the recorded
-industrial Avani turn at 2026-09-26 13:49 UTC (`after-styles` evaluation); the cabinet build states
+industrial Avani turn at 2026-09-26 13:49 UTC (industrial style evaluation); the cabinet build states
 are copied from PICTURE's real 54.351 s / 86,193-token controller run. The reserve-slot completion
 is reconstructed from that run's persisted slot record, labelled in its summary. The custom cabinet
 is an independent lifecycle example, not an item in the final industrial proposal, so it is not
@@ -136,7 +139,7 @@ smuggled into that proposal's `assets`. Its GLB URL requires the corresponding r
 the sample does not bundle private source images or a model file. Replay with the Avani empty-room
 scene and catalog from that recorded evaluation if applying its final proposal.
 
-This first contract/sample commit unblocks timeline rendering before the opt-in runtime lands.
+The contract/sample commit unblocked timeline rendering before the opt-in runtime.
 Failure/fixing/cancellation behavior is covered by the runtime tests; this successful recording
 must not be relabelled as evidence of a real failed build.
 
@@ -157,6 +160,11 @@ must match the supplied snapshot. The translator checks the resulting command wi
 `createDesignerHttpAdapter` in `apps/editor/src/adapters/designer-http.ts` implements the existing
 `DesignerAdapter`. Configure `request`, `catalog`, the optional extras above, `onProgress(message)`
 and `onConversationId(id)` when constructing it; call `propose(scene, revision, signal)` as before.
+Set `events:true` and `onEvent(event)` to observe the optional stream; `onAssets(assets)` receives
+validated private assets alongside the returned proposal. `askDesigner({..., events:true},
+{onEvent, ...})` forwards observations and returns those assets on its proposal reply. Invalid event
+records remain protocol errors even when no callback is installed. Quote progress labels missing
+price provenance as unverified; paint-only proposals do not claim furniture placement.
 It returns a preview without applying it. The separate Designer panel session owns the chat UI and
 its wiring, using `askDesigner` and `designerHttpAdapter` described below.
 `DesignerQuestionError`, `DesignerMessageReply` and `DesignerDeclineError` preserve non-proposal outcomes for the UI. `askDesigner` converts them into the corresponding reply union.

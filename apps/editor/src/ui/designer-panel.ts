@@ -1,3 +1,4 @@
+import { designerEventProgress } from '../adapters/designer-events';
 import { designerMarkdown } from './designer-markdown';
 import { designerStarters } from './designer-starters';
 export { designerMarkdown } from './designer-markdown';
@@ -218,11 +219,12 @@ export function createDesignerConversation(options: ConversationOptions) {
       started = now(); state.elapsedSeconds = 0; state.draft = '';
       state.busy = true; state.progress = 'Sending your request to the designer…'; state.options = []; publish();
       try {
-        const result = await options.ask({ scene: structuredClone(scene), revision, request,
+        const result = await options.ask({ events: true, scene: structuredClone(scene), revision, request,
           ...(catalog === undefined ? {} : { catalog: structuredClone(catalog) }), ...(catalogCurrency === undefined ? {} : { catalogCurrency }),
           conversationId: state.conversationId, keep: [...state.keep], ...(state.northDeg === undefined ? {} : { northDeg: state.northDeg }) }, {
           signal: abortController.signal,
           onProgress: message => { if (active === abortController && !disposed) { state.progress = message; publish(false); } },
+          onEvent: event => { if (active === abortController && !disposed) { state.progress = designerEventProgress(event); publish(false); } },
           onMessageDelta: delta => { if (active === abortController && !disposed) { state.draft = (state.draft + delta).slice(0, 4000); publish(false); } },
         });
         if (disposed || active !== abortController) return;

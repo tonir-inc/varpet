@@ -1,11 +1,16 @@
 /// <reference types="vite/client" />
 import type {AgentProposal,CatalogAsset,DesignerAdapter,SceneDocument} from '../contracts';
+import {parseDesignerEvent, type DesignerEvent} from './designer-events';
+export type {DesignerEvent} from './designer-events';
 import {localCatalog} from '../core/demo';
 import {EditorStore} from '../core/store';
 import {requestVision,type DesignerVision,type VisionCaptureOptions} from './designer-vision';
 
 export type DesignerDoorSwing='in-left'|'in-right'|'out-left'|'out-right';
 export interface DesignerHttpOptions {
+  events?:boolean;
+  onEvent?:(event:DesignerEvent)=>void;
+  onAssets?:(assets:CatalogAsset[])=>void;
   vision?:DesignerVision;
   url?:string;
   request?:string;
@@ -27,15 +32,15 @@ export interface DesignerRequest {
   vision?:DesignerVision;
   scene:SceneDocument;revision:number;request:string;conversationId?:string;
   keep?:string[];doorSwings?:Record<string,DesignerDoorSwing>;northDeg?:number;
-  catalog?:CatalogAsset[];catalogCurrency?:'AMD';
+  catalog?:CatalogAsset[];catalogCurrency?:'AMD';events?:boolean;
 }
 export type DesignerReply=
-  | {type:'proposal';conversationId:string;proposal:AgentProposal;metrics?:unknown;notes?:string}
+  | {type:'proposal';conversationId:string;proposal:AgentProposal;metrics?:unknown;notes?:string;assets?:CatalogAsset[]}
   | {type:'question';conversationId:string;question:string;options:string[]}
   | {type:'message';conversationId:string;message:string;suggestions?:string[]}
   | {type:'decline';conversationId:string;message:string}
   | {type:'error';message:string};
-export interface AskDesignerOptions {vision?:VisionCaptureOptions;baseUrl?:string;onProgress?:(message:string)=>void;onMessageDelta?:(delta:string)=>void;signal?:AbortSignal}
+export interface AskDesignerOptions {onEvent?:(event:DesignerEvent)=>void;vision?:VisionCaptureOptions;baseUrl?:string;onProgress?:(message:string)=>void;onMessageDelta?:(delta:string)=>void;signal?:AbortSignal}
 export class DesignerServiceError extends Error {
   readonly name='DesignerServiceError';
   constructor(message:string,readonly code:'http'|'protocol'|'validation'|'service',readonly status?:number){super(message);}
@@ -155,6 +160,7 @@ function proposalFrom(value:unknown,revision:number,snapshot:SceneDocument,catal
 /** Network boundary only: returns a preview; application and approval remain with the editor. */
 export function createDesignerHttpAdapter(options:DesignerHttpOptions={}):DesignerAdapter{
   const configured={
+    events:options.events,onEvent:options.onEvent,onAssets:options.onAssets,
     url:options.url??'http://localhost:8787/designer/propose',
     request:options.request??'Make the room feel bigger by rearranging the furniture I already own at zero cost.',
     keep:options.keep===undefined?undefined:structuredClone(options.keep),
@@ -170,6 +176,7 @@ export function createDesignerHttpAdapter(options:DesignerHttpOptions={}):Design
     const snapshot=structuredClone(scene),catalog=structuredClone(configured.catalog??localCatalog);
     // The store checks the original snapshot before anything is uploaded.
     try{new EditorStore(snapshot,catalog);}catch(error){fail(error instanceof Error?error.message:'Invalid editor scene.','validation');}
+    if(configured.events!==undefined&&typeof configured.events!=='boolean')fail('events must be a boolean.','validation');
     text(configured.request,'Customer request',20_000);
     if(configured.conversationId!==undefined)text(configured.conversationId,'Conversation ID',200);
     if(configured.northDeg!==undefined&&(!Number.isFinite(configured.northDeg)||configured.northDeg<0||configured.northDeg>=360))fail('northDeg must be between 0 and 360 degrees.','validation');
@@ -181,7 +188,7 @@ export function createDesignerHttpAdapter(options:DesignerHttpOptions={}):Design
       const swings=record(configured.doorSwings,'Door swings'),doorIds=new Set(snapshot.walls.flatMap(wall=>wall.openings.filter(opening=>opening.kind==='door').map(opening=>opening.id)));
       if(Object.entries(swings).some(([id,swing])=>!doorIds.has(id)||!['in-left','in-right','out-left','out-right'].includes(String(swing))))fail('Door swings must identify existing doors and supported swing directions.','validation');
     }
-    const body=JSON.stringify({scene:snapshot,revision,request:configured.request,
+    const body=JSON.stringify({scene:snapshot,revision,request:configured.request,...(configured.events===undefined?{}:{events:configured.events}),
       ...(configured.vision===undefined?{}:{vision:configured.vision}),
       ...(configured.keep===undefined?{}:{keep:configured.keep}),...(configured.northDeg===undefined?{}:{northDeg:configured.northDeg}),
       ...(configured.doorSwings===undefined?{}:{doorSwings:configured.doorSwings}),...(configured.conversationId===undefined?{}:{conversationId:configured.conversationId}),
@@ -212,6 +219,10 @@ export function createDesignerHttpAdapter(options:DesignerHttpOptions={}):Design
         if(entry.type==='progress'){
           keys(entry,['type','message'],'Progress');configured.onProgress?.(text(entry.message,'Progress message',2000));return;
         }
+        if(entry.type==='tool'||entry.type==='build'){
+          if(!configured.events)fail('Designer sent events without opt-in.');
+          const event=parseDesignerEvent(entry);configured.onEvent?.(event);return;
+        }
         if(entry.type==='message_delta'){
           keys(entry,['type','delta'],'Message delta');
           if(typeof entry.delta!=='string'||!entry.delta.length)fail('Message delta must be nonempty text.');
@@ -236,12 +247,31 @@ export function createDesignerHttpAdapter(options:DesignerHttpOptions={}):Design
       if(!terminal)fail('Designer response ended without a final record.');
       const final:Json=terminal;
       const conversationId=final.conversationId===undefined?undefined:text(final.conversationId,'Conversation ID',200);
-      let proposal:AgentProposal|undefined,question:string|undefined,choices:string[]|undefined,message:string|undefined,notes:string|undefined,suggestions:string[]|undefined;
+      let proposal:AgentProposal|undefined,question:string|undefined,choices:string[]|undefined,message:string|undefined,notes:string|undefined,suggestions:string[]|undefined,assets:CatalogAsset[]|undefined;
       if(final.type==='proposal'){
-        keys(final,['type','conversationId','proposal','metrics','notes'],'Proposal response');
+        keys(final,['type','conversationId','proposal','metrics','notes','assets'],'Proposal response');
         if(final.metrics!==undefined)record(final.metrics,'Metrics');
         if(final.notes!==undefined)notes=text(final.notes,'Proposal notes',1600);
-        proposal=proposalFrom(final.proposal,revision,snapshot,catalog,configured.keep);
+        if(final.assets!==undefined){
+          if(!conversationId||!Array.isArray(final.assets)||final.assets.length>100)fail('Invalid private assets.');
+          const referenced=new Set((record(record(final.proposal,'Proposal').command,'Command').operations as unknown[] ?? []).flatMap(op=>{const o=record(op,'Operation');return o.type==='add'?[record(o.object,'Object').assetId]:[];}));
+          assets=final.assets.map(value=>{
+            const a=structuredClone(record(value,'Custom asset'));keys(a,['id','name','category','kind','dimensions','color','price','source'],'Custom asset');
+            const id=text(a.id,'Custom asset ID',100),source=record(a.source,'Custom asset source');
+            if(!id.startsWith(`custom-${conversationId}-`)||!/^custom-[A-Za-z0-9-]+-\d+$/.test(id)||!referenced.has(id)||!Number.isSafeInteger(a.price))fail('Invalid private asset identity or price.');
+            if(source.type==='gltf'){
+              keys(source,['type','url'],'Custom GLB source');
+              if(source.url!==`/designer/files/${conversationId}/${id}.glb`)fail('Invalid private GLB URL.');
+              source.url=new URL(source.url as string,new URL(configured.url,globalThis.location?.href??'http://localhost')).href;
+            }else{keys(source,['type'],'Custom source');if(source.type!=='procedural')fail('Invalid private asset source.');}
+            const existing=catalog.find(asset=>asset.id===id);
+            if(existing&&JSON.stringify(existing)!==JSON.stringify(a))fail('Private assets cannot replace registered catalog identities.');
+            return a as unknown as CatalogAsset;
+          });
+        }
+        const merged=[...catalog,...(assets??[]).filter(asset=>!catalog.some(existing=>existing.id===asset.id))];
+        if(new Set(assets?.map(asset=>asset.id)).size!==(assets?.length??0))fail('Duplicate private assets.');
+        proposal=proposalFrom(final.proposal,revision,snapshot,merged,configured.keep);
       }else if(final.type==='question'){
         keys(final,['type','conversationId','question','options'],'Question response');question=text(final.question,'Question',1000);
         if(final.options!==undefined){
@@ -257,7 +287,7 @@ export function createDesignerHttpAdapter(options:DesignerHttpOptions={}):Design
       }
       checkAbort(signal);
       if(conversationId)configured.onConversationId?.(conversationId);
-      if(proposal){if(final.metrics!==undefined)configured.onMetrics?.(structuredClone(final.metrics));if(notes!==undefined)configured.onNotes?.(notes);return proposal;}
+      if(proposal){if(assets!==undefined)configured.onAssets?.(structuredClone(assets));if(final.metrics!==undefined)configured.onMetrics?.(structuredClone(final.metrics));if(notes!==undefined)configured.onNotes?.(notes);return proposal;}
       if(final.type==='question')throw new DesignerQuestionError(question!,choices,conversationId);
       if(final.type==='message')throw new DesignerMessageReply(message!,suggestions,conversationId);
       if(final.type==='decline')throw new DesignerDeclineError(message!,conversationId);
@@ -280,20 +310,21 @@ function serviceUrl(baseUrl?:string):string{
 
 /** Chat-facing wrapper; a canceled request rejects instead of becoming a chat error. */
 export async function askDesigner(req:DesignerRequest,opts:AskDesignerOptions={}):Promise<DesignerReply>{
-  let conversationId:string|undefined,metrics:unknown,notes:string|undefined;
+  let conversationId:string|undefined,metrics:unknown,notes:string|undefined,assets:CatalogAsset[]|undefined;
   try{
     checkAbort(opts.signal);
     req=structuredClone(req);
     const vision=opts.vision?await requestVision(req.scene,req.revision,opts.vision,opts.signal):req.vision;
     checkAbort(opts.signal);
     const adapter=createDesignerHttpAdapter({
+      events:req.events,onEvent:opts.onEvent,onAssets:value=>{assets=value;},
       vision,url:serviceUrl(opts.baseUrl),request:req.request,conversationId:req.conversationId,
       keep:req.keep,doorSwings:req.doorSwings,northDeg:req.northDeg,catalog:req.catalog,catalogCurrency:req.catalogCurrency,
       onProgress:opts.onProgress,onMessageDelta:opts.onMessageDelta,onConversationId:id=>{conversationId=id;},onMetrics:value=>{metrics=value;},onNotes:value=>{notes=value;},
     });
     const proposal=await adapter.propose(req.scene,req.revision,opts.signal);
     if(!conversationId)return {type:'error',message:'Designer response is missing its conversation ID.'};
-    return {type:'proposal',conversationId,proposal,...(metrics===undefined?{}:{metrics}),...(notes===undefined?{}:{notes})};
+    return {type:'proposal',conversationId,proposal,...(metrics===undefined?{}:{metrics}),...(notes===undefined?{}:{notes}),...(assets===undefined?{}:{assets})};
   }catch(error){
     if(opts.signal?.aborted||(error instanceof Error&&error.name==='AbortError'))throw abortError();
     if(error instanceof DesignerQuestionError){

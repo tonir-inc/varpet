@@ -23,6 +23,7 @@ import uuid
 import designer
 from designer_context import validate_request_text, model_scene
 import designer_vision
+from designer_events import DesignerEvents
 from designer_presentation import format_presentation
 from designer_builds import BuildPool
 from designer_conversation import conversational_reply, ConversationStream
@@ -48,6 +49,8 @@ def with_geometry_notice(presentation: dict, saved: dict) -> dict:
 def validate_request(body) -> dict:
     if not isinstance(body, dict):
         raise ValueError("Expected a JSON object")
+    if "events" in body and type(body["events"]) is not bool:
+        raise ValueError("events must be a boolean")
     scene = body.get("scene")
     if not isinstance(scene, dict) or scene.get("format") != "varpet.editor":
         raise ValueError("scene must be a varpet.editor SceneDocument")
@@ -197,6 +200,10 @@ class DesignerService:
         outcome = "error"
         stream = ConversationStream(progress)
         build_turn_id = uuid.uuid4().hex
+        event_stream = DesignerEvents(progress, body.get("events", False))
+        def build_progress(event):
+            progress("Custom piece " + event["slotId"] + ": " + event["state"])
+            event_stream.build(event)
         try:
             from designer_fast import routing_classes
             import re
@@ -214,7 +221,7 @@ class DesignerService:
                         'message':'I cannot demolish structural walls. I can rearrange the furniture; consult a structural engineer about changing walls.'}
             with tempfile.TemporaryDirectory(prefix="turn-", dir=conversation.root) as directory, self.build_pool.turn(
                     conversation.root / "builds", conversation_id, build_turn_id, self.image_paths, cancel,
-                    lambda event: progress("Custom piece: " + event["state"])) as builds:
+                    build_progress) as builds:
                 root = Path(directory)
                 editor_scene, converted = root / "editor.json", root / "designer.json"
                 editor_scene.write_text(json.dumps(body["scene"], ensure_ascii=False))
@@ -290,6 +297,7 @@ class DesignerService:
                         if isinstance(event, dict):
                             events.append(event)
                             stream.observe(event)
+                            event_stream.observe(event)
                             totals = event.get("total_usage")
                             if event.get("method") == "thread/tokenUsage/updated":
                                 totals = event.get("payload", {}).get("tokenUsage", {}).get("total")
@@ -374,6 +382,7 @@ class DesignerService:
                             return {"type": "question", "conversationId": conversation_id,
                                     "question": "I haven’t confirmed that this preview meets the requested look. " + visual.get("reason", "")[:600],
                                     "options": ["Adjust the style request", "Try again without visual confirmation"]}
+                    event_stream.checked(saved)
                     outcome = "proposal"
                     return {"type": outcome, "conversationId": conversation_id, "proposal": proposal,
                             "metrics": {**saved.get("score", {}), **({"visualConfirmation": visual} if visual else {})},
@@ -438,6 +447,24 @@ def make_server(service: DesignerService, port=8787) -> ThreadingHTTPServer:
                 self.send_headers(200, "application/json")
                 self.write_line({"ok": True})
             else:
+                match = re.fullmatch(r"/designer/files/([A-Za-z0-9-]+)/(custom-[A-Za-z0-9-]+-\d+)\.glb", self.path)
+                if match and self.headers_origin_allowed():
+                    conversation = service.conversations.get(match[1])
+                    if conversation is not None:
+                        root = conversation.root / "builds"
+                        try:
+                            state = json.loads((root / "states" / (match[2] + ".json")).read_text())
+                            target = root / "work" / match[2] / "piece.glb"
+                            if (state.get("state") == "done" and state.get("slotId") == match[2]
+                                    and state.get("glb") == self.path and not target.is_symlink()
+                                    and target.resolve().is_relative_to(root.resolve()) and target.is_file()):
+                                self.send_headers(200, "model/gltf-binary")
+                                with target.open("rb") as file:
+                                    while chunk := file.read(64 * 1024):
+                                        self.wfile.write(chunk)
+                                return
+                        except (OSError, ValueError):
+                            pass
                 self.send_headers(404)
                 self.write_line({"type": "error", "message": "Not found"})
 
@@ -498,11 +525,13 @@ def make_server(service: DesignerService, port=8787) -> ThreadingHTTPServer:
                         if time.monotonic() - last_line < service.progress_interval:
                             continue
                         record = {"type": "progress", "message": last_progress}
+                    if record["type"] in ("tool", "build") and not body.get("events", False):
+                        continue
                     self.write_line(record)
                     last_line = time.monotonic()
                     if record["type"] == "progress":
                         last_progress = record["message"]
-                    elif record["type"] != "message_delta":
+                    elif record["type"] not in ("message_delta", "tool", "build"):
                         break
             except (OSError, ValueError):
                 pass  # Socket failure is a disconnect, including a failed progress flush.

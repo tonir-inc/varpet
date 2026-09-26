@@ -845,7 +845,8 @@ const designerPanel = mountDesignerPanel(designerHost, {
     const products = mergeDesignerProducts(currentProducts, remote);
     const reply = await askDesigner({ ...request, catalog: products.map(product => product.asset), catalogCurrency: CATALOG_CURRENCY }, options);
     if (reply.type === 'proposal' && !options?.signal?.aborted && request.revision === store.revision) {
-      designerCatalog.remember(reply.proposal, products);
+      const customProducts = (reply.assets ?? []).map(asset => ({ asset, attribution: 'Custom piece for this flat', priceSource: 'sample custom estimate; workshop confirms', sizeStatus: 'reserved layout size' }));
+      designerCatalog.remember(reply.proposal, [...products, ...customProducts]);
     }
     return reply;
   } : undefined,
