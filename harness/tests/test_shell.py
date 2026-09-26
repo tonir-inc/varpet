@@ -268,3 +268,45 @@ def test_balcony_parapet_may_be_low_but_holds_no_opening():
     assert check(s) == []
     s.walls[0].openings = [Opening(id="gap", kind="window", offset=1, width=1, height=0.5, sill=0.3)]
     assert kinds(check(s)) == ["wall"]
+
+
+def facade_flat(y0, y1):
+    """b25-t72: a 0.22 m facade wall whose inside face is z = 0.11; the living edge runs from y0 to y1 below it."""
+    return Shell.model_validate({
+        "rooms": [{"id": "living", "name": "Living", "polygon": [[0, y0], [5, y1], [5, 4], [0, 4]], "color": OAK}],
+        "walls": [{**wall("facade", [0, 0], [5, 0], [{"id": "win", "kind": "window", "offset": 0.55, "width": 1.38,
+                                                         "height": 1.4, "sill": 0.9}]), "thickness": 0.22},
+                  wall("w-e", [5, 0], [5, 4]), wall("w-s", [5, 4], [0, 4]), wall("w-w", [0, 4], [0, 0])],
+        "notes": ["test"],
+    })
+
+
+def test_room_edge_skewed_off_its_wall_face_is_a_fault():
+    # +62 mm at one end, -9 mm at the other: past the designer bridge's 53 mm
+    s = facade_flat(0.11 + 0.062, 0.11 - 0.009)
+    assert [f["room"] for f in check(s) if f["check"] == "face"] == ["living"]
+
+
+def test_tidy_puts_the_skewed_edge_on_the_wall_face_and_keeps_the_window():
+    s = tidy(facade_flat(0.11 + 0.062, 0.11 - 0.009))
+    (x0, z0), (x1, z1) = s.rooms[0].polygon[:2]
+    assert abs(z0 - 0.11) < 0.001 and abs(z1 - 0.11) < 0.001
+    assert [o.id for o in s.walls[0].openings] == ["win"] and check(s) == []
+
+
+def test_room_on_the_centreline_convention_is_left_alone():
+    s = flat()
+    before = [list(r.polygon) for r in s.rooms]
+    tidy(s)
+    assert [list(r.polygon) for r in s.rooms] == before and check(s) == []
+
+
+def test_wall_end_at_a_thick_corner_reaches_the_inside_corner():
+    # Room corner at the inside faces of two thick walls: the wall end is the diagonal away
+    s = Shell.model_validate({
+        "rooms": [{"id": "bed", "name": "Bed", "polygon": [[0.105, 0.1575], [4, 0.1575], [4, 4], [0.105, 4]], "color": OAK}],
+        "walls": [{**wall("n", [0, 0], [4, 0]), "thickness": 0.315}, {**wall("w", [0, 4], [0, 0]), "thickness": 0.21},
+                  wall("e", [4, 0], [4, 4]), wall("s", [4, 4], [0, 4])],
+        "notes": ["test"],
+    })
+    assert not [f for f in check(s) if f["check"] == "wall"]

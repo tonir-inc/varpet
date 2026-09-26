@@ -46,6 +46,8 @@ HEIGHT_M = (2.1, 4.0)  # a full-height wall
 PARAPET_M = 0.9  # a lower wall with no openings is a parapet or balcony rail
 DOOR_MIN_M = 0.6  # tidy() never clips a door narrower than this
 GAP_M = 2 * EDITOR_EPS  # clearance tidy() leaves between an opening and what it moved off
+FACE_M = 0.053  # the designer bridge's room-face tolerance (packages/designer/src/reconcile-geometry.ts)
+FACE_DEG = 5.0  # a room edge this close in angle to a wall is that wall's face
 
 
 class Opening(BaseModel):
@@ -174,8 +176,9 @@ def check(shell: Shell) -> list[dict]:
         parapet = not w.openings and PARAPET_M <= w.height < HEIGHT_M[0]
         if not 0.05 <= w.thickness <= 0.6 or not (HEIGHT_M[0] <= w.height <= HEIGHT_M[1] or parapet):
             faults.append({"check": "wall", "wall": w.id, "detail": f"thickness {w.thickness} or height {w.height} out of range"})
-        off = max(boundaries.distance(line.interpolate(t, normalized=True)) for t in (0, 0.5, 1))
-        if off > ON_EDGE_M + w.thickness / 2:
+        # A wall end sits at the corner of two wall centrelines: the room corner is up to both half-thicknesses away
+        off = max(boundaries.distance(line.interpolate(t, normalized=True)) - _corner_reach(shell, w, t) for t in (0, 0.5, 1))
+        if off > ON_EDGE_M:
             faults.append({"check": "wall", "wall": w.id, "detail": f"not on a room edge ({off:.2f} m off)"})
         for o in w.openings:
             if o.offset + o.width > length + EDITOR_EPS:
@@ -189,6 +192,7 @@ def check(shell: Shell) -> list[dict]:
                 faults.append({"check": "opening", "wall": w.id, "opening": o.id,
                                "detail": f"wall {wid} runs through it between {s:.2f} and {e:.2f} m along {w.id}"})
 
+    faults += _faces(shell, polys)
     faults += _reachable(shell, polys)
     faults += _slivers(shell)
     faults += _components(shell, polys)
@@ -233,6 +237,17 @@ def _reachable(shell: Shell, polys: dict[str, Polygon]) -> list[dict]:
             todo.append(n)
     cut = sorted(set(polys) - seen)
     return [{"check": "reachable", "rooms": cut, "detail": "no door or open passage links these to the rest"}] if cut else []
+
+
+def _corner_reach(shell: Shell, w: Wall, t: float) -> float:
+    """How far a room edge may sit from w's centreline at fraction t: its half-thickness, and at an
+    end that another wall joins, the diagonal to the inside corner of the two faces."""
+    half = w.thickness / 2
+    if t not in (0, 1):
+        return half
+    end = Point(w.start if t == 0 else w.end)
+    joins = [o.thickness / 2 for o in shell.walls if o is not w and LineString([o.start, o.end]).distance(end) <= SNAP_M]
+    return math.hypot(half, max(joins)) if joins else half
 
 
 def _through_doors(shell: Shell, polys: dict[str, Polygon]) -> list[tuple[str, str]]:
@@ -470,6 +485,80 @@ def _slivers(shell: Shell) -> list[dict]:
     return faults
 
 
+def _face_of(w: Wall, a: Vec2, b: Vec2) -> tuple[Vec2, Vec2] | None:
+    """The face of w that room edge a-b lies along, as (point, unit direction), or None.
+    The edge must run within FACE_DEG of the wall, overlap it, and sit on one side near that face."""
+    length = _len(w)
+    ux, uz = (w.end[0] - w.start[0]) / length, (w.end[1] - w.start[1]) / length
+    ex, ez = b[0] - a[0], b[1] - a[1]
+    elen = (ex * ex + ez * ez) ** 0.5
+    if elen < 0.2 or abs(ux * ez - uz * ex) / elen > math.sin(math.radians(FACE_DEG)):
+        return None
+    along = sorted(((p[0] - w.start[0]) * ux + (p[1] - w.start[1]) * uz) for p in (a, b))
+    if min(along[1], length) - max(along[0], 0.0) < 0.2:
+        return None
+    mid = ((a[0] + b[0]) / 2 - w.start[0], (a[1] + b[1]) / 2 - w.start[1])
+    side = -mid[0] * uz + mid[1] * ux  # signed distance of the edge's middle from the centreline
+    half = w.thickness / 2
+    if abs(abs(side) - half) > ON_EDGE_M or abs(side) < half / 2:  # nearer the centreline: that convention stays
+        return None
+    sign = 1 if side > 0 else -1
+    return (w.start[0] - uz * half * sign, w.start[1] + ux * half * sign), (ux, uz)
+
+
+def _off_face(p: Vec2, face: tuple[Vec2, Vec2]) -> float:
+    (fx, fz), (ux, uz) = face
+    return -(p[0] - fx) * uz + (p[1] - fz) * ux
+
+
+def _edge_faces(shell: Shell, pts: list[Vec2]) -> list[tuple[Vec2, Vec2] | None]:
+    """For each edge i (pts[i] -> pts[i+1]) the nearest wall face it lies along."""
+    out = []
+    for i, a in enumerate(pts):
+        b = pts[(i + 1) % len(pts)]
+        faces = [f for w in shell.walls if (f := _face_of(w, a, b))]
+        out.append(min(faces, key=lambda f: abs(_off_face(a, f)) + abs(_off_face(b, f)), default=None))
+    return out
+
+
+def _align_faces(shell: Shell, pts: list[Vec2]) -> list[Vec2]:
+    """Move room corners onto the wall faces their edges lie along, so a slightly skewed
+    edge becomes the wall's own face: two faces meet at their crossing, one face takes a projection."""
+    faces = _edge_faces(shell, pts)
+    out = []
+    for i, p in enumerate(pts):
+        f1, f2 = faces[i - 1], faces[i]  # the edge into p and the edge out of p
+        q = p
+        if f1 and f2 and abs(f1[1][0] * f2[1][1] - f1[1][1] * f2[1][0]) > 0.1:
+            (ax, az), (ux, uz) = f1
+            (bx, bz), (vx, vz) = f2
+            den = ux * vz - uz * vx
+            t = ((bx - ax) * vz - (bz - az) * vx) / den
+            q = (ax + ux * t, az + uz * t)
+        elif f1 or f2:
+            (fx, fz), (ux, uz) = f1 or f2
+            t = (p[0] - fx) * ux + (p[1] - fz) * uz
+            q = (fx + ux * t, fz + uz * t)
+        out.append(q if LineString([p, q]).length <= ON_EDGE_M + FACE_M else p)
+    return out
+
+
+def _faces(shell: Shell, polys: dict[str, Polygon]) -> list[dict]:
+    """Room edges along a wall must follow its face within the designer bridge's tolerance."""
+    faults = []
+    for r in shell.rooms:
+        if r.id not in polys:
+            continue
+        pts = list(r.polygon)
+        for i, f in enumerate(_edge_faces(shell, pts)):
+            a, b = pts[i], pts[(i + 1) % len(pts)]
+            off = max(abs(_off_face(a, f)), abs(_off_face(b, f))) if f else 0.0
+            if off > FACE_M:
+                faults.append({"check": "face", "room": r.id,
+                               "detail": f"edge {a}->{b} is {off * 1000:.0f} mm off its wall's face; keep it within {FACE_M * 1000:.0f} mm"})
+    return faults
+
+
 def _flatten_jog(pts: list[Vec2]) -> list[Vec2] | None:
     """Drop the shallowest notch a, b, c, d (short stubs a-b and c-d running opposite ways,
     so a and d sit on one line): the room keeps its silhouette and its right angles."""
@@ -561,8 +650,11 @@ def tidy(shell: Shell) -> Shell:
     for r in shell.rooms:
         poly = Polygon(r.polygon)
         if poly.is_valid:
-            simple = _fit_points(poly)
-            r.polygon = [(round(x, 3), round(z, 3)) for x, z in list(simple.exterior.coords)[:-1]]
+            pts = list(_fit_points(poly).exterior.coords)[:-1]
+            aligned = Polygon(_align_faces(shell, pts)).simplify(0.001, preserve_topology=True)  # corners that met drop out
+            if aligned.is_valid and abs(aligned.area - poly.area) <= poly.exterior.length * ON_EDGE_M:
+                pts = list(aligned.exterior.coords)[:-1]
+            r.polygon = [(round(x, 4), round(z, 4)) for x, z in pts]
     for w in shell.walls:  # openings that overshoot their wall by a rounding error are clamped
         length = _len(w)
         for o in w.openings:

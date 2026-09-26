@@ -405,3 +405,19 @@ cap (the editor allows 1 m). These need a model repair turn, which the larger ge
 **Not proven:** a live `/structure` run with the new budget; how the designer bridge treats a low parapet
 wall beyond conversion; `sceneSummary`, sun or access on these scenes. Captured drafts and
 measurements above are unchanged.
+
+## Follow-up, 26 September 2026: b25-t72 wall/room face
+
+The harness now fixes the `facade_glazing` / living-edge skew.
+- `tidy()` moves room corners onto the wall faces their edges run along: edges within 5° of the wall,
+  overlapping it, and near its inside face. A corner where two faces meet goes to their crossing. Rooms drawn
+  on the wall centreline are left alone. No opening is dropped, and the bridge tolerance is unchanged.
+- `check()` has a new `face` fault: a room edge along a wall more than 53 mm off its face. This mirrors the
+  bridge's `ROOM_FACE_TOLERANCE_M`, so an edge the bridge would reject now goes back to the model for repair.
+- A wall end where two thick walls meet may sit the diagonal of both half-thicknesses from the room corner.
+  After alignment, b24-t22's `bed_large_north` was 4 mm past the old limit, which allowed only its own half-thickness.
+
+Offline replay of every captured Komitas architect draft (current `*.architect.json`/`*.shell.json`,
+retidied, then `komitas-validate.ts`): **10/10 pass architect, EditorStore and bridge**. Before, 9/10 passed:
+b25-t72 failed with `living_window1: no unambiguous adjacent room within 0.053 m`. A second tidy pass is
+byte-identical. Not proven: a live architect run; the `face` check mirrors the bridge but does not call it.
