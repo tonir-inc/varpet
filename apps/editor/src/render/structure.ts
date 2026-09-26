@@ -89,6 +89,10 @@ function wallGeometry(wall: Wall, height: number, elevation: number, spans: Wall
   const innerTrim = wallFootprint(wall, walls, metadata, -0.0025), outerTrim = wallFootprint(wall, walls, metadata, 0.0125);
   const trimFront = [innerTrim[3]!, innerTrim[2]!, outerTrim[2]!, outerTrim[3]!];
   const trimBack = [outerTrim[0]!, outerTrim[1]!, innerTrim[1]!, innerTrim[0]!];
+  // Pieces sharing a face assignment merge into one mesh per wall projection, and faces
+  // sharing a material into one group: about a third of the draw calls, same pixels.
+  const solids = new Map<string, { front: boolean; back: boolean; geometries: THREE.BufferGeometry[] }>();
+  const skirts: THREE.BufferGeometry[] = [];
   const box = (start: number, end: number, bottom: number, top: number, skirting = false, side = 1) => {
     if (end - start <= 0.001 || top - bottom <= 0.001) return;
     for (const span of spans) {
@@ -96,13 +100,10 @@ function wallGeometry(wall: Wall, height: number, elevation: number, spans: Wall
       if (right - left <= 0.001 || (skirting && !(side > 0 ? span.front : span.back))) continue;
       const geometry = wallPrismGeometry(skirting ? (side > 0 ? trimFront : trimBack) : footprint,
         elevation + bottom, elevation + top, left <= 1e-6 ? -Infinity : left, right >= length - 1e-6 ? Infinity : right);
-      const mesh: THREE.Mesh = new THREE.Mesh(geometry, skirting ? trim : plaster);
-      mesh.castShadow = true; mesh.receiveShadow = true; group.add(mesh);
-      if (!skirting) {
-        mesh.material = [plaster, plaster, plaster, plaster, span.front ? front! : plaster, span.back ? back! : plaster];
-        mesh.userData.finishEntityId = wall.id;
-        mesh.userData.finishSurfaces = { ...(span.front ? { 4: 'wall-front' } : {}), ...(span.back ? { 5: 'wall-back' } : {}) };
-      }
+      if (skirting) { skirts.push(geometry); continue; }
+      const key = `${span.front}:${span.back}`;
+      const bucket = solids.get(key) ?? { front: span.front, back: span.back, geometries: [] };
+      bucket.geometries.push(geometry); solids.set(key, bucket);
     }
   };
   let cursor = 0;
@@ -121,7 +122,46 @@ function wallGeometry(wall: Wall, height: number, elevation: number, spans: Wall
     cursor = opening.offset + opening.width;
   }
   for (const side of [-1, 1]) box(cursor, length, 0, Math.min(0.075, height), true, side);
+  for (const { front: hasFront, back: hasBack, geometries } of solids.values()) {
+    const materials = [plaster, plaster, plaster, plaster, hasFront ? front! : plaster, hasBack ? back! : plaster];
+    const mesh = new THREE.Mesh(mergeByMaterial(geometries, materials), materials);
+    mesh.castShadow = true; mesh.receiveShadow = true; group.add(mesh);
+    mesh.userData.finishEntityId = wall.id;
+    mesh.userData.finishSurfaces = { ...(hasFront ? { 4: 'wall-front' } : {}), ...(hasBack ? { 5: 'wall-back' } : {}) };
+  }
+  if (skirts.length) {
+    const mesh = new THREE.Mesh(mergeByMaterial(skirts, [trim, trim, trim, trim, trim, trim]), trim);
+    mesh.geometry.clearGroups(); mesh.castShadow = true; mesh.receiveShadow = true; group.add(mesh);
+  }
   return group;
+}
+/** Concatenate non-indexed prisms, one group per distinct material (its first face index). */
+function mergeByMaterial(geometries: THREE.BufferGeometry[], materials: THREE.Material[]): THREE.BufferGeometry {
+  const buckets = new Map<THREE.Material, { index: number; position: number[]; normal: number[]; uv: number[] }>();
+  for (const geometry of geometries) {
+    const position = geometry.getAttribute('position'), normal = geometry.getAttribute('normal'), uv = geometry.getAttribute('uv');
+    if (!position || !normal || !uv) continue;
+    for (const group of geometry.groups) {
+      const index = group.materialIndex ?? 0, material = materials[index]!;
+      let bucket = buckets.get(material);
+      if (!bucket) { bucket = { index: materials.indexOf(material), position: [], normal: [], uv: [] }; buckets.set(material, bucket); }
+      for (let vertex = group.start; vertex < group.start + group.count; vertex++) {
+        bucket.position.push(position.getX(vertex), position.getY(vertex), position.getZ(vertex));
+        bucket.normal.push(normal.getX(vertex), normal.getY(vertex), normal.getZ(vertex));
+        bucket.uv.push(uv.getX(vertex), uv.getY(vertex));
+      }
+    }
+    geometry.dispose();
+  }
+  const merged = new THREE.BufferGeometry(); const position: number[] = [], normal: number[] = [], uv: number[] = [];
+  for (const bucket of buckets.values()) {
+    merged.addGroup(position.length / 3, bucket.position.length / 3, bucket.index);
+    position.push(...bucket.position); normal.push(...bucket.normal); uv.push(...bucket.uv);
+  }
+  merged.setAttribute('position', new THREE.Float32BufferAttribute(position, 3));
+  merged.setAttribute('normal', new THREE.Float32BufferAttribute(normal, 3));
+  merged.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  return merged;
 }
 export function makeOpening(wall: Wall, opening: Opening, metadata: EntityMetadata, elevation: number, previous?: OpeningProjection, options?: OpeningRenderOptions): OpeningProjection {
   // Selection and angle animation retain these identities across a drag preview.
