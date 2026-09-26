@@ -540,3 +540,42 @@ quality. Protected live ports 5180, 5190, 8787, 8788 were not started, stopped o
 The initial run needed `pnpm install --frozen-lockfile` for the newly landed gltf-validator dependency;
 no test, fixture or schema was weakened. The only live server for this task used an ephemeral spare
 port and was shut down by its evaluation's finally block.
+
+## Spike designer is the editor's designer (27 September 2026)
+
+[Decision] `python harness/designer_service.py` now answers the editor chat with the spike designer
+(`packages/designer/spike`, `harness/designer_spike.py`): one Codex thread (gpt-6-astra, effort medium,
+`workspace-write` sandbox, network only for `./varpet` catalog calls, render daemon warmed outside the sandbox)
+in a studio workspace per conversation. `VARPET_DESIGNER_ENGINE=legacy` restores the typed-tools designer
+(`plan_room`, fast path); `DesignerService(engine=...)` defaults to `legacy` for embedders and tests.
+
+- **Workspace.** Each turn writes `source.json` (the request's editor document without the design's own pieces)
+  and `scene.json` (`to-designer`, same catalog/keep/north/swing extras). `draft.json` persists: it is the design.
+  The prompt is `spike/run/AGENTS.md` filled for the first request, scope "all rooms" (the model keeps to the rooms
+  the request names). Follow-ups resume the same thread (`thread_resume`, conversation-local `CODEX_HOME`).
+- **Outcome.** Draft unchanged: `message` with the model's paragraph. Draft changed but `./varpet check` fails:
+  `message` naming the problems (never an unchecked proposal). Otherwise `proposal`: title = the request,
+  description = the model's customer paragraph, `metrics.cost_dram` = the furniture total, `notes` = the
+  `[brief]`/`[catalog]` lines of `missing.md`.
+- **Translation.** `spike/run/proposal.ts` builds the full editor document the design wants exactly as the 3D
+  renders do (`lib/view/document.ts`: `wall_id`+`height_m` → wall `host`, `on` → `restsOn`, finishes, ceiling
+  designs, light fixtures) and the bridge's `documentCommand(current, target, owned, revision)` diffs it against
+  the request snapshot. Only design-owned records change: objects and light components whose ids the design has
+  used (kept per conversation), `spike:` finishes with their `spike-finish:` materials, room `ceilingDesign`.
+  Changed resting or wall-hung pieces are removed and added again. The command is checked in a disposable
+  `EditorStore`; it is revision-bound and applied only by the customer. Applied or not, the next turn's diff is
+  right: after Apply the owned objects are stripped from `scene.json` so they are not doubled.
+- **Adapter.** `proposalFrom` additionally accepts `on` on add/update, `restsOn` in update patches,
+  `set-metadata` with only `ceilingDesign` on a room, `upsert-component`/`delete-component` for new light
+  fixtures, floor/ceiling `upsert-finish` only under the `spike:` id prefix, unquoted `spike-finish:` preset
+  materials (cost 0), and `delete-finish` of the design's own finishes or of a finish whose face the same command
+  re-finishes. Everything else keeps its earlier rejection.
+- **Progress.** Short lines from the thread's own work ("Reading the flat", "Searching the catalog for sofa",
+  "Rendering the living & dining in the evening", "Checked: OK", its commentary sentences).
+  New nonterminal record, sent whether or not `events` is set:
+  `{"type":"preview","image":"data:image/jpeg;base64,...","caption":"View, Living & dining, evening"}`:
+  a ≤480 px JPEG of a plan or 3D render the designer just looked at. At most 1.5 MB of previews per request;
+  the adapter rejects a preview over 700,000 characters. `askDesigner`/`createDesignerHttpAdapter` take
+  `onPreview`; the panel shows the latest one in the live turn and keeps it on the reply.
+- A turn takes minutes, not the 30–120 s above; the turn timeout is `VARPET_SPIKE_TIMEOUT` (1500 s).
+  Heartbeats keep the stream alive.

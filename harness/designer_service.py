@@ -481,7 +481,8 @@ class DesignerService:
                 outcome = reply["type"]
                 return {**reply, "conversationId": conversation_id}
         finally:
-            print(json.dumps({"type": "service_summary", "model": designer.MODEL, "effort": self.effort, "profile": self.profile,
+            print(json.dumps({"type": "service_summary", "engine": self.engine, "model": designer.MODEL,
+                              **({"effort": designer_spike.EFFORT} if self.engine == "spike" else {"effort": self.effort, "profile": self.profile}),
                               "conversationId": conversation_id, "outcome": "aborted" if cancel.is_set() else outcome,
                               "seconds": round(time.monotonic() - started, 3), "usage": usage, "tool_calls": stream.tool_calls}), file=sys.stderr, flush=True)
             with self.condition:
@@ -635,10 +636,10 @@ def main():
     parser.add_argument("--image", action="append", default=[], help="Opt-in first-turn local PNG/JPEG fixture; repeat up to twice")
     args = parser.parse_args()
     settings = designer.default_service_settings()
-    settings["engine"] = designer_spike.engine()
     if args.image:
         settings["image_paths"] = args.image
     service = DesignerService(**settings)
+    service.engine = designer_spike.engine()  # the editor chat's designer: spike unless VARPET_DESIGNER_ENGINE=legacy
     if os.environ.get('VARPET_CATALOG_ACCELERATE') == '1':
         service.start_catalog_acceleration()
     server = make_server(service, args.port)
