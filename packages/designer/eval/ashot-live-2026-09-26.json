@@ -1,0 +1,485 @@
+{
+  "measured_at_local": "2026-09-26T19:53:51.459822+04:00",
+  "base_commit": "34c0c61",
+  "ports": {
+    "designer": 53120,
+    "editor": 53121
+  },
+  "model": "gpt-6-astra",
+  "effort": "low",
+  "fast_path": true,
+  "sequence_first_request": "Assumed from the instant structural-refusal log entry; exact text absent from persisted history. User clarification pending.",
+  "rows": [
+    {
+      "n": 1,
+      "request": "Knock down the wall between the kitchen and the living room",
+      "seconds": 0.631,
+      "type": "decline",
+      "answer": "I cannot demolish structural walls. I can rearrange the furniture; consult a structural engineer about changing walls.",
+      "operations": [],
+      "notes": null
+    },
+    {
+      "n": 2,
+      "request": "destroy the wall between the kitchen and the other room",
+      "seconds": 0.638,
+      "type": "decline",
+      "answer": "I cannot demolish structural walls. I can rearrange the furniture; consult a structural engineer about changing walls.",
+      "operations": [],
+      "notes": null
+    },
+    {
+      "n": 3,
+      "request": "Put a double bed in the bathroom",
+      "seconds": 1.489,
+      "type": "message",
+      "answer": "A double bed cannot fit with usable side access: this room is only 1.6 m wide. A double bed of at least 1.35 × 1.8 m plus 0.60 m access on each side needs at least 1.8 m in its narrowest orientation, before walls and fixtures. Try the bedroom instead, or choose a smaller single piece.",
+      "operations": [],
+      "notes": null
+    },
+    {
+      "n": 4,
+      "request": "yes, try double bed in the bedroom instead",
+      "seconds": 37.832,
+      "preview": true,
+      "apply": true,
+      "undo": true,
+      "type": "proposal",
+      "answer": "I’ve added a new bed to the bedroom. Catalog price: 219,000 ֏. The trade-off: 3.36 m² less open floor for the new furniture.",
+      "operations": [
+        {
+          "type": "add",
+          "object": {
+            "id": "double-bed",
+            "name": "Rivet Jonathan Mid-Century Modern Wood Full Bed, 59.5\"W, Walnut",
+            "assetId": "abo:B07B4W31C3",
+            "position": [
+              2.9,
+              0,
+              1.54665
+            ],
+            "rotation": 0,
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        }
+      ],
+      "notes": "Sample catalog price, not a shop quote. Budget not set. Sun direction still needs checking. Door swings still need checking."
+    },
+    {
+      "n": 5,
+      "request": "Furnish the living room",
+      "seconds": 32.725,
+      "preview": true,
+      "apply": true,
+      "undo": true,
+      "type": "proposal",
+      "answer": "I’ve added 2 new pieces to the living and dining area. Catalog price: 321,000 ֏. The trade-off: 1.71 m² less open floor for the new furniture.",
+      "operations": [
+        {
+          "type": "add",
+          "object": {
+            "id": "fast-b3adaf8a953a",
+            "name": "Amazon Brand – Rivet Revolve Modern Upholstered Loveseat Sofa, 56\"W, Denim Blue",
+            "assetId": "abo:B071FMSY5S",
+            "position": [
+              -0.411,
+              0,
+              3.42045
+            ],
+            "rotation": 3.141592653589793,
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "type": "add",
+          "object": {
+            "id": "fast-ec537a8a21dc",
+            "name": "kovalenthor Console Table - Black, for Entryway for Living Room (Grey)",
+            "assetId": "abo:B003PBOMJ6",
+            "position": [
+              -3.74005,
+              0,
+              2.75995
+            ],
+            "rotation": 1.5707963267948966,
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        }
+      ],
+      "notes": "Confirm catalog prices with the shop. Budget not set. Sun direction still needs checking."
+    },
+    {
+      "n": 6,
+      "request": "Show me another option",
+      "seconds": 24.504,
+      "preview": true,
+      "apply": true,
+      "undo": true,
+      "type": "proposal",
+      "answer": "I’ve added 2 new pieces to the living and dining area. Catalog price: 321,000 ֏. The trade-off: 1.71 m² less open floor for the new furniture.",
+      "operations": [
+        {
+          "type": "add",
+          "object": {
+            "id": "fast-b3adaf8a953a",
+            "name": "Amazon Brand – Rivet Revolve Modern Upholstered Loveseat Sofa, 56\"W, Denim Blue",
+            "assetId": "abo:B071FMSY5S",
+            "position": [
+              -0.411,
+              0,
+              -3.42045
+            ],
+            "rotation": 0,
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "type": "add",
+          "object": {
+            "id": "fast-ec537a8a21dc",
+            "name": "kovalenthor Console Table - Black, for Entryway for Living Room (Grey)",
+            "assetId": "abo:B003PBOMJ6",
+            "position": [
+              -3.74005,
+              0,
+              2.75995
+            ],
+            "rotation": 1.5707963267948966,
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        }
+      ],
+      "notes": "Confirm catalog prices with the shop. Budget not set. Sun direction still needs checking."
+    },
+    {
+      "n": 7,
+      "request": "furnish the living room",
+      "seconds": 26.888,
+      "preview": true,
+      "apply": true,
+      "undo": true,
+      "type": "proposal",
+      "answer": "I’ve added 2 new pieces to the living and dining area. Catalog price: 321,000 ֏. The trade-off: 1.71 m² less open floor for the new furniture.",
+      "operations": [
+        {
+          "type": "add",
+          "object": {
+            "id": "fast-b3adaf8a953a",
+            "name": "Amazon Brand – Rivet Revolve Modern Upholstered Loveseat Sofa, 56\"W, Denim Blue",
+            "assetId": "abo:B071FMSY5S",
+            "position": [
+              -0.411,
+              0,
+              3.42045
+            ],
+            "rotation": 3.141592653589793,
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "type": "add",
+          "object": {
+            "id": "fast-ec537a8a21dc",
+            "name": "kovalenthor Console Table - Black, for Entryway for Living Room (Grey)",
+            "assetId": "abo:B003PBOMJ6",
+            "position": [
+              -3.74005,
+              0,
+              2.75995
+            ],
+            "rotation": 1.5707963267948966,
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        }
+      ],
+      "notes": "Confirm catalog prices with the shop. Budget not set. Sun direction still needs checking."
+    },
+    {
+      "n": 8,
+      "request": "Make the living room feel bigger",
+      "seconds": 1.976,
+      "type": "message",
+      "answer": "There is no movable furniture in the living room, so there is nothing to rearrange to gain floor space. I can furnish the living room with a sofa and table instead.",
+      "operations": [],
+      "notes": null
+    },
+    {
+      "n": 9,
+      "request": "Make the living room feel bigger",
+      "seconds": 1.468,
+      "type": "message",
+      "answer": "There is no movable furniture in the living room, so there is nothing to rearrange to gain floor space. I can furnish the living room with a sofa and table instead.",
+      "operations": [],
+      "notes": null
+    },
+    {
+      "n": 10,
+      "request": "make a sofa in the middle of the living room and Move the sofa so it faces the window",
+      "seconds": 61.916,
+      "preview": true,
+      "apply": true,
+      "undo": true,
+      "type": "proposal",
+      "answer": "I’ve added a new sofa to the living and dining area. Catalog price: 254,000 ֏. The trade-off: 1.53 m² less open floor for the new furniture.",
+      "operations": [
+        {
+          "type": "add",
+          "object": {
+            "id": "living-sofa",
+            "name": "Amazon Brand – Rivet Edgewest Low Back Modern Loveseat, 65\"W, Beige",
+            "assetId": "abo:B07BW8P2F7",
+            "position": [
+              -2.2,
+              0,
+              0
+            ],
+            "rotation": 6.146526026748431,
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        }
+      ],
+      "notes": "Sample catalog price, not a shop quote. Budget not set. Sun direction still needs checking. Door swings still need checking."
+    },
+    {
+      "n": 11,
+      "request": "Paint the apartment red",
+      "seconds": 3.003,
+      "preview": true,
+      "apply": true,
+      "undo": true,
+      "type": "proposal",
+      "answer": "I’ve given 18 wall sections a fresh colour, keeping the layout just as it is. No furniture purchases are needed. The trade-off: the colour covers both sides of each selected wall, including shared walls.",
+      "operations": [
+        {
+          "type": "update-wall",
+          "id": "wall-west",
+          "patch": {
+            "color": "#ff0000"
+          }
+        },
+        {
+          "type": "update-wall",
+          "id": "wall-east",
+          "patch": {
+            "color": "#ff0000"
+          }
+        },
+        {
+          "type": "update-wall",
+          "id": "wall-east:section-1wcj16j",
+          "patch": {
+            "color": "#ff0000"
+          }
+        },
+        {
+          "type": "update-wall",
+          "id": "wall-south",
+          "patch": {
+            "color": "#ff0000"
+          }
+        },
+        {
+          "type": "update-wall",
+          "id": "wall-south:section-mfp1zm",
+          "patch": {
+            "color": "#ff0000"
+          }
+        },
+        {
+          "type": "update-wall",
+          "id": "wall-south:section-wrqe3v",
+          "patch": {
+            "color": "#ff0000"
+          }
+        },
+        {
+          "type": "update-wall",
+          "id": "wall-north",
+          "patch": {
+            "color": "#ff0000"
+          }
+        },
+        {
+          "type": "update-wall",
+          "id": "wall-north:section-1bz51as",
+          "patch": {
+            "color": "#ff0000"
+          }
+        },
+        {
+          "type": "update-wall",
+          "id": "wall-spine",
+          "patch": {
+            "color": "#ff0000"
+          }
+        },
+        {
+          "type": "update-wall",
+          "id": "wall-spine:section-tfjdn7",
+          "patch": {
+            "color": "#ff0000"
+          }
+        },
+        {
+          "type": "update-wall",
+          "id": "wall-bedroom",
+          "patch": {
+            "color": "#ff0000"
+          }
+        },
+        {
+          "type": "update-wall",
+          "id": "wall-bedroom:section-1wuotw",
+          "patch": {
+            "color": "#ff0000"
+          }
+        },
+        {
+          "type": "update-wall",
+          "id": "wall-bath",
+          "patch": {
+            "color": "#ff0000"
+          }
+        }
+      ],
+      "notes": "Paint and labour are not priced."
+    },
+    {
+      "n": 12,
+      "request": "Paint all walls red",
+      "seconds": 3.732,
+      "preview": true,
+      "apply": true,
+      "undo": true,
+      "type": "proposal",
+      "answer": "I’ve given 18 wall sections a fresh colour, keeping the layout just as it is. No furniture purchases are needed. The trade-off: the colour covers both sides of each selected wall, including shared walls.",
+      "operations": [
+        {
+          "type": "update-wall",
+          "id": "wall-west",
+          "patch": {
+            "color": "#ff0000"
+          }
+        },
+        {
+          "type": "update-wall",
+          "id": "wall-east",
+          "patch": {
+            "color": "#ff0000"
+          }
+        },
+        {
+          "type": "update-wall",
+          "id": "wall-east:section-1wcj16j",
+          "patch": {
+            "color": "#ff0000"
+          }
+        },
+        {
+          "type": "update-wall",
+          "id": "wall-south",
+          "patch": {
+            "color": "#ff0000"
+          }
+        },
+        {
+          "type": "update-wall",
+          "id": "wall-south:section-mfp1zm",
+          "patch": {
+            "color": "#ff0000"
+          }
+        },
+        {
+          "type": "update-wall",
+          "id": "wall-south:section-wrqe3v",
+          "patch": {
+            "color": "#ff0000"
+          }
+        },
+        {
+          "type": "update-wall",
+          "id": "wall-north",
+          "patch": {
+            "color": "#ff0000"
+          }
+        },
+        {
+          "type": "update-wall",
+          "id": "wall-north:section-1bz51as",
+          "patch": {
+            "color": "#ff0000"
+          }
+        },
+        {
+          "type": "update-wall",
+          "id": "wall-spine",
+          "patch": {
+            "color": "#ff0000"
+          }
+        },
+        {
+          "type": "update-wall",
+          "id": "wall-spine:section-tfjdn7",
+          "patch": {
+            "color": "#ff0000"
+          }
+        },
+        {
+          "type": "update-wall",
+          "id": "wall-bedroom",
+          "patch": {
+            "color": "#ff0000"
+          }
+        },
+        {
+          "type": "update-wall",
+          "id": "wall-bedroom:section-1wuotw",
+          "patch": {
+            "color": "#ff0000"
+          }
+        },
+        {
+          "type": "update-wall",
+          "id": "wall-bath",
+          "patch": {
+            "color": "#ff0000"
+          }
+        }
+      ],
+      "notes": "Paint and labour are not priced."
+    }
+  ],
+  "browser_errors": []
+}
