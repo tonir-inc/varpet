@@ -1,0 +1,997 @@
+{
+ "id": "inspiration-avani",
+ "title": "Living room from a picture",
+ "flatId": "avani",
+ "request": "Make my living room look like this picture",
+ "currency": null,
+ "lines": [
+  {
+   "at": 0,
+   "line": {
+    "type": "progress",
+    "message": "Looking at your picture"
+   }
+  },
+  {
+   "at": 0.6,
+   "line": {
+    "type": "tool",
+    "name": "set_intent",
+    "phase": "start",
+    "summary": "Reading the picture",
+    "scripted": true
+   }
+  },
+  {
+   "at": 8.9,
+   "line": {
+    "type": "progress",
+    "message": "Picking out the furniture in your picture"
+   }
+  },
+  {
+   "at": 11.2,
+   "line": {
+    "type": "tool",
+    "name": "set_intent",
+    "phase": "end",
+    "summary": "Four pieces seen",
+    "refs": {
+     "pieces": [
+      {
+       "key": 1,
+       "name": "Fluted oak sideboard",
+       "kind": "cabinet",
+       "soft": false,
+       "box": [
+        0.365,
+        0.487,
+        0.39,
+        0.233
+       ]
+      },
+      {
+       "key": 2,
+       "name": "Cream sofa",
+       "kind": "sofa",
+       "soft": true,
+       "box": [
+        0.05,
+        0.64,
+        0.445,
+        0.26
+       ]
+      },
+      {
+       "key": 3,
+       "name": "Round low coffee table",
+       "kind": "table",
+       "soft": false,
+       "box": [
+        0.525,
+        0.787,
+        0.24,
+        0.167
+       ]
+      },
+      {
+       "key": 4,
+       "name": "Tall bookshelf",
+       "kind": "shelf",
+       "soft": false,
+       "box": [
+        0.785,
+        0.18,
+        0.165,
+        0.567
+       ]
+      }
+     ],
+     "palette": [
+      "#A27F58",
+      "#E8DFCF",
+      "#CFC2AE",
+      "#6F7A68"
+     ]
+    },
+    "scripted": true
+   }
+  },
+  {
+   "at": 11.6,
+   "line": {
+    "type": "message_delta",
+    "delta": "I see four pieces "
+   }
+  },
+  {
+   "at": 11.95,
+   "line": {
+    "type": "message_delta",
+    "delta": "in your picture: a "
+   }
+  },
+  {
+   "at": 12.3,
+   "line": {
+    "type": "message_delta",
+    "delta": "fluted oak sideboard, a "
+   }
+  },
+  {
+   "at": 12.65,
+   "line": {
+    "type": "message_delta",
+    "delta": "cream sofa, a low "
+   }
+  },
+  {
+   "at": 13,
+   "line": {
+    "type": "message_delta",
+    "delta": "round coffee table and "
+   }
+  },
+  {
+   "at": 13.35,
+   "line": {
+    "type": "message_delta",
+    "delta": "a tall bookshelf. "
+   }
+  },
+  {
+   "at": 16,
+   "line": {
+    "type": "tool",
+    "name": "search_catalog",
+    "phase": "start",
+    "summary": "Looking in the shop for a cream sofa",
+    "refs": {
+     "key": 2
+    },
+    "scripted": true
+   }
+  },
+  {
+   "at": 16.3,
+   "line": {
+    "type": "tool",
+    "name": "search_catalog",
+    "phase": "start",
+    "summary": "Looking in the shop for a low coffee table",
+    "refs": {
+     "key": 3
+    },
+    "scripted": true
+   }
+  },
+  {
+   "at": 16.6,
+   "line": {
+    "type": "tool",
+    "name": "search_catalog",
+    "phase": "start",
+    "summary": "Looking in the shop for a fluted oak sideboard",
+    "refs": {
+     "key": 1
+    },
+    "scripted": true
+   }
+  },
+  {
+   "at": 16.9,
+   "line": {
+    "type": "tool",
+    "name": "search_catalog",
+    "phase": "start",
+    "summary": "Looking in the shop for a tall bookshelf",
+    "refs": {
+     "key": 4
+    },
+    "scripted": true
+   }
+  },
+  {
+   "at": 19.8,
+   "line": {
+    "type": "progress",
+    "message": "Comparing shop pieces with your picture"
+   }
+  },
+  {
+   "at": 22.4,
+   "line": {
+    "type": "tool",
+    "name": "search_catalog",
+    "phase": "end",
+    "summary": "Found a sofa in the shop",
+    "refs": {
+     "key": 2,
+     "chosen": {
+      "id": "sofa-sage",
+      "name": "Sage linen sofa",
+      "category": "Living",
+      "kind": "sofa",
+      "dimensions": [
+       2.35,
+       0.82,
+       0.92
+      ],
+      "color": "#889987",
+      "price": 1280,
+      "source": {
+       "type": "procedural"
+      }
+     }
+    },
+    "scripted": true
+   }
+  },
+  {
+   "at": 23.1,
+   "line": {
+    "type": "tool",
+    "name": "search_catalog",
+    "phase": "end",
+    "summary": "Found a coffee table in the shop",
+    "refs": {
+     "key": 3,
+     "chosen": {
+      "id": "table-coffee",
+      "name": "Walnut coffee table",
+      "category": "Living",
+      "kind": "table",
+      "dimensions": [
+       1.12,
+       0.38,
+       0.65
+      ],
+      "color": "#795840",
+      "price": 285,
+      "source": {
+       "type": "procedural"
+      }
+     }
+    },
+    "scripted": true
+   }
+  },
+  {
+   "at": 24,
+   "line": {
+    "type": "tool",
+    "name": "search_catalog",
+    "phase": "end",
+    "summary": "No shop sideboard matches",
+    "refs": {
+     "key": 1
+    },
+    "scripted": true
+   }
+  },
+  {
+   "at": 24.6,
+   "line": {
+    "type": "tool",
+    "name": "search_catalog",
+    "phase": "end",
+    "summary": "No shop bookshelf matches",
+    "refs": {
+     "key": 4
+    },
+    "scripted": true
+   }
+  },
+  {
+   "at": 25,
+   "line": {
+    "type": "message_delta",
+    "delta": "The sofa and the "
+   }
+  },
+  {
+   "at": 25.35,
+   "line": {
+    "type": "message_delta",
+    "delta": "coffee table are in "
+   }
+  },
+  {
+   "at": 25.7,
+   "line": {
+    "type": "message_delta",
+    "delta": "the shop. Nothing there "
+   }
+  },
+  {
+   "at": 26.05,
+   "line": {
+    "type": "message_delta",
+    "delta": "matches the sideboard or "
+   }
+  },
+  {
+   "at": 26.4,
+   "line": {
+    "type": "message_delta",
+    "delta": "the bookshelf, so I "
+   }
+  },
+  {
+   "at": 26.75,
+   "line": {
+    "type": "message_delta",
+    "delta": "will have those two "
+   }
+  },
+  {
+   "at": 27.1,
+   "line": {
+    "type": "message_delta",
+    "delta": "made to measure. "
+   }
+  },
+  {
+   "at": 30.2,
+   "line": {
+    "type": "tool",
+    "name": "reserve_slot",
+    "phase": "start",
+    "summary": "Sizing the sideboard",
+    "refs": {
+     "key": 1
+    },
+    "scripted": true
+   }
+  },
+  {
+   "at": 31,
+   "line": {
+    "type": "tool",
+    "name": "reserve_slot",
+    "phase": "end",
+    "summary": "Sideboard 1.80 × 0.45 × 0.75 m",
+    "refs": {
+     "key": 1,
+     "slot": {
+      "id": "slot-sideboard",
+      "name": "Fluted oak sideboard",
+      "category": "Made to measure",
+      "kind": "cabinet",
+      "dimensions": [
+       1.8,
+       0.75,
+       0.45
+      ],
+      "color": "#CFCAC6",
+      "price": 950,
+      "source": {
+       "type": "procedural"
+      },
+      "slotId": "slot-sideboard",
+      "size_wdh_m": [
+       1.8,
+       0.45,
+       0.75
+      ]
+     }
+    },
+    "scripted": true
+   }
+  },
+  {
+   "at": 31.4,
+   "line": {
+    "type": "tool",
+    "name": "reserve_slot",
+    "phase": "start",
+    "summary": "Sizing the bookshelf",
+    "refs": {
+     "key": 4
+    },
+    "scripted": true
+   }
+  },
+  {
+   "at": 32.1,
+   "line": {
+    "type": "tool",
+    "name": "reserve_slot",
+    "phase": "end",
+    "summary": "Bookshelf 0.80 × 0.35 × 2.00 m",
+    "refs": {
+     "key": 4,
+     "slot": {
+      "id": "slot-bookshelf",
+      "name": "Tall oak bookshelf",
+      "category": "Made to measure",
+      "kind": "shelf",
+      "dimensions": [
+       0.8,
+       2,
+       0.35
+      ],
+      "color": "#CFCAC6",
+      "price": 520,
+      "source": {
+       "type": "procedural"
+      },
+      "slotId": "slot-bookshelf",
+      "size_wdh_m": [
+       0.8,
+       0.35,
+       2
+      ]
+     }
+    },
+    "scripted": true
+   }
+  },
+  {
+   "at": 38.7,
+   "line": {
+    "type": "progress",
+    "message": "Placing the pieces in your living room"
+   }
+  },
+  {
+   "at": 46.9,
+   "line": {
+    "type": "progress",
+    "message": "Checking the layout against walls, doors and windows"
+   }
+  },
+  {
+   "at": 48.3,
+   "line": {
+    "type": "tool",
+    "name": "propose",
+    "phase": "start",
+    "summary": "Checking the layout",
+    "scripted": true
+   }
+  },
+  {
+   "at": 49.6,
+   "line": {
+    "type": "tool",
+    "name": "propose",
+    "phase": "end",
+    "summary": "Layout checked",
+    "refs": {
+     "proposal": {
+      "id": "designer-inspiration-avani-1",
+      "title": "Living room from your picture",
+      "description": "Recolour the sofa in cream and bring the coffee table closer to it; move the oak console to the dining end of the west wall and put a made-to-measure fluted oak sideboard in its place; add a tall oak bookshelf on the wall between the kitchen and bedroom doors.",
+      "command": {
+       "id": "designer-inspiration-avani-1",
+       "label": "Apply the look from your picture",
+       "source": "designer",
+       "baseRevision": 0,
+       "operations": [
+        {
+         "type": "update",
+         "id": "sofa",
+         "patch": {
+          "position": [
+           -3,
+           0,
+           2.8
+          ],
+          "color": "#E8DFCF"
+         }
+        },
+        {
+         "type": "update",
+         "id": "coffee-table",
+         "patch": {
+          "position": [
+           -3,
+           0,
+           1.62
+          ]
+         }
+        },
+        {
+         "type": "update",
+         "id": "media-console",
+         "patch": {
+          "position": [
+           -4.7,
+           0,
+           -2.35
+          ]
+         }
+        },
+        {
+         "type": "add",
+         "object": {
+          "id": "inspo-sideboard",
+          "name": "Fluted oak sideboard",
+          "assetId": "slot-sideboard",
+          "position": [
+           -4.69,
+           0,
+           0.3
+          ],
+          "rotation": 1.5707963267948966,
+          "scale": [
+           1,
+           1,
+           1
+          ]
+         }
+        },
+        {
+         "type": "add",
+         "object": {
+          "id": "inspo-bookshelf",
+          "name": "Tall oak bookshelf",
+          "assetId": "slot-bookshelf",
+          "position": [
+           0.34,
+           0,
+           0
+          ],
+          "rotation": -1.5707963267948966,
+          "scale": [
+           1,
+           1,
+           1
+          ]
+         }
+        }
+       ]
+      }
+     },
+     "assets": [
+      {
+       "id": "sofa-sage",
+       "name": "Sage linen sofa",
+       "category": "Living",
+       "kind": "sofa",
+       "dimensions": [
+        2.35,
+        0.82,
+        0.92
+       ],
+       "color": "#889987",
+       "price": 1280,
+       "source": {
+        "type": "procedural"
+       }
+      },
+      {
+       "id": "table-coffee",
+       "name": "Walnut coffee table",
+       "category": "Living",
+       "kind": "table",
+       "dimensions": [
+        1.12,
+        0.38,
+        0.65
+       ],
+       "color": "#795840",
+       "price": 285,
+       "source": {
+        "type": "procedural"
+       }
+      },
+      {
+       "id": "slot-sideboard",
+       "name": "Fluted oak sideboard",
+       "category": "Made to measure",
+       "kind": "cabinet",
+       "dimensions": [
+        1.8,
+        0.75,
+        0.45
+       ],
+       "color": "#CFCAC6",
+       "price": 950,
+       "source": {
+        "type": "procedural"
+       },
+       "slotId": "slot-sideboard",
+       "size_wdh_m": [
+        1.8,
+        0.45,
+        0.75
+       ]
+      },
+      {
+       "id": "slot-bookshelf",
+       "name": "Tall oak bookshelf",
+       "category": "Made to measure",
+       "kind": "shelf",
+       "dimensions": [
+        0.8,
+        2,
+        0.35
+       ],
+       "color": "#CFCAC6",
+       "price": 520,
+       "source": {
+        "type": "procedural"
+       },
+       "slotId": "slot-bookshelf",
+       "size_wdh_m": [
+        0.8,
+        0.35,
+        2
+       ]
+      }
+     ]
+    },
+    "scripted": true
+   }
+  },
+  {
+   "at": 50.1,
+   "line": {
+    "type": "message_delta",
+    "delta": "Here is your living "
+   }
+  },
+  {
+   "at": 50.45,
+   "line": {
+    "type": "message_delta",
+    "delta": "room. The sofa and "
+   }
+  },
+  {
+   "at": 50.8,
+   "line": {
+    "type": "message_delta",
+    "delta": "the coffee table can "
+   }
+  },
+  {
+   "at": 51.15,
+   "line": {
+    "type": "message_delta",
+    "delta": "be ordered now; the "
+   }
+  },
+  {
+   "at": 51.5,
+   "line": {
+    "type": "message_delta",
+    "delta": "sideboard and the bookshelf "
+   }
+  },
+  {
+   "at": 51.85,
+   "line": {
+    "type": "message_delta",
+    "delta": "stay grey while they "
+   }
+  },
+  {
+   "at": 52.2,
+   "line": {
+    "type": "message_delta",
+    "delta": "are being made. "
+   }
+  },
+  {
+   "at": 53,
+   "line": {
+    "type": "build",
+    "slotId": "slot-sideboard",
+    "state": "queued",
+    "scripted": true
+   }
+  },
+  {
+   "at": 53.2,
+   "line": {
+    "type": "build",
+    "slotId": "slot-bookshelf",
+    "state": "queued",
+    "scripted": true
+   }
+  },
+  {
+   "at": 53.8,
+   "line": {
+    "type": "build",
+    "slotId": "slot-sideboard",
+    "state": "writing",
+    "scripted": true
+   }
+  },
+  {
+   "at": 54.3,
+   "line": {
+    "type": "build",
+    "slotId": "slot-bookshelf",
+    "state": "writing",
+    "scripted": true
+   }
+  },
+  {
+   "at": 96,
+   "line": {
+    "type": "progress",
+    "message": "Making the sideboard and the bookshelf; each takes about two minutes"
+   }
+  },
+  {
+   "at": 118.1,
+   "line": {
+    "type": "build",
+    "slotId": "slot-bookshelf",
+    "state": "checking",
+    "scripted": true
+   }
+  },
+  {
+   "at": 123.5,
+   "line": {
+    "type": "build",
+    "slotId": "slot-bookshelf",
+    "state": "fixing",
+    "scripted": true
+   }
+  },
+  {
+   "at": 125.4,
+   "line": {
+    "type": "build",
+    "slotId": "slot-sideboard",
+    "state": "checking",
+    "scripted": true
+   }
+  },
+  {
+   "at": 133.1,
+   "line": {
+    "type": "build",
+    "slotId": "slot-sideboard",
+    "state": "fixing",
+    "scripted": true
+   }
+  },
+  {
+   "at": 158.4,
+   "line": {
+    "type": "build",
+    "slotId": "slot-bookshelf",
+    "state": "checking",
+    "scripted": true
+   }
+  },
+  {
+   "at": 166.6,
+   "line": {
+    "type": "build",
+    "slotId": "slot-sideboard",
+    "state": "checking",
+    "scripted": true
+   }
+  },
+  {
+   "at": 167,
+   "line": {
+    "type": "build",
+    "slotId": "slot-bookshelf",
+    "state": "done",
+    "glb": "/fixtures/bookshelf.glb",
+    "scripted": true
+   }
+  },
+  {
+   "at": 177,
+   "line": {
+    "type": "build",
+    "slotId": "slot-sideboard",
+    "state": "done",
+    "glb": "/fixtures/sideboard.glb",
+    "scripted": true
+   }
+  },
+  {
+   "at": 178,
+   "line": {
+    "type": "message_delta",
+    "delta": "Both pieces are made. "
+   }
+  },
+  {
+   "at": 178.35,
+   "line": {
+    "type": "message_delta",
+    "delta": "This is the full "
+   }
+  },
+  {
+   "at": 178.7,
+   "line": {
+    "type": "message_delta",
+    "delta": "room from your picture, "
+   }
+  },
+  {
+   "at": 179.05,
+   "line": {
+    "type": "message_delta",
+    "delta": "ready for a quote. "
+   }
+  },
+  {
+   "at": 180.2,
+   "line": {
+    "type": "proposal",
+    "conversationId": "inspiration-avani-scripted",
+    "proposal": {
+     "id": "designer-inspiration-avani-1",
+     "title": "Living room from your picture",
+     "description": "Recolour the sofa in cream and bring the coffee table closer to it; move the oak console to the dining end of the west wall and put a made-to-measure fluted oak sideboard in its place; add a tall oak bookshelf on the wall between the kitchen and bedroom doors.",
+     "command": {
+      "id": "designer-inspiration-avani-1",
+      "label": "Apply the look from your picture",
+      "source": "designer",
+      "baseRevision": 0,
+      "operations": [
+       {
+        "type": "update",
+        "id": "sofa",
+        "patch": {
+         "position": [
+          -3,
+          0,
+          2.8
+         ],
+         "color": "#E8DFCF"
+        }
+       },
+       {
+        "type": "update",
+        "id": "coffee-table",
+        "patch": {
+         "position": [
+          -3,
+          0,
+          1.62
+         ]
+        }
+       },
+       {
+        "type": "update",
+        "id": "media-console",
+        "patch": {
+         "position": [
+          -4.7,
+          0,
+          -2.35
+         ]
+        }
+       },
+       {
+        "type": "add",
+        "object": {
+         "id": "inspo-sideboard",
+         "name": "Fluted oak sideboard",
+         "assetId": "slot-sideboard",
+         "position": [
+          -4.69,
+          0,
+          0.3
+         ],
+         "rotation": 1.5707963267948966,
+         "scale": [
+          1,
+          1,
+          1
+         ]
+        }
+       },
+       {
+        "type": "add",
+        "object": {
+         "id": "inspo-bookshelf",
+         "name": "Tall oak bookshelf",
+         "assetId": "slot-bookshelf",
+         "position": [
+          0.34,
+          0,
+          0
+         ],
+         "rotation": -1.5707963267948966,
+         "scale": [
+          1,
+          1,
+          1
+         ]
+        }
+       }
+      ]
+     }
+    },
+    "assets": [
+     {
+      "id": "sofa-sage",
+      "name": "Sage linen sofa",
+      "category": "Living",
+      "kind": "sofa",
+      "dimensions": [
+       2.35,
+       0.82,
+       0.92
+      ],
+      "color": "#889987",
+      "price": 1280,
+      "source": {
+       "type": "procedural"
+      }
+     },
+     {
+      "id": "table-coffee",
+      "name": "Walnut coffee table",
+      "category": "Living",
+      "kind": "table",
+      "dimensions": [
+       1.12,
+       0.38,
+       0.65
+      ],
+      "color": "#795840",
+      "price": 285,
+      "source": {
+       "type": "procedural"
+      }
+     },
+     {
+      "id": "slot-sideboard",
+      "name": "Fluted oak sideboard",
+      "category": "Made to measure",
+      "kind": "cabinet",
+      "dimensions": [
+       1.8,
+       0.75,
+       0.45
+      ],
+      "color": "#CFCAC6",
+      "price": 950,
+      "source": {
+       "type": "gltf",
+       "url": "/fixtures/sideboard.glb"
+      },
+      "slotId": "slot-sideboard",
+      "size_wdh_m": [
+       1.8,
+       0.45,
+       0.75
+      ]
+     },
+     {
+      "id": "slot-bookshelf",
+      "name": "Tall oak bookshelf",
+      "category": "Made to measure",
+      "kind": "shelf",
+      "dimensions": [
+       0.8,
+       2,
+       0.35
+      ],
+      "color": "#CFCAC6",
+      "price": 520,
+      "source": {
+       "type": "gltf",
+       "url": "/fixtures/bookshelf.glb"
+      },
+      "slotId": "slot-bookshelf",
+      "size_wdh_m": [
+       0.8,
+       0.35,
+       2
+      ]
+     }
+    ],
+    "notes": "Scripted stand-in: no real inspiration-photo run exists yet."
+   }
+  }
+ ]
+}

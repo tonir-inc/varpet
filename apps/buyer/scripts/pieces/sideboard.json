@@ -1,0 +1,32 @@
+{
+  "name": "fluted-oak-sideboard",
+  "size": [1.8, 0.45, 0.75],
+  "materials": {
+    "oak": {"finish": "oak", "color": "#a98460"},
+    "oak-dark": {"finish": "oak", "color": "#6e5238"},
+    "brass": {"finish": "brushed-steel", "color": "#b3945f", "roughness": 0.35}
+  },
+  "parts": [
+    {"id": "top", "size": [1.8, 0.45, 0.03], "material": "oak", "grain": "x",
+     "attach": {"to": "piece", "at": [0.5, 0.5, 1], "self": [0.5, 0.5, 1]}},
+    {"id": "plinth", "size": [1.74, 0.36, 0.08], "material": "oak-dark", "grain": "x",
+     "attach": {"to": "piece", "at": [0.5, 1, 0], "self": [0.5, 1, 0], "offset": [0, -0.02, 0]}},
+    {"id": "carcass", "size": [1.78, 0.4, 0.64], "material": "oak", "grain": "x",
+     "attach": {"to": "top", "at": [0.5, 1, 0], "self": [0.5, 1, 1], "offset": [0, -0.005, 0]}},
+    {"id": "door", "size": [0.588, 0.018, 0.62], "material": "oak", "grain": "z",
+     "attach": {"to": "carcass", "at": [0.5, 0, 0.5], "self": [0.5, 1, 0.5], "offset": [-0.591, 0, 0]},
+     "repeat": {"axis": "x", "count": 3, "step": 0.591}},
+    {"id": "flute-a", "shape": "cylinder", "size": [0.018, 0.018, 0.58], "material": "oak", "grain": "z",
+     "attach": {"to": "door", "at": [0, 0, 0.5], "self": [0, 0.5, 0.5], "offset": [0.0015, 0, 0]},
+     "repeat": {"axis": "x", "count": 28, "step": 0.021}},
+    {"id": "flute-b", "shape": "cylinder", "size": [0.018, 0.018, 0.58], "material": "oak", "grain": "z",
+     "attach": {"to": "door", "at": [0, 0, 0.5], "self": [0, 0.5, 0.5], "offset": [0.5925, 0, 0]},
+     "repeat": {"axis": "x", "count": 28, "step": 0.021}},
+    {"id": "flute-c", "shape": "cylinder", "size": [0.018, 0.018, 0.58], "material": "oak", "grain": "z",
+     "attach": {"to": "door", "at": [0, 0, 0.5], "self": [0, 0.5, 0.5], "offset": [1.1835, 0, 0]},
+     "repeat": {"axis": "x", "count": 28, "step": 0.021}},
+    {"id": "pull", "shape": "rounded_box", "size": [0.03, 0.025, 0.16], "radius": 0.008, "material": "brass",
+     "attach": {"to": "door", "at": [0.5, 0, 0.62], "self": [0.5, 1, 0.5]},
+     "repeat": {"axis": "x", "count": 3, "step": 0.591}}
+  ]
+}
