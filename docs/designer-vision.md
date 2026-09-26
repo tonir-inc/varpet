@@ -186,7 +186,7 @@ pnpm --filter @varpet/editor exec vite --config ../../packages/designer/eval/vis
 VARPET_VISION_EDITOR_URL=http://127.0.0.1:5262 VARPET_CATALOG_URL=http://localhost:8765/mcp \
   uv run --no-project --with openai-codex==0.157.1 --with playwright \
   python harness/designer_service.py --port 8796
-# Live paired experiment; source developer plans must already exist locally:
+# Current-default experiment; source developer plans must already exist locally:
 packages/designer/node_modules/.bin/tsx packages/designer/eval/vision-options-prepare.ts
 packages/designer/node_modules/.bin/tsx packages/designer/eval/vision-options.ts
 ```
@@ -271,3 +271,8 @@ called `show_candidates`; the desk fix also corrected a stale supported-kind pro
 shared-load smoke is not evidence of a speed or taste-quality gain. FAST also attaches a bounded grid
 to its existing single structured call; an observed candidate-geometry rejection remains unresolved.
 [Exact requests, measurements and limitations](../packages/designer/eval/product-preview-live.md).
+
+[reproduction limit] The archived105-trial comparison predates mandatory product previews. Running
+`vision-options.ts` on current main now includes previews in ordinary purchase requests too; it is
+not a recreation of the historical text-only arm. Use the archived revision/source evidence when
+comparing those historical numbers, and label new runs with their actual production defaults.

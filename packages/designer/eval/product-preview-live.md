@@ -52,3 +52,12 @@ packages/designer/node_modules/.bin/tsx packages/designer/eval/product-preview-l
 The first full run hit the existing macOS exited-process `killpg` EPERM race in the benchmark watchdog;
 all 38 benchmark tests passed on rerun without test/code changes. Six new preview-policy regressions
 pass, including per-laptop catalog endpoint forwarding and exclusion of unshown candidates.
+
+[measured live deployment] Port8787 was restarted from this worktree at55f6489 with its existing
+localhost8765 catalog URL and FAST=1. The first native-desk smoke returned catalog unavailable
+(**22.601s,41,194tokens**), with no proposal. An explicit separate retry delivered the six-desk
+`show_candidates` grid and returned an EditorStore/validateScene-accepted proposal in **39.478s,
+92,484tokens**. Both outcomes are retained in the `live/` evidence directory; they are not additional
+repetitions in the paired table. Independent review: APPROVE; untargeted `pnpm test` exit0 (437Designer,
+140harness,38eval,12showcase plus editor), `pnpm typecheck` exit0. Two subsequent helper regression
+tests also passed (6 total). No test assertion or fixture was weakened.
