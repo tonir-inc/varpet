@@ -1,0 +1,10 @@
+{
+ "id": "braid",
+ "family": "fabric",
+ "tile_m": 0.18,
+ "grain": true,
+ "default_color": "#8f7552",
+ "metal": 0.0,
+ "source": "procedural",
+ "license": "CC0"
+}

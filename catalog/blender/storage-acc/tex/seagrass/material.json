@@ -1,0 +1,10 @@
+{
+ "id": "seagrass",
+ "family": "fabric",
+ "tile_m": 0.12,
+ "grain": true,
+ "default_color": "#b9a57a",
+ "metal": 0.0,
+ "source": "procedural",
+ "license": "CC0"
+}

@@ -1,0 +1,10 @@
+{
+ "id": "kraft",
+ "family": "paint",
+ "tile_m": 0.3,
+ "grain": true,
+ "default_color": "#b48b5c",
+ "metal": 0.0,
+ "source": "procedural",
+ "license": "CC0"
+}
