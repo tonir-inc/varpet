@@ -320,13 +320,33 @@ def _room_order(draft: dict) -> list[str]:
     return order
 
 
+def _signatures(draft: dict) -> dict[str, str]:
+    """One digest per room of everything the draft puts there (pieces, finishes, lights)."""
+    rooms: dict[str, list] = {}
+    for key in ("items", "finishes", "lighting"):
+        for entry in draft.get(key) or []:
+            if isinstance(entry, dict) and isinstance(entry.get("room_id"), str):
+                rooms.setdefault(entry["room_id"], []).append(entry)
+    return {room: hashlib.sha1(json.dumps(entries, sort_keys=True).encode()).hexdigest() for room, entries in rooms.items()}
+
+
+def finished_rooms(started: list[str], changed: dict[str, float], now: float, quiet: float) -> tuple[str, ...]:
+    """Rooms this turn worked on that have been quiet for `quiet` seconds, never the one changed last (the
+    designer is still in it). Works whether rooms are designed one after another or in parallel."""
+    touched = [room for room in started if room in changed]
+    if len(touched) < 2:
+        return ()
+    latest = max(touched, key=lambda room: changed[room])
+    return tuple(room for room in touched if room != latest and now - changed[room] >= quiet)
+
+
 class DraftWatcher:
     """Watches draft.json while the thread works: a line per room as the designer moves into it, and when a room is
     finished (the designer has moved on to the next one) a checked preview of the finished rooms, so the customer can
     look at them while the rest continues. A preview is sent only when ./varpet check passes on exactly those rooms."""
 
     def __init__(self, state: SpikeConversation, progress, body: dict, turn: Path, partials: bool = True,
-                 interval: float = 1.5):
+                 interval: float = 1.5, quiet: float = 30.0):
         self.state, self.progress, self.body, self.turn = state, progress, body, turn
         self.names = {room["id"]: room.get("name") or room["id"] for room in state.rooms}
         self.partials, self.interval = partials, interval
@@ -337,6 +357,11 @@ class DraftWatcher:
         self.started_rooms: list[str] = _room_order(before)
         self.previewed: tuple[str, ...] = ()
         self.sent = 0
+        # When each room's part of the draft last changed; a room is finished once it has been quiet for `quiet`
+        # seconds while the designer works elsewhere (in order or, with parallel room designers, out of order).
+        self.signatures: dict[str, str] = _signatures(before)
+        self.changed: dict[str, float] = {}
+        self.quiet = quiet
         self.thread = threading.Thread(target=self._loop, daemon=True)
 
     def start(self) -> "DraftWatcher":
@@ -356,25 +381,31 @@ class DraftWatcher:
 
     def _loop(self) -> None:
         while not self.stopped.wait(self.interval):
-            digest = _draft_digest(self.state.workspace)
-            if not digest or digest == self.digest:
-                continue
+            try:
+                self.poll(time.monotonic())
+            except Exception:  # progress lines and previews are a bonus; the turn goes on without them
+                pass
+
+    def poll(self, now: float) -> None:
+        digest = _draft_digest(self.state.workspace)
+        draft = _read_draft(self.state.workspace / "draft.json") if digest and digest != self.digest else None
+        if draft is not None:
             self.digest = digest
-            draft = _read_draft(self.state.workspace / "draft.json")
-            if draft is None:
-                continue
-            order = _room_order(draft)
-            fresh = [room for room in order if room not in self.started_rooms]
-            for room in fresh:
-                self.started_rooms.append(room)
-                self._emit(f"Designing the {self.names.get(room, room).lower()}")
-            # Finished = every room the designer has left; the newest one is still being worked on.
-            done = tuple(room for room in self.started_rooms[:-1] if room in order)
-            if self.partials and done and done != self.previewed and len(done) > len(self.previewed):
-                try:
-                    self._partial(draft, done)
-                except Exception:  # a preview is a bonus; the turn goes on without it
-                    pass
+            for room, signature in _signatures(draft).items():
+                if self.signatures.get(room) != signature:
+                    self.signatures[room], self.changed[room] = signature, now
+            for room in _room_order(draft):
+                if room not in self.started_rooms:
+                    self.started_rooms.append(room)
+                    self._emit(f"Designing the {self.names.get(room, room).lower()}")
+        if not self.partials:
+            return
+        done = finished_rooms(self.started_rooms, self.changed, now, self.quiet)
+        # Rooms may finish in any order (parallel designers): preview whenever a room joins the finished set.
+        if done and not set(done) <= set(self.previewed):
+            current = _read_draft(self.state.workspace / "draft.json")
+            if current is not None:
+                self._partial(current, done)
 
     def _partial(self, draft: dict, rooms: tuple[str, ...]) -> None:
         keep = set(rooms)
@@ -442,14 +473,7 @@ def critic_module():
 
 
 def _room_signatures(workspace: Path) -> dict[str, str]:
-    """One digest per room of everything the draft puts there (pieces, finishes, lights)."""
-    draft = _read_draft(workspace / "draft.json") or {}
-    rooms: dict[str, list] = {}
-    for key in ("items", "finishes", "lighting"):
-        for entry in draft.get(key) or []:
-            if isinstance(entry, dict) and isinstance(entry.get("room_id"), str):
-                rooms.setdefault(entry["room_id"], []).append(entry)
-    return {room: hashlib.sha1(json.dumps(entries, sort_keys=True).encode()).hexdigest() for room, entries in rooms.items()}
+    return _signatures(_read_draft(workspace / "draft.json") or {})
 
 
 def _review(state: SpikeConversation, brief: str, rooms: list[str], cancel: threading.Event, progress, timeout: float,

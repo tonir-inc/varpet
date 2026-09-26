@@ -57,3 +57,27 @@ def test_an_unchanged_applied_design_is_not_reported_as_moved(tmp_path):
 def test_room_order_follows_the_designer_through_the_flat():
     draft = {"items": [{"room_id": "living"}, {"room_id": "lounge"}, {"room_id": "living"}], "finishes": [{"room_id": "hall"}]}
     assert designer_spike._room_order(draft) == ["living", "lounge"]
+
+
+def test_finished_rooms_tolerates_rooms_finishing_in_any_order():
+    finished = designer_spike.finished_rooms
+    assert finished(["living"], {"living": 0}, 100, 30) == ()
+    # One after another: the room left behind is finished once quiet, the current one never.
+    assert finished(["living", "lounge"], {"living": 10, "lounge": 50}, 60, 30) == ("living",)
+    assert finished(["living", "lounge"], {"living": 40, "lounge": 50}, 60, 30) == ()
+    # In parallel: whichever rooms have gone quiet, in any order; rooms from earlier turns are ignored.
+    assert finished(["hall", "living", "lounge", "bedroom"], {"lounge": 5, "bedroom": 90, "living": 70}, 101, 30) == ("living", "lounge")
+
+
+def test_watcher_names_each_room_and_previews_rooms_as_they_finish(tmp_path, monkeypatch):
+    lines, partials = [], []
+    state = _state(tmp_path, [], [])
+    state.rooms = [{"id": "living", "name": "Living room"}, {"id": "lounge", "name": "Reading room"}]
+    watcher = designer_spike.DraftWatcher(state, lines.append, {}, tmp_path, quiet=30)
+    monkeypatch.setattr(watcher, "_partial", lambda draft, rooms: (partials.append(rooms), setattr(watcher, "previewed", rooms)))
+    write = lambda items: (tmp_path / "draft.json").write_text(json.dumps({"items": items}))
+    write([_item("sofa", [1, -1])]); watcher.poll(0)
+    write([_item("sofa", [1, -1]), {**_item("desk", [5, -1]), "room_id": "lounge"}]); watcher.poll(10)
+    watcher.poll(35); watcher.poll(45)
+    assert lines == ["Designing the living room", "Designing the reading room"]
+    assert partials == [("living",)]
