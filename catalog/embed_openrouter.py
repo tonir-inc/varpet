@@ -28,12 +28,19 @@ def embed(texts, model=MODEL):
     return [d["embedding"] for d in sorted(data, key=lambda d: d["index"])]
 
 
+def _words(v):
+    """Model tags are sometimes a string, sometimes a list: always a list of strings."""
+    if not v:
+        return []
+    return [str(x) for x in (v if isinstance(v, list) else [v]) if x]
+
+
 def item_doc(name, kind, colors, materials, styles, tags, description):
     a = (tags or {}).get("astra") or {}
     parts = [kind, name or "",
-             "colours: " + ", ".join(dict.fromkeys([a.get("main_color", "")] + (a.get("other_colors") or []) + (colors or []))),
-             "materials: " + ", ".join(dict.fromkeys((a.get("materials") or []) + (materials or []))),
-             "style: " + ", ".join(dict.fromkeys(([a["style"]] if a.get("style") else []) + (styles or []))),
+             "colours: " + ", ".join(dict.fromkeys(_words(a.get("main_color")) + _words(a.get("other_colors")) + _words(colors))),
+             "materials: " + ", ".join(dict.fromkeys(_words(a.get("materials")) + _words(materials))),
+             "style: " + ", ".join(dict.fromkeys(_words(a.get("style")) + _words(styles))),
              (description or "")[:400]]
     return "\n".join(p for p in parts if p.strip(" ,:"))
 

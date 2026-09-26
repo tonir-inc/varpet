@@ -1,35 +1,46 @@
 {
- "_note": "Relevant items among the pooled top-5 of all variants, judged by eye from the product photo by Claude on 26 Sept. Not human labels.",
+ "_note": "Relevant items among the pooled top-5 of all variants (round 2, 26 Sept), judged by eye from the product photo by Claude. Not human labels.",
  "q01": [
-  "abo:B086B5P473",
-  "abo:B075X5VCNQ",
-  "abo:B07MJL5SZB",
-  "abo:B075X3SHW4",
-  "abo:B07J2KFXC7",
   "abo:B075X33SQ9",
   "abo:B073G6GTK7",
-  "abo:B082VMDG18",
-  "abo:B075X4F578",
+  "abo:B07J2KFXC7",
+  "abo:B07VP8ZD91",
+  "abo:B075X4F4SF",
+  "abo:B07BWL4C41",
+  "abo:B075X5VCNQ",
+  "abo:B07MJL5SZB",
+  "abo:B07BWJD1V4",
+  "abo:B07R3TWDTT",
+  "abo:B07VQSWPXR",
+  "abo:B075X4VR52",
+  "abo:B082VM4LMQ",
   "abo:B07B4N29DG"
  ],
  "q02": [
   "abo:B07B4DBBPG",
-  "abo:B075X4PTRL",
   "abo:B082VN4F4K",
+  "abo:B075X4PTRL",
   "abo:B075X4JB3K",
   "abo:B07BKKXRVC",
   "abo:B075X4F56V",
   "abo:B075X2WNVN",
-  "abo:B07HZ75QTT"
+  "abo:B07HZ75QTT",
+  "abo:B07B4D84F8",
+  "abo:B075X4PTBG",
+  "abo:B075X4PRNS"
  ],
  "q03": [
   "abo:B071J7Q6KD",
   "abo:B07BW8PWGV",
-  "abo:B07J2R88YB",
-  "abo:B07JQTGKS7",
   "abo:B0854SQFCY",
+  "abo:B07JQTGKS7",
   "abo:B07JVNBJTB",
-  "abo:B071W5VJFK"
+  "abo:B071W5VJFK",
+  "abo:B07J59DFXX",
+  "abo:B07QZ21DDV",
+  "abo:B07B4MMPSW",
+  "abo:B082QBH69W",
+  "abo:B07DBGPHG5"
  ],
  "q04": [
   "abo:B07QGFS4JC",
@@ -37,45 +48,61 @@
   "abo:B07QHKQLBH",
   "abo:B07TMGJC9N",
   "abo:B082DFL4JW",
-  "abo:B07PZY2G1B"
+  "abo:B07PZY2G1B",
+  "abo:B07TLDMQS2",
+  "abo:B01MXKMRK4",
+  "abo:B07XL85YDN",
+  "abo:B07K6QBDC8",
+  "abo:B07K6S7QHQ"
  ],
  "q05": [
   "abo:B08FTN8KHY",
   "abo:B075QL8KBL",
-  "abo:B07RCMX761",
-  "abo:B07R6TND49",
   "abo:B07RB7LWMS",
+  "abo:B07R6TND49",
   "abo:B07R7XFD22",
+  "abo:B07RCMX761",
   "abo:B07K6M8HKR",
   "abo:B07K6MBGYH",
   "abo:B086VLQ6WF",
   "abo:B086VLRYXS",
-  "abo:B086VNNCNG"
+  "abo:B086VNNCNG",
+  "abo:B07DYJPF4G",
+  "abo:B07SQWPC7Z"
  ],
  "q06": [
   "abo:B01M4OYBOI",
   "abo:B07TNKZ6MV",
-  "abo:B07DBFG16Z"
+  "abo:B07DBFG16Z",
+  "abo:B07QPZJ947",
+  "abo:B07VQVN84H",
+  "abo:B07VLHKQ5G",
+  "abo:B07QNWMF2M"
  ],
  "q07": [
-  "abo:B07QGG3PV8",
-  "abo:B0719STLKT",
-  "abo:B0735THVQN",
+  "abo:B0735W3QJL",
+  "abo:B07TVD3Z6Q",
+  "abo:B07TS82ZHP",
+  "abo:B07Q9CJ73H",
   "abo:B0735TZD8V",
-  "abo:B07TVD3P41",
+  "abo:B0735THVQN",
+  "abo:B07QB8K1GS",
+  "abo:B0719SX5P1",
   "abo:B07Q5ZXRDV",
-  "abo:B07Q9CJ73H"
+  "abo:B07TVD4QNC"
  ],
  "q08": [
   "abo:B075ZBW22K",
   "abo:B074KKXLK1",
-  "abo:B01DDQMQO0",
   "abo:B074KLN3HX",
+  "abo:B01DDQMQO0",
   "abo:B00I0VTOO4",
   "abo:B082JGV1YM",
   "abo:B07B7DL32H",
   "abo:B07TVYR62P",
-  "abo:B07TZ9BMJZ"
+  "abo:B07TZ9BMJZ",
+  "abo:B07B7J2VCD",
+  "abo:B07PQS58XN"
  ],
  "q09": [
   "abo:B07374K536",
@@ -90,19 +117,31 @@
   "abo:B075X2YJHZ",
   "abo:B07B4YXR7D",
   "abo:B07B4YHYR2",
-  "abo:B073P484RR"
+  "abo:B073P484RR",
+  "abo:B0828FBDV7",
+  "abo:B0824F7ZLF",
+  "abo:B0742D9X4R"
  ],
  "q10": [
-  "abo:B07JQY7VR9",
-  "abo:B07QJLYCCL",
-  "abo:B07B4CZP32",
-  "abo:B07HZ73SBZ",
   "abo:B075X4F5NM",
-  "abo:B0853VKX9H",
+  "abo:B082VLZ7SC",
+  "abo:B0853VQ4BN",
+  "abo:B075X2X4XS",
   "abo:B07HZ7HP3W",
+  "abo:B07B4MDK2G",
+  "abo:B07B4GXXDV",
+  "abo:B07DBHB67R",
   "abo:B075X43FL8",
   "abo:B075X3SHY9",
   "abo:B075X4PRZ9",
-  "abo:B082VL45XY"
+  "abo:B082VL45XY",
+  "abo:B082QD61D9",
+  "abo:B075X4F3R5",
+  "abo:B07B4M6B3B",
+  "abo:B07P6JTVZV",
+  "abo:B07P5LMFMT",
+  "abo:B082VLRCCP",
+  "abo:B071J7Q9WN",
+  "abo:B075ZBW1PX"
  ]
 }

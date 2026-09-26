@@ -29,8 +29,8 @@ class Query:
     like_item: str | None = None                           # item id for visual similarity
     like_image: str | None = None                          # photo path or URL for visual similarity
     exclude_ids: list[str] = field(default_factory=list)
-    colour_mode: str = "both"
-    text_mode: str = "both"
+    colour_mode: str = "all"                              # listing+image+astra: best in eval (0.86)
+    text_mode: str = "vector"                             # SigLIP text-to-image: best in eval
     model: str = "siglip2-base-patch16-224"
     weights: dict = field(default_factory=dict)
     limit: int = 10
@@ -48,6 +48,13 @@ def fits(size, box, rotate=True):
 ALIASES = {"both": "listing+image", "all": "listing+image+astra"}
 
 
+def _words(v):
+    """Model tags are sometimes a string, sometimes a list: always a list of strings."""
+    if not v or isinstance(v, bool):
+        return []
+    return [str(x) for x in (v if isinstance(v, list) else [v]) if x]
+
+
 def modes(mode, aliases=ALIASES):
     """'listing+astra' -> {'listing', 'astra'}; 'both' and 'all' are shorthands."""
     return set(aliases.get(mode, mode).split("+"))
@@ -59,7 +66,7 @@ def colour_score(req, listing_cols, img_cols, astra, mode):
     parts = {
         "listing": 1.0 if set(req) & set(listing_cols) else 0.0,
         "image": min(1.0, sum(c["share"] for c in img_cols or [] if c["name"] in req) * 1.25),
-        "astra": 1.0 if astra.get("main_color") in req else 0.5 if set(req) & set(astra.get("other_colors") or []) else 0.0,
+        "astra": 1.0 if set(req) & set(_words(astra.get("main_color"))) else 0.5 if set(req) & set(_words(astra.get("other_colors"))) else 0.0,
     }
     use = [parts[m] for m in modes(mode)]
     return sum(use) / len(use)
@@ -100,7 +107,7 @@ def search(conn, q: Query):
     passed, misses = [], []
     for r in rows:
         (iid, name, kind, size, status, price, cstd, cimg, styles, mats, img, glb, ev, tags, fts) = r
-        astra = (tags or {}).get("astra") or {}
+        astra = {k: _words(v) for k, v in ((tags or {}).get("astra") or {}).items() if k in ("main_color", "other_colors", "materials", "style")}
         fail = []
         margins = fits(size, q.fit_box, q.allow_rotate) if q.fit_box else None
         if margins and min(margins) < 0:
@@ -110,8 +117,8 @@ def search(conn, q: Query):
         rec = {"id": iid, "name": name, "kind": kind, "size_m": size, "size_status": status, "price": price,
                "colors_listing": listing_palette(cstd), "colors_image": [c["name"] for c in cimg or []],
                "styles": styles, "materials": mats, "image": img, "glb_url": glb,
-               "colors_astra": [c for c in [astra.get("main_color")] + (astra.get("other_colors") or []) if c],
-               "style_astra": astra.get("style"), "materials_astra": astra.get("materials"),
+               "colors_astra": (astra.get("main_color") or []) + (astra.get("other_colors") or []),
+               "style_astra": astra.get("style") or [], "materials_astra": astra.get("materials") or [],
                "wd_swapped": bool((ev or {}).get("wd_swapped")), "_fts": float(fts), "_astra": astra}
         if fail:
             rec["failed"] = fail
@@ -149,7 +156,7 @@ def search(conn, q: Query):
     if q.styles or q.materials:
         want = {s.lower() for s in q.styles + q.materials}
         def have(rec):
-            words = (rec["styles"] or []) + (rec["materials"] or []) + (rec["materials_astra"] or []) + [rec["style_astra"] or ""]
+            words = (rec["styles"] or []) + (rec["materials"] or []) + rec["materials_astra"] + rec["style_astra"]
             return {t.lower() for t in words}
         scores["tags"] = np.array([len(want & have(p[0])) / len(want) for p in passed]); used.add("tags")
     ref = None
