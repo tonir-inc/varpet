@@ -152,8 +152,8 @@ def execute(scenario, mode, batch, args, cancel):
         transcript.write("runtime", model_catalog=runtime.get("model_catalog_audit"))
         job_path = Path(directory) / "job.json"
         job = {"runtime": runtime, "request": scenario["request"], "effort": args.effort}
-        if profile:
-            job["profile"] = profile
+        # Reference runs must not silently inherit the product's measured defaults.
+        job["profile"] = profile or {"placement": "relations", "context": "full"}
         job_path.write_text(json.dumps(job))
         command = [sys.executable, "-u", str(HERE / "run.py"), "--worker", str(job_path)]
         if mode == "without-place":

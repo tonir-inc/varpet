@@ -33,6 +33,21 @@ ROOT = Path(__file__).resolve().parents[1]
 MODEL = "gpt-6-astra"
 IDLE_TIMEOUT = 240.0
 SKILL = ROOT / ".agents/skills/interior-design-rules/SKILL.md"
+DEFAULT_EFFORT = "low"
+DEFAULT_PROFILE = {"placement": "without-place", "context": "compact-base"}
+
+
+def runtime_settings(job: dict) -> tuple[str, dict]:
+    """Measured product defaults; explicit benchmark/embedding settings win."""
+    effort = job.get("effort", DEFAULT_EFFORT)
+    if effort not in ("low", "medium"):
+        raise ValueError("Designer effort must be low or medium")
+    return effort, dict(job.get("profile", DEFAULT_PROFILE))
+
+
+def default_service_settings() -> dict:
+    effort, profile = runtime_settings({})
+    return {"effort": effort, "profile": profile}
 
 
 def static_prefix() -> str:
@@ -183,6 +198,7 @@ def designer_mcp_env() -> dict[str, str]:
 
 
 def build_config(scene_path: Path) -> dict:
+    """Reference configuration, before the worker applies its runtime profile."""
     return {
         "model": MODEL,
         "model_reasoning_effort": "medium",
@@ -328,13 +344,10 @@ def sdk_worker(job_path: Path) -> int:
         print(str(error), file=sys.stderr)
         return 2
     job = json.loads(job_path.read_text())
-    effort = job.get("effort", "medium")
-    if effort not in ("low", "medium"):
-        raise ValueError("Designer effort must be low or medium")
+    effort, profile = runtime_settings(job)
     runtime = job["runtime"]
     config = build_config(Path(runtime["scene"]))
     from designer_profiles import TurnGuard, configure, prompt as profile_prompt, base_instructions
-    profile = job.get("profile", {})
     placement, context = profile.get("placement", "relations"), profile.get("context", "full")
     config = configure(config, placement, effort, context)
     if runtime.get("model_catalog"):
@@ -458,8 +471,12 @@ def run_conversation(args) -> int:
     run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "-" + uuid.uuid4().hex[:8]
     transcript = Transcript(args.output_dir.resolve() / (run_id + ".jsonl"))
     print(f"Transcript: {transcript.path}", flush=True)
-    transcript.write("conversation", model=MODEL, effort="medium", approval_mode="deny_all",
-                     scene_path=str(scene_path), scene=scene, static_prefix=static_prefix())
+    from designer_profiles import prompt as profile_prompt, base_instructions
+    effort, profile = runtime_settings({})
+    transcript.write("conversation", model=MODEL, effort=effort, profile=profile, approval_mode="deny_all",
+                     scene_path=str(scene_path), scene=scene,
+                     static_prefix=profile_prompt(profile["placement"], profile["context"], static_prefix()),
+                     base_instructions=base_instructions(profile["context"]))
     with tempfile.TemporaryDirectory(prefix="varpet-designer-") as directory:
         runtime = prepare_runtime(Path(directory), scene)
         previous_usage = None
