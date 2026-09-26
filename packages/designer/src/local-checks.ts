@@ -1,5 +1,5 @@
 import { parseScene } from './adapter.js';
-import { doorSwingPolygon, itemPolygon, pointInPolygon, polygonsOverlap, spaceMetrics } from './metrics/space.js';
+import { physicalDoorSwingPolygon, itemPolygon, pointInPolygon, polygonsOverlap, spaceMetrics } from './metrics/space.js';
 import type { Scene, Vec2 } from './scene.js';
 
 export interface LayoutError {
@@ -65,10 +65,9 @@ export function localGeometryErrors(input:Scene):LayoutError[] {
     }
   }
   for(const opening of scene.openings) {
-    const swing=doorSwingPolygon(scene,opening);
+    const swing=physicalDoorSwingPolygon(scene,opening);
     if(!swing) continue;
-    const wall=scene.walls.find(w=>w.id===opening.wall_id)!;
-    for(let i=0;i<items.length;i++) if(items[i]!.room_id===wall.room_id&&polygonsOverlap(footprints[i]!,swing)) {
+    for(let i=0;i<items.length;i++) if(polygonsOverlap(footprints[i]!,swing)) {
       const item=items[i]!;
       errors.push({check:'door_swing',item_ids:[item.id],at:[...item.pos],deficit_m:penetration(footprints[i]!,swing),message:`${item.id} blocks door ${opening.id} swing`});
     }

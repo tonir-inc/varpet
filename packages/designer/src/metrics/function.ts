@@ -1,6 +1,6 @@
 import { parseScene } from '../adapter.js';
 import { outsidePoint } from '../local-checks.js';
-import { doorSwingPolygon, itemPolygon, polygonsOverlap } from './space.js';
+import { physicalDoorSwingPolygon, itemPolygon, polygonsOverlap } from './space.js';
 import type { Item, Scene, Vec2 } from '../scene.js';
 
 export interface FunctionClearance {
@@ -34,8 +34,8 @@ function clearance(scene: Scene, item: Item, side: Side, wallsOnly = false): num
   const {a,b,outward:n} = edge(item,side);
   const obstacles = wallsOnly ? [] : [
     ...[...scene.items,...scene.fixed].filter(other => other.id !== item.id && other.room_id === item.room_id).map(itemPolygon),
-    ...scene.openings.filter(opening => scene.walls.find(wall=>wall.id===opening.wall_id)?.room_id===item.room_id)
-      .map(opening=>doorSwingPolygon(scene,opening)).filter((p): p is Vec2[] => p !== null),
+    // A door owned by the adjacent room may swing into this access strip.
+    ...scene.openings.map(opening=>physicalDoorSwingPolygon(scene,opening)).filter((p): p is Vec2[] => p !== null),
   ];
   let low = 0, high = Math.max(...polygon.map(point=>Math.hypot(point[0]-item.pos[0],point[1]-item.pos[1]))) + Math.max(...item.size) + 1;
   for (let iteration=0;iteration<45;iteration++) {

@@ -27,7 +27,10 @@ export function createServer(input: Scene) {
     try {
       const summary = sceneSummary(scene, room_ids);
       const selected = new Set(summary.rooms.map(room=>room.id));
-      return result({ ...summary, metrics: spaceMetrics({ ...scene, rooms: summary.rooms, walls: scene.walls.filter(w=>selected.has(w.room_id)), openings: summary.openings, items: summary.items, fixed: summary.fixed }) });
+      // Neighboring walls may own doors that swing into a selected room.
+      const rooms = selected.size ? spaceMetrics(scene).rooms.filter(room=>selected.has(room.room_id)) : [];
+      const free_area_m2 = Math.round(rooms.reduce((sum,room)=>sum+room.free_area_m2,0)*1e10)/1e10;
+      return result({ ...summary, metrics: {rooms,free_area_m2} });
     }
     catch (error) { return result(String(error), true); }
   });

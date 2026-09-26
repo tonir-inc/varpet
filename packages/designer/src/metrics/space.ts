@@ -74,28 +74,34 @@ function doorGeometry(scene: Scene, opening: Opening) {
   return { wall, along, inward, point };
 }
 
-/** Conservative interior sweep, shared by circulation and placement checks. */
-export function doorSwingPolygon(scene: Scene, opening: Opening): Vec2[] | null {
-  if (opening.kind !== 'door' || !opening.swing?.startsWith('inward')) return null;
+/** Complete physical sweep, including outward doors opening into an adjacent room. */
+export function physicalDoorSwingPolygon(scene: Scene, opening: Opening): Vec2[] | null {
+  if (opening.kind !== 'door' || !opening.swing || opening.swing === 'none') return null;
   const { wall, along, inward } = doorGeometry(scene, opening);
   const right = opening.swing.endsWith('right');
   const hinge: Vec2 = [wall.a[0] + along[0] * (opening.offset + (right ? opening.width : 0)), wall.a[1] + along[1] * (opening.offset + (right ? opening.width : 0))];
-  const direction = right ? -1 : 1;
+  const direction = right ? -1 : 1, side = opening.swing.startsWith('inward') ? 1 : -1;
   // Circumscribed 5-degree arc: never underestimates a swept quarter circle.
   const segments = 18, step = Math.PI / 2 / segments, radius = opening.width / Math.cos(step / 2);
   const polygon: Vec2[] = [hinge];
   for (let i = 0; i <= segments; i++) {
     const theta = i * step;
-    polygon.push([hinge[0] + radius * (direction * along[0] * Math.cos(theta) + inward[0] * Math.sin(theta)), hinge[1] + radius * (direction * along[1] * Math.cos(theta) + inward[1] * Math.sin(theta))]);
+    polygon.push([hinge[0] + radius * (direction * along[0] * Math.cos(theta) + side * inward[0] * Math.sin(theta)), hinge[1] + radius * (direction * along[1] * Math.cos(theta) + side * inward[1] * Math.sin(theta))]);
   }
   return polygon;
+}
+
+/** Compatibility helper: only sweeps into the owning wall's room. */
+export function doorSwingPolygon(scene: Scene, opening: Opening): Vec2[] | null {
+  return opening.swing?.startsWith('inward') ? physicalDoorSwingPolygon(scene, opening) : null;
 }
 
 function obstaclesForRoom(scene: Scene, room: Room): Obstacle[] {
   const obstacles: Obstacle[] = [...scene.items, ...scene.fixed].filter(i => i.room_id === room.id).map(item => ({ polygon: itemPolygon(item) }));
   for (const opening of scene.openings) {
-    if (scene.walls.find(wall => wall.id === opening.wall_id)?.room_id !== room.id) continue;
-    const polygon = doorSwingPolygon(scene, opening);
+    // The room tag belongs to the wall, not the physical space swept by its leaf.
+    // Raster clipping below reserves only the portion actually inside this room.
+    const polygon = physicalDoorSwingPolygon(scene, opening);
     if (polygon) obstacles.push({ polygon, opening_id: opening.id });
   }
   return obstacles;
@@ -251,14 +257,39 @@ function approach(grid: RoutingGrid, room: Room, obstacles: Obstacle[], point: V
   return { node: best, aperture, narrowest: [rounded(narrowest[0]), rounded(narrowest[1])] };
 }
 
+/** Prove the complete aperture lies on collinear boundary edges, not just its centre. */
+function openingOnBoundary(room: Room, point: Vec2, along: Vec2, width: number): boolean {
+  const start: Vec2 = [point[0] - along[0] * width / 2, point[1] - along[1] * width / 2];
+  const intervals: [number, number][] = [];
+  for (let i = 0; i < room.polygon.length; i++) {
+    const a = room.polygon[i]!, b = room.polygon[(i + 1) % room.polygon.length]!;
+    const side = (p: Vec2) => along[0] * (p[1] - start[1]) - along[1] * (p[0] - start[0]);
+    if (Math.abs(side(a)) > EPS || Math.abs(side(b)) > EPS) continue;
+    const project = (p: Vec2) => along[0] * (p[0] - start[0]) + along[1] * (p[1] - start[1]);
+    const aa = project(a), bb = project(b), low = Math.max(0, Math.min(aa, bb)), high = Math.min(width, Math.max(aa, bb));
+    if (high >= low) intervals.push([low, high]);
+  }
+  intervals.sort((a, b) => a[0] - b[0]);
+  let covered = 0;
+  for (const [low, high] of intervals) {
+    if (low > covered + EPS) return false;
+    covered = Math.max(covered, high);
+  }
+  return covered >= width - EPS;
+}
+
 function endpoints(scene: Scene, room: Room, grid: RoutingGrid): { doors: Endpoint[]; items: Endpoint[] } {
   const obstacles = obstaclesForRoom(scene, room), doors: Endpoint[] = [], items: Endpoint[] = [];
   for (const opening of scene.openings) {
     if (opening.kind === 'window') continue;
-    const { wall, point, inward } = doorGeometry(scene, opening);
-    if (wall.room_id !== room.id) continue;
-    const swing = opening.kind === 'door' && opening.swing?.startsWith('inward') ? opening.id : undefined;
-    const entry = approach(grid, room, obstacles, point, inward, 0.45 + (swing ? opening.width : 0), swing);
+    const { wall, point, along, inward } = doorGeometry(scene, opening);
+    const owner = wall.room_id === room.id, intoRoom: Vec2 = owner ? inward : [-inward[0], -inward[1]];
+    if (!owner && (!openingOnBoundary(room, point, along, opening.width)
+      || !pointInPolygon([point[0] + intoRoom[0] * 1e-5, point[1] + intoRoom[1] * 1e-5], room.polygon)
+      || pointInPolygon([point[0] - intoRoom[0] * 1e-5, point[1] - intoRoom[1] * 1e-5], room.polygon))) continue;
+    const swingsIntoRoom = opening.kind === 'door' && opening.swing?.startsWith(owner ? 'inward' : 'outward');
+    const swing = swingsIntoRoom ? opening.id : undefined;
+    const entry = approach(grid, room, obstacles, point, intoRoom, 0.45 + (swing ? opening.width : 0), swing);
     doors.push({ id: `door:${opening.id}`, point, ...entry, aperture: Math.min(opening.width, entry.aperture), narrowest: opening.width <= entry.aperture ? point : entry.narrowest });
   }
   for (const item of scene.items.filter(i => i.room_id === room.id)) {

@@ -19,7 +19,7 @@ Measured output from repository-root checks:
 
 ```text
 pnpm test: exit 0
-Designer: 108 passed (23 files)
+Designer: 127 passed (27 files)
 Hooks: 7 passed
 Editor: Domain checks passed (265 assertions)
 Engine: no test files found, exiting with code 0
@@ -36,10 +36,17 @@ Root integration tests also exercise these tools over MCP. Full command output i
 in each card's commit body; local logs use `/tmp/varpet-card05-*`.
 
 Measured: fresh reviewer `card05_review` returned APPROVE with no BLOCKER, HIGH or MEDIUM.
-It independently ran root tests and typecheck. Prior reviews found and resolved concave
-wall compass, compound-placement final rotation, and unbounded placement-search issues,
-with regression tests. Publication and the final whole-lane review are reported separately
-at the end of the session so this note does not claim a future push.
+Final reviewer `whole_lane_review` inspected the five card commits through `main~9..main`
+(including intervening team updates) and found an outward-door cross-room collision blocker
+plus a selected-room summary inconsistency. New tests reproduced both. Physical sweeps now
+reserve every affected room, shared doorways supply neighbor ingress, and filtered summaries
+retain those effects. Its re-review returned APPROVE with no remaining findings and independently
+ran the 127-test root suite and typecheck. Nineteen new regression tests cover the corrections.
+Prior reviews also resolved concave wall compass, compound-placement final rotation and unbounded
+placement-search issues. Final publication is reported at the end of the session.
+
+Derived from card verification reports: card 01 added 4 tests; 02 added 19; 03 added 21;
+04 added 21; 05 added 43; final review added 19. Total: 127 designer tests.
 
 ## Assumptions and remaining scope
 
@@ -73,7 +80,7 @@ DONE: 7 of 7
   session and MCP integration cases in seven new test files.
 - 4 ✓ No existing committed test, fixture, schema, constitution, hook or agent config was
   changed by this lane to make a check pass. New temporary types/fixtures arrived in card 01.
-- 5 ✓ Fresh reviewer APPROVE; no unresolved BLOCKER/HIGH in card 05 or prior card reviews.
+- 5 ✓ Fresh whole-lane reviewer APPROVE after corrections; no unresolved findings.
 - 6 ✓ Assumptions, remaining stubs and unproven product integration are named above.
 - 7 ✓ Exclusive file ownership: root adapter/server/session/local-checks, their tests and
   docs; space worker metrics/space.ts and space tests; sun/place/request worker their

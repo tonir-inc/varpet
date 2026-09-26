@@ -19,6 +19,9 @@ as an independent oracle: https://gml.noaa.gov/grad/solcalc/main.js.
 Assumed: 5 cm conservative occupied cells and a 2.5 cm routing lattice. Circulation uses widest
 paths, includes the actual entrance/front approaches, and reserves door swings. A door's own swing
 is traversable on ingress only. Straight approach rays can conservatively decline a tight turn.
+Measured: outward sweeps also reserve floor and block furniture/access strips in neighboring rooms.
+Shared doorways provide ingress only where the complete opening span lies on the neighbor boundary.
+Room-filtered summaries retain these cross-room effects.
 
 Assumed: solar defaults are the four seasonal dates in 2026, fixed UTC+4, a 15 degree obstruction
 horizon, and one-minute sampling. Solar noon differs from civil noon. Floor patches include the
