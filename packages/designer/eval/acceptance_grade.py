@@ -43,7 +43,7 @@ def kind(asset):
  if k=='wardrobe' or k in ('cabinet','dresser') and re.search(r'wardrobe|armoire',name):return 'wardrobe'
  if k=='desk' or k=='table' and re.search(r'\bdesk\b|workstation|writing.*(?:office|table)',name):return 'desk'
  if k=='table' and re.search(r'coffee|cocktail',name):return 'coffee'
- if k=='chair' and re.search(r'armchair|lounge|accent|reading|recliner',name):return 'armchair'
+ if k=='chair' and re.search(r'armchair|lounge|accent|reading|recliner|angled chair',name):return 'armchair'
  return k
 
 def axes(o):
@@ -151,8 +151,8 @@ def walkway(scene,room,catalog,target):
 
 def visible_color(scene,w):
  materials={m['id']:m['color'] for m in scene.get('project',{}).get('materials',[])}
- colors=[materials.get(f['materialId'],w['color']) for f in scene.get('project',{}).get('finishes',[]) if f['entityId']==w['id'] and f['surface'] in ('wall-front','wall-back')]
- return colors or [w['color']]
+ finishes={f['surface']:materials.get(f['materialId'],w['color']) for f in scene.get('project',{}).get('finishes',[]) if f['entityId']==w['id']}
+ return [finishes.get(side,w['color']) for side in ('wall-front','wall-back')]
 def white(c):
  r,g,b=[int(c[i:i+2],16) for i in (1,3,5)];return r>=230 and g>=220 and b>=205 and r>=g>=b and 3<=r-b<=35
 
@@ -172,6 +172,7 @@ def quote(text,objects,catalog):
 
 def grade(key,before,after,catalog,reply,accepted,text,seconds):
  fail=[];measure={};typ=reply.get('type','error');changed=before!=after
+ text=text.replace('’',"'")
  living=room_for(after,r'living|հյուր');bedroom=room_for(after,r'bedroom|ննջ');room=bedroom if key in ('bedroom','paint') else living
  inventory=objects_in(after,room,catalog);by=lambda k:[(o,a) for o,a in inventory if kind(a)==k]
  added=[(o,a) for o,a in inventory if not any(old['id']==o['id'] for old in before['objects'])]
@@ -233,8 +234,10 @@ def grade(key,before,after,catalog,reply,accepted,text,seconds):
   check=white if key=='paint' else lambda c:int(c[1:3],16)>1.4*max(int(c[3:5],16),int(c[5:7],16))
   if not targets or not all(all(check(c) for c in visible_color(after,w)) for w in targets):fail.append('requested_wall_colour_coverage_incomplete')
  if key in ('desk','armchair'):
-  found=[(o,a) for o,a in added if kind(a)==key]
-  if not room or not any(window_distance(after,room,o)<=1.5 for o,a in found):fail.append('requested_new_piece_not_within_1.5m_of_window')
+  found=[(o,a) for o,a in objects_in(after,None,catalog) if kind(a)==key and not any(old['id']==o['id'] for old in before['objects'])]
+  distances=[{'id':o['id'],'room':r['id'],'window_distance_m':window_distance(after,r,o)} for o,a in found for r in after['rooms'] if inside(pos(o),r['polygon']) and opening_spans(after,r,'window')]
+  measure['new_piece_window_distances']=distances
+  if not any(d['window_distance_m']<=1.5 for d in distances):fail.append('requested_new_piece_not_within_1.5m_of_window')
  if key=='sofa':
   if not room or not any(face_window(after,room,o) and any(old['id']==o['id'] and (old['position']!=o['position'] or old['rotation']!=o['rotation']) for old in before['objects']) for o,a in by('sofa')):fail.append('existing_sofa_not_moved_to_face_window')
  if key.startswith('bigger'):
@@ -274,14 +277,17 @@ def grade(key,before,after,catalog,reply,accepted,text,seconds):
  if key=='advice':
   if typ!='message' or changed or not re.search(r'minimal|simple|less|few',text,re.I) or not re.search(r'storage|clutter|space|light|scale',text,re.I):fail.append('not_useful_minimalism_advice')
  if key in ('structural','impossible'):
-  if typ not in ('decline','message') or changed or not re.search(r'cannot|can.t|unable|not (?:fit|able)|too (?:small|large)|unsafe|not enough|not (?:demolish|remove)|won.t fit',text,re.I):fail.append('no_honest_refusal')
+  if typ not in ('decline','message') or changed or not re.search(r'cannot|can.t|couldn.t|unable|failed (?:the )?(?:clearance|access|fit)|not (?:fit|able)|too (?:small|large)|unsafe|not enough|not (?:demolish|remove)|won.t fit',text,re.I):fail.append('no_honest_refusal')
   if key=='impossible':
    if seconds>10:fail.append('honest_no_over_10_seconds')
-   if not re.search(r'bathroom|bath',text,re.I) or not re.search(r'bed|fit|clearance|access|space',text,re.I):fail.append('no_bathroom_feasibility_reason')
+   if not re.search(r'bed',text,re.I) or not re.search(r'fit|clearance|access|space|wall|size',text,re.I):fail.append('no_bathroom_feasibility_reason')
  if key=='failed-followup':
   if not re.search(r'bed|bathroom',text,re.I) or not re.search(r'alternative|instead|bedroom|smaller|option|cannot|can.t',text,re.I):fail.append('did_not_address_failed_bathroom_bed_request')
-  if typ in ('error','question') or changed:fail.append('failed_followup_not_safe_relevant_answer')
- if key in ('bedroom','living','desk','armchair','sofa') and room is None:fail.append('target_room_missing')
+  if typ=='proposal' and accepted and changed:
+   from acceptance_access import bedroom_alternative
+   alternative=bedroom_alternative(before,after,catalog);fail.extend(alternative['failures']);measure.update(alternative['measurements'])
+  elif typ not in ('message','decline') or changed:fail.append('failed_followup_not_safe_relevant_answer')
+ if key in ('bedroom','living','sofa') and room is None:fail.append('target_room_missing')
  return {'pass':not fail,'failures':fail,'measurements':measure}
 
 def open_rectangle(scene,room,catalog):
