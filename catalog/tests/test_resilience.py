@@ -1,11 +1,14 @@
 """Resilience checks with no network or database access."""
 import asyncio
 import inspect
+import json
 from pathlib import Path
 import subprocess
+import sys
 import threading
 import time
 import urllib.request
+from types import ModuleType
 from unittest.mock import MagicMock
 
 import pytest
@@ -13,6 +16,30 @@ from starlette.requests import Request
 from starlette.responses import Response
 
 import mcp_server
+
+
+@pytest.mark.parametrize("fails", [False, True])
+def test_model_warm_up(monkeypatch, caplog, tmp_path, fails):
+    # Substitute the module before import so this test never imports torch.
+    embedder = ModuleType("embed_siglip_query")
+    text = MagicMock(side_effect=RuntimeError("load failed") if fails else None)
+    monkeypatch.setattr(embedder, "text", text, raising=False)
+    monkeypatch.setitem(sys.modules, "embed_siglip_query", embedder)
+    monkeypatch.setattr(mcp_server, "model_ready", False)
+    connection = MagicMock()
+    connection.__enter__.return_value.execute.return_value.fetchone.return_value = (10, 5)
+    monkeypatch.setattr(mcp_server, "_conn", lambda: connection)
+    monkeypatch.setattr(mcp_server, "MODELS_DIR", str(tmp_path))
+    request = Request({"type": "http", "method": "GET", "path": "/health", "headers": []})
+
+    assert json.loads(asyncio.run(mcp_server.health_route(request)).body)["model_ready"] is False
+    mcp_server._warm_up_model()
+    text.assert_called_once_with("sofa")
+    assert mcp_server.model_ready is (not fails)
+    assert json.loads(asyncio.run(mcp_server.health_route(request)).body)["model_ready"] is (not fails)
+    if fails:
+        assert "SigLIP query model warm-up failed" in caplog.text
+        assert "load failed" in caplog.text
 
 
 def test_connection_timeouts(monkeypatch):

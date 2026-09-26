@@ -22,7 +22,9 @@ def test_health_hides_db_error(monkeypatch):
     monkeypatch.setattr(mcp_server, "_conn", fail)
     response = asyncio.run(mcp_server.health_route(request()))
     assert response.status_code == 503
-    assert json.loads(response.body) == {"ok": False, "error": "RuntimeError"}
+    body = json.loads(response.body)
+    body.pop("model_ready", None)
+    assert body == {"ok": False, "error": "RuntimeError"}
     assert response.headers["cache-control"] == "no-store"
     assert response.headers["access-control-allow-origin"] == "http://localhost:5173"
 
@@ -42,6 +44,7 @@ def test_health_counts_files_and_times_query(monkeypatch, tmp_path):
     response = asyncio.run(mcp_server.health_route(request()))
     body = json.loads(response.body)
     assert response.status_code == 200
+    body.pop("model_ready", None)
     assert body == {"ok": True, "db_ms": pytest.approx(25), "items": 123,
                     "editor_set": 45, "models_web": 1, "previews": 1}
     execute.assert_called_once_with("select count(*), count(*) filter (where editor_set) from item")

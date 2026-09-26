@@ -4,10 +4,12 @@ Run: uv run mcp_server.py (stdio), or with CATALOG_HTTP_HOST set for HTTP at /mc
 Sizes are metres [w, d, h]; prices whole dram. Hard constraints (kind, fit, price) are filters;
 colour, style, text and visual likeness only rank what passed.
 """
+import logging
 import os
 import re
 from functools import wraps
 from pathlib import Path
+from threading import Thread
 from time import monotonic, perf_counter
 
 from starlette.concurrency import run_in_threadpool
@@ -18,6 +20,21 @@ from mcp.server.mcpserver import MCPServer
 from colors import PALETTE
 from search import Query, fits, search
 from select_editor_set import EDITOR_KIND_OF
+
+model_ready = False
+
+
+def _warm_up_model():
+    """Load the query model off the serving thread; failure leaves it unready."""
+    global model_ready
+    try:
+        import embed_siglip_query
+        embed_siglip_query.text("sofa")
+    except Exception:
+        logging.getLogger(__name__).exception("SigLIP query model warm-up failed")
+    else:
+        model_ready = True
+
 
 server = MCPServer(
     "varpet-catalog",
@@ -203,11 +220,11 @@ try:
                 db_ms = (perf_counter() - started) * 1000
         except Exception as exc:
             return _cors(request, JSONResponse(
-                {"ok": False, "error": type(exc).__name__}, status_code=503,
+                {"ok": False, "error": type(exc).__name__, "model_ready": model_ready}, status_code=503,
                 headers={"Cache-Control": "no-store"}))
         models = Path(MODELS_DIR)
         return _cors(request, JSONResponse(
-            {"ok": True, "db_ms": db_ms, "items": items, "editor_set": editor_set,
+            {"ok": True, "model_ready": model_ready, "db_ms": db_ms, "items": items, "editor_set": editor_set,
              "models_web": sum(p.is_file() for p in models.glob("*")),
              "previews": sum(p.is_file() for p in (models / "previews").glob("*"))},
             headers={"Cache-Control": "no-store"}))
@@ -351,6 +368,7 @@ if __name__ == "__main__":
     # Default stdio. For the shared service: CATALOG_HTTP_HOST=<tailscale ip> [CATALOG_HTTP_PORT=8765]
     host = os.environ.get("CATALOG_HTTP_HOST")
     if host:
+        Thread(target=_warm_up_model, name="siglip-warm-up", daemon=True).start()
         server.run("streamable-http", host=host, port=int(os.environ.get("CATALOG_HTTP_PORT", "8765")), stateless_http=True)
     else:
         server.run()
