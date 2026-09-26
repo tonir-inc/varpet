@@ -144,6 +144,31 @@ Full demo on one laptop (three processes; without the designer service the chat 
 `VITE_DESIGNER_URL=http://127.0.0.1:8787 VARPET_CATALOG_URL=http://127.0.0.1:8765/mcp pnpm dev`.
 Measured on Sergey's Mac: 8,113 items, 7,013 models, 2,471 previews (4.7 GB), searches 0.01–0.25 s.
 
+### Demo doctor
+
+Run `python3 tools/demo_doctor.py --quick` before rehearsal for service health, editor
+relay/search/GLB, pdf.js dependencies, served Vite configuration, old architect Codex
+children and Mac free memory. Run without `--quick` for five placeable catalog searches
+(each capped at 3 seconds), candidate images and positive/negative architect plan gates.
+`--full` also spends one designer turn (up to 180 seconds), requesting “Furnish the
+Bedroom 1.” against the checked-in editor scene; it checks the proposal without applying it.
+
+Each row has PASS/WARN/FAIL, elapsed time and a FIX hint for non-PASS. Any FAIL exits 1;
+WARN alone exits 0. Independent checks run in parallel with individual wall deadlines.
+`--json` emits an array of the same records. `--only pdfjs` selects a named check (repeat
+or comma-separate; use `--full --only designer-turn` for the paid turn). `--vm` optionally
+checks `http://localhost:18765`, or use `--vm URL`; an unavailable optional VM warns.
+`--catalog`, `--editor`, `--designer`, `--architect` override local defaults (also
+`DEMO_CATALOG_URL`, `DEMO_EDITOR_URL`, `DEMO_DESIGNER_URL`, `DEMO_ARCHITECT_URL`).
+The server-only catalog URL cannot be proved from Vite's client env, so config warns
+with the complete start command. Plan-gate fail-open responses fail the smoke test.
+Designer diagnostics include errors visible in its HTTP event stream; raw server logs
+are not exposed by that API. Old Codex descendants may still be active: review the
+listed PIDs before using the suggested kill command. The doctor never kills them.
+
+Offline fake-server tests: `python3 -m unittest discover -s tools -p test_demo_doctor.py -v`
+(requires permission to bind a loopback socket; no real services or model calls).
+
 ## Doors and windows (26 Sept)
 The 10 opening models in `catalog/openings/` are catalog items too (`extra:openings:<file stem>`, kind `door` / `window`,
 source 'extra', mock prices, previews). They are not in the default `placeable` scope (the editor places openings its own
@@ -210,3 +235,86 @@ textiles 124, wall-decor 57, shelf-styling 96, misc-decor 92. Catalog total 8,85
   Run the helper without flags to review, then with `--apply`; run SQL with psql
   `-v ON_ERROR_STOP=1 -f fixes/2026-09-27-bughunt.sql`. Both use `VARPET_DB_URL`, preserve
   old values in tags, are idempotent, and require no schema changes. **Prepared, not applied.**
+
+## Coherent room sets: `room_kit` and `show_kit` (27 Sept)
+
+Call `room_kit` once to choose a coordinated set before searching for individual missing pieces.
+It is a read-only recommendation, not a checked layout or operation proposal.
+
+Inputs:
+- `room_type`: `living|bedroom|dining|office|kids|entry|balcony`.
+- `room_size`: required floor rectangle `[width, depth]` in metres, finite and positive.
+- `style`: optional tag/name, e.g. `scandinavian`, `modern`, `minimalist`, `japandi`, `industrial`,
+  `boho`, `mid-century`, `classic`, `rustic`. Balcony defaults to `outdoor` and requires outdoor
+  tags/name evidence for chairs, benches and tables even if another style is requested.
+- `colors`: optional palette names from `list_vocab`.
+- `budget_amd`: optional nonnegative integer purchase limit; zero means no purchases.
+- `richness`: `essential|standard|rich`, default `standard`.
+- `exclude_kinds`, `exclude_ids`: hard exclusions of fine catalog kinds or catalog IDs.
+- `keep_ids`: already-owned **catalog IDs**, not scene IDs. These guide image/style matching, fill
+  matching roles and count toward space, but cost zero against the purchase budget. Returned `price`
+  remains the catalog price. Invalid, excluded or unassignable keeps raise an error rather than
+  silently ignoring owned obstacles; choose a richness that includes their roles.
+- `seed`: integer, default `0`. Identical inputs/catalog give identical results; changing it varies
+  near-equal choices. A unique feasible choice may remain unchanged.
+
+Example:
+```json
+{"room_type":"living","room_size":[4,4],"style":"japandi","colors":["beige","green"],
+ "budget_amd":650000,"richness":"rich","seed":1}
+```
+
+Returns `{kit, total_amd, budget_left, palette, style, alternatives, notes}`. Each ordered entry has
+`{role, kind, id, name, size_m, price, currency, placement, why}`; dimensions are `[w,d,h]` metres.
+`kind` is the fine catalog kind (`table` with role `coffee_table`, `lamp` with role `desk_lamp`, etc.).
+Roles are unique, e.g. `nightstand`, `nightstand_2`. Paired chairs/lamps/cushions can reuse a SKU,
+charged per purchased instance. Placement is `floor`, `wall` or `on:<role>`.
+All selected/alternative IDs come from `search.PLACEABLE`; invalid sizes/prices and non-AMD records
+are omitted. `total_amd` totals purchases only; `budget_left` is null without a budget.
+`alternatives[role]` has up to two other IDs, fewer when unavailable, checked as **single** replacements
+in the completed kit, including dependents and total cost/footprint. Recheck multiple swaps together.
+Kept roles have no purchase alternatives.
+
+Essential contains the main functional pieces; standard adds storage, lighting, plants and art;
+rich adds textiles, a second artwork and surface styling where supports exist. Living starts with
+sofa/rug/coffee table; bedroom with bed/two nightstands/two supported lights; dining with table and
+2/4/6 chairs by table length (two seats per 0.6 m, maximum six); office with desk/chair/light; kids
+with bed/desk/chair; entry with bench/storage; balcony with outdoor seat/table. Dining uses a floor
+lamp because ceiling pendants are outside the supported placeable mounting scope.
+Missing slots appear in `notes`. A budgeted kit missing an essential stops adding optional purchases
+and returns the feasible essential subset, never over budget. Selection is greedy, not proof that
+no other complete combination exists.
+
+Ranking combines Astra/listing style and name evidence, anchor colours plus at most one requested
+accent, cached SigLIP image cosine similarity to owned pieces and the anchor, and weighted slot price
+targets. The anchor has the largest target; minimum essential prices are reserved where possible.
+There is no text-model inference or image fetch in `room_kit`.
+
+Sizing constants in `catalog/room_kit.py`: sofa width <= 80% of longest wall; bed has 0.6 m clearance
+on both sides and foot where possible (noted fallback permits less); rug sides are 50–75% of room
+sides and larger than the coffee table; coffee-table width is 1/2–2/3 of sofa width; side/nightstand
+height is within 0.25 m of sofa/bed catalog height (an approximate arm/deck proxy). Supported items
+are strictly smaller in both horizontal dimensions, allowing 90° rotation, with aggregate footprint
+<= 80% of the support top. Floor footprints, **including rugs**, sum to <= 45% of room area. This can
+omit a bedroom rug that could physically fit underneath a bed. Wall space still needs checking.
+Catalog models are never resized.
+
+Designer flow:
+1. Call `room_kit`, read omissions, then `show_kit(kit=<returned kit array>)`. It reuses `show_candidates`
+   for one numbered exact-model image and role/ID/placement legend (maximum 16 entries). Blank tiles
+   remain unknown; inspect alternatives with `show_candidates` as needed.
+2. Place the anchor first, then other floor/wall pieces, checking the updated room, doors and walkways.
+   Keep a role → **scene furniture ID** map; reuse owned scene instances for `keep_ids`.
+3. Resolve `on:coffee_table`, `on:nightstand_2` or `on:sofa` to its support's scene ID and pass the
+   editor operation `on: <furnitureId>` (stored as `restsOn`), not the role or catalog SKU. Place the
+   support before decor; verify free surface positions for each object. Bounding-box fit does not
+   prove surface packing or loaded-mesh support. See `apps/editor/docs/integrations.md`.
+   The legacy Designer `place_on` restricts supports and currently rejects beds/sofas; cushions and
+   throws require the editor's supported `on` path. This change does not wire new tools into the
+   legacy typed-tool designer or change `packages/`.
+
+Performance: one placeable-metadata query; `_emb_matrix` adds one count query when warm and one
+embedding load when cold. Slot/alternative ranking runs in memory. Offline selection on 6,820 fake
+rows with 768-dimensional cached vectors measured 0.338 s (27 Sept); this excludes DB/cold-cache costs.
+The <2 s live local-catalog target still needs measurement against the real DB. `show_kit` uses the
+existing preview-fetch deadline and is separate from selection latency.

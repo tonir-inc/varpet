@@ -20,6 +20,7 @@ from mcp.server.mcpserver import MCPServer
 from colors import PALETTE
 from search import Query, fits, search, size_limits, kind_counts, validate_query
 from select_editor_set import EDITOR_KIND_OF
+from room_kit import room_kit as build_room_kit
 
 model_ready = False
 
@@ -149,6 +150,34 @@ def find_similar(
                   fit_box=box, price_max=price_max, exclude_ids=[item_id] if item_id else [], limit=limit,
                   offset=offset, scope=scope)
         return search(c, q)
+
+
+@server.tool()
+def room_kit(
+    room_type: str, room_size: list[float], style: str | None = None,
+    colors: list[str] | None = None, budget_amd: int | None = None,
+    richness: str = "standard", exclude_kinds: list[str] | None = None,
+    exclude_ids: list[str] | None = None, keep_ids: list[str] | None = None, seed: int = 0,
+) -> dict:
+    """Choose a coherent placeable room set, anchor first. room_type: living, bedroom, dining,
+    office, kids, entry or balcony; room_size: floor [w,d] metres. richness: essential/standard/rich.
+    keep_ids are owned catalog SKUs, counted in fit but not purchase cost. seed varies choices.
+    Inspect with show_kit, place the anchor, then resolve on:<role> to the support's editor ID.
+    Notes report missing slots; geometry still needs editor placement checks."""
+    with _conn() as c:
+        return build_room_kit(c, room_type, room_size, style, colors, budget_amd, richness,
+                              exclude_kinds, exclude_ids, keep_ids, seed)
+
+
+@server.tool()
+def show_kit(kit: list[dict], columns: int = 4) -> list:
+    """Inspect room_kit's kit array as one exact-product contact sheet, numbered by role."""
+    if len(kit) > 16:
+        raise ValueError("show_kit accepts at most 16 kit entries")
+    result = show_candidates([entry["id"] for entry in kit], columns)
+    roles = "\n".join(f'{n}. {entry["role"]} | {entry["id"]} | {entry["placement"]}'
+                      for n, entry in enumerate(kit, 1))
+    return [roles + "\n" + result[0], *result[1:]]
 
 
 @server.tool()
