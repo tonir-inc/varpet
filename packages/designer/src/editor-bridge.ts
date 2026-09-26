@@ -10,7 +10,7 @@ import { buildFinishOperations, type FinishPreset } from '../../../apps/editor/s
 import { applyRenovationOperation, isRenovationOperation } from '../../../apps/editor/src/core/renovation.js';
 import { EditorStore } from '../../../apps/editor/src/core/store.js';
 import { isRecord, objectFootprint, placementIssues, validateScene } from '../../../apps/editor/src/core/validation.js';
-import { parseOps, parseScene } from './adapter.js';
+import { parseOps, parseScene, wallOutward } from './adapter.js';
 import { catalogItems } from './catalog.js';
 import { outsidePoint } from './local-checks.js';
 import type { Opening, Scene, Vec2 } from './scene.js';
@@ -66,7 +66,8 @@ function checkSupported(scene: SceneDocument, options: EditorBridgeOptions): voi
     if ((metadata.threshold ?? 0) > EPS) throw new Error(`Unsupported raised threshold on ${id}`);
     const opening = openings.find(candidate => candidate.id === id);
     if (opening?.kind === 'door' && (metadata.mechanism !== undefined || metadata.hinge !== undefined || metadata.swing !== undefined)
-      && options.doorSwings?.[id] === undefined) throw new Error(`Door ${id} has renovation mechanism metadata; provide an explicit supported door swing`);
+      && options.doorSwings?.[id] === undefined
+      && !(metadata.mechanism==='hinged'&&metadata.hinge!==undefined&&metadata.swing!==undefined)) throw new Error(`Door ${id} has renovation mechanism metadata; provide an explicit supported door swing`);
     if (opening?.kind === 'door' && metadata.mechanism !== undefined && metadata.mechanism !== 'hinged') throw new Error(`Unsupported door mechanism on ${id}: ${metadata.mechanism}`);
   }
 }
@@ -176,6 +177,16 @@ export function editorToDesigner(input: unknown, options: EditorBridgeOptions = 
       if(reconciliation?.audit.opening_room_ids[opening.id])converted.room_ids=reconciliation.audit.opening_room_ids[opening.id];
       const swing = options.doorSwings?.[opening.id];
       if (swing !== undefined) converted.swing = swings[swing];
+      else if(opening.kind==='door'){
+        const metadata=editor.project?.metadata[opening.id];
+        if(metadata?.mechanism==='hinged'&&metadata.hinge!==undefined&&metadata.swing!==undefined){
+          const ownedWall=scene.walls.find(w=>w.id===span.id)!;
+          const out=wallOutward(scene,ownedWall),dx=(wall.end[0]-wall.start[0])/length,dz=(wall.end[1]-wall.start[1])/length;
+          // Editor across = [-dz,+dx]; designer reflects Z to -Y. Hinge endpoints retain wall order.
+          const inward=metadata.swing*(dz*out[0]+dx*out[1])>0;
+          converted.swing=`${inward?'inward':'outward'}-${metadata.hinge}`;
+        }
+      }
       scene.openings.push(converted);
     }
   }
