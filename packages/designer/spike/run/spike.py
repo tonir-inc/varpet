@@ -81,12 +81,8 @@ def wrapper(cli: Path) -> str:
     return f'#!/bin/sh\nexec node --import "{TSX_LOADER.as_uri()}" "{cli}" "$@"\n'
 
 
-def make_workspace(case: dict, out: Path, cli: Path) -> tuple[Path, list[dict]]:
-    out.mkdir(parents=True)
-    rooms = build_flat(case, out)
-    if case.get("budget_dram"):
-        (out / "budget.json").write_text(json.dumps({"budget_dram": int(case["budget_dram"])}) + "\n")
-    (out / "draft.json").write_text('{"items": []}\n')
+def link_tools(out: Path, cli: Path = SPIKE / "cli.ts") -> None:
+    """lib/, cli.ts and the ./varpet wrapper in a workspace (the designer service reuses this)."""
     (out / "lib").symlink_to(SPIKE / "lib")
     if cli.resolve() == (SPIKE / "cli.ts").resolve():
         (out / "cli.ts").symlink_to(cli)
@@ -95,26 +91,47 @@ def make_workspace(case: dict, out: Path, cli: Path) -> tuple[Path, list[dict]]:
         cli = out / "cli.ts"
     (out / "varpet").write_text(wrapper(cli.resolve()))
     (out / "varpet").chmod(0o755)
+
+
+def fill_prompt(case: dict, rooms: list[dict], image_suffix: str | None = None) -> str:
+    """run/AGENTS.md filled for a case; image_suffix when `inspiration<suffix>` sits in the workspace."""
     image_note = image_tool_note = ""
-    if case.get("image"):
-        image = SPIKE / case["image"]
-        shutil.copyfile(image, out / ("inspiration" + image.suffix))
+    if image_suffix:
         image_note = (f"The customer attached an inspiration picture (the image in the first message, also "
-                      f"`inspiration{image.suffix}`). Match its mood, palette, materials and key pieces; "
+                      f"`inspiration{image_suffix}`). Match its mood, palette, materials and key pieces; "
                       "ignore its room geometry.")
         image_tool_note = ", and the inspiration picture"
     prompt = (RUN / "AGENTS.md").read_text()
     for key, value in (("case_id", case["id"]), ("request", case["request"]), ("image_note", image_note),
                        ("image_tool_note", image_tool_note), *notes(case, rooms).items()):
         prompt = prompt.replace("{" + key + "}", value)
-    (out / "AGENTS.md").write_text(prompt)
+    return prompt
+
+
+def make_workspace(case: dict, out: Path, cli: Path) -> tuple[Path, list[dict]]:
+    out.mkdir(parents=True)
+    rooms = build_flat(case, out)
+    if case.get("budget_dram"):
+        (out / "budget.json").write_text(json.dumps({"budget_dram": int(case["budget_dram"])}) + "\n")
+    (out / "draft.json").write_text('{"items": []}\n')
+    link_tools(out, cli)
+    suffix = None
+    if case.get("image"):
+        image = SPIKE / case["image"]
+        suffix = image.suffix
+        shutil.copyfile(image, out / ("inspiration" + suffix))
+    (out / "AGENTS.md").write_text(fill_prompt(case, rooms, suffix))
     return out, rooms
 
 
-def private_home(tool_mode: str) -> tuple[Path, dict]:
-    """Isolated CODEX_HOME: auth + caches only, so ~/.codex/config.toml never leaks into the measurement."""
+def private_home(tool_mode: str, home: Path | None = None) -> tuple[Path, dict]:
+    """Isolated CODEX_HOME: auth + caches only, so ~/.codex/config.toml never leaks into the measurement.
+    `home` keeps it at a caller's path (the service keeps one per conversation so threads resume)."""
     source = Path(os.environ.get("CODEX_HOME", Path.home() / ".codex"))
-    home = Path(tempfile.mkdtemp(prefix="varpet-spike-home-"))
+    if home is None:
+        home = Path(tempfile.mkdtemp(prefix="varpet-spike-home-"))
+    else:
+        home.mkdir(parents=True, exist_ok=True)
     if (source / "auth.json").is_file():
         (home / "auth.json").symlink_to((source / "auth.json").resolve())
     for name in ("cloud-config-bundle-cache.json", "models_cache.json"):

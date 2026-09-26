@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import type { AgentProposal, AssetKind, CatalogAsset, Operation, SceneDocument, Wall as EditorWall } from '../../../apps/editor/src/contracts.js';
+import type { AgentProposal, AssetKind, CatalogAsset, Operation, SceneDocument, SceneObject, Wall as EditorWall } from '../../../apps/editor/src/contracts.js';
 import { componentPosition, componentRotation } from '../../../apps/editor/src/core/geometry.js';
 import { catalogProduct } from '../../../apps/editor/src/adapters/database-catalog.js';
 import { localCatalog } from '../../../apps/editor/src/core/demo.js';
@@ -277,6 +277,75 @@ export function proposalToEditor(input: unknown, editorInput: unknown, revision:
   if (!checked.ok) throw new Error(`Editor rejected translated proposal: ${checked.errors.join(' ')}`);
   const blocking = placementIssues(preview.scene, catalog).filter(issue => issue.blocking);
   if (blocking.length) throw new Error(`Translated proposal has unsupported placement: ${blocking.map(issue => issue.message).join(' ')}`);
+  return proposal;
+}
+
+/** Designer-owned finish and material records carry these id prefixes; the editor adapter accepts floor/ceiling
+ * finishes and preset materials only under them. */
+export const DESIGN_FINISH_PREFIX = 'spike:', DESIGN_MATERIAL_PREFIX = 'spike-finish:';
+export interface DocumentCommandOptions { catalog: CatalogAsset[]; title?: string; description?: string }
+const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+const near = (a: readonly number[], b: readonly number[]) => a.length === b.length && a.every((value, index) => Math.abs(value - b[index]!) < 1e-6);
+
+/** A finished design as a checked, unapplied editor command. `target` is the complete document the design wants;
+ * only `owned` objects and light components (the designer's own pieces), `spike:` finishes, room ceiling designs and
+ * the materials they use change. Works whether or not an earlier proposal of the same design was applied. */
+export function documentCommand(current: SceneDocument, target: SceneDocument, owned: readonly string[], revision: number, options: DocumentCommandOptions): AgentProposal {
+  if (!Number.isSafeInteger(revision) || revision < 0) throw new Error('Revision must be a nonnegative safe integer');
+  const mine = new Set(owned), operations: Operation[] = [];
+  if (!current.project && target.project) operations.push({ type: 'migrate-project' });
+  const was = new Map(current.objects.filter(object => mine.has(object.id)).map(object => [object.id, object]));
+  const wanted = target.objects.filter(object => mine.has(object.id));
+  const simple = (object: SceneObject) => object.restsOn === undefined && object.host === undefined && object.hangsFrom === undefined;
+  // Re-placed (removed, then added again): anything no longer wanted, anything whose support or wall changed, and,
+  // transitively, whatever rests on a re-placed piece (so it lands on the support's new top, not the floor).
+  const replaced = new Set<string>(), updates: { id: string; patch: Partial<SceneObject> }[] = [];
+  for (const [id, before] of was) {
+    const after = wanted.find(object => object.id === id);
+    if (!after || !simple(before) || !simple(after) || before.assetId !== after.assetId) { if (!after || !same(before, after)) replaced.add(id); continue; }
+    const patch: Partial<SceneObject> = {};
+    if (!near(before.position, after.position)) patch.position = after.position;
+    if (Math.abs(before.rotation - after.rotation) > 1e-6) patch.rotation = after.rotation;
+    if (!near(before.scale, after.scale)) patch.scale = after.scale;
+    if (before.color !== after.color && after.color !== undefined) patch.color = after.color;
+    if (before.name !== after.name) patch.name = after.name;
+    if (Object.keys(patch).length) updates.push({ id, patch });
+  }
+  for (let grew = true; grew;) {
+    grew = false;
+    for (const object of [...current.objects, ...wanted]) if (object.restsOn && replaced.has(object.restsOn) && was.has(object.id) && !replaced.has(object.id)) { replaced.add(object.id); grew = true; }
+  }
+  // Resting pieces leave before their supports; supports arrive before what rests on them (target order).
+  const leaving = [...replaced].sort((a, b) => Number(was.get(b)?.restsOn !== undefined) - Number(was.get(a)?.restsOn !== undefined));
+  for (const id of leaving) operations.push({ type: 'delete', id });
+  for (const { id, patch } of updates) if (!replaced.has(id)) operations.push({ type: 'update', id, patch });
+  for (const object of wanted) if (!was.has(object.id) || replaced.has(object.id)) operations.push({ type: 'add', object: structuredClone(object) });
+
+  const before = current.project, after = target.project;
+  if (after) {
+    const finishes = before?.finishes ?? [], materials = before?.materials ?? [];
+    for (const finish of finishes) if (!after.finishes.some(entry => entry.id === finish.id)) operations.push({ type: 'delete-finish', id: finish.id });
+    const designed = after.finishes.filter(finish => finish.id.startsWith(DESIGN_FINISH_PREFIX) && !finishes.some(entry => same(entry, finish)));
+    for (const id of new Set(designed.map(finish => finish.materialId))) {
+      const material = after.materials.find(entry => entry.id === id);
+      if (material && !materials.some(entry => same(entry, material))) operations.push({ type: 'upsert-material', material: structuredClone(material) });
+    }
+    for (const finish of designed) operations.push({ type: 'upsert-finish', finish: structuredClone(finish) });
+    for (const room of target.rooms) {
+      const design = after.metadata[room.id]?.ceilingDesign;
+      if (design !== undefined && !same(design, before?.metadata[room.id]?.ceilingDesign)) operations.push({ type: 'set-metadata', id: room.id, patch: { ceilingDesign: design } });
+    }
+    for (const component of after.components) if (mine.has(component.id) && !same(component, before?.components.find(entry => entry.id === component.id))) operations.push({ type: 'upsert-component', component: structuredClone(component) });
+    for (const component of before?.components ?? []) if (mine.has(component.id) && !after.components.some(entry => entry.id === component.id)) operations.push({ type: 'delete-component', id: component.id });
+  }
+  if (!operations.length) throw new Error('The design matches the editor already; nothing to apply');
+  if (operations.length > 100) throw new Error(`The design needs ${operations.length} editor operations; the limit is 100`);
+  const id = `designer-${digest({ current, target, revision })}`;
+  const proposal: AgentProposal = { id, title: (options.title ?? 'Designer proposal').slice(0, 160), description: (options.description ?? 'A designed room.').slice(0, 4000),
+    command: { id, label: 'Apply the design', source: 'designer', baseRevision: revision, operations } };
+  // Private, disposable store: the caller's snapshot is never modified or approved.
+  const preview = new EditorStore(current, options.catalog), checked = preview.execute({ ...proposal.command, baseRevision: 0 }, true);
+  if (!checked.ok) throw new Error(`Editor rejected the design: ${checked.errors.join(' ')}`);
   return proposal;
 }
 

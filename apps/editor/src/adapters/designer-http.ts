@@ -31,8 +31,11 @@ export interface DesignerHttpOptions {
   onConversationId?:(conversationId:string)=>void;
   onMetrics?:(metrics:unknown)=>void;
   onNotes?:(notes:string)=>void;
+  /** A small picture of the design in progress (the designer's own render), nonterminal. */
+  onPreview?:(preview:DesignerPreview)=>void;
   fetch?:typeof globalThis.fetch;
 }
+export interface DesignerPreview {image:string;caption?:string}
 export interface DesignerRequest {
   image?:DesignerImage;
   vision?:DesignerVision;
@@ -46,7 +49,7 @@ export type DesignerReply=
   | {type:'message';conversationId:string;message:string;suggestions?:string[]}
   | {type:'decline';conversationId:string;message:string}
   | {type:'error';message:string};
-export interface AskDesignerOptions {onEvent?:(event:DesignerEvent)=>void;vision?:VisionCaptureOptions;baseUrl?:string;onProgress?:(message:string)=>void;onMessageDelta?:(delta:string)=>void;signal?:AbortSignal;resolveAssets?:DesignerHttpOptions['resolveAssets']}
+export interface AskDesignerOptions {onPreview?:(preview:DesignerPreview)=>void;onEvent?:(event:DesignerEvent)=>void;vision?:VisionCaptureOptions;baseUrl?:string;onProgress?:(message:string)=>void;onMessageDelta?:(delta:string)=>void;signal?:AbortSignal;resolveAssets?:DesignerHttpOptions['resolveAssets']}
 export class DesignerServiceError extends Error {
   readonly name='DesignerServiceError';
   constructor(message:string,readonly code:'http'|'protocol'|'validation'|'service',readonly status?:number){super(message);}
@@ -96,6 +99,23 @@ function appearanceWall(snapshot:SceneDocument,id:unknown):string{
   if(metadata?.locked||['retain','remove','replace'].includes(metadata?.phase??''))fail('Wall appearance cannot change a locked, retained, removed or replaced wall.','validation');
   return wallId;
 }
+/** The designer's own records: finishes `spike:<entity>:<surface>` and materials `spike-finish:...`. */
+const DESIGN_FINISH='spike:',DESIGN_MATERIAL='spike-finish:';
+function designMaterial(value:unknown):Json{
+  const material=record(value,'Design material');
+  keys(material,['id','name','color','unit','unitCost','thickness','wastePercent','notes'],'Design material');
+  if(!text(material.id,'Material ID',100).startsWith(DESIGN_MATERIAL))fail('Design materials use the designer prefix.','validation');
+  text(material.name,'Material name',200);
+  if(typeof material.color!=='string'||!/^#[0-9a-f]{6}$/i.test(material.color))fail('Design material colour must be a six-digit hex value.','validation');
+  if(material.unit!=='m2'||material.unitCost!==0||material.wastePercent!==0||typeof material.thickness!=='number'||!(material.thickness>0&&material.thickness<=.1))fail('Design materials are unquoted surface finishes.','validation');
+  return material;
+}
+function designRoom(snapshot:SceneDocument,id:unknown):string{
+  const roomId=text(id,'Room ID',100),metadata=snapshot.project?.metadata[roomId];
+  if(!snapshot.rooms.some(room=>room.id===roomId))fail('Room finishes must target an existing room.','validation');
+  if(metadata?.locked||metadata?.phase==='remove')fail('Room finishes cannot change a locked or removed room.','validation');
+  return roomId;
+}
 function appearanceMaterial(value:unknown):Json{
   const material=record(value,'Appearance material');
   keys(material,['id','name','color','unit','unitCost','thickness','wastePercent','notes'],'Appearance material');
@@ -122,16 +142,16 @@ function proposalFrom(value:unknown,revision:number,snapshot:SceneDocument,catal
   if(command.source!=='designer')fail('Proposal command source must be designer.','validation');
   if(command.baseRevision!==revision)fail('Designer proposal is stale or has a different base revision.','validation');
   if(!Array.isArray(command.operations)||command.operations.length<1||command.operations.length>100)fail('A proposal needs 1–100 furniture or appearance operations.','validation');
-  const newMaterials=new Map<string,Json>(),usedMaterials=new Set<string>(),finishIds=new Set<string>(),finishFaces=new Set<string>();
+  const newMaterials=new Map<string,Json>(),usedMaterials=new Set<string>(),finishIds=new Set<string>(),finishFaces=new Set<string>(),deletedFinishes=new Map<string,string>();
   let migrations=0,finishes=0;
   // Validate the whole transaction before the disposable store applies any of it.
   for(const [index,value] of command.operations.entries()){
     const operation=record(value,'Operation');
-    if(operation.type==='add')keys(operation,['type','object'],'Add operation');
+    if(operation.type==='add')keys(operation,['type','object','on'],'Add operation');
     else if(operation.type==='delete')keys(operation,['type','id'],'Delete operation');
     else if(operation.type==='update'){
-      keys(operation,['type','id','patch'],'Update operation');
-      keys(record(operation.patch,'Object patch'),['name','position','rotation','scale','color'],'Object patch');
+      keys(operation,['type','id','patch','on'],'Update operation');
+      keys(record(operation.patch,'Object patch'),['name','position','rotation','scale','color','restsOn'],'Object patch');
     }else if(operation.type==='update-wall'){
       keys(operation,['type','id','patch'],'Wall appearance operation');
       const wallId=appearanceWall(snapshot,operation.id),patch=record(operation.patch,'Wall colour patch');
@@ -143,23 +163,48 @@ function proposalFrom(value:unknown,revision:number,snapshot:SceneDocument,catal
       if(snapshot.version!==1||index!==0||++migrations>1)fail('Appearance migration must occur once at the start of a v1 proposal.','validation');
     }else if(operation.type==='upsert-material'){
       keys(operation,['type','material'],'Appearance material operation');
-      const material=appearanceMaterial(operation.material),id=material.id as string;
+      const material=String(record(operation.material,'Appearance material').id).startsWith(DESIGN_MATERIAL)?designMaterial(operation.material):appearanceMaterial(operation.material),id=material.id as string;
       if(snapshot.project?.materials.some(existing=>existing.id===id)||newMaterials.has(id))fail('Designer appearance cannot overwrite an existing material.','validation');
       newMaterials.set(id,material);
     }else if(operation.type==='upsert-finish'){
       keys(operation,['type','finish'],'Wall finish operation');
       const finish=record(operation.finish,'Wall finish');keys(finish,['id','entityId','surface','materialId'],'Wall finish');
-      const id=text(finish.id,'Finish ID',100),wallId=appearanceWall(snapshot,finish.entityId),materialId=text(finish.materialId,'Finish material ID',100);
-      if(finish.surface!=='wall-front'&&finish.surface!=='wall-back')fail('Designer finishes support only wall-front and wall-back.','validation');
+      const id=text(finish.id,'Finish ID',100),materialId=text(finish.materialId,'Finish material ID',100);
+      // Floors and ceilings only as the designer's own records; walls as before.
+      const room=id.startsWith(DESIGN_FINISH)&&(finish.surface==='floor'||finish.surface==='ceiling');
+      const wallId=room?designRoom(snapshot,finish.entityId):appearanceWall(snapshot,finish.entityId);
+      if(!room&&finish.surface!=='wall-front'&&finish.surface!=='wall-back')fail('Designer finishes support only wall-front and wall-back.','validation');
       const existing=snapshot.project?.finishes.find(entry=>entry.id===id),face=`${wallId}:${finish.surface}`;
       if(existing&&(existing.entityId!==wallId||existing.surface!==finish.surface))fail('A wall finish cannot replace an assignment on another surface.','validation');
-      if(snapshot.project?.finishes.some(entry=>entry.entityId===wallId&&entry.surface===finish.surface&&entry.id!==id)||finishIds.has(id)||finishFaces.has(face))fail('A wall face must retain its existing finish assignment without duplicates.','validation');
+      if(snapshot.project?.finishes.some(entry=>entry.entityId===wallId&&entry.surface===finish.surface&&entry.id!==id&&!deletedFinishes.has(entry.id))||finishIds.has(id)||finishFaces.has(face))fail('A wall face must retain its existing finish assignment without duplicates.','validation');
       finishIds.add(id);finishFaces.add(face);usedMaterials.add(materialId);finishes++;
+    }else if(operation.type==='delete-finish'){
+      keys(operation,['type','id'],'Finish removal');
+      const existing=snapshot.project?.finishes.find(entry=>entry.id===operation.id);
+      if(!existing||finishes)fail('Finish removals must name existing finishes and precede new finishes.','validation');
+      deletedFinishes.set(existing.id,`${existing.entityId}:${existing.surface}`);
+    }else if(operation.type==='set-metadata'){
+      keys(operation,['type','id','patch'],'Ceiling design');designRoom(snapshot,operation.id);finishes++;
+      const patch=record(operation.patch,'Ceiling design patch');keys(patch,['ceilingDesign'],'Ceiling design patch');
+      if(patch.ceilingDesign!==null)record(patch.ceilingDesign,'Ceiling design');
+    }else if(operation.type==='upsert-component'||operation.type==='delete-component'){
+      const light=(value:Json|undefined)=>value?.kind==='light';finishes++;
+      if(operation.type==='upsert-component'){
+        keys(operation,['type','component'],'Light fixture');
+        const component=record(operation.component,'Light fixture'),existing=snapshot.project?.components.find(entry=>entry.id===component.id);
+        text(component.id,'Light fixture ID',100);
+        if(!light(component)||component.phase!=='new'||(existing&&!light(existing as unknown as Json)))fail('Designer components are new light fixtures only.','validation');
+      }else{
+        keys(operation,['type','id'],'Light fixture removal');
+        if(!light(snapshot.project?.components.find(entry=>entry.id===operation.id) as unknown as Json|undefined))fail('Designer can remove only light fixtures.','validation');
+      }
     }else fail('Designer supports furniture changes and bounded wall appearance operations only.','validation');
   }
+  // A designer's own finish can go; anyone else's only when the same face gets the design's finish.
+  for(const [id,face] of deletedFinishes)if(!id.startsWith(DESIGN_FINISH)&&!finishFaces.has(face))fail('A finish can be removed only when its surface gets the new finish.','validation');
   if(migrations&&!finishes)fail('Appearance migration requires a wall finish.','validation');
   for(const id of newMaterials.keys())if(!usedMaterials.has(id))fail('Every new appearance material must be used by a wall finish.','validation');
-  for(const id of usedMaterials)appearanceMaterial(newMaterials.get(id)??snapshot.project?.materials.find(material=>material.id===id));
+  for(const id of usedMaterials)(id.startsWith(DESIGN_MATERIAL)?designMaterial:appearanceMaterial)(newMaterials.get(id)??snapshot.project?.materials.find(material=>material.id===id));
   const result=structuredClone(proposal) as unknown as AgentProposal;
   // This disposable store validates atomic editor semantics, including grouped moves.
   // Its revision is zero; the returned command retains the actual captured revision.
@@ -185,7 +230,7 @@ export function createDesignerHttpAdapter(options:DesignerHttpOptions={}):Design
     northDeg:options.northDeg,doorSwings:options.doorSwings===undefined?undefined:structuredClone(options.doorSwings),
     conversationId:options.conversationId,catalog:options.catalog===undefined?undefined:structuredClone(options.catalog),
     vision:options.vision===undefined?undefined:structuredClone(options.vision),
-    catalogCurrency:options.catalogCurrency,resolveAssets:options.resolveAssets,onProgress:options.onProgress,onMessageDelta:options.onMessageDelta,onConversationId:options.onConversationId,onMetrics:options.onMetrics,onNotes:options.onNotes,
+    catalogCurrency:options.catalogCurrency,resolveAssets:options.resolveAssets,onPreview:options.onPreview,onProgress:options.onProgress,onMessageDelta:options.onMessageDelta,onConversationId:options.onConversationId,onMetrics:options.onMetrics,onNotes:options.onNotes,
     fetch:options.fetch??globalThis.fetch.bind(globalThis),
   };
   return {async propose(scene,revision,signal){
@@ -238,6 +283,12 @@ export function createDesignerHttpAdapter(options:DesignerHttpOptions={}):Design
         const entry=record(value,'Designer response');
         if(entry.type==='progress'){
           keys(entry,['type','message'],'Progress');configured.onProgress?.(text(entry.message,'Progress message',2000));return;
+        }
+        if(entry.type==='preview'){
+          keys(entry,['type','image','caption'],'Preview');
+          if(typeof entry.image!=='string'||entry.image.length>700_000||!/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(entry.image))fail('Preview must be a small base64 image data URL.');
+          const caption=entry.caption===undefined?undefined:text(entry.caption,'Preview caption',200);
+          configured.onPreview?.({image:entry.image,...(caption===undefined?{}:{caption})});return;
         }
         if(entry.type==='tool'||entry.type==='build'){
           if(!configured.events)fail('Designer sent events without opt-in.');
@@ -340,7 +391,7 @@ export async function askDesigner(req:DesignerRequest,opts:AskDesignerOptions={}
       events:req.events,onEvent:opts.onEvent,onAssets:value=>{assets=value;},
       image:req.image,vision,url:serviceUrl(opts.baseUrl),request:req.request,conversationId:req.conversationId,
       keep:req.keep,doorSwings:req.doorSwings,northDeg:req.northDeg,catalog:req.catalog,catalogCurrency:req.catalogCurrency,resolveAssets:opts.resolveAssets,
-      onProgress:opts.onProgress,onMessageDelta:opts.onMessageDelta,onConversationId:id=>{conversationId=id;},onMetrics:value=>{metrics=value;},onNotes:value=>{notes=value;},
+      onPreview:opts.onPreview,onProgress:opts.onProgress,onMessageDelta:opts.onMessageDelta,onConversationId:id=>{conversationId=id;},onMetrics:value=>{metrics=value;},onNotes:value=>{notes=value;},
     });
     const proposal=await adapter.propose(req.scene,req.revision,opts.signal);
     if(!conversationId)return {type:'error',message:'Designer response is missing its conversation ID.'};

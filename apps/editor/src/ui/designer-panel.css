@@ -194,3 +194,6 @@
   /* The ring stays as a still green arc so the column still reads as working. */
   .designer-column *, .designer-column *::before { animation: none !important; transition: none !important; }
 }
+.designer-preview { margin: var(--space-2) 0 0; }
+.designer-preview img { display: block; width: 100%; max-width: 360px; border-radius: 6px; border: 1px solid var(--line, rgba(0,0,0,.12)); }
+.designer-preview figcaption { font-size: .75rem; opacity: .7; margin-top: 2px; }

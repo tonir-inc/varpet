@@ -21,6 +21,7 @@ import re
 import uuid
 import shutil
 import designer_inspiration
+import designer_spike
 
 import designer
 from designer_context import validate_request_text, model_scene
@@ -138,17 +139,23 @@ class Conversation:
     usage_known: bool = True
     general_usage: dict | None = None
     general_usage_known: bool = True
+    spike: object | None = None
     lock: threading.Lock = field(default_factory=threading.Lock)
 
 
 class DesignerService:
     def __init__(self, *, bridge_command=None, worker_command=None, progress_interval=5.0,
                  idle_timeout=designer.IDLE_TIMEOUT, effort="medium", profile=None, image_paths=None,
-                 catalog_acceleration=False):
+                 catalog_acceleration=False, engine="legacy"):
         if not 0 < progress_interval <= 10 or idle_timeout <= 0:
             raise ValueError("progress_interval must be in (0, 10]; idle_timeout must be positive")
         if effort not in ("low", "medium"):
             raise ValueError("effort must be low or medium")
+        if engine not in ("spike", "legacy"):
+            raise ValueError("engine must be spike or legacy")
+        # The editor chat's designer: `spike` (a Codex thread in a studio workspace, see designer_spike) or
+        # `legacy` (typed tools, plan_room, fast path). The CLI reads VARPET_DESIGNER_ENGINE, default spike.
+        self.engine = engine
         # Preserve the original embedding API; the CLI passes the measured product defaults.
         self.effort = effort
         self.profile = dict(profile) if profile is not None else {"placement": "relations", "context": "full"}
@@ -250,6 +257,11 @@ class DesignerService:
         try:
             if "image" in body:
                 conversation.inspiration_image = designer_inspiration.store_image(body["image"], conversation.root)
+            if self.engine == "spike":
+                conversation.customer_requests.append(body["request"])
+                reply = designer_spike.propose(conversation, conversation_id, body, cancel, progress)
+                outcome = reply["type"]
+                return reply
             from designer_fast import routing_classes
             import re
             effective_request, variant = resolve_followup(body['request'], conversation.customer_requests)
@@ -599,13 +611,14 @@ def make_server(service: DesignerService, port=8787) -> ThreadingHTTPServer:
                         if time.monotonic() - last_line < service.progress_interval:
                             continue
                         record = {"type": "progress", "message": last_progress}
+                    # preview: a small render of the design in progress (spike designer), shown whatever `events` says.
                     if record["type"] in ("tool", "build") and not body.get("events", False):
                         continue
                     self.write_line(record)
                     last_line = time.monotonic()
                     if record["type"] == "progress":
                         last_progress = record["message"]
-                    elif record["type"] not in ("message_delta", "tool", "build"):
+                    elif record["type"] not in ("message_delta", "tool", "build", "preview"):
                         break
             except (OSError, ValueError):
                 pass  # Socket failure is a disconnect, including a failed progress flush.
@@ -622,13 +635,14 @@ def main():
     parser.add_argument("--image", action="append", default=[], help="Opt-in first-turn local PNG/JPEG fixture; repeat up to twice")
     args = parser.parse_args()
     settings = designer.default_service_settings()
+    settings["engine"] = designer_spike.engine()
     if args.image:
         settings["image_paths"] = args.image
     service = DesignerService(**settings)
     if os.environ.get('VARPET_CATALOG_ACCELERATE') == '1':
         service.start_catalog_acceleration()
     server = make_server(service, args.port)
-    print(f"Designer service: http://127.0.0.1:{server.server_port}", flush=True)
+    print(f"Designer service ({service.engine}): http://127.0.0.1:{server.server_port}", flush=True)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

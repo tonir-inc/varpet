@@ -6,13 +6,13 @@ import { designerIcon, designerIconButton } from './designer-icons';
 export { designerMarkdown } from './designer-markdown';
 import { EditorStore } from '../core/store';
 import type { AgentProposal, CatalogAsset, SceneDocument } from '../contracts';
-import { askDesigner, type DesignerRequest } from '../adapters/designer-http';
+import { askDesigner, type DesignerPreview, type DesignerRequest } from '../adapters/designer-http';
 type AskDesigner = typeof askDesigner;
 
 interface MetricRow { label: string; value: string }
 type ProposalStatus = 'pending' | 'applied' | 'dismissed' | 'stale';
 export type ProposalAction = 'preview' | 'apply' | 'dismiss';
-interface Message { role: 'user' | 'designer'; text: string; metrics?: MetricRow[]; proposal?: AgentProposal; status?: ProposalStatus; options?: string[]; notes?: string; suggestions?: string[]; retryRequest?: string; steps?: DesignerTurnSteps }
+interface Message { role: 'user' | 'designer'; text: string; metrics?: MetricRow[]; proposal?: AgentProposal; status?: ProposalStatus; options?: string[]; notes?: string; suggestions?: string[]; retryRequest?: string; steps?: DesignerTurnSteps; preview?: DesignerPreview }
 interface Conversation { id: string; title: string; conversationId?: string; messages: Message[]; options: string[] }
 interface History { version: 1; activeId: string; conversations: Conversation[] }
 const record = (value: unknown): Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
@@ -56,6 +56,8 @@ export interface DesignerPanelState {
   messages: Message[]; draft: string; busy: boolean; progress: string; options: string[];
   /** Steps of the turn in flight; they move onto the reply when it lands. */
   steps: DesignerStep[];
+  /** The designer's latest render of the turn in flight; it moves onto the reply when it lands. */
+  preview?: DesignerPreview;
   /** A message typed while the designer works; sent when the turn ends. */
   queued: string;
   conversationId?: string; keep: string[]; elapsedSeconds: number;
@@ -162,7 +164,8 @@ export function createDesignerConversation(options: ConversationOptions) {
       const at = Math.max(0, (now() - started) / 1000);
       last.steps = { steps: finishDesignerSteps(state.steps, at), seconds: Math.floor(at) };
     }
-    state.steps = [];
+    if (state.preview && last?.role === 'designer') last.preview = state.preview;
+    state.steps = []; delete state.preview;
   };
   const controller = {
     get state() { return structuredClone(state); },
@@ -243,7 +246,7 @@ export function createDesignerConversation(options: ConversationOptions) {
       const abortController = new AbortController(); active = abortController;
       state.keep = state.keep.filter(id => scene.objects.some(object => object.id === id));
       state.messages.push({ role: 'user', text: request });
-      started = now(); state.elapsedSeconds = 0; state.draft = ''; state.steps = [];
+      started = now(); state.elapsedSeconds = 0; state.draft = ''; state.steps = []; delete state.preview;
       state.busy = true; state.progress = 'Sending your request to the designer…'; state.options = []; publish();
       try {
         const result = await options.ask({ events: true, scene: structuredClone(scene), revision, request,
@@ -251,6 +254,7 @@ export function createDesignerConversation(options: ConversationOptions) {
           conversationId: state.conversationId, keep: [...state.keep], ...(state.northDeg === undefined ? {} : { northDeg: state.northDeg }) }, {
           signal: abortController.signal,
           onProgress: message => { if (active === abortController && !disposed) { state.progress = message; publish(false); } },
+          onPreview: preview => { if (active === abortController && !disposed) { state.preview = preview; publish(false); } },
           onEvent: event => { if (active === abortController && !disposed) {
             state.progress = designerEventProgress(event); state.steps = applyDesignerEvent(state.steps, event, (now() - started) / 1000); publish(false);
           } },
@@ -476,6 +480,13 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
     steps.forEach((step, index) => list.append(stepRow(step, index === current))); return list;
   };
 
+  const previewFigure = (preview: DesignerPreview) => {
+    const figure = document.createElement('figure'); figure.className = 'designer-preview';
+    const image = document.createElement('img'); image.src = preview.image; image.alt = preview.caption ?? 'The designer\'s render'; image.loading = 'lazy';
+    figure.append(image);
+    if (preview.caption) { const caption = document.createElement('figcaption'); caption.textContent = preview.caption; figure.append(caption); }
+    return figure;
+  };
   // The turn in flight lives outside the message key: the clock ticks every second and must not rebuild the log.
   const liveTurn = document.createElement('div'); liveTurn.className = 'designer-progress designer-turn'; liveTurn.setAttribute('aria-live', 'off'); liveTurn.hidden = true;
   let liveKey = '';
@@ -490,8 +501,8 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
     if (!state.busy) { liveKey = ''; stage.textContent = ''; return; }
     const steps = liveSteps(state);
     const current = steps.map(step => step.status).lastIndexOf('running');
-    const key = JSON.stringify(steps.map(step => [step.key, step.label, step.status, step.end]));
-    if (key !== liveKey) { liveKey = key; liveTurn.replaceChildren(stepList(steps, current)); }
+    const key = JSON.stringify([steps.map(step => [step.key, step.label, step.status, step.end]), state.preview?.image.length ?? 0, state.preview?.caption]);
+    if (key !== liveKey) { liveKey = key; liveTurn.replaceChildren(stepList(steps, current), ...(state.preview ? [previewFigure(state.preview)] : [])); }
     for (const time of liveTurn.querySelectorAll<HTMLElement>('.designer-step-time:not([data-end])')) time.textContent = designerClock(state.elapsedSeconds - Number(time.dataset.at));
     const elapsed = liveTurn.querySelector<HTMLElement>('.designer-elapsed');
     if (elapsed) elapsed.textContent = designerClock(state.elapsedSeconds);
@@ -558,6 +569,7 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
           if (message.notes === undefined) { const note = document.createElement('small'); note.textContent = 'Service estimates. Paint and labour are not priced here.'; item.append(note); }
         }
         appendNotes(item, message.notes);
+        if (message.preview) item.append(previewFigure(message.preview));
         if (message.proposal) {
           const status = document.createElement('p'); status.className = 'designer-proposal-status'; status.setAttribute('role', 'status');
           status.textContent = { pending: 'Ready for your review', applied: 'Applied', dismissed: 'Dismissed', stale: 'Stale · the scene changed or was reopened. Ask for a fresh proposal.' }[message.status ?? 'stale']; item.append(status);
