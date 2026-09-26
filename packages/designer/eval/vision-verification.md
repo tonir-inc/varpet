@@ -1,6 +1,6 @@
 # Vision experiment verification
 
-[measured] Post-rebase verification on 2026-09-26 at 11:34 UTC, based on main `568d705`. Live trials retain their earlier `206e3c6` baseline plus archived experimental sources; they were not repeated after rebase. Catalog-to-chat wiring (`0f41673`) landed after the experiment, so the recorded catalog failures are historical measurements, not a claim about current main.
+[measured] Post-rebase verification on 2026-09-26 at 11:38 UTC, based on main `223cd22`. Live trials retain their earlier `206e3c6` baseline plus archived experimental sources; they were not repeated after rebase. Catalog-to-chat wiring (`0f41673`) landed after the experiment, so the recorded catalog failures are historical measurements, not a claim about current main.
 
 DONE: 7 of 7 (experiment complete; no claim of universal visual or latency improvement)
 
@@ -15,3 +15,5 @@ DONE: 7 of 7 (experiment complete; no claim of universal visual or latency impro
 - 7 ✓ One writer: this session changed the two harness modules, new harness test, `capture-vision.py`, `vision.ts`, `vision-service.py`, `vision-report.py`, `vision.md`, `vision-verification.md`, `vision-latest.json`, `vision-*.log`, `vision-fixtures/**`, and `vision-runs/20260926T110604Z/**`. Reviewer was read-only. Other sessions' editor and catalog code was integrated only through rebase.
 
 Not proven: better editor acceptance, better geometry, lower latency, all-request image benefit, current-main live catalog acceptance, or production image wiring. The measured visual benefit is completion of the sofa/floor question in both image runs, versus appropriate uncertainty in both text-only runs.
+
+[measured] Upstream `57755c8` temporarily contained committed conflict markers in editor main.ts ([failed typecheck](vision-typecheck-upstream-conflict.log)). Its owner fixed them in `323be6a`; this lane did not edit the protected file. Verification above is after that fix.
