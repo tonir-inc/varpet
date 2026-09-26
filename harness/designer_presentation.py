@@ -142,6 +142,10 @@ def format_presentation(saved, scene, translated_proposal, request):
     sentences.append(f"The trade-off: {tradeoff}.")
 
     rationale = str(saved.get("rationale", translated_proposal.get("description", "")))
+    if rationale.startswith('Partial layout:'):
+        title = f"Partial layout for {location}"
+        # Do not turn an honest incremental result into a complete-room claim.
+        sentences.insert(0, rationale[:2200])
     if adds:
         notes.append("Sample catalog price, not a shop quote." if re.search(r"\bmock\b|sample pric", rationale, re.I)
                      else "Confirm catalog prices with the shop.")

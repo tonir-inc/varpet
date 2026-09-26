@@ -35,7 +35,7 @@ export function createTypedServer(input:Scene,config:TypedOptions={}){
  const error=(e:unknown)=>receipt({ok:false,message:(e instanceof Error?e.message:String(e)).slice(0,1800),next:'Use returned room, item, slot or option IDs. If no fit was found, try fewer pieces or a different room.'},true);
  const checked=(ops:Op[],intent=intentFor(scene,ops),note='Checked layout for review.')=>{session.setIntent(intent);return session.propose(ops,note.slice(0,3900).replace(/\s+/g,' '));};
  const saveOption=(option:Omit<Option,'epoch'>)=>{const key=`option-${randomUUID()}`;options.set(key,{...option,epoch});return key;};
- const inspect=async(ids:string[])=>{const response=await candidateSheet(ids,config.images);ids.forEach(id=>seen.add(id));return response.content.filter(p=>p.type==='image');};
+ const inspect=async(ids:string[])=>{const response=await candidateSheet(ids,config.images);ids.forEach(id=>seen.add(id));return [...response.content.filter(p=>p.type==='image'),{type:'text' as const,text:response.content.filter(p=>p.type==='text').map(p=>p.text).join('\n').slice(0,1000)}];};
  const query=(roomId:string,planning=false)=>config.catalogQuery??(process.env.VARPET_CATALOG_PROXY?proxyCatalogQuery(roomId,{},planning):undefined);
  const saveStage=(ops:Op[])=>{
   const trial=[...staged,...ops],validation=checked(trial);if(!validation.ok)return receipt({ok:false,errors:validation.errors.slice(0,3).map(e=>({check:e.check,message:e.message}))},true);

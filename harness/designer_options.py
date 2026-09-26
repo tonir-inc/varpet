@@ -116,6 +116,9 @@ def accepted_proposals(events: list[dict]) -> list[dict]:
     for record in events:
         if not isinstance(record, dict):
             continue
+        if record.get('kind') == 'proposal_evidence' and _valid_proposal(record.get('proposal')):
+            proposals.append(deepcopy(record['proposal']))
+            continue
         event = record.get("event", record)
         if not isinstance(event, dict) or event.get("method") != "item/completed":
             continue

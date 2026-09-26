@@ -23,7 +23,7 @@ def fetch_sheet(ids):
         path=Path(tmp)/'ids.json';path.write_text(json.dumps(ids))
         result=designer.watch_process([str(ROOT/'packages/designer/node_modules/.bin/tsx'),
                                       str(ROOT/'packages/designer/src/catalog-vision-cli.ts'),str(path)],
-                                     deadline=time.monotonic()+10,idle_timeout=10,env={**os.environ,**designer.designer_mcp_env()})
+                                     deadline=time.monotonic()+15,idle_timeout=15,env={**os.environ,**designer.designer_mcp_env()})
     if result.usage_limited:
         raise RuntimeError('usage limit while fetching product previews')
     if result.returncode or result.deadline_exceeded or result.timed_out:

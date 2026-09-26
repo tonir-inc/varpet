@@ -422,6 +422,8 @@ def sdk_worker(job_path: Path) -> int:
     enable_product_previews(config)
     from designer_typed_tools import configure as typed_configure, instructions as typed_instructions
     typed_configure(config)
+    proposals_dir = os.environ.get('VARPET_PROPOSALS_DIR') or str(Path(runtime['home'])/'proposals')
+    config['mcp_servers']['varpet-designer']['env']['VARPET_PROPOSALS_DIR'] = proposals_dir
     if job.get("review_only"):
         config["mcp_servers"] = {}
     from designer_typed_tools import direct_catalog
@@ -493,7 +495,7 @@ def sdk_worker(job_path: Path) -> int:
             payload = event.payload.model_dump(mode="json", by_alias=True)
             _emit("event", method=event.method, payload=payload)
             from designer_typed_tools import saved_receipt
-            receipt = saved_receipt({"method":event.method,"payload":payload}, os.environ.get("VARPET_PROPOSALS_DIR"))
+            receipt = saved_receipt({"method":event.method,"payload":payload}, proposals_dir)
             if receipt and terminal_proposal is None:
                 terminal_proposal = receipt
                 final_response = receipt['message']
@@ -501,7 +503,7 @@ def sdk_worker(job_path: Path) -> int:
                 handle.interrupt()
             if event.method == "item/completed":
                 item = payload.get("item", {})
-                if item.get("type") == "agentMessage" and item.get("phase") in (None, "final_answer"):
+                if terminal_proposal is None and item.get("type") == "agentMessage" and item.get("phase") in (None, "final_answer"):
                     final_response = item.get("text")
             elif event.method == "thread/tokenUsage/updated":
                 total_usage = payload.get("tokenUsage", {}).get("total")
