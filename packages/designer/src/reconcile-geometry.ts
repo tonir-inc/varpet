@@ -21,8 +21,22 @@ export interface GeometryAudit { tolerance_m:number; adjustments:{room_id:string
 export function snapRoomFaces(input:SceneDocument,tolerance=ROOM_FACE_TOLERANCE_M):{editor:SceneDocument;audit:GeometryAudit} {
  if(!Number.isFinite(tolerance)||tolerance<0||tolerance>.1)throw new Error('Room-face tolerance must be between 0 and 0.1 m');
  const editor=structuredClone(input),audit:GeometryAudit={tolerance_m:tolerance,adjustments:[],warnings:[],obstacle_wall_ids:[],opening_room_ids:{}};
+ // Architect room vertices are rounded to millimetres while wall/opening coordinates
+ // may retain four decimals. Match only actual door jamb/threshold corners, never
+ // bridge a real floor gap or move the editor's physical walls and openings.
+ const doorCorners:Vec2[]=editor.walls.flatMap(wall=>{
+  const f=basis(wall);
+  return wall.openings.filter(o=>o.kind==='door').flatMap(o=>[o.offset,o.offset+o.width].flatMap(t=>
+   [-wall.thickness/2,0,wall.thickness/2].map(n=>[wall.start[0]+f.u[0]*t+f.n[0]*n,wall.start[1]+f.u[1]*t+f.n[1]*n] as Vec2)));
+ });
  for(const room of editor.rooms) {
-  const original=room.polygon,lines:Line[]=original.map((a,i)=>({a,b:original[(i+1)%original.length]!}));
+  const original=room.polygon;
+  const precise=original.map(point=>{
+   let best=point,distance=Math.min(.001,tolerance)+EPS;
+   for(const corner of doorCorners){const d=Math.hypot(...sub(corner,point));if(d<distance){best=corner;distance=d;}}
+   return best;
+  });
+  const lines:Line[]=precise.map((a,i)=>({a,b:precise[(i+1)%precise.length]!}));
   const shifted=lines.map(line=>{
    let best:Line=line,error=Infinity;
    const v=sub(line.b,line.a),length=Math.hypot(...v);
