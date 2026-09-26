@@ -81,3 +81,12 @@ def test_watcher_names_each_room_and_previews_rooms_as_they_finish(tmp_path, mon
     watcher.poll(35); watcher.poll(45)
     assert lines == ["Designing the living room", "Designing the reading room"]
     assert partials == [("living",)]
+
+
+def test_a_lettered_question_becomes_option_buttons():
+    question, options = designer_spike.question_options(
+        "The flat has three bedrooms; which do you prefer: A) kids share Bedroom 9; or B) office in the living room?")
+    assert question == "The flat has three bedrooms; which do you prefer?"
+    assert options == ["A: kids share Bedroom 9", "B: office in the living room"]
+    assert designer_spike.question_options("Should I keep the sofa?") is None
+    assert designer_spike.question_options("Done: A) sofa, B) table.") is None

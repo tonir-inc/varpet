@@ -76,7 +76,14 @@ try {
   await page.waitForTimeout(4000); mark('flat_loaded');
   await screenshot('flat');
 
-  const first = await turn('brief', brief);
+  let first = await turn('brief', brief);
+  // The designer may ask one question when the brief does not fit the flat: answer with its first option.
+  if (!first.proposal && (await page.locator('.designer-options button').count() || /\?\s*(Show me another option|Tell me|$)/.test(first.text))) {
+    const option = page.locator('.designer-options button').first();
+    const answer = process.env.REHEARSE_ANSWER ?? (await option.count() ? await option.textContent() : 'A, please go ahead.');
+    log('question', { answer }); await screenshot('question');
+    first = await turn('answer', answer);
+  }
   if (!first.proposal) fail('brief: no proposal');
   else {
     const apply = page.locator('.designer-proposal-card .designer-apply').last();

@@ -168,6 +168,26 @@ def parse_budget(text: str) -> int | None:
     return None
 
 
+def question_options(reply: str) -> tuple[str, list[str]] | None:
+    """The designer's one question when a brief does not fit ("...: A) ...; or B) ...?") as a question with option
+    buttons; None for any other reply."""
+    text = " ".join(reply.split())
+    if not text.endswith("?"):
+        return None
+    marks = list(re.finditer(r"(?:^|[\s:;,(])(?:or\s+)?\(?([A-D])[).:]\s", text))
+    if len(marks) < 2 or [m.group(1) for m in marks] != list("ABCD"[:len(marks)]):
+        return None
+    options = []
+    for index, mark in enumerate(marks):
+        end = marks[index + 1].start() if index + 1 < len(marks) else len(text)
+        option = text[mark.end():end].strip().rstrip("?;,. ").removesuffix(" or").strip()
+        options.append(f"{mark.group(1)}: {option}"[:300])
+    question = text[:marks[0].start()].strip().rstrip(":") or "Which would you prefer?"
+    if not question.endswith("?"):
+        question += "?"
+    return question[:1000], options[:4]
+
+
 def proposal_title(request: str) -> str:
     """A card title, not the whole brief: its first clause, at most about 70 characters, cut on a word."""
     text = " ".join(request.strip().split("\n", 1)[0].split())
@@ -720,6 +740,9 @@ def propose(conversation, conversation_id: str, body: dict, cancel: threading.Ev
         lap("designer")
         reply = (result["final"] or "").strip()
         if _draft_digest(state.workspace) == before:
+            asked = question_options(reply)
+            if asked:
+                return {"type": "question", "conversationId": conversation_id, "question": asked[0], "options": asked[1]}
             return {"type": "message", "conversationId": conversation_id,
                     "message": (reply or "I have no change to suggest for that.")[:4000]}
         progress("Checking walkways and clearances")
