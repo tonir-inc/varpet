@@ -1,0 +1,225 @@
+{
+  "arm": "after",
+  "warm": false,
+  "scenarios": [
+    {
+      "id": "avani-living-rearrange",
+      "category": "rearrange",
+      "scene": "Avani editor demo",
+      "scene_source": "editor-demo",
+      "scene_variant": "original",
+      "request": "Make the living room feel bigger.",
+      "expected_intent": {
+        "room_id": "room-living",
+        "add": [],
+        "remove": [],
+        "budget_dram": 0,
+        "move": [
+          {
+            "kinds": [
+              "sofa",
+              "chair",
+              "table",
+              "cabinet",
+              "lamp",
+              "plant",
+              "rug"
+            ],
+            "count": 1
+          }
+        ]
+      },
+      "expect": {
+        "kind": "proposal",
+        "min_largest_rectangle_delta_m2": 0.1
+      },
+      "grading_assumption": "Interpret feel bigger as at least 0.10 square metres more largest empty floor rectangle, retaining furniture and buying nothing; this is a declared benchmark proxy, not a measured aesthetic preference."
+    },
+    {
+      "id": "avani-wall-blue",
+      "category": "appearance",
+      "scene": "Avani editor demo",
+      "scene_source": "editor-demo",
+      "scene_variant": "original",
+      "request": "Make the living room west wall blue, exactly #3366cc. Keep all furniture, geometry and other colours unchanged. Propose the colour edit; do not claim that paint or labour has been priced.",
+      "expected_intent": {
+        "room_id": "room-living",
+        "add": [],
+        "remove": [],
+        "colors": [
+          {
+            "target": "wall",
+            "id": "wall-west",
+            "color": "#3366cc"
+          }
+        ]
+      },
+      "expect": {
+        "kind": "proposal"
+      }
+    },
+    {
+      "id": "avani-grouped-lounge",
+      "category": "rearrange",
+      "scene": "Avani editor demo, explicit grouped v2 variant",
+      "scene_source": "editor-demo",
+      "scene_variant": "grouped-v2",
+      "request": "Move the grouped lounge chair and living rug together to a different valid location in the living room. Preserve their relative arrangement and all other furniture poses. Keep every item, buy nothing, and propose the checked group move.",
+      "expected_intent": {
+        "room_id": "room-living",
+        "add": [],
+        "remove": [],
+        "budget_dram": 0,
+        "move": [
+          {
+            "kinds": [
+              "chair"
+            ],
+            "count": 1
+          },
+          {
+            "kinds": [
+              "rug"
+            ],
+            "count": 1
+          }
+        ],
+        "keeps": [
+          "sofa",
+          "coffee-table",
+          "floor-lamp",
+          "media-console",
+          "dining-table",
+          "dining-chair-north",
+          "dining-chair-south",
+          "dining-chair-west",
+          "dining-chair-east",
+          "living-olive"
+        ]
+      },
+      "expect": {
+        "kind": "proposal"
+      }
+    }
+  ],
+  "model": "gpt-6-astra",
+  "source_hashes": {
+    "packages/designer/src/adapter.ts": "5054f29c29f6db512f2cfd9fb1129450f507372d916be237afbca273bdcf8d8b",
+    "packages/designer/src/ask.ts": "699c031492ef8236b24dc3d4096a73e1240ac252c8e088b84fa45fcd4c093553",
+    "packages/designer/src/catalog-acceleration.ts": "8218ee7c58dae1e0a5d28a70f3a9157df6f77b62d1a82b7b1a8e712a49e4861f",
+    "packages/designer/src/catalog-service.ts": "ff2956b65a964a9e35a176fbde0bb1e164c49dc599b0e397c14de86f536427dc",
+    "packages/designer/src/catalog.ts": "79098009e9ec046605604c6996ac6f26f0cf6abbecbbcfa98afad4f1b3b4a56f",
+    "packages/designer/src/editor-bridge.ts": "0fd6835f978f99fe3482ddef82aaf8d9f508077dbbf5932b0c3dca10b8f2a4c5",
+    "packages/designer/src/fast-cli.ts": "8616a39e891f6f7927091303e0e3253293c3c385ed766486a81dc5e6d9ceeba4",
+    "packages/designer/src/fast-path.ts": "ce8e47d311a1bf97c581de35ddda0dd7e950d8535dc634f3da9241e21886ecdc",
+    "packages/designer/src/gltf-validator.d.ts": "9c71b63a81fe1edeb130bf11c93fbbc9cfbe7f8e3d2649ba91c45e701e8f6c61",
+    "packages/designer/src/layout.ts": "4c6326f9686bf31d25fdd19e579937f50ab35e8c078862ccb7976861c6913f1a",
+    "packages/designer/src/local-checks.ts": "a2f9ab46e4789d510d134f34628a16fb6a52a72c8c3f2e70af60f8a917fd7720",
+    "packages/designer/src/metrics/function.ts": "39413b5d7f00c8691be942887216a897cd4f5a46c13abe736bad5fec2e421fa4",
+    "packages/designer/src/metrics/space.ts": "006e3c32fde68c8edbcbf41d88294c062fb930859b5a88618b4fa47e341c561a",
+    "packages/designer/src/metrics/strategy.ts": "1a54abdb11187fda095d2ba00d88105fbe4c021ed44a67c9dac96b90b36901a7",
+    "packages/designer/src/metrics/sun.ts": "f0180a3fd09ceaf79629ed12eb2ce7983f79c7540f6f389559674e5e131c1bee",
+    "packages/designer/src/place-batch.ts": "3a95c2f7c8534e7e428e721f0274004fb1318567556e82e39d61c276fb8cffad",
+    "packages/designer/src/place.ts": "7c3155a07512b47dfa630569c0c3bacbdce2a04b86d74b50250202f96c30b7d3",
+    "packages/designer/src/reconcile-geometry.ts": "75bc04943d0e2f45aeca6761260ae67e623e44c48b9a6369e96561e2064c739b",
+    "packages/designer/src/request.ts": "c3ca7f020cceac875e1377f8a825c6c82aaa215a270f97a5865e45c5937a63ad",
+    "packages/designer/src/scene.ts": "f74eed824a2b7da60bdf8e3c0a1f094aaae6ac4beccfeb5be7fd8748bd218234",
+    "packages/designer/src/server.ts": "363b96c201971dfde4b84d1aab08f9f6263de51bd27f5f7ac82cbef5254ac3b8",
+    "packages/designer/src/session.ts": "d166fd4ca90475a59387b654d8e2a7794dbf3b14d19ba1345df5215fc1988c60",
+    "packages/designer/src/taste/bedroom.ts": "b453119ee0f204fe8ee105b96a671f68dda2946e44678a6258b45ccc6b1928d3",
+    "packages/designer/src/taste/catalog.ts": "5c2a35ddcd04ba2521d62dcbff21c5f29be367b27b39adf303beb430dcf5978b",
+    "packages/designer/src/taste/composition.ts": "074b183db1a272ec73de208f4d0fc6652ff507f29f9d2d98379ea0fe9d6e948f",
+    "packages/designer/src/taste/design.ts": "569f5e5ef41cc1cfe6ce4602c0e065feaa04b88f800cc034c832fd15c2bf3eea",
+    "packages/designer/src/tool-inputs.ts": "a88f805a52e221a560002b40a0ce0e54726a3578cbc6c511130f7fa28c0492e1",
+    "packages/designer/src/wall-geometry.ts": "af4f3ea63e2a702d1b23868dddd79ee96733a0fa04faf23440e754afa4768d46",
+    "harness/designer.py": "4d6642e63603bd31207a7771011a9263bcbdbc110b8a95ef9ed392ea82b5dda3",
+    "harness/designer_catalog_acceleration.py": "5c26dcf2bcaf8c6337fd0d11a89032012c94c12ea78b10ac01de6cb9e48dcd00",
+    "harness/designer_catalog_env_test.py": "7cf5f35494f418df81b4000e24f57f668c8d5279075899a60fa2d5e003db3ead",
+    "harness/designer_catalog_prefix_test.py": "c09f8ec994bda517d9301c539082e547d9599d814c076a8125bc764ff4f4714d",
+    "harness/designer_cleanup_test.py": "6305b988dd0fc5bab720d7ac1361fb75f29cbb192186e891ffbe584e70249146",
+    "harness/designer_copy_test.py": "e9c21d7849935dc0c74fc8f74c3c0e823cd9ba5742e9f48b259b34585a4a5145",
+    "harness/designer_default_test.py": "7ec69fcf308d9b8dfea221f19609b51bdce81225f732783e7b034ea3b4d7c34a",
+    "harness/designer_eval.py": "5b21a683ddf013f8bd3c1b50a2e8bef074d152776ea4d3be0ec3f2e849beb225",
+    "harness/designer_eval_test.py": "99e790cbcd9be72761179b3a3d9a89d787c856681aa4bee74f3b78c9b5030802",
+    "harness/designer_fast.py": "2c7b91624976db7729fc39da364e054c551ddc744a63d223828a0ac6e97ef805",
+    "harness/designer_fast_aggregate_test.py": "209a7b8278752c01db6f091e179a6df2965a8efa1ba7b550a6ab0e6fae7538f9",
+    "harness/designer_fast_catalog_test.py": "e721da64bb65ee563fc6ff9a3048effd760c1fb6a8d7e2f94ab3193c9c6d4912",
+    "harness/designer_fast_test.py": "1436c4e111305d4153eea5b770054163cf936a11c1bac4b9b30529ae07cc1227",
+    "harness/designer_fast_usage_test.py": "e54f7e7b514e16149e5e9adbf66d144920411fee7a31d96f7f273ed7cd95d4ac",
+    "harness/designer_geometry_notes_test.py": "04ecd217bd242e5c7006f4122aaf3b77a898709d087a09dc019794ff22f45900",
+    "harness/designer_options.py": "61306a95b9cdc209cbdd409f85d1e660f19c4a259c5bd248ac317afdae5710d4",
+    "harness/designer_options_deadline_test.py": "5213c5fbb8c04c8672eda91a094dda503bf5c6c854f87d70caae223e4ae2a486",
+    "harness/designer_options_dedup_test.py": "7c804df766adeb3a3d3e819f478f6f82645561763a25e19917f9e98bc71da3e5",
+    "harness/designer_options_test.py": "56204098ea6b19f47d641de9287941a9606652d5ddb4f6b7881f815323759ecf",
+    "harness/designer_presentation.py": "007bf6c1008aa6d5de4bfdab5e3960d2b578b6b047667eb6055882383f6b334f",
+    "harness/designer_presentation_test.py": "f2745d2cefb616d41d2c1842d27e08530bb38666d8b37b875ba79987448e2cf4",
+    "harness/designer_process.py": "3cdd19af1427e4b65fe19948a9bcab0d61011f7cfcf57878d1b1a663d8f3305f",
+    "harness/designer_process_test.py": "863489efb0f622b292da83a694ee8d0b57a2483a48db4d78e3d44e4ac574fc51",
+    "harness/designer_profiles.py": "73413a10e54dec2e48a2bac17691e55e2ae69d8489237b2162898847ebb647f9",
+    "harness/designer_runtime_test.py": "f67273897f7590df166cf0f4789c320d51b7d620f4db1623a67714baa55a3cd3",
+    "harness/designer_service.py": "9f4932e84bf2d0fd6289d2b915cce41b5a1a314c22687de52fdc21edc14168b0",
+    "harness/designer_service_catalog_test.py": "ebfa2c0ebf1aed2f03aa535580b2bfaebf3a8e84cd510262a007fe8b9150e91a",
+    "harness/designer_service_test.py": "c58c9d3c2ff5c78091486364d565053b400a506a40695f7ebc2aab6d7f29e411",
+    "harness/designer_skill_paths_test.py": "af1a1faf98441bb3d89eb8696ded838f68e6972f6bb55b78ced93c97c3ad1e25",
+    "harness/designer_speed_test.py": "49b8c51fe1f72f17772b83c1621a4daa0c400dac9e22ec89c522e716870e1164",
+    "harness/designer_test.py": "bc6a335df6f0b411a311f6bcaf05ce69b8222ad045330439ba49f7b920122558",
+    "harness/designer_vision_test.py": "4a859675f8f5148a91aaf89cf57a97258c367c269a279169816cbc9c8d872719",
+    "packages/designer/eval/avani-benchmark-scenarios.json": "71ae5803b0cc881d18ec5ab4c3f6b1cc24d39b46fb23c595463ea581b77dee9f",
+    "packages/designer/eval/measure.ts": "e5dc3daa857028cb760d2461eb77c4ea1236a3fc411c9f6b77596b1ea1b3a4be",
+    "packages/designer/eval/editor-demo.ts": "58af7b9a9b2f5ee5a1919e8c27e3111310e229cf52d8cd5deeeb91fa8d9341ad",
+    "apps/editor/src/core/apartment-store-check.ts": "05102c3292838c458cbb3fb70c8e103b47d6b508e21e0fbaa0e58af1e17aefe6",
+    "apps/editor/src/core/apartment-store.ts": "a506f6a8d68c7cfa8ed0edfd68fc80c498070d439e7bc5cf56f028e1ea9f8936",
+    "apps/editor/src/core/ceiling-design-check.ts": "8f925c9fde0a1bd30d3ead1b1807ce6aac620465feacde4c191b8eeb9ea523d3",
+    "apps/editor/src/core/ceiling-design.ts": "b7f895ee66b0e68567bbcdf8eb49c0cbf54a86565f36d0aae8ad4c8781127fc0",
+    "apps/editor/src/core/check.ts": "9f71489f1e6701e3f7a6954100ea2f3431cc19581cbbcacb2ef0e5d03857d01c",
+    "apps/editor/src/core/continuous-wall-finish-check.ts": "be7690c1f94904d5825ce5538f845760741866d24694cbf012e88e1250a60247",
+    "apps/editor/src/core/database-catalog-check.ts": "4ccfac667058eead87c11defb835659809b41a2a827a74899de3bfa7bdf9f485",
+    "apps/editor/src/core/demo.ts": "63f3fe775a6e9e4e78956731a4b2e948bb39fb6ea677c97fb09fd36a0c2375cd",
+    "apps/editor/src/core/designer-catalog.ts": "d94e1d86e3ead8d792ef933ac1cc79693ed5bf08c63e0f30b5ac4161dc916230",
+    "apps/editor/src/core/door-barriers-check.ts": "b08f1da14241166906cd0058847674513da7eb15c738c397a5823fc50691782e",
+    "apps/editor/src/core/door-barriers.ts": "ed01199a253218a1be1adfcb1300e9b4014e57d0f08f9a42d1923cfcca352db5",
+    "apps/editor/src/core/finish-presets-check.ts": "82a50df98a84a0b47f271392ed78a7e45f52ff64126b43305d746be15d14e2e2",
+    "apps/editor/src/core/finish-presets.ts": "0bd7af1b3db6af9a7c0d64e061f48ccacfc940a90fd9cefb16574ee7988ff913",
+    "apps/editor/src/core/finish-texture-presets-check.ts": "accbf48453382326f4409ba15567d7d6faab178f40e959c3b1a7393b4f8fe23b",
+    "apps/editor/src/core/floor-plan.ts": "c20ef356b8cef64766c721d14538e04b84ecf13ed1ee466a35d5f5ecab47fc20",
+    "apps/editor/src/core/geometry.ts": "b1da1d72c4fdf46f1b55b414ec17283cdeb0276291d5d37cc6a64eedcd4a083d",
+    "apps/editor/src/core/grouping-check.ts": "22489913e566662cad1f1f881a853060b40f60c003f629fd7eb49d679be4fd0e",
+    "apps/editor/src/core/grouping.ts": "2c8242e24fec75314e79b3aeec63105ca065df952dd9614776ab0d06d9549f3c",
+    "apps/editor/src/core/heights-check.ts": "4456a2877d2b33fc7ec84c7ced8b5228c9709cd08474674da7fbc91f6cc2e10a",
+    "apps/editor/src/core/heights.ts": "146d432ea76e04fe20fc300a2d5a252c7ca02cd44f00a83f0445332d961accab",
+    "apps/editor/src/core/initial-scene.ts": "0552c5bad659188cfade9539c3377efc7d77e9613884e5671a46e24a1c782556",
+    "apps/editor/src/core/inspector-edits-check.ts": "0ebfd580d5fd9bb837e215b97b80880d33abb77611efc65847afc19c6de6ed25",
+    "apps/editor/src/core/inspector-edits.ts": "b3ff984fd8c505478a2421ff9252cdb16b9d9bbeccd67d08191870ab618575cd",
+    "apps/editor/src/core/opening-collision-check.ts": "2f16ff8fb2b1233469937f31d79b0aa98ca9cac4ee8e31d3f218753e3770964a",
+    "apps/editor/src/core/opening-collision.ts": "e11759d871816c5ef2653c58b842b0cdfa48c3ec140aea1e195e2af06df3f439",
+    "apps/editor/src/core/opening-move.ts": "b1515114b2275468d2edeeeabe9b189028a58ac0446f9fd705483ef091c4f157",
+    "apps/editor/src/core/persistence.ts": "638323c7f74e297832941c04d7c56fe612b76945d106c2b01507fc7c15bceb4b",
+    "apps/editor/src/core/placement-conflicts-check.ts": "a83e1e6abf652b0ad41e9d658ef2c37827a82b0dea2e85de073485d78c868557",
+    "apps/editor/src/core/placement-conflicts.ts": "e23e2b7266caf32275b9df0a9e097e15990414f646984bd79c229847bfd41c09",
+    "apps/editor/src/core/plan-layers-check.ts": "d5a68c69a60fb06254fd1e97c8676e239b40326aa8258cd3850d320476c7c0fe",
+    "apps/editor/src/core/plan-layers.ts": "da79377b431e236978302329f2b4cc901aa5baa1225966bb4f3d034f29c0af69",
+    "apps/editor/src/core/plan-measurements-check.ts": "caebf979eec7457cb4c06e1d6911b31afafa0f335323ccdc786626362cf72d28",
+    "apps/editor/src/core/plan-measurements.ts": "a71942c3f1d546b4e3b101b96903a99e03720560552fb940254afd6bb9fc07d3",
+    "apps/editor/src/core/plan-move-check.ts": "12523da977f13ab3afcaec8993960e1ddedcfca269313c66766d51148ad7a08f",
+    "apps/editor/src/core/plan-move.ts": "f0dc905fcd9518f3ea1d32892d41b406e3a232d7fb2b6267e278cadebf5e218c",
+    "apps/editor/src/core/reconstruction-proposal-check.ts": "8eac37d9498c54346cb88f354027eef605f681b7db195d0c92ce03d9149033cb",
+    "apps/editor/src/core/reconstruction-proposal.ts": "aed512d22d3b262cb98d9f97bb7d352c268df7f0c9806761dbb0237e5ea7e5d4",
+    "apps/editor/src/core/renovation-check.ts": "fd967899b3ad6685633d9cd75c3d4c8bee05b7c8efbb454df5badc7dcdc4c406",
+    "apps/editor/src/core/renovation.ts": "9d1c58e454c59560491a98b91da64694153f07da4f9ea80da2897f6cba301cae",
+    "apps/editor/src/core/store.ts": "2c3d47b39270851aa686cafa836994c7233112df3549eae1b0d6958450f0a6bd",
+    "apps/editor/src/core/validation.ts": "2800c3895a9cf11b0942bfee1d5d4fc3adb0c5402bf536eac4c967f0d5e8abc4",
+    "apps/editor/src/core/walkthrough-check.ts": "41f9e7195d0bc298646367a5db4bed0e1ab6cb12695fb5d181f809ffa9ff5dea",
+    "apps/editor/src/core/walkthrough-view-check.ts": "05542d72f18846c55d135386b06e68a6d4f158936171480d391c5c4407abcd78",
+    "apps/editor/src/core/walkthrough.ts": "19990d2bbb907bd38a6050edcc870ffba62230d585ab860ead1d8e063442addf",
+    "apps/editor/src/core/wall-finish-targets.ts": "0de980304c1118905504183325a96b65e44fc62c19e39abb94427ff18b74fcd4",
+    "apps/editor/src/core/wall-junctions-check.ts": "72648f1e49a45515392b48f822e20334c5379fc65307f29c42c649cdb1d01a47",
+    "apps/editor/src/core/wall-junctions.ts": "df6564cceb1c0ed336d5b9ff8b86d6aa1aee9a782e73b82c61e6e0842930ca78",
+    "apps/editor/src/core/wall-move-check.ts": "44a4bc713fbc129570badb4baf9d16e8781ae29f7d62bffcbc99c03153bb1074",
+    "apps/editor/src/core/wall-snapping.ts": "62f2292024697c2dbd009df6eedcc8f686142fd6f2f66a2dd8d08c2cf79edd6a",
+    "apps/editor/src/core/wall-surfaces.ts": "be38270db5b814cbec502abca56c41cfed663054d18cc606a89ae5e5d688d39d",
+    "personal/interior-design-rules/SKILL.md": "5e96e065bcec947b8ce6c72883752233e5aff55882ef02750aa0181b91e1332e",
+    "packages/designer/eval/fast-run.py": "a80a65fd2b92176f7fe5e6a1103629c7f79dcda888779a27207ff9e87b17c4d1"
+  },
+  "git_revision": "1db1746abba7a0be36f5f5e539cbbd1109161b42",
+  "git_dirty": true
+}

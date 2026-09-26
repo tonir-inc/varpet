@@ -1,0 +1,14 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "decline", "conversationId": "0e195d7dea9f44229355189464a09325", "message": "I couldn’t complete a furnished-room preview: seating and rugs are available, but the catalog returned no tables or lamps—essentials for a functional living room.\n\nYour budget remains unconfirmed. Available prices are mock estimates, not shop quotes. Nothing has been changed."}

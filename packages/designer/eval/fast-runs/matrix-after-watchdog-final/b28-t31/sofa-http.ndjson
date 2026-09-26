@@ -1,0 +1,6 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "decline", "conversationId": "8266e05f912645e8b26fbe2763fbab9c", "message": "I don’t see a sofa in the supplied scene—it currently contains no furniture. Could you add your existing sofa to the plan so I can position it facing the living-room window?"}

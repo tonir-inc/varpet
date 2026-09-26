@@ -1,0 +1,50 @@
+[
+  {
+    "arm": "before",
+    "repetition": 1,
+    "suite": "avani",
+    "exit_code": 0,
+    "stdout": "/Users/ashotarushanyan/AshProjects/varpet-fast/packages/designer/eval/fast-runs/20260926T131419Z\n{\"id\": \"avani-living-rearrange\", \"seconds\": 56.02, \"tokens\": 73950, \"pass\": true, \"reasons\": [], \"status\": \"completed\", \"fast\": false}\n{\"id\": \"avani-wall-blue\", \"seconds\": 21.14, \"tokens\": 54029, \"pass\": true, \"reasons\": [], \"status\": \"completed\", \"fast\": false}\n{\"id\": \"avani-grouped-lounge\", \"seconds\": 23.334, \"tokens\": 54215, \"pass\": true, \"reasons\": [], \"status\": \"completed\", \"fast\": false}\n",
+    "stderr": ""
+  },
+  {
+    "arm": "before",
+    "repetition": 1,
+    "suite": "bedroom",
+    "exit_code": 0,
+    "stdout": "/Users/ashotarushanyan/AshProjects/varpet-fast/packages/designer/eval/fast-runs/20260926T131604Z-before-bedroom-959e6c\n{\"id\": \"i01-one-hundred-beds\", \"seconds\": 18.98, \"tokens\": 23729, \"pass\": true, \"reasons\": [], \"status\": \"completed\", \"fast\": false}\n",
+    "stderr": ""
+  },
+  {
+    "arm": "before",
+    "repetition": 2,
+    "suite": "avani",
+    "exit_code": 0,
+    "stdout": "/Users/ashotarushanyan/AshProjects/varpet-fast/packages/designer/eval/fast-runs/20260926T131623Z-before-avani-d6ac60\n{\"id\": \"avani-living-rearrange\", \"seconds\": 51.582, \"tokens\": 116790, \"pass\": true, \"reasons\": [], \"status\": \"completed\", \"fast\": false}\n{\"id\": \"avani-wall-blue\", \"seconds\": 22.69, \"tokens\": 54025, \"pass\": true, \"reasons\": [], \"status\": \"completed\", \"fast\": false}\n{\"id\": \"avani-grouped-lounge\", \"seconds\": 23.615, \"tokens\": 54154, \"pass\": true, \"reasons\": [], \"status\": \"completed\", \"fast\": false}\n",
+    "stderr": ""
+  },
+  {
+    "arm": "before",
+    "repetition": 2,
+    "suite": "bedroom",
+    "exit_code": 0,
+    "stdout": "/Users/ashotarushanyan/AshProjects/varpet-fast/packages/designer/eval/fast-runs/20260926T131807Z-before-bedroom-ecd9db\n{\"id\": \"i01-one-hundred-beds\", \"seconds\": 15.916, \"tokens\": 25210, \"pass\": true, \"reasons\": [], \"status\": \"completed\", \"fast\": false}\n",
+    "stderr": ""
+  },
+  {
+    "arm": "before",
+    "repetition": 3,
+    "suite": "avani",
+    "exit_code": 0,
+    "stdout": "/Users/ashotarushanyan/AshProjects/varpet-fast/packages/designer/eval/fast-runs/20260926T131824Z-before-avani-4925e5\n{\"id\": \"avani-living-rearrange\", \"seconds\": 85.368, \"tokens\": 154965, \"pass\": true, \"reasons\": [], \"status\": \"completed\", \"fast\": false}\n{\"id\": \"avani-wall-blue\", \"seconds\": 26.759, \"tokens\": 53991, \"pass\": true, \"reasons\": [], \"status\": \"completed\", \"fast\": false}\n{\"id\": \"avani-grouped-lounge\", \"seconds\": 31.658, \"tokens\": 54212, \"pass\": true, \"reasons\": [], \"status\": \"completed\", \"fast\": false}\n",
+    "stderr": ""
+  },
+  {
+    "arm": "before",
+    "repetition": 3,
+    "suite": "bedroom",
+    "exit_code": 0,
+    "stdout": "/Users/ashotarushanyan/AshProjects/varpet-fast/packages/designer/eval/fast-runs/20260926T132057Z-before-bedroom-7f6713\n{\"id\": \"i01-one-hundred-beds\", \"seconds\": 19.955, \"tokens\": 23724, \"pass\": true, \"reasons\": [], \"status\": \"completed\", \"fast\": false}\n",
+    "stderr": ""
+  }
+]

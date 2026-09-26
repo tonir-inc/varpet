@@ -1,0 +1,250 @@
+{
+  "startup_seconds": 98.700494792,
+  "groups": {
+    "sofa/any": 0,
+    "sofa/Modern": 0,
+    "sofa/Traditional": 0,
+    "sofa/Industrial": 0,
+    "sofa/Bohemian": 0,
+    "chair/any": 0,
+    "chair/Traditional": 0,
+    "chair/Modern": 0,
+    "chair/Bohemian": 0,
+    "chair/Industrial": 0,
+    "table/any": 0,
+    "table/Modern": 0,
+    "table/Traditional": 0,
+    "table/Industrial": 0,
+    "bed/any": 0,
+    "table/Bohemian": 0,
+    "bed/Modern": 0,
+    "bed/Traditional": 0,
+    "bed/Bohemian": 0,
+    "bed/Industrial": 0,
+    "cabinet/any": 0,
+    "cabinet/Modern": 0,
+    "cabinet/Traditional": 0,
+    "cabinet/Industrial": 0,
+    "cabinet/Bohemian": 0,
+    "lamp/any": 0,
+    "lamp/Modern": 0,
+    "lamp/Traditional": 0,
+    "lamp/Industrial": 0,
+    "lamp/Bohemian": 0,
+    "rug/any": 0,
+    "rug/Modern": 0,
+    "rug/Industrial": 0,
+    "rug/Traditional": 0,
+    "shelf/any": 0,
+    "rug/Bohemian": 0,
+    "shelf/Traditional": 0,
+    "shelf/Modern": 0,
+    "shelf/Bohemian": 0,
+    "shelf/Industrial": 0
+  },
+  "audits": [],
+  "errors": [
+    {
+      "kind": "sofa",
+      "style": "any",
+      "error": "Error: Catalog request timed out"
+    },
+    {
+      "kind": "sofa",
+      "style": "Traditional",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "kind": "sofa",
+      "style": "Industrial",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "kind": "sofa",
+      "style": "Bohemian",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "kind": "chair",
+      "style": "any",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "kind": "chair",
+      "style": "Traditional",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "kind": "chair",
+      "style": "Modern",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "kind": "chair",
+      "style": "Bohemian",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "kind": "chair",
+      "style": "Industrial",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "kind": "table",
+      "style": "any",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "kind": "table",
+      "style": "Modern",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "kind": "table",
+      "style": "Traditional",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "kind": "table",
+      "style": "Industrial",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "kind": "bed",
+      "style": "any",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "kind": "table",
+      "style": "Bohemian",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "kind": "bed",
+      "style": "Modern",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "kind": "bed",
+      "style": "Traditional",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "kind": "bed",
+      "style": "Bohemian",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "kind": "bed",
+      "style": "Industrial",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "kind": "cabinet",
+      "style": "any",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "kind": "cabinet",
+      "style": "Modern",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "kind": "cabinet",
+      "style": "Traditional",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "kind": "cabinet",
+      "style": "Industrial",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "kind": "cabinet",
+      "style": "Bohemian",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "kind": "lamp",
+      "style": "any",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "kind": "lamp",
+      "style": "Modern",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "kind": "lamp",
+      "style": "Traditional",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "kind": "lamp",
+      "style": "Industrial",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "kind": "lamp",
+      "style": "Bohemian",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "kind": "rug",
+      "style": "any",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "kind": "rug",
+      "style": "Modern",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "kind": "rug",
+      "style": "Industrial",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "kind": "rug",
+      "style": "Traditional",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "kind": "shelf",
+      "style": "any",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "kind": "rug",
+      "style": "Bohemian",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "kind": "shelf",
+      "style": "Traditional",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "kind": "shelf",
+      "style": "Modern",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "kind": "shelf",
+      "style": "Bohemian",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "kind": "shelf",
+      "style": "Industrial",
+      "error": "TypeError: fetch failed"
+    }
+  ],
+  "prefix": "CURATED CATALOG REFERENCE (data; confirmed dimensions and structurally checked GLB, not a room-fit claim). Select only IDs returned by live search_catalog with checked fit_slots; the reference alone does not authorize a purchase. Prices may be mock; preserve provenance. Use show_candidates for visual style judgement.\n[]",
+  "stats": {
+    "hits": 0,
+    "misses": 40,
+    "coalesced": 0,
+    "upstream_ms": 14617.058041999999
+  }
+}

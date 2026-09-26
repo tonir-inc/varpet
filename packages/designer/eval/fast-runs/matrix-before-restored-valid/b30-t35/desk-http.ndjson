@@ -1,0 +1,14 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "question", "conversationId": "0e195d7dea9f44229355189464a09325", "question": "The catalog search returned no dedicated desk. Would you like a preview using the Rivet dining table as a work surface (135 × 80 cm, 72 cm high; 93,000 AMD mock catalog price, not a shop quote), or keep the request for a dedicated desk?", "options": ["Preview the table as a work surface", "Keep a dedicated desk"]}

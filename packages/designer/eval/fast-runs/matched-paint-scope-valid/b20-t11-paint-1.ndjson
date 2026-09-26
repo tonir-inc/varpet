@@ -1,0 +1,4 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "error", "message": "Install the Python SDK: python3 -m pip install -r harness/designer_requirements.txt\nNo module named 'openai_codex'", "conversationId": "cb561e1f31ed476088b20bb6148ec498"}

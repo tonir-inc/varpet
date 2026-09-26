@@ -1,0 +1,6 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "question", "conversationId": "f2a5f97707174381a73711853cbf5227", "question": "Which bedroom should get warm-white walls: Bedroom 1 (right), Bedroom 2 (bottom centre), or Bedroom 3 (left)?", "options": ["Bedroom 1 (right)", "Bedroom 2 (bottom centre)", "Bedroom 3 (left)"]}

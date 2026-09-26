@@ -1,0 +1,9 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Preparing a question"}
+{"type": "progress", "message": "Writing your answer"}
+{"type": "question", "conversationId": "a7c60609c778406990e93d7c45be7cc4", "question": "Which bedroom should I preview in warm white: Bedroom 1 (with the balcony door), Bedroom 2, or both? Shared walls will change on both faces, including adjoining rooms.", "options": ["Bedroom 1", "Bedroom 2", "Both bedrooms"]}

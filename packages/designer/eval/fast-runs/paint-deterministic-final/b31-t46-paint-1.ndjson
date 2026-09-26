@@ -1,0 +1,7 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "question", "conversationId": "ba303d7c9f9e4dd295861b6efc0dde3c", "question": "Which bedroom would you like painted warm white: Bedroom 1 (with balcony access), Bedroom 2, or both? Shared walls will also change colour on their adjoining-room faces in this preview.", "options": ["Bedroom 1", "Bedroom 2", "Both bedrooms"]}

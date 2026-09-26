@@ -1,0 +1,5 @@
+DOMException [TimeoutError]: Catalog request timed out.
+    at new DOMException (node:internal/per_context/domexception:76:18)
+    at Timeout._onTimeout (/Users/ashotarushanyan/AshProjects/varpet-fast/apps/editor/src/adapters/catalog-http.ts:39:55)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7)

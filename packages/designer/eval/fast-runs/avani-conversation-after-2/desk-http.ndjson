@@ -1,0 +1,9 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "question", "conversationId": "65b80b23124547a7a1861e7035da22f4", "question": "The catalog search returned no dedicated desk. Would you consider a dining table used as a work desk beside the living-room window? The suitable-height option is listed at 93,000 AMD (mock price, not a shop quote); your budget is unconfirmed.", "options": ["Preview the table as a work desk", "Only a dedicated desk"]}

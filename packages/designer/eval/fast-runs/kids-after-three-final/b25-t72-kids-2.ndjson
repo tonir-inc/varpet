@@ -1,0 +1,4 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "decline", "conversationId": "a5a4f2472b634195bc0704e2b688e5f4", "message": "No desk with a usable catalog identity is available. Choose another available furniture kind or load a catalog containing a desk."}

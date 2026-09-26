@@ -1,0 +1,6176 @@
+{
+  "id": "b21-t13",
+  "source": "1db1746abba7a0be36f5f5e539cbbd1109161b42",
+  "started_at": "2026-09-26T13:22:00.851Z",
+  "scene_input": "/Users/ashotarushanyan/AshProjects/varpet-fast/packages/designer/eval/komitas/b21-t13.scene.json",
+  "northDeg": 0,
+  "catalogCurrency": "AMD",
+  "profile": {
+    "effort": "low",
+    "placement": "without-place",
+    "context": "compact-base"
+  },
+  "roles": {
+    "living": "living",
+    "bedroom": "bed"
+  },
+  "marketed_room_count": 2,
+  "kids_required": false,
+  "eligibility_basis": "ground truth room count",
+  "ground_truth": [
+    {
+      "id": "b20-t11",
+      "building_id": 20,
+      "type_id": 11,
+      "rooms": 1,
+      "area_m2": 66.3,
+      "bathrooms": 1,
+      "balconies": 1,
+      "northDeg": 0
+    },
+    {
+      "id": "b23-t64",
+      "building_id": 23,
+      "type_id": 64,
+      "rooms": 4,
+      "area_m2": 114.9,
+      "bathrooms": 2,
+      "balconies": 2,
+      "northDeg": 0
+    },
+    {
+      "id": "b25-t72",
+      "building_id": 25,
+      "type_id": 72,
+      "rooms": 4,
+      "area_m2": 118,
+      "bathrooms": 2,
+      "balconies": 2,
+      "northDeg": 0
+    },
+    {
+      "id": "b24-t22",
+      "building_id": 24,
+      "type_id": 22,
+      "rooms": 3,
+      "area_m2": 83.2,
+      "bathrooms": 2,
+      "balconies": 1,
+      "northDeg": 0
+    },
+    {
+      "id": "b31-t46",
+      "building_id": 31,
+      "type_id": 46,
+      "rooms": 1,
+      "area_m2": 89.4,
+      "bathrooms": 2,
+      "balconies": 1,
+      "northDeg": 0
+    },
+    {
+      "id": "b27-t79",
+      "building_id": 27,
+      "type_id": 79,
+      "rooms": 3,
+      "area_m2": 87,
+      "bathrooms": 2,
+      "balconies": 1,
+      "northDeg": 0
+    },
+    {
+      "id": "b21-t13",
+      "building_id": 21,
+      "type_id": 13,
+      "rooms": 2,
+      "area_m2": 41.3,
+      "bathrooms": 1,
+      "balconies": 1,
+      "northDeg": 0
+    },
+    {
+      "id": "b28-t31",
+      "building_id": 28,
+      "type_id": 31,
+      "rooms": 2,
+      "area_m2": 60.9,
+      "bathrooms": 1,
+      "balconies": 1,
+      "northDeg": 0
+    },
+    {
+      "id": "b30-t35",
+      "building_id": 30,
+      "type_id": 35,
+      "rooms": 3,
+      "area_m2": 74.1,
+      "bathrooms": 2,
+      "balconies": 1,
+      "northDeg": 0
+    },
+    {
+      "id": "b18-t1",
+      "building_id": 18,
+      "type_id": 1,
+      "rooms": 2,
+      "area_m2": 65.6,
+      "bathrooms": 1,
+      "balconies": 1,
+      "northDeg": 0
+    }
+  ],
+  "rows": [
+    {
+      "kind": "living",
+      "request": "Furnish the living room",
+      "actual_profile": {
+        "model": "gpt-6-astra",
+        "effort": "low",
+        "placement": "without-place",
+        "context": "compact-base"
+      },
+      "outcome": "decline",
+      "seconds": 10.117488541,
+      "tokens": 0,
+      "usage": {
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "cachedInputTokens": 0,
+        "totalTokens": 0
+      },
+      "conversationId": "e19376ca23c241439d5cba80197634c2",
+      "description": "I could not find a checked layout within the search budget. This does not prove the request impossible. Try one piece at a time or a different room.",
+      "reply": {
+        "type": "decline",
+        "conversationId": "e19376ca23c241439d5cba80197634c2",
+        "message": "I could not find a checked layout within the search budget. This does not prove the request impossible. Try one piece at a time or a different room."
+      },
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:decline",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "measurements_before": [
+        {
+          "key": "walkway:living:door:bed_door:door:living_balcony_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bed_door",
+            "to": "door:living_balcony_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              5.3508,
+              -3.6842
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:living:door:bath_door:door:bed_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bed_door",
+            "to": "door:bath_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              5.3508,
+              -3.6842
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:living:door:bath_door:door:living_balcony_door",
+          "deficit": 0,
+          "measurement": {
+            "from": "door:living_balcony_door",
+            "to": "door:bath_door",
+            "reachable": true,
+            "width_m": 0.7711,
+            "status": "adequate",
+            "narrowest": [
+              8.666699,
+              -2.82455
+            ],
+            "path": [
+              [
+                8.6667,
+                -2.8245499999999995
+              ],
+              [
+                8.214,
+                -2.834
+              ],
+              [
+                5.689,
+                -2.834
+              ],
+              [
+                5.689,
+                -2.809
+              ],
+              [
+                5.589,
+                -2.809
+              ],
+              [
+                5.589,
+                -2.759
+              ],
+              [
+                5.564,
+                -2.759
+              ],
+              [
+                5.564,
+                -2.709
+              ],
+              [
+                5.514,
+                -2.709
+              ],
+              [
+                5.514,
+                -2.609
+              ],
+              [
+                5.464,
+                -2.609
+              ],
+              [
+                5.464,
+                -2.534
+              ],
+              [
+                5.389,
+                -2.534
+              ],
+              [
+                5.389,
+                -2.509
+              ],
+              [
+                5.364,
+                -2.509
+              ],
+              [
+                5.364,
+                -2.484
+              ],
+              [
+                5.339,
+                -2.484
+              ],
+              [
+                5.339,
+                -2.459
+              ],
+              [
+                5.314,
+                -2.459
+              ],
+              [
+                5.314,
+                -2.434
+              ],
+              [
+                5.289,
+                -2.434
+              ],
+              [
+                5.289,
+                -2.409
+              ],
+              [
+                5.264,
+                -2.409
+              ],
+              [
+                5.264,
+                -2.384
+              ],
+              [
+                5.214,
+                -2.384
+              ],
+              [
+                5.214,
+                -2.334
+              ],
+              [
+                5.164,
+                -2.334
+              ],
+              [
+                5.164,
+                -2.309
+              ],
+              [
+                5.139,
+                -2.309
+              ],
+              [
+                5.139,
+                -2.259
+              ],
+              [
+                5.114,
+                -2.259
+              ],
+              [
+                5.114,
+                -2.159
+              ],
+              [
+                4.914,
+                -2.159
+              ],
+              [
+                4.914,
+                -2.134
+              ],
+              [
+                4.864,
+                -2.134
+              ],
+              [
+                4.864,
+                -2.109
+              ],
+              [
+                4.789,
+                -2.109
+              ],
+              [
+                4.789,
+                -2.084
+              ],
+              [
+                3.864,
+                -2.084
+              ],
+              [
+                3.864,
+                -2.059
+              ],
+              [
+                3.814,
+                -2.059
+              ],
+              [
+                3.814,
+                -2.034
+              ],
+              [
+                3.764,
+                -2.034
+              ],
+              [
+                3.764,
+                -2.009
+              ],
+              [
+                3.739,
+                -2.009
+              ],
+              [
+                3.739,
+                -1.984
+              ],
+              [
+                3.714,
+                -1.984
+              ],
+              [
+                3.714,
+                -1.959
+              ],
+              [
+                3.539,
+                -1.959
+              ],
+              [
+                3.539,
+                -1.934
+              ],
+              [
+                3.364,
+                -1.934
+              ],
+              [
+                3.364,
+                -1.909
+              ],
+              [
+                3.264,
+                -1.909
+              ],
+              [
+                3.264,
+                -1.884
+              ],
+              [
+                3.239,
+                -1.884
+              ],
+              [
+                2.7895,
+                -1.89465
+              ]
+            ]
+          }
+        }
+      ],
+      "measurements_after": [
+        {
+          "key": "walkway:living:door:bed_door:door:living_balcony_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bed_door",
+            "to": "door:living_balcony_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              5.3508,
+              -3.6842
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:living:door:bath_door:door:bed_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bed_door",
+            "to": "door:bath_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              5.3508,
+              -3.6842
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:living:door:bath_door:door:living_balcony_door",
+          "deficit": 0,
+          "measurement": {
+            "from": "door:living_balcony_door",
+            "to": "door:bath_door",
+            "reachable": true,
+            "width_m": 0.7711,
+            "status": "adequate",
+            "narrowest": [
+              8.666699,
+              -2.82455
+            ],
+            "path": [
+              [
+                8.6667,
+                -2.8245499999999995
+              ],
+              [
+                8.214,
+                -2.834
+              ],
+              [
+                5.689,
+                -2.834
+              ],
+              [
+                5.689,
+                -2.809
+              ],
+              [
+                5.589,
+                -2.809
+              ],
+              [
+                5.589,
+                -2.759
+              ],
+              [
+                5.564,
+                -2.759
+              ],
+              [
+                5.564,
+                -2.709
+              ],
+              [
+                5.514,
+                -2.709
+              ],
+              [
+                5.514,
+                -2.609
+              ],
+              [
+                5.464,
+                -2.609
+              ],
+              [
+                5.464,
+                -2.534
+              ],
+              [
+                5.389,
+                -2.534
+              ],
+              [
+                5.389,
+                -2.509
+              ],
+              [
+                5.364,
+                -2.509
+              ],
+              [
+                5.364,
+                -2.484
+              ],
+              [
+                5.339,
+                -2.484
+              ],
+              [
+                5.339,
+                -2.459
+              ],
+              [
+                5.314,
+                -2.459
+              ],
+              [
+                5.314,
+                -2.434
+              ],
+              [
+                5.289,
+                -2.434
+              ],
+              [
+                5.289,
+                -2.409
+              ],
+              [
+                5.264,
+                -2.409
+              ],
+              [
+                5.264,
+                -2.384
+              ],
+              [
+                5.214,
+                -2.384
+              ],
+              [
+                5.214,
+                -2.334
+              ],
+              [
+                5.164,
+                -2.334
+              ],
+              [
+                5.164,
+                -2.309
+              ],
+              [
+                5.139,
+                -2.309
+              ],
+              [
+                5.139,
+                -2.259
+              ],
+              [
+                5.114,
+                -2.259
+              ],
+              [
+                5.114,
+                -2.159
+              ],
+              [
+                4.914,
+                -2.159
+              ],
+              [
+                4.914,
+                -2.134
+              ],
+              [
+                4.864,
+                -2.134
+              ],
+              [
+                4.864,
+                -2.109
+              ],
+              [
+                4.789,
+                -2.109
+              ],
+              [
+                4.789,
+                -2.084
+              ],
+              [
+                3.864,
+                -2.084
+              ],
+              [
+                3.864,
+                -2.059
+              ],
+              [
+                3.814,
+                -2.059
+              ],
+              [
+                3.814,
+                -2.034
+              ],
+              [
+                3.764,
+                -2.034
+              ],
+              [
+                3.764,
+                -2.009
+              ],
+              [
+                3.739,
+                -2.009
+              ],
+              [
+                3.739,
+                -1.984
+              ],
+              [
+                3.714,
+                -1.984
+              ],
+              [
+                3.714,
+                -1.959
+              ],
+              [
+                3.539,
+                -1.959
+              ],
+              [
+                3.539,
+                -1.934
+              ],
+              [
+                3.364,
+                -1.934
+              ],
+              [
+                3.364,
+                -1.909
+              ],
+              [
+                3.264,
+                -1.909
+              ],
+              [
+                3.264,
+                -1.884
+              ],
+              [
+                3.239,
+                -1.884
+              ],
+              [
+                2.7895,
+                -1.89465
+              ]
+            ]
+          }
+        }
+      ],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": []
+    },
+    {
+      "kind": "bedroom",
+      "request": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+      "actual_profile": {
+        "model": "gpt-6-astra",
+        "effort": "low",
+        "placement": "without-place",
+        "context": "compact-base"
+      },
+      "outcome": "decline",
+      "seconds": 14.103849292000001,
+      "tokens": 0,
+      "usage": {
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "cachedInputTokens": 0,
+        "totalTokens": 0
+      },
+      "conversationId": "e19376ca23c241439d5cba80197634c2",
+      "description": "I could not find a checked layout within the search budget. This does not prove the request impossible. Try one piece at a time or a different room.",
+      "reply": {
+        "type": "decline",
+        "conversationId": "e19376ca23c241439d5cba80197634c2",
+        "message": "I could not find a checked layout within the search budget. This does not prove the request impossible. Try one piece at a time or a different room."
+      },
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:decline",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "measurements_before": [
+        {
+          "key": "walkway:living:door:bed_door:door:living_balcony_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bed_door",
+            "to": "door:living_balcony_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              5.3508,
+              -3.6842
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:living:door:bath_door:door:bed_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bed_door",
+            "to": "door:bath_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              5.3508,
+              -3.6842
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:living:door:bath_door:door:living_balcony_door",
+          "deficit": 0,
+          "measurement": {
+            "from": "door:living_balcony_door",
+            "to": "door:bath_door",
+            "reachable": true,
+            "width_m": 0.7711,
+            "status": "adequate",
+            "narrowest": [
+              8.666699,
+              -2.82455
+            ],
+            "path": [
+              [
+                8.6667,
+                -2.8245499999999995
+              ],
+              [
+                8.214,
+                -2.834
+              ],
+              [
+                5.689,
+                -2.834
+              ],
+              [
+                5.689,
+                -2.809
+              ],
+              [
+                5.589,
+                -2.809
+              ],
+              [
+                5.589,
+                -2.759
+              ],
+              [
+                5.564,
+                -2.759
+              ],
+              [
+                5.564,
+                -2.709
+              ],
+              [
+                5.514,
+                -2.709
+              ],
+              [
+                5.514,
+                -2.609
+              ],
+              [
+                5.464,
+                -2.609
+              ],
+              [
+                5.464,
+                -2.534
+              ],
+              [
+                5.389,
+                -2.534
+              ],
+              [
+                5.389,
+                -2.509
+              ],
+              [
+                5.364,
+                -2.509
+              ],
+              [
+                5.364,
+                -2.484
+              ],
+              [
+                5.339,
+                -2.484
+              ],
+              [
+                5.339,
+                -2.459
+              ],
+              [
+                5.314,
+                -2.459
+              ],
+              [
+                5.314,
+                -2.434
+              ],
+              [
+                5.289,
+                -2.434
+              ],
+              [
+                5.289,
+                -2.409
+              ],
+              [
+                5.264,
+                -2.409
+              ],
+              [
+                5.264,
+                -2.384
+              ],
+              [
+                5.214,
+                -2.384
+              ],
+              [
+                5.214,
+                -2.334
+              ],
+              [
+                5.164,
+                -2.334
+              ],
+              [
+                5.164,
+                -2.309
+              ],
+              [
+                5.139,
+                -2.309
+              ],
+              [
+                5.139,
+                -2.259
+              ],
+              [
+                5.114,
+                -2.259
+              ],
+              [
+                5.114,
+                -2.159
+              ],
+              [
+                4.914,
+                -2.159
+              ],
+              [
+                4.914,
+                -2.134
+              ],
+              [
+                4.864,
+                -2.134
+              ],
+              [
+                4.864,
+                -2.109
+              ],
+              [
+                4.789,
+                -2.109
+              ],
+              [
+                4.789,
+                -2.084
+              ],
+              [
+                3.864,
+                -2.084
+              ],
+              [
+                3.864,
+                -2.059
+              ],
+              [
+                3.814,
+                -2.059
+              ],
+              [
+                3.814,
+                -2.034
+              ],
+              [
+                3.764,
+                -2.034
+              ],
+              [
+                3.764,
+                -2.009
+              ],
+              [
+                3.739,
+                -2.009
+              ],
+              [
+                3.739,
+                -1.984
+              ],
+              [
+                3.714,
+                -1.984
+              ],
+              [
+                3.714,
+                -1.959
+              ],
+              [
+                3.539,
+                -1.959
+              ],
+              [
+                3.539,
+                -1.934
+              ],
+              [
+                3.364,
+                -1.934
+              ],
+              [
+                3.364,
+                -1.909
+              ],
+              [
+                3.264,
+                -1.909
+              ],
+              [
+                3.264,
+                -1.884
+              ],
+              [
+                3.239,
+                -1.884
+              ],
+              [
+                2.7895,
+                -1.89465
+              ]
+            ]
+          }
+        }
+      ],
+      "measurements_after": [
+        {
+          "key": "walkway:living:door:bed_door:door:living_balcony_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bed_door",
+            "to": "door:living_balcony_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              5.3508,
+              -3.6842
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:living:door:bath_door:door:bed_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bed_door",
+            "to": "door:bath_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              5.3508,
+              -3.6842
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:living:door:bath_door:door:living_balcony_door",
+          "deficit": 0,
+          "measurement": {
+            "from": "door:living_balcony_door",
+            "to": "door:bath_door",
+            "reachable": true,
+            "width_m": 0.7711,
+            "status": "adequate",
+            "narrowest": [
+              8.666699,
+              -2.82455
+            ],
+            "path": [
+              [
+                8.6667,
+                -2.8245499999999995
+              ],
+              [
+                8.214,
+                -2.834
+              ],
+              [
+                5.689,
+                -2.834
+              ],
+              [
+                5.689,
+                -2.809
+              ],
+              [
+                5.589,
+                -2.809
+              ],
+              [
+                5.589,
+                -2.759
+              ],
+              [
+                5.564,
+                -2.759
+              ],
+              [
+                5.564,
+                -2.709
+              ],
+              [
+                5.514,
+                -2.709
+              ],
+              [
+                5.514,
+                -2.609
+              ],
+              [
+                5.464,
+                -2.609
+              ],
+              [
+                5.464,
+                -2.534
+              ],
+              [
+                5.389,
+                -2.534
+              ],
+              [
+                5.389,
+                -2.509
+              ],
+              [
+                5.364,
+                -2.509
+              ],
+              [
+                5.364,
+                -2.484
+              ],
+              [
+                5.339,
+                -2.484
+              ],
+              [
+                5.339,
+                -2.459
+              ],
+              [
+                5.314,
+                -2.459
+              ],
+              [
+                5.314,
+                -2.434
+              ],
+              [
+                5.289,
+                -2.434
+              ],
+              [
+                5.289,
+                -2.409
+              ],
+              [
+                5.264,
+                -2.409
+              ],
+              [
+                5.264,
+                -2.384
+              ],
+              [
+                5.214,
+                -2.384
+              ],
+              [
+                5.214,
+                -2.334
+              ],
+              [
+                5.164,
+                -2.334
+              ],
+              [
+                5.164,
+                -2.309
+              ],
+              [
+                5.139,
+                -2.309
+              ],
+              [
+                5.139,
+                -2.259
+              ],
+              [
+                5.114,
+                -2.259
+              ],
+              [
+                5.114,
+                -2.159
+              ],
+              [
+                4.914,
+                -2.159
+              ],
+              [
+                4.914,
+                -2.134
+              ],
+              [
+                4.864,
+                -2.134
+              ],
+              [
+                4.864,
+                -2.109
+              ],
+              [
+                4.789,
+                -2.109
+              ],
+              [
+                4.789,
+                -2.084
+              ],
+              [
+                3.864,
+                -2.084
+              ],
+              [
+                3.864,
+                -2.059
+              ],
+              [
+                3.814,
+                -2.059
+              ],
+              [
+                3.814,
+                -2.034
+              ],
+              [
+                3.764,
+                -2.034
+              ],
+              [
+                3.764,
+                -2.009
+              ],
+              [
+                3.739,
+                -2.009
+              ],
+              [
+                3.739,
+                -1.984
+              ],
+              [
+                3.714,
+                -1.984
+              ],
+              [
+                3.714,
+                -1.959
+              ],
+              [
+                3.539,
+                -1.959
+              ],
+              [
+                3.539,
+                -1.934
+              ],
+              [
+                3.364,
+                -1.934
+              ],
+              [
+                3.364,
+                -1.909
+              ],
+              [
+                3.264,
+                -1.909
+              ],
+              [
+                3.264,
+                -1.884
+              ],
+              [
+                3.239,
+                -1.884
+              ],
+              [
+                2.7895,
+                -1.89465
+              ]
+            ]
+          }
+        }
+      ],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": []
+    },
+    {
+      "kind": "sofa",
+      "request": "Move the sofa so it faces the window",
+      "actual_profile": {
+        "model": "gpt-6-astra",
+        "effort": "low",
+        "placement": "without-place",
+        "context": "compact-base"
+      },
+      "outcome": "question",
+      "seconds": 31.007115375,
+      "tokens": 36198,
+      "usage": {
+        "cacheWriteInputTokens": 0,
+        "cachedInputTokens": 26752,
+        "inputTokens": 36029,
+        "outputTokens": 169,
+        "reasoningOutputTokens": 15,
+        "totalTokens": 36198
+      },
+      "conversationId": "e19376ca23c241439d5cba80197634c2",
+      "description": "The supplied plan contains no sofa or other furniture. Could you add your sofa to the scene so I can position it facing the living-room window?",
+      "reply": {
+        "type": "question",
+        "conversationId": "e19376ca23c241439d5cba80197634c2",
+        "question": "The supplied plan contains no sofa or other furniture. Could you add your sofa to the scene so I can position it facing the living-room window?",
+        "options": []
+      },
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:question",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "measurements_before": [
+        {
+          "key": "walkway:living:door:bed_door:door:living_balcony_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bed_door",
+            "to": "door:living_balcony_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              5.3508,
+              -3.6842
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:living:door:bath_door:door:bed_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bed_door",
+            "to": "door:bath_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              5.3508,
+              -3.6842
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:living:door:bath_door:door:living_balcony_door",
+          "deficit": 0,
+          "measurement": {
+            "from": "door:living_balcony_door",
+            "to": "door:bath_door",
+            "reachable": true,
+            "width_m": 0.7711,
+            "status": "adequate",
+            "narrowest": [
+              8.666699,
+              -2.82455
+            ],
+            "path": [
+              [
+                8.6667,
+                -2.8245499999999995
+              ],
+              [
+                8.214,
+                -2.834
+              ],
+              [
+                5.689,
+                -2.834
+              ],
+              [
+                5.689,
+                -2.809
+              ],
+              [
+                5.589,
+                -2.809
+              ],
+              [
+                5.589,
+                -2.759
+              ],
+              [
+                5.564,
+                -2.759
+              ],
+              [
+                5.564,
+                -2.709
+              ],
+              [
+                5.514,
+                -2.709
+              ],
+              [
+                5.514,
+                -2.609
+              ],
+              [
+                5.464,
+                -2.609
+              ],
+              [
+                5.464,
+                -2.534
+              ],
+              [
+                5.389,
+                -2.534
+              ],
+              [
+                5.389,
+                -2.509
+              ],
+              [
+                5.364,
+                -2.509
+              ],
+              [
+                5.364,
+                -2.484
+              ],
+              [
+                5.339,
+                -2.484
+              ],
+              [
+                5.339,
+                -2.459
+              ],
+              [
+                5.314,
+                -2.459
+              ],
+              [
+                5.314,
+                -2.434
+              ],
+              [
+                5.289,
+                -2.434
+              ],
+              [
+                5.289,
+                -2.409
+              ],
+              [
+                5.264,
+                -2.409
+              ],
+              [
+                5.264,
+                -2.384
+              ],
+              [
+                5.214,
+                -2.384
+              ],
+              [
+                5.214,
+                -2.334
+              ],
+              [
+                5.164,
+                -2.334
+              ],
+              [
+                5.164,
+                -2.309
+              ],
+              [
+                5.139,
+                -2.309
+              ],
+              [
+                5.139,
+                -2.259
+              ],
+              [
+                5.114,
+                -2.259
+              ],
+              [
+                5.114,
+                -2.159
+              ],
+              [
+                4.914,
+                -2.159
+              ],
+              [
+                4.914,
+                -2.134
+              ],
+              [
+                4.864,
+                -2.134
+              ],
+              [
+                4.864,
+                -2.109
+              ],
+              [
+                4.789,
+                -2.109
+              ],
+              [
+                4.789,
+                -2.084
+              ],
+              [
+                3.864,
+                -2.084
+              ],
+              [
+                3.864,
+                -2.059
+              ],
+              [
+                3.814,
+                -2.059
+              ],
+              [
+                3.814,
+                -2.034
+              ],
+              [
+                3.764,
+                -2.034
+              ],
+              [
+                3.764,
+                -2.009
+              ],
+              [
+                3.739,
+                -2.009
+              ],
+              [
+                3.739,
+                -1.984
+              ],
+              [
+                3.714,
+                -1.984
+              ],
+              [
+                3.714,
+                -1.959
+              ],
+              [
+                3.539,
+                -1.959
+              ],
+              [
+                3.539,
+                -1.934
+              ],
+              [
+                3.364,
+                -1.934
+              ],
+              [
+                3.364,
+                -1.909
+              ],
+              [
+                3.264,
+                -1.909
+              ],
+              [
+                3.264,
+                -1.884
+              ],
+              [
+                3.239,
+                -1.884
+              ],
+              [
+                2.7895,
+                -1.89465
+              ]
+            ]
+          }
+        }
+      ],
+      "measurements_after": [
+        {
+          "key": "walkway:living:door:bed_door:door:living_balcony_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bed_door",
+            "to": "door:living_balcony_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              5.3508,
+              -3.6842
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:living:door:bath_door:door:bed_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bed_door",
+            "to": "door:bath_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              5.3508,
+              -3.6842
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:living:door:bath_door:door:living_balcony_door",
+          "deficit": 0,
+          "measurement": {
+            "from": "door:living_balcony_door",
+            "to": "door:bath_door",
+            "reachable": true,
+            "width_m": 0.7711,
+            "status": "adequate",
+            "narrowest": [
+              8.666699,
+              -2.82455
+            ],
+            "path": [
+              [
+                8.6667,
+                -2.8245499999999995
+              ],
+              [
+                8.214,
+                -2.834
+              ],
+              [
+                5.689,
+                -2.834
+              ],
+              [
+                5.689,
+                -2.809
+              ],
+              [
+                5.589,
+                -2.809
+              ],
+              [
+                5.589,
+                -2.759
+              ],
+              [
+                5.564,
+                -2.759
+              ],
+              [
+                5.564,
+                -2.709
+              ],
+              [
+                5.514,
+                -2.709
+              ],
+              [
+                5.514,
+                -2.609
+              ],
+              [
+                5.464,
+                -2.609
+              ],
+              [
+                5.464,
+                -2.534
+              ],
+              [
+                5.389,
+                -2.534
+              ],
+              [
+                5.389,
+                -2.509
+              ],
+              [
+                5.364,
+                -2.509
+              ],
+              [
+                5.364,
+                -2.484
+              ],
+              [
+                5.339,
+                -2.484
+              ],
+              [
+                5.339,
+                -2.459
+              ],
+              [
+                5.314,
+                -2.459
+              ],
+              [
+                5.314,
+                -2.434
+              ],
+              [
+                5.289,
+                -2.434
+              ],
+              [
+                5.289,
+                -2.409
+              ],
+              [
+                5.264,
+                -2.409
+              ],
+              [
+                5.264,
+                -2.384
+              ],
+              [
+                5.214,
+                -2.384
+              ],
+              [
+                5.214,
+                -2.334
+              ],
+              [
+                5.164,
+                -2.334
+              ],
+              [
+                5.164,
+                -2.309
+              ],
+              [
+                5.139,
+                -2.309
+              ],
+              [
+                5.139,
+                -2.259
+              ],
+              [
+                5.114,
+                -2.259
+              ],
+              [
+                5.114,
+                -2.159
+              ],
+              [
+                4.914,
+                -2.159
+              ],
+              [
+                4.914,
+                -2.134
+              ],
+              [
+                4.864,
+                -2.134
+              ],
+              [
+                4.864,
+                -2.109
+              ],
+              [
+                4.789,
+                -2.109
+              ],
+              [
+                4.789,
+                -2.084
+              ],
+              [
+                3.864,
+                -2.084
+              ],
+              [
+                3.864,
+                -2.059
+              ],
+              [
+                3.814,
+                -2.059
+              ],
+              [
+                3.814,
+                -2.034
+              ],
+              [
+                3.764,
+                -2.034
+              ],
+              [
+                3.764,
+                -2.009
+              ],
+              [
+                3.739,
+                -2.009
+              ],
+              [
+                3.739,
+                -1.984
+              ],
+              [
+                3.714,
+                -1.984
+              ],
+              [
+                3.714,
+                -1.959
+              ],
+              [
+                3.539,
+                -1.959
+              ],
+              [
+                3.539,
+                -1.934
+              ],
+              [
+                3.364,
+                -1.934
+              ],
+              [
+                3.364,
+                -1.909
+              ],
+              [
+                3.264,
+                -1.909
+              ],
+              [
+                3.264,
+                -1.884
+              ],
+              [
+                3.239,
+                -1.884
+              ],
+              [
+                2.7895,
+                -1.89465
+              ]
+            ]
+          }
+        }
+      ],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": []
+    },
+    {
+      "kind": "desk",
+      "request": "Add a desk by the window for working from home",
+      "actual_profile": {
+        "model": "gpt-6-astra",
+        "effort": "low",
+        "placement": "without-place",
+        "context": "compact-base"
+      },
+      "outcome": "decline",
+      "seconds": 8.371314665999991,
+      "tokens": 0,
+      "usage": {
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "cachedInputTokens": 0,
+        "totalTokens": 0
+      },
+      "conversationId": "e19376ca23c241439d5cba80197634c2",
+      "description": "No desk with a usable catalog identity is available. Load a catalog containing a desk, or choose another available furniture kind.",
+      "reply": {
+        "type": "decline",
+        "conversationId": "e19376ca23c241439d5cba80197634c2",
+        "message": "No desk with a usable catalog identity is available. Load a catalog containing a desk, or choose another available furniture kind."
+      },
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:decline",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "measurements_before": [
+        {
+          "key": "walkway:living:door:bed_door:door:living_balcony_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bed_door",
+            "to": "door:living_balcony_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              5.3508,
+              -3.6842
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:living:door:bath_door:door:bed_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bed_door",
+            "to": "door:bath_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              5.3508,
+              -3.6842
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:living:door:bath_door:door:living_balcony_door",
+          "deficit": 0,
+          "measurement": {
+            "from": "door:living_balcony_door",
+            "to": "door:bath_door",
+            "reachable": true,
+            "width_m": 0.7711,
+            "status": "adequate",
+            "narrowest": [
+              8.666699,
+              -2.82455
+            ],
+            "path": [
+              [
+                8.6667,
+                -2.8245499999999995
+              ],
+              [
+                8.214,
+                -2.834
+              ],
+              [
+                5.689,
+                -2.834
+              ],
+              [
+                5.689,
+                -2.809
+              ],
+              [
+                5.589,
+                -2.809
+              ],
+              [
+                5.589,
+                -2.759
+              ],
+              [
+                5.564,
+                -2.759
+              ],
+              [
+                5.564,
+                -2.709
+              ],
+              [
+                5.514,
+                -2.709
+              ],
+              [
+                5.514,
+                -2.609
+              ],
+              [
+                5.464,
+                -2.609
+              ],
+              [
+                5.464,
+                -2.534
+              ],
+              [
+                5.389,
+                -2.534
+              ],
+              [
+                5.389,
+                -2.509
+              ],
+              [
+                5.364,
+                -2.509
+              ],
+              [
+                5.364,
+                -2.484
+              ],
+              [
+                5.339,
+                -2.484
+              ],
+              [
+                5.339,
+                -2.459
+              ],
+              [
+                5.314,
+                -2.459
+              ],
+              [
+                5.314,
+                -2.434
+              ],
+              [
+                5.289,
+                -2.434
+              ],
+              [
+                5.289,
+                -2.409
+              ],
+              [
+                5.264,
+                -2.409
+              ],
+              [
+                5.264,
+                -2.384
+              ],
+              [
+                5.214,
+                -2.384
+              ],
+              [
+                5.214,
+                -2.334
+              ],
+              [
+                5.164,
+                -2.334
+              ],
+              [
+                5.164,
+                -2.309
+              ],
+              [
+                5.139,
+                -2.309
+              ],
+              [
+                5.139,
+                -2.259
+              ],
+              [
+                5.114,
+                -2.259
+              ],
+              [
+                5.114,
+                -2.159
+              ],
+              [
+                4.914,
+                -2.159
+              ],
+              [
+                4.914,
+                -2.134
+              ],
+              [
+                4.864,
+                -2.134
+              ],
+              [
+                4.864,
+                -2.109
+              ],
+              [
+                4.789,
+                -2.109
+              ],
+              [
+                4.789,
+                -2.084
+              ],
+              [
+                3.864,
+                -2.084
+              ],
+              [
+                3.864,
+                -2.059
+              ],
+              [
+                3.814,
+                -2.059
+              ],
+              [
+                3.814,
+                -2.034
+              ],
+              [
+                3.764,
+                -2.034
+              ],
+              [
+                3.764,
+                -2.009
+              ],
+              [
+                3.739,
+                -2.009
+              ],
+              [
+                3.739,
+                -1.984
+              ],
+              [
+                3.714,
+                -1.984
+              ],
+              [
+                3.714,
+                -1.959
+              ],
+              [
+                3.539,
+                -1.959
+              ],
+              [
+                3.539,
+                -1.934
+              ],
+              [
+                3.364,
+                -1.934
+              ],
+              [
+                3.364,
+                -1.909
+              ],
+              [
+                3.264,
+                -1.909
+              ],
+              [
+                3.264,
+                -1.884
+              ],
+              [
+                3.239,
+                -1.884
+              ],
+              [
+                2.7895,
+                -1.89465
+              ]
+            ]
+          }
+        }
+      ],
+      "measurements_after": [
+        {
+          "key": "walkway:living:door:bed_door:door:living_balcony_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bed_door",
+            "to": "door:living_balcony_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              5.3508,
+              -3.6842
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:living:door:bath_door:door:bed_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bed_door",
+            "to": "door:bath_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              5.3508,
+              -3.6842
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:living:door:bath_door:door:living_balcony_door",
+          "deficit": 0,
+          "measurement": {
+            "from": "door:living_balcony_door",
+            "to": "door:bath_door",
+            "reachable": true,
+            "width_m": 0.7711,
+            "status": "adequate",
+            "narrowest": [
+              8.666699,
+              -2.82455
+            ],
+            "path": [
+              [
+                8.6667,
+                -2.8245499999999995
+              ],
+              [
+                8.214,
+                -2.834
+              ],
+              [
+                5.689,
+                -2.834
+              ],
+              [
+                5.689,
+                -2.809
+              ],
+              [
+                5.589,
+                -2.809
+              ],
+              [
+                5.589,
+                -2.759
+              ],
+              [
+                5.564,
+                -2.759
+              ],
+              [
+                5.564,
+                -2.709
+              ],
+              [
+                5.514,
+                -2.709
+              ],
+              [
+                5.514,
+                -2.609
+              ],
+              [
+                5.464,
+                -2.609
+              ],
+              [
+                5.464,
+                -2.534
+              ],
+              [
+                5.389,
+                -2.534
+              ],
+              [
+                5.389,
+                -2.509
+              ],
+              [
+                5.364,
+                -2.509
+              ],
+              [
+                5.364,
+                -2.484
+              ],
+              [
+                5.339,
+                -2.484
+              ],
+              [
+                5.339,
+                -2.459
+              ],
+              [
+                5.314,
+                -2.459
+              ],
+              [
+                5.314,
+                -2.434
+              ],
+              [
+                5.289,
+                -2.434
+              ],
+              [
+                5.289,
+                -2.409
+              ],
+              [
+                5.264,
+                -2.409
+              ],
+              [
+                5.264,
+                -2.384
+              ],
+              [
+                5.214,
+                -2.384
+              ],
+              [
+                5.214,
+                -2.334
+              ],
+              [
+                5.164,
+                -2.334
+              ],
+              [
+                5.164,
+                -2.309
+              ],
+              [
+                5.139,
+                -2.309
+              ],
+              [
+                5.139,
+                -2.259
+              ],
+              [
+                5.114,
+                -2.259
+              ],
+              [
+                5.114,
+                -2.159
+              ],
+              [
+                4.914,
+                -2.159
+              ],
+              [
+                4.914,
+                -2.134
+              ],
+              [
+                4.864,
+                -2.134
+              ],
+              [
+                4.864,
+                -2.109
+              ],
+              [
+                4.789,
+                -2.109
+              ],
+              [
+                4.789,
+                -2.084
+              ],
+              [
+                3.864,
+                -2.084
+              ],
+              [
+                3.864,
+                -2.059
+              ],
+              [
+                3.814,
+                -2.059
+              ],
+              [
+                3.814,
+                -2.034
+              ],
+              [
+                3.764,
+                -2.034
+              ],
+              [
+                3.764,
+                -2.009
+              ],
+              [
+                3.739,
+                -2.009
+              ],
+              [
+                3.739,
+                -1.984
+              ],
+              [
+                3.714,
+                -1.984
+              ],
+              [
+                3.714,
+                -1.959
+              ],
+              [
+                3.539,
+                -1.959
+              ],
+              [
+                3.539,
+                -1.934
+              ],
+              [
+                3.364,
+                -1.934
+              ],
+              [
+                3.364,
+                -1.909
+              ],
+              [
+                3.264,
+                -1.909
+              ],
+              [
+                3.264,
+                -1.884
+              ],
+              [
+                3.239,
+                -1.884
+              ],
+              [
+                2.7895,
+                -1.89465
+              ]
+            ]
+          }
+        }
+      ],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": []
+    },
+    {
+      "kind": "paint",
+      "request": "Paint the bedroom walls warm white",
+      "actual_profile": {
+        "model": "gpt-6-astra",
+        "effort": "low",
+        "placement": "without-place",
+        "context": "compact-base"
+      },
+      "outcome": "proposal",
+      "seconds": 30.440835125000014,
+      "tokens": 4394,
+      "usage": {
+        "cacheWriteInputTokens": 0,
+        "cachedInputTokens": 2688,
+        "inputTokens": 4362,
+        "outputTokens": 32,
+        "reasoningOutputTokens": 0,
+        "totalTokens": 4394
+      },
+      "conversationId": "e19376ca23c241439d5cba80197634c2",
+      "description": "I’ve given 6 wall sections a fresh colour, keeping the layout just as it is. No furniture purchases are needed. The trade-off: the colour covers both sides of each selected wall, including shared walls.",
+      "reply": {
+        "type": "proposal",
+        "conversationId": "e19376ca23c241439d5cba80197634c2",
+        "proposal": {
+          "id": "designer-482163e3fa0503f9e05e04a674fce6ec76026cb950d9874b305e90968c3bb7c0",
+          "title": "Fresh colour for the bedroom",
+          "description": "I’ve given 6 wall sections a fresh colour, keeping the layout just as it is. No furniture purchases are needed. The trade-off: the colour covers both sides of each selected wall, including shared walls.",
+          "command": {
+            "id": "designer-482163e3fa0503f9e05e04a674fce6ec76026cb950d9874b305e90968c3bb7c0",
+            "label": "Apply designer layout",
+            "source": "designer",
+            "baseRevision": 0,
+            "operations": [
+              {
+                "type": "update-wall",
+                "id": "w9",
+                "patch": {
+                  "color": "#f5efe4"
+                }
+              },
+              {
+                "type": "update-wall",
+                "id": "w10",
+                "patch": {
+                  "color": "#f5efe4"
+                }
+              },
+              {
+                "type": "update-wall",
+                "id": "w11",
+                "patch": {
+                  "color": "#f5efe4"
+                }
+              },
+              {
+                "type": "update-wall",
+                "id": "column_se",
+                "patch": {
+                  "color": "#f5efe4"
+                }
+              }
+            ]
+          }
+        },
+        "metrics": {
+          "before": {
+            "space": {
+              "rooms": [
+                {
+                  "room_id": "hall",
+                  "free_area_m2": 2,
+                  "largest_free_rectangle": {
+                    "x": 3.539,
+                    "y": -4.28075,
+                    "width": 1,
+                    "depth": 1.75,
+                    "area_m2": 1.75
+                  },
+                  "walkways": []
+                },
+                {
+                  "room_id": "living",
+                  "free_area_m2": 16.27,
+                  "largest_free_rectangle": {
+                    "x": 4.689,
+                    "y": -3.584,
+                    "width": 3.85,
+                    "depth": 2.95,
+                    "area_m2": 11.3575
+                  },
+                  "walkways": [
+                    {
+                      "from": "door:bed_door",
+                      "to": "door:living_balcony_door",
+                      "reachable": false,
+                      "width_m": 0,
+                      "status": "fail",
+                      "narrowest": [
+                        5.3508,
+                        -3.6842
+                      ],
+                      "path": []
+                    },
+                    {
+                      "from": "door:bed_door",
+                      "to": "door:bath_door",
+                      "reachable": false,
+                      "width_m": 0,
+                      "status": "fail",
+                      "narrowest": [
+                        5.3508,
+                        -3.6842
+                      ],
+                      "path": []
+                    },
+                    {
+                      "from": "door:living_balcony_door",
+                      "to": "door:bath_door",
+                      "reachable": true,
+                      "width_m": 0.7711,
+                      "status": "adequate",
+                      "narrowest": [
+                        8.666699,
+                        -2.82455
+                      ],
+                      "path": [
+                        [
+                          8.6667,
+                          -2.8245499999999995
+                        ],
+                        [
+                          8.214,
+                          -2.834
+                        ],
+                        [
+                          5.689,
+                          -2.834
+                        ],
+                        [
+                          5.689,
+                          -2.809
+                        ],
+                        [
+                          5.589,
+                          -2.809
+                        ],
+                        [
+                          5.589,
+                          -2.759
+                        ],
+                        [
+                          5.564,
+                          -2.759
+                        ],
+                        [
+                          5.564,
+                          -2.709
+                        ],
+                        [
+                          5.514,
+                          -2.709
+                        ],
+                        [
+                          5.514,
+                          -2.609
+                        ],
+                        [
+                          5.464,
+                          -2.609
+                        ],
+                        [
+                          5.464,
+                          -2.534
+                        ],
+                        [
+                          5.389,
+                          -2.534
+                        ],
+                        [
+                          5.389,
+                          -2.509
+                        ],
+                        [
+                          5.364,
+                          -2.509
+                        ],
+                        [
+                          5.364,
+                          -2.484
+                        ],
+                        [
+                          5.339,
+                          -2.484
+                        ],
+                        [
+                          5.339,
+                          -2.459
+                        ],
+                        [
+                          5.314,
+                          -2.459
+                        ],
+                        [
+                          5.314,
+                          -2.434
+                        ],
+                        [
+                          5.289,
+                          -2.434
+                        ],
+                        [
+                          5.289,
+                          -2.409
+                        ],
+                        [
+                          5.264,
+                          -2.409
+                        ],
+                        [
+                          5.264,
+                          -2.384
+                        ],
+                        [
+                          5.214,
+                          -2.384
+                        ],
+                        [
+                          5.214,
+                          -2.334
+                        ],
+                        [
+                          5.164,
+                          -2.334
+                        ],
+                        [
+                          5.164,
+                          -2.309
+                        ],
+                        [
+                          5.139,
+                          -2.309
+                        ],
+                        [
+                          5.139,
+                          -2.259
+                        ],
+                        [
+                          5.114,
+                          -2.259
+                        ],
+                        [
+                          5.114,
+                          -2.159
+                        ],
+                        [
+                          4.914,
+                          -2.159
+                        ],
+                        [
+                          4.914,
+                          -2.134
+                        ],
+                        [
+                          4.864,
+                          -2.134
+                        ],
+                        [
+                          4.864,
+                          -2.109
+                        ],
+                        [
+                          4.789,
+                          -2.109
+                        ],
+                        [
+                          4.789,
+                          -2.084
+                        ],
+                        [
+                          3.864,
+                          -2.084
+                        ],
+                        [
+                          3.864,
+                          -2.059
+                        ],
+                        [
+                          3.814,
+                          -2.059
+                        ],
+                        [
+                          3.814,
+                          -2.034
+                        ],
+                        [
+                          3.764,
+                          -2.034
+                        ],
+                        [
+                          3.764,
+                          -2.009
+                        ],
+                        [
+                          3.739,
+                          -2.009
+                        ],
+                        [
+                          3.739,
+                          -1.984
+                        ],
+                        [
+                          3.714,
+                          -1.984
+                        ],
+                        [
+                          3.714,
+                          -1.959
+                        ],
+                        [
+                          3.539,
+                          -1.959
+                        ],
+                        [
+                          3.539,
+                          -1.934
+                        ],
+                        [
+                          3.364,
+                          -1.934
+                        ],
+                        [
+                          3.364,
+                          -1.909
+                        ],
+                        [
+                          3.264,
+                          -1.909
+                        ],
+                        [
+                          3.264,
+                          -1.884
+                        ],
+                        [
+                          3.239,
+                          -1.884
+                        ],
+                        [
+                          2.7895,
+                          -1.89465
+                        ]
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "room_id": "bed",
+                  "free_area_m2": 13.3,
+                  "largest_free_rectangle": {
+                    "x": 4.772,
+                    "y": -6.161,
+                    "width": 5.05,
+                    "depth": 2.4,
+                    "area_m2": 12.12
+                  },
+                  "walkways": []
+                },
+                {
+                  "room_id": "bath",
+                  "free_area_m2": 4.365,
+                  "largest_free_rectangle": {
+                    "x": 0.21055,
+                    "y": -2.1509,
+                    "width": 2.5,
+                    "depth": 1.55,
+                    "area_m2": 3.875
+                  },
+                  "walkways": []
+                },
+                {
+                  "room_id": "balcony",
+                  "free_area_m2": 3.2975,
+                  "largest_free_rectangle": {
+                    "x": 8.867,
+                    "y": -3.534,
+                    "width": 0.95,
+                    "depth": 3.2,
+                    "area_m2": 3.04
+                  },
+                  "walkways": []
+                }
+              ],
+              "free_area_m2": 39.2325
+            },
+            "daylight": {
+              "status": "known",
+              "location": {
+                "latitude": 40.18,
+                "longitude": 44.51,
+                "utc_offset_hours": 4
+              },
+              "assumptions": [
+                "Calculated clear-sky potential direct sun, with a fixed 15 degree obstruction horizon and at most 85 degree incidence.",
+                "Intervals use one-minute midpoint samples in fixed UTC+4; noon refers to solar noon.",
+                "Floor polygons are unoccluded full-window projections; not clipped to walls or furniture.",
+                "Default seasonal dates use fixed reference year 2026."
+              ],
+              "windows": [
+                {
+                  "window_id": "bed_window",
+                  "room_id": "bed",
+                  "outward_azimuth_deg": 90,
+                  "days": [
+                    {
+                      "window_id": "bed_window",
+                      "date": "2026-03-20",
+                      "outward_azimuth_deg": 90,
+                      "direct_sun_hours": 4.450000000000001,
+                      "intervals": [
+                        {
+                          "start_hour": 8.483333333333333,
+                          "end_hour": 12.933333333333334
+                        }
+                      ],
+                      "patches": [
+                        {
+                          "hour": 9,
+                          "patch": {
+                            "hour": 9,
+                            "position": {
+                              "azimuth_deg": 108.78407910540295,
+                              "elevation_deg": 20.68507521189603,
+                              "solar_noon_hour": 13.15713407861879
+                            },
+                            "polygon": [
+                              [
+                                7.950142718281221,
+                                -3.7563383769768386
+                              ],
+                              [
+                                7.950142718281221,
+                                -5.300238376976838
+                              ],
+                              [
+                                4.188972815058509,
+                                -4.020997833808411
+                              ],
+                              [
+                                4.188972815058509,
+                                -2.4770978338084113
+                              ]
+                            ],
+                            "depth_m": 6.091571777075719
+                          }
+                        },
+                        {
+                          "hour": 12,
+                          "patch": {
+                            "hour": 12,
+                            "position": {
+                              "azimuth_deg": 154.2006758512622,
+                              "elevation_deg": 46.7330164659926,
+                              "solar_noon_hour": 13.15713407861879
+                            },
+                            "polygon": [
+                              [
+                                9.628373773674463,
+                                -3.7606453311628627
+                              ],
+                              [
+                                9.628373773674463,
+                                -5.3045453311628625
+                              ],
+                              [
+                                9.013887099314083,
+                                -4.033380327093231
+                              ],
+                              [
+                                9.013887099314083,
+                                -2.489480327093231
+                              ]
+                            ],
+                            "depth_m": 2.1649093859862028
+                          }
+                        },
+                        {
+                          "hour": 15,
+                          "patch": null
+                        }
+                      ]
+                    },
+                    {
+                      "window_id": "bed_window",
+                      "date": "2026-06-21",
+                      "outward_azimuth_deg": 90,
+                      "direct_sun_hours": 5.883333333333333,
+                      "intervals": [
+                        {
+                          "start_hour": 7.066666666666666,
+                          "end_hour": 12.95
+                        }
+                      ],
+                      "patches": [
+                        {
+                          "hour": 9,
+                          "patch": {
+                            "hour": 9,
+                            "position": {
+                              "azimuth_deg": 88.83708056083935,
+                              "elevation_deg": 36.6926180095125,
+                              "solar_noon_hour": 13.062627699793806
+                            },
+                            "polygon": [
+                              [
+                                8.882750146240221,
+                                -4.46038853056699
+                              ],
+                              [
+                                8.882750146240221,
+                                -6.00428853056699
+                              ],
+                              [
+                                6.870219170440638,
+                                -6.045142025380097
+                              ],
+                              [
+                                6.870219170440638,
+                                -4.5012420253800975
+                              ]
+                            ],
+                            "depth_m": 3.086516566873681
+                          }
+                        },
+                        {
+                          "hour": 12,
+                          "patch": {
+                            "hour": 12,
+                            "position": {
+                              "azimuth_deg": 136.48218295479012,
+                              "elevation_deg": 68.54574975735808,
+                              "solar_noon_hour": 13.062627699793806
+                            },
+                            "polygon": [
+                              [
+                                9.739616812255884,
+                                -4.210616346175602
+                              ],
+                              [
+                                9.739616812255884,
+                                -5.754516346175602
+                              ],
+                              [
+                                9.333710835235665,
+                                -5.327046995254856
+                              ],
+                              [
+                                9.333710835235665,
+                                -3.7831469952548558
+                              ]
+                            ],
+                            "depth_m": 0.9038732841751016
+                          }
+                        },
+                        {
+                          "hour": 15,
+                          "patch": null
+                        }
+                      ]
+                    },
+                    {
+                      "window_id": "bed_window",
+                      "date": "2026-09-22",
+                      "outward_azimuth_deg": 90,
+                      "direct_sun_hours": 4.4833333333333325,
+                      "intervals": [
+                        {
+                          "start_hour": 8.216666666666667,
+                          "end_hour": 12.7
+                        }
+                      ],
+                      "patches": [
+                        {
+                          "hour": 9,
+                          "patch": {
+                            "hour": 9,
+                            "position": {
+                              "azimuth_deg": 111.17764528598656,
+                              "elevation_deg": 23.640489391685225,
+                              "solar_noon_hour": 12.912410484268186
+                            },
+                            "polygon": [
+                              [
+                                8.251921565289637,
+                                -3.778357573437816
+                              ],
+                              [
+                                8.251921565289637,
+                                -5.322257573437816
+                              ],
+                              [
+                                5.05658700020771,
+                                -4.084303023633721
+                              ],
+                              [
+                                5.05658700020771,
+                                -2.540403023633721
+                              ]
+                            ],
+                            "depth_m": 5.254367649510237
+                          }
+                        },
+                        {
+                          "hour": 12,
+                          "patch": {
+                            "hour": 12,
+                            "position": {
+                              "azimuth_deg": 159.21086028134755,
+                              "elevation_deg": 48.195873251523416,
+                              "solar_noon_hour": 12.912410484268186
+                            },
+                            "polygon": [
+                              [
+                                9.702188131131674,
+                                -3.7697904313509634
+                              ],
+                              [
+                                9.702188131131674,
+                                -5.313690431350963
+                              ],
+                              [
+                                9.226103377003565,
+                                -4.05967249013402
+                              ],
+                              [
+                                9.226103377003565,
+                                -2.5157724901340206
+                              ]
+                            ],
+                            "depth_m": 2.056735447811313
+                          }
+                        },
+                        {
+                          "hour": 15,
+                          "patch": null
+                        }
+                      ]
+                    },
+                    {
+                      "window_id": "bed_window",
+                      "date": "2026-12-21",
+                      "outward_azimuth_deg": 90,
+                      "direct_sun_hours": 2.5166666666666657,
+                      "intervals": [
+                        {
+                          "start_hour": 10.15,
+                          "end_hour": 12.666666666666666
+                        }
+                      ],
+                      "patches": [
+                        {
+                          "hour": 9,
+                          "patch": null
+                        },
+                        {
+                          "hour": 12,
+                          "patch": {
+                            "hour": 12,
+                            "position": {
+                              "azimuth_deg": 164.83854087453165,
+                              "elevation_deg": 24.90231104911189,
+                              "solar_noon_hour": 12.999584875741618
+                            },
+                            "polygon": [
+                              [
+                                9.505395868593354,
+                                -2.7753120370908504
+                              ],
+                              [
+                                9.505395868593354,
+                                -4.31921203709085
+                              ],
+                              [
+                                8.660325622205892,
+                                -1.2005471066361961
+                              ],
+                              [
+                                8.660325622205892,
+                                0.3433528933638037
+                              ]
+                            ],
+                            "depth_m": 4.954402558583443
+                          }
+                        },
+                        {
+                          "hour": 15,
+                          "patch": null
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "window_id": "living_balcony_window",
+                  "room_id": "living",
+                  "outward_azimuth_deg": 90,
+                  "days": [
+                    {
+                      "window_id": "living_balcony_window",
+                      "date": "2026-03-20",
+                      "outward_azimuth_deg": 90,
+                      "direct_sun_hours": 4.450000000000001,
+                      "intervals": [
+                        {
+                          "start_hour": 8.483333333333333,
+                          "end_hour": 12.933333333333334
+                        }
+                      ],
+                      "patches": [
+                        {
+                          "hour": 9,
+                          "patch": {
+                            "hour": 9,
+                            "position": {
+                              "azimuth_deg": 108.78407910540295,
+                              "elevation_deg": 20.68507521189603,
+                              "solar_noon_hour": 13.15713407861879
+                            },
+                            "polygon": [
+                              [
+                                6.660742718281222,
+                                -0.2826383769768386
+                              ],
+                              [
+                                6.660742718281222,
+                                -1.7563383769768386
+                              ],
+                              [
+                                2.8995728150585105,
+                                -0.4770978338084111
+                              ],
+                              [
+                                2.8995728150585105,
+                                0.996602166191589
+                              ]
+                            ],
+                            "depth_m": 6.091571777075719
+                          }
+                        },
+                        {
+                          "hour": 12,
+                          "patch": {
+                            "hour": 12,
+                            "position": {
+                              "azimuth_deg": 154.2006758512622,
+                              "elevation_deg": 46.7330164659926,
+                              "solar_noon_hour": 13.15713407861879
+                            },
+                            "polygon": [
+                              [
+                                8.338973773674464,
+                                -0.2869453311628628
+                              ],
+                              [
+                                8.338973773674464,
+                                -1.760645331162863
+                              ],
+                              [
+                                7.724487099314085,
+                                -0.4894803270932311
+                              ],
+                              [
+                                7.724487099314085,
+                                0.984219672906769
+                              ]
+                            ],
+                            "depth_m": 2.1649093859862028
+                          }
+                        },
+                        {
+                          "hour": 15,
+                          "patch": null
+                        }
+                      ]
+                    },
+                    {
+                      "window_id": "living_balcony_window",
+                      "date": "2026-06-21",
+                      "outward_azimuth_deg": 90,
+                      "direct_sun_hours": 5.883333333333333,
+                      "intervals": [
+                        {
+                          "start_hour": 7.066666666666666,
+                          "end_hour": 12.95
+                        }
+                      ],
+                      "patches": [
+                        {
+                          "hour": 9,
+                          "patch": {
+                            "hour": 9,
+                            "position": {
+                              "azimuth_deg": 88.83708056083935,
+                              "elevation_deg": 36.6926180095125,
+                              "solar_noon_hour": 13.062627699793806
+                            },
+                            "polygon": [
+                              [
+                                7.593350146240223,
+                                -0.9866885305669906
+                              ],
+                              [
+                                7.593350146240223,
+                                -2.460388530566991
+                              ],
+                              [
+                                5.580819170440639,
+                                -2.501242025380098
+                              ],
+                              [
+                                5.580819170440639,
+                                -1.0275420253800978
+                              ]
+                            ],
+                            "depth_m": 3.086516566873681
+                          }
+                        },
+                        {
+                          "hour": 12,
+                          "patch": {
+                            "hour": 12,
+                            "position": {
+                              "azimuth_deg": 136.48218295479012,
+                              "elevation_deg": 68.54574975735808,
+                              "solar_noon_hour": 13.062627699793806
+                            },
+                            "polygon": [
+                              [
+                                8.450216812255885,
+                                -0.7369163461756019
+                              ],
+                              [
+                                8.450216812255885,
+                                -2.210616346175602
+                              ],
+                              [
+                                8.044310835235667,
+                                -1.7831469952548558
+                              ],
+                              [
+                                8.044310835235667,
+                                -0.30944699525485553
+                              ]
+                            ],
+                            "depth_m": 0.9038732841751016
+                          }
+                        },
+                        {
+                          "hour": 15,
+                          "patch": null
+                        }
+                      ]
+                    },
+                    {
+                      "window_id": "living_balcony_window",
+                      "date": "2026-09-22",
+                      "outward_azimuth_deg": 90,
+                      "direct_sun_hours": 4.4833333333333325,
+                      "intervals": [
+                        {
+                          "start_hour": 8.216666666666667,
+                          "end_hour": 12.7
+                        }
+                      ],
+                      "patches": [
+                        {
+                          "hour": 9,
+                          "patch": {
+                            "hour": 9,
+                            "position": {
+                              "azimuth_deg": 111.17764528598656,
+                              "elevation_deg": 23.640489391685225,
+                              "solar_noon_hour": 12.912410484268186
+                            },
+                            "polygon": [
+                              [
+                                6.962521565289639,
+                                -0.30465757343781597
+                              ],
+                              [
+                                6.962521565289639,
+                                -1.778357573437816
+                              ],
+                              [
+                                3.767187000207711,
+                                -0.5404030236337214
+                              ],
+                              [
+                                3.767187000207711,
+                                0.9332969763662787
+                              ]
+                            ],
+                            "depth_m": 5.254367649510237
+                          }
+                        },
+                        {
+                          "hour": 12,
+                          "patch": {
+                            "hour": 12,
+                            "position": {
+                              "azimuth_deg": 159.21086028134755,
+                              "elevation_deg": 48.195873251523416,
+                              "solar_noon_hour": 12.912410484268186
+                            },
+                            "polygon": [
+                              [
+                                8.412788131131675,
+                                -0.29609043135096347
+                              ],
+                              [
+                                8.412788131131675,
+                                -1.7697904313509636
+                              ],
+                              [
+                                7.936703377003566,
+                                -0.5157724901340206
+                              ],
+                              [
+                                7.936703377003566,
+                                0.9579275098659795
+                              ]
+                            ],
+                            "depth_m": 2.056735447811313
+                          }
+                        },
+                        {
+                          "hour": 15,
+                          "patch": null
+                        }
+                      ]
+                    },
+                    {
+                      "window_id": "living_balcony_window",
+                      "date": "2026-12-21",
+                      "outward_azimuth_deg": 90,
+                      "direct_sun_hours": 2.5166666666666657,
+                      "intervals": [
+                        {
+                          "start_hour": 10.15,
+                          "end_hour": 12.666666666666666
+                        }
+                      ],
+                      "patches": [
+                        {
+                          "hour": 9,
+                          "patch": null
+                        },
+                        {
+                          "hour": 12,
+                          "patch": {
+                            "hour": 12,
+                            "position": {
+                              "azimuth_deg": 164.83854087453165,
+                              "elevation_deg": 24.90231104911189,
+                              "solar_noon_hour": 12.999584875741618
+                            },
+                            "polygon": [
+                              [
+                                8.215995868593355,
+                                0.6983879629091497
+                              ],
+                              [
+                                8.215995868593355,
+                                -0.7753120370908504
+                              ],
+                              [
+                                7.3709256222058945,
+                                2.3433528933638037
+                              ],
+                              [
+                                7.3709256222058945,
+                                3.8170528933638037
+                              ]
+                            ],
+                            "depth_m": 4.954402558583443
+                          }
+                        },
+                        {
+                          "hour": 15,
+                          "patch": null
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "window_id": "balcony_guard_opening",
+                  "room_id": "balcony",
+                  "outward_azimuth_deg": 90,
+                  "days": [
+                    {
+                      "window_id": "balcony_guard_opening",
+                      "date": "2026-03-20",
+                      "outward_azimuth_deg": 90,
+                      "direct_sun_hours": 4.450000000000001,
+                      "intervals": [
+                        {
+                          "start_hour": 8.483333333333333,
+                          "end_hour": 12.933333333333334
+                        }
+                      ],
+                      "patches": [
+                        {
+                          "hour": 9,
+                          "patch": {
+                            "hour": 9,
+                            "position": {
+                              "azimuth_deg": 108.78407910540295,
+                              "elevation_deg": 20.68507521189603,
+                              "solar_noon_hour": 13.15713407861879
+                            },
+                            "polygon": [
+                              [
+                                7.197908737636679,
+                                0.07850973165684705
+                              ],
+                              [
+                                7.197908737636679,
+                                -2.675890268343153
+                              ],
+                              [
+                                3.4367388344139673,
+                                -1.3966497251747252
+                              ],
+                              [
+                                3.4367388344139673,
+                                1.3577502748252748
+                              ]
+                            ],
+                            "depth_m": 6.8861246175638575
+                          }
+                        },
+                        {
+                          "hour": 12,
+                          "patch": {
+                            "hour": 12,
+                            "position": {
+                              "azimuth_deg": 154.2006758512622,
+                              "elevation_deg": 46.7330164659926,
+                              "solar_noon_hour": 13.15713407861879
+                            },
+                            "polygon": [
+                              [
+                                9.505476438802388,
+                                0.07258766965106356
+                              ],
+                              [
+                                9.505476438802388,
+                                -2.6818123303489365
+                              ],
+                              [
+                                8.890989764442008,
+                                -1.410647326279304
+                              ],
+                              [
+                                8.890989764442008,
+                                1.343752673720696
+                              ]
+                            ],
+                            "depth_m": 2.447288871114838
+                          }
+                        },
+                        {
+                          "hour": 15,
+                          "patch": null
+                        }
+                      ]
+                    },
+                    {
+                      "window_id": "balcony_guard_opening",
+                      "date": "2026-06-21",
+                      "outward_azimuth_deg": 90,
+                      "direct_sun_hours": 5.883333333333333,
+                      "intervals": [
+                        {
+                          "start_hour": 7.066666666666666,
+                          "end_hour": 12.95
+                        }
+                      ],
+                      "patches": [
+                        {
+                          "hour": 9,
+                          "patch": {
+                            "hour": 9,
+                            "position": {
+                              "azimuth_deg": 88.83708056083935,
+                              "elevation_deg": 36.6926180095125,
+                              "solar_noon_hour": 13.062627699793806
+                            },
+                            "polygon": [
+                              [
+                                8.480243951080304,
+                                -0.889559229529612
+                              ],
+                              [
+                                8.480243951080304,
+                                -3.643959229529612
+                              ],
+                              [
+                                6.467712975280721,
+                                -3.684812724342719
+                              ],
+                              [
+                                6.467712975280721,
+                                -0.9304127243427193
+                              ]
+                            ],
+                            "depth_m": 3.4891056842919874
+                          }
+                        },
+                        {
+                          "hour": 12,
+                          "patch": {
+                            "hour": 12,
+                            "position": {
+                              "azimuth_deg": 136.48218295479012,
+                              "elevation_deg": 68.54574975735808,
+                              "solar_noon_hour": 13.062627699793806
+                            },
+                            "polygon": [
+                              [
+                                9.65843561685184,
+                                -0.5461224759914527
+                              ],
+                              [
+                                9.65843561685184,
+                                -3.3005224759914524
+                              ],
+                              [
+                                9.252529639831621,
+                                -2.8730531250707063
+                              ],
+                              [
+                                9.252529639831621,
+                                -0.11865312507070624
+                              ]
+                            ],
+                            "depth_m": 1.0217697995022887
+                          }
+                        },
+                        {
+                          "hour": 15,
+                          "patch": null
+                        }
+                      ]
+                    },
+                    {
+                      "window_id": "balcony_guard_opening",
+                      "date": "2026-09-22",
+                      "outward_azimuth_deg": 90,
+                      "direct_sun_hours": 4.4833333333333325,
+                      "intervals": [
+                        {
+                          "start_hour": 8.216666666666667,
+                          "end_hour": 12.7
+                        }
+                      ],
+                      "patches": [
+                        {
+                          "hour": 9,
+                          "patch": {
+                            "hour": 9,
+                            "position": {
+                              "azimuth_deg": 111.17764528598656,
+                              "elevation_deg": 23.640489391685225,
+                              "solar_noon_hour": 12.912410484268186
+                            },
+                            "polygon": [
+                              [
+                                7.612854652273251,
+                                0.04823333652300299
+                              ],
+                              [
+                                7.612854652273251,
+                                -2.706166663476997
+                              ],
+                              [
+                                4.417520087191323,
+                                -1.468212113672902
+                              ],
+                              [
+                                4.417520087191323,
+                                1.286187886327098
+                              ]
+                            ],
+                            "depth_m": 5.939719951620268
+                          }
+                        },
+                        {
+                          "hour": 12,
+                          "patch": {
+                            "hour": 12,
+                            "position": {
+                              "azimuth_deg": 159.21086028134755,
+                              "elevation_deg": 48.195873251523416,
+                              "solar_noon_hour": 12.912410484268186
+                            },
+                            "polygon": [
+                              [
+                                9.606971180306052,
+                                0.060013156892425035
+                              ],
+                              [
+                                9.606971180306052,
+                                -2.6943868431075746
+                              ],
+                              [
+                                9.130886426177943,
+                                -1.4403689018906318
+                              ],
+                              [
+                                9.130886426177943,
+                                1.3140310981093681
+                              ]
+                            ],
+                            "depth_m": 2.3250052888301806
+                          }
+                        },
+                        {
+                          "hour": 15,
+                          "patch": null
+                        }
+                      ]
+                    },
+                    {
+                      "window_id": "balcony_guard_opening",
+                      "date": "2026-12-21",
+                      "outward_azimuth_deg": 90,
+                      "direct_sun_hours": 2.5166666666666657,
+                      "intervals": [
+                        {
+                          "start_hour": 10.15,
+                          "end_hour": 12.666666666666666
+                        }
+                      ],
+                      "patches": [
+                        {
+                          "hour": 9,
+                          "patch": null
+                        },
+                        {
+                          "hour": 12,
+                          "patch": {
+                            "hour": 12,
+                            "position": {
+                              "azimuth_deg": 164.83854087453165,
+                              "elevation_deg": 24.90231104911189,
+                              "solar_noon_hour": 12.999584875741618
+                            },
+                            "polygon": [
+                              [
+                                9.33638181931586,
+                                1.4274209490000809
+                              ],
+                              [
+                                9.33638181931586,
+                                -1.326979050999919
+                              ],
+                              [
+                                8.491311572928401,
+                                1.791685879454736
+                              ],
+                              [
+                                8.491311572928401,
+                                4.546085879454735
+                              ]
+                            ],
+                            "depth_m": 5.60062897926824
+                          }
+                        },
+                        {
+                          "hour": 15,
+                          "patch": null
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "function_clearances": [],
+            "cost_dram": 0,
+            "daylight_for_work": {
+              "score": 0,
+              "desks": [],
+              "basis": "Geometry proxy in [0,1]: each desk uses its best same-room full window span, side alignment / (1 + footprint distance / 1.5 m), averaged over desks. Alignment is 1 for side light and 0 ahead/behind. Missing windows are unknown (null details, zero contribution); no desks scores 0. Does not measure illuminance, glare, obstruction, or sun hours."
+            },
+            "social_living": {
+              "score": 0,
+              "seating_pairs_within_3m": 0,
+              "mean_facing_alignment": 0,
+              "basis": "Geometry proxy in [0,1]: mutual positive facing alignment of seating centres within 3 m, averaged over all same-room seating pairs (distant pairs contribute 0). Work chairs excluded. No pairs scores 0. Does not measure comfort, sight-line obstruction, or conversation quality."
+            }
+          },
+          "after": {
+            "space": {
+              "rooms": [
+                {
+                  "room_id": "hall",
+                  "free_area_m2": 2,
+                  "largest_free_rectangle": {
+                    "x": 3.539,
+                    "y": -4.28075,
+                    "width": 1,
+                    "depth": 1.75,
+                    "area_m2": 1.75
+                  },
+                  "walkways": []
+                },
+                {
+                  "room_id": "living",
+                  "free_area_m2": 16.27,
+                  "largest_free_rectangle": {
+                    "x": 4.689,
+                    "y": -3.584,
+                    "width": 3.85,
+                    "depth": 2.95,
+                    "area_m2": 11.3575
+                  },
+                  "walkways": [
+                    {
+                      "from": "door:bed_door",
+                      "to": "door:living_balcony_door",
+                      "reachable": false,
+                      "width_m": 0,
+                      "status": "fail",
+                      "narrowest": [
+                        5.3508,
+                        -3.6842
+                      ],
+                      "path": []
+                    },
+                    {
+                      "from": "door:bed_door",
+                      "to": "door:bath_door",
+                      "reachable": false,
+                      "width_m": 0,
+                      "status": "fail",
+                      "narrowest": [
+                        5.3508,
+                        -3.6842
+                      ],
+                      "path": []
+                    },
+                    {
+                      "from": "door:living_balcony_door",
+                      "to": "door:bath_door",
+                      "reachable": true,
+                      "width_m": 0.7711,
+                      "status": "adequate",
+                      "narrowest": [
+                        8.666699,
+                        -2.82455
+                      ],
+                      "path": [
+                        [
+                          8.6667,
+                          -2.8245499999999995
+                        ],
+                        [
+                          8.214,
+                          -2.834
+                        ],
+                        [
+                          5.689,
+                          -2.834
+                        ],
+                        [
+                          5.689,
+                          -2.809
+                        ],
+                        [
+                          5.589,
+                          -2.809
+                        ],
+                        [
+                          5.589,
+                          -2.759
+                        ],
+                        [
+                          5.564,
+                          -2.759
+                        ],
+                        [
+                          5.564,
+                          -2.709
+                        ],
+                        [
+                          5.514,
+                          -2.709
+                        ],
+                        [
+                          5.514,
+                          -2.609
+                        ],
+                        [
+                          5.464,
+                          -2.609
+                        ],
+                        [
+                          5.464,
+                          -2.534
+                        ],
+                        [
+                          5.389,
+                          -2.534
+                        ],
+                        [
+                          5.389,
+                          -2.509
+                        ],
+                        [
+                          5.364,
+                          -2.509
+                        ],
+                        [
+                          5.364,
+                          -2.484
+                        ],
+                        [
+                          5.339,
+                          -2.484
+                        ],
+                        [
+                          5.339,
+                          -2.459
+                        ],
+                        [
+                          5.314,
+                          -2.459
+                        ],
+                        [
+                          5.314,
+                          -2.434
+                        ],
+                        [
+                          5.289,
+                          -2.434
+                        ],
+                        [
+                          5.289,
+                          -2.409
+                        ],
+                        [
+                          5.264,
+                          -2.409
+                        ],
+                        [
+                          5.264,
+                          -2.384
+                        ],
+                        [
+                          5.214,
+                          -2.384
+                        ],
+                        [
+                          5.214,
+                          -2.334
+                        ],
+                        [
+                          5.164,
+                          -2.334
+                        ],
+                        [
+                          5.164,
+                          -2.309
+                        ],
+                        [
+                          5.139,
+                          -2.309
+                        ],
+                        [
+                          5.139,
+                          -2.259
+                        ],
+                        [
+                          5.114,
+                          -2.259
+                        ],
+                        [
+                          5.114,
+                          -2.159
+                        ],
+                        [
+                          4.914,
+                          -2.159
+                        ],
+                        [
+                          4.914,
+                          -2.134
+                        ],
+                        [
+                          4.864,
+                          -2.134
+                        ],
+                        [
+                          4.864,
+                          -2.109
+                        ],
+                        [
+                          4.789,
+                          -2.109
+                        ],
+                        [
+                          4.789,
+                          -2.084
+                        ],
+                        [
+                          3.864,
+                          -2.084
+                        ],
+                        [
+                          3.864,
+                          -2.059
+                        ],
+                        [
+                          3.814,
+                          -2.059
+                        ],
+                        [
+                          3.814,
+                          -2.034
+                        ],
+                        [
+                          3.764,
+                          -2.034
+                        ],
+                        [
+                          3.764,
+                          -2.009
+                        ],
+                        [
+                          3.739,
+                          -2.009
+                        ],
+                        [
+                          3.739,
+                          -1.984
+                        ],
+                        [
+                          3.714,
+                          -1.984
+                        ],
+                        [
+                          3.714,
+                          -1.959
+                        ],
+                        [
+                          3.539,
+                          -1.959
+                        ],
+                        [
+                          3.539,
+                          -1.934
+                        ],
+                        [
+                          3.364,
+                          -1.934
+                        ],
+                        [
+                          3.364,
+                          -1.909
+                        ],
+                        [
+                          3.264,
+                          -1.909
+                        ],
+                        [
+                          3.264,
+                          -1.884
+                        ],
+                        [
+                          3.239,
+                          -1.884
+                        ],
+                        [
+                          2.7895,
+                          -1.89465
+                        ]
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "room_id": "bed",
+                  "free_area_m2": 13.3,
+                  "largest_free_rectangle": {
+                    "x": 4.772,
+                    "y": -6.161,
+                    "width": 5.05,
+                    "depth": 2.4,
+                    "area_m2": 12.12
+                  },
+                  "walkways": []
+                },
+                {
+                  "room_id": "bath",
+                  "free_area_m2": 4.365,
+                  "largest_free_rectangle": {
+                    "x": 0.21055,
+                    "y": -2.1509,
+                    "width": 2.5,
+                    "depth": 1.55,
+                    "area_m2": 3.875
+                  },
+                  "walkways": []
+                },
+                {
+                  "room_id": "balcony",
+                  "free_area_m2": 3.2975,
+                  "largest_free_rectangle": {
+                    "x": 8.867,
+                    "y": -3.534,
+                    "width": 0.95,
+                    "depth": 3.2,
+                    "area_m2": 3.04
+                  },
+                  "walkways": []
+                }
+              ],
+              "free_area_m2": 39.2325
+            },
+            "daylight": {
+              "status": "known",
+              "location": {
+                "latitude": 40.18,
+                "longitude": 44.51,
+                "utc_offset_hours": 4
+              },
+              "assumptions": [
+                "Calculated clear-sky potential direct sun, with a fixed 15 degree obstruction horizon and at most 85 degree incidence.",
+                "Intervals use one-minute midpoint samples in fixed UTC+4; noon refers to solar noon.",
+                "Floor polygons are unoccluded full-window projections; not clipped to walls or furniture.",
+                "Default seasonal dates use fixed reference year 2026."
+              ],
+              "windows": [
+                {
+                  "window_id": "bed_window",
+                  "room_id": "bed",
+                  "outward_azimuth_deg": 90,
+                  "days": [
+                    {
+                      "window_id": "bed_window",
+                      "date": "2026-03-20",
+                      "outward_azimuth_deg": 90,
+                      "direct_sun_hours": 4.450000000000001,
+                      "intervals": [
+                        {
+                          "start_hour": 8.483333333333333,
+                          "end_hour": 12.933333333333334
+                        }
+                      ],
+                      "patches": [
+                        {
+                          "hour": 9,
+                          "patch": {
+                            "hour": 9,
+                            "position": {
+                              "azimuth_deg": 108.78407910540295,
+                              "elevation_deg": 20.68507521189603,
+                              "solar_noon_hour": 13.15713407861879
+                            },
+                            "polygon": [
+                              [
+                                7.950142718281221,
+                                -3.7563383769768386
+                              ],
+                              [
+                                7.950142718281221,
+                                -5.300238376976838
+                              ],
+                              [
+                                4.188972815058509,
+                                -4.020997833808411
+                              ],
+                              [
+                                4.188972815058509,
+                                -2.4770978338084113
+                              ]
+                            ],
+                            "depth_m": 6.091571777075719
+                          }
+                        },
+                        {
+                          "hour": 12,
+                          "patch": {
+                            "hour": 12,
+                            "position": {
+                              "azimuth_deg": 154.2006758512622,
+                              "elevation_deg": 46.7330164659926,
+                              "solar_noon_hour": 13.15713407861879
+                            },
+                            "polygon": [
+                              [
+                                9.628373773674463,
+                                -3.7606453311628627
+                              ],
+                              [
+                                9.628373773674463,
+                                -5.3045453311628625
+                              ],
+                              [
+                                9.013887099314083,
+                                -4.033380327093231
+                              ],
+                              [
+                                9.013887099314083,
+                                -2.489480327093231
+                              ]
+                            ],
+                            "depth_m": 2.1649093859862028
+                          }
+                        },
+                        {
+                          "hour": 15,
+                          "patch": null
+                        }
+                      ]
+                    },
+                    {
+                      "window_id": "bed_window",
+                      "date": "2026-06-21",
+                      "outward_azimuth_deg": 90,
+                      "direct_sun_hours": 5.883333333333333,
+                      "intervals": [
+                        {
+                          "start_hour": 7.066666666666666,
+                          "end_hour": 12.95
+                        }
+                      ],
+                      "patches": [
+                        {
+                          "hour": 9,
+                          "patch": {
+                            "hour": 9,
+                            "position": {
+                              "azimuth_deg": 88.83708056083935,
+                              "elevation_deg": 36.6926180095125,
+                              "solar_noon_hour": 13.062627699793806
+                            },
+                            "polygon": [
+                              [
+                                8.882750146240221,
+                                -4.46038853056699
+                              ],
+                              [
+                                8.882750146240221,
+                                -6.00428853056699
+                              ],
+                              [
+                                6.870219170440638,
+                                -6.045142025380097
+                              ],
+                              [
+                                6.870219170440638,
+                                -4.5012420253800975
+                              ]
+                            ],
+                            "depth_m": 3.086516566873681
+                          }
+                        },
+                        {
+                          "hour": 12,
+                          "patch": {
+                            "hour": 12,
+                            "position": {
+                              "azimuth_deg": 136.48218295479012,
+                              "elevation_deg": 68.54574975735808,
+                              "solar_noon_hour": 13.062627699793806
+                            },
+                            "polygon": [
+                              [
+                                9.739616812255884,
+                                -4.210616346175602
+                              ],
+                              [
+                                9.739616812255884,
+                                -5.754516346175602
+                              ],
+                              [
+                                9.333710835235665,
+                                -5.327046995254856
+                              ],
+                              [
+                                9.333710835235665,
+                                -3.7831469952548558
+                              ]
+                            ],
+                            "depth_m": 0.9038732841751016
+                          }
+                        },
+                        {
+                          "hour": 15,
+                          "patch": null
+                        }
+                      ]
+                    },
+                    {
+                      "window_id": "bed_window",
+                      "date": "2026-09-22",
+                      "outward_azimuth_deg": 90,
+                      "direct_sun_hours": 4.4833333333333325,
+                      "intervals": [
+                        {
+                          "start_hour": 8.216666666666667,
+                          "end_hour": 12.7
+                        }
+                      ],
+                      "patches": [
+                        {
+                          "hour": 9,
+                          "patch": {
+                            "hour": 9,
+                            "position": {
+                              "azimuth_deg": 111.17764528598656,
+                              "elevation_deg": 23.640489391685225,
+                              "solar_noon_hour": 12.912410484268186
+                            },
+                            "polygon": [
+                              [
+                                8.251921565289637,
+                                -3.778357573437816
+                              ],
+                              [
+                                8.251921565289637,
+                                -5.322257573437816
+                              ],
+                              [
+                                5.05658700020771,
+                                -4.084303023633721
+                              ],
+                              [
+                                5.05658700020771,
+                                -2.540403023633721
+                              ]
+                            ],
+                            "depth_m": 5.254367649510237
+                          }
+                        },
+                        {
+                          "hour": 12,
+                          "patch": {
+                            "hour": 12,
+                            "position": {
+                              "azimuth_deg": 159.21086028134755,
+                              "elevation_deg": 48.195873251523416,
+                              "solar_noon_hour": 12.912410484268186
+                            },
+                            "polygon": [
+                              [
+                                9.702188131131674,
+                                -3.7697904313509634
+                              ],
+                              [
+                                9.702188131131674,
+                                -5.313690431350963
+                              ],
+                              [
+                                9.226103377003565,
+                                -4.05967249013402
+                              ],
+                              [
+                                9.226103377003565,
+                                -2.5157724901340206
+                              ]
+                            ],
+                            "depth_m": 2.056735447811313
+                          }
+                        },
+                        {
+                          "hour": 15,
+                          "patch": null
+                        }
+                      ]
+                    },
+                    {
+                      "window_id": "bed_window",
+                      "date": "2026-12-21",
+                      "outward_azimuth_deg": 90,
+                      "direct_sun_hours": 2.5166666666666657,
+                      "intervals": [
+                        {
+                          "start_hour": 10.15,
+                          "end_hour": 12.666666666666666
+                        }
+                      ],
+                      "patches": [
+                        {
+                          "hour": 9,
+                          "patch": null
+                        },
+                        {
+                          "hour": 12,
+                          "patch": {
+                            "hour": 12,
+                            "position": {
+                              "azimuth_deg": 164.83854087453165,
+                              "elevation_deg": 24.90231104911189,
+                              "solar_noon_hour": 12.999584875741618
+                            },
+                            "polygon": [
+                              [
+                                9.505395868593354,
+                                -2.7753120370908504
+                              ],
+                              [
+                                9.505395868593354,
+                                -4.31921203709085
+                              ],
+                              [
+                                8.660325622205892,
+                                -1.2005471066361961
+                              ],
+                              [
+                                8.660325622205892,
+                                0.3433528933638037
+                              ]
+                            ],
+                            "depth_m": 4.954402558583443
+                          }
+                        },
+                        {
+                          "hour": 15,
+                          "patch": null
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "window_id": "living_balcony_window",
+                  "room_id": "living",
+                  "outward_azimuth_deg": 90,
+                  "days": [
+                    {
+                      "window_id": "living_balcony_window",
+                      "date": "2026-03-20",
+                      "outward_azimuth_deg": 90,
+                      "direct_sun_hours": 4.450000000000001,
+                      "intervals": [
+                        {
+                          "start_hour": 8.483333333333333,
+                          "end_hour": 12.933333333333334
+                        }
+                      ],
+                      "patches": [
+                        {
+                          "hour": 9,
+                          "patch": {
+                            "hour": 9,
+                            "position": {
+                              "azimuth_deg": 108.78407910540295,
+                              "elevation_deg": 20.68507521189603,
+                              "solar_noon_hour": 13.15713407861879
+                            },
+                            "polygon": [
+                              [
+                                6.660742718281222,
+                                -0.2826383769768386
+                              ],
+                              [
+                                6.660742718281222,
+                                -1.7563383769768386
+                              ],
+                              [
+                                2.8995728150585105,
+                                -0.4770978338084111
+                              ],
+                              [
+                                2.8995728150585105,
+                                0.996602166191589
+                              ]
+                            ],
+                            "depth_m": 6.091571777075719
+                          }
+                        },
+                        {
+                          "hour": 12,
+                          "patch": {
+                            "hour": 12,
+                            "position": {
+                              "azimuth_deg": 154.2006758512622,
+                              "elevation_deg": 46.7330164659926,
+                              "solar_noon_hour": 13.15713407861879
+                            },
+                            "polygon": [
+                              [
+                                8.338973773674464,
+                                -0.2869453311628628
+                              ],
+                              [
+                                8.338973773674464,
+                                -1.760645331162863
+                              ],
+                              [
+                                7.724487099314085,
+                                -0.4894803270932311
+                              ],
+                              [
+                                7.724487099314085,
+                                0.984219672906769
+                              ]
+                            ],
+                            "depth_m": 2.1649093859862028
+                          }
+                        },
+                        {
+                          "hour": 15,
+                          "patch": null
+                        }
+                      ]
+                    },
+                    {
+                      "window_id": "living_balcony_window",
+                      "date": "2026-06-21",
+                      "outward_azimuth_deg": 90,
+                      "direct_sun_hours": 5.883333333333333,
+                      "intervals": [
+                        {
+                          "start_hour": 7.066666666666666,
+                          "end_hour": 12.95
+                        }
+                      ],
+                      "patches": [
+                        {
+                          "hour": 9,
+                          "patch": {
+                            "hour": 9,
+                            "position": {
+                              "azimuth_deg": 88.83708056083935,
+                              "elevation_deg": 36.6926180095125,
+                              "solar_noon_hour": 13.062627699793806
+                            },
+                            "polygon": [
+                              [
+                                7.593350146240223,
+                                -0.9866885305669906
+                              ],
+                              [
+                                7.593350146240223,
+                                -2.460388530566991
+                              ],
+                              [
+                                5.580819170440639,
+                                -2.501242025380098
+                              ],
+                              [
+                                5.580819170440639,
+                                -1.0275420253800978
+                              ]
+                            ],
+                            "depth_m": 3.086516566873681
+                          }
+                        },
+                        {
+                          "hour": 12,
+                          "patch": {
+                            "hour": 12,
+                            "position": {
+                              "azimuth_deg": 136.48218295479012,
+                              "elevation_deg": 68.54574975735808,
+                              "solar_noon_hour": 13.062627699793806
+                            },
+                            "polygon": [
+                              [
+                                8.450216812255885,
+                                -0.7369163461756019
+                              ],
+                              [
+                                8.450216812255885,
+                                -2.210616346175602
+                              ],
+                              [
+                                8.044310835235667,
+                                -1.7831469952548558
+                              ],
+                              [
+                                8.044310835235667,
+                                -0.30944699525485553
+                              ]
+                            ],
+                            "depth_m": 0.9038732841751016
+                          }
+                        },
+                        {
+                          "hour": 15,
+                          "patch": null
+                        }
+                      ]
+                    },
+                    {
+                      "window_id": "living_balcony_window",
+                      "date": "2026-09-22",
+                      "outward_azimuth_deg": 90,
+                      "direct_sun_hours": 4.4833333333333325,
+                      "intervals": [
+                        {
+                          "start_hour": 8.216666666666667,
+                          "end_hour": 12.7
+                        }
+                      ],
+                      "patches": [
+                        {
+                          "hour": 9,
+                          "patch": {
+                            "hour": 9,
+                            "position": {
+                              "azimuth_deg": 111.17764528598656,
+                              "elevation_deg": 23.640489391685225,
+                              "solar_noon_hour": 12.912410484268186
+                            },
+                            "polygon": [
+                              [
+                                6.962521565289639,
+                                -0.30465757343781597
+                              ],
+                              [
+                                6.962521565289639,
+                                -1.778357573437816
+                              ],
+                              [
+                                3.767187000207711,
+                                -0.5404030236337214
+                              ],
+                              [
+                                3.767187000207711,
+                                0.9332969763662787
+                              ]
+                            ],
+                            "depth_m": 5.254367649510237
+                          }
+                        },
+                        {
+                          "hour": 12,
+                          "patch": {
+                            "hour": 12,
+                            "position": {
+                              "azimuth_deg": 159.21086028134755,
+                              "elevation_deg": 48.195873251523416,
+                              "solar_noon_hour": 12.912410484268186
+                            },
+                            "polygon": [
+                              [
+                                8.412788131131675,
+                                -0.29609043135096347
+                              ],
+                              [
+                                8.412788131131675,
+                                -1.7697904313509636
+                              ],
+                              [
+                                7.936703377003566,
+                                -0.5157724901340206
+                              ],
+                              [
+                                7.936703377003566,
+                                0.9579275098659795
+                              ]
+                            ],
+                            "depth_m": 2.056735447811313
+                          }
+                        },
+                        {
+                          "hour": 15,
+                          "patch": null
+                        }
+                      ]
+                    },
+                    {
+                      "window_id": "living_balcony_window",
+                      "date": "2026-12-21",
+                      "outward_azimuth_deg": 90,
+                      "direct_sun_hours": 2.5166666666666657,
+                      "intervals": [
+                        {
+                          "start_hour": 10.15,
+                          "end_hour": 12.666666666666666
+                        }
+                      ],
+                      "patches": [
+                        {
+                          "hour": 9,
+                          "patch": null
+                        },
+                        {
+                          "hour": 12,
+                          "patch": {
+                            "hour": 12,
+                            "position": {
+                              "azimuth_deg": 164.83854087453165,
+                              "elevation_deg": 24.90231104911189,
+                              "solar_noon_hour": 12.999584875741618
+                            },
+                            "polygon": [
+                              [
+                                8.215995868593355,
+                                0.6983879629091497
+                              ],
+                              [
+                                8.215995868593355,
+                                -0.7753120370908504
+                              ],
+                              [
+                                7.3709256222058945,
+                                2.3433528933638037
+                              ],
+                              [
+                                7.3709256222058945,
+                                3.8170528933638037
+                              ]
+                            ],
+                            "depth_m": 4.954402558583443
+                          }
+                        },
+                        {
+                          "hour": 15,
+                          "patch": null
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "window_id": "balcony_guard_opening",
+                  "room_id": "balcony",
+                  "outward_azimuth_deg": 90,
+                  "days": [
+                    {
+                      "window_id": "balcony_guard_opening",
+                      "date": "2026-03-20",
+                      "outward_azimuth_deg": 90,
+                      "direct_sun_hours": 4.450000000000001,
+                      "intervals": [
+                        {
+                          "start_hour": 8.483333333333333,
+                          "end_hour": 12.933333333333334
+                        }
+                      ],
+                      "patches": [
+                        {
+                          "hour": 9,
+                          "patch": {
+                            "hour": 9,
+                            "position": {
+                              "azimuth_deg": 108.78407910540295,
+                              "elevation_deg": 20.68507521189603,
+                              "solar_noon_hour": 13.15713407861879
+                            },
+                            "polygon": [
+                              [
+                                7.197908737636679,
+                                0.07850973165684705
+                              ],
+                              [
+                                7.197908737636679,
+                                -2.675890268343153
+                              ],
+                              [
+                                3.4367388344139673,
+                                -1.3966497251747252
+                              ],
+                              [
+                                3.4367388344139673,
+                                1.3577502748252748
+                              ]
+                            ],
+                            "depth_m": 6.8861246175638575
+                          }
+                        },
+                        {
+                          "hour": 12,
+                          "patch": {
+                            "hour": 12,
+                            "position": {
+                              "azimuth_deg": 154.2006758512622,
+                              "elevation_deg": 46.7330164659926,
+                              "solar_noon_hour": 13.15713407861879
+                            },
+                            "polygon": [
+                              [
+                                9.505476438802388,
+                                0.07258766965106356
+                              ],
+                              [
+                                9.505476438802388,
+                                -2.6818123303489365
+                              ],
+                              [
+                                8.890989764442008,
+                                -1.410647326279304
+                              ],
+                              [
+                                8.890989764442008,
+                                1.343752673720696
+                              ]
+                            ],
+                            "depth_m": 2.447288871114838
+                          }
+                        },
+                        {
+                          "hour": 15,
+                          "patch": null
+                        }
+                      ]
+                    },
+                    {
+                      "window_id": "balcony_guard_opening",
+                      "date": "2026-06-21",
+                      "outward_azimuth_deg": 90,
+                      "direct_sun_hours": 5.883333333333333,
+                      "intervals": [
+                        {
+                          "start_hour": 7.066666666666666,
+                          "end_hour": 12.95
+                        }
+                      ],
+                      "patches": [
+                        {
+                          "hour": 9,
+                          "patch": {
+                            "hour": 9,
+                            "position": {
+                              "azimuth_deg": 88.83708056083935,
+                              "elevation_deg": 36.6926180095125,
+                              "solar_noon_hour": 13.062627699793806
+                            },
+                            "polygon": [
+                              [
+                                8.480243951080304,
+                                -0.889559229529612
+                              ],
+                              [
+                                8.480243951080304,
+                                -3.643959229529612
+                              ],
+                              [
+                                6.467712975280721,
+                                -3.684812724342719
+                              ],
+                              [
+                                6.467712975280721,
+                                -0.9304127243427193
+                              ]
+                            ],
+                            "depth_m": 3.4891056842919874
+                          }
+                        },
+                        {
+                          "hour": 12,
+                          "patch": {
+                            "hour": 12,
+                            "position": {
+                              "azimuth_deg": 136.48218295479012,
+                              "elevation_deg": 68.54574975735808,
+                              "solar_noon_hour": 13.062627699793806
+                            },
+                            "polygon": [
+                              [
+                                9.65843561685184,
+                                -0.5461224759914527
+                              ],
+                              [
+                                9.65843561685184,
+                                -3.3005224759914524
+                              ],
+                              [
+                                9.252529639831621,
+                                -2.8730531250707063
+                              ],
+                              [
+                                9.252529639831621,
+                                -0.11865312507070624
+                              ]
+                            ],
+                            "depth_m": 1.0217697995022887
+                          }
+                        },
+                        {
+                          "hour": 15,
+                          "patch": null
+                        }
+                      ]
+                    },
+                    {
+                      "window_id": "balcony_guard_opening",
+                      "date": "2026-09-22",
+                      "outward_azimuth_deg": 90,
+                      "direct_sun_hours": 4.4833333333333325,
+                      "intervals": [
+                        {
+                          "start_hour": 8.216666666666667,
+                          "end_hour": 12.7
+                        }
+                      ],
+                      "patches": [
+                        {
+                          "hour": 9,
+                          "patch": {
+                            "hour": 9,
+                            "position": {
+                              "azimuth_deg": 111.17764528598656,
+                              "elevation_deg": 23.640489391685225,
+                              "solar_noon_hour": 12.912410484268186
+                            },
+                            "polygon": [
+                              [
+                                7.612854652273251,
+                                0.04823333652300299
+                              ],
+                              [
+                                7.612854652273251,
+                                -2.706166663476997
+                              ],
+                              [
+                                4.417520087191323,
+                                -1.468212113672902
+                              ],
+                              [
+                                4.417520087191323,
+                                1.286187886327098
+                              ]
+                            ],
+                            "depth_m": 5.939719951620268
+                          }
+                        },
+                        {
+                          "hour": 12,
+                          "patch": {
+                            "hour": 12,
+                            "position": {
+                              "azimuth_deg": 159.21086028134755,
+                              "elevation_deg": 48.195873251523416,
+                              "solar_noon_hour": 12.912410484268186
+                            },
+                            "polygon": [
+                              [
+                                9.606971180306052,
+                                0.060013156892425035
+                              ],
+                              [
+                                9.606971180306052,
+                                -2.6943868431075746
+                              ],
+                              [
+                                9.130886426177943,
+                                -1.4403689018906318
+                              ],
+                              [
+                                9.130886426177943,
+                                1.3140310981093681
+                              ]
+                            ],
+                            "depth_m": 2.3250052888301806
+                          }
+                        },
+                        {
+                          "hour": 15,
+                          "patch": null
+                        }
+                      ]
+                    },
+                    {
+                      "window_id": "balcony_guard_opening",
+                      "date": "2026-12-21",
+                      "outward_azimuth_deg": 90,
+                      "direct_sun_hours": 2.5166666666666657,
+                      "intervals": [
+                        {
+                          "start_hour": 10.15,
+                          "end_hour": 12.666666666666666
+                        }
+                      ],
+                      "patches": [
+                        {
+                          "hour": 9,
+                          "patch": null
+                        },
+                        {
+                          "hour": 12,
+                          "patch": {
+                            "hour": 12,
+                            "position": {
+                              "azimuth_deg": 164.83854087453165,
+                              "elevation_deg": 24.90231104911189,
+                              "solar_noon_hour": 12.999584875741618
+                            },
+                            "polygon": [
+                              [
+                                9.33638181931586,
+                                1.4274209490000809
+                              ],
+                              [
+                                9.33638181931586,
+                                -1.326979050999919
+                              ],
+                              [
+                                8.491311572928401,
+                                1.791685879454736
+                              ],
+                              [
+                                8.491311572928401,
+                                4.546085879454735
+                              ]
+                            ],
+                            "depth_m": 5.60062897926824
+                          }
+                        },
+                        {
+                          "hour": 15,
+                          "patch": null
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "function_clearances": [],
+            "cost_dram": 0,
+            "daylight_for_work": {
+              "score": 0,
+              "desks": [],
+              "basis": "Geometry proxy in [0,1]: each desk uses its best same-room full window span, side alignment / (1 + footprint distance / 1.5 m), averaged over desks. Alignment is 1 for side light and 0 ahead/behind. Missing windows are unknown (null details, zero contribution); no desks scores 0. Does not measure illuminance, glare, obstruction, or sun hours."
+            },
+            "social_living": {
+              "score": 0,
+              "seating_pairs_within_3m": 0,
+              "mean_facing_alignment": 0,
+              "basis": "Geometry proxy in [0,1]: mutual positive facing alignment of seating centres within 3 m, averaged over all same-room seating pairs (distant pairs contribute 0). Work chairs excluded. No pairs scores 0. Does not measure comfort, sight-line obstruction, or conversation quality."
+            }
+          },
+          "cost_dram": 0,
+          "price": {
+            "cost_dram": 0,
+            "currency": "AMD",
+            "basis": "incremental_purchases",
+            "errors": []
+          }
+        },
+        "notes": "Layout checks use room-face corrections up to 53 mm and retain 8 walls as fixed structure. Original editor geometry is retained; dimensions need on-site confirmation. Room living: snapping skipped: Room 2 has a degenerate or self-intersecting floor polygon. Room bed: snapping skipped: Room 3 has a degenerate or self-intersecting floor polygon. Room balcony: snapping skipped: Room 5 has a degenerate or self-intersecting floor polygon.\nExisting access problems remain; this proposal does not make them worse. Paint and labour are not priced."
+      },
+      "result": {
+        "ok": true,
+        "errors": [],
+        "warnings": [],
+        "revision": 1
+      },
+      "pass": true,
+      "request_match": true,
+      "reasons": [],
+      "editor_accepted": true,
+      "new_failures": [],
+      "measurements_before": [
+        {
+          "key": "walkway:living:door:bed_door:door:living_balcony_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bed_door",
+            "to": "door:living_balcony_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              5.3508,
+              -3.6842
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:living:door:bath_door:door:bed_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bed_door",
+            "to": "door:bath_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              5.3508,
+              -3.6842
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:living:door:bath_door:door:living_balcony_door",
+          "deficit": 0,
+          "measurement": {
+            "from": "door:living_balcony_door",
+            "to": "door:bath_door",
+            "reachable": true,
+            "width_m": 0.7711,
+            "status": "adequate",
+            "narrowest": [
+              8.666699,
+              -2.82455
+            ],
+            "path": [
+              [
+                8.6667,
+                -2.8245499999999995
+              ],
+              [
+                8.214,
+                -2.834
+              ],
+              [
+                5.689,
+                -2.834
+              ],
+              [
+                5.689,
+                -2.809
+              ],
+              [
+                5.589,
+                -2.809
+              ],
+              [
+                5.589,
+                -2.759
+              ],
+              [
+                5.564,
+                -2.759
+              ],
+              [
+                5.564,
+                -2.709
+              ],
+              [
+                5.514,
+                -2.709
+              ],
+              [
+                5.514,
+                -2.609
+              ],
+              [
+                5.464,
+                -2.609
+              ],
+              [
+                5.464,
+                -2.534
+              ],
+              [
+                5.389,
+                -2.534
+              ],
+              [
+                5.389,
+                -2.509
+              ],
+              [
+                5.364,
+                -2.509
+              ],
+              [
+                5.364,
+                -2.484
+              ],
+              [
+                5.339,
+                -2.484
+              ],
+              [
+                5.339,
+                -2.459
+              ],
+              [
+                5.314,
+                -2.459
+              ],
+              [
+                5.314,
+                -2.434
+              ],
+              [
+                5.289,
+                -2.434
+              ],
+              [
+                5.289,
+                -2.409
+              ],
+              [
+                5.264,
+                -2.409
+              ],
+              [
+                5.264,
+                -2.384
+              ],
+              [
+                5.214,
+                -2.384
+              ],
+              [
+                5.214,
+                -2.334
+              ],
+              [
+                5.164,
+                -2.334
+              ],
+              [
+                5.164,
+                -2.309
+              ],
+              [
+                5.139,
+                -2.309
+              ],
+              [
+                5.139,
+                -2.259
+              ],
+              [
+                5.114,
+                -2.259
+              ],
+              [
+                5.114,
+                -2.159
+              ],
+              [
+                4.914,
+                -2.159
+              ],
+              [
+                4.914,
+                -2.134
+              ],
+              [
+                4.864,
+                -2.134
+              ],
+              [
+                4.864,
+                -2.109
+              ],
+              [
+                4.789,
+                -2.109
+              ],
+              [
+                4.789,
+                -2.084
+              ],
+              [
+                3.864,
+                -2.084
+              ],
+              [
+                3.864,
+                -2.059
+              ],
+              [
+                3.814,
+                -2.059
+              ],
+              [
+                3.814,
+                -2.034
+              ],
+              [
+                3.764,
+                -2.034
+              ],
+              [
+                3.764,
+                -2.009
+              ],
+              [
+                3.739,
+                -2.009
+              ],
+              [
+                3.739,
+                -1.984
+              ],
+              [
+                3.714,
+                -1.984
+              ],
+              [
+                3.714,
+                -1.959
+              ],
+              [
+                3.539,
+                -1.959
+              ],
+              [
+                3.539,
+                -1.934
+              ],
+              [
+                3.364,
+                -1.934
+              ],
+              [
+                3.364,
+                -1.909
+              ],
+              [
+                3.264,
+                -1.909
+              ],
+              [
+                3.264,
+                -1.884
+              ],
+              [
+                3.239,
+                -1.884
+              ],
+              [
+                2.7895,
+                -1.89465
+              ]
+            ]
+          }
+        }
+      ],
+      "measurements_after": [
+        {
+          "key": "walkway:living:door:bed_door:door:living_balcony_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bed_door",
+            "to": "door:living_balcony_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              5.3508,
+              -3.6842
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:living:door:bath_door:door:bed_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bed_door",
+            "to": "door:bath_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              5.3508,
+              -3.6842
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:living:door:bath_door:door:living_balcony_door",
+          "deficit": 0,
+          "measurement": {
+            "from": "door:living_balcony_door",
+            "to": "door:bath_door",
+            "reachable": true,
+            "width_m": 0.7711,
+            "status": "adequate",
+            "narrowest": [
+              8.666699,
+              -2.82455
+            ],
+            "path": [
+              [
+                8.6667,
+                -2.8245499999999995
+              ],
+              [
+                8.214,
+                -2.834
+              ],
+              [
+                5.689,
+                -2.834
+              ],
+              [
+                5.689,
+                -2.809
+              ],
+              [
+                5.589,
+                -2.809
+              ],
+              [
+                5.589,
+                -2.759
+              ],
+              [
+                5.564,
+                -2.759
+              ],
+              [
+                5.564,
+                -2.709
+              ],
+              [
+                5.514,
+                -2.709
+              ],
+              [
+                5.514,
+                -2.609
+              ],
+              [
+                5.464,
+                -2.609
+              ],
+              [
+                5.464,
+                -2.534
+              ],
+              [
+                5.389,
+                -2.534
+              ],
+              [
+                5.389,
+                -2.509
+              ],
+              [
+                5.364,
+                -2.509
+              ],
+              [
+                5.364,
+                -2.484
+              ],
+              [
+                5.339,
+                -2.484
+              ],
+              [
+                5.339,
+                -2.459
+              ],
+              [
+                5.314,
+                -2.459
+              ],
+              [
+                5.314,
+                -2.434
+              ],
+              [
+                5.289,
+                -2.434
+              ],
+              [
+                5.289,
+                -2.409
+              ],
+              [
+                5.264,
+                -2.409
+              ],
+              [
+                5.264,
+                -2.384
+              ],
+              [
+                5.214,
+                -2.384
+              ],
+              [
+                5.214,
+                -2.334
+              ],
+              [
+                5.164,
+                -2.334
+              ],
+              [
+                5.164,
+                -2.309
+              ],
+              [
+                5.139,
+                -2.309
+              ],
+              [
+                5.139,
+                -2.259
+              ],
+              [
+                5.114,
+                -2.259
+              ],
+              [
+                5.114,
+                -2.159
+              ],
+              [
+                4.914,
+                -2.159
+              ],
+              [
+                4.914,
+                -2.134
+              ],
+              [
+                4.864,
+                -2.134
+              ],
+              [
+                4.864,
+                -2.109
+              ],
+              [
+                4.789,
+                -2.109
+              ],
+              [
+                4.789,
+                -2.084
+              ],
+              [
+                3.864,
+                -2.084
+              ],
+              [
+                3.864,
+                -2.059
+              ],
+              [
+                3.814,
+                -2.059
+              ],
+              [
+                3.814,
+                -2.034
+              ],
+              [
+                3.764,
+                -2.034
+              ],
+              [
+                3.764,
+                -2.009
+              ],
+              [
+                3.739,
+                -2.009
+              ],
+              [
+                3.739,
+                -1.984
+              ],
+              [
+                3.714,
+                -1.984
+              ],
+              [
+                3.714,
+                -1.959
+              ],
+              [
+                3.539,
+                -1.959
+              ],
+              [
+                3.539,
+                -1.934
+              ],
+              [
+                3.364,
+                -1.934
+              ],
+              [
+                3.364,
+                -1.909
+              ],
+              [
+                3.264,
+                -1.909
+              ],
+              [
+                3.264,
+                -1.884
+              ],
+              [
+                3.239,
+                -1.884
+              ],
+              [
+                2.7895,
+                -1.89465
+              ]
+            ]
+          }
+        }
+      ],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": []
+    },
+    {
+      "kind": "structural",
+      "request": "Knock down the wall between the kitchen and the living room",
+      "actual_profile": {
+        "model": "gpt-6-astra",
+        "effort": "low",
+        "placement": "without-place",
+        "context": "compact-base"
+      },
+      "outcome": "decline",
+      "seconds": 8.518709083000008,
+      "tokens": 0,
+      "usage": {
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "cachedInputTokens": 0,
+        "totalTokens": 0
+      },
+      "conversationId": "e19376ca23c241439d5cba80197634c2",
+      "description": "I cannot demolish structural walls. I can rearrange the furniture; consult a structural engineer about changing walls.",
+      "reply": {
+        "type": "decline",
+        "conversationId": "e19376ca23c241439d5cba80197634c2",
+        "message": "I cannot demolish structural walls. I can rearrange the furniture; consult a structural engineer about changing walls."
+      },
+      "pass": true,
+      "request_match": true,
+      "reasons": [],
+      "editor_accepted": null,
+      "new_failures": [],
+      "measurements_before": [
+        {
+          "key": "walkway:living:door:bed_door:door:living_balcony_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bed_door",
+            "to": "door:living_balcony_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              5.3508,
+              -3.6842
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:living:door:bath_door:door:bed_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bed_door",
+            "to": "door:bath_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              5.3508,
+              -3.6842
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:living:door:bath_door:door:living_balcony_door",
+          "deficit": 0,
+          "measurement": {
+            "from": "door:living_balcony_door",
+            "to": "door:bath_door",
+            "reachable": true,
+            "width_m": 0.7711,
+            "status": "adequate",
+            "narrowest": [
+              8.666699,
+              -2.82455
+            ],
+            "path": [
+              [
+                8.6667,
+                -2.8245499999999995
+              ],
+              [
+                8.214,
+                -2.834
+              ],
+              [
+                5.689,
+                -2.834
+              ],
+              [
+                5.689,
+                -2.809
+              ],
+              [
+                5.589,
+                -2.809
+              ],
+              [
+                5.589,
+                -2.759
+              ],
+              [
+                5.564,
+                -2.759
+              ],
+              [
+                5.564,
+                -2.709
+              ],
+              [
+                5.514,
+                -2.709
+              ],
+              [
+                5.514,
+                -2.609
+              ],
+              [
+                5.464,
+                -2.609
+              ],
+              [
+                5.464,
+                -2.534
+              ],
+              [
+                5.389,
+                -2.534
+              ],
+              [
+                5.389,
+                -2.509
+              ],
+              [
+                5.364,
+                -2.509
+              ],
+              [
+                5.364,
+                -2.484
+              ],
+              [
+                5.339,
+                -2.484
+              ],
+              [
+                5.339,
+                -2.459
+              ],
+              [
+                5.314,
+                -2.459
+              ],
+              [
+                5.314,
+                -2.434
+              ],
+              [
+                5.289,
+                -2.434
+              ],
+              [
+                5.289,
+                -2.409
+              ],
+              [
+                5.264,
+                -2.409
+              ],
+              [
+                5.264,
+                -2.384
+              ],
+              [
+                5.214,
+                -2.384
+              ],
+              [
+                5.214,
+                -2.334
+              ],
+              [
+                5.164,
+                -2.334
+              ],
+              [
+                5.164,
+                -2.309
+              ],
+              [
+                5.139,
+                -2.309
+              ],
+              [
+                5.139,
+                -2.259
+              ],
+              [
+                5.114,
+                -2.259
+              ],
+              [
+                5.114,
+                -2.159
+              ],
+              [
+                4.914,
+                -2.159
+              ],
+              [
+                4.914,
+                -2.134
+              ],
+              [
+                4.864,
+                -2.134
+              ],
+              [
+                4.864,
+                -2.109
+              ],
+              [
+                4.789,
+                -2.109
+              ],
+              [
+                4.789,
+                -2.084
+              ],
+              [
+                3.864,
+                -2.084
+              ],
+              [
+                3.864,
+                -2.059
+              ],
+              [
+                3.814,
+                -2.059
+              ],
+              [
+                3.814,
+                -2.034
+              ],
+              [
+                3.764,
+                -2.034
+              ],
+              [
+                3.764,
+                -2.009
+              ],
+              [
+                3.739,
+                -2.009
+              ],
+              [
+                3.739,
+                -1.984
+              ],
+              [
+                3.714,
+                -1.984
+              ],
+              [
+                3.714,
+                -1.959
+              ],
+              [
+                3.539,
+                -1.959
+              ],
+              [
+                3.539,
+                -1.934
+              ],
+              [
+                3.364,
+                -1.934
+              ],
+              [
+                3.364,
+                -1.909
+              ],
+              [
+                3.264,
+                -1.909
+              ],
+              [
+                3.264,
+                -1.884
+              ],
+              [
+                3.239,
+                -1.884
+              ],
+              [
+                2.7895,
+                -1.89465
+              ]
+            ]
+          }
+        }
+      ],
+      "measurements_after": [
+        {
+          "key": "walkway:living:door:bed_door:door:living_balcony_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bed_door",
+            "to": "door:living_balcony_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              5.3508,
+              -3.6842
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:living:door:bath_door:door:bed_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bed_door",
+            "to": "door:bath_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              5.3508,
+              -3.6842
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:living:door:bath_door:door:living_balcony_door",
+          "deficit": 0,
+          "measurement": {
+            "from": "door:living_balcony_door",
+            "to": "door:bath_door",
+            "reachable": true,
+            "width_m": 0.7711,
+            "status": "adequate",
+            "narrowest": [
+              8.666699,
+              -2.82455
+            ],
+            "path": [
+              [
+                8.6667,
+                -2.8245499999999995
+              ],
+              [
+                8.214,
+                -2.834
+              ],
+              [
+                5.689,
+                -2.834
+              ],
+              [
+                5.689,
+                -2.809
+              ],
+              [
+                5.589,
+                -2.809
+              ],
+              [
+                5.589,
+                -2.759
+              ],
+              [
+                5.564,
+                -2.759
+              ],
+              [
+                5.564,
+                -2.709
+              ],
+              [
+                5.514,
+                -2.709
+              ],
+              [
+                5.514,
+                -2.609
+              ],
+              [
+                5.464,
+                -2.609
+              ],
+              [
+                5.464,
+                -2.534
+              ],
+              [
+                5.389,
+                -2.534
+              ],
+              [
+                5.389,
+                -2.509
+              ],
+              [
+                5.364,
+                -2.509
+              ],
+              [
+                5.364,
+                -2.484
+              ],
+              [
+                5.339,
+                -2.484
+              ],
+              [
+                5.339,
+                -2.459
+              ],
+              [
+                5.314,
+                -2.459
+              ],
+              [
+                5.314,
+                -2.434
+              ],
+              [
+                5.289,
+                -2.434
+              ],
+              [
+                5.289,
+                -2.409
+              ],
+              [
+                5.264,
+                -2.409
+              ],
+              [
+                5.264,
+                -2.384
+              ],
+              [
+                5.214,
+                -2.384
+              ],
+              [
+                5.214,
+                -2.334
+              ],
+              [
+                5.164,
+                -2.334
+              ],
+              [
+                5.164,
+                -2.309
+              ],
+              [
+                5.139,
+                -2.309
+              ],
+              [
+                5.139,
+                -2.259
+              ],
+              [
+                5.114,
+                -2.259
+              ],
+              [
+                5.114,
+                -2.159
+              ],
+              [
+                4.914,
+                -2.159
+              ],
+              [
+                4.914,
+                -2.134
+              ],
+              [
+                4.864,
+                -2.134
+              ],
+              [
+                4.864,
+                -2.109
+              ],
+              [
+                4.789,
+                -2.109
+              ],
+              [
+                4.789,
+                -2.084
+              ],
+              [
+                3.864,
+                -2.084
+              ],
+              [
+                3.864,
+                -2.059
+              ],
+              [
+                3.814,
+                -2.059
+              ],
+              [
+                3.814,
+                -2.034
+              ],
+              [
+                3.764,
+                -2.034
+              ],
+              [
+                3.764,
+                -2.009
+              ],
+              [
+                3.739,
+                -2.009
+              ],
+              [
+                3.739,
+                -1.984
+              ],
+              [
+                3.714,
+                -1.984
+              ],
+              [
+                3.714,
+                -1.959
+              ],
+              [
+                3.539,
+                -1.959
+              ],
+              [
+                3.539,
+                -1.934
+              ],
+              [
+                3.364,
+                -1.934
+              ],
+              [
+                3.364,
+                -1.909
+              ],
+              [
+                3.264,
+                -1.909
+              ],
+              [
+                3.264,
+                -1.884
+              ],
+              [
+                3.239,
+                -1.884
+              ],
+              [
+                2.7895,
+                -1.89465
+              ]
+            ]
+          }
+        }
+      ],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": []
+    }
+  ],
+  "finished_at": "2026-09-26T13:23:44.558Z"
+}

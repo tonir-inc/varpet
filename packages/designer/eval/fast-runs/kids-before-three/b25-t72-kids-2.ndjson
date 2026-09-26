@@ -1,0 +1,2 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "error", "message": "'_thread._local' object has no attribute 'run_id'"}

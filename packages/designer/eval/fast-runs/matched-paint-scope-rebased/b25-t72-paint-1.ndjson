@@ -1,0 +1,53 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Writing your answer"}
+{"type": "message_delta", "delta": "Which bedroom"}
+{"type": "message_delta", "delta": " would"}
+{"type": "message_delta", "delta": " you"}
+{"type": "message_delta", "delta": " like"}
+{"type": "message_delta", "delta": " painted"}
+{"type": "message_delta", "delta": " warm"}
+{"type": "message_delta", "delta": " white"}
+{"type": "message_delta", "delta": ":"}
+{"type": "message_delta", "delta": " **"}
+{"type": "message_delta", "delta": "Bedroom"}
+{"type": "message_delta", "delta": " "}
+{"type": "message_delta", "delta": "1"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": " Bedroom"}
+{"type": "message_delta", "delta": " "}
+{"type": "message_delta", "delta": "2"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": " or"}
+{"type": "message_delta", "delta": " Bedroom"}
+{"type": "message_delta", "delta": " "}
+{"type": "message_delta", "delta": "3"}
+{"type": "message_delta", "delta": "**"}
+{"type": "message_delta", "delta": "?\n\n"}
+{"type": "message_delta", "delta": "Note"}
+{"type": "message_delta", "delta": ":"}
+{"type": "message_delta", "delta": " the"}
+{"type": "message_delta", "delta": " preview"}
+{"type": "message_delta", "delta": " colours"}
+{"type": "message_delta", "delta": " both"}
+{"type": "message_delta", "delta": " faces"}
+{"type": "message_delta", "delta": " and"}
+{"type": "message_delta", "delta": " all"}
+{"type": "message_delta", "delta": " connected"}
+{"type": "message_delta", "delta": " segments"}
+{"type": "message_delta", "delta": " of"}
+{"type": "message_delta", "delta": " each"}
+{"type": "message_delta", "delta": " shared"}
+{"type": "message_delta", "delta": " wall"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": " so"}
+{"type": "message_delta", "delta": " some"}
+{"type": "message_delta", "delta": " adjacent"}
+{"type": "message_delta", "delta": " spaces"}
+{"type": "message_delta", "delta": " may"}
+{"type": "message_delta", "delta": " also"}
+{"type": "message_delta", "delta": " change"}
+{"type": "message_delta", "delta": "."}
+{"type": "message", "message": "Which bedroom would you like painted warm white: **Bedroom 1, Bedroom 2, or Bedroom 3**?\n\nNote: the preview colours both faces and all connected segments of each shared wall, so some adjacent spaces may also change.", "conversationId": "05cf98c704b74126b0b196c57c35cab2"}

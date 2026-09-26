@@ -1,0 +1,6 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "decline", "conversationId": "fca11627578842a09c4bc0a0c7bc9af0", "message": "Which bedroom should I preview in **warm white**: Bedroom 1, Bedroom 2, or Bedroom 3?\n\nNote: wall colour changes affect both faces and all shared segments, so some adjoining-room walls may change too."}

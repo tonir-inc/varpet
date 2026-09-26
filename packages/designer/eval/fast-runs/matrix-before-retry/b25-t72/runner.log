@@ -1,0 +1,13 @@
+TypeError: fetch failed
+    at node:internal/deps/undici/undici:16416:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async <anonymous> (/Users/ashotarushanyan/AshProjects/varpet-fast/apps/editor/src/adapters/catalog-http.ts:50:30)
+    at async Object.list (/Users/ashotarushanyan/AshProjects/varpet-fast/apps/editor/src/adapters/catalog-http.ts:48:31)
+    at async main (/Users/ashotarushanyan/AshProjects/varpet-fast/packages/designer/eval/komitas-run.ts:25:16) {
+  [cause]: AggregateError [ECONNREFUSED]: 
+      at internalConnectMultiple (node:net:1134:18)
+      at afterConnectMultiple (node:net:1715:7) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}

@@ -1,0 +1,2419 @@
+{
+  "hits": 0,
+  "misses": 40,
+  "coalesced": 0,
+  "upstream_ms": 151564.69537400006,
+  "groups": {
+    "sofa/any": 16,
+    "sofa/Modern": 15,
+    "sofa/Industrial": 14,
+    "sofa/Traditional": 19,
+    "sofa/Bohemian": 0,
+    "chair/any": 20,
+    "chair/Modern": 20,
+    "chair/Traditional": 20,
+    "chair/Industrial": 0,
+    "chair/Bohemian": 0,
+    "table/any": 20,
+    "table/Modern": 19,
+    "table/Industrial": 20,
+    "table/Traditional": 20,
+    "bed/any": 5,
+    "table/Bohemian": 9,
+    "bed/Traditional": 1,
+    "bed/Modern": 7,
+    "bed/Bohemian": 0,
+    "bed/Industrial": 2,
+    "cabinet/Modern": 6,
+    "cabinet/any": 13,
+    "cabinet/Traditional": 7,
+    "cabinet/Industrial": 3,
+    "cabinet/Bohemian": 0,
+    "lamp/any": 20,
+    "lamp/Traditional": 4,
+    "lamp/Modern": 20,
+    "lamp/Bohemian": 2,
+    "lamp/Industrial": 7,
+    "rug/any": 16,
+    "rug/Modern": 19,
+    "rug/Industrial": 0,
+    "rug/Traditional": 18,
+    "shelf/any": 8,
+    "rug/Bohemian": 17,
+    "shelf/Traditional": 1,
+    "shelf/Modern": 7,
+    "shelf/Bohemian": 0,
+    "shelf/Industrial": 8
+  },
+  "audits": [
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/3/B075X4VM73.glb",
+      "checked_url": "http://localhost:8765/models/B075X4VM73.glb",
+      "ok": true,
+      "sha256": "7261906abbcce43e712e502d8264fc80463b2d5784978461b8767ccd7d8510ed",
+      "bytes": 417424
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/B/B075X4VM6B.glb",
+      "checked_url": "http://localhost:8765/models/B075X4VM6B.glb",
+      "ok": true,
+      "sha256": "d16f9976d2edc2459d325083ceb82efb08a16bebe93ecc15c529b0dccdf4dfc9",
+      "bytes": 449536
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/L/B073G82B5L.glb",
+      "checked_url": "http://localhost:8765/models/B073G82B5L.glb",
+      "ok": true,
+      "sha256": "5bc7d7e03d85e2f330c0c0781704d84bb1379600de62da24053d5b9067a30db6",
+      "bytes": 376256
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/7/B073G6GTK7.glb",
+      "checked_url": "http://localhost:8765/models/B073G6GTK7.glb",
+      "ok": true,
+      "sha256": "7fec0feee378de90f2a541e74b76dad12075ae9cacd78faf001e156ab986b1a1",
+      "bytes": 651276
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/F/B075X4VM7F.glb",
+      "checked_url": "http://localhost:8765/models/B075X4VM7F.glb",
+      "ok": true,
+      "sha256": "2527130290e1be2849ca82b235583b56eea195a2222a3a63993b9fe939bfc5d8",
+      "bytes": 414840
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/1/B07B4M6BS1.glb",
+      "checked_url": "http://localhost:8765/models/B07B4M6BS1.glb",
+      "ok": true,
+      "sha256": "ee5484adaefd3c6cedbaae637902297441f5a1e62a77f7850af1f318447976b0",
+      "bytes": 434920
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/4/B075X4VW74.glb",
+      "checked_url": "http://localhost:8765/models/B075X4VW74.glb",
+      "ok": true,
+      "sha256": "b2f607b3fb30c54f2d4857d33f75c414f1a4836a5a0e9852bd58355bf2827420",
+      "bytes": 363680
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/L/B073ZNVNLL.glb",
+      "checked_url": "http://localhost:8765/models/B073ZNVNLL.glb",
+      "ok": true,
+      "sha256": "160e9b96c48f48e30c7f13c8e295e613991fa9e58223edc0a6fa591d4fff8b54",
+      "bytes": 779712
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/Y/B07B4ML4BY.glb",
+      "checked_url": "http://localhost:8765/models/B07B4ML4BY.glb",
+      "ok": true,
+      "sha256": "641e756ab6a7eafe310f9855ae283540edc0d2f5c792e3794920143749df1a65",
+      "bytes": 373400
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/L/B07VPNX3QL.glb",
+      "checked_url": "http://localhost:8765/models/B07VPNX3QL.glb",
+      "ok": true,
+      "sha256": "0733cf297906e90db7f714335eac0eed864924f147600bfe98e3bf43d39315e4",
+      "bytes": 653188
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/Y/B075X2X4GY.glb",
+      "checked_url": "http://localhost:8765/models/B075X2X4GY.glb",
+      "ok": true,
+      "sha256": "219776d95aaf9e0398ed01c19b15ce0f303cccee0359f772f772c18744a0fe08",
+      "bytes": 409688
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/5/B075X4F3V5.glb",
+      "checked_url": "http://localhost:8765/models/B075X4F3V5.glb",
+      "ok": true,
+      "sha256": "55e716b824cdc3b71fd0884bdbe407d45dd7600cbe3cd4dc46e5fe130684e9df",
+      "bytes": 422512
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/R/B07G2FVJXR.glb",
+      "checked_url": "http://localhost:8765/models/B07G2FVJXR.glb",
+      "ok": true,
+      "sha256": "70c5a7b6bdea82a2ed8e70996ca3714aaa8107f4a9083629a5cb3e9660655e02",
+      "bytes": 587388
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/8/B075X43FQ8.glb",
+      "checked_url": "http://localhost:8765/models/B075X43FQ8.glb",
+      "ok": true,
+      "sha256": "fe62cbb9b48db8ddc2a8c088770a63760c7a9314c2105836764e3fdcdd220473",
+      "bytes": 937808
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/X/B07G2FRRFX.glb",
+      "checked_url": "http://localhost:8765/models/B07G2FRRFX.glb",
+      "ok": true,
+      "sha256": "bfdbe782feb7c5e812d71688e63a439cea2ac24eea4224539d2c1527e0347ed6",
+      "bytes": 576624
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/Q/B075X5VCNQ.glb",
+      "checked_url": "http://localhost:8765/models/B075X5VCNQ.glb",
+      "ok": true,
+      "sha256": "87f7fb96c6ccdef317c06a955133565759f5bb2dcfce12d0d6bf06c6d33e49c9",
+      "bytes": 1793952
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/Y/B075X33SQY.glb",
+      "checked_url": "http://localhost:8765/models/B075X33SQY.glb",
+      "ok": true,
+      "sha256": "e9c45534b241d9fb3c23af6298300dfb36d784e0c473e591a3167f52b2baabcb",
+      "bytes": 615780
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/W/B07HPKX8SW.glb",
+      "checked_url": "http://localhost:8765/models/B07HPKX8SW.glb",
+      "ok": true,
+      "sha256": "924f1091c56233635de05aff1f307d1c661c1366fa32fdbcc0e2616c7dc98df5",
+      "bytes": 1843788
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/Y/B07HPJ8S2Y.glb",
+      "checked_url": "http://localhost:8765/models/B07HPJ8S2Y.glb",
+      "ok": true,
+      "sha256": "6f4d1e5ec432141336e619aa6a89ff700a34d7175f387c60141dccf4cf1c39c5",
+      "bytes": 1843080
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/G/B07G2RG94G.glb",
+      "checked_url": "http://localhost:8765/models/B07G2RG94G.glb",
+      "ok": true,
+      "sha256": "45f01aa3e1f462dd8857814d4bc22235b6468a911074edbd053aff1b800f5e70",
+      "bytes": 512840
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/T/B07G34YCJT.glb",
+      "checked_url": "http://localhost:8765/models/B07G34YCJT.glb",
+      "ok": true,
+      "sha256": "a06102004b4f56952a5f5601ea96bb081dcaf15bd2cfdf17f1619bdbd4bcee0a",
+      "bytes": 510552
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/7/B075X4QMW7.glb",
+      "checked_url": "http://localhost:8765/models/B075X4QMW7.glb",
+      "ok": true,
+      "sha256": "1c3eff2f00c15030f4c6e0a6137c3a0027cbeda7e77cc9725aa5040d9ee11dd3",
+      "bytes": 937496
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/R/B075X5446R.glb",
+      "checked_url": "http://localhost:8765/models/B075X5446R.glb",
+      "ok": true,
+      "sha256": "cdce0f6ad4d7bbcfc8e0b1c0f1ae731aee03a2aa754d70bc7b1554087c69f88a",
+      "bytes": 921040
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/K/B07HPQQNBK.glb",
+      "checked_url": "http://localhost:8765/models/B07HPQQNBK.glb",
+      "ok": true,
+      "sha256": "831636caa4eabaf996598d48b5683520df59606ff620e8841d32c7dfbf41fed5",
+      "bytes": 493872
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/Z/B07VQSW39Z.glb",
+      "checked_url": "http://localhost:8765/models/B07VQSW39Z.glb",
+      "ok": true,
+      "sha256": "e20b2b7c0413196ae33ced1d048a346ac28b564ce1d492b8ef92914994b9db25",
+      "bytes": 722224
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/J/B075X5LXYJ.glb",
+      "checked_url": "http://localhost:8765/models/B075X5LXYJ.glb",
+      "ok": true,
+      "sha256": "96689db0a6a113fb30d4ca31d65367190675e0e01258778e166a75aa0f270efc",
+      "bytes": 876120
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/M/B075X4N3FM.glb",
+      "checked_url": "http://localhost:8765/models/B075X4N3FM.glb",
+      "ok": true,
+      "sha256": "abd24c74ab38b2e74814a724c93fbffb1a889029ac36a84b55482033d277f1e0",
+      "bytes": 826560
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/F/B07VQSWN2F.glb",
+      "checked_url": "http://localhost:8765/models/B07VQSWN2F.glb",
+      "ok": true,
+      "sha256": "20b320ec4b8c15f02aef0100f48d7d2ce30086bf029492bfecdb1ca8da2b96a0",
+      "bytes": 956648
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/P/B075X2X4XP.glb",
+      "checked_url": "http://localhost:8765/models/B075X2X4XP.glb",
+      "ok": true,
+      "sha256": "1f3613ba080516225b0bc74d3615997670bbf93d827a834537e07e0ba2613442",
+      "bytes": 941736
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/X/B07B4FZK8X.glb",
+      "checked_url": "http://localhost:8765/models/B07B4FZK8X.glb",
+      "ok": true,
+      "sha256": "532accd7134b1fe426bc46b2075f9675fb60bca02be4a743a8ad4597d58d2d15",
+      "bytes": 568508
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/7/B07BW8P2F7.glb",
+      "checked_url": "http://localhost:8765/models/B07BW8P2F7.glb",
+      "ok": true,
+      "sha256": "c4df80bb250277560fd67a67d7a0cd5a9d0d10040eadea86f200091e073619a7",
+      "bytes": 876576
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/F/B075X4T4BF.glb",
+      "checked_url": "http://localhost:8765/models/B075X4T4BF.glb",
+      "ok": true,
+      "sha256": "2622c182d11b48123d047b0a746b1bea4068bf89aeccb476f527dab4dcd0b3b7",
+      "bytes": 948248
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/P/B07B4GXW9P.glb",
+      "checked_url": "http://localhost:8765/models/B07B4GXW9P.glb",
+      "ok": true,
+      "sha256": "83633e3245f5cc013f7a03c783d8f505111c07b6d1676743de5c027a5d51a7bb",
+      "bytes": 467112
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/L/B07B4MF2NL.glb",
+      "checked_url": "http://localhost:8765/models/B07B4MF2NL.glb",
+      "ok": true,
+      "sha256": "ad8905881b7148e0ed8a4692caa032326d07e99cb88843d50a14d99962325844",
+      "bytes": 564628
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/S/B07PBZVP9S.glb",
+      "checked_url": "http://localhost:8765/models/B07PBZVP9S.glb",
+      "ok": true,
+      "sha256": "c9d612f7f52ee0222578399014dda6de0f9106f45dff4141ffe3107367c55d0e",
+      "bytes": 878392
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/R/B07P6JTZ1R.glb",
+      "checked_url": "http://localhost:8765/models/B07P6JTZ1R.glb",
+      "ok": true,
+      "sha256": "27807a9fb0ee00076c9ddf13e12a2df12501e187d19dd188221bf382c6be7acf",
+      "bytes": 875592
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/J/B07B4MDDDJ.glb",
+      "checked_url": "http://localhost:8765/models/B07B4MDDDJ.glb",
+      "ok": true,
+      "sha256": "7076f91c3a9e5e6abceb702f2ead4dfa674ea7b90e8f1fc7bbcea8173c66cfe9",
+      "bytes": 486668
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/2/B07PC11RS2.glb",
+      "checked_url": "http://localhost:8765/models/B07PC11RS2.glb",
+      "ok": true,
+      "sha256": "d5ad5771b385c978b69b93a8910dd9d6e27d51ad3fa7f15d3fcc7d4f10fddfb3",
+      "bytes": 1442304
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/D/B07DBDZ56D.glb",
+      "checked_url": "http://localhost:8765/models/B07DBDZ56D.glb",
+      "ok": true,
+      "sha256": "d64da839f11f8e8a39b3d4e4dadbbe957656d66781c1c1775f1cd7e1d6e17ddc",
+      "bytes": 786288
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/G/B07B4MPVZG.glb",
+      "checked_url": "http://localhost:8765/models/B07B4MPVZG.glb",
+      "ok": true,
+      "sha256": "79dc3dc0e8b6be094aa2996252b33fab2c1b596090609e576b830cc3c994c009",
+      "bytes": 513692
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/5/B075X4VMC5.glb",
+      "checked_url": "http://localhost:8765/models/B075X4VMC5.glb",
+      "ok": true,
+      "sha256": "ad42738a0d2d9be0450c6813539a240b77b7d77f73df3b3d6e2790d438eda080",
+      "bytes": 1075516
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/S/B075X4F5CS.glb",
+      "checked_url": "http://localhost:8765/models/B075X4F5CS.glb",
+      "ok": true,
+      "sha256": "f9ea66a8fb8028fdf691de98d9572d4412769ee06bec838d05cd56fed30bf002",
+      "bytes": 1085300
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/C/B07P8STHJC.glb",
+      "checked_url": "http://localhost:8765/models/B07P8STHJC.glb",
+      "ok": true,
+      "sha256": "5516e65190497907125458828de9d8beb301b57e31ee67c0a58ed53f18e4bb9d",
+      "bytes": 3964584
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/W/B075X43FDW.glb",
+      "checked_url": "http://localhost:8765/models/B075X43FDW.glb",
+      "ok": true,
+      "sha256": "75307071ea8b440b2ad81a456d8e845d57a71a5cef3a1540d8ea60bdb96da0f3",
+      "bytes": 618764
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/9/B07B4DB8K9.glb",
+      "checked_url": "http://localhost:8765/models/B07B4DB8K9.glb",
+      "ok": true,
+      "sha256": "6bbbb8c8622943ded1504502270f65fc9fd3a1cfd1f64914f7d51b5c6997869b",
+      "bytes": 1065856
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/3/B07P5LM5D3.glb",
+      "checked_url": "http://localhost:8765/models/B07P5LM5D3.glb",
+      "ok": true,
+      "sha256": "1de5255636e1db83a5dac3b29c1fd9e0c1918b1451bd714d97db78be97bd5188",
+      "bytes": 1717448
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/G/B075X4F5DG.glb",
+      "checked_url": "http://localhost:8765/models/B075X4F5DG.glb",
+      "ok": true,
+      "sha256": "f1c5d3ca04d0c4fdc83b17d8774bef983372f7a2463e3ba9a2ac4929303edf37",
+      "bytes": 493704
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/2/B075X43FD2.glb",
+      "checked_url": "http://localhost:8765/models/B075X43FD2.glb",
+      "ok": true,
+      "sha256": "881c97c715b52e0de4bdfe012bf5d5e5c81701de42cd7266c6a12fa4fdb3de48",
+      "bytes": 356344
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/F/B07P5LMG2F.glb",
+      "checked_url": "http://localhost:8765/models/B07P5LMG2F.glb",
+      "ok": true,
+      "sha256": "40a0ddac52a856bb37210d039365ef245fb67c104fa814669c9bd13926d86a69",
+      "bytes": 4840500
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/T/B075X4R6CT.glb",
+      "checked_url": "http://localhost:8765/models/B075X4R6CT.glb",
+      "ok": true,
+      "sha256": "166a1ddc38cba229260b93c77d95ffa8053b06c10d276c8687937fc248439fa7",
+      "bytes": 775104
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/K/B07P6JTZ1K.glb",
+      "checked_url": "http://localhost:8765/models/B07P6JTZ1K.glb",
+      "ok": true,
+      "sha256": "d4f587deb78a1247a20e300752947e43173fefbc6a38286935a41e4a0f09bb39",
+      "bytes": 915324
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/9/B075X65R39.glb",
+      "checked_url": "http://localhost:8765/models/B075X65R39.glb",
+      "ok": true,
+      "sha256": "e4c41c9df0e8fc7d31fc8e40149214f49671559c8e1b38c0b4a03bf36b855465",
+      "bytes": 829520
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/P/B07QGSZ3FP.glb",
+      "checked_url": "http://localhost:8765/models/B07QGSZ3FP.glb",
+      "ok": true,
+      "sha256": "461e894c1551392f8a88d895faa0670b56420332c8f29750a407b5ee54e6daec",
+      "bytes": 1028824
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/P/B075YV7V1P.glb",
+      "checked_url": "http://localhost:8765/models/B075YV7V1P.glb",
+      "ok": true,
+      "sha256": "b35ef9ee3cd77c865eaeab041a021fecb11fd80eb97539c4080de447011dbc20",
+      "bytes": 491264
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/1/B075YPKYM1.glb",
+      "checked_url": "http://localhost:8765/models/B075YPKYM1.glb",
+      "ok": true,
+      "sha256": "678a9fe3c79a0c5b19017dba9da125a4ae34b1feef72b3eefff3537e75f407c2",
+      "bytes": 596216
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/W/B07HSJX7YW.glb",
+      "checked_url": "http://localhost:8765/models/B07HSJX7YW.glb",
+      "ok": true,
+      "sha256": "9fd2a4ff7ee6fdca4144099cfce17dde8a1b897e9f9ce34b8ed70ab25d742c7d",
+      "bytes": 339600
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/V/B07SPY6R7V.glb",
+      "checked_url": "http://localhost:8765/models/B07SPY6R7V.glb",
+      "ok": true,
+      "sha256": "31a000f61af66df70efd002d6d6fbd4aeb926a772232c9a31adae0a3bc6a1eee",
+      "bytes": 789484
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/C/B075YMY27C.glb",
+      "checked_url": "http://localhost:8765/models/B075YMY27C.glb",
+      "ok": true,
+      "sha256": "f72e91936167c7e4d267fc8fe9f25fb08e8bf89983bec01d2e50a562b4e6758d",
+      "bytes": 565016
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/X/B07JKQBXLX.glb",
+      "checked_url": "http://localhost:8765/models/B07JKQBXLX.glb",
+      "ok": true,
+      "sha256": "49cf9d9bcca97f04d0823a11cdc32ffac0818833cb661add0af92b750319859a",
+      "bytes": 635300
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/6/B07B78M186.glb",
+      "checked_url": "http://localhost:8765/models/B07B78M186.glb",
+      "ok": true,
+      "sha256": "7eabe242588a1581c1320a23e1d25d2a78828905dbaab0c20c38d55ef51bc3db",
+      "bytes": 266468
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/L/B07QJ24FSL.glb",
+      "checked_url": "http://localhost:8765/models/B07QJ24FSL.glb",
+      "ok": true,
+      "sha256": "bdaf7cd53911bad2d4bf38c745b1a865688b5e090b6967a9ff2ea853dc5bf8a9",
+      "bytes": 1099368
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/Z/B07HPFP4SZ.glb",
+      "checked_url": "http://localhost:8765/models/B07HPFP4SZ.glb",
+      "ok": true,
+      "sha256": "8fd44b00deef1be8af387e8904d72d576b4727aae7bca657dcdd155134614f58",
+      "bytes": 425568
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/2/B07QFRSN22.glb",
+      "checked_url": "http://localhost:8765/models/B07QFRSN22.glb",
+      "ok": true,
+      "sha256": "6aa15e1f8c1ca73ec0a6c33dbf8c604c09732de82606a7bf509e4cb638cb297e",
+      "bytes": 544584
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/K/B075Z6S94K.glb",
+      "checked_url": "http://localhost:8765/models/B075Z6S94K.glb",
+      "ok": true,
+      "sha256": "e191720f8af83d4b964104366093524bf9e0891efc1649d4feff787ed5d1be77",
+      "bytes": 621132
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/R/B07DBB1QXR.glb",
+      "checked_url": "http://localhost:8765/models/B07DBB1QXR.glb",
+      "ok": true,
+      "sha256": "d5b39c50ba74c37d105d95e49371183493013844f1015173d5a90ee4e2c00d82",
+      "bytes": 747360
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/C/B07R15KDNC.glb",
+      "checked_url": "http://localhost:8765/models/B07R15KDNC.glb",
+      "ok": true,
+      "sha256": "2437aa68212523c2c69162aa876dffb120dd07fee1f8ee2705437ba900a616b2",
+      "bytes": 587620
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/D/B07TLFBRKD.glb",
+      "checked_url": "http://localhost:8765/models/B07TLFBRKD.glb",
+      "ok": true,
+      "sha256": "06d459f0d08be3b59d9e23abe83a9bbb6354e6312ab63949d478d3dcd6e59ad5",
+      "bytes": 1049132
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/9/B075X4T5R9.glb",
+      "checked_url": "http://localhost:8765/models/B075X4T5R9.glb",
+      "ok": true,
+      "sha256": "6df63654eb816232ab65713e26e20e2865077ee19f2bd4338a4a7810dbc98386",
+      "bytes": 516692
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/V/B075X4PTQV.glb",
+      "checked_url": "http://localhost:8765/models/B075X4PTQV.glb",
+      "ok": true,
+      "sha256": "5966db5faab0fdd6606fda67d9556ec01887f0d9df3211849bc0c33021779cb5",
+      "bytes": 386720
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/P/B07JY29YYP.glb",
+      "checked_url": "http://localhost:8765/models/B07JY29YYP.glb",
+      "ok": true,
+      "sha256": "b123896df6c7fee8df87c773a3f19b5e749765d11c9197507d405babd97c9f4d",
+      "bytes": 728048
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/R/B071J7Q9XR.glb",
+      "checked_url": "http://localhost:8765/models/B071J7Q9XR.glb",
+      "ok": true,
+      "sha256": "92f7c8de239b4072b49106fa3c43cd52738830391b4ca0be6ac997382d716e3b",
+      "bytes": 659788
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/J/B07QJXN6WJ.glb",
+      "checked_url": "http://localhost:8765/models/B07QJXN6WJ.glb",
+      "ok": true,
+      "sha256": "8aaed59a8102d5c1fec8004060c80841fd16ff17e06eeab1b0a7eb134dfc5d7b",
+      "bytes": 560760
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/R/B07B4M68JR.glb",
+      "checked_url": "http://localhost:8765/models/B07B4M68JR.glb",
+      "ok": true,
+      "sha256": "e1f4c6de6e5be1d9cf04872ca94996ba620f522c98b2ad1df9927d00ae59deb3",
+      "bytes": 667208
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/9/B075YN3HN9.glb",
+      "checked_url": "http://localhost:8765/models/B075YN3HN9.glb",
+      "ok": true,
+      "sha256": "4105d88bff492fc2706d7a350dca1e555208238451c7cdb3a26263398b68068e",
+      "bytes": 400272
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/B/B085552QQB.glb",
+      "checked_url": "http://localhost:8765/models/B085552QQB.glb",
+      "ok": true,
+      "sha256": "e1789a3afc4d364b28fdcac19b287c018d3bba18fc3c29999b79357c86aa6f17",
+      "bytes": 521608
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/J/B08554L38J.glb",
+      "checked_url": "http://localhost:8765/models/B08554L38J.glb",
+      "ok": true,
+      "sha256": "4b1aaa1afe0ec41a61367cff008bf35dc7c82b23d434595ca795301f65e0467f",
+      "bytes": 223440
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/4/B07TFFF6V4.glb",
+      "checked_url": "http://localhost:8765/models/B07TFFF6V4.glb",
+      "ok": true,
+      "sha256": "a3cdb00b2624739942a9aac82445340f2a14318d2e5cf4b23ac77a800de51afa",
+      "bytes": 1985092
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/K/B08568VWSK.glb",
+      "checked_url": "http://localhost:8765/models/B08568VWSK.glb",
+      "ok": true,
+      "sha256": "ae20c012d25cc23e8fa5876e5cccdd78198c9fe050661ebef165760a4aeeb5a2",
+      "bytes": 439176
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/C/B082BLFMRC.glb",
+      "checked_url": "http://localhost:8765/models/B082BLFMRC.glb",
+      "ok": true,
+      "sha256": "07029d1cb1de9a58743d963c37132fa7b1cedcc5c2683a4dbfad6c2fa362c82a",
+      "bytes": 1385744
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/G/B075Z8769G.glb",
+      "checked_url": "http://localhost:8765/models/B075Z8769G.glb",
+      "ok": true,
+      "sha256": "114c4b93cdf4044fa19d44212a47088d9ba94123474afde52c26da61b470aab4",
+      "bytes": 674828
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/2/B07QFP4PR2.glb",
+      "checked_url": "http://localhost:8765/models/B07QFP4PR2.glb",
+      "ok": true,
+      "sha256": "63c32442f5ca810e72abd980e51c481000fcf5a4748de5fb0b48baa9d4ecaaff",
+      "bytes": 899732
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/6/B00EUL2B16.glb",
+      "checked_url": "http://localhost:8765/models/B00EUL2B16.glb",
+      "ok": true,
+      "sha256": "880367d71b1649a2926085a119f481ad10c272e8d38c0b08ae127fb3049264f0",
+      "bytes": 447924
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/7/B075YV7SP7.glb",
+      "checked_url": "http://localhost:8765/models/B075YV7SP7.glb",
+      "ok": true,
+      "sha256": "bf635752a8e58b1edfa567898550ee2bbfafbf6beca852cbfcb79d60fefebd95",
+      "bytes": 607736
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/1/B07JVNB871.glb",
+      "checked_url": "http://localhost:8765/models/B07JVNB871.glb",
+      "ok": true,
+      "sha256": "37d13a29b146a7f548d200340869f6c93e649d84bb4db33bddc69fd8f9767df2",
+      "bytes": 685988
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/V/B07DC19WYV.glb",
+      "checked_url": "http://localhost:8765/models/B07DC19WYV.glb",
+      "ok": true,
+      "sha256": "4345d81ef1754e4d3ef11bf8e70f69076a23565c7acb69be003184259708bde3",
+      "bytes": 1458020
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/5/B07MBFDRY5.glb",
+      "checked_url": "http://localhost:8765/models/B07MBFDRY5.glb",
+      "ok": true,
+      "sha256": "ee9b4e49c81b2a408b48293a227f393f8047576e3124f2b98c5e007297913bde",
+      "bytes": 783736
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/V/B07QFP4ZSV.glb",
+      "checked_url": "http://localhost:8765/models/B07QFP4ZSV.glb",
+      "ok": true,
+      "sha256": "3d0187489e581885b2e5d1f95f431e1f2ea354eb3f800e3de7c67e0672505a28",
+      "bytes": 779152
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/S/B084W24C7S.glb",
+      "checked_url": "http://localhost:8765/models/B084W24C7S.glb",
+      "ok": true,
+      "sha256": "119d0e49f37941967a6561cfd93251b4d0864a851ae1e11621a6490468c05e6e",
+      "bytes": 2508844
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/X/B084W368LX.glb",
+      "checked_url": "http://localhost:8765/models/B084W368LX.glb",
+      "ok": true,
+      "sha256": "d11118ad3b5bb613c098fe81df2533bf69ef4b4f75905ebde77580bde9362a5d",
+      "bytes": 2505880
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/F/B0854SBC3F.glb",
+      "checked_url": "http://localhost:8765/models/B0854SBC3F.glb",
+      "ok": true,
+      "sha256": "0d717f65ff8f9ab7132ccd479545b33182bc5802f77a8f688a6e897933d03deb",
+      "bytes": 2506196
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/G/B07DBDV64G.glb",
+      "checked_url": "http://localhost:8765/models/B07DBDV64G.glb",
+      "ok": true,
+      "sha256": "62e9739fb3cdf5473d892ccb708ac6284184de7e72320854d2d19b3d1020d5f4",
+      "bytes": 625660
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/9/B075X4J169.glb",
+      "checked_url": "http://localhost:8765/models/B075X4J169.glb",
+      "ok": true,
+      "sha256": "51d5f042352da855a28f3b0143b3fbc6771da5dc77f0c8916bbdcda5aaf605f5",
+      "bytes": 921208
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/4/B07P7NVGB4.glb",
+      "checked_url": "http://localhost:8765/models/B07P7NVGB4.glb",
+      "ok": true,
+      "sha256": "39f33629b3c35c99297875b9fba67c3a5ca141c7a08736a909e246510e58f73a",
+      "bytes": 682492
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/W/B075X5VCPW.glb",
+      "checked_url": "http://localhost:8765/models/B075X5VCPW.glb",
+      "ok": true,
+      "sha256": "27c8fed5b0e4d36ffad3ba0e10025f190244747b7d0e4ac66531b958536a3d44",
+      "bytes": 509064
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/5/B085FHZ625.glb",
+      "checked_url": "http://localhost:8765/models/B085FHZ625.glb",
+      "ok": true,
+      "sha256": "f0432b9064ca80e7b940eba4563d4a40fce2e38a77a4329862a46b36f32ceb7d",
+      "bytes": 1118988
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/2/B075X4JB42.glb",
+      "checked_url": "http://localhost:8765/models/B075X4JB42.glb",
+      "ok": true,
+      "sha256": "0810cae6470190c3ec0d6ef8aa33694458143146cdb859f6b8184b233cdc1c09",
+      "bytes": 1857848
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/9/B07QJXTGP9.glb",
+      "checked_url": "http://localhost:8765/models/B07QJXTGP9.glb",
+      "ok": true,
+      "sha256": "78230bab1a584c676580f1467a4833bed229b92cac11561f37391e4140fcfe48",
+      "bytes": 1214704
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/Y/B082SVGL8Y.glb",
+      "checked_url": "http://localhost:8765/models/B082SVGL8Y.glb",
+      "ok": true,
+      "sha256": "fb6d141862263eb0db380082a3f569e674831df2b3b1fc54c3fdb9a08605e399",
+      "bytes": 1200968
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/H/B071FMSYCH.glb",
+      "checked_url": "http://localhost:8765/models/B071FMSYCH.glb",
+      "ok": true,
+      "sha256": "0a451f73ebe57255de951b01ab0f34ab7787f500753b00a6139292b12f2b3355",
+      "bytes": 652084
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/K/B07JY3NNPK.glb",
+      "checked_url": "http://localhost:8765/models/B07JY3NNPK.glb",
+      "ok": true,
+      "sha256": "1e0cab8e12b6929d578503b15188c18824ad37d01b1c7883f8e14fd6165a7fb9",
+      "bytes": 855944
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/4/B075X2WP64.glb",
+      "checked_url": "http://localhost:8765/models/B075X2WP64.glb",
+      "ok": true,
+      "sha256": "9f7caf94b6d666f9e7c003a93d9f0b8f0dea96bfdfe8172ae174bbd0f079b593",
+      "bytes": 1524428
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/S/B075X2X4XS.glb",
+      "checked_url": "http://localhost:8765/models/B075X2X4XS.glb",
+      "ok": true,
+      "sha256": "7e2b87065b5666f2526ac6f3ec9692628ef64b8061c66ea441853825834f2e27",
+      "bytes": 983240
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/6/B075X4PTG6.glb",
+      "checked_url": "http://localhost:8765/models/B075X4PTG6.glb",
+      "ok": true,
+      "sha256": "ef88197634d1de3313237f0d9b273e1aef4ae385fe13a5c38fa9773ae47c5fb5",
+      "bytes": 979876
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/Q/B07B4LZP9Q.glb",
+      "checked_url": "http://localhost:8765/models/B07B4LZP9Q.glb",
+      "ok": true,
+      "sha256": "1667ce46ea13104da18d1732d0038424cb70fe9217de8a30cc65e2f71e33da73",
+      "bytes": 629556
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/G/B075X5HB6G.glb",
+      "checked_url": "http://localhost:8765/models/B075X5HB6G.glb",
+      "ok": true,
+      "sha256": "95563a321452c9227e3cd4ce3acef4ec82fb6a6f370d35240cf7535f9c1836bc",
+      "bytes": 1266124
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/9/B075X33SR9.glb",
+      "checked_url": "http://localhost:8765/models/B075X33SR9.glb",
+      "ok": true,
+      "sha256": "b1b955ef0c3d8651e6b437c79736d4142238ece12f6712e8d8303d7353d82ec2",
+      "bytes": 745452
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/J/B072ZKPK7J.glb",
+      "checked_url": "http://localhost:8765/models/B072ZKPK7J.glb",
+      "ok": true,
+      "sha256": "1e8d0ba520efdf9dd7582f23b568acab0b84145066d52663e7fd3468fe312913",
+      "bytes": 297056
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/P/B074KMZGRP.glb",
+      "checked_url": "http://localhost:8765/models/B074KMZGRP.glb",
+      "ok": true,
+      "sha256": "1c188f3f86bb0238481254bc51932728a691f2fafd56ab658f307811ac0d8623",
+      "bytes": 272596
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/Z/B07B7GB7BZ.glb",
+      "checked_url": "http://localhost:8765/models/B07B7GB7BZ.glb",
+      "ok": true,
+      "sha256": "cae5e9fea5a26a4fd9198340f7173f0bc43b99a542f56d2615ca2b8f7957a54c",
+      "bytes": 278676
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/6/B075Z8TDQ6.glb",
+      "checked_url": "http://localhost:8765/models/B075Z8TDQ6.glb",
+      "ok": true,
+      "sha256": "fefd6fbc06ade411f1aa6de003be93156739083baffc7a3f17040eae377ccb9c",
+      "bytes": 309676
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/Y/B07757CQVY.glb",
+      "checked_url": "http://localhost:8765/models/B07757CQVY.glb",
+      "ok": true,
+      "sha256": "85f477755b084adb22eb7e8d5089b6dbd820740e0a9e2b9ed674846fbc34ea1a",
+      "bytes": 87196
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/X/B075YP32RX.glb",
+      "checked_url": "http://localhost:8765/models/B075YP32RX.glb",
+      "ok": true,
+      "sha256": "63017d2365ef2687340a9f7fe04c96efd9f91e6fcd2f26ab5b4b59b619fc9bd0",
+      "bytes": 576788
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/M/B075ZBW1QM.glb",
+      "checked_url": "http://localhost:8765/models/B075ZBW1QM.glb",
+      "ok": true,
+      "sha256": "da105b246468205764f4ffaff36b6326252b4ce03e1169fc095c7151c5fd2e52",
+      "bytes": 339104
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/1/B075Z8KX91.glb",
+      "checked_url": "http://localhost:8765/models/B075Z8KX91.glb",
+      "ok": true,
+      "sha256": "045e6cdc0aed872f4d2d29ebc1b9dabc946960ff2a2d1a1115a3623fea76f6f7",
+      "bytes": 456512
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/7/B079ZB4V97.glb",
+      "checked_url": "http://localhost:8765/models/B079ZB4V97.glb",
+      "ok": true,
+      "sha256": "39298a39d4bbfbf61152e7be35474bf80b9a6a6296b4d327c5cbda49fa8218d0",
+      "bytes": 267264
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/8/B00OGP5S98.glb",
+      "checked_url": "http://localhost:8765/models/B00OGP5S98.glb",
+      "ok": true,
+      "sha256": "fbacb3b7b9fd418a1834fd5f6f56dbda5099f9049b8fd8623a3bfeebc8bc596c",
+      "bytes": 579932
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/3/B075Z96L53.glb",
+      "checked_url": "http://localhost:8765/models/B075Z96L53.glb",
+      "ok": true,
+      "sha256": "f7ad85950102f137e65eeca77b82a8dc0b26402af13e12b468e6352bb10b9c20",
+      "bytes": 271700
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/I/B01M4OYBOI.glb",
+      "checked_url": "http://localhost:8765/models/B01M4OYBOI.glb",
+      "ok": true,
+      "sha256": "fea0bf3e161d13561532662c302d90cf7495c05da1070c2a5b8333e7cc7fdfa8",
+      "bytes": 222620
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/R/B075Z99L7R.glb",
+      "checked_url": "http://localhost:8765/models/B075Z99L7R.glb",
+      "ok": true,
+      "sha256": "8796ec19a6251fce505604bc907488f0ba76fccd318918e53c1b34a97fa82505",
+      "bytes": 517692
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/W/B074KLN3HW.glb",
+      "checked_url": "http://localhost:8765/models/B074KLN3HW.glb",
+      "ok": true,
+      "sha256": "902099da05b8f5f73936071b373128a87798d1db56437c5b564683219ca2dd2d",
+      "bytes": 458108
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/W/B075Z8M2BW.glb",
+      "checked_url": "http://localhost:8765/models/B075Z8M2BW.glb",
+      "ok": true,
+      "sha256": "5f6654fc9d9512b4068ac1c00dea229d2ea128ec2e6a47fb1ee81d8d70fdb9d2",
+      "bytes": 253812
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/W/B074KLRCPW.glb",
+      "checked_url": "http://localhost:8765/models/B074KLRCPW.glb",
+      "ok": true,
+      "sha256": "71279cad3518db6fb01f27af5520adaab5037c5858fd4b6d208f913f8a83f64f",
+      "bytes": 670232
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/M/B075YQXRJM.glb",
+      "checked_url": "http://localhost:8765/models/B075YQXRJM.glb",
+      "ok": true,
+      "sha256": "6a429b6315caa7ab4d0b60c7bd3a5117d803cc1816b84b5db2e49f1fbf13aca2",
+      "bytes": 131708
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/9/B075Z85VX9.glb",
+      "checked_url": "http://localhost:8765/models/B075Z85VX9.glb",
+      "ok": true,
+      "sha256": "ef410381c9f667d78c63147adb64cef823edcf55cc146e954ec483da04eb5de3",
+      "bytes": 479392
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/V/B074KN35MV.glb",
+      "checked_url": "http://localhost:8765/models/B074KN35MV.glb",
+      "ok": true,
+      "sha256": "dd1d464522241cb6cb2bcf7eb37d566afe61ec4d1b4359f2ae673f7ca49bb6e0",
+      "bytes": 667348
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/T/B075YP4WYT.glb",
+      "checked_url": "http://localhost:8765/models/B075YP4WYT.glb",
+      "ok": true,
+      "sha256": "c675d9631e83882c44621427c724558c8c13b9f85411aa72e73c1d4733e1a1eb",
+      "bytes": 274252
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/F/B07B7G4VYF.glb",
+      "checked_url": "http://localhost:8765/models/B07B7G4VYF.glb",
+      "ok": true,
+      "sha256": "235c97bec3ce71c61f9737809cc12ffd8eb7365462c01666a38a4b051ce1323b",
+      "bytes": 656956
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/Y/B07S62NQFY.glb",
+      "checked_url": "http://localhost:8765/models/B07S62NQFY.glb",
+      "ok": true,
+      "sha256": "472ab35d6dcef9efabeeb1d0cc4f75998ae563c933d343b289a3c6f6770f2a24",
+      "bytes": 493744
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/Y/B07RMZ83ZY.glb",
+      "checked_url": "http://localhost:8765/models/B07RMZ83ZY.glb",
+      "ok": true,
+      "sha256": "ad9247ed7818c6571c261386640efeaf1fc345b28320e48a9c87790ed342400f",
+      "bytes": 252592
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/B/B07B7HVCMB.glb",
+      "checked_url": "http://localhost:8765/models/B07B7HVCMB.glb",
+      "ok": true,
+      "sha256": "8d0f4e75911d6ddefe54275a911a62ef7b7d20c69402f3339edc2ed267381f63",
+      "bytes": 218012
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/F/B07LC9HXSF.glb",
+      "checked_url": "http://localhost:8765/models/B07LC9HXSF.glb",
+      "ok": true,
+      "sha256": "f9ac7c53c461091ec249eb056afee5bc10ec68e15fb74a4e0464e7ec2c3c6a1f",
+      "bytes": 144172
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/7/B072ZMT5R7.glb",
+      "checked_url": "http://localhost:8765/models/B072ZMT5R7.glb",
+      "ok": true,
+      "sha256": "41d8690eea8c60975cb758e332048527a4c33e82096e50c5ff5a5a5224eeb3c5",
+      "bytes": 162076
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/J/B082VT4GGJ.glb",
+      "checked_url": "http://localhost:8765/models/B082VT4GGJ.glb",
+      "ok": true,
+      "sha256": "96f59be172b1474ef6f97bb57474c3cc93187f62638e1a2f8beb4602c617907f",
+      "bytes": 1089216
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/Z/B01NCOR0VZ.glb",
+      "ok": false,
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/5/B07S6XKT45.glb",
+      "checked_url": "http://localhost:8765/models/B07S6XKT45.glb",
+      "ok": true,
+      "sha256": "1aa5b8f43fe65e31df497814805d14ceb7b397525b91f281d1325379ef64c212",
+      "bytes": 167472
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/7/B07K7LVMQ7.glb",
+      "checked_url": "http://localhost:8765/models/B07K7LVMQ7.glb",
+      "ok": true,
+      "sha256": "4d6af1f9cdee2a63fe26060a94c97006cc689b6160d53b980ee0aeedf6ced1f7",
+      "bytes": 695648
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/L/B07QWZBX6L.glb",
+      "checked_url": "http://localhost:8765/models/B07QWZBX6L.glb",
+      "ok": true,
+      "sha256": "6503ccd909f8245a3c627e7a3afa4609dc980be27df1d82f812489d4041f3fe1",
+      "bytes": 209136
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/R/B07GDSF3MR.glb",
+      "checked_url": "http://localhost:8765/models/B07GDSF3MR.glb",
+      "ok": true,
+      "sha256": "ecbe1bf5f8aaa4235d80e3153f696ca56251a65eca3d727cbc41bd8df6177e99",
+      "bytes": 204500
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/D/B072ZMT5SD.glb",
+      "checked_url": "http://localhost:8765/models/B072ZMT5SD.glb",
+      "ok": true,
+      "sha256": "9ea5ffc4298a8443bd56d353bc911a95cdd53bd7332f51128822ac3b4d6698b3",
+      "bytes": 1098188
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/L/B07K7LR4WL.glb",
+      "checked_url": "http://localhost:8765/models/B07K7LR4WL.glb",
+      "ok": true,
+      "sha256": "a14049fbb118105918fdf6a340a921b9183044afd6f01b6b9572255ddcd1e4d6",
+      "bytes": 200648
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/9/B07Y5VWF19.glb",
+      "checked_url": "http://localhost:8765/models/B07Y5VWF19.glb",
+      "ok": true,
+      "sha256": "639c27a0edbc2d97c2eac2b63ea6c4d4e44cdec35a675d59752b0e667291b40a",
+      "bytes": 842716
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/Z/B07K7LZT5Z.glb",
+      "checked_url": "http://localhost:8765/models/B07K7LZT5Z.glb",
+      "ok": true,
+      "sha256": "4267edd9827c5558a22e4f4f5b9f7388f921b34e27a70ce778a1b71760bd5c1e",
+      "bytes": 160776
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/6/B07VB3QWF6.glb",
+      "checked_url": "http://localhost:8765/models/B07VB3QWF6.glb",
+      "ok": true,
+      "sha256": "f185943b902f90f6d7135430501f919fa448ae92214ace90e2c028e046b24033",
+      "bytes": 336896
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/M/B07QGFYLLM.glb",
+      "checked_url": "http://localhost:8765/models/B07QGFYLLM.glb",
+      "ok": true,
+      "sha256": "f3d24ee724fb3613b97b55a3be0acd78c7f070e0a45a2eeb5a18a190a0030332",
+      "bytes": 207408
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/Y/B07QD6V1SY.glb",
+      "checked_url": "http://localhost:8765/models/B07QD6V1SY.glb",
+      "ok": true,
+      "sha256": "2b4b3fe42e880c37c0bdb330b600108a205ca062fe886897bf823847dc0d321b",
+      "bytes": 279120
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/T/B07QHKF8CT.glb",
+      "checked_url": "http://localhost:8765/models/B07QHKF8CT.glb",
+      "ok": true,
+      "sha256": "5fa478cc0c78b98068ab64649d80f37e8630799c1e0be0f817e368db4c2c26cf",
+      "bytes": 1626276
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/B/B07DBG25XB.glb",
+      "checked_url": "http://localhost:8765/models/B07DBG25XB.glb",
+      "ok": true,
+      "sha256": "89552b41920901b8d8f56d463f8dcee03be1d74ecf9ec276c8acd3b26cb932d5",
+      "bytes": 176444
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/3/B07M6PKCM3.glb",
+      "checked_url": "http://localhost:8765/models/B07M6PKCM3.glb",
+      "ok": true,
+      "sha256": "c0c651fe1e9aef64bb3fdf36ff07bd3ce274a04ab9c07716d291d9f7ab5bcf3a",
+      "bytes": 570800
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/9/B07QB8FYS9.glb",
+      "checked_url": "http://localhost:8765/models/B07QB8FYS9.glb",
+      "ok": true,
+      "sha256": "caf79bc6049db0aa9c3e193dcbfa95e1ce8c66f807afa886248b757dc56fcbbc",
+      "bytes": 184728
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/4/B07QGFZ2B4.glb",
+      "checked_url": "http://localhost:8765/models/B07QGFZ2B4.glb",
+      "ok": true,
+      "sha256": "171d89f37c10804e9b20072f8606384de0d68a36f7ae831f122cd6d65c49b61e",
+      "bytes": 135852
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/C/B07DBDT59C.glb",
+      "checked_url": "http://localhost:8765/models/B07DBDT59C.glb",
+      "ok": true,
+      "sha256": "dd66ac041768ff50cbee670afc1b69f50e3d2a5af2d6b2da1da910cfc7f15ac5",
+      "bytes": 339264
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/B/B07DBHF15B.glb",
+      "checked_url": "http://localhost:8765/models/B07DBHF15B.glb",
+      "ok": true,
+      "sha256": "105edafaa56ac733499ddae5db38730cf15ad1335453f5a4c51bfdcc0cb0fef7",
+      "bytes": 239472
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/5/B075ZB5BK5.glb",
+      "checked_url": "http://localhost:8765/models/B075ZB5BK5.glb",
+      "ok": true,
+      "sha256": "c95b064c373feabce432e37ebf3ca1e29e9ffeadfcfabce72231a87cd5de3a70",
+      "bytes": 410232
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/Y/B07DMHP1ZY.glb",
+      "checked_url": "http://localhost:8765/models/B07DMHP1ZY.glb",
+      "ok": true,
+      "sha256": "a216f1d818fa9183a1ee1f74614ef2aeb049d03f213bf9ff17e5b9ba5cc26139",
+      "bytes": 135328
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/9/B07NZX7HR9.glb",
+      "checked_url": "http://localhost:8765/models/B07NZX7HR9.glb",
+      "ok": true,
+      "sha256": "9cdc671cada5993f680edd4efb387d3266b025e4068f62c86856be61726e0824",
+      "bytes": 1134596
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/8/B07QB6C9R8.glb",
+      "checked_url": "http://localhost:8765/models/B07QB6C9R8.glb",
+      "ok": true,
+      "sha256": "90643b7eb5470767581c142d901d8abed300ef244770fa79672dd8ba6cd27d58",
+      "bytes": 173128
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/B/B07MBFDS3B.glb",
+      "checked_url": "http://localhost:8765/models/B07MBFDS3B.glb",
+      "ok": true,
+      "sha256": "2dcf2be29184c2300fea0bf95c00db1e23fd0cfa6b2a50366263895f1f62ce7c",
+      "bytes": 280300
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/M/B07MHMGJMM.glb",
+      "checked_url": "http://localhost:8765/models/B07MHMGJMM.glb",
+      "ok": true,
+      "sha256": "a6855d062ba0e9174177baccccd43d70e898b7c7c32e81f7c03b2bee9749206f",
+      "bytes": 246168
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/P/B07QFB1TMP.glb",
+      "checked_url": "http://localhost:8765/models/B07QFB1TMP.glb",
+      "ok": true,
+      "sha256": "126e17cde4c32d57194e14f71fb7cf37cf6455b09658f60a02904e16a4b941d6",
+      "bytes": 494364
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/H/B07DBDWL5H.glb",
+      "checked_url": "http://localhost:8765/models/B07DBDWL5H.glb",
+      "ok": true,
+      "sha256": "2cea039f2d592610f1314ec0f50a4feb9a5a715ef9f1de6ecf7b68be88d9bfcc",
+      "bytes": 152940
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/X/B07MM5H3HX.glb",
+      "checked_url": "http://localhost:8765/models/B07MM5H3HX.glb",
+      "ok": true,
+      "sha256": "17c4884afb2941d4eb35b802924559891209966d58cddfdfa49ed79c2b143d50",
+      "bytes": 188644
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/D/B07MJL3LWD.glb",
+      "checked_url": "http://localhost:8765/models/B07MJL3LWD.glb",
+      "ok": true,
+      "sha256": "97bae55ffb65bfa8fe6075a6296d31af514fa4e086c961585c7802042a5da458",
+      "bytes": 187708
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/P/B07HSBJDQP.glb",
+      "checked_url": "http://localhost:8765/models/B07HSBJDQP.glb",
+      "ok": true,
+      "sha256": "069eb89ea9db02d71e28bb71d64bf922f4dbbed8f8aad82b12ebae62006c3e99",
+      "bytes": 226480
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/S/B075YPTG8S.glb",
+      "checked_url": "http://localhost:8765/models/B075YPTG8S.glb",
+      "ok": true,
+      "sha256": "d40def3a3c5d03e7e6ff4e63532915dd2e404e3c5a30b05f113ee7f2b53b97ef",
+      "bytes": 798576
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/P/B07DBG4PPP.glb",
+      "checked_url": "http://localhost:8765/models/B07DBG4PPP.glb",
+      "ok": true,
+      "sha256": "292167c02ad970bbccc4006e66b5fe2f305e85977537d6093ab23e6e16dbf492",
+      "bytes": 420984
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/C/B07F3Y9BSC.glb",
+      "checked_url": "http://localhost:8765/models/B07F3Y9BSC.glb",
+      "ok": true,
+      "sha256": "0b5f4ec48e7c8be3abeeb7e62289ceb0eb409f269ac4e3061f87e5fbbc67549f",
+      "bytes": 212408
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/S/B07DBFQFGS.glb",
+      "checked_url": "http://localhost:8765/models/B07DBFQFGS.glb",
+      "ok": true,
+      "sha256": "37153c4b2176b525b0e9896d4fd5a84432c7415825a9afc0502b41a84f5bc544",
+      "bytes": 233224
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/P/B07DB9638P.glb",
+      "checked_url": "http://localhost:8765/models/B07DB9638P.glb",
+      "ok": true,
+      "sha256": "3fd2fc59e6be8f4214fd81cad9605e4e33e3e920e66bdd9a81df9aea033cd308",
+      "bytes": 129072
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/Y/B07DBF3VJY.glb",
+      "checked_url": "http://localhost:8765/models/B07DBF3VJY.glb",
+      "ok": true,
+      "sha256": "ac1b6e1ab126aafe37309bf9be4936c01abc2cb922ee518fd5b7e0ece724e91a",
+      "bytes": 339268
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/6/B07DBHF136.glb",
+      "checked_url": "http://localhost:8765/models/B07DBHF136.glb",
+      "ok": true,
+      "sha256": "3c0da1722d79821df082690a99d15e09a359d9ab2dee315d0213ec580a030b9b",
+      "bytes": 172264
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/8/B07MJL3LW8.glb",
+      "checked_url": "http://localhost:8765/models/B07MJL3LW8.glb",
+      "ok": true,
+      "sha256": "5baa8ba262ba35d0986dc896ee5b66209a55e986461fd3e6dc7c2c33e7bfa7c1",
+      "bytes": 206908
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/9/B07DB92J69.glb",
+      "checked_url": "http://localhost:8765/models/B07DB92J69.glb",
+      "ok": true,
+      "sha256": "2f8e722e2504f2037f523307bc983efee3523f8cd2e4897bb2ef8249586be8b3",
+      "bytes": 116524
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/Z/B07DBFG16Z.glb",
+      "checked_url": "http://localhost:8765/models/B07DBFG16Z.glb",
+      "ok": true,
+      "sha256": "64e03a0e543284a9dc548c0a009ab2ea20d679217a407da9387dae7d72cd9a88",
+      "bytes": 268848
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/D/B07DB92J6D.glb",
+      "checked_url": "http://localhost:8765/models/B07DB92J6D.glb",
+      "ok": true,
+      "sha256": "cc51712641b14c3d664f3206e4b1613b866ef8b3d2234b436cac9173423c51c1",
+      "bytes": 307548
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/D/B0718WYQ8D.glb",
+      "checked_url": "http://localhost:8765/models/B0718WYQ8D.glb",
+      "ok": true,
+      "sha256": "b6064678514fcc2edee458e75abecbf2019baaae100981d2d2f683a3396a247d",
+      "bytes": 252356
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/1/B071H75K71.glb",
+      "checked_url": "http://localhost:8765/models/B071H75K71.glb",
+      "ok": true,
+      "sha256": "9865591d02d732833205e3e1b36a6ce48af48c92f3de79c923f2440fac49a9fe",
+      "bytes": 267344
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/N/B07MF1RKQN.glb",
+      "checked_url": "http://localhost:8765/models/B07MF1RKQN.glb",
+      "ok": true,
+      "sha256": "3295b380c09f32f7116e101dec034434521064c226e5ea81eacbe10a3b93c968",
+      "bytes": 572728
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/5/B07MF1SRH5.glb",
+      "checked_url": "http://localhost:8765/models/B07MF1SRH5.glb",
+      "ok": true,
+      "sha256": "36389943ae5fa8ad7be68a304a8bc20e1abe2971f06588c05b441eaa100b7fed",
+      "bytes": 570624
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/T/B073WQ8JLT.glb",
+      "checked_url": "http://localhost:8765/models/B073WQ8JLT.glb",
+      "ok": true,
+      "sha256": "fc732f72ab01b7fcbb3873838e6b40031a866e85f9dd12ab8a3145033b579b4d",
+      "bytes": 514056
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/7/B075XZMMG7.glb",
+      "checked_url": "http://localhost:8765/models/B075XZMMG7.glb",
+      "ok": true,
+      "sha256": "8226c44e1bde2b363026d6998359829d4bd83dc1839487ac0cc02af80a7734ef",
+      "bytes": 274820
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/2/B07MBFDJT2.glb",
+      "checked_url": "http://localhost:8765/models/B07MBFDJT2.glb",
+      "ok": true,
+      "sha256": "584d0fcb6f9aeb2776ba8a18283a87006534eab18cc14b16def98a5ccaa622dc",
+      "bytes": 1604140
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/Y/B07MBFDHRY.glb",
+      "checked_url": "http://localhost:8765/models/B07MBFDHRY.glb",
+      "ok": true,
+      "sha256": "efdf84d4d4b234cc47e194b6d283f18c281a7d928df10bdeba8828edd643ec0c",
+      "bytes": 1604724
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/5/B07B4Y45H5.glb",
+      "checked_url": "http://localhost:8765/models/B07B4Y45H5.glb",
+      "ok": true,
+      "sha256": "ad6410a7dbb2df1c48ac6c57570d9d106456dc24f96e4e8675da4eabeabafa28",
+      "bytes": 496236
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/R/B07MF1TQYR.glb",
+      "checked_url": "http://localhost:8765/models/B07MF1TQYR.glb",
+      "ok": true,
+      "sha256": "6564aa006f0aec65733b860df95243c0dfabf32b4b3022944e19ca7a77b4cee0",
+      "bytes": 1269120
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/K/B07MF1RP2K.glb",
+      "checked_url": "http://localhost:8765/models/B07MF1RP2K.glb",
+      "ok": true,
+      "sha256": "62850bd229364fa29bd2bd7000f70cebbf715a7aaae4c756670f9c16acf404ee",
+      "bytes": 1601740
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/R/B07MHM99CR.glb",
+      "checked_url": "http://localhost:8765/models/B07MHM99CR.glb",
+      "ok": true,
+      "sha256": "9275b3f4910ab78f35dc2e67c4a05868f2c4737d22bfc4c50bdebbadff4572f8",
+      "bytes": 1266664
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/P/B07MHMJD1P.glb",
+      "checked_url": "http://localhost:8765/models/B07MHMJD1P.glb",
+      "ok": true,
+      "sha256": "aae50d39e31c0c6b952a47453824ac20e9f566b376374d510b063b182349571d",
+      "bytes": 1260056
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/L/B07MHMSDPL.glb",
+      "checked_url": "http://localhost:8765/models/B07MHMSDPL.glb",
+      "ok": true,
+      "sha256": "96fff42d071b83e51fe81426467e809e7b61406b1aa08be59e3dd11303038954",
+      "bytes": 1257752
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/R/B07K7NXVXR.glb",
+      "checked_url": "http://localhost:8765/models/B07K7NXVXR.glb",
+      "ok": true,
+      "sha256": "7d24723114029c9106ffa459e6588968feefb18ec470f3dcd5ff70483eba6028",
+      "bytes": 495248
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/W/B07GFDZW5W.glb",
+      "checked_url": "http://localhost:8765/models/B07GFDZW5W.glb",
+      "ok": true,
+      "sha256": "4d782ae9f833071bcad87f799b543852ad0b82d8070d9449f74b094dd38b46d9",
+      "bytes": 1360364
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/2/B07GFS1W12.glb",
+      "checked_url": "http://localhost:8765/models/B07GFS1W12.glb",
+      "ok": true,
+      "sha256": "1bcdc7cfc9a01febccbd614ce9462ce9297b709e2800fe8ded22d897161672a4",
+      "bytes": 1344912
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/Y/B08FTN8KHY.glb",
+      "checked_url": "http://localhost:8765/models/B08FTN8KHY.glb",
+      "ok": true,
+      "sha256": "17b5b3d29c6ba809564eeb39c20c7ef414a90cbb2ebee4943a48bfb42d5587d9",
+      "bytes": 523488
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/V/B07LC84ZYV.glb",
+      "checked_url": "http://localhost:8765/models/B07LC84ZYV.glb",
+      "ok": true,
+      "sha256": "bc66a838402adc3fc715a7729bcbf1ed6b6e020ca6210d4ca17890f09a77969a",
+      "bytes": 273016
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/W/B07LC5Y95W.glb",
+      "checked_url": "http://localhost:8765/models/B07LC5Y95W.glb",
+      "ok": true,
+      "sha256": "d4510214dc5717b5350deb503114494d7cd387d5feabc7fab68d464b36532f37",
+      "bytes": 229440
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/2/B07B51H792.glb",
+      "checked_url": "http://localhost:8765/models/B07B51H792.glb",
+      "ok": true,
+      "sha256": "4578d8a56be77ab007947ec12f02d0f011c6349414f2564c4e54cfa4e7bcc117",
+      "bytes": 323612
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/3/B07B4XK5V3.glb",
+      "checked_url": "http://localhost:8765/models/B07B4XK5V3.glb",
+      "ok": true,
+      "sha256": "764555e7764d4bcddef04235eb357d7b93b492e501004c9a0e34023c1942791c",
+      "bytes": 336560
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/M/B07DBDX23M.glb",
+      "checked_url": "http://localhost:8765/models/B07DBDX23M.glb",
+      "ok": true,
+      "sha256": "faf430f2a0cf06483d5a9222faf38fb6c88d6b8f4a17024fe5c4d5ed6cdb4c36",
+      "bytes": 146968
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/8/B07G4ZXLC8.glb",
+      "checked_url": "http://localhost:8765/models/B07G4ZXLC8.glb",
+      "ok": true,
+      "sha256": "90db5e73798241b34feb3e44845726b51a8a5584239e0c30bdfa0c722767e4ea",
+      "bytes": 281732
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/7/B074KMVVK7.glb",
+      "checked_url": "http://localhost:8765/models/B074KMVVK7.glb",
+      "ok": true,
+      "sha256": "23287fcd920209d4dc168be9e1aeeccc7ce8ef5f20c08d6cac40b486c077e9d6",
+      "bytes": 501456
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/V/B074KLJQKV.glb",
+      "checked_url": "http://localhost:8765/models/B074KLJQKV.glb",
+      "ok": true,
+      "sha256": "6d2726483eac030a116ab3d14f5d9b9d727a4af67cb0294d51cb634a3c8c962e",
+      "bytes": 818532
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/X/B07GFW9GFX.glb",
+      "checked_url": "http://localhost:8765/models/B07GFW9GFX.glb",
+      "ok": true,
+      "sha256": "cce572cf7517455fa77b950f778147514c64ee6b30a13cfa9556767c99ea7f40",
+      "bytes": 265796
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/1/B07RMZ8B11.glb",
+      "checked_url": "http://localhost:8765/models/B07RMZ8B11.glb",
+      "ok": true,
+      "sha256": "63bbcf5174ec5076a7cbcf0ce78e440258e2d3f496e6e2cbc811956cec416b2e",
+      "bytes": 1382132
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/8/B07B77VXN8.glb",
+      "checked_url": "http://localhost:8765/models/B07B77VXN8.glb",
+      "ok": true,
+      "sha256": "a1b97eae2585d491be06b8af5242ca21609b099fabca96150274225729e39073",
+      "bytes": 1085492
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/W/B07B78G1BW.glb",
+      "checked_url": "http://localhost:8765/models/B07B78G1BW.glb",
+      "ok": true,
+      "sha256": "a1d266d036fd07280385fd44a6d9001450f4bca2a22eae71cc0fe4c957b95293",
+      "bytes": 1265064
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/C/B075YQXQ5C.glb",
+      "checked_url": "http://localhost:8765/models/B075YQXQ5C.glb",
+      "ok": true,
+      "sha256": "e5769005fdca1baf500bcedfcc6e569f60f6511542104486d7a340edc3acd579",
+      "bytes": 247228
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/G/B07GFFPKBG.glb",
+      "checked_url": "http://localhost:8765/models/B07GFFPKBG.glb",
+      "ok": true,
+      "sha256": "675519eb7a5178094e13d72585a03a999923c564de84fec8820d6985c82a73e9",
+      "bytes": 214276
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/7/B075GSLVV7.glb",
+      "checked_url": "http://localhost:8765/models/B075GSLVV7.glb",
+      "ok": true,
+      "sha256": "56ad614992493583a010ed5f2e577dd9b0cee554251152ed3260af0f0eb5b06c",
+      "bytes": 128096
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/C/B075GWYJRC.glb",
+      "checked_url": "http://localhost:8765/models/B075GWYJRC.glb",
+      "ok": true,
+      "sha256": "626ebbcfbfe2a57f37abaf4bb4fe7a3b1a58af921fc3a6d4460aee197a72ccff",
+      "bytes": 132288
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/F/B07DBB76MF.glb",
+      "checked_url": "http://localhost:8765/models/B07DBB76MF.glb",
+      "ok": true,
+      "sha256": "12a6e32342aea005ae2fb73cb9cb11465b461bcbb59d4e7d165d9725706f6e43",
+      "bytes": 251732
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/K/B075Z8628K.glb",
+      "checked_url": "http://localhost:8765/models/B075Z8628K.glb",
+      "ok": true,
+      "sha256": "56c1f87d61b1dfcf7f61a051fed1068799b96089610f6c199407e07e0b1b924a",
+      "bytes": 697704
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/T/B075YQ8Q3T.glb",
+      "checked_url": "http://localhost:8765/models/B075YQ8Q3T.glb",
+      "ok": true,
+      "sha256": "9bc3c140353181658ced6986d218067979517811e5f75d086819bdb36ad17502",
+      "bytes": 622068
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/F/B07YF2KGLF.glb",
+      "checked_url": "http://localhost:8765/models/B07YF2KGLF.glb",
+      "ok": true,
+      "sha256": "15d4bb95936c3aef24c6425ee4a441a53d14d9f218b3e092ee673510e476a6e4",
+      "bytes": 532752
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/Q/B082JGPBLQ.glb",
+      "checked_url": "http://localhost:8765/models/B082JGPBLQ.glb",
+      "ok": true,
+      "sha256": "7a5394b56d65eb29b954fbc32c1f77ed14e86e4db2dabc930c9ff6fb2f4391f9",
+      "bytes": 1029964
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/1/B07MNBYN11.glb",
+      "checked_url": "http://localhost:8765/models/B07MNBYN11.glb",
+      "ok": true,
+      "sha256": "a81fb06fa4412c5754806ea0fbc2357c9ba22c8680863b0cf29d3e19ea422f2a",
+      "bytes": 693940
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/P/B07QFB1L2P.glb",
+      "checked_url": "http://localhost:8765/models/B07QFB1L2P.glb",
+      "ok": true,
+      "sha256": "b47db88cf95283fa1130105c4260a6d5ff46a93a2534b48334921af7eaa09607",
+      "bytes": 257372
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/G/B07MND862G.glb",
+      "checked_url": "http://localhost:8765/models/B07MND862G.glb",
+      "ok": true,
+      "sha256": "fab3eca11ef995d182f566f8b4df75fa9e7ae6404c17a57468a952df12a564ed",
+      "bytes": 656972
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/H/B07DBB7NBH.glb",
+      "checked_url": "http://localhost:8765/models/B07DBB7NBH.glb",
+      "ok": true,
+      "sha256": "8240ab7e5bfdfc00492650c22ab4bc84d3e0c0f9dcd29daa4a1f704aa5979490",
+      "bytes": 358096
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/2/B07B7B94L2.glb",
+      "checked_url": "http://localhost:8765/models/B07B7B94L2.glb",
+      "ok": true,
+      "sha256": "5234939653dd597c4d070f5d86757281e9314fc4d9a33f7bdb926ea18e79ae48",
+      "bytes": 290792
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/F/B0742FHDJF.glb",
+      "checked_url": "http://localhost:8765/models/B0742FHDJF.glb",
+      "ok": true,
+      "sha256": "549cbdacc1dd95107acd935451a784cb8ea77f300199ebf53d93a38fbbfdad26",
+      "bytes": 500516
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/N/B075X1T52N.glb",
+      "checked_url": "http://localhost:8765/models/B075X1T52N.glb",
+      "ok": true,
+      "sha256": "26459b353c3f3845be8973d3d2bfcf3139a4a8de58238b6dcb78d176a61a897d",
+      "bytes": 212856
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/X/B075X2R3BX.glb",
+      "checked_url": "http://localhost:8765/models/B075X2R3BX.glb",
+      "ok": true,
+      "sha256": "c21991f71a144849f77cb680b2d12f67e2ece058850cc8bf415ba136bce7e1ff",
+      "bytes": 380812
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/F/B075X2LLWF.glb",
+      "checked_url": "http://localhost:8765/models/B075X2LLWF.glb",
+      "ok": true,
+      "sha256": "cb92d9464dd9edda4d803b06e6128930025794796182ba2f1909594dbb0495cd",
+      "bytes": 195168
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/M/B07374SBFM.glb",
+      "checked_url": "http://localhost:8765/models/B07374SBFM.glb",
+      "ok": true,
+      "sha256": "9a2c95981aafbb47f28788ef8d07ba08a6d155de26116cac9ddd272428955510",
+      "bytes": 330368
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/9/B07ML7J579.glb",
+      "checked_url": "http://localhost:8765/models/B07ML7J579.glb",
+      "ok": true,
+      "sha256": "f1ef561d896e24f33732f381f93caa0cd747409b2885a9e7c81f66853aa79723",
+      "bytes": 322736
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/N/B07374VCVN.glb",
+      "checked_url": "http://localhost:8765/models/B07374VCVN.glb",
+      "ok": true,
+      "sha256": "5576510ccb1b9f81b43b057ea617688c19f817989ea9d132c4048300a273b787",
+      "bytes": 342748
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/5/B073P2N985.glb",
+      "checked_url": "http://localhost:8765/models/B073P2N985.glb",
+      "ok": true,
+      "sha256": "d439ba24be5cfc62b8053fe37e4c0d318594560ba034f23ca65013d496ede046",
+      "bytes": 332420
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/7/B075X12JW7.glb",
+      "checked_url": "http://localhost:8765/models/B075X12JW7.glb",
+      "ok": true,
+      "sha256": "80d1982a2fdd46a033e1ac0d9c1ad9815d1e3cdbb0e671ba48f5d3b9a7093ba8",
+      "bytes": 283316
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/Z/B075X2BH3Z.glb",
+      "checked_url": "http://localhost:8765/models/B075X2BH3Z.glb",
+      "ok": true,
+      "sha256": "f1d478e2b876ebca648d6613abeb23734d2e23ec87860070826c8fa02fee29d8",
+      "bytes": 402148
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/8/B07HK3TMH8.glb",
+      "checked_url": "http://localhost:8765/models/B07HK3TMH8.glb",
+      "ok": true,
+      "sha256": "c3a63c2a725f8d07ddad70d18742ddec993194c4d22e1f3f6d23868b9aa231f7",
+      "bytes": 275544
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/Z/B075X2LKNZ.glb",
+      "checked_url": "http://localhost:8765/models/B075X2LKNZ.glb",
+      "ok": true,
+      "sha256": "9460c1d9250e089ccd77e6c5ec5ccc9bb72ccb0c546a19031d6abfd032f6c260",
+      "bytes": 444112
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/9/B07HKF59M9.glb",
+      "checked_url": "http://localhost:8765/models/B07HKF59M9.glb",
+      "ok": true,
+      "sha256": "ede29243e7a9887e63f9058433e9518eb2ca9a268323cf3a4b4f42ad883f3ec9",
+      "bytes": 280208
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/F/B07HKGHTGF.glb",
+      "checked_url": "http://localhost:8765/models/B07HKGHTGF.glb",
+      "ok": true,
+      "sha256": "e937a2aef7085294e0dbebe0adcc3e1caa0abd2439efa9298929dd293a6c3558",
+      "bytes": 1223604
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/C/B075X2FW7C.glb",
+      "checked_url": "http://localhost:8765/models/B075X2FW7C.glb",
+      "ok": true,
+      "sha256": "4ee28dc4fa909ec4574b1979e1642f35c80746b5a2fe8e941d2bc98ebec70b3e",
+      "bytes": 379928
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/7/B075X1T517.glb",
+      "checked_url": "http://localhost:8765/models/B075X1T517.glb",
+      "ok": true,
+      "sha256": "d97da804103cf4f4e225706b12a3c3bcdaadf74877b970a4bc026a50ab0b2912",
+      "bytes": 649344
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/R/B08B8TV5PR.glb",
+      "checked_url": "http://localhost:8765/models/B08B8TV5PR.glb",
+      "ok": true,
+      "sha256": "c6b6005e5b80b084eb29acb22e930c5d692c3ea896afb9fbba478f3560293652",
+      "bytes": 324848
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/N/B07374SBFN.glb",
+      "checked_url": "http://localhost:8765/models/B07374SBFN.glb",
+      "ok": true,
+      "sha256": "c410f92f0578654a920c341a2f8a415f3a5dc6f2e410e33cbf32ee7dc816dbc0",
+      "bytes": 153468
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/8/B0742F7GT8.glb",
+      "checked_url": "http://localhost:8765/models/B0742F7GT8.glb",
+      "ok": true,
+      "sha256": "aeaff42ccba563fd541a1037278c76d1b72c2c3787702b12fcc6e586caf01af8",
+      "bytes": 309764
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/J/B07JNRNTYJ.glb",
+      "checked_url": "http://localhost:8765/models/B07JNRNTYJ.glb",
+      "ok": true,
+      "sha256": "282873274ddec84cd84932293296c2141b0eafc16d2b09b0caf571f633643657",
+      "bytes": 705596
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/1/B0825DWB31.glb",
+      "checked_url": "http://localhost:8765/models/B0825DWB31.glb",
+      "ok": true,
+      "sha256": "b48b07d3ebcc995cc71a551ae9c46bc045fa5eaa941730f93dfbf90b5fcd985c",
+      "bytes": 425924
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/S/B0825DDW4S.glb",
+      "checked_url": "http://localhost:8765/models/B0825DDW4S.glb",
+      "ok": true,
+      "sha256": "d89226a4f0552584c0dc74fd12418fbdd699937227e4574f58e038fe27801029",
+      "bytes": 461784
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/1/B0824FD7R1.glb",
+      "checked_url": "http://localhost:8765/models/B0824FD7R1.glb",
+      "ok": true,
+      "sha256": "87aca9d1c05fb12e376af977bc4f77ddc86bafa09aa55fb05dd8bb4693ed5521",
+      "bytes": 392972
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/8/B0824FRXW8.glb",
+      "checked_url": "http://localhost:8765/models/B0824FRXW8.glb",
+      "ok": true,
+      "sha256": "b29b8d5b902575bd2d31d5e2fb5c5aa1a00bcad179a4dcac3f33497f1900d2c5",
+      "bytes": 488856
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/S/B0825CP3NS.glb",
+      "checked_url": "http://localhost:8765/models/B0825CP3NS.glb",
+      "ok": true,
+      "sha256": "369d46c2f067fdc2afa991522e8afeca831a299d8c77d0cfe081e6d7f4556165",
+      "bytes": 745684
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/C/B0824F7KLC.glb",
+      "checked_url": "http://localhost:8765/models/B0824F7KLC.glb",
+      "ok": true,
+      "sha256": "626be39db5a6347662844009f8246d6a5bb35f0283ec14ca6c8dd102fa5306fc",
+      "bytes": 1716424
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/F/B0825DBCHF.glb",
+      "checked_url": "http://localhost:8765/models/B0825DBCHF.glb",
+      "ok": true,
+      "sha256": "1accfb5e1f3ef376001395ebc487c8393cb9176c42d7b5244e3f0c049d6d1cf8",
+      "bytes": 809380
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/M/B0825DHHVM.glb",
+      "checked_url": "http://localhost:8765/models/B0825DHHVM.glb",
+      "ok": true,
+      "sha256": "84ef1e346a0b261be73fff455be059cce9b03a75cefa0d2dd42be5c5e8c1d8d4",
+      "bytes": 251276
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/6/B082XLB716.glb",
+      "checked_url": "http://localhost:8765/models/B082XLB716.glb",
+      "ok": true,
+      "sha256": "60c8ce22deb32971f2a0a6b324a288d51e0f1ed57bcb3cf06186b5c6681cc5f1",
+      "bytes": 141940
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/G/B082XLFFCG.glb",
+      "checked_url": "http://localhost:8765/models/B082XLFFCG.glb",
+      "ok": true,
+      "sha256": "f6a8c9e94dac53ca90f63b496e20c5d53aef3ac5bdef2636a85a1170ed42eee6",
+      "bytes": 278856
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/S/B082XLWY2S.glb",
+      "checked_url": "http://localhost:8765/models/B082XLWY2S.glb",
+      "ok": true,
+      "sha256": "2835f0f2216b8245849bb803dbb2019284f1e5a7a89c82e4f90a771e3f1b3d12",
+      "bytes": 323668
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/2/B082XMFBY2.glb",
+      "checked_url": "http://localhost:8765/models/B082XMFBY2.glb",
+      "ok": true,
+      "sha256": "6a77b7ffaf7ea34682606ef1f9ae1d3df3d26282e1b2f58bddc797b751632a6c",
+      "bytes": 236972
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/5/B082XMQR55.glb",
+      "checked_url": "http://localhost:8765/models/B082XMQR55.glb",
+      "ok": true,
+      "sha256": "029e4d3d1f508f0d84fdcfdfb0e1627aa206d5a8341326b94a3ddf9f4378fa5b",
+      "bytes": 273872
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/7/B0825F3GC7.glb",
+      "checked_url": "http://localhost:8765/models/B0825F3GC7.glb",
+      "ok": true,
+      "sha256": "f926dbdb373bd6d30d4fec98d996de4540d5d511682d79baa333eb10d0cc7e31",
+      "bytes": 346360
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/L/B0825DNRXL.glb",
+      "checked_url": "http://localhost:8765/models/B0825DNRXL.glb",
+      "ok": true,
+      "sha256": "2fcfcfbda11c8af68a69278a2bd7d9c9fc884c8565377bf1ad6e102143ae3602",
+      "bytes": 308596
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/F/B0824F7ZLF.glb",
+      "checked_url": "http://localhost:8765/models/B0824F7ZLF.glb",
+      "ok": true,
+      "sha256": "f121f30f863fd618304c7d64e7161d4aea335756bb40ae123275e2ce7982cdb9",
+      "bytes": 354032
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/R/B0824FB7WR.glb",
+      "checked_url": "http://localhost:8765/models/B0824FB7WR.glb",
+      "ok": true,
+      "sha256": "825ffacca6f2f1943788bbe3d05cc9a3ba188d357389c46a0d893179beb67ab4",
+      "bytes": 354792
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/D/B0825D873D.glb",
+      "checked_url": "http://localhost:8765/models/B0825D873D.glb",
+      "ok": true,
+      "sha256": "2909313be3f9fe572f218074807982485aa3144ed541eef834a0a8a6bbd48f9f",
+      "bytes": 276500
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/W/B07376VCCW.glb",
+      "checked_url": "http://localhost:8765/models/B07376VCCW.glb",
+      "ok": true,
+      "sha256": "561092c4a9414bb8cab6a2e7e7adedc10c645280842a8eed733ced379143cb7a",
+      "bytes": 254752
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/B/B07B4VGZ9B.glb",
+      "checked_url": "http://localhost:8765/models/B07B4VGZ9B.glb",
+      "ok": true,
+      "sha256": "b450ce3578697adba01c8070fd58a88193146dbd9821e2f37466aff44d212c43",
+      "bytes": 483768
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/K/B075X2Y3VK.glb",
+      "checked_url": "http://localhost:8765/models/B075X2Y3VK.glb",
+      "ok": true,
+      "sha256": "321cd9c8fb3fcc73bee26872c012106f40e548656e941b486b7c89b9a5c09b97",
+      "bytes": 374796
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/F/B07B51946F.glb",
+      "checked_url": "http://localhost:8765/models/B07B51946F.glb",
+      "ok": true,
+      "sha256": "8113d600ce26a4b5c354ec85bbef00a09125bcf8df6832e0e1574127db653d45",
+      "bytes": 1061764
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/4/B07B4Z6JZ4.glb",
+      "checked_url": "http://localhost:8765/models/B07B4Z6JZ4.glb",
+      "ok": true,
+      "sha256": "0cbeafe0b151f59edfc251e1d23e0591e52f60df4b49fdc8fe4a5201c3ecaa15",
+      "bytes": 1915840
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/7/B07HKGMQ37.glb",
+      "checked_url": "http://localhost:8765/models/B07HKGMQ37.glb",
+      "ok": true,
+      "sha256": "02a6eade8de680705018eff8452ba51070970d4589f7a68454b7f65056d4ecd0",
+      "bytes": 298180
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/P/B073P39KQP.glb",
+      "checked_url": "http://localhost:8765/models/B073P39KQP.glb",
+      "ok": true,
+      "sha256": "a4f8a5ccd5fb8a2540b8837c1e8688c035a16ce64be63aa64d20422b518f0aa0",
+      "bytes": 5396236
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/N/B07QF9Y71N.glb",
+      "checked_url": "http://localhost:8765/models/B07QF9Y71N.glb",
+      "ok": true,
+      "sha256": "f1db5f250779e42a089b8db91143aaf2f6dcf1d679d46d6b56450eb5749bfa67",
+      "bytes": 256660
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/7/B07B4ZQDH7.glb",
+      "checked_url": "http://localhost:8765/models/B07B4ZQDH7.glb",
+      "ok": true,
+      "sha256": "d4833b5af8730255797c026068d8e8b4cc97f5dfb99f928518ad664c27da8cd6",
+      "bytes": 288004
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/F/B075Z9NW3F.glb",
+      "checked_url": "http://localhost:8765/models/B075Z9NW3F.glb",
+      "ok": true,
+      "sha256": "284edcda4ad51522edd677e6ca7102d0c45021984251d094cb4a1af381570e0c",
+      "bytes": 501328
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/C/B07B4YHFYC.glb",
+      "checked_url": "http://localhost:8765/models/B07B4YHFYC.glb",
+      "ok": true,
+      "sha256": "3cb2902e5f0fda5eb9403c950972106835d84b16a88267537697cc7250eb5ae9",
+      "bytes": 148184
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/9/B07B4YVDH9.glb",
+      "checked_url": "http://localhost:8765/models/B07B4YVDH9.glb",
+      "ok": true,
+      "sha256": "24891496f50984f9f8431382323d2cd8af43b0e63963c5cd90e18c8109afeeb7",
+      "bytes": 375152
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/B/B07B4Z6MJB.glb",
+      "checked_url": "http://localhost:8765/models/B07B4Z6MJB.glb",
+      "ok": true,
+      "sha256": "76daa012aaaaa46dadd125d8ca8fce56d790f4872f68fb146f826e9ccb857da7",
+      "bytes": 301072
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/1/B07B4SMJR1.glb",
+      "checked_url": "http://localhost:8765/models/B07B4SMJR1.glb",
+      "ok": true,
+      "sha256": "734141f8a0dffadc6c8ea0d4cddf42f4cb35f749d60811b18decafd67c2289d5",
+      "bytes": 449364
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/C/B07B4WGJQC.glb",
+      "checked_url": "http://localhost:8765/models/B07B4WGJQC.glb",
+      "ok": true,
+      "sha256": "cdb1dfb7363820a211e9c6a63a4d2fcbda618638c6f6b4366acc14de19211dca",
+      "bytes": 522456
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/B/B07B4WKCMB.glb",
+      "checked_url": "http://localhost:8765/models/B07B4WKCMB.glb",
+      "ok": true,
+      "sha256": "3679dd99ade6337861d60866d2af2c10948a3f456f2e1f046239489b33cd4e2f",
+      "bytes": 666916
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/Q/B07B4ZVDBQ.glb",
+      "checked_url": "http://localhost:8765/models/B07B4ZVDBQ.glb",
+      "ok": true,
+      "sha256": "4ba0174ec3492cfaacdc420a8dbe526c55423947d260dc44d0a9b05f0b414d8f",
+      "bytes": 405912
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/4/B07B4ZL3T4.glb",
+      "checked_url": "http://localhost:8765/models/B07B4ZL3T4.glb",
+      "ok": true,
+      "sha256": "1548d46936e63df424ff401c3e160000e6b616b672b29907514db8d4f63ff914",
+      "bytes": 271800
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/K/B07B4ZR5XK.glb",
+      "checked_url": "http://localhost:8765/models/B07B4ZR5XK.glb",
+      "ok": true,
+      "sha256": "8d8d2a0ce1bf012f960dbd3a7faee2fac25309b2171a58e4007ce14c927c8a19",
+      "bytes": 272300
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/1/B07B4YY9D1.glb",
+      "checked_url": "http://localhost:8765/models/B07B4YY9D1.glb",
+      "ok": true,
+      "sha256": "b4ede44367927128a9b4d8421ced5ec60a9f9e404bd124459ed2bbed99ed373a",
+      "bytes": 493656
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/5/B07B4SMJR5.glb",
+      "checked_url": "http://localhost:8765/models/B07B4SMJR5.glb",
+      "ok": true,
+      "sha256": "e24157be2804a079886a1c169ea16ece92d92ed943091594e2b9b14549fd8125",
+      "bytes": 253804
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/G/B07B4ZPCXG.glb",
+      "checked_url": "http://localhost:8765/models/B07B4ZPCXG.glb",
+      "ok": true,
+      "sha256": "ad4526af90a9c6eb8f4030be663159f882762db48c6b71cb491e72a96d1edeeb",
+      "bytes": 511864
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/5/B07B4Z7WD5.glb",
+      "checked_url": "http://localhost:8765/models/B07B4Z7WD5.glb",
+      "ok": true,
+      "sha256": "55c08bb5262992ab6b98f66c78e78895c06a2f3375ae4617acca64235c0ef467",
+      "bytes": 408524
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/2/B07B4WGHF2.glb",
+      "checked_url": "http://localhost:8765/models/B07B4WGHF2.glb",
+      "ok": true,
+      "sha256": "2e4dad59f1467b9f612a7b7435c3ec2c30035cf6544f1ad5502cbc59b4a0555d",
+      "bytes": 402964
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/2/B07B4ZX372.glb",
+      "checked_url": "http://localhost:8765/models/B07B4ZX372.glb",
+      "ok": true,
+      "sha256": "4faeab67cdf3b8e951d130f0def72f3679e7cfaa73dcd0c40243d4ea356a55c6",
+      "bytes": 318700
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/H/B07B51QMFH.glb",
+      "checked_url": "http://localhost:8765/models/B07B51QMFH.glb",
+      "ok": true,
+      "sha256": "46639c04ef3259e87e434eb7f3d62d3a838dea348510dcdf08e5e3c846e206ba",
+      "bytes": 504232
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/D/B07QHKV52D.glb",
+      "checked_url": "http://localhost:8765/models/B07QHKV52D.glb",
+      "ok": true,
+      "sha256": "58c8c3fa842adeee42a720a7c3054e71ec0d03e6b8b8df0a7b3809a55198d8f3",
+      "bytes": 358124
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/6/B07QB8JY16.glb",
+      "checked_url": "http://localhost:8765/models/B07QB8JY16.glb",
+      "ok": true,
+      "sha256": "69a422c20a9fed844581b143bb77373fe97ea21c3bbb014013be87656754cdce",
+      "bytes": 339700
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/L/B07B52FSCL.glb",
+      "checked_url": "http://localhost:8765/models/B07B52FSCL.glb",
+      "ok": true,
+      "sha256": "f8dbb1b5fffe966fb99d351cd89e6126d18c09d746a7d78e6227723661e71d60",
+      "bytes": 497460
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/B/B07QFB3M6B.glb",
+      "checked_url": "http://localhost:8765/models/B07QFB3M6B.glb",
+      "ok": true,
+      "sha256": "aee57d60d88bd0ed2747b0149ecfb0ff83916c3b4b64f2d7923a85a5c30d4195",
+      "bytes": 1533284
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/L/B07QB8JV8L.glb",
+      "checked_url": "http://localhost:8765/models/B07QB8JV8L.glb",
+      "ok": true,
+      "sha256": "9ae381dddaa1678d74bf095aa86094c4011c9d56c64bc972ecd819e91ef18ef0",
+      "bytes": 407244
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/X/B07QB8JXQX.glb",
+      "checked_url": "http://localhost:8765/models/B07QB8JXQX.glb",
+      "ok": true,
+      "sha256": "2cfaa20179b8c81ade8c446d511371b2ec059d0ec24d6bc5e48f05e5db970691",
+      "bytes": 440044
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/2/B07QC89822.glb",
+      "checked_url": "http://localhost:8765/models/B07QC89822.glb",
+      "ok": true,
+      "sha256": "4daa2c9d61513abfcda2af8097d7de1d11770ea87b6e1a431899abdd5236b5f3",
+      "bytes": 416468
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/Y/B07B4ZVDBY.glb",
+      "checked_url": "http://localhost:8765/models/B07B4ZVDBY.glb",
+      "ok": true,
+      "sha256": "42e2311450ced37446997bb085d93695c2bd3d6bade5484f45478f4f97937c04",
+      "bytes": 399924
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/3/B07B4ZVLC3.glb",
+      "checked_url": "http://localhost:8765/models/B07B4ZVLC3.glb",
+      "ok": true,
+      "sha256": "70c8dcd13387eee96dbdf71a700d726be4fc00913349fc3796042b7a168a8595",
+      "bytes": 701144
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/H/B07QGG3TXH.glb",
+      "checked_url": "http://localhost:8765/models/B07QGG3TXH.glb",
+      "ok": true,
+      "sha256": "ec5d172c07e89b14076cf9d515158dbd5681596952c6fcee6e2838f5a29ffb21",
+      "bytes": 384064
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/M/B07QB8JPXM.glb",
+      "checked_url": "http://localhost:8765/models/B07QB8JPXM.glb",
+      "ok": true,
+      "sha256": "f421ffc02e76597adbad79d9fe039cf670cd809d9afbc473372665971485c32e",
+      "bytes": 380200
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/H/B07QGFZW8H.glb",
+      "checked_url": "http://localhost:8765/models/B07QGFZW8H.glb",
+      "ok": true,
+      "sha256": "af00e304146f34e80ac60217ca0f51915dfd9a2d590b088eac0b7d5881dcf3f1",
+      "bytes": 317256
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/S/B07QHL4LLS.glb",
+      "checked_url": "http://localhost:8765/models/B07QHL4LLS.glb",
+      "ok": true,
+      "sha256": "6abc8bcb04a2f6c784cbd5ea963f1cbf98d91fd1d63f1ac6a53cb7e836032599",
+      "bytes": 359288
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/1/B07QB8JV61.glb",
+      "checked_url": "http://localhost:8765/models/B07QB8JV61.glb",
+      "ok": true,
+      "sha256": "5ca86710282c354d116cf3ea29e730540987f8c9eab256042ee841e09e1ccb53",
+      "bytes": 409476
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/D/B07QGG524D.glb",
+      "checked_url": "http://localhost:8765/models/B07QGG524D.glb",
+      "ok": true,
+      "sha256": "8d3b90cdd427ec7bc6ad55cb9b48800559bf2b6ec58023cbec73bc254f709920",
+      "bytes": 434924
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/N/B07QB8JS2N.glb",
+      "checked_url": "http://localhost:8765/models/B07QB8JS2N.glb",
+      "ok": true,
+      "sha256": "a7757f05fec85483af418c304fd62638e5d36db3caae4aaecfc91e332e30665a",
+      "bytes": 312824
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/5/B07QD6YMV5.glb",
+      "checked_url": "http://localhost:8765/models/B07QD6YMV5.glb",
+      "ok": true,
+      "sha256": "7029d035dd31a063780b609fd55460eed8d00dc80faa8cf04ae6b4c4d064b4ff",
+      "bytes": 383760
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/K/B07QB8JVDK.glb",
+      "checked_url": "http://localhost:8765/models/B07QB8JVDK.glb",
+      "ok": true,
+      "sha256": "1657c4d0f53df74bcbca9455043bff09d34c5b84780e6d19560fe097f381b2ac",
+      "bytes": 335520
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/C/B07QGG5NFC.glb",
+      "checked_url": "http://localhost:8765/models/B07QGG5NFC.glb",
+      "ok": true,
+      "sha256": "f8f5a77e74b25c67188de5fc0e072eb3fb3d2cbe7e1a8c1e77dde228f6b41675",
+      "bytes": 314272
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/3/B07QGG5NC3.glb",
+      "checked_url": "http://localhost:8765/models/B07QGG5NC3.glb",
+      "ok": true,
+      "sha256": "eb402ce2cf3f8b15b4f3542722a29c61c29fdbf5c4df41a6f06a303b1e25b56e",
+      "bytes": 288416
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/R/B07B51T9SR.glb",
+      "checked_url": "http://localhost:8765/models/B07B51T9SR.glb",
+      "ok": true,
+      "sha256": "04f3df0032a44c904183de9a9e6cebf27578ac35fa4f87ae41a7050892288cb5",
+      "bytes": 744828
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/1/B07QGG4CK1.glb",
+      "checked_url": "http://localhost:8765/models/B07QGG4CK1.glb",
+      "ok": true,
+      "sha256": "ca2c8b441f41e0c00cf355692c4801d6f9ff58a7eb1cec4d82449d3e95b0b2c3",
+      "bytes": 401172
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/N/B07QB8KFTN.glb",
+      "checked_url": "http://localhost:8765/models/B07QB8KFTN.glb",
+      "ok": true,
+      "sha256": "0634259d8c5ff7447caa897f20c818b3d1d2cd8c2781bc2cb120a334f3116e2f",
+      "bytes": 465580
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/B/B07QHL2CWB.glb",
+      "checked_url": "http://localhost:8765/models/B07QHL2CWB.glb",
+      "ok": true,
+      "sha256": "082c35bed4361f16c726aa8dd62abc0400f8444e98d5a6516e57060064ab1377",
+      "bytes": 375340
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/W/B07QHL2CWW.glb",
+      "checked_url": "http://localhost:8765/models/B07QHL2CWW.glb",
+      "ok": true,
+      "sha256": "bfe27b8b4ad7ca975d8e9e71063d34c291c3b449c5627cbf1dd3ab0edb87ba6c",
+      "bytes": 395692
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/Q/B07B8PXQ1Q.glb",
+      "checked_url": "http://localhost:8765/models/B07B8PXQ1Q.glb",
+      "ok": true,
+      "sha256": "1c72441422e4f39e8e1ecdaeb8c39ad206e31c58328c4148b05a898f7a07482a",
+      "bytes": 64884
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/8/B07PMK78R8.glb",
+      "checked_url": "http://localhost:8765/models/B07PMK78R8.glb",
+      "ok": true,
+      "sha256": "fdfa4bd55ef729f32dc0cf188e9c6480b778fc6af58c4e279e128424d3e2132a",
+      "bytes": 505348
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/G/B07PNHSR4G.glb",
+      "checked_url": "http://localhost:8765/models/B07PNHSR4G.glb",
+      "ok": true,
+      "sha256": "6cad33447de30c8c1246a0b782b60c08fe9936627128b752dffa512f1e002ca4",
+      "bytes": 520504
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/2/B07PPNNCM2.glb",
+      "checked_url": "http://localhost:8765/models/B07PPNNCM2.glb",
+      "ok": true,
+      "sha256": "9362496c27fecd499a8dcfcd351bfee7da9ce0855aa8d4cd1c047ec7412d3b1c",
+      "bytes": 282068
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/M/B07QC8B1VM.glb",
+      "checked_url": "http://localhost:8765/models/B07QC8B1VM.glb",
+      "ok": true,
+      "sha256": "8f8c59824992b40f416e3eeed631d6981a571307a8c9b46cc121a7240a728022",
+      "bytes": 366112
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/1/B07QHKRS11.glb",
+      "checked_url": "http://localhost:8765/models/B07QHKRS11.glb",
+      "ok": true,
+      "sha256": "e14a4d93492f9f8a067db463677b3d629f1ae7e7adbbd8c796936aaa04f46e67",
+      "bytes": 346828
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/B/B07QFB1JJB.glb",
+      "checked_url": "http://localhost:8765/models/B07QFB1JJB.glb",
+      "ok": true,
+      "sha256": "564c5e0e67185059947a28d5a49159ec6443e527df8c989105efef89da27e1af",
+      "bytes": 356292
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/R/B075ZBW1RR.glb",
+      "checked_url": "http://localhost:8765/models/B075ZBW1RR.glb",
+      "ok": true,
+      "sha256": "763b727ee0399da9518992a10b986562b11db0a4db34a2867e77c492dda8f5a4",
+      "bytes": 336636
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/K/B07QTS7BWK.glb",
+      "checked_url": "http://localhost:8765/models/B07QTS7BWK.glb",
+      "ok": true,
+      "sha256": "c46d1e99317e482edbc6e07c65079cc72ae810e84796117a58b876cad6e1edb4",
+      "bytes": 634644
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/Q/B07QHKWJNQ.glb",
+      "checked_url": "http://localhost:8765/models/B07QHKWJNQ.glb",
+      "ok": true,
+      "sha256": "ce41f355f8fd8bed89c5dc2398b443035ba8e378061fd490f1136d4c49721dc2",
+      "bytes": 318716
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/J/B07QVRTT6J.glb",
+      "checked_url": "http://localhost:8765/models/B07QVRTT6J.glb",
+      "ok": true,
+      "sha256": "c5be87330ae4ac1c810cab3bce49de50a001de0658ae68682568e2088939174c",
+      "bytes": 391980
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/H/B07B7DL32H.glb",
+      "checked_url": "http://localhost:8765/models/B07B7DL32H.glb",
+      "ok": true,
+      "sha256": "372ce74459d2a35ea314ad5f5189eda1097d744ad6707aafdd4f0db066f2d54b",
+      "bytes": 1022144
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/3/B07QHL2CX3.glb",
+      "checked_url": "http://localhost:8765/models/B07QHL2CX3.glb",
+      "ok": true,
+      "sha256": "9cdd4543afbb2a3bd0395c15b2ecf3074c8f67fd1c248dff4004883f05b969bf",
+      "bytes": 289668
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/N/B07PNG69DN.glb",
+      "ok": false,
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/M/B07QGG5LLM.glb",
+      "checked_url": "http://localhost:8765/models/B07QGG5LLM.glb",
+      "ok": true,
+      "sha256": "7b5d72921e63fbc0163c21a89d46184eb26e6222061113cee2c4250c9562706b",
+      "bytes": 387848
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/L/B07QHKRRZL.glb",
+      "checked_url": "http://localhost:8765/models/B07QHKRRZL.glb",
+      "ok": true,
+      "sha256": "de5307e0628efe373e10ff3b3fff98cddd67a69c88d408fc5e848c0b627ec66b",
+      "bytes": 290144
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/R/B07B4WGJPR.glb",
+      "checked_url": "http://localhost:8765/models/B07B4WGJPR.glb",
+      "ok": true,
+      "sha256": "8645f0dd733280c57269fe15e9ae6cf16d26ec024b0b2634caa9e8c734862d4c",
+      "bytes": 532192
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/B/B07QHKYCVB.glb",
+      "checked_url": "http://localhost:8765/models/B07QHKYCVB.glb",
+      "ok": true,
+      "sha256": "4540240abea4e0b91e07b45ffc9d9833e8acd9f0a1a19d60b8c03a7472a67206",
+      "bytes": 315592
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/Q/B07QGFZWSQ.glb",
+      "checked_url": "http://localhost:8765/models/B07QGFZWSQ.glb",
+      "ok": true,
+      "sha256": "6f11ea9bd95f59d66d093938dcb770010fa8d875070bc676c899df5aaf59088e",
+      "bytes": 287572
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/3/B07QC8B6R3.glb",
+      "checked_url": "http://localhost:8765/models/B07QC8B6R3.glb",
+      "ok": true,
+      "sha256": "502171d58574376644e08d7c727523dc28ac7357f9bc6f4b84d0661819d1f547",
+      "bytes": 320100
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/4/B07QHKWJP4.glb",
+      "checked_url": "http://localhost:8765/models/B07QHKWJP4.glb",
+      "ok": true,
+      "sha256": "ea0543017325073b1fbe4f7288a6d5c55d3e5606bcd3275a0dfca36c21f4d2dd",
+      "bytes": 311436
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/L/B07TZ9BLZL.glb",
+      "checked_url": "http://localhost:8765/models/B07TZ9BLZL.glb",
+      "ok": true,
+      "sha256": "78775d5b617255f5031b46e605b50094c919ba646fb3643245fa0124771f3dba",
+      "bytes": 622320
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/G/B07TZ9BMJG.glb",
+      "checked_url": "http://localhost:8765/models/B07TZ9BMJG.glb",
+      "ok": true,
+      "sha256": "ad0794db71208e5a32263c65ee6ee15ea64971e32ca65019ab4d13a3d2e4ca8f",
+      "bytes": 743812
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/H/B07DBFG1BH.glb",
+      "checked_url": "http://localhost:8765/models/B07DBFG1BH.glb",
+      "ok": true,
+      "sha256": "c69fc77191cf47b103f1041db8186555c37310c7f3593b09080111ba7d7acd01",
+      "bytes": 1031976
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/Z/B07TZ9BGNZ.glb",
+      "checked_url": "http://localhost:8765/models/B07TZ9BGNZ.glb",
+      "ok": true,
+      "sha256": "44af17d1cb72e5882973be62fbcabb0f850ce4637dbd4b15d93ab183aadb4d3b",
+      "bytes": 465360
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/W/B07PSZHDMW.glb",
+      "checked_url": "http://localhost:8765/models/B07PSZHDMW.glb",
+      "ok": true,
+      "sha256": "b7f9fc9b588f8954b0a1381d93f8d8bbd708e86149934ec173748011b183d845",
+      "bytes": 488072
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/Y/B079YW5F4Y.glb",
+      "checked_url": "http://localhost:8765/models/B079YW5F4Y.glb",
+      "ok": true,
+      "sha256": "9c1dc781f2a67926143518ccec1c48d86082796211c1594ca431c1059d8355df",
+      "bytes": 114128
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/L/B07B8K1DBL.glb",
+      "checked_url": "http://localhost:8765/models/B07B8K1DBL.glb",
+      "ok": true,
+      "sha256": "53f4fd9494ee705405b9c9d3c50389409290efd99460cb09fc30e11d2a399c88",
+      "bytes": 590684
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/8/B07PQQRST8.glb",
+      "checked_url": "http://localhost:8765/models/B07PQQRST8.glb",
+      "ok": true,
+      "sha256": "342cde16ab7bc602ea2bc73080966c65e9ff897eddc537a6d9b8815eb2e91878",
+      "bytes": 378364
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/5/B07QTB45S5.glb",
+      "checked_url": "http://localhost:8765/models/B07QTB45S5.glb",
+      "ok": true,
+      "sha256": "187c743dabe4eaa6e9e5831af5ddf4329250ec60cab2cef26c1d5beb7c490ba2",
+      "bytes": 1044248
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/Z/B075Z6YS1Z.glb",
+      "checked_url": "http://localhost:8765/models/B075Z6YS1Z.glb",
+      "ok": true,
+      "sha256": "0da47d1b5e2c4deb9b1428afb3d0a71118547f588de1313ad0f9ed42a6a465c8",
+      "bytes": 229240
+    },
+    {
+      "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/N/B07PNG69DN.glb",
+      "checked_url": "http://localhost:8765/models/B07PNG69DN.glb",
+      "ok": true,
+      "sha256": "b903c6cbe6e3b0db773d6bb7fc2ebb9157b0636cc46cfb5efa2a5035b0eb43b9",
+      "bytes": 257848
+    }
+  ]
+}

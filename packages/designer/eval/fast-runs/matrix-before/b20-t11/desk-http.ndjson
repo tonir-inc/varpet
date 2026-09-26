@@ -1,0 +1,12 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "question", "conversationId": "495b036b88974620bcb9e4e630e57b34", "question": "The catalog search returned no dedicated desk. Would you like a preview using the Rivet walnut dining table as a worktable beside the living room’s north window (1.35 × 0.80 m, 93,000 AMD mock price, not a shop quote), or would you prefer to supply a desk product?", "options": ["Preview the worktable alternative", "I'll supply a desk product"]}

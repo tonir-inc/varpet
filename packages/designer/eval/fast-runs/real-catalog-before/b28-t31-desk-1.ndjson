@@ -1,0 +1,4 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "error", "message": "File \"/Users/ashotarushanyan/AshProjects/varpet-fast/harness/designer.py\", line 374\n    >>>>>>> 8b70636 (feat(designer): cache and fit catalog searches; gate fast defaults by evidence)\n            ^\nSyntaxError: invalid decimal literal", "conversationId": "615612a20cda4bd9ba2be1be40b3317a"}

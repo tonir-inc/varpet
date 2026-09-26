@@ -1,0 +1,114 @@
+
+> varpet@ test /Users/ashotarushanyan/AshProjects/varpet-fast
+> pnpm -r test
+
+Scope: 6 of 7 workspace projects
+apps/showcase test$ node --test tests/*.test.mjs
+packages/designer test$ vitest run && python3 -m unittest discover -s ../../harness -p 'designer*_test.py' && python3 -m unittest discover -s eval -p 'test_*.py'
+tools test$ node --test
+packages/engine test$ vitest run --passWithNoTests
+apps/showcase test: ✔ Avani is an explicit example with unquoted currency, not a Komitas or model result (1.392958ms)
+apps/showcase test: ✔ prices require explicit AMD and count only added pieces; factual room counts do not include inferred service rooms (5.124667ms)
+apps/showcase test: ✔ missing catalog does not pretend a furnished state is ready (0.608ms)
+apps/showcase test: ✔ partial deliveries choose the available view and never advertise an absent example (0.491292ms)
+apps/showcase test: ✔ recorded request outcomes distinguish applied proposals, questions and declines (0.467375ms)
+apps/showcase test: ✔ facts-only real collection retains an explicitly labelled interactive example (0.170209ms)
+apps/showcase test: ✔ missing Komitas inputs returns no invented flats (3.6825ms)
+apps/showcase test: ✔ loads real shell, ground truth and furnished result as separate states (8.704833ms)
+apps/showcase test: ✔ local plans allow only flat IDs and supported image extensions (1.943125ms)
+apps/showcase test: ✔ uses the latest completed BENCH run with its exact final catalog, ignoring in-progress runs (15.525667ms)
+apps/showcase test: ℹ tests 10
+apps/showcase test: ℹ suites 0
+apps/showcase test: ℹ pass 10
+apps/showcase test: ℹ fail 0
+apps/showcase test: ℹ cancelled 0
+apps/showcase test: ℹ skipped 0
+apps/showcase test: ℹ todo 0
+apps/showcase test: ℹ duration_ms 323.165166
+apps/showcase test: Done
+packages/designer test:  RUN  v5.0.2 /Users/ashotarushanyan/AshProjects/varpet-fast/packages/designer
+packages/engine test:  RUN  v5.0.2 /Users/ashotarushanyan/AshProjects/varpet-fast/packages/engine
+packages/engine test: No test files found, exiting with code 0
+packages/engine test: include: **/*.{test,spec}.?(c|m)[jt]s?(x)
+packages/engine test: exclude:  **/node_modules/**, **/.git/**
+packages/engine test: Done
+tools test: ✔ contract files and dirs are denied, ordinary source is allowed (419.52725ms)
+tools test: ✔ a NEW test file may be added; an existing one may not be deleted, weakened or skipped (961.028625ms)
+tools test: ✔ any package's test/ folder is protected from removal, not only the ones listed by name (840.601125ms)
+tools test: ✔ the Stop check reports by default and blocks only when asked (446.367ms)
+tools test: ✔ a test file that is not committed yet (the agent's own draft) may be fixed; committed ones stay locked (881.590292ms)
+tools test: ✔ if git cannot answer, an uncommitted-looking test is treated as committed (fail closed) (130.289417ms)
+tools test: ✔ changing an expect() in a committed vitest file is denied like an assert (249.423334ms)
+tools test: ℹ tests 7
+tools test: ℹ suites 0
+tools test: ℹ pass 7
+tools test: ℹ fail 0
+tools test: ℹ cancelled 0
+tools test: ℹ skipped 0
+tools test: ℹ todo 0
+tools test: ℹ duration_ms 4073.443291
+tools test: Done
+packages/designer test:  Test Files  78 passed (78)
+packages/designer test:       Tests  379 passed (379)
+packages/designer test:    Start at  16:36:06
+packages/designer test:    Duration  15.83s (tests 81%, import 11%, transform 7%, worker 1%)
+packages/designer test:     Isolate  78 workers spawned · ~265ms startup each (spawn + environment, per file)
+packages/designer test:              at least ~2.69s faster with isolate: false — reuses workers across files instead of one per file
+packages/designer test: .......................E.............................{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "8ec7b9463644469cad81d84e37fe42cb", "outcome": "proposal", "seconds": 0.003, "usage": null}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "756fcf7f856d42629897bd7a0d6957f9", "outcome": "error", "seconds": 0.032, "usage": null}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "42e2b0a37aaf41839ded57b67fcc402a", "outcome": "error", "seconds": 0.012, "usage": null}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "2f76cf1104d04d91be514fa74289918f", "outcome": "error", "seconds": 0.022, "usage": null}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "420233eab7b04f93b004c7141e4a443b", "outcome": "error", "seconds": 0.011, "usage": null}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "8d13454d79df4aa9a4cbe33475f423cf", "outcome": "error", "seconds": 0.002, "usage": null}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "e9673b333ef7413e86c97985468c257a", "outcome": "error", "seconds": 0.002, "usage": null}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "46365c202d604017a67a0ea719e6a452", "outcome": "error", "seconds": 0.011, "usage": null}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "3a2bb884544044d5990072782dcd207b", "outcome": "error", "seconds": 0.017, "usage": null}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "51d020ced9134dfa8799aa9afdf7b19a", "outcome": "error", "seconds": 0.003, "usage": null}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "261f14090f2c4eb4b2d976a709cc6d10", "outcome": "error", "seconds": 0.005, "usage": null}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "a04df1d2f70748b2a9233f27d271fca2", "outcome": "error", "seconds": 0.009, "usage": null}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "1ef4ec117a4a4e3fadb08e0026ba33e8", "outcome": "error", "seconds": 0.004, "usage": null}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "a22b75c0ec7345f1a57029e9da0ae90e", "outcome": "error", "seconds": 0.005, "usage": null}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "2716b7849440454aa0e0f62a8bd0ad3c", "outcome": "error", "seconds": 0.007, "usage": null}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "37648e895d544134a14e8d3b7fadfbab", "outcome": "proposal", "seconds": 0.002, "usage": null}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "d95385a76e6042ca82fcb3ec047af067", "outcome": "proposal", "seconds": 0.005, "usage": null}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "da86fbd758c0464f86c72ae23d9d92c2", "outcome": "error", "seconds": 0.003, "usage": null}
+packages/designer test: ........{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "f0cc0f0113334081a89dcc7e15b0c350", "outcome": "proposal", "seconds": 0.01, "usage": null}
+packages/designer test: ...{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "84ce973f29374f2b9c5edf27c281d5a6", "outcome": "error", "seconds": 0.1, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "5261d6a01e9b4ec4bbc30555da8f2a48", "outcome": "error", "seconds": 0.368, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "f6c76b622d314c069355998efc57c9fd", "outcome": "error", "seconds": 0.392, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "17a9d507b27e4f1aaa0992a3d5bb4fd9", "outcome": "error", "seconds": 0.063, "usage": null}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "723d7d51ba6a469fac24bf88496602d4", "outcome": "error", "seconds": 0.369, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "47469cdf204c480a9cdebfeb5b54fa76", "outcome": "aborted", "seconds": 0.249, "usage": null}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "70d2cb0c940c4b68a2ff66953ddbf343", "outcome": "decline", "seconds": 0.075, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: ...{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "213967d15aa040a4afbf8cb633ef8847", "outcome": "error", "seconds": 0.345, "usage": null}
+packages/designer test: ..{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "5341b9359512456ebef72076fc21528d", "outcome": "proposal", "seconds": 0.39, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: ..{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "e18b2f72e1aa4b7faf0e6f806bf74941", "outcome": "decline", "seconds": 0.069, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "20697c8807f7451684f76d714d77ae75", "outcome": "proposal", "seconds": 0.353, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "53d34f9199344f6fad6f68bf4430367a", "outcome": "question", "seconds": 0.065, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "ab4117d264d240c387b809c6172845ed", "outcome": "proposal", "seconds": 0.352, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "ab4117d264d240c387b809c6172845ed", "outcome": "decline", "seconds": 0.063, "usage": {"inputTokens": 0, "outputTokens": 0, "totalTokens": 0}}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "315d4d81493348088e86c6856033fe65", "outcome": "error", "seconds": 0.068, "usage": null}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "8c3bb622596d4f099be5ba3767d3830a", "outcome": "error", "seconds": 0.138, "usage": null}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "8cbaa8f4aa2a49d0acb5eac2d2d96acc", "outcome": "error", "seconds": 0.067, "usage": null}
+packages/designer test: ...............................
+packages/designer test: ======================================================================
+packages/designer test: ERROR: test_unmetered_request_keeps_aggregate_unknown_after_fast_turn (designer_fast_aggregate_test.AggregateUsage.test_unmetered_request_keeps_aggregate_unknown_after_fast_turn)
+packages/designer test: ----------------------------------------------------------------------
+packages/designer test: Traceback (most recent call last):
+packages/designer test:   File "/Users/ashotarushanyan/AshProjects/varpet-fast/harness/designer_fast_aggregate_test.py", line 27, in test_unmetered_request_keeps_aggregate_unknown_after_fast_turn
+packages/designer test:     first=service.propose(body,threading.Event(),lambda _:None)
+packages/designer test:   File "/Users/ashotarushanyan/AshProjects/varpet-fast/harness/designer_service.py", line 182, in propose
+packages/designer test:     self._process(self.bridge_command + ["to-designer", str(editor_scene), str(converted)] + extras, cancel)
+packages/designer test:     ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/designer test:   File "/Users/ashotarushanyan/AshProjects/varpet-fast/harness/designer_fast_aggregate_test.py", line 17, in _process
+packages/designer test:     Path(command[4]).write_text(json.dumps({'rooms':[],'walls':[],'openings':[],'items':[],'fixed':[]}))
+packages/designer test:          ~~~~~~~^^^
+packages/designer test: IndexError: list index out of range
+packages/designer test: ----------------------------------------------------------------------
+packages/designer test: Ran 115 tests in 18.350s
+packages/designer test: FAILED (errors=1)
+packages/designer test: Failed
+/Users/ashotarushanyan/AshProjects/varpet-fast/packages/designer:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @varpet/designer@0.0.0 test: `vitest run && python3 -m unittest discover -s ../../harness -p 'designer*_test.py' && python3 -m unittest discover -s eval -p 'test_*.py'`
+Exit status 1
+ ELIFECYCLE  Test failed. See above for more details.

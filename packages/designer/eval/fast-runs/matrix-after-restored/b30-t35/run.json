@@ -1,0 +1,5269 @@
+{
+  "id": "b30-t35",
+  "source": "1db1746abba7a0be36f5f5e539cbbd1109161b42",
+  "started_at": "2026-09-26T13:25:36.581Z",
+  "scene_input": "/Users/ashotarushanyan/AshProjects/varpet-fast/packages/designer/eval/komitas/b30-t35.scene.json",
+  "northDeg": 0,
+  "catalogCurrency": "AMD",
+  "profile": {
+    "effort": "low",
+    "placement": "without-place",
+    "context": "compact-base"
+  },
+  "roles": {
+    "living": "living",
+    "bedroom": "bedroom_1",
+    "kids": "bedroom_2"
+  },
+  "marketed_room_count": 3,
+  "kids_required": true,
+  "eligibility_basis": "ground truth room count",
+  "ground_truth": [
+    {
+      "id": "b20-t11",
+      "building_id": 20,
+      "type_id": 11,
+      "rooms": 1,
+      "area_m2": 66.3,
+      "bathrooms": 1,
+      "balconies": 1,
+      "northDeg": 0
+    },
+    {
+      "id": "b23-t64",
+      "building_id": 23,
+      "type_id": 64,
+      "rooms": 4,
+      "area_m2": 114.9,
+      "bathrooms": 2,
+      "balconies": 2,
+      "northDeg": 0
+    },
+    {
+      "id": "b25-t72",
+      "building_id": 25,
+      "type_id": 72,
+      "rooms": 4,
+      "area_m2": 118,
+      "bathrooms": 2,
+      "balconies": 2,
+      "northDeg": 0
+    },
+    {
+      "id": "b24-t22",
+      "building_id": 24,
+      "type_id": 22,
+      "rooms": 3,
+      "area_m2": 83.2,
+      "bathrooms": 2,
+      "balconies": 1,
+      "northDeg": 0
+    },
+    {
+      "id": "b31-t46",
+      "building_id": 31,
+      "type_id": 46,
+      "rooms": 1,
+      "area_m2": 89.4,
+      "bathrooms": 2,
+      "balconies": 1,
+      "northDeg": 0
+    },
+    {
+      "id": "b27-t79",
+      "building_id": 27,
+      "type_id": 79,
+      "rooms": 3,
+      "area_m2": 87,
+      "bathrooms": 2,
+      "balconies": 1,
+      "northDeg": 0
+    },
+    {
+      "id": "b21-t13",
+      "building_id": 21,
+      "type_id": 13,
+      "rooms": 2,
+      "area_m2": 41.3,
+      "bathrooms": 1,
+      "balconies": 1,
+      "northDeg": 0
+    },
+    {
+      "id": "b28-t31",
+      "building_id": 28,
+      "type_id": 31,
+      "rooms": 2,
+      "area_m2": 60.9,
+      "bathrooms": 1,
+      "balconies": 1,
+      "northDeg": 0
+    },
+    {
+      "id": "b30-t35",
+      "building_id": 30,
+      "type_id": 35,
+      "rooms": 3,
+      "area_m2": 74.1,
+      "bathrooms": 2,
+      "balconies": 1,
+      "northDeg": 0
+    },
+    {
+      "id": "b18-t1",
+      "building_id": 18,
+      "type_id": 1,
+      "rooms": 2,
+      "area_m2": 65.6,
+      "bathrooms": 1,
+      "balconies": 1,
+      "northDeg": 0
+    }
+  ],
+  "rows": [
+    {
+      "kind": "living",
+      "request": "Furnish the living room",
+      "actual_profile": {
+        "model": "gpt-6-astra",
+        "effort": "low",
+        "placement": "without-place",
+        "context": "compact-base"
+      },
+      "outcome": "decline",
+      "seconds": 10.638877666,
+      "tokens": 0,
+      "usage": {
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "cachedInputTokens": 0,
+        "totalTokens": 0
+      },
+      "conversationId": "55bfd37b8f8a4fc59f12a2f0ec82f7a8",
+      "description": "I could not find a checked layout within the search budget. This does not prove the request impossible. Try one piece at a time or a different room.",
+      "reply": {
+        "type": "decline",
+        "conversationId": "55bfd37b8f8a4fc59f12a2f0ec82f7a8",
+        "message": "I could not find a checked layout within the search budget. This does not prove the request impossible. Try one piece at a time or a different room."
+      },
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:decline",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "measurements_before": [
+        {
+          "key": "walkway:hall:door:bedroom_2_door:door:entrance",
+          "deficit": 0.050000000000000044,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bedroom_2_door",
+            "reachable": true,
+            "width_m": 0.7,
+            "status": "warn",
+            "narrowest": [
+              2.1145150624,
+              -2.363
+            ],
+            "path": [
+              [
+                1.4060888639187632,
+                -1.1300849451507968
+              ],
+              [
+                1.7145150624,
+                -1.463
+              ],
+              [
+                1.7145150624,
+                -1.938
+              ],
+              [
+                1.7895150624,
+                -1.938
+              ],
+              [
+                1.7895150624,
+                -1.988
+              ],
+              [
+                1.8145150624,
+                -1.988
+              ],
+              [
+                1.8145150624,
+                -2.013
+              ],
+              [
+                1.8895150624,
+                -2.013
+              ],
+              [
+                1.8895150624,
+                -2.038
+              ],
+              [
+                1.9145150624,
+                -2.038
+              ],
+              [
+                1.9145150624,
+                -2.088
+              ],
+              [
+                1.9645150624,
+                -2.088
+              ],
+              [
+                1.9645150624,
+                -2.113
+              ],
+              [
+                2.0645150624,
+                -2.113
+              ],
+              [
+                2.0645150624,
+                -2.288
+              ],
+              [
+                2.0895150624,
+                -2.288
+              ],
+              [
+                2.0895150624,
+                -2.363
+              ],
+              [
+                2.1145150624,
+                -2.363
+              ],
+              [
+                2.1145150624,
+                -5.238
+              ],
+              [
+                2.1395150624,
+                -5.238
+              ],
+              [
+                2.1395150624,
+                -5.338
+              ],
+              [
+                2.1895150624,
+                -5.338
+              ],
+              [
+                2.1895150624,
+                -5.363
+              ],
+              [
+                2.2145150624,
+                -5.363
+              ],
+              [
+                2.2145150624,
+                -5.388
+              ],
+              [
+                2.2395150624,
+                -5.388
+              ],
+              [
+                2.2395150624,
+                -5.638
+              ],
+              [
+                2.2645150624,
+                -5.638
+              ],
+              [
+                2.2645150624,
+                -5.813
+              ],
+              [
+                2.2578,
+                -6.263
+              ]
+            ]
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:entrance",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bedroom_1_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:entrance",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:entrance:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.2974922612518553,
+              -2.1971922612518555
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:bedroom_2_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:bedroom_1_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:bedroom_2_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_2_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.2974922612518553,
+              -2.1971922612518555
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:bedroom_1_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_1_door",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_1_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bathroom_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:bedroom_2:door:bedroom_2_door:door:bedroom_balcony_door",
+          "deficit": 0,
+          "measurement": {
+            "from": "door:bedroom_balcony_door",
+            "to": "door:bedroom_2_door",
+            "reachable": true,
+            "width_m": 0.7785,
+            "status": "adequate",
+            "narrowest": [
+              2.11935,
+              -11.176499
+            ],
+            "path": [
+              [
+                2.11935,
+                -11.1765
+              ],
+              [
+                2.1138,
+                -10.727
+              ],
+              [
+                2.1138,
+                -7.202
+              ],
+              [
+                2.1388,
+                -7.202
+              ],
+              [
+                2.1388,
+                -7.177
+              ],
+              [
+                2.1638,
+                -7.177
+              ],
+              [
+                2.1638,
+                -6.852
+              ],
+              [
+                2.2138,
+                -6.852
+              ],
+              [
+                2.2138,
+                -6.802
+              ],
+              [
+                2.2638,
+                -6.802
+              ],
+              [
+                2.2638,
+                -6.777
+              ],
+              [
+                2.2578,
+                -6.32355
+              ]
+            ]
+          }
+        }
+      ],
+      "measurements_after": [
+        {
+          "key": "walkway:hall:door:bedroom_2_door:door:entrance",
+          "deficit": 0.050000000000000044,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bedroom_2_door",
+            "reachable": true,
+            "width_m": 0.7,
+            "status": "warn",
+            "narrowest": [
+              2.1145150624,
+              -2.363
+            ],
+            "path": [
+              [
+                1.4060888639187632,
+                -1.1300849451507968
+              ],
+              [
+                1.7145150624,
+                -1.463
+              ],
+              [
+                1.7145150624,
+                -1.938
+              ],
+              [
+                1.7895150624,
+                -1.938
+              ],
+              [
+                1.7895150624,
+                -1.988
+              ],
+              [
+                1.8145150624,
+                -1.988
+              ],
+              [
+                1.8145150624,
+                -2.013
+              ],
+              [
+                1.8895150624,
+                -2.013
+              ],
+              [
+                1.8895150624,
+                -2.038
+              ],
+              [
+                1.9145150624,
+                -2.038
+              ],
+              [
+                1.9145150624,
+                -2.088
+              ],
+              [
+                1.9645150624,
+                -2.088
+              ],
+              [
+                1.9645150624,
+                -2.113
+              ],
+              [
+                2.0645150624,
+                -2.113
+              ],
+              [
+                2.0645150624,
+                -2.288
+              ],
+              [
+                2.0895150624,
+                -2.288
+              ],
+              [
+                2.0895150624,
+                -2.363
+              ],
+              [
+                2.1145150624,
+                -2.363
+              ],
+              [
+                2.1145150624,
+                -5.238
+              ],
+              [
+                2.1395150624,
+                -5.238
+              ],
+              [
+                2.1395150624,
+                -5.338
+              ],
+              [
+                2.1895150624,
+                -5.338
+              ],
+              [
+                2.1895150624,
+                -5.363
+              ],
+              [
+                2.2145150624,
+                -5.363
+              ],
+              [
+                2.2145150624,
+                -5.388
+              ],
+              [
+                2.2395150624,
+                -5.388
+              ],
+              [
+                2.2395150624,
+                -5.638
+              ],
+              [
+                2.2645150624,
+                -5.638
+              ],
+              [
+                2.2645150624,
+                -5.813
+              ],
+              [
+                2.2578,
+                -6.263
+              ]
+            ]
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:entrance",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bedroom_1_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:entrance",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:entrance:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.2974922612518553,
+              -2.1971922612518555
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:bedroom_2_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:bedroom_1_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:bedroom_2_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_2_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.2974922612518553,
+              -2.1971922612518555
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:bedroom_1_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_1_door",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_1_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bathroom_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:bedroom_2:door:bedroom_2_door:door:bedroom_balcony_door",
+          "deficit": 0,
+          "measurement": {
+            "from": "door:bedroom_balcony_door",
+            "to": "door:bedroom_2_door",
+            "reachable": true,
+            "width_m": 0.7785,
+            "status": "adequate",
+            "narrowest": [
+              2.11935,
+              -11.176499
+            ],
+            "path": [
+              [
+                2.11935,
+                -11.1765
+              ],
+              [
+                2.1138,
+                -10.727
+              ],
+              [
+                2.1138,
+                -7.202
+              ],
+              [
+                2.1388,
+                -7.202
+              ],
+              [
+                2.1388,
+                -7.177
+              ],
+              [
+                2.1638,
+                -7.177
+              ],
+              [
+                2.1638,
+                -6.852
+              ],
+              [
+                2.2138,
+                -6.852
+              ],
+              [
+                2.2138,
+                -6.802
+              ],
+              [
+                2.2638,
+                -6.802
+              ],
+              [
+                2.2638,
+                -6.777
+              ],
+              [
+                2.2578,
+                -6.32355
+              ]
+            ]
+          }
+        }
+      ],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": []
+    },
+    {
+      "kind": "bedroom",
+      "request": "Furnish the bedroom: a double bed, two nightstands and a wardrobe",
+      "actual_profile": {
+        "model": "gpt-6-astra",
+        "effort": "low",
+        "placement": "without-place",
+        "context": "compact-base"
+      },
+      "outcome": "question",
+      "seconds": 19.669170416999997,
+      "tokens": 47669,
+      "usage": {
+        "cacheWriteInputTokens": 0,
+        "cachedInputTokens": 34304,
+        "inputTokens": 47510,
+        "outputTokens": 159,
+        "reasoningOutputTokens": 11,
+        "totalTokens": 47669
+      },
+      "conversationId": "55bfd37b8f8a4fc59f12a2f0ec82f7a8",
+      "description": "Which bedroom should I furnish with the double bed, two nightstands and wardrobe?",
+      "reply": {
+        "type": "question",
+        "conversationId": "55bfd37b8f8a4fc59f12a2f0ec82f7a8",
+        "question": "Which bedroom should I furnish with the double bed, two nightstands and wardrobe?",
+        "options": [
+          "Bedroom 1 — on the right, with the side window",
+          "Bedroom 2 — on the left, with balcony access"
+        ]
+      },
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:question",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "measurements_before": [
+        {
+          "key": "walkway:hall:door:bedroom_2_door:door:entrance",
+          "deficit": 0.050000000000000044,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bedroom_2_door",
+            "reachable": true,
+            "width_m": 0.7,
+            "status": "warn",
+            "narrowest": [
+              2.1145150624,
+              -2.363
+            ],
+            "path": [
+              [
+                1.4060888639187632,
+                -1.1300849451507968
+              ],
+              [
+                1.7145150624,
+                -1.463
+              ],
+              [
+                1.7145150624,
+                -1.938
+              ],
+              [
+                1.7895150624,
+                -1.938
+              ],
+              [
+                1.7895150624,
+                -1.988
+              ],
+              [
+                1.8145150624,
+                -1.988
+              ],
+              [
+                1.8145150624,
+                -2.013
+              ],
+              [
+                1.8895150624,
+                -2.013
+              ],
+              [
+                1.8895150624,
+                -2.038
+              ],
+              [
+                1.9145150624,
+                -2.038
+              ],
+              [
+                1.9145150624,
+                -2.088
+              ],
+              [
+                1.9645150624,
+                -2.088
+              ],
+              [
+                1.9645150624,
+                -2.113
+              ],
+              [
+                2.0645150624,
+                -2.113
+              ],
+              [
+                2.0645150624,
+                -2.288
+              ],
+              [
+                2.0895150624,
+                -2.288
+              ],
+              [
+                2.0895150624,
+                -2.363
+              ],
+              [
+                2.1145150624,
+                -2.363
+              ],
+              [
+                2.1145150624,
+                -5.238
+              ],
+              [
+                2.1395150624,
+                -5.238
+              ],
+              [
+                2.1395150624,
+                -5.338
+              ],
+              [
+                2.1895150624,
+                -5.338
+              ],
+              [
+                2.1895150624,
+                -5.363
+              ],
+              [
+                2.2145150624,
+                -5.363
+              ],
+              [
+                2.2145150624,
+                -5.388
+              ],
+              [
+                2.2395150624,
+                -5.388
+              ],
+              [
+                2.2395150624,
+                -5.638
+              ],
+              [
+                2.2645150624,
+                -5.638
+              ],
+              [
+                2.2645150624,
+                -5.813
+              ],
+              [
+                2.2578,
+                -6.263
+              ]
+            ]
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:entrance",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bedroom_1_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:entrance",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:entrance:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.2974922612518553,
+              -2.1971922612518555
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:bedroom_2_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:bedroom_1_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:bedroom_2_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_2_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.2974922612518553,
+              -2.1971922612518555
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:bedroom_1_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_1_door",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_1_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bathroom_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:bedroom_2:door:bedroom_2_door:door:bedroom_balcony_door",
+          "deficit": 0,
+          "measurement": {
+            "from": "door:bedroom_balcony_door",
+            "to": "door:bedroom_2_door",
+            "reachable": true,
+            "width_m": 0.7785,
+            "status": "adequate",
+            "narrowest": [
+              2.11935,
+              -11.176499
+            ],
+            "path": [
+              [
+                2.11935,
+                -11.1765
+              ],
+              [
+                2.1138,
+                -10.727
+              ],
+              [
+                2.1138,
+                -7.202
+              ],
+              [
+                2.1388,
+                -7.202
+              ],
+              [
+                2.1388,
+                -7.177
+              ],
+              [
+                2.1638,
+                -7.177
+              ],
+              [
+                2.1638,
+                -6.852
+              ],
+              [
+                2.2138,
+                -6.852
+              ],
+              [
+                2.2138,
+                -6.802
+              ],
+              [
+                2.2638,
+                -6.802
+              ],
+              [
+                2.2638,
+                -6.777
+              ],
+              [
+                2.2578,
+                -6.32355
+              ]
+            ]
+          }
+        }
+      ],
+      "measurements_after": [
+        {
+          "key": "walkway:hall:door:bedroom_2_door:door:entrance",
+          "deficit": 0.050000000000000044,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bedroom_2_door",
+            "reachable": true,
+            "width_m": 0.7,
+            "status": "warn",
+            "narrowest": [
+              2.1145150624,
+              -2.363
+            ],
+            "path": [
+              [
+                1.4060888639187632,
+                -1.1300849451507968
+              ],
+              [
+                1.7145150624,
+                -1.463
+              ],
+              [
+                1.7145150624,
+                -1.938
+              ],
+              [
+                1.7895150624,
+                -1.938
+              ],
+              [
+                1.7895150624,
+                -1.988
+              ],
+              [
+                1.8145150624,
+                -1.988
+              ],
+              [
+                1.8145150624,
+                -2.013
+              ],
+              [
+                1.8895150624,
+                -2.013
+              ],
+              [
+                1.8895150624,
+                -2.038
+              ],
+              [
+                1.9145150624,
+                -2.038
+              ],
+              [
+                1.9145150624,
+                -2.088
+              ],
+              [
+                1.9645150624,
+                -2.088
+              ],
+              [
+                1.9645150624,
+                -2.113
+              ],
+              [
+                2.0645150624,
+                -2.113
+              ],
+              [
+                2.0645150624,
+                -2.288
+              ],
+              [
+                2.0895150624,
+                -2.288
+              ],
+              [
+                2.0895150624,
+                -2.363
+              ],
+              [
+                2.1145150624,
+                -2.363
+              ],
+              [
+                2.1145150624,
+                -5.238
+              ],
+              [
+                2.1395150624,
+                -5.238
+              ],
+              [
+                2.1395150624,
+                -5.338
+              ],
+              [
+                2.1895150624,
+                -5.338
+              ],
+              [
+                2.1895150624,
+                -5.363
+              ],
+              [
+                2.2145150624,
+                -5.363
+              ],
+              [
+                2.2145150624,
+                -5.388
+              ],
+              [
+                2.2395150624,
+                -5.388
+              ],
+              [
+                2.2395150624,
+                -5.638
+              ],
+              [
+                2.2645150624,
+                -5.638
+              ],
+              [
+                2.2645150624,
+                -5.813
+              ],
+              [
+                2.2578,
+                -6.263
+              ]
+            ]
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:entrance",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bedroom_1_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:entrance",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:entrance:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.2974922612518553,
+              -2.1971922612518555
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:bedroom_2_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:bedroom_1_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:bedroom_2_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_2_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.2974922612518553,
+              -2.1971922612518555
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:bedroom_1_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_1_door",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_1_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bathroom_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:bedroom_2:door:bedroom_2_door:door:bedroom_balcony_door",
+          "deficit": 0,
+          "measurement": {
+            "from": "door:bedroom_balcony_door",
+            "to": "door:bedroom_2_door",
+            "reachable": true,
+            "width_m": 0.7785,
+            "status": "adequate",
+            "narrowest": [
+              2.11935,
+              -11.176499
+            ],
+            "path": [
+              [
+                2.11935,
+                -11.1765
+              ],
+              [
+                2.1138,
+                -10.727
+              ],
+              [
+                2.1138,
+                -7.202
+              ],
+              [
+                2.1388,
+                -7.202
+              ],
+              [
+                2.1388,
+                -7.177
+              ],
+              [
+                2.1638,
+                -7.177
+              ],
+              [
+                2.1638,
+                -6.852
+              ],
+              [
+                2.2138,
+                -6.852
+              ],
+              [
+                2.2138,
+                -6.802
+              ],
+              [
+                2.2638,
+                -6.802
+              ],
+              [
+                2.2638,
+                -6.777
+              ],
+              [
+                2.2578,
+                -6.32355
+              ]
+            ]
+          }
+        }
+      ],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": []
+    },
+    {
+      "kind": "sofa",
+      "request": "Move the sofa so it faces the window",
+      "actual_profile": {
+        "model": "gpt-6-astra",
+        "effort": "low",
+        "placement": "without-place",
+        "context": "compact-base"
+      },
+      "outcome": "question",
+      "seconds": 24.624915083,
+      "tokens": 49283,
+      "usage": {
+        "cacheWriteInputTokens": 0,
+        "cachedInputTokens": 40320,
+        "inputTokens": 49096,
+        "outputTokens": 187,
+        "reasoningOutputTokens": 0,
+        "totalTokens": 49283
+      },
+      "conversationId": "55bfd37b8f8a4fc59f12a2f0ec82f7a8",
+      "description": "The supplied scene contains no sofa or other furniture. Could you update the scene to include your sofa and indicate which window it should face?",
+      "reply": {
+        "type": "question",
+        "conversationId": "55bfd37b8f8a4fc59f12a2f0ec82f7a8",
+        "question": "The supplied scene contains no sofa or other furniture. Could you update the scene to include your sofa and indicate which window it should face?",
+        "options": []
+      },
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:question",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "measurements_before": [
+        {
+          "key": "walkway:hall:door:bedroom_2_door:door:entrance",
+          "deficit": 0.050000000000000044,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bedroom_2_door",
+            "reachable": true,
+            "width_m": 0.7,
+            "status": "warn",
+            "narrowest": [
+              2.1145150624,
+              -2.363
+            ],
+            "path": [
+              [
+                1.4060888639187632,
+                -1.1300849451507968
+              ],
+              [
+                1.7145150624,
+                -1.463
+              ],
+              [
+                1.7145150624,
+                -1.938
+              ],
+              [
+                1.7895150624,
+                -1.938
+              ],
+              [
+                1.7895150624,
+                -1.988
+              ],
+              [
+                1.8145150624,
+                -1.988
+              ],
+              [
+                1.8145150624,
+                -2.013
+              ],
+              [
+                1.8895150624,
+                -2.013
+              ],
+              [
+                1.8895150624,
+                -2.038
+              ],
+              [
+                1.9145150624,
+                -2.038
+              ],
+              [
+                1.9145150624,
+                -2.088
+              ],
+              [
+                1.9645150624,
+                -2.088
+              ],
+              [
+                1.9645150624,
+                -2.113
+              ],
+              [
+                2.0645150624,
+                -2.113
+              ],
+              [
+                2.0645150624,
+                -2.288
+              ],
+              [
+                2.0895150624,
+                -2.288
+              ],
+              [
+                2.0895150624,
+                -2.363
+              ],
+              [
+                2.1145150624,
+                -2.363
+              ],
+              [
+                2.1145150624,
+                -5.238
+              ],
+              [
+                2.1395150624,
+                -5.238
+              ],
+              [
+                2.1395150624,
+                -5.338
+              ],
+              [
+                2.1895150624,
+                -5.338
+              ],
+              [
+                2.1895150624,
+                -5.363
+              ],
+              [
+                2.2145150624,
+                -5.363
+              ],
+              [
+                2.2145150624,
+                -5.388
+              ],
+              [
+                2.2395150624,
+                -5.388
+              ],
+              [
+                2.2395150624,
+                -5.638
+              ],
+              [
+                2.2645150624,
+                -5.638
+              ],
+              [
+                2.2645150624,
+                -5.813
+              ],
+              [
+                2.2578,
+                -6.263
+              ]
+            ]
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:entrance",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bedroom_1_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:entrance",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:entrance:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.2974922612518553,
+              -2.1971922612518555
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:bedroom_2_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:bedroom_1_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:bedroom_2_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_2_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.2974922612518553,
+              -2.1971922612518555
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:bedroom_1_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_1_door",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_1_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bathroom_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:bedroom_2:door:bedroom_2_door:door:bedroom_balcony_door",
+          "deficit": 0,
+          "measurement": {
+            "from": "door:bedroom_balcony_door",
+            "to": "door:bedroom_2_door",
+            "reachable": true,
+            "width_m": 0.7785,
+            "status": "adequate",
+            "narrowest": [
+              2.11935,
+              -11.176499
+            ],
+            "path": [
+              [
+                2.11935,
+                -11.1765
+              ],
+              [
+                2.1138,
+                -10.727
+              ],
+              [
+                2.1138,
+                -7.202
+              ],
+              [
+                2.1388,
+                -7.202
+              ],
+              [
+                2.1388,
+                -7.177
+              ],
+              [
+                2.1638,
+                -7.177
+              ],
+              [
+                2.1638,
+                -6.852
+              ],
+              [
+                2.2138,
+                -6.852
+              ],
+              [
+                2.2138,
+                -6.802
+              ],
+              [
+                2.2638,
+                -6.802
+              ],
+              [
+                2.2638,
+                -6.777
+              ],
+              [
+                2.2578,
+                -6.32355
+              ]
+            ]
+          }
+        }
+      ],
+      "measurements_after": [
+        {
+          "key": "walkway:hall:door:bedroom_2_door:door:entrance",
+          "deficit": 0.050000000000000044,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bedroom_2_door",
+            "reachable": true,
+            "width_m": 0.7,
+            "status": "warn",
+            "narrowest": [
+              2.1145150624,
+              -2.363
+            ],
+            "path": [
+              [
+                1.4060888639187632,
+                -1.1300849451507968
+              ],
+              [
+                1.7145150624,
+                -1.463
+              ],
+              [
+                1.7145150624,
+                -1.938
+              ],
+              [
+                1.7895150624,
+                -1.938
+              ],
+              [
+                1.7895150624,
+                -1.988
+              ],
+              [
+                1.8145150624,
+                -1.988
+              ],
+              [
+                1.8145150624,
+                -2.013
+              ],
+              [
+                1.8895150624,
+                -2.013
+              ],
+              [
+                1.8895150624,
+                -2.038
+              ],
+              [
+                1.9145150624,
+                -2.038
+              ],
+              [
+                1.9145150624,
+                -2.088
+              ],
+              [
+                1.9645150624,
+                -2.088
+              ],
+              [
+                1.9645150624,
+                -2.113
+              ],
+              [
+                2.0645150624,
+                -2.113
+              ],
+              [
+                2.0645150624,
+                -2.288
+              ],
+              [
+                2.0895150624,
+                -2.288
+              ],
+              [
+                2.0895150624,
+                -2.363
+              ],
+              [
+                2.1145150624,
+                -2.363
+              ],
+              [
+                2.1145150624,
+                -5.238
+              ],
+              [
+                2.1395150624,
+                -5.238
+              ],
+              [
+                2.1395150624,
+                -5.338
+              ],
+              [
+                2.1895150624,
+                -5.338
+              ],
+              [
+                2.1895150624,
+                -5.363
+              ],
+              [
+                2.2145150624,
+                -5.363
+              ],
+              [
+                2.2145150624,
+                -5.388
+              ],
+              [
+                2.2395150624,
+                -5.388
+              ],
+              [
+                2.2395150624,
+                -5.638
+              ],
+              [
+                2.2645150624,
+                -5.638
+              ],
+              [
+                2.2645150624,
+                -5.813
+              ],
+              [
+                2.2578,
+                -6.263
+              ]
+            ]
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:entrance",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bedroom_1_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:entrance",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:entrance:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.2974922612518553,
+              -2.1971922612518555
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:bedroom_2_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:bedroom_1_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:bedroom_2_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_2_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.2974922612518553,
+              -2.1971922612518555
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:bedroom_1_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_1_door",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_1_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bathroom_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:bedroom_2:door:bedroom_2_door:door:bedroom_balcony_door",
+          "deficit": 0,
+          "measurement": {
+            "from": "door:bedroom_balcony_door",
+            "to": "door:bedroom_2_door",
+            "reachable": true,
+            "width_m": 0.7785,
+            "status": "adequate",
+            "narrowest": [
+              2.11935,
+              -11.176499
+            ],
+            "path": [
+              [
+                2.11935,
+                -11.1765
+              ],
+              [
+                2.1138,
+                -10.727
+              ],
+              [
+                2.1138,
+                -7.202
+              ],
+              [
+                2.1388,
+                -7.202
+              ],
+              [
+                2.1388,
+                -7.177
+              ],
+              [
+                2.1638,
+                -7.177
+              ],
+              [
+                2.1638,
+                -6.852
+              ],
+              [
+                2.2138,
+                -6.852
+              ],
+              [
+                2.2138,
+                -6.802
+              ],
+              [
+                2.2638,
+                -6.802
+              ],
+              [
+                2.2638,
+                -6.777
+              ],
+              [
+                2.2578,
+                -6.32355
+              ]
+            ]
+          }
+        }
+      ],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": []
+    },
+    {
+      "kind": "desk",
+      "request": "Add a desk by the window for working from home",
+      "actual_profile": {
+        "model": "gpt-6-astra",
+        "effort": "low",
+        "placement": "without-place",
+        "context": "compact-base"
+      },
+      "outcome": "decline",
+      "seconds": 2.786254332999997,
+      "tokens": 0,
+      "usage": {
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "cachedInputTokens": 0,
+        "totalTokens": 0
+      },
+      "conversationId": "55bfd37b8f8a4fc59f12a2f0ec82f7a8",
+      "description": "No desk with a usable catalog identity is available. Load a catalog containing a desk, or choose another available furniture kind.",
+      "reply": {
+        "type": "decline",
+        "conversationId": "55bfd37b8f8a4fc59f12a2f0ec82f7a8",
+        "message": "No desk with a usable catalog identity is available. Load a catalog containing a desk, or choose another available furniture kind."
+      },
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:decline",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "measurements_before": [
+        {
+          "key": "walkway:hall:door:bedroom_2_door:door:entrance",
+          "deficit": 0.050000000000000044,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bedroom_2_door",
+            "reachable": true,
+            "width_m": 0.7,
+            "status": "warn",
+            "narrowest": [
+              2.1145150624,
+              -2.363
+            ],
+            "path": [
+              [
+                1.4060888639187632,
+                -1.1300849451507968
+              ],
+              [
+                1.7145150624,
+                -1.463
+              ],
+              [
+                1.7145150624,
+                -1.938
+              ],
+              [
+                1.7895150624,
+                -1.938
+              ],
+              [
+                1.7895150624,
+                -1.988
+              ],
+              [
+                1.8145150624,
+                -1.988
+              ],
+              [
+                1.8145150624,
+                -2.013
+              ],
+              [
+                1.8895150624,
+                -2.013
+              ],
+              [
+                1.8895150624,
+                -2.038
+              ],
+              [
+                1.9145150624,
+                -2.038
+              ],
+              [
+                1.9145150624,
+                -2.088
+              ],
+              [
+                1.9645150624,
+                -2.088
+              ],
+              [
+                1.9645150624,
+                -2.113
+              ],
+              [
+                2.0645150624,
+                -2.113
+              ],
+              [
+                2.0645150624,
+                -2.288
+              ],
+              [
+                2.0895150624,
+                -2.288
+              ],
+              [
+                2.0895150624,
+                -2.363
+              ],
+              [
+                2.1145150624,
+                -2.363
+              ],
+              [
+                2.1145150624,
+                -5.238
+              ],
+              [
+                2.1395150624,
+                -5.238
+              ],
+              [
+                2.1395150624,
+                -5.338
+              ],
+              [
+                2.1895150624,
+                -5.338
+              ],
+              [
+                2.1895150624,
+                -5.363
+              ],
+              [
+                2.2145150624,
+                -5.363
+              ],
+              [
+                2.2145150624,
+                -5.388
+              ],
+              [
+                2.2395150624,
+                -5.388
+              ],
+              [
+                2.2395150624,
+                -5.638
+              ],
+              [
+                2.2645150624,
+                -5.638
+              ],
+              [
+                2.2645150624,
+                -5.813
+              ],
+              [
+                2.2578,
+                -6.263
+              ]
+            ]
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:entrance",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bedroom_1_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:entrance",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:entrance:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.2974922612518553,
+              -2.1971922612518555
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:bedroom_2_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:bedroom_1_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:bedroom_2_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_2_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.2974922612518553,
+              -2.1971922612518555
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:bedroom_1_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_1_door",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_1_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bathroom_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:bedroom_2:door:bedroom_2_door:door:bedroom_balcony_door",
+          "deficit": 0,
+          "measurement": {
+            "from": "door:bedroom_balcony_door",
+            "to": "door:bedroom_2_door",
+            "reachable": true,
+            "width_m": 0.7785,
+            "status": "adequate",
+            "narrowest": [
+              2.11935,
+              -11.176499
+            ],
+            "path": [
+              [
+                2.11935,
+                -11.1765
+              ],
+              [
+                2.1138,
+                -10.727
+              ],
+              [
+                2.1138,
+                -7.202
+              ],
+              [
+                2.1388,
+                -7.202
+              ],
+              [
+                2.1388,
+                -7.177
+              ],
+              [
+                2.1638,
+                -7.177
+              ],
+              [
+                2.1638,
+                -6.852
+              ],
+              [
+                2.2138,
+                -6.852
+              ],
+              [
+                2.2138,
+                -6.802
+              ],
+              [
+                2.2638,
+                -6.802
+              ],
+              [
+                2.2638,
+                -6.777
+              ],
+              [
+                2.2578,
+                -6.32355
+              ]
+            ]
+          }
+        }
+      ],
+      "measurements_after": [
+        {
+          "key": "walkway:hall:door:bedroom_2_door:door:entrance",
+          "deficit": 0.050000000000000044,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bedroom_2_door",
+            "reachable": true,
+            "width_m": 0.7,
+            "status": "warn",
+            "narrowest": [
+              2.1145150624,
+              -2.363
+            ],
+            "path": [
+              [
+                1.4060888639187632,
+                -1.1300849451507968
+              ],
+              [
+                1.7145150624,
+                -1.463
+              ],
+              [
+                1.7145150624,
+                -1.938
+              ],
+              [
+                1.7895150624,
+                -1.938
+              ],
+              [
+                1.7895150624,
+                -1.988
+              ],
+              [
+                1.8145150624,
+                -1.988
+              ],
+              [
+                1.8145150624,
+                -2.013
+              ],
+              [
+                1.8895150624,
+                -2.013
+              ],
+              [
+                1.8895150624,
+                -2.038
+              ],
+              [
+                1.9145150624,
+                -2.038
+              ],
+              [
+                1.9145150624,
+                -2.088
+              ],
+              [
+                1.9645150624,
+                -2.088
+              ],
+              [
+                1.9645150624,
+                -2.113
+              ],
+              [
+                2.0645150624,
+                -2.113
+              ],
+              [
+                2.0645150624,
+                -2.288
+              ],
+              [
+                2.0895150624,
+                -2.288
+              ],
+              [
+                2.0895150624,
+                -2.363
+              ],
+              [
+                2.1145150624,
+                -2.363
+              ],
+              [
+                2.1145150624,
+                -5.238
+              ],
+              [
+                2.1395150624,
+                -5.238
+              ],
+              [
+                2.1395150624,
+                -5.338
+              ],
+              [
+                2.1895150624,
+                -5.338
+              ],
+              [
+                2.1895150624,
+                -5.363
+              ],
+              [
+                2.2145150624,
+                -5.363
+              ],
+              [
+                2.2145150624,
+                -5.388
+              ],
+              [
+                2.2395150624,
+                -5.388
+              ],
+              [
+                2.2395150624,
+                -5.638
+              ],
+              [
+                2.2645150624,
+                -5.638
+              ],
+              [
+                2.2645150624,
+                -5.813
+              ],
+              [
+                2.2578,
+                -6.263
+              ]
+            ]
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:entrance",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bedroom_1_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:entrance",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:entrance:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.2974922612518553,
+              -2.1971922612518555
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:bedroom_2_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:bedroom_1_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:bedroom_2_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_2_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.2974922612518553,
+              -2.1971922612518555
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:bedroom_1_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_1_door",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_1_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bathroom_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:bedroom_2:door:bedroom_2_door:door:bedroom_balcony_door",
+          "deficit": 0,
+          "measurement": {
+            "from": "door:bedroom_balcony_door",
+            "to": "door:bedroom_2_door",
+            "reachable": true,
+            "width_m": 0.7785,
+            "status": "adequate",
+            "narrowest": [
+              2.11935,
+              -11.176499
+            ],
+            "path": [
+              [
+                2.11935,
+                -11.1765
+              ],
+              [
+                2.1138,
+                -10.727
+              ],
+              [
+                2.1138,
+                -7.202
+              ],
+              [
+                2.1388,
+                -7.202
+              ],
+              [
+                2.1388,
+                -7.177
+              ],
+              [
+                2.1638,
+                -7.177
+              ],
+              [
+                2.1638,
+                -6.852
+              ],
+              [
+                2.2138,
+                -6.852
+              ],
+              [
+                2.2138,
+                -6.802
+              ],
+              [
+                2.2638,
+                -6.802
+              ],
+              [
+                2.2638,
+                -6.777
+              ],
+              [
+                2.2578,
+                -6.32355
+              ]
+            ]
+          }
+        }
+      ],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": []
+    },
+    {
+      "kind": "paint",
+      "request": "Paint the bedroom walls warm white",
+      "actual_profile": {
+        "model": "gpt-6-astra",
+        "effort": "low",
+        "placement": "without-place",
+        "context": "compact-base"
+      },
+      "outcome": "question",
+      "seconds": 20.631059332999996,
+      "tokens": 65906,
+      "usage": {
+        "cacheWriteInputTokens": 0,
+        "cachedInputTokens": 57216,
+        "inputTokens": 65768,
+        "outputTokens": 138,
+        "reasoningOutputTokens": 0,
+        "totalTokens": 65906
+      },
+      "conversationId": "55bfd37b8f8a4fc59f12a2f0ec82f7a8",
+      "description": "Which bedroom should receive the warm-white paint preview: Bedroom 1 (right, side window) or Bedroom 2 (left, balcony access)? The paint tool also recolours both faces and all segments of each shared wall.",
+      "reply": {
+        "type": "question",
+        "conversationId": "55bfd37b8f8a4fc59f12a2f0ec82f7a8",
+        "question": "Which bedroom should receive the warm-white paint preview: Bedroom 1 (right, side window) or Bedroom 2 (left, balcony access)? The paint tool also recolours both faces and all segments of each shared wall.",
+        "options": [
+          "Bedroom 1 — right, side window",
+          "Bedroom 2 — left, balcony access"
+        ]
+      },
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:question",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "measurements_before": [
+        {
+          "key": "walkway:hall:door:bedroom_2_door:door:entrance",
+          "deficit": 0.050000000000000044,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bedroom_2_door",
+            "reachable": true,
+            "width_m": 0.7,
+            "status": "warn",
+            "narrowest": [
+              2.1145150624,
+              -2.363
+            ],
+            "path": [
+              [
+                1.4060888639187632,
+                -1.1300849451507968
+              ],
+              [
+                1.7145150624,
+                -1.463
+              ],
+              [
+                1.7145150624,
+                -1.938
+              ],
+              [
+                1.7895150624,
+                -1.938
+              ],
+              [
+                1.7895150624,
+                -1.988
+              ],
+              [
+                1.8145150624,
+                -1.988
+              ],
+              [
+                1.8145150624,
+                -2.013
+              ],
+              [
+                1.8895150624,
+                -2.013
+              ],
+              [
+                1.8895150624,
+                -2.038
+              ],
+              [
+                1.9145150624,
+                -2.038
+              ],
+              [
+                1.9145150624,
+                -2.088
+              ],
+              [
+                1.9645150624,
+                -2.088
+              ],
+              [
+                1.9645150624,
+                -2.113
+              ],
+              [
+                2.0645150624,
+                -2.113
+              ],
+              [
+                2.0645150624,
+                -2.288
+              ],
+              [
+                2.0895150624,
+                -2.288
+              ],
+              [
+                2.0895150624,
+                -2.363
+              ],
+              [
+                2.1145150624,
+                -2.363
+              ],
+              [
+                2.1145150624,
+                -5.238
+              ],
+              [
+                2.1395150624,
+                -5.238
+              ],
+              [
+                2.1395150624,
+                -5.338
+              ],
+              [
+                2.1895150624,
+                -5.338
+              ],
+              [
+                2.1895150624,
+                -5.363
+              ],
+              [
+                2.2145150624,
+                -5.363
+              ],
+              [
+                2.2145150624,
+                -5.388
+              ],
+              [
+                2.2395150624,
+                -5.388
+              ],
+              [
+                2.2395150624,
+                -5.638
+              ],
+              [
+                2.2645150624,
+                -5.638
+              ],
+              [
+                2.2645150624,
+                -5.813
+              ],
+              [
+                2.2578,
+                -6.263
+              ]
+            ]
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:entrance",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bedroom_1_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:entrance",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:entrance:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.2974922612518553,
+              -2.1971922612518555
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:bedroom_2_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:bedroom_1_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:bedroom_2_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_2_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.2974922612518553,
+              -2.1971922612518555
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:bedroom_1_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_1_door",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_1_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bathroom_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:bedroom_2:door:bedroom_2_door:door:bedroom_balcony_door",
+          "deficit": 0,
+          "measurement": {
+            "from": "door:bedroom_balcony_door",
+            "to": "door:bedroom_2_door",
+            "reachable": true,
+            "width_m": 0.7785,
+            "status": "adequate",
+            "narrowest": [
+              2.11935,
+              -11.176499
+            ],
+            "path": [
+              [
+                2.11935,
+                -11.1765
+              ],
+              [
+                2.1138,
+                -10.727
+              ],
+              [
+                2.1138,
+                -7.202
+              ],
+              [
+                2.1388,
+                -7.202
+              ],
+              [
+                2.1388,
+                -7.177
+              ],
+              [
+                2.1638,
+                -7.177
+              ],
+              [
+                2.1638,
+                -6.852
+              ],
+              [
+                2.2138,
+                -6.852
+              ],
+              [
+                2.2138,
+                -6.802
+              ],
+              [
+                2.2638,
+                -6.802
+              ],
+              [
+                2.2638,
+                -6.777
+              ],
+              [
+                2.2578,
+                -6.32355
+              ]
+            ]
+          }
+        }
+      ],
+      "measurements_after": [
+        {
+          "key": "walkway:hall:door:bedroom_2_door:door:entrance",
+          "deficit": 0.050000000000000044,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bedroom_2_door",
+            "reachable": true,
+            "width_m": 0.7,
+            "status": "warn",
+            "narrowest": [
+              2.1145150624,
+              -2.363
+            ],
+            "path": [
+              [
+                1.4060888639187632,
+                -1.1300849451507968
+              ],
+              [
+                1.7145150624,
+                -1.463
+              ],
+              [
+                1.7145150624,
+                -1.938
+              ],
+              [
+                1.7895150624,
+                -1.938
+              ],
+              [
+                1.7895150624,
+                -1.988
+              ],
+              [
+                1.8145150624,
+                -1.988
+              ],
+              [
+                1.8145150624,
+                -2.013
+              ],
+              [
+                1.8895150624,
+                -2.013
+              ],
+              [
+                1.8895150624,
+                -2.038
+              ],
+              [
+                1.9145150624,
+                -2.038
+              ],
+              [
+                1.9145150624,
+                -2.088
+              ],
+              [
+                1.9645150624,
+                -2.088
+              ],
+              [
+                1.9645150624,
+                -2.113
+              ],
+              [
+                2.0645150624,
+                -2.113
+              ],
+              [
+                2.0645150624,
+                -2.288
+              ],
+              [
+                2.0895150624,
+                -2.288
+              ],
+              [
+                2.0895150624,
+                -2.363
+              ],
+              [
+                2.1145150624,
+                -2.363
+              ],
+              [
+                2.1145150624,
+                -5.238
+              ],
+              [
+                2.1395150624,
+                -5.238
+              ],
+              [
+                2.1395150624,
+                -5.338
+              ],
+              [
+                2.1895150624,
+                -5.338
+              ],
+              [
+                2.1895150624,
+                -5.363
+              ],
+              [
+                2.2145150624,
+                -5.363
+              ],
+              [
+                2.2145150624,
+                -5.388
+              ],
+              [
+                2.2395150624,
+                -5.388
+              ],
+              [
+                2.2395150624,
+                -5.638
+              ],
+              [
+                2.2645150624,
+                -5.638
+              ],
+              [
+                2.2645150624,
+                -5.813
+              ],
+              [
+                2.2578,
+                -6.263
+              ]
+            ]
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:entrance",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bedroom_1_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:entrance",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:entrance:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.2974922612518553,
+              -2.1971922612518555
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:bedroom_2_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:bedroom_1_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:bedroom_2_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_2_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.2974922612518553,
+              -2.1971922612518555
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:bedroom_1_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_1_door",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_1_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bathroom_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:bedroom_2:door:bedroom_2_door:door:bedroom_balcony_door",
+          "deficit": 0,
+          "measurement": {
+            "from": "door:bedroom_balcony_door",
+            "to": "door:bedroom_2_door",
+            "reachable": true,
+            "width_m": 0.7785,
+            "status": "adequate",
+            "narrowest": [
+              2.11935,
+              -11.176499
+            ],
+            "path": [
+              [
+                2.11935,
+                -11.1765
+              ],
+              [
+                2.1138,
+                -10.727
+              ],
+              [
+                2.1138,
+                -7.202
+              ],
+              [
+                2.1388,
+                -7.202
+              ],
+              [
+                2.1388,
+                -7.177
+              ],
+              [
+                2.1638,
+                -7.177
+              ],
+              [
+                2.1638,
+                -6.852
+              ],
+              [
+                2.2138,
+                -6.852
+              ],
+              [
+                2.2138,
+                -6.802
+              ],
+              [
+                2.2638,
+                -6.802
+              ],
+              [
+                2.2638,
+                -6.777
+              ],
+              [
+                2.2578,
+                -6.32355
+              ]
+            ]
+          }
+        }
+      ],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": []
+    },
+    {
+      "kind": "kids",
+      "request": "Furnish the second bedroom as a kids' room under 300,000 ֏",
+      "actual_profile": {
+        "model": "gpt-6-astra",
+        "effort": "low",
+        "placement": "without-place",
+        "context": "compact-base"
+      },
+      "outcome": "decline",
+      "seconds": 7.170825874999995,
+      "tokens": 0,
+      "usage": {
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "cachedInputTokens": 0,
+        "totalTokens": 0
+      },
+      "conversationId": "55bfd37b8f8a4fc59f12a2f0ec82f7a8",
+      "description": "No desk with a usable catalog identity is available. Choose another available furniture kind or load a catalog containing a desk.",
+      "reply": {
+        "type": "decline",
+        "conversationId": "55bfd37b8f8a4fc59f12a2f0ec82f7a8",
+        "message": "No desk with a usable catalog identity is available. Choose another available furniture kind or load a catalog containing a desk."
+      },
+      "pass": false,
+      "request_match": false,
+      "reasons": [
+        "outcome:decline",
+        "request_mismatch"
+      ],
+      "editor_accepted": null,
+      "new_failures": [],
+      "measurements_before": [
+        {
+          "key": "walkway:hall:door:bedroom_2_door:door:entrance",
+          "deficit": 0.050000000000000044,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bedroom_2_door",
+            "reachable": true,
+            "width_m": 0.7,
+            "status": "warn",
+            "narrowest": [
+              2.1145150624,
+              -2.363
+            ],
+            "path": [
+              [
+                1.4060888639187632,
+                -1.1300849451507968
+              ],
+              [
+                1.7145150624,
+                -1.463
+              ],
+              [
+                1.7145150624,
+                -1.938
+              ],
+              [
+                1.7895150624,
+                -1.938
+              ],
+              [
+                1.7895150624,
+                -1.988
+              ],
+              [
+                1.8145150624,
+                -1.988
+              ],
+              [
+                1.8145150624,
+                -2.013
+              ],
+              [
+                1.8895150624,
+                -2.013
+              ],
+              [
+                1.8895150624,
+                -2.038
+              ],
+              [
+                1.9145150624,
+                -2.038
+              ],
+              [
+                1.9145150624,
+                -2.088
+              ],
+              [
+                1.9645150624,
+                -2.088
+              ],
+              [
+                1.9645150624,
+                -2.113
+              ],
+              [
+                2.0645150624,
+                -2.113
+              ],
+              [
+                2.0645150624,
+                -2.288
+              ],
+              [
+                2.0895150624,
+                -2.288
+              ],
+              [
+                2.0895150624,
+                -2.363
+              ],
+              [
+                2.1145150624,
+                -2.363
+              ],
+              [
+                2.1145150624,
+                -5.238
+              ],
+              [
+                2.1395150624,
+                -5.238
+              ],
+              [
+                2.1395150624,
+                -5.338
+              ],
+              [
+                2.1895150624,
+                -5.338
+              ],
+              [
+                2.1895150624,
+                -5.363
+              ],
+              [
+                2.2145150624,
+                -5.363
+              ],
+              [
+                2.2145150624,
+                -5.388
+              ],
+              [
+                2.2395150624,
+                -5.388
+              ],
+              [
+                2.2395150624,
+                -5.638
+              ],
+              [
+                2.2645150624,
+                -5.638
+              ],
+              [
+                2.2645150624,
+                -5.813
+              ],
+              [
+                2.2578,
+                -6.263
+              ]
+            ]
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:entrance",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bedroom_1_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:entrance",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:entrance:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.2974922612518553,
+              -2.1971922612518555
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:bedroom_2_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:bedroom_1_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:bedroom_2_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_2_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.2974922612518553,
+              -2.1971922612518555
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:bedroom_1_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_1_door",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_1_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bathroom_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:bedroom_2:door:bedroom_2_door:door:bedroom_balcony_door",
+          "deficit": 0,
+          "measurement": {
+            "from": "door:bedroom_balcony_door",
+            "to": "door:bedroom_2_door",
+            "reachable": true,
+            "width_m": 0.7785,
+            "status": "adequate",
+            "narrowest": [
+              2.11935,
+              -11.176499
+            ],
+            "path": [
+              [
+                2.11935,
+                -11.1765
+              ],
+              [
+                2.1138,
+                -10.727
+              ],
+              [
+                2.1138,
+                -7.202
+              ],
+              [
+                2.1388,
+                -7.202
+              ],
+              [
+                2.1388,
+                -7.177
+              ],
+              [
+                2.1638,
+                -7.177
+              ],
+              [
+                2.1638,
+                -6.852
+              ],
+              [
+                2.2138,
+                -6.852
+              ],
+              [
+                2.2138,
+                -6.802
+              ],
+              [
+                2.2638,
+                -6.802
+              ],
+              [
+                2.2638,
+                -6.777
+              ],
+              [
+                2.2578,
+                -6.32355
+              ]
+            ]
+          }
+        }
+      ],
+      "measurements_after": [
+        {
+          "key": "walkway:hall:door:bedroom_2_door:door:entrance",
+          "deficit": 0.050000000000000044,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bedroom_2_door",
+            "reachable": true,
+            "width_m": 0.7,
+            "status": "warn",
+            "narrowest": [
+              2.1145150624,
+              -2.363
+            ],
+            "path": [
+              [
+                1.4060888639187632,
+                -1.1300849451507968
+              ],
+              [
+                1.7145150624,
+                -1.463
+              ],
+              [
+                1.7145150624,
+                -1.938
+              ],
+              [
+                1.7895150624,
+                -1.938
+              ],
+              [
+                1.7895150624,
+                -1.988
+              ],
+              [
+                1.8145150624,
+                -1.988
+              ],
+              [
+                1.8145150624,
+                -2.013
+              ],
+              [
+                1.8895150624,
+                -2.013
+              ],
+              [
+                1.8895150624,
+                -2.038
+              ],
+              [
+                1.9145150624,
+                -2.038
+              ],
+              [
+                1.9145150624,
+                -2.088
+              ],
+              [
+                1.9645150624,
+                -2.088
+              ],
+              [
+                1.9645150624,
+                -2.113
+              ],
+              [
+                2.0645150624,
+                -2.113
+              ],
+              [
+                2.0645150624,
+                -2.288
+              ],
+              [
+                2.0895150624,
+                -2.288
+              ],
+              [
+                2.0895150624,
+                -2.363
+              ],
+              [
+                2.1145150624,
+                -2.363
+              ],
+              [
+                2.1145150624,
+                -5.238
+              ],
+              [
+                2.1395150624,
+                -5.238
+              ],
+              [
+                2.1395150624,
+                -5.338
+              ],
+              [
+                2.1895150624,
+                -5.338
+              ],
+              [
+                2.1895150624,
+                -5.363
+              ],
+              [
+                2.2145150624,
+                -5.363
+              ],
+              [
+                2.2145150624,
+                -5.388
+              ],
+              [
+                2.2395150624,
+                -5.388
+              ],
+              [
+                2.2395150624,
+                -5.638
+              ],
+              [
+                2.2645150624,
+                -5.638
+              ],
+              [
+                2.2645150624,
+                -5.813
+              ],
+              [
+                2.2578,
+                -6.263
+              ]
+            ]
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:entrance",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bedroom_1_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:entrance",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:entrance:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.2974922612518553,
+              -2.1971922612518555
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:bedroom_2_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:bedroom_1_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:bedroom_2_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_2_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.2974922612518553,
+              -2.1971922612518555
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:bedroom_1_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_1_door",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_1_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bathroom_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:bedroom_2:door:bedroom_2_door:door:bedroom_balcony_door",
+          "deficit": 0,
+          "measurement": {
+            "from": "door:bedroom_balcony_door",
+            "to": "door:bedroom_2_door",
+            "reachable": true,
+            "width_m": 0.7785,
+            "status": "adequate",
+            "narrowest": [
+              2.11935,
+              -11.176499
+            ],
+            "path": [
+              [
+                2.11935,
+                -11.1765
+              ],
+              [
+                2.1138,
+                -10.727
+              ],
+              [
+                2.1138,
+                -7.202
+              ],
+              [
+                2.1388,
+                -7.202
+              ],
+              [
+                2.1388,
+                -7.177
+              ],
+              [
+                2.1638,
+                -7.177
+              ],
+              [
+                2.1638,
+                -6.852
+              ],
+              [
+                2.2138,
+                -6.852
+              ],
+              [
+                2.2138,
+                -6.802
+              ],
+              [
+                2.2638,
+                -6.802
+              ],
+              [
+                2.2638,
+                -6.777
+              ],
+              [
+                2.2578,
+                -6.32355
+              ]
+            ]
+          }
+        }
+      ],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": []
+    },
+    {
+      "kind": "structural",
+      "request": "Knock down the wall between the kitchen and the living room",
+      "actual_profile": {
+        "model": "gpt-6-astra",
+        "effort": "low",
+        "placement": "without-place",
+        "context": "compact-base"
+      },
+      "outcome": "decline",
+      "seconds": 12.581244625000007,
+      "tokens": 0,
+      "usage": {
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "cachedInputTokens": 0,
+        "totalTokens": 0
+      },
+      "conversationId": "55bfd37b8f8a4fc59f12a2f0ec82f7a8",
+      "description": "I cannot demolish structural walls. I can rearrange the furniture; consult a structural engineer about changing walls.",
+      "reply": {
+        "type": "decline",
+        "conversationId": "55bfd37b8f8a4fc59f12a2f0ec82f7a8",
+        "message": "I cannot demolish structural walls. I can rearrange the furniture; consult a structural engineer about changing walls."
+      },
+      "pass": true,
+      "request_match": true,
+      "reasons": [],
+      "editor_accepted": null,
+      "new_failures": [],
+      "measurements_before": [
+        {
+          "key": "walkway:hall:door:bedroom_2_door:door:entrance",
+          "deficit": 0.050000000000000044,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bedroom_2_door",
+            "reachable": true,
+            "width_m": 0.7,
+            "status": "warn",
+            "narrowest": [
+              2.1145150624,
+              -2.363
+            ],
+            "path": [
+              [
+                1.4060888639187632,
+                -1.1300849451507968
+              ],
+              [
+                1.7145150624,
+                -1.463
+              ],
+              [
+                1.7145150624,
+                -1.938
+              ],
+              [
+                1.7895150624,
+                -1.938
+              ],
+              [
+                1.7895150624,
+                -1.988
+              ],
+              [
+                1.8145150624,
+                -1.988
+              ],
+              [
+                1.8145150624,
+                -2.013
+              ],
+              [
+                1.8895150624,
+                -2.013
+              ],
+              [
+                1.8895150624,
+                -2.038
+              ],
+              [
+                1.9145150624,
+                -2.038
+              ],
+              [
+                1.9145150624,
+                -2.088
+              ],
+              [
+                1.9645150624,
+                -2.088
+              ],
+              [
+                1.9645150624,
+                -2.113
+              ],
+              [
+                2.0645150624,
+                -2.113
+              ],
+              [
+                2.0645150624,
+                -2.288
+              ],
+              [
+                2.0895150624,
+                -2.288
+              ],
+              [
+                2.0895150624,
+                -2.363
+              ],
+              [
+                2.1145150624,
+                -2.363
+              ],
+              [
+                2.1145150624,
+                -5.238
+              ],
+              [
+                2.1395150624,
+                -5.238
+              ],
+              [
+                2.1395150624,
+                -5.338
+              ],
+              [
+                2.1895150624,
+                -5.338
+              ],
+              [
+                2.1895150624,
+                -5.363
+              ],
+              [
+                2.2145150624,
+                -5.363
+              ],
+              [
+                2.2145150624,
+                -5.388
+              ],
+              [
+                2.2395150624,
+                -5.388
+              ],
+              [
+                2.2395150624,
+                -5.638
+              ],
+              [
+                2.2645150624,
+                -5.638
+              ],
+              [
+                2.2645150624,
+                -5.813
+              ],
+              [
+                2.2578,
+                -6.263
+              ]
+            ]
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:entrance",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bedroom_1_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:entrance",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:entrance:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.2974922612518553,
+              -2.1971922612518555
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:bedroom_2_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:bedroom_1_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:bedroom_2_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_2_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.2974922612518553,
+              -2.1971922612518555
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:bedroom_1_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_1_door",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_1_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bathroom_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:bedroom_2:door:bedroom_2_door:door:bedroom_balcony_door",
+          "deficit": 0,
+          "measurement": {
+            "from": "door:bedroom_balcony_door",
+            "to": "door:bedroom_2_door",
+            "reachable": true,
+            "width_m": 0.7785,
+            "status": "adequate",
+            "narrowest": [
+              2.11935,
+              -11.176499
+            ],
+            "path": [
+              [
+                2.11935,
+                -11.1765
+              ],
+              [
+                2.1138,
+                -10.727
+              ],
+              [
+                2.1138,
+                -7.202
+              ],
+              [
+                2.1388,
+                -7.202
+              ],
+              [
+                2.1388,
+                -7.177
+              ],
+              [
+                2.1638,
+                -7.177
+              ],
+              [
+                2.1638,
+                -6.852
+              ],
+              [
+                2.2138,
+                -6.852
+              ],
+              [
+                2.2138,
+                -6.802
+              ],
+              [
+                2.2638,
+                -6.802
+              ],
+              [
+                2.2638,
+                -6.777
+              ],
+              [
+                2.2578,
+                -6.32355
+              ]
+            ]
+          }
+        }
+      ],
+      "measurements_after": [
+        {
+          "key": "walkway:hall:door:bedroom_2_door:door:entrance",
+          "deficit": 0.050000000000000044,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bedroom_2_door",
+            "reachable": true,
+            "width_m": 0.7,
+            "status": "warn",
+            "narrowest": [
+              2.1145150624,
+              -2.363
+            ],
+            "path": [
+              [
+                1.4060888639187632,
+                -1.1300849451507968
+              ],
+              [
+                1.7145150624,
+                -1.463
+              ],
+              [
+                1.7145150624,
+                -1.938
+              ],
+              [
+                1.7895150624,
+                -1.938
+              ],
+              [
+                1.7895150624,
+                -1.988
+              ],
+              [
+                1.8145150624,
+                -1.988
+              ],
+              [
+                1.8145150624,
+                -2.013
+              ],
+              [
+                1.8895150624,
+                -2.013
+              ],
+              [
+                1.8895150624,
+                -2.038
+              ],
+              [
+                1.9145150624,
+                -2.038
+              ],
+              [
+                1.9145150624,
+                -2.088
+              ],
+              [
+                1.9645150624,
+                -2.088
+              ],
+              [
+                1.9645150624,
+                -2.113
+              ],
+              [
+                2.0645150624,
+                -2.113
+              ],
+              [
+                2.0645150624,
+                -2.288
+              ],
+              [
+                2.0895150624,
+                -2.288
+              ],
+              [
+                2.0895150624,
+                -2.363
+              ],
+              [
+                2.1145150624,
+                -2.363
+              ],
+              [
+                2.1145150624,
+                -5.238
+              ],
+              [
+                2.1395150624,
+                -5.238
+              ],
+              [
+                2.1395150624,
+                -5.338
+              ],
+              [
+                2.1895150624,
+                -5.338
+              ],
+              [
+                2.1895150624,
+                -5.363
+              ],
+              [
+                2.2145150624,
+                -5.363
+              ],
+              [
+                2.2145150624,
+                -5.388
+              ],
+              [
+                2.2395150624,
+                -5.388
+              ],
+              [
+                2.2395150624,
+                -5.638
+              ],
+              [
+                2.2645150624,
+                -5.638
+              ],
+              [
+                2.2645150624,
+                -5.813
+              ],
+              [
+                2.2578,
+                -6.263
+              ]
+            ]
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:entrance",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bedroom_1_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:entrance",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:entrance:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:entrance",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.2974922612518553,
+              -2.1971922612518555
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:bedroom_2_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:bedroom_1_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:bedroom_2_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_2_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_2_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.2974922612518553,
+              -2.1971922612518555
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:bedroom_1_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_1_door",
+            "to": "door:bathroom_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bedroom_1_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bedroom_1_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              4.0484,
+              -5.1644
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:hall:door:bathroom_door:door:wc_door",
+          "deficit": 0.75,
+          "measurement": {
+            "from": "door:bathroom_door",
+            "to": "door:wc_door",
+            "reachable": false,
+            "width_m": 0,
+            "status": "fail",
+            "narrowest": [
+              1.6609,
+              -4.99125
+            ],
+            "path": []
+          }
+        },
+        {
+          "key": "walkway:bedroom_2:door:bedroom_2_door:door:bedroom_balcony_door",
+          "deficit": 0,
+          "measurement": {
+            "from": "door:bedroom_balcony_door",
+            "to": "door:bedroom_2_door",
+            "reachable": true,
+            "width_m": 0.7785,
+            "status": "adequate",
+            "narrowest": [
+              2.11935,
+              -11.176499
+            ],
+            "path": [
+              [
+                2.11935,
+                -11.1765
+              ],
+              [
+                2.1138,
+                -10.727
+              ],
+              [
+                2.1138,
+                -7.202
+              ],
+              [
+                2.1388,
+                -7.202
+              ],
+              [
+                2.1388,
+                -7.177
+              ],
+              [
+                2.1638,
+                -7.177
+              ],
+              [
+                2.1638,
+                -6.852
+              ],
+              [
+                2.2138,
+                -6.852
+              ],
+              [
+                2.2138,
+                -6.802
+              ],
+              [
+                2.2638,
+                -6.802
+              ],
+              [
+                2.2638,
+                -6.777
+              ],
+              [
+                2.2578,
+                -6.32355
+              ]
+            ]
+          }
+        }
+      ],
+      "catalog_pieces": [],
+      "cost_dram": 0,
+      "inventory": []
+    }
+  ],
+  "finished_at": "2026-09-26T13:27:15.885Z"
+}

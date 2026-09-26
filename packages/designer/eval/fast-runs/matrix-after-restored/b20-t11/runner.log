@@ -1,0 +1,17 @@
+{"flat":"b20-t11","kind":"living","stage":"start","revision":0}
+{"flat":"b20-t11","kind":"living","outcome":"decline","pass":false,"seconds":9.906,"tokens":0,"reasons":["outcome:decline","request_mismatch"]}
+{"flat":"b20-t11","kind":"bedroom","stage":"start","revision":0}
+{"flat":"b20-t11","kind":"bedroom","outcome":"decline","pass":false,"seconds":13.715,"tokens":0,"reasons":["outcome:decline","request_mismatch"]}
+{"flat":"b20-t11","kind":"sofa","stage":"start","revision":0}
+{"flat":"b20-t11","kind":"sofa","stage":"http_progress","seconds":7.462984874999998}
+{"flat":"b20-t11","kind":"sofa","outcome":"question","pass":false,"seconds":31.982,"tokens":43064,"reasons":["outcome:question","request_mismatch"]}
+{"flat":"b20-t11","kind":"desk","stage":"start","revision":0}
+{"flat":"b20-t11","kind":"desk","stage":"http_progress","seconds":0.050289041999996696}
+{"flat":"b20-t11","kind":"desk","outcome":"decline","pass":false,"seconds":8.22,"tokens":0,"reasons":["outcome:decline","request_mismatch"]}
+{"flat":"b20-t11","kind":"paint","stage":"start","revision":0}
+{"flat":"b20-t11","kind":"paint","stage":"http_progress","seconds":0.0346215830000001}
+{"flat":"b20-t11","kind":"paint","stage":"http_progress","seconds":30.096025500000003}
+{"flat":"b20-t11","kind":"paint","outcome":"proposal","pass":true,"seconds":30.394,"tokens":4394,"reasons":[]}
+{"flat":"b20-t11","kind":"structural","stage":"start","revision":1}
+{"flat":"b20-t11","kind":"structural","stage":"http_progress","seconds":0.0997199169999949}
+{"flat":"b20-t11","kind":"structural","outcome":"decline","pass":true,"seconds":9.703,"tokens":0,"reasons":[]}

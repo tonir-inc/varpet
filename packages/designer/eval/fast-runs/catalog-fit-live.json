@@ -1,0 +1,50 @@
+{
+  "measured_at": "2026-09-26T13:38:58.382Z",
+  "rows": [
+    {
+      "repetition": 1,
+      "seconds": 4.044953125,
+      "result": {
+        "results": [],
+        "candidates": 153,
+        "fit_budget_exhausted": true,
+        "timing": {
+          "seconds": 4.038590000000026,
+          "cache_hit": true
+        },
+        "fit_note": "Only items with a checked free slot in the current scene; bounded search may omit feasible options."
+      },
+      "checks": []
+    },
+    {
+      "repetition": 2,
+      "seconds": 4.060965083,
+      "result": {
+        "results": [],
+        "candidates": 153,
+        "fit_budget_exhausted": true,
+        "timing": {
+          "seconds": 4.057177500000019,
+          "cache_hit": true
+        },
+        "fit_note": "Only items with a checked free slot in the current scene; bounded search may omit feasible options."
+      },
+      "checks": []
+    },
+    {
+      "repetition": 3,
+      "seconds": 4.061311,
+      "result": {
+        "results": [],
+        "candidates": 153,
+        "fit_budget_exhausted": true,
+        "timing": {
+          "seconds": 4.055734041000018,
+          "cache_hit": true
+        },
+        "fit_note": "Only items with a checked free slot in the current scene; bounded search may omit feasible options."
+      },
+      "checks": []
+    }
+  ]
+}

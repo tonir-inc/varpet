@@ -1,0 +1,7 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "question", "conversationId": "eaf9dcc0c80c48deb7f1a77f9a85b026", "question": "Which bedroom should get the warm-white paint preview: Bedroom 1 (balcony access), Bedroom 2 (window only), or both? Shared walls will change on both faces and all connected segments; paint and labour are unquoted.", "options": ["Bedroom 1 (balcony access)", "Bedroom 2 (window only)", "Both bedrooms"]}

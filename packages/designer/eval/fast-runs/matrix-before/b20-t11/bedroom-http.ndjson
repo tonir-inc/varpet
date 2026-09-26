@@ -1,0 +1,15 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Designer is checking the furniture layout"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Designer is still working"}
+{"type": "progress", "message": "Preparing the checked layout preview"}
+{"type": "error", "message": "Translated proposal has unsupported placement: “Rivet Jonathan Mid-Century Modern Wood Full Bed, 59.5\"W, Walnut” must fit completely inside the floor plan at the room’s floor elevation.", "conversationId": "495b036b88974620bcb9e4e630e57b34"}
