@@ -8,8 +8,8 @@ Assumed pending engine integration: metres, x right, y plan-up; item rotation co
 from local x, front local -y; north_deg clockwise from plan-up. Item pos is its footprint centre.
 Adapter input is validated; no tool writes the source scene or scene file.
 
-Measured: the team's `.codex/config.toml` registers `varpet-designer` using the worktree's `tsx`.
-Its default scene is the test bedroom; set `VARPET_SCENE` to an absolute path for a real scene.
+Measured: the harness registers `varpet-designer` in its isolated runtime. The shared project config
+does not register laptop-specific MCP servers. Use the start command above for a standalone server.
 The server exposes nine tools. `search_catalog` uses the team's catalog backend and returns explicit
 unavailability when its database/runtime is missing; `ask` returns one customer question.
 
@@ -96,3 +96,16 @@ workspace timed out, so live catalog retrieval remains unverified here.
 Search preserves size evidence and price provenance; mock AMD values are not shop quotations.
 Without catalog data, the designer asks for a specific product or a customer-owned piece's details
 instead of inventing a purchasable item.
+
+Run `pnpm --filter @varpet/designer eval` to regrade the saved 13-scenario manifest without model
+calls. The command writes `eval/report.md` and `eval/results.json`, checking recorded proposal ops
+against the scenario's expected intent and fresh deterministic metrics. It rejects mismatched
+prompts/scenes and incomplete runs. Declines and missing evidence are never counted as fulfilled
+layout requests. Motion trajectories, full engine checks and human preference are not evaluated.
+
+To collect new conversations, add `--live --python /path/to/sdk-venv/bin/python`. The default batch
+uses three concurrent conversations, each with a 180-second wall budget; a usage limit stops the
+batch. `--scenario ID` reruns selected rows while retaining other recorded results. Full traces and
+input snapshots live under `eval/runs/`. Assumed: the existing bedroom and living-room fixtures stand
+in for the unavailable demo flat; the two additions explicitly supply user-owned dimensions and
+zero purchase prices. These runs do not prove performance on the actual demo plan or shop inventory.

@@ -7,6 +7,7 @@
   "scripts": {
     "start": "tsx src/server.ts",
     "test": "vitest run && python3 -m unittest discover -s ../../harness -p 'designer*_test.py'",
+    "eval": "python3 ../../harness/designer_eval.py",
     "typecheck": "tsc -p ."
   },
   "dependencies": {

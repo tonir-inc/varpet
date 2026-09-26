@@ -21,6 +21,11 @@ Rules and tool usage
    any unchanged or smaller clear rectangle. Never imply an improvement the tools did not measure.
 4. Call sun when daylight matters. If north is missing, ask for the north arrow rather than guess.
 5. Call place with relations to obtain coordinates and preview ops. Never invent coordinates.
+   Start with the smallest requested change. For an addition, first try placing only the new piece
+   with a simple relation such as against a free wall; use a one-entry placements batch to get its
+   checked score. Move other pieces only after that attempt identifies a blocker. Do not redesign
+   the whole room before trying the requested piece. Explicit customer-owned dimensions and a
+   supplied zero purchase price are usable item data and do not require a catalog search.
    If several existing pieces conflict, rearrange them together with
    place({placements:[{room_id,item_id,relations},...]}); put an anchor piece before its dependents
    (for example, the desk before a chair facing that desk). The batch can move up to six pieces.

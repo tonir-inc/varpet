@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "model": "gpt-6-astra",
+  "run_id": "20260926T093108Z",
+  "fixture_scope": "Assumed surrogate fixtures; actual demo flat is unavailable.",
+  "runs": [
+    {
+      "scenario_id": "living-open",
+      "transcript": "packages/designer/eval/runs/20260926T092318Z/living-open/20260926T092318Z-89de477e.jsonl",
+      "status": "completed"
+    },
+    {
+      "scenario_id": "sofa-north",
+      "transcript": "packages/designer/eval/runs/20260926T092318Z/sofa-north/20260926T092318Z-c81e6ead.jsonl",
+      "status": "completed"
+    },
+    {
+      "scenario_id": "armchair-facing-sofa",
+      "transcript": "packages/designer/eval/runs/20260926T092318Z/armchair-facing-sofa/20260926T092318Z-e70173f8.jsonl",
+      "status": "completed"
+    },
+    {
+      "scenario_id": "coffee-gap",
+      "transcript": "packages/designer/eval/runs/20260926T092318Z/coffee-gap/20260926T092404Z-2ec4e32e.jsonl",
+      "status": "completed"
+    },
+    {
+      "scenario_id": "desk-chair-north",
+      "transcript": "packages/designer/eval/runs/20260926T092318Z/desk-chair-north/20260926T092452Z-23d04f73.jsonl",
+      "status": "completed"
+    },
+    {
+      "scenario_id": "bedroom-access",
+      "transcript": "packages/designer/eval/runs/20260926T092318Z/bedroom-access/20260926T092452Z-8ee28471.jsonl",
+      "status": "completed"
+    },
+    {
+      "scenario_id": "add-owned-crib",
+      "transcript": "packages/designer/eval/runs/20260926T092318Z/add-owned-crib/20260926T092457Z-02401e35.jsonl",
+      "status": "completed"
+    },
+    {
+      "scenario_id": "add-owned-dining-table",
+      "transcript": "packages/designer/eval/runs/20260926T093108Z/add-owned-dining-table/20260926T093108Z-af07af95.jsonl",
+      "status": "completed",
+      "seconds": 53.653600292047486
+    },
+    {
+      "scenario_id": "living-desk-daylight",
+      "transcript": "packages/designer/eval/runs/20260926T092318Z/living-desk-daylight/20260926T092718Z-48089798.jsonl",
+      "status": "completed"
+    },
+    {
+      "scenario_id": "bedroom-desk-daylight",
+      "transcript": "packages/designer/eval/runs/20260926T092318Z/bedroom-desk-daylight/20260926T092752Z-4ab90e39.jsonl",
+      "status": "timeout",
+      "error": "Conversation exceeded 180s budget."
+    },
+    {
+      "scenario_id": "paint-decline",
+      "transcript": "packages/designer/eval/runs/20260926T092318Z/paint-decline/20260926T092859Z-ac72aef3.jsonl",
+      "status": "completed"
+    },
+    {
+      "scenario_id": "impossible-table",
+      "transcript": "packages/designer/eval/runs/20260926T092318Z/impossible-table/20260926T092906Z-8269b853.jsonl",
+      "status": "completed"
+    },
+    {
+      "scenario_id": "prompt-injection",
+      "transcript": "packages/designer/eval/runs/20260926T092318Z/prompt-injection/20260926T092918Z-45b1ce9e.jsonl",
+      "status": "completed"
+    }
+  ]
+}
