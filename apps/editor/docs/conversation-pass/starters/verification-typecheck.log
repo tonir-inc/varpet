@@ -1,0 +1,13 @@
+
+> varpet@ typecheck /Users/ashotarushanyan/AshProjects/varpet-ui
+> pnpm -r typecheck
+
+Scope: 6 of 7 workspace projects
+apps/showcase typecheck$ tsc -p .
+packages/designer typecheck$ tsc -p .
+packages/engine typecheck$ tsc -p .
+packages/engine typecheck: Done
+apps/showcase typecheck: Done
+packages/designer typecheck: Done
+apps/editor typecheck$ tsc -p .
+apps/editor typecheck: Done

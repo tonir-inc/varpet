@@ -1,0 +1,35 @@
+{
+  "initial": "Living & dining is empty. Furnish it?\nBedroom is empty. Furnish it?\nA window in Living & dining. A reading corner there?\nA window in Bedroom. A reading corner there?",
+  "addedBed": "Living & dining is empty. Furnish it?\nNo wardrobe is listed in Bedroom. Plan storage?\nA window in Living & dining. A reading corner there?\nA window in Bedroom. A reading corner there?",
+  "north": "Living & dining is empty. Furnish it?\nNo wardrobe is listed in Bedroom. Plan storage?\nWest-facing windows in Living & dining. A reading corner there?\nA window in Bedroom. A reading corner there?",
+  "addedWardrobe": "Living & dining is empty. Furnish it?\nWest-facing windows in Living & dining. A reading corner there?\nA window in Bedroom. A reading corner there?",
+  "fallback": "Paint the bedroom walls sage\nMake the living room feel bigger\nWhere should a desk go for good light?\nMake it cozier",
+  "widths": [
+    {
+      "width": 1440,
+      "overflow": false,
+      "greetingHidden": true
+    },
+    {
+      "width": 1280,
+      "overflow": false,
+      "greetingHidden": true
+    },
+    {
+      "width": 390,
+      "overflow": false,
+      "greetingHidden": true
+    }
+  ],
+  "keyboard": {
+    "focused": true,
+    "outline": "3px"
+  },
+  "callsBeforeClick": 0,
+  "collapsed": true,
+  "sent": [
+    "Furnish the Living & dining."
+  ],
+  "networkDesignerRequests": 0,
+  "fallbackGreeting": true
+}

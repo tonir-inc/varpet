@@ -81,7 +81,7 @@ Measured final commands, all exit 0:
 ```text
 VITEST_MAX_WORKERS=1 pnpm test
 378 designer; 116 + 38 Python; 10 showcase; 7 hooks; 6 + 57 editor Node tests
-10,836 explicitly reported editor assertions
+11,202 explicitly reported editor assertions
 pnpm typecheck: engine, designer, showcase, editor passed
 pnpm --filter @varpet/editor build: passed
 ```

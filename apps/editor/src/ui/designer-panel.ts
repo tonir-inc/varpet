@@ -1,4 +1,5 @@
 import { designerMarkdown } from './designer-markdown';
+import { designerStarters } from './designer-starters';
 export { designerMarkdown } from './designer-markdown';
 import { EditorStore } from '../core/store';
 import type { AgentProposal, CatalogAsset, SceneDocument } from '../contracts';
@@ -413,15 +414,14 @@ export function previewDesignerProposal(scene: SceneDocument, revision: number, 
   return preview.scene;
 }
 
-const examples = ['Paint the bedroom walls sage', 'Make the living room feel bigger', 'Where should a desk go for good light?', 'Make it cozier'];
-
 /** Live product surface; the original mock panel stays inside Assistant unchanged. */
 export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
   if (!options.live) return { ...mountMockDesignerPanel(host, options), open() {} };
   host.classList.add('designer-column'); host.setAttribute('aria-label', 'Designer');
   host.innerHTML = `<header class="designer-chat-header"><div><strong>Your designer</strong><small>Design your home together</small></div><button type="button" class="button quiet designer-collapse" aria-label="Collapse designer" aria-expanded="true">‹</button></header>
     <div class="designer-chat-body"><div class="designer-history-bar"><button class="button designer-new" type="button">+ New conversation</button><details class="designer-history"><summary>Recent conversations</summary><div class="designer-history-list"></div></details></div>
-    <div class="designer-chat-scroll"><div class="designer-greeting"><span class="designer-greeting-icon" aria-hidden="true">✦</span><h2>What would make this feel like home?</h2><p>Tell me what you have in mind. We can explore a change together, and you decide what to apply.</p><div class="designer-examples"></div></div>
+    <div class="designer-chat-scroll"><div class="designer-greeting"><span class="designer-greeting-icon" aria-hidden="true">✦</span><h2>What would make this feel like home?</h2><p>Tell me what you have in mind. We can explore a change together, and you decide what to apply.</p></div>
+      <details class="designer-starters" open><summary>Ideas for this flat</summary><div class="designer-examples"></div></details>
       <div class="designer-messages" role="log" aria-label="Designer conversation" aria-live="polite"></div>
       <div class="designer-progress" hidden><span class="designer-progress-stage" role="status"></span><span class="designer-elapsed" aria-live="off"></span><small>You can cancel while the designer works.</small></div></div>
     <div class="designer-composer"><details class="designer-context"><summary>Room context · north & keep pieces</summary>
@@ -436,7 +436,7 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
   const collapse = find<HTMLButtonElement>('.designer-collapse');
   let storage = options.storage;
   if (!storage) { try { storage = window.localStorage; } catch { /* Session-only chat. */ } }
-  let messageKey = '', historyKey = '', previousBusy = false, activeThread = '', collapsed = false;
+  let messageKey = '', historyKey = '', previousBusy = false, activeThread = '', collapsed = false, hasMessages = false, contextualStarters = false;
   let ticker: ReturnType<typeof setInterval> | undefined;
   const button = (label: string, action: () => void, className = 'button') => {
     const item = document.createElement('button'); item.type = 'button'; item.className = className; item.textContent = label; item.onclick = action; return item;
@@ -504,7 +504,9 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
       }
       if (nearBottom || switched) scroller.scrollTop = scroller.scrollHeight;
     }
-    find<HTMLElement>('.designer-greeting').hidden = state.messages.length > 0;
+    find<HTMLElement>('.designer-greeting').hidden = state.messages.length > 0 || contextualStarters;
+    if (switched || hasMessages !== (state.messages.length > 0)) find<HTMLDetailsElement>('.designer-starters').open = !state.messages.length;
+    hasMessages = state.messages.length > 0;
     const nextHistoryKey = JSON.stringify([state.conversations, state.activeHistoryId]);
     if (historyKey !== nextHistoryKey) {
       historyKey = nextHistoryKey; const list = find<HTMLElement>('.designer-history-list'); list.replaceChildren();
@@ -540,14 +542,28 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
       checkbox.onchange = () => controller.setKeep(object.id, checkbox.checked); label.append(checkbox, document.createTextNode(object.name)); list.append(label);
     }
   };
-  for (const example of examples) find<HTMLElement>('.designer-examples').append(button(example, () => { void controller.send(example); }, 'designer-example'));
+  let starterKey = '';
+  const renderStarters = () => {
+    const { scene, catalog } = options.snapshot();
+    const suggestions = designerStarters(scene, catalog, controller.state.northDeg);
+    contextualStarters = suggestions.some(item => !item.id.startsWith('example:'));
+    find<HTMLElement>('.designer-greeting').hidden = controller.state.messages.length > 0 || contextualStarters;
+    const key = JSON.stringify(suggestions);
+    if (key === starterKey) return;
+    starterKey = key;
+    const list = find<HTMLElement>('.designer-examples'); list.replaceChildren();
+    for (const suggestion of suggestions) {
+      const control = button(suggestion.label, () => { void controller.send(suggestion.request); }, 'designer-example');
+      control.disabled = controller.state.busy; list.append(control);
+    }
+  };
   collapse.onclick = () => setCollapsed(!collapsed);
   find<HTMLButtonElement>('.designer-new').onclick = () => { controller.newConversation(); renderKeeps(); input.focus(); };
   find<HTMLButtonElement>('.designer-cancel').onclick = () => controller.cancel();
-  north.onchange = () => { controller.setNorth(north.validity.badInput ? 'invalid' : north.value); north.reportValidity(); };
+  north.onchange = () => { controller.setNorth(north.validity.badInput ? 'invalid' : north.value); north.reportValidity(); renderStarters(); };
   form.onsubmit = event => { event.preventDefault(); const request = input.value; if (request.trim() && !controller.state.busy) { void controller.send(request); if (controller.state.busy) input.value = ''; } };
   input.onkeydown = event => { if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) { event.preventDefault(); form.requestSubmit(); } };
-  render(controller.state); renderKeeps();
-  const unsubscribe = options.subscribe?.(() => { controller.refreshSettings(); renderKeeps(); });
+  render(controller.state); renderKeeps(); renderStarters();
+  const unsubscribe = options.subscribe?.(() => { controller.refreshSettings(); renderKeeps(); renderStarters(); });
   return { controller, open() { setCollapsed(false); input.focus(); }, dispose() { if (ticker !== undefined) clearInterval(ticker); controller.dispose(); unsubscribe?.(); host.replaceChildren(); } };
 }
