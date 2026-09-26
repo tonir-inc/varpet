@@ -1,0 +1,40 @@
+import { demoScene, localCatalog } from './demo';
+import { createReconstructionProposal } from './reconstruction-proposal';
+import { createApartmentStore } from './apartment-store';
+import { migrateScene, projectSnapshot } from './renovation';
+
+let assertions = 0;
+function assert(value: unknown, message: string): asserts value { assertions++; if (!value) throw new Error(message); }
+const previous = migrateScene(structuredClone(demoScene));
+previous.project!.sources.push({ id:'old-plan', name:'Original plan', kind:'plan', roomId:previous.rooms[0]!.id });
+previous.project!.baseline = projectSnapshot(previous);
+previous.project!.options.push({ id:'old-option', name:'Furnished option', snapshot:projectSnapshot(previous) });
+const source = JSON.stringify(previous);
+const result = { rooms:[{id:'new-room',name:'New room',polygon:[[20,20],[24,20],[24,24],[20,24]] as [number,number][],color:'#eeeeee'}],walls:[],notes:['Window positions need review.'] };
+const store = createApartmentStore(previous, localCatalog);
+const original = JSON.stringify(store.scene);
+const proposal = createReconstructionProposal(store.scene, store.revision, result, true, 'live-import');
+assert(proposal.command.operations.length === 1 && proposal.command.operations[0]?.type === 'replace-scene', 'A live reconstruction proposes one complete apartment replacement');
+const operation = proposal.command.operations[0];
+assert(operation.type === 'replace-scene', 'Preview consumes the same replacement scene as Apply');
+assert(operation.scene.objects.length === 0, 'Live reconstruction previews contain no previous furniture');
+assert(!operation.scene.project?.baseline && !operation.scene.project?.options.length, 'Previous apartment baseline and furnished options cannot return in the new shell');
+assert(operation.scene.project?.sources[0]?.id === 'old-plan' && !operation.scene.project.sources[0]?.roomId, 'Original evidence remains available without old room attachments');
+assert(proposal.description.includes('empty') && proposal.description.includes(result.notes[0]!), 'Review explains clearing furnishings and preserves architect notes');
+assert(JSON.stringify(store.scene) === original && JSON.stringify(previous) === source, 'Generating or dismissing the proposal does not change either scene');
+assert(!store.execute(proposal.command, false).ok, 'Reconstruction requires Apply approval');
+const applied = store.execute(proposal.command, true);
+assert(applied.ok, `A real footprint imports despite furniture lying outside it: ${applied.errors.join(' ')}`);
+assert(store.scene.objects.length === 0 && store.scene.rooms[0]?.id === 'new-room', 'Apply commits an empty reconstructed apartment');
+assert(store.undo().ok && JSON.stringify(store.scene) === original, 'One undo restores the complete previous furnished apartment');
+assert(store.redo().ok && store.scene.objects.length === 0, 'Redo restores the same empty shell');
+
+const mockStore = createApartmentStore(demoScene, localCatalog);
+const mockProposal = createReconstructionProposal(mockStore.scene, mockStore.revision, {rooms:mockStore.scene.rooms,walls:mockStore.scene.walls,notes:['Mock']}, false, 'mock-import');
+assert(mockProposal.command.operations[0]?.type === 'replace-structure', 'No-URL mock keeps the structure-only operation');
+assert(mockStore.execute(mockProposal.command,true).ok && mockStore.scene.objects.length === demoScene.objects.length, 'Mock still preserves existing furniture');
+const stale = createReconstructionProposal(mockStore.scene,mockStore.revision,result,true,'stale-import');
+assert(mockStore.undo().ok, 'An intervening edit advances the revision');
+const beforeStale=JSON.stringify(mockStore.scene);
+assert(!mockStore.execute(stale.command,true).ok && JSON.stringify(mockStore.scene)===beforeStale, 'A stale live reconstruction rejects without clearing anything');
+console.log(`Reconstruction proposal checks passed (${assertions} assertions).`);

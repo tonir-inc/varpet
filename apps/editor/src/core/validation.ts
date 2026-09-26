@@ -2,6 +2,8 @@ import type { CatalogAsset, SceneDocument, SceneObject, ValidationResult, Vec2, 
 
 import { componentPosition } from './geometry';
 import { openingWallObstacles, OPENING_COLLISION_EPS } from './opening-collision';
+import { ceilingDesignError, layoutCeilingDesign } from './ceiling-design';
+import { hasRoomCeiling } from './heights';
 
 const EPS = 1e-5;
 const COORD_LIMIT = 100;
@@ -290,7 +292,7 @@ export function placementIssues(scene: SceneDocument, catalog: CatalogAsset[]): 
 const PHASES = ['existing', 'retain', 'remove', 'new', 'replace'];
 const COMPONENT_KINDS = ['column', 'beam', 'shaft', 'railing', 'step', 'ceiling', 'light', 'switch', 'outlet', 'panel', 'junction', 'sink', 'toilet', 'shower', 'bath', 'drain', 'valve', 'riser', 'radiator', 'ac', 'vent', 'thermostat', 'cabinet', 'worktop', 'appliance', 'smoke-detector', 'security', 'network', 'gas-point', 'access-panel'];
 const SYSTEMS = ['electrical', 'water-hot', 'water-cold', 'waste', 'ventilation', 'heating', 'gas', 'data'];
-const METADATA_KEYS = ['name', 'structuralRole', 'boundary', 'phase', 'locked', 'review', 'material', 'zone', 'elevation', 'ceilingHeight', 'role', 'mechanism', 'hinge', 'swing', 'leafThickness', 'frameWidth', 'threshold', 'notes'];
+const METADATA_KEYS = ['name', 'structuralRole', 'boundary', 'phase', 'locked', 'review', 'material', 'zone', 'elevation', 'ceilingHeight', 'ceilingDesign', 'role', 'mechanism', 'hinge', 'swing', 'leafThickness', 'frameWidth', 'threshold', 'notes'];
 const inEnum = (value: unknown, values: string[]) => typeof value === 'string' && values.includes(value);
 const strings = (value: unknown, max = 100): value is string[] => Array.isArray(value) && value.length <= max && value.every(v => text(v, 100));
 const optionalText = (value: unknown, max = 2000) => value === undefined || (typeof value === 'string' && value.length <= max);
@@ -382,6 +384,19 @@ function validateProject(scene: SceneDocument, catalog: CatalogAsset[]): string[
     if (!isRecord(value) || !keys(value, METADATA_KEYS)) { fail(`Metadata for “${id}” contains unsupported fields.`); continue; }
     if (!optionalText(value.name, 120) || !optionalText(value.material, 200) || !optionalText(value.notes) || !optionalEnum(value.structuralRole, ['structural', 'partition', 'unknown']) || !optionalEnum(value.boundary, ['interior', 'exterior', 'shared']) || !optionalEnum(value.phase, PHASES) || !optionalEnum(value.review, ['unreviewed', 'required', 'reviewed']) || !optionalEnum(value.zone, ['interior', 'balcony', 'loggia', 'terrace']) || !optionalEnum(value.role, ['entrance', 'interior', 'balcony', 'access']) || !optionalEnum(value.mechanism, ['hinged', 'sliding', 'pocket', 'fixed', 'casement', 'tilt', 'double']) || !optionalEnum(value.hinge, ['left', 'right']) || (value.locked !== undefined && typeof value.locked !== 'boolean') || (value.swing !== undefined && value.swing !== 1 && value.swing !== -1)) fail(`Metadata for “${id}” has invalid properties.`);
     for (const [field, min, max] of [['elevation', -10, 20], ['ceilingHeight', 0.2, 10], ['leafThickness', 0.01, 0.5], ['frameWidth', 0, 0.3], ['threshold', 0, 0.5]] as const) if (value[field] !== undefined && !finite(value[field], min, max)) fail(`Metadata ${id}.${field} is out of range.`);
+    if (value.ceilingDesign !== undefined) {
+      const room = scene.rooms.find(candidate => candidate.id === id);
+      if (!room) fail(`Ceiling design belongs to a room; “${id}” is not a room.`);
+      else if (value.ceilingDesign !== null) {
+        const error = ceilingDesignError(value.ceilingDesign);
+        if (error) fail(`Ceiling design for “${id}”: ${error}`);
+        else if (!hasRoomCeiling(scene, room)) fail(`Open-air room “${id}” cannot have a ceiling design. Clear its design first.`);
+        else if (value.phase !== 'remove') {
+          try { layoutCeilingDesign(scene, room); }
+          catch (error) { fail(`Ceiling design for “${id}”: ${error instanceof Error ? error.message : 'Design does not fit this room.'}`); }
+        }
+      }
+    }
   }
   let evidenceSize = 0;
   checkRecords(p.sources, 'Source', ['id', 'name', 'kind', 'notes', 'roomId', 'dataUrl', 'url', 'calibration'], source => {

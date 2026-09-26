@@ -1,0 +1,8 @@
+<!doctype html>
+<html lang="en"><head><meta charset="UTF-8"><title>Selection camera verification</title>
+<style>
+body{margin:0;background:#171d25;color:#eee;font:13px system-ui}header{padding:12px;height:185px;overflow:auto;box-sizing:border-box}button{padding:8px;margin:3px}pre{white-space:pre-wrap}#view{position:relative;width:min(100vw,800px);height:650px}#inspector{position:absolute;right:20px;top:80px;bottom:80px;width:272px;padding:20px;box-sizing:border-box;background:#26262ef5;border:1px solid #5c536a;border-radius:12px;pointer-events:none;z-index:2}#safe{position:absolute;left:24px;right:316px;top:80px;bottom:80px;border:1px dashed #a690c677;pointer-events:none;z-index:1}#inspector p{color:#b7afc1;line-height:1.7}
+</style></head><body><header><strong>Selection camera verification · real renderer / isolated demo</strong>
+<button id="run">Run camera checks</button><button id="reveal">Reveal wardrobe</button>
+<pre id="result">Ready. Check gentle framing, stable zoom and angle, cancellation, Top and reduced motion.</pre>
+</header><div id="view"><div id="safe"></div><aside id="inspector"><strong>Properties</strong><h3>Oak bedroom wardrobe</h3><p>This panel covers the same portion of the canvas as an inspector. The dashed area is the available view.</p></aside></div><script type="module" src="/src/render/selection-camera-qa.ts"></script></body></html>

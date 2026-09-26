@@ -61,12 +61,13 @@ export interface StructureAdapter { reconstruct(signal?: AbortSignal): Promise<{
 export interface CatalogAdapter { list(signal?: AbortSignal): Promise<CatalogAsset[]> }
 export interface DesignerAdapter { propose(scene: SceneDocument, revision: number, signal?: AbortSignal): Promise<AgentProposal> }
 export type ToolMode = 'select' | 'move' | 'rotate' | 'scale';
-export type ViewMode = 'perspective' | 'top';
+export type ViewMode = 'perspective' | 'top' | 'inside';
 export type WallMode = 'cutaway' | 'full' | 'hidden';
 export type QualityMode = 'balanced' | 'high';
 export type ViewportLayer = 'shell' | 'furniture' | 'services' | 'assumptions' | 'ceilings' | 'dimensions' | 'components' | 'clearances' | 'electrical' | 'water-hot' | 'water-cold' | 'waste' | 'ventilation' | 'heating' | 'gas' | 'data';
 export type ComponentTransformPatch = Partial<Pick<import('./renovation-contracts').BuildingComponent, 'position' | 'rotation' | 'dimensions' | 'host'>>;
 export interface ViewportCallbacks {
+  onViewChange?(view: ViewMode): void;
   onComponentTransform?(id: string, patch: ComponentTransformPatch): void;
   onWallEndpoint?(id: string, endpoint: 'start' | 'end', point: Vec2): void;
   onWallMove?(id: string, start: Vec2, end: Vec2): void;
@@ -81,7 +82,7 @@ export interface Viewport {
   animatePlacement(id: string): void;
   setSelection(id: string | null, furnitureIds?: string[]): void;
   setTool(tool: ToolMode): void;
-  setView(view: ViewMode): void;
+  setView(view: ViewMode): boolean | void;
   setSnap(enabled: boolean): void;
   setWalls(mode: WallMode): void;
   setQuality(mode: QualityMode): void;

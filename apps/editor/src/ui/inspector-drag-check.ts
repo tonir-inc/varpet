@@ -10,6 +10,16 @@ import { renderEntityInspector } from './inspector';
 export async function checkInspectorDrag(container: HTMLElement): Promise<string> {
   let count = 0;
   const check = (condition: unknown, label: string) => { if (!condition) throw new Error(label); count++; };
+  function syntheticTransfer() {
+    const data = new DataTransfer();
+    // Observe handler assignments even where native setters ignore synthetic
+    // events. The separate trusted-gesture QA proves actual browser effects.
+    Object.defineProperties(data, {
+      effectAllowed: { value: 'none', writable: true },
+      dropEffect: { value: 'none', writable: true },
+    });
+    return data;
+  }
   container.innerHTML = '<div data-stage style="position:relative;width:400px;height:240px"><canvas width="400" height="240" style="display:block;width:400px;height:240px"></canvas></div><div data-inspector></div>';
   const stage = container.querySelector<HTMLElement>('[data-stage]')!;
   const canvas = stage.querySelector('canvas')!;
@@ -17,14 +27,14 @@ export async function checkInspectorDrag(container: HTMLElement): Promise<string
   const store = new EditorStore(demoScene, localCatalog);
   const world = new THREE.Scene();
   const material = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
-  const wall = new THREE.Mesh(new THREE.BoxGeometry(3, 3, 0.2), material);
-  wall.userData = { finishEntityId: 'wall-south', finishSurfaces: { 4: 'wall-front', 5: 'wall-back' } };
+  const wall = new THREE.Mesh(new THREE.BoxGeometry(3, 3, 0.2), Array(6).fill(material));
+  wall.userData = { finishEntityId: 'wall-bedroom', finishSurfaces: { 4: 'wall-front', 5: 'wall-back' } };
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(3, 3), material);
   floor.rotation.x = -Math.PI / 2;
   floor.userData = { finishEntityId: 'room-kitchen', finishSurface: 'floor' };
   world.add(wall, floor);
   const camera = new THREE.PerspectiveCamera(45, 400 / 240, 0.1, 20);
-  let selected = 'wall-west';
+  let selected = 'wall-spine';
   let starts = 0, ends = 0, errors = 0;
   let brush: string | null = null;
   const execute = (operations: Operation[], label: string) => store.execute({ id: crypto.randomUUID(), source: 'human', baseRevision: store.revision, label, operations }, true).ok;
@@ -61,7 +71,7 @@ export async function checkInspectorDrag(container: HTMLElement): Promise<string
     return new DragEvent(type, { bubbles: true, cancelable: true, dataTransfer, clientX: outside ? rect.right + 30 : rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 });
   }
   function begin(button: HTMLButtonElement) {
-    const data = new DataTransfer();
+    const data = syntheticTransfer();
     const revision = store.revision;
     button.dispatchEvent(event('dragstart', data));
     check(data.getData(FINISH_DRAG_TYPE) === button.dataset.finish, 'Drag advertises the finish MIME payload');
@@ -80,20 +90,22 @@ export async function checkInspectorDrag(container: HTMLElement): Promise<string
     const data = begin(source);
     const over = event('dragover', data);
     canvas.dispatchEvent(over);
-    check(over.defaultPrevented && data.dropEffect === 'copy', 'A raycast wall target accepts the drag');
+    check(over.defaultPrevented, 'A raycast wall target accepts the drag');
+    check(data.dropEffect === 'copy', 'An accepted raycast wall target allows copying');
     check(!stage.querySelector<HTMLElement>('.finish-drop-hint')!.hidden, 'Dragging shows the surface preview hint');
+    check(stage.querySelector<HTMLElement>('.finish-drop-hint')!.textContent === 'Drop to apply Quiet sage', 'The raycast accepts the specific wall face as a valid drop target');
     canvas.dispatchEvent(event('drop', data));
-    check(finish('wall-south', 'wall-back')?.materialId === 'builtin-finish:sage', 'The hit wall side receives the paint, independently of the source swatch side');
-    check(!finish('wall-west', 'wall-front') && !finish('wall-south', 'wall-front'), 'Dropping does not paint the selected source or the other wall side');
+    check(finish('wall-bedroom', 'wall-back')?.materialId === 'builtin-finish:sage', 'The hit wall side receives the paint, independently of the source swatch side');
+    check(!finish('wall-spine', 'wall-front') && !finish('wall-bedroom', 'wall-front'), 'Dropping does not paint the selected source or the other wall side');
     check(store.revision === 1, 'A successful drag creates exactly one document revision');
     check(!source.isConnected, 'The committed drop re-renders and disconnects the original swatch');
     document.dispatchEvent(event('dragend', data));
     check(brush === null && ends === 1 && canvas.style.cursor === '', 'Document dragend clears the brush even after its source was disconnected');
     check(stage.querySelector<HTMLElement>('.finish-drop-hint')!.hidden, 'Drag completion removes the surface preview');
     store.undo();
-    check(!finish('wall-south', 'wall-back') && !store.canUndo, 'One undo reverses the entire dropped finish');
+    check(!finish('wall-bedroom', 'wall-back') && !store.canUndo, 'One undo reverses the entire dropped finish');
     store.redo();
-    check(finish('wall-south', 'wall-back')?.materialId === 'builtin-finish:sage', 'Redo restores the dropped finish');
+    check(finish('wall-bedroom', 'wall-back')?.materialId === 'builtin-finish:sage', 'Redo restores the dropped finish');
 
     const cancelSource = swatch('linen', 'wall-front');
     const cancelData = begin(cancelSource);
@@ -107,7 +119,7 @@ export async function checkInspectorDrag(container: HTMLElement): Promise<string
     check(store.revision === beforeCancel && brush === null && ends === 3, 'Canceling without any drop leaves the document unchanged');
 
     swatch('clay', 'wall-front').click();
-    check(finish('wall-west', 'wall-front')?.materialId === 'builtin-finish:clay', 'An ordinary click still applies to the selected wall side');
+    check(finish('wall-spine', 'wall-front')?.materialId === 'builtin-finish:clay', 'An ordinary click still applies to the selected wall side');
     selected = 'room-living'; aim('floor'); render();
     check([...inspector.querySelectorAll<HTMLButtonElement>('[data-finish]')].every(button => button.draggable), 'Floor Properties swatches must be draggable');
     const floorSource = swatch('oak', 'floor');
@@ -127,13 +139,18 @@ export async function checkInspectorDrag(container: HTMLElement): Promise<string
 
     const escapeSource = swatch('oak', 'floor');
     begin(escapeSource);
-    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    let bubbledEscapes = 0;
+    const observeEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') bubbledEscapes++; };
+    window.addEventListener('keydown', observeEscape);
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    window.removeEventListener('keydown', observeEscape);
     check(brush === null && starts === ends, 'Escape cancels the active finish drag');
+    check(bubbledEscapes === 0, 'Handled Escape does not reach normal editor keyboard shortcuts');
     begin(escapeSource);
     window.dispatchEvent(new Event('blur'));
     check(brush === null && starts === ends, 'Losing window focus cancels the active finish drag');
 
-    for (const id of ['room-living', 'wall-west']) {
+    for (const id of ['room-living', 'wall-spine']) {
       selected = id;
       for (const patch of [{ locked: true }, { locked: false, phase: 'remove' as const }]) {
         check(execute([{ type: 'set-metadata', id, patch }], 'Protect surface'), 'Surface metadata accepts the protection state');
@@ -146,10 +163,11 @@ export async function checkInspectorDrag(container: HTMLElement): Promise<string
       }
       check(execute([{ type: 'set-metadata', id, patch: { locked: false, phase: 'existing' } }], 'Restore surface'), 'Restoring the source enables editing');
     }
-    renderEntityInspector(inspector, 'wall-west', baseConfig);
+    renderEntityInspector(inspector, 'wall-spine', baseConfig);
     check([...inspector.querySelectorAll<HTMLButtonElement>('[data-finish]')].every(button => !button.draggable), 'Inspectors without drag integration keep click-only swatches');
-    return `Inspector drag checks passed: ${count} assertions.`;
+    return `Inspector drag checks passed: ${count} assertions. Copy-effect assignments are checked with writable synthetic properties; native effects use the trusted drag check below.`;
   } finally {
+    document.dispatchEvent(new DragEvent('dragend', { bubbles: true }));
     stop(); interaction.dispose(); wall.geometry.dispose(); floor.geometry.dispose(); material.dispose();
     container.innerHTML = '';
   }
@@ -164,7 +182,8 @@ export function mountNativeInspectorDragQA(container: HTMLElement) {
   const status = container.querySelector<HTMLElement>('[data-native-result]')!;
   const store = new EditorStore(demoScene, localCatalog);
   const world = new THREE.Scene();
-  const mesh = new THREE.Mesh(new THREE.BoxGeometry(3, 3, 0.2), new THREE.MeshBasicMaterial());
+  const material = new THREE.MeshBasicMaterial();
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(3, 3, 0.2), Array(6).fill(material));
   mesh.userData = { finishEntityId: 'wall-south', finishSurfaces: { 4: 'wall-front', 5: 'wall-back' } };
   world.add(mesh); world.updateMatrixWorld(true);
   const camera = new THREE.PerspectiveCamera(45, 400 / 240, 0.1, 20);
@@ -189,5 +208,5 @@ export function mountNativeInspectorDragQA(container: HTMLElement) {
   inspector.addEventListener('dragstart', event => write(`Native start: trusted=${event.isTrusted}; effectAllowed=${event.dataTransfer?.effectAllowed}; payload=${event.dataTransfer?.getData(FINISH_DRAG_TYPE)}`));
   canvas.addEventListener('drop', event => write(`Native drop: trusted=${event.isTrusted}; dropEffect=${event.dataTransfer?.dropEffect}`));
   const stop = store.subscribe(render); render();
-  return () => { stop(); interaction.dispose(); mesh.geometry.dispose(); mesh.material.dispose(); container.innerHTML = ''; };
+  return () => { stop(); interaction.dispose(); mesh.geometry.dispose(); material.dispose(); container.innerHTML = ''; };
 }

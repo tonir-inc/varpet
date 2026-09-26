@@ -2,6 +2,8 @@
 
 Furniture move, rotate and resize gestures display translucent red geometry over the conflicting area. Floor feedback covers only unsupported footprint regions; wall and furniture feedback covers intersecting bounds. A short status label names the conflict. The feedback clears as soon as the candidate is clear, on release or cancellation, and when selection, tool or camera changes cancel the gesture.
 
+Installed doors now contribute their solid frame/leaf and full opening/closing travel to this feedback; see [door placement feedback](door-placement-feedback.md) for mechanism coverage and verification.
+
 Feedback is temporary view state. Existing command validation, revisioning and undo behavior are unchanged. Furniture overlap remains a warning, and renovation v2 retains its existing warning policy. Doorway feedback distinguishes jambs, sills and lintels. Rugs, removed entities, floor elevations and vertical separation follow the existing checks; windows retain the current furniture barrier rule.
 
 Assumption: “objects” refers to catalog furniture. Building-component collision feedback and opening/wall gesture changes are outside this change.

@@ -129,6 +129,17 @@ try {
     assert(finishes.length === beforeCancel + 1 && finishes.at(-1)!.patch === null && !controller.active && captures.size === 0 && frames.size === 0, `${label}: cancellation clears the gesture without an edit`);
     assert(JSON.stringify(source) === original, `${label}: gestures never mutate the source document`);
 
+    if (dx === 0 && dz === 1) {
+      source.walls.push({ ...wall, id: 'alignment-reference', start: [...wall.end], end: [originX - 0.263, 4] });
+      begin(); controller.finish(false, shifted(0.233));
+      expectShift(finishes.at(-1)?.patch, 0.263);
+      snap = false;
+      begin(); controller.finish(false, shifted(0.233));
+      expectShift(finishes.at(-1)?.patch, 0.233);
+      snap = true;
+      source.walls.pop();
+    }
+
     begin(); controller.pointerMove(shifted(0.5));
     const beforeDispose = finishes.length;
     controller.dispose();

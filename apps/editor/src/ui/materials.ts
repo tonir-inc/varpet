@@ -1,4 +1,5 @@
 import { FINISH_DRAG_TYPE, FINISH_PRESETS, getFinishPreset, type FinishPreset } from '../core/finish-presets';
+import { createFinishSwatch } from './finish-swatch';
 import './materials.css';
 
 export interface MaterialsCallbacks {
@@ -44,11 +45,8 @@ export function createMaterialsUI(container: HTMLElement, callbacks: MaterialsCa
     card.setAttribute('aria-pressed', 'false');
     card.setAttribute('aria-label', `${preset.name}. ${preset.description}. Select, then click a ${preset.category === 'floor' ? 'floor' : 'wall'}, or drag to apply.`);
     card.title = `${preset.name} · ${preset.description}`;
-    const swatch = document.createElement('span');
-    swatch.className = `material-swatch material-swatch-${preset.pattern}`;
-    swatch.style.setProperty('--finish-color', preset.color);
-    swatch.style.setProperty('--finish-accent', preset.accent);
-    swatch.setAttribute('aria-hidden', 'true');
+    const swatch = createFinishSwatch(preset);
+    swatch.classList.add('material-swatch');
     const check = document.createElement('span');
     check.className = 'material-check';
     check.textContent = '✓';

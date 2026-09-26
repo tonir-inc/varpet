@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Finish preview verification</title>
+<style>
+  :root { --accent: #c2b6fa; --muted: #aaa2b4; }
+  body { margin: 24px; background: #1e1e24; color: #e2dce9; font: 13px system-ui; }
+  h1 { font-size: 20px; } h2 { font-size: 15px; } p { line-height: 1.5; }
+  #samples { display: flex; align-items: flex-start; gap: 24px; flex-wrap: wrap; }
+  .qa-panel { width: 300px; box-sizing: border-box; padding: 18px; border: 1px solid #45424b; border-radius: 12px; background: #27262e; }
+  button { cursor: pointer; color: inherit; font: inherit; } button[hidden] { display: none; }
+  .inspector-swatches button { display: flex; }
+  .property-section { margin: 18px 0; } .property-label { display: flex; justify-content: space-between; margin-bottom: 9px; }
+  .property-label > span, .field-note { color: #a8a1b4; font-size: 11px; }
+  .selected-asset-heading { display: flex; align-items: center; gap: 10px; } .asset-symbol svg { width: 24px; }
+  .selected-asset-heading h2 { margin: 6px 0; } .eyebrow { color: #aaa1b7; font-size: 11px; }
+  .inspector-advanced { display: none; } .inspector-assumption { color: #ded0b8; }
+</style>
+<h1>Finish preview verification</h1>
+<p id="results" role="status">Checking material samples…</p>
+<div id="samples"></div>
+<script type="module">
+  import { checkFinishPreviews } from './src/ui/finish-preview-check';
+  const result = document.querySelector('#results');
+  checkFinishPreviews(document.querySelector('#samples'), new URLSearchParams(location.search).has('fallback'))
+    .then(message => { result.textContent = message; })
+    .catch(error => { result.textContent = 'FAIL: ' + error.message; console.error(error); });
+</script>
+</html>

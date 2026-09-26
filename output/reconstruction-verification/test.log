@@ -1,0 +1,122 @@
+
+> varpet@ test /Users/davitstepanyan/Documents/varpet
+> pnpm -r test
+
+Scope: 5 of 6 workspace projects
+packages/designer test$ vitest run && python3 -m unittest discover -s ../../harness -p 'designer*_test.py'
+packages/engine test$ vitest run --passWithNoTests
+tools test$ node --test
+packages/engine test:  RUN  v5.0.2 /Users/davitstepanyan/Documents/varpet/packages/engine
+packages/designer test:  RUN  v5.0.2 /Users/davitstepanyan/Documents/varpet/packages/designer
+packages/engine test: No test files found, exiting with code 0
+packages/engine test: include: **/*.{test,spec}.?(c|m)[jt]s?(x)
+packages/engine test: exclude:  **/node_modules/**, **/.git/**
+packages/engine test: Done
+tools test: ✔ contract files and dirs are denied, ordinary source is allowed (399.739166ms)
+tools test: ✔ a NEW test file may be added; an existing one may not be deleted, weakened or skipped (781.53125ms)
+tools test: ✔ any package's test/ folder is protected from removal, not only the ones listed by name (277.943417ms)
+tools test: ✔ the Stop check reports by default and blocks only when asked (236.430334ms)
+tools test: ✔ a test file that is not committed yet (the agent's own draft) may be fixed; committed ones stay locked (482.261916ms)
+tools test: ✔ if git cannot answer, an uncommitted-looking test is treated as committed (fail closed) (125.997916ms)
+tools test: ✔ changing an expect() in a committed vitest file is denied like an assert (179.824417ms)
+tools test: ℹ tests 7
+tools test: ℹ suites 0
+tools test: ℹ pass 7
+tools test: ℹ fail 0
+tools test: ℹ cancelled 0
+tools test: ℹ skipped 0
+tools test: ℹ todo 0
+tools test: ℹ duration_ms 2588.611375
+tools test: Done
+packages/designer test:  Test Files  45 passed (45)
+packages/designer test:       Tests  215 passed (215)
+packages/designer test:    Start at  15:03:52
+packages/designer test:    Duration  7.97s (tests 86%, import 7%, transform 6%, worker 1%)
+packages/designer test: ...................................{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "conversationId": "6990d01ced844beb825262882110f45b", "outcome": "proposal", "seconds": 0.003, "usage": null}
+packages/designer test: ...{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "conversationId": "eddbfeb4cac241d8a5e1f9511a6ddc21", "outcome": "error", "seconds": 0.054, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "conversationId": "acd0e66b1a5249b38e28229a61c5047c", "outcome": "error", "seconds": 0.474, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "conversationId": "f6e8ef1e1b3d460c9e5b7979d7cd502d", "outcome": "error", "seconds": 0.368, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "conversationId": "e3af3d3a82d24bf8892e05d2af57bafc", "outcome": "error", "seconds": 0.047, "usage": null}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "conversationId": "837b109790e94ca790cac5664b295700", "outcome": "error", "seconds": 0.382, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "conversationId": "df0d1023e4e443a4afcc463d0c264680", "outcome": "aborted", "seconds": 0.234, "usage": null}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "conversationId": "586b20664a6740bb9dce07d6bf03ce5b", "outcome": "decline", "seconds": 0.056, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: ...{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "conversationId": "efe7638e195a4356bdbe28fb32d03006", "outcome": "error", "seconds": 0.293, "usage": null}
+packages/designer test: ..{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "conversationId": "9181155f33d045178971c2fb33745561", "outcome": "proposal", "seconds": 0.363, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: ..{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "conversationId": "556170a58a614515b91a500f99d6f32d", "outcome": "decline", "seconds": 0.066, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "conversationId": "925b8cbc5dd44d2c947a73e46339c07f", "outcome": "proposal", "seconds": 0.353, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "conversationId": "5d58524e42f141d4b0949655fd045841", "outcome": "question", "seconds": 0.06, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "conversationId": "74be76039032422bb7a46ed3ec8a76d4", "outcome": "proposal", "seconds": 0.343, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "conversationId": "74be76039032422bb7a46ed3ec8a76d4", "outcome": "decline", "seconds": 0.056, "usage": {"inputTokens": 0, "outputTokens": 0, "totalTokens": 0}}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "conversationId": "0b7eae21c8a54547a3b4eda3c21b7f54", "outcome": "error", "seconds": 0.064, "usage": null}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "conversationId": "48fa48f9d66e487ba60116e7974214d5", "outcome": "error", "seconds": 0.133, "usage": null}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "conversationId": "4b2cfd34cb8f4c4b80158f08f3a0e706", "outcome": "error", "seconds": 0.052, "usage": null}
+packages/designer test: ............
+packages/designer test: ----------------------------------------------------------------------
+packages/designer test: Ran 65 tests in 14.867s
+packages/designer test: OK
+packages/designer test: Done
+apps/editor test$ node scripts/check.mjs && node scripts/check-renovation.mjs && node scripts/check-openings.mjs && node scripts/check-finishes.mjs && node scripts/check-continuous-wall-finishes.mjs && node scripts/check-continuous-finish-render.mjs && node scripts/check-finish-texture-presets.mjs && node scripts/check-finish-textures.mjs && node scripts/check-placement.mjs && node scripts/check-walls.mjs && node scripts/check-wall-controller.mjs && node scripts/check-grouping.mjs && node scripts/check-plan-move.mjs && node scripts/check-inspector.mjs && node scripts/check-motion.mjs && node scripts/check-transform-motion.mjs && node scripts/check-projection-motion.mjs && node scripts/check-cutaway.mjs && node scripts/check-wall-junctions.mjs && node scripts/check-apartment-junctions.mjs && node scripts/check-plan-layers.mjs && node scripts/check-plan-measurements.mjs && node scripts/check-selection-camera.mjs && node scripts/check-room-camera.mjs && node scripts/check-walkthrough.mjs && node scripts/check-structural-surfaces.mjs && node scripts/check-heights.mjs && node scripts/check-interior-lighting.mjs && node scripts/check-walkthrough-camera.mjs && node scripts/check-database-catalog.mjs && node scripts/check-assets.mjs && node --test server/catalog.test.mjs && node scripts/check-walkthrough-view.mjs && node scripts/check-architect.mjs && node scripts/check-reconstruction-proposal.mjs
+apps/editor test: Domain checks passed (265 assertions).
+apps/editor test: Renovation checks passed (102 assertions).
+apps/editor test: Reconstruction and handoff checks passed (29 assertions).
+apps/editor test: Opening clearance: 80 assertions passed.
+apps/editor test: Finish regressions passed: 92 assertions across 5 scenarios.
+apps/editor test: Continuous wall finish regressions passed: 76 assertions across 21 scenarios.
+apps/editor test: Continuous finish rendering checks passed (29 assertions).
+apps/editor test: Finish texture preset checks passed (33 assertions).
+apps/editor test: Finish texture checks passed (24 assertions).
+apps/editor test: Door barrier checks passed (5922 assertions).
+apps/editor test: Placement conflict checks passed (358 assertions).
+apps/editor test: Wall movement checks passed (87 assertions).
+apps/editor test: Wall controller checks passed (423 assertions; 6 wall directions in Top and 3D). Preview rendering requires browser verification.
+apps/editor test: PASS grouping preserves placement, migrates explicitly, and saves membership
+apps/editor test: PASS moving any member translates the whole group once and undo restores all
+apps/editor test: PASS rotation orbits members about the selected piece without changing scale or spacing
+apps/editor test: PASS invalid, stale, unapproved and locked-member transforms are atomic
+apps/editor test: PASS invalid membership is rejected and regrouping requires complete existing groups
+apps/editor test: PASS ungroup preserves transforms and subsequent moves affect one piece
+apps/editor test: PASS delete dissolves singleton groups and undo restores membership
+apps/editor test: PASS baseline and options retain independent group membership
+apps/editor test: PASS imports reject invalid group IDs, singleton groups and version 1 membership
+apps/editor test: PASS 9 grouping checks
+apps/editor test: Plan movement checks passed (283 assertions).
+apps/editor test: Inspector regressions passed: 102 assertions across 10 scenarios.
+apps/editor test: Editor motion checks passed (52 assertions).
+apps/editor test: Transform motion checks passed (11 assertions).
+apps/editor test: Projection motion checks passed (16 assertions).
+apps/editor test: Cutaway checks passed (421 assertions).
+apps/editor test: Wall junction checks passed (64 assertions).
+apps/editor test: Apartment wall junction checks passed (35 assertions).
+apps/editor test: Plan layers checks passed (51 assertions).
+apps/editor test: Plan selection measurements: 92 assertions passed.
+apps/editor test: Selection camera checks passed (78 assertions).
+apps/editor test: Room camera checks passed (1012 assertions).
+apps/editor test: Walkthrough geometry: 36 assertions passed.
+apps/editor test: Structural surface checks passed (155 assertions).
+apps/editor test: Height checks passed: legacy ceilings meet the wall tops.
+apps/editor test: Height configuration checks passed: 35 assertions.
+apps/editor test: Interior lighting checks passed (25 assertions).
+apps/editor test: Walkthrough camera checks passed (87 assertions).
+apps/editor test: Database catalog store checks passed
+apps/editor test: Database catalog mapping checks passed
+apps/editor test: Database startup and saved-reference checks passed
+apps/editor test: Database import, browsing, and currency checks passed
+apps/editor test: assets: 22 checks passed
+apps/editor test: ✔ search uses the real SDK, honors session/SSE, and merges raw dimensions, model and provenance (32.947667ms)
+apps/editor test: ✔ saved item hydration deduplicates ids and reports missing records without fake products (6.777375ms)
+apps/editor test: ✔ vocabulary is returned directly from the database tool (2.175125ms)
+apps/editor test: ✔ remote errors and invalid detail identities return sanitized unavailable responses (7.115083ms)
+apps/editor test: ✔ the request deadline aborts stalled upstream requests (63.422334ms)
+apps/editor test: ✔ invalid or mutating requests never call the catalog and unrelated routes pass through (4.329042ms)
+apps/editor test: ℹ tests 6
+apps/editor test: ℹ suites 0
+apps/editor test: ℹ pass 6
+apps/editor test: ℹ fail 0
+apps/editor test: ℹ cancelled 0
+apps/editor test: ℹ skipped 0
+apps/editor test: ℹ todo 0
+apps/editor test: ℹ duration_ms 284.95725
+apps/editor test: Walkthrough view checks passed (41 assertions).
+apps/editor test: architect adapter check passed
+apps/editor test: Reconstruction proposal checks passed (16 assertions).
+apps/editor test: Done

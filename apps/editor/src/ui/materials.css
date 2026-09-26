@@ -14,12 +14,7 @@
 .material-card:active, .material-card.is-dragging { cursor: grabbing; }
 .material-card[aria-pressed="true"] { border-color: #c6b3ef; background: #3c3348; box-shadow: 0 0 0 1px #c6b3ef44; }
 .material-card.is-dragging { border-color: #c6b3ef; opacity: .65; }
-.material-swatch { position: relative; display: block; width: 100%; height: 81px; margin-bottom: 9px; overflow: hidden; background-color: var(--finish-color); border-bottom: 1px solid #0002; }
-.material-swatch::after { position: absolute; inset: 0; content: ''; pointer-events: none; background: linear-gradient(145deg, #ffffff1c, #ffffff00 55%, #00000012); }
-.material-swatch-tile { background-image: linear-gradient(0deg, var(--finish-accent) 1px, transparent 1px), linear-gradient(90deg, var(--finish-accent) 1px, transparent 1px); background-size: 27px 27px; background-position: -2px -2px; }
-.material-swatch-wood { background-image: repeating-linear-gradient(91deg, transparent 0 3px, #ffffff0d 3px 4px, transparent 4px 7px, #0000000a 7px 8px), linear-gradient(90deg, var(--finish-accent) 1px, transparent 1px), repeating-linear-gradient(0deg, #00000013 0 1px, transparent 1px 66px); background-size: 100% 100%, 18px 100%, 36px 100%; }
-.material-swatch-terrazzo { background-image: radial-gradient(ellipse at 18% 24%, var(--finish-accent) 0 1.7px, transparent 2px), radial-gradient(ellipse at 67% 73%, #f5f0e2 0 2px, transparent 2.5px), radial-gradient(ellipse at 39% 81%, #6e6d664f 0 1px, transparent 1.5px), radial-gradient(ellipse at 78% 18%, var(--finish-accent) 0 1.4px, transparent 1.8px); background-size: 19px 21px, 26px 23px, 16px 27px, 31px 17px; }
-.material-swatch-solid { background-image: radial-gradient(ellipse at 30% 15%, #ffffff1a, transparent 80%); }
+.material-swatch { margin-bottom: 9px; border-bottom: 1px solid #0002; }
 .material-check { position: absolute; top: 7px; right: 7px; z-index: 1; display: flex; align-items: center; justify-content: center; width: 19px; height: 19px; border: 1px solid #e7dcff; border-radius: 50%; background: #544267; color: #f0e8ff; font-size: 11px; line-height: 1; opacity: 0; transform: scale(.8); transition: opacity 140ms ease, transform 140ms ease; }
 .material-card[aria-pressed="true"] .material-check { opacity: 1; transform: scale(1); }
 .material-name { padding: 0 8px; color: #e4e0e8; font-size: 10px; font-weight: 550; line-height: 1.4; }

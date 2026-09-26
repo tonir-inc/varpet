@@ -3,7 +3,10 @@ import { measureFloorPlanRoom, type FloorPlanRoomMeasurement } from '../core/flo
 import { componentPosition, componentRotation } from '../core/geometry';
 import { objectFootprint } from '../core/validation';
 import { createPlanMove, previewPlanMove, type PlanMove } from '../core/plan-move';
+import type { SceneNormalizer } from '../core/store';
+import { defaultPlanLayers, planConnectionPoints, planRouteBands, routeEndpointLabel, routeLength, serviceColors, serviceLabels, visiblePlanRoutes, type PlanLayers } from '../core/plan-layers';
 import '../ui/floor-plan.css';
+import { drawPlanSelectionMeasurements, updatePlanMeasurementDetails } from './plan-measurements';
 
 export interface FloorPlan {
   setScene(scene: SceneDocument, catalog?: CatalogAsset[]): void;
@@ -63,7 +66,7 @@ function shortName(name: string, characters: number): string[] {
 }
 
 /** Disposable SVG projection; gestures propose checked operations to the document owner. */
-export function createFloorPlan(container: HTMLElement, onSelect: (id: string | null) => void, callbacks?: FloorPlanCallbacks): FloorPlan {
+export function createFloorPlan(container: HTMLElement, onSelect: (id: string | null) => void, callbacks?: FloorPlanCallbacks, normalizeScene?: SceneNormalizer): FloorPlan {
   const hatchId = `plan-wall-hatch-${++planSequence}`;
   const root = html('div', 'floor-plan');
   root.hidden = true;
@@ -91,6 +94,28 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
   }
   const legendNote = html('p', 'fp-legend-note', 'Dashed door swing = not recorded · Faded outline = removal');
   legend.append(legendHeading, legendItems, legendNote);
+  for (const system of ['electrical', 'water-hot', 'water-cold', 'waste'] as const) {
+    const item = html('span', `fp-legend-item fp-service-key fp-key-${system}`);
+    const swatch = html('span', `fp-swatch fp-swatch-service fp-swatch-${system}`);
+    swatch.style.color = serviceColors[system]; swatch.setAttribute('aria-hidden', 'true');
+    item.append(swatch, document.createTextNode(serviceLabels[system])); legendItems.append(item);
+  }
+  const layers: PlanLayers = { ...defaultPlanLayers };
+  const layerControls = html('div', 'fp-layers');
+  layerControls.setAttribute('role', 'group'); layerControls.setAttribute('aria-label', 'Plan layers');
+  const planOnly = html('button', 'fp-plan-only', 'Plan only');
+  planOnly.type = 'button'; planOnly.dataset.planOnly = ''; planOnly.title = 'Show walls, rooms and openings without models or services';
+  planOnly.addEventListener('click', () => changeLayers({ models: false, electrical: false, water: false }));
+  layerControls.append(planOnly);
+  const layerInputs = new Map<keyof PlanLayers, HTMLInputElement>();
+  for (const [key, name] of [['models', 'Models'], ['electrical', 'Lighting cables'], ['water', 'Water pipes']] as const) {
+    const wrapper = html('label', `fp-layer fp-layer-${key}`);
+    const input = html('input', ''); input.type = 'checkbox'; input.checked = layers[key]; input.dataset.planLayer = key;
+    input.addEventListener('change', () => changeLayers({ ...layers, [key]: input.checked }));
+    wrapper.append(input, document.createTextNode(name)); layerInputs.set(key, input); layerControls.append(wrapper);
+  }
+  const layerStatus = html('p', 'fp-layer-status'); layerStatus.setAttribute('role', 'status');
+  layerControls.append(layerStatus);
   const detail = html('div', 'fp-detail');
   detail.setAttribute('aria-live', 'polite');
   const detailHeading = html('strong', 'fp-detail-heading');
@@ -120,7 +145,7 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
   const empty = html('div', 'fp-empty');
   empty.append(html('strong', '', 'Your apartment plan starts here'), html('p', '', 'Add rooms and walls in Renovate to see the layout and dimensions.'));
   empty.hidden = true;
-  root.append(drawing, header, legend, detail, controls, hint, empty, status);
+  root.append(drawing, header, legend, layerControls, detail, controls, hint, empty, status);
   container.append(root);
 
   let scene: SceneDocument | null = null;
@@ -149,21 +174,36 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
     const component = scene?.project?.components.find(item => item.id === id);
     const host = component?.host ? scene?.walls.find(wall => wall.id === component.host?.wallId) : scene?.walls.find(wall => wall.openings.some(opening => opening.id === id));
     if (host && meta(host.id).phase === 'remove') return 'remove';
-    return component?.phase ?? meta(id).phase;
+    return component?.phase ?? scene?.project?.routes.find(route => route.id === id)?.phase ?? meta(id).phase;
   }
   function phaseNote(id: string): string {
     const value = phase(id);
     return value ? `Phase: ${{ existing: 'existing', retain: 'retained', remove: 'marked for removal', new: 'new', replace: 'replacement' }[value]}.` : '';
   }
   function getAllPoints(): Vec2[] {
-    return scene ? [...scene.rooms.flatMap(room => room.polygon), ...scene.walls.flatMap(wall => [wall.start, wall.end]), ...scene.objects.flatMap(object => {
+    return scene ? [...scene.rooms.flatMap(room => room.polygon), ...scene.walls.flatMap(wall => [wall.start, wall.end]), ...(layers.models ? scene.objects.flatMap(object => {
       const asset = catalog.find(item => item.id === object.assetId);
       return asset ? objectFootprint(object, asset) : [[object.position[0], object.position[2]] as Vec2];
-    }), ...(scene.project?.components.flatMap(component => {
+    }) : []), ...(layers.models ? scene.project?.components.flatMap(component => {
       const radius = Math.hypot(component.dimensions[0], component.dimensions[2]) / 2;
       const position = componentPosition(scene!, component);
       return [[position[0] - radius, position[2] - radius], [position[0] + radius, position[2] + radius]] as Vec2[];
-    }) ?? [])] : [];
+    }) ?? [] : []), ...visiblePlanRoutes(scene, layers).flatMap(route => route.points.map(point => [point[0], point[2]] as Vec2)),
+    ...planConnectionPoints(scene, layers).map(({ position }) => [position[0], position[2]] as Vec2)] : [];
+  }
+  function entityVisible(id: string): boolean {
+    if (!scene) return false;
+    if (scene.objects.some(object => object.id === id)) return layers.models;
+    if (scene.project?.routes.some(route => route.id === id)) return visiblePlanRoutes(scene, layers).some(route => route.id === id);
+    if (scene.project?.components.some(component => component.id === id)) return layers.models || planConnectionPoints(scene, layers).some(point => point.component.id === id);
+    return true;
+  }
+  function changeLayers(next: PlanLayers): void {
+    cancelInteraction();
+    Object.assign(layers, next);
+    for (const [key, input] of layerInputs) input.checked = layers[key];
+    if (selection && !entityVisible(selection)) { selection = null; onSelect(null); }
+    schedule();
   }
   function schedule(): void {
     if (!visible || disposed || frame) return;
@@ -184,10 +224,12 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
     cancelInteraction();
     if (!visible) { fitted = false; return; }
     let points = getAllPoints();
+    if (id && !entityVisible(id)) id = undefined;
     const room = scene?.rooms.find(item => item.id === id);
     const wall = scene?.walls.find(item => item.id === id || item.openings.some(opening => opening.id === id));
     const component = scene?.project?.components.find(item => item.id === id);
     const object = scene?.objects.find(item => item.id === id);
+    const route = scene?.project?.routes.find(item => item.id === id);
     if (object) {
       const asset = catalog.find(item => item.id === object.assetId);
       if (asset) points = objectFootprint(object, asset);
@@ -197,9 +239,9 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
       const radius = Math.max(1, Math.hypot(component.dimensions[0], component.dimensions[2]));
       const position = componentPosition(scene!, component);
       points = [[position[0] - radius, position[2] - radius], [position[0] + radius, position[2] + radius]];
-    }
+    } else if (route) points = route.points.map(point => [point[0], point[2]]);
     const box = bounds(points);
-    const top = 142;
+    const top = width < 600 ? 224 : 202;
     const bottom = 152;
     const horizontal = width < 600 ? 30 : 62;
     const availableWidth = Math.max(100, width - horizontal * 2);
@@ -381,6 +423,67 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
       world.append(group);
     }
   }
+  function drawServices(): void {
+    if (!scene) return;
+    const bands = planRouteBands(visiblePlanRoutes(scene, layers));
+    const casings = svg('g', { 'pointer-events': 'none', 'aria-hidden': 'true' });
+    world.append(casings);
+    const rises = new Map<string, number>();
+    for (const { route, width: strokeWidth, overlapping } of bands) {
+      if (!route.points.length) continue;
+      const color = serviceColors[route.system];
+      const points = route.points.map(point => [point[0], point[2]] as Vec2);
+      const from = routeEndpointLabel(scene, route.from), to = routeEndpointLabel(scene, route.to);
+      const group = selectable(route.id, `${route.name}, ${serviceLabels[route.system]}, ${from} to ${to}, ${metres(routeLength(route))}`, 'fp-service-route');
+      group.dataset.system = route.system;
+      const attrs = { points: pointString(points), fill: 'none', 'vector-effect': 'non-scaling-stroke', 'stroke-linejoin': 'round', 'stroke-linecap': 'round' };
+      // All white casings sit behind every colored route. Shared runs use nested
+      // bands so one pipe cannot erase another pipe on the same projected path.
+      casings.append(svg('polyline', { ...attrs, stroke: selection === route.id ? '#b59bd8' : '#fffdfa', 'stroke-width': strokeWidth + (selection === route.id ? 6 : 3) }));
+      group.append(svg('polyline', { ...attrs, stroke: 'transparent', 'stroke-width': overlapping ? strokeWidth : 14, class: 'fp-route-hit' }));
+      group.append(svg('polyline', { ...attrs, stroke: color, 'stroke-width': strokeWidth, 'stroke-dasharray': route.system === 'waste' ? '7 4' : route.system === 'water-hot' ? '10 3' : 'none', class: 'fp-route-line', 'pointer-events': 'none' }));
+      const vertical = points.every(point => Math.hypot(point[0] - points[0]![0], point[1] - points[0]![1]) < 1e-7);
+      let risePoint: Vec2 | undefined;
+      if (vertical) {
+        const key = points[0]!.join(','); const index = rises.get(key) ?? 0; rises.set(key, index + 1);
+        risePoint = add(points[0]!, [1, 0], (24 + index * 28) / scale);
+        line(group, points[0]!, risePoint, { stroke: color, 'stroke-width': 1, 'stroke-dasharray': '2 2' });
+        const badge = svg('g', { class: 'fp-route-rise' });
+        badge.append(svg('circle', { cx: risePoint[0], cy: risePoint[1], r: 10 / scale, fill: '#fffdfa', stroke: color, 'stroke-width': 1.5, 'vector-effect': 'non-scaling-stroke' }));
+        const symbol = label(badge, risePoint, '↕', 'fp-service-symbol', 13); symbol.setAttribute('fill', color);
+        const title = svg('title'); title.textContent = `Vertical route: ${route.name}`; badge.append(title); group.append(badge);
+      }
+      for (const [index, id] of [[0, route.from], [points.length - 1, route.to]] as const) {
+        let point = points[index]!;
+        const connected = !!id && !!scene.project?.components.some(component => component.id === id);
+        if (risePoint) point = add(risePoint, [0, index === 0 ? -1 : 1], 15 / scale);
+        else if (connected) {
+          const neighbor = (index === 0 ? points : [...points].reverse()).find(other => Math.hypot(other[0] - point[0], other[1] - point[1]) > 1e-7)!;
+          const length = Math.hypot(neighbor[0] - point[0], neighbor[1] - point[1]);
+          point = add(point, [(neighbor[0] - point[0]) / length, (neighbor[1] - point[1]) / length], 16 / scale);
+        }
+        const terminal = svg('circle', { cx: point[0], cy: point[1], r: (connected ? 4 : 5) / scale, fill: connected ? color : '#fffdfa', stroke: color, 'stroke-width': 1.7, 'vector-effect': 'non-scaling-stroke', class: `fp-route-terminal ${connected ? 'is-connected' : 'is-unconnected'}` });
+        const title = svg('title'); title.textContent = routeEndpointLabel(scene, id); terminal.append(title); group.append(terminal);
+      }
+      if (selection === route.id) label(group, add(risePoint ?? middle(points[0]!, points.at(-1)!), [0, -1], risePoint ? 28 / scale : 17 / scale), route.name, 'fp-service-label', 11);
+      world.append(group);
+    }
+    const symbols: Record<string, string> = { switch: 'S', outlet: 'O', panel: 'E', junction: 'J', sink: 'W', toilet: 'WC', shower: 'SH', bath: 'B', drain: 'D', valve: 'V', riser: 'R' };
+    for (const { component, position, systems } of planConnectionPoints(scene, layers)) {
+      const point: Vec2 = [position[0], position[2]];
+      const color = systems[0] ? serviceColors[systems[0]] : '#397c94';
+      const group = selectable(component.id, `${component.name}, ${component.kind}`, 'fp-service-point');
+      group.append(svg('circle', { cx: point[0], cy: point[1], r: 9 / scale, fill: '#fffdfa', stroke: selection === component.id ? '#8c71c9' : color, 'stroke-width': selection === component.id ? 3 : 1.7, 'vector-effect': 'non-scaling-stroke' }));
+      if (component.kind === 'light') {
+        for (const direction of [-1, 1]) line(group, add(point, [-1, -direction], 5 / scale), add(point, [1, direction], 5 / scale), { stroke: color, 'stroke-width': 1.5 });
+      } else {
+        const symbol = label(group, point, symbols[component.kind] ?? component.kind[0]!.toUpperCase(), 'fp-service-symbol', 9);
+        symbol.setAttribute('fill', color);
+      }
+      if (selection === component.id) label(group, add(point, [0, -1], 20 / scale), component.name, 'fp-service-label', 11);
+      world.append(group);
+    }
+  }
   function drawWallHandles(): void {
     const wall = scene?.walls.find(item => item.id === selection);
     if (!wall || !callbacks || !documentScene || !createPlanMove(documentScene, wall.id)) return;
@@ -402,7 +505,12 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
     const opening = openingWall?.openings.find(item => item.id === selection);
     const component = scene?.project?.components.find(item => item.id === selection);
     const object = scene?.objects.find(item => item.id === selection);
-    if (object) {
+    const route = scene?.project?.routes.find(item => item.id === selection);
+    if (route && scene) {
+      detailHeading.textContent = `${route.name} · ${serviceLabels[route.system]}`;
+      metric(metres(routeLength(route)), 'Route length'); metric(`${Math.round(route.diameter * 1000)} mm`, 'Diameter');
+      detailNote.textContent = `${routeEndpointLabel(scene, route.from)} → ${routeEndpointLabel(scene, route.to)}${route.circuit ? ` · Circuit: ${route.circuit}` : ''}. Recorded path, including elevation changes.`;
+    } else if (object) {
       detailHeading.textContent = object.name;
       metric(metres(object.position[0]), 'Position X'); metric(metres(object.position[2]), 'Position Z');
       detailNote.textContent = 'Drag to move · Furniture snaps to 0.25 m · Shift-drag for finer placement';
@@ -434,8 +542,8 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
       detailHeading.textContent = 'Explore the apartment';
       detailNote.textContent = 'Select a room for its area and dimensions. Walls, doors and windows are selectable too.';
     }
-    if (selection && (room || wall || opening || component || object)) detailNote.textContent = [phaseNote(selection), detailNote.textContent].filter(Boolean).join(' ');
-    detail.classList.toggle('fp-detail-overview', !room && !wall && !opening && !component && !object);
+    if (selection && (room || wall || opening || component || object || route)) detailNote.textContent = [phaseNote(selection), detailNote.textContent].filter(Boolean).join(' ');
+    detail.classList.toggle('fp-detail-overview', !room && !wall && !opening && !component && !object && !route);
   }
   function render(): void {
     if (!visible || !scene || disposed) return;
@@ -448,13 +556,15 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
     world = svg('g', { transform: `translate(${panX} ${panY}) scale(${scale})` });
     drawing.replaceChildren(defs, world);
     for (const room of scene.rooms) drawRoom(room);
-    drawFurniture();
+    if (layers.models) drawFurniture();
     for (const wall of scene.walls) drawWall(wall);
     for (const wall of scene.walls) for (const opening of wall.openings) drawOpening(wall, opening);
-    drawComponents();
+    if (layers.models) drawComponents();
     const selectedRoom = selection ? measurements.get(selection) : undefined;
     if (selectedRoom) drawDimensions(selectedRoom);
     for (const room of scene.rooms) drawRoomLabel(room);
+    drawServices();
+    drawPlanSelectionMeasurements(world, scene, catalog, selection, scale, layers.models);
     drawWallHandles();
     if (activeId) [...drawing.querySelectorAll<SVGElement>('[data-entity-id]')].find(element => element.getAttribute('data-entity-id') === activeId)?.focus({ preventScroll: true });
     const hasGeometry = getAllPoints().length > 0;
@@ -465,7 +575,20 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
     const activeRooms = scene.rooms.filter(room => phase(room.id) !== 'remove');
     summary.textContent = `${activeRooms.length} ${activeRooms.length === 1 ? 'room' : 'rooms'} · ${area(activeRooms.reduce((sum, room) => sum + (measurements.get(room.id)?.area ?? 0), 0))} modeled floor area`;
     scaleLabel.textContent = `${Math.round(scale / fitScale * 100)}%`;
+    planOnly.setAttribute('aria-pressed', String(!layers.models && !layers.electrical && !layers.water));
+    root.classList.toggle('fp-has-services', layers.electrical || layers.water);
+    for (const item of legendItems.querySelectorAll<HTMLElement>('.fp-service-key')) item.hidden = item.classList.contains('fp-key-electrical') ? !layers.electrical : !layers.water;
+    const routes = visiblePlanRoutes(scene, layers);
+    const cableCount = routes.filter(route => route.system === 'electrical').length;
+    const pipeCount = routes.length - cableCount;
+    layerStatus.textContent = [
+      layers.electrical ? cableCount ? `${cableCount} ${cableCount === 1 ? 'cable' : 'cables'}` : 'No lighting cables recorded' : '',
+      layers.water ? pipeCount ? `${pipeCount} water ${pipeCount === 1 ? 'route' : 'routes'}` : 'No water pipes recorded' : '',
+      (layers.electrical && !cableCount) || (layers.water && !pipeCount) ? 'Add routes in Renovate → Systems' : routes.length ? 'Filled end = connected · Open end = not connected' : '',
+    ].filter(Boolean).join(' · ');
+    layerStatus.hidden = !layerStatus.textContent;
     renderDetail();
+    updatePlanMeasurementDetails(detail, detailMetrics, scene, catalog, selection);
   }
   const resizeObserver = new ResizeObserver(resize);
   resizeObserver.observe(root);
@@ -480,14 +603,14 @@ export function createFloorPlan(container: HTMLElement, onSelect: (id: string | 
   }
   function setSnap(enabled: boolean): void {
     snapEnabled = enabled;
-    snapButton.textContent = enabled ? 'Snap on' : 'Snap off';
+    snapButton.textContent = enabled ? 'Snap on' : 'Smooth';
     snapButton.setAttribute('aria-pressed', String(enabled));
-    snapButton.title = 'Furniture: 0.25 m · Walls, openings and fixtures: 0.05 m · Hold Shift for finer placement';
+    snapButton.title = 'Furniture: 0.25 m · Walls: 90° alignments and 0.05 m · Openings and fixtures: 0.05 m · Hold Shift for smooth movement';
   }
   function resolvePreview(): void {
     if (!pointer?.move || !pointer.dirty) return;
     pointer.dirty = false;
-    const result = previewPlanMove(pointer.move, pointer.delta, pointer.snap, catalog);
+    const result = previewPlanMove(pointer.move, pointer.delta, pointer.snap, catalog, normalizeScene);
     pointer.operation = result.operation; pointer.error = result.error;
     project(result.scene ?? pointer.move.source);
     status.hidden = false;

@@ -9,7 +9,7 @@ export class StudioStage {
   /** Pedestal bounds for camera framing; deliberately excludes studio scenery. */
   readonly bounds = new THREE.Box3();
 
-  private readonly limestone = new THREE.MeshStandardMaterial({ color: '#d9cbb7', roughness: 0.71, metalness: 0.04 });
+  private readonly border = new THREE.MeshStandardMaterial({ color: '#6e6e6e', roughness: 0.9, metalness: 0 });
   private readonly charcoal = new THREE.MeshStandardMaterial({ color: '#161b20', roughness: 0.43, metalness: 0.24 });
   private readonly recess = new THREE.MeshStandardMaterial({ color: '#090c10', roughness: 0.78 });
   private readonly brass = new THREE.MeshStandardMaterial({ color: '#a88754', roughness: 0.36, metalness: 0.72 });
@@ -19,7 +19,7 @@ export class StudioStage {
   });
   private readonly groundPoolScale = { value: new THREE.Vector2(1, 1) };
   private readonly groundSpan = { value: 180 };
-  private readonly cap = this.makeSlab(this.limestone);
+  private readonly cap = this.makeSlab(this.border);
   private readonly reveal = this.makeSlab(this.recess);
   private readonly body = this.makeSlab(this.charcoal);
   private readonly trim = this.makeSlab(this.brass);
@@ -261,7 +261,7 @@ export class StudioStage {
     if (this.disposed) return;
     this.disposed = true;
     this.group.traverse(object => { if (object instanceof THREE.Mesh) object.geometry.dispose(); });
-    for (const material of [this.limestone, this.charcoal, this.recess, this.brass, this.groundMaterial, this.shadowMaterial, this.inlayMaterial, this.backdropMaterial]) material.dispose();
+    for (const material of [this.border, this.charcoal, this.recess, this.brass, this.groundMaterial, this.shadowMaterial, this.inlayMaterial, this.backdropMaterial]) material.dispose();
     this.group.removeFromParent();
     this.group.clear();
     this.bounds.makeEmpty();

@@ -1,3 +1,4 @@
+import { roomCeilingHeight, DEFAULT_CEILING_HEIGHT } from '../core/heights';
 import './renovation.css';
 import type { BuildingComponent, CatalogAsset, ComponentKind, EntityMetadata, EvidenceSource, FinishMaterial, Opening, Operation, ProjectTask, PropertyAssumption, RenovationPhase, RenovationProject, Room, SceneDocument, ServiceRoute, ServiceSystem, Vec2, Vec3, Wall } from '../contracts';
 import { analyzeProject } from '../core/renovation';
@@ -150,7 +151,7 @@ export function createRenovationUI(container: HTMLElement, config: RenovationUIO
   function roomForm(room?: Room) {
     const r=room ?? {id:'',name:'New room',polygon:[[0,0],[4,0],[4,3],[0,3]] as Vec2[],color:'#b7a38d'};
     const m=room?meta(room.id):{};
-    return form('room',`<div class="rv-fields">${field('name','Room name',r.name,'text','required')}${select('zone','Space type',m.zone ?? 'interior',[['interior','Interior room'],['balcony','Balcony'],['loggia','Loggia'],['terrace','Terrace']])}${number('elevation','Floor elevation (m)',m.elevation ?? 0)}${number('ceilingHeight','Ceiling height (m)',m.ceilingHeight ?? 2.8,0.01)}${field('color','Floor display colour',r.color,'color')}${textarea('polygon','Boundary points · X, Z (m)',r.polygon.map(v=>v.join(', ')).join('\n'),'0, 0\n4, 0\n4, 3\n0, 3')}</div>${submit(room?'Apply room geometry':'Add room')}`,room?.id);
+    return form('room',`<div class="rv-fields">${field('name','Room name',r.name,'text','required')}${select('zone','Space type',m.zone ?? 'interior',[['interior','Interior room'],['balcony','Balcony'],['loggia','Loggia'],['terrace','Terrace']])}${number('elevation','Floor elevation (m)',m.elevation ?? 0)}${number('ceilingHeight','Ceiling height (m)',room ? roomCeilingHeight(config.getScene(), room) : DEFAULT_CEILING_HEIGHT,0.01)}${field('color','Floor display colour',r.color,'color')}${textarea('polygon','Boundary points · X, Z (m)',r.polygon.map(v=>v.join(', ')).join('\n'),'0, 0\n4, 0\n4, 3\n0, 3')}</div>${submit(room?'Apply room geometry':'Add room')}`,room?.id);
   }
   function shellView() {
     const scene=config.getScene();

@@ -2,6 +2,16 @@ import type { Room, Wall, Opening, SceneObject, Vec2, Vec3 } from './contracts';
 
 export type RenovationPhase = 'existing' | 'retain' | 'remove' | 'new' | 'replace';
 export type StructuralRole = 'structural' | 'partition' | 'unknown';
+export type CeilingStyle = 'quiet' | 'soft-glow' | 'architectural';
+/** Room-owned conceptual ceiling treatment. Distances are metres; brightness is visual percent. */
+export interface CeilingDesign {
+  style: CeilingStyle;
+  drop: number;
+  inset: number;
+  brightness: number;
+  temperature: number;
+  enabled: boolean;
+}
 export interface EntityMetadata {
   name?: string;
   structuralRole?: StructuralRole;
@@ -13,6 +23,7 @@ export interface EntityMetadata {
   zone?: 'interior' | 'balcony' | 'loggia' | 'terrace';
   elevation?: number;
   ceilingHeight?: number;
+  ceilingDesign?: CeilingDesign | null;
   role?: 'entrance' | 'interior' | 'balcony' | 'access';
   mechanism?: 'hinged' | 'sliding' | 'pocket' | 'fixed' | 'casement' | 'tilt' | 'double';
   hinge?: 'left' | 'right';

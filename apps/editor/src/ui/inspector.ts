@@ -1,8 +1,13 @@
+import { bindHeightControl, heightControlMarkup } from './height-controls';
+import { hasRoomCeiling } from '../core/heights';
 import './inspector.css';
 import type { CatalogAsset, EntityMetadata, Operation, SceneDocument, SceneObject } from '../contracts';
 import { buildAssetReplacementOperations, buildOpeningTypeOperations, OPENING_TYPES } from '../core/inspector-edits';
 import { buildFinishOperations, FINISH_DRAG_TYPE, FINISH_PRESETS, getPresetForMaterial, type FinishPreset } from '../core/finish-presets';
+import { wallSurfaceSpans } from '../core/wall-surfaces';
+import { resolveWallFinishTargets } from '../core/wall-finish-targets';
 import { icon } from './icons';
+import { fillFinishSwatches } from './finish-swatch';
 
 interface InspectorOptions {
   getScene(): SceneDocument;
@@ -11,6 +16,7 @@ interface InspectorOptions {
   notice(message: string, error?: boolean): void;
   refresh(): void;
   advanced(): void;
+  showFullHeight?(): void;
   getDoorAngle(id: string): number;
   testDoor(id: string, angle: number): void;
   onFinishDragStart?(preset: FinishPreset): void;
@@ -79,17 +85,28 @@ export function renderEntityInspector(container: HTMLElement, id: string, config
     body += `<form id="inspector-opening"><fieldset ${disabled}><div class="property-label">Opening dimensions <span>m</span></div><div class="field-grid two">${number('width','Opening width',opening.width,0.01)}${number('height','Opening height',opening.height,0.01)}${number('offset','Offset along wall',opening.offset)}${number('sill',opening.kind === 'window' ? 'Sill height' : 'Opening base',opening.sill)}</div><p class="field-note">Wall opening size; the frame reduces usable space.</p><details class="inspector-details"><summary>Frame &amp; orientation</summary><div class="field-grid two">${number('frameWidth','Frame width',meta.frameWidth ?? 0.05)}${number('leafThickness','Leaf thickness',meta.leafThickness ?? 0.04,0.001)}</div>${choices('hinge','Hinge side',meta.hinge ?? '',[['','Unspecified'],['left','Left at wall start'],['right','Right at wall end']])}${choices('swing','Opening direction',meta.swing === undefined ? '' : String(meta.swing),[['','Unspecified'],['1','Wall side A'],['-1','Wall side B']])}<p class="field-note">Unspecified frame dimensions use provisional preview values.</p></details><button class="button full" type="submit">Apply dimensions</button></fieldset><p class="inspector-error" role="alert" hidden></p></form>`;
   } else if (room || selectedWall) {
     const surfaces = room ? [['floor','Floor finish']] as const : [['wall-front','Wall side A'],['wall-back','Wall side B']] as const;
+    const spans = selectedWall ? wallSurfaceSpans(selectedWall, scene.rooms, scene.project?.metadata) : [];
     body = surfaces.map(([surface, label]) => {
+      if (selectedWall && !spans.some(span => surface === 'wall-front' ? span.front : span.back)) {
+        return `<section class="property-section"><div class="property-label">${label}<span>Exterior</span></div><p class="field-note">Fixed neutral gray outside the apartment.</p></section>`;
+      }
       const finish = scene.project?.finishes.find(f => f.entityId === id && f.surface === surface);
       const material = scene.project?.materials.find(m => m.id === finish?.materialId);
-      const current = getPresetForMaterial(material);
-      return `<section class="property-section"><div class="property-label">${label}<span>${esc(material?.name ?? 'Original')}</span></div><div class="inspector-swatches" role="group" aria-label="${label}">${FINISH_PRESETS.filter(p => p.category === (room ? 'floor' : 'wall')).map(preset => `<button type="button" data-finish="${preset.id}" data-surface="${surface}" title="${esc(preset.description)}" aria-label="${label}: ${esc(preset.name)}" aria-pressed="${current?.id === preset.id && material?.color.toLowerCase() === preset.color.toLowerCase()}" ${disabled}><span style="background:${preset.color}" aria-hidden="true"></span><span>${esc(preset.name)}</span></button>`).join('')}</div></section>`;
+      const targets = surface === 'floor' ? [{ entityId: id, surface }] : resolveWallFinishTargets(scene, id, surface);
+      const mixed = targets.some(target => {
+        const assigned = scene.project?.finishes.find(f => f.entityId === target.entityId && f.surface === target.surface);
+        return assigned?.materialId !== finish?.materialId || (!assigned && selectedWall && scene.walls.find(w => w.id === target.entityId)?.color !== selectedWall.color);
+      });
+      const current = mixed ? undefined : getPresetForMaterial(material);
+      return `<section class="property-section"><div class="property-label">${label}<span>${esc(mixed ? 'Mixed finishes' : material?.name ?? 'Original')}</span></div>${targets.length > 1 ? '<p class="field-note">Applies to the entire continuous wall face in this room.</p>' : ''}<div class="inspector-swatches" role="group" aria-label="${label}">${FINISH_PRESETS.filter(p => p.category === (room ? 'floor' : 'wall')).map(preset => `<button type="button" data-finish="${preset.id}" data-surface="${surface}" title="${esc(preset.description)}" aria-label="${label}: ${esc(preset.name)}. ${esc(preset.description)}" aria-pressed="${current?.id === preset.id && material?.color.toLowerCase() === preset.color.toLowerCase()}" ${disabled}><span data-finish-preview="${preset.id}"></span><span class="inspector-finish-caption">${esc(preset.name)}${preset.category === 'floor' ? `<small>${esc(preset.description)}</small>` : ''}</span></button>`).join('')}</div></section>`;
     }).join('');
-    if (config.onFinishDragStart && config.onFinishDragEnd && !disabled) body = `<p class="field-note">Drag a finish onto ${room ? 'a floor' : 'a wall face'}, or click to apply it here.</p>${body}`;
+    if (config.onFinishDragStart && config.onFinishDragEnd && !disabled) body = `<p class="field-note">Drag a finish onto ${room ? 'a floor' : 'a room-facing wall surface'}, or click to apply it here.</p>${body}`;
+    if (selectedWall || (room && hasRoomCeiling(scene, room))) body = heightControlMarkup(scene, { kind: selectedWall ? 'wall' : 'room', id }, !!disabled) + body;
   } else if (component) {
     body = `<section class="property-section"><div class="property-label">Finish</div><div class="finish-row"><input id="component-color" type="color" aria-label="Component finish color" value="${esc(component.color)}" ${disabled}><span>${esc(component.color)}</span></div></section><div class="property-section"><div class="property-label">Dimensions <span>m</span></div><p class="field-note">${component.dimensions.map(d => Number(d.toFixed(3))).join(' × ')}</p></div>`;
   } else if (route) body = `<p class="field-note">${esc(pretty(route.system))} route · ${route.points.length} points</p>`;
   container.innerHTML = `${heading(name,kind)}${locked ? '<p class="inspector-assumption">Model editing is locked. Open Renovate to unlock.</p>' : removed ? '<p class="inspector-assumption">Marked for removal. Restore this item in Renovate to edit.</p>' : ''}${body}${assumptions.length ? `<section class="property-section"><div class="property-label">Property evidence</div>${assumptions.map(a => `<p class="field-note"><strong>${esc(a.property)}</strong> · ${esc(a.status)}<br>${esc(a.value || a.question || 'Unknown')}</p>`).join('')}</section>` : ''}<div class="inspector-advanced"><button id="inspector-advanced" type="button" class="button full">${icon('walls')} More in Renovate ${icon('arrow')}</button><p class="field-note">${scene.project?.mode === 'renovate' ? 'Editing a renovation proposal.' : 'Correcting the existing model.'} Changes can be undone.</p></div>`;
+  if (room || selectedWall) bindHeightControl(container, config, { kind: selectedWall ? 'wall' : 'room', id });
   container.querySelector<HTMLButtonElement>('#inspector-advanced')!.onclick = config.advanced;
   container.querySelectorAll<HTMLButtonElement>('[data-opening-type]').forEach(button => button.onclick = () => commit(config, () => buildOpeningTypeOperations(config.getScene(), id, button.dataset.openingType as NonNullable<EntityMetadata['mechanism']>), `Change ${kind} type to ${button.textContent}`));
   const range = container.querySelector<HTMLInputElement>('#inspector-angle');
@@ -129,6 +146,7 @@ export function renderEntityInspector(container: HTMLElement, id: string, config
       message.hidden = false; message.textContent = error instanceof Error ? error.message : 'Check the dimensions.';
     }
   };
+  fillFinishSwatches(container);
   container.querySelectorAll<HTMLButtonElement>('[data-finish]').forEach(button => {
     const preset = FINISH_PRESETS.find(p => p.id === button.dataset.finish)!;
     let dragging = false;
@@ -157,7 +175,10 @@ export function renderEntityInspector(container: HTMLElement, id: string, config
       window.addEventListener('dragend', end, options);
       button.addEventListener('dragend', end, options);
       window.addEventListener('blur', end, options);
-      window.addEventListener('keydown', event => { if (event.key === 'Escape') end(); }, options);
+      window.addEventListener('keydown', event => {
+        if (event.key !== 'Escape') return;
+        event.preventDefault(); event.stopPropagation(); end();
+      }, options);
       event.dataTransfer.effectAllowed = 'copy';
       event.dataTransfer.setData(FINISH_DRAG_TYPE, preset.id);
       event.dataTransfer.setData('text/plain', preset.id);

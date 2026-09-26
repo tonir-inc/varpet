@@ -1,11 +1,12 @@
 import type { CatalogAsset, SceneDocument, SceneObject, Vec2 } from '../contracts';
+import { doorBarriers } from './door-barriers';
 import { floorSupported, objectFootprint, polygonsOverlap, wallCollision, wallFootprint } from './validation';
 
 const EPS = 1e-5;
 type Segment = [Vec2, Vec2];
 
 export interface PlacementConflict {
-  kind: 'support' | 'wall' | 'overlap';
+  kind: 'support' | 'wall' | 'overlap' | 'door' | 'door-swing';
   entityId?: string;
   /** World X/Z coordinates; regions have positive area and do not include the valid portion of the footprint. */
   polygon: Vec2[];
@@ -161,6 +162,12 @@ export function placementConflicts(scene: SceneDocument, catalog: CatalogAsset[]
       cursor = passage.offset + passage.width;
     }
     if (cursor < length - EPS) addWall(cursor, length);
+  }
+  for (const barrier of doorBarriers(scene)) {
+    const conflictBottom = Math.max(bottom, barrier.bottom), conflictTop = Math.min(top, barrier.top);
+    if (conflictTop <= conflictBottom + EPS) continue;
+    const polygon = intersection(footprint, barrier.polygon);
+    if (polygon.length) result.push({ ...barrier, polygon, bottom: conflictBottom, top: conflictTop });
   }
   if (asset.kind !== 'rug') for (const other of scene.objects) {
     if (other.id === candidate.id || scene.project?.metadata[other.id]?.phase === 'remove') continue;

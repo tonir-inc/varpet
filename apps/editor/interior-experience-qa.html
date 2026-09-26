@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Interior experience verification</title>
+<style>
+*{box-sizing:border-box}html,body{height:100%;margin:0}body{display:grid;grid-template-rows:auto minmax(0,1fr);background:#171d25;color:#eef0ed;font:13px system-ui}header{padding:12px 18px;border-bottom:1px solid #ffffff24}header strong{margin-right:18px}button,input{padding:7px 11px;margin:3px;border:1px solid #ffffff35;border-radius:5px;background:#2d3741;color:inherit}button{cursor:pointer}button:disabled{opacity:.5;cursor:wait}input{background:#131a21}#diagnostic{color:#cbdcd8;margin:6px 3px;font-variant-numeric:tabular-nums}#help{margin:4px 3px;color:#aeb8c1}details{margin:7px 3px 0}summary{cursor:pointer}pre{white-space:pre-wrap;max-height:170px;overflow:auto;margin:8px 0 0;font-size:12px}#view{position:relative;min-height:0;overflow:hidden}
+</style></head><body><header>
+<strong>Interior experience · isolated demo</strong><button id="living">Living</button><button id="kitchen">Kitchen</button><button id="bedroom">Bedroom</button><button id="studio">Studio</button><button id="run">Run interior checks</button><input id="typing" placeholder="Typing must not walk" aria-label="Typing must not walk">
+<div id="diagnostic" aria-live="off">Waiting for first rendered frame…</div><p id="help">Drag to look · W A S D / arrows to walk · Escape to Studio · Eye height 1.65 m</p>
+<details id="checks"><summary id="status">Ready to verify motion, lens, windows and lighting</summary><pre id="result">Ready.</pre></details>
+</header><div id="view"></div><script type="module" src="/src/render/interior-experience-qa.ts"></script></body></html>

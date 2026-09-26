@@ -2,7 +2,7 @@
 
 This document describes the **editor-local provisional v1 contract** in `src/contracts.ts`. It is not the shared engine schema. Map teammate outputs at the adapter boundary when the engine contract lands; do not make service payloads or Three.js objects the editor's source of truth.
 
-No network endpoints are prescribed or connected. The initial application uses local deterministic adapters. Authentication, upload, deployment, service discovery, and transport retries belong to later service integration.
+Furniture uses the shared database catalog through same-origin `/api/catalog/*` endpoints in the Vite development and preview servers. The server connects over MCP to `http://100.107.246.46:8765/mcp`; override it with server-only `VARPET_CATALOG_URL`. Set `VITE_ARCHITECT_URL` to connect real reconstruction; without it the architect uses the local mock. Designer examples remain local. See [Database furniture](database-furniture.md) for model loading, provenance, persistence and verification.
 
 ## Coordinates and identity
 
@@ -79,7 +79,11 @@ const structure = {
 };
 ```
 
-Wrap the returned geometry in a `replace-structure` operation, retain the revision from before the asynchronous request, and show the change for approval. The operation contains the complete new room/wall arrays; it is not a patch to one wall. Furniture remains part of the scene and must still pass validation against the proposed structure. Structure is read-only through furniture tools in v1.
+For live reconstruction, `createReconstructionProposal` wraps the returned geometry in a fresh v2 apartment and one `replace-scene` operation. Preview and Apply use the same empty shell: old furniture, systems, finishes, baseline and options are removed together, so furniture from an unrelated footprint cannot prevent the import. Original source attachments survive without obsolete room assignments; the currency preference is retained. The review describes the replacement, and one undo restores the complete previous project. The local mock still uses `replace-structure`, preserving its existing behavior.
+
+Retain the revision from before the asynchronous request and show the change for approval. A newer edit makes the result stale; never replace the newer scene. Failed or rejected imports leave the current apartment untouched.
+
+With the architect harness available, run `cd harness && uv run varpet-harness serve` and start the editor with `VITE_ARCHITECT_URL=http://127.0.0.1:8788/`. Connect → Architect LIVE → Choose plan and photos sends the plan (the filename containing “plan”, or the first file) plus up to four photos to `/structure`. Streamed progress appears in the editor; the final result becomes a Reconstruction review proposal. `pnpm --filter @varpet/editor test:architect` checks transport and empty-shell approval/history behavior without calling a model.
 
 Before connecting real output, verify units, orientation, wall opening offsets, polygon validity, stable IDs, and the intended treatment of existing furniture. Do not guess the final shared-engine axes from this local contract.
 
@@ -135,7 +139,7 @@ Keep source URLs stable, supply browser-accessible files and any needed CORS hea
 
 The current shape has no currency, SKU metadata, attribution, availability, or asset-version fields. Keep these in the catalog service until an agreed contract extension exists. Do not silently overload `name`, `category`, or `id` with serialized metadata.
 
-**The catalog is immutable for a store session.** `EditorStore` freezes its constructor catalog and exposes no catalog-update API. For a real connection, resolve and validate the catalog before constructing the store. The demo refresh returns equivalent entries; replacing only the UI's catalog array with new IDs or dimensions would make rendering and validation disagree. Live catalog changes need an explicit future transition that validates every current reference and accounts for history. Changing dimensions under an existing ID changes an object's physical size.
+**Existing catalog entries are immutable for a store session.** `EditorStore.registerCatalogAssets` validates and freezes additional database entries before the UI can place them. It rejects changes under an existing ID, preserving dimensions used by the current scene and undo/redo history. Browsing does not change scene revisions. Imports resolve all furniture IDs, including baseline and option snapshots, before scene validation. Unused search records are pruned while all current/baseline/option/history references are retained. The 1,000-entry limit applies to that retained set, rather than all previously browsed products.
 
 ## Approval and revisions
 

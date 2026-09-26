@@ -5,6 +5,10 @@ room floor, or a paint sample onto a visible wall face. Alternatively, select a
 sample and click the surface. Escape cancels the brush. Selecting wall paint
 shows full walls so there is a face to paint.
 
+Paint covers the [continuous wall face](continuous-wall-finishes.md) in the
+room, including structural sections split by a partition on the opposite side.
+Hover previews the full affected face, and the change is one undo action.
+
 Eight floor samples cover tiles, stone, wood and terrazzo; eight wall colors are
 available. A soft circular reveal expands from the actual hit point over one
 second. The reveal follows the surface plane and respects openings. The other

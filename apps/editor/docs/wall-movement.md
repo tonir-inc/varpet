@@ -1,5 +1,7 @@
 # Moving connected walls
 
+Wall gestures now also support optional angle/alignment snapping; see [Snap and Smooth](wall-snapping.md) for behavior and current verification.
+
 In 3D or Top view, select a wall and choose Move (`G`). Drag its purple center arrow, or drag the selected wall itself, to slide the complete wall perpendicular to its length. The two endpoint spheres remain available for changing individual corners.
 
 The temporary preview uses the same connected geometry operation and validation as the committed edit. Shared corners, adjoining wall endpoints, room boundaries, openings and hosted components follow the wall. Split wall junctions are inserted into room boundaries when needed; only geometry with overlapping vertical extents follows. Grid snapping uses 0.05 m increments for wall movement. Release to apply the entire connected change as one undo step; Escape, pointer cancellation, changing tools or changing views cancels the preview. Clicking a handle without moving creates no edit.

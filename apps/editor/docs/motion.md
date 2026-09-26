@@ -1,5 +1,7 @@
 # Editor motion rules
 
+Inside walking-camera behavior and its verification are recorded in [Inside walkthrough](walkthrough.md): immediate room entry/exit, direct drag/look and grounded movement, input interruption, and idle rendering. The [current walking response](walkthrough-camera.md#walking-response) uses 2.8 m/s with elapsed-time movement on frames up to 250 ms and a release tail below 7.5 cm; avoid capping ordinary slow frames to 50 ms, which makes navigation slow down with rendering.
+
 Motion should make the connection between an action and its result easy to follow. A visible state change must have an intentional transition or a documented reason to be immediate. These rules apply to future editor changes as well as the existing UI.
 
 ## Required behavior
@@ -22,6 +24,7 @@ Motion should make the connection between an action and its result easy to follo
 | Panels and surfaces | 220 ms | ease-out |
 | Committed transforms and wall display | 280 ms | cubic ease-out |
 | Camera framing | 420 ms | cubic ease-out |
+| Room selection framing | 650 ms | cubic ease-out |
 
 Placement lift/landing and finish painting have specialized existing choreography; keep those in their own visual layer rather than restarting them for ordinary edits.
 
@@ -45,6 +48,7 @@ Implemented 2026-09-26. `render/motion.ts` owns the shared timeline and timings;
 | Add, duplicate, restore, remove | 220 ms appearance/removal alongside the existing placement effect. Removed objects leave picking immediately and dispose after the fade. |
 | Full/cutaway/hidden walls, camera-driven cutaway | 280 ms fade with a small threshold dead band to prevent orbit flicker. |
 | Frame selection/apartment, 3D/Top framing | 420 ms camera movement. Switching perspective/orthographic projection itself is immediate; projection-matrix morphing is not implemented. |
+| Select an object covered by Properties | 420 ms minimal pan into the clear viewport with 24 px beside the panel. Preserves viewing angle, zoom and orbit distance; already-visible selections stay still. |
 | Sidebar, inspector, selection chip, modal, toast | Short entrance/feedback transitions; closing controls disappear immediately so keyboard focus cannot enter an invisible surface. |
 | Door/window preview and finish painting | Existing motion retained; reduced-motion changes now settle both during playback. |
 
@@ -52,10 +56,13 @@ Intentional immediate changes in this pass: first load and different document ID
 
 ### Lessons incorporated into the rules
 
+- Room selection frames the full room volume inside the canvas area left by Properties and toolbars. Preserve the current azimuth and lift grazing views to at least 35°. See [room camera verification](room-camera.md). Ordinary furniture selection keeps its minimal pan.
+
 - Keep three levels for furniture: checked root → matrix presentation offset → placement visual. A matrix offset avoids shear errors when rotation and nonuniform scale change together; the placement lift remains independent.
 - Do not restart a motion on an unchanged `setScene` refresh. Saving or refreshing inspector content must not prolong an animation.
 - Sample then cancel when removing an animating entity. Finishing its transform or resetting its opacity makes it jump before fading. Keep outgoing furniture under a layer-controlled, non-pickable root.
 - Cancel camera framing before **any** canvas gesture computes a pointer ray, including walls, opening handles, and endpoints.
+- Selection reveal runs after the inspector opens and pointer-up completes. Measure its final layout (excluding its entrance transform), project every bounding-box corner at its own depth, and translate camera and orbit target together. Do not trigger reveal from inspector refreshes; cancel queued reveal when explicit framing or view switching takes over. See [selection camera verification](selection-camera.md).
 - Restore exact opacity, transparency, depth-write and shadow state on the last frame. An epsilon-based idle cutoff can strand materials in their transient state.
 - Preserve finish shader material identity. Generic material cloning loses shader hooks/uniform behavior; only fade projection-owned materials and do not overlap parent/child fades on shared materials.
 - Keep drag-created shell previews initialized immediately in the current wall mode; rebuilding them per pointer frame must not restart fades.

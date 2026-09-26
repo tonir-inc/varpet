@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { SceneDocument } from '../contracts';
-import { getPresetForMaterial } from '../core/finish-presets';
+import { getPresetForMaterial, type FinishPreset } from '../core/finish-presets';
+import { acquireFinishTexture } from './finish-textures';
 
 export type FinishSurface = 'floor' | 'wall-front' | 'wall-back';
 export interface FinishReveal {
@@ -18,13 +19,21 @@ export interface FinishAppearance {
   pattern: number;
   size: [number, number];
   roughness: number;
+  texture?: FinishPreset['texture'];
 }
 export interface FinishMaterialProjection {
   material: THREE.MeshStandardMaterial;
+  /** Settles after both reveal appearances have loaded or fallen back. */
+  ready: Promise<void>;
   update(now: number): boolean;
 }
 
 const patternIds = { solid: 0, tile: 1, wood: 2, terrazzo: 3 } as const;
+
+export function appearanceForPreset(preset: FinishPreset): FinishAppearance {
+  return { color: preset.color, accent: preset.accent, pattern: patternIds[preset.pattern],
+    size: preset.size, roughness: preset.roughness, texture: preset.texture };
+}
 
 /** Project assignments and their stored colors always win over catalog defaults. */
 export function finishAppearance(document: SceneDocument, entityId: string, surface: string, fallback: string, jointSpacing?: number): FinishAppearance {
@@ -37,6 +46,7 @@ export function finishAppearance(document: SceneDocument, entityId: string, surf
     pattern: preset ? patternIds[preset.pattern] : material || !jointSpacing ? 0 : 4,
     size: preset?.size ?? [1, jointSpacing ?? 1],
     roughness: preset?.roughness ?? (surface === 'floor' ? 0.84 : 0.94),
+    texture: preset?.texture,
   };
 }
 
@@ -48,6 +58,14 @@ uniform vec4 uFinishPattern;
 uniform vec3 uFinishPreviousBase;
 uniform vec3 uFinishPreviousAccent;
 uniform vec4 uFinishPreviousPattern;
+uniform sampler2D uFinishColorMap;
+uniform sampler2D uFinishRoughnessMap;
+uniform vec2 uFinishTextureRepeat;
+uniform float uFinishTextureEnabled;
+uniform sampler2D uFinishPreviousColorMap;
+uniform sampler2D uFinishPreviousRoughnessMap;
+uniform vec2 uFinishPreviousTextureRepeat;
+uniform float uFinishPreviousTextureEnabled;
 uniform vec3 uFinishAxisU;
 uniform vec3 uFinishAxisV;
 uniform vec3 uFinishOrigin;
@@ -118,6 +136,45 @@ vec3 finishColorAt(vec2 p, vec3 base, vec3 accent, vec4 spec) {
   float joint = 1.0 - smoothstep(0.001 - aa, 0.001 + aa, edge);
   return mix(base, accent, joint * 0.095);
 }
+
+vec2 finishTextureUv(vec2 p, vec4 spec, vec2 repeatSize) {
+  if (spec.x > 1.5 && spec.x < 2.5) {
+    vec2 size = max(spec.yz, vec2(0.02));
+    float row = floor(p.y / size.y);
+    vec2 plankPoint = vec2(p.x + mod(row, 3.0) * size.x / 3.0, p.y);
+    vec2 cell = floor(plankPoint / size);
+    // Every plank samples another part of the veneer, with grain along U.
+    return (plankPoint - cell * size) / repeatSize
+      + vec2(finishHash(cell + 23.1), finishHash(cell + 59.7));
+  }
+  return p / repeatSize;
+}
+float finishTextureJoint(vec2 p, vec4 spec) {
+  vec2 size = max(spec.yz, vec2(0.02));
+  if (spec.x > 0.5 && spec.x < 1.5) return finishJoint(p, size, 0.0018);
+  if (spec.x > 1.5 && spec.x < 2.5) {
+    float row = floor(p.y / size.y);
+    return finishJoint(vec2(p.x + mod(row, 3.0) * size.x / 3.0, p.y), size, 0.0011);
+  }
+  return 0.0;
+}
+vec3 finishSurfaceAt(vec2 p, vec3 base, vec3 accent, vec4 spec,
+    sampler2D colorMap, vec2 repeatSize, float enabled) {
+  if (enabled < 0.5) return finishColorAt(p, base, accent, spec);
+  // Catalog images are tint-ready: their average sRGB #c8 converts to this
+  // linear value. Normalize it so an edited finish retains its chosen color.
+  vec3 sampled = texture2D(colorMap, finishTextureUv(p, spec, repeatSize)).rgb;
+  vec3 surface = base * sampled / 0.57758044;
+  float joint = finishTextureJoint(p, spec);
+  bool wood = spec.x > 1.5 && spec.x < 2.5;
+  return mix(surface, wood ? accent * 0.74 : accent, joint * (wood ? 0.60 : 0.82));
+}
+float finishRoughnessAt(vec2 p, vec4 spec, sampler2D roughnessMap, vec2 repeatSize, float enabled) {
+  if (enabled < 0.5) return spec.w;
+  float detail = texture2D(roughnessMap, finishTextureUv(p, spec, repeatSize)).g;
+  float surface = clamp(spec.w * (0.75 + detail * 0.5), 0.04, 1.0);
+  return mix(surface, 0.94, finishTextureJoint(p, spec));
+}
 `;
 
 /** Physical coordinates keep every wall segment, tile, and reveal continuous around openings. */
@@ -127,6 +184,12 @@ export function makeFinishMaterial(
   transition?: { reveal: FinishReveal; previous: FinishAppearance; radius: number },
 ): FinishMaterialProjection {
   const previous = transition?.previous ?? appearance;
+  const currentTexture = appearance.texture && acquireFinishTexture(appearance.texture);
+  const previousTexture = previous.texture && acquireFinishTexture(previous.texture);
+  // Samplers always have valid storage, including while images are loading.
+  const fallbackTexture = new THREE.DataTexture(new Uint8Array([200, 200, 200, 255]), 1, 1);
+  fallbackTexture.colorSpace = THREE.SRGBColorSpace;
+  fallbackTexture.needsUpdate = true;
   const pattern = (value: FinishAppearance) => new THREE.Vector4(value.pattern, value.size[0], value.size[1], value.roughness);
   const feather = transition ? Math.min(0.24, Math.max(0.10, transition.radius * 0.025)) : 0.1;
   const active = !!transition && !transition.reveal.reducedMotion;
@@ -139,6 +202,14 @@ export function makeFinishMaterial(
     uFinishPreviousBase: { value: new THREE.Color(previous.color) },
     uFinishPreviousAccent: { value: new THREE.Color(previous.accent) },
     uFinishPreviousPattern: { value: pattern(previous) },
+    uFinishColorMap: { value: fallbackTexture as THREE.Texture },
+    uFinishRoughnessMap: { value: fallbackTexture as THREE.Texture },
+    uFinishTextureRepeat: { value: new THREE.Vector2(...(currentTexture?.repeat ?? [1, 1] as const)) },
+    uFinishTextureEnabled: { value: 0 },
+    uFinishPreviousColorMap: { value: fallbackTexture as THREE.Texture },
+    uFinishPreviousRoughnessMap: { value: fallbackTexture as THREE.Texture },
+    uFinishPreviousTextureRepeat: { value: new THREE.Vector2(...(previousTexture?.repeat ?? [1, 1] as const)) },
+    uFinishPreviousTextureEnabled: { value: 0 },
     uFinishAxisU: { value: axes.u },
     uFinishAxisV: { value: axes.v },
     uFinishOrigin: { value: new THREE.Vector3(...(transition?.reveal.point ?? [0, 0, 0] as const)) },
@@ -147,7 +218,7 @@ export function makeFinishMaterial(
     uFinishProgress: { value: active ? 0 : 1 },
   };
   const material = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: appearance.roughness });
-  material.customProgramCacheKey = () => 'varpet-finish-world-v1';
+  material.customProgramCacheKey = () => 'varpet-finish-world-v2';
   material.onBeforeCompile = shader => {
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = shader.vertexShader
@@ -159,14 +230,16 @@ export function makeFinishMaterial(
         #include <color_fragment>
         vec3 finishTint = diffuseColor.rgb;
         vec2 finishUv = vec2(dot(vFinishWorld, uFinishAxisU), dot(vFinishWorld, uFinishAxisV));
-        vec3 finishNext = finishColorAt(finishUv, uFinishBase, uFinishAccent, uFinishPattern);
+        vec3 finishNext = finishSurfaceAt(finishUv, uFinishBase, uFinishAccent, uFinishPattern,
+          uFinishColorMap, uFinishTextureRepeat, uFinishTextureEnabled);
         float finishBlend = 1.0;
         if (uFinishProgress < 1.0) {
           vec3 relative = vFinishWorld - uFinishOrigin;
           float distanceFromDrop = length(vec2(dot(relative, uFinishAxisU), dot(relative, uFinishAxisV)));
           float featherWidth = max(uFinishFeather, fwidth(distanceFromDrop) * 1.5);
           finishBlend = 1.0 - smoothstep(uFinishRadius - featherWidth, uFinishRadius + featherWidth, distanceFromDrop);
-          vec3 finishBefore = finishColorAt(finishUv, uFinishPreviousBase, uFinishPreviousAccent, uFinishPreviousPattern);
+          vec3 finishBefore = finishSurfaceAt(finishUv, uFinishPreviousBase, uFinishPreviousAccent, uFinishPreviousPattern,
+            uFinishPreviousColorMap, uFinishPreviousTextureRepeat, uFinishPreviousTextureEnabled);
           diffuseColor.rgb = mix(finishBefore, finishNext, finishBlend);
           float rim = 1.0 - smoothstep(0.0, featherWidth, abs(distanceFromDrop - uFinishRadius));
           diffuseColor.rgb *= 1.0 + rim * 0.025;
@@ -175,12 +248,41 @@ export function makeFinishMaterial(
         }
         diffuseColor.rgb *= finishTint;
       `)
-      .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor = mix(uFinishPreviousPattern.w, uFinishPattern.w, finishBlend);');
+      .replace('#include <roughnessmap_fragment>', /* glsl */`
+        #include <roughnessmap_fragment>
+        float finishRoughness = finishRoughnessAt(finishUv, uFinishPattern,
+          uFinishRoughnessMap, uFinishTextureRepeat, uFinishTextureEnabled);
+        if (finishBlend < 1.0) {
+          float finishPreviousRoughness = finishRoughnessAt(finishUv, uFinishPreviousPattern,
+            uFinishPreviousRoughnessMap, uFinishPreviousTextureRepeat, uFinishPreviousTextureEnabled);
+          finishRoughness = mix(finishPreviousRoughness, finishRoughness, finishBlend);
+        }
+        roughnessFactor = finishRoughness;
+      `);
   };
   let disposed = false;
-  material.addEventListener('dispose', () => { disposed = true; });
+  material.addEventListener('dispose', () => {
+    if (disposed) return;
+    disposed = true;
+    currentTexture?.release(); previousTexture?.release(); fallbackTexture.dispose();
+  });
+  const ready = Promise.all([
+    currentTexture?.ready.then(success => {
+      if (!success || disposed || !currentTexture) return;
+      uniforms.uFinishColorMap.value = currentTexture.color;
+      uniforms.uFinishRoughnessMap.value = currentTexture.roughness;
+      uniforms.uFinishTextureEnabled.value = 1;
+    }),
+    previousTexture?.ready.then(success => {
+      if (!success || disposed || !previousTexture) return;
+      uniforms.uFinishPreviousColorMap.value = previousTexture.color;
+      uniforms.uFinishPreviousRoughnessMap.value = previousTexture.roughness;
+      uniforms.uFinishPreviousTextureEnabled.value = 1;
+    }),
+  ]).then(() => {});
   return {
     material,
+    ready,
     update(now) {
       if (disposed || !active || uniforms.uFinishProgress.value >= 1 || !transition) return false;
       const progress = motionPreference?.matches ? 1 : THREE.MathUtils.clamp((now - transition.reveal.startedAt) / 1000, 0, 1);

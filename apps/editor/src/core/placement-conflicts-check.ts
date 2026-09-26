@@ -1,6 +1,7 @@
 import type { CatalogAsset, Room, SceneDocument, SceneObject, Vec2, Wall } from '../contracts';
 import { placementConflicts, type PlacementConflict } from './placement-conflicts';
 import { placementIssues } from './validation';
+import './door-barriers-check';
 
 let assertions = 0;
 function assert(condition: unknown, description: string): asserts condition {
@@ -136,5 +137,41 @@ for (let step = 0; step < 100; step++) {
     `live ${kind} conflicts agree with existing placement validation, case ${step}`);
   assert(JSON.stringify([document, moving, catalog]) === before, `feedback does not mutate inputs, case ${step}`);
 }
+
+// Installed doors and their opening travel are barriers even inside an otherwise empty aperture.
+const doors = structuredClone(raisedDoorway);
+doors.walls = [{ id: 'door-wall', start: [-2, 0], end: [2, 0], thickness: 0.2, height: 3, color: '#aaaaaa',
+  openings: [{ id: 'entry', kind: 'door', offset: 2, width: 1, height: 2, sill: 0 }] }];
+doors.project!.metadata = { entry: { mechanism: 'hinged', frameWidth: 0.05, leafThickness: 0.04 } };
+const doorCandidate: SceneObject = { ...object, position: [0.5, 0, -0.06], scale: [0.2, 1, 0.1] };
+const doorConflicts = (document: SceneDocument, probe: SceneObject) => placementConflicts(document, catalog, probe)
+  .filter(conflict => conflict.entityId === 'entry');
+assert(doorConflicts(doors, doorCandidate).length > 0, 'closed leaf thickness obstructs furniture on the opposite side of the swing');
+const sweeping: SceneObject = { ...doorCandidate, position: [0.5, 0, 0.45], scale: [0.2, 1, 0.2] };
+assert(doorConflicts(doors, sweeping).length > 0, 'opening and closing travel marks an obstacle away from the closed leaf');
+assert(doorConflicts(doors, { ...sweeping, position: [0.8, 0, 0.8] }).length === 0, 'outside the curved swing stays clear despite overlapping its bounding box');
+const partial: SceneObject = { ...doorCandidate, position: [0.5, 0, -0.05], scale: [0.2, 1, 0.2] };
+const partialConflicts = doorConflicts(doors, partial);
+assert(totalArea(partialConflicts) > 0 && totalArea(partialConflicts) < 0.04, 'only the portion intersecting the door barrier turns red');
+assert(partialConflicts.every(conflict => conflict.polygon.every(([x, z]) => x >= 0.4 - 1e-8 && x <= 0.6 + 1e-8 && z >= -0.15 - 1e-8 && z <= 0.05 + 1e-8)),
+  'door feedback is clipped to the candidate rather than painting the whole swing');
+doors.project!.metadata.entry!.threshold = 0.1;
+doors.project!.metadata['door-wall'] = { elevation: 0.5 };
+const elevatedSwing = doorConflicts(doors, { ...sweeping, position: [0.5, 0.55, 0.45], scale: [0.2, 3, 0.2] });
+near(elevatedSwing[0]!.bottom, 0.6, 'swing conflict starts above wall elevation and threshold');
+near(elevatedSwing[0]!.top, 2.45, 'swing conflict ends below the head frame');
+assert(doorConflicts(doors, { ...sweeping, scale: [0.2, 0.6, 0.2] }).length === 0, 'touching below a raised leaf has no swing conflict');
+doors.project!.metadata.entry!.phase = 'remove';
+assert(doorConflicts(doors, sweeping).length === 0, 'removed installed door leaves no door feedback');
+delete doors.project!.metadata.entry!.phase;
+doors.project!.metadata['door-wall'] = { phase: 'remove' };
+assert(doorConflicts(doors, sweeping).length === 0, 'removed host leaves no door feedback');
+doors.project!.metadata['door-wall'] = {};
+doors.project!.metadata.entry = { mechanism: 'fixed', frameWidth: 0.05, leafThickness: 0.04 };
+assert(doorConflicts(doors, doorCandidate).length > 0, 'a fixed door still has a solid leaf');
+assert(doorConflicts(doors, sweeping).length === 0, 'a fixed door has no opening sweep');
+const originalDoors = JSON.stringify(doors);
+doorConflicts(doors, partial);
+assert(JSON.stringify(doors) === originalDoors, 'door feedback is read-only');
 
 console.log(`Placement conflict checks passed (${assertions} assertions).`);

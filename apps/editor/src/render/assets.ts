@@ -42,7 +42,25 @@ export function normalizeAsset(group: THREE.Group, dimensions: CatalogAsset['dim
   return result;
 }
 
+/** A neutral measured volume while a real model is loading or unavailable. */
+export function makeAssetPlaceholder(asset: CatalogAsset): THREE.Group {
+  const group = new THREE.Group();
+  const [width, height, depth] = asset.dimensions;
+  const geometry = new THREE.BoxGeometry(width, height, depth);
+  const volume = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({
+    color: '#9299a3', transparent: true, opacity: 0.12, depthWrite: false, roughness: 1,
+  }));
+  volume.position.y = height / 2;
+  const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), new THREE.LineBasicMaterial({
+    color: '#9299a3', transparent: true, opacity: 0.6,
+  }));
+  edges.position.y = height / 2;
+  group.add(volume, edges);
+  return group;
+}
+
 export function makeFurniture(asset: CatalogAsset, color = asset.color): THREE.Group {
+  if (asset.source.type === 'gltf') return makeAssetPlaceholder(asset);
   const group = new THREE.Group();
   const m = materials(asset, color);
   const [w, h, d] = asset.dimensions;
@@ -187,46 +205,86 @@ export function disposeObject(root: THREE.Object3D): void {
   root.removeFromParent();
 }
 
-/** Owned source cache; each returned instance owns its cloned render resources. */
+interface ModelSource {
+  promise: Promise<THREE.Group>;
+  group?: THREE.Group;
+  users: number;
+}
+
+/** Owned, bounded source cache; returned instances own their render resources. */
 export class AssetLoader {
   private loader = new GLTFLoader();
-  private cache = new Map<string, Promise<THREE.Group>>();
+  private cache = new Map<string, ModelSource>();
   private disposed = false;
+  constructor(private readonly maxCachedSources = 12) {}
+
+  private trimCache(): void {
+    for (const [url, source] of this.cache) {
+      if (this.cache.size <= this.maxCachedSources) break;
+      // A caller still cloning a source keeps it alive until its finally block.
+      if (source.users || !source.group) continue;
+      this.cache.delete(url);
+      disposeObject(source.group);
+    }
+  }
+
   async load(asset: CatalogAsset): Promise<THREE.Group> {
+    if (this.disposed) throw new Error('Asset loader disposed.');
     if (asset.source.type !== 'gltf') return makeFurniture(asset);
-    const url = asset.source.url;
+    // Catalog import orientation travels as local metadata, never an HTTP parameter.
+    const [url, fragment = ''] = asset.source.url.split('#');
+    const rotation = Number(new URLSearchParams(fragment).get('varpet-rotate-y') ?? 0);
+    if (!url || !Number.isFinite(rotation)) throw new Error('Invalid model URL or orientation.');
     let source = this.cache.get(url);
     if (!source) {
-      source = this.loader.loadAsync(url).then(gltf => {
-        if (this.disposed) { disposeObject(gltf.scene); throw new Error('Viewport disposed.'); }
+      const promise = this.loader.loadAsync(url).then(gltf => {
+        if (this.disposed) { disposeObject(gltf.scene); throw new Error('Asset loader disposed.'); }
+        entry.group = gltf.scene;
         return gltf.scene;
+      }, error => {
+        if (this.cache.get(url) === entry) this.cache.delete(url);
+        throw error;
       });
-      this.cache.set(url, source);
+      const entry: ModelSource = { promise, users: 0 };
+      source = entry;
     }
-    const original = await source;
-    if (this.disposed) throw new Error('Viewport disposed.');
-    const instance = cloneSkeleton(original) as THREE.Group;
-    const textureCopies = new Map<THREE.Texture, THREE.Texture>();
-    instance.traverse(object => {
-      if (!(object instanceof THREE.Mesh)) return;
-      object.geometry = object.geometry.clone();
-      const copyMaterial = (material: THREE.Material) => {
-        const result = material.clone();
-        for (const [key, value] of Object.entries(result)) if (value instanceof THREE.Texture) {
-          let copy = textureCopies.get(value);
-          if (!copy) { copy = value.clone(); copy.needsUpdate = true; textureCopies.set(value, copy); }
-          (result as unknown as Record<string, unknown>)[key] = copy;
-        }
-        return result;
-      };
-      object.material = Array.isArray(object.material) ? object.material.map(copyMaterial) : copyMaterial(object.material);
-    });
-    try { return normalizeAsset(instance, asset.dimensions); }
-    catch (error) { disposeObject(instance); throw error; }
+    // Refresh LRU order for both cached and in-flight requests.
+    this.cache.delete(url);
+    this.cache.set(url, source);
+    source.users++;
+    try {
+      const original = await source.promise;
+      if (this.disposed) throw new Error('Asset loader disposed.');
+      const instance = cloneSkeleton(original) as THREE.Group;
+      const textureCopies = new Map<THREE.Texture, THREE.Texture>();
+      instance.traverse(object => {
+        if (!(object instanceof THREE.Mesh)) return;
+        object.geometry = object.geometry.clone();
+        const copyMaterial = (material: THREE.Material) => {
+          const result = material.clone();
+          for (const [key, value] of Object.entries(result)) if (value instanceof THREE.Texture) {
+            let copy = textureCopies.get(value);
+            if (!copy) { copy = value.clone(); copy.needsUpdate = true; textureCopies.set(value, copy); }
+            (result as unknown as Record<string, unknown>)[key] = copy;
+          }
+          return result;
+        };
+        object.material = Array.isArray(object.material) ? object.material.map(copyMaterial) : copyMaterial(object.material);
+      });
+      const oriented = new THREE.Group();
+      oriented.add(instance);
+      oriented.rotation.y = rotation * THREE.MathUtils.DEG2RAD;
+      try { return normalizeAsset(oriented, asset.dimensions); }
+      catch (error) { disposeObject(oriented); throw error; }
+    } finally {
+      source.users--;
+      this.trimCache();
+    }
   }
   dispose(): void {
+    if (this.disposed) return;
     this.disposed = true;
-    this.cache.forEach(promise => { void promise.then(disposeObject, () => undefined); });
+    this.cache.forEach(source => { void source.promise.then(disposeObject, () => undefined); });
     this.cache.clear();
   }
 }

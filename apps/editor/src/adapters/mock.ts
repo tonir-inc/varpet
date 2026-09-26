@@ -1,4 +1,4 @@
-import type { AgentProposal, CatalogAdapter, DesignerAdapter, SceneDocument, StructureAdapter } from '../contracts';
+import type { AgentProposal, CatalogAsset, CatalogAdapter, DesignerAdapter, SceneDocument, StructureAdapter } from '../contracts';
 import { demoScene, localCatalog } from '../core/demo';
 import { validateScene } from '../core/validation';
 
@@ -41,16 +41,16 @@ export const structureAdapter: StructureAdapter = {
   },
 };
 
-export const designerAdapter: DesignerAdapter = {
+export function createDesignerAdapter(catalog: CatalogAsset[]): DesignerAdapter { return {
   async propose(scene: SceneDocument, revision: number, signal?: AbortSignal): Promise<AgentProposal> {
     const snapshot = structuredClone(scene);
     await delay(1100, signal);
-    const validation = validateScene(snapshot, localCatalog);
+    const validation = validateScene(snapshot, catalog);
     if (!validation.ok) throw new Error(`The designer needs a valid scene: ${validation.errors.join(' ')}`);
-    const focal = snapshot.objects.find(object => localCatalog.find(asset => asset.id === object.assetId)?.kind === 'sofa') ?? snapshot.objects[0];
+    const focal = snapshot.objects.find(object => catalog.find(asset => asset.id === object.assetId)?.kind === 'sofa') ?? snapshot.objects[0];
     const id = `mock-designer-${revision}-${++proposalSequence}`;
     if (focal) {
-      const currentColor = focal.color ?? localCatalog.find(asset => asset.id === focal.assetId)!.color;
+      const currentColor = focal.color ?? catalog.find(asset => asset.id === focal.assetId)!.color;
       const nextColor = currentColor === '#be775d' ? '#889987' : '#be775d';
       return {
         id, title: nextColor === '#be775d' ? 'A warmer focal point' : 'A softer sage palette',
@@ -65,4 +65,6 @@ export const designerAdapter: DesignerAdapter = {
       command: { id, label: 'Restyle floor finish', source: 'designer', baseRevision: revision, operations: [{ type: 'replace-structure', rooms, walls: snapshot.walls }] },
     };
   },
-};
+}; }
+
+export const designerAdapter = createDesignerAdapter(localCatalog);

@@ -5,18 +5,27 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "test": "node scripts/check.mjs && node scripts/check-renovation.mjs && node scripts/check-openings.mjs && node scripts/check-finishes.mjs && node scripts/check-placement.mjs && node scripts/check-walls.mjs && node scripts/check-wall-controller.mjs && node scripts/check-grouping.mjs && node scripts/check-plan-move.mjs && node scripts/check-inspector.mjs && node scripts/check-motion.mjs && node scripts/check-transform-motion.mjs && node scripts/check-projection-motion.mjs",
+    "test": "node scripts/check.mjs && node scripts/check-renovation.mjs && node scripts/check-openings.mjs && node scripts/check-finishes.mjs && node scripts/check-continuous-wall-finishes.mjs && node scripts/check-continuous-finish-render.mjs && node scripts/check-finish-texture-presets.mjs && node scripts/check-finish-textures.mjs && node scripts/check-placement.mjs && node scripts/check-walls.mjs && node scripts/check-wall-controller.mjs && node scripts/check-grouping.mjs && node scripts/check-plan-move.mjs && node scripts/check-inspector.mjs && node scripts/check-motion.mjs && node scripts/check-transform-motion.mjs && node scripts/check-projection-motion.mjs && node scripts/check-cutaway.mjs && node scripts/check-wall-junctions.mjs && node scripts/check-apartment-junctions.mjs && node scripts/check-plan-layers.mjs && node scripts/check-plan-measurements.mjs && node scripts/check-selection-camera.mjs && node scripts/check-room-camera.mjs && node scripts/check-walkthrough.mjs && node scripts/check-structural-surfaces.mjs && node scripts/check-heights.mjs && node scripts/check-interior-lighting.mjs && node scripts/check-walkthrough-camera.mjs && node scripts/check-database-catalog.mjs && node scripts/check-assets.mjs && node --test server/catalog.test.mjs && node scripts/check-walkthrough-view.mjs && node scripts/check-architect.mjs && node scripts/check-reconstruction-proposal.mjs && node scripts/check-ceiling-design.mjs && node scripts/check-ceiling-render.mjs",
+    "test:walkthrough": "node scripts/check-walkthrough.mjs",
     "test:grouping": "node scripts/check-grouping.mjs",
     "test:placement": "node scripts/check-placement.mjs",
     "test:renovation": "node scripts/check-renovation.mjs",
     "build": "vite build",
     "typecheck": "tsc -p .",
     "test:plan": "node scripts/check-plan-move.mjs",
-    "test:motion": "node scripts/check-motion.mjs && node scripts/check-transform-motion.mjs && node scripts/check-projection-motion.mjs"
+    "test:motion": "node scripts/check-motion.mjs && node scripts/check-transform-motion.mjs && node scripts/check-projection-motion.mjs",
+    "test:junctions": "node scripts/check-wall-junctions.mjs && node scripts/check-apartment-junctions.mjs",
+    "test:plan-layers": "node scripts/check-plan-layers.mjs",
+    "test:plan-measurements": "node scripts/check-plan-measurements.mjs",
+    "test:heights": "node scripts/check-heights.mjs",
+    "test:catalog": "node scripts/check-database-catalog.mjs && node scripts/check-assets.mjs && node --test server/catalog.test.mjs",
+    "test:architect": "node scripts/check-architect.mjs && node scripts/check-reconstruction-proposal.mjs",
+    "test:ceilings": "node scripts/check-ceiling-design.mjs && node scripts/check-ceiling-render.mjs"
   },
   "dependencies": {
     "@varpet/engine": "workspace:*",
-    "three": "^0.186.1"
+    "three": "^0.186.1",
+    "@modelcontextprotocol/sdk": "^1.26.0"
   },
   "devDependencies": {
     "@types/three": "^0.186.0",

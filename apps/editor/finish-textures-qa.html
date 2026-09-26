@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Real floor texture verification</title>
+<style>
+  body { margin: 32px; background: #232229; color: #e8e2ee; font: 14px system-ui; }
+  h1 { font-size: 24px; } p { color: #c3bacf; }
+  #samples { display: grid; grid-template-columns: repeat(2, minmax(240px, 384px)); gap: 24px; }
+  figure { margin: 0; padding: 8px; background: #302e38; border: 1px solid #48424f; border-radius: 12px; }
+  img { width: 100%; display: block; border-radius: 7px; } figcaption { padding: 12px 3px 5px; line-height: 1.5; }
+</style>
+<h1>Real floor textures</h1>
+<p id="result" role="status">Loading wood and stone maps…</p>
+<div id="samples"></div>
+<script type="module">
+  import { checkFinishTextureRendering } from './src/render/finish-textures-qa';
+  checkFinishTextureRendering(document.querySelector('#samples'))
+    .then(message => { document.querySelector('#result').textContent = message; })
+    .catch(error => { document.querySelector('#result').textContent = 'FAIL: ' + error.message; console.error(error); });
+</script>
+</html>

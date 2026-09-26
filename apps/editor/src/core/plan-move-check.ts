@@ -108,6 +108,70 @@ assert(equal(wallIn(midpoint.scene, 'isolated-wall').start, [0.1, 0.15]), 'endpo
 const preciseEndpoint = preview(isolated, 'isolated-wall', [0.137, 0.113], false, 'end');
 assert(near(wallIn(preciseEndpoint.scene, 'isolated-wall').end[0], 4.137) && near(wallIn(preciseEndpoint.scene, 'isolated-wall').end[1], 0.113), 'endpoint can move without snapping');
 const diagonal = structuredClone(isolated);
+// Returning a corner must recover exact alignment, even between grid points.
+const offGrid = structuredClone(isolated);
+offGrid.walls[0]!.start = [0.013, 0.017];
+offGrid.walls[0]!.end = [4.013, 0.317];
+const straightened = preview(offGrid, 'isolated-wall', [0.12, -0.26], true, 'end');
+assert(wallIn(straightened.scene, 'isolated-wall').end[1] === 0.017, 'endpoint snaps exactly horizontal to its off-grid opposite corner');
+undoable(offGrid, straightened.operation, straightened.scene);
+const smoothCorner = preview(offGrid, 'isolated-wall', [0.12, -0.26], false, 'end');
+assert(near(wallIn(smoothCorner.scene, 'isolated-wall').end[1], 0.057), 'smooth mode bypasses angle and grid snapping');
+const outsideCatch = preview(offGrid, 'isolated-wall', [0.12, -0.17], true, 'end');
+assert(near(wallIn(outsideCatch.scene, 'isolated-wall').end[1], 0.15), 'outside the angle catch the ordinary grid still applies');
+const verticalCorner = preview(offGrid, 'isolated-wall', [-3.96, 2], true, 'end');
+assert(wallIn(verticalCorner.scene, 'isolated-wall').end[0] === 0.013, 'endpoint also catches vertical alignment');
+
+const connectedSnap = structuredClone(offGrid);
+connectedSnap.walls.push({ ...structuredClone(offGrid.walls[0]!), id: 'snap-neighbour', start: [4.013, 0.317], end: [4.213, 3.017] });
+const neighbourSnap = preview(connectedSnap, 'isolated-wall', [0.17, 0.3], true, 'end');
+assert(wallIn(neighbourSnap.scene, 'isolated-wall').end[0] === 4.213 && wallIn(neighbourSnap.scene, 'snap-neighbour').start[0] === 4.213, 'corner catches connected neighbour alignment without breaking the junction');
+const squareCorner = preview(connectedSnap, 'isolated-wall', [0.19, -0.29], true, 'end');
+const squareEnd = wallIn(squareCorner.scene, 'isolated-wall').end;
+assert(near(squareEnd[0], 4.213) && near(squareEnd[1], 0.017), 'returning an off-grid shared corner makes both adjoining walls square at once');
+const decimalCorner = structuredClone(isolated);
+decimalCorner.walls[0]!.start = [0.6, -4]; decimalCorner.walls[0]!.end = [0.6, 0.4];
+decimalCorner.walls.push({ ...structuredClone(isolated.walls[0]!), id: 'decimal-neighbour', start: [0.6, 0.4], end: [5, 0.4] });
+const decimalMove = preview(decimalCorner, 'isolated-wall', [0.25, 0.03], true, 'end');
+assert(equal(wallIn(decimalMove.scene, 'isolated-wall').end, [0.85, 0.4]), 'axis snapping keeps clean free-axis decimals in the inspector');
+const decimalReturn = previewPlanMove(gesture(decimalCorner, 'isolated-wall', 'end'), [0.04, 0.03], true, localCatalog);
+assert(decimalReturn.operation === null && decimalReturn.scene === decimalCorner, 'returning to a decimal corner is exact and creates no spurious edit');
+
+const slideSnap = structuredClone(isolated);
+slideSnap.walls[0]!.start = [0.317, -2]; slideSnap.walls[0]!.end = [0.317, 2];
+slideSnap.walls.push({ ...structuredClone(slideSnap.walls[0]!), id: 'slide-neighbour', start: [0.317, 2], end: [0.017, 4] });
+const slideReturn = preview(slideSnap, 'isolated-wall', [-0.26, 0], true);
+assert(near(wallIn(slideReturn.scene, 'isolated-wall').start[0], 0.017) && near(wallIn(slideReturn.scene, 'isolated-wall').end[0], 0.017), 'whole wall catches exact connected-wall alignment instead of relative grid steps');
+undoable(slideSnap, slideReturn.operation, slideReturn.scene);
+const smoothSlide = preview(slideSnap, 'isolated-wall', [-0.26, 0], false);
+assert(near(wallIn(smoothSlide.scene, 'isolated-wall').start[0], 0.057), 'smooth sliding bypasses alignment');
+const almostAligned = structuredClone(slideSnap);
+almostAligned.walls[1]!.end[0] = 0.277;
+const tangential = previewPlanMove(gesture(almostAligned, 'isolated-wall'), [0, 0.5], true, localCatalog);
+assert(tangential.scene === almostAligned && tangential.operation === null, 'tangential motion cannot attract a wall to a nearby alignment');
+for (const metadata of [{ elevation: 4 }, { phase: 'remove' as const }]) {
+  const excluded = structuredClone(slideSnap);
+  excluded.project!.metadata['slide-neighbour'] = metadata;
+  const moved = preview(excluded, 'isolated-wall', [-0.26, 0], true);
+  assert(near(wallIn(moved.scene, 'isolated-wall').start[0], 0.067), 'removed or vertically separate neighbours do not attract the wall');
+}
+const teeSnap = structuredClone(slideSnap);
+teeSnap.walls[1]!.start = [0.317, 0]; teeSnap.walls[1]!.end = [0.017, 4];
+const teeReturn = preview(teeSnap, 'isolated-wall', [-0.26, 0], true);
+assert(near(wallIn(teeReturn.scene, 'isolated-wall').start[0], 0.017), 'interior T junctions provide alignment anchors');
+
+const rotatedSnap = structuredClone(isolated);
+rotatedSnap.walls[0]!.end = [-2, 2.3];
+rotatedSnap.walls.push({ ...structuredClone(isolated.walls[0]!), id: 'rotated-reference', start: [0, 0], end: [3, 3] });
+const rotatedCorner = preview(rotatedSnap, 'isolated-wall', [0, -0.25], true, 'end');
+const rotatedEnd = wallIn(rotatedCorner.scene, 'isolated-wall').end;
+assert(near(rotatedEnd[0] + rotatedEnd[1], 0), 'right angles follow a rotated adjoining wall as well as world axes');
+const unrelatedCorner = structuredClone(isolated);
+unrelatedCorner.walls[0]!.end = [2, 2];
+unrelatedCorner.walls.push({ ...structuredClone(isolated.walls[0]!), id: 'end-only-neighbour', start: [2, 2], end: [0.313, 4] });
+const unrelatedMove = preview(unrelatedCorner, 'isolated-wall', [0.416 / Math.SQRT2, -0.416 / Math.SQRT2], true);
+assert(near(wallIn(unrelatedMove.scene, 'isolated-wall').start[0], 0.4 / Math.SQRT2), 'whole-wall magnets align the connected junction, never an unrelated corner');
+
 diagonal.walls[0]!.end = [3, 3];
 const diagonalMove = preview(diagonal, 'isolated-wall', [-0.1, 0.1], true);
 const diagonalStart = wallIn(diagonalMove.scene, 'isolated-wall').start;

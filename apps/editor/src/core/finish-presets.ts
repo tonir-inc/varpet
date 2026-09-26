@@ -1,4 +1,5 @@
 import type { FinishMaterial, Operation, SceneDocument } from '../contracts';
+import { resolveWallFinishTargets } from './wall-finish-targets';
 
 export type FinishPattern = 'solid' | 'tile' | 'wood' | 'terrazzo';
 export interface FinishPreset {
@@ -12,17 +13,19 @@ export interface FinishPreset {
   size: [number, number];
   roughness: number;
   description: string;
+  /** Bundled seamless surface maps; identity persists through the preset marker. */
+  texture?: 'oak' | 'walnut' | 'travertine' | 'marble';
 }
 
 export const FINISH_DRAG_TYPE = 'application/x-varpet-finish';
 
 export const FINISH_PRESETS: FinishPreset[] = [
-  { id: 'limestone', name: 'Warm limestone', category: 'floor', color: '#d7c8af', accent: '#b8aa95', pattern: 'tile', size: [0.6, 0.6], roughness: 0.88, description: '60 × 60 cm · matte stone' },
-  { id: 'porcelain', name: 'Cloud porcelain', category: 'floor', color: '#e1e1db', accent: '#b9bdb6', pattern: 'tile', size: [0.6, 0.6], roughness: 0.58, description: '60 × 60 cm · soft satin' },
+  { id: 'limestone', name: 'Warm limestone', category: 'floor', color: '#d7c8af', accent: '#b8aa95', pattern: 'tile', size: [0.6, 0.6], roughness: 0.88, texture: 'travertine', description: '60 × 60 cm · travertine stone' },
+  { id: 'porcelain', name: 'Cloud porcelain', category: 'floor', color: '#e1e1db', accent: '#b9bdb6', pattern: 'tile', size: [0.6, 0.6], roughness: 0.58, texture: 'marble', description: '60 × 60 cm · marble-look tile' },
   { id: 'terracotta', name: 'Terracotta', category: 'floor', color: '#b87960', accent: '#8d6151', pattern: 'tile', size: [0.3, 0.3], roughness: 0.92, description: '30 × 30 cm · natural clay' },
   { id: 'slate', name: 'Charcoal slate', category: 'floor', color: '#646c6b', accent: '#444c4c', pattern: 'tile', size: [0.6, 0.4], roughness: 0.86, description: '60 × 40 cm · honed stone' },
-  { id: 'oak', name: 'Natural oak', category: 'floor', color: '#b9956b', accent: '#887050', pattern: 'wood', size: [1.2, 0.18], roughness: 0.72, description: '18 × 120 cm · oak planks' },
-  { id: 'walnut', name: 'Smoked walnut', category: 'floor', color: '#806249', accent: '#543f31', pattern: 'wood', size: [1.2, 0.18], roughness: 0.68, description: '18 × 120 cm · dark planks' },
+  { id: 'oak', name: 'Natural oak', category: 'floor', color: '#b9956b', accent: '#887050', pattern: 'wood', size: [1.2, 0.18], roughness: 0.72, texture: 'oak', description: '18 × 120 cm · oak planks' },
+  { id: 'walnut', name: 'Smoked walnut', category: 'floor', color: '#806249', accent: '#543f31', pattern: 'wood', size: [1.2, 0.18], roughness: 0.68, texture: 'walnut', description: '18 × 120 cm · walnut planks' },
   { id: 'terrazzo', name: 'Ivory terrazzo', category: 'floor', color: '#ddd8cc', accent: '#a69883', pattern: 'terrazzo', size: [0.6, 0.6], roughness: 0.66, description: '60 × 60 cm · fine aggregate' },
   { id: 'sage-terrazzo', name: 'Sage terrazzo', category: 'floor', color: '#a5afa3', accent: '#697b6c', pattern: 'terrazzo', size: [0.6, 0.6], roughness: 0.68, description: '60 × 60 cm · fine aggregate' },
   { id: 'chalk', name: 'Chalk white', category: 'wall', color: '#eeeae0', accent: '#d2cdc2', pattern: 'solid', size: [1, 1], roughness: 0.94, description: 'Warm white · matte paint' },
@@ -71,16 +74,20 @@ export function buildFinishOperations(
   const entity = floor ? scene.rooms.find(room => room.id === entityId) : scene.walls.find(wall => wall.id === entityId);
   if (!entity) throw new Error(`This ${floor ? 'floor' : 'wall'} no longer exists.`);
   const project = scene.project;
-  const metadata = project?.metadata[entityId];
-  if (metadata?.locked) throw new Error(`This ${floor ? 'room' : 'wall'} is locked. Unlock it in its properties before applying a finish.`);
-  if (metadata?.phase === 'remove') throw new Error(`This ${floor ? 'room' : 'wall'} is marked for removal. Restore it before applying a finish.`);
-
-  const existing = project?.finishes.find(finish => finish.entityId === entityId && finish.surface === surface);
-  const currentMaterial = project?.materials.find(material => material.id === existing?.materialId);
+  const targets = surface === 'floor' ? [{ entityId, surface }] : resolveWallFinishTargets(scene, entityId, surface);
+  for (const target of targets) {
+    const metadata = project?.metadata[target.entityId];
+    if (metadata?.locked) throw new Error(`This ${floor ? 'room' : 'wall face includes a section that'} is locked. Unlock it in its properties before applying a finish.`);
+    if (metadata?.phase === 'remove') throw new Error(`This ${floor ? 'room' : 'wall face includes a section that'} is marked for removal. Restore it before applying a finish.`);
+  }
   // A tinted sample retains its pattern, but choosing the original swatch must
   // restore the original color without changing other surfaces using that tint.
   const matchesPreset = (material: FinishMaterial | undefined): boolean => getPresetForMaterial(material)?.id === preset.id && material?.color.toLowerCase() === preset.color.toLowerCase();
-  if (matchesPreset(currentMaterial)) return [];
+  const assignments = targets.map(target => ({ ...target,
+    existing: project?.finishes.find(finish => finish.entityId === target.entityId && finish.surface === target.surface),
+  }));
+  const changed = assignments.filter(target => !matchesPreset(project?.materials.find(material => material.id === target.existing?.materialId)));
+  if (!changed.length) return [];
 
   // IDs are shared with geometry and project records, including inactive designs.
   // A user's material may occupy the preferred ID; it must never be overwritten.
@@ -107,6 +114,9 @@ export function buildFinishOperations(
     material.id = freeId(material.id);
     operations.push({ type: 'upsert-material', material });
   }
-  operations.push({ type: 'upsert-finish', finish: { id: existing?.id ?? freeId(`finish:${entityId}:${surface}`), entityId, surface, materialId: material.id } });
+  for (const target of changed) operations.push({ type: 'upsert-finish', finish: {
+    id: target.existing?.id ?? freeId(`finish:${target.entityId}:${target.surface}`),
+    entityId: target.entityId, surface: target.surface, materialId: material.id,
+  } });
   return operations;
 }

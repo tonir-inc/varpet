@@ -1,3 +1,4 @@
+import { roomCeilingHeight } from './heights';
 import type { BuildingComponent, CatalogAsset, EntityMetadata, Operation, ProjectAnalysis, RenovationOperation, RenovationProject, RenovationSnapshot, SceneDocument, Vec2, Vec3, Wall } from '../contracts';
 
 import { componentPosition, componentRotation, polygonArea, wallLength } from './geometry';
@@ -117,7 +118,7 @@ export function applyRenovationOperation(input: SceneDocument, operation: Renova
       // Plan coordinates alone do not establish a junction: stacked walls/rooms
       // remain independent, while raised spaces with overlapping height still join.
       const connectedWalls = scene.walls.filter(other => overlapsHeight(project.metadata[other.id]?.elevation ?? 0, other.height));
-      const connectedRooms = scene.rooms.filter(room => overlapsHeight(project.metadata[room.id]?.elevation ?? 0, project.metadata[room.id]?.ceilingHeight ?? 2.8));
+      const connectedRooms = scene.rooms.filter(room => overlapsHeight(project.metadata[room.id]?.elevation ?? 0, roomCeilingHeight(scene, room)));
       const translation = !!operation.patch.start && !!operation.patch.end && same(
         [nextStart[0] - start[0], nextStart[1] - start[1]],
         [nextEnd[0] - end[0], nextEnd[1] - end[1]],
@@ -231,7 +232,13 @@ export function applyRenovationOperation(input: SceneDocument, operation: Renova
     case 'add-room': scene.rooms.push(operation.room); project.metadata[operation.room.id] = { zone: 'interior', phase: project.mode === 'renovate' ? 'new' : 'existing' }; break;
     case 'update-room': ensureEditable(scene, operation.id); Object.assign(find(scene.rooms, operation.id, 'Room'), operation.patch); invalidateAssumptions(scene, [operation.id]); break;
     case 'delete-room': ensureEditable(scene, operation.id); remove(scene.rooms, operation.id, 'Room'); removeMetadata(scene, [operation.id]); break;
-    case 'set-metadata': project.metadata[operation.id] = { ...project.metadata[operation.id], ...operation.patch }; invalidateAssumptions(scene, [operation.id]); break;
+    case 'set-metadata': {
+      if (Object.hasOwn(operation.patch, 'ceilingDesign')) {
+        ensureEditable(scene, operation.id);
+        if (operation.patch.ceilingDesign != null && project.metadata[operation.id]?.phase === 'remove') throw new Error('Restore this room before changing its ceiling design.');
+      }
+      project.metadata[operation.id] = { ...project.metadata[operation.id], ...operation.patch }; invalidateAssumptions(scene, [operation.id]); break;
+    }
     case 'upsert-component': ensureEditable(scene, operation.component.id); upsert(project.components, operation.component); invalidateAssumptions(scene, [operation.component.id]); break;
     case 'delete-component': ensureEditable(scene, operation.id); remove(project.components, operation.id, 'Component'); removeMetadata(scene, [operation.id]); break;
     case 'upsert-route': upsert(project.routes, operation.route); invalidateAssumptions(scene, [operation.route.id]); break;
@@ -366,7 +373,15 @@ export function analyzeProject(scene: SceneDocument, catalog: CatalogAsset[]): P
     quantity *= 1 + material.wastePercent / 100;
     quantities.push({ id: finish.id, name: `${material.name} · ${finish.surface}`, quantity, unit: material.unit, cost: quantity * material.unitCost });
   }
-  for (const object of scene.objects) { const asset = catalog.find(a => a.id === object.assetId); if (project.metadata[object.id]?.phase !== 'remove') quantities.push({ id: object.id, name: object.name, quantity: 1, unit: 'each', cost: asset?.price ?? 0 }); }
+  for (const object of scene.objects) {
+    const asset = catalog.find(a => a.id === object.assetId);
+    if (project.metadata[object.id]?.phase === 'remove') continue;
+    const databasePrice = asset?.id.startsWith('abo:');
+    const currencyMismatch = databasePrice && project.currency !== 'AMD';
+    if (currencyMismatch) issue(`catalog-currency:${object.id}`, object.id, 'Furniture price excluded from estimate', 'This database price is in AMD. Set the project currency to AMD after reviewing other allowances; no currency conversion is performed.');
+    if (databasePrice) issue(`catalog-price:${object.id}`, object.id, 'Database furniture price needs verification', 'ABO catalog prices are mock AMD amounts, not shop quotations. Check the product price source in Furniture.', 'info');
+    quantities.push({ id: object.id, name: object.name, quantity: 1, unit: 'each', cost: currencyMismatch ? 0 : asset?.price ?? 0 });
+  }
   for (const task of project.tasks) quantities.push({ id: task.id, name: task.title, quantity: 1, unit: 'allowance', cost: task.allowance });
   const changes = { added: 0, removed: 0, changed: 0 };
   if (project.baseline) {

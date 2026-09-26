@@ -1,0 +1,30 @@
+.ceiling-library { display: flex; flex-direction: column; gap: 16px; }
+.ceiling-library[hidden] { display: none; }
+.ceiling-intro { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.65; }
+.ceiling-room-meta { display: flex; justify-content: space-between; gap: 8px; font-size: 10px; color: #bcb1cc; }
+.ceiling-presets, .ceiling-settings { min-width: 0; margin: 0 0 18px; padding: 0; border: 0; display: flex; flex-direction: column; gap: 9px; }
+.ceiling-presets legend, .ceiling-settings legend { padding: 0 0 12px; color: #ece4f4; font-size: 12px; font-weight: 600; }
+.ceiling-preset { display: flex; align-items: flex-start; gap: 10px; padding: 13px 12px; border: 1px solid #42404c; border-radius: 9px; background: #292830; cursor: pointer; transition: border-color 140ms ease, background-color 140ms ease; }
+.ceiling-preset:has(:checked) { border-color: #bca4df; background: #3b3247; }
+.ceiling-preset:hover { border-color: #a78abc; }
+.ceiling-preset input { margin-top: 3px; accent-color: #c1a4e4; }
+.ceiling-preset strong, .ceiling-preset small { display: block; }
+.ceiling-preset strong { color: #eee7f4; font-size: 12px; }
+.ceiling-preset small { margin-top: 5px; color: #b6adbf; font-size: 10px; line-height: 1.55; }
+.ceiling-range { display: flex; flex-direction: column; gap: 8px; margin: 5px 0 9px; }
+.ceiling-range > span, .ceiling-range > small { display: flex; justify-content: space-between; gap: 12px; font-size: 11px; color: #d6cddd; }
+.ceiling-range > small { color: #99909f; font-size: 9px; }
+.ceiling-range input { width: 100%; margin: 0; accent-color: #c1a4e4; }
+.ceiling-range output { color: #cbb3e5; font-variant-numeric: tabular-nums; }
+.ceiling-dimensions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ceiling-dimensions input { min-width: 0; width: 100%; }
+.ceiling-toggle { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 11px; color: #d6cddd; }
+.ceiling-toggle input { accent-color: #c1a4e4; }
+.ceiling-preview { padding: 14px; background: #292830; border: 1px solid #494050; border-radius: 9px; }
+.ceiling-preview strong { color: #e0d0ec; font-size: 12px; }
+.ceiling-preview p, .ceiling-note { color: #9d94a6; font-size: 10px; line-height: 1.65; }
+.ceiling-preview p { margin: 8px 0; }
+.ceiling-note { margin: 0; }
+.ceiling-error { padding: 10px; border: 1px solid #93635c; border-radius: 6px; color: #ffc3b5; font-size: 11px; line-height: 1.55; }
+.ceiling-library fieldset:disabled { opacity: .6; }
+@media (prefers-reduced-motion: reduce) { .ceiling-preset { transition: none; } }

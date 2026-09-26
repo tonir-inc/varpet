@@ -1,0 +1,13 @@
+.inside-label { display: none; }
+.inside-mode .inside-label { display: flex; position: absolute; top: 76px; left: 18px; gap: 10px; align-items: center; padding: 8px 11px; border: 1px solid #5b5567; border-radius: 7px; background: #27282eed; color: #eee6f7; font-size: 11px; pointer-events: none; }
+.inside-label span { color: #cbc3d6; }
+.inside-mode .tool-rail, .inside-mode .selection-chip, .inside-mode .canvas-label,
+.inside-mode .right-panel, .inside-mode #walls { display: none; }
+.inside-mode .canvas-bottom { justify-content: center; bottom: 20px; }
+.inside-mode.preview-mode .canvas-bottom { display: flex !important; }
+.inside-mode #view-hint { padding: 10px 15px; border: 1px solid #5b5567; border-radius: 9px; background: #27282eed; color: #eee6f7; font-size: 12px; }
+@media (max-width: 800px) {
+  .inside-mode .workspace .viewport-top .view-switch { visibility: visible; }
+  .inside-mode .canvas-bottom #view-hint { display: block; font-size: 10px; }
+  .inside-mode .inside-label { top: 65px; left: 12px; }
+}

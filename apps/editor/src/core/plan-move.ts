@@ -4,6 +4,8 @@ import { furnitureMembers, furnitureUpdates } from './grouping';
 import { constrainOpeningOffset, findOpeningMove, type OpeningMoveContext } from './opening-move';
 import { applyRenovationOperation, invalidateAssumptions } from './renovation';
 import { validateScene } from './validation';
+import type { SceneNormalizer } from './store';
+import { snapWallDistance, snapWallEndpoint } from './wall-snapping';
 
 interface PlanMoveBase {
   source: SceneDocument;
@@ -56,7 +58,7 @@ function movementOperation(move: PlanMove, delta: Vec2, snap: boolean): MoveOper
     case 'wall': {
       const { wall } = move, length = wallLength(wall);
       const normal: Vec2 = [-(wall.end[1] - wall.start[1]) / length, (wall.end[0] - wall.start[0]) / length];
-      const distance = quantize(delta[0] * normal[0] + delta[1] * normal[1], 0.05, snap);
+      const distance = snapWallDistance(move.source, wall, delta[0] * normal[0] + delta[1] * normal[1], snap);
       if (unchanged(distance, 0)) return null;
       return { type: 'update-wall', id: move.id, patch: {
         start: [wall.start[0] + normal[0] * distance, wall.start[1] + normal[1] * distance],
@@ -65,7 +67,7 @@ function movementOperation(move: PlanMove, delta: Vec2, snap: boolean): MoveOper
     }
     case 'endpoint': {
       const origin = move.wall[move.endpoint];
-      const point: Vec2 = [quantize(origin[0] + delta[0], 0.05, snap), quantize(origin[1] + delta[1], 0.05, snap)];
+      const point = snapWallEndpoint(move.source, move.wall, move.endpoint, [origin[0] + delta[0], origin[1] + delta[1]], snap);
       if (unchanged(point[0], origin[0]) && unchanged(point[1], origin[1])) return null;
       return { type: 'update-wall', id: move.id, patch: { [move.endpoint]: point } };
     }
@@ -101,7 +103,7 @@ function movementOperation(move: PlanMove, delta: Vec2, snap: boolean): MoveOper
 }
 
 /** A preview is disposable; only its checked semantic operation may enter history. */
-export function previewPlanMove(move: PlanMove, delta: Vec2, snap: boolean, catalog: CatalogAsset[]): PlanMovePreview {
+export function previewPlanMove(move: PlanMove, delta: Vec2, snap: boolean, catalog: CatalogAsset[], normalize?: SceneNormalizer): PlanMovePreview {
   const reject = (error: string): PlanMovePreview => ({ scene: null, operation: null, error });
   if (!delta.every(Number.isFinite)) return reject('Movement must use finite coordinates.');
   try {
@@ -114,6 +116,11 @@ export function previewPlanMove(move: PlanMove, delta: Vec2, snap: boolean, cata
       candidate.objects = candidate.objects.map(object => byId.get(object.id) ?? object);
       invalidateAssumptions(candidate, updates.map(object => object.id));
     } else candidate = applyRenovationOperation(candidate, operation);
+    if (normalize) {
+      const draft = validateScene(candidate, catalog);
+      if (!draft.ok) return reject(draft.errors.join(' '));
+      candidate = normalize(candidate, move.source);
+    }
     const validation = validateScene(candidate, catalog);
     return validation.ok ? { scene: candidate, operation } : reject(validation.errors.join(' '));
   } catch (error) {

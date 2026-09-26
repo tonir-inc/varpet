@@ -95,6 +95,7 @@ export class StudioRenderer {
   private readonly output = new OutputPass();
   private readonly selection: SelectionOutline;
   private disposed = false;
+  private interior = false;
 
   constructor(private readonly renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: StudioCamera) {
     const target = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: Math.min(4, renderer.capabilities.maxSamples) });
@@ -156,7 +157,7 @@ export class StudioRenderer {
     // Top mode is a measurement-oriented orthographic view. Keep its fills
     // even and its overlays clear rather than carrying perspective AO into it.
     this.occlusion.enabled = camera instanceof THREE.PerspectiveCamera;
-    this.grade.uniforms.strength!.value = this.occlusion.enabled ? 1 : 0;
+    this.grade.uniforms.strength!.value = this.occlusion.enabled ? (this.interior ? 0.2 : 1) : 0;
     this.composer.render();
   }
 
@@ -171,6 +172,12 @@ export class StudioRenderer {
 
   setSelection(objects: THREE.Object3D[]): void {
     if (!this.disposed) this.selection.setSelection(objects);
+  }
+
+  /** Keep an eye-level room view neutral; the dollhouse keeps its studio grade. */
+  setInterior(inside: boolean): void {
+    this.interior = inside;
+    this.occlusion.blendIntensity = inside ? 0.65 : 0.82;
   }
 
   setQuality(quality: 'balanced' | 'high'): void {

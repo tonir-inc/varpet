@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { CatalogAsset } from '../contracts';
-import { disposeObject, makeFurniture } from './assets';
+import { AssetLoader, disposeObject } from './assets';
 
 interface Preview {
   signature: string;
@@ -11,8 +11,8 @@ interface Preview {
 }
 
 /**
- * Real, event-driven 3D catalog views sharing one WebGL context. GLTF entries use
- * their procedural kind and dimensions here; browsing never downloads a model.
+ * Real, event-driven 3D catalog views sharing one WebGL context. Only visible
+ * entries download their database model, with two requests active at a time.
  * The scrolling container owns `.asset-preview[data-preview="asset-id"]` slots.
  * `.asset-preview.is-3d > svg` may be hidden once its model renders successfully.
  */
@@ -21,12 +21,30 @@ export function createCatalogPreviews(container: HTMLElement): {
   render(): void;
   dispose(): void;
 } {
+  function setStatus(slot: HTMLElement, name: string, status: 'loading' | 'error' | 'ready' | 'idle'): void {
+    const message = status === 'loading' ? 'Loading 3D model…' : status === 'error' ? '3D model unavailable' : '';
+    slot.setAttribute('role', 'img');
+    slot.setAttribute('aria-label', `${name}${message ? `: ${message}` : ' 3D model'}`);
+    slot.classList.toggle('is-3d', status === 'ready');
+    let label = slot.querySelector<HTMLElement>('.asset-preview-status');
+    if (!message) { label?.remove(); return; }
+    if (!label) {
+      label = document.createElement('span');
+      label.className = 'asset-preview-status';
+      Object.assign(label.style, { position: 'absolute', bottom: '4px', left: '4px', right: '4px', fontSize: '10px', textAlign: 'center', color: '#898395' });
+      slot.style.position = 'relative';
+      slot.append(label);
+    }
+    if (label.textContent !== message) label.textContent = message;
+  }
   let renderer: THREE.WebGLRenderer;
   try {
     renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'low-power' });
   } catch {
-    // Keep the slot's ordinary icon when WebGL is unavailable.
-    return { setAssets() {}, render() {}, dispose() {} };
+    const showUnavailable = () => container.querySelectorAll<HTMLElement>('.asset-preview[data-preview]').forEach(slot => {
+      setStatus(slot, 'Catalog preview', 'error');
+    });
+    return { setAssets: showUnavailable, render: showUnavailable, dispose() {} };
   }
 
   const canvas = renderer.domElement;
@@ -49,7 +67,12 @@ export function createCatalogPreviews(container: HTMLElement): {
   overlay.append(canvas);
   container.prepend(overlay);
 
+  const maxPreviews = 12;
+  const loader = new AssetLoader(maxPreviews);
   const previews = new Map<string, Preview>();
+  const pending = new Map<string, string>();
+  const failures = new Map<string, string>();
+  let wanted = new Set<string>();
   let assets = new Map<string, CatalogAsset>();
   let frame = 0;
   let disposed = false;
@@ -58,12 +81,12 @@ export function createCatalogPreviews(container: HTMLElement): {
   let height = 0;
   let pixelRatio = 0;
 
-  const signature = (asset: CatalogAsset) => `${asset.kind}|${asset.color}|${asset.dimensions.join(',')}`;
+  const signature = (asset: CatalogAsset) => `${asset.kind}|${asset.color}|${asset.dimensions.join(',')}|${asset.source.type === 'gltf' ? asset.source.url : 'procedural'}`;
   const removeReady = () => container.querySelectorAll('.asset-preview.is-3d').forEach(slot => slot.classList.remove('is-3d'));
 
-  function makePreview(asset: CatalogAsset): Preview {
+  function makePreview(asset: CatalogAsset, model: THREE.Group): Preview {
     const scene = new THREE.Scene();
-    scene.add(makeFurniture(asset));
+    scene.add(model);
     scene.add(new THREE.HemisphereLight('#ffffff', '#b8bcc7', 2.1));
     const key = new THREE.DirectionalLight('#fff5e8', 3.0);
     key.position.set(-3, 5, 5);
@@ -94,12 +117,46 @@ export function createCatalogPreviews(container: HTMLElement): {
     return { signature: signature(asset), scene, camera, width: (maxX - minX) * 1.23, height: (maxY - minY) * 1.23 };
   }
 
+  function trimPreviews(): void {
+    while (previews.size > maxPreviews) {
+      const oldest = previews.entries().next().value;
+      if (!oldest) break;
+      disposeObject(oldest[1].scene);
+      previews.delete(oldest[0]);
+    }
+  }
+
+  function requestPreview(asset: CatalogAsset): void {
+    if (pending.size >= 2 || pending.has(asset.id) || failures.get(asset.id) === signature(asset)) return;
+    const requestedSignature = signature(asset);
+    pending.set(asset.id, requestedSignature);
+    void loader.load(asset).then(model => {
+      const current = assets.get(asset.id);
+      if (disposed || !wanted.has(asset.id) || !current || signature(current) !== requestedSignature) {
+        disposeObject(model);
+        return;
+      }
+      try {
+        const previous = previews.get(asset.id);
+        if (previous) disposeObject(previous.scene);
+        previews.delete(asset.id);
+        previews.set(asset.id, makePreview(asset, model));
+        trimPreviews();
+      } catch (error) { disposeObject(model); throw error; }
+    }).catch(() => {
+      if (!disposed && signature(assets.get(asset.id) ?? asset) === requestedSignature) failures.set(asset.id, requestedSignature);
+    }).finally(() => {
+      pending.delete(asset.id);
+      render();
+    });
+  }
+
   function draw(): void {
     frame = 0;
     if (disposed || lost) return;
     const nextWidth = container.clientWidth;
     const nextHeight = container.clientHeight;
-    if (!nextWidth || !nextHeight || !container.getClientRects().length) return;
+    if (!nextWidth || !nextHeight || !container.getClientRects().length) { wanted.clear(); return; }
 
     const nextRatio = Math.min(window.devicePixelRatio || 1, 1.5);
     if (pixelRatio !== nextRatio) {
@@ -130,6 +187,8 @@ export function createCatalogPreviews(container: HTMLElement): {
     const visibleRight = Math.min(width, containerLeft + width - left);
     const visibleTop = Math.min(height, height - (containerTop - top));
     renderer.setScissorTest(true);
+    wanted = new Set<string>();
+    const toLoad: CatalogAsset[] = [];
     for (const slot of container.querySelectorAll<HTMLElement>('.asset-preview[data-preview]')) {
       const asset = assets.get(slot.dataset.preview ?? '');
       if (!asset) { slot.classList.remove('is-3d'); continue; }
@@ -142,11 +201,18 @@ export function createCatalogPreviews(container: HTMLElement): {
       const clipTop = Math.min(visibleTop, y + rect.height);
       if (clipRight <= clipLeft || clipTop <= clipBottom || !rect.width || !rect.height) continue;
 
-      let preview = previews.get(asset.id);
+      // Cap even unusually tall catalogs so visible entries cannot evict and
+      // immediately reload each other in a perpetual request/render loop.
+      if (wanted.size >= maxPreviews) { setStatus(slot, asset.name, 'idle'); continue; }
+      wanted.add(asset.id);
+      const preview = previews.get(asset.id);
+      if (!preview) {
+        const failed = failures.get(asset.id) === signature(asset);
+        setStatus(slot, asset.name, failed ? 'error' : 'loading');
+        if (!failed) toLoad.push(asset);
+        continue;
+      }
       try {
-        if (!preview) {
-          preview = makePreview(asset);
-        }
         // Keep recently visible entries at the end for bounded LRU cleanup.
         previews.delete(asset.id);
         previews.set(asset.id, preview);
@@ -164,17 +230,13 @@ export function createCatalogPreviews(container: HTMLElement): {
         renderer.setScissor(clipLeft, clipBottom, clipRight - clipLeft, clipTop - clipBottom);
         renderer.clearDepth();
         renderer.render(preview.scene, preview.camera);
-        slot.classList.add('is-3d');
+        setStatus(slot, asset.name, 'ready');
       } catch {
-        slot.classList.remove('is-3d');
+        setStatus(slot, asset.name, 'error');
       }
     }
-    while (previews.size > 64) {
-      const oldest = previews.entries().next().value;
-      if (!oldest) break;
-      disposeObject(oldest[1].scene);
-      previews.delete(oldest[0]);
-    }
+    for (const asset of toLoad) requestPreview(asset);
+    trimPreviews();
     renderer.setScissorTest(false);
     renderer.setViewport(0, 0, width, height);
   }
@@ -206,6 +268,10 @@ export function createCatalogPreviews(container: HTMLElement): {
     setAssets(nextAssets) {
       if (disposed) return;
       assets = new Map(nextAssets.map(asset => [asset.id, asset]));
+      for (const [id, failedSignature] of failures) {
+        const asset = assets.get(id);
+        if (!asset || signature(asset) !== failedSignature) failures.delete(id);
+      }
       for (const [id, preview] of previews) {
         const asset = assets.get(id);
         if (!asset || signature(asset) !== preview.signature) {
@@ -229,6 +295,10 @@ export function createCatalogPreviews(container: HTMLElement): {
       removeReady();
       previews.forEach(preview => disposeObject(preview.scene));
       previews.clear();
+      loader.dispose();
+      pending.clear();
+      failures.clear();
+      wanted.clear();
       assets.clear();
       renderer.dispose();
       renderer.forceContextLoss();

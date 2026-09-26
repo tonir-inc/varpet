@@ -1,0 +1,27 @@
+
+> @varpet/editor@0.0.0 build /Users/davitstepanyan/Documents/varpet/apps/editor
+> vite build
+
+vite v8.3.1 building client environment for production...
+transforming...
+✓ 119 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                         0.56 kB │ gzip:   0.34 kB
+dist/assets/roughness-CvBUliYO.jpg     67.93 kB
+dist/assets/basecolor-CII6jJTV.jpg    180.32 kB
+dist/assets/roughness-D99O-dXN.jpg    182.37 kB
+dist/assets/basecolor-Dw9Lz3II.jpg    222.84 kB
+dist/assets/basecolor-ByAeVaum.jpg    257.16 kB
+dist/assets/roughness-BrR4thzw.jpg    328.38 kB
+dist/assets/basecolor-CmfNOeZl.jpg    380.43 kB
+dist/assets/roughness-BfvNI1lq.jpg    411.53 kB
+dist/assets/index-CbBIZI2N.css         60.00 kB │ gzip:  13.81 kB
+dist/assets/index-n9S9cLti.js       1,445.85 kB │ gzip: 439.93 kB
+
+✓ built in 215ms
+[plugin builtin:vite-reporter]
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.

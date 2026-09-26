@@ -2,11 +2,14 @@ import * as THREE from 'three';
 import type { CatalogAsset, SceneDocument, Vec2, Wall, WallMode } from '../contracts';
 import { applyRenovationOperation } from '../core/renovation';
 import { validateScene } from '../core/validation';
+import type { SceneNormalizer } from '../core/store';
+import { snapWallDistance } from '../core/wall-snapping';
 import { disposeObject } from './assets';
 import { makeStructure, type StructureProjection } from './structure';
 import { makeServices, type ServiceProjection } from './services';
 
 interface WallMoveOptions {
+  normalizeScene?: SceneNormalizer;
   world: THREE.Scene;
   canvas: HTMLCanvasElement;
   getCamera(): THREE.Camera;
@@ -82,9 +85,14 @@ export function createWallMove(options: WallMoveOptions) {
     if (!gesture) return;
     const { source, wall, normal, distance } = gesture;
     try {
-      const proposed = applyRenovationOperation(structuredClone(source), { type: 'update-wall', id: wall.id, patch: patchFor(wall, normal, distance) });
-      const validation = validateScene(proposed, options.getCatalog());
-      if (!validation.ok) throw new Error(validation.errors[0]);
+      let proposed = applyRenovationOperation(structuredClone(source), { type: 'update-wall', id: wall.id, patch: patchFor(wall, normal, distance) });
+      const draftValidation = validateScene(proposed, options.getCatalog());
+      if (!draftValidation.ok) throw new Error(draftValidation.errors[0]);
+      if (options.normalizeScene) {
+        proposed = options.normalizeScene(proposed, source);
+        const validation = validateScene(proposed, options.getCatalog());
+        if (!validation.ok) throw new Error(validation.errors[0]);
+      }
       clearProjection();
       previewShell = makeStructure(proposed); previewServices = makeServices(proposed);
       options.world.add(previewShell.group, previewShell.ceilings, previewShell.dimensions, previewServices.group);
@@ -119,8 +127,7 @@ export function createWallMove(options: WallMoveOptions) {
     pointerRay(event);
     const point = raycaster.ray.intersectPlane(gesture.plane, new THREE.Vector3());
     if (!point) return true;
-    let distance = point.sub(gesture.origin).dot(gesture.normal);
-    if (options.snap()) distance = Math.round(distance / 0.05) * 0.05;
+    const distance = snapWallDistance(gesture.source, gesture.wall, point.sub(gesture.origin).dot(gesture.normal), options.snap());
     gesture.moved = true;
     if (Math.abs(gesture.distance - distance) < 1e-8) return true;
     gesture.distance = distance;

@@ -51,7 +51,8 @@ export class PlacementFeedback {
     this.writePositions(this.fill.geometry, faces);
     this.writePositions(this.outline.geometry, lines);
     this.group.visible = faces.length > 0;
-    const labels = { support: 'outside the floor plan', wall: 'wall intersection', overlap: 'furniture overlap' };
+    const labels = { support: 'outside the floor plan', wall: 'wall intersection', overlap: 'furniture overlap',
+      door: 'door intersection', 'door-swing': 'door opening / closing clearance' };
     const message = `Placement conflict: ${[...new Set(conflicts.map(conflict => labels[conflict.kind]))].join(' · ')}`;
     if (this.status.textContent !== message) this.status.textContent = message;
     this.status.hidden = !this.group.visible;

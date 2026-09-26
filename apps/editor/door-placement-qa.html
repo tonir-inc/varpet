@@ -1,0 +1,55 @@
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><title>Door placement QA</title><style>body{margin:0;background:#171d25;color:#eee;font:14px system-ui}header{padding:12px}button{padding:8px;margin:3px}#view{position:absolute;inset:180px 0 0}#result{max-height:85px;overflow:auto;white-space:pre-wrap;font:12px monospace}</style></head><body><header><strong>Door placement — isolated production viewport</strong><br><button id="run">Run checks</button><button id="sweep">Move into swing</button><button id="leaf">Move into leaf</button><button id="clear">Move clear</button><button id="open">Open door</button><button id="close">Close door</button><button id="top">Top</button><button id="perspective">3D</button><button id="cancel">Cancel</button><div id="result">Loading</div></header><div id="view"></div><script type="module">
+import { TransformControls } from 'three/addons/controls/TransformControls.js';
+import { createViewport } from '/src/render/viewport.ts';
+import { EditorStore } from '/src/core/store.ts';
+import { migrateScene } from '/src/core/renovation.ts';
+const view = document.querySelector('#view'), result = document.querySelector('#result');
+const catalog = [{ id:'cabinet',name:'Cabinet',kind:'cabinet',category:'Storage',dimensions:[.6,1,.6],color:'#c4b69c',price:1,source:{type:'procedural'} }];
+const scene=migrateScene({format:'varpet.editor',version:1,id:'door-qa',name:'Door QA',units:'m',upAxis:'Y',rooms:[{id:'floor',name:'Room',polygon:[[-2,-2],[3,-2],[3,3],[-2,3]],color:'#d8cbb9'}],walls:[{id:'wall',start:[-1.5,0],end:[2.5,0],height:2.7,thickness:.2,color:'#e3e0d8',openings:[{id:'door',kind:'door',offset:1.5,width:1.2,height:2.1,sill:0}]}],objects:[{id:'cabinet',assetId:'cabinet',name:'Cabinet',position:[1.6,0,1.5],rotation:0,scale:[1,1,1]}]});
+scene.project.metadata.door={mechanism:'hinged',hinge:'left',swing:1,frameWidth:.05,leafThickness:.04};
+let controls,dragging=false,reduced=false; const listeners=new Set(), realMatch=window.matchMedia.bind(window);
+window.matchMedia=query=>query==='(prefers-reduced-motion: reduce)'?{get matches(){return reduced},addEventListener(type,fn){listeners.add(fn)},removeEventListener(type,fn){listeners.delete(fn)}}:realMatch(query);
+const setMode=TransformControls.prototype.setMode;
+TransformControls.prototype.setMode=function(...args){controls=this;return setMode.apply(this,args)};
+const errors=[],store=new EditorStore(scene,catalog);
+const viewport=createViewport(view,{onSelect(id){viewport.setSelection(id)},onInteraction(active){dragging=active},onError(message){errors.push(message)},onTransform(id,patch){const r=store.execute({id:crypto.randomUUID(),label:'Move cabinet',source:'human',baseRevision:store.revision,operations:[{type:'update',id,patch}]},true);if(!r.ok)errors.push(...r.errors);viewport.setScene(store.scene,catalog)}});
+viewport.setScene(store.scene,catalog);viewport.setWalls('full');viewport.setSelection('cabinet');viewport.setTool('move');viewport.focus();
+const status=()=>[...view.querySelectorAll('[role="status"]')].filter(e=>!e.hidden).map(e=>e.textContent).join(' ');
+const pause=()=>new Promise(resolve=>setTimeout(resolve,500));
+function move(x,z){if(!dragging)controls.dispatchEvent({type:'mouseDown',mode:'translate'});controls.object.position.set(x,0,z);controls.object.updateMatrixWorld(true);controls.dispatchEvent({type:'objectChange'});}
+function show(){result.textContent=`Revision ${store.revision}. ${status() || 'Clear placement.'}`;}
+document.querySelector('#sweep').onclick=()=>{move(.75,.65);show()};
+document.querySelector('#leaf').onclick=()=>{move(.6,-.2);show()};
+document.querySelector('#clear').onclick=()=>{move(1.6,1.5);show()};
+document.querySelector('#open').onclick=()=>viewport.setDoorAngle('door',Math.PI/2);
+document.querySelector('#close').onclick=()=>viewport.setDoorAngle('door',0);
+document.querySelector('#top').onclick=()=>{viewport.setView('top');viewport.focus()};
+document.querySelector('#perspective').onclick=()=>{viewport.setView('perspective');viewport.focus()};
+document.querySelector('#cancel').onclick=()=>{viewport.cancelInteraction();show()};
+document.querySelector('#run').onclick=async()=>{
+ const lines=[]; const check=(ok,label)=>{if(!ok)throw new Error(label);lines.push('PASS '+label);result.textContent=lines.join('\n');};
+ try {
+  viewport.cancelInteraction(); const initial=JSON.stringify(store.scene), revision=store.revision;
+  move(.75,.65);check(status().includes('door opening / closing clearance'),'swing obstacle renders live warning');
+  check(JSON.stringify(store.scene)===initial && store.revision===revision,'drag preview leaves document and history unchanged');
+  viewport.setDoorAngle('door',Math.PI/2);await pause();check(status().includes('door opening / closing clearance'),'open door retains opening/closing clearance');
+  viewport.setDoorAngle('door',0);await pause();check(status().includes('door opening / closing clearance'),'closed door retains opening/closing clearance');
+  move(.6,-.2);check(status().includes('door opening / closing clearance'),'closed leaf backside has collision feedback');
+  move(1.6,1.5);check(status()==='','moving clear immediately clears feedback');
+  move(.75,.65);viewport.cancelInteraction();check(status()==='' && JSON.stringify(store.scene)===initial,'cancel clears overlay and restores source');
+  move(.75,.65);viewport.setView('top');check(status()==='' && !dragging,'camera change cancels gesture and clears feedback');await pause();
+  move(.75,.65);check(status().includes('door opening / closing clearance'),'Top renders the same clearance');
+  viewport.cancelInteraction();viewport.setView('perspective');await pause();
+  reduced=true;for(const fn of listeners)fn({matches:true});viewport.setDoorAngle('door',Math.PI/2);await pause();
+  move(.75,.65);check(status().includes('door opening / closing clearance'),'reduced motion preserves precise collision');
+  controls.dispatchEvent({type:'mouseUp',mode:'translate'});check(store.revision===revision+1 && status()==='','release retains v2 warning policy and commits one history entry');
+  check(store.undo().ok,'move can be undone');viewport.setScene(store.scene,catalog);check(JSON.stringify(store.scene)===initial,'undo restores original placement');
+  check(store.redo().ok,'move can be redone');viewport.setScene(store.scene,catalog);
+  check(store.undo().ok,'QA restores starting scene');viewport.setScene(store.scene,catalog);
+  check(errors.length===0,'no viewport or command errors');
+  check(viewport.getDoorAngle('door')===Math.PI/2,'furniture history preserves temporary door angle');
+  result.textContent=lines.join('\n')+`\nCOMPLETE ${lines.length} browser checks.`;
+ } catch(error){result.textContent=lines.join('\n')+'\nFAIL '+error.message;}
+};
+result.textContent='Ready. Scene is isolated; changes are not saved.';
+</script></body></html>

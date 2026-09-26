@@ -1,0 +1,6 @@
+
+> @varpet/editor@0.0.0 test:architect /Users/davitstepanyan/Documents/varpet/apps/editor
+> node scripts/check-architect.mjs && node scripts/check-reconstruction-proposal.mjs
+
+architect adapter check passed
+Reconstruction proposal checks passed (16 assertions).

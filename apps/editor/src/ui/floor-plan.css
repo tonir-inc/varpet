@@ -100,3 +100,26 @@
 .fp-entity.is-removed polygon, .fp-entity.is-removed rect, .fp-entity.is-removed line:not(.fp-wall-hit), .fp-entity.is-removed path { stroke-dasharray: 5 4; }
 .fp-room.is-removed .fp-room-shape { fill-opacity: .12; }
 .fp-room-label.is-removed { opacity: .58; }
+
+.fp-layers { position: absolute; top: 143px; left: 28px; right: 28px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; max-width: 660px; }
+.fp-plan-only, .fp-layer { display: inline-flex; align-items: center; gap: 6px; min-height: 31px; margin: 0; padding: 0 11px; border: 1px solid #e1dbe5; border-radius: 7px; background: #fffdfbf5; color: #766483; font-family: inherit; font-weight: 500; font-size: 11px; cursor: pointer; transition: background-color 140ms ease-out, border-color 140ms ease-out; }
+.fp-plan-only:hover, .fp-layer:hover { background: #f1ebf6; border-color: #c3afd8; }
+.fp-plan-only[aria-pressed="true"], .fp-layer:has(input:checked) { background: #eee5f7; border-color: #b79bce; color: #69428c; }
+.fp-layer-electrical:has(input:checked) { background: #fff3db; border-color: #d8b369; color: #94611c; }
+.fp-layer-water:has(input:checked) { background: #e6f1f8; border-color: #92bbd4; color: #316d90; }
+.fp-layer input { width: 13px; height: 13px; margin: 0; accent-color: #81629d; cursor: pointer; }
+.fp-plan-only:focus-visible, .fp-layer:focus-within { outline: 2px solid #a385c7; outline-offset: 2px; }
+.fp-layer-status { flex-basis: 100%; margin: 1px 0 0; color: #817487; font-size: 10px; line-height: 1.5; pointer-events: none; }
+.fp-layer-status[hidden], .fp-service-key[hidden] { display: none; }
+.fp-swatch-service { height: 0; border-top: 2px solid currentColor; }
+.fp-swatch-water-hot, .fp-swatch-waste { border-top-style: dashed; }
+.fp-service-route:hover .fp-route-line, .fp-service-route:focus-visible .fp-route-line { filter: brightness(.8); }
+.fp-service-route.is-removed .fp-route-line { stroke-dasharray: 5 4; }
+.fp-service-label { fill: #554063; font-weight: 550; pointer-events: none; paint-order: stroke; stroke: #fffdfa; stroke-width: 4px; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.fp-service-symbol { font-weight: 650; pointer-events: none; }
+.fp-has-services .fp-room-label { opacity: .55; }
+.fp-has-services .fp-room-label.is-selected { opacity: 1; }
+.fp-compact .fp-layers { left: 22px; right: 18px; }
+@media (prefers-reduced-motion: reduce) {
+  .fp-plan-only, .fp-layer { transition: none; }
+}

@@ -6,6 +6,8 @@ import { furnitureUpdates, removeSingletonGroups } from './grouping';
 
 const HISTORY_LIMIT = 100;
 type HistoryEntry = { scene: SceneDocument; label: string };
+/** Optional application topology policy; the command processor also supports raw imported walls. */
+export type SceneNormalizer = (scene: SceneDocument, previous?: SceneDocument) => SceneDocument;
 
 function freeze<T>(value: T): T {
   if (value && typeof value === 'object') {
@@ -66,10 +68,13 @@ export class EditorStore {
   private listeners = new Set<(change: SceneChange) => void>();
   private publishing = false;
 
-  constructor(scene: SceneDocument, catalog: CatalogAsset[]) {
+  constructor(scene: SceneDocument, catalog: CatalogAsset[], private normalize?: SceneNormalizer) {
     const validation = validateScene(scene, catalog);
     if (!validation.ok) throw new Error(`Cannot open scene: ${validation.errors.join(' ')}`);
-    this.current = freeze(structuredClone(scene));
+    const candidate = this.normalize ? this.normalize(structuredClone(scene)) : structuredClone(scene);
+    const normalizedValidation = this.normalize ? validateScene(candidate, catalog) : validation;
+    if (!normalizedValidation.ok) throw new Error(`Cannot open scene: ${normalizedValidation.errors.join(' ')}`);
+    this.current = freeze(candidate);
     this.catalog = freeze(structuredClone(catalog));
   }
 
@@ -77,6 +82,26 @@ export class EditorStore {
   get revision(): number { return this.currentRevision; }
   get canUndo(): boolean { return this.past.length > 0; }
   get canRedo(): boolean { return this.future.length > 0; }
+
+  /** Keep checked search results plus every scene/history reference; browsing never consumes history. */
+  registerCatalogAssets(assets: CatalogAsset[]): CatalogAsset[] {
+    const referenced = new Set<string>();
+    for (const scene of [this.current, ...this.past.map(entry => entry.scene), ...this.future.map(entry => entry.scene)]) {
+      const snapshots = [scene, ...(scene.project?.baseline ? [scene.project.baseline] : []), ...(scene.project?.options.map(option => option.snapshot) ?? [])];
+      for (const snapshot of snapshots) for (const object of snapshot.objects) referenced.add(object.assetId);
+    }
+    const next = new Map(this.catalog.filter(asset => referenced.has(asset.id)).map(asset => [asset.id, asset]));
+    for (const asset of assets) {
+      const existing = next.get(asset.id);
+      if (existing && JSON.stringify(existing) !== JSON.stringify(asset)) throw new Error(`Catalog item “${asset.id}” changed. Reopen the project to use updated product data.`);
+      next.set(asset.id, asset);
+    }
+    const candidate = [...next.values()];
+    const validation = validateScene(this.current, candidate);
+    if (!validation.ok) throw new Error(validation.errors.join(' '));
+    this.catalog = freeze(structuredClone(candidate));
+    return structuredClone(candidate);
+  }
 
   subscribe(listener: (change: SceneChange) => void): () => void {
     this.listeners.add(listener);
@@ -109,6 +134,7 @@ export class EditorStore {
     try {
       const operations = structuredClone(command.operations);
       let candidate = structuredClone(this.current);
+      let previous: SceneDocument | undefined = this.current;
       for (const operation of operations) {
         switch (operation.type) {
           case 'group': {
@@ -151,16 +177,27 @@ export class EditorStore {
             invalidateAssumptions(candidate, [...candidate.rooms, ...candidate.walls, ...candidate.walls.flatMap(w => w.openings)].map(entity => entity.id));
             candidate.rooms = operation.rooms;
             candidate.walls = operation.walls;
+            previous = undefined;
             break;
           case 'replace-scene': {
             // Validate before later operations can access an imported document's fields.
             const imported = validateScene(operation.scene, this.catalog);
             if (!imported.ok) return this.rejection(imported.errors);
             candidate = operation.scene;
+            previous = undefined;
             break;
           }
-          default: candidate = applyRenovationOperation(candidate, operation);
+          default:
+            candidate = applyRenovationOperation(candidate, operation);
+            if (operation.type === 'switch-option' || operation.type === 'restore-baseline') previous = undefined;
         }
+      }
+      // Validate the complete raw edit before topology can partition openings or
+      // remap dependants, then validate again before the single atomic commit.
+      if (this.normalize) {
+        const draftValidation = validateScene(candidate, this.catalog);
+        if (!draftValidation.ok) return { ...draftValidation, revision: this.revision };
+        candidate = this.normalize(candidate, previous);
       }
       const validation = validateScene(candidate, this.catalog);
       if (!validation.ok) return { ...validation, revision: this.revision };

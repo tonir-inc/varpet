@@ -1,0 +1,23 @@
+
+> @varpet/editor@0.0.0 test:catalog /Users/davitstepanyan/Documents/varpet/apps/editor
+> node scripts/check-database-catalog.mjs && node scripts/check-assets.mjs && node --test server/catalog.test.mjs
+
+Database catalog store checks passed
+Database catalog mapping checks passed
+Database startup and saved-reference checks passed
+Database import, browsing, and currency checks passed
+assets: 22 checks passed
+✔ search uses the real SDK, honors session/SSE, and merges raw dimensions, model and provenance (46.905916ms)
+✔ saved item hydration deduplicates ids and reports missing records without fake products (7.812042ms)
+✔ vocabulary is returned directly from the database tool (3.21825ms)
+✔ remote errors and invalid detail identities return sanitized unavailable responses (9.443375ms)
+✔ the request deadline aborts stalled upstream requests (64.665084ms)
+✔ invalid or mutating requests never call the catalog and unrelated routes pass through (3.859417ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 434.374833

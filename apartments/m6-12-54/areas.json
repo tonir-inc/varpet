@@ -1,0 +1,59 @@
+{
+  "metresPerPixel": 0.010309278350515464,
+  "origin": [
+    635,
+    575
+  ],
+  "printedTotal": 76.1,
+  "tracedTotal": 75.92,
+  "rooms": [
+    {
+      "room": "Entrance hall",
+      "printed": 11,
+      "traced": 10.38,
+      "difference": -0.62
+    },
+    {
+      "room": "Bathroom",
+      "printed": 4,
+      "traced": 3.98,
+      "difference": -0.02
+    },
+    {
+      "room": "Kitchen",
+      "printed": 7.2,
+      "traced": 7.19,
+      "difference": -0.01
+    },
+    {
+      "room": "Living & dining",
+      "printed": 20.9,
+      "traced": 21.61,
+      "difference": 0.71
+    },
+    {
+      "room": "Bedroom 1",
+      "printed": 14.3,
+      "traced": 14.52,
+      "difference": 0.22
+    },
+    {
+      "room": "Bedroom 2",
+      "printed": 10.6,
+      "traced": 10.32,
+      "difference": -0.28
+    },
+    {
+      "room": "Balcony · living room",
+      "printed": 4,
+      "traced": 4.01,
+      "difference": 0.01
+    },
+    {
+      "room": "Balcony · both bedrooms",
+      "printed": 4.1,
+      "traced": 3.91,
+      "difference": -0.19
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+import type { CatalogAsset, Room, SceneDocument, Vec2, Vec3, Wall } from '../contracts';
+import { migrateScene } from './renovation';
+import { findWalkSpawn, moveWalkPosition, WALK_EYE_HEIGHT } from './walkthrough';
+
+let checks = 0;
+function assert(condition: unknown, message: string): asserts condition { checks++; if (!condition) throw new Error(message); }
+function near(actual: number, expected: number, message: string) { assert(Math.abs(actual - expected) < 1e-6, `${message}: expected ${expected}, got ${actual}`); }
+const room = (id: string, polygon: Vec2[]): Room => ({ id, name: id, polygon, color: '#dddddd' });
+const rectangle = (id: string, x1: number, z1: number, x2: number, z2: number) => room(id, [[x1, z1], [x2, z1], [x2, z2], [x1, z2]]);
+const wall = (openings: Wall['openings'] = []): Wall => ({ id: 'wall', start: [3, 0], end: [3, 6], height: 2.8, thickness: 0.2, color: '#dddddd', openings });
+function scene(rooms = [rectangle('room', 0, 0, 6, 6)]): SceneDocument { return migrateScene({ format: 'varpet.editor', version: 1, id: 'walk', name: 'Walk', units: 'm', upAxis: 'Y', rooms, walls: [], objects: [] }); }
+const asset: CatalogAsset = { id: 'box', name: 'Box', category: 'test', kind: 'cabinet', dimensions: [2, 2, 2], color: '#dddddd', price: 0, source: { type: 'procedural' } };
+const catalog = [asset];
+const at = (x: number, z: number, floor = 0): Vec3 => [x, floor + WALK_EYE_HEIGHT, z];
+
+near(WALK_EYE_HEIGHT, 1.65, 'Walking uses a standing eye height of 1.65m');
+const elevated = scene([rectangle('ground', 0, 0, 6, 6), rectangle('raised', 8, 0, 12, 4)]);
+elevated.project!.metadata.raised = { elevation: 0.6, ceilingHeight: 2.8 };
+const start = findWalkSpawn(elevated, catalog, { roomId: 'raised', point: [9, 1] });
+assert(start, 'Selected elevated room has a safe start');
+near(start.position[0], 9, 'Safe preferred point is retained');
+near(start.position[2], 1, 'Safe preferred point is retained on Z');
+near(start.position[1], 2.25, 'Eye height is added to the selected room floor');
+near(start.target[1], start.position[1], 'Spawn looks horizontally into the room');
+assert(JSON.stringify(start) === JSON.stringify(findWalkSpawn(elevated, catalog, { roomId: 'raised', point: [9, 1] })), 'Spawn is deterministic');
+const concave = scene([room('L', [[0, 0], [6, 0], [6, 1], [1, 1], [1, 6], [0, 6]])]);
+const lStart = findWalkSpawn(concave, []);
+assert(lStart && (lStart.position[0] < 1 || lStart.position[2] < 1), 'Concave room start is inside its L shape');
+const short = scene(); short.project!.metadata.room = { ceilingHeight: 1.7 };
+assert(findWalkSpawn(short, []) === null, 'Low ceilings reject entry instead of shrinking eye height');
+assert(findWalkSpawn(scene([]), []) === null, 'An empty floor plan has no interior start');
+
+const furnished = scene();
+furnished.objects.push({ id: 'cabinet', assetId: asset.id, name: 'Cabinet', position: [3, 0, 3], rotation: Math.PI / 4, scale: [1, 1, 1] });
+const furnitureStart = findWalkSpawn(furnished, catalog, { point: [3, 3] });
+assert(furnitureStart && Math.hypot(furnitureStart.position[0] - 3, furnitureStart.position[2] - 3) > 1, 'Start avoids furniture at the requested point');
+const blocked = scene([rectangle('room', 2.2, 2.2, 3.8, 3.8)]); blocked.objects = furnished.objects;
+assert(findWalkSpawn(blocked, catalog) === null, 'A fully furnished floor with no standing space has no start');
+const stoppedByFurniture = moveWalkPosition(furnished, catalog, at(0.5, 3), [5, 0]);
+assert(stoppedByFurniture[0] < 2, 'Large movement cannot tunnel through rotated furniture');
+
+const solid = scene(); solid.walls = [wall()];
+const solidStop = moveWalkPosition(solid, [], at(1, 3), [4, 0]);
+assert(solidStop[0] < 2.8 && solidStop[0] > 2.5, 'Movement stops before wall with body clearance');
+near(solidStop[1], 1.65, 'Wall movement preserves standing height');
+const doorway = scene(); doorway.walls = [wall([{ id: 'door', kind: 'door', offset: 2, width: 2, sill: 0, height: 2.1 }])];
+near(moveWalkPosition(doorway, [], at(1, 3), [4, 0])[0], 5, 'A doorway is traversable');
+doorway.project!.metadata.door = { mechanism: 'fixed' };
+assert(moveWalkPosition(doorway, [], at(1, 3), [4, 0])[0] < 2.8, 'Fixed door panels cannot be walked through');
+doorway.project!.metadata.door = {};
+const window = scene(); window.walls = [wall([{ id: 'window', kind: 'window', offset: 2, width: 2, sill: 0, height: 2.1 }])];
+assert(moveWalkPosition(window, [], at(1, 3), [4, 0])[0] < 2.8, 'A floor-height window remains a wall barrier');
+doorway.walls[0]!.openings[0]!.height = 1.7;
+assert(moveWalkPosition(doorway, [], at(1, 3), [4, 0])[0] < 2.8, 'A doorway with insufficient head clearance blocks walking');
+const edge = moveWalkPosition(scene(), [], at(3, 3), [100, 0]);
+assert(edge[0] < 6 && edge[0] > 5.5, 'Large deltas stop inside the outer floor edge');
+const gap = scene([rectangle('left', 0, 0, 2, 4), rectangle('right', 2.01, 0, 5, 4)]);
+assert(moveWalkPosition(gap, [], at(1, 2), [3, 0])[0] < 2, 'Movement cannot tunnel across a narrow unsupported floor gap');
+
+const levels = scene([rectangle('low', 0, 0, 3, 6), rectangle('high', 3, 0, 6, 6)]);
+levels.project!.metadata.high = { elevation: 0.2 };
+const upstairs = moveWalkPosition(levels, [], at(1, 3), [4, 0]);
+near(upstairs[0], 5, 'Small floor steps are traversable'); near(upstairs[1], 1.85, 'Camera follows the stepped room floor');
+near(moveWalkPosition(levels, [], upstairs, [-4, 0])[1], 1.65, 'Camera follows a small step down');
+levels.walls = [wall([{ id: 'raised-door', kind: 'door', offset: 2, width: 2, sill: 0.2, height: 2.1 }])];
+const thresholdStep = moveWalkPosition(levels, [], at(1, 3), [4, 0]);
+near(thresholdStep[0], 5, 'A raised doorway threshold permits a small room-floor step');
+near(thresholdStep[1], 1.85, 'A doorway step retains the upper-room eye height');
+near(moveWalkPosition(levels, [], thresholdStep, [-4, 0])[0], 1, 'A raised threshold permits descending a small floor step');
+levels.walls = [];
+levels.project!.metadata.low = { ceilingHeight: 1.8 };
+assert(moveWalkPosition(levels, [], at(1, 3), [4, 0])[0] < 3, 'A floor step cannot lift the body into the lower room ceiling at the seam');
+levels.project!.metadata.low = {};
+levels.project!.metadata.high!.elevation = 0.5;
+assert(moveWalkPosition(levels, [], at(1, 3), [4, 0])[0] < 3, 'High steps block movement instead of teleporting vertically');
+assert(moveWalkPosition(levels, [], at(5, 3, 0.5), [-4, 0])[0] > 3, 'Large drops also block movement');
+const removed = scene(); removed.walls = [wall()]; removed.project!.metadata.wall = { phase: 'remove' };
+near(moveWalkPosition(removed, [], at(1, 3), [4, 0])[0], 5, 'Removed walls do not block walking');
+const rugScene = scene(); rugScene.objects.push({ id: 'rug', assetId: 'rug', name: 'Rug', position: [3, 0, 3], rotation: 0, scale: [1, 1, 1] });
+near(moveWalkPosition(rugScene, [{ ...asset, id: 'rug', kind: 'rug', dimensions: [3, 0.02, 3] }], at(1, 3), [4, 0])[0], 5, 'Thin rugs remain walkable');
+const components = scene();
+components.project!.components.push({ id: 'column', name: 'Column', kind: 'column', position: [3, 0, 3], dimensions: [1, 2.8, 1], rotation: 0, color: '#ffffff', phase: 'existing' });
+assert(moveWalkPosition(components, [], at(1, 3), [4, 0])[0] < 2.5, 'Fixed building components block walking');
+const sliding = moveWalkPosition(solid, [], at(2.5, 2), [1, 1]);
+assert(sliding[0] < 2.8 && sliding[2] > 2.9, 'Diagonal movement slides along a wall instead of freezing');
+const prior = JSON.stringify(furnished);
+findWalkSpawn(furnished, catalog); moveWalkPosition(furnished, catalog, at(1, 1), [1, 1]);
+assert(JSON.stringify(furnished) === prior, 'Walking never mutates the scene or document metadata');
+assert(JSON.stringify(moveWalkPosition(furnished, catalog, at(1, 1), [Number.NaN, 0])) === JSON.stringify(at(1, 1)), 'Invalid input never corrupts camera coordinates');
+console.log(`Walkthrough geometry: ${checks} assertions passed.`);
