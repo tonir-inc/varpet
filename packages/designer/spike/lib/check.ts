@@ -201,8 +201,9 @@ export async function check(scene: Scene, draft: Draft, options: { budget?: numb
   const noMattresses = bare.length > 0 && !(await mattressesAvailable());
   problems.push(...(noMattresses ? relations.filter(p => !bare.includes(p)) : relations));
   const rules = functionRules(scene, draft, options.brief ?? loadBrief());
-  // A rule about kept flat furniture alone (no draft id in the line) cannot be fixed by the draft: advice, not failure.
-  const draftIds = new Set(items.map(item => item.id)), fixable = (line: string) => !scene.items.length || line.split(/[\s,:;()"]+/).some(word => draftIds.has(word));
+  // A rule about kept flat furniture alone (a kept id and no draft id in the line) cannot be fixed by the draft: advice.
+  const draftIds = new Set(items.map(item => item.id)), keptIds = new Set(scene.items.map(item => item.id));
+  const fixable = (line: string) => { const words = line.split(/[\s,:;()"+]+/); return words.some(w => draftIds.has(w)) || !words.some(w => keptIds.has(w)); };
   problems.push(...rules.hard.filter(fixable));
   const advice = [...rules.hard.filter(line => !fixable(line)), ...rules.soft];
   problems.push(...checkSurfaces(scene, draft).map(p => `surfaces: ${p}`));

@@ -136,6 +136,19 @@ describe('windows', () => {
   });
 });
 
+describe('check', () => {
+  test('rule lines about kept furniture alone are advice; room-level lines stay hard on a flat with kept furniture', async () => {
+    const { check } = await import('../lib/check.js');
+    const s = scene(), kept = item('kept-sofa', 'sofa', [3.5, 5.5], 0, [2.2, 0.9, 0.85], { keep: true });
+    s.items = [kept];
+    const bed: DraftItem = { ...item('bed1', 'bed', [10, 2.9], 0, [0.9, 2.0, 0.9], { name: 'Single bed, dressed' }), room_id: 'bed' };
+    const r = await check(s, { items: [bed, item('coffee', 'table', [3.5, 3.9], 0, [1.1, 0.6, 0.42], { name: 'Coffee table' })] }, { brief: 'I sleep badly' });
+    expect(r.problems.join('\n')).toMatch(/windows: window bwin in bed .* brief asks for dark/);
+    expect(r.problems.join('\n')).toMatch(/coffee table coffee is 0\.85 m from kept-sofa/);
+    expect(r.advice.join('\n')).toMatch(/seating kept-sofa has no lamp/);
+  });
+});
+
 describe('living', () => {
   test('a coffee table out of reach fails with the position that fixes it', () => {
     const s = scene(), items = swap(living(s), 'coffee', { pos: [3.5, 3.9] });
