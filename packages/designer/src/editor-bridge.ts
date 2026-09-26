@@ -79,14 +79,20 @@ function mergeIntervals(intervals: Vec2[]): Vec2[] {
 function wallSpans(wall: EditorWall, scene: SceneDocument): Span[] {
   const dx = wall.end[0] - wall.start[0], dz = wall.end[1] - wall.start[1], length = Math.hypot(dx, dz);
   const projection = (p: Vec2) => ((p[0] - wall.start[0]) * dx + (p[1] - wall.start[1]) * dz) / length;
-  const distance = (p: Vec2) => Math.abs((p[0] - wall.start[0]) * dz - (p[1] - wall.start[1]) * dx) / length;
+  const distance = (p: Vec2) => ((p[0] - wall.start[0]) * dz - (p[1] - wall.start[1]) * dx) / length;
   const spans: Span[] = [];
   for (const room of scene.rooms) {
     const intervals: Vec2[] = [];
     for (const [index, a] of room.polygon.entries()) {
       const b = room.polygon[(index + 1) % room.polygon.length]!;
-      if (distance(a) > EPS || distance(b) > EPS) continue;
-      const from = Math.max(0, Math.min(projection(a), projection(b))), to = Math.min(length, Math.max(projection(a), projection(b)));
+      const da = distance(a), db = distance(b), half = wall.thickness / 2;
+      // Architect polygons trace inner faces; demo polygons trace centrelines.
+      // Only parallel edges within the physical wall qualify. Retain their geometry.
+      if (Math.abs(da - db) > EPS || Math.abs(da) > half + EPS) continue;
+      // Face polygons stop at inside corners. Include the wall's corner cap,
+      // but do not broaden existing centreline ownership or erase open gaps.
+      const cap = Math.abs(da) > EPS ? half : 0;
+      const from = Math.max(0, Math.min(projection(a), projection(b)) - cap), to = Math.min(length, Math.max(projection(a), projection(b)) + cap);
       if (to - from > EPS) intervals.push([from, to]);
     }
     for (const [from, to] of mergeIntervals(intervals)) spans.push({ roomId: room.id, from, to });

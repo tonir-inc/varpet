@@ -337,8 +337,17 @@ function endpoints(scene: Scene, room: Room, grid: RoutingGrid): { doors: Endpoi
   const obstacles = obstaclesForRoom(scene, room), doors: Endpoint[] = [], items: Endpoint[] = [];
   for (const opening of scene.openings) {
     if (opening.kind === 'window') continue;
-    const { wall, point, along, inward } = doorGeometry(scene, opening);
+    const { wall, point: centre, along, inward } = doorGeometry(scene, opening);
     const owner = wall.room_id === room.id, intoRoom: Vec2 = owner ? inward : [-inward[0], -inward[1]];
+    // Interior-face polygons need an ingress at the room face, not inside the
+    // physical wall. Only cross the declared half-thickness of this doorway.
+    let point = centre;
+    if (!pointInPolygon(centre, room.polygon)) {
+      const distance = roomExitDistance(centre, intoRoom, room);
+      const face: Vec2 = [centre[0] + intoRoom[0] * distance, centre[1] + intoRoom[1] * distance];
+      if (distance <= (wall.thickness ?? 0) / 2 + EPS && openingOnBoundary(room, face, along, opening.width)
+        && pointInPolygon([face[0] + intoRoom[0] * 1e-5, face[1] + intoRoom[1] * 1e-5], room.polygon)) point = face;
+    }
     if (!owner && (!openingOnBoundary(room, point, along, opening.width)
       || !pointInPolygon([point[0] + intoRoom[0] * 1e-5, point[1] + intoRoom[1] * 1e-5], room.polygon)
       || pointInPolygon([point[0] - intoRoom[0] * 1e-5, point[1] - intoRoom[1] * 1e-5], room.polygon))) continue;

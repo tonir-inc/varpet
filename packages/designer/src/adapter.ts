@@ -117,8 +117,11 @@ export function wallOutward(scene: Scene, wall: Wall): Vec2 {
   const length = Math.hypot(wall.b[0]-wall.a[0],wall.b[1]-wall.a[1]);
   const dx=(wall.b[1]-wall.a[1])/length,dy=(wall.a[0]-wall.b[0])/length;
   const middle: Vec2=[(wall.a[0]+wall.b[0])/2,(wall.a[1]+wall.b[1])/2];
-  const positive=inside([middle[0]+dx*1e-5,middle[1]+dy*1e-5]);
-  const negative=inside([middle[0]-dx*1e-5,middle[1]-dy*1e-5]);
+  // Probe beyond the physical face: architect room polygons may stop there,
+  // while editor demo polygons include the centreline. Neither is moved.
+  const probe = (wall.thickness ?? 0) / 2 + 1e-5;
+  const positive=inside([middle[0]+dx*probe,middle[1]+dy*probe]);
+  const negative=inside([middle[0]-dx*probe,middle[1]-dy*probe]);
   if (positive === negative) throw new Error(`Wall ${wall.id} is not on the boundary of room ${wall.room_id}`);
   return positive ? [-dx,-dy] : [dx,dy];
 }
