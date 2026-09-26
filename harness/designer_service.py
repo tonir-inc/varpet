@@ -17,12 +17,15 @@ import sys
 import tempfile
 import threading
 import time
+import re
 import uuid
 
 import designer
 
 
 ORIGIN = "http://localhost:5173"
+# any local editor dev server (vite moves to 5174, 5175... when 5173 is taken)
+LOCAL_ORIGIN = re.compile(r"^http://(localhost|127\.0\.0\.1)(:\d{1,5})?$")
 MAX_BODY = 16 * 1024 * 1024
 
 
@@ -277,12 +280,13 @@ def make_server(service: DesignerService, port=8787) -> ThreadingHTTPServer:
             self.send_header("Connection", "close")
             self.send_header("Vary", "Origin")
             if self.headers_origin_allowed():
-                self.send_header("Access-Control-Allow-Origin", ORIGIN)
+                self.send_header("Access-Control-Allow-Origin", self.headers.get("Origin") or ORIGIN)
             self.end_headers()
             self.close_connection = True
 
         def headers_origin_allowed(self):
-            return self.headers.get("Origin") in (None, ORIGIN)
+            origin = self.headers.get("Origin")
+            return origin is None or bool(LOCAL_ORIGIN.match(origin))
 
         def write_line(self, record):
             self.wfile.write((json.dumps(record, ensure_ascii=False, allow_nan=False) + "\n").encode())
@@ -301,7 +305,7 @@ def make_server(service: DesignerService, port=8787) -> ThreadingHTTPServer:
                 self.send_headers(403)
                 return
             self.send_response(204)
-            self.send_header("Access-Control-Allow-Origin", ORIGIN)
+            self.send_header("Access-Control-Allow-Origin", self.headers.get("Origin") or ORIGIN)
             self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
             self.send_header("Access-Control-Allow-Headers", "Content-Type")
             self.send_header("Vary", "Origin")
