@@ -6,9 +6,9 @@ import { demoScene, localCatalog } from '../../../../../apps/editor/src/core/dem
 import { catalogItems } from '../../../src/catalog.js';
 import { editorKindOf } from '../../../src/editor-bridge.js';
 import type { Scene } from '../../../src/scene.js';
-import type { FinishMaterial } from '../../../../../apps/editor/src/renovation-contracts.js';
+import type { CeilingDesign, FinishMaterial } from '../../../../../apps/editor/src/renovation-contracts.js';
 import { materialForPreset } from '../../../../../apps/editor/src/core/finish-presets.js';
-import { defaultCeilingDesign } from '../../../../../apps/editor/src/core/ceiling-design.js';
+import { defaultCeilingDesign, layoutCeilingDesign } from '../../../../../apps/editor/src/core/ceiling-design.js';
 import { roomCeilingHeight } from '../../../../../apps/editor/src/core/heights.js';
 import { migrateScene } from '../../../../../apps/editor/src/core/renovation.js';
 import { wallSurfaceSpans } from '../../../../../apps/editor/src/core/wall-surfaces.js';
@@ -188,7 +188,7 @@ export function applySurfaces(input: SceneDocument, scene: Scene, draft: Draft):
     if (!room) continue;
     if (light.type === 'ceiling') {
       const design = { ...defaultCeilingDesign(light.style), ...(light.brightness !== undefined ? { brightness: light.brightness } : {}), ...(light.temperature_k !== undefined ? { temperature: light.temperature_k } : {}) };
-      project.metadata[room.id] = { ...project.metadata[room.id], ceilingDesign: design };
+      fitCeilingDesign(doc, scene, room.id, design);
     } else {
       const defaults = FIXTURE_DEFAULTS[light.mount], size = light.size ?? defaults.size;
       const bottom = fixtureBottom(light, items, roomCeilingHeight(doc, room));
@@ -198,6 +198,43 @@ export function applySurfaces(input: SceneDocument, scene: Scene, draft: Draft):
     }
   }
   return doc;
+}
+
+/** The editor refuses a whole document whose ceiling design does not fit its room (a narrow hall, an L-shaped WC), while
+ * the designer's check accepts any style anywhere. Degrade instead of failing the picture: a smaller inset first
+ * (fewer, tighter spots or a smaller panel), then one flush ceiling light at the roomiest point of the room. */
+function fitCeilingDesign(doc: SceneDocument, scene: Scene, roomId: string, design: CeilingDesign): void {
+  const project = doc.project!, room = doc.rooms.find(candidate => candidate.id === roomId)!, before = project.metadata[roomId];
+  for (const inset of [...new Set([design.inset, 0.35, 0.25, 0.15])].filter(value => value <= design.inset)) {
+    project.metadata[roomId] = { ...before, ceilingDesign: { ...design, inset } };
+    try { layoutCeilingDesign(doc, room); return; } catch { /* try a smaller inset */ }
+  }
+  project.metadata[roomId] = { ...before, ceilingDesign: null };
+  const polygon = scene.rooms.find(candidate => candidate.id === roomId)?.polygon as [number, number][] | undefined;
+  if (!polygon) return;
+  const [x, y] = roomiestPoint(polygon), size = FIXTURE_DEFAULTS.ceiling.size;
+  process.stderr.write(`renderView: ${design.style} ceiling design does not fit ${roomId}; drawn as one ceiling light\n`);
+  project.components.push({ id: `spike-ceiling-${roomId}`, name: `${design.style} ceiling light`, kind: 'light', position: [x, (project.metadata[roomId]?.elevation ?? 0) + roomCeilingHeight(doc, room) - size[2], -y],
+    dimensions: size, rotation: 0, color: '#d9d3c7', phase: 'new', roomId,
+    light: { brightness: Math.round(FIXTURE_DEFAULTS.ceiling.brightness * design.brightness / 70), temperature: design.temperature, enabled: design.enabled } });
+}
+
+/** The point inside a room polygon farthest from its edges (a coarse grid search; rooms are small). */
+function roomiestPoint(polygon: [number, number][]): [number, number] {
+  const xs = polygon.map(p => p[0]), ys = polygon.map(p => p[1]);
+  const [minX, maxX, minY, maxY] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+  const edgeDistance = ([px, py]: [number, number]) => Math.min(...polygon.map((a, i) => {
+    const b = polygon[(i + 1) % polygon.length]!, dx = b[0] - a[0], dy = b[1] - a[1], t = Math.max(0, Math.min(1, ((px - a[0]) * dx + (py - a[1]) * dy) / (dx * dx + dy * dy || 1)));
+    return Math.hypot(px - a[0] - dx * t, py - a[1] - dy * t);
+  }));
+  let best: [number, number] = [(minX + maxX) / 2, (minY + maxY) / 2], bestDistance = -1;
+  for (let i = 0; i <= 24; i++) for (let j = 0; j <= 24; j++) {
+    const point: [number, number] = [minX + (maxX - minX) * i / 24, minY + (maxY - minY) * j / 24];
+    if (!inside(polygon, point)) continue;
+    const distance = edgeDistance(point);
+    if (distance > bestDistance) { bestDistance = distance; best = point; }
+  }
+  return best;
 }
 
 const inside = (polygon: [number, number][], [x, y]: [number, number]) => {
