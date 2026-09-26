@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { SceneDocument, Vec2 } from '../contracts';
 import { disposeObject } from './assets';
+import { emptyProject } from '../core/renovation';
 import { makeStructure, type StructureProjection } from './structure';
 
 let assertions = 0;
@@ -123,6 +124,61 @@ withShell(rectangle(), shell => {
   assert(!shell.updateWalls(cameraAt(0), 'cutaway', false, 600), 'returning to a side view settles the transition');
   expectWall(shell, 'south', 'full', 'Settled orbit reversal');
   assert(material.opacity === 1 && !material.transparent && material.depthWrite, 'settled side wall restores opaque material state');
+});
+
+// A partition can face the camera without being on the apartment perimeter.
+for (const reversed of [false, true]) {
+  const source = rectangle(1, [0, 0], reversed);
+  source.rooms = [
+    { id: 'left', name: 'Left room', color: '#eeeeee', polygon: [[-4, -3], [0, -3], [0, 3], [-4, 3]] },
+    { id: 'right', name: 'Right room', color: '#eeeeee', polygon: [[0, -3], [4, -3], [4, 3], [0, 3]] },
+  ];
+  source.walls.push({ id: 'partition', start: reversed ? [0, 3] : [0, -3], end: reversed ? [0, -3] : [0, 3],
+    height: 2.7, thickness: 0.2, color: '#eeeeee', openings: [{ id: 'internal-door', kind: 'door', offset: 1, width: 1, height: 2, sill: 0 }] });
+  withShell(source, shell => {
+    for (const angle of [0, 45, 90, 135, 180, 225, 270, 315]) {
+      shell.updateWalls(cameraAt(angle), 'cutaway', false, 0, true);
+      expectWall(shell, 'partition', 'full', `Interior partition at ${angle} degrees`);
+    }
+    shell.updateWalls(cameraAt(0), 'cutaway', true, 0, true);
+    expectWall(shell, 'partition', 'full', 'Top keeps interior partitions intact');
+    expectWall(shell, 'west', 'low', 'Top still cuts the perimeter', true);
+  });
+}
+
+withShell(rectangle(), shell => {
+  const camera = cameraAt(0);
+  shell.updateWalls(camera, 'cutaway', false, 0, true);
+  expectWall(shell, 'west', 'low', 'Outside the west face');
+  camera.position.set(-3, 1.6, 0);
+  shell.updateWalls(camera, 'cutaway', false, 100, true);
+  for (const id of ['west', 'east', 'south', 'north']) expectWall(shell, id, 'full', 'Camera inside the apartment');
+});
+
+for (const boundary of ['interior', 'shared'] as const) {
+  const source = rectangle();
+  source.version = 2; source.project = emptyProject();
+  source.project.metadata.west = { boundary };
+  withShell(source, shell => {
+    for (const top of [false, true]) {
+      shell.updateWalls(cameraAt(0), 'cutaway', top, 0, true);
+      expectWall(shell, 'west', 'full', `Explicit ${boundary} boundary overrides an incomplete room trace`);
+    }
+  });
+}
+
+// A concave apartment's camera can be beyond one exterior wall's plane while
+// still standing in another room. That must not open up the building envelope.
+const concave = rectangle();
+concave.rooms[0]!.polygon = [[-4, -3], [4, -3], [4, 3], [0, 3], [0, -1], [-4, -1]];
+concave.walls.push({ id: 'recess', start: [-4, -1], end: [0, -1], height: 2.7, thickness: 0.2, color: '#eeeeee', openings: [] });
+withShell(concave, shell => {
+  const camera = cameraAt(0); camera.position.set(2, 1.6, 2);
+  shell.updateWalls(camera, 'cutaway', false, 0, true);
+  expectWall(shell, 'recess', 'full', 'Inside another part of a concave apartment');
+  camera.position.set(-2, 5, 2);
+  shell.updateWalls(camera, 'cutaway', false, 100, true);
+  expectWall(shell, 'recess', 'low', 'Outside in the concave recess');
 });
 
 console.log(`Cutaway checks passed (${assertions} assertions).`);

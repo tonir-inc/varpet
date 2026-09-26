@@ -1,5 +1,84 @@
 # Cutaway side-wall visibility
 
+## Exterior-only cutaway update · 26 September 2026
+
+The current behavior supersedes the midpoint policy documented below. Automatic
+cutaway keeps internal partitions full-height, including their doors and windows.
+It uses the existing room-facing wall spans to identify an unambiguous exterior
+side and honors explicit `interior`/`shared` metadata even when a room trace is
+incomplete. Walls with room coverage on both sides, or no reliable side, stay full.
+The camera must be outside every active room footprint and beyond the exterior
+wall face before perspective cutaway applies. This also prevents a camera inside
+one wing of a concave apartment from cutting a wall in another wing.
+
+Top preserves interior partitions and lowers exterior walls. Roomless standalone
+walls retain the legacy low Top projection unless explicitly interior/shared.
+Full/Hidden remain manual overrides. Existing angular hysteresis, interrupted
+280 ms fades, reduced motion, opening selection and scene immutability remain.
+
+Assumption: “hide” refers to automatic Cutaway; explicit Full/Hidden controls keep
+their meaning. General occlusion solving and inferring missing room boundaries
+are descoped; ambiguous walls are conservatively preserved.
+
+New regression cases failed before each production correction:
+
+```text
+Error: Cutaway: Interior partition at 0 degrees: partition full wall should be visible
+Error: Cutaway: Inside another part of a concave apartment: recess full wall should be visible
+```
+
+Verification, Codex (GPT-6), 26 September 2026:
+
+```text
+node apps/editor/scripts/check-cutaway.mjs
+Cutaway checks passed (520 assertions).
+node apps/editor/scripts/check-projection-motion.mjs
+Projection motion checks passed (16 assertions).
+pnpm test: exit 0
+Designer: 67 files / 351 Vitest tests; Python 109 + 38 tests
+Tools: 7 tests; Showcase: 10 tests; editor Node suites: 6 + 56 tests
+All editor assertion suites passed, including Cutaway 520 and Projection motion 16.
+pnpm typecheck: exit 0 (engine, designer, editor, showcase)
+pnpm --filter @varpet/editor build: exit 0 (133 modules)
+Existing Vite advisory: main chunk exceeds 500 kB.
+git diff --check: exit 0
+```
+
+Fresh-context reviewer: **APPROVE**, including the browser harness follow-up.
+The primary exclusively edited `render/structure.ts`, `render/cutaway-check.ts`,
+`render/cutaway-qa.ts`, `docs/rendering.md`, and this document; the explorer and
+reviewer were read-only. Concurrent profile work in other files was preserved.
+No schema, fixtures, contracts, or existing expectations were weakened.
+
+The shared dev server reloaded during browser checks due to unrelated edits, so
+the final browser run uses a dedicated server on port 5178 with HMR disabled.
+The first stable run passed the new partition/inside checks but hit the old
+400 ms Hidden-mode timing assumption. The harness now waits up to five seconds
+for the original Full/Hidden visibility conditions, preserving their assertions.
+
+Final browser run: **12 checks passed**, including near-front/corner exterior
+cutaways, all three interior partitions in both views and Top, every wall restored
+with the camera inside, Full/Hidden, unchanged scene/revision, and no viewport
+errors. A rendered overview was visually inspected; capturing the final screenshot
+artifact returned `Unable to capture screenshot`.
+
+DONE: 7 of 7
+
+- 1 ✓ Focused output and the 12-check production-renderer result are recorded above.
+- 2 ✓ Untargeted root tests/typecheck passed; counts are recorded above.
+- 3 ✓ Added partition, metadata, inside-camera and concavity assertions to
+  `cutaway-check.ts` and browser cases to `cutaway-qa.ts`.
+- 4 ✓ Only renderer, additive checks and documentation changed in this task;
+  no contract/fixture/schema changes or weakened existing expectations.
+- 5 ✓ Fresh-context reviewer APPROVE, including the animation-wait follow-up.
+- 6 ✓ Automatic-Cutaway assumption and general-occlusion descoping are explicit.
+- 7 ✓ The primary was the only writer of the five named task files.
+
+Not proven: a saved final screenshot artifact. Notion tooling was unavailable;
+the changed behavior and measured evidence are recorded here.
+
+## Earlier angular-gate change
+
 26 September 2026 · Codex (GPT-6)
 
 The reported near-front view lowered the left outer wall even though it was almost parallel to the camera direction. The old rule used only the wall midpoint relative to the floor-bounds center, with a negative distance threshold. An exactly edge-on wall has a score of zero and therefore qualified for lowering.

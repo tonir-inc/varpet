@@ -29,6 +29,13 @@ if (probe) probe.onBeforeRender = (_renderer, scene) => {
 };
 viewport.setSelection(null);
 const delay = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
+async function waitForProjection(predicate: () => boolean): Promise<void> {
+  const deadline = performance.now() + 5000;
+  while (!predicate()) {
+    if (performance.now() > deadline) throw new Error('Wall projection did not settle within five seconds');
+    await delay(50);
+  }
+}
 function angle(degrees: number): void {
   if (!orbit) throw new Error('Orbit controls unavailable');
   // The west-facing view matches the screenshot: dining left, bedroom at back.
@@ -58,13 +65,20 @@ document.querySelector<HTMLButtonElement>('#run')!.onclick = async event => {
     viewport.setWalls('cutaway'); angle(6); await delay(650);
     check(frames > startFrames, 'Production viewport rendered the near-front camera');
     check(full('wall-south') && full('wall-north') && !full('wall-west') && full('wall-east'), 'Near-front: left/right/back walls full, foreground lowered');
+    check(['wall-spine', 'wall-bedroom', 'wall-bath'].every(full), 'Near-front: all interior partitions stay full-height');
     angle(45); await delay(650);
     check(!full('wall-south') && !full('wall-west') && full('wall-north') && full('wall-east'), 'Corner: both foreground walls lowered');
+    check(['wall-spine', 'wall-bedroom', 'wall-bath'].every(full), 'Corner: all interior partitions stay full-height');
+    viewport.setView('top'); await delay(650);
+    check(['wall-spine', 'wall-bedroom', 'wall-bath'].every(full), 'Top: all interior partitions stay full-height');
+    viewport.setView('perspective'); await delay(650);
+    orbit!.object.position.set(-2, 1.6, 0); orbit!.target.set(0, 1.6, 0); orbit!.update(); await delay(400);
+    check(['wall-west', 'wall-east', 'wall-south', 'wall-north', 'wall-spine', 'wall-bedroom', 'wall-bath'].every(full), 'Camera inside: every wall stays full-height');
     angle(6); await delay(650);
     check(full('wall-south'), 'Returning to near-front restores the left wall');
-    viewport.setWalls('full'); await delay(400);
+    viewport.setWalls('full'); await waitForProjection(() => full('wall-west') && full('wall-south'));
     check(full('wall-west') && full('wall-south'), 'Full mode restores foreground walls');
-    viewport.setWalls('hidden'); await delay(400);
+    viewport.setWalls('hidden'); await waitForProjection(() => !full('wall-west') && !full('wall-south'));
     check(!full('wall-west') && !full('wall-south'), 'Hidden mode hides full walls');
     viewport.setWalls('cutaway'); await delay(400);
     check(JSON.stringify(store.scene) === saved && store.revision === 0, 'Camera and wall display preserve scene and revision');

@@ -36,6 +36,15 @@ function floorShape(room: Room): THREE.Shape {
   room.polygon.forEach(([x, z], i) => { if (i === 0) shape.moveTo(x, -z); else shape.lineTo(x, -z); });
   shape.closePath(); return shape;
 }
+function cameraOverRoom(camera: THREE.Camera, room: Room): boolean {
+  const { x, z } = camera.position;
+  let inside = false;
+  for (let i = 0, j = room.polygon.length - 1; i < room.polygon.length; j = i++) {
+    const a = room.polygon[i]!, b = room.polygon[j]!;
+    if ((a[1] > z) !== (b[1] > z) && x < (b[0] - a[0]) * (z - a[1]) / (b[1] - a[1]) + a[0]) inside = !inside;
+  }
+  return inside;
+}
 function meshBox(parent: THREE.Object3D, dimensions: [number, number, number], position: [number, number, number], material: THREE.Material): THREE.Mesh {
   const mesh = new THREE.Mesh(new THREE.BoxGeometry(...dimensions), material);
   mesh.position.set(...position); mesh.castShadow = true; mesh.receiveShadow = true; parent.add(mesh); return mesh;
@@ -266,11 +275,19 @@ export function makeStructure(document: SceneDocument, reveal?: FinishReveal): S
       openingGroup.add(projection.group); entities.set(opening.id, projection.group);
     }
     dimensions.add(dimension3d(new THREE.Vector3(wall.start[0], elevation + 0.06, wall.start[1]), new THREE.Vector3(wall.end[0], elevation + 0.06, wall.end[1])));
-    return { full, low, openingGroup, normal: new THREE.Vector3(-wallAxis.z, 0, wallAxis.x),
+    // Only an unambiguous perimeter wall can be cut. Incomplete room traces
+    // must not override an explicitly interior/shared boundary.
+    const front = spans.some(span => span.front), back = spans.some(span => span.back);
+    const protectedBoundary = meta.boundary === 'interior' || meta.boundary === 'shared';
+    const exterior = !protectedBoundary && front !== back;
+    const outward = new THREE.Vector3(-wallAxis.z, 0, wallAxis.x).multiplyScalar(front ? -1 : 1);
+    return { full, low, openingGroup, outward, exterior, thickness: wall.thickness,
+      // Preserve the existing Top projection for standalone walls without rooms.
+      topCut: exterior || (!document.rooms.length && !protectedBoundary),
       midpoint: new THREE.Vector3((wall.start[0] + wall.end[0]) / 2, 0, (wall.start[1] + wall.end[1]) / 2),
       alpha: [1, 0, 1], from: [1, 0, 1], target: [1, 0, 1], started: 0, initialized: false, cut: false };
   });
-  const direction = new THREE.Vector3(); const radial = new THREE.Vector3(); ceilings.visible = false; dimensions.visible = false;
+  const direction = new THREE.Vector3(); const toCamera = new THREE.Vector3(); ceilings.visible = false; dimensions.visible = false;
   return {
     group, bounds, entities, openings, ceilings, dimensions,
     updateFinishes(now) {
@@ -288,15 +305,16 @@ export function makeStructure(document: SceneDocument, reveal?: FinishReveal): S
     },
     updateWalls(camera, mode, top, now = performance.now(), reduced = false, selectedOpeningId) {
       let active = false;
+      const inside = !top && document.rooms.some(room => metadata[room.id]?.phase !== 'remove' && cameraOverRoom(camera, room));
       direction.copy(camera.position).sub(center).setY(0).normalize();
       for (const wall of walls) {
-        radial.copy(wall.midpoint).sub(center).setY(0);
-        // Keep nearly edge-on walls: their midpoint alone does not tell us
-        // whether they face across the view. Angular hysteresis is independent
-        // of wall length, apartment scale and endpoint ordering.
-        const threshold = wall.initialized ? (wall.cut ? -0.33 : -0.17) : -0.25;
+        toCamera.copy(camera.position).sub(wall.midpoint).setY(0);
+        // The camera must be beyond the exterior face, not merely on the
+        // near side of the apartment's bounding box. Keep angular hysteresis
+        // so nearly edge-on perimeter walls do not flicker while orbiting.
         const facingThreshold = wall.initialized ? (wall.cut ? 0.22 : 0.30) : 0.26;
-        wall.cut = top || (radial.dot(direction) > threshold && Math.abs(wall.normal.dot(direction)) > facingThreshold);
+        wall.cut = top ? wall.topCut : !inside && wall.exterior && toCamera.dot(wall.outward) > wall.thickness / 2
+          && wall.outward.dot(direction) > facingThreshold;
         // Openings follow their cut wall; reveal its frames again while an
         // opening is selected so inspection and direct manipulation stay clear.
         const editingOpening = selectedOpeningId !== undefined && wall.openingGroup.children.some(opening => opening.userData.entityId === selectedOpeningId);
