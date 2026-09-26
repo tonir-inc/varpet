@@ -175,3 +175,12 @@ textiles 124, wall-decor 57, shelf-styling 96, misc-decor 92. Catalog total 8,85
   and visual search find them.
 - Import a group: `catalog/import_extra_groups.sh <group>...` (VM + local DB rows, GLB upload, previews, embeddings).
 
+
+## Mattresses and size limits (27 Sept)
+- Catalog beds are frames (slats or a platform). `catalog/tools/bedding_models.py` builds 12 made-up mattresses
+  (fitted sheet, duvet, pillows): single 90x200, double 140x200, queen 160x200, king 180x200 in white, grey, beige,
+  118-250k AMD, group `bedding`, kind `mattress` (maps to editor `decor`). Import: `import_extra_groups.sh bedding`.
+- Place one with `on: <bed id>` and the bed's rot; the editor rests a mattress on the frame's deck (0.3 m), other decor on
+  a bed at the implied mattress top (0.55 m). The spike check fails a bed with no mattress on it.
+- `max_w` or `max_d` alone is now a real limit: turning an item 90 degrees counts only when both are given
+  (before, the open axis let any item pass turned).
