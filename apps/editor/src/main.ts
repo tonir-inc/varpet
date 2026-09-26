@@ -15,6 +15,7 @@ import { mountDesignerPanel, previewDesignerProposal } from './ui/designer-panel
 import { askDesigner } from './adapters/designer-http';
 import { DesignerProposalCatalog } from './core/designer-catalog';
 import { CATALOG_CURRENCY } from './adapters/catalog-http';
+import { mountFolioShell } from './ui/folio-shell';
 import type { AgentProposal, CatalogAsset, EditCommand, ObjectPatch, Operation, SceneDocument, SceneObject, ToolMode, ViewMode, ViewportLayer, WallMode } from './contracts';
 import { createInitialScene } from './core/initial-scene';
 import { databaseCatalog, catalogKinds, catalogCategories, resolveSceneProducts, retainRegisteredProducts, type CatalogProduct } from './adapters/database-catalog';
@@ -97,7 +98,7 @@ app.innerHTML = `
       </section>
       <section id="assistant-panel" class="panel-content" aria-label="Design assistant" hidden>
         <section id="architect-progress" class="af-panel" aria-live="polite" hidden></section>
-        <section class="assistant-card"><div class="assistant-heading"><span class="assistant-icon">${icon('sparkles')}</span><div><strong>Design together</strong><span>Design assistant <span class="mock-label">${designerLive ? 'LIVE' : 'DEMO'}</span></span></div></div><p>Explore a change to your apartment. Review the proposal before applying it.</p><button id="suggest" class="button suggestion">${icon('sparkles')} Suggest an edit ${icon('arrow')}</button><div id="proposal" aria-live="polite"></div></section>
+        <section class="assistant-card"><div class="assistant-heading"><span class="assistant-icon">${icon('sparkles')}</span><div><strong>Design together</strong><span>Design assistant <span class="mock-label">${designerLive ? 'Live' : 'Demo'}</span></span></div></div><p>Explore a change to your apartment. Review the proposal before applying it.</p><button id="suggest" class="button suggestion">${icon('sparkles')} Suggest an edit ${icon('arrow')}</button><div id="proposal" aria-live="polite"></div></section>
         <div class="assistant-note">${icon('lock')} You're in control. Every change needs your approval and can be undone.</div>
       </section>
       <section id="renovation-panel" class="panel-content" aria-label="Apartment renovation workspace" hidden></section>
@@ -193,6 +194,7 @@ let toastTimer: ReturnType<typeof setTimeout>;
 type Panel = 'scene' | 'assets' | 'assistant' | 'renovation' | 'materials' | 'ceilings';
 let activePanel: Panel = 'scene';
 let panelOpen = true;
+let folioShell: ReturnType<typeof mountFolioShell> | undefined;
 let previewMode = false;
 let proposalView = false;
 let renovationUI: RenovationUI | undefined;
@@ -516,6 +518,7 @@ function select(id: string | null, additive = false) {
   // Let pointer-up finish and the newly opened panel take its final layout first.
   // Ordinary inspector refreshes intentionally do not move the camera.
   if (selectedId) selectionRevealFrame = requestAnimationFrame(revealSelection);
+  folioShell?.update();
 }
 function revealSelection(): boolean {
   selectionRevealFrame = 0;
@@ -898,7 +901,7 @@ function renderProposal(){
   if(designerLive && pending.command.source==='designer'){el.innerHTML='';return;}
   const stale=pending.command.baseRevision!==store.revision;
   const canInspect = pending.command.operations.some(o => o.type === 'replace-scene' || o.type === 'replace-structure');
-  el.innerHTML=`<div class="proposal"><span class="eyebrow">${pending.command.source==='architect'?'RECONSTRUCTION REVIEW':'PROPOSED CHANGE'}</span><strong>${escape(pending.title)}</strong><p>${escape(pending.description)}</p>${stale?'<p class="proposal-warning">The scene has changed. Request a fresh proposal.</p>':interacting?'<p class="proposal-warning">Finish your current edit before applying.</p>':''}${canInspect?`<button id="inspect-proposal" class="button full" ${stale||interacting?'disabled':''}>Inspect proposed 3D apartment</button>`:''}<div><button id="apply-proposal" class="button primary" ${stale||interacting||previewMode?'disabled':''}>Apply change</button><button id="reject-proposal" class="button quiet">Dismiss</button></div></div>`;
+  el.innerHTML=`<div class="proposal"><span class="eyebrow">${pending.command.source==='architect'?'Reconstruction review':'Proposed change'}</span><strong>${escape(pending.title)}</strong><p>${escape(pending.description)}</p>${stale?'<p class="proposal-warning">The scene has changed. Request a fresh proposal.</p>':interacting?'<p class="proposal-warning">Finish your current edit before applying.</p>':''}${canInspect?`<button id="inspect-proposal" class="button full" ${stale||interacting?'disabled':''}>Inspect proposed 3D apartment</button>`:''}<div><button id="apply-proposal" class="button primary" ${stale||interacting||previewMode?'disabled':''}>Apply change</button><button id="reject-proposal" class="button quiet">Dismiss</button></div></div>`;
   $('#apply-proposal').onclick=()=>{ applyPendingProposal(); };
   if(canInspect)$('#inspect-proposal').onclick=()=>{
     if(!pending||pending.command.baseRevision!==store.revision||interacting)return;
@@ -990,10 +993,12 @@ function refresh(){
   ceilingUI.render();
   $('#selection-status').textContent=selectionLabel();
   renderViewportHints();
+  folioShell?.update();
 }
 store.subscribe(refresh);
 const designerHost = document.createElement('section');
-if(designerLive){$('.workspace').classList.add('designer-workspace');$('.left-panel').before(designerHost);}else $('#proposal').before(designerHost);
+// Folio: the designer is always the left column, live or replayed.
+$('.workspace').classList.add('designer-workspace');$('.left-panel').before(designerHost);
 const designerPanel = mountDesignerPanel(designerHost, {
   ask: designerLive ? async (request, options) => {
     // The request carries the products this scene already uses; the designer searches the catalog itself,
@@ -1028,6 +1033,17 @@ const designerPanel = mountDesignerPanel(designerHost, {
     const proposed=previewDesignerProposal(store.scene,store.revision,proposal,catalog);
     setPreview(true);proposalView=true;$<HTMLButtonElement>('#save').disabled=true;viewport.setScene(proposed,catalog);focusView();
     notify('Proposed change preview. Apply or dismiss it in the conversation.');return {ok:true};
+  },
+});
+folioShell = mountFolioShell({
+  viewport, currency: CATALOG_CURRENCY === 'AMD' ? 'AMD' : null,
+  getScene: () => store.scene, getCatalog: () => catalog, getSelectedId: () => selectedId, getView: () => view,
+  setTool, openPanel: panel => switchPanel(panel), closePanel: () => { if (panelOpen) switchPanel(activePanel, true); }, isPanelOpen: () => panelOpen,
+  remove: deleteSelected, undo: () => $<HTMLButtonElement>('#undo').click(), openInspector: () => document.body.classList.add('folio-inspect'),
+  askAbout: (id, label) => {
+    const panel = designerPanel as unknown as { setContext?(context: { id: string; label: string } | null): void };
+    if (panel.setContext) panel.setContext({ id, label });
+    else { const input = designerHost.querySelector<HTMLTextAreaElement | HTMLInputElement>('textarea, input[type=text]'); if (input) { input.value = `About the ${label}: `; input.focus(); } }
   },
 });
 window.addEventListener('pagehide', event => { if (!event.persisted) designerPanel.dispose(); });
@@ -1081,7 +1097,7 @@ const sharingUI = mountSharing($<HTMLButtonElement>('#share'), {
 function showModal(title:string,body:string){$('#modal-content').innerHTML=`<div class="modal-heading"><h2>${title}</h2><button id="close-modal" class="icon-button" aria-label="Close dialog">${icon('close')}</button></div>${body}`;$('#close-modal').onclick=()=>modal.close();modal.showModal();}
 modal.onclick=e=>{if(e.target===modal)modal.close();};
 $('#integrations').onclick=()=>{
-  showModal('Sources & connections',`<p class="modal-intro">Local reconstruction tools are ready. Furniture comes from the shared database. ${architectLive?'Architect reconstruction is connected.':'Architect reconstruction is a local demo.'} ${designerLive?'The designer is connected.':'Designer proposals are local demos.'}</p><div class="file-actions"><button id="local-sources" class="button">${icon('upload')} Attach photos and plans</button><button id="local-reconstruct" class="button primary">${icon('walls')} Build the apartment shell</button></div><div class="integration-row"><span>${icon('walls')}</span><div><h3>Architect <span class="mock-label">${architectLive?'LIVE':'DEMO'}</span></h3><p>${architectLive?'Read a floor plan and up to four photos into an empty apartment shell. Review before replacing your current apartment.':'Exercise the proposal workflow with the original demo structure.'}</p><button id="mock-structure" class="button">${architectLive?'Choose plan and photos':'Preview demo structural import'}</button></div></div><div class="integration-row"><span>${icon('sparkles')}</span><div><h3>Designer <span class="mock-label">${designerLive?'LIVE':'DEMO'}</span></h3><p>Propose validated edits against a scene revision. You approve each batch.</p><button id="mock-designer" class="button">${designerLive?'Ask the live designer':'Request demo design proposal'}</button></div></div><div class="integration-row"><span>${icon('box')}</span><div><h3>Furniture database</h3><p>Real ABO 3D models, catalog dimensions and AMD prices with provenance. Requires a connection to the team catalog service.</p><button id="database-catalog" class="button">Browse database</button></div></div><p class="modal-footnote">Database browsing uses the configured catalog service. A proposal becomes stale if the scene changes before approval.</p>`);
+  showModal('Sources & connections',`<p class="modal-intro">Local reconstruction tools are ready. Furniture comes from the shared database. ${architectLive?'Architect reconstruction is connected.':'Architect reconstruction is a local demo.'} ${designerLive?'The designer is connected.':'Designer proposals are local demos.'}</p><div class="file-actions"><button id="local-sources" class="button">${icon('upload')} Attach photos and plans</button><button id="local-reconstruct" class="button primary">${icon('walls')} Build the apartment shell</button></div><div class="integration-row"><span>${icon('walls')}</span><div><h3>Architect <span class="mock-label">${architectLive?'Live':'Demo'}</span></h3><p>${architectLive?'Read a floor plan and up to four photos into an empty apartment shell. Review before replacing your current apartment.':'Exercise the proposal workflow with the original demo structure.'}</p><button id="mock-structure" class="button">${architectLive?'Choose plan and photos':'Preview demo structural import'}</button></div></div><div class="integration-row"><span>${icon('sparkles')}</span><div><h3>Designer <span class="mock-label">${designerLive?'Live':'Demo'}</span></h3><p>Propose validated edits against a scene revision. You approve each batch.</p><button id="mock-designer" class="button">${designerLive?'Ask the live designer':'Request demo design proposal'}</button></div></div><div class="integration-row"><span>${icon('box')}</span><div><h3>Furniture database</h3><p>Real ABO 3D models, catalog dimensions and AMD prices with provenance. Requires a connection to the team catalog service.</p><button id="database-catalog" class="button">Browse database</button></div></div><p class="modal-footnote">Database browsing uses the configured catalog service. A proposal becomes stale if the scene changes before approval.</p>`);
   $('#local-sources').onclick=()=>{modal.close();intake.sources();};$('#local-reconstruct').onclick=()=>{modal.close();intake.reconstruction();};
   $('#mock-structure').onclick=()=>{modal.close();void requestProposal('architect');};$('#mock-designer').onclick=()=>{modal.close();void requestProposal('designer');};
   $('#database-catalog').onclick=()=>{modal.close();switchPanel('assets');void searchDatabase();};
@@ -1233,3 +1249,5 @@ if (editorSession) {
   window.addEventListener('beforeunload',event=>{if(accountSaving || (store.revision>0 && store.revision!==savedRevision)){event.preventDefault();event.returnValue='';}});
 }
 refresh();renderAssets();setTool('select');switchPanel(editorSession?'scene':'renovation');if(designerLive)switchPanel('renovation',true);void searchDatabase();void refreshBuiltPieces();
+// Folio: tool panels open only when the buyer asks for them (Add, More, or a piece's toolbar).
+if (panelOpen) switchPanel(activePanel, true);
