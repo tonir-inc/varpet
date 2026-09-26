@@ -35,6 +35,12 @@ test('a NEW test file may be added; an existing one may not be deleted, weakened
   assert.equal(guard(patch(`*** Update File: ${THIS}\n@@\n+test.skip('later', () => {});`)), true);
 });
 
+test("any package's test/ folder is protected from removal, not only the ones listed by name", () => {
+  assert.equal(guard(bash('rm -rf packages/designer/test')), true);
+  assert.equal(guard(bash('rm -rf packages/designer/eval/scenarios')), true);
+  assert.equal(guard(bash('rm -rf packages/designer/dist')), false);
+});
+
 test('the Stop check reports by default and blocks only when asked', () => {
   const empty = mkdtempSync(join(tmpdir(), 'varpet-stop-'));
   const run = (env) => spawnSync('node', [STOP], { input: '{}', encoding: 'utf8', env: { ...process.env, VARPET_ROOT: empty, ...env } });

@@ -30,6 +30,10 @@ Developer plan and photos in, a faithful furnished 3D flat out, rearranged by a 
   runs and reports (set `VARPET_STOP_BLOCK=1` to make it block).
 - Agents (`.codex/agents/`): `reviewer` checks a finished change with fresh context; `devils-advocate`
   attacks a plan before it costs hours.
+- Designer lane (Ashot): design in `docs/designer.md`, cards in `docs/tasks/designer-*.md`, skill
+  `designer-build` while building it; the product's Designer thread loads only `interior-design-rules`.
+- Parallel work uses git worktrees (`git worktree add ../varpet-<lane> -b <lane>/<topic> main`), one
+  lane per worktree; merge to `main` often.
 - Done means: the task's command output pasted, `pnpm test` and `pnpm typecheck` green untargeted.
 
 ## Open (decide at 10:30)

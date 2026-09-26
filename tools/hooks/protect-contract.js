@@ -48,7 +48,7 @@ function canon(p, cwd = '') {
 }
 const under = (c, d) => c === d || c.startsWith(`${d}/`);
 const isTestFile = (c) => /\.(test|spec)\.(js|mjs|ts|tsx)$/.test(c);
-const isTestDir = (c) => TEST_DIRS.some((d) => under(c, d));
+const isTestDir = (c) => TEST_DIRS.some((d) => under(c, d)) || /^(packages|apps)\/[^/]+\/(test|eval)(\/|$)/.test(c); // every package's test/ and eval/
 const ancestorOf = (c, target) => c === '' || c === '.' || c === target || target.startsWith(`${c}/`);
 /** What a path is, if it is protected. `mutation` = the whole path is removed, moved or overwritten (rm, mv, redirect). */
 function classify(p, cwd = '', mutation = false) {
