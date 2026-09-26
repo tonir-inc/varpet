@@ -104,7 +104,7 @@ function preferenceError(scene: Scene, preference: GeometricPreference): Request
   const windowSpan = (windowId: string): Vec2[] | undefined => {
     const opening = scene.openings.find(candidate => candidate.id === windowId && candidate.kind === 'window');
     if (!opening) return undefined;
-    const wall = scene.walls.find(candidate => candidate.id === opening.wall_id && candidate.room_id === item.room_id);
+    const wall = scene.walls.find(candidate => candidate.id === opening.wall_id && (candidate.room_id === item.room_id || opening.room_ids?.includes(item.room_id)));
     if (!wall) return undefined;
     const length = Math.hypot(wall.b[0] - wall.a[0], wall.b[1] - wall.a[1]);
     if (length < EPS) return undefined;

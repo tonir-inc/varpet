@@ -1,4 +1,5 @@
 import { wallOutward } from './adapter.js';
+import { itemPolygon } from './metrics/space.js';
 import type { Scene, Vec2, Wall } from './scene.js';
 
 const EPS = 1e-8;
@@ -56,5 +57,6 @@ export function wallSolidPolygons(scene: Scene, itemHeight = 0): WallSolid[] {
     }
     solid(cursor, length);
   }
+  for(const fixed of scene.fixed)if(fixed.structure&&(fixed.structure.bottom_m<=EPS||fixed.structure.bottom_m<itemHeight-EPS))solids.push({wall_id:fixed.structure.wall_id,room_id:fixed.room_id,polygon:itemPolygon(fixed)});
   return solids;
 }

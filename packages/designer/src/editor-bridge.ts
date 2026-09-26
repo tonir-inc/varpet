@@ -11,9 +11,12 @@ import { isRecord, objectFootprint, placementIssues, validateScene } from '../..
 import { parseOps, parseScene } from './adapter.js';
 import { outsidePoint } from './local-checks.js';
 import type { Opening, Scene, Vec2 } from './scene.js';
+import { snapRoomFaces, reconciledWall } from './reconcile-geometry.js';
 import { DesignerSession } from './session.js';
 
 export interface EditorBridgeOptions {
+  /** V2 editor snapshots reconcile by default; legacy v1 callers retain strict conversion. */
+  geometryPolicy?: 'strict' | 'reconcile';
   catalog?: CatalogAsset[];
   keep?: string[];
   northDeg?: number;
@@ -39,6 +42,7 @@ function validatedEditor(input: unknown, catalog: CatalogAsset[]): SceneDocument
 }
 
 function checkSupported(scene: SceneDocument, options: EditorBridgeOptions): void {
+  if(options.geometryPolicy!==undefined&&!['strict','reconcile'].includes(options.geometryPolicy))throw new Error("Unsupported geometryPolicy");
   if (options.groupPolicy !== undefined && !['preserve', 'move-together'].includes(options.groupPolicy)) throw new Error('Unsupported groupPolicy; use preserve or move-together');
   if (options.northDeg !== undefined && !Number.isFinite(options.northDeg)) throw new Error('northDeg must be finite');
   if (options.catalogCurrency !== undefined && options.catalogCurrency !== 'AMD') throw new Error('Only explicitly identified AMD catalog prices are supported');
@@ -105,14 +109,18 @@ function wallSpans(wall: EditorWall, scene: SceneDocument): Span[] {
 
 /** Convert a validated editor snapshot without inferring orientation, currency, or furniture function. */
 export function editorToDesigner(input: unknown, options: EditorBridgeOptions = {}): Scene {
-  const catalog = options.catalog ?? localCatalog, editor = validatedEditor(input, catalog);
+  const catalog = options.catalog ?? localCatalog;
+  let editor = validatedEditor(input, catalog);
+  const reconciliation = (options.geometryPolicy ?? (editor.version === 2 ? "reconcile" : "strict")) === "reconcile" ? snapRoomFaces(editor) : undefined;
+  if(reconciliation)editor=reconciliation.editor;
   checkSupported(editor, options);
   const blocking = placementIssues(editor, catalog).filter(issue => issue.blocking);
   if (blocking.length) throw new Error(`Unsupported editor placement: ${blocking.map(issue => issue.message).join(' ')}`);
   const scene: Scene = { rooms: editor.rooms.map(room => ({ id: room.id, name: room.name, polygon: room.polygon.map(plan) })), walls: [], openings: [], items: [], fixed: [] };
   if (options.northDeg !== undefined) scene.north_deg = options.northDeg;
+  if(reconciliation)scene.geometry_audit=reconciliation.audit;
   for (const wall of editor.walls) {
-    const spans = wallSpans(wall, editor), length = Math.hypot(wall.end[0] - wall.start[0], wall.end[1] - wall.start[1]);
+    const spans = reconciliation ? reconciledWall(wall,editor,scene,reconciliation.audit) : wallSpans(wall, editor), length = Math.hypot(wall.end[0] - wall.start[0], wall.end[1] - wall.start[1]);
     const point = (offset: number): Vec2 => plan([wall.start[0] + (wall.end[0] - wall.start[0]) * offset / length, wall.start[1] + (wall.end[1] - wall.start[1]) * offset / length]);
     const faceColors = ['wall-front', 'wall-back'].map(surface => {
       const finish = editor.project?.finishes.find(finish => finish.entityId === wall.id && finish.surface === surface);
@@ -125,6 +133,7 @@ export function editorToDesigner(input: unknown, options: EditorBridgeOptions = 
       const span = spans.find(candidate => opening.offset >= candidate.from - EPS && opening.offset + opening.width <= candidate.to + EPS);
       if (!span) throw new Error(`Opening ${opening.id} crosses room boundaries and cannot be represented faithfully`);
       const converted: Opening = { id: opening.id, wall_id: span.id!, kind: opening.kind, offset: Math.max(0, opening.offset - span.from), width: opening.width, height: opening.height, sill: opening.sill };
+      if(reconciliation?.audit.opening_room_ids[opening.id])converted.room_ids=reconciliation.audit.opening_room_ids[opening.id];
       const swing = options.doorSwings?.[opening.id];
       if (swing !== undefined) converted.swing = swings[swing];
       scene.openings.push(converted);

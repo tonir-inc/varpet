@@ -99,7 +99,7 @@ function rayDistance(origin: Vec2, direction: Vec2, polygon: Vec2[]): number {
 }
 
 function clearances(scene: Scene, item: Item, room: Room, walkway_m: number | null): PlacementCandidate['clearances'] {
-  const polygons = [room.polygon, ...wallSolidPolygons(scene,item.size[2]).map(solid => solid.polygon), ...[...scene.items, ...scene.fixed].filter(other => other.id !== item.id && other.room_id === room.id && !isFloorRug(other)).map(itemPolygon)];
+  const polygons = [room.polygon, ...wallSolidPolygons(scene,item.size[2]).map(solid => solid.polygon), ...[...scene.items, ...scene.fixed].filter(other => other.id !== item.id && other.room_id === room.id && !other.structure && !isFloorRug(other)).map(itemPolygon)];
   const measure = (direction: Vec2, halfSize: number) => {
     const origin = add(item.pos, scale(direction, halfSize));
     return rounded(Math.min(...polygons.map(polygon => rayDistance(origin, direction, polygon))));
@@ -144,11 +144,12 @@ export function place(scene: Scene, input: PlaceRequest, baseline: Scene = scene
     if (!anchor || anchor.id === base.id || (base.group_id && anchor.group_id === base.group_id)) throw new Error(`Unknown or self/group anchor ${anchorId} in room ${room.id}`);
     return anchor;
   };
-  const windows = scene.openings.filter(opening => opening.kind === 'window' && walls.some(wall => wall.id === opening.wall_id));
+  const windows = scene.openings.filter(opening => opening.kind === 'window' && (walls.some(wall => wall.id === opening.wall_id)||opening.room_ids?.includes(room.id)));
+  const windowWall = (wallId:string) => scene.walls.find(w=>w.id===wallId)!;
   const windowSpan = (windowId: string): Vec2[] => {
     const opening = windows.find(candidate => candidate.id === windowId);
     if (!opening) throw new Error(`Unknown window ${windowId} in room ${room.id}`);
-    const wall = getWall(opening.wall_id), along = scale(sub(wall.b, wall.a), 1 / length(sub(wall.b, wall.a)));
+    const wall = windowWall(opening.wall_id), along = scale(sub(wall.b, wall.a), 1 / length(sub(wall.b, wall.a)));
     return [add(wall.a, scale(along, opening.offset)), add(wall.a, scale(along, opening.offset + opening.width))];
   };
   for (const relation of request.relations) {
@@ -233,7 +234,7 @@ export function place(scene: Scene, input: PlaceRequest, baseline: Scene = scene
       addPose(poseAt(normalDistance), anchor.rot);
     }
   } else {
-    if (near) windows.filter(window => !near.window_id || window.id === near.window_id).map(window => getWall(window.wall_id)).filter(wall => !excluded.has(wall.id)).forEach(wallPoses);
+    if (near) windows.filter(window => !near.window_id || window.id === near.window_id).map(window => ({...windowWall(window.wall_id),room_id:room.id})).filter(wall => !excluded.has(wall.id)).forEach(wallPoses);
     const xs = room.polygon.map(point => point[0]), ys = room.polygon.map(point => point[1]);
     const minX = Math.min(...xs), minY = Math.min(...ys), maxX = Math.max(...xs), maxY = Math.max(...ys);
     for (let x = minX; x <= maxX + EPS && !searchLimited; x += STEP) for (let y = minY; y <= maxY + EPS && !searchLimited; y += STEP) for (const rotation of facingRelation ? [0] : [0, 90, 180, 270]) addPose([x, y], rotation);

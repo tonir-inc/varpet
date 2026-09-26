@@ -105,7 +105,7 @@ export function doorSwingPolygon(scene: Scene, opening: Opening): Vec2[] | null 
 }
 
 function obstaclesForRoom(scene: Scene, room: Room): Obstacle[] {
-  const obstacles: Obstacle[] = [...scene.items, ...scene.fixed].filter(i => i.room_id === room.id && !isFloorRug(i)).map(item => ({ polygon: itemPolygon(item) }));
+  const obstacles: Obstacle[] = [...scene.items, ...scene.fixed].filter(i => i.room_id === room.id && !i.structure && !isFloorRug(i)).map(item => ({ polygon: itemPolygon(item) }));
   obstacles.push(...wallSolidPolygons(scene).map(solid => ({ polygon: solid.polygon })));
   for (const opening of scene.openings) {
     // The room tag belongs to the wall, not the physical space swept by its leaf.
@@ -338,7 +338,7 @@ function endpoints(scene: Scene, room: Room, grid: RoutingGrid): { doors: Endpoi
   for (const opening of scene.openings) {
     if (opening.kind === 'window') continue;
     const { wall, point: centre, along, inward } = doorGeometry(scene, opening);
-    const owner = wall.room_id === room.id, intoRoom: Vec2 = owner ? inward : [-inward[0], -inward[1]];
+    const owner = wall.room_id === room.id || opening.room_ids?.includes(room.id) === true, intoRoom: Vec2 = owner ? inward : [-inward[0], -inward[1]];
     // Interior-face polygons need an ingress at the room face, not inside the
     // physical wall. Only cross the declared half-thickness of this doorway.
     let point = centre;
@@ -356,7 +356,7 @@ function endpoints(scene: Scene, room: Room, grid: RoutingGrid): { doors: Endpoi
     const entry = swing ? turningDoorApproach(scene, room, grid, obstacles, point, intoRoom, opening) : approach(grid, room, obstacles, point, intoRoom, 0.45);
     doors.push({ id: `door:${opening.id}`, point, ...entry, aperture: Math.min(opening.width, entry.aperture), narrowest: opening.width <= entry.aperture ? point : entry.narrowest });
   }
-  for (const item of scene.items.filter(i => i.room_id === room.id && !isFloorRug(i))) {
+  for (const item of scene.items.filter(i => i.room_id === room.id && !i.structure && !isFloorRug(i))) {
     const point = itemFront(item), radians = item.rot * Math.PI / 180;
     items.push({ id: `item:${item.id}`, point, ...approach(grid, room, obstacles, point, [Math.sin(radians), -Math.cos(radians)], 0.45) });
   }
@@ -442,11 +442,11 @@ export interface SpaceMetrics { rooms: RoomSpaceMetrics[]; free_area_m2: number 
 // never scene identities or mutable outputs; paint/name changes do not change floor space.
 const metricCache = new Map<string, SpaceMetrics>();
 function geometryKey(scene: Scene): string {
-  const items = (values: Item[]) => values.map(({id,room_id,kind,pos,rot,size}) => [id,room_id,kind,pos,rot,size]);
+  const items = (values: Item[]) => values.map(({id,room_id,kind,pos,rot,size,structure}) => [id,room_id,kind,pos,rot,size,structure]);
   return JSON.stringify([
     scene.rooms.map(({id,polygon}) => [id,polygon]),
     scene.walls.map(({id,room_id,a,b,open,source_id,thickness,height}) => [id,room_id,a,b,open,source_id,thickness,height]),
-    scene.openings,items(scene.items),items(scene.fixed),
+    scene.openings,items(scene.items),items(scene.fixed),scene.geometry_audit?.tolerance_m,
   ]);
 }
 

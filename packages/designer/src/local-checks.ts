@@ -90,7 +90,7 @@ function penetration(a:Vec2[],b:Vec2[]):number {
 
 /** Cheap deterministic prefilter before computing circulation. */
 export function localGeometryErrors(input:Scene):LayoutError[] {
-  const scene=parseScene(input),errors:LayoutError[]=[],items=[...scene.items,...scene.fixed];
+  const scene=parseScene(input),errors:LayoutError[]=[],items=[...scene.items,...scene.fixed.filter(i=>!i.structure)];
   const footprints=items.map(itemPolygon);
   for(let i=0;i<items.length;i++) {
     const item=items[i]!,room=scene.rooms.find(r=>r.id===item.room_id)!;

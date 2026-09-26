@@ -9,15 +9,18 @@ export const colorTargetSchema = z.object({ target: z.enum(['item','wall']), id,
 const item = z.object({
   id, room_id: id, kind: id, name: z.string(), pos: point, rot: num,
   size: z.tuple([num.positive(), num.positive(), num.positive()]), keep: z.boolean(),
+  structure: z.object({wall_id:id,bottom_m:num.nonnegative()}).optional(),
   sku: id.optional(), price: num.int().nonnegative().optional(), vendor: z.string().optional(), color: colorSchema.optional(), group_id: id.optional(),
 });
 const sceneInput = z.object({
   north_deg: num.optional(),
+  geometry_audit: z.object({tolerance_m:num.nonnegative(),adjustments:z.array(z.object({room_id:id,vertex:num.int().nonnegative(),before:point,after:point,distance_m:num.nonnegative()})),warnings:z.array(z.string()),obstacle_wall_ids:z.array(id),opening_room_ids:z.record(z.string(),z.array(id))}).optional(),
   rooms: z.array(z.object({ id, name: z.string().optional(), polygon: z.array(point).min(3) })),
   walls: z.array(z.object({ id, room_id: id, a: point, b: point, open: z.boolean().optional(), color: colorSchema.optional(), source_id: id.optional(), keep: z.boolean().optional(), thickness: num.nonnegative().optional(), height: num.positive().optional() })),
   openings: z.array(z.object({
     id, wall_id: id, kind: z.enum(['door', 'window', 'passage']), offset: num.nonnegative(),
     width: num.positive(), height: num.positive(), sill: num.nonnegative(),
+    room_ids: z.array(id).optional(),
     swing: z.enum(['inward-left','inward-right','outward-left','outward-right','none']).optional(),
   })),
   items: z.array(item), fixed: z.array(item),
@@ -47,8 +50,11 @@ export function parseScene(input: unknown): Scene {
   for (const entity of [...scene.walls, ...scene.items, ...scene.fixed]) {
     if (!scene.rooms.some(r => r.id === entity.room_id)) throw new Error(`${entity.id}: unknown room ${entity.room_id}`);
   }
+  if(scene.items.some(i=>i.structure))throw new Error('Structural obstacles must be fixed');
+  if(scene.fixed.some(i=>i.structure&&!i.keep))throw new Error('Structural obstacles must be kept');
   for (const wall of scene.walls) if (Math.hypot(wall.b[0]-wall.a[0], wall.b[1]-wall.a[1]) < 1e-8) throw new Error(`${wall.id}: zero-length wall`);
   for (const opening of scene.openings) {
+    if(opening.room_ids?.some(id=>!scene.rooms.some(r=>r.id===id)))throw new Error(`${opening.id}: unknown adjacent room`);
     const wall = scene.walls.find(w => w.id === opening.wall_id);
     if (!wall) throw new Error(`${opening.id}: unknown wall ${opening.wall_id}`);
     if (opening.offset + opening.width > Math.hypot(wall.b[0]-wall.a[0],wall.b[1]-wall.a[1]) + 1e-8) throw new Error(`${opening.id}: opening exceeds wall span`);
@@ -116,14 +122,32 @@ export function wallOutward(scene: Scene, wall: Wall): Vec2 {
   };
   const length = Math.hypot(wall.b[0]-wall.a[0],wall.b[1]-wall.a[1]);
   const dx=(wall.b[1]-wall.a[1])/length,dy=(wall.a[0]-wall.b[0])/length;
-  const middle: Vec2=[(wall.a[0]+wall.b[0])/2,(wall.a[1]+wall.b[1])/2];
-  // Probe beyond the physical face: architect room polygons may stop there,
-  // while editor demo polygons include the centreline. Neither is moved.
-  const probe = (wall.thickness ?? 0) / 2 + 1e-5;
-  const positive=inside([middle[0]+dx*probe,middle[1]+dy*probe]);
-  const negative=inside([middle[0]-dx*probe,middle[1]-dy*probe]);
-  if (positive === negative) throw new Error(`Wall ${wall.id} is not on the boundary of room ${wall.room_id}`);
-  return positive ? [-dx,-dy] : [dx,dy];
+  const probe = (wall.thickness ?? 0) / 2;
+  // Test actual boundary-edge spans, rather than assuming the wall midpoint is beside floor.
+  // A column/corner cap can put that midpoint outside the room even for a valid face segment.
+  const candidates:{t:number;distance:number}[]=[{t:.5,distance:probe+1e-5}];
+  const tolerance=scene.geometry_audit?.tolerance_m??.0005;
+  for(let i=0;i<polygon.length;i++) {
+    const a=polygon[i]!,b=polygon[(i+1)%polygon.length]!;
+    const project=(p:Vec2)=>((p[0]-wall.a[0])*(wall.b[0]-wall.a[0])+(p[1]-wall.a[1])*(wall.b[1]-wall.a[1]))/(length*length);
+    const side=(p:Vec2)=>(p[0]-wall.a[0])*dx+(p[1]-wall.a[1])*dy;
+    const low=Math.max(0,Math.min(project(a),project(b))),high=Math.min(1,Math.max(project(a),project(b)));
+    if(high-low<1e-6||Math.abs(side(a)-side(b))>2*tolerance+1e-7)continue;
+    if(Math.max(Math.abs(side(a)),Math.abs(side(b)))>probe+tolerance+1e-7)continue;
+    candidates.push({t:(low+high)/2,distance:Math.max(probe,Math.abs(side(a)),Math.abs(side(b)))+1e-5});
+  }
+  let sign:number|undefined;
+  for(const {t,distance} of candidates) {
+    const middle:Vec2=[wall.a[0]+(wall.b[0]-wall.a[0])*t,wall.a[1]+(wall.b[1]-wall.a[1])*t];
+    const positive=inside([middle[0]+dx*distance,middle[1]+dy*distance]);
+    const negative=inside([middle[0]-dx*distance,middle[1]-dy*distance]);
+    if(positive===negative)continue;
+    const current=positive?-1:1;
+    if(sign!==undefined&&sign!==current)throw new Error(`Wall ${wall.id} has ambiguous sides in room ${wall.room_id}`);
+    sign=current;
+  }
+  if(sign===undefined)throw new Error(`Wall ${wall.id} is not on the boundary of room ${wall.room_id}`);
+  return [dx*sign,dy*sign];
 }
 
 export function wallCompass(scene: Scene, wall: Wall): string {
@@ -136,16 +160,18 @@ export function wallCompass(scene: Scene, wall: Wall): string {
 export function sceneSummary(scene: Scene, roomIds?: string[]) {
   if (roomIds) for (const id of roomIds) if (!scene.rooms.some(r=>r.id===id)) throw new Error(`Unknown room: ${id}`);
   const selected = (id: string) => roomIds === undefined || roomIds.includes(id);
-  const walls = scene.walls.filter(w => selected(w.room_id));
+  const sharedWallIds = new Set(scene.openings.filter(o=>o.room_ids?.some(selected)).map(o=>o.wall_id));
+  const walls = scene.walls.filter(w => selected(w.room_id) || sharedWallIds.has(w.id));
   return structuredClone({
     north_deg: scene.north_deg ?? null,
+    ...(scene.geometry_audit?{geometry_audit:scene.geometry_audit}:{}),
     coordinate_convention: 'metres; x right, y plan-up; rot counterclockwise; front local -y; north_deg clockwise from plan-up',
     appearance: 'color ops accept #RRGGBB for item or wall. A wall color paints both faces and all segments sharing source_id. Missing wall color can mean mixed face finishes. Paint and labour are not quoted.',
     groups: 'Moving one item with group_id rigidly moves and rotates every member; place and propose validate all members. Colour changes affect only the selected item.',
     rooms: scene.rooms.filter(r=>selected(r.id)),
     walls: walls.map(w=>({ ...w, compass: wallCompass(scene,w) })),
-    openings: scene.openings.filter(o=>walls.some(w=>w.id===o.wall_id)),
-    items: scene.items.filter(i=>selected(i.room_id)), fixed: scene.fixed.filter(i=>selected(i.room_id)),
+    openings: scene.openings.filter(o=>walls.some(w=>w.id===o.wall_id)||o.room_ids?.some(selected)),
+    items: scene.items.filter(i=>selected(i.room_id)), fixed: scene.fixed.filter(i=>(i.structure !== undefined && roomIds?.length !== 0) || selected(i.room_id)),
     metrics: { status: 'not implemented yet' },
   });
 }

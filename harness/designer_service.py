@@ -30,6 +30,17 @@ LOCAL_ORIGIN = re.compile(r"^http://(localhost|127\.0\.0\.1)(:\d{1,5})?$")
 MAX_BODY = 16 * 1024 * 1024
 
 
+def with_geometry_notice(presentation: dict, saved: dict) -> dict:
+    """Keep the bridge's measured geometry caveat visible after customer copy formatting."""
+    notices = [note["message"] for note in saved.get("checks", {}).get("notes", [])
+               if note.get("check") == "geometry_reconciliation" and isinstance(note.get("message"), str)]
+    if not notices:
+        return presentation
+    text = " ".join(notices)
+    existing = presentation.get("notes", "")
+    return {**presentation, "notes": (text + ("\n" + existing if existing else ""))[:1600]}
+
+
 def validate_request(body) -> dict:
     if not isinstance(body, dict):
         raise ValueError("Expected a JSON object")
@@ -251,6 +262,7 @@ class DesignerService:
                     presentation = format_presentation(saved, body["scene"], proposal, body["request"])
                     if not isinstance(presentation, dict):
                         raise RuntimeError("Invalid designer presentation")
+                    presentation = with_geometry_notice(presentation, saved)
                     for key, limit in (("title", 160), ("description", 4000), ("notes", 1600)):
                         if key == "notes" and key not in presentation:
                             continue

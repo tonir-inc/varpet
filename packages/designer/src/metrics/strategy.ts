@@ -49,12 +49,12 @@ export function strategyMetrics(input: Scene): StrategyMetrics {
     const wall = scene.walls.find(candidate => candidate.id === opening.wall_id)!;
     const delta = subtract(wall.b, wall.a), length = magnitude(delta);
     const at = (offset: number): Vec2 => [wall.a[0] + delta[0] * offset / length, wall.a[1] + delta[1] * offset / length];
-    return { id: opening.id, room_id: wall.room_id, a: at(opening.offset), b: at(opening.offset + opening.width) };
+    return { id: opening.id, room_id: wall.room_id, room_ids:opening.room_ids, a: at(opening.offset), b: at(opening.offset + opening.width) };
   });
   let daylightScore = 0;
   const desks: DeskDaylightProxy[] = items.filter(item => kind(item) === 'desk').map(item => {
     const right: Vec2 = [Math.cos(item.rot * Math.PI / 180), Math.sin(item.rot * Math.PI / 180)];
-    const candidates = windows.filter(window => window.room_id === item.room_id).map(window => {
+    const candidates = windows.filter(window => window.room_id === item.room_id || window.room_ids?.includes(item.room_id)).map(window => {
       const distance = windowDistance(item, window.a, window.b), direction = subtract(closestPoint(item.pos, window.a, window.b), item.pos);
       const side = magnitude(direction) > 0 ? Math.min(1, Math.abs(dot(right, direction) / magnitude(direction))) : 0;
       return { window, distance, side, score: side / (1 + distance / 1.5) };

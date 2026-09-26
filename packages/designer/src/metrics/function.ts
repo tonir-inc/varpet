@@ -1,3 +1,4 @@
+import { wallSolidPolygons } from '../wall-geometry.js';
 import { parseScene } from '../adapter.js';
 import { outsidePoint } from '../local-checks.js';
 import { physicalDoorSwingPolygon, itemPolygon, isFloorRug, polygonsOverlap } from './space.js';
@@ -32,11 +33,11 @@ function edge(item: Item, side: Side): { a: Vec2; b: Vec2; outward: Vec2 } {
 function clearance(scene: Scene, item: Item, side: Side, wallsOnly = false): number {
   const polygon = scene.rooms.find(room => room.id === item.room_id)!.polygon;
   const {a,b,outward:n} = edge(item,side);
-  const obstacles = wallsOnly ? [] : [
-    ...[...scene.items,...scene.fixed].filter(other => other.id !== item.id && other.room_id === item.room_id && !isFloorRug(other)).map(itemPolygon),
+  const obstacles = [...wallSolidPolygons(scene,item.size[2]).map(s=>s.polygon), ...(wallsOnly ? [] : [
+    ...[...scene.items,...scene.fixed].filter(other => other.id !== item.id && other.room_id === item.room_id && !other.structure && !isFloorRug(other)).map(itemPolygon),
     // A door owned by the adjacent room may swing into this access strip.
     ...scene.openings.map(opening=>physicalDoorSwingPolygon(scene,opening)).filter((p): p is Vec2[] => p !== null),
-  ];
+  ])];
   let low = 0, high = Math.max(...polygon.map(point=>Math.hypot(point[0]-item.pos[0],point[1]-item.pos[1]))) + Math.max(...item.size) + 1;
   for (let iteration=0;iteration<45;iteration++) {
     const distance=(low+high)/2;

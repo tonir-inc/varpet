@@ -34,6 +34,7 @@ export interface SunResult {
   windows: {
     window_id: string;
     room_id: string;
+    room_ids?: string[];
     outward_azimuth_deg: number;
     days: (WindowSunHours & { patches: { hour: number; patch: FloorSunPatch | null }[] })[];
   }[];
@@ -198,11 +199,11 @@ export function sun(scene: Scene, options: SunOptions = {}): SunResult {
     return { status: 'unknown', reason: 'Direct sun is unknown: set north_deg from the plan north arrow first', location: { ...LOCATION }, assumptions, windows: [] };
   }
   const windows = scene.openings.filter(opening => opening.kind === 'window' && (options.window_id === undefined || opening.id === options.window_id))
-    .filter(opening => options.room_id === undefined || scene.walls.find(wall => wall.id === opening.wall_id)?.room_id === options.room_id)
+    .filter(opening => options.room_id === undefined || (scene.walls.find(wall => wall.id === opening.wall_id)?.room_id === options.room_id || opening.room_ids?.includes(options.room_id)))
     .map(opening => {
       const geometry = windowGeometry(scene, opening.id);
       return {
-        window_id: opening.id, room_id: geometry.wall.room_id, outward_azimuth_deg: geometry.outward,
+        window_id: opening.id, room_id: options.room_id ?? geometry.wall.room_id, ...(opening.room_ids?{room_ids:opening.room_ids}:{}), outward_azimuth_deg: geometry.outward,
         days: dates.map(date => ({ ...windowSunHours(scene, opening.id, date), patches: hours.map(hour => ({ hour, patch: floorSunPatch(scene, opening.id, date, hour) })) })),
       };
     });

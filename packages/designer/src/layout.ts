@@ -86,6 +86,8 @@ export function checkLayout(scene:Scene,ops:readonly Op[]=[],options:LayoutCheck
   });
   const errors:LayoutIssue[]=comparison.errors.map(error=>issue(error,'hard'));
   const notes:LayoutIssue[]=comparison.notes.map(error=>({...issue(error,'soft'),baseline:true,message:`Pre-existing, not worsened: ${error.message}`}));
+  if(scene.geometry_audit&&(scene.geometry_audit.adjustments.length||scene.geometry_audit.obstacle_wall_ids.length||scene.geometry_audit.warnings.length))notes.push({check:'geometry_reconciliation',severity:'soft',item_ids:[],at:[0,0],location_unknown:true,
+    message:`Layout checks use room-face corrections up to ${(scene.geometry_audit.tolerance_m*1000).toFixed(0)} mm and retain ${scene.geometry_audit.obstacle_wall_ids.length} walls as fixed structure. Original editor geometry is retained; dimensions need on-site confirmation. ${scene.geometry_audit.warnings.join(' ')}`});
   errors.push(...price.errors);
   for(const metric of scored.function_clearances) if(metric.status==='warn') errors.push({check:'function_clearance',severity:'soft',item_ids:[metric.item_id,...metric.other_item_id?[metric.other_item_id]:[]],at:metric.at,deficit_m:metric.deficit_m,
     message:`${metric.item_id} ${metric.function} ${metric.side}: ${metric.clearance_m.toFixed(2)} m; preferred ${metric.minimum_m.toFixed(2)}${metric.maximum_m===undefined?' m minimum':`–${metric.maximum_m.toFixed(2)} m`}`});
