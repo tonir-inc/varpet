@@ -2,6 +2,7 @@ import type {Scene,Item,Vec2} from '../scene.js';
 import {itemPolygon,polygonsOverlap,rasterizeRoom} from '../metrics/space.js';
 import {roomPrograms} from '../../knowledge/room-programs.js';
 import {styles,styleMatchesKind,stylePalette,styleFamilies} from '../../knowledge/styles/index.js';
+import {railingSegments,railingGap,RAILING_CLEARANCE_M} from '../balcony.js';
 export interface TasteOptions {program:string;styles?:string[];catalog?:Record<string,{styles:string[];styles_inferred?:string[];colors_image:string[]}>;excluded_roles?:string[];alternative_seating?:boolean}
 export interface TasteIssue {code:string;item_ids:string[];message:string}
 const EPS=1e-6;
@@ -54,6 +55,12 @@ export function scoreComposition(scene:Scene,roomId:string,options:TasteOptions)
   const chairs=group.filter(i=>i.kind!=='sofa');
   const row=chairs.length>=2&&chairs.every(s=>Math.abs(Math.sin((s.rot-chairs[0]!.rot)*Math.PI/180))<.1&&Math.cos((s.rot-chairs[0]!.rot)*Math.PI/180)>.9)&&chairs.every(s=>!focal.some(f=>facing(s,f.pos))&&!group.some(b=>s!==b&&facing(s,b.pos)&&facing(b,s.pos)));
   check('chair_row',!row,2,'Parallel chairs facing nothing form a waiting-room row, not a living group.',chairs.map(i=>i.id));
+ }
+ if(options.program==='balcony'){
+  const seatsHere=items.filter(i=>['chair','bench','stool'].includes(i.kind)),tops=items.filter(i=>['table','side_table','coffee_table'].includes(i.kind)),railings=railingSegments(scene,roomId);
+  check('table_beside_seat',seatsHere.length>0&&seatsHere.every(s=>tops.some(t=>edgeGap(s,t)<=.6+EPS)),1,'Each balcony seat needs a small table within 0.60 m.',seatsHere.map(i=>i.id));
+  const close=scene.items.filter(i=>i.room_id===roomId&&!i.on&&railingGap(i,railings)<RAILING_CLEARANCE_M-EPS);
+  check('railing_clear',!close.length,2,`Keep furniture ${RAILING_CLEARANCE_M} m clear of the railing.`,close.map(i=>i.id));
  }
  if(options.program==='kids'){
   const room=scene.rooms.find(r=>r.id===roomId)!,grid=rasterizeRoom(scene,room,.1),side=Math.ceil((program.play_space_side_m??1.2)/grid.resolution);

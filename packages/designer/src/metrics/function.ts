@@ -34,7 +34,7 @@ function clearance(scene: Scene, item: Item, side: Side, wallsOnly = false): num
   const polygon = scene.rooms.find(room => room.id === item.room_id)!.polygon;
   const {a,b,outward:n} = edge(item,side);
   const obstacles = [...wallSolidPolygons(scene,item.size[2]).map(s=>s.polygon), ...(wallsOnly ? [] : [
-    ...[...scene.items,...scene.fixed].filter(other => other.id !== item.id && other.room_id === item.room_id && !other.structure && !isFloorRug(other)).map(itemPolygon),
+    ...[...scene.items,...scene.fixed].filter(other => other.id !== item.id && other.room_id === item.room_id && !other.structure && !isFloorRug(other) && other.on === undefined).map(itemPolygon),
     // A door owned by the adjacent room may swing into this access strip.
     ...scene.openings.map(opening=>physicalDoorSwingPolygon(scene,opening)).filter((p): p is Vec2[] => p !== null),
   ])];

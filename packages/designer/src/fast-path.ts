@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import {isOutdoorRoom} from './balcony.js';
 import {createHttpCatalogQuery, mapLimited, CATALOG_CONCURRENCY, type CatalogQuery} from './catalog.js';
 import {catalogProduct} from '../../../apps/editor/src/adapters/database-catalog.js';
 import { z } from 'zod';
@@ -60,7 +61,7 @@ function roomId(scene:Scene,recipe:Recipe):string|undefined {
   if(recipe.room==='bathroom'){const baths=scene.rooms.filter(r=>/bathroom|bath room|լոգ|ванн/i.test(r.name??''));return baths.length===1?baths[0]!.id:undefined;}
   if(recipe.room==='kids') return bedrooms[1]?.id;
   if(recipe.room==='bedroom') return bedrooms.length===1?bedrooms[0]!.id:undefined;
-  if(recipe.room==='living') {const living=scene.rooms.filter(r=>/living|հյուր|гостин/i.test(r.name??''));return living.length===1?living[0]!.id:undefined;}
+  if(recipe.room==='living') {const living=scene.rooms.filter(r=>!isOutdoorRoom(r)&&/living|հյուր|гостин/i.test(r.name??''));return living.length===1?living[0]!.id:undefined;}
   if(recipe.kind==='sofa') { const rooms=[...new Set(scene.items.filter(i=>i.kind==='sofa').map(i=>i.room_id))]; return rooms.length===1?rooms[0]:undefined; }
   // An unqualified desk belongs to the only living room with a window; otherwise ask the general agent.
   const windowed=scene.rooms.filter(r=>windows(scene,r.id).length>0);

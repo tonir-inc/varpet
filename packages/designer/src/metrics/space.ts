@@ -105,7 +105,8 @@ export function doorSwingPolygon(scene: Scene, opening: Opening): Vec2[] | null 
 }
 
 function obstaclesForRoom(scene: Scene, room: Room): Obstacle[] {
-  const obstacles: Obstacle[] = [...scene.items, ...scene.fixed].filter(i => i.room_id === room.id && !i.structure && !isFloorRug(i)).map(item => ({ polygon: itemPolygon(item) }));
+  // Items resting on furniture sit inside their support's footprint and add no floor obstacle.
+  const obstacles: Obstacle[] = [...scene.items, ...scene.fixed].filter(i => i.room_id === room.id && !i.structure && !isFloorRug(i) && i.on === undefined).map(item => ({ polygon: itemPolygon(item) }));
   // A walking person needs headroom: raised fixtures/pipes still obstruct circulation.
   obstacles.push(...wallSolidPolygons(scene, 2).map(solid => ({ polygon: solid.polygon })));
   for (const opening of scene.openings) {
@@ -357,7 +358,7 @@ function endpoints(scene: Scene, room: Room, grid: RoutingGrid): { doors: Endpoi
     const entry = swing ? turningDoorApproach(scene, room, grid, obstacles, point, intoRoom, opening) : approach(grid, room, obstacles, point, intoRoom, 0.45);
     doors.push({ id: `door:${opening.id}`, point, ...entry, aperture: Math.min(opening.width, entry.aperture), narrowest: opening.width <= entry.aperture ? point : entry.narrowest });
   }
-  for (const item of scene.items.filter(i => i.room_id === room.id && !i.structure && !isFloorRug(i))) {
+  for (const item of scene.items.filter(i => i.room_id === room.id && !i.structure && !isFloorRug(i) && i.on === undefined)) {
     const point = itemFront(item), radians = item.rot * Math.PI / 180;
     items.push({ id: `item:${item.id}`, point, ...approach(grid, room, obstacles, point, [Math.sin(radians), -Math.cos(radians)], 0.45) });
   }
@@ -443,7 +444,7 @@ export interface SpaceMetrics { rooms: RoomSpaceMetrics[]; free_area_m2: number 
 // never scene identities or mutable outputs; paint/name changes do not change floor space.
 const metricCache = new Map<string, SpaceMetrics>();
 function geometryKey(scene: Scene): string {
-  const items = (values: Item[]) => values.map(({id,room_id,kind,pos,rot,size,structure}) => [id,room_id,kind,pos,rot,size,structure]);
+  const items = (values: Item[]) => values.map(({id,room_id,kind,pos,rot,size,structure,on}) => [id,room_id,kind,pos,rot,size,structure,on]);
   return JSON.stringify([
     scene.rooms.map(({id,polygon}) => [id,polygon]),
     scene.walls.map(({id,room_id,a,b,open,source_id,thickness,height}) => [id,room_id,a,b,open,source_id,thickness,height]),

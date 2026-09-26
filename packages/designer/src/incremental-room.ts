@@ -13,6 +13,13 @@ import type {CatalogProduct,CatalogQuery} from './catalog.js';
 import type {CatalogAsset} from '../../../apps/editor/src/contracts.js';
 import type {Scene,Op,Item,Vec2} from './scene.js';
 import type {Intent} from './request.js';
+import {canRestOn,isSurface,surfacePoses} from './support.js';
+import {isOutdoorRoom,railingSegments,railingGap,RAILING_CLEARANCE_M} from './balcony.js';
+
+/** Customer-facing names for program roles and composition checks; raw codes stay in evidence. */
+const ROLE_PHRASES:Record<string,string>={seating_anchor:'a sofa',rug:'a rug',light:'a reading lamp',table:'a coffee or side table',focal_point:'a TV unit or shelf to face',bed:'a bed',nightstands:'nightstands on both sides of the bed',bedside_lights:'bedside lamps',storage:'storage',work_surface:'a desk',work_seat:'a desk chair',task_light:'a desk lamp',seat:'a compact seat',bistro_table:'a small table',plant:'a plant',dining_anchor:'a dining table',dining_seats:'dining chairs'};
+const CHECK_PHRASES:Record<string,string>={seat_facing:'seats facing a TV, window or each other',conversation_distance:'seats close enough to talk',rug_anchor:'a rug under the front legs of the seating',seat_table:'a table within reach of each seat',seat_light:'a reading lamp beside each seat',chair_row:'seats grouped rather than in a row',clear_play_space:'a clear floor-play square',work_seat_facing:'the chair facing the desk',work_reach:'the chair pulled up to the desk',task_light_reach:'a lamp at the desk',headboard_on_solid_wall:'the headboard against a solid wall',nightstand_each_open_side:'a nightstand on each side of the bed',light_each_bedside:'a lamp at each bedside',table_beside_seat:'a table beside the seat',railing_clear:`${RAILING_CLEARANCE_M * 100} cm kept clear of the railing`};
+const phrase=(list:string[])=>list.length<2?list.join(''):`${list.slice(0,-1).join(', ')} and ${list.at(-1)}`;
 
 export const counts=(items:Item[])=>Object.entries(items.reduce<Record<string,number>>((a,i)=>(a[i.kind]=(a[i.kind]??0)+1,a),{})).map(([kind,count])=>({kinds:[kind],count}));
 export function intentFor(scene:Scene,ops:Op[],extra:Intent={}):Intent{
@@ -23,6 +30,7 @@ export const slotAsset=(p:CatalogProduct):CatalogAsset=>({id:p.sku,name:p.name.s
 export interface RoomPlanRequest {room_id:string;program:string;style?:string;budget?:number;keep?:string[];history?:string[]}
 export interface RoomPlan {ops:Op[];intent:Intent;missing:string[];complete:boolean;reason:string;products:CatalogProduct[];timing:{catalog_ms:number;placement_ms:number};evidence:unknown}
 
+const tableLamp=(p:{kind:string;size:[number,number,number]})=>p.kind==='lamp'&&p.size[2]<.8;
 /** Related poses first; ranked single-piece slots are the common fallback. */
 export function* pieceOps(scene:Scene,p:CatalogProduct,roomId:string,cache:SceneAnalysisCache,role='',anchor?:Item,index=0,relatedOnly=false,bedsideAngle=0,allowMediaFacing=false):Generator<Op>{
  const candidates:Op[]=[];
@@ -35,13 +43,22 @@ export function* pieceOps(scene:Scene,p:CatalogProduct,roomId:string,cache:Scene
    for(const x of [-corner,corner,0,-.25,.25])for(const gap of [.41,.36,.46])related(x,-(anchor.size[1]+p.size[1])/2-gap);
   }
   if(role==='focal_point')for(const gap of [2,1.5,2.5])related(0,-(anchor.size[1]+p.size[1])/2-gap,(anchor.rot+180)%360);
-  if(role==='light'||role==='task_light')for(const side of [1,-1])for(const gap of [.15,.45,.6])related(side*((anchor.size[0]+p.size[0])/2+gap),0);
+  if((role==='light'||role==='task_light')&&!tableLamp(p))for(const side of [1,-1])for(const gap of [.15,.45,.6])related(side*((anchor.size[0]+p.size[0])/2+gap),0);
   if(role==='work_seat')related(0,-(anchor.size[1]+p.size[1])/2-.4,(anchor.rot+180)%360);
+  if(role==='bistro_table')for(const gap of [.05,.15,.3]){for(const side of [1,-1])related(side*((anchor.size[0]+p.size[0])/2+gap),0);related(0,-(anchor.size[1]+p.size[1])/2-gap);}
+  // Table lamps stand on furniture: the bedside stand on this side of the bed, or the desk top toward its back.
+  if((role==='bedside_lights'||role==='task_light')&&canRestOn(p.kind,p.size)){
+   const t=anchor.rot*Math.PI/180,side=index===0?-1:1,localX=(q:Vec2)=>(q[0]-anchor.pos[0])*Math.cos(t)+(q[1]-anchor.pos[1])*Math.sin(t);
+   const supports=role==='task_light'?(isSurface(anchor)?[anchor]:[]):scene.items.filter(i=>i.room_id===roomId&&isSurface(i)&&side*localX(i.pos)>anchor.size[0]/2);
+   const front:Vec2=[anchor.pos[0]+Math.sin(t)*anchor.size[1]/2,anchor.pos[1]-Math.cos(t)*anchor.size[1]/2];
+   for(const support of supports)for(const pose of surfacePoses(scene,support,p.size,{away:role==='task_light'?front:anchor.pos}).slice(0,3))
+    candidates.push({type:'add',item:{...p.item,name:p.name.slice(0,120),id:`room-${scene.items.length}-${p.sku}`,room_id:roomId,keep:false,rot:pose.rot,pos:pose.pos,on:support.id}});
+  }
   if(role==='rug'){
    const t=anchor.rot*Math.PI/180,dist=anchor.size[1]/2+p.size[1]/2-.25;
    candidates.push({type:'add',item:{...p.item,name:p.name.slice(0,120),id:`room-${scene.items.length}-${p.sku}`,room_id:roomId,keep:false,rot:anchor.rot,pos:[anchor.pos[0]+Math.sin(t)*dist,anchor.pos[1]-Math.cos(t)*dist]}});
   }
-  if(role==='nightstands'||role==='bedside_lights'){
+  if(role==='nightstands'||role==='bedside_lights'&&!tableLamp(p)){
    const side=index===0?-1:1;
    const angles=role==='nightstands'?[side*bedsideAngle,0,side*90,-side*90,side*45,-side*45]:[side*90,0,side*45,-side*45];
    for(const angle of angles){
@@ -53,6 +70,8 @@ export function* pieceOps(scene:Scene,p:CatalogProduct,roomId:string,cache:Scene
   }
  }
  for(const candidate of candidates)yield candidate;
+ // A table lamp is never a floor lamp; it only goes on a support.
+ if(tableLamp(p)&&['bedside_lights','task_light'].includes(role))return;
  // Bedside roles are defined relative to the anchor; a whole-room wall scan
  // spends the budget on slots that cannot satisfy their side/reach requirements.
  if(relatedOnly||anchor&&['nightstands','bedside_lights'].includes(role))return;
@@ -71,26 +90,34 @@ export function* pieceOps(scene:Scene,p:CatalogProduct,roomId:string,cache:Scene
 }
 
 export async function planIncrementally(scene:Scene,request:RoomPlanRequest,query?:CatalogQuery,history:readonly string[]=[]):Promise<RoomPlan>{
+ const room=scene.rooms.find(r=>r.id===request.room_id);
+ if(!room)throw new Error('Unknown room_id; use a room from the scene');
+ // An outdoor room gets the balcony program whatever the room is named after or the model asked for.
+ const outdoor=isOutdoorRoom(room),requestedProgram=request.program;
+ if(outdoor)request={...request,program:'balcony'};
  const started=performance.now(),program=roomPrograms[request.program];
  if(!program)throw new Error('Choose a supported room program');
- if(!scene.rooms.some(r=>r.id===request.room_id))throw new Error('Unknown room_id; use a room from the scene');
+ const railings=outdoor?railingSegments(scene,request.room_id):[];
  const checker=new DesignerSession(scene,history);checker.setIntent({keeps:request.keep});
  const catalog=await roomCatalog(request.program,request.style,request.budget,query),catalogMs=performance.now()-started;
  const cache=new SceneAnalysisCache(),blocked=new Set(requestPolicy(history).blocked_kinds);
  const extra:Intent={room_id:request.room_id,keeps:request.keep,budget_dram:request.budget};
  const roles=[...program.essentials];
  if(request.program==='living')roles.sort((a,b)=>['seating_anchor','rug','table','light','focal_point'].indexOf(a.role)-['seating_anchor','rug','table','light','focal_point'].indexOf(b.role));
- // The current scene adapter places purchases on the floor; tabletop lights cannot be floor substitutes.
+ // Tabletop lights qualify only for roles that place them on a support (nightstand or desk), never on the floor.
  const requiresDouble=[...history,...request.history??[],request.style??''].some(text=>/\b(?:double|queen|king)(?:[ -]size(?:d)?)?\s+bed\b/i.test(text));
  const isDouble=(size:Item['size'],name:string)=>size[0]>=1.35&&size[1]>=1.8&&!/\b(?:twin|single|loft|bunk)\b/i.test(name);
  let requireMedia=false;
- const qualifies=(kind:string,size:Item['size'],role:string,name='')=>!(role==='focal_point'&&requireMedia&&!/\btv\b|television|media/i.test(name))&&!(kind==='lamp'&&size[2]<.8)&&!(role==='bed'&&requiresDouble&&!isDouble(size,name))&&!(role==='storage'&&kind==='wardrobe'&&(size[1]<.4||size[2]<1.4));
+ const qualifies=(kind:string,size:Item['size'],role:string,name='')=>!(role==='focal_point'&&requireMedia&&!/\btv\b|television|media/i.test(name))&&!(kind==='lamp'&&size[2]<.8&&!['bedside_lights','task_light'].includes(role))&&!(role==='bed'&&requiresDouble&&!isDouble(size,name))&&!(role==='storage'&&kind==='wardrobe'&&(size[1]<.4||size[2]<1.4))
+  // Balcony pieces are adult outdoor furniture: no child chairs or tabletop plants on the floor.
+  &&!(role==='seat'&&(kind==='chair'&&size[2]<.7||/\bkids?\b|child/i.test(name)))&&!(role==='plant'&&size[2]<.5);
  const pools=roles.map(role=>{
   const kinds=role.preferred_kinds??role.kinds;
-  return [...new Map(kinds.flatMap(kind=>catalog.products[kind]??[]).filter(p=>!blocked.has(canonicalKind(p.kind))&&qualifies(p.kind,p.size,role.role,p.name)&&!(role.role==='work_surface'&&/desk extender|rolling cart|pedestal|printer stand|monitor stand/i.test(p.name))).map(p=>[p.sku,p])).values()]
+  return [...new Map(kinds.flatMap(kind=>catalog.products[kind]??[]).filter(p=>!blocked.has(canonicalKind(p.kind))&&qualifies(p.kind,p.size,role.role,p.name)&&!(role.role==='work_surface'&&/desk extender|rolling cart|pedestal|printer stand|monitor stand|\bchairs?\b|\bstools?\b/i.test(p.name))).map(p=>[p.sku,p])).values()]
    .sort((a,b)=>(request.budget===undefined?0:a.price-b.price)
     ||(role.role==='focal_point'?Number(!/\btv\b|television|media/i.test(a.name))-Number(!/\btv\b|television|media/i.test(b.name)):0)
     ||(role.role==='table'?Number(!/coffee|cocktail/i.test(a.name))-Number(!/coffee|cocktail/i.test(b.name)):0)
+    ||(['bedside_lights','task_light'].includes(role.role)?Number(!tableLamp(a))-Number(!tableLamp(b)):0)
     ||kinds.indexOf(a.kind)-kinds.indexOf(b.kind)||a.size[0]*a.size[1]-b.size[0]*b.size[1]);
  });
  const focalIndex=roles.findIndex(r=>r.role==='focal_point'),media=pools[focalIndex]?.filter(p=>/\btv\b|television|media/i.test(p.name))??[];
@@ -118,7 +145,8 @@ export async function planIncrementally(scene:Scene,request:RoomPlanRequest,quer
   const placed=new Set(ops.flatMap(o=>o.type==='add'?[o.item.id]:[]));
   const enforced=(c:ReturnType<typeof functionClearances>[number])=>c.function==='bed_side'||c.function==='storage_front'||c.function==='sofa_coffee'&&placed.has(c.other_item_id!);
   const access=functionClearanceRegressions(baselineFunctions.filter(enforced),functionClearances(after).filter(enforced));
-  if(geometry.length||access.length){if(failures.filter(f=>f.attempt===attempt&&f.role===role).length<5)failures.push({attempt,role,sku,errors:[...geometry,...access].slice(0,3)});return undefined;}
+  const railing=after.items.filter(i=>placed.has(i.id)&&railingGap(i,railings)<RAILING_CLEARANCE_M-1e-9).map(i=>({check:'railing_clearance',item_id:i.id,gap_m:railingGap(i,railings),minimum_m:RAILING_CLEARANCE_M}));
+  if(geometry.length||access.length||railing.length){if(failures.filter(f=>f.attempt===attempt&&f.role===role).length<5)failures.push({attempt,role,sku,errors:[...geometry,...access,...railing].slice(0,3)});return undefined;}
   checker.setIntent(intentFor(scene,ops,extra));const checked=checker.propose(ops,'Incremental checked placement.');
   if(!checked.ok){if(failures.filter(f=>f.attempt===attempt&&f.role===role).length<5)failures.push({attempt,role,sku,errors:checked.errors.slice(0,3)});return undefined;}
   const paths=checked.proposal.checks.metrics!.space.rooms.find(r=>r.room_id===request.room_id)!.walkways;
@@ -159,7 +187,7 @@ export async function planIncrementally(scene:Scene,request:RoomPlanRequest,quer
        if(side*x<=(role.role==='nightstands'?anchor.size[0]/2:0)||y<anchor.size[1]/2-.9||reach>(role.role==='nightstands'?.6:.9)+1e-6)continue;
       }
       if(requireMedia&&role.role==='focal_point'&&anchor&&op.type==='add'&&!faces(anchor,op.item.pos))continue;
-      const related:Record<string,string[]>={rug:['rug_anchor'],table:['seat_table'],light:['seat_light'],focal_point:['seat_facing'],work_seat:['work_seat_facing','work_reach'],task_light:['task_light_reach'],nightstands:n===role.count-1?['nightstand_each_open_side']:[],bedside_lights:n===role.count-1?['light_each_bedside']:[]};
+      const related:Record<string,string[]>={bistro_table:['table_beside_seat'],rug:['rug_anchor'],table:['seat_table'],light:['seat_light'],focal_point:['seat_facing'],work_seat:['work_seat_facing','work_reach'],task_light:['task_light_reach'],nightstands:n===role.count-1?['nightstand_each_open_side']:[],bedside_lights:n===role.count-1?['light_each_bedside']:[]};
       if(related[role.role]?.length){const c=scoreComposition(applyOps(preview,[op]),request.room_id,{program:request.program});if(c.issues.some(i=>related[role.role]!.includes(i.code)))continue;}
       const checked=evaluate([...ops,op],role.role,p.sku);
       if(checked){selected=op;product=p;paths=checked.paths;break;}
@@ -215,5 +243,11 @@ export async function planIncrementally(scene:Scene,request:RoomPlanRequest,quer
  const minPath=paths.length?Math.min(...paths.map(p=>p.width_m)):undefined;
  const accessNote=minPath!==undefined&&minPath<.9?` Secondary access is ${minPath.toFixed(2)} m: acceptable at 0.75 m minimum, below the comfortable 0.90 m target.`:'';
  const budgetNote=request.budget!==undefined&&requiredMinimum>request.budget?` The cheapest currently found full program totals ${requiredMinimum} AMD, above the ${request.budget} AMD budget; this is a catalog-search bound, not proof about all products.`:'';
- return {ops,intent:intentFor(scene,ops,extra),missing,complete,products,timing:{catalog_ms:catalogMs,placement_ms:performance.now()-started-catalogMs},reason:(complete?`Placed the ${products.map(p=>p.kind).join(', ')} as a complete checked ${request.program} arrangement.`:`Partial layout: ${missing.join('; ')}. This bounded search does not prove impossibility.`)+accessNote+budgetNote,evidence:{catalog,failures,attempts,composition,minimum_found_program_dram:requiredMinimum,style_basis:catalog.style_basis,requested_program:program}};
+ const overrideNote=outdoor&&requestedProgram!=='balcony'?` Furnished as an outdoor balcony, not as a ${requestedProgram} room: compact pieces, ${RAILING_CLEARANCE_M*100} cm kept clear of the railing.`:'';
+ // The customer reads this text; role and check codes stay in missing/evidence for the model and eval.
+ const missingRoles=[...new Set(missing.map(m=>m.match(/^([a-z_]+)(?: \d+\/\d+)?:/)?.[1]).filter((r):r is string=>!!r&&r in ROLE_PHRASES))];
+ const unmet=[...new Set([...composition.issues.map(i=>i.code),...missing.some(m=>m.startsWith('Face every sofa'))?['seat_facing']:[]])].filter(c=>!missingRoles.includes(c)&&!roles.some(r=>r.role===c)&&c in CHECK_PHRASES);
+ const placedText=products.length?`placed ${phrase(products.map(p=>p.kind.replaceAll('_',' ')))}`:'nothing placed yet';
+ const partial=`Partial layout: ${placedText}.${missingRoles.length?` No checked fit found for ${phrase(missingRoles.map(r=>ROLE_PHRASES[r]!))}.`:''}${unmet.length?` Still missing ${phrase(unmet.map(c=>CHECK_PHRASES[c]!))}.`:''} This bounded search does not prove impossibility.`;
+ return {ops,intent:intentFor(scene,ops,extra),missing,complete,products,timing:{catalog_ms:catalogMs,placement_ms:performance.now()-started-catalogMs},reason:(complete?`Placed the ${products.map(p=>p.kind).join(', ')} as a complete checked ${request.program} arrangement.`:partial)+overrideNote+accessNote+budgetNote,evidence:{catalog,failures,attempts,composition,minimum_found_program_dram:requiredMinimum,style_basis:catalog.style_basis,requested_program:program,program_name:request.program,...outdoor?{outdoor:true,requested_program_name:requestedProgram,railing_segments:railings.length}:{}}};
 }

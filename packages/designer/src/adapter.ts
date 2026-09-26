@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { z } from 'zod';
 import type { Scene, Wall, Op, Vec2 } from './scene.js';
 
@@ -11,11 +12,12 @@ const item = z.object({
   size: z.tuple([num.positive(), num.positive(), num.positive()]), keep: z.boolean(),
   structure: z.object({wall_id:id,bottom_m:num.nonnegative()}).optional(),
   sku: id.optional(), price: num.int().nonnegative().optional(), vendor: z.string().optional(), color: colorSchema.optional(), group_id: id.optional(),
+  on: id.optional(),
 });
 const sceneInput = z.object({
   north_deg: num.optional(),
   geometry_audit: z.object({tolerance_m:num.nonnegative(),adjustments:z.array(z.object({room_id:id,vertex:num.int().nonnegative(),before:point,after:point,distance_m:num.nonnegative()})),warnings:z.array(z.string()),obstacle_wall_ids:z.array(id),opening_room_ids:z.record(z.string(),z.array(id))}).optional(),
-  rooms: z.array(z.object({ id, name: z.string().optional(), polygon: z.array(point).min(3) })),
+  rooms: z.array(z.object({ id, name: z.string().optional(), polygon: z.array(point).min(3), zone: z.enum(['balcony','loggia','terrace']).optional() })),
   walls: z.array(z.object({ id, room_id: id, a: point, b: point, open: z.boolean().optional(), color: colorSchema.optional(), source_id: id.optional(), keep: z.boolean().optional(), thickness: num.nonnegative().optional(), height: num.positive().optional() })),
   openings: z.array(z.object({
     id, wall_id: id, kind: z.enum(['door', 'window', 'passage']), offset: num.nonnegative(),
@@ -27,13 +29,19 @@ const sceneInput = z.object({
 });
 
 export const opsSchema = z.array(z.discriminatedUnion('type', [
-  z.object({type:z.literal('move'),id,pos:point,rot:num.optional(),room_id:id.optional()}).strict(),
+  z.object({type:z.literal('move'),id,pos:point,rot:num.optional(),room_id:id.optional(),on:id.nullable().optional()}).strict(),
   z.object({type:z.literal('add'),item:item.strict()}).strict(),
   z.object({type:z.literal('remove'),id}).strict(),
   colorTargetSchema.extend({type:z.literal('color')}).strict(),
 ])).max(200);
 
 export function parseOps(input:unknown):Op[] { return opsSchema.parse(input); }
+
+/** Proposal base fingerprint. Room zone only selects a program, so it is left out and proposals saved
+ * before zones crossed the bridge stay valid. */
+export function sceneDigest(scene: Scene): string {
+  return createHash('sha256').update(JSON.stringify({ ...scene, rooms: scene.rooms.map(({ zone: _zone, ...room }) => room) })).digest('hex');
+}
 
 /** All external scene input and future engine calls cross this adapter. */
 export function parseScene(input: unknown): Scene {
@@ -51,6 +59,16 @@ export function parseScene(input: unknown): Scene {
     if (!scene.rooms.some(r => r.id === entity.room_id)) throw new Error(`${entity.id}: unknown room ${entity.room_id}`);
   }
   if(scene.items.some(i=>i.structure))throw new Error('Structural obstacles must be fixed');
+  if(scene.fixed.some(i=>i.on!==undefined))throw new Error('Fixed items cannot rest on furniture');
+  // Supports are movable furniture. Fit (surface kind, footprint) is a layout check, not a parse error.
+  for (const item of scene.items) {
+    const seen = new Set<string>([item.id]);
+    for (let current: typeof item | undefined = item; current?.on !== undefined; current = scene.items.find(i => i.id === current!.on)) {
+      if (!scene.items.some(i => i.id === current!.on)) throw new Error(`${current.id}: unknown support ${current.on}`);
+      if (seen.has(current.on)) throw new Error(`${item.id}: cyclic furniture support`);
+      seen.add(current.on);
+    }
+  }
   if(scene.fixed.some(i=>i.structure&&!i.keep))throw new Error('Structural obstacles must be kept');
   for (const wall of scene.walls) if (Math.hypot(wall.b[0]-wall.a[0], wall.b[1]-wall.a[1]) < 1e-8) throw new Error(`${wall.id}: zero-length wall`);
   for (const opening of scene.openings) {
@@ -69,6 +87,7 @@ export function applyOps(scene: Scene, ops: readonly Op[] = []): Scene {
     if (op.type === 'add') {
       if ([...copy.items,...copy.fixed,...copy.rooms,...copy.walls,...copy.openings].some(i=>i.id===op.item.id)) throw new Error(`Duplicate id: ${op.item.id}`);
       copy.items.push(structuredClone(op.item));
+      if (op.item.on !== undefined && !copy.items.some(i => i.id === op.item.on)) throw new Error(`Unknown support: ${op.item.on}`);
       continue;
     }
     if (op.type === 'color' && op.target === 'wall') {
@@ -85,6 +104,8 @@ export function applyOps(scene: Scene, ops: readonly Op[] = []): Scene {
     if (target.keep) throw new Error(`Kept item cannot change: ${op.id}`);
     if (op.type === 'color') target.color = op.color;
     else if (op.type === 'remove') {
+      const resting = copy.items.find(item => item.on === target.id);
+      if (resting) throw new Error(`Remove or move ${resting.id} before removing its support ${target.id}`);
       copy.items.splice(index,1);
       if (target.group_id) {
         const remaining = copy.items.filter(item => item.group_id === target.group_id);
@@ -93,6 +114,8 @@ export function applyOps(scene: Scene, ops: readonly Op[] = []): Scene {
     }
     else if (op.type === 'move') {
       const members = target.group_id ? [...copy.items,...copy.fixed].filter(item => item.group_id === target.group_id) : [target];
+      // Items resting on a moved piece travel with it rigidly (editor followSupports).
+      for (let i = 0; i < members.length; i++) for (const child of copy.items) if (child.on === members[i]!.id && !members.includes(child)) members.push(child);
       if (members.some(item => item.keep || copy.fixed.includes(item))) throw new Error(`Kept or fixed group member cannot move: ${op.id}`);
       const delta = (op.rot ?? target.rot) - target.rot, radians = delta * Math.PI / 180;
       const cosine = Math.cos(radians), sine = Math.sin(radians), [x,y] = target.pos;
@@ -105,6 +128,11 @@ export function applyOps(scene: Scene, ops: readonly Op[] = []): Scene {
       target.pos = [...op.pos];
       if (op.rot !== undefined) target.rot = op.rot;
       if (op.room_id !== undefined) target.room_id = op.room_id;
+      if (op.on === null) delete target.on;
+      else if (op.on !== undefined) {
+        if (!copy.items.some(i => i.id === op.on) || members.some(m => m.id === op.on)) throw new Error(`Invalid support for ${op.id}: ${op.on}`);
+        target.on = op.on;
+      }
     } else throw new Error('Unknown operation');
   }
   return parseScene(copy);

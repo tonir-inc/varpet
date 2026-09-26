@@ -15,12 +15,20 @@ export async function roomCatalog(program:string,style:string|undefined,budget:n
   {kind:'nightstand',text:'narrow bedside nightstand',max_w:.35,max_d:.4,max_h:.7,allow_rotate:false},
   {kind:'nightstand',text:'compact bedside nightstand',max_w:.45,max_d:.4,max_h:.7},
   {kind:'lamp',text:'small floor reading lamp',max_w:.25,max_d:.25},
+  // Table lamps stand on the nightstands (furniture support), leaving the bedside floor free.
+  {kind:'lamp',text:'bedside table lamp',max_w:.35,max_d:.35,max_h:.7},
  ]:program==='kids'&&budget!==undefined?[
   {kind:'bed',text:'single twin bed',max_w:1.2,max_d:2.2,price_max:Math.floor(budget*.62)},
   {kind:'desk',text:'writing study desk',max_w:1.2,max_d:.65,price_max:Math.floor(budget*.3)},
   {kind:'chair',text:'child study chair',max_w:.6,max_d:.65,price_max:Math.floor(budget*.08)},
   {kind:'shelf',text:'small book storage',max_w:1,max_d:.45,price_max:Math.floor(budget*.08)},
   {kind:'lamp',text:'small reading lamp',max_w:.3,max_d:.3,price_max:Math.floor(budget*.04)},
+  {kind:'lamp',text:'desk table lamp',max_w:.35,max_d:.4,max_h:.7,price_max:Math.floor(budget*.07)},
+ ]:program==='balcony'?[
+  {kind:'chair',text:'outdoor patio bistro chair',max_w:.6,max_d:.65},
+  {kind:'bench',text:'small bench',max_w:1.2,max_d:.45},
+  {kind:'table',text:'small round side table',max_w:.6,max_d:.6,max_h:.8},
+  {kind:'plant',text:'potted plant',max_w:.45,max_d:.45},
  ]:[];
  const extra=await mapLimited(requests,CATALOG_CONCURRENCY,async input=>({input,result:await searchCatalog({...input,limit:20,...explicit.length?{styles:ids}:{},...budget!==undefined?{price_max:Math.min(input.price_max??budget,budget)}:{}},query)}));
  const palette=stylePalette(ids);
