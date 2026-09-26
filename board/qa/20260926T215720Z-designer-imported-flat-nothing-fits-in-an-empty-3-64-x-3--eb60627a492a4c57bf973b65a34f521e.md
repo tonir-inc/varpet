@@ -2,10 +2,11 @@
 id: "20260926T215720Z-designer-imported-flat-nothing-fits-in-an-empty-3-64-x-3--eb60627a492a4c57bf973b65a34f521e"
 lane: "designer"
 severity: "major"
-status: "open"
+status: "fixed"
 title: "Imported flat: nothing fits in an empty 3.64 x 3.78 m bedroom (bed116) - not even a dresser"
 reported_by: "Sergey"
 created: "2026-09-26T21:57:20.822944Z"
+fixed_in: "a8488ea"
 ---
 
 **Steps**
@@ -27,3 +28,5 @@ plan_room(bed116, bedroom, keep heater) -> every role 'no checked fit' (19.7 s);
 **Notes**
 
 - 2026-09-26T22:02:53.790603Z: ROOT CAUSE (diagnosed): packages/designer/src/fast-path.ts:78 requires 0.75 m door->item circulation; door ED118 is 0.74879 m wide, so every new path has a 0.00121 m deficit and line 82 rejects it -> 0 slots for bed/dresser/nightstand (313/298/343 poses, 25/244/296 geometrically eligible, all rejected on access). Documented hard minimum is 0.60 m (layout.ts:94, 0.75 preferred). Fix: use 0.6 there (verified in scratch: 6 slots each, first passes propose()), or better only reject when an item worsens the baseline deficit. Repro: catalog/data/debug-bed116/repro.ts (Sergey's laptop). Affects any imported flat with ~75 cm bedroom doors.
+
+- 2026-09-26T22:14:51.458144Z: Fixed in a8488ea: walkways compared with the bare shell; 0.60 m hard minimum, 0.75 m preferred.
