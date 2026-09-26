@@ -195,3 +195,45 @@ against the original plans. All twenty screenshots show generated geometry, not 
 
 Final captured-output audit printed: `{"drafts":10,"architect":3,"editor":6,"bridge":0,"accepted":0,"screenshots":20}`.
 No source plan image filenames or rejected `.scene.json` files were present.
+
+## Follow-up, 26 September 2026: architect fixes for the four editor rejections
+
+Harness changes in `harness/varpet_harness` (`shell.py`, `codex_runner.py`, `serve.py`):
+
+- `tidy()` keeps rooms within the editor's 32 points: it first removes the shallowest notch
+  (≤ 8 cm stubs, a door recess in a thick wall), then escalates Douglas-Peucker from 1 cm to at most
+  5 cm, which stays below `ON_EDGE_M`. Right angles are preserved.
+- `tidy()` moves an opening that a joining wall cuts into the nearest clear stretch of its wall,
+  considering every joining wall and the wall's other openings at once. If none fits, it clips the
+  opening by at most `JUNCTION_M`, and never clips a door below 0.6 m. Openings overlapping by ≤ 2 cm are
+  trimmed apart, and overlapping openings of the same kind are merged. A door over a window is left
+  for the model. The checker's overlap tolerance is now the editor's 1e-5 (it was 1 mm, which let b18-t1's
+  `0.724 + 0.777 > 1.5` through).
+- The runner parses the checker's faults. Turns that fix only `format` faults use their own budget
+  (2), so a malformed `dims_m` no longer uses up the geometry repair budget. `/structure` now allows 3
+  geometry repair turns (it allowed 1). Piece jobs keep 1.
+- Reachability also links the two rooms found just past each face of a door
+  (`thickness / 2 + ON_EDGE_M` from the centreline). A door in a thick wall now connects rooms whose
+  inside faces never touch.
+- A wall 0.9–2.1 m high with no openings passes as a parapet or balcony rail.
+
+**Offline replay (no model call).** The captured `*.shell.json` drafts were checked with the new `tidy` +
+`check`, and the tidied output was then passed through `komitas-validate.ts` in a scratch folder.
+The captured `*.faults.json` files predate `5c5d457`, so the "before" column comes from the checker at `48b51d4`.
+A second pass of tidy+check produced byte-identical shells, so tidy is idempotent on these four.
+
+| Flat | Checker before (48b51d4) | Checker after | EditorStore | Bridge |
+|---|---|---|:---:|:---:|
+| b23-t64 | hall 34 points; `west_mid_pier_b` 0.61 m thick; `bedroom_5_east` off edge | pier thickness; `bedroom_5_east` 0.14 m off | pass | pass |
+| b27-t79 | hall 36 points | **pass** | pass | pass |
+| b24-t22 | 4 rooms unreachable; parapet `w16`; doors/windows cut by `w19`, `w28`; 6 walls off edge | 6 walls 0.15–0.43 m off a room edge | pass | fail: `bedroom_2_window` has no unambiguous adjacent room |
+| b18-t1 | 3 rooms unreachable; two 1.1 m rails; `west`, `shaft_west` off edge | `west` 0.44 m, `shaft_west` 0.35 m off a room edge | pass | pass |
+
+All four editor rejections from the table above are gone (0/4 → 4/4 EditorStore), and 3/4 pass the
+bridge. Only b27-t79 passes the architect's own checker. The remaining faults are outside this change: walls
+drawn 0.35–0.44 m off any room edge (b24-t22, b18-t1) and a 0.61 m pier against the checker's 0.6 m
+cap (the editor allows 1 m). These need a model repair turn, which the larger geometry budget now allows.
+
+**Not proven:** a live `/structure` run with the new budget; how the designer bridge treats a low parapet
+wall beyond conversion; `sceneSummary`, sun or access on these scenes. Captured drafts and
+measurements above are unchanged.
