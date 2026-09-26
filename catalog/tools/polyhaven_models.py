@@ -1,5 +1,8 @@
 """CC0 interior decor from Poly Haven -> normalised GLBs + data/extra/polyhaven/entries.json.
 
+Do not import this group as-is (26 Sept): the shelf-styling, tabletop, plants and textiles groups already hold
+most of these Poly Haven assets under other ids. Import only slugs you have checked are missing.
+
 Run from catalog/:
     uv run python tools/polyhaven_models.py            # list, download 1k glTF, convert, write manifest
     uv run python tools/polyhaven_models.py --only ceramic_vase_01 wall_clock
