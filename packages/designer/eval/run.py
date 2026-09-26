@@ -198,6 +198,7 @@ def restore_settings(args, manifest):
     if type(concurrency) is not int or not 1 <= concurrency <= 4 or timeout <= 0 or idle <= 0:
         raise ValueError("Invalid benchmark manifest execution limits")
     args.concurrency, args.timeout, args.idle_timeout = concurrency, timeout, idle
+    args.effort = manifest.get('effort', 'medium')
 
 
 def main():
@@ -207,7 +208,7 @@ def main():
     parser.add_argument("--without-place", action="store_true", help="Withhold place; allow coordinate generation")
     parser.add_argument("--speed-profile", choices=('without-place', 'one-batch'), help="Run only the six rearranges; preserve the original report/latest pointer")
     parser.add_argument("--effort", choices=('low', 'medium'), default='medium')
-    parser.add_argument("--context", choices=('full', 'trimmed'), default='full')
+    parser.add_argument("--context", choices=('full', 'trimmed', 'compact'), default='full')
     parser.add_argument("--round-cap", type=int, help="Hard observed model-round limit; defaults to 8 for one-batch")
     parser.add_argument("--concurrency", type=int, default=4, choices=range(1, 5))
     parser.add_argument("--idle-timeout", type=float, default=180)

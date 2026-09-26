@@ -78,6 +78,27 @@ class SpeedProfilesTests(unittest.TestCase):
         for option in ('--speed-profile', '--effort', '--context', '--round-cap'):
             self.assertIn(option, result.stdout)
 
+    def test_resume_restores_effort_even_for_a_regular_benchmark(self):
+        from types import SimpleNamespace
+        path = Path(__file__).resolve().parents[1] / 'packages/designer/eval/run.py'
+        spec = importlib.util.spec_from_file_location('speed_runner', path)
+        runner = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(runner)
+        args = SimpleNamespace(effort='medium')
+        runner.restore_settings(args, {'concurrency':4,'deadline_seconds':240,'idle_timeout_seconds':180,'effort':'low'})
+        self.assertEqual(args.effort, 'low')
+
+    def test_compact_context_inlines_skill_and_uses_the_same_proposal_gate(self):
+        profiles = self.profiles()
+        config = profiles.configure(designer.build_config(Path('/scene.json')), 'without-place', 'low', 'compact')
+        tools = config['mcp_servers']['varpet-designer']['enabled_tools']
+        self.assertEqual(set(tools), {'set_intent','search_catalog','sun','propose','ask'})
+        prompt = profiles.prompt('without-place', 'compact', designer.static_prefix())
+        self.assertIn(designer.SKILL.read_text(), prompt)
+        self.assertIn('propose', prompt)
+        self.assertIn('numeric', prompt)
+        self.assertLess(len(prompt), len(designer.static_prefix()))
+
 
 if __name__ == '__main__':
     unittest.main()
