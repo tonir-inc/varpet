@@ -81,3 +81,18 @@ export function mountDecoration(scene: SceneDocument, object: SceneObject, asset
   delete best.hangsFrom;
   return best;
 }
+
+/**
+ * Wall and ceiling edits carry what hangs on them: each wall-mounted or ceiling-hung item is mounted again from
+ * where it is. One that no longer fits anywhere stays put, so the placement review reports it.
+ */
+export function rehangObjects(scene: SceneDocument, catalog: CatalogAsset[]): SceneDocument {
+  const assets = new Map(catalog.map(asset => [asset.id, asset]));
+  const objects = scene.objects.map(object => {
+    const asset = assets.get(object.assetId);
+    if (!asset || !(object.hangsFrom || object.host)) return object;
+    try { return object.hangsFrom ? hangFromCeiling(scene, object, asset) : wallDecoration(asset) ? mountDecoration(scene, object, asset) : object; }
+    catch { return object; }
+  });
+  return { ...scene, objects };
+}
