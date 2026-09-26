@@ -63,4 +63,6 @@ const current = flats.find(flat => flat.id === route[1]);
 if (!route.length) gallery(); else if ((route[0] === 'flat' || embed) && current) embed ? embedded(current) : detail(current);
 else app.innerHTML = `${header(true)}<main class="not-found"><p class="eyebrow">Residence unavailable</p><h1>Let’s find another perspective.</h1><p>This residence has not been published yet.</p><a class="primary-link" href="/">Explore the collection ${arrow}</a></main>`;
 Object.defineProperty(window, '__SHOWCASE__', { value: { flats: flats.map(summary), current: current?.id ?? null }, writable: false });
-window.addEventListener('pagehide', () => dispose());
+// Back/Forward cache keeps this document and its controls alive. Disposing here
+// would restore a dead viewport: no canvas, and buttons bound to a disposed renderer.
+window.addEventListener('pagehide', event => { if (!event.persisted) dispose(); });
