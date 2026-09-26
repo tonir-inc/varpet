@@ -176,3 +176,22 @@ def test_a_fixture_piece_needs_its_component_first(tmp_path, monkeypatch):
         assert answer.startswith("no component kitchen")
 
     session(tmp_path, monkeypatch, play)
+
+
+def test_code_asks_for_the_kitchen_when_photos_show_one_and_none_was_built(tmp_path, monkeypatch):
+    from test_shell import bathroom, fixture
+
+    turns = []
+
+    async def play(tools, n, text, run):
+        turns.append(text)
+        s = bathroom()
+        s.components.append(fixture("kitchen-run", "worktop", [2.5, 0, 0.4], [2.0, 0.9, 0.6], room="living"))
+        (run / "shell" / "shell.json").write_text(s.model_dump_json())
+        if n == 2:
+            await tools["build_pieces"].run({"pieces": [{**SOFA, "id": "kitchen", "fixture": "kitchen-run"}]})
+            await tools["wait_for_pieces"].run({})
+            (run / "furnish" / "placements.json").write_text(json.dumps({"placements": []}))
+
+    report, *_ = session(tmp_path, monkeypatch, play)
+    assert report.architect_turns == 2 and "kitchen-run" in turns[1]

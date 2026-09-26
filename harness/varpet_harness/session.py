@@ -401,6 +401,14 @@ class _Architect:
         faults = check_shell(shell, shell.parent) if shell.exists() else [{"check": "file", "detail": "shell/shell.json was not written"}]
         if faults:
             return "Code checked shell/shell.json and found faults. Fix them, then submit_shell:\n" + json.dumps(faults, indent=1)
+        if furnish and not self.fixtures:  # the prompt asks for the kitchen; this makes sure (N3 skipped it twice)
+            from .shell import Shell
+
+            kitchen = [c.id for c in Shell.model_validate_json(shell.read_text()).components if c.kind in ("worktop", "cabinet")]
+            if kitchen:
+                return ("The photos show the kitchen but no fixture was built. Call build_pieces with the kitchen run as one "
+                        f"piece with `fixture` set to its component ({', '.join(kitchen[:4])}), refs to the photos that show it, "
+                        "then wait_for_pieces.")
         placements = self.run_dir / "furnish" / "placements.json"
         if furnish and self.builds:
             faults = check_placements(placements, placements.parent) if placements.exists() else \
