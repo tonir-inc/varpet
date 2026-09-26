@@ -75,6 +75,8 @@ export function mountFolioShell(deps: FolioShellDeps) {
   if (views) dock.querySelector('[data-slot=views]')!.append(views);
   const sun = document.getElementById('sun');
   if (sun) dock.querySelector('[data-slot=light]')!.append(sun);
+  const sky = document.querySelector('.skybox-control');
+  if (sky) dock.querySelector('[data-slot=light]')!.append(sky);
 
   const menu = document.createElement('div');
   menu.className = 'folio-menu'; menu.hidden = true; menu.setAttribute('role', 'menu');

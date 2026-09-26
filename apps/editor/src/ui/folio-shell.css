@@ -84,3 +84,8 @@
 
 /* The details panel carries its own controls; the floating toolbar steps aside while it is open. */
 .folio.folio-inspect .folio-toolbar { display: none; }
+
+/* Sky sits beside the sun in the dock: a quiet select, no floating box. */
+.folio-dock .skybox-control { position: static; display: flex; align-items: center; gap: 4px; height: 34px; margin: 0; padding: 0 4px 0 6px; border: 0; border-radius: var(--radius-sm); background: transparent; box-shadow: none; color: var(--ink); }
+.folio-dock .skybox-control > span, .folio-dock .skybox-control > svg { display: none; }
+.folio-dock .skybox-control select { height: 30px; border: 0; background: transparent; color: var(--ink); font: inherit; font-size: 13px; }
