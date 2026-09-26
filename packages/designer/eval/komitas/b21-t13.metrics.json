@@ -1,0 +1,51 @@
+{
+  "id": "b21-t13",
+  "architect_accepted": false,
+  "editor_accepted": true,
+  "bridge_accepted": false,
+  "accepted": false,
+  "architect_error": "RuntimeError: The architect could not produce a checked structure (faults left). Files: /var/folders/gm/0bvd7yfn75398h953rj6qh0c0000gn/T/varpet-komitas-9jkq7zpw/b21-t13/runs/architect-20260926-155902-1458",
+  "rooms": [
+    {
+      "id": "hall",
+      "name": "Entrance hall",
+      "area_m2": 2.2996569999999994
+    },
+    {
+      "id": "living",
+      "name": "Living room and kitchen",
+      "area_m2": 16.945031999999998
+    },
+    {
+      "id": "bed",
+      "name": "Bedroom",
+      "area_m2": 13.978716999999993
+    },
+    {
+      "id": "bath",
+      "name": "Bathroom",
+      "area_m2": 4.691745000000001
+    },
+    {
+      "id": "balcony",
+      "name": "Balcony",
+      "area_m2": 3.649599999999996
+    }
+  ],
+  "floor_area_m2": 41.56475099999999,
+  "doors": 5,
+  "windows": 3,
+  "northDeg": 0,
+  "editor_result": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "revision": 1
+  },
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": []
+  },
+  "bridge_error": "Error: Wall w1 is not entirely a room boundary; interior obstacles require an explicit supported representation"
+}

@@ -1,5 +1,5 @@
 /** Approve a real shell through product replace-scene and bridge gates; diagnose rejected drafts separately. */
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createInitialScene } from '../../../apps/editor/src/core/initial-scene.js';
 import { createReconstructionProposal } from '../../../apps/editor/src/core/reconstruction-proposal.js';
@@ -7,7 +7,8 @@ import { EditorStore } from '../../../apps/editor/src/core/store.js';
 import { validateScene } from '../../../apps/editor/src/core/validation.js';
 import { editorToDesigner } from '../src/editor-bridge.js';
 const id=process.argv[2]!;
-const root=resolve('packages/designer/eval/komitas');
+const root=resolve(process.argv[3]??'packages/designer/eval/komitas');
+for(const suffix of ['.scene.json','.rejected.json'])rmSync(resolve(root,id+suffix),{force:true});
 const result=JSON.parse(readFileSync(resolve(root,id+'.architect.json'),'utf8'));
 const final=result.lines?.at(-1);
 const metrics:Record<string,unknown>={id,architect_accepted:final?.type==='structure',editor_accepted:false,bridge_accepted:false,accepted:false};

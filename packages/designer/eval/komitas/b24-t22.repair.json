@@ -1,0 +1,5 @@
+{
+  "repair_prompts": [
+    "The compiler rejected shell.json. Fix only these faults, keep the rest:\n[\n {\n  \"check\": \"format\",\n  \"detail\": \"1 validation error for Shell\\nprinted.hall.dims_m\\n  Tuple should have at most 2 items after validation, not 3 [type=too_long, input_value=[3.1, 3.25, 1.5], input_type=list]\\n    For further information visit https://errors.pydantic.dev/2.13/v/too_long\"\n }\n]"
+  ]
+}

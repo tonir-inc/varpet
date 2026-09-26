@@ -1,0 +1,698 @@
+{
+ "rooms": [
+  {
+   "id": "hall",
+   "name": "Entrance hall",
+   "polygon": [
+    [
+     1.959,
+     4.678
+    ],
+    [
+     3.266,
+     4.678
+    ],
+    [
+     3.266,
+     8.597
+    ],
+    [
+     0.0,
+     8.597
+    ],
+    [
+     0.0,
+     7.202
+    ],
+    [
+     1.959,
+     7.202
+    ]
+   ],
+   "color": "#c9ad86"
+  },
+  {
+   "id": "living",
+   "name": "Living room",
+   "polygon": [
+    [
+     1.906,
+     0.0
+    ],
+    [
+     5.702,
+     0.0
+    ],
+    [
+     5.702,
+     1.695
+    ],
+    [
+     5.419,
+     1.695
+    ],
+    [
+     5.419,
+     2.295
+    ],
+    [
+     5.702,
+     2.295
+    ],
+    [
+     5.702,
+     2.595
+    ],
+    [
+     6.302,
+     2.595
+    ],
+    [
+     6.302,
+     1.906
+    ],
+    [
+     8.314,
+     1.906
+    ],
+    [
+     8.314,
+     4.678
+    ],
+    [
+     1.959,
+     4.678
+    ],
+    [
+     1.959,
+     4.148
+    ],
+    [
+     1.906,
+     4.148
+    ]
+   ],
+   "color": "#c9ad86"
+  },
+  {
+   "id": "kitchen",
+   "name": "Kitchen",
+   "polygon": [
+    [
+     0.3,
+     0.0
+    ],
+    [
+     1.906,
+     0.0
+    ],
+    [
+     1.906,
+     4.148
+    ],
+    [
+     0.0,
+     4.148
+    ],
+    [
+     0.0,
+     2.295
+    ],
+    [
+     0.9,
+     2.295
+    ],
+    [
+     0.9,
+     1.695
+    ],
+    [
+     0.3,
+     1.695
+    ]
+   ],
+   "color": "#d0c9bb"
+  },
+  {
+   "id": "bed",
+   "name": "Bedroom",
+   "polygon": [
+    [
+     3.372,
+     4.801
+    ],
+    [
+     5.966,
+     4.801
+    ],
+    [
+     5.966,
+     5.613
+    ],
+    [
+     6.249,
+     5.613
+    ],
+    [
+     6.249,
+     4.801
+    ],
+    [
+     8.314,
+     4.801
+    ],
+    [
+     8.314,
+     8.597
+    ],
+    [
+     6.302,
+     8.597
+    ],
+    [
+     6.302,
+     8.208
+    ],
+    [
+     5.419,
+     8.208
+    ],
+    [
+     5.419,
+     8.597
+    ],
+    [
+     3.372,
+     8.597
+    ]
+   ],
+   "color": "#c9ad86"
+  },
+  {
+   "id": "bath",
+   "name": "Bathroom",
+   "polygon": [
+    [
+     0.0,
+     4.854
+    ],
+    [
+     1.853,
+     4.854
+    ],
+    [
+     1.853,
+     7.079
+    ],
+    [
+     0.0,
+     7.079
+    ]
+   ],
+   "color": "#c8c7c2"
+  },
+  {
+   "id": "balcony",
+   "name": "Balcony",
+   "polygon": [
+    [
+     6.002,
+     0.0
+    ],
+    [
+     8.314,
+     0.0
+    ],
+    [
+     8.314,
+     1.695
+    ],
+    [
+     6.002,
+     1.695
+    ]
+   ],
+   "color": "#c6c4be"
+  }
+ ],
+ "walls": [
+  {
+   "id": "north",
+   "start": [
+    0.194,
+    -0.106
+   ],
+   "end": [
+    5.808,
+    -0.106
+   ],
+   "height": 2.7,
+   "thickness": 0.212,
+   "color": "#eeeae3",
+   "openings": [
+    {
+     "id": "north_window_1",
+     "kind": "window",
+     "offset": 0.724,
+     "width": 1.589,
+     "height": 1.5,
+     "sill": 0.85
+    },
+    {
+     "id": "north_window_2",
+     "kind": "window",
+     "offset": 2.966,
+     "width": 2.33,
+     "height": 1.5,
+     "sill": 0.85
+    }
+   ]
+  },
+  {
+   "id": "northwest",
+   "start": [
+    0.194,
+    -0.106
+   ],
+   "end": [
+    0.194,
+    1.695
+   ],
+   "height": 2.7,
+   "thickness": 0.212,
+   "color": "#eeeae3",
+   "openings": []
+  },
+  {
+   "id": "west",
+   "start": [
+    -0.141,
+    1.695
+   ],
+   "end": [
+    -0.141,
+    8.703
+   ],
+   "height": 2.7,
+   "thickness": 0.282,
+   "color": "#eeeae3",
+   "openings": []
+  },
+  {
+   "id": "south",
+   "start": [
+    -0.141,
+    8.703
+   ],
+   "end": [
+    8.42,
+    8.703
+   ],
+   "height": 2.7,
+   "thickness": 0.212,
+   "color": "#eeeae3",
+   "openings": [
+    {
+     "id": "entrance",
+     "kind": "door",
+     "offset": 1.094,
+     "width": 1.006,
+     "height": 2.1,
+     "sill": 0.0
+    }
+   ]
+  },
+  {
+   "id": "east",
+   "start": [
+    8.42,
+    1.801
+   ],
+   "end": [
+    8.42,
+    8.703
+   ],
+   "height": 2.7,
+   "thickness": 0.212,
+   "color": "#eeeae3",
+   "openings": [
+    {
+     "id": "living_window",
+     "kind": "window",
+     "offset": 0.194,
+     "width": 2.33,
+     "height": 1.5,
+     "sill": 0.85
+    },
+    {
+     "id": "bed_window",
+     "kind": "window",
+     "offset": 3.954,
+     "width": 2.312,
+     "height": 1.5,
+     "sill": 0.85
+    }
+   ]
+  },
+  {
+   "id": "balcony_west",
+   "start": [
+    5.808,
+    -0.106
+   ],
+   "end": [
+    5.808,
+    1.801
+   ],
+   "height": 2.7,
+   "thickness": 0.212,
+   "color": "#eeeae3",
+   "openings": []
+  },
+  {
+   "id": "balcony_partition",
+   "start": [
+    5.808,
+    1.801
+   ],
+   "end": [
+    8.42,
+    1.801
+   ],
+   "height": 2.7,
+   "thickness": 0.212,
+   "color": "#eeeae3",
+   "openings": [
+    {
+     "id": "balcony_door",
+     "kind": "door",
+     "offset": 0.724,
+     "width": 0.777,
+     "height": 2.1,
+     "sill": 0.0
+    },
+    {
+     "id": "balcony_window",
+     "kind": "window",
+     "offset": 1.5,
+     "width": 0.794,
+     "height": 1.5,
+     "sill": 0.85
+    }
+   ]
+  },
+  {
+   "id": "balcony_rail_north",
+   "start": [
+    6.002,
+    -0.071
+   ],
+   "end": [
+    8.385,
+    -0.071
+   ],
+   "height": 1.1,
+   "thickness": 0.141,
+   "color": "#eeeae3",
+   "openings": []
+  },
+  {
+   "id": "balcony_rail_east",
+   "start": [
+    8.385,
+    -0.071
+   ],
+   "end": [
+    8.385,
+    1.695
+   ],
+   "height": 1.1,
+   "thickness": 0.141,
+   "color": "#eeeae3",
+   "openings": []
+  },
+  {
+   "id": "bed_north",
+   "start": [
+    3.319,
+    4.748
+   ],
+   "end": [
+    8.314,
+    4.748
+   ],
+   "height": 2.7,
+   "thickness": 0.124,
+   "color": "#eeeae3",
+   "openings": []
+  },
+  {
+   "id": "bed_west",
+   "start": [
+    3.319,
+    4.748
+   ],
+   "end": [
+    3.319,
+    8.597
+   ],
+   "height": 2.7,
+   "thickness": 0.106,
+   "color": "#eeeae3",
+   "openings": [
+    {
+     "id": "bed_door",
+     "kind": "door",
+     "offset": 2.86,
+     "width": 0.883,
+     "height": 2.1,
+     "sill": 0.0
+    }
+   ]
+  },
+  {
+   "id": "bath_east",
+   "start": [
+    1.906,
+    4.854
+   ],
+   "end": [
+    1.906,
+    7.149
+   ],
+   "height": 2.7,
+   "thickness": 0.106,
+   "color": "#eeeae3",
+   "openings": [
+    {
+     "id": "bath_door",
+     "kind": "door",
+     "offset": 0.618,
+     "width": 0.777,
+     "height": 2.05,
+     "sill": 0.0
+    }
+   ]
+  },
+  {
+   "id": "bath_south",
+   "start": [
+    0.0,
+    7.149
+   ],
+   "end": [
+    1.906,
+    7.149
+   ],
+   "height": 2.7,
+   "thickness": 0.124,
+   "color": "#eeeae3",
+   "openings": []
+  },
+  {
+   "id": "shaft_south",
+   "start": [
+    0.0,
+    4.801
+   ],
+   "end": [
+    1.906,
+    4.801
+   ],
+   "height": 2.7,
+   "thickness": 0.106,
+   "color": "#eeeae3",
+   "openings": []
+  },
+  {
+   "id": "shaft_north",
+   "start": [
+    0.0,
+    4.201
+   ],
+   "end": [
+    1.906,
+    4.201
+   ],
+   "height": 2.7,
+   "thickness": 0.106,
+   "color": "#eeeae3",
+   "openings": []
+  },
+  {
+   "id": "shaft_west",
+   "start": [
+    0.159,
+    4.254
+   ],
+   "end": [
+    0.159,
+    4.748
+   ],
+   "height": 2.7,
+   "thickness": 0.318,
+   "color": "#eeeae3",
+   "openings": []
+  },
+  {
+   "id": "shaft_east",
+   "start": [
+    1.906,
+    4.254
+   ],
+   "end": [
+    1.906,
+    4.748
+   ],
+   "height": 2.7,
+   "thickness": 0.106,
+   "color": "#eeeae3",
+   "openings": []
+  },
+  {
+   "id": "column_west",
+   "start": [
+    0.0,
+    1.995
+   ],
+   "end": [
+    0.9,
+    1.995
+   ],
+   "height": 2.7,
+   "thickness": 0.6,
+   "color": "#eeeae3",
+   "openings": []
+  },
+  {
+   "id": "column_northeast_a",
+   "start": [
+    5.419,
+    1.995
+   ],
+   "end": [
+    6.302,
+    1.995
+   ],
+   "height": 2.7,
+   "thickness": 0.6,
+   "color": "#eeeae3",
+   "openings": []
+  },
+  {
+   "id": "column_northeast_b",
+   "start": [
+    6.002,
+    2.295
+   ],
+   "end": [
+    6.002,
+    2.595
+   ],
+   "height": 2.7,
+   "thickness": 0.6,
+   "color": "#eeeae3",
+   "openings": []
+  },
+  {
+   "id": "column_southeast",
+   "start": [
+    5.419,
+    8.402
+   ],
+   "end": [
+    6.302,
+    8.402
+   ],
+   "height": 2.7,
+   "thickness": 0.388,
+   "color": "#eeeae3",
+   "openings": []
+  },
+  {
+   "id": "bed_pier",
+   "start": [
+    6.108,
+    4.801
+   ],
+   "end": [
+    6.108,
+    5.613
+   ],
+   "height": 2.7,
+   "thickness": 0.282,
+   "color": "#eeeae3",
+   "openings": []
+  }
+ ],
+ "notes": [
+  "Printed: room schedule lists hall 7.9 m2, living 24.4 m2, kitchen 7.0 m2, bedroom 18.3 m2, bathroom 4.2 m2, balcony 3.8 m2; total 65.6 m2.",
+  "Measured: scale approximately 56.65 pixels/m, supported by 8300 mm across 471 pixels, bedroom 4850 mm across 275 pixels, bedroom 3800 mm across 215 pixels, and bathroom 1850 mm across 105 pixels. Origin is the west interior face at the north interior level.",
+  "Printed: 8300 mm spans the combined open kitchen/living space; 4700 mm is its north-to-bedroom depth. Kitchen depth 4150 mm. Hall has 3250 mm lower width, 3900 mm overall depth and 1300 mm corridor clearance. Bathroom reads 1850 by 2230 mm. Balcony reads 2300 by 1600 mm.",
+  "Derived: polygons trace inside faces and column projections. Kitchen/living and hall/living zone boundaries are inferred within the continuous open floor and carry no walls. The rectangular crossed enclosure above the bathroom is treated as an unoccupied service shaft.",
+  "Measured: windows and door openings occupy the entire drawn gaps, including the entrance in the south wall and the balcony door beside its window. Bedroom doorway is at the bottom of its west partition.",
+  "Assumed: no photographs were supplied. Wall paint, timber-coloured living/bedroom/hall floors, neutral kitchen/bathroom/balcony floors, ceiling height 2.7 m, door heights and window heights/sills cannot be confirmed. Balcony perimeter is interpreted as a 1.1 m railing/parapet.",
+  "Derived: the balcony drawn depth is slightly larger than its 1600 mm dimension; image geometry is retained. Printed areas are transcribed unchanged and are not used to overwrite traced geometry."
+ ],
+ "printed": {
+  "hall": {
+   "area_m2": 7.9,
+   "dims_m": [
+    3.25,
+    3.9
+   ]
+  },
+  "living": {
+   "area_m2": 24.4,
+   "dims_m": [
+    8.3,
+    4.7
+   ]
+  },
+  "kitchen": {
+   "area_m2": 7.0,
+   "dims_m": null
+  },
+  "bed": {
+   "area_m2": 18.3,
+   "dims_m": [
+    4.85,
+    3.8
+   ]
+  },
+  "bath": {
+   "area_m2": 4.2,
+   "dims_m": [
+    1.85,
+    2.23
+   ]
+  },
+  "balcony": {
+   "area_m2": 3.8,
+   "dims_m": [
+    2.3,
+    1.6
+   ]
+  }
+ }
+}

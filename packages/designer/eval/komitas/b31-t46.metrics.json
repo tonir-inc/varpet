@@ -1,0 +1,65 @@
+{
+  "id": "b31-t46",
+  "architect_accepted": true,
+  "editor_accepted": true,
+  "bridge_accepted": false,
+  "accepted": false,
+  "rooms": [
+    {
+      "id": "hall",
+      "name": "Entrance hall",
+      "area_m2": 17.076220000000017
+    },
+    {
+      "id": "living",
+      "name": "Living and dining room",
+      "area_m2": 28.34110100000001
+    },
+    {
+      "id": "kitchen",
+      "name": "Kitchen",
+      "area_m2": 4.8216
+    },
+    {
+      "id": "bedroom_1",
+      "name": "Bedroom 1",
+      "area_m2": 13.186205999999995
+    },
+    {
+      "id": "bedroom_2",
+      "name": "Bedroom 2",
+      "area_m2": 12.176499999999995
+    },
+    {
+      "id": "bathroom_1",
+      "name": "Bathroom 1",
+      "area_m2": 3.921995000000001
+    },
+    {
+      "id": "bathroom_2",
+      "name": "Bathroom 2",
+      "area_m2": 3.8196549999999987
+    },
+    {
+      "id": "balcony",
+      "name": "Balcony",
+      "area_m2": 4.484445000000015
+    }
+  ],
+  "floor_area_m2": 87.82772200000002,
+  "doors": 7,
+  "windows": 3,
+  "northDeg": 0,
+  "editor_result": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "revision": 1
+  },
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": []
+  },
+  "bridge_error": "Error: Wall west_bathroom_1 is not entirely a room boundary; interior obstacles require an explicit supported representation"
+}

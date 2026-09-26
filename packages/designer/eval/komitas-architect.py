@@ -59,6 +59,13 @@ def worker(plan: Path, work: Path):
         server.server_close()
 
 
+def clear_previous(output: Path, id: str):
+    """Invalidate the previous attempt before launching a new one; never touch source plans."""
+    for suffix in ('.scene.json', '.rejected.json', '.shell.json', '.faults.json',
+                   '.metrics.json', '.architect.json', '-top.png', '-3d.png'):
+        (output / (id + suffix)).unlink(missing_ok=True)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--worker', type=Path)
@@ -82,6 +89,7 @@ def main():
         work = batch/id; work.mkdir()
         plans = list(args.plans.glob(id+'.*'))
         if len(plans) != 1: raise ValueError(f'{id}: expected one source plan')
+        clear_previous(output, id)
         def activity(channel, chunk):
             if 'usage limit' in chunk.lower(): cancel.set()
             with (work/(channel+'.log')).open('a') as stream: stream.write(chunk)

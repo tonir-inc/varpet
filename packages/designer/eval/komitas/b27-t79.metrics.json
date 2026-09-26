@@ -1,0 +1,70 @@
+{
+  "id": "b27-t79",
+  "architect_accepted": false,
+  "editor_accepted": false,
+  "bridge_accepted": false,
+  "accepted": false,
+  "architect_error": "RuntimeError: The architect could not produce a checked structure (faults left). Files: /var/folders/gm/0bvd7yfn75398h953rj6qh0c0000gn/T/varpet-komitas-9jkq7zpw/b27-t79/runs/architect-20260926-155854-5500",
+  "rooms": [
+    {
+      "id": "hall",
+      "name": "Entrance hall",
+      "area_m2": 21.306508000000004
+    },
+    {
+      "id": "living",
+      "name": "Living and dining room",
+      "area_m2": 24.102610000000002
+    },
+    {
+      "id": "kitchen",
+      "name": "Kitchen",
+      "area_m2": 6.718525000000005
+    },
+    {
+      "id": "bedroom_1",
+      "name": "Bedroom 1",
+      "area_m2": 11.399346999999988
+    },
+    {
+      "id": "bedroom_2",
+      "name": "Bedroom 2",
+      "area_m2": 13.783840000000003
+    },
+    {
+      "id": "bathroom",
+      "name": "Bathroom",
+      "area_m2": 2.9522779999999926
+    },
+    {
+      "id": "wc",
+      "name": "WC",
+      "area_m2": 1.737082000000001
+    },
+    {
+      "id": "balcony",
+      "name": "Balcony",
+      "area_m2": 4.324413999999999
+    }
+  ],
+  "floor_area_m2": 86.324604,
+  "doors": 7,
+  "windows": 6,
+  "northDeg": 0,
+  "editor_result": {
+    "ok": false,
+    "errors": [
+      "Room 1 needs 3–32 finite polygon points within ±100 m."
+    ],
+    "warnings": [],
+    "revision": 0
+  },
+  "validation": {
+    "ok": false,
+    "errors": [
+      "Room 1 needs 3–32 finite polygon points within ±100 m."
+    ],
+    "warnings": []
+  },
+  "bridge_error": "Error: Invalid editor scene: Room 1 needs 3–32 finite polygon points within ±100 m."
+}

@@ -1,0 +1,60 @@
+{
+  "id": "b18-t1",
+  "architect_accepted": false,
+  "editor_accepted": false,
+  "bridge_accepted": false,
+  "accepted": false,
+  "architect_error": "RuntimeError: The architect could not produce a checked structure (faults left). Files: /var/folders/gm/0bvd7yfn75398h953rj6qh0c0000gn/T/varpet-komitas-9jkq7zpw/b18-t1/runs/architect-20260926-160149-1416",
+  "rooms": [
+    {
+      "id": "hall",
+      "name": "Entrance hall",
+      "area_m2": 7.854937999999999
+    },
+    {
+      "id": "living",
+      "name": "Living room",
+      "area_m2": 24.386861999999994
+    },
+    {
+      "id": "kitchen",
+      "name": "Kitchen",
+      "area_m2": 6.857588
+    },
+    {
+      "id": "bed",
+      "name": "Bedroom",
+      "area_m2": 18.186549000000003
+    },
+    {
+      "id": "bath",
+      "name": "Bathroom",
+      "area_m2": 4.122924999999999
+    },
+    {
+      "id": "balcony",
+      "name": "Balcony",
+      "area_m2": 3.918840000000002
+    }
+  ],
+  "floor_area_m2": 65.32770199999999,
+  "doors": 4,
+  "windows": 5,
+  "northDeg": 0,
+  "editor_result": {
+    "ok": false,
+    "errors": [
+      "Wall 7 has overlapping openings."
+    ],
+    "warnings": [],
+    "revision": 0
+  },
+  "validation": {
+    "ok": false,
+    "errors": [
+      "Wall 7 has overlapping openings."
+    ],
+    "warnings": []
+  },
+  "bridge_error": "Error: Invalid editor scene: Wall 7 has overlapping openings."
+}
