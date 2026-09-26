@@ -27,6 +27,9 @@ HEX = r"^#[0-9a-fA-F]{6}$"
 ON_EDGE_M = 0.08  # a wall's centreline may sit this far off a room edge
 AREA_TOL = 0.10  # computed room area vs the area the plan prints
 OPEN_MIN_M = 0.6  # an unwalled shared edge this long is a passage
+EDITOR_EPS = 1e-5  # apps/editor/src/core/validation.ts
+CLAMP_M = 0.02  # overshoot tidy() treats as rounding
+JUNCTION_M = 0.35  # a joining wall end this wide in an opening is a junction, not a mistake
 
 
 class Opening(BaseModel):
@@ -80,10 +83,22 @@ def _len(w: Wall) -> float:
 
 def check(shell: Shell) -> list[dict]:
     faults: list[dict] = []
-    ids = [r.id for r in shell.rooms] + [w.id for w in shell.walls]
+    ids = [r.id for r in shell.rooms] + [w.id for w in shell.walls] + [o.id for w in shell.walls for o in w.openings]
     dupes = sorted({i for i in ids if ids.count(i) > 1})
     if dupes:
-        faults.append({"check": "ids", "detail": f"duplicate ids {dupes}"})
+        faults.append({"check": "ids", "detail": f"duplicate ids {dupes}; ids are unique across rooms, walls and openings"})
+    # The editor's own limits (apps/editor/src/core/validation.ts)
+    if len(shell.rooms) > 32 or len(shell.walls) > 160:
+        faults.append({"check": "limits", "detail": "at most 32 rooms and 160 walls"})
+    for r in shell.rooms:
+        if len(r.polygon) > 32:
+            faults.append({"check": "limits", "room": r.id, "detail": "at most 32 polygon points"})
+    for w in shell.walls:
+        spans = sorted((o.offset, o.offset + o.width) for o in w.openings)
+        if len(spans) > 16 or any(b[0] < a[1] - 0.001 for a, b in zip(spans, spans[1:])):
+            faults.append({"check": "opening", "wall": w.id, "detail": "openings overlap or more than 16 on one wall"})
+        if any(o.width < 0.2 or o.height < 0.2 for o in w.openings):
+            faults.append({"check": "opening", "wall": w.id, "detail": "openings are at least 0.2 m wide and tall"})
 
     polys: dict[str, Polygon] = {}
     for r in shell.rooms:
@@ -112,13 +127,16 @@ def check(shell: Shell) -> list[dict]:
         if off > ON_EDGE_M + w.thickness / 2:
             faults.append({"check": "wall", "wall": w.id, "detail": f"not on a room edge ({off:.2f} m off)"})
         for o in w.openings:
-            if o.offset + o.width > length + 0.01:
+            if o.offset + o.width > length + EDITOR_EPS:
                 faults.append({"check": "opening", "wall": w.id, "opening": o.id,
                                "detail": f"runs {o.offset + o.width - length:.2f} m past the wall end"})
-            if o.sill + o.height > w.height + 0.01:
+            if o.sill + o.height > w.height + EDITOR_EPS:
                 faults.append({"check": "opening", "wall": w.id, "opening": o.id, "detail": "taller than the wall"})
             if o.kind == "door" and o.sill > 0.01:
                 faults.append({"check": "opening", "wall": w.id, "opening": o.id, "detail": "a door has sill 0"})
+            for wid, s, e in _blocked(shell, w, o):
+                faults.append({"check": "opening", "wall": w.id, "opening": o.id,
+                               "detail": f"wall {wid} runs through it between {s:.2f} and {e:.2f} m along {w.id}"})
 
     faults += _reachable(shell, polys)
 
@@ -161,16 +179,95 @@ def _reachable(shell: Shell, polys: dict[str, Polygon]) -> list[dict]:
     return [{"check": "reachable", "rooms": cut, "detail": "no door or open passage links these to the rest"}] if cut else []
 
 
+def _obstacles(shell: Shell, host: Wall, o: Opening) -> list[tuple[str, float, float]]:
+    """Solid parts of other walls inside the host's thickness over the opening's height, as
+    (wall id, start, end) along the host. Mirrors openingWallObstacles in the editor."""
+    length = _len(host)
+    ux, uz = (host.end[0] - host.start[0]) / length, (host.end[1] - host.start[1]) / length
+    half = host.thickness / 2
+    band = Polygon([(0, -half), (length, -half), (length, half), (0, half)])
+    bottom, top = o.sill, o.sill + o.height
+    out = []
+    for w in shell.walls:
+        if w.id == host.id or w.height <= bottom + EDITOR_EPS:
+            continue
+        wl = _len(w)
+        dx, dz = (w.end[0] - w.start[0]) / wl, (w.end[1] - w.start[1]) / wl
+        h = w.thickness / 2
+        solids, cursor = [], 0.0
+        for a in sorted(w.openings, key=lambda a: a.offset):
+            solids.append((cursor, a.offset, 0.0, w.height))
+            solids += [(a.offset, a.offset + a.width, 0.0, a.sill), (a.offset, a.offset + a.width, a.sill + a.height, w.height)]
+            cursor = a.offset + a.width
+        solids.append((cursor, wl, 0.0, w.height))
+        for frm, to, low, high in solids:
+            if to - frm <= EDITOR_EPS or high <= low or low >= top - EDITOR_EPS or high <= bottom + EDITOR_EPS:
+                continue
+            pts = []
+            for along, across in ((frm, -h), (to, -h), (to, h), (frm, h)):
+                x = w.start[0] + dx * along - dz * across - host.start[0]
+                z = w.start[1] + dz * along + dx * across - host.start[1]
+                pts.append((x * ux + z * uz, -x * uz + z * ux))
+            clip = Polygon(pts).intersection(band)
+            if clip.area > 1e-9:
+                lo, _, hi, _ = clip.bounds
+                if hi - lo > EDITOR_EPS:
+                    out.append((w.id, max(0.0, lo), min(length, hi)))
+    return out
+
+
+def _blocked(shell: Shell, host: Wall, o: Opening) -> list[tuple[str, float, float]]:
+    a, b = o.offset, o.offset + o.width
+    return [(wid, s, e) for wid, s, e in _obstacles(shell, host, o) if min(b, e) - max(a, s) > EDITOR_EPS]
+
+
 def _door_segment(w: Wall, o: Opening) -> LineString:
     line = LineString([w.start, w.end])
     return LineString([line.interpolate(o.offset), line.interpolate(o.offset + o.width)])
 
 
+def to_editor(shell: Shell) -> dict:
+    """Exactly what StructureAdapter.reconstruct returns: our `printed` block stays behind."""
+    return {"rooms": [r.model_dump() for r in shell.rooms], "walls": [w.model_dump() for w in shell.walls],
+            "notes": shell.notes}
+
+
+def tidy(shell: Shell) -> Shell:
+    """Mechanical fixes in code, not a model turn: drop collinear and near-duplicate
+    polygon points (within 1 cm), which also keeps rooms under the editor's 32 points."""
+    for r in shell.rooms:
+        poly = Polygon(r.polygon)
+        if poly.is_valid:
+            simple = poly.simplify(0.01, preserve_topology=True)
+            r.polygon = [(round(x, 3), round(z, 3)) for x, z in list(simple.exterior.coords)[:-1]]
+    for w in shell.walls:  # openings that overshoot their wall by a rounding error are clamped
+        length = _len(w)
+        for o in w.openings:
+            over = o.offset + o.width - length
+            if 0 < over <= CLAMP_M:
+                o.width -= over + EDITOR_EPS
+            over = o.sill + o.height - w.height
+            if 0 < over <= CLAMP_M:
+                o.height -= over + EDITOR_EPS
+    for w in shell.walls:  # an opening at a junction slides clear of the joining wall's end
+        length = _len(w)
+        for o in w.openings:
+            for _, s, e in _blocked(shell, w, o):
+                if e - s > JUNCTION_M:
+                    continue
+                if s <= o.offset + EDITOR_EPS and e + o.width <= length:
+                    o.offset = e + 2 * EDITOR_EPS
+                elif e >= o.offset + o.width - EDITOR_EPS and s - o.width >= 0:
+                    o.offset = s - o.width - 2 * EDITOR_EPS
+    return shell
+
+
 def check_file(path: Path, workdir: Path) -> list[dict]:
     try:
-        shell = Shell.model_validate_json(path.read_text())
+        shell = tidy(Shell.model_validate_json(path.read_text()))
     except (ValidationError, ValueError) as e:
         return [{"check": "format", "detail": str(e)}]
+    path.write_text(shell.model_dump_json(indent=1))
     return check(shell)
 
 

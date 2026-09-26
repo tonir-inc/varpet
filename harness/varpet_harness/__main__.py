@@ -87,7 +87,15 @@ def main() -> None:
     flat.add_argument("--model", default="gpt-6-astra")
     flat.add_argument("--lanes", type=int, default=6)
     flat.add_argument("--runs", default=str(RUNS))
+    srv = sub.add_parser("serve", help="the architect as a local service for the editor")
+    srv.add_argument("--port", type=int, default=8788)
+    srv.add_argument("--runs", default=str(RUNS))
     args = p.parse_args()
+    if args.cmd == "serve":
+        from .serve import serve
+
+        serve(REPO, Path(args.runs), args.port)
+        return
     raise SystemExit(asyncio.run(_run(args) if args.cmd == "run" else _flat(args)))
 
 

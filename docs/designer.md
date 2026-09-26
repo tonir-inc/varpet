@@ -19,9 +19,10 @@ colours are in scope; finish previews are design choices, not supplier quotes (a
 1. **The model proposes ops, code disposes.** The designer never writes the scene. It sends ops; code
    applies them to a copy, checks, prices and decides. Without the checker 1 of 6 layouts blocked a
    walkway.
-2. **Relations, not coordinates.** The model says "desk against the east wall, beside the window";
-   code finds the exact pose. In the literature, moving coordinates out of the model cut invalid
-   layouts by roughly ten times (LayoutVLM, I-Design, FlairGPT, AnyHome).
+2. **Checked placement.** The relation-based `place` tool lets the model say "desk against the east
+   wall, beside the window" and code find the pose. The current compact service instead generates
+   coordinates and checks them through `propose`; relation-based placement remains the reference
+   benchmark configuration.
 3. **Hard facts are checks; taste is data.** Physics, doors, walkways, kept items, budget: code, the
    same for everyone. Preferences ("bed away from the window") are stored on the scene with their source
    and honoured.
@@ -37,13 +38,19 @@ colours are in scope; finish previews are design choices, not supplier quotes (a
 
 | agent | runs as | job |
 |---|---|---|
-| **Designer** | one Codex thread per conversation, `gpt-6-astra` medium | owns the conversation: triage, intent, one question at most, a layout, the explanation |
+| **Designer** | one Codex thread per conversation, `gpt-6-astra` low by default | owns the conversation: triage, intent, one question at most, a layout, the explanation |
 | **Explorers** (2–3) | parallel threads started by the harness when the customer asks for options, or when the request allows real alternatives | each gets one strategy (most open floor / best daylight for work / social living) and returns one checked layout |
 | **Scorers** | code, not agents | free floor, circulation, daylight, function clearances, cost, request match |
 
 The Designer ranks what comes back by the scorers and shows the best two with their numbers. No agent
 tree beyond that: architect/builder subagent trees lost to single calls this week (0.63 vs 0.79 and
 2.1M vs 39k tokens on furniture).
+
+[measured configuration, 26 Sept] The CLI/service defaults are `low`, `without-place`, `compact-base`
+in `harness/designer.py`. This profile omits `place`, `scene_summary`, `check_layout` and `score_layout`
+from the model's tool list; `propose` still performs all physical/request checks and returns scores.
+The reference benchmark explicitly uses `medium`, `relations`, `full` so historical comparisons do
+not silently inherit a changed product default.
 
 ## Tools (one MCP server, `packages/designer`, stdio; the same server for the product and for tests)
 
@@ -92,14 +99,16 @@ tree beyond that: architect/builder subagent trees lost to single calls this wee
    verified from the furniture purchase total.
 2. **Intent.** `set_intent` from the message. If the request cannot be acted on ("make it cozier" with
    nothing else), `ask` one question with options, then stop.
-3. **Look.** `scene_summary`, and `sun` when light matters.
-4. **Place or recolour.** `place` for each piece by relation; `search_catalog` only when something new
-   is needed. A group moves rigidly from one member's operation; do not move its members independently.
+3. **Look.** Read the supplied scene (`scene_summary` when available), and use `sun` when light matters.
+4. **Place or recolour.** Derive complete candidate ops from the scene, or use `place` by relation when
+   enabled; `search_catalog` only when something new is needed. A group moves rigidly from one member's
+   operation; do not move its members independently.
    For colour, store the exact target IDs and hex values in `set_intent.colors`, then propose matching
    colour ops. No placement or new furniture is needed for paint. One wall op paints both faces of the
    physical wall, including split segments with the same `source_id`; mention this on shared walls.
-5. **Check and score.** `check_layout` until green (errors carry coordinates, so fixes converge);
-   `score_layout` for the numbers.
+5. **Check and score.** `propose` returns checks and before/after scores; repair rejected candidates
+   against the original scene. The full profile also exposes `check_layout` and `score_layout` for
+   separate diagnosis. No profile bypasses the proposal gate.
 6. **Options.** When alternatives are real, the harness starts the explorers; the Designer keeps the
    best two.
 7. **Propose.** `propose` with one paragraph: what changed, the numbers, the trade-off. The customer

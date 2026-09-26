@@ -1,0 +1,67 @@
+{
+  "started_at": "2026-09-26T10:24:31.096731+00:00",
+  "model": "gpt-6-astra",
+  "effort": "low",
+  "speed_profile": "without-place",
+  "context": "compact",
+  "round_cap": null,
+  "concurrency": 4,
+  "idle_timeout_seconds": 180,
+  "deadline_seconds": 240.0,
+  "jobs": [
+    {
+      "scenario": "r01-desk-east-wall",
+      "mode": "without-place-low-compact"
+    },
+    {
+      "scenario": "r02-wardrobe-south-wall",
+      "mode": "without-place-low-compact"
+    },
+    {
+      "scenario": "r03-chair-faces-desk",
+      "mode": "without-place-low-compact"
+    },
+    {
+      "scenario": "r04-desk-near-window",
+      "mode": "without-place-low-compact"
+    },
+    {
+      "scenario": "r05-more-usable-floor",
+      "mode": "without-place-low-compact"
+    },
+    {
+      "scenario": "r06-wider-walkway",
+      "mode": "without-place-low-compact"
+    }
+  ],
+  "source_hashes": {
+    "harness/designer.py": "5acf4822772bf93cfe279e7c707b2d60bbc893ed04355bb96567f66c7d395de3",
+    "harness/designer_prompt.md": "62eae7fa75c1ce4acfb3a860ee7a3498eb2c20aa8fdef4c4480c7652a4fb324a",
+    "harness/designer_profiles.py": "388f6155e047f31507b52911361c72174da911efc6a8772ef42935f12a74a259",
+    ".agents/skills/interior-design-rules/SKILL.md": "931d2f2a5009d1c4e727846463f079814ce0ca52cc21e682549bf0a8595b0dfe",
+    "packages/designer/eval/run.py": "9c6bba21787f374bc80f702ba5474f22107e5918885e7ca934fcef35951a9fae",
+    "packages/designer/eval/benchmark-scenarios.json": "ce11957fc2b9ab2d10cc46822727f0686817d8b97ff9c06e988717d41d7673c1",
+    "packages/designer/src/adapter.ts": "e40a9a4a343e2155a7cc7bc416a320d2e7496905e5377581b567fef57c38db1b",
+    "packages/designer/src/ask.ts": "699c031492ef8236b24dc3d4096a73e1240ac252c8e088b84fa45fcd4c093553",
+    "packages/designer/src/catalog.ts": "131f57b8f8645b1d84bcdbfddfae97507c98787d34eb30550eec6fdffca28ddf",
+    "packages/designer/src/layout.ts": "b7596bf8ed51e7e0cc18fba2918312cc82fb6de9592077cc4c7d66507f432bf1",
+    "packages/designer/src/local-checks.ts": "02a369579dde7d4ca515a2f7fdf56430376bd3e898f12748cd4fdd1fc9f6bd4e",
+    "packages/designer/src/metrics/function.ts": "d1b70645abbeefabdef09b35a56251439c1b75d1a819f460e30f87894267a729",
+    "packages/designer/src/metrics/space.ts": "66ad724134acd47ad87965542559f0d76363e266f9e06f615744566727e9204a",
+    "packages/designer/src/metrics/strategy.ts": "b5fc2660509e8533cfa24f85aac811ca3b5a090cbc1a2d72fdaeb99d8a3a68bb",
+    "packages/designer/src/metrics/sun.ts": "3a9a00bea602c613873d34487d9f8d2915f1a99b997c85721a9d4123d709125a",
+    "packages/designer/src/place-batch.ts": "5ed703d1593fe90f0ae4123c57ee85b8de4f36c11ff0fcc84af8e9ca62d1f302",
+    "packages/designer/src/place.ts": "82e099fb52923435c6da0b21015884247bdf201393d3fc21ddbf46bdd2e6ec3e",
+    "packages/designer/src/request.ts": "f5a95f8fd791adf4cc4b34b6e5fa92693927a9241c0cc14c9b283342aef0547c",
+    "packages/designer/src/scene.ts": "7382a22d11e816fe2e3443c5a763c8b2214156406d180ad34cb1d199038b8b06",
+    "packages/designer/src/server.ts": "ee55a7db01125ef22f92a853e5a8a646e30e09ee2e42786b6bb61056457cffa0",
+    "packages/designer/src/session.ts": "af81c586d485779e2f683499964e0d4d6cc8b4a5776093be295aa9b4517ee052",
+    "packages/designer/src/tool-inputs.ts": "90beca393baaa78ee6e689bc8c34137b37c9b370dfe097e4b18210e4d89b0309"
+  },
+  "git_revision": "18839018c445baf8fb30d4ff6273936fe1e6e762",
+  "ablation": "\n\nEVALUATION ABLATION: the place tool is intentionally unavailable in this thread. This overrides only rules requiring place-generated coordinates. Derive candidate move ops yourself from scene geometry; validate with check_layout and score_layout, repair rejected checks, and finish with accepted propose. Preserve every other rule, keep, budget and request check.",
+  "bedroom_sha256": "037af58ab714c7cbbf439ab2fc5b0df95a37fdfe497ed727109b6b34f0b17eb6",
+  "finished_at": "2026-09-26T10:26:57.567537+00:00",
+  "usage_limit_stop": false,
+  "errors": []
+}

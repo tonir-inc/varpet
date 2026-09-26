@@ -1,0 +1,85 @@
+
+> varpet@ test /Users/ashotarushanyan/AshProjects/varpet-bench
+> pnpm -r test
+
+Scope: 5 of 6 workspace projects
+packages/designer test$ vitest run && python3 -m unittest discover -s ../../harness -p 'designer*_test.py'
+tools test$ node --test
+packages/engine test$ vitest run --passWithNoTests
+packages/engine test:  RUN  v5.0.2 /Users/ashotarushanyan/AshProjects/varpet-bench/packages/engine
+packages/designer test:  RUN  v5.0.2 /Users/ashotarushanyan/AshProjects/varpet-bench/packages/designer
+packages/engine test: No test files found, exiting with code 0
+packages/engine test: include: **/*.{test,spec}.?(c|m)[jt]s?(x)
+packages/engine test: exclude:  **/node_modules/**, **/.git/**
+packages/engine test: Done
+tools test: ✔ contract files and dirs are denied, ordinary source is allowed (463.897916ms)
+tools test: ✔ a NEW test file may be added; an existing one may not be deleted, weakened or skipped (626.691542ms)
+tools test: ✔ any package's test/ folder is protected from removal, not only the ones listed by name (299.773917ms)
+tools test: ✔ the Stop check reports by default and blocks only when asked (235.299291ms)
+tools test: ✔ a test file that is not committed yet (the agent's own draft) may be fixed; committed ones stay locked (506.728875ms)
+tools test: ✔ if git cannot answer, an uncommitted-looking test is treated as committed (fail closed) (97.930875ms)
+tools test: ✔ changing an expect() in a committed vitest file is denied like an assert (129.705042ms)
+tools test: ℹ tests 7
+tools test: ℹ suites 0
+tools test: ℹ pass 7
+tools test: ℹ fail 0
+tools test: ℹ cancelled 0
+tools test: ℹ skipped 0
+tools test: ℹ todo 0
+tools test: ℹ duration_ms 2474.808
+tools test: Done
+packages/designer test:  Test Files  54 passed (54)
+packages/designer test:       Tests  275 passed (275)
+packages/designer test:    Start at  14:47:09
+packages/designer test:    Duration  11.68s (tests 91%, import 5%, transform 4%)
+packages/designer test:     Isolate  54 workers spawned · ~150ms startup each (spawn + environment, per file)
+packages/designer test:              at least ~1.01s faster with isolate: false — reuses workers across files instead of one per file
+packages/designer test: .............................................{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "a89c890dd79d4d899e870538b39399df", "outcome": "proposal", "seconds": 0.005, "usage": null}
+packages/designer test: ...{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "6dd33dd3cf414aeeb6f726cf27058707", "outcome": "error", "seconds": 0.063, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "3d99633259f24a38bec1a8265cdbf05c", "outcome": "error", "seconds": 0.385, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "a8fec5bc367f437887a85cb681b944b4", "outcome": "error", "seconds": 0.357, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "08f335aab52141f799c771256b714464", "outcome": "error", "seconds": 0.029, "usage": null}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "249c9d287a1e4764b7d45a579a7c9473", "outcome": "error", "seconds": 0.351, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "9c0a5cbde5ac4fa4bb0d3345ec6bbb38", "outcome": "aborted", "seconds": 0.193, "usage": null}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "0ffea34bd2c547d19807da3a1c8dd18b", "outcome": "decline", "seconds": 0.081, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: ...{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "210b45d9377641c297c4ca001bc6806d", "outcome": "error", "seconds": 0.308, "usage": null}
+packages/designer test: ..{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "861c1a69dc5f41b7a1467037f55c8c99", "outcome": "proposal", "seconds": 0.387, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: ..{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "8eaf9700eb2c4f4c8d36ea3714756f40", "outcome": "decline", "seconds": 0.066, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "19cea5c40ca34f5286c2656298b90de3", "outcome": "proposal", "seconds": 0.355, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "7a806356ae7c452cb556a805fc7bf462", "outcome": "question", "seconds": 0.077, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "a2a4cdb01ce24161b7cae6425bfe4d07", "outcome": "proposal", "seconds": 0.401, "usage": {"inputTokens": 20, "outputTokens": 7, "totalTokens": 27}}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "a2a4cdb01ce24161b7cae6425bfe4d07", "outcome": "decline", "seconds": 0.064, "usage": {"inputTokens": 0, "outputTokens": 0, "totalTokens": 0}}
+packages/designer test: .{"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "57dbac8f0c6e4526add018045263cd48", "outcome": "error", "seconds": 0.077, "usage": null}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "cfce03327aae4e9b995564bf354e1ab1", "outcome": "error", "seconds": 0.126, "usage": null}
+packages/designer test: {"type": "service_summary", "model": "gpt-6-astra", "effort": "medium", "profile": {"placement": "relations", "context": "full"}, "conversationId": "fb53fed44f364c99af87dcd080e2bbfe", "outcome": "error", "seconds": 0.068, "usage": null}
+packages/designer test: ..........................
+packages/designer test: ----------------------------------------------------------------------
+packages/designer test: Ran 89 tests in 14.911s
+packages/designer test: OK
+packages/designer test: Done
+apps/editor test$ node scripts/check.mjs && node scripts/check-renovation.mjs && node scripts/check-openings.mjs && node scripts/check-finishes.mjs && node scripts/check-placement.mjs && node scripts/check-walls.mjs && node scripts/check-wall-controller.mjs && node scripts/check-grouping.mjs && node scripts/check-plan-move.mjs && node scripts/check-inspector.mjs && node scripts/check-motion.mjs && node scripts/check-transform-motion.mjs && node scripts/check-projection-motion.mjs && node scripts/check-architect.mjs
+apps/editor test: Domain checks passed (265 assertions).
+apps/editor test: Renovation checks passed (102 assertions).
+apps/editor test: Reconstruction and handoff checks passed (29 assertions).
+apps/editor test: Opening clearance: 80 assertions passed.
+apps/editor test: Finish regressions passed: 92 assertions across 5 scenarios.
+apps/editor test: Placement conflict checks passed (345 assertions).
+apps/editor test: Wall movement checks passed (87 assertions).
+apps/editor test: Wall controller checks passed (411 assertions; 6 wall directions in Top and 3D). Preview rendering requires browser verification.
+apps/editor test: PASS grouping preserves placement, migrates explicitly, and saves membership
+apps/editor test: PASS moving any member translates the whole group once and undo restores all
+apps/editor test: PASS rotation orbits members about the selected piece without changing scale or spacing
+apps/editor test: PASS invalid, stale, unapproved and locked-member transforms are atomic
+apps/editor test: PASS invalid membership is rejected and regrouping requires complete existing groups
+apps/editor test: PASS ungroup preserves transforms and subsequent moves affect one piece
+apps/editor test: PASS delete dissolves singleton groups and undo restores membership
+apps/editor test: PASS baseline and options retain independent group membership
+apps/editor test: PASS imports reject invalid group IDs, singleton groups and version 1 membership
+apps/editor test: PASS 9 grouping checks
+apps/editor test: Plan movement checks passed (199 assertions).
+apps/editor test: Inspector regressions passed: 102 assertions across 10 scenarios.
+apps/editor test: Editor motion checks passed (52 assertions).
+apps/editor test: Transform motion checks passed (11 assertions).
+apps/editor test: Projection motion checks passed (16 assertions).
+apps/editor test: architect adapter check passed
+apps/editor test: Done

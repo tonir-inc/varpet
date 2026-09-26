@@ -69,6 +69,7 @@ class CodexRunner:
         compile_cmd: list[str] | None = None,
         fix_turns: int = 1,
         stall: float = 4 * 60,
+        progress=None,
     ):
         self.codex = codex
         self.repo = repo
@@ -79,6 +80,7 @@ class CodexRunner:
             self.checkers["piece"] = compile_cmd
         self.fix_turns = fix_turns
         self.stall = stall
+        self.progress = progress or (lambda message: None)
         self.config = thread_config()
 
     async def run(self, job: Job, workdir: Path, deps: dict[str, JobResult]) -> JobResult:
@@ -94,6 +96,7 @@ class CodexRunner:
         out = workdir / OUTPUT[job.kind]
         tokens = turns = 0
         try:
+            self.progress(f"{job.id}: working")
             first = await self._turn(thread, self._first_input(job, out, deps), job)
             tokens += _tokens(first)
             turns += 1
@@ -102,10 +105,12 @@ class CodexRunner:
             cmd = self.checkers.get(job.kind)
             if cmd is None:
                 return self._done(job, "ok", out, tokens, turns, t)
+            self.progress(f"{job.id}: checking")
             faults = await asyncio.to_thread(self._compile, cmd, out, workdir)
             for _ in range(self.fix_turns):
                 if faults is None:
                     break
+                self.progress(f"{job.id}: fixing {_count(faults)}")
                 fix = await self._turn(thread, [TextInput(_fix_prompt(faults, out))], job)
                 tokens += _tokens(fix)
                 turns += 1
@@ -196,6 +201,14 @@ def _strip_frontmatter(text: str) -> str:
         if end != -1:
             return text[end + 4 :].lstrip()
     return text
+
+
+def _count(faults: str) -> str:
+    try:
+        n = len(json.loads(faults))
+        return f"{n} fault{'s' if n != 1 else ''}"
+    except ValueError:
+        return "faults"
 
 
 def _tokens(result: TurnResult) -> int:

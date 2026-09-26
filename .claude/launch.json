@@ -1,6 +1,7 @@
 {
   "version": "0.0.1",
   "configurations": [
-    { "name": "editor", "runtimeExecutable": "pnpm", "runtimeArgs": ["--filter", "@varpet/editor", "dev"], "port": 5173 }
+    { "name": "editor", "runtimeExecutable": "pnpm", "runtimeArgs": ["--filter", "@varpet/editor", "dev"], "port": 5173 },
+    { "name": "editor-architect", "runtimeExecutable": "env", "runtimeArgs": ["VITE_ARCHITECT_URL=http://127.0.0.1:8788", "pnpm", "--filter", "@varpet/editor", "exec", "vite", "--port", "5174", "--strictPort"], "port": 5174 }
   ]
 }

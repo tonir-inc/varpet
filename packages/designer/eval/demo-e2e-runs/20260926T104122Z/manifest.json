@@ -1,0 +1,57 @@
+{
+  "source_revision": "06a5617465505e6a02b27a8f422d9d7af8a25aae",
+  "started_at": "2026-09-26T10:41:22.196Z",
+  "model": "gpt-6-astra",
+  "effort": "medium",
+  "concurrency": 4,
+  "requests": [
+    {
+      "id": "rearrange",
+      "request": "Make the living room feel bigger"
+    },
+    {
+      "id": "colour",
+      "request": "Paint the bedroom walls a soft sage green"
+    },
+    {
+      "id": "catalog",
+      "request": "Add an armchair for reading by the window"
+    },
+    {
+      "id": "question",
+      "request": "Make it cozier"
+    },
+    {
+      "id": "decline",
+      "request": "Knock down the wall between the kitchen and living room"
+    }
+  ],
+  "idle_timeout_seconds": 180,
+  "http_deadline_seconds": 600,
+  "source_hashes": {
+    "harness/designer.py": "13af1a13f9d72d9827b967890c262f8a04b844cd67159f143910c2be791179ed",
+    "harness/designer_service.py": "bfc42f871b23a3ba96435ef4a8d5cc1ec43ce0fd393ad584e8b75be9dd2342c2",
+    "harness/designer_prompt.md": "b9299a9a4c9dcb0c6b8550f9c5b13e9f7ba6aa32c0b4e483d8b37d6729095115",
+    "packages/designer/src/editor-bridge.ts": "4667d735012851f877956d9792f6037ee7ebb3e95d4894f7f85ac6f009bd582b",
+    "packages/designer/src/server.ts": "bb6a75f6e454adab4b7223e8036a86e5be89997ca0c3f8f37dba85082624954e",
+    "apps/editor/src/core/demo.ts": "63f3fe775a6e9e4e78956731a4b2e948bb39fb6ea677c97fb09fd36a0c2375cd",
+    "apps/editor/src/core/store.ts": "ced33ffa5db8447c2c588c79b773bfdac1fe921f927fc04d0b6f57d666888910",
+    "apps/editor/src/core/validation.ts": "ed3dac177fcadc53f43328a73e0b6e478f4846f9b81e2290872ea41e1837293c",
+    "apps/editor/src/contracts.ts": "05fadd170071f08223d9c4c691d54f11c180ce618803438f923fcedff9a9315e",
+    "apps/editor/src/renovation-contracts.ts": "641a48b5f009f54c68c23bda85106321683411ec5be2290b88666755a8a57b13",
+    "packages/designer/eval/demo-e2e.ts": "9bcdc3eba778b25c6c7ca7a82551e4fcc85f890d2a8186750ab013a7f5b0b0d2",
+    "packages/designer/eval/demo-e2e-service.py": "e22db42cb5299e75b1aec1fccd22104f55ce20226a68966e7ad4ded9b80bef81"
+  },
+  "service": {
+    "port": 55951,
+    "model": "gpt-6-astra",
+    "effort": "medium",
+    "catalog_endpoint_is_local_tunnel": true
+  },
+  "finished_at": "2026-09-26T10:43:23.680Z",
+  "usage_limit_stop": false,
+  "timing_correction": "The initial collector stored elapsed milliseconds under seconds. These five results were converted to seconds by dividing by 1000; each original measurement is retained as elapsed_ms. The original collector is archived as collector-source.ts.txt and matches its manifest hash. Raw HTTP/SDK/service logs are unchanged; no model calls were repeated. The collector now records seconds directly, covered by a regression test.",
+  "observations": [
+    "[measured] Catalog search returned three ABO products over the configured localhost tunnel. The saved addition selected abo:B075X4N515, which is absent from the editor-input.json local catalog; bridge translation rejected it. Returned AMD prices explicitly have mock provenance. The catalog backend and model were live; prices are not shop quotations."
+  ]
+}

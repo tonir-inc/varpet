@@ -1,0 +1,15 @@
+# M2 verification
+
+[measured] Live batch: 2026-09-26 10:41–10:43 UTC, source `06a5617`, gpt-6-astra medium. Post-rebase checks: 2026-09-26 10:47 UTC, eval commits on `3261c5c`. The live results are historical measurements of their recorded source, not a second run after rebase.
+
+DONE: 7 of 7 (evaluation task; product result is **3/5**, not full M2 acceptance)
+
+- 1 ✓ Proving command: `pnpm --filter @varpet/designer exec tsx eval/demo-e2e.ts`. Output: `Recorded 5/5 requests; 3/5 passed.` [Report and transcripts](demo-e2e.md). Offline replay after rebase: `pnpm --filter @varpet/designer exec tsx eval/demo-e2e.ts --report eval/demo-e2e-runs/20260926T104122Z` → `Replayed 5/5 recorded requests; 3/5 passed. No live calls.`
+- 2 ✓ Untargeted `pnpm test` and `pnpm typecheck`: exit 0. [Test output](demo-e2e-tests.log): `Test Files 54 passed (54)`, `Tests 275 passed (275)`, `Ran 89 tests`, `OK`; all editor checks and architect adapter passed. [Typecheck output](demo-e2e-typecheck.log): engine, designer, editor `Done`. Own Python: `python3 -m unittest discover -s packages/designer/eval -p 'test_*.py'` → `Ran 17 tests`, `OK` ([output](demo-e2e-python.log)); its `EVAL_USAGE_LIMIT` line is intentional recorder-test output. `pnpm --filter @varpet/designer exec tsc -p eval/tsconfig.json`: exit 0.
+- 3 ✓ New tests: [editor outcomes](demo-e2e.test.ts), [timing conversion](demo-e2e-timing.test.ts), [recorder forwarding and usage-limit cancellation](test_demo_e2e_service.py). Five TS tests passed; two new Python tests included in the 17 above. Tests were observed failing before implementation/fix.
+- 4 ✓ `git diff --stat origin/main..HEAD` lists additions only under `packages/designer/eval/`; no product code, existing tests, schemas, fixtures, hooks or contracts changed. `git diff --check` passed. Archived collector SHA-256 matches its manifest; all five token totals match the last cumulative SDK event. Credential-pattern scan found no credentials in artifacts.
+- 5 ✓ Fresh-context reviewer `/root/demo_e2e_review`: **APPROVE**, no remaining findings after corrected timing and artifact audit. Subsequent rebase checks are recorded separately above.
+- 6 ✓ [assumed] Explicit test acceptance applies only to isolated in-memory editor stores using the normal demo payload and catalog. [measured] No live model/service/bridge/store stub; returned catalog prices are marked mock. [descoped] Browser rendering and fixes to other lanes' code; failures are recorded as requested.
+- 7 ✓ One writer: this session owns `demo-e2e.ts`, `demo-e2e-service.py`, `demo-e2e.test.ts`, `demo-e2e-timing.test.ts`, `test_demo_e2e_service.py`, `demo-e2e.md`, this note, four `demo-e2e-*.log` check logs, and `demo-e2e-runs/20260926T104122Z/**`. Reviewer was read-only.
+
+Not proven: accepted rearrangement or catalog addition (both failed), visual quality/browser behavior, bedroom-only paint isolation (the accepted description explicitly discloses linked wall surfaces), or unchanged live results on later product revisions. No failures were repaired or rerun to improve the score.
