@@ -113,3 +113,20 @@ shop photos hide.
   one (1.9 GB, 26 Sept); `optimize_models.py --all --upload --switch` covers the rest and skips done files.
 - The editor never touches the tailnet for models: its server relays `/api/catalog/models/<asin>.glb` and the
   loader falls back to S3. `/editor/assets` (bulk, `editor_set`) is no longer used by the editor or the designer.
+
+## Connecting through the SSH tunnel (what each teammate does)
+The VM is tailnet-only. Without Tailscale, use the tunnel account `catalog-tunnel`: it can only forward to the
+catalog (no shell, no sudo, no other ports).
+1. Send Sergey your SSH **public** key (`cat ~/.ssh/id_ed25519.pub`; create one with `ssh-keygen -t ed25519` if needed).
+   Sergey adds it to `/home/catalog-tunnel/.ssh/authorized_keys` as
+   `restrict,port-forwarding,permitopen="100.107.246.46:8765" ssh-ed25519 AAAA… name`.
+2. Start the tunnel and leave it running (it reconnects by itself): `catalog/deploy/tunnel.sh`
+   (another key: `VARPET_TUNNEL_KEY=~/.ssh/other_key catalog/deploy/tunnel.sh`; another port: `tunnel.sh 18766`).
+   Check: `curl http://localhost:18765/health` shows `"ok":true`.
+3. Point your tools at it:
+   - Editor: `VARPET_CATALOG_URL=http://localhost:18765/mcp pnpm dev`.
+   - Designer and harness: put `VARPET_CATALOG_URL=http://localhost:18765/mcp` in `~/.config/varpet/env`
+     (the designer's MCP launcher reads it).
+   - Codex: `codex mcp add varpet-catalog --url http://localhost:18765/mcp`;
+     Claude Code: `claude mcp add --transport http varpet-catalog http://localhost:18765/mcp`.
+For the demo itself, a local copy of the catalog on the demo laptop is more reliable than any tunnel (planned).
