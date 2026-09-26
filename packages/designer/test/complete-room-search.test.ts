@@ -60,7 +60,9 @@ test('real full-size beds are eligible without treating a wide twin or loft as a
  expect(plan.products.some(p=>p.sku==='real-full')).toBe(true);expect(plan.products.some(p=>p.sku==='wide-twin')).toBe(false);
  expect(plan.ops.find(o=>o.type==='add'&&o.item.sku==='real-full')).toMatchObject({item:{size:[1.3556,1.8014,.2245]}});
  const ownedTwin={...room,items:[{...bed,id:'owned-wide-twin',name:'Twin loft bed',size:[1.36,1.81,1.4] as Item['size']}]};
- const replacement=await planIncrementally(ownedTwin,{room_id:'r',program:'bedroom',style:'Scandinavian'},query);
+ // Upstream now retains an owned single for a generic bedroom request. This
+ // regression checks the explicit double requirement, with every assertion kept.
+ const replacement=await planIncrementally(ownedTwin,{room_id:'r',program:'bedroom',style:'Scandinavian'},query,['Furnish the bedroom with a double bed.']);
  expect(replacement.products.some(p=>p.sku==='real-full')).toBe(true);
  expect(replacement.ops.some(o=>o.type==='remove'&&o.id==='owned-wide-twin')).toBe(false);
 },60000);
