@@ -4,6 +4,7 @@ import {applyOps} from '../adapter.js';
 import {checkLayout} from '../layout.js';
 import {localGeometryErrors,compareLayoutErrors} from '../local-checks.js';
 import {searchRoomCatalog} from './catalog.js';
+import {compactLivingCandidates} from './living-compact.js';
 import {kidsCandidates} from './kids.js';
 import {officeCandidates} from './office.js';
 import {bedroomCandidates} from './bedroom.js';
@@ -41,13 +42,17 @@ export async function designRoom(scene:Scene,request:DesignRequest,query?:Catalo
  }
  if(program!=='living')return {...base,reason:'Room program and catalog supplied; automatic composition currently supports living rooms, bedrooms and offices. Use relation placement for this program.'};
  const products=catalog.products,excluded=new Set(excludedRoles);
+ const compact=(reason:string)=>{
+  const candidates=compactLivingCandidates(scene,request,products,{program,styles:styleIds,catalog:Object.fromEntries(Object.values(products).flat().map(p=>[p.sku,p])),excluded_roles:excludedRoles,alternative_seating:anchorAlternative});
+  return {...base,candidates,selected_id:candidates[0]?.id??null,reason:candidates.length===1?'One complete compact living composition; no alternative was found.':candidates.length?'Two complete compact living compositions with the sofa facing a focal point.':reason};
+ };
  const target:Record<string,number>={sofa:1.8,chair:.8,table:.5,lamp:.3,shelf:.65,rug:3};
  const pick=(kind:string,predicate:(p:CatalogProduct)=>boolean=()=>true)=>(products[kind]?.filter(predicate)??[]).sort((a,b)=>Number(b.size_status==='confirmed')-Number(a.size_status==='confirmed')||Math.abs(a.size[0]-(target[kind]??1))-Math.abs(b.size[0]-(target[kind]??1))).slice(0,4);
  const sofas=pick(excluded.has('seating_anchor')?'chair':'sofa',p=>p.size[0]>=(excluded.has('seating_anchor')?.6:1.4)&&p.size[0]<=2.8&&p.size[1]<=1.2),chairs=pick('chair',p=>p.size[0]>=.6&&p.size[0]<=1.1&&p.size[1]<=1.15);
  const rugs=pick('rug',p=>Math.max(p.size[0],p.size[1])>=2.3&&Math.min(p.size[0],p.size[1])>=1.7);
  const tables=pick('table',p=>p.size[2]<=.6&&p.size[0]<=1.5&&p.size[1]<=.85);
  const lamps=pick('lamp',p=>p.size[2]>=.8&&p.size[0]<=.65&&p.size[1]<=.65),shelves=pick('shelf',p=>p.size[0]<=1.4&&p.size[1]>=.2&&p.size[1]<=.5&&p.size[2]>=.7);
- if([sofas,chairs,...excluded.has('rug')?[]:[rugs],...excluded.has('table')?[]:[tables],...excluded.has('light')?[]:[lamps],...excluded.has('focal_point')?[]:[shelves]].some(p=>!p.length))return {...base,reason:'Catalog lacks a compatible, sized full living-room set; missing roles or dimensions must be resolved, not silently omitted.'};
+ if([sofas,chairs,...excluded.has('rug')?[]:[rugs],...excluded.has('table')?[]:[tables],...excluded.has('light')?[]:[lamps],...excluded.has('focal_point')?[]:[shelves]].some(p=>!p.length))return compact('Catalog lacks a compatible, sized full living-room set; missing roles or dimensions must be resolved, not silently omitted.');
  const remove=scene.items.filter(i=>i.room_id===room.id&&!i.keep&&(request.remake||request.remove_ids?.includes(i.id)));
  const removed=new Set(remove.map(i=>i.id));
  const lifted=applyOps(scene,remove.map(i=>({type:'remove' as const,id:i.id})));
@@ -89,6 +94,6 @@ export async function designRoom(scene:Scene,request:DesignRequest,query?:Catalo
  }
  candidates.sort((a,b)=>b.composition.score-a.composition.score||a.id.localeCompare(b.id));
  const first=candidates[0],second=candidates.find(c=>first&&c!==first&&c.ops.some((op,i)=>op.type==='add'&&first.ops[i]?.type==='add'&&op.item.rot!==first.ops[i].item.rot))??candidates[1];
- if(!first)return {...base,rejected_by:rejected,reason:'No complete, physically checked composition fits. Keep the program and report the obstruction; do not substitute an empty room.'};
+ if(!first)return {...compact('No complete, physically checked composition fits. Keep the program and report the obstruction; do not substitute an empty room.'),rejected_by:rejected};
  return {...base,candidates:second?[first,second]:[first],selected_id:first.id,reason:second?'Two complete catalog compositions passed physical and taste checks. Select by ID; preserve exact ops and declare the returned intent.':'One complete composition passed physical and taste checks; no alternative was found. Select its ID and preserve exact ops and intent.'};
 }
