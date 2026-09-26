@@ -52,3 +52,22 @@ test('budget reserves only missing roles when the rest of the program is already
  const edit=await planIncrementally(owned,{room_id:'r',program:'living',style:'Scandinavian',budget:100},query);
  expect(edit.complete).toBe(true);expect(edit.ops).toHaveLength(1);expect(edit.products.map(p=>p.kind)).toEqual(['table']);expect(edit.products.reduce((sum,p)=>sum+p.price,0)).toBe(100);
 });
+test('real full-size beds are eligible without treating a wide twin or loft as a double',async()=>{
+ const polygon=scene.rooms[0]!.polygon;
+ const room={...scene,walls:polygon.map((a,i)=>({id:'wall-'+i,room_id:'r',a,b:polygon[(i+1)%polygon.length]!,thickness:.1,height:2.7}))};
+ const query=async(p:{kind?:string})=>({results:p.kind==='bed'?[{id:'wide-twin',kind:'bed',name:'Twin loft bed',size_m:[1.36,1.81,1.4],price:100,currency:'AMD',styles:['Scandinavian'],colors_image:['beige']},{id:'real-full',kind:'bed',name:'Full Size Bed',size_m:[1.3556,1.8014,.2245],price:100,currency:'AMD',styles:['Scandinavian'],colors_image:['beige']}]:[]});
+ const plan=await planIncrementally(room,{room_id:'r',program:'bedroom',style:'Scandinavian'},query);
+ expect(plan.products.some(p=>p.sku==='real-full')).toBe(true);expect(plan.products.some(p=>p.sku==='wide-twin')).toBe(false);
+ expect(plan.ops.find(o=>o.type==='add'&&o.item.sku==='real-full')).toMatchObject({item:{size:[1.3556,1.8014,.2245]}});
+ const ownedTwin={...room,items:[{...bed,id:'owned-wide-twin',name:'Twin loft bed',size:[1.36,1.81,1.4] as Item['size']}]};
+ const replacement=await planIncrementally(ownedTwin,{room_id:'r',program:'bedroom',style:'Scandinavian'},query);
+ expect(replacement.products.some(p=>p.sku==='real-full')).toBe(true);
+ expect(replacement.ops.some(o=>o.type==='remove'&&o.id==='owned-wide-twin')).toBe(false);
+},60000);
+test('an owned ordinary shelf cannot replace the media target used to orient the sofa',async()=>{
+ const sizes:Record<string,[number,number,number]>={sofa:[2,.9,.8],rug:[3,2,.02],table:[.45,.45,.4],lamp:[.2,.2,1.4],shelf:[1,.3,1.2],cabinet:[1,.3,.7]};
+ const query=async(p:{kind?:string})=>({results:sizes[p.kind!]? [{id:p.kind,kind:p.kind,name:p.kind==='cabinet'?'Media console':p.kind,size_m:sizes[p.kind!],price:100,currency:'AMD',styles:['Scandinavian'],colors_image:['beige']}]:[]});
+ const input={...scene,items:[{...bed,id:'owned-shelf',kind:'shelf',name:'Ordinary bookcase',pos:[7,7] as Item['pos'],size:[.5,.3,1.2] as Item['size']}]};
+ const plan=await planIncrementally(input,{room_id:'r',program:'living',style:'Scandinavian'},query);
+ expect(plan.products.some(p=>p.name==='Media console')).toBe(true);expect(plan.ops.some(o=>o.type==='remove')).toBe(false);
+});

@@ -9,6 +9,7 @@ export async function roomCatalog(program:string,style:string|undefined,budget:n
  const requests:CatalogInput[]=program==='living'?[
   {kind:'table',text:'small round coffee cocktail table',max_w:.8,max_d:.8,max_h:.6},
   {kind:'table',text:'compact side end table',max_w:.45,max_d:.45,max_h:.65},
+  {kind:'cabinet',text:'TV stand media console',max_w:1.5,max_d:.5,max_h:.9},
  ]:program==='bedroom'?[
   {kind:'bed',text:'compact double full bed',max_w:1.5,max_d:2.05,allow_rotate:false},
   {kind:'nightstand',text:'narrow bedside nightstand',max_w:.35,max_d:.4,max_h:.7,allow_rotate:false},

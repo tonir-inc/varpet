@@ -24,7 +24,7 @@ export interface RoomPlanRequest {room_id:string;program:string;style?:string;bu
 export interface RoomPlan {ops:Op[];intent:Intent;missing:string[];complete:boolean;reason:string;products:CatalogProduct[];timing:{catalog_ms:number;placement_ms:number};evidence:unknown}
 
 /** Related poses first; ranked single-piece slots are the common fallback. */
-export function* pieceOps(scene:Scene,p:CatalogProduct,roomId:string,cache:SceneAnalysisCache,role='',anchor?:Item,index=0,relatedOnly=false,bedsideAngle=0):Generator<Op>{
+export function* pieceOps(scene:Scene,p:CatalogProduct,roomId:string,cache:SceneAnalysisCache,role='',anchor?:Item,index=0,relatedOnly=false,bedsideAngle=0,allowMediaFacing=false):Generator<Op>{
  const candidates:Op[]=[];
  if(anchor){
   const related=(x:number,y:number,rotation=anchor.rot)=>{const t=anchor.rot*Math.PI/180;candidates.push({type:'add',item:{...p.item,name:p.name.slice(0,120),id:`room-${scene.items.length}-${p.sku}`,room_id:roomId,keep:false,rot:rotation,pos:[anchor.pos[0]+x*Math.cos(t)-y*Math.sin(t),anchor.pos[1]+x*Math.sin(t)+y*Math.cos(t)]}});};
@@ -46,15 +46,19 @@ export function* pieceOps(scene:Scene,p:CatalogProduct,roomId:string,cache:Scene
    const angles=role==='nightstands'?[side*bedsideAngle,0,side*90,-side*90,side*45,-side*45]:[side*90,0,side*45,-side*45];
    for(const angle of angles){
     const t=angle*Math.PI/180,width=Math.abs(Math.cos(t))*p.size[0]+Math.abs(Math.sin(t))*p.size[1],depth=Math.abs(Math.sin(t))*p.size[0]+Math.abs(Math.cos(t))*p.size[1];
-    for(const headGap of role==='nightstands'?[.85,depth/2,.65]:[.15,.5,.85])for(const gap of role==='nightstands'?[.6]:[.6,.75,.85])
+    // Stay inside the existing micrometre comparison tolerance at the exact reach boundary.
+    for(const headGap of role==='nightstands'?[depth/2,.65,.85]:[.15,.5,.85])for(const gap of role==='nightstands'?[.6-1e-8]:[.6,.75,.85])
      related(side*(anchor.size[0]/2+width/2+gap),anchor.size[1]/2-headGap,anchor.rot+angle);
    }
   }
  }
  for(const candidate of candidates)yield candidate;
- if(relatedOnly)return;
- const slotQuery={roomId,catalogId:p.sku,maxChecks:anchor?16:48,diverse:!anchor,solidHeadboard:p.kind==='bed'};
- let slots=role==='bed'&&p.size[0]>=1.4?cache.slots(scene,[slotAsset(p)],{...slotQuery,sideReserve:1.01}):[];
+ // Bedside roles are defined relative to the anchor; a whole-room wall scan
+ // spends the budget on slots that cannot satisfy their side/reach requirements.
+ if(relatedOnly||anchor&&['nightstands','bedside_lights'].includes(role))return;
+ const hasWindow=scene.openings.some(o=>o.kind==='window'&&scene.walls.some(w=>w.id===o.wall_id&&w.room_id===roomId));
+ const slotQuery={roomId,catalogId:p.sku,maxChecks:anchor?16:48,diverse:!anchor,solidHeadboard:p.kind==='bed',faceWindow:role==='seating_anchor'&&hasWindow&&!allowMediaFacing};
+ let slots=role==='bed'&&p.size[0]>=1.35?cache.slots(scene,[slotAsset(p)],{...slotQuery,sideReserve:1.01}):[];
  if(!slots.length)slots=cache.slots(scene,[slotAsset(p)],slotQuery);
  const filtered=slots.flatMap(c=>c.ops);
  if(role==='seating_anchor'){
@@ -78,23 +82,31 @@ export async function planIncrementally(scene:Scene,request:RoomPlanRequest,quer
  if(request.program==='living')roles.sort((a,b)=>['seating_anchor','rug','table','light','focal_point'].indexOf(a.role)-['seating_anchor','rug','table','light','focal_point'].indexOf(b.role));
  // The current scene adapter places purchases on the floor; tabletop lights cannot be floor substitutes.
  const requiresDouble=[...history,...request.history??[],request.style??''].some(text=>/\b(?:double|queen|king)(?:[ -]size(?:d)?)?\s+bed\b/i.test(text));
- const qualifies=(kind:string,size:Item['size'],role:string)=>!(kind==='lamp'&&size[2]<.8)&&!(role==='bed'&&requiresDouble&&size[0]<1.4)&&!(role==='storage'&&kind==='wardrobe'&&(size[1]<.4||size[2]<1.4));
+ const isDouble=(size:Item['size'],name:string)=>size[0]>=1.35&&size[1]>=1.8&&!/\b(?:twin|single|loft|bunk)\b/i.test(name);
+ let requireMedia=false;
+ const qualifies=(kind:string,size:Item['size'],role:string,name='')=>!(role==='focal_point'&&requireMedia&&!/\btv\b|television|media/i.test(name))&&!(kind==='lamp'&&size[2]<.8)&&!(role==='bed'&&requiresDouble&&!isDouble(size,name))&&!(role==='storage'&&kind==='wardrobe'&&(size[1]<.4||size[2]<1.4));
  const pools=roles.map(role=>{
   const kinds=role.preferred_kinds??role.kinds;
-  return [...new Map(kinds.flatMap(kind=>catalog.products[kind]??[]).filter(p=>!blocked.has(canonicalKind(p.kind))&&qualifies(p.kind,p.size,role.role)&&!(role.role==='work_surface'&&/desk extender|rolling cart|pedestal|printer stand|monitor stand/i.test(p.name))).map(p=>[p.sku,p])).values()]
+  return [...new Map(kinds.flatMap(kind=>catalog.products[kind]??[]).filter(p=>!blocked.has(canonicalKind(p.kind))&&qualifies(p.kind,p.size,role.role,p.name)&&!(role.role==='work_surface'&&/desk extender|rolling cart|pedestal|printer stand|monitor stand/i.test(p.name))).map(p=>[p.sku,p])).values()]
    .sort((a,b)=>(request.budget===undefined?0:a.price-b.price)
+    ||(role.role==='focal_point'?Number(!/\btv\b|television|media/i.test(a.name))-Number(!/\btv\b|television|media/i.test(b.name)):0)
     ||(role.role==='table'?Number(!/coffee|cocktail/i.test(a.name))-Number(!/coffee|cocktail/i.test(b.name)):0)
     ||kinds.indexOf(a.kind)-kinds.indexOf(b.kind)||a.size[0]*a.size[1]-b.size[0]*b.size[1]);
  });
+ const focalIndex=roles.findIndex(r=>r.role==='focal_point'),media=pools[focalIndex]?.filter(p=>/\btv\b|television|media/i.test(p.name))??[];
+ // Room-facing anchors must retain a real media focal point, not silently fall
+ // back to an unrelated shelf when the media units fail to fit.
+ if(media.length){pools[focalIndex]=media;requireMedia=true;}
  const baselineGeometry=localGeometryErrors(scene),baselineFunctions=functionClearances(scene);
  // Keep all existing proposal checks. New access routes must also be at least 0.75 m.
  // Existing shell bottlenecks may be retained only under the unchanged baseline rule.
  const failures:{attempt:number;role:string;sku:string;errors:unknown[]}[]=[],attempts:unknown[]=[];
  const deadline=performance.now()+30000;let attempt=0;
  const allocated=new Set<string>();
- const ownedByRole=roles.map(role=>{const items=scene.items.filter(i=>!allocated.has(i.id)&&i.room_id===request.room_id&&role.kinds.includes(i.kind)&&qualifies(i.kind,i.size,role.role)).slice(0,role.count);items.forEach(i=>allocated.add(i.id));return items;});
+ const ownedByRole=roles.map(role=>{const items=scene.items.filter(i=>!allocated.has(i.id)&&i.room_id===request.room_id&&role.kinds.includes(i.kind)&&qualifies(i.kind,i.size,role.role,i.name)).slice(0,role.count);items.forEach(i=>allocated.add(i.id));return items;});
  const minimumCost=(r:number)=>pools[r]!.length?Math.min(...pools[r]!.map(p=>p.price)):0;
  const requiredMinimum=roles.reduce((sum,r,i)=>sum+minimumCost(i)*(r.count-ownedByRole[i]!.length),0);
+ const maxAttempts=request.budget!==undefined&&requiredMinimum>request.budget?1:12;
  const evaluate=(ops:Op[],role:string,sku:string)=>{
   const after=applyOps(scene,ops),geometry=compareLayoutErrors(baselineGeometry,localGeometryErrors(after)).errors;
   const placed=new Set(ops.flatMap(o=>o.type==='add'?[o.item.id]:[]));
@@ -124,13 +136,22 @@ export async function planIncrementally(scene:Scene,request:RoomPlanRequest,quer
     // Reserve the cheapest known remaining roles whenever the full program can meet budget.
     const reserve=request.budget!==undefined&&requiredMinimum<=request.budget?minimumCost(r)*Math.max(0,role.count-Math.max(n+1,existing.length))+roles.slice(r+1).reduce((sum,rr,j)=>sum+minimumCost(r+j+1)*(rr.count-ownedByRole[r+j+1]!.length),0):0;
     const roleDeadline=Math.min(deadline,performance.now()+2000);
-    for(const relatedOnly of [true,false]){
+    for(const relatedOnly of anchor&&['nightstands','bedside_lights'].includes(role.role)?[true]:[true,false]){
     for(const p of choices.slice(0,10)){
      if(p.price+cost+reserve>(request.budget??Infinity))continue;
      if(performance.now()>roleDeadline)break;
      const candidates=r===0&&anchorOp?[anchorOp]:pieceOps(preview,p,request.room_id,cache,role.role,role.role==='work_seat'||role.role==='task_light'?desk??anchor:anchor,n,relatedOnly,bedsideAngle);
      for(const op of candidates){
       if(performance.now()>roleDeadline)break;
+      if(anchor&&op.type==='add'&&['nightstands','bedside_lights'].includes(role.role)){
+       // Reject a wrong-side generic slot immediately; it cannot be repaired by
+       // placing the second bedside piece. Final QUALITY relationships still run.
+       const t=anchor.rot*Math.PI/180,dx=op.item.pos[0]-anchor.pos[0],dy=op.item.pos[1]-anchor.pos[1];
+       const x=dx*Math.cos(t)+dy*Math.sin(t),y=-dx*Math.sin(t)+dy*Math.cos(t),side=n===0?-1:1;
+       const angle=(op.item.rot-anchor.rot)*Math.PI/180,w=Math.abs(Math.cos(angle))*op.item.size[0]+Math.abs(Math.sin(angle))*op.item.size[1];
+       const reach=Math.abs(x)-anchor.size[0]/2-w/2;
+       if(side*x<=(role.role==='nightstands'?anchor.size[0]/2:0)||y<anchor.size[1]/2-.9||reach>(role.role==='nightstands'?.6:.9)+1e-6)continue;
+      }
       const related:Record<string,string[]>={rug:['rug_anchor'],table:['seat_table'],light:['seat_light'],focal_point:['seat_facing'],work_seat:['work_seat_facing','work_reach'],task_light:['task_light_reach'],nightstands:n===role.count-1?['nightstand_each_open_side']:[],bedside_lights:n===role.count-1?['light_each_bedside']:[]};
       if(related[role.role]?.length){const c=scoreComposition(applyOps(preview,[op]),request.room_id,{program:request.program});if(c.issues.some(i=>related[role.role]!.includes(i.code)))continue;}
       const checked=evaluate([...ops,op],role.role,p.sku);
@@ -150,18 +171,18 @@ export async function planIncrementally(scene:Scene,request:RoomPlanRequest,quer
  };
  let best:Variant|undefined;
  const consider=(candidate:Variant)=>{attempts.push({attempt,pieces:candidate.products.length,missing:candidate.missing});if(!best||Number(candidate.complete)>Number(best.complete)||candidate.products.length>best.products.length||candidate.products.length===best.products.length&&candidate.composition.score>best.composition.score)best=candidate;};
- const owned=scene.items.some(i=>i.room_id===request.room_id&&roles[0]!.kinds.includes(i.kind)&&qualifies(i.kind,i.size,roles[0]!.role));
+ const owned=scene.items.some(i=>i.room_id===request.room_id&&roles[0]!.kinds.includes(i.kind)&&qualifies(i.kind,i.size,roles[0]!.role,i.name));
  if(owned){attempt++;consider(build());}
  else {
   // Round-robin catalog sizes as well as anchor positions: one SKU must not
   // spend the whole attempt budget before compact alternatives are considered.
   const preferDouble=request.program==='bedroom'&&roles[0]!.role==='bed';
-  const groups=preferDouble?[pools[0]!.filter(p=>p.size[0]>=1.4),pools[0]!.filter(p=>p.size[0]<1.4)]:[pools[0]!];
+  const groups=preferDouble?[pools[0]!.filter(p=>isDouble(p.size,p.name)),pools[0]!.filter(p=>!isDouble(p.size,p.name))]:[pools[0]!];
   for(const group of groups){
-   // Give the compact fallback its own bounded attempts; failed doubles must not exhaust it.
-   const groupDeadline=preferDouble&&group===groups[0]?Math.min(deadline,performance.now()+15000):deadline;
-   const attemptLimit=attempt+12;
-   const anchors=group.filter(p=>p.price<=(request.budget??Infinity)).slice(0,4).map(p=>({p,poses:pieceOps(scene,p,request.room_id,cache,roles[0]!.role)}));
+   // Preserve the single-bed fallback without weakening an explicit double-bed request.
+   const groupDeadline=preferDouble&&!requiresDouble&&group===groups[0]?Math.min(deadline,performance.now()+15000):deadline;
+   const attemptLimit=attempt+maxAttempts;
+   const anchors=group.filter(p=>p.price<=(request.budget??Infinity)).slice(0,4).map(p=>({p,poses:pieceOps(scene,p,request.room_id,cache,roles[0]!.role,undefined,0,false,0,media.length>0)}));
    let active=true;
    while(active&&performance.now()<groupDeadline&&attempt<attemptLimit){
     active=false;
@@ -171,7 +192,7 @@ export async function planIncrementally(scene:Scene,request:RoomPlanRequest,quer
      attempt++;consider(build(next.value,entry.p));
      if(best?.complete)break;
     }
-    if(best?.complete||request.budget!==undefined&&requiredMinimum>request.budget&&attempt>=2)break;
+    if(best?.complete||request.budget!==undefined&&requiredMinimum>request.budget&&attempt>=maxAttempts)break;
    }
    // Prefer any checked double anchor, even if later bedroom roles remain missing.
    if(best?.ops.some(o=>o.type==='add'&&roles[0]!.kinds.includes(o.item.kind)))break;
