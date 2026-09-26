@@ -69,3 +69,27 @@ def catalog(run_dir: Path, base_url: str) -> list[dict]:
             "source": {"type": "gltf", "url": f"{base_url}/files/{run_dir.name}/{job.id}/piece.glb"},
         })
     return assets
+
+
+# Detail bar: parts after mirror/repeat copies. Below it a piece reads as a block, not furniture.
+DETAIL = {
+    "table": (4, "a top, legs or a base, and an apron or rails under the top"),
+    "chair": (6, "seat, back, four legs (or a base) and rails or arms"),
+    "sofa": (8, "base, a seat cushion per seat, back cushions, two arms and legs"),
+    "bed": (7, "frame, mattress, headboard, pillows and a duvet or throw that overhangs the mattress"),
+    "cabinet": (6, "carcass, doors or drawer fronts with 3 mm gaps between them, handles and a plinth or legs"),
+    "shelf": (6, "sides, top, back, shelves and a plinth"),
+    "lamp": (3, "base, stem and shade"),
+    "rug": (1, "one rounded slab"),
+    "plant": (3, "pot, soil and foliage"),
+}
+
+
+def detail_fault(job_id: str, parts: int) -> str | None:
+    kind = kind_of(job_id)
+    floor, needs = DETAIL.get(kind, (4, "its main visible parts"))
+    if parts >= floor:
+        return None
+    return json.dumps([{"check": "detail", "kind": kind, "parts": parts, "minimum": floor,
+                        "detail": f"this {kind} is {parts} parts and reads as a block. Real ones in photos have {needs}. "
+                                  "Add the parts the photos show; keep the size."}])

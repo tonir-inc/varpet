@@ -102,6 +102,7 @@ class Part(BaseModel):
     mirror: list[Axis] = Field(default=[], description="add copies reflected through the centre of the box it is placed on")
     repeat: Repeat | None = None
     grain: Axis | None = Field(default=None, description="axis the texture grain runs along")
+    sharp: bool = Field(default=False, description="box keeps hard edges instead of the automatic soft bevel")
 
     @model_validator(mode="after")
     def _one_placement(self) -> Part:

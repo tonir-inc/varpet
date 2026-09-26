@@ -61,6 +61,17 @@ centre of the box it is placed on (four legs = one leg + mirror x,y); `repeat` {
 - every part touches a chain of parts that reaches the floor; loose groups come back with where they sit and the gap;
 - at most 60k triangles.
 
+## Detail bar (code checks the part count per kind)
+A piece must read as furniture, not a block. Build what the photo shows, at least:
+- table: top, legs or base, apron or rails under the top (4+ parts);
+- chair: seat, back, legs, rails or arms (6+); sofa: base, one seat cushion per seat, back cushions, arms, legs (8+);
+- bed: frame, mattress, headboard, pillows, a duvet or throw overhanging the mattress edge (7+);
+- cabinet, wardrobe, chest: carcass, each door or drawer front as its own part with a 3 mm gap between fronts,
+  handles, plinth or legs (6+); bookcase: sides, top, back, every shelf, plinth (6+); lamp: base, stem, shade (3+).
+Things that make it look made, not modelled: fronts inset or proud of the carcass by 1-2 cm, visible handles,
+a darker plinth or recessed kick, cushions slightly smaller than their frame, a throw with its own colour.
+One material per real material: wood frame and fabric cushions are two finishes, not one.
+
 ## What scored well
 - Structure before detail: get the big shapes, heights and proportions right first.
 - Soft pieces need soft parts: `rounded_box` cushions, tall backs where the photo shows them.

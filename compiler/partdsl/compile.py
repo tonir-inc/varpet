@@ -45,9 +45,40 @@ class Instance:
         return self.mesh.bounds[1]
 
 
-def _shape(p: Part, size: np.ndarray) -> trimesh.Trimesh:
+BEVEL_SEGMENTS = 3  # facets across each rounded edge; 30 degrees apart, so they smooth-shade
+
+
+def _bevel_radius(size: np.ndarray) -> float:
+    """Soft edge like real furniture: 12% of the thinnest side, 2..12 mm, never over a quarter of it."""
+    s = float(min(size))
+    return min(float(np.clip(0.12 * s, 0.002, 0.012)), 0.25 * s)
+
+
+def _octant(n: int) -> np.ndarray:
+    """Unit directions on the + octant, including the three axes, so faces reach the full extent."""
+    pts = [(i, j, n - i - j) for i in range(n + 1) for j in range(n + 1 - i)]
+    d = np.array(pts, dtype=float)
+    return d / np.linalg.norm(d, axis=1, keepdims=True)
+
+
+def _bevelled_box(size: np.ndarray, r: float) -> trimesh.Trimesh:
+    """Exact outer size, six flat faces, edges and corners rounded with radius r."""
+    oct_ = _octant(BEVEL_SEGMENTS) * r
+    inner = size / 2 - r
+    corners = [oct_ * s + np.array(s) * inner for s in itertools.product((-1, 1), repeat=3)]
+    return trimesh.convex.convex_hull(np.vstack(corners))
+
+
+def sharp(p: Part, prog: Program) -> bool:
+    mat = prog.materials.get(p.material)
+    return p.sharp or (mat is not None and mat.kind in ("mirror", "glass"))
+
+
+def _shape(p: Part, size: np.ndarray, prog: Program) -> trimesh.Trimesh:
     if p.shape == "box":
-        return trimesh.creation.box(extents=size)
+        if sharp(p, prog):
+            return trimesh.creation.box(extents=size)
+        return _bevelled_box(size, _bevel_radius(size))
     if p.shape == "cylinder":
         r = min(size[0], size[1]) / 2
         return trimesh.creation.cylinder(radius=r, height=size[2], sections=24)
@@ -63,7 +94,13 @@ def _uv(mesh: trimesh.Trimesh, p: Part, prog: Program) -> trimesh.Trimesh:
     """Unmerge so each face owns its vertices, then box-project in part-local metres."""
     mat = prog.materials.get(p.material)
     fin = library().get(mat.finish) if mat and mat.finish else None
-    corner_normals = _smooth_corner_normals(mesh) if p.shape != "box" else None
+    corner_normals = None
+    if p.shape != "box":
+        corner_normals = _smooth_corner_normals(mesh)
+    elif not sharp(p, prog):
+        # the six flat faces keep their own normal; only the bevel blends into its neighbours
+        flat = np.abs(mesh.face_normals).max(axis=1) > 1 - 1e-6
+        corner_normals = _smooth_corner_normals(mesh, keep=flat)
     mesh.unmerge_vertices()
     normals = mesh.face_normals[np.repeat(np.arange(len(mesh.faces)), 3)]
     verts = mesh.vertices[mesh.faces.reshape(-1)]
@@ -79,15 +116,19 @@ def _uv(mesh: trimesh.Trimesh, p: Part, prog: Program) -> trimesh.Trimesh:
 SMOOTH_COS = np.cos(np.radians(35))
 
 
-def _smooth_corner_normals(mesh: trimesh.Trimesh) -> np.ndarray:
+def _smooth_corner_normals(mesh: trimesh.Trimesh, keep: np.ndarray | None = None) -> np.ndarray:
     """Per face corner: mean of the adjacent face normals within 35 degrees of this face.
 
-    Curved surfaces shade smooth; a cylinder's rim and caps stay sharp.
+    Curved surfaces shade smooth; a cylinder's rim and caps stay sharp. Faces in
+    `keep` stay flat (their own normal), though their neighbours still blend towards them.
     """
     fn = mesh.face_normals
     out = np.zeros((len(mesh.faces) * 3, 3))
     vf = mesh.vertex_faces  # padded with -1
     for f, face in enumerate(mesh.faces):
+        if keep is not None and keep[f]:
+            out[f * 3:f * 3 + 3] = fn[f]
+            continue
         for k, v in enumerate(face):
             adj = vf[v][vf[v] >= 0]
             near = adj[fn[adj] @ fn[f] > SMOOTH_COS]
@@ -132,7 +173,7 @@ def build(prog: Program) -> list[Instance]:
             size[2] = z1 - z0
             xy = tlo[:2] + np.array(b.at) * (thi[:2] - tlo[:2])
             centre = np.array([xy[0], xy[1], (z0 + z1) / 2])
-        mesh = _shape(p, size)
+        mesh = _shape(p, size, prog)
         mesh = _uv(mesh, p, prog)
         mesh.apply_translation(centre)
         mesh.apply_transform(_rotation(p.rotate, centre))
@@ -142,13 +183,13 @@ def build(prog: Program) -> list[Instance]:
         if p.repeat:
             step = np.zeros(3)
             step[AXIS[p.repeat.axis]] = p.repeat.step
-            copies += [(f"{p.id}@r{i}", mesh.copy().apply_translation(step * i)) for i in range(1, p.repeat.count)]
+            copies += [(f"{p.id}@r{i}", mesh.copy(include_cache=True).apply_translation(step * i)) for i in range(1, p.repeat.count)]
         for axis in p.mirror:
             k = AXIS[axis]
             flip = np.eye(4)
             flip[k, k] = -1
             flip[k, 3] = ref[0][k] + ref[1][k]  # reflect through the reference box centre
-            copies += [(f"{cid}@m{axis}", m.copy().apply_transform(flip)) for cid, m in copies]
+            copies += [(f"{cid}@m{axis}", m.copy(include_cache=True).apply_transform(flip)) for cid, m in copies]
         out += [Instance(cid, m, p.material) for cid, m in copies]
     return out
 
@@ -220,7 +261,7 @@ def export(prog: Program, parts: list[Instance], path: Path) -> None:
     tags = {}
     for p in parts:
         m = mats[p.material]
-        mesh = p.mesh.copy().apply_transform(Z_UP_TO_GLTF)
+        mesh = p.mesh.copy(include_cache=True).apply_transform(Z_UP_TO_GLTF)
         mesh.visual = TextureVisuals(uv=p.mesh.visual.uv, material=pbr(m.finish, m.color, m.kind, m.roughness))
         scene.add_geometry(mesh, node_name=p.id, geom_name=p.id)
         tags[p.id] = {"part": p.id, "of": p.id.split("@")[0], "material": p.material, "finish": m.finish,

@@ -112,3 +112,60 @@ def test_sample_far_from_the_guess_is_a_fault(tmp_path):
     f.write_text(json.dumps(prog))
     fault = compile_file(f, tmp_path / "out")[0]
     assert fault["check"] == "sample" and "reflection" in fault["detail"]
+
+
+def _one_box(**part):
+    from partdsl.program import Program
+
+    base = {"id": "top", "size": [0.8, 0.4, 0.03], "attach": {"to": "piece", "at": [0.5, 0.5, 0], "self": [0.5, 0.5, 0]}}
+    return Program.model_validate({"name": "t", "size": [0.8, 0.4, 0.03],
+                                   "materials": {"glass": {"kind": "glass"}}, "parts": [base | part]})
+
+
+def test_box_gets_soft_edges_with_exact_size_and_flat_faces():
+    import numpy as np
+
+    from partdsl.compile import build
+
+    [top] = build(_one_box())
+    m = top.mesh
+    assert np.allclose(m.extents, [0.8, 0.4, 0.03], atol=1e-9)
+    assert len(m.faces) > 12  # bevelled, not a 12-triangle block
+    n = m.vertex_normals.reshape(-1, 3, 3)
+    flat = np.abs(m.face_normals).max(axis=1) > 1 - 1e-6
+    # flat faces shade flat: every corner normal equals the face normal
+    assert np.allclose(n[flat], m.face_normals[flat][:, None, :])
+    # the bevel shades smooth: its corner normals differ from its facet normals
+    assert not np.allclose(n[~flat], m.face_normals[~flat][:, None, :])
+    # the top face is still the full top minus the bevel radius (3.6 mm for a 3 cm top)
+    up = m.vertices[m.faces[flat & (m.face_normals[:, 2] > 0.5)].reshape(-1)]
+    assert np.allclose(up[:, 2], 0.03) and np.isclose(np.ptp(up[:, 0]), 0.8 - 2 * 0.0036)
+
+
+def test_sharp_and_glass_boxes_stay_hard():
+    from partdsl.compile import build
+
+    assert len(build(_one_box(sharp=True))[0].mesh.faces) == 12
+    assert len(build(_one_box(material="glass"))[0].mesh.faces) == 12
+
+
+def test_eighty_bevelled_boxes_fit_the_triangle_budget():
+    from partdsl.compile import MAX_TRIS, build
+    from partdsl.program import Program
+
+    parts = [{"id": "side", "size": [0.018, 0.3, 2.0], "attach": {"to": "piece", "at": [0, 0.5, 0], "self": [0, 0.5, 0]}}]
+    parts += [{"id": f"s{i}", "size": [0.8, 0.28, 0.018],
+               "attach": {"to": "side", "at": [1, 0.5, i / 79], "self": [0, 0.5, 0]}} for i in range(79)]
+    built = build(Program.model_validate({"name": "bc", "size": [0.82, 0.3, 2.0], "parts": parts}))
+    assert sum(len(p.mesh.faces) for p in built) < MAX_TRIS / 3
+
+
+def test_glb_keeps_smooth_normals_on_mirrored_copies(tmp_path):
+    import numpy as np
+
+    assert run(tmp_path, chair()) == []
+    scene = trimesh.load(tmp_path / "out" / "piece.glb", process=False)
+    for name in ("seat", "leg@mx@my"):  # a bevelled box and a mirrored cylinder
+        g = scene.geometry[name]
+        n = np.asarray(g.vertex_normals)[g.faces]
+        assert not np.allclose(n, g.face_normals[:, None, :], atol=1e-3), name

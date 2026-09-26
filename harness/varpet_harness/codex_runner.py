@@ -110,6 +110,8 @@ class CodexRunner:
                 return self._done(job, "ok", out, tokens, turns, t)
             self.progress(f"{job.id}: checking")
             faults = await asyncio.to_thread(self._compile, cmd, out, workdir)
+            if faults is None and job.kind == "piece":
+                faults = _detail(job, workdir)
             budget = {"format": self.format_turns, "fix": self.fix_turns}
             while faults is not None:
                 kind = "format" if _format_only(faults) else "fix"
@@ -121,6 +123,8 @@ class CodexRunner:
                 tokens += _tokens(fix)
                 turns += 1
                 faults = await asyncio.to_thread(self._compile, cmd, out, workdir)
+                if faults is None and job.kind == "piece":
+                    faults = _detail(job, workdir)
             status = "ok" if faults is None else "failed"
             return self._done(job, status, out, tokens, turns, t, None if faults is None else "faults left")
         finally:
@@ -219,6 +223,16 @@ def _strip_frontmatter(text: str) -> str:
         if end != -1:
             return text[end + 4 :].lstrip()
     return text
+
+
+def _detail(job: Job, workdir: Path) -> str | None:
+    """The compiler's report counts parts after copies; below the bar for its kind it is a fault."""
+    from .pieces import detail_fault
+
+    report = workdir / "report.json"
+    if not report.exists():
+        return None
+    return detail_fault(job.id, json.loads(report.read_text()).get("parts", 0))
 
 
 def _count(faults: str) -> str:

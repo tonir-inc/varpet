@@ -103,3 +103,11 @@ async def test_geometry_budget_runs_out(tmp_path):
     r.workdir = tmp_path
     res = await r.run(piece(), tmp_path, {})
     assert (res.status, res.turns, res.error) == ("failed", 4, "faults left")
+
+
+def test_detail_bar_by_kind():
+    from varpet_harness.pieces import detail_fault
+
+    assert "reads as a block" in detail_fault("dining-table", 2)
+    assert detail_fault("dining-table", 5) is None
+    assert detail_fault("wardrobe", 4) and detail_fault("bedside-lamp", 3) is None

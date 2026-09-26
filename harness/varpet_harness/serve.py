@@ -109,6 +109,7 @@ def handler(repo: Path, runs: Path, runner_factory=None):
                 self.send_response(200)
                 self._cors()
                 self.send_header("Content-Type", "model/gltf-binary")
+                self.send_header("Cache-Control", "no-store")  # pieces get rebuilt under the same path
                 self.send_header("Content-Length", str(len(data)))
                 self.end_headers()
                 self.wfile.write(data)
