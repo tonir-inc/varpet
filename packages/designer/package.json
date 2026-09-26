@@ -18,6 +18,7 @@
     "zod": "^3.25.0"
   },
   "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
     "@types/node": "^26.6.3",
     "pnpm": "10.0.0",
     "tsx": "^4.20.0",

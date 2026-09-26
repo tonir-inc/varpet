@@ -1,0 +1,38 @@
+{
+ "scene": "fixtures/avani-empty.json",
+ "cases": [
+  {
+   "id": "a-japandi-living",
+   "room": "room-living",
+   "request": "Redesign the living room in Japandi style."
+  },
+  {
+   "id": "b-midcentury-bedroom",
+   "room": "room-bedroom",
+   "request": "Furnish the bedroom in a warm mid-century modern style."
+  },
+  {
+   "id": "c-inspo-bedroom",
+   "room": "room-bedroom",
+   "request": "Decorate the bedroom like this picture.",
+   "image": "fixtures/inspo-bedroom.jpg"
+  },
+  {
+   "id": "d-living-dining-four",
+   "room": "room-living",
+   "request": "Make the living & dining a cozy place for four people to eat and watch TV."
+  },
+  {
+   "id": "smoke",
+   "room": "room-living",
+   "smoke": true,
+   "request": "Describe the flat in three sentences. Do not change anything: leave draft.json empty and render nothing."
+  },
+  {
+   "id": "smoke-render",
+   "room": "room-living",
+   "smoke": true,
+   "request": "Plumbing test, do not design anything: run ./varpet render-plan plan.png and ./varpet render-view view.png --room room-living, look at both images with view_image, and say in one sentence each what you see. Leave draft.json empty."
+  }
+ ]
+}

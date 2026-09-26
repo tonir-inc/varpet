@@ -1,0 +1,239 @@
+/** Designer scene + draft to the editor document the product renders, and camera poses. Runs inside the daemon. */
+import { readFile, writeFile } from 'node:fs/promises';
+import type { AssetKind, CatalogAsset, SceneDocument, SceneObject } from '../../../../../apps/editor/src/contracts.js';
+import { catalogProduct } from '../../../../../apps/editor/src/adapters/database-catalog.js';
+import { demoScene, localCatalog } from '../../../../../apps/editor/src/core/demo.js';
+import { catalogItems } from '../../../src/catalog.js';
+import { editorKindOf } from '../../../src/editor-bridge.js';
+import type { Scene } from '../../../src/scene.js';
+import type { FinishMaterial } from '../../../../../apps/editor/src/renovation-contracts.js';
+import { materialForPreset } from '../../../../../apps/editor/src/core/finish-presets.js';
+import { defaultCeilingDesign } from '../../../../../apps/editor/src/core/ceiling-design.js';
+import { roomCeilingHeight } from '../../../../../apps/editor/src/core/heights.js';
+import { migrateScene } from '../../../../../apps/editor/src/core/renovation.js';
+import { wallSurfaceSpans } from '../../../../../apps/editor/src/core/wall-surfaces.js';
+import { headlessSurface, placeFurniture } from '../../../../../apps/editor/src/core/furniture-support.js';
+import { FIXTURE_DEFAULTS, fixtureBottom, material, onFloor, type Draft, type DraftItem } from '../finishes.js';
+import { CATALOG_CACHE } from './state.js';
+
+export type { Draft };
+/** overview: editor cutaway orbit framed on the room. eye: standing at 1.4 m where the most furniture is in frame (clear
+ * of door swings, no door leaf close in frame), aimed at the furniture centroid with a 55 degree lens. eye2: from the far
+ * side. top: plan view. Or an explicit pose in designer metres (x, y on the plan, h height; default 1.4 eye / 0.9 target). */
+export type ViewCamera = 'overview' | 'eye' | 'eye2' | 'top' | { eye: [number, number, number?]; target: [number, number, number?] };
+
+const EDITOR_KINDS = new Set<string>(['sofa', 'chair', 'table', 'desk', 'bed', 'cabinet', 'wardrobe', 'dresser', 'lamp', 'plant', 'rug', 'shelf', 'toilet', 'sink', 'bathtub', 'shower', 'fridge', 'stove', 'oven', 'washing_machine', 'dryer', 'dishwasher', 'microwave', 'tv', 'monitor', 'computer', 'laptop', 'speaker', 'printer', 'game_console', 'kitchen_cabinet', 'kitchen_counter', 'kitchen_island', 'radiator', 'fan', 'coat_rack', 'shoe_rack', 'decor', 'wall_art', 'mirror']);
+
+/** The Avani shell is the only editor document we have; designer scenes of other flats are refused. */
+function editorShell(scene: Scene): SceneDocument {
+  const rooms = new Set(demoScene.rooms.map(room => room.id));
+  if (!scene.rooms.every(room => rooms.has(room.id))) throw new Error('renderView supports the Avani demo shell only (room ids must match apps/editor demoScene)');
+  return { ...structuredClone(demoScene), objects: [] };
+}
+
+async function loadAssets(skus: string[]): Promise<CatalogAsset[]> {
+  let cache: Record<string, CatalogAsset | null> = {};
+  try { cache = JSON.parse(await readFile(CATALOG_CACHE, 'utf8')); } catch { /* cold cache */ }
+  const known = new Set(localCatalog.map(asset => asset.id));
+  const missing = [...new Set(skus)].filter(sku => !known.has(sku) && !(sku in cache));
+  if (missing.length) {
+    try {
+      const records = await catalogItems(missing);
+      for (const record of records) { const product = catalogProduct(record); if (product) cache[product.asset.id] = product.asset; }
+    } catch (error) { process.stderr.write(`renderView: catalog fetch failed (${String(error)}); using boxes\n`); }
+    for (const sku of missing) cache[sku] ??= null;
+    await writeFile(CATALOG_CACHE, JSON.stringify(cache));
+  }
+  return [...localCatalog, ...Object.values(cache).filter((asset): asset is CatalogAsset => asset !== null)];
+}
+
+/** Draft/scene items become editor objects; a product without a usable model renders as the editor's procedural piece.
+ * Wall-hung items (wall_id) get the editor's furniture `host` on the matching editor wall at height_m; items with `on`
+ * are placed by the editor's own placeFurniture so they carry `restsOn` and sit on the support's top surface. */
+export async function editorDocument(scene: Scene, draft: Draft): Promise<{ scene: SceneDocument; catalog: CatalogAsset[] }> {
+  const doc = editorShell(scene), items: DraftItem[] = [...scene.items, ...draft.items];
+  const catalog = await loadAssets(items.flatMap(item => item.sku ? [item.sku] : []));
+  const placed = new Map<string, SceneObject>();
+  const base = (item: DraftItem): SceneObject => {
+    const [w, d, h] = item.size;
+    let asset = item.sku ? catalog.find(candidate => candidate.id === item.sku) : undefined;
+    if (!asset) {
+      const kind = (EDITOR_KINDS.has(item.kind) ? item.kind : editorKindOf[item.kind] ?? 'cabinet') as AssetKind;
+      asset = { id: `spike-box-${item.id}`, name: item.name, category: 'Spike', kind, dimensions: [w, h, d], color: item.color ?? '#b8b4ad', price: 0, source: { type: 'procedural' } };
+      catalog.push(asset);
+    }
+    const [aw, ah, ad] = asset.dimensions;
+    return { id: item.id, name: item.name, assetId: asset.id, position: [item.pos[0], 0, -item.pos[1]], rotation: item.rot * Math.PI / 180,
+      scale: [w / aw, h / ah, d / ad].map(value => Number.isFinite(value) && value > 0 ? value : 1) as [number, number, number], ...(item.color ? { color: item.color } : {}) };
+  };
+  for (const item of items.filter(onFloor)) placed.set(item.id, base(item));
+  for (const item of items.filter(item => item.wall_id !== undefined)) placed.set(item.id, hang(doc, scene, item, base(item)));
+  // Resting items after their supports; chains resolve over a few passes, the rest fall back to the floor.
+  let pending = items.filter(item => item.wall_id === undefined && item.on !== undefined);
+  for (let pass = 0; pending.length && pass < 4; pass++) {
+    const next: DraftItem[] = [];
+    for (const item of pending) {
+      if (!placed.has(item.on!) && pending.some(other => other.id === item.on)) { next.push(item); continue; }
+      placed.set(item.id, rest({ ...doc, objects: [...placed.values()] }, catalog, item, base(item)));
+    }
+    pending = next;
+  }
+  for (const item of pending) placed.set(item.id, base(item));
+  const objects = items.map(item => placed.get(item.id)!).filter(Boolean);
+  return { scene: applySurfaces({ ...doc, objects }, scene, draft), catalog };
+}
+
+/** Flat on the room-side face of the editor wall behind the item, base at height_m - h/2. */
+function hang(doc: SceneDocument, scene: Scene, item: DraftItem, object: SceneObject): SceneObject {
+  const designerWall = scene.walls.find(wall => wall.id === item.wall_id), wall = doc.walls.find(candidate => candidate.id === (designerWall?.source_id ?? designerWall?.id));
+  if (!wall) { process.stderr.write(`renderView: ${item.id} wall ${item.wall_id} has no editor wall; left on the floor\n`); return object; }
+  const [w, d, h] = item.size, dx = wall.end[0] - wall.start[0], dz = wall.end[1] - wall.start[1], length = Math.hypot(dx, dz) || 1, tx = dx / length, tz = dz / length;
+  const px = object.position[0], pz = object.position[2];
+  const offset = Math.max(Math.min(w / 2, length / 2), Math.min(length - Math.min(w / 2, length / 2), (px - wall.start[0]) * tx + (pz - wall.start[1]) * tz));
+  const x = wall.start[0] + tx * offset, z = wall.start[1] + tz * offset;
+  const side: 1 | -1 = (px - x) * -tz + (pz - z) * tx >= 0 ? 1 : -1, nx = -tz * side, nz = tx * side, gap = wall.thickness / 2 + d / 2;
+  const floor = doc.project?.metadata[item.room_id]?.elevation ?? 0;
+  const elevation = floor + (item.height_m ?? Math.max(0.9, 1.5 - h / 2) + h / 2) - h / 2;
+  return { ...object, position: [x + nx * gap, elevation, z + nz * gap], rotation: Math.atan2(nx, nz) || 0, host: { wallId: wall.id, offset, elevation, side } };
+}
+
+/** The editor's placeFurniture (restsOn + support top); kinds the editor will not stack still sit on the support's top. */
+function rest(doc: SceneDocument, catalog: CatalogAsset[], item: DraftItem, object: SceneObject): SceneObject {
+  try { return placeFurniture(doc, catalog, object, item.on); } catch (error) {
+    const hit = headlessSurface(doc, catalog, object, item.on);
+    process.stderr.write(`renderView: ${item.id} on ${item.on}: ${error instanceof Error ? error.message : error}${hit ? '; drawn on its top without restsOn' : '; left on the floor'}\n`);
+    return hit ? { ...object, position: [object.position[0], hit.y, object.position[2]] } : object;
+  }
+}
+
+/** Finishes, ceiling designs and light fixtures as the editor stores them (project materials/finishes/metadata/components). */
+export function applySurfaces(input: SceneDocument, scene: Scene, draft: Draft): SceneDocument {
+  if (!draft.finishes?.length && !draft.lighting?.length) return input;
+  const doc = migrateScene(input), project = doc.project!;
+  const materials = new Map<string, FinishMaterial>();
+  const materialId = (presetId: string | undefined, color: string | undefined) => {
+    const info = material(presetId), key = `${info?.id ?? 'paint'}|${(color ?? info?.color ?? '').toLowerCase()}`;
+    let record = materials.get(key);
+    if (!record) {
+      record = info ? { ...materialForPreset(info.preset), id: `spike-finish:${key}`, ...(color ? { color } : {}) }
+        : { id: `spike-finish:${key}`, name: `Paint ${color}`, color: color!, unit: 'm2', unitCost: 0, thickness: 0.0002, wastePercent: 0, notes: 'Conceptual paint colour; unquoted.' };
+      materials.set(key, record);
+    }
+    return record.id;
+  };
+  const assign = (entityId: string, surface: 'floor' | 'ceiling' | 'wall-front' | 'wall-back', id: string) => {
+    project.finishes = project.finishes.filter(finish => !(finish.entityId === entityId && finish.surface === surface));
+    project.finishes.push({ id: `spike:${entityId}:${surface}`, entityId, surface, materialId: id });
+  };
+  /** The face of an editor wall that looks into this room. */
+  const face = (wallId: string, roomId: string) => {
+    const wall = doc.walls.find(candidate => candidate.id === wallId), room = doc.rooms.find(candidate => candidate.id === roomId);
+    if (!wall || !room) return undefined;
+    const spans = wallSurfaceSpans(wall, [room], project.metadata);
+    return spans.some(span => span.front) ? 'wall-front' as const : spans.some(span => span.back) ? 'wall-back' as const : undefined;
+  };
+  // Room-wide finishes first so a single accent wall overrides its room's walls.
+  const order = { floor: 0, ceiling: 0, walls: 1, wall: 2 } as const;
+  for (const finish of [...(draft.finishes ?? [])].sort((a, b) => order[a.surface] - order[b.surface])) {
+    const id = materialId(finish.material, finish.color);
+    if (finish.surface === 'floor' || finish.surface === 'ceiling') { assign(finish.room_id, finish.surface, id); continue; }
+    const target = finish.surface === 'wall' ? scene.walls.find(wall => wall.id === finish.wall_id) : undefined;
+    const walls = scene.walls.filter(wall => wall.room_id === finish.room_id && (!target || (wall.source_id ?? wall.id) === (target.source_id ?? target.id)));
+    for (const editorId of new Set(walls.map(wall => wall.source_id ?? wall.id))) {
+      const side = face(editorId, finish.room_id);
+      if (side) assign(editorId, side, id);
+    }
+  }
+  project.materials.push(...materials.values());
+  const items = [...scene.items, ...draft.items];
+  for (const light of draft.lighting ?? []) {
+    const room = doc.rooms.find(candidate => candidate.id === light.room_id);
+    if (!room) continue;
+    if (light.type === 'ceiling') {
+      const design = { ...defaultCeilingDesign(light.style), ...(light.brightness !== undefined ? { brightness: light.brightness } : {}), ...(light.temperature_k !== undefined ? { temperature: light.temperature_k } : {}) };
+      project.metadata[room.id] = { ...project.metadata[room.id], ceilingDesign: design };
+    } else {
+      const defaults = FIXTURE_DEFAULTS[light.mount], size = light.size ?? defaults.size;
+      const bottom = fixtureBottom(light, items, roomCeilingHeight(doc, room));
+      project.components.push({ id: light.id, name: light.name ?? `${light.mount} light`, kind: 'light', position: [light.pos[0], bottom, -light.pos[1]],
+        dimensions: size, rotation: 0, color: light.color ?? '#d9d3c7', phase: 'new', roomId: room.id,
+        light: { brightness: light.brightness ?? defaults.brightness, temperature: light.temperature_k ?? 2700, enabled: true } });
+    }
+  }
+  return doc;
+}
+
+const inside = (polygon: [number, number][], [x, y]: [number, number]) => {
+  let hit = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const [xi, yi] = polygon[i]!, [xj, yj] = polygon[j]!;
+    if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) hit = !hit;
+  }
+  return hit;
+};
+
+/** Still-camera lens: vertical field of view in degrees (about a 28 mm lens on full frame), and eye height in metres. */
+export const EYE_FOV = 55, EYE_HEIGHT = 1.4;
+
+/** Eye poses a photographer would pick: standing in a corner or along a wall, clear of every door swing and tall piece,
+ * no door within a few metres in frame, aimed at the furniture centroid; ranked by how many items fall in frame. */
+export function cornerPoses(scene: Scene, draft: Draft, roomId: string): { eye: [number, number, number]; target: [number, number, number] }[] {
+  const polygon = scene.rooms.find(room => room.id === roomId)!.polygon as [number, number][];
+  const xs = polygon.map(p => p[0]), ys = polygon.map(p => p[1]);
+  const cx = xs.reduce((a, b) => a + b) / xs.length, cy = ys.reduce((a, b) => a + b) / ys.length;
+  const items = [...scene.items, ...draft.items].filter(item => item.room_id === roomId || inside(polygon, item.pos));
+  // Furniture centroid, weighted by footprint so a sofa pulls harder than a vase; rugs frame, they do not aim.
+  const weighted = items.filter(item => item.kind !== 'rug').map(item => ({ at: item.pos, w: Math.min(3, Math.max(0.05, item.size[0] * item.size[1])) }));
+  const total = weighted.reduce((sum, item) => sum + item.w, 0);
+  const aim: [number, number] = total > 0 ? [weighted.reduce((sum, item) => sum + item.at[0] * item.w, 0) / total, weighted.reduce((sum, item) => sum + item.at[1] * item.w, 0) / total] : [cx, cy];
+  const openings = (kind: 'door' | 'window') => scene.openings.filter(opening => opening.kind === kind).flatMap(opening => {
+    const wall = scene.walls.find(candidate => candidate.id === opening.wall_id);
+    if (!wall) return [];
+    const length = Math.hypot(wall.b[0] - wall.a[0], wall.b[1] - wall.a[1]) || 1, t = (opening.offset + opening.width / 2) / length;
+    return [{ at: [wall.a[0] + (wall.b[0] - wall.a[0]) * t, wall.a[1] + (wall.b[1] - wall.a[1]) * t] as [number, number], reach: opening.width + 0.45, roomId: wall.room_id }];
+  });
+  const doors = openings('door'), windows = openings('window').filter(window => window.roomId === roomId);
+  const blocked = (p: [number, number]) => doors.some(door => Math.hypot(door.at[0] - p[0], door.at[1] - p[1]) < door.reach) || items.some(item => Math.abs(item.pos[0] - p[0]) < item.size[0] / 2 + 0.25 && Math.abs(item.pos[1] - p[1]) < item.size[1] / 2 + 0.25 && item.size[2] > 1);
+  // Horizontal half angle of the still frame (3:2), with a margin for the edges.
+  const half = Math.atan(Math.tan(EYE_FOV * Math.PI / 360) * 1.5);
+  const bearing = (from: [number, number], to: [number, number], heading: number) => { const a = Math.atan2(to[1] - from[1], to[0] - from[0]) - heading; return Math.abs(Math.atan2(Math.sin(a), Math.cos(a))); };
+  const candidates: [number, number][] = [];
+  const edges = polygon.map((corner, i) => [corner, polygon[(i + 1) % polygon.length]!] as const);
+  for (const corner of polygon) {
+    const toward = [cx - corner[0], cy - corner[1]], length = Math.hypot(toward[0]!, toward[1]!) || 1;
+    for (const inset of [0.45, 0.8, 1.2, 1.6]) candidates.push([corner[0] + toward[0]! / length * inset * Math.SQRT2, corner[1] + toward[1]! / length * inset * Math.SQRT2]);
+  }
+  for (const [a, b] of edges) {
+    const length = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, normal = [-(b[1] - a[1]) / length, (b[0] - a[0]) / length];
+    for (const t of [0.3, 0.5, 0.7]) for (const side of [1, -1]) candidates.push([a[0] + (b[0] - a[0]) * t + normal[0]! * side * 0.5, a[1] + (b[1] - a[1]) * t + normal[1]! * side * 0.5]);
+  }
+  const poses = candidates.filter(eye => inside(polygon, eye) && !blocked(eye)).map(eye => {
+    const heading = Math.atan2(aim[1] - eye[1], aim[0] - eye[0]), far = Math.hypot(aim[0] - eye[0], aim[1] - eye[1]);
+    const seen = items.filter(item => bearing(eye, item.pos, heading) < half * 0.9 && Math.hypot(item.pos[0] - eye[0], item.pos[1] - eye[1]) > 0.8).length;
+    // A door leaf close to the lens dominates the frame; a door across the room is only background.
+    const doorInFrame = doors.some(door => Math.hypot(door.at[0] - eye[0], door.at[1] - eye[1]) < 3 && bearing(eye, door.at, heading) < half + 0.2);
+    // Furniture right under the lens (a sofa back filling the lower third) hides the room behind it.
+    const close = items.filter(item => item.size[2] > 0.5 && bearing(eye, item.pos, heading) < half && Math.hypot(item.pos[0] - eye[0], item.pos[1] - eye[1]) - Math.max(item.size[0], item.size[1]) / 2 < 1.3).length;
+    // A window in frame shows the daylight and the view out, as listing photographs do.
+    const windowInFrame = windows.some(window => bearing(eye, window.at, heading) < half * 0.85);
+    return { eye, score: seen + Math.min(far, 5) * 0.6 + (windowInFrame ? 3 : 0) - close * 4 - (doorInFrame ? 100 : 0) - (far < 2 ? 50 : 0) };
+  });
+  if (!poses.length) poses.push({ eye: [cx, cy], score: 0 });
+  poses.sort((a, b) => b.score - a.score);
+  const best = poses[0]!;
+  // The second angle looks back from the far side of the room, ideally from well away from the first.
+  const opposite = poses.find(pose => Math.hypot(pose.eye[0] - best.eye[0], pose.eye[1] - best.eye[1]) > Math.hypot(aim[0] - best.eye[0], aim[1] - best.eye[1])) ?? poses[1] ?? best;
+  return [best, opposite].map(({ eye }) => ({ eye: [eye[0], eye[1], EYE_HEIGHT], target: [aim[0], aim[1], 0.9] }));
+}
+
+const editorPoint = ([x, y, h]: [number, number, number?], fallback: number) => [x, h ?? fallback, -y];
+
+
+/** Everything the page needs for one picture. */
+export async function renderPayload(scene: Scene, draft: Draft, roomId: string, camera: ViewCamera = 'overview', time: 'day' | 'evening' = 'day') {
+  if (!scene.rooms.some(room => room.id === roomId)) throw new Error(`Unknown room ${roomId}`);
+  const document = await editorDocument(scene, draft);
+  const explicit = typeof camera === 'object' ? camera : camera === 'eye' || camera === 'eye2' ? cornerPoses(scene, draft, roomId)[camera === 'eye' ? 0 : 1] : undefined;
+  const pose = explicit ? { position: editorPoint(explicit.eye, EYE_HEIGHT), target: editorPoint(explicit.target, 0.9), fov: EYE_FOV } : null;
+  return { ...document, roomId, pose, time, view: explicit ? 'inside' : camera === 'top' ? 'top' : 'perspective', walls: explicit ? 'full' : 'cutaway' };
+}

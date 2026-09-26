@@ -1,0 +1,490 @@
+{
+ "fixed": [],
+ "geometry_notes": {
+  "adjustment_count": 0,
+  "tolerance_m": 0.053,
+  "warnings": []
+ },
+ "items": [],
+ "openings": [
+  {
+   "height": 1.45,
+   "id": "window-west",
+   "kind": "window",
+   "offset": 4.5,
+   "sill": 0.85,
+   "wall_id": "wall-west",
+   "width": 2.4
+  },
+  {
+   "height": 0.8,
+   "id": "window-bath",
+   "kind": "window",
+   "offset": 1.2,
+   "sill": 1.5,
+   "wall_id": "wall-east",
+   "width": 1
+  },
+  {
+   "height": 1.45,
+   "id": "window-bedroom",
+   "kind": "window",
+   "offset": 1.0999999999999996,
+   "sill": 0.85,
+   "wall_id": "wall-east:section-1wcj16j",
+   "width": 1.7
+  },
+  {
+   "height": 2.2,
+   "id": "door-entry",
+   "kind": "door",
+   "offset": 0.7,
+   "sill": 0,
+   "wall_id": "wall-south",
+   "width": 1.05
+  },
+  {
+   "height": 1.2,
+   "id": "window-kitchen",
+   "kind": "window",
+   "offset": 0.40000000000000036,
+   "sill": 1.15,
+   "wall_id": "wall-south:section-mfp1zm",
+   "width": 1.8
+  },
+  {
+   "height": 1.45,
+   "id": "window-living",
+   "kind": "window",
+   "offset": 0.9,
+   "sill": 0.85,
+   "wall_id": "wall-north",
+   "width": 2.7
+  },
+  {
+   "height": 2.2,
+   "id": "door-kitchen",
+   "kind": "door",
+   "offset": 1.9,
+   "sill": 0,
+   "wall_id": "wall-spine::room-living::0",
+   "width": 1.1
+  },
+  {
+   "height": 2.2,
+   "id": "door-bedroom",
+   "kind": "door",
+   "offset": 0.5999999999999996,
+   "sill": 0,
+   "wall_id": "wall-spine:section-tfjdn7::room-living::0",
+   "width": 1.1
+  },
+  {
+   "height": 2.15,
+   "id": "door-bath",
+   "kind": "door",
+   "offset": 3.15,
+   "sill": 0,
+   "wall_id": "wall-bath::room-kitchen::0",
+   "width": 0.9
+  }
+ ],
+ "rooms": [
+  {
+   "id": "room-living",
+   "name": "Living & dining",
+   "polygon": [
+    [
+     -5,
+     4
+    ],
+    [
+     0.6,
+     4
+    ],
+    [
+     0.6,
+     -4
+    ],
+    [
+     -5,
+     -4
+    ]
+   ]
+  },
+  {
+   "id": "room-kitchen",
+   "name": "Kitchen",
+   "polygon": [
+    [
+     0.6,
+     4
+    ],
+    [
+     3.4,
+     4
+    ],
+    [
+     3.4,
+     -0.4
+    ],
+    [
+     0.6,
+     -0.4
+    ]
+   ]
+  },
+  {
+   "id": "room-bath",
+   "name": "Bathroom",
+   "polygon": [
+    [
+     3.4,
+     4
+    ],
+    [
+     5,
+     4
+    ],
+    [
+     5,
+     -0.4
+    ],
+    [
+     3.4,
+     -0.4
+    ]
+   ]
+  },
+  {
+   "id": "room-bedroom",
+   "name": "Bedroom",
+   "polygon": [
+    [
+     0.6,
+     -0.4
+    ],
+    [
+     5,
+     -0.4
+    ],
+    [
+     5,
+     -4
+    ],
+    [
+     0.6,
+     -4
+    ]
+   ]
+  }
+ ],
+ "walls": [
+  {
+   "a": [
+    -5,
+    4
+   ],
+   "b": [
+    -5,
+    -4
+   ],
+   "color": "#f0ebe1",
+   "height": 2.7,
+   "id": "wall-west",
+   "keep": false,
+   "room_id": "room-living",
+   "source_id": "wall-west",
+   "thickness": 0.16
+  },
+  {
+   "a": [
+    5,
+    4
+   ],
+   "b": [
+    5,
+    -0.40000000000000036
+   ],
+   "color": "#f0ebe1",
+   "height": 2.7,
+   "id": "wall-east",
+   "keep": false,
+   "room_id": "room-bath",
+   "source_id": "wall-east",
+   "thickness": 0.16
+  },
+  {
+   "a": [
+    5,
+    -0.4
+   ],
+   "b": [
+    5,
+    -4
+   ],
+   "color": "#f0ebe1",
+   "height": 2.7,
+   "id": "wall-east:section-1wcj16j",
+   "keep": false,
+   "room_id": "room-bedroom",
+   "source_id": "wall-east:section-1wcj16j",
+   "thickness": 0.16
+  },
+  {
+   "a": [
+    -5,
+    4
+   ],
+   "b": [
+    0.5999999999999996,
+    4
+   ],
+   "color": "#f0ebe1",
+   "height": 2.7,
+   "id": "wall-south",
+   "keep": false,
+   "room_id": "room-living",
+   "source_id": "wall-south",
+   "thickness": 0.16
+  },
+  {
+   "a": [
+    0.6,
+    4
+   ],
+   "b": [
+    3.4,
+    4
+   ],
+   "color": "#f0ebe1",
+   "height": 2.7,
+   "id": "wall-south:section-mfp1zm",
+   "keep": false,
+   "room_id": "room-kitchen",
+   "source_id": "wall-south:section-mfp1zm",
+   "thickness": 0.16
+  },
+  {
+   "a": [
+    3.4,
+    4
+   ],
+   "b": [
+    5,
+    4
+   ],
+   "color": "#f0ebe1",
+   "height": 2.7,
+   "id": "wall-south:section-wrqe3v",
+   "keep": false,
+   "room_id": "room-bath",
+   "source_id": "wall-south:section-wrqe3v",
+   "thickness": 0.16
+  },
+  {
+   "a": [
+    -5,
+    -4
+   ],
+   "b": [
+    0.5999999999999996,
+    -4
+   ],
+   "color": "#f0ebe1",
+   "height": 2.7,
+   "id": "wall-north",
+   "keep": false,
+   "room_id": "room-living",
+   "source_id": "wall-north",
+   "thickness": 0.16
+  },
+  {
+   "a": [
+    0.6,
+    -4
+   ],
+   "b": [
+    5,
+    -4
+   ],
+   "color": "#f0ebe1",
+   "height": 2.7,
+   "id": "wall-north:section-1bz51as",
+   "keep": false,
+   "room_id": "room-bedroom",
+   "source_id": "wall-north:section-1bz51as",
+   "thickness": 0.16
+  },
+  {
+   "a": [
+    0.6,
+    4
+   ],
+   "b": [
+    0.6,
+    -0.40000000000000036
+   ],
+   "color": "#f0ebe1",
+   "height": 2.7,
+   "id": "wall-spine::room-living::0",
+   "keep": false,
+   "room_id": "room-living",
+   "source_id": "wall-spine",
+   "thickness": 0.16
+  },
+  {
+   "a": [
+    0.6,
+    4
+   ],
+   "b": [
+    0.6,
+    -0.40000000000000036
+   ],
+   "color": "#f0ebe1",
+   "height": 2.7,
+   "id": "wall-spine::room-kitchen::1",
+   "keep": false,
+   "room_id": "room-kitchen",
+   "source_id": "wall-spine",
+   "thickness": 0.16
+  },
+  {
+   "a": [
+    0.6,
+    -0.4
+   ],
+   "b": [
+    0.6,
+    -4
+   ],
+   "color": "#f0ebe1",
+   "height": 2.7,
+   "id": "wall-spine:section-tfjdn7::room-living::0",
+   "keep": false,
+   "room_id": "room-living",
+   "source_id": "wall-spine:section-tfjdn7",
+   "thickness": 0.16
+  },
+  {
+   "a": [
+    0.6,
+    -0.4
+   ],
+   "b": [
+    0.6,
+    -4
+   ],
+   "color": "#f0ebe1",
+   "height": 2.7,
+   "id": "wall-spine:section-tfjdn7::room-bedroom::1",
+   "keep": false,
+   "room_id": "room-bedroom",
+   "source_id": "wall-spine:section-tfjdn7",
+   "thickness": 0.16
+  },
+  {
+   "a": [
+    0.6,
+    -0.4
+   ],
+   "b": [
+    3.4,
+    -0.4
+   ],
+   "color": "#f0ebe1",
+   "height": 2.7,
+   "id": "wall-bedroom::room-kitchen::0",
+   "keep": false,
+   "room_id": "room-kitchen",
+   "source_id": "wall-bedroom",
+   "thickness": 0.16
+  },
+  {
+   "a": [
+    0.6,
+    -0.4
+   ],
+   "b": [
+    3.4,
+    -0.4
+   ],
+   "color": "#f0ebe1",
+   "height": 2.7,
+   "id": "wall-bedroom::room-bedroom::1",
+   "keep": false,
+   "room_id": "room-bedroom",
+   "source_id": "wall-bedroom",
+   "thickness": 0.16
+  },
+  {
+   "a": [
+    3.4,
+    -0.4
+   ],
+   "b": [
+    5,
+    -0.4
+   ],
+   "color": "#f0ebe1",
+   "height": 2.7,
+   "id": "wall-bedroom:section-1wuotw::room-bath::0",
+   "keep": false,
+   "room_id": "room-bath",
+   "source_id": "wall-bedroom:section-1wuotw",
+   "thickness": 0.16
+  },
+  {
+   "a": [
+    3.4,
+    -0.4
+   ],
+   "b": [
+    5,
+    -0.4
+   ],
+   "color": "#f0ebe1",
+   "height": 2.7,
+   "id": "wall-bedroom:section-1wuotw::room-bedroom::1",
+   "keep": false,
+   "room_id": "room-bedroom",
+   "source_id": "wall-bedroom:section-1wuotw",
+   "thickness": 0.16
+  },
+  {
+   "a": [
+    3.4,
+    4
+   ],
+   "b": [
+    3.4,
+    -0.40000000000000036
+   ],
+   "color": "#f0ebe1",
+   "height": 2.7,
+   "id": "wall-bath::room-kitchen::0",
+   "keep": false,
+   "room_id": "room-kitchen",
+   "source_id": "wall-bath",
+   "thickness": 0.16
+  },
+  {
+   "a": [
+    3.4,
+    4
+   ],
+   "b": [
+    3.4,
+    -0.40000000000000036
+   ],
+   "color": "#f0ebe1",
+   "height": 2.7,
+   "id": "wall-bath::room-bath::1",
+   "keep": false,
+   "room_id": "room-bath",
+   "source_id": "wall-bath",
+   "thickness": 0.16
+  }
+ ]
+}
