@@ -1,7 +1,9 @@
 /** Incremental program construction. The model supplies intent; code owns every pose. */
 import {roomPrograms} from '../knowledge/room-programs.js';
-import {resolveStyles} from '../knowledge/styles/index.js';
-import {searchRoomCatalog} from './taste/catalog.js';
+import {roomCatalog} from './room-catalog.js';
+import {localGeometryErrors,compareLayoutErrors} from './local-checks.js';
+import {functionClearances} from './metrics/function.js';
+import {functionClearanceRegressions} from './proposal-clearances.js';
 import {SceneAnalysisCache} from './fast-path.js';
 import {applyOps} from './adapter.js';
 import {DesignerSession} from './session.js';
@@ -22,11 +24,16 @@ export interface RoomPlanRequest {room_id:string;program:string;style?:string;bu
 export interface RoomPlan {ops:Op[];intent:Intent;missing:string[];complete:boolean;reason:string;products:CatalogProduct[];timing:{catalog_ms:number;placement_ms:number};evidence:unknown}
 
 /** Related poses first; ranked single-piece slots are the common fallback. */
-export function* pieceOps(scene:Scene,p:CatalogProduct,roomId:string,cache:SceneAnalysisCache,role='',anchor?:Item,index=0):Generator<Op>{
+export function* pieceOps(scene:Scene,p:CatalogProduct,roomId:string,cache:SceneAnalysisCache,role='',anchor?:Item,index=0,relatedOnly=false,bedsideAngle=0):Generator<Op>{
  const candidates:Op[]=[];
  if(anchor){
   const related=(x:number,y:number,rotation=anchor.rot)=>{const t=anchor.rot*Math.PI/180;candidates.push({type:'add',item:{...p.item,name:p.name.slice(0,120),id:`room-${scene.items.length}-${p.sku}`,room_id:roomId,keep:false,rot:rotation,pos:[anchor.pos[0]+x*Math.cos(t)-y*Math.sin(t),anchor.pos[1]+x*Math.sin(t)+y*Math.cos(t)]}});};
-  if(role==='table')for(const x of [0,-.25,.25])related(x,-(anchor.size[1]+p.size[1])/2-.41);
+  if(role==='table'){
+   // A reach gap is not a walking aisle. Leave the centre-front approach clear
+   // by trying the small table beside either front corner before centred poses.
+   const corner=(anchor.size[0]+p.size[0])/2+.05;
+   for(const x of [-corner,corner,0,-.25,.25])for(const gap of [.41,.36,.46])related(x,-(anchor.size[1]+p.size[1])/2-gap);
+  }
   if(role==='focal_point')for(const gap of [2,1.5,2.5])related(0,-(anchor.size[1]+p.size[1])/2-gap,(anchor.rot+180)%360);
   if(role==='light'||role==='task_light')for(const side of [1,-1])for(const gap of [.15,.45,.6])related(side*((anchor.size[0]+p.size[0])/2+gap),0);
   if(role==='work_seat')related(0,-(anchor.size[1]+p.size[1])/2-.4,(anchor.rot+180)%360);
@@ -35,13 +42,20 @@ export function* pieceOps(scene:Scene,p:CatalogProduct,roomId:string,cache:Scene
    candidates.push({type:'add',item:{...p.item,name:p.name.slice(0,120),id:`room-${scene.items.length}-${p.sku}`,room_id:roomId,keep:false,rot:anchor.rot,pos:[anchor.pos[0]+Math.sin(t)*dist,anchor.pos[1]-Math.cos(t)*dist]}});
   }
   if(role==='nightstands'||role==='bedside_lights'){
-   const side=index===0?-1:1,t=anchor.rot*Math.PI/180,x=side*(anchor.size[0]/2+p.size[0]/2+.65),y=role==='nightstands'?anchor.size[1]/2-p.size[1]/2:anchor.size[1]/2-.85;
-   candidates.push({type:'add',item:{...p.item,name:p.name.slice(0,120),id:`room-${scene.items.length}-${p.sku}`,room_id:roomId,keep:false,rot:anchor.rot,pos:[anchor.pos[0]+x*Math.cos(t)-y*Math.sin(t),anchor.pos[1]+x*Math.sin(t)+y*Math.cos(t)]}});
+   const side=index===0?-1:1;
+   const angles=role==='nightstands'?[side*bedsideAngle,0,side*90,-side*90,side*45,-side*45]:[side*90,0,side*45,-side*45];
+   for(const angle of angles){
+    const t=angle*Math.PI/180,width=Math.abs(Math.cos(t))*p.size[0]+Math.abs(Math.sin(t))*p.size[1],depth=Math.abs(Math.sin(t))*p.size[0]+Math.abs(Math.cos(t))*p.size[1];
+    for(const headGap of role==='nightstands'?[.85,depth/2,.65]:[.15,.5,.85])for(const gap of role==='nightstands'?[.6]:[.6,.75,.85])
+     related(side*(anchor.size[0]/2+width/2+gap),anchor.size[1]/2-headGap,anchor.rot+angle);
+   }
   }
  }
  for(const candidate of candidates)yield candidate;
- const hasWindow=scene.openings.some(o=>o.kind==='window'&&scene.walls.some(w=>w.id===o.wall_id&&w.room_id===roomId));
- const slots=cache.slots(scene,[slotAsset(p)],{roomId,catalogId:p.sku,maxChecks:16,solidHeadboard:p.kind==='bed',faceWindow:role==='seating_anchor'&&hasWindow});
+ if(relatedOnly)return;
+ const slotQuery={roomId,catalogId:p.sku,maxChecks:anchor?16:48,diverse:!anchor,solidHeadboard:p.kind==='bed'};
+ let slots=role==='bed'&&p.size[0]>=1.4?cache.slots(scene,[slotAsset(p)],{...slotQuery,sideReserve:1.01}):[];
+ if(!slots.length)slots=cache.slots(scene,[slotAsset(p)],slotQuery);
  const filtered=slots.flatMap(c=>c.ops);
  if(role==='seating_anchor'){
   const room=scene.rooms.find(r=>r.id===roomId)!;
@@ -53,49 +67,111 @@ export function* pieceOps(scene:Scene,p:CatalogProduct,roomId:string,cache:Scene
 }
 
 export async function planIncrementally(scene:Scene,request:RoomPlanRequest,query?:CatalogQuery,history:readonly string[]=[]):Promise<RoomPlan>{
- const started=performance.now();
- const program=roomPrograms[request.program];if(!program)throw new Error('Choose a supported room program');
+ const started=performance.now(),program=roomPrograms[request.program];
+ if(!program)throw new Error('Choose a supported room program');
  if(!scene.rooms.some(r=>r.id===request.room_id))throw new Error('Unknown room_id; use a room from the scene');
- const checkKeeps=new DesignerSession(scene,history);checkKeeps.setIntent({keeps:request.keep});
- const styles=resolveStyles(request.style??''),catalog=await searchRoomCatalog(request.program,styles.length?styles:['modern'],query,true,request.budget);
- const catalogMs=performance.now()-started;
- const blocked=new Set(requestPolicy(history).blocked_kinds),cache=new SceneAnalysisCache(),ops:Op[]=[],missing:string[]=[],chosen:CatalogProduct[]=[];
+ const checker=new DesignerSession(scene,history);checker.setIntent({keeps:request.keep});
+ const catalog=await roomCatalog(request.program,request.style,request.budget,query),catalogMs=performance.now()-started;
+ const cache=new SceneAnalysisCache(),blocked=new Set(requestPolicy(history).blocked_kinds);
  const extra:Intent={room_id:request.room_id,keeps:request.keep,budget_dram:request.budget};
- let preview=scene,anchor:Item|undefined,desk:Item|undefined,cost=0;
  const roles=[...program.essentials];
  if(request.program==='living')roles.sort((a,b)=>['seating_anchor','rug','table','light','focal_point'].indexOf(a.role)-['seating_anchor','rug','table','light','focal_point'].indexOf(b.role));
- const failures:unknown[]=[];
- let deadline=Infinity;
- const used=new Set<string>();
- const qualifies=(kind:string,size:Item['size'],role:string)=>!(role==='bed'&&request.program==='bedroom'&&size[0]<1.4)&&!(role==='storage'&&kind==='wardrobe'&&(size[1]<.4||size[2]<1.4));
- for(const role of roles){
-  if(role!==roles[0]&&!anchor){missing.push(`${role.role}: anchor has no checked fit`);continue;}
-  const existing=scene.items.filter(i=>!used.has(i.id)&&i.room_id===request.room_id&&role.kinds.includes(i.kind)&&qualifies(i.kind,i.size,role.role));
-  for(let n=0;n<role.count;n++){
-   if(existing[n]){used.add(existing[n]!.id);if(!anchor){anchor=existing[n];deadline=performance.now()+12000;}if(role.role==='work_surface')desk=existing[n];continue;}
-   const kinds=role.preferred_kinds??role.kinds;
-   const choices=kinds.flatMap(kind=>catalog.products[kind]??[]).filter(p=>!blocked.has(canonicalKind(p.kind))&&p.price+cost<=(request.budget??Infinity)
-    &&qualifies(p.kind,p.size,role.role));
-   choices.sort((a,b)=>(request.budget===undefined?0:a.price-b.price)||kinds.indexOf(a.kind)-kinds.indexOf(b.kind)||a.size[0]*a.size[1]-b.size[0]*b.size[1]);
-   let selected:Op|undefined,product:CatalogProduct|undefined;
-   for(const p of choices.slice(0,6)){
-    if(anchor&&performance.now()>deadline)break;
-    for(const op of pieceOps(preview,p,request.room_id,cache,role.role,role.role==='work_seat'||role.role==='task_light'?desk??anchor:anchor,n)){
-     if(anchor&&performance.now()>deadline)break;
-     const related:Record<string,string[]>={rug:['rug_anchor'],table:['seat_table'],light:['seat_light'],focal_point:['seat_facing'],work_seat:['work_seat_facing','work_reach'],task_light:['task_light_reach'],nightstands:n===role.count-1?['nightstand_each_open_side']:[],bedside_lights:n===role.count-1?['light_each_bedside']:[]};
-     if(related[role.role]?.length){const composition=scoreComposition(applyOps(preview,[op]),request.room_id,{program:request.program});if(composition.issues.some(i=>related[role.role]!.includes(i.code)))continue;}
-     const trial=[...ops,op],checker=new DesignerSession(scene,history);checker.setIntent(intentFor(scene,trial,extra));const checked=checker.propose(trial,'Incremental checked placement.');
-     if(checked.ok){selected=op;product=p;break;}
-     if(failures.length<30)failures.push({role:role.role,sku:p.sku,errors:checked.errors});
+ // The current scene adapter places purchases on the floor; tabletop lights cannot be floor substitutes.
+ const qualifies=(kind:string,size:Item['size'],role:string)=>!(kind==='lamp'&&size[2]<.8)&&!(role==='bed'&&request.program==='bedroom'&&size[0]<1.4)&&!(role==='storage'&&kind==='wardrobe'&&(size[1]<.4||size[2]<1.4));
+ const pools=roles.map(role=>{
+  const kinds=role.preferred_kinds??role.kinds;
+  return [...new Map(kinds.flatMap(kind=>catalog.products[kind]??[]).filter(p=>!blocked.has(canonicalKind(p.kind))&&qualifies(p.kind,p.size,role.role)&&!(role.role==='work_surface'&&/desk extender|rolling cart|pedestal|printer stand|monitor stand/i.test(p.name))).map(p=>[p.sku,p])).values()]
+   .sort((a,b)=>(request.budget===undefined?0:a.price-b.price)
+    ||(role.role==='table'?Number(!/coffee|cocktail/i.test(a.name))-Number(!/coffee|cocktail/i.test(b.name)):0)
+    ||kinds.indexOf(a.kind)-kinds.indexOf(b.kind)||a.size[0]*a.size[1]-b.size[0]*b.size[1]);
+ });
+ const baselineGeometry=localGeometryErrors(scene),baselineFunctions=functionClearances(scene);
+ // Keep all existing proposal checks. New access routes must also be at least 0.75 m.
+ // Existing shell bottlenecks may be retained only under the unchanged baseline rule.
+ const failures:{attempt:number;role:string;sku:string;errors:unknown[]}[]=[],attempts:unknown[]=[];
+ const deadline=performance.now()+30000;let attempt=0;
+ const allocated=new Set<string>();
+ const ownedByRole=roles.map(role=>{const items=scene.items.filter(i=>!allocated.has(i.id)&&i.room_id===request.room_id&&role.kinds.includes(i.kind)&&qualifies(i.kind,i.size,role.role)).slice(0,role.count);items.forEach(i=>allocated.add(i.id));return items;});
+ const minimumCost=(r:number)=>pools[r]!.length?Math.min(...pools[r]!.map(p=>p.price)):0;
+ const requiredMinimum=roles.reduce((sum,r,i)=>sum+minimumCost(i)*(r.count-ownedByRole[i]!.length),0);
+ const evaluate=(ops:Op[],role:string,sku:string)=>{
+  const after=applyOps(scene,ops),geometry=compareLayoutErrors(baselineGeometry,localGeometryErrors(after)).errors;
+  const placed=new Set(ops.flatMap(o=>o.type==='add'?[o.item.id]:[]));
+  const enforced=(c:ReturnType<typeof functionClearances>[number])=>c.function==='bed_side'||c.function==='storage_front'||c.function==='sofa_coffee'&&placed.has(c.other_item_id!);
+  const access=functionClearanceRegressions(baselineFunctions.filter(enforced),functionClearances(after).filter(enforced));
+  if(geometry.length||access.length){if(failures.filter(f=>f.attempt===attempt&&f.role===role).length<5)failures.push({attempt,role,sku,errors:[...geometry,...access].slice(0,3)});return undefined;}
+  checker.setIntent(intentFor(scene,ops,extra));const checked=checker.propose(ops,'Incremental checked placement.');
+  if(!checked.ok){if(failures.filter(f=>f.attempt===attempt&&f.role===role).length<5)failures.push({attempt,role,sku,errors:checked.errors.slice(0,3)});return undefined;}
+  const paths=checked.proposal.checks.metrics!.space.rooms.find(r=>r.room_id===request.room_id)!.walkways;
+  const newRoutes=paths.filter(p=>[p.from,p.to].some(id=>id.startsWith('item:')&&placed.has(id.slice(5))));
+  const narrow=newRoutes.filter(p=>!p.reachable||p.width_m<.75-1e-6);
+  if(narrow.length){if(failures.filter(f=>f.attempt===attempt&&f.role===role).length<5)failures.push({attempt,role,sku,errors:narrow.map(p=>({check:'secondary_access',from:p.from,to:p.to,width_m:p.width_m,minimum_m:.75}))});return undefined;}
+  return {after,paths:newRoutes};
+ };
+ type Variant={ops:Op[];products:CatalogProduct[];missing:string[];complete:boolean;composition:ReturnType<typeof scoreComposition>;paths:{width_m:number}[]};
+ const build=(anchorOp?:Op,anchorProduct?:CatalogProduct,bedsideAngle=0):Variant=>{
+  const ops:Op[]=[],chosen:CatalogProduct[]=[],missing:string[]=[];
+  let preview=scene,anchor:Item|undefined,desk:Item|undefined,cost=0,paths:{width_m:number}[]=[];
+  for(let r=0;r<roles.length;r++){
+   const role=roles[r]!;
+   if(r>0&&!anchor){missing.push(`${role.role}: anchor has no checked fit`);continue;}
+   const existing=ownedByRole[r]!;
+   for(let n=0;n<role.count;n++){
+    if(existing[n]){anchor??=existing[n];if(role.role==='work_surface')desk=existing[n];continue;}
+    let selected:Op|undefined,product:CatalogProduct|undefined;
+    const choices=r===0&&anchorProduct?[anchorProduct]:pools[r]!;
+    // Reserve the cheapest known remaining roles whenever the full program can meet budget.
+    const reserve=request.budget!==undefined&&requiredMinimum<=request.budget?minimumCost(r)*Math.max(0,role.count-Math.max(n+1,existing.length))+roles.slice(r+1).reduce((sum,rr,j)=>sum+minimumCost(r+j+1)*(rr.count-ownedByRole[r+j+1]!.length),0):0;
+    const roleDeadline=Math.min(deadline,performance.now()+2000);
+    for(const relatedOnly of [true,false]){
+    for(const p of choices.slice(0,10)){
+     if(p.price+cost+reserve>(request.budget??Infinity))continue;
+     if(performance.now()>roleDeadline)break;
+     const candidates=r===0&&anchorOp?[anchorOp]:pieceOps(preview,p,request.room_id,cache,role.role,role.role==='work_seat'||role.role==='task_light'?desk??anchor:anchor,n,relatedOnly,bedsideAngle);
+     for(const op of candidates){
+      if(performance.now()>roleDeadline)break;
+      const related:Record<string,string[]>={rug:['rug_anchor'],table:['seat_table'],light:['seat_light'],focal_point:['seat_facing'],work_seat:['work_seat_facing','work_reach'],task_light:['task_light_reach'],nightstands:n===role.count-1?['nightstand_each_open_side']:[],bedside_lights:n===role.count-1?['light_each_bedside']:[]};
+      if(related[role.role]?.length){const c=scoreComposition(applyOps(preview,[op]),request.room_id,{program:request.program});if(c.issues.some(i=>related[role.role]!.includes(i.code)))continue;}
+      const checked=evaluate([...ops,op],role.role,p.sku);
+      if(checked){selected=op;product=p;paths=checked.paths;break;}
+     }
+     if(selected)break;
     }
     if(selected)break;
+    }
+    if(selected&&product){ops.push(selected);chosen.push(product);cost+=product.price;preview=applyOps(scene,ops);if(selected.type==='add'){anchor??=selected.item;if(role.role==='work_surface')desk=selected.item;}}
+    else missing.push(`${role.role} ${n+1}/${role.count}: ${performance.now()>roleDeadline?'bounded search budget exhausted':'no checked fit in current catalog, budget and access constraints'}`);
    }
-   if(selected&&product){ops.push(selected);chosen.push(product);cost+=product.price;preview=applyOps(scene,ops);if(selected.type==='add'){if(!anchor){anchor=selected.item;deadline=performance.now()+12000;}if(role.role==='work_surface')desk=selected.item;}}
-   else missing.push(`${role.role} ${n+1}/${role.count}: ${performance.now()>deadline?'placement time budget exhausted':'no checked fit found within catalog, budget and access constraints'}`);
+  }
+  const composition=scoreComposition(preview,request.room_id,{program:request.program});
+  for(const issue of composition.issues)missing.push(issue.message);
+  return {ops,products:chosen,missing:[...new Set(missing)],complete:!missing.length,composition,paths};
+ };
+ let best:Variant|undefined;
+ const consider=(candidate:Variant)=>{attempts.push({attempt,pieces:candidate.products.length,missing:candidate.missing});if(!best||Number(candidate.complete)>Number(best.complete)||candidate.products.length>best.products.length||candidate.products.length===best.products.length&&candidate.composition.score>best.composition.score)best=candidate;};
+ const owned=scene.items.some(i=>i.room_id===request.room_id&&roles[0]!.kinds.includes(i.kind)&&qualifies(i.kind,i.size,roles[0]!.role));
+ if(owned){attempt++;consider(build());}
+ else {
+  // Round-robin catalog sizes as well as anchor positions: one SKU must not
+  // spend the whole attempt budget before compact alternatives are considered.
+  const anchors=pools[0]!.slice(0,4).filter(p=>p.price<=(request.budget??Infinity)).map(p=>({p,poses:pieceOps(scene,p,request.room_id,cache,roles[0]!.role)}));
+  let active=true;
+  while(active&&performance.now()<deadline&&attempt<12){
+   active=false;
+   for(const entry of anchors){
+    if(performance.now()>deadline||attempt>=12)break;
+    const next=entry.poses.next();if(next.done)continue;active=true;
+    attempt++;consider(build(next.value,entry.p));
+    if(best?.complete)break;
+   }
+   if(best?.complete||request.budget!==undefined&&requiredMinimum>request.budget&&attempt>=2)break;
   }
  }
- const composition=scoreComposition(preview,request.room_id,{program:request.program});
- for(const issue of composition.issues)if(!program.essentials.some(r=>r.role===issue.code))missing.push(issue.message);
- const complete=!missing.length;
- return {ops,intent:intentFor(scene,ops,extra),missing,complete,products:chosen,timing:{catalog_ms:catalogMs,placement_ms:performance.now()-started-catalogMs},reason:complete?`Placed the ${chosen.map(p=>p.kind).join(', ')} as a checked ${request.program} arrangement, preserving existing furniture and access.`:`Partial layout: ${missing.join('; ')}. This bounded search does not prove impossibility.`,evidence:{catalog,failures,composition,style_basis:styles.length?'customer':'assumed modern',requested_program:program}};
+
+ best??=build();
+ const {ops,products,missing,complete,composition,paths}=best;
+ const minPath=paths.length?Math.min(...paths.map(p=>p.width_m)):undefined;
+ const accessNote=minPath!==undefined&&minPath<.9?` Secondary access is ${minPath.toFixed(2)} m: acceptable at 0.75 m minimum, below the comfortable 0.90 m target.`:'';
+ const budgetNote=request.budget!==undefined&&requiredMinimum>request.budget?` The cheapest currently found full program totals ${requiredMinimum} AMD, above the ${request.budget} AMD budget; this is a catalog-search bound, not proof about all products.`:'';
+ return {ops,intent:intentFor(scene,ops,extra),missing,complete,products,timing:{catalog_ms:catalogMs,placement_ms:performance.now()-started-catalogMs},reason:(complete?`Placed the ${products.map(p=>p.kind).join(', ')} as a complete checked ${request.program} arrangement.`:`Partial layout: ${missing.join('; ')}. This bounded search does not prove impossibility.`)+accessNote+budgetNote,evidence:{catalog,failures,attempts,composition,minimum_found_program_dram:requiredMinimum,style_basis:catalog.style_basis,requested_program:program}};
 }
