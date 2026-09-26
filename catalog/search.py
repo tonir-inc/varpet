@@ -33,6 +33,9 @@ EXTRA_DECOR_KINDS = tuple(kind for kind, target in EDITOR_KIND_OF.items() if tar
 WALL_EXTRA_KINDS = ("wall_art", "mirror", "clock", "wall_hanging")
 # Floor and table lamps; wall lamps stay out through the wall-evidence rule (the editor does not wall-mount lamps).
 EXTRA_LAMP_KINDS = ("lamp",)
+# Furniture and window textiles from pipelines that normalise their models and record a placement
+# (tags.extra.placement: bpy lanes, Poly Haven, pilot). Older extra furniture without one stays out.
+EXTRA_FURNITURE_KINDS = (*(k for k in PLACEABLE_KINDS if k not in EXTRA_DECOR_KINDS), "curtain", "blind")
 
 def build_placeable_sql():
     """Combine unchanged ABO eligibility with extra models, including supported wall decorations."""
@@ -51,7 +54,11 @@ def build_placeable_sql():
         f" and (kind in ({', '.join(repr(k) for k in WALL_EXTRA_KINDS)}) or (coalesce(split_part(id, ':', 3), '') !~* '(wall|mount|hang|lift)'"
         " and coalesce(tags->'extra'->>'notes', '') !~* '(wall|mount|hang|lift)')))"
     )
-    return f"({abo} or {extra})"
+    furniture = (
+        f"(kind in ({', '.join(repr(k) for k in EXTRA_FURNITURE_KINDS)}) and source = 'extra'"
+        " and glb_url is not null and coalesce(tags->'extra'->>'placement', '') in ('floor', 'wall', 'surface'))"
+    )
+    return f"({abo} or {extra} or {furniture})"
 
 
 PLACEABLE = build_placeable_sql()
