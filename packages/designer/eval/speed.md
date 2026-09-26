@@ -151,3 +151,32 @@ Within that revision, A uses `--speed-profile without-place --effort medium`; B 
 D adds `--context trimmed`. E/F use `--context compact`; K/L use `--context compact-base`.
 Every command uses `--concurrency 4 --timeout 240 < /dev/null`. The current runtime's source of model
 metadata is local and can change; compare recorded catalog hashes rather than assuming identical context.
+
+## Completion evidence
+
+DONE: 6 of 7; the remaining requirement is consistent sub-minute latency.
+
+- 1 ✗ Task command completed: final six records all grade/policy PASS, median 47.959 s,
+  maximum 68.185 s, median 55,973 tokens. Four of six meet the 60-second target; two do not.
+- 2 ✓ Untargeted `pnpm test`: 270 designer tests / 52 files, 89 Python tests, 7 tool tests,
+  1,791 editor assertions and 9 grouping checks; exit 0. `pnpm typecheck`: three package tasks, exit 0.
+  `cd harness && uv run --no-sync pytest -q`: 106 passed, 41 subtests passed.
+  `python3 -m unittest discover -s packages/designer/eval -p 'test_*.py'`: 15 tests, OK.
+- 3 ✓ New behavior is covered in `harness/designer_speed_test.py` and
+  `harness/designer_default_test.py`, including exact defaults, SDK audit serialization, context scope,
+  static catalog isolation, round/call guards and explicit service settings.
+- 4 ✓ Compared with upstream `06a5617`, no grader, scenario, fixture, schema, bridge, adapter or
+  existing test is weakened or changed by the speed work. `git diff --check` is clean.
+- 5 ✓ Fresh-context reviewer verdict: APPROVE; subsequent upstream-scope reconciliation: APPROVE.
+- 6 ✓ Selection assumption and all latency/quality limits are stated above; no slow sample is dropped.
+- 7 ✓ This session wrote the speed changes; review agents were read-only. Files: `harness/designer.py`,
+  `designer_profiles.py`, `designer_service.py`, the two new tests, `harness/README.md`,
+  `packages/designer/eval/run.py`, this report and generated run records. Upstream changes were rebased in.
+
+[measured] The actual service CLI started with the selected defaults and returned HTTP 200
+`{"ok":true}` from `/designer/health`. One concurrent root-test run hit the upstream placement test's
+5-second timeout; running root tests alone passed without any test edit. The first full Python run
+needed upstream's newly declared Shapely dependency; installing Shapely 2.1.2 resolved collection.
+
+Not proven: every request below 60 seconds, live colour/group reasoning, browser acceptance or human
+preference. Benchmark model/tool calls were live; the engine integration still uses local checks.
