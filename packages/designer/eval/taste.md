@@ -1,6 +1,20 @@
 # TASTE — living-room before/after, 26 September 2026
 
-## Scope and evidence
+## Correction: removed sofas stay removed
+
+[measured, 2026-09-26] Ashot correctly rejected the previous after-shot: it re-added a sofa after he asked to remove the couch. The earlier **10/13 claim is withdrawn**; the same saved results score **9/13** under the corrected request rubric (`grades-corrected-retry.json`). Original images and grades remain available as historical evidence below.
+
+[measured] The removal-only rerun (`after-removal/`) is **10/13**, versus **0/13** baseline under the same corrected rubric. Ashot passes with **two facing chairs, one rug, two floor lamps, a side table and shelving, no sofa**: [ashot-furnished-3d.png](taste-runs/after-removal/ashot-furnished-3d.png). Both actual HTTP turns were applied by EditorStore. Corrected score **63 → 100**; two-turn time **99.2 → 156.4 s**. Industrial and boho still have no complete candidate; furnished Japandi offered a conversational choice instead of a proposal, so its saved scene is unchanged and the application rubric fails it. This rerun replaces the wrong seating result; it does not establish a latency improvement or customer preference.
+
+[derived] The independent rubric now accepts either a useful sofa or two chairs and rejects any customer-excluded kind still present. With a removed sofa, composition requires two alternative seats and forbids sofas. The original sofa-required acceptance rule was wrong for this request; it was corrected on the customer's explicit instruction, with a regression proving the old after-shot fails.
+
+[measured] Customer-authored conversation history reaches both MCP and final editor gates. Model `set_intent` cannot release exclusions. Explicit subsequent addition can release a kind; location references, upholstery modifiers and negated additions cannot. Product runtime guidance lives in `harness/prompts/interior-design-rules.md` after main's prompt migration. [scope limit] The parser covers conservative explicit English furniture clauses in the HTTP product conversation; arbitrary language and standalone CLI history persistence are not established.
+
+[measured] The removal-only arm ran on the working tree over `8dd8b77` while review tightened parser edge cases; its raw `service_source` intentionally records a pending commit rather than falsely claiming a frozen release. The fixed eval requests did not change. A subsequent frozen arm will assess the industrial/boho changes. The baseline was regraded without rerunning or overwriting its saved scenes.
+
+[measured] Removal verification: untargeted `VITEST_MAX_WORKERS=2 pnpm test` and `pnpm typecheck` exited 0 on main through `a3b62dd` plus the removal change. Output: **83 designer files / 415 tests; Python 123 + 38; showcase 12; editor 24 + 122**, plus all editor assertion scripts. Logs: `taste-runs/verification/removal-*.log`. Nine focused removal/rubric tests pass; new regressions failed before each fix. No existing test, fixture or schema was weakened. Fresh-context reviewer `/root/taste_review`: **APPROVE** for explicit-English HTTP removal policy; arbitrary-language parsing and standalone CLI persistence remain unproven. All 13 removal screenshots and all 13 baseline captures passed `--require-captures`.
+
+## Historical scope and evidence
 
 [measured] Eight style records and seven room programs now feed `search_catalog` and the code-generated candidate planner. A style request searches every program kind, filters catalog style/image-colour evidence, prefers confirmed dimensions, and exposes two complete checked candidates. The model proposes a candidate ID. Existing physical, budget, keeps and approval gates still apply. The two candidates differ in orientation; their binary composition scores can tie.
 
@@ -10,7 +24,7 @@
 
 [derived] Pass requires the requested composition checks **and** a separate acceptance rubric: successful editor application, sofa width at least 1.4 m, rug area at least 3 m², two lamps, reachable low-table category and focal storage. The independent rubric does not call the generator. The composition score itself is also the planner's gate, so its improvement alone is circular evidence; screenshots and independent item/approval checks accompany it. There is no human preference vote. N=13 cannot establish a general win or reliable differences between individual styles.
 
-## Frozen results
+## Historical frozen results (Ashot pass withdrawn)
 
 [measured] First frozen after arm (`ef6c2f9`): **8/13**, including a failed Ashot second turn. Classic and furnished Scandinavian also encountered catalog unavailability; industrial/boho lacked complete coherent sets. This completed arm is retained in `after-final/` and `grades-first-frozen.json`. The subsequent fix retries each unavailable kind exactly once, reports `retried_kinds`, and preserves persistent failure. It does not retry a valid empty result.
 
@@ -42,7 +56,7 @@
 
 [measured] Declines, questions and unchanged furnished rooms count as failures. Catalog unavailability is not silently removed from the denominator. The baseline cozy request also encountered catalog unavailability. Tool results and token usage are saved in each `*-telemetry.json`; wall time sums both Ashot turns, as do token counts. Process and tool timings are recorded separately; model-only and network-only latency cannot be isolated from this instrumentation.
 
-## Ashot's case
+## Historical Ashot case (the sofa result below is rejected)
 
 [derived replay] The supplied live log's exact final chair/table poses are reconstructed in [ashot-live-furnished-3d.png](taste-runs/historical/ashot-live-furnished-3d.png): two parallel chairs and a tiny table on the west wall, with no sofa, rug, light or focal storage. This is a furniture replay on Avani, not the original browser capture; unrecorded paint segmentation is not reconstructed. Its logged free-floor change (18.36 → 29.64 m²) is not compared numerically with this eval's Avani shell.
 
