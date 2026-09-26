@@ -52,7 +52,7 @@ body[data-mode=designer] .for-hand,body[data-mode=hand] .for-designer{display:no
 .says .eta{display:block;font-size:13px;color:var(--ink-soft);margin-top:2px}
 .says .try{margin-top:10px;border:1px solid var(--draft);color:var(--draft);background:transparent;border-radius:3px;padding:7px 12px;font-weight:600;font-size:14px}
 .decide{display:flex;gap:8px}
-.decide button{flex:1;border:1px solid var(--plaster);background:rgba(255,255,255,.95);color:var(--plaster);border-radius:3px;padding:11px 14px;font-weight:600}
+.decide button{flex:1;border:1px solid var(--tuff-line);background:var(--paper);color:var(--basalt);border-radius:3px;padding:11px 14px;font-weight:600}
 .decide .primary{background:var(--draft);border-color:var(--draft);color:var(--paper)}
 .composer{display:flex;gap:8px;align-items:center;background:var(--plaster);border-radius:3px;padding:6px}
 .composer input{flex:1;border:0;background:transparent;padding:10px 6px;min-width:0;outline:none}

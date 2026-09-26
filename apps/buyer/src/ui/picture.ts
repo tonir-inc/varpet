@@ -29,8 +29,8 @@ export function pictureBoxes(pieces: Piece[], boxes: Map<number, [number, number
     const [x, y, w, h] = box.map(v => v * 100) as [number, number, number, number];
     const pending = !DONE.has(piece.status);
     const enter = drawn.has(piece.key) ? '' : ` class="enter" style="animation-delay:${(fresh++ * 0.38).toFixed(2)}s"`;
-    return [`<rect x="${x}%" y="${y}%" width="${w}%" height="${h}%" rx="3" fill="none" stroke="#2F44C8" stroke-width="2.5"${pending ? ' stroke-dasharray="4 4"' : ''}${enter}/>`,
-      `<g${enter}><circle cx="${x + w}%" cy="${y}%" r="10" fill="${pending ? '#FBF7F5' : '#2F44C8'}" stroke="#2F44C8" stroke-width="1.5"/>`,
-      `<text x="${x + w}%" y="${y}%" dy="4.5" text-anchor="middle" font-size="13" font-weight="700" font-family="Noto Sans, sans-serif" fill="${pending ? '#2F44C8' : '#fff'}">${piece.key}</text></g>`];
+    return [`<rect x="${x}%" y="${y}%" width="${w}%" height="${h}%" rx="3" fill="none" stroke="#0C6A55" stroke-width="2.5"${pending ? ' stroke-dasharray="4 4"' : ''}${enter}/>`,
+      `<g${enter}><circle cx="${x + w}%" cy="${y}%" r="10" fill="${pending ? '#FBF7F5' : '#0C6A55'}" stroke="#0C6A55" stroke-width="1.5"/>`,
+      `<text x="${x + w}%" y="${y}%" dy="4.5" text-anchor="middle" font-size="13" font-weight="700" font-family="Noto Sans, sans-serif" fill="${pending ? '#0C6A55' : '#fff'}">${piece.key}</text></g>`];
   }).join('');
 }
