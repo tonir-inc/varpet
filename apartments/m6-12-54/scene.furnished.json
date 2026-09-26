@@ -867,7 +867,7 @@
         3.350515
       ],
       "end": [
-        -2.278351,
+        -2.402062,
         3.350515
       ],
       "height": 2.8,
@@ -878,11 +878,11 @@
     {
       "id": "wall-divider-tail",
       "start": [
-        -2.443299,
+        -2.402062,
         3.350515
       ],
       "end": [
-        -2.443299,
+        -2.402062,
         4.051546
       ],
       "height": 2.8,
@@ -893,15 +893,15 @@
     {
       "id": "wall-bedroom-large-balcony",
       "start": [
-        -2.350515,
+        -2.402062,
         4.051546
       ],
       "end": [
-        -2.350515,
+        -2.402062,
         5.154639
       ],
       "height": 2.8,
-      "thickness": 0.185567,
+      "thickness": 0.309278,
       "color": "#b5ada0",
       "openings": [
         {
@@ -960,7 +960,7 @@
         5.154639
       ],
       "end": [
-        -2.443299,
+        -2.402062,
         5.154639
       ],
       "height": 2.8,
@@ -971,7 +971,7 @@
     {
       "id": "wall-bedroom-small-glazing",
       "start": [
-        -2.443299,
+        -2.402062,
         3.505155
       ],
       "end": [
@@ -985,7 +985,7 @@
         {
           "id": "door-balcony-small",
           "kind": "door",
-          "offset": 0.195876,
+          "offset": 0.154639,
           "width": 0.793814,
           "height": 2.2,
           "sill": 0
@@ -993,7 +993,7 @@
         {
           "id": "window-bedroom-small",
           "kind": "window",
-          "offset": 0.989691,
+          "offset": 0.948454,
           "width": 0.85567,
           "height": 2.35,
           "sill": 0.25
@@ -4135,7 +4135,7 @@
           "sourceId": "source-m6-plan",
           "x": 0.26328125,
           "y": 0.738255033557047,
-          "width": 0.07578125,
+          "width": 0.06640625,
           "height": 0.03355704697986577
         }
       },
@@ -4168,7 +4168,7 @@
         "question": "Confirm against a structural plan or site survey before planning alterations.",
         "sourceRegion": {
           "sourceId": "source-m6-plan",
-          "x": 0.2953125,
+          "x": 0.2984375,
           "y": 0.738255033557047,
           "width": 0.03125,
           "height": 0.09060402684563758
@@ -4203,7 +4203,7 @@
         "question": "Confirm against a structural plan or site survey before planning alterations.",
         "sourceRegion": {
           "sourceId": "source-m6-plan",
-          "x": 0.30234375,
+          "x": 0.2984375,
           "y": 0.7953020134228188,
           "width": 0.03125,
           "height": 0.12332214765100671
@@ -4366,7 +4366,7 @@
           "sourceId": "source-m6-plan",
           "x": 0.22734375,
           "y": 0.8850671140939598,
-          "width": 0.09921875,
+          "width": 0.10234375,
           "height": 0.03355704697986577
         }
       },
@@ -4399,9 +4399,9 @@
         "question": "Confirm against a structural plan or site survey before planning alterations.",
         "sourceRegion": {
           "sourceId": "source-m6-plan",
-          "x": 0.2953125,
+          "x": 0.2984375,
           "y": 0.7508389261744967,
-          "width": 0.17109375,
+          "width": 0.16796875,
           "height": 0.03355704697986577
         }
       },

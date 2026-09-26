@@ -74,13 +74,16 @@ wall('bedroom-small-north', 'Kitchen / Bedroom 2 partition', [379,529],[676,529]
 wall('bedroom-small-east', 'Living / Bedroom 2 partition', [676,464],[676,915],18,'partition');
 wall('bedroom-small-entry', 'Bedroom 2 · entrance', [390,529],[390,633],18,'partition','interior', [opening('door-bedroom-small','Bedroom 2 door',10,88,{swing:-1})]);
 wall('bedroom-divider', 'Hatched fixed divider between bedrooms', [390,633],[390,900],32,'structural');
-wall('divider-pier', 'Hatched widened bedroom pier', [357,900],[414,900],48,'structural');
-wall('divider-tail', 'Hatched pier · balcony return', [398,900],[398,968],30,'structural','exterior');
-wall('bedroom-large-balcony', 'Bedroom 1 · balcony doorway', [407,968],[407,1075],18,'unknown','exterior', [opening('door-balcony-large','Bedroom 1 to shared balcony',2,86,{role:'balcony',hinge:'right',swing:1})]);
+// The pier tail and Bedroom 1's balcony doorway share one 30 px facade line at x=402 (faces 387..417,
+// flush with the balcony floor edge), so they join end to end, and the pier and south return meet it at
+// corners. Parallel runs a few pixels apart never join in the editor and render as stepped blocks.
+wall('divider-pier', 'Hatched widened bedroom pier', [357,900],[402,900],48,'structural');
+wall('divider-tail', 'Hatched pier · balcony return', [402,900],[402,968],30,'structural','exterior');
+wall('bedroom-large-balcony', 'Bedroom 1 · balcony doorway', [402,968],[402,1075],30,'unknown','exterior', [opening('door-balcony-large','Bedroom 1 to shared balcony',2,86,{role:'balcony',hinge:'right',swing:1})]);
 wall('bedroom-large-south', 'Bedroom 1 · south window facade', [71,1059],[311,1059],12,'unknown','exterior', [opening('window-bedroom-large','Bedroom 1 south window',72,162,{kind:'window'})]);
 wall('bedroom-large-south-step', 'Bedroom 1 · south facade step', [311,1059],[311,1075],12,'unknown','exterior');
-wall('bedroom-large-south-return', 'Bedroom 1 · south facade return', [311,1075],[398,1075],25,'structural','exterior');
-wall('bedroom-small-glazing', 'Bedroom 2 · balcony door and window', [398,915],[577,915],20,'unknown','exterior', [opening('door-balcony-small','Bedroom 2 to shared balcony',19,77,{role:'balcony',swing:-1}), opening('window-bedroom-small','Bedroom 2 balcony window',96,83,{kind:'window'})]);
+wall('bedroom-large-south-return', 'Bedroom 1 · south facade return', [311,1075],[402,1075],25,'structural','exterior');
+wall('bedroom-small-glazing', 'Bedroom 2 · balcony door and window', [402,915],[577,915],20,'unknown','exterior', [opening('door-balcony-small','Bedroom 2 to shared balcony',15,77,{role:'balcony',swing:-1}), opening('window-bedroom-small','Bedroom 2 balcony window',92,83,{kind:'window'})]);
 wall('south-pier', 'Hatched solid south facade pier', [577,915],[750,915],40,'structural','exterior');
 wall('living-south-window', 'Living · south window', [750,915],[917,915],30,'unknown','exterior', [opening('window-living-south','Living south window',0,167,{kind:'window'})]);
 wall('living-south-return', 'Living · southeast facade', [917,915],[989,915],40,'structural','exterior');
