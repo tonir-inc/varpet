@@ -1,0 +1,209 @@
+{
+  "source": "02c907b",
+  "bridge_fix": "20f2402",
+  "service_port": 53130,
+  "fast_path": "1",
+  "model": "gpt-6-astra",
+  "effort": "low",
+  "profile": {
+    "placement": "without-place",
+    "context": "compact-base"
+  },
+  "cases": [
+    {
+      "request_source": "acceptance-runs/20260926T163635Z/m6-1/living-request.json",
+      "seconds": 42.52587425004458,
+      "reply": {
+        "type": "proposal",
+        "conversationId": "e69ca8f455aa43aebd84e42567141ed2",
+        "proposal": {
+          "id": "designer-a1f43f38cc623f844a082d923fa3df35e557e18c8d464f98045b1cf9d98b0463",
+          "title": "Partial layout for the living and dining area",
+          "description": "Partial layout: table 1/1: placement time budget exhausted; light 1/1: placement time budget exhausted; focal_point 1/1: placement time budget exhausted; Every seat must face a focal point or another seat.; Each seat needs a usable table within 0.60 m of its edge.; Each seat needs a reading lamp within 0.90 m of its edge.. This bounded search does not prove impossibility. I’ve added 2 new pieces to the living and dining area. Catalog price: 299,000 ֏. The trade-off: 1.53 m² less open floor for the new furniture.",
+          "command": {
+            "id": "designer-a1f43f38cc623f844a082d923fa3df35e557e18c8d464f98045b1cf9d98b0463",
+            "label": "Apply designer layout",
+            "source": "designer",
+            "baseRevision": 0,
+            "operations": [
+              {
+                "type": "add",
+                "object": {
+                  "id": "fast-31e4c08fbfe5",
+                  "name": "Amazon Brand – Rivet Edgewest Low Back Modern Loveseat, 65\"W, Beige",
+                  "assetId": "abo:B07BW8P2F7",
+                  "position": [
+                    1.92268,
+                    0,
+                    -2.149484
+                  ],
+                  "rotation": 0.021874388063670733,
+                  "scale": [
+                    1,
+                    1,
+                    1
+                  ]
+                }
+              },
+              {
+                "type": "add",
+                "object": {
+                  "id": "room-1-abo:B07HSMDG8C",
+                  "name": "Amazon Brand – Stone & Beam Modern Persian Area Rug, 4 x 6 Foot, Blue and Red Multicolor",
+                  "assetId": "abo:B07HSMDG8C",
+                  "position": [
+                    1.9395842726554096,
+                    0,
+                    -1.3768188926824823
+                  ],
+                  "rotation": 0.021874388063670733,
+                  "scale": [
+                    1,
+                    1,
+                    1
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "notes": "Layout checks use room-face corrections up to 53 mm and retain 19 walls as fixed structure. Original editor geometry is retained; dimensions need on-site confirmation. \nConfirm catalog prices with the shop. Budget not set. Existing access problems remain; this proposal does not make them worse."
+      },
+      "editor": {
+        "applied": {
+          "ok": true,
+          "errors": [],
+          "warnings": [],
+          "revision": 1
+        },
+        "undo_exact": true,
+        "rooms_unchanged": true,
+        "walls_unchanged": true,
+        "project_unchanged": true,
+        "added": [
+          {
+            "id": "fast-31e4c08fbfe5",
+            "assetId": "abo:B07BW8P2F7"
+          },
+          {
+            "id": "room-1-abo:B07HSMDG8C",
+            "assetId": "abo:B07HSMDG8C"
+          }
+        ]
+      }
+    },
+    {
+      "request_source": "acceptance-runs/20260926T163635Z/m6-1/paint-request.json",
+      "seconds": 58.72876312502194,
+      "reply": {
+        "type": "proposal",
+        "conversationId": "12b8df22a2bc4780944946e0c78adbbd",
+        "proposal": {
+          "id": "designer-3a4dbf9b4e572055bd289c1318392a607b07ffb843c8ea27b3856f29712cf416",
+          "title": "Fresh colour for the bedroom 1",
+          "description": "I’ve given 11 wall sections a fresh colour, keeping the layout just as it is. No furniture purchases are needed. The trade-off: the colour covers both sides of each selected wall, including shared walls.",
+          "command": {
+            "id": "designer-3a4dbf9b4e572055bd289c1318392a607b07ffb843c8ea27b3856f29712cf416",
+            "label": "Apply designer layout",
+            "source": "designer",
+            "baseRevision": 1,
+            "operations": [
+              {
+                "type": "update-wall",
+                "id": "wall-west-bedroom",
+                "patch": {
+                  "color": "#f5f1e8"
+                }
+              },
+              {
+                "type": "update-wall",
+                "id": "wall-bath-east:section-1dnd4lo",
+                "patch": {
+                  "color": "#f5f1e8"
+                }
+              },
+              {
+                "type": "update-wall",
+                "id": "wall-bath-south",
+                "patch": {
+                  "color": "#f5f1e8"
+                }
+              },
+              {
+                "type": "update-wall",
+                "id": "wall-bedroom-large-entry",
+                "patch": {
+                  "color": "#f5f1e8"
+                }
+              },
+              {
+                "type": "update-wall",
+                "id": "wall-bedroom-divider",
+                "patch": {
+                  "color": "#f5f1e8"
+                }
+              },
+              {
+                "type": "update-wall",
+                "id": "wall-bedroom-divider:section-1k1q5tf",
+                "patch": {
+                  "color": "#f5f1e8"
+                }
+              },
+              {
+                "type": "update-wall",
+                "id": "wall-divider-tail:section-uuy0gu",
+                "patch": {
+                  "color": "#f5f1e8"
+                }
+              },
+              {
+                "type": "update-wall",
+                "id": "wall-bedroom-large-balcony",
+                "patch": {
+                  "color": "#f5f1e8"
+                }
+              },
+              {
+                "type": "update-wall",
+                "id": "wall-bedroom-large-south",
+                "patch": {
+                  "color": "#f5f1e8"
+                }
+              },
+              {
+                "type": "update-wall",
+                "id": "wall-bedroom-large-south-step",
+                "patch": {
+                  "color": "#f5f1e8"
+                }
+              },
+              {
+                "type": "update-wall",
+                "id": "wall-bedroom-large-south-return",
+                "patch": {
+                  "color": "#f5f1e8"
+                }
+              }
+            ]
+          }
+        },
+        "notes": "Layout checks use room-face corrections up to 53 mm and retain 19 walls as fixed structure. Original editor geometry is retained; dimensions need on-site confirmation. \nExisting access problems remain; this proposal does not make them worse. Paint and labour are not priced."
+      },
+      "editor": {
+        "applied": {
+          "ok": true,
+          "errors": [],
+          "warnings": [],
+          "revision": 2
+        },
+        "undo_exact": true,
+        "rooms_unchanged": true,
+        "walls_unchanged": false,
+        "project_unchanged": false,
+        "added": []
+      }
+    }
+  ],
+  "omitted": "Full metrics and raw NDJSON retained in /tmp/varpet-m6-hotfix; customer replies and commands preserved here."
+}
