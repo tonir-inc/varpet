@@ -14,8 +14,10 @@ cameras. Entering Inside adds no window spotlights and preserves the selected
 Sun, sky environment, ambient colors, fill/rim lights, furniture lamp intensity,
 exposure (0.78), and studio grade/contact shadows. Explicit Evening preview dims
 the same rig in either view; returning to Day restores the chosen sky. Full
-walls, opaque ceilings, the outdoor backdrop, standing height and walking controls
-remain presentation choices for Inside. The physical sun-shadow shell still
+walls, the outdoor backdrop, standing height and walking controls remain
+presentation choices for Inside. Ceilings now persist in every view with only
+their inward face rendered; see [the ceiling visibility correction](ceiling-designs.md#ceiling-visibility-correction).
+The physical sun-shadow shell still
 blocks sunlight through roofs and walls even in cutaway view.
 
 `/lighting-parity-qa.html` verifies the current contract with the real WebGL

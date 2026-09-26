@@ -15,6 +15,18 @@ uv run pytest -q   # tests/fakes/compiler.py fails once then passes, per compile
 
 Runs land in `~/.varpet/runs` (or `$VARPET_RUNS`), outside the repo, so threads load only the skills they are given.
 
+## Tracing
+Every Codex conversation in any process that imports `varpet_harness` (harness, designer, designer_fast, piece
+worker, serve) is traced by `observe.py`, a tap on the SDK's JSON-RPC wire; no call site changes.
+- Local, always: one JSONL per thread in `.varpet/traces/<date>/<thread id>.jsonl` (`$VARPET_TRACE_DIR`):
+  thread (model, instructions, tools, tags), each turn's items (user input, reasoning, messages, commands,
+  file changes, tool calls; long text cut at 8k, data URLs dropped) and per-turn token usage.
+- Langfuse, when `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_BASE_URL` are in the env or
+  `~/.config/varpet/env`, and `uv sync --extra trace`: team instance https://langfuse.snek.page (deploy:
+  `deploy/langfuse/deploy.sh`). One trace per turn, session = thread id, a generation with usage, tools as spans.
+- `observe.tag(job=..., run=...)` labels threads started inside it. `VARPET_TRACE=0` off; `VARPET_TRACE_RAW=1`
+  also dumps the raw wire. Langfuse v4 serves traces through `/api/public/v2/observations`; `/traces` is gone.
+
 ## Designer HTTP service
 
 From the repository root, install `harness/designer_requirements.txt` into your Python environment

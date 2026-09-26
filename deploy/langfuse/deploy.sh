@@ -20,7 +20,7 @@ set -e
 command -v docker >/dev/null && sudo -n docker compose version >/dev/null || { echo "docker + compose plugin missing on the VM" >&2; exit 1; }
 avail=$(awk '/MemAvailable/ {print int($2/1024)}' /proc/meminfo)
 echo "VM MemAvailable: ${avail} MB"
-[ "$avail" -ge 4000 ] || { echo "refusing: under 4 GB free for Langfuse, caps total 5 GB" >&2; exit 1; }
+[ "$avail" -ge 4000 ] || { echo "refusing: under 4 GB free for Langfuse, caps total 7.3 GB" >&2; exit 1; }
 EOF
 
 vm "sudo -n mkdir -p $DIR && sudo -n chown \$(id -u):\$(id -g) $DIR"

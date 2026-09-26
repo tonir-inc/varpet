@@ -1,0 +1,83 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Writing your answer"}
+{"type": "message_delta", "delta": "**I haven"}
+{"type": "message_delta", "delta": "’t"}
+{"type": "message_delta", "delta": " proposed"}
+{"type": "message_delta", "delta": " or"}
+{"type": "message_delta", "delta": " changed"}
+{"type": "message_delta", "delta": " a"}
+{"type": "message_delta", "delta": " layout"}
+{"type": "message_delta", "delta": " yet"}
+{"type": "message_delta", "delta": "**"}
+{"type": "message_delta", "delta": "—"}
+{"type": "message_delta", "delta": "your"}
+{"type": "message_delta", "delta": " scene"}
+{"type": "message_delta", "delta": " still"}
+{"type": "message_delta", "delta": " has"}
+{"type": "message_delta", "delta": " no"}
+{"type": "message_delta", "delta": " furniture"}
+{"type": "message_delta", "delta": "."}
+{"type": "message_delta", "delta": " My"}
+{"type": "message_delta", "delta": " last"}
+{"type": "message_delta", "delta": " message"}
+{"type": "message_delta", "delta": " offered"}
+{"type": "message_delta", "delta": " three"}
+{"type": "message_delta", "delta": " directions"}
+{"type": "message_delta", "delta": " for"}
+{"type": "message_delta", "delta": " “"}
+{"type": "message_delta", "delta": "co"}
+{"type": "message_delta", "delta": "zier"}
+{"type": "message_delta", "delta": ",”"}
+{"type": "message_delta", "delta": " rather"}
+{"type": "message_delta", "delta": " than"}
+{"type": "message_delta", "delta": " choosing"}
+{"type": "message_delta", "delta": " one"}
+{"type": "message_delta", "delta": " for"}
+{"type": "message_delta", "delta": " you"}
+{"type": "message_delta", "delta": ".\n\n"}
+{"type": "message_delta", "delta": "The"}
+{"type": "message_delta", "delta": " living"}
+{"type": "message_delta", "delta": "-room"}
+{"type": "message_delta", "delta": " option"}
+{"type": "message_delta", "delta": " suggested"}
+{"type": "message_delta", "delta": " seating"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": " a"}
+{"type": "message_delta", "delta": " rug"}
+{"type": "message_delta", "delta": " and"}
+{"type": "message_delta", "delta": " lamps"}
+{"type": "message_delta", "delta": " because"}
+{"type": "message_delta", "delta": " they"}
+{"type": "message_delta", "delta": " can"}
+{"type": "message_delta", "delta": " create"}
+{"type": "message_delta", "delta": " an"}
+{"type": "message_delta", "delta": " inviting"}
+{"type": "message_delta", "delta": " place"}
+{"type": "message_delta", "delta": " to"}
+{"type": "message_delta", "delta": " relax"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": " visually"}
+{"type": "message_delta", "delta": " bring"}
+{"type": "message_delta", "delta": " the"}
+{"type": "message_delta", "delta": " seating"}
+{"type": "message_delta", "delta": " together"}
+{"type": "message_delta", "delta": " and"}
+{"type": "message_delta", "delta": " add"}
+{"type": "message_delta", "delta": " softer"}
+{"type": "message_delta", "delta": " lighting"}
+{"type": "message_delta", "delta": "."}
+{"type": "message_delta", "delta": " No"}
+{"type": "message_delta", "delta": " products"}
+{"type": "message_delta", "delta": " or"}
+{"type": "message_delta", "delta": " positions"}
+{"type": "message_delta", "delta": " have"}
+{"type": "message_delta", "delta": " been"}
+{"type": "message_delta", "delta": " selected"}
+{"type": "message_delta", "delta": " or"}
+{"type": "message_delta", "delta": " checked"}
+{"type": "message_delta", "delta": " yet"}
+{"type": "message_delta", "delta": "."}
+{"type": "message", "message": "**I haven’t proposed or changed a layout yet**—your scene still has no furniture. My last message offered three directions for “cozier,” rather than choosing one for you.\n\nThe living-room option suggested seating, a rug and lamps because they can create an inviting place to relax, visually bring the seating together and add softer lighting. No products or positions have been selected or checked yet.", "conversationId": "d0ceb0b608394fc1b159ad118458047f"}

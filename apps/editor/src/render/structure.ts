@@ -8,6 +8,8 @@ import { disposeObject } from './assets';
 import { finishAppearance, makeFinishMaterial, type FinishMaterialProjection, type FinishReveal } from './finish-material';
 import { MOTION, setProjectionOpacity } from './motion';
 import { wallFootprint, wallPrismGeometry } from './wall-geometry';
+import { applyCeilingIndirectLight } from './ceiling-design';
+import { makeCeilingGeometry } from './ceiling-geometry';
 
 export type { FinishReveal } from './finish-material';
 
@@ -262,9 +264,16 @@ export function makeStructure(document: SceneDocument, reveal?: FinishReveal): S
     const floor = new THREE.Mesh(geometry, [floorMaterial, new THREE.MeshStandardMaterial({ color: '#888888', roughness: 0.94 })]);
     floor.userData.finishEntityId = room.id; floor.userData.finishSurfaces = { 0: 'floor' };
     floor.rotation.x = -Math.PI / 2; floor.position.y = elevation - 0.14; floor.receiveShadow = true; floor.castShadow = true; roomGroup.add(floor);
-    if (!['balcony', 'terrace'].includes(meta.zone ?? 'interior')) {
-      const ceiling = new THREE.Mesh(new THREE.ShapeGeometry(floorShape(room)), new THREE.MeshStandardMaterial({ color: finishColor(room.id, 'ceiling', '#f1eee6'), roughness: 0.9, side: THREE.DoubleSide, transparent: true, opacity: 0.45 }));
-      ceiling.rotation.x = -Math.PI / 2; ceiling.position.y = elevation + roomCeilingHeight(document, room); ceiling.userData.entityId = room.id; ceilings.add(ceiling);
+    if (meta.phase !== 'remove' && !['balcony', 'terrace'].includes(meta.zone ?? 'interior')) {
+      // Face the room in both the color pass and the AO normal/depth pass.
+      // The exterior face is naturally culled, including in Top view.
+      const material = new THREE.MeshStandardMaterial({ color: finishColor(room.id, 'ceiling', '#f1eee6'), roughness: 0.9 });
+      applyCeilingIndirectLight(material, meta.ceilingDesign);
+      const ceiling = new THREE.Mesh(makeCeilingGeometry(document, room), material);
+      ceiling.position.y = elevation + roomCeilingHeight(document, room);
+      ceiling.receiveShadow = true; ceiling.userData.entityId = room.id; ceiling.userData.shellPart = 'ceiling';
+      // SunOccluders owns the intact roof's shadow geometry in every view.
+      ceilings.add(ceiling);
     }
     const c = new THREE.Box3().setFromObject(floor).getCenter(new THREE.Vector3());
     const zone = meta.zone && meta.zone !== 'interior' ? ` · ${meta.zone}` : '';
@@ -347,7 +356,7 @@ export function makeStructure(document: SceneDocument, reveal?: FinishReveal): S
       alpha: [1, 0, 1], from: [1, 0, 1], target: [1, 0, 1], started: 0, initialized: false, cut: false };
     return state;
   });
-  const direction = new THREE.Vector3(); const toCamera = new THREE.Vector3(); ceilings.visible = false; dimensions.visible = false;
+  const direction = new THREE.Vector3(); const toCamera = new THREE.Vector3(); dimensions.visible = false;
   return {
     group, bounds, entities, openings, ceilings, dimensions,
     updateFinishes(now) {

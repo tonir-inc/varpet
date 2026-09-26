@@ -1,0 +1,84 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Writing your answer"}
+{"type": "message_delta", "delta": "**The total"}
+{"type": "message_delta", "delta": " in"}
+{"type": "message_delta", "delta": " ֏"}
+{"type": "message_delta", "delta": " is"}
+{"type": "message_delta", "delta": " not"}
+{"type": "message_delta", "delta": " yet"}
+{"type": "message_delta", "delta": " known"}
+{"type": "message_delta", "delta": "."}
+{"type": "message_delta", "delta": "**"}
+{"type": "message_delta", "delta": " We"}
+{"type": "message_delta", "delta": "’ve"}
+{"type": "message_delta", "delta": " discussed"}
+{"type": "message_delta", "delta": " a"}
+{"type": "message_delta", "delta": " cozy"}
+{"type": "message_delta", "delta": " direction"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": " but"}
+{"type": "message_delta", "delta": " no"}
+{"type": "message_delta", "delta": " furniture"}
+{"type": "message_delta", "delta": " has"}
+{"type": "message_delta", "delta": " been"}
+{"type": "message_delta", "delta": " selected"}
+{"type": "message_delta", "delta": " or"}
+{"type": "message_delta", "delta": " laid"}
+{"type": "message_delta", "delta": " out"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": " so"}
+{"type": "message_delta", "delta": " there"}
+{"type": "message_delta", "delta": " are"}
+{"type": "message_delta", "delta": " no"}
+{"type": "message_delta", "delta": " verified"}
+{"type": "message_delta", "delta": " per"}
+{"type": "message_delta", "delta": "-piece"}
+{"type": "message_delta", "delta": " prices"}
+{"type": "message_delta", "delta": " or"}
+{"type": "message_delta", "delta": " shops"}
+{"type": "message_delta", "delta": " to"}
+{"type": "message_delta", "delta": " list"}
+{"type": "message_delta", "delta": ".\n\n"}
+{"type": "message_delta", "delta": "I"}
+{"type": "message_delta", "delta": " can"}
+{"type": "message_delta", "delta": " prepare"}
+{"type": "message_delta", "delta": " a"}
+{"type": "message_delta", "delta": " cozy"}
+{"type": "message_delta", "delta": " living"}
+{"type": "message_delta", "delta": "-room"}
+{"type": "message_delta", "delta": " preview"}
+{"type": "message_delta", "delta": " with"}
+{"type": "message_delta", "delta": " actual"}
+{"type": "message_delta", "delta": " catalog"}
+{"type": "message_delta", "delta": " pieces"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": " each"}
+{"type": "message_delta", "delta": " piece"}
+{"type": "message_delta", "delta": "’s"}
+{"type": "message_delta", "delta": " price"}
+{"type": "message_delta", "delta": " and"}
+{"type": "message_delta", "delta": " shop"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": " and"}
+{"type": "message_delta", "delta": " an"}
+{"type": "message_delta", "delta": " exact"}
+{"type": "message_delta", "delta": " furniture"}
+{"type": "message_delta", "delta": " total"}
+{"type": "message_delta", "delta": "."}
+{"type": "message_delta", "delta": " Paint"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": " delivery"}
+{"type": "message_delta", "delta": " and"}
+{"type": "message_delta", "delta": " assembly"}
+{"type": "message_delta", "delta": " would"}
+{"type": "message_delta", "delta": " remain"}
+{"type": "message_delta", "delta": " un"}
+{"type": "message_delta", "delta": "quoted"}
+{"type": "message_delta", "delta": " unless"}
+{"type": "message_delta", "delta": " explicitly"}
+{"type": "message_delta", "delta": " included"}
+{"type": "message_delta", "delta": "."}
+{"type": "message", "message": "**The total in ֏ is not yet known.** We’ve discussed a cozy direction, but no furniture has been selected or laid out, so there are no verified per-piece prices or shops to list.\n\nI can prepare a cozy living-room preview with actual catalog pieces, each piece’s price and shop, and an exact furniture total. Paint, delivery and assembly would remain unquoted unless explicitly included.", "conversationId": "8f0bbc3f72454530af3cefd0c4c2fe9b"}

@@ -9,10 +9,12 @@ const responseSchema=z.object({isError:z.boolean().optional(),content:z.array(z.
 ]))});
 export async function catalogImages(ids:string[]):Promise<unknown>{
  const url=new URL(process.env.VARPET_CATALOG_URL??'http://100.107.246.46:8765/mcp');
- const abort=new AbortController(),timer=setTimeout(()=>abort.abort(),8_000);
+ // The catalog spends up to eight seconds assembling the sheet. Allow its
+ // partial/missing-tile response to arrive instead of aborting at that boundary.
+ const abort=new AbortController(),timer=setTimeout(()=>abort.abort(),12_000);
  const transport=new StreamableHTTPClientTransport(url,{fetch:(target,init)=>fetch(target,{...init,signal:abort.signal})});
  const client=new Client({name:'varpet-designer-vision',version:'1'});
- try {await client.connect(transport,{signal:abort.signal,timeout:8_000});return await client.callTool({name:'show_candidates',arguments:{item_ids:ids,columns:4}},undefined,{signal:abort.signal,timeout:8_000});}
+ try {await client.connect(transport,{signal:abort.signal,timeout:12_000});return await client.callTool({name:'show_candidates',arguments:{item_ids:ids,columns:4}},undefined,{signal:abort.signal,timeout:12_000});}
  finally{clearTimeout(timer);abort.abort();await client.close();await transport.close();}
 }
 export async function candidateSheet(input:unknown,call:(ids:string[])=>Promise<unknown>=catalogImages){

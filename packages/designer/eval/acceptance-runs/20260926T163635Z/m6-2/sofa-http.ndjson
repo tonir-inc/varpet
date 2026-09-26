@@ -1,0 +1,47 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Writing your answer"}
+{"type": "message_delta", "delta": "I can’t create"}
+{"type": "message_delta", "delta": " a"}
+{"type": "message_delta", "delta": " checked"}
+{"type": "message_delta", "delta": " sofa"}
+{"type": "message_delta", "delta": " move"}
+{"type": "message_delta", "delta": " right"}
+{"type": "message_delta", "delta": " now"}
+{"type": "message_delta", "delta": " because"}
+{"type": "message_delta", "delta": " the"}
+{"type": "message_delta", "delta": " sofa"}
+{"type": "message_delta", "delta": " and"}
+{"type": "message_delta", "delta": " window"}
+{"type": "message_delta", "delta": " geometry"}
+{"type": "message_delta", "delta": " aren"}
+{"type": "message_delta", "delta": "’t"}
+{"type": "message_delta", "delta": " available"}
+{"type": "message_delta", "delta": "."}
+{"type": "message_delta", "delta": " Nothing"}
+{"type": "message_delta", "delta": " has"}
+{"type": "message_delta", "delta": " changed"}
+{"type": "message_delta", "delta": ";"}
+{"type": "message_delta", "delta": " once"}
+{"type": "message_delta", "delta": " the"}
+{"type": "message_delta", "delta": " full"}
+{"type": "message_delta", "delta": " scene"}
+{"type": "message_delta", "delta": " is"}
+{"type": "message_delta", "delta": " available"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": " I"}
+{"type": "message_delta", "delta": " can"}
+{"type": "message_delta", "delta": " preview"}
+{"type": "message_delta", "delta": " it"}
+{"type": "message_delta", "delta": " facing"}
+{"type": "message_delta", "delta": " the"}
+{"type": "message_delta", "delta": " window"}
+{"type": "message_delta", "delta": " while"}
+{"type": "message_delta", "delta": " checking"}
+{"type": "message_delta", "delta": " clear"}
+{"type": "message_delta", "delta": " walk"}
+{"type": "message_delta", "delta": "ways"}
+{"type": "message_delta", "delta": "."}
+{"type": "message", "message": "I can’t create a checked sofa move right now because the sofa and window geometry aren’t available. Nothing has changed; once the full scene is available, I can preview it facing the window while checking clear walkways.\n\nI can discuss your flat, but cannot check or change its layout until its geometry is supported.", "conversationId": "b43fe2e674ba4daaaa08d91c876e535c"}

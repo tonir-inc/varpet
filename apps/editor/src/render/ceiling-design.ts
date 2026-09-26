@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
-import type { SceneDocument } from '../contracts';
+import type { CeilingDesign, SceneDocument } from '../contracts';
 import { layoutCeilingDesign, type CeilingElement, type CeilingLayout } from '../core/ceiling-design';
 
 const LIGHT_BUDGET = 8;
@@ -12,8 +12,16 @@ const SHADOW_BUDGET = 3;
 let areaLightsInitialized = false;
 interface LightSource { element: CeilingElement; layout: CeilingLayout; group: THREE.Group; emission: THREE.MeshStandardMaterial }
 
-function lightColor(temperature: number): THREE.Color {
+function ceilingLightColor(temperature: number): THREE.Color {
   return new THREE.Color('#ffbd76').lerp(new THREE.Color('#e9f3ff'), THREE.MathUtils.clamp((temperature - 2200) / 4300, 0, 1));
+}
+
+/** Bounded room-local reflected light, including dropped plaster panels. */
+export function applyCeilingIndirectLight(material: THREE.MeshStandardMaterial, design?: CeilingDesign | null): void {
+  // Real-time downlights have no bounce. Use the finish's albedo so this
+  // approximation needs no extra lights and cannot leak through room walls.
+  material.emissiveIntensity = design?.enabled ? .22 * design.brightness / 100 : 0;
+  if (design) material.emissive.copy(material.color).multiply(ceilingLightColor(design.temperature));
 }
 
 function addMesh(group: THREE.Group, geometry: THREE.BufferGeometry, material: THREE.Material, y: number): THREE.Mesh {
@@ -23,7 +31,7 @@ function addMesh(group: THREE.Group, geometry: THREE.BufferGeometry, material: T
 
 function makeEmission(layout: CeilingLayout): THREE.MeshStandardMaterial {
   const level = layout.design.enabled ? layout.design.brightness / 100 : 0;
-  const emission = new THREE.MeshStandardMaterial({ color: '#f5eee0', roughness: 0.4, emissive: lightColor(layout.design.temperature), emissiveIntensity: level * 3 });
+  const emission = new THREE.MeshStandardMaterial({ color: '#f5eee0', roughness: 0.4, emissive: ceilingLightColor(layout.design.temperature), emissiveIntensity: level * 3 });
   emission.userData.ceilingEmitter = true;
   return emission;
 }
@@ -36,6 +44,7 @@ function makeElement(element: CeilingElement, layout: CeilingLayout): { group: T
   const [width, height, depth] = element.dimensions;
   if (element.kind === 'panel') {
     const plaster = new THREE.MeshStandardMaterial({ color: '#eeeae2', roughness: 0.93 });
+    applyCeilingIndirectLight(plaster, layout.design);
     const reveal = Math.min(.02, width / 10, depth / 10), revealHeight = .008;
     // An inset plaster face and physical edge diffusers keep the floating panel
     // legible from below, where its concealed upper cove is naturally occluded.
@@ -82,7 +91,7 @@ function makeElement(element: CeilingElement, layout: CeilingLayout): { group: T
 function addLight(source: LightSource, castShadow: boolean): void {
   const { element, layout, group, emission } = source;
   const level = layout.design.brightness / 100;
-  const color = lightColor(layout.design.temperature);
+  const color = ceilingLightColor(layout.design.temperature);
   if (element.kind === 'spot') {
     const light = new THREE.SpotLight(color, 65 * level, 9, 1.05, 0.7, 2);
     light.position.y = -0.006; light.target.position.y = -3;
@@ -118,6 +127,7 @@ export function makeCeilingDesigns(scene: SceneDocument, activeRoomId?: string):
     const roomGroup = new THREE.Group();
     roomGroup.name = `ceiling-design:${room.id}`;
     roomGroup.userData.entityId = room.id; roomGroup.userData.ceilingDesign = true;
+    roomGroup.userData.ceilingY = layout.ceilingY;
     const sources: LightSource[] = [];
     for (const element of layout.elements) {
       const visual = makeElement(element, layout); roomGroup.add(visual.group);
@@ -148,4 +158,21 @@ export function makeCeilingDesigns(scene: SceneDocument, activeRoomId?: string):
   }
   for (const source of illuminated) addLight(source, shadowed.has(source));
   return projection;
+}
+
+const ceilingCameraPosition = new THREE.Vector3();
+
+/** Cut away fixtures from above with their ceiling, without turning off lights. */
+export function updateCeilingDesignVisibility(projection: THREE.Group, camera: THREE.Camera): boolean {
+  camera.getWorldPosition(ceilingCameraPosition);
+  let changed = false;
+  for (const room of projection.children) {
+    const visible = ceilingCameraPosition.y < room.userData.ceilingY;
+    room.traverse(object => {
+      if (object instanceof THREE.Mesh && object.visible !== visible) {
+        object.visible = visible; changed = true;
+      }
+    });
+  }
+  return changed;
 }

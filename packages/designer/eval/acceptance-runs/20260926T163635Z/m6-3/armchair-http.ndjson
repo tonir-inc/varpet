@@ -1,0 +1,50 @@
+{"type": "progress", "message": "Starting the designer"}
+{"type": "progress", "message": "Reading the room layout"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Thinking about your request"}
+{"type": "progress", "message": "Writing your answer"}
+{"type": "message_delta", "delta": "I can’t create"}
+{"type": "message_delta", "delta": " a"}
+{"type": "message_delta", "delta": " checked"}
+{"type": "message_delta", "delta": " placement"}
+{"type": "message_delta", "delta": " preview"}
+{"type": "message_delta", "delta": " right"}
+{"type": "message_delta", "delta": " now"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": " so"}
+{"type": "message_delta", "delta": " no"}
+{"type": "message_delta", "delta": " arm"}
+{"type": "message_delta", "delta": "chair"}
+{"type": "message_delta", "delta": " has"}
+{"type": "message_delta", "delta": " been"}
+{"type": "message_delta", "delta": " added"}
+{"type": "message_delta", "delta": "."}
+{"type": "message_delta", "delta": " For"}
+{"type": "message_delta", "delta": " reading"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": " I"}
+{"type": "message_delta", "delta": "’d"}
+{"type": "message_delta", "delta": " suggest"}
+{"type": "message_delta", "delta": " a"}
+{"type": "message_delta", "delta": " supportive"}
+{"type": "message_delta", "delta": " upholstered"}
+{"type": "message_delta", "delta": " arm"}
+{"type": "message_delta", "delta": "chair"}
+{"type": "message_delta", "delta": " beside"}
+{"type": "message_delta", "delta": " the"}
+{"type": "message_delta", "delta": " window"}
+{"type": "message_delta", "delta": ","}
+{"type": "message_delta", "delta": " angled"}
+{"type": "message_delta", "delta": " to"}
+{"type": "message_delta", "delta": " let"}
+{"type": "message_delta", "delta": " daylight"}
+{"type": "message_delta", "delta": " fall"}
+{"type": "message_delta", "delta": " across"}
+{"type": "message_delta", "delta": " your"}
+{"type": "message_delta", "delta": " book"}
+{"type": "message_delta", "delta": " while"}
+{"type": "message_delta", "delta": " keeping"}
+{"type": "message_delta", "delta": " access"}
+{"type": "message_delta", "delta": " clear"}
+{"type": "message_delta", "delta": "."}
+{"type": "message", "message": "I can’t create a checked placement preview right now, so no armchair has been added. For reading, I’d suggest a supportive upholstered armchair beside the window, angled to let daylight fall across your book while keeping access clear.\n\nI can discuss your flat, but cannot check or change its layout until its geometry is supported.", "conversationId": "8701d9e3ec65406fb8174c5f069e9f39"}

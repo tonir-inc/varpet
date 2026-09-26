@@ -1,0 +1,14 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>M6 ceiling seam QA</title>
+<style>
+body{margin:0;background:#171d25;color:#eef;font:14px system-ui}header{padding:12px;max-width:1176px}label{display:inline-flex;gap:6px;align-items:center;margin:4px 10px 4px 0}select,button,input{font:inherit;padding:6px}button{margin-right:8px}input{width:70px}#view{width:1200px;height:720px}#frame{display:block;width:min(1200px,100%);height:auto}pre{white-space:pre-wrap;margin:8px 0}details{margin:8px 0}#live{margin:12px}#captures{display:grid;gap:12px}figure{margin:0}figcaption{padding:8px 12px;color:#bac8d8}
+</style></head><body>
+<header><b>M6 ceiling seam QA · actual apartment and viewport · never saved</b>
+<div><label>Room <select id="room"></select></label><label>Aim <select id="aim"></select></label><label>Light <select id="light"><option value="day">Day</option><option value="evening">Evening</option></select></label><label>Quality <select id="quality"><option value="balanced">Balanced</option><option value="high">High</option></select></label><label><input type="checkbox" id="flat"> Flat shell colors</label></div>
+<div><button id="capture">Capture room</button><button id="all">Capture all rooms</button><button id="clear">Clear captures</button><a id="download" download="ceiling-seam-fixed.png">Download frame</a></div>
+<details><summary>Camera coordinates</summary><div id="coordinates"></div><button id="custom">Capture custom camera</button></details>
+<pre id="result">Starting viewport…</pre></header>
+<img id="frame" alt="Latest actual viewport capture">
+<details id="live" open><summary>Live viewport</summary><div id="view"></div></details>
+<div id="captures"></div>
+<script type="module" src="/src/render/ceiling-seams-qa.ts"></script></body></html>

@@ -1,0 +1,4 @@
+<!doctype html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Furniture drop checks</title>
+<style>body{margin:0;background:#1b1e25;color:#eee;font:14px system-ui}header{padding:12px;display:flex;gap:16px;align-items:center}button{padding:12px;background:#635284;color:white;border:1px solid #a492c7;border-radius:8px}#view{position:relative;height:65vh}pre{white-space:pre-wrap;padding:16px;margin:0}#card{cursor:grab}#status{margin-left:auto}</style></head>
+<body><header><button id="card" draggable="true">Drag a bedside table onto the floor</button><button id="run">Run drop checks</button><button id="undo">Undo</button><span id="status">0 pieces</span></header><div id="view"></div><pre id="result">Ready. This scene is isolated from saved apartments.</pre><script type="module" src="/src/render/furniture-drop-qa.ts"></script></body></html>

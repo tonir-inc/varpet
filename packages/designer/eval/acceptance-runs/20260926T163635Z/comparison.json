@@ -1,0 +1,1446 @@
+[
+  {
+    "flat": "avani",
+    "tier": 1,
+    "key": "cozier",
+    "before": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 17.813979833037592,
+      "seconds_max": 21.769923874991946,
+      "seconds_unknown": 0,
+      "tokens_median": 32715,
+      "tokens_max": 32950,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    },
+    "after": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 16.95088954095263,
+      "seconds_max": 19.56063154200092,
+      "seconds_unknown": 0,
+      "tokens_median": 33630,
+      "tokens_max": 33653,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "avani",
+    "tier": 1,
+    "key": "cozier-apply",
+    "before": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": null,
+      "seconds_max": null,
+      "seconds_unknown": 3,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    },
+    "after": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": null,
+      "seconds_max": null,
+      "seconds_unknown": 3,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "avani",
+    "tier": 1,
+    "key": "living",
+    "before": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 1.7666522919898853,
+      "seconds_max": 1.8024841249571182,
+      "seconds_unknown": 0,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    },
+    "after": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 33.105801833968144,
+      "seconds_max": 35.16378699900815,
+      "seconds_unknown": 0,
+      "tokens_median": 10605,
+      "tokens_max": 10626,
+      "tokens_unknown": 0,
+      "proposals": 3,
+      "accepted": 3
+    }
+  },
+  {
+    "flat": "avani",
+    "tier": 1,
+    "key": "living-apply",
+    "before": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": null,
+      "seconds_max": null,
+      "seconds_unknown": 3,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    },
+    "after": {
+      "passed": 3,
+      "total": 3,
+      "seconds_median": 0.29658554098568857,
+      "seconds_max": 0.3141529160202481,
+      "seconds_unknown": 0,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "avani",
+    "tier": 1,
+    "key": "open",
+    "before": {
+      "passed": 3,
+      "total": 3,
+      "seconds_median": 16.59935370902531,
+      "seconds_max": 22.59269437502371,
+      "seconds_unknown": 0,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    },
+    "after": {
+      "passed": 3,
+      "total": 3,
+      "seconds_median": 15.4501287919702,
+      "seconds_max": 17.33330604096409,
+      "seconds_unknown": 0,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "avani",
+    "tier": 1,
+    "key": "quote",
+    "before": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 11.201526749995537,
+      "seconds_max": 11.344916875008494,
+      "seconds_unknown": 0,
+      "tokens_median": 15078,
+      "tokens_max": 15206,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    },
+    "after": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 15.367970958002843,
+      "seconds_max": 16.071149625000544,
+      "seconds_unknown": 0,
+      "tokens_median": 15931,
+      "tokens_max": 15946,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "avani",
+    "tier": 1,
+    "key": "why",
+    "before": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 10.797251500014681,
+      "seconds_max": 20.59145179198822,
+      "seconds_unknown": 0,
+      "tokens_median": 13052,
+      "tokens_max": 13176,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    },
+    "after": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 12.122559208015446,
+      "seconds_max": 13.031767166976351,
+      "seconds_unknown": 0,
+      "tokens_median": 13645,
+      "tokens_max": 13657,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "avani",
+    "tier": 2,
+    "key": "advice",
+    "before": {
+      "passed": 3,
+      "total": 3,
+      "seconds_median": 12.861593583016656,
+      "seconds_max": 14.306185541965533,
+      "seconds_unknown": 0,
+      "tokens_median": 10857,
+      "tokens_max": 10863,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    },
+    "after": {
+      "passed": 3,
+      "total": 3,
+      "seconds_median": 13.117451458005235,
+      "seconds_max": 14.08153345901519,
+      "seconds_unknown": 0,
+      "tokens_median": 10873,
+      "tokens_max": 10874,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "avani",
+    "tier": 2,
+    "key": "armchair",
+    "before": {
+      "passed": 3,
+      "total": 3,
+      "seconds_median": 48.11936012504157,
+      "seconds_max": 63.09707429102855,
+      "seconds_unknown": 0,
+      "tokens_median": 83246,
+      "tokens_max": 83284,
+      "tokens_unknown": 0,
+      "proposals": 3,
+      "accepted": 3
+    },
+    "after": {
+      "passed": 2,
+      "total": 3,
+      "seconds_median": 41.89780904102372,
+      "seconds_max": 72.14784341701306,
+      "seconds_unknown": 0,
+      "tokens_median": 83438,
+      "tokens_max": 83440,
+      "tokens_unknown": 0,
+      "proposals": 2,
+      "accepted": 2
+    }
+  },
+  {
+    "flat": "avani",
+    "tier": 2,
+    "key": "bedroom",
+    "before": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 1.461759457946755,
+      "seconds_max": 1.4733654159936123,
+      "seconds_unknown": 0,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    },
+    "after": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 8.331314374983776,
+      "seconds_max": 9.31574950000504,
+      "seconds_unknown": 0,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "avani",
+    "tier": 2,
+    "key": "bigger-empty",
+    "before": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 23.25045566697372,
+      "seconds_max": 75.89896604197565,
+      "seconds_unknown": 0,
+      "tokens_median": 49003,
+      "tokens_max": 49031,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    },
+    "after": {
+      "passed": 3,
+      "total": 3,
+      "seconds_median": 1.6234339170041494,
+      "seconds_max": 4.123566582973581,
+      "seconds_unknown": 0,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "avani",
+    "tier": 2,
+    "key": "bigger-furnished",
+    "before": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 21.66116741701262,
+      "seconds_max": 25.637274083972443,
+      "seconds_unknown": 0,
+      "tokens_median": 49061,
+      "tokens_max": 50492,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    },
+    "after": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 4.466352665971499,
+      "seconds_max": 4.73113441595342,
+      "seconds_unknown": 0,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "avani",
+    "tier": 2,
+    "key": "desk",
+    "before": {
+      "passed": 3,
+      "total": 3,
+      "seconds_median": 48.49340529204346,
+      "seconds_max": 56.973136834043544,
+      "seconds_unknown": 0,
+      "tokens_median": 83297,
+      "tokens_max": 83336,
+      "tokens_unknown": 0,
+      "proposals": 3,
+      "accepted": 3
+    },
+    "after": {
+      "passed": 2,
+      "total": 3,
+      "seconds_median": 55.546322332986165,
+      "seconds_max": 62.26805095805321,
+      "seconds_unknown": 0,
+      "tokens_median": 83660,
+      "tokens_max": 85156,
+      "tokens_unknown": 0,
+      "proposals": 2,
+      "accepted": 2
+    }
+  },
+  {
+    "flat": "avani",
+    "tier": 2,
+    "key": "failed-followup",
+    "before": {
+      "passed": 3,
+      "total": 3,
+      "seconds_median": 42.21270366606768,
+      "seconds_max": 44.16895575099625,
+      "seconds_unknown": 0,
+      "tokens_median": 84541,
+      "tokens_max": 84923,
+      "tokens_unknown": 0,
+      "proposals": 3,
+      "accepted": 3
+    },
+    "after": {
+      "passed": 3,
+      "total": 3,
+      "seconds_median": 2.004797250032425,
+      "seconds_max": 2.835428124992177,
+      "seconds_unknown": 0,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "avani",
+    "tier": 2,
+    "key": "impossible",
+    "before": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 32.2569745000219,
+      "seconds_max": 61.829048082989175,
+      "seconds_unknown": 0,
+      "tokens_median": 66135,
+      "tokens_max": 66295,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    },
+    "after": {
+      "passed": 3,
+      "total": 3,
+      "seconds_median": 1.6453282500151545,
+      "seconds_max": 2.097023790993262,
+      "seconds_unknown": 0,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "avani",
+    "tier": 2,
+    "key": "paint",
+    "before": {
+      "passed": 3,
+      "total": 3,
+      "seconds_median": 2.92363249999471,
+      "seconds_max": 3.8801770409336314,
+      "seconds_unknown": 0,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 3,
+      "accepted": 3
+    },
+    "after": {
+      "passed": 3,
+      "total": 3,
+      "seconds_median": 3.595072375028394,
+      "seconds_max": 3.717297084047459,
+      "seconds_unknown": 0,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 3,
+      "accepted": 3
+    }
+  },
+  {
+    "flat": "avani",
+    "tier": 2,
+    "key": "red",
+    "before": {
+      "passed": 3,
+      "total": 3,
+      "seconds_median": 33.76388304098509,
+      "seconds_max": 97.35940750001464,
+      "seconds_unknown": 0,
+      "tokens_median": 61648,
+      "tokens_max": 61663,
+      "tokens_unknown": 0,
+      "proposals": 3,
+      "accepted": 3
+    },
+    "after": {
+      "passed": 3,
+      "total": 3,
+      "seconds_median": 3.913134957954753,
+      "seconds_max": 4.619661917036865,
+      "seconds_unknown": 0,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 3,
+      "accepted": 3
+    }
+  },
+  {
+    "flat": "avani",
+    "tier": 2,
+    "key": "sofa",
+    "before": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 16.132609666965436,
+      "seconds_max": 17.05454512499273,
+      "seconds_unknown": 0,
+      "tokens_median": 33617,
+      "tokens_max": 34034,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    },
+    "after": {
+      "passed": 3,
+      "total": 3,
+      "seconds_median": 10.949393082992174,
+      "seconds_max": 10.967427333001979,
+      "seconds_unknown": 0,
+      "tokens_median": 10462,
+      "tokens_max": 10474,
+      "tokens_unknown": 0,
+      "proposals": 3,
+      "accepted": 3
+    }
+  },
+  {
+    "flat": "avani",
+    "tier": 2,
+    "key": "structural",
+    "before": {
+      "passed": 3,
+      "total": 3,
+      "seconds_median": 0.09138283302308992,
+      "seconds_max": 0.14030349999666214,
+      "seconds_unknown": 0,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    },
+    "after": {
+      "passed": 3,
+      "total": 3,
+      "seconds_median": 0.06301062495913357,
+      "seconds_max": 0.1115214999881573,
+      "seconds_unknown": 0,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "b21-t13",
+    "tier": 1,
+    "key": "cozier",
+    "before": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 18.560750791977625,
+      "seconds_max": 55.79001712502213,
+      "seconds_unknown": 0,
+      "tokens_median": 40733,
+      "tokens_max": 40754,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    },
+    "after": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 16.20948287495412,
+      "seconds_max": 16.34557574999053,
+      "seconds_unknown": 0,
+      "tokens_median": 40767,
+      "tokens_max": 40781,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "b21-t13",
+    "tier": 1,
+    "key": "cozier-apply",
+    "before": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": null,
+      "seconds_max": null,
+      "seconds_unknown": 3,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    },
+    "after": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": null,
+      "seconds_max": null,
+      "seconds_unknown": 3,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "b21-t13",
+    "tier": 1,
+    "key": "living",
+    "before": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 1.647243624960538,
+      "seconds_max": 2.268915999971796,
+      "seconds_unknown": 0,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    },
+    "after": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 7.409577583021019,
+      "seconds_max": 7.921976084006019,
+      "seconds_unknown": 0,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "b21-t13",
+    "tier": 1,
+    "key": "living-apply",
+    "before": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": null,
+      "seconds_max": null,
+      "seconds_unknown": 3,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    },
+    "after": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": null,
+      "seconds_max": null,
+      "seconds_unknown": 3,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "b21-t13",
+    "tier": 1,
+    "key": "open",
+    "before": {
+      "passed": 3,
+      "total": 3,
+      "seconds_median": 20.748322750034276,
+      "seconds_max": 21.492403790995013,
+      "seconds_unknown": 0,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    },
+    "after": {
+      "passed": 3,
+      "total": 3,
+      "seconds_median": 17.86875920800958,
+      "seconds_max": 19.897919999959413,
+      "seconds_unknown": 0,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "b21-t13",
+    "tier": 1,
+    "key": "quote",
+    "before": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 9.595285709016025,
+      "seconds_max": 10.454048792016692,
+      "seconds_unknown": 0,
+      "tokens_median": 23136,
+      "tokens_max": 23140,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    },
+    "after": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 11.285651957965456,
+      "seconds_max": 13.841840750013944,
+      "seconds_unknown": 0,
+      "tokens_median": 23164,
+      "tokens_max": 23169,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "b21-t13",
+    "tier": 1,
+    "key": "why",
+    "before": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 9.59343445795821,
+      "seconds_max": 9.927379625034519,
+      "seconds_unknown": 0,
+      "tokens_median": 18420,
+      "tokens_max": 18424,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    },
+    "after": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 9.342725209018681,
+      "seconds_max": 9.48678508400917,
+      "seconds_unknown": 0,
+      "tokens_median": 18449,
+      "tokens_max": 18452,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "b21-t13",
+    "tier": 2,
+    "key": "advice",
+    "before": {
+      "passed": 3,
+      "total": 3,
+      "seconds_median": 18.444360415975098,
+      "seconds_max": 29.70558249996975,
+      "seconds_unknown": 0,
+      "tokens_median": 13561,
+      "tokens_max": 13567,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    },
+    "after": {
+      "passed": 3,
+      "total": 3,
+      "seconds_median": 13.168770916992798,
+      "seconds_max": 14.398826874967199,
+      "seconds_unknown": 0,
+      "tokens_median": 13541,
+      "tokens_max": 13563,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "b21-t13",
+    "tier": 2,
+    "key": "armchair",
+    "before": {
+      "passed": 2,
+      "total": 3,
+      "seconds_median": 66.68859083298594,
+      "seconds_max": 69.93667933298275,
+      "seconds_unknown": 0,
+      "tokens_median": 134407,
+      "tokens_max": 134631,
+      "tokens_unknown": 0,
+      "proposals": 2,
+      "accepted": 2
+    },
+    "after": {
+      "passed": 3,
+      "total": 3,
+      "seconds_median": 62.61162308399798,
+      "seconds_max": 113.77603933296632,
+      "seconds_unknown": 0,
+      "tokens_median": 136468,
+      "tokens_max": 155004,
+      "tokens_unknown": 0,
+      "proposals": 3,
+      "accepted": 3
+    }
+  },
+  {
+    "flat": "b21-t13",
+    "tier": 2,
+    "key": "bedroom",
+    "before": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 1.7863783329958096,
+      "seconds_max": 2.516073833045084,
+      "seconds_unknown": 0,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    },
+    "after": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 9.243062333960552,
+      "seconds_max": 10.359521290985867,
+      "seconds_unknown": 0,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "b21-t13",
+    "tier": 2,
+    "key": "bigger-empty",
+    "before": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 26.456988749967422,
+      "seconds_max": 27.656129124981817,
+      "seconds_unknown": 0,
+      "tokens_median": 56864,
+      "tokens_max": 58908,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    },
+    "after": {
+      "passed": 3,
+      "total": 3,
+      "seconds_median": 1.7624955420033075,
+      "seconds_max": 2.1636406669858843,
+      "seconds_unknown": 0,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "b21-t13",
+    "tier": 2,
+    "key": "bigger-furnished",
+    "before": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 24.376359375019092,
+      "seconds_max": 26.045014250034,
+      "seconds_unknown": 0,
+      "tokens_median": 57488,
+      "tokens_max": 58800,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    },
+    "after": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 1.756676915974822,
+      "seconds_max": 1.8684300830354914,
+      "seconds_unknown": 0,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "b21-t13",
+    "tier": 2,
+    "key": "desk",
+    "before": {
+      "passed": 2,
+      "total": 3,
+      "seconds_median": 69.54798812500667,
+      "seconds_max": 80.0878146670293,
+      "seconds_unknown": 0,
+      "tokens_median": 131735,
+      "tokens_max": 151958,
+      "tokens_unknown": 0,
+      "proposals": 2,
+      "accepted": 2
+    },
+    "after": {
+      "passed": 3,
+      "total": 3,
+      "seconds_median": 71.7530537089915,
+      "seconds_max": 72.03553504199954,
+      "seconds_unknown": 0,
+      "tokens_median": 115735,
+      "tokens_max": 133042,
+      "tokens_unknown": 0,
+      "proposals": 3,
+      "accepted": 3
+    }
+  },
+  {
+    "flat": "b21-t13",
+    "tier": 2,
+    "key": "failed-followup",
+    "before": {
+      "passed": 1,
+      "total": 3,
+      "seconds_median": 93.76078554202104,
+      "seconds_max": 134.62328283302486,
+      "seconds_unknown": 0,
+      "tokens_median": 232778,
+      "tokens_max": 246197,
+      "tokens_unknown": 0,
+      "proposals": 2,
+      "accepted": 2
+    },
+    "after": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 4.274430916993879,
+      "seconds_max": 8.069267999962904,
+      "seconds_unknown": 0,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "b21-t13",
+    "tier": 2,
+    "key": "impossible",
+    "before": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 37.91867912502494,
+      "seconds_max": 52.846231832983904,
+      "seconds_unknown": 0,
+      "tokens_median": 79923,
+      "tokens_max": 82210,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    },
+    "after": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 5.301857290964108,
+      "seconds_max": 5.355636916006915,
+      "seconds_unknown": 0,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "b21-t13",
+    "tier": 2,
+    "key": "paint",
+    "before": {
+      "passed": 3,
+      "total": 3,
+      "seconds_median": 2.662249208020512,
+      "seconds_max": 3.7446338330046274,
+      "seconds_unknown": 0,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 3,
+      "accepted": 3
+    },
+    "after": {
+      "passed": 3,
+      "total": 3,
+      "seconds_median": 3.142922000028193,
+      "seconds_max": 3.747065375035163,
+      "seconds_unknown": 0,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 3,
+      "accepted": 3
+    }
+  },
+  {
+    "flat": "b21-t13",
+    "tier": 2,
+    "key": "red",
+    "before": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 27.653459792025387,
+      "seconds_max": 31.57845599995926,
+      "seconds_unknown": 0,
+      "tokens_median": 71842,
+      "tokens_max": 76457,
+      "tokens_unknown": 0,
+      "proposals": 3,
+      "accepted": 3
+    },
+    "after": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 3.462164667027537,
+      "seconds_max": 3.540580625005532,
+      "seconds_unknown": 0,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 3,
+      "accepted": 3
+    }
+  },
+  {
+    "flat": "b21-t13",
+    "tier": 2,
+    "key": "sofa",
+    "before": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 19.90779070899589,
+      "seconds_max": 21.082676582969725,
+      "seconds_unknown": 0,
+      "tokens_median": 28756,
+      "tokens_max": 43158,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    },
+    "after": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 13.758000917034224,
+      "seconds_max": 16.42399879102595,
+      "seconds_unknown": 0,
+      "tokens_median": 27720,
+      "tokens_max": 27731,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "b21-t13",
+    "tier": 2,
+    "key": "structural",
+    "before": {
+      "passed": 3,
+      "total": 3,
+      "seconds_median": 0.062422458024229854,
+      "seconds_max": 0.1293492909753695,
+      "seconds_unknown": 0,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    },
+    "after": {
+      "passed": 3,
+      "total": 3,
+      "seconds_median": 0.08399974997155368,
+      "seconds_max": 0.12536850001197308,
+      "seconds_unknown": 0,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "m6",
+    "tier": 1,
+    "key": "cozier",
+    "before": null,
+    "after": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 9.261025083018467,
+      "seconds_max": 10.184548250050284,
+      "seconds_unknown": 0,
+      "tokens_median": 11038,
+      "tokens_max": 11043,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "m6",
+    "tier": 1,
+    "key": "cozier-apply",
+    "before": null,
+    "after": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": null,
+      "seconds_max": null,
+      "seconds_unknown": 3,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "m6",
+    "tier": 1,
+    "key": "living",
+    "before": null,
+    "after": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 10.617755000013858,
+      "seconds_max": 13.865595999988727,
+      "seconds_unknown": 0,
+      "tokens_median": 9549,
+      "tokens_max": 9550,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "m6",
+    "tier": 1,
+    "key": "living-apply",
+    "before": null,
+    "after": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": null,
+      "seconds_max": null,
+      "seconds_unknown": 3,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "m6",
+    "tier": 1,
+    "key": "open",
+    "before": null,
+    "after": {
+      "passed": 3,
+      "total": 3,
+      "seconds_median": 14.60620745801134,
+      "seconds_max": 17.666937458969187,
+      "seconds_unknown": 0,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "m6",
+    "tier": 1,
+    "key": "quote",
+    "before": null,
+    "after": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 12.47844612505287,
+      "seconds_max": 13.080153374990914,
+      "seconds_unknown": 0,
+      "tokens_median": 14141,
+      "tokens_max": 14160,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "m6",
+    "tier": 1,
+    "key": "why",
+    "before": null,
+    "after": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 11.33666362502845,
+      "seconds_max": 11.591691832989454,
+      "seconds_unknown": 0,
+      "tokens_median": 12541,
+      "tokens_max": 12570,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "m6",
+    "tier": 2,
+    "key": "advice",
+    "before": null,
+    "after": {
+      "passed": 3,
+      "total": 3,
+      "seconds_median": 13.482283124991227,
+      "seconds_max": 13.696359707973897,
+      "seconds_unknown": 0,
+      "tokens_median": 9636,
+      "tokens_max": 9640,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "m6",
+    "tier": 2,
+    "key": "armchair",
+    "before": null,
+    "after": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 8.45862487499835,
+      "seconds_max": 8.810964708973188,
+      "seconds_unknown": 0,
+      "tokens_median": 9510,
+      "tokens_max": 9517,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "m6",
+    "tier": 2,
+    "key": "bedroom",
+    "before": null,
+    "after": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 8.837305666995235,
+      "seconds_max": 9.284667624975555,
+      "seconds_unknown": 0,
+      "tokens_median": 9513,
+      "tokens_max": 9514,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "m6",
+    "tier": 2,
+    "key": "bigger-empty",
+    "before": null,
+    "after": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 9.071480957965832,
+      "seconds_max": 10.23455091699725,
+      "seconds_unknown": 0,
+      "tokens_median": 9540,
+      "tokens_max": 9555,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "m6",
+    "tier": 2,
+    "key": "bigger-furnished",
+    "before": null,
+    "after": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 8.853264042001683,
+      "seconds_max": 9.504830708960071,
+      "seconds_unknown": 0,
+      "tokens_median": 9526,
+      "tokens_max": 9547,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "m6",
+    "tier": 2,
+    "key": "desk",
+    "before": null,
+    "after": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 8.630966915981844,
+      "seconds_max": 9.113789665978402,
+      "seconds_unknown": 0,
+      "tokens_median": 9514,
+      "tokens_max": 9525,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "m6",
+    "tier": 2,
+    "key": "failed-followup",
+    "before": null,
+    "after": {
+      "passed": 3,
+      "total": 3,
+      "seconds_median": 9.729137040965725,
+      "seconds_max": 10.49972845800221,
+      "seconds_unknown": 0,
+      "tokens_median": 10994,
+      "tokens_max": 10995,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "m6",
+    "tier": 2,
+    "key": "impossible",
+    "before": null,
+    "after": {
+      "passed": 2,
+      "total": 3,
+      "seconds_median": 9.004410791036207,
+      "seconds_max": 10.063321791996714,
+      "seconds_unknown": 0,
+      "tokens_median": 9519,
+      "tokens_max": 9523,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "m6",
+    "tier": 2,
+    "key": "paint",
+    "before": null,
+    "after": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 9.084566459001508,
+      "seconds_max": 19.482735875004437,
+      "seconds_unknown": 0,
+      "tokens_median": 9508,
+      "tokens_max": 9528,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "m6",
+    "tier": 2,
+    "key": "red",
+    "before": null,
+    "after": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 9.36259237502236,
+      "seconds_max": 9.801555415964685,
+      "seconds_unknown": 0,
+      "tokens_median": 9511,
+      "tokens_max": 9521,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "m6",
+    "tier": 2,
+    "key": "sofa",
+    "before": null,
+    "after": {
+      "passed": 0,
+      "total": 3,
+      "seconds_median": 8.515584333974402,
+      "seconds_max": 9.057348333008122,
+      "seconds_unknown": 0,
+      "tokens_median": 9501,
+      "tokens_max": 9504,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  },
+  {
+    "flat": "m6",
+    "tier": 2,
+    "key": "structural",
+    "before": null,
+    "after": {
+      "passed": 3,
+      "total": 3,
+      "seconds_median": 0.22287525003775954,
+      "seconds_max": 0.9998726670164615,
+      "seconds_unknown": 0,
+      "tokens_median": 0,
+      "tokens_max": 0,
+      "tokens_unknown": 0,
+      "proposals": 0,
+      "accepted": 0
+    }
+  }
+]

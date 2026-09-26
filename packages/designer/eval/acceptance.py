@@ -7,6 +7,8 @@ import acceptance_grade as grade
 HERE=Path(__file__).resolve().parent;ROOT=HERE.parents[2]
 spec=importlib.util.spec_from_file_location('acceptance_watchdog',HERE/'komitas-batch.py')
 watch=importlib.util.module_from_spec(spec);spec.loader.exec_module(watch)
+def selected_flats(komitas,include_balcony):return [komitas,'avani']+(['m6'] if include_balcony else [])
+
 TIER1=['open','living','living-apply','cozier','cozier-apply','why','quote']
 
 def observed_targets_met(rows):
@@ -35,6 +37,8 @@ def write_report(output,manifest):
  lines=['# Demo acceptance baseline',f"\nMeasured {manifest['started_at']} UTC; source `{manifest['source']}`. Fast path **ON**, production service defaults, real catalog `localhost:8765/mcp`, AMD, north 0. Two real editor browser sessions maximum; private ports {manifest['editor_port']}/{manifest['service_port']}. No designer fixes or response stubs.",
  f"\nKomitas **{manifest['flats'][0]}** is fixed before testing, not selected post hoc for a higher score. Avani is the actual editor portal template built from `demo.ts` via `createInitialScene` (empty furniture, production behavior). This baseline starts from pre-built shells; it does not test plan reconstruction.",
  '\n## Results', '', '| Flat / tier | Automated passes | Median / max seconds | Median / max tokens | Target |','|---|---:|---:|---:|---|']
+ comparison=output/'comparison.md'
+ if comparison.exists():lines[3:3]=['\n'+comparison.read_text()]
  for flat in manifest['flats']:
   for tier in (1,2):
    group=[r for r in rows if r['flat']==flat and r['tier']==tier]
@@ -69,7 +73,7 @@ def write_report(output,manifest):
  '- Why requires an actual layout, placement-specific prose and a numerical claim matching an independently measured coffee gap/open rectangle; this conservative proxy may reject other correct numerical explanations. Quote requires actual per-piece prices, matching total and a named shop/link per row; catalog prices are mock AMD and shop identity still requires human provenance review. No invented shop is established as real by a text match.',
  '- Assumed fast honest bathroom refusal threshold: ≤10 s. Failed-answer follow-up immediately follows the bathroom-bed refusal and must address that bed/bathroom request, with no unsafe edit. Tier 2 branches reset the editor and chat to the frozen initial or golden furnished snapshot, avoiding accidental cross-request dependencies; only furnished-bigger and sofa depend on golden furniture; desk/armchair start independently from the empty shell. Missing furnished prerequisites are explicit failures.',
  '- Automated passes are provisional until a human checks the linked screenshots and semantic explanations. Three repeats are a baseline, not evidence of 10/10 or ≥8/10 reliability. Missing outcomes/tokens remain unknown, never zero. No failed or blocked step is dropped from denominators.',
- '\n## Reproduce', '```sh','pnpm acceptance                       # 3 repeats per flat, both tiers','pnpm acceptance --tier1-runs 10        # golden path 10 each; Tier 2 remains 3','pnpm acceptance --runs 10              # both tiers 10 each','pnpm acceptance --tier1-only --runs 10 # just the golden path','```',
+ '\n## Reproduce', '```sh','pnpm acceptance                       # 3 repeats per flat, both tiers','pnpm acceptance --tier1-runs 10        # golden path 10 each; Tier 2 remains 3','pnpm acceptance --runs 10              # both tiers 10 each','pnpm acceptance --include-balcony      # also the portal Balcony Apartment (m6)','pnpm acceptance --tier1-only --runs 10 # just the golden path','```',
  f"\n[Manifest and raw evidence]({output.relative_to(HERE.resolve())}/manifest.json). Each invocation creates a new timestamped directory; previous measurements are retained. Nonzero exit means a per-step target was missed (Tier 1 100%, Tier 2 ≥80%) or the driver failed. Passing three-repeat checks still does not certify ten-repeat reliability or human visual approval. Service/worker stdin is closed; 180-second model-output watchdog, 240-second worker-output watchdog, process-group cleanup; usage-limit stderr stops the batch. Requires the real catalog, authenticated Codex SDK (`VARPET_ACCEPTANCE_PYTHON` or `/tmp/varpet-designer-sdk/bin/python`), Chrome and `uv` for the Playwright driver."]
  # Preserve exact customer-visible failure copy separately from diagnostic codes.
  lines+=['\n## Customer-visible failure text']
@@ -80,7 +84,7 @@ def write_report(output,manifest):
  return rows
 
 def main():
- p=argparse.ArgumentParser(description=__doc__);p.add_argument('--runs',type=int,default=3);p.add_argument('--tier1-runs',type=int);p.add_argument('--tier1-only',action='store_true');p.add_argument('--flat',default='b21-t13');p.add_argument('--editor-port',type=grade.port,default=53220);p.add_argument('--service-port',type=grade.port,default=53221);p.add_argument('--jobs',type=int,choices=(1,2),default=2);p.add_argument('--report-only',type=Path);args=p.parse_args()
+ p=argparse.ArgumentParser(description=__doc__);p.add_argument('--runs',type=int,default=3);p.add_argument('--tier1-runs',type=int);p.add_argument('--tier1-only',action='store_true');p.add_argument('--flat',default='b21-t13');p.add_argument('--include-balcony',action='store_true');p.add_argument('--editor-port',type=grade.port,default=53220);p.add_argument('--service-port',type=grade.port,default=53221);p.add_argument('--jobs',type=int,choices=(1,2),default=2);p.add_argument('--report-only',type=Path);args=p.parse_args()
  if args.report_only:
   write_report(args.report_only,json.loads((args.report_only/'manifest.json').read_text()));return
  if not 1<=args.runs<=20 or not 1<=(args.tier1_runs or args.runs)<=20:p.error('runs must be 1–20')
@@ -90,7 +94,7 @@ def main():
   with socket.socket() as sock:sock.bind(('127.0.0.1',port))
  if not (HERE/'komitas'/f'{args.flat}.scene.json').exists():p.error('Published Komitas scene not found')
  stamp=datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ');output=HERE/'acceptance-runs'/stamp;output.mkdir(parents=True,exist_ok=False)
- manifest={'started_at':datetime.now(timezone.utc).isoformat(),'source':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),'runs':args.runs,'tier1_runs':args.tier1_runs or args.runs,'tier1_only':args.tier1_only,'flats':[args.flat,'avani'],'editor_port':args.editor_port,'service_port':args.service_port}
+ manifest={'started_at':datetime.now(timezone.utc).isoformat(),'source':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),'runs':args.runs,'tier1_runs':args.tier1_runs or args.runs,'tier1_only':args.tier1_only,'flats':selected_flats(args.flat,args.include_balcony),'editor_port':args.editor_port,'service_port':args.service_port}
  (output/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
  signal.signal(signal.SIGTERM,lambda *_:watch.STOP.set())
  signal.signal(signal.SIGINT,lambda *_:watch.STOP.set())

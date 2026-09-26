@@ -5,6 +5,9 @@ HERE=Path(__file__).resolve().parent
 spec=importlib.util.spec_from_file_location('acceptance_runner',HERE/'acceptance.py')
 r=importlib.util.module_from_spec(spec);spec.loader.exec_module(r)
 class RunnerTests(unittest.TestCase):
+ def test_balcony_is_opt_in_and_preserves_comparable_flats(self):
+  self.assertEqual(r.selected_flats('b21-t13',False),['b21-t13','avani'])
+  self.assertEqual(r.selected_flats('b21-t13',True),['b21-t13','avani','m6'])
  def test_protected_port_refusal_happens_before_services(self):
   for flag,value in [('--editor-port','5180'),('--editor-port','5190'),('--service-port','8787'),('--service-port','8788')]:
    result=subprocess.run([sys.executable,str(HERE/'acceptance.py'),flag,value],capture_output=True,text=True)

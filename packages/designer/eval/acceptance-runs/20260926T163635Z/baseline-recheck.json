@@ -1,0 +1,583 @@
+{
+  "baseline": "20260926T155711Z",
+  "grader_sha256": "9622f4c6e4e707204ef575c1771896aca79142242d74170f985b4890ce300a2e",
+  "all_96_baseline_grades_unchanged": true,
+  "checks": [
+    {
+      "flat": "avani",
+      "repeat": 1,
+      "key": "living",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 1,
+      "key": "cozier",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 1,
+      "key": "why",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 1,
+      "key": "quote",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 1,
+      "key": "paint",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 1,
+      "key": "red",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 1,
+      "key": "bigger-furnished",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 1,
+      "key": "bigger-empty",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 1,
+      "key": "sofa",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 1,
+      "key": "armchair",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 1,
+      "key": "desk",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 1,
+      "key": "bedroom",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 1,
+      "key": "advice",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 1,
+      "key": "structural",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 1,
+      "key": "impossible",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 1,
+      "key": "failed-followup",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 2,
+      "key": "living",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 2,
+      "key": "cozier",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 2,
+      "key": "why",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 2,
+      "key": "quote",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 2,
+      "key": "paint",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 2,
+      "key": "red",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 2,
+      "key": "bigger-furnished",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 2,
+      "key": "bigger-empty",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 2,
+      "key": "sofa",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 2,
+      "key": "armchair",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 2,
+      "key": "desk",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 2,
+      "key": "bedroom",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 2,
+      "key": "advice",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 2,
+      "key": "structural",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 2,
+      "key": "impossible",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 2,
+      "key": "failed-followup",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 3,
+      "key": "living",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 3,
+      "key": "cozier",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 3,
+      "key": "why",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 3,
+      "key": "quote",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 3,
+      "key": "paint",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 3,
+      "key": "red",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 3,
+      "key": "bigger-furnished",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 3,
+      "key": "bigger-empty",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 3,
+      "key": "sofa",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 3,
+      "key": "armchair",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 3,
+      "key": "desk",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 3,
+      "key": "bedroom",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 3,
+      "key": "advice",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 3,
+      "key": "structural",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 3,
+      "key": "impossible",
+      "same_grade": true
+    },
+    {
+      "flat": "avani",
+      "repeat": 3,
+      "key": "failed-followup",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 1,
+      "key": "living",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 1,
+      "key": "cozier",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 1,
+      "key": "why",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 1,
+      "key": "quote",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 1,
+      "key": "paint",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 1,
+      "key": "red",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 1,
+      "key": "bigger-furnished",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 1,
+      "key": "bigger-empty",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 1,
+      "key": "sofa",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 1,
+      "key": "armchair",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 1,
+      "key": "desk",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 1,
+      "key": "bedroom",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 1,
+      "key": "advice",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 1,
+      "key": "structural",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 1,
+      "key": "impossible",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 1,
+      "key": "failed-followup",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 2,
+      "key": "living",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 2,
+      "key": "cozier",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 2,
+      "key": "why",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 2,
+      "key": "quote",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 2,
+      "key": "paint",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 2,
+      "key": "red",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 2,
+      "key": "bigger-furnished",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 2,
+      "key": "bigger-empty",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 2,
+      "key": "sofa",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 2,
+      "key": "armchair",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 2,
+      "key": "desk",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 2,
+      "key": "bedroom",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 2,
+      "key": "advice",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 2,
+      "key": "structural",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 2,
+      "key": "impossible",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 2,
+      "key": "failed-followup",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 3,
+      "key": "living",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 3,
+      "key": "cozier",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 3,
+      "key": "why",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 3,
+      "key": "quote",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 3,
+      "key": "paint",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 3,
+      "key": "red",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 3,
+      "key": "bigger-furnished",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 3,
+      "key": "bigger-empty",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 3,
+      "key": "sofa",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 3,
+      "key": "armchair",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 3,
+      "key": "desk",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 3,
+      "key": "bedroom",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 3,
+      "key": "advice",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 3,
+      "key": "structural",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 3,
+      "key": "impossible",
+      "same_grade": true
+    },
+    {
+      "flat": "b21-t13",
+      "repeat": 3,
+      "key": "failed-followup",
+      "same_grade": true
+    }
+  ]
+}

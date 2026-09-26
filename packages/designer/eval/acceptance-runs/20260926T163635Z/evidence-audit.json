@@ -1,0 +1,62 @@
+{
+  "measured_source": "a74d92fc3a4c3286bc7518d0d4dafbdaaf2757bc",
+  "product_source": "d2d7966db7d9c092b55ec27725782c3496cd701d",
+  "requests": 144,
+  "step_rows": 171,
+  "golden_completed": {
+    "b21-t13": "0/3",
+    "avani": "0/3",
+    "m6": "0/3"
+  },
+  "tier2": {
+    "b21-t13": {
+      "passed": 18,
+      "total": 36
+    },
+    "avani": {
+      "passed": 28,
+      "total": 36
+    },
+    "m6": {
+      "passed": 11,
+      "total": 36
+    }
+  },
+  "editor_accepted": 28,
+  "returned_proposals": 28,
+  "request_seconds": {
+    "median": 9.07802370848367,
+    "max": 113.77603933296632
+  },
+  "tokens": {
+    "median": 9520.0,
+    "max": 155004,
+    "total": 2306474
+  },
+  "outcomes": {
+    "message": 101,
+    "question": 6,
+    "proposal": 28,
+    "decline": 9
+  },
+  "top_captures": 171,
+  "unique_top_images": 30,
+  "capture_errors": 0,
+  "live_profile_verified": 144,
+  "raw_http_and_telemetry_match": 144,
+  "input_hashes_unchanged": true,
+  "runtime_snapshot_hashes_match": true,
+  "original_live_grades_preserved": true,
+  "living_input_catalog_sizes": [
+    20,
+    20,
+    20,
+    20,
+    20,
+    20,
+    20,
+    20,
+    20
+  ],
+  "human_review": "pending; no complete human signoff"
+}

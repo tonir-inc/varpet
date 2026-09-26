@@ -14,7 +14,7 @@ export const opsToolSchema=z.array(z.discriminatedUnion('type',[
 ])).max(200);
 
 const relations=placeInputSchema.shape.relations.element.options;
-const relationsToolSchema=z.array(z.discriminatedUnion('type',[
+export const relationsToolSchema=z.array(z.discriminatedUnion('type',[
   relations[0],relations[1],relations[2],
   relations[3].extend({wall_ids:z.array(z.string().min(1)).length(2).optional()}),
   relations[4],relations[5],relations[6],

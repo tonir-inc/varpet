@@ -20,12 +20,14 @@ import {ask,askInputSchema} from './ask.js';
 import {opsToolSchema,placeToolSchema} from './tool-inputs.js';
 import {candidateSheet} from './catalog-vision.js';
 import {designRoom,type DesignCandidate} from './taste/design.js';
+import {createTypedServer} from './typed-tools.js';
 
 export function result(data: unknown, isError = false) {
   return { content: [{ type: 'text' as const, text: typeof data === 'string' ? data : JSON.stringify(data) }], ...(isError ? { isError: true } : {}) };
 }
 
 export function createServer(input: Scene, options:{catalogQuery?:CatalogQuery; proposalsDir?:string; customerRequests?:readonly string[];buildsDir?:string;conversationId?:string;turnId?:string}={}) {
+  if(process.env.VARPET_DESIGNER_TYPED_TOOLS==='1')return createTypedServer(input,options);
   const scene = parseScene(input);
   const proposalsDir = options.proposalsDir ?? process.env.VARPET_PROPOSALS_DIR;
   const session = new DesignerSession(scene,options.customerRequests);

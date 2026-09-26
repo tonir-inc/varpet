@@ -4,7 +4,7 @@ import {catalogProduct} from '../../../apps/editor/src/adapters/database-catalog
 import { z } from 'zod';
 import type { CatalogAsset } from '../../../apps/editor/src/contracts.js';
 import { applyOps, parseOps, parseScene, wallOutward } from './adapter.js';
-import { checkLocalLayout, compareLayoutErrors, localGeometryErrors, outsidePoint } from './local-checks.js';
+import { checkLocalLayout, compareLayoutErrors, localGeometryErrors, outsidePoint, sourceFloorPolygon } from './local-checks.js';
 import { functionClearances } from './metrics/function.js';
 import { itemPolygon, physicalDoorSwingPolygon, spaceMetrics, polygonsOverlap, isFloorRug, rasterizeRoom } from './metrics/space.js';
 import { wallSolidPolygons } from './wall-geometry.js';
@@ -111,7 +111,18 @@ function coarseOpenFloor(scene:Scene,room:Scene['rooms'][number]):number {
   return best*.25**2;
 }
 export interface Candidate { id:string; catalog_ids:string[]; ops:Op[]; intent?:Intent; score:number; scores:{daylight:number;zoning:number;facing:number;open_floor:number}; description:string }
-export interface SlotQuery {roomId:string;catalogId?:string;itemId?:string;nearWindow?:boolean;faceWindow?:boolean;openFloor?:boolean;maxChecks?:number}
+export interface SlotQuery {roomId:string;catalogId?:string;itemId?:string;nearWindow?:boolean;faceWindow?:boolean;openFloor?:boolean;maxChecks?:number;solidHeadboard?:boolean}
+export function supportedHeadboard(scene:Scene,item:Item){
+ const t=item.rot*Math.PI/180,back:Vec2=[item.pos[0]-Math.sin(t)*item.size[1]/2,item.pos[1]+Math.cos(t)*item.size[1]/2];
+ return scene.walls.some(w=>{
+  if(w.room_id!==item.room_id||w.open)return false;
+  const dx=w.b[0]-w.a[0],dy=w.b[1]-w.a[1],len=Math.hypot(dx,dy),out=wallOutward(scene,w),along=((back[0]-w.a[0])*dx+(back[1]-w.a[1])*dy)/len;
+  return Math.abs((back[0]-w.a[0])*out[0]+(back[1]-w.a[1])*out[1]+(w.thickness??0)/2)<.13
+   && Math.abs(-Math.sin(t)*out[0]+Math.cos(t)*out[1]-1)<.05
+   && along>=item.size[0]/2&&along<=len-item.size[0]/2
+   && !scene.openings.some(o=>o.wall_id===w.id&&o.offset<along+item.size[0]/2&&o.offset+o.width>along-item.size[0]/2);
+ });
+}
 export interface SceneAnalysis {fingerprint:string;rooms:{id:string;bounds:ReturnType<typeof bounds>;wall_spans:{wall_id:string;from:number;to:number}[];windows:ReturnType<typeof windows>}[];door_swings:{id:string;polygon:Vec2[]|null}[];walkways:ReturnType<typeof spaceMetrics>;daylight:ReturnType<typeof sun>}
 
 /** Bounded immutable snapshots. Geometry and slot caches invalidate on ANY scene/catalog edit. */
@@ -176,13 +187,14 @@ function generateSlots(scene:Scene,catalog:readonly CatalogAsset[],query:SlotQue
   const solids=new Map<number,Vec2[][]>();
   const cheap:{item:Item;op:Op;after:Scene;score:number}[]=[];
   for(const item of poses){
+    if(query.solidHeadboard&&!supportedHeadboard(scene,item))continue;
     const op:Op=owned?{type:'move',id:owned.id,pos:item.pos,rot:item.rot}:{type:'add',item};
     let after:Scene;try{after=applyOps(scene,[op]);}catch{continue;}
     const moved=after.items.filter(i=>i.id===item.id||(owned?.group_id&&i.group_id===owned.group_id));
     if(moved.some(i=>{
       const polygon=itemPolygon(i),ownRoom=scene.rooms.find(r=>r.id===i.room_id)!;
       if(!solids.has(i.size[2]))solids.set(i.size[2],wallSolidPolygons(scene,i.size[2]).map(s=>s.polygon));
-      return outsidePoint(polygon,ownRoom.polygon)||solids.get(i.size[2])!.some(p=>polygonsOverlap(polygon,p))||(!isFloorRug(i)&&(obstacles.some(o=>o.room===i.room_id&&polygonsOverlap(polygon,o.polygon))||swings.some(p=>polygonsOverlap(polygon,p))));
+      return outsidePoint(polygon,ownRoom.polygon)||outsidePoint(polygon,sourceFloorPolygon(scene,ownRoom))||solids.get(i.size[2])!.some(p=>polygonsOverlap(polygon,p))||(!isFloorRug(i)&&(obstacles.some(o=>o.room===i.room_id&&polygonsOverlap(polygon,o.polygon))||swings.some(p=>polygonsOverlap(polygon,p))));
     }))continue;
     if(moved.some(i=>windowBlocked(after,i)))continue;
     if(query.nearWindow&&!checkRequest(after,after,[],{preferences:[{type:'near_window',item_id:item.id,max_distance_m:1.5}]},0).ok)continue;
@@ -191,6 +203,9 @@ function generateSlots(scene:Scene,catalog:readonly CatalogAsset[],query:SlotQue
     const travel=owned?Math.hypot(item.pos[0]-owned.pos[0],item.pos[1]-owned.pos[1]):0;
     const semantic=asset?catalogKind(asset):base.kind;
     let purchaseRank=-edge;
+    // A bed needs both sides accessible. Corner-first ranking can exhaust the
+    // bounded checks without ever trying the middle of a perfectly usable wall.
+    if(query.solidHeadboard)purchaseRank=-Math.hypot(item.pos[0]-center[0],item.pos[1]-center[1]);
     if(semantic==='table'){
       const footprint=bounds(itemPolygon(item));
       const clearance=Math.min(footprint.minX-box.minX,box.maxX-footprint.maxX,footprint.minY-box.minY,box.maxY-footprint.maxY);
