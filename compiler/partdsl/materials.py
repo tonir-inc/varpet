@@ -73,7 +73,8 @@ def _maps(finish_id: str) -> tuple[np.ndarray, Image.Image, np.ndarray]:
 def pbr(finish_id: str | None, tint: str | None, kind: str, roughness: float | None) -> PBRMaterial:
     """One shared material per (finish, tint, kind), so a GLB stores each texture once."""
     if kind in ("mirror", "glass") or finish_id is None:
-        colour = rgb(tint or "#b0b0b0")
+        srgb = rgb(tint or "#b0b0b0")
+        colour = np.where(srgb <= 0.04045, srgb / 12.92, ((srgb + 0.055) / 1.055) ** 2.4)  # factors are linear
         alpha = 0.3 if kind == "glass" else 1.0
         metal = 1.0 if kind in ("metal", "mirror") else 0.0
         rough = 0.02 if kind in ("mirror", "glass") else (roughness if roughness is not None else 0.6)

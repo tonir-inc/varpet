@@ -79,3 +79,14 @@ def test_clearcoat_only_on_glossy_finishes(tmp_path, lib):
     coats = {m["name"]: m.get("extensions", {}).get("KHR_materials_clearcoat") for m in doc["materials"]}
     assert coats["finish:testwood"]["clearcoatFactor"] == 0.25 and coats["finish:testfelt"] is None
     assert doc["extensionsUsed"] == ["KHR_materials_clearcoat"]
+
+
+def test_plain_colour_is_linear():
+    """glTF baseColorFactor is linear: an sRGB hex written as-is renders far too light."""
+    materials.pbr.cache_clear()
+    m = materials.pbr(None, "#3b4045", "plain", 0.5)
+    got = np.asarray(m.baseColorFactor, dtype=float)[:3]
+    got = got / 255 if got.max() > 1 else got
+    want = np.array([0x3b, 0x40, 0x45]) / 255
+    want = np.where(want <= 0.04045, want / 12.92, ((want + 0.055) / 1.055) ** 2.4)
+    assert np.allclose(got, want, atol=2 / 255)
