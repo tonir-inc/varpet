@@ -125,11 +125,13 @@ def build_row(group, entry):
     return row
 
 
-def load_entries(root):
+def load_entries(root, groups=None):
     """Return accepted (row, GLB path) pairs, rejections and per-group/kind counts."""
     accepted, rejected, counts = [], [], {}
     seen_ids, seen_files = set(), set()
     for manifest in sorted(Path(root).glob("*/entries.json")):
+        if groups and manifest.parent.name not in groups:
+            continue
         group = manifest.parent.name
         counts[group] = {"accepted": Counter(), "rejected": Counter()}
         try:
@@ -193,10 +195,11 @@ def main(argv=None):
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--dry-run", action="store_true", help="validate only (default)")
     mode.add_argument("--apply", action="store_true", help="stage valid models and upsert rows")
+    parser.add_argument("--groups", nargs="+", help="only these group folders (default: every group)")
     parser.add_argument("--stage", type=Path,
                         help=f"copy valid GLBs here, including in dry-run (apply default: {DATA / 'models'})")
     args = parser.parse_args(argv)
-    accepted, rejected, counts = load_entries(EXTRA)
+    accepted, rejected, counts = load_entries(EXTRA, args.groups)
     for group, by_status in counts.items():
         print(f"{group}: {sum(by_status['accepted'].values())} accepted, "
               f"{sum(by_status['rejected'].values())} rejected")
