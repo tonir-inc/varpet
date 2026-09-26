@@ -2,10 +2,11 @@
 id: "20260926T200149Z-designer-designer-finds-no-checked-fit-for-any-chair-in-t-6d2dbec28a9c4a29a75e332754804f54"
 lane: "designer"
 severity: "major"
-status: "open"
+status: "fixed"
 title: "Designer finds no checked fit for any chair in the living room (14 s per search)"
 reported_by: "Sergey"
 created: "2026-09-26T20:01:49.766417Z"
+fixed_in: "f050b79"
 ---
 
 **Steps**
@@ -25,3 +26,5 @@ search_catalog {kind:chair, limit 1/6} and {text:'simple dining chair'} all retu
 ![Screenshot 1](img/20260926T200149Z-designer-designer-finds-no-checked-fit-for-any-chair-in-t-6d2dbec28a9c4a29a75e332754804f54-1.png)
 
 **Notes**
+
+- 2026-09-26T21:27:58.286663Z: Root cause: slot budget (16 checks) went to edge-first chair poses backed onto walls, all rejected by deficitsPreserved (chair_pullout 0.6 m behind) or a <0.75 m approach. Slot search now skips poses whose own function clearance worsens before spending checks, ranks chairs by open approach + facing the sofa/table, and search_catalog stops at 2 checked slots. Repro scene: 0 -> 4 chairs, ~1.5 s per product. Test: test/chair-regression.test.ts
