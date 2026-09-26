@@ -1,36 +1,47 @@
 /* Contextual properties share the existing furniture panel. */
-.inspector .text-field select { width: 100%; min-width: 0; height: 33px; padding: 0 8px; border: 1px solid #43414d; border-radius: 5px; background: #1e1f26; color: #e0dce8; font-size: 11px; }
+.inspector .text-field select { width: 100%; min-width: 0; height: 33px; padding: 0 8px; border: 1px solid var(--control-line); border-radius: var(--radius-sm); background: var(--ground); color: var(--ink); font-size: var(--text-xs); }
 .inspector .text-field input:disabled, .inspector .text-field select:disabled { opacity: .5; }
 .inspector fieldset { margin: 0; padding: 0; border: 0; min-width: 0; }
 .inspector fieldset:disabled { opacity: .55; }
 .inspector-types { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 6px; }
-.inspector-types button { min-height: 37px; padding: 8px; border: 1px solid #46434f; border-radius: 6px; background: #2c2b34; color: #c7c2d2; font-size: 11px; }
-.inspector-types button:hover:not(:disabled) { background: #3b354a; border-color: #817296; }
-.inspector-types button[aria-pressed="true"] { background: #433a57; border-color: var(--accent); color: #eee6ff; box-shadow: inset 0 0 0 1px #c2b6fa22; }
-.inspector-assumption { margin: 10px 0; padding: 9px 10px; border-radius: 5px; background: #41392a; color: #d8c397; font-size: 10px; line-height: 1.6; }
-.inspector-preview { padding: 11px; border: 1px solid #423c4c; border-radius: 7px; background: #28252f; }
+.inspector-types button { min-height: 37px; padding: var(--space-2); border: 1px solid var(--control-line); border-radius: var(--radius-sm); background: var(--raised); color: var(--ink); font-size: var(--text-xs); }
+.inspector-types button:hover:not(:disabled) { background: var(--hover); border-color: var(--control-line); }
+.inspector-types button[aria-pressed="true"] { background: var(--accent-wash); border-color: var(--accent); color: var(--accent); box-shadow: inset 0 0 0 1px var(--shadow-color); }
+.inspector-assumption { margin: 10px 0; padding: 9px 10px; border-radius: var(--radius-sm); background: var(--warning-wash); color: var(--warning); font-size: var(--text-xs); line-height: 1.6; }
+.inspector-preview { padding: 11px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); }
 .inspector-preview input[type="range"] { width: 100%; margin: 2px 0 10px; accent-color: var(--accent); }
 .inspector-preview output { color: var(--accent); }
 .inspector-preview-actions { display: flex; gap: 6px; }
-.inspector-preview-actions button { flex: 1; min-height: 28px; font-size: 10px; }
-.inspector-details { margin: 14px 0; border-top: 1px solid #403c49; }
-.inspector-details summary { padding: 12px 0; cursor: pointer; color: #b8adc9; font-size: 11px; }
+.inspector-preview-actions button { flex: 1; min-height: 28px; font-size: var(--text-xs); }
+.inspector-details { margin: 14px 0; border-top: 1px solid var(--line); }
+.inspector-details summary { padding: 12px 0; cursor: pointer; color: var(--muted); font-size: var(--text-xs); }
 .inspector-details > .text-field { margin: 10px 0; }
-.inspector-advanced { margin-top: 20px; padding-top: 14px; border-top: 1px solid #403c49; }
-.inspector-advanced .button { font-size: 11px; }
+.inspector-advanced { margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--line); }
+.inspector-advanced .button { font-size: var(--text-xs); }
 .inspector-swatches { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px; }
-.inspector-swatches button { min-width: 0; flex-direction: column; align-items: stretch; gap: 7px; padding: 5px; border: 1px solid #44414b; border-radius: 6px; background: #292830; text-align: left; }
-.inspector-swatches .finish-swatch { border-radius: 3px; }
+.inspector-swatches button { min-width: 0; flex-direction: column; align-items: stretch; gap: 7px; padding: 5px; border: 1px solid var(--control-line); border-radius: var(--radius-sm); background: var(--raised); text-align: left; }
+.inspector-swatches .finish-swatch { border-radius: var(--radius-sm); }
 .inspector-swatches .finish-swatch-solid { height: 30px; aspect-ratio: auto; }
-.inspector-finish-caption { display: block; padding: 0 2px 3px; color: #c7bece; font-size: 10px; line-height: 1.5; }
-.inspector-finish-caption small { display: block; margin-top: 3px; color: #9993a3; font-size: 9px; line-height: 1.45; }
+.inspector-finish-caption { display: block; padding: 0 2px 3px; color: var(--ink); font-size: var(--text-xs); line-height: 1.5; }
+.inspector-finish-caption small { display: block; margin-top: 3px; color: var(--muted); font-size: var(--text-xs); line-height: 1.45; }
 .inspector-swatches button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.inspector-swatches button[aria-pressed="true"] { border-color: var(--accent); background: #40364d; }
-.inspector-swatches button:hover:not(:disabled) { border-color: #8d7eaa; }
+.inspector-swatches button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-wash); }
+.inspector-swatches button:hover:not(:disabled) { border-color: var(--control-line); }
 .inspector-swatches button[draggable="true"] { cursor: grab; user-select: none; }
 .inspector-swatches button.is-dragging { cursor: grabbing; opacity: .55; }
-.inspector-error { margin: 10px 0; color: #eba6ad; font-size: 11px; line-height: 1.5; }
+.inspector-error { margin: 10px 0; color: var(--danger); font-size: var(--text-xs); line-height: 1.5; }
 
 .apartment-height fieldset { margin: 0; padding: 0; border: 0; min-width: 0; }
 .apartment-height fieldset:disabled { opacity: .55; }
 .apartment-height .property-section { margin: 14px 0; }
+
+.inspector .text-field select { height: 36px; font-size: var(--text-sm); border-color: var(--control-line); }
+.inspector-types { gap: var(--space-2); }
+.inspector-types button { min-height: 40px; font-size: var(--text-sm); }
+.inspector-assumption, .inspector-error { font-size: var(--text-sm); line-height: 1.5; }
+.inspector-preview { padding: var(--space-3); }
+.inspector-preview-actions button { min-height: 36px; font-size: var(--text-xs); }
+.inspector-details summary { font-size: var(--text-sm); }
+.inspector-swatches { gap: var(--space-2); }
+.inspector-swatches button { padding: var(--space-2); border-color: var(--line); }
+.inspector-swatches button > span:last-child { font-size: var(--text-xs); line-height: 1.5; }
