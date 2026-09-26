@@ -11,7 +11,7 @@ export function createFurnitureSurfaceResolver(model: (id: string) => THREE.Obje
     for (const support of scene.objects) {
       if (support.id === object.id || (supportId && support.id !== supportId) || isDescendant(scene, support.id, object.id) || scene.project?.metadata[support.id]?.phase === 'remove') continue;
       const asset = catalog.find(a => a.id === support.assetId);
-      if (!asset || wallDecoration(asset) || asset.kind === 'rug' || !supportContains(support, asset, object)) continue;
+      if (!asset || wallDecoration(asset) || support.hangsFrom || asset.kind === 'rug' || !supportContains(support, asset, object)) continue;
       const root = model(support.id);
       if (!root) {
         const fallback = headlessSurface(scene, catalog, object, support.id, ceiling);

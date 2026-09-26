@@ -64,7 +64,7 @@ const atX = (segment: Segment, x: number): number => segment[0][1]
  * This handles concave rooms and seams between adjacent/overlapping rooms without sampling.
  */
 function unsupportedRegions(scene: SceneDocument, object: SceneObject, asset: CatalogAsset): Vec2[][] {
-  if (object.host || object.restsOn) object = { ...object, position: [object.position[0], floorHeight(scene, object), object.position[2]] };
+  if (object.host || object.restsOn || object.hangsFrom) object = { ...object, position: [object.position[0], floorHeight(scene, object), object.position[2]] };
   // Use the authoritative check first, including its contact and elevation tolerances.
   if (floorSupported(object, asset, scene)) return [];
   const dimensions = furnitureDimensions(object, asset);

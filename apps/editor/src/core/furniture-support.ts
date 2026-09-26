@@ -1,5 +1,5 @@
 import type { CatalogAsset, SceneDocument, SceneObject } from '../contracts';
-import { mountDecoration, wallDecoration } from './decoration-placement';
+import { hangFromCeiling, hangsFromCeiling, mountDecoration, wallDecoration } from './decoration-placement';
 import { objectFootprint, pointInPolygon } from './validation';
 
 export interface SurfaceHit { id: string; y: number }
@@ -7,7 +7,7 @@ export interface SurfaceHit { id: string; y: number }
 export type FurnitureSurfaceResolver = (scene: SceneDocument, catalog: CatalogAsset[], object: SceneObject, supportId?: string, ceiling?: number) => SurfaceHit | null | undefined;
 
 export function canRestOnFurniture(asset: CatalogAsset): boolean {
-  if (wallDecoration(asset)) return false;
+  if (wallDecoration(asset) || hangsFromCeiling(asset)) return false;
   if (['decor', 'plant', 'lamp'].includes(asset.kind)) return true;
   return ['microwave', 'monitor', 'computer', 'laptop', 'speaker', 'printer', 'game_console', 'fan'].includes(asset.kind)
     && asset.dimensions.every(size => size <= 1);
@@ -33,7 +33,7 @@ export const headlessSurface: FurnitureSurfaceResolver = (scene, catalog, object
   for (const support of scene.objects) {
     if (support.id === object.id || (supportId && support.id !== supportId) || isDescendant(scene, support.id, object.id) || scene.project?.metadata[support.id]?.phase === 'remove') continue;
     const asset = catalog.find(a => a.id === support.assetId);
-    if (!asset || wallDecoration(asset) || asset.kind === 'rug' || !supportContains(support, asset, object)) continue;
+    if (!asset || wallDecoration(asset) || support.hangsFrom || asset.kind === 'rug' || !supportContains(support, asset, object)) continue;
     const height = asset.kind === 'sofa' || asset.kind === 'chair' ? Math.min(.45, asset.dimensions[1]) : asset.kind === 'bed' ? Math.min(.55, asset.dimensions[1]) : asset.dimensions[1];
     const y = support.position[1] + height * support.scale[1];
     if (y <= ceiling + .001 && (!hit || y > hit.y)) hit = { id: support.id, y };
@@ -51,10 +51,14 @@ export function placeFurniture(scene: SceneDocument, catalog: CatalogAsset[], ob
     if (on) throw new Error('Wall decorations cannot rest on furniture.');
     const mounted = mountDecoration(scene, object, asset); delete mounted.restsOn; return mounted;
   }
+  if (hangsFromCeiling(asset)) {
+    if (on) throw new Error('Hanging plants hang from the ceiling, not on furniture.');
+    return hangFromCeiling(scene, object, asset);
+  }
   if (on && !canRestOnFurniture(asset)) throw new Error('Large furniture cannot rest on other furniture.');
   if (!canRestOnFurniture(asset)) return object;
   const next = { ...object, position: [...object.position] as SceneObject['position'] };
-  delete next.host; delete next.restsOn;
+  delete next.host; delete next.restsOn; delete next.hangsFrom;
   if (on === null) { next.position[1] = floorHeight(scene, next); return next; }
   if (on && (!scene.objects.some(o => o.id === on) || on === object.id || isDescendant(scene, on, object.id))) throw new Error(`Invalid furniture support “${on}”.`);
   const resolved = resolver?.(scene, catalog, next, on, ceiling);

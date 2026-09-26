@@ -81,7 +81,7 @@ export function createFurnitureDrop(options: FurnitureDropOptions) {
       const catalog = options.catalog();
       let mountingError: string | undefined;
       try { object = placeFurniture(scene, catalog, object, undefined, options.surfaceResolver, surface ? surface.y + .02 : undefined); } catch (error) { mountingError = String(error); }
-      const supported = !mountingError && (!!object.host || !!object.restsOn || floorSupported(object, asset, scene));
+      const supported = !mountingError && (!!object.host || !!object.restsOn || !!object.hangsFrom || floorSupported(object, asset, scene));
       const validation = validateScene({ ...scene, objects: [...scene.objects, object] }, catalog);
       const conflicts = placementConflicts(scene, catalog, object);
       const valid = supported && validation.ok;

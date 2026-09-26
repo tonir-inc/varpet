@@ -1,6 +1,6 @@
 import { furnitureDimensions } from './furniture-bounds';
 import { canRestOnFurniture, floorHeight, isDescendant, supportContains } from './furniture-support';
-import { mountDecoration, wallDecoration } from './decoration-placement';
+import { hangFromCeiling, hangsFromCeiling, mountDecoration, wallDecoration } from './decoration-placement';
 import type { CatalogAsset, SceneDocument, SceneObject, ValidationResult, Vec2, Wall, RenovationProject, RenovationSnapshot } from '../contracts';
 
 import { componentPosition } from './geometry';
@@ -11,7 +11,7 @@ import { hasRoomCeiling } from './heights';
 const EPS = 1e-5;
 const COORD_LIMIT = 100;
 const COLOR = /^#[0-9a-f]{6}$/i;
-const KINDS = new Set(['sofa', 'chair', 'table', 'desk', 'bed', 'cabinet', 'wardrobe', 'dresser', 'lamp', 'plant', 'rug', 'shelf', 'toilet', 'sink', 'bathtub', 'shower', 'fridge', 'stove', 'oven', 'washing_machine', 'dryer', 'dishwasher', 'microwave', 'tv', 'monitor', 'computer', 'laptop', 'speaker', 'printer', 'game_console', 'kitchen_cabinet', 'kitchen_counter', 'kitchen_island', 'radiator', 'fan', 'coat_rack', 'shoe_rack', 'decor', 'wall_art', 'mirror']);
+const KINDS = new Set(['sofa', 'chair', 'table', 'desk', 'bed', 'cabinet', 'wardrobe', 'dresser', 'lamp', 'plant', 'rug', 'shelf', 'toilet', 'sink', 'bathtub', 'shower', 'fridge', 'stove', 'oven', 'washing_machine', 'dryer', 'dishwasher', 'microwave', 'tv', 'monitor', 'computer', 'laptop', 'speaker', 'printer', 'game_console', 'kitchen_cabinet', 'kitchen_counter', 'kitchen_island', 'radiator', 'fan', 'coat_rack', 'shoe_rack', 'decor', 'wall_art', 'mirror', 'curtain']);
 type RecordValue = Record<string, unknown>;
 type Segment = [Vec2, Vec2];
 
@@ -242,7 +242,7 @@ export function validateScene(input: unknown, catalog: CatalogAsset[]): Validati
   for (const [i, object] of (input.objects as unknown[]).entries()) {
     if (!isRecord(object)) { fail(`Object ${i + 1} must be an object.`); continue; }
     unique(object.id, `Object ${i + 1}`);
-    if (!keys(object, ['id', 'name', 'assetId', 'position', 'rotation', 'scale', 'color', 'groupId', 'host', 'restsOn']) || !text(object.name) || !text(object.assetId, 100)
+    if (!keys(object, ['id', 'name', 'assetId', 'position', 'rotation', 'scale', 'color', 'groupId', 'host', 'restsOn', 'hangsFrom']) || !text(object.name) || !text(object.assetId, 100)
       || !vector(object.position, 3, -COORD_LIMIT, COORD_LIMIT) || !finite(object.rotation, -Math.PI * 100, Math.PI * 100)
       || !vector(object.scale, 3, 0.1, 4) || (object.color !== undefined && (typeof object.color !== 'string' || !COLOR.test(object.color)))) { fail(`Object ${i + 1} has invalid fields or a non-finite/out-of-range transform.`); continue; }
     if (object.groupId !== undefined) {
@@ -251,9 +251,10 @@ export function validateScene(input: unknown, catalog: CatalogAsset[]): Validati
     }
     const asset = assets.get(object.assetId);
     if (!asset) fail(`“${object.name}” references unknown catalog asset “${object.assetId}”.`);
-    if (input.version === 1 && object.host === undefined && object.restsOn === undefined && Math.abs(object.position[1]!) > EPS) fail(`“${object.name}” must be supported on the floor at y = 0.`);
+    if (input.version === 1 && object.host === undefined && object.restsOn === undefined && object.hangsFrom === undefined && Math.abs(object.position[1]!) > EPS) fail(`“${object.name}” must be supported on the floor at y = 0.`);
     if (object.host !== undefined && (!isRecord(object.host) || !text(object.host.wallId, 100) || !finite(object.host.offset, 0, 200) || !finite(object.host.elevation, -100, 100) || ![1, -1].includes(object.host.side as number) || !(input.walls as Wall[]).some(w => w.id === (object.host as RecordValue).wallId))) fail('Furniture has an invalid wall host.');
     if (object.restsOn !== undefined && (!text(object.restsOn, 100) || object.host !== undefined || !asset || !canRestOnFurniture(asset))) fail('Furniture has an invalid support reference or kind.');
+    if (object.hangsFrom !== undefined && (object.hangsFrom !== 'ceiling' || object.host !== undefined || object.restsOn !== undefined || !asset || !hangsFromCeiling(asset))) fail('Furniture has an invalid ceiling mount or kind.');
     const scale = object.scale;
     if (asset && asset.dimensions.some((size, index) => size * scale[index]! > 20)) fail(`“${object.name}” is larger than the 20 m object limit.`);
   }
@@ -306,11 +307,18 @@ export function placementIssues(scene: SceneDocument, catalog: CatalogAsset[]): 
           && mounted.position.every((v, i) => Math.abs(v - object.position[i]!) < EPS)
           && Math.abs(mounted.rotation - object.rotation) < EPS
           && mounted.host?.side === object.host.side && Math.abs(mounted.host.offset - object.host.offset) < EPS
-          && Math.abs(mounted.host.elevation - object.host.elevation) < EPS;
+          && Math.abs(mounted.host.elevation - object.host.elevation) < EPS
+          && mounted.scale.every((v, i) => Math.abs(v - object.scale[i]!) < EPS);
       } catch { /* Missing or too-small host is reported as a support issue. */ }
       if (!valid) result.push({entityId:object.id,kind:'support',blocking:true,message:`“${object.name}” has an inconsistent wall mount.`});
     }
-    if (!floorSupported(object.host || object.restsOn ? { ...object, position: [object.position[0], floorHeight(scene, object), object.position[2]] } : object, asset, scene)) result.push({entityId:object.id,kind:'support',blocking:true,message:`“${object.name}” must fit completely inside the floor plan${scene.version === 2 ? ' at the room’s floor elevation' : ''}.`});
+    if (object.hangsFrom) {
+      let valid = false;
+      try { valid = hangsFromCeiling(asset) && Math.abs(hangFromCeiling(scene, object, asset).position[1] - object.position[1]) < EPS; }
+      catch { /* No ceiling above is reported as a support issue. */ }
+      if (!valid) result.push({entityId:object.id,kind:'support',blocking:true,message:`“${object.name}” does not hang from the ceiling above it.`});
+    }
+    if (!floorSupported(object.host || object.restsOn || object.hangsFrom ? { ...object, position: [object.position[0], floorHeight(scene, object), object.position[2]] } : object, asset, scene)) result.push({entityId:object.id,kind:'support',blocking:true,message:`“${object.name}” must fit completely inside the floor plan${scene.version === 2 ? ' at the room’s floor elevation' : ''}.`});
     const collision = scene.walls.find(wall => scene.project?.metadata[wall.id]?.phase !== 'remove' && wallCollision(object, asset, wall, footprint, scene.project?.metadata[wall.id]?.elevation ?? 0));
     if (collision) result.push({entityId:object.id,kind:'wall',blocking:true,message:`“${object.name}” intersects wall “${collision.id}”. Move it clear of the wall or into a door opening.`});
   }

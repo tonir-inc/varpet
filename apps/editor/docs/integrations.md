@@ -263,3 +263,22 @@ own support. Other items still use footprint overlap plus vertical extents, and 
 outside its support is a support issue. As with existing placement checks, invalid
 placement is blocking in v1 and a review warning in renovation v2; missing/cyclic IDs
 and unsupported kinds always reject.
+
+## Curtains and hanging planters
+
+`curtain` is a native furniture kind. Curtains mount like wall art (optional `host`, local +Z into
+the room) with two differences: if the requested point projects onto a window's span (± half the
+curtain width) the curtain centres on that window; and its top is a rod `CURTAIN_ROD_GAP` (0.03 m)
+below the ceiling (the lower of the wall top and the room's ceiling height). A curtain longer than
+that drop is hemmed: `add`/`update` reduce `scale[1]` so it just reaches the floor. No wall with
+0.5 m of drop or enough length rejects the command.
+
+Hanging planters (kind `plant` or `decor` whose name says "hanging" plant/planter/pot, or an id
+`…:hanging-…`; wall, deck, railing and balcony planters excluded) hang from the ceiling. Scene
+objects carry optional `hangsFrom: 'ceiling'`; `position[1]` is the room's ceiling height minus the
+scaled height, so the model's hanger touches the ceiling. `add`/`update` set it; `on` is rejected;
+nothing rests on a hanging item; outdoor spaces without a ceiling reject it. Overlap checks use
+vertical extent, so a planter over a sofa is not a clash. Validation checks the mount only when
+`hangsFrom` or `host` is present, so older documents with a floor-standing planter stay valid.
+Changing a wall or ceiling height does not re-hang these items yet; validation then reports the
+stale mount (blocking in v1, a warning in v2) until the item is moved.

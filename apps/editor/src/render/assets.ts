@@ -261,6 +261,12 @@ export function makeFurniture(asset: CatalogAsset, color = asset.color): THREE.G
       box(w * 0.8, h * 0.7, d * 0.06, 0, h * 0.48, d * 0.47, m.dark);
       break;
     }
+    case 'curtain': {
+      // A rod across the top with two gathered panels hanging from it.
+      cylinder(0.012, 0.012, w, 0, h - 0.02, 0, m.metal).rotation.z = Math.PI / 2;
+      for (const side of [-1, 1]) for (let i = 0; i < 4; i++) box(w * 0.11, h - 0.04, d * 0.5, side * (w * 0.445 - i * w * 0.1), (h - 0.04) / 2, (i % 2 ? 0.15 : -0.15) * d, m.main, 0.01);
+      break;
+    }
     case 'decor':
     case 'wall_art':
     case 'mirror': {
