@@ -4,33 +4,40 @@ import {applyOps} from '../adapter.js';
 import {checkLayout} from '../layout.js';
 import {localGeometryErrors,compareLayoutErrors} from '../local-checks.js';
 import {searchRoomCatalog} from './catalog.js';
+import {kidsCandidates} from './kids.js';
 import {officeCandidates} from './office.js';
 import {bedroomCandidates} from './bedroom.js';
 import {resolveStyles,styles} from '../../knowledge/styles/index.js';
 import {inferRoomProgram,roomPrograms} from '../../knowledge/room-programs.js';
 import {scoreComposition,type TasteOptions} from './composition.js';
 import type {CatalogQuery,CatalogProduct} from '../catalog.js';
-export interface DesignRequest {room_id:string;style_request:string;remake?:boolean;remove_ids?:string[];excluded_roles?:string[];customer_requests?:readonly string[]}
+export interface DesignRequest {room_id:string;style_request:string;remake?:boolean;remove_ids?:string[];excluded_roles?:string[];customer_requests?:readonly string[];budget_dram?:number}
 export interface DesignCandidate {id:string;ops:Op[];intent:{room_id:string;add:{kinds:string[];count:number}[];remove:{kinds:string[];count:number}[]};checks:ReturnType<typeof checkLayout>;composition:ReturnType<typeof scoreComposition>}
 /** Geometry recipes enumerate poses. Composition grading is independent of these construction rules. */
 export async function designRoom(scene:Scene,request:DesignRequest,query?:CatalogQuery){
  const room=scene.rooms.find(r=>r.id===request.room_id);if(!room)throw new Error('Unknown room');
- const program=inferRoomProgram(room.name??room.id),styleIds=resolveStyles(request.style_request);
- if(!program||!styleIds.length)throw new Error('A supported room and explicit style are required');
+ const words=[request.customer_requests?.at(-1)??'',request.style_request].join(' ');
+ const program=/(?:kids?['’]?|children(?:['’]s)?|child['’]s)\s+(?:bed)?room|(?:bed)?room\s+for\s+(?:the\s+)?(?:kids|children)/i.test(words)?'kids':inferRoomProgram(room.name??room.id),requestedStyles=resolveStyles(request.style_request),styleIds=requestedStyles.length?requestedStyles:['modern'];
+ if(!program)throw new Error('A supported room program is required');
+ if(request.budget_dram!==undefined&&(!Number.isSafeInteger(request.budget_dram)||request.budget_dram<0))throw new Error('Budget must be nonnegative whole dram');
  const blocked=new Set(requestPolicy(request.customer_requests?.length?request.customer_requests:[request.style_request]).blocked_kinds);
  const anchorAlternative=blocked.has('sofa');
  const excludedRoles=[...request.excluded_roles??[],...anchorAlternative?['seating_anchor']:[]];
- const catalog=await searchRoomCatalog(program,styleIds,query,true);
+ const catalog=await searchRoomCatalog(program,styleIds,query,true,program==='kids'?request.budget_dram:undefined);
  for(const kind of Object.keys(catalog.products))if(blocked.has(canonicalKind(kind)))catalog.products[kind]=[];
- const knowledge={blocked_kinds:[...blocked],program:roomPrograms[program],styles:styleIds.map(id=>({id,...styles[id]}))};
+ const knowledge={style_basis:requestedStyles.length?'customer request':'assumed modern default; customer specified no supported style',blocked_kinds:[...blocked],program:roomPrograms[program],styles:styleIds.map(id=>({id,...styles[id]}))};
  const base={knowledge,catalog,candidates:[] as DesignCandidate[],selected_id:null as string|null,reason:''};
+ if(program==='kids'){
+  const candidates=kidsCandidates(scene,request,catalog.products,{program,styles:styleIds,catalog:Object.fromEntries(Object.values(catalog.products).flat().map(p=>[p.sku,p])),excluded_roles:excludedRoles});
+  return {...base,candidates,selected_id:candidates[0]?.id??null,reason:candidates.length===1?'One complete checked children’s room; no alternative was found.':candidates.length?'Two complete checked children’s rooms with sleep, study, storage and clear play space.':'No complete children’s room found within the catalog, budget, play-space and circulation constraints.'};
+ }
  if(program==='bedroom'){
   const candidates=bedroomCandidates(scene,request,catalog.products,{program,styles:styleIds,catalog:Object.fromEntries(Object.values(catalog.products).flat().map(p=>[p.sku,p])),excluded_roles:excludedRoles});
-  return {...base,candidates,selected_id:candidates[0]?.id??null,reason:candidates.length?'Two complete checked bedroom compositions.':'No two complete bedroom compositions fit with a solid headboard wall and reachable bedside furniture.'};
+  return {...base,candidates,selected_id:candidates[0]?.id??null,reason:candidates.length===1?'One complete checked bedroom composition; no alternative was found.':candidates.length?'Two complete checked bedroom compositions.':'No complete bedroom composition fits with a solid headboard wall and reachable bedside furniture.'};
  }
  if(program==='office'){
   const candidates=officeCandidates(scene,request,catalog.products,{program,styles:styleIds,catalog:Object.fromEntries(Object.values(catalog.products).flat().map(p=>[p.sku,p])),excluded_roles:excludedRoles});
-  return {...base,candidates,selected_id:candidates[0]?.id??null,reason:candidates.length?'Two complete checked office compositions with a desk, work chair, task light and storage.':'No two complete office compositions fit the catalog pieces and circulation.'};
+  return {...base,candidates,selected_id:candidates[0]?.id??null,reason:candidates.length===1?'One complete checked office composition; no alternative was found.':candidates.length?'Two complete checked office compositions with a desk, work chair, task light and storage.':'No complete office composition fits the catalog pieces and circulation.'};
  }
  if(program!=='living')return {...base,reason:'Room program and catalog supplied; automatic composition currently supports living rooms, bedrooms and offices. Use relation placement for this program.'};
  const products=catalog.products,excluded=new Set(excludedRoles);
@@ -82,6 +89,6 @@ export async function designRoom(scene:Scene,request:DesignRequest,query?:Catalo
  }
  candidates.sort((a,b)=>b.composition.score-a.composition.score||a.id.localeCompare(b.id));
  const first=candidates[0],second=candidates.find(c=>first&&c!==first&&c.ops.some((op,i)=>op.type==='add'&&first.ops[i]?.type==='add'&&op.item.rot!==first.ops[i].item.rot))??candidates[1];
- if(!first||!second)return {...base,rejected_by:rejected,reason:'Fewer than two complete, physically checked compositions fit. Keep the program and report the obstruction; do not substitute an empty room.'};
- return {...base,candidates:[first,second],selected_id:first.id,reason:'Two complete catalog compositions passed physical and taste checks. Select by ID; preserve exact ops and declare the returned intent.'};
+ if(!first)return {...base,rejected_by:rejected,reason:'No complete, physically checked composition fits. Keep the program and report the obstruction; do not substitute an empty room.'};
+ return {...base,candidates:second?[first,second]:[first],selected_id:first.id,reason:second?'Two complete catalog compositions passed physical and taste checks. Select by ID; preserve exact ops and declare the returned intent.':'One complete composition passed physical and taste checks; no alternative was found. Select its ID and preserve exact ops and intent.'};
 }

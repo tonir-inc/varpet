@@ -1,5 +1,5 @@
 import type {Scene,Item,Vec2} from '../scene.js';
-import {itemPolygon,polygonsOverlap} from '../metrics/space.js';
+import {itemPolygon,polygonsOverlap,rasterizeRoom} from '../metrics/space.js';
 import {roomPrograms} from '../../knowledge/room-programs.js';
 import {styles,styleMatchesKind,stylePalette,styleFamilies} from '../../knowledge/styles/index.js';
 export interface TasteOptions {program:string;styles?:string[];catalog?:Record<string,{styles:string[];styles_inferred?:string[];colors_image:string[]}>;excluded_roles?:string[];alternative_seating?:boolean}
@@ -55,13 +55,22 @@ export function scoreComposition(scene:Scene,roomId:string,options:TasteOptions)
   const row=chairs.length>=2&&chairs.every(s=>Math.abs(Math.sin((s.rot-chairs[0]!.rot)*Math.PI/180))<.1&&Math.cos((s.rot-chairs[0]!.rot)*Math.PI/180)>.9)&&chairs.every(s=>!focal.some(f=>facing(s,f.pos))&&!group.some(b=>s!==b&&facing(s,b.pos)&&facing(b,s.pos)));
   check('chair_row',!row,2,'Parallel chairs facing nothing form a waiting-room row, not a living group.',chairs.map(i=>i.id));
  }
- if(options.program==='office'){
+ if(options.program==='kids'){
+  const room=scene.rooms.find(r=>r.id===roomId)!,grid=rasterizeRoom(scene,room,.1),side=Math.ceil((program.play_space_side_m??1.2)/grid.resolution);
+  let clear=false;
+  for(let y=0;y<=grid.height-side&&!clear;y++)for(let x=0;x<=grid.width-side&&!clear;x++){
+   let free=true;for(let yy=y;yy<y+side&&free;yy++)for(let xx=x;xx<x+side;xx++)if(grid.occupied[yy*grid.width+xx]){free=false;break;}
+   if(free)clear=true;
+  }
+  check('clear_play_space',clear,2,`Reserve a clear ${program.play_space_side_m} m square for floor play.`);
+ }
+ if(options.program==='office'||options.program==='kids'){
   const desks=items.filter(i=>['desk','table'].includes(i.kind)),chairs=items.filter(i=>['chair','office_chair'].includes(i.kind)),lamps=items.filter(i=>i.kind==='lamp');
   check('work_seat_facing',chairs.length>0&&chairs.every(chair=>desks.some(desk=>facing(chair,desk.pos)&&distance(chair,desk)<=2)),2,'The work chair must face the desk within 2 m.',chairs.map(i=>i.id));
   check('work_reach',chairs.length>0&&chairs.every(chair=>desks.some(desk=>edgeGap(chair,desk)<=.65+EPS)),1,'Keep the work chair within 0.65 m of the desk edge.');
   check('task_light_reach',excluded.has('task_light')||desks.every(desk=>lamps.some(lamp=>edgeGap(desk,lamp)<=.6)),1,'Place task light within 0.60 m of the desk.');
  }
- if(options.program==='bedroom'){
+ if(options.program==='bedroom'||options.program==='kids'){
   const beds=items.filter(i=>i.kind==='bed');
   check('headboard_on_solid_wall',beds.length>0&&beds.every(b=>{
    const head=world(b,0,b.size[1]/2);
@@ -75,11 +84,11 @@ export function scoreComposition(scene:Scene,roomId:string,options:TasteOptions)
     });
    });
   }),2,'Place the headboard against a solid wall, clear of windows and doors.',beds.map(b=>b.id));
-  check('nightstand_each_open_side',beds.length>0&&beds.every(b=>[-1,1].every(side=>items.some(t=>t!==b&&['table','nightstand','cabinet'].includes(t.kind)&&side*local(b,t.pos)[0]>b.size[0]/2&&edgeGap(b,t)<=.7+EPS&&local(b,t.pos)[1]>0))),1,'Provide a nightstand beside each side of the headboard.');
-  check('light_each_bedside',beds.length>0&&beds.every(b=>[-1,1].every(side=>items.some(t=>t.kind==='lamp'&&side*local(b,t.pos)[0]>0&&edgeGap(b,t)<=.9+EPS&&local(b,t.pos)[1]>=b.size[1]/2-.9-EPS))),1,'Provide reachable light at both bedsides.');
+  if(options.program==='bedroom')check('nightstand_each_open_side',beds.length>0&&beds.every(b=>[-1,1].every(side=>items.some(t=>t!==b&&['table','nightstand','cabinet'].includes(t.kind)&&side*local(b,t.pos)[0]>b.size[0]/2&&edgeGap(b,t)<=.7+EPS&&local(b,t.pos)[1]>0))),1,'Provide a nightstand beside each side of the headboard.');
+  if(options.program==='bedroom')check('light_each_bedside',beds.length>0&&beds.every(b=>[-1,1].every(side=>items.some(t=>t.kind==='lamp'&&side*local(b,t.pos)[0]>0&&edgeGap(b,t)<=.9+EPS&&local(b,t.pos)[1]>=b.size[1]/2-.9-EPS))),1,'Provide reachable light at both bedsides.');
  }
  if(options.styles?.length){
-  const ids=options.styles,palette=stylePalette(ids),records=items.map(i=>({i,meta:(()=>{const m=options.catalog?.[i.sku??i.id];return m?{...m,styles:[...m.styles,...m.styles_inferred??[]]}:undefined;})()}));
+  const ids=options.styles,palette=stylePalette(ids),records=scene.items.filter(i=>i.room_id===roomId&&i.sku&&!scene.fixed.some(f=>f.id===i.id)&&!i.structure&&!['structural','structure','wall','column'].includes(i.kind)).map(i=>({i,meta:(()=>{const m=options.catalog?.[i.sku??i.id];return m?{...m,styles:[...m.styles,...m.styles_inferred??[]]}:undefined;})()}));
   check('style_unknown',records.length>0&&records.every(r=>r.meta?.styles.length&&r.meta.colors_image.length),1,'Style/color evidence is missing; unknown is not a style match.',records.filter(r=>!r.meta?.styles.length||!r.meta.colors_image.length).map(r=>r.i.id));
   const shared=styleFamilies(records[0]?.meta?.styles??[]).filter(tag=>records.every(r=>styleFamilies(r.meta?.styles??[]).includes(tag)))??[];
   const recipes=ids.flatMap(id=>styles[id]?.composition?.program===options.program?[styles[id]!.composition!]:[]);

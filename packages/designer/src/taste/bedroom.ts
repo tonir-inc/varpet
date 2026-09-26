@@ -45,5 +45,5 @@ export function bedroomCandidates(scene:Scene,request:DesignRequest,products:Rec
   candidates.push({id:`bedroom-${variant}-${wall.id}-${fraction}-${storageOffset}`,ops,checks,composition,intent:{room_id:request.room_id,add:counts(items),remove:counts(remove)}});if(candidates.length===2)return candidates;
  }
  }
- return [];
+ return candidates;
 }

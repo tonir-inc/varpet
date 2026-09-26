@@ -34,5 +34,5 @@ export function officeCandidates(scene:Scene,request:DesignRequest,products:Reco
   if(candidates.length===2)return candidates;
  }
  }
- return [];
+ return candidates;
 }

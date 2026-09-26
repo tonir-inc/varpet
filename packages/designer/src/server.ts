@@ -116,8 +116,9 @@ export function createServer(input: Scene, options:{catalogQuery?:CatalogQuery; 
       if(!candidate||ops)return result({ok:false,errors:[{check:'candidate',message:'Choose a returned candidate_id alone; do not supply or invent ops.'}]},true);
       const declared=session.getIntent();
       if(declared?.room_id&&declared.room_id!==candidate.intent.room_id)return result({ok:false,errors:[{check:'request_room',message:'The selected candidate is outside the declared request room.'}]},true);
+      if(styleCandidates.length===1)rationale=`${rationale.slice(0,3900)} No alternative checked layout was found.`;
       ops=candidate.ops;session.setIntent({...declared,...candidate.intent});
-    }else if(stylePlanning)return result({ok:false,errors:[{check:'composition',message:'Style plans require choosing one of the two checked candidate IDs.'}]},true);
+    }else if(stylePlanning)return result({ok:false,errors:[{check:'composition',message:'Style plans require choosing one of the returned checked candidate IDs.'}]},true);
     if(productVision){
       const missing=(ops??[]).filter(op=>op.type==='add'&&!op.item.sku?.startsWith('custom-')&&!seenProducts.has(op.item.sku??'')).map(op=>op.type==='add'?op.item.sku:undefined);
       if(missing.length)return result({ok:false,errors:[{check:'visual_evidence',message:'Call show_candidates before selecting these products; inspect appearance and retry.',item_ids:missing}]},true);
@@ -141,7 +142,7 @@ export function createServer(input: Scene, options:{catalogQuery?:CatalogQuery; 
     return result({...proposal,...(assets?.length?{assets}:{})},!proposal.ok);
   });
   server.registerTool('search_catalog', {
-    description:'For ANY whole-room style request, use room_id plus style_request (the customer words), remake:true and optional remove_ids/excluded_roles. Searches every program kind and returns two complete physically checked compositions ranked by taste. Propose candidate_id; do not write coordinates or omit essentials. For single products, find sized, priced catalog furniture. Returns item descriptions for place, plus size/price provenance. Mock prices are explicitly labeled; unavailable catalog is never replaced with invented products.',
+    description:'For ANY whole-room style request, use room_id plus style_request (the customer words), remake:true and optional remove_ids/excluded_roles. Searches every program kind and returns up to two complete physically checked compositions (one is sufficient; disclose when no alternative was found) ranked by taste. Propose candidate_id; do not write coordinates or omit essentials. For single products, find sized, priced catalog furniture. Returns item descriptions for place, plus size/price provenance. Mock prices are explicitly labeled; unavailable catalog is never replaced with invented products.',
     inputSchema:searchCatalogInputSchema.extend({room_id:z.string().optional(),style_request:z.string().optional(),remake:z.boolean().optional(),remove_ids:z.array(z.string()).optional(),excluded_roles:z.array(z.string()).optional()}),
   },async request=>{
     const {room_id,style_request,remake,remove_ids,excluded_roles,...productQuery}=request;
@@ -150,7 +151,7 @@ export function createServer(input: Scene, options:{catalogQuery?:CatalogQuery; 
       stylePlanning=true;styleCandidates=[];
       try{
         if(!room_id)throw new Error('Style requests require room_id');
-        const plan=await designRoom(scene,{room_id,style_request,remake,remove_ids,excluded_roles,customer_requests:options.customerRequests},query);
+        const plan=await designRoom(scene,{room_id,style_request,remake,remove_ids,excluded_roles,customer_requests:options.customerRequests,budget_dram:session.getIntent()?.budget_dram},query);
         styleCandidates=plan.candidates;
         return result({knowledge:plan.knowledge,missing_kinds:plan.catalog.missing_kinds,unavailable_kinds:plan.catalog.unavailable_kinds,incomplete_kinds:plan.catalog.incomplete_kinds,retried_kinds:plan.catalog.retried_kinds,reason:(!plan.candidates.length&&(plan.catalog.incomplete_kinds.length||plan.catalog.unavailable_kinds.length))?'Catalog or fit search is incomplete; no absence or impossibility is proven.':plan.reason,selected_id:plan.selected_id,
           candidates:plan.candidates.map(c=>({id:c.id,intent:c.intent,composition:c.composition,items:c.ops.filter(op=>op.type==='add').map(op=>op.item),physical_checks_passed:c.checks.ok,cost_dram:c.checks.price.cost_dram}))});
