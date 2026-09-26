@@ -21,6 +21,8 @@ THREE.Mesh.prototype.onBeforeRender = function (...args) {
 };
 const errors: string[] = [];
 const viewport = createViewport(document.querySelector('#view')!, { onSelect() {}, onInteraction() {}, onTransform() {}, onError: error => errors.push(error) });
+// This page exercises scene illumination; normal Top view now defaults to unlit.
+viewport.setTopLighting(true);
 viewport.setScene(scene, []); viewport.setView('top'); viewport.setSun({ azimuth: 0, elevation: 35 });
 const delay = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
 const status = document.querySelector('#status')!, results = document.querySelector('#results')!;

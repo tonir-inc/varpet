@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type { EntityMetadata, Opening, Room, SceneDocument, Wall } from '../contracts';
 import { roomCeilingHeight } from '../core/heights';
 import { wallFootprint, wallPrismGeometry } from './wall-geometry';
+import { makeCeilingGeometry } from './ceiling-geometry';
 
 /** The physical shell stays intact in shadow maps while its editor projection
  * cuts walls and roofs away. This projection owns only cheap, untextured geometry;
@@ -79,12 +80,9 @@ export class SunOccluders {
   }
 
   private addRoof(room: Room, metadata: EntityMetadata, height: number): void {
-    const shape = new THREE.Shape();
-    room.polygon.forEach(([x, z], index) => { if (index === 0) shape.moveTo(x, -z); else shape.lineTo(x, -z); });
-    shape.closePath();
-    const geometry = new THREE.ShapeGeometry(shape); this.shellGeometries.add(geometry);
+    const geometry = makeCeilingGeometry(this.scene!, room, true); this.shellGeometries.add(geometry);
     const mesh = this.mesh(this.group, geometry, this.roofMaterial);
-    mesh.rotation.x = -Math.PI / 2; mesh.position.y = (metadata.elevation ?? 0) + height;
+    mesh.position.y = (metadata.elevation ?? 0) + height;
   }
 
   private addWall(wall: Wall): void {

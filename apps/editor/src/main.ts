@@ -15,13 +15,14 @@ import { mountDesignerPanel, previewDesignerProposal } from './ui/designer-panel
 import { askDesigner } from './adapters/designer-http';
 import { DesignerProposalCatalog } from './core/designer-catalog';
 import { CATALOG_CURRENCY } from './adapters/catalog-http';
-import type { AgentProposal, CatalogAsset, EditCommand, ObjectPatch, Operation, SceneDocument, SceneObject, ToolMode, ViewMode, ViewportLayer, WallMode } from './contracts';
+import type { AgentProposal, CatalogAsset, EditCommand, ObjectPatch, Operation, SceneDocument, SceneObject, ToolMode, Vec3, ViewMode, ViewportLayer, WallMode } from './contracts';
 import { createInitialScene } from './core/initial-scene';
 import { databaseCatalog, catalogKinds, catalogCategories, resolveSceneProducts, retainRegisteredProducts, type CatalogProduct } from './adapters/database-catalog';
 import { createApartmentStore } from './core/apartment-store';
 import { normalizeWallJunctions } from './core/wall-junctions';
 import { expandFurnitureSelection, furnitureMembers } from './core/grouping';
-import { validateScene } from './core/validation';
+import { floorSupported, validateScene } from './core/validation';
+import { suggestFurniturePosition } from './core/furniture-placement';
 import { OPENING_MOVE_SNAP } from './core/opening-move';
 import { STORAGE_KEY, parseScene, saveLocal, serializeScene } from './core/persistence';
 import { createDesignerAdapter, structureAdapter as mockStructureAdapter } from './adapters/mock';
@@ -43,6 +44,7 @@ import { downloadText, projectReport, projectSchedule } from './features/handoff
 import { buildFinishOperations, getFinishPreset, type FinishPreset } from './core/finish-presets';
 import { createMaterialsUI } from './ui/materials';
 import { renderEntityInspector, renderAssetChoices } from './ui/inspector';
+import { bindFurnitureDragCard } from './ui/furniture-drag';
 
 const designerLive = Boolean(import.meta.env.VITE_DESIGNER_URL);
 const app = document.querySelector<HTMLDivElement>('#app')!;
@@ -93,7 +95,7 @@ app.innerHTML = `
         <div id="catalog-status" role="status" aria-live="polite"></div>
         <button id="catalog-retry" class="button full" hidden>Retry furniture connections</button>
         <div id="catalog-scroll"><div id="asset-list" class="asset-list"></div></div>
-        <p class="muted catalog-note">Shop prices in AMD, labeled with their source. Pieces built from your photos are not priced. Click a piece to add it.</p><p class="muted catalog-note">Models: <a href="https://amazon-berkeley-objects.s3.amazonaws.com/index.html" target="_blank" rel="noopener noreferrer">Amazon Berkeley Objects</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Models are centered, oriented and scaled to catalog fit dimensions.</p>
+        <p class="muted catalog-note">Shop prices in AMD, labeled with their source. Pieces built from your photos are not priced. Drag a piece onto the floor, or click to add it.</p><p class="muted catalog-note">Models: <a href="https://amazon-berkeley-objects.s3.amazonaws.com/index.html" target="_blank" rel="noopener noreferrer">Amazon Berkeley Objects</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Models are centered, oriented and scaled to catalog fit dimensions.</p>
       </section>
       <section id="assistant-panel" class="panel-content" aria-label="Design assistant" hidden>
         <section id="architect-progress" class="af-panel" aria-live="polite" hidden></section>
@@ -108,7 +110,7 @@ app.innerHTML = `
       <div id="viewport"></div>
       <div id="architect-stage" class="architect-stage-host" hidden></div>
       <div id="floor-plan" hidden></div>
-      <div class="viewport-top"><div class="view-switch" role="group" aria-label="Apartment view"><button id="perspective" class="active" aria-pressed="true" title="Perspective camera">${icon('cube')} 3D</button><button id="top-view" aria-pressed="false" title="Orthographic camera">${icon('top')} Top</button><button id="inside-view" aria-pressed="false" title="Walk inside at standing eye height">${icon('eye')} Inside</button><button id="plan-view" aria-pressed="false" title="Floor plan with room dimensions">${icon('room')} Plan</button></div><div class="view-options"><button id="walls" title="Cycle wall visibility">${icon('walls')} <span>Cutaway</span></button><button id="sun" aria-label="Sun controls" aria-haspopup="dialog" aria-expanded="false" aria-controls="sun-controls" title="Adjust sunlight">${icon('sun')} <span>Sun</span></button><button id="quality" aria-pressed="false" title="Toggle rendering quality">${icon('sun')} <span>Balanced</span></button><button id="preview" aria-pressed="false" title="Preview apartment · P">${icon('eye')} <span>Preview</span></button></div></div>
+      <div class="viewport-top"><div class="view-switch" role="group" aria-label="Apartment view"><button id="perspective" class="active" aria-pressed="true" title="Perspective camera">${icon('cube')} 3D</button><button id="top-view" aria-pressed="false" title="Orthographic camera">${icon('top')} Top</button><button id="inside-view" aria-pressed="false" title="Walk inside at standing eye height">${icon('eye')} Inside</button><button id="plan-view" aria-pressed="false" title="Floor plan with room dimensions">${icon('room')} Plan</button></div><div class="view-options"><button id="walls" title="Cycle wall visibility">${icon('walls')} <span>Cutaway</span></button><button id="top-lighting" aria-label="Scene lighting" aria-pressed="false" title="Show scene lighting and shadows in Top view" hidden>${icon('sun')} <span>Lighting off</span></button><button id="sun" aria-label="Sun controls" aria-haspopup="dialog" aria-expanded="false" aria-controls="sun-controls" title="Adjust sunlight">${icon('sun')} <span>Sun</span></button><button id="quality" aria-pressed="false" title="Toggle rendering quality">${icon('sun')} <span>Balanced</span></button><button id="preview" aria-pressed="false" title="Preview apartment · P">${icon('eye')} <span>Preview</span></button></div></div>
       <label class="skybox-control" title="Choose a sky for 3D and Inside views">${icon('sun')}<span>Sky</span><select id="skybox" aria-label="Skybox">${SKYBOX_PRESETS.map(preset => `<option value="${preset.id}">${preset.label}</option>`).join('')}</select></label>
       <div class="inside-label"><strong>Inside</strong><span>Eye height · 1.65 m</span><label class="inside-lens">View <select id="inside-lens" aria-label="Inside view width"><option value="standard">Standard</option><option value="photo" selected>Photo</option><option value="wide">Extra wide</option></select></label></div>
       <div class="canvas-label">${icon('layers')} <span>Ground floor</span><span class="pill">1 level</span></div>
@@ -197,6 +199,7 @@ let previewMode = false;
 let proposalView = false;
 let renovationUI: RenovationUI | undefined;
 let sunControls: SunControls | undefined;
+let topLightingEnabled = false;
 let activeFinish: FinishPreset | null = null;
 const collapsedRooms = new Set<string>();
 const catalogPreviews = createCatalogPreviews($('#catalog-scroll'));
@@ -227,6 +230,11 @@ const viewport = createViewport($('#viewport'), {
   },
   onViewChange: next => setView(next),
   onSelect: (id, additive) => { if (!previewMode && view !== 'inside') select(id, additive); },
+  onFurnitureDrop: (assetId, position) => {
+    if (previewMode || proposalView) return;
+    const asset = catalog.find(item => item.id === assetId);
+    if (asset) commitFurnitureAddition(asset, newFurniture(asset), position, `Add ${asset.name}`, interactionRevision);
+  },
   onTransform: (id, patch) => {
     transformSelection(id, patch, selectedFurnitureIds.length > 1 ? 'Transform selected furniture' : `Transform ${store.scene.objects.find(o => o.id === id)?.name ?? 'object'}`, interactionRevision);
     viewport.setScene(store.scene, catalog);
@@ -679,28 +687,35 @@ function deleteSelected() {
   if (selectedFurnitureIds.length > 100) { notify('Ungroup and delete fewer than 100 pieces at a time.', true); return; }
   if (run(selectedFurnitureIds.map(id => ({type:'delete', id})), selectedFurnitureIds.length > 1 ? 'Delete selected furniture' : 'Delete object')) select(null);
 }
-function addAsset(asset:CatalogAsset, original?:SceneObject) {
-  if(interacting)return;
-  if(store.scene.objects.length>=400){notify('This editor supports up to 400 furnishings.',true);return;}
-  const object:SceneObject=original? structuredClone(original):{id:'',name:asset.name,assetId:asset.id,position:[0,0,0],rotation:0,scale:[1,1,1]};
-  object.id=uid();delete object.groupId;if(original)object.name=`${original.name.slice(0,115)} copy`;
-  const preferred=original ? [original.position[0]+0.5,original.position[2]+0.5]:[0,0];
-  const points:[number,number][]=[[preferred[0]!,preferred[1]!]];
-  for(let radius=0.5;radius<=6;radius+=0.5) for(let angle=0;angle<8;angle++)points.push([Math.round((preferred[0]!+Math.cos(angle*Math.PI/4)*radius)*4)/4,Math.round((preferred[1]!+Math.sin(angle*Math.PI/4)*radius)*4)/4]);
-  // Prefer a visibly free footprint before the expensive authoritative geometry check.
-  const radius=Math.hypot(asset.dimensions[0]*object.scale[0],asset.dimensions[2]*object.scale[2])/2;
-  const free=points.filter(([x,z])=>asset.kind==='rug'||store.scene.objects.every(other=>{const a=catalog.find(a=>a.id===other.assetId)!;return a.kind==='rug'||Math.hypot(x-other.position[0],z-other.position[2])>radius+Math.hypot(a.dimensions[0]*other.scale[0],a.dimensions[2]*other.scale[2])/2+0.05;}));
-  let lastErrors:string[]=[];
-  const start=performance.now();
-  for(const [x,z]of [...free,...points]){
-    object.position=[x,0,z];
-    const candidate={...store.scene,objects:[...store.scene.objects,object]};
-    const validation=validateScene(candidate,catalog);
-    if(validation.ok){if(run([{type:'add',object:structuredClone(object)}],original?'Duplicate object':`Add ${asset.name}`)){select(object.id);setTool('move');viewport.animatePlacement(object.id);notify(`${object.name} added. Drag the arrows to place it.${validation.warnings.length?' '+validation.warnings[0]:''}`);}return;}
-    lastErrors=validation.errors;
-    if(performance.now()-start>150)break;
-  }
-  notify(`No nearby supported floor position found. ${lastErrors[0]??''}`,true);
+function newFurniture(asset: CatalogAsset, original?: SceneObject): SceneObject {
+  const object: SceneObject = original ? structuredClone(original) : { id: '', name: asset.name, assetId: asset.id, position: [0, 0, 0], rotation: 0, scale: [1, 1, 1] };
+  object.id = uid(); delete object.groupId;
+  if (original) object.name = `${original.name.slice(0, 115)} copy`;
+  return object;
+}
+function commitFurnitureAddition(asset: CatalogAsset, object: SceneObject, position: Vec3, label: string, revision = store.revision): boolean {
+  if (interacting || previewMode || proposalView) return false;
+  if (store.scene.objects.length >= 400) { notify('This editor supports up to 400 furnishings.', true); return false; }
+  object.position = [...position];
+  const validation = validateScene({ ...store.scene, objects: [...store.scene.objects, object] }, catalog);
+  if (!validation.ok) { notify(validation.errors[0] ?? 'Furniture cannot be placed here.', true); return false; }
+  if (!floorSupported(object, asset, store.scene)) { notify('Place the whole piece on the apartment floor.', true); return false; }
+  if (!run([{ type: 'add', object }], label, revision)) return false;
+  select(object.id); setTool('move'); viewport.animatePlacement(object.id);
+  notify(`${object.name} added. Drag the piece or its arrows to move it.${validation.warnings.length ? ` ${validation.warnings[0]}` : ''}`);
+  return true;
+}
+function addAsset(asset: CatalogAsset, original?: SceneObject) {
+  if (interacting || previewMode || proposalView) return;
+  if (store.scene.objects.length >= 400) { notify('This editor supports up to 400 furnishings.', true); return; }
+  const object = newFurniture(asset, original);
+  const selected = original ?? store.scene.objects.find(item => item.id === selectedId);
+  const room = store.scene.rooms.find(item => item.id === selectedId)
+    ?? (selected && store.scene.rooms.find(item => inRoom(selected.position[0], selected.position[2], item.polygon)));
+  const position = suggestFurniturePosition(store.scene, catalog, object, room?.id,
+    original ? [original.position[0] + .5, original.position[2] + .5] : undefined);
+  if (!position) { notify('No supported floor position found. Drag the piece onto a clear floor area, or choose a smaller piece.', true); return; }
+  commitFurnitureAddition(asset, object, position, original ? 'Duplicate object' : `Add ${asset.name}`);
 }
 function duplicateSelected(){if(selectedFurnitureIds.length>1){notify('Ungroup to duplicate an individual piece.');return;}const o=store.scene.objects.find(o=>o.id===selectedId);const a=catalog.find(a=>a.id===o?.assetId);if(o&&a)addAsset(a,o);}
 
@@ -752,7 +767,20 @@ function renderAssets(){
   $('#asset-list').setAttribute('aria-busy', String(loading));
   $('#asset-list').innerHTML = results.length ? results.map(({asset:a,sizeStatus})=>`<button class="asset-card" data-asset="${escape(a.id)}" aria-label="Add ${escape(a.name)}"><div class="asset-preview" data-preview="${escape(a.id)}">${icon('box')}</div><span class="asset-add" aria-hidden="true">+</span><strong class="asset-title">${escape(a.name)}</strong><span class="asset-meta"><span>${a.dimensions[0].toFixed(2)} × ${a.dimensions[2].toFixed(2)} m · ${escape(sizeStatus)}</span></span><span class="asset-price">${escape(priceLabel(a))}</span></button>`).join('') : `<p class="empty-message">${loading ? 'Loading furniture…' : errors ? 'Check the furniture connections, then retry.' : 'No matching 3D furniture. Try a different search or category.'}</p>`;
   if(results.length&&catalogNextOffset!==null&&!loading)$('#asset-list').insertAdjacentHTML('beforeend','<button id="catalog-more" class="button full">Show more furniture</button>');
-  $('#asset-list').querySelectorAll<HTMLButtonElement>('[data-asset]').forEach(b=>b.onclick=()=>{const asset=catalog.find(a=>a.id===b.dataset.asset);if(asset)addAsset(asset);});
+  $('#asset-list').querySelectorAll<HTMLButtonElement>('[data-asset]').forEach(card => {
+    const asset = catalog.find(item => item.id === card.dataset.asset);
+    if (!asset) return;
+    bindFurnitureDragCard(card, asset, {
+      enabled: () => !interacting && !previewMode && !proposalView,
+      add: () => addAsset(asset),
+      start: item => {
+        if (activeFinish) chooseFinish(null);
+        if (view === 'plan' || view === 'inside') { setView('top'); notify('Drop furniture onto the floor in Top view.'); }
+        viewport.setFurnitureDrag(item);
+      },
+      end: () => viewport.setFurnitureDrag(null),
+    });
+  });
   document.querySelector<HTMLButtonElement>('#catalog-more')?.addEventListener('click',()=>void searchDatabase(true));
   catalogPreviews.setAssets(results.map(product => product.asset));
 }
@@ -834,6 +862,15 @@ function setMultiSelection(enabled: boolean) {
   renderViewportHints();
 }
 function setTool(next:ToolMode){if(next!=='select')setMultiSelection(false);if(view==='inside')setView('perspective');if(next==='scale'&&selectedFurnitureIds.length>1){notify('Select one ungrouped model to resize.');return;}if(activeFinish)chooseFinish(null);tool=next;viewport.setTool(tool);document.querySelectorAll<HTMLElement>('[data-tool]').forEach(b=>{b.classList.toggle('active',b.dataset.tool===tool);b.setAttribute('aria-pressed',String(b.dataset.tool===tool));});renderViewportHints();}
+function renderTopLightingControls(): void {
+  const button = $<HTMLButtonElement>('#top-lighting');
+  button.hidden = view !== 'top';
+  button.setAttribute('aria-pressed', String(topLightingEnabled));
+  button.classList.toggle('active', topLightingEnabled);
+  button.querySelector('span')!.textContent = topLightingEnabled ? 'Lighting on' : 'Lighting off';
+  button.title = topLightingEnabled ? 'Turn off lighting and shadows for an even floor plan' : 'Show scene lighting and shadows in Top view';
+  sunControls?.setVisible(view !== 'plan' && (view !== 'top' || topLightingEnabled));
+}
 function setView(next:ApartmentView){
   cancelAnimationFrame(selectionRevealFrame);
   if ((next === 'plan' || next === 'inside') && activeFinish) chooseFinish(null);
@@ -847,7 +884,7 @@ function setView(next:ApartmentView){
   app.classList.toggle('inside-mode', view === 'inside');
   if (view === 'inside') select(null);
   const isPlan = view === 'plan';
-  sunControls?.setVisible(!isPlan);
+  renderTopLightingControls();
   $('.viewport-shell').classList.toggle('plan-mode', isPlan);
   $('#viewport').hidden = isPlan;
   $('#floor-plan').hidden = !isPlan;
@@ -1136,6 +1173,7 @@ $('#close-inspector').onclick=()=>{viewport.cancelInteraction();select(null);$('
 $('#focus-selected').onclick=()=>focusView(selectedId??undefined);
 $('#preview').onclick=()=>setPreview(!previewMode);
 $('#inside-view').onclick=()=>setView('inside');$('#perspective').onclick=()=>setView('perspective');$('#top-view').onclick=()=>setView('top');$('#plan-view').onclick=()=>setView('plan');
+$('#top-lighting').onclick=()=>{topLightingEnabled=!topLightingEnabled;viewport.setTopLighting(topLightingEnabled);renderTopLightingControls();};
 document.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach(b=>b.onclick=()=>setTool(b.dataset.tool as ToolMode));
 $('#multi-select').onclick=()=>{const enabled=!multiSelection;if(enabled)setTool('select');setMultiSelection(enabled);};
 $('#focus').onclick=()=>focusView(selectedId??undefined);

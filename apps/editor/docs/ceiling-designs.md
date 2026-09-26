@@ -2,6 +2,70 @@
 
 Implemented 2026-09-26. This first pass adds three editable room-level compositions to the existing 3D editor. The checked scene document owns the settings; Three.js geometry and lights are disposable projections of those settings.
 
+## Ceiling visibility correction
+
+2026-09-26, Codex (GPT-6). Indoor ceilings now stay in the shell in every camera
+mode. Their opaque faces point down into each room, so the exterior face naturally
+disappears from above. The old **Full ceilings** overlay toggle is removed.
+Fixture meshes follow the same per-room ceiling plane while their actual lights
+stay enabled; looking from above no longer extinguishes the room. Open balconies,
+terraces and removed rooms receive no ceiling.
+
+The black ceiling in the evening preview was present but unlit: downward lights
+have no reflected-light transport. Structural ceilings and Soft Glow plaster now
+receive a modest room-local reflected-light approximation, tinted by the ceiling
+finish and fixture warmth and scaled by brightness, enabled state and automatic
+lighting. This adds no light sources or shadow maps; it is not global illumination.
+
+Rendering gotcha: changing only the material to `BackSide` is insufficient. The
+AO pass overrides materials with `FrontSide`, so the geometry's actual triangle
+winding and normals must face down too. The permanent `SunOccluders` roof retains
+its upward-facing shadow surface; the visible underside receives shadows without
+casting a duplicate roof shadow.
+
+New coverage lives in `src/render/ceiling-visibility-check.ts` and
+`/ceiling-visibility-qa.html`. Existing tests, fixtures and schemas are unchanged.
+Notion access was unavailable (browser ownership and connection timeouts); this
+section records the changed rendering contract locally. The referenced debugging
+and definition-of-done skills remain absent from project and installed skill roots.
+
+Verification: all three presets were inspected in the actual renderer before and
+after the correction. The browser check completed 50 assertions across Inside,
+3D, Top, shell visibility and automatic day/evening changes, with no renderer
+errors. A fresh code review found no blocking issues. Commands on the shared main
+checkout produced:
+
+```text
+pnpm --filter @varpet/editor test:ceilings
+Ceiling design contract checks passed: 46 assertions.
+Ceiling design checks passed: 406 assertions.
+Ceiling rendering checks passed (150 assertions).
+Ceiling visibility checks passed (131 assertions).
+
+pnpm --filter @varpet/editor test:renovation
+Renovation checks passed (102 assertions).
+Reconstruction and handoff checks passed (29 assertions).
+
+pnpm test
+packages/designer: Test Files 115 passed; Tests 518 passed
+packages/designer: Ran 183 tests; Ran 48 tests; OK
+apps/editor: Done
+exit 0
+
+pnpm typecheck
+all workspace packages passed; exit 0
+
+pnpm --filter @varpet/editor build
+built in 200ms; exit 0
+
+/ceiling-visibility-qa.html
+COMPLETE 50 ceiling visibility checks
+PASS No WebGL shader, viewport, or browser errors
+```
+
+Logs: `/tmp/varpet-ceiling-fix-{test,typecheck,build}.log`. The build retains the
+existing Vite config-loader and chunk-size advisories.
+
 ## Try a design
 
 Open **Ceilings** in the sidebar (keyboard shortcut `6`), choose an indoor room, choose a composition, and press **Apply ceiling design**. Adjust brightness, warmth, inset, drop, and the lights-on toggle, then apply the changes. Controls edit a draft until Apply is pressed. Applying the current settings again reports that the design is already applied and resets the draft state without creating history.

@@ -58,6 +58,8 @@ Intentional immediate changes in this pass: first load and different document ID
 
 ### Lessons incorporated into the rules
 
+- Furniture body dragging and catalog drop previews follow the pointer immediately and commit through checked commands once on release. Preserve catalog sessions when native HTML drag promotion emits `pointercancel`; this is a handoff, not an explicit cancellation. See [furniture drag verification](furniture-drag.md) for 49 browser checks and native-event evidence.
+
 - Room selection frames the full room volume inside the canvas area left by Properties and toolbars. Preserve the current azimuth and lift grazing views to at least 35°. See [room camera verification](room-camera.md). Ordinary furniture selection keeps its minimal pan.
 
 - Keep three levels for furniture: checked root → matrix presentation offset → placement visual. A matrix offset avoids shear errors when rotation and nonuniform scale change together; the placement lift remains independent.

@@ -37,6 +37,8 @@ const viewport = createViewport(document.querySelector('#view')!, {
 const controls = createSunControls(document.querySelector('#sun')!, document.querySelector('#qa-host')!, {
   getSun: () => viewport.getSun(), setSun: patch => viewport.setSun(patch),
 });
+// This page exercises scene illumination; normal Top view now defaults to unlit.
+viewport.setTopLighting(true);
 viewport.setScene(scene, []); viewport.setWalls('cutaway'); viewport.setSun({ timeOfDay: 12, azimuth: 0 });
 const delay = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
 const status = document.querySelector('#status')!, results = document.querySelector('#results')!, lines: string[] = [];
