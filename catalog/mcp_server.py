@@ -57,6 +57,7 @@ def search_furniture(
 ) -> dict:
     """Find furniture. kind/max size/price are hard filters; colors (palette names), styles, materials
     and free text rank the rest. Returns up to `limit` (max 20) items, or nearest_misses when none pass.
+    `preview` is a render of the exact 3D model (null when missing); `image` is the shop photo.
     scope 'editor' (default) searches only the items the editor has loaded, so any result can be placed;
     'all' searches the whole catalog."""
     box = None
@@ -102,7 +103,7 @@ def get_item(item_id: str) -> dict:
     with _conn() as c:
         cur = c.execute(
             """select id, source, source_id, kind, name, brand, size_m, fit_size_m, size_status, size_evidence, price, currency,
-                      price_source, color_std, colors_img, materials, styles, glb_url, main_image_url, image_urls, license
+                      price_source, color_std, colors_img, materials, styles, glb_url, main_image_url, preview_url, image_urls, license
                from item where id=%s""", (item_id,))
         row = cur.fetchone()
         if not row:

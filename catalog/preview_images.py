@@ -31,7 +31,7 @@ def main():
     if a.upload:
         host = os.environ.get("VARPET_SSH", "sergey@152.53.158.86")
         key = os.path.expanduser(os.environ.get("VARPET_SSH_KEY", "~/.ssh/varpet_ed25519"))
-        subprocess.run(["rsync", "-az", "-e", f"ssh -i {key}", f"{OUT}/", f"{host}:/opt/varpet-catalog/models-web/previews/"], check=True)
+        subprocess.run(["rsync", "-rltzO", "-e", f"ssh -i {key}", f"{OUT}/", f"{host}:/opt/varpet-catalog/models-web/previews/"], check=True)
     if a.switch:
         with psycopg.connect(os.environ["VARPET_DB_URL"]) as c:
             c.execute("alter table item add column if not exists preview_url text")

@@ -109,14 +109,14 @@ def search(conn, q: Query):
     rank = f"ts_rank_cd(fts, {tsq}, 32)" if q.text else "0"
     rows = conn.execute(
         f"""select id, name, kind, coalesce(fit_size_m, size_m), size_status, price, color_std, colors_img, styles, materials,
-                   main_image_url, glb_url, size_evidence, tags, {rank}
+                   main_image_url, preview_url, glb_url, size_evidence, tags, {rank}
             from item where {' and '.join(where)}""",
         ([q.text] if q.text else []) + args,
     ).fetchall()
 
     passed, misses = [], []
     for r in rows:
-        (iid, name, kind, size, status, price, cstd, cimg, styles, mats, img, glb, ev, tags, fts) = r
+        (iid, name, kind, size, status, price, cstd, cimg, styles, mats, img, preview, glb, ev, tags, fts) = r
         astra = {k: _words(v) for k, v in ((tags or {}).get("astra") or {}).items() if k in ("main_color", "other_colors", "materials", "style")}
         fail = []
         margins = fits(size, q.fit_box, q.allow_rotate) if q.fit_box else None
@@ -126,7 +126,7 @@ def search(conn, q: Query):
             fail.append({"price_over": (price or 0) - q.price_max})
         rec = {"id": iid, "name": name, "kind": kind, "size_m": size, "size_status": status, "price": price,
                "colors_listing": listing_palette(cstd), "colors_image": [c["name"] for c in cimg or []],
-               "styles": styles, "materials": mats, "image": img, "glb_url": glb,
+               "styles": styles, "materials": mats, "image": img, "preview": preview, "glb_url": glb,
                "colors_astra": (astra.get("main_color") or []) + (astra.get("other_colors") or []),
                "style_astra": astra.get("style") or [], "materials_astra": astra.get("materials") or [],
                "wd_swapped": bool((ev or {}).get("wd_swapped")), "_fts": float(fts), "_astra": astra}
