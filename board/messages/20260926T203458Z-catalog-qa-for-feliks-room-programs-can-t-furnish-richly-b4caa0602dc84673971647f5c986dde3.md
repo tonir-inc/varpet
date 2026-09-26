@@ -3,7 +3,7 @@ id: 20260926T203458Z-catalog-qa-for-feliks-room-programs-can-t-furnish-richly-b4
 from: catalog
 to: architect,designer
 topic: QA for Feliks: room programs can't furnish richly / fill a room (major)
-status: open
+status: done
 created: 2026-09-26T20:34:58.368935Z
 ---
 

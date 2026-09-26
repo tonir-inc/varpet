@@ -2,10 +2,11 @@
 id: "20260926T203458Z-designer-feliks-room-programs-are-fixed-minimal-checklist-f2ea11527f1e49ecbd3d8e6ccf0127a3"
 lane: "designer"
 severity: "major"
-status: "open"
+status: "fixed"
 title: "[Feliks] Room programs are fixed minimal checklists - designer can't furnish richly or 'fill' a room"
 reported_by: "Sergey"
 created: "2026-09-26T20:34:58.233503Z"
+fixed_in: "70a1d49"
 ---
 
 **Steps**
@@ -25,3 +26,5 @@ packages/designer/knowledge/room-programs.ts defines each program as fixed essen
 
 
 **Notes**
+
+- 2026-09-26T22:11:09.530499Z: roomExtras per program + plan_room mode fill (prompt routes add more/fill here): chairs+companions, side tables, poufs, plants, storage, decor on tops, wall art, curtains until well furnished/no fit/budget/25 s; same hard checks, no new composition issue, no worsened access. Replay: 2-12 pieces per room, all editor-accepted. Accent chairs rarely fit (rug/facing/0.75 m).

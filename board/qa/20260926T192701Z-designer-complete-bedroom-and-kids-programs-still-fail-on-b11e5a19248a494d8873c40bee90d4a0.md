@@ -6,7 +6,7 @@ status: "fixing"
 title: "Complete bedroom and kids programs still fail on the three target flats"
 reported_by: "FAST"
 created: "2026-09-26T19:27:01.492241Z"
-fixed_in: "801207a"
+fixed_in: "9004680"
 ---
 
 **Steps**
@@ -28,3 +28,5 @@ QUALITY full programs: living 6/9, bedroom 0/9, kids 0/9. Avani passes BENCH fou
 **Notes**
 
 - 2026-09-26T20:34:27.331515Z: Bedside table lamps on nightstands, desk lamp on desk, genuine desks only. Offline planIncrementally replay (first-repeat scenes, live catalog, unchanged graders, load avg ~20): QUALITY bedroom 0->1/3 (Avani), kids 0->0/3 but BENCH 0->2/3; Balcony/b21-t13 bedrooms still lose the 2nd nightstand to walkway width; cheapest kids program found ~307k AMD > 300k. Not the 27-request Codex cohort.
+
+- 2026-09-26T22:11:10.235844Z: Desk+pulled-up chair = one work zone in metrics/space.ts (graders import it; recorded walkways unchanged); desk kept only if its chair fits; bed poses ranked by bedside reach. Replay QUALITY bedroom 1/3->2/3 (Balcony complete), kids 0/3 (Avani/b21 bed+desk+chair+storage 297k, lamp over budget; cheapest full set 313k disclosed). Remaining: b21-t13 has no door-free wall for bed+2 stands; Balcony kids no bed with 0.60 m both sides; BENCH flags extra: mattress SKU as non_catalog_purchase.
