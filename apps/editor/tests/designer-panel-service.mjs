@@ -37,7 +37,7 @@ const server = createServer(async (req, res) => {
     console.log(`${reply.type} ${(performance.now() - started).toFixed(0)}ms`);
   } catch (error) {
     if (controller.signal.aborted) { console.log('cancelled'); return; }
-    res.setHeader('Content-Type', 'application/x-ndjson');
+    if (!res.headersSent) res.setHeader('Content-Type', 'application/x-ndjson');
     res.end(`${JSON.stringify({ type: 'error', message: String(error) })}\n`);
   }
 });

@@ -1,7 +1,8 @@
 import './ui/style.css';
 import './ui/motion.css';
 import './ui/designer-panel.css';
-import { mountDesignerPanel, designerHttpAdapter } from './ui/designer-panel';
+import { mountDesignerPanel } from './ui/designer-panel';
+import { designerHttpAdapter } from './adapters/designer-http';
 import type { AgentProposal, CatalogAsset, EditCommand, ObjectPatch, Operation, SceneDocument, SceneObject, ToolMode, ViewMode, ViewportLayer, WallMode } from './contracts';
 import { demoScene, localCatalog } from './core/demo';
 import { EditorStore } from './core/store';

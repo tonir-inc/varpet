@@ -1,35 +1,6 @@
 import type { AgentProposal, SceneDocument } from '../contracts';
-import { createDesignerHttpAdapter, DesignerDeclineError, DesignerQuestionError } from '../adapters/designer-http';
-
-// Temporary contract wrapper until the service lane exports askDesigner on main.
-export interface DesignerRequest {
-  scene: SceneDocument; revision: number; request: string; conversationId?: string;
-  keep?: string[]; doorSwings?: Record<string, 'in-left' | 'in-right' | 'out-left' | 'out-right'>; northDeg?: number;
-}
-export type DesignerReply =
-  | { type: 'proposal'; conversationId: string; proposal: AgentProposal; metrics?: unknown }
-  | { type: 'question'; conversationId: string; question: string; options: string[] }
-  | { type: 'decline'; conversationId: string; message: string }
-  | { type: 'error'; message: string };
-type AskOptions = { baseUrl?: string; onProgress?: (message: string) => void; signal?: AbortSignal };
-type AskDesigner = (req: DesignerRequest, opts?: AskOptions) => Promise<DesignerReply>;
-export const askDesigner: AskDesigner = async (req, opts = {}) => {
-  let conversationId = req.conversationId ?? '';
-  try {
-    const adapter = createDesignerHttpAdapter({ ...req,
-      url: `${(opts.baseUrl ?? import.meta.env?.VITE_DESIGNER_URL ?? 'http://127.0.0.1:8787').replace(/\/$/, '')}/designer/propose`,
-      onProgress: opts.onProgress, onConversationId: id => { conversationId = id; } });
-    const proposal = await adapter.propose(req.scene, req.revision, opts.signal);
-    return { type: 'proposal', conversationId, proposal };
-  } catch (error) {
-    if (error instanceof DesignerQuestionError) return { type: 'question', conversationId: error.conversationId ?? conversationId, question: error.question, options: error.options ?? [] };
-    if (error instanceof DesignerDeclineError) return { type: 'decline', conversationId: error.conversationId ?? conversationId, message: error.message };
-    throw error;
-  }
-};
-export const designerHttpAdapter = createDesignerHttpAdapter({
-  url: `${(import.meta.env?.VITE_DESIGNER_URL ?? 'http://127.0.0.1:8787').replace(/\/$/, '')}/designer/propose`,
-});
+import { askDesigner, type DesignerRequest, type DesignerReply } from '../adapters/designer-http';
+type AskDesigner = typeof askDesigner;
 
 interface Message { role: 'user' | 'designer'; text: string }
 export interface DesignerPanelState {
@@ -195,7 +166,10 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
   });
   find<HTMLFormElement>('form').onsubmit = event => {
     event.preventDefault(); const request = input.value;
-    if (request.trim() && !controller.state.busy) { void controller.send(request); input.value = ''; }
+    if (request.trim() && !controller.state.busy) {
+      void controller.send(request);
+      if (controller.state.busy) input.value = '';
+    }
   };
   input.onkeydown = event => {
     if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) { event.preventDefault(); find<HTMLFormElement>('form').requestSubmit(); }
