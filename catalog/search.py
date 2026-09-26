@@ -30,7 +30,7 @@ class Query:
     like_image: str | None = None                          # photo path or URL for visual similarity
     exclude_ids: list[str] = field(default_factory=list)
     scope: str = "all"                                     # all | editor (only item.editor_set)
-    colour_mode: str = "all"                              # listing+image+astra: best in eval (0.86)
+    colour_mode: str = "astra"                            # Astra tags only: best on 20 photo-labelled queries (0.87 vs 0.81)
     text_mode: str = "vector"                             # SigLIP text-to-image: best in eval
     model: str = "siglip2-base-patch16-224"
     weights: dict = field(default_factory=dict)

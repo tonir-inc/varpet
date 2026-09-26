@@ -1,5 +1,5 @@
 {
- "_note": "Relevant items among the pooled top-5 of all variants (round 2, 26 Sept), judged by eye from the product photo by Claude. Not human labels.",
+ "_note": "Relevant items among pooled top-5 of all variants, judged by eye from the product photo by Claude (q01-q10 round 2; q11-q21 on 26 Sept, independent of Astra's tags). Not human labels.",
  "q01": [
   "abo:B075X33SQ9",
   "abo:B073G6GTK7",
@@ -143,5 +143,97 @@
   "abo:B082VLRCCP",
   "abo:B071J7Q9WN",
   "abo:B075ZBW1PX"
+ ],
+ "q11": [
+  "abo:B084T7MQB4",
+  "abo:B07HSDY12Q",
+  "abo:B0857JM2NK",
+  "abo:B07TD46R6R",
+  "abo:B07THSZJ6P",
+  "abo:B07TJVTZNR"
+ ],
+ "q12": [
+  "abo:B075X4T5L6",
+  "abo:B075X2X4ML",
+  "abo:B07BW8P2F7",
+  "abo:B07B4ML4BY",
+  "abo:B07B4CZRYR",
+  "abo:B0831XR16X",
+  "abo:B075X4F5CB",
+  "abo:B07MJL5SZK",
+  "abo:B07VLFWGN6"
+ ],
+ "q13": [
+  "abo:B07B52GQN8",
+  "abo:B07B4ZPCSS",
+  "abo:B07B4WH4SN",
+  "abo:B075ZDXF57",
+  "abo:B075Z9S1W8",
+  "abo:B075Z9QRL6",
+  "abo:B075ZGL9T6",
+  "abo:B075ZGBRBH",
+  "abo:B075ZDWPQF",
+  "abo:B075ZBQ1YD"
+ ],
+ "q14": [
+  "abo:B072ZMSBQT",
+  "abo:B07B7GB7BZ",
+  "abo:B074KKMQHB",
+  "abo:B072ZLMBH7",
+  "abo:B07QS8SG1C",
+  "abo:B07B7J8J9M",
+  "abo:B07PMHRKYR"
+ ],
+ "q15": [
+  "abo:B07B4YY8H3",
+  "abo:B075WZVRWX",
+  "abo:B07B4YYC4V",
+  "abo:B075X2Y4HQ",
+  "abo:B07HK68BTZ",
+  "abo:B075X2XZ8X",
+  "abo:B07B4YHYQV"
+ ],
+ "q16": [
+  "abo:B07L6MD26Y",
+  "abo:B07L6LL293",
+  "abo:B085565X2N",
+  "abo:B07HSHXVZX"
+ ],
+ "q17": [
+  "abo:B075X61W2Y",
+  "abo:B073G6GTQP",
+  "abo:B07B4D6MBS",
+  "abo:B07HZ6GDJ8",
+  "abo:B07B4G5SY7",
+  "abo:B073G94FRB",
+  "abo:B073G7BV63"
+ ],
+ "q19": [
+  "abo:B07PZY2G1B",
+  "abo:B07PXG7ZXF",
+  "abo:B07K6S7QHQ",
+  "abo:B07TLDMQS2",
+  "abo:B07K6QBDC8",
+  "abo:B07R1JT4JL"
+ ],
+ "q20": [
+  "abo:B07QFB1L2P",
+  "abo:B07DBB76MF",
+  "abo:B082L28P18",
+  "abo:B07B8NBQQP",
+  "abo:B07MND862G",
+  "abo:B07DMB75TJ",
+  "abo:B07QHKPD35"
+ ],
+ "q21": [
+  "abo:B07HSLQYF1",
+  "abo:B073WGSN2W",
+  "abo:B073WGMTCC",
+  "abo:B07B8W8FDD",
+  "abo:B073WGP8XN",
+  "abo:B07RSSZTRL",
+  "abo:B084HV6L1H",
+  "abo:B07RRR2NDD",
+  "abo:B071DQRXDR"
  ]
 }
