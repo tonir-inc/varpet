@@ -1,0 +1,1183 @@
+{
+  "schema_version": 1,
+  "evidence_kind": "measured_latest_editor_three_http_paths",
+  "started_at": "2026-09-26T11:58:43.523Z",
+  "source": {
+    "head": "55ba09d4e47598d5fa2e89353dd5f7681be6b7ad",
+    "dirty": false,
+    "hashes": {
+      "packages/designer/src/adapter.ts": "d1e575e226cb936486d64438ce713a088c88bb1cd0d19b7e41e5126e35597f20",
+      "packages/designer/src/ask.ts": "699c031492ef8236b24dc3d4096a73e1240ac252c8e088b84fa45fcd4c093553",
+      "packages/designer/src/catalog.ts": "131f57b8f8645b1d84bcdbfddfae97507c98787d34eb30550eec6fdffca28ddf",
+      "packages/designer/src/editor-bridge.ts": "73ce169290fe09835867dd4b79955a3b3ab88126e80a97091cb9bb596fa61c32",
+      "packages/designer/src/layout.ts": "ea950717fa222b4c32a9d2f370b4cca7c0b4f83f5ad8fdb687f0a20fd08abe60",
+      "packages/designer/src/local-checks.ts": "bc76ac73e052a7ee430b358f89be9ea59406ac59173be2d1523d4cde23d61aa0",
+      "packages/designer/src/metrics/function.ts": "6f5b397c32d24a2cd59bd192e47aeae036db3a25a867f09d198fb7a475ceb450",
+      "packages/designer/src/metrics/space.ts": "66231dae20c701f038abdd2b49628bba839738fa3447c7d9b18004014f6b0566",
+      "packages/designer/src/metrics/strategy.ts": "b5fc2660509e8533cfa24f85aac811ca3b5a090cbc1a2d72fdaeb99d8a3a68bb",
+      "packages/designer/src/metrics/sun.ts": "3a9a00bea602c613873d34487d9f8d2915f1a99b997c85721a9d4123d709125a",
+      "packages/designer/src/place-batch.ts": "3a95c2f7c8534e7e428e721f0274004fb1318567556e82e39d61c276fb8cffad",
+      "packages/designer/src/place.ts": "43f05771651844d7c632586c36704dce907ce9d4b7db47a030878725ea247375",
+      "packages/designer/src/request.ts": "f32329fb3091f607f07addb973aee58b0fdf25dc9678994aac5db396d0506c11",
+      "packages/designer/src/scene.ts": "fd6a335c6c90ded0f97a2823424d084f88d800ad2c9994c8eb4c124f8c6650d9",
+      "packages/designer/src/server.ts": "bb6a75f6e454adab4b7223e8036a86e5be89997ca0c3f8f37dba85082624954e",
+      "packages/designer/src/session.ts": "e54a8568849872f9e0f56478e0454d39cdd5265518aafcd2b0da88da0a96b67a",
+      "packages/designer/src/tool-inputs.ts": "a88f805a52e221a560002b40a0ce0e54726a3578cbc6c511130f7fa28c0492e1",
+      "packages/designer/src/wall-geometry.ts": "a7bcffc80c53a7c672c6defb1a51e11df9841cf8adbe56b77ff6602868074079",
+      "apps/editor/src/core/apartment-store.ts": "a506f6a8d68c7cfa8ed0edfd68fc80c498070d439e7bc5cf56f028e1ea9f8936",
+      "apps/editor/src/core/ceiling-design.ts": "b7f895ee66b0e68567bbcdf8eb49c0cbf54a86565f36d0aae8ad4c8781127fc0",
+      "apps/editor/src/core/check.ts": "9f71489f1e6701e3f7a6954100ea2f3431cc19581cbbcacb2ef0e5d03857d01c",
+      "apps/editor/src/core/demo.ts": "63f3fe775a6e9e4e78956731a4b2e948bb39fb6ea677c97fb09fd36a0c2375cd",
+      "apps/editor/src/core/designer-catalog.ts": "d94e1d86e3ead8d792ef933ac1cc79693ed5bf08c63e0f30b5ac4161dc916230",
+      "apps/editor/src/core/door-barriers.ts": "ed01199a253218a1be1adfcb1300e9b4014e57d0f08f9a42d1923cfcca352db5",
+      "apps/editor/src/core/finish-presets.ts": "0bd7af1b3db6af9a7c0d64e061f48ccacfc940a90fd9cefb16574ee7988ff913",
+      "apps/editor/src/core/floor-plan.ts": "c20ef356b8cef64766c721d14538e04b84ecf13ed1ee466a35d5f5ecab47fc20",
+      "apps/editor/src/core/geometry.ts": "b1da1d72c4fdf46f1b55b414ec17283cdeb0276291d5d37cc6a64eedcd4a083d",
+      "apps/editor/src/core/grouping.ts": "2c8242e24fec75314e79b3aeec63105ca065df952dd9614776ab0d06d9549f3c",
+      "apps/editor/src/core/heights.ts": "146d432ea76e04fe20fc300a2d5a252c7ca02cd44f00a83f0445332d961accab",
+      "apps/editor/src/core/initial-scene.ts": "0552c5bad659188cfade9539c3377efc7d77e9613884e5671a46e24a1c782556",
+      "apps/editor/src/core/inspector-edits.ts": "b3ff984fd8c505478a2421ff9252cdb16b9d9bbeccd67d08191870ab618575cd",
+      "apps/editor/src/core/opening-collision.ts": "e11759d871816c5ef2653c58b842b0cdfa48c3ec140aea1e195e2af06df3f439",
+      "apps/editor/src/core/opening-move.ts": "b1515114b2275468d2edeeeabe9b189028a58ac0446f9fd705483ef091c4f157",
+      "apps/editor/src/core/persistence.ts": "638323c7f74e297832941c04d7c56fe612b76945d106c2b01507fc7c15bceb4b",
+      "apps/editor/src/core/placement-conflicts.ts": "e23e2b7266caf32275b9df0a9e097e15990414f646984bd79c229847bfd41c09",
+      "apps/editor/src/core/plan-layers.ts": "da79377b431e236978302329f2b4cc901aa5baa1225966bb4f3d034f29c0af69",
+      "apps/editor/src/core/plan-measurements.ts": "a71942c3f1d546b4e3b101b96903a99e03720560552fb940254afd6bb9fc07d3",
+      "apps/editor/src/core/plan-move.ts": "f0dc905fcd9518f3ea1d32892d41b406e3a232d7fb2b6267e278cadebf5e218c",
+      "apps/editor/src/core/reconstruction-proposal.ts": "b55b534ca7d94b3102aff5fce504189afd4e59e2fc888af456eef6595cfcc57c",
+      "apps/editor/src/core/renovation.ts": "9d1c58e454c59560491a98b91da64694153f07da4f9ea80da2897f6cba301cae",
+      "apps/editor/src/core/store.ts": "2c3d47b39270851aa686cafa836994c7233112df3549eae1b0d6958450f0a6bd",
+      "apps/editor/src/core/validation.ts": "2800c3895a9cf11b0942bfee1d5d4fc3adb0c5402bf536eac4c967f0d5e8abc4",
+      "apps/editor/src/core/walkthrough.ts": "19990d2bbb907bd38a6050edcc870ffba62230d585ab860ead1d8e063442addf",
+      "apps/editor/src/core/wall-finish-targets.ts": "0de980304c1118905504183325a96b65e44fc62c19e39abb94427ff18b74fcd4",
+      "apps/editor/src/core/wall-junctions.ts": "df6564cceb1c0ed336d5b9ff8b86d6aa1aee9a782e73b82c61e6e0842930ca78",
+      "apps/editor/src/core/wall-snapping.ts": "62f2292024697c2dbd009df6eedcc8f686142fd6f2f66a2dd8d08c2cf79edd6a",
+      "apps/editor/src/core/wall-surfaces.ts": "be38270db5b814cbec502abca56c41cfed663054d18cc606a89ae5e5d688d39d",
+      "harness/designer.py": "0089055d2357f2dab1e880dc524b867000c3c250ee086a672c5acf7018fa0313",
+      "harness/designer_eval.py": "5b21a683ddf013f8bd3c1b50a2e8bef074d152776ea4d3be0ec3f2e849beb225",
+      "harness/designer_options.py": "61306a95b9cdc209cbdd409f85d1e660f19c4a259c5bd248ac317afdae5710d4",
+      "harness/designer_process.py": "3cdd19af1427e4b65fe19948a9bcab0d61011f7cfcf57878d1b1a663d8f3305f",
+      "harness/designer_profiles.py": "73413a10e54dec2e48a2bac17691e55e2ae69d8489237b2162898847ebb647f9",
+      "harness/designer_prompt.md": "b9299a9a4c9dcb0c6b8550f9c5b13e9f7ba6aa32c0b4e483d8b37d6729095115",
+      "harness/designer_service.py": "3d0b31bea49fa1630a68402db735c6b72f1b3e0b915b281b3963d24376582e02",
+      "apps/editor/src/adapters/catalog-http.ts": "e95fd953efa9a56ab6f9489f4fced472b69eec878d9d61eb99d1f722fec9ff04",
+      "apps/editor/src/adapters/database-catalog.ts": "2011d30dec445a6050731aa7bde7901cf68281d3b4a729f0b0e4fbc4948918b5",
+      "apps/editor/src/adapters/designer-http.ts": "866af6dae3fda1ae280724b58ff000b14397e458fc78dd1bce9f0db5a5ae2f0e",
+      "apps/editor/server/catalog.mjs": "31d54d089a9a4b7b5e9bde6d30026a289d25d4a3c9a3448dd16a95d095b2b8e9",
+      "packages/designer/eval/catalog-armchair-smoke.py": "04170f3fd1e1cf42113572738503a5a4309557006c79385a7bab1c8bd94a5400",
+      "packages/designer/eval/latest-editor-smoke.ts": "984533adfd5b4692f488bccceea9d553082a70d500f766efe056e169f1159327"
+    },
+    "head_at_end": "55ba09d4e47598d5fa2e89353dd5f7681be6b7ad",
+    "runtime_bytes_unchanged": true
+  },
+  "input": {
+    "scene_sha256": "7a4bf68cf5141b4822edcf199be880ff1ecafce1c43cb302da758b48dc727a07",
+    "catalog_sha256": "47dfc63cd8b051b6ea93709f2f4d0b71d1f3b7428dc32a99af678235c58768c0",
+    "discovery_sha256": "3586bd4eb8acdb877322739d4756e7fe88a1e09822de146e91d02c82fa19c568",
+    "registered_assets": 5,
+    "discovered_assets": 877,
+    "request_catalog_assets": 877,
+    "walls": 13,
+    "objects": 5,
+    "revision": 0
+  },
+  "setup": {
+    "claim": "assumed furniture poses in actual normalized current Avani shell; all registered furniture identities/dimensions/prices measured from the live database",
+    "poses": [
+      {
+        "id": "db-sofa",
+        "sku": "abo:B07BW8P2F7",
+        "kind": "sofa",
+        "position": [
+          -2.2,
+          0,
+          1.8
+        ],
+        "rotation": 3.141592653589793,
+        "claim": "assumed test position; exact registered database SKU"
+      },
+      {
+        "id": "db-table",
+        "sku": "abo:B07DBFQFGS",
+        "kind": "table",
+        "position": [
+          -2.2,
+          0,
+          0.6
+        ],
+        "rotation": 0,
+        "claim": "assumed test position; exact registered database SKU"
+      },
+      {
+        "id": "db-chair",
+        "sku": "abo:B07HPFP4SZ",
+        "kind": "chair",
+        "position": [
+          -3.9,
+          0,
+          1.4
+        ],
+        "rotation": 1.5707963267948966,
+        "claim": "assumed test position; exact registered database SKU"
+      },
+      {
+        "id": "db-bed",
+        "sku": "abo:B07B4Y45H5",
+        "kind": "bed",
+        "position": [
+          2.6,
+          0,
+          2.5
+        ],
+        "rotation": 3.141592653589793,
+        "claim": "assumed test position; exact registered database SKU"
+      },
+      {
+        "id": "db-cabinet",
+        "sku": "abo:B074KLJQKV",
+        "kind": "cabinet",
+        "position": [
+          4.4,
+          0,
+          3.1
+        ],
+        "rotation": 0,
+        "claim": "assumed test position; exact registered database SKU"
+      }
+    ],
+    "products": [
+      {
+        "asset": {
+          "id": "abo:B07BW8P2F7",
+          "name": "Amazon Brand – Rivet Edgewest Low Back Modern Loveseat, 65\"W, Beige",
+          "kind": "sofa",
+          "category": "sofa",
+          "dimensions": [
+            1.651,
+            0.8119,
+            0.8385
+          ],
+          "color": "#d9cfbf",
+          "price": 254000,
+          "source": {
+            "type": "gltf",
+            "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/7/B07BW8P2F7.glb"
+          }
+        },
+        "priceSource": "mock",
+        "sizeStatus": "confirmed",
+        "attribution": "Amazon Berkeley Objects · CC BY 4.0 (Amazon Berkeley Objects)"
+      },
+      {
+        "asset": {
+          "id": "abo:B07DBFQFGS",
+          "name": "Amazon Brand – Ravenna Home Dora Classic Shelf Storage Wood Coffee Table, 37\"W, Dark Cherry",
+          "kind": "table",
+          "category": "table",
+          "dimensions": [
+            0.9427,
+            0.4556,
+            0.5327
+          ],
+          "color": "#571a08",
+          "price": 72000,
+          "source": {
+            "type": "gltf",
+            "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/S/B07DBFQFGS.glb"
+          }
+        },
+        "priceSource": "mock",
+        "sizeStatus": "confirmed",
+        "attribution": "Amazon Berkeley Objects · CC BY 4.0 (Amazon Berkeley Objects)"
+      },
+      {
+        "asset": {
+          "id": "abo:B07HPFP4SZ",
+          "name": "Movian Andre Accent Chair - Light Grey",
+          "kind": "chair",
+          "category": "chair",
+          "dimensions": [
+            0.59,
+            0.84,
+            0.6101
+          ],
+          "color": "#919598",
+          "price": 58000,
+          "source": {
+            "type": "gltf",
+            "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/Z/B07HPFP4SZ.glb"
+          }
+        },
+        "priceSource": "mock",
+        "sizeStatus": "confirmed",
+        "attribution": "Amazon Berkeley Objects · CC BY 4.0 (Amazon Berkeley Objects)"
+      },
+      {
+        "asset": {
+          "id": "abo:B07B4Y45H5",
+          "name": "Amazon Brand – Rivet Fisher Rustic Wood King Bed, 79\"W, Reclaimed-Look Wood",
+          "kind": "bed",
+          "category": "bed",
+          "dimensions": [
+            2.0126,
+            1.2953,
+            2.1837
+          ],
+          "color": "#8f6446",
+          "price": 253000,
+          "source": {
+            "type": "gltf",
+            "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/5/B07B4Y45H5.glb"
+          }
+        },
+        "priceSource": "mock",
+        "sizeStatus": "confirmed",
+        "attribution": "Amazon Berkeley Objects · CC BY 4.0 (Amazon Berkeley Objects)"
+      },
+      {
+        "asset": {
+          "id": "abo:B074KLJQKV",
+          "name": "Amazon Brand – Stone & Beam Fremont Slatted 2-Door Cabinet, 31.5\"W, Ash",
+          "kind": "cabinet",
+          "category": "cabinet",
+          "dimensions": [
+            0.7959,
+            0.7854,
+            0.4116
+          ],
+          "color": "#724934",
+          "price": 121000,
+          "source": {
+            "type": "gltf",
+            "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/V/B074KLJQKV.glb"
+          }
+        },
+        "priceSource": "mock",
+        "sizeStatus": "confirmed",
+        "attribution": "Amazon Berkeley Objects · CC BY 4.0 (Amazon Berkeley Objects)"
+      }
+    ],
+    "ceilings": [
+      {
+        "room_id": "room-living",
+        "ceiling": {
+          "style": "soft-glow",
+          "drop": 0.16,
+          "inset": 0.35,
+          "brightness": 65,
+          "temperature": 2700,
+          "enabled": true
+        }
+      },
+      {
+        "room_id": "room-kitchen"
+      },
+      {
+        "room_id": "room-bath"
+      },
+      {
+        "room_id": "room-bedroom",
+        "ceiling": {
+          "style": "quiet",
+          "drop": 0,
+          "inset": 0.55,
+          "brightness": 70,
+          "temperature": 3000,
+          "enabled": true
+        }
+      }
+    ],
+    "baseline": true,
+    "archived_options": 1
+  },
+  "catalog": {
+    "currency": "AMD",
+    "mcp_url": "http://localhost:8765/mcp",
+    "same_origin_proxy": "http://127.0.0.1:56100",
+    "discovery_url": "http://localhost:8765/editor/assets",
+    "discovery_scope": "Configured VITE_CATALOG_ASSETS_URL path; database-only current products merged with live database discovery. This does not claim default discovery is configured.",
+    "api_reads": [
+      {
+        "path": "/api/catalog/items?ids=abo%3AB07BW8P2F7%2Cabo%3AB07DBFQFGS%2Cabo%3AB07HPFP4SZ%2Cabo%3AB07B4Y45H5%2Cabo%3AB074KLJQKV",
+        "status": 200,
+        "sha256": "9385e0531bdd59b00bfd354f9dc5d5a2643387cd9b27cb264f6a49daf7050c41"
+      },
+      {
+        "path": "/api/catalog/items?ids=abo%3AB075X4F5CH",
+        "status": 200,
+        "sha256": "135f168604b2971f333111a21010e0e51289bdd1fab3206ef06d8c83fff90428"
+      }
+    ]
+  },
+  "logs_directory": "/tmp/varpet-latest-editor-FCHvEN",
+  "rows": [
+    {
+      "id": "paint",
+      "request": "paint the bedroom walls sage",
+      "request_sha256": "f56a5b35be4aaf1f6750c89f77254f22d9f49b25580269327caf3f334b4852e7",
+      "pass": true,
+      "port": 56121,
+      "http_status": 200,
+      "seconds": 31.514,
+      "outcome": "proposal",
+      "proposal": {
+        "id": "designer-222df1b0295da47f10477559f51aec79e639bb6fb3f42f9c61223ca4f17a1c76",
+        "title": "Designer layout proposal",
+        "description": "Preview bedroom walls in a proposed muted sage #A3B18A, retaining all furniture positions and rotations. Wall colouring affects both faces and all segments sharing each selected source_id, including the adjoining living-room, kitchen and bathroom faces. No furniture purchases; paint and labour are unquoted.",
+        "command": {
+          "id": "designer-222df1b0295da47f10477559f51aec79e639bb6fb3f42f9c61223ca4f17a1c76",
+          "label": "Apply designer layout",
+          "source": "designer",
+          "baseRevision": 0,
+          "operations": [
+            {
+              "type": "update-wall",
+              "id": "wall-east:section-1wcj16j",
+              "patch": {
+                "color": "#a3b18a"
+              }
+            },
+            {
+              "type": "update-wall",
+              "id": "wall-north:section-1bz51as",
+              "patch": {
+                "color": "#a3b18a"
+              }
+            },
+            {
+              "type": "update-wall",
+              "id": "wall-spine:section-tfjdn7",
+              "patch": {
+                "color": "#a3b18a"
+              }
+            },
+            {
+              "type": "update-wall",
+              "id": "wall-bedroom",
+              "patch": {
+                "color": "#a3b18a"
+              }
+            },
+            {
+              "type": "update-wall",
+              "id": "wall-bedroom:section-1wuotw",
+              "patch": {
+                "color": "#a3b18a"
+              }
+            }
+          ]
+        }
+      },
+      "validation": {
+        "pass": true,
+        "reasons": [],
+        "approval_required": true,
+        "store_result": {
+          "ok": true,
+          "errors": [],
+          "warnings": [],
+          "revision": 1
+        },
+        "validation_after": {
+          "ok": true,
+          "errors": [],
+          "warnings": []
+        },
+        "preservation": {
+          "ceiling_designs": true,
+          "room_metadata": true,
+          "archived_options": true,
+          "baseline": true,
+          "project_fields": true,
+          "structure": true,
+          "input_snapshot": true
+        },
+        "request_check": {
+          "bedroom_wall_ids": [
+            "wall-east:section-1wcj16j",
+            "wall-north:section-1bz51as",
+            "wall-spine:section-tfjdn7",
+            "wall-bedroom",
+            "wall-bedroom:section-1wuotw"
+          ],
+          "wall_colors": [
+            {
+              "id": "wall-east:section-1wcj16j",
+              "before": "#f0ebe1",
+              "after": "#a3b18a"
+            },
+            {
+              "id": "wall-north:section-1bz51as",
+              "before": "#f0ebe1",
+              "after": "#a3b18a"
+            },
+            {
+              "id": "wall-spine:section-tfjdn7",
+              "before": "#f0ebe1",
+              "after": "#a3b18a"
+            },
+            {
+              "id": "wall-bedroom",
+              "before": "#f0ebe1",
+              "after": "#a3b18a"
+            },
+            {
+              "id": "wall-bedroom:section-1wuotw",
+              "before": "#f0ebe1",
+              "after": "#a3b18a"
+            }
+          ],
+          "painted_bedroom_walls": 5,
+          "all_bedroom_walls_changed": true,
+          "objects_unchanged": true
+        }
+      },
+      "service_stopped": true,
+      "service_summary": {
+        "type": "service_summary",
+        "model": "gpt-6-astra",
+        "effort": "low",
+        "profile": {
+          "placement": "without-place",
+          "context": "compact-base"
+        },
+        "conversationId": "0497e8fc00c04cc684a7968ca9b3e0bc",
+        "outcome": "proposal",
+        "seconds": 31.505,
+        "usage": {
+          "cacheWriteInputTokens": 0,
+          "cachedInputTokens": 32384,
+          "inputTokens": 59783,
+          "outputTokens": 337,
+          "reasoningOutputTokens": 0,
+          "totalTokens": 60120
+        }
+      },
+      "actual_profile_matches": true,
+      "progress": {
+        "count": 10,
+        "max_gap_seconds": 5.108
+      },
+      "observed_tools": {
+        "completed_calls": {
+          "set_intent": 1,
+          "propose": 1
+        },
+        "rejected_proposals": [],
+        "accepted_proposal_ids": [
+          "proposal-1"
+        ]
+      },
+      "reviewed_request_fulfilled": true
+    },
+    {
+      "id": "bigger",
+      "request": "make the living room feel bigger",
+      "request_sha256": "bd5edc879fe53ceb5f53940e5135577576afad1e170629504bc1ac2bae36a3f5",
+      "pass": true,
+      "port": 56122,
+      "http_status": 200,
+      "seconds": 59.687,
+      "outcome": "proposal",
+      "proposal": {
+        "id": "designer-a09f9fd4109c1c1e35824917abac5292d50bea7f8b8b590e255c10ad4e4e4303",
+        "title": "Designer layout proposal",
+        "description": "Make the living room feel bigger with a zero-cost rearrangement retaining all existing furniture. Group seating at the lower wall and move the coffee table into this zone, enlarging the clear centre and circulation with a generous sofa access gap. Leave bedroom positions and rotations unchanged. Solar orientation and door-sweep clearance remain unverified.",
+        "command": {
+          "id": "designer-a09f9fd4109c1c1e35824917abac5292d50bea7f8b8b590e255c10ad4e4e4303",
+          "label": "Apply designer layout",
+          "source": "designer",
+          "baseRevision": 0,
+          "operations": [
+            {
+              "type": "update",
+              "id": "db-sofa",
+              "patch": {
+                "position": [
+                  -3.1,
+                  0,
+                  3.50075
+                ],
+                "rotation": 3.141592653589793
+              }
+            },
+            {
+              "type": "update",
+              "id": "db-table",
+              "patch": {
+                "position": [
+                  -3.1,
+                  0,
+                  1.98
+                ],
+                "rotation": 0
+              }
+            },
+            {
+              "type": "update",
+              "id": "db-chair",
+              "patch": {
+                "position": [
+                  -1.3,
+                  0,
+                  3.08
+                ],
+                "rotation": 3.141592653589793
+              }
+            }
+          ]
+        }
+      },
+      "validation": {
+        "pass": true,
+        "reasons": [],
+        "approval_required": true,
+        "store_result": {
+          "ok": true,
+          "errors": [],
+          "warnings": [],
+          "revision": 1
+        },
+        "validation_after": {
+          "ok": true,
+          "errors": [],
+          "warnings": []
+        },
+        "preservation": {
+          "ceiling_designs": true,
+          "room_metadata": true,
+          "archived_options": true,
+          "baseline": true,
+          "project_fields": true,
+          "structure": true,
+          "input_snapshot": true
+        },
+        "request_check": {
+          "before": {
+            "room_id": "room-living",
+            "free_area_m2": 39.895,
+            "largest_free_rectangle": {
+              "x": -4.9,
+              "y": -0.3,
+              "width": 5.4,
+              "depth": 4.2,
+              "area_m2": 22.68
+            },
+            "walkways": [
+              {
+                "from": "door:door-entry",
+                "to": "door:door-kitchen",
+                "width_m": 0.9,
+                "reachable": true,
+                "narrowest": [
+                  -3.775,
+                  3.55
+                ]
+              },
+              {
+                "from": "door:door-entry",
+                "to": "door:door-bedroom",
+                "width_m": 0.9,
+                "reachable": true,
+                "narrowest": [
+                  -3.775,
+                  3.55
+                ]
+              },
+              {
+                "from": "door:door-entry",
+                "to": "item:db-sofa",
+                "width_m": 0.45,
+                "reachable": true,
+                "narrowest": [
+                  -2.825,
+                  -1.125
+                ]
+              },
+              {
+                "from": "door:door-entry",
+                "to": "item:db-table",
+                "width_m": 0.45,
+                "reachable": true,
+                "narrowest": [
+                  -2.825,
+                  -1.125
+                ]
+              },
+              {
+                "from": "door:door-entry",
+                "to": "item:db-chair",
+                "width_m": 0.5,
+                "reachable": true,
+                "narrowest": [
+                  -3.3,
+                  -1.1
+                ]
+              },
+              {
+                "from": "door:door-kitchen",
+                "to": "door:door-bedroom",
+                "width_m": 0.9,
+                "reachable": true,
+                "narrowest": [
+                  0.15,
+                  1.55
+                ]
+              },
+              {
+                "from": "door:door-kitchen",
+                "to": "item:db-sofa",
+                "width_m": 0.45,
+                "reachable": true,
+                "narrowest": [
+                  -1.575,
+                  -1.125
+                ]
+              },
+              {
+                "from": "door:door-kitchen",
+                "to": "item:db-table",
+                "width_m": 0.45,
+                "reachable": true,
+                "narrowest": [
+                  -1.575,
+                  -1.125
+                ]
+              },
+              {
+                "from": "door:door-kitchen",
+                "to": "item:db-chair",
+                "width_m": 0.5,
+                "reachable": true,
+                "narrowest": [
+                  -3.3,
+                  -1.225
+                ]
+              },
+              {
+                "from": "door:door-bedroom",
+                "to": "item:db-sofa",
+                "width_m": 0.45,
+                "reachable": true,
+                "narrowest": [
+                  -1.35,
+                  -1.125
+                ]
+              },
+              {
+                "from": "door:door-bedroom",
+                "to": "item:db-table",
+                "width_m": 0.45,
+                "reachable": true,
+                "narrowest": [
+                  -1.35,
+                  -1.125
+                ]
+              },
+              {
+                "from": "door:door-bedroom",
+                "to": "item:db-chair",
+                "width_m": 0.5,
+                "reachable": true,
+                "narrowest": [
+                  -3.3,
+                  -2.25
+                ]
+              }
+            ]
+          },
+          "after": {
+            "room_id": "room-living",
+            "free_area_m2": 40.06,
+            "largest_free_rectangle": {
+              "x": -4.9,
+              "y": -1.7,
+              "width": 5.4,
+              "depth": 5.6,
+              "area_m2": 30.24
+            },
+            "walkways": [
+              {
+                "from": "door:door-entry",
+                "to": "door:door-kitchen",
+                "width_m": 0.9,
+                "reachable": true,
+                "narrowest": [
+                  -3.775,
+                  3.55
+                ]
+              },
+              {
+                "from": "door:door-entry",
+                "to": "door:door-bedroom",
+                "width_m": 0.9,
+                "reachable": true,
+                "narrowest": [
+                  -3.775,
+                  3.55
+                ]
+              },
+              {
+                "from": "door:door-entry",
+                "to": "item:db-sofa",
+                "width_m": 0.8,
+                "reachable": true,
+                "narrowest": [
+                  -3.75,
+                  -2.65
+                ]
+              },
+              {
+                "from": "door:door-entry",
+                "to": "item:db-table",
+                "width_m": 0.8,
+                "reachable": true,
+                "narrowest": [
+                  -3.75,
+                  -2.65
+                ]
+              },
+              {
+                "from": "door:door-entry",
+                "to": "item:db-chair",
+                "width_m": 0.85,
+                "reachable": true,
+                "narrowest": [
+                  -1.3,
+                  -2.325
+                ]
+              },
+              {
+                "from": "door:door-kitchen",
+                "to": "door:door-bedroom",
+                "width_m": 0.9,
+                "reachable": true,
+                "narrowest": [
+                  0.15,
+                  1.55
+                ]
+              },
+              {
+                "from": "door:door-kitchen",
+                "to": "item:db-sofa",
+                "width_m": 0.8,
+                "reachable": true,
+                "narrowest": [
+                  -2.45,
+                  -2.65
+                ]
+              },
+              {
+                "from": "door:door-kitchen",
+                "to": "item:db-table",
+                "width_m": 0.8,
+                "reachable": true,
+                "narrowest": [
+                  -2.45,
+                  -2.65
+                ]
+              },
+              {
+                "from": "door:door-kitchen",
+                "to": "item:db-chair",
+                "width_m": 0.85,
+                "reachable": true,
+                "narrowest": [
+                  -1.3,
+                  -2.325
+                ]
+              },
+              {
+                "from": "door:door-bedroom",
+                "to": "item:db-sofa",
+                "width_m": 0.8,
+                "reachable": true,
+                "narrowest": [
+                  -2.45,
+                  -2.65
+                ]
+              },
+              {
+                "from": "door:door-bedroom",
+                "to": "item:db-table",
+                "width_m": 0.8,
+                "reachable": true,
+                "narrowest": [
+                  -2.45,
+                  -2.65
+                ]
+              },
+              {
+                "from": "door:door-bedroom",
+                "to": "item:db-chair",
+                "width_m": 0.85,
+                "reachable": true,
+                "narrowest": [
+                  -1.3,
+                  -2.325
+                ]
+              }
+            ]
+          },
+          "changed_object_ids": [
+            "db-sofa",
+            "db-table",
+            "db-chair"
+          ],
+          "objects_retained": true
+        }
+      },
+      "service_stopped": true,
+      "service_summary": {
+        "type": "service_summary",
+        "model": "gpt-6-astra",
+        "effort": "low",
+        "profile": {
+          "placement": "without-place",
+          "context": "compact-base"
+        },
+        "conversationId": "9de75bd5afed466b9529bc8bfb5547e7",
+        "outcome": "proposal",
+        "seconds": 59.677,
+        "usage": {
+          "cacheWriteInputTokens": 0,
+          "cachedInputTokens": 59648,
+          "inputTokens": 90171,
+          "outputTokens": 1280,
+          "reasoningOutputTokens": 278,
+          "totalTokens": 91451
+        }
+      },
+      "actual_profile_matches": true,
+      "progress": {
+        "count": 15,
+        "max_gap_seconds": 5.098
+      },
+      "observed_tools": {
+        "completed_calls": {
+          "set_intent": 1,
+          "propose": 4
+        },
+        "rejected_proposals": [
+          {
+            "checks": [
+              "function_clearance",
+              "walkway"
+            ]
+          },
+          {
+            "checks": [
+              "preference"
+            ]
+          },
+          {
+            "checks": [
+              "collision",
+              "function_clearance"
+            ]
+          }
+        ],
+        "accepted_proposal_ids": [
+          "proposal-1"
+        ]
+      },
+      "reviewed_request_fulfilled": true
+    },
+    {
+      "id": "armchair",
+      "request": "add an armchair for reading by the window",
+      "request_sha256": "cd8cb34f1614f993ef72ab9664b49170f0070deac4b1a5062ee1c9fdf04d5307",
+      "pass": false,
+      "port": 56684,
+      "http_status": 200,
+      "seconds": 41.358,
+      "outcome": "proposal",
+      "proposal": {
+        "id": "designer-21bc62902268f333dbb517caa88a253570d5b1cc038f3bbc4635a899127752f6",
+        "title": "Designer layout proposal",
+        "description": "Add one reading armchair beside the living-room window, facing into the room, retaining all existing furniture in its original position and rotation. Budget unconfirmed; catalog price 80000 AMD is mock pricing, not a shop quotation. Solar orientation and door-sweep clearance unverified.",
+        "command": {
+          "id": "designer-21bc62902268f333dbb517caa88a253570d5b1cc038f3bbc4635a899127752f6",
+          "label": "Apply designer layout",
+          "source": "designer",
+          "baseRevision": 0,
+          "operations": [
+            {
+              "type": "add",
+              "object": {
+                "id": "reading-armchair",
+                "name": "Amazon Brand – Rivet Lawson Modern Angled Chair, 33\"W, Dove",
+                "assetId": "abo:B075X4F5CH",
+                "position": [
+                  -3.8,
+                  0,
+                  3.35
+                ],
+                "rotation": 3.141592653589793,
+                "scale": [
+                  1,
+                  1,
+                  1
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "validation": {
+        "pass": false,
+        "reasons": [
+          "Added chair identity needs armchair evidence: Amazon Brand – Rivet Lawson Modern Angled Chair, 33\"W, Dove"
+        ],
+        "approval_required": true,
+        "store_result": {
+          "ok": true,
+          "errors": [],
+          "warnings": [],
+          "revision": 1
+        },
+        "validation_after": {
+          "ok": true,
+          "errors": [],
+          "warnings": []
+        },
+        "preservation": {
+          "ceiling_designs": true,
+          "room_metadata": true,
+          "archived_options": true,
+          "baseline": true,
+          "project_fields": true,
+          "structure": true,
+          "input_snapshot": true
+        },
+        "request_check": {
+          "pass": true,
+          "reasons": [],
+          "approval_required": true,
+          "store_result": {
+            "ok": true,
+            "errors": [],
+            "warnings": [],
+            "revision": 1
+          },
+          "validation_after": {
+            "ok": true,
+            "errors": [],
+            "warnings": []
+          },
+          "request_check": {
+            "ok": true,
+            "errors": [],
+            "budget": {
+              "status": "skipped",
+              "cost_dram": 80000
+            }
+          },
+          "added_assets": [
+            {
+              "object_id": "reading-armchair",
+              "asset": {
+                "id": "abo:B075X4F5CH",
+                "name": "Amazon Brand – Rivet Lawson Modern Angled Chair, 33\"W, Dove",
+                "category": "Living",
+                "kind": "chair",
+                "dimensions": [
+                  0.8396,
+                  0.8461,
+                  0.8707
+                ],
+                "color": "#baada4",
+                "price": 80000,
+                "source": {
+                  "type": "gltf",
+                  "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/H/B075X4F5CH.glb"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "hydrated_added_products": [
+        {
+          "asset": {
+            "id": "abo:B075X4F5CH",
+            "name": "Amazon Brand – Rivet Lawson Modern Angled Chair, 33\"W, Dove",
+            "kind": "chair",
+            "category": "chair",
+            "dimensions": [
+              0.8396,
+              0.8461,
+              0.8707
+            ],
+            "color": "#baada4",
+            "price": 80000,
+            "source": {
+              "type": "gltf",
+              "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/H/B075X4F5CH.glb"
+            }
+          },
+          "priceSource": "mock",
+          "sizeStatus": "confirmed",
+          "attribution": "Amazon Berkeley Objects · CC BY 4.0 (Amazon Berkeley Objects)"
+        }
+      ],
+      "retained_added_assets": [
+        {
+          "asset": {
+            "id": "abo:B075X4F5CH",
+            "name": "Amazon Brand – Rivet Lawson Modern Angled Chair, 33\"W, Dove",
+            "category": "Living",
+            "kind": "chair",
+            "dimensions": [
+              0.8396,
+              0.8461,
+              0.8707
+            ],
+            "color": "#baada4",
+            "price": 80000,
+            "source": {
+              "type": "gltf",
+              "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/H/B075X4F5CH.glb"
+            }
+          },
+          "priceSource": "unverified",
+          "sizeStatus": "unverified",
+          "attribution": "Amazon Berkeley Objects · CC BY 4.0"
+        }
+      ],
+      "service_stopped": true,
+      "service_summary": {
+        "type": "service_summary",
+        "model": "gpt-6-astra",
+        "effort": "low",
+        "profile": {
+          "placement": "without-place",
+          "context": "compact-base"
+        },
+        "conversationId": "2b720b85a8f14bdbbe56c920c3e5eee5",
+        "outcome": "proposal",
+        "seconds": 41.348,
+        "usage": {
+          "cacheWriteInputTokens": 0,
+          "cachedInputTokens": 33152,
+          "inputTokens": 62003,
+          "outputTokens": 560,
+          "reasoningOutputTokens": 115,
+          "totalTokens": 62563
+        }
+      },
+      "actual_profile_matches": true,
+      "progress": {
+        "count": 11,
+        "max_gap_seconds": 5.109
+      },
+      "observed_tools": {
+        "completed_calls": {
+          "search_catalog": 1,
+          "set_intent": 1,
+          "propose": 1
+        },
+        "rejected_proposals": [],
+        "accepted_proposal_ids": [
+          "proposal-1"
+        ],
+        "selected_catalog_products": [
+          {
+            "sku": "abo:B075X4F5CH",
+            "kind": "chair",
+            "name": "Amazon Brand – Rivet Lawson Modern Angled Chair, 33\"W, Dove",
+            "size": [
+              0.8396,
+              0.8707,
+              0.8461
+            ],
+            "price": 80000,
+            "currency": "AMD",
+            "vendor": null,
+            "source": "abo",
+            "price_source": "mock",
+            "size_status": "confirmed",
+            "size_evidence": {
+              "from": "mesh",
+              "listing_m": [
+                0.8382,
+                0.8636,
+                0.8636
+              ],
+              "wd_swapped": false,
+              "name_width_m": 0.838,
+              "mesh_minus_listing_m": [
+                0.001,
+                0.007,
+                -0.018
+              ]
+            },
+            "wd_swapped": false,
+            "colors_listing": [
+              "white"
+            ],
+            "colors_image": [
+              "beige",
+              "beige",
+              "beige"
+            ],
+            "styles": [
+              "Rustic"
+            ],
+            "item": {
+              "id": "abo:B075X4F5CH",
+              "kind": "chair",
+              "name": "Amazon Brand – Rivet Lawson Modern Angled Chair, 33\"W, Dove",
+              "size": [
+                0.8396,
+                0.8707,
+                0.8461
+              ],
+              "sku": "abo:B075X4F5CH",
+              "price": 80000
+            }
+          }
+        ]
+      },
+      "visual_adjudication": {
+        "claim": "observed catalog image; separate from the unchanged automated title heuristic",
+        "image_url": "https://amazon-berkeley-objects.s3.amazonaws.com/images/small/51/51a5618b.jpg",
+        "local_image_path": "/tmp/latest-editor-armchair-51a5618b.jpg",
+        "image_sha256": "610341efbaeb5e6aa625e44e56a0f8df1b5bd30a6f5c75336187ca078ede5cc0",
+        "armchair_confirmed": true,
+        "observation": "The catalog photo shows a single upholstered lounge chair with a padded back, seat cushion and two substantial armrests. It is an armchair, not a stool or dining chair.",
+        "automated_name_heuristic_pass": false,
+        "automated_failure": [
+          "Added chair identity needs armchair evidence: Amazon Brand – Rivet Lawson Modern Angled Chair, 33\"W, Dove"
+        ],
+        "editor_acceptance": true,
+        "near_window_request_check": true,
+        "catalog_price_source": "mock",
+        "catalog_currency": "AMD",
+        "catalog_size_status": "confirmed",
+        "unchanged_identity_dimensions_price": true
+      },
+      "reviewed_request_fulfilled": true
+    }
+  ],
+  "pass": false,
+  "usage_limited": false,
+  "finished_at": "2026-09-26T12:00:34.655Z",
+  "claim_scope": "Measured three real HTTP service requests using current production defaults, real SDK and catalog MCP; exact same database-furnished current Avani shell at revision zero. The reused observer records output only. Poses and ceiling designs are assumed test data; product records are live database data, prices may be mock AMD values. Approval is applied only to disposable real editor stores. This exercises the same-origin catalog middleware and configured discovery/catalog-retention path; it does not claim browser rendering, GLB download, default discovery configuration, or photographed furnishings were tested.",
+  "full_collector_evidence": {
+    "path": "/tmp/latest-editor-three-live.json",
+    "sha256": "d288df19ea5e69b52da9c531aeffea52788d5d85ea4abbeb720393ef91acfbc7",
+    "raw_pass": false,
+    "note": "Unmodified first-run output retained, including the armchair title-heuristic failure."
+  },
+  "reviewed_summary": {
+    "editor_accepted": 3,
+    "requests": 3,
+    "request_fulfilled_after_visual_adjudication": 3,
+    "all_ceiling_v2_preservation_checks_passed": true,
+    "automated_collector_pass": false,
+    "automated_exception": "Armchair product title is Modern Angled Chair and did not match the narrow title whitelist; the exact catalog photo confirms visible armrests. Raw result and failure are preserved.",
+    "model_retries": 0,
+    "claim_scope": "These are three independent requests from the same prepared revision-zero scene, not a cumulative conversation. Deterministic tool-level proposal repair inside a request is included in timing and retained in raw traces."
+  }
+}

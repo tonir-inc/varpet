@@ -113,6 +113,17 @@ test data in the current Avani shell. The recorded attempt in `eval/latest-edito
 catalog hydration (HTTP 503; localhost tunnel refused connections and the tailnet endpoint timed out).
 No model calls ran, so this attempt supplies no request timings or live proposal-acceptance evidence.
 
+[measured after tunnel recovery, 26 Sept 2026] The same collector completed all three exact requests
+on the refreshed main using 877 database assets. EditorStore accepted sage bedroom paint in 31.514 s,
+the living-room rearrangement in 59.687 s, and the reading-chair addition in 41.358 s. Paint covered all
+five physical bedroom wall sections; the rearrangement increased the largest free rectangle from
+22.68 to 30.24 m². Every run preserved ceiling designs, room metadata, baseline, archived options,
+other unrelated v2 project fields and structural geometry. These timings include the HTTP request.
+The added `abo:B075X4F5CH` costs 80,000 AMD (mock). Its catalog name says “angled chair”, so the narrow
+name-only armchair heuristic remained false; its catalog photograph visibly shows two upholstered
+armrests. The raw flag and separate visual adjudication are retained in `eval/latest-editor-live.json`.
+All other purchase checks, including near-window placement, passed. No browser rendering was measured.
+
 Derived coordinate mapping: editor `[x, y, z]` maps to designer `[x, -z]`; rotation radians about +Y
 map to counterclockwise degrees; dimensions `[width, height, depth]` multiplied by object scale map
 to `[width, depth, height]`. Existing poses and scale survive the reverse conversion.
