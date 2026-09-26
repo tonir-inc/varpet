@@ -35,3 +35,6 @@ packages/designer/eval/taste-komitas-results/*.tar.gz
 !packages/designer/eval/komitas-runs/avani-check/*
 !packages/designer/eval/chain-runs/20260926/architect-browser.json
 !packages/designer/eval/fast-runs/matrix-after-restored/*/initial.json
+
+# Local message-board read receipts
+.board-seen-*
