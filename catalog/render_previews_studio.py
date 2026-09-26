@@ -90,11 +90,13 @@ def setup():
         scn.view_settings.view_transform = "Filmic"
     scn.view_settings.exposure = 0.0
     ee = scn.eevee
-    for prop, val in (("use_raytracing", True), ("use_shadows", True), ("taa_render_samples", 32)):
+    for prop, val in (("use_raytracing", True), ("use_shadows", True), ("taa_render_samples", 96), ("use_fast_gi", True)):
         if hasattr(ee, prop):
             setattr(ee, prop, val)
     if hasattr(ee, "ray_tracing_options"):
         ee.ray_tracing_options.resolution_scale = "1"
+        if hasattr(ee.ray_tracing_options, "use_denoise"):
+            ee.ray_tracing_options.use_denoise = True  # shadowed shelf interiors were speckled at 32 samples
     _world(scn)
     cam = bpy.data.objects.new("cam", bpy.data.cameras.new("cam"))
     cam.data.lens = 50
