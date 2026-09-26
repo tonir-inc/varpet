@@ -99,6 +99,8 @@ class Conversation:
     runtime: dict | None = None
     usage: dict | None = None
     usage_known: bool = True
+    general_usage: dict | None = None
+    general_usage_known: bool = True
     lock: threading.Lock = field(default_factory=threading.Lock)
 
 
@@ -198,11 +200,14 @@ class DesignerService:
                 proposals.mkdir()
                 job = root / "job.json"
                 job.write_text(json.dumps({"runtime": conversation.runtime, "request": body["request"],
-                                           "effort": self.effort, "profile": self.profile, "images": self.image_paths}))
+                                           "effort": self.effort, "profile": self.profile, "images": self.image_paths,
+                                           "catalog": body.get("catalog"), "catalogCurrency": body.get("catalogCurrency")}))
                 env = {**os.environ, "VARPET_SCENE": conversation.runtime["scene"],
                        "VARPET_PROPOSALS_DIR": str(proposals)}
                 events, pending = [], ""
-                previous_usage, usage_known = conversation.usage, conversation.usage_known
+                previous_usage, usage_known = conversation.general_usage, conversation.general_usage_known
+                previous_total = conversation.usage
+                previous_total_known = conversation.usage_known
                 observed_usage = False
 
                 def output(channel, chunk):
@@ -222,9 +227,13 @@ class DesignerService:
                             if event.get("method") == "thread/tokenUsage/updated":
                                 totals = event.get("payload", {}).get("tokenUsage", {}).get("total")
                             if isinstance(totals, dict):
-                                usage = designer.usage_delta(previous_usage, totals) if usage_known else None
-                                conversation.usage = totals
-                                conversation.usage_known = observed_usage = True
+                                from designer_fast import usage_update
+                                usage, conversation.general_usage, conversation.general_usage_known = usage_update(
+                                    previous_usage, usage_known, totals, event.get('fast_path') is True)
+                                conversation.usage = ({key:(previous_total or {}).get(key,0)+value for key,value in usage.items()}
+                                                      if usage is not None else None)
+                                conversation.usage_known = previous_total_known and usage is not None
+                                observed_usage = True
 
                 progress("Designer is checking the furniture layout")
                 try:
@@ -233,6 +242,7 @@ class DesignerService:
                     if not observed_usage:
                         # An unmeasured turn cannot be charged to the next resumed request.
                         conversation.usage_known = False
+                        conversation.general_usage_known = False
                 summaries = [event for event in events if event.get("kind") == "worker_summary"]
                 if not summaries or summaries[-1].get("status") != "completed":
                     raise RuntimeError("Designer did not complete the request")

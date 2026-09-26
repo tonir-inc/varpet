@@ -370,6 +370,11 @@ def sdk_worker(job_path: Path) -> int:
         return 2
     job = json.loads(job_path.read_text())
     effort, profile = runtime_settings(job)
+    from designer_fast import enabled as fast_enabled, run as fast_run
+    if fast_enabled(profile, os.environ):
+        fast_result = fast_run(job, job_path)
+        if fast_result is not None:
+            return fast_result
     runtime = job["runtime"]
     image_paths = first_turn_images(job, first_turn=not Path(runtime["state"]).exists())
     config = build_config(Path(runtime["scene"]))
