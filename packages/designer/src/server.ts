@@ -60,7 +60,7 @@ export function createServer(input: Scene, options:{catalogQuery?:CatalogQuery; 
       const {placements,...single}=request;
       if(placements) {
         if(Object.values(single).some(value=>value!==undefined)) throw new Error('Use placements or single-item arguments, not both');
-        return result(placeBatch(scene,placementsSchema.parse(placements)));
+        return result(placeBatch(scene,placementsSchema.parse(placements),{compareBaseline:true}));
       }
       return result(place(scene,placeInputSchema.parse(single)));
     }
@@ -74,10 +74,10 @@ export function createServer(input: Scene, options:{catalogQuery?:CatalogQuery; 
     catch(error) { return result(String(error),true); }
   });
   server.registerTool('check_layout', {
-    description: 'Apply preview ops to a copy and return hard errors before soft guidance, coordinates, overlap depths and incremental purchase price. Reports engine checks unavailable while using the temporary scene adapter.',
+    description: 'Compare preview ops with the starting scene. New or worsened violations block; existing non-worsened violations are notes to mention, not a reason to fix unrelated rooms. Returns coordinates, overlap depths and incremental purchase price.',
     inputSchema: {ops:opsToolSchema},
   }, ({ops}) => {
-    try { const check=checkLayout(scene,parseOps(ops));return result(check,!check.ok); }
+    try { const check=checkLayout(scene,parseOps(ops),{compareBaseline:true});return result(check,!check.ok); }
     catch(error) { return result(String(error),true); }
   });
   server.registerTool('score_layout', {

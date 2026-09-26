@@ -14,7 +14,7 @@ export interface BatchResult {candidates:BatchCandidate[];reason?:string;search:
 
 /** Temporarily lift the requested movable pieces, then place them on copies as a bounded beam.
  * Only full-scene checked combinations are returned; no temporary removals escape as ops. */
-export function placeBatch(input:Scene,requests:PlaceRequest[]):BatchResult {
+export function placeBatch(input:Scene,requests:PlaceRequest[],options:{compareBaseline?:boolean}={}):BatchResult {
   const scene=parseScene(input),placements=placementsSchema.parse(requests),ids=new Set<string>();
   const prepared=placements.map(request=>{
     if((request.item_id===undefined)===(request.item===undefined)) throw new Error('Supply one item_id or sized item per placement');
@@ -39,7 +39,7 @@ export function placeBatch(input:Scene,requests:PlaceRequest[]):BatchResult {
     const next:typeof beam=[];
     for(const state of beam) {
       let found:ReturnType<typeof place>;
-      try {found=place(state.scene,prepared[index]!);}
+      try {found=place(state.scene,prepared[index]!,scene);}
       catch(error) {failures.push(error instanceof Error?error.message:String(error));continue;}
       if(found.reason) failures.push(found.reason);
       for(const candidate of found.candidates) {
@@ -51,7 +51,7 @@ export function placeBatch(input:Scene,requests:PlaceRequest[]):BatchResult {
     beam=next.slice(0,8);
     if(!beam.length) break;
   }
-  const candidates:BatchCandidate[]=beam.filter(state=>state.ops.length===placements.length&&checkLayout(scene,state.ops).ok)
+  const candidates:BatchCandidate[]=beam.filter(state=>state.ops.length===placements.length&&checkLayout(scene,state.ops,{compareBaseline:options.compareBaseline??false}).ok)
     .map(state=>({ops:state.ops,clearances:state.clearances,score:scoreLayout(scene,state.ops)}))
     .sort((a,b)=>b.score.after.space.rooms.reduce((sum,room)=>sum+(room.largest_free_rectangle?.area_m2??0),0)-a.score.after.space.rooms.reduce((sum,room)=>sum+(room.largest_free_rectangle?.area_m2??0),0))
     .slice(0,3);

@@ -56,7 +56,7 @@ export class DesignerSession {
     if(!this.intent) return {ok:false,errors:[{check:'intent',message:'Call set_intent before proposing a layout'}]};
     try {
       const ops=parseOps(input),paragraph=rationaleSchema.parse(rationale);
-      const checks=checkLayout(this.scene,ops);
+      const checks=checkLayout(this.scene,ops,{compareBaseline:true});
       if(!checks.ok) return {ok:false,errors:checks.errors};
       const after=applyOps(this.scene,ops);
       const request=checkRequest(this.scene,after,ops,this.intent,checks.price.cost_dram);

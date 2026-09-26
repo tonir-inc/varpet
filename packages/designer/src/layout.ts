@@ -1,5 +1,5 @@
 import { applyOps } from './adapter.js';
-import { checkLocalLayout } from './local-checks.js';
+import { checkLocalLayout, compareLayoutErrors, type LayoutError } from './local-checks.js';
 import { functionClearances, type FunctionClearance } from './metrics/function.js';
 import { spaceMetrics, type SpaceMetrics } from './metrics/space.js';
 import { sun, type SunResult } from './metrics/sun.js';
@@ -9,6 +9,9 @@ import type { Op, Scene, Vec2 } from './scene.js';
 export interface LayoutIssue {
   check: string; severity: 'hard'|'soft'; message: string; item_ids: string[]; at: Vec2;
   deficit_m?: number; overlap_depth_m?: number;
+  room_id?: string; opening_id?: string; walkway?: LayoutError['walkway'];
+  /** A measured pre-existing violation that this preview does not worsen. */
+  baseline?: true;
   /** If true, at is only a finite serialization sentinel, not a measured location. */
   location_unknown?: true;
 }
@@ -23,6 +26,11 @@ export interface CheckStatus {
 }
 export interface LayoutCheck {
   ok:boolean; errors:LayoutIssue[]; checks:CheckStatus[]; price:LayoutPrice; metrics?:LayoutMetrics;
+  notes?:LayoutIssue[];
+}
+export interface LayoutCheckOptions {
+  /** Defaults to true for nonempty ops; opt in explicitly for non-geometric previews. */
+  compareBaseline?:boolean;
 }
 const engine:CheckStatus={check:'engine',status:'unavailable',reason:'Engine scene, check and price APIs are unavailable; local temporary-scene checks run instead.'};
 
@@ -60,28 +68,32 @@ function metrics(scene:Scene,cost:number|null,space?:SpaceMetrics):LayoutMetrics
 }
 
 /** Preview only: all mutations pass through the adapter's validated copy. Soft guidance does not fail ok. */
-export function checkLayout(scene:Scene,ops:readonly Op[]=[]):LayoutCheck {
+export function checkLayout(scene:Scene,ops:readonly Op[]=[],options:LayoutCheckOptions={}):LayoutCheck {
   const price=layoutPrice(ops);
   let after:Scene;
   try { after=applyOps(scene,ops); }
   catch(error) {
     const message=error instanceof Error?error.message:String(error);
     const issue:LayoutIssue={check:'operations',severity:'hard',message,...operationLocation(scene,ops,message)};
-    return {ok:false,errors:[issue,...price.errors],checks:[{check:'operations',status:'failed'},engine],price};
+    return {ok:false,errors:[issue,...price.errors],notes:[],checks:[{check:'operations',status:'failed'},engine],price};
   }
   const local=checkLocalLayout(after),scored=metrics(after,price.cost_dram,local.metrics);
-  const errors:LayoutIssue[]=local.errors.map(error=>({
-    ...error,check:error.check==='inside'?'containment':error.check==='overlap'?'collision':error.check,severity:'hard',
+  const comparison=(options.compareBaseline??ops.length>0)
+    ? compareLayoutErrors(checkLocalLayout(scene).errors,local.errors) : {errors:local.errors,notes:[]};
+  const issue=(error:LayoutError,severity:LayoutIssue['severity']):LayoutIssue=>({
+    ...error,check:error.check==='inside'?'containment':error.check==='overlap'?'collision':error.check,severity,
     ...(error.check==='overlap'?{overlap_depth_m:error.deficit_m}:{}),
-  }));
+  });
+  const errors:LayoutIssue[]=comparison.errors.map(error=>issue(error,'hard'));
+  const notes:LayoutIssue[]=comparison.notes.map(error=>({...issue(error,'soft'),baseline:true,message:`Pre-existing, not worsened: ${error.message}`}));
   errors.push(...price.errors);
   for(const metric of scored.function_clearances) if(metric.status==='warn') errors.push({check:'function_clearance',severity:'soft',item_ids:[metric.item_id,...metric.other_item_id?[metric.other_item_id]:[]],at:metric.at,deficit_m:metric.deficit_m,
     message:`${metric.item_id} ${metric.function} ${metric.side}: ${metric.clearance_m.toFixed(2)} m; preferred ${metric.minimum_m.toFixed(2)}${metric.maximum_m===undefined?' m minimum':`–${metric.maximum_m.toFixed(2)} m`}`});
   for(const room of local.metrics.rooms) for(const path of room.walkways) if(path.status==='warn') errors.push({check:'walkway',severity:'soft',item_ids:[path.from,path.to].filter(id=>id.startsWith('item:')).map(id=>id.slice(5)),at:path.narrowest,deficit_m:Math.max(0,0.75-path.width_m),message:`${path.from} to ${path.to}: ${path.width_m.toFixed(2)} m path; 0.75 m preferred, 0.90 m good`});
   const names=['operations','containment','collision','door_swing','walkway','price','function_clearance'];
-  const checks:CheckStatus[]=names.map(check=>({check,status:errors.some(error=>error.check===check&&error.severity==='hard')?'failed':errors.some(error=>error.check===check)?'warning':'passed'}));
+  const checks:CheckStatus[]=names.map(check=>({check,status:errors.some(error=>error.check===check&&error.severity==='hard')?'failed':errors.some(error=>error.check===check)||notes.some(note=>note.check===check)?'warning':'passed'}));
   checks.push(engine);
-  return {ok:!errors.some(error=>error.severity==='hard'),errors,checks,price,metrics:scored};
+  return {ok:!errors.some(error=>error.severity==='hard'),errors,notes,checks,price,metrics:scored};
 }
 
 export function scoreLayout(scene:Scene,ops:readonly Op[]=[]):{before:LayoutMetrics;after:LayoutMetrics;cost_dram:number|null;price:LayoutPrice} {

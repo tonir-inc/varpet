@@ -64,6 +64,10 @@ tree beyond that: architect/builder subagent trees lost to single calls this wee
   room, before and after.
 - **Circulation:** a walkway from every door to every item's front and between doors, on a 5 cm grid;
   narrowest width fails under 0.6 m, warns under 0.75 m, good from 0.9 m.
+  Proposals and placement compare each violation against the original snapshot. Unchanged or improved
+  pre-existing violations are notes; new or worsened violations block. A static scene audit still
+  reports every violation. This permits scoped work in an already imperfect flat without claiming
+  its existing access problems have been fixed (derived policy, 26 Sept).
 - **Daylight:** direct-sun hours per window from the window's compass direction and the sun over
   Yerevan (40.18° N, 44.51° E) on the equinoxes and solstices; where the sun patch falls on the floor.
   Desk: within about 1.5 m of a window, light from the side (not behind the screen, not in the

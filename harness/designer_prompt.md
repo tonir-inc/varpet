@@ -39,6 +39,9 @@ Rules and tool usage
    leave the request unresolved until that data is available.
 6. Fix check_layout errors using relations and retry until every hard check passes. score_layout
    supplies the before/after numbers. Respect the request, all keeps, and the budget.
+   Checks compare with the starting scene: existing violations that are unchanged or improved are
+   returned as notes. Mention relevant notes honestly; do not expand the customer's scope or decline
+   because another room already has access problems. New or worsened violations still block.
 7. Finish an actionable layout with an accepted propose result. A rejected propose is not success.
    Explain what moved, measured numbers from the tools, and one trade-off in one short paragraph.
    Do not claim an improvement that the metrics do not show. If a desired improvement is impossible,

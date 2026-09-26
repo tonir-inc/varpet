@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { applyOps, wallCompass, wallOutward } from './adapter.js';
-import { checkLocalLayout, localGeometryErrors } from './local-checks.js';
+import { checkLocalLayout, compareLayoutErrors, localGeometryErrors } from './local-checks.js';
 import { itemPolygon, isFloorRug, polygonsOverlap } from './metrics/space.js';
 import type { Item, Op, Room, Scene, Vec2, Wall } from './scene.js';
 
@@ -107,7 +107,7 @@ function clearances(scene: Scene, item: Item, room: Room, walkway_m: number | nu
   return { front_m: measure(f, item.size[1] / 2), back_m: measure(scale(f, -1), item.size[1] / 2), right_m: measure(r, item.size[0] / 2), left_m: measure(scale(r, -1), item.size[0] / 2), walkway_m };
 }
 
-export function place(scene: Scene, input: PlaceRequest): PlaceResult {
+export function place(scene: Scene, input: PlaceRequest, baseline: Scene = scene): PlaceResult {
   const request = placeInputSchema.parse(input);
   if ((request.item_id === undefined) === (request.item === undefined)) throw new Error('Supply exactly one existing item_id or sized item description');
   const room = scene.rooms.find(candidate => candidate.id === request.room_id);
@@ -271,12 +271,13 @@ export function place(scene: Scene, input: PlaceRequest): PlaceResult {
     }
     return score;
   };
+  const baselineCheck = checkLocalLayout(baseline);
   const rejections: Record<string, number> = {}, reject = (reason: string) => { rejections[reason] = (rejections[reason] ?? 0) + 1; };
   const survivors = candidates.filter(item => {
     if (!request.relations.every(relation => relationFits(item, relation))) { reject('relation constraint'); return false; }
     if (walls.some(wall => excluded.has(wall.id) && touches(item, wall)) || openingExclusion(item)) { reject('excluded wall or opening'); return false; }
     const preview = { ...scene, items: [...scene.items.filter(other => other.id !== base.id), item] };
-    const errors = localGeometryErrors(preview);
+    const { errors } = compareLayoutErrors(baselineCheck.errors, localGeometryErrors(preview));
     if (errors.length) { errors.forEach(error => reject(error.check)); return false; }
     return true;
   }).map(item => ({ item, score: rank(item) })).sort((a, b) => a.score - b.score || a.item.pos[0] - b.item.pos[0] || a.item.pos[1] - b.item.pos[1] || a.item.rot - b.item.rot);
@@ -284,7 +285,8 @@ export function place(scene: Scene, input: PlaceRequest): PlaceResult {
   for (const { item } of survivors) {
     const op: Op = request.item_id ? { type: 'move', id: item.id, pos: item.pos, rot: item.rot, room_id: item.room_id } : { type: 'add', item };
     const preview = applyOps(scene, [op]), checked = checkLocalLayout(preview);
-    if (!checked.ok) { checked.errors.forEach(error => reject(error.check)); continue; }
+    const { errors } = compareLayoutErrors(baselineCheck.errors, checked.errors);
+    if (errors.length) { errors.forEach(error => reject(error.check)); continue; }
     const walkways = checked.metrics.rooms.find(metrics => metrics.room_id === room.id)!.walkways;
     result.push({ item: structuredClone(item), op: structuredClone(op), clearances: clearances(preview, item, room, walkways.length ? Math.min(...walkways.map(walkway => walkway.width_m)) : null) });
     if (result.length === 3) break;
