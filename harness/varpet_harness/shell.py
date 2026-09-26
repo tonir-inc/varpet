@@ -480,6 +480,7 @@ def _slivers(shell: Shell) -> list[dict]:
     """Crossings that would leave the editor a wall section under 5 cm."""
     faults = []
     for w in shell.walls:
+        L, cuts = _len(w), []
         for other in shell.walls:
             if other is w:
                 continue
@@ -487,14 +488,23 @@ def _slivers(shell: Shell) -> list[dict]:
             if hit is None:
                 continue
             _, _, t, s = hit
-            L, M = _len(w), _len(other)
+            M = _len(other)
             if not (-1e-6 <= s * M <= M + 1e-6 and -1e-6 <= t * L <= L + 1e-6):
                 continue
+            cuts.append((t * L, other.id))
             near = min(t * L, (1 - t) * L)
             if 1e-6 < near < SLIVER_M:
                 faults.append({"check": "junction", "wall": w.id, "other": other.id,
                                "detail": f"{other.id} meets {w.id} {near * 100:.1f} cm from its end; meet at the end or at least 5 cm in"})
                 break
+        else:  # two junctions close together leave a sliver between them (wall-junctions.ts)
+            cuts.sort()
+            for (a, ia), (b, ib) in zip(cuts, cuts[1:]):
+                if 1e-6 < b - a < SLIVER_M:
+                    faults.append({"check": "junction", "wall": w.id, "other": ib,
+                                   "detail": f"{ia} and {ib} meet {w.id} only {(b - a) * 100:.1f} cm apart; "
+                                             "make them meet at one point or at least 5 cm apart"})
+                    break
     return faults
 
 

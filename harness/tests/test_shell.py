@@ -358,3 +358,11 @@ def test_mounted_fixture_across_a_wall_junction_is_a_fault():
     s = bathroom()
     s.components[0].host.offset = 5.0
     assert any("junction" in x["detail"] for x in component_faults(s))
+
+
+def test_two_junctions_closer_than_5_cm_are_a_sliver():
+    # the editor splits a wall at every junction and rejects a section under 0.05 m between two of them
+    s = flat()
+    s.walls.append(Wall.model_validate(wall("stub-a", [2.0, 0], [2.0, 1.0])))
+    s.walls.append(Wall.model_validate(wall("stub-b", [2.03, 0], [2.03, 1.0])))
+    assert any(f["check"] == "junction" and f["wall"] == "w-n" for f in check(s))
