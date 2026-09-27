@@ -199,7 +199,10 @@ textiles 124, wall-decor 57, shelf-styling 96, misc-decor 92. Catalog total 8,85
   see apps/editor/docs/integrations.md.
 - Previews are Blender renders; the same render is the SigLIP "photo" (these items have no product photo), so text
   and visual search find them.
-- Import a group: `catalog/import_extra_groups.sh <group>...` (VM + local DB rows, GLB upload, previews, embeddings).
+- Import a group: `catalog/import_extra_groups.sh <group>...` (VM DB rows for only those groups, GLB upload, studio previews,
+  embeddings; the demo laptop's local DB too when `~/.config/varpet/local.env` exists). Other logins:
+  `VARPET_SSH=root@mc-server VARPET_SSH_KEY=~/.ssh/id_ed25519 BLENDER=/Applications/Blender.app/Contents/MacOS/Blender`.
+  After an import, check no extra item lacks an image embedding: text search cannot find those.
 
 
 ## Mattresses and size limits (27 Sept)

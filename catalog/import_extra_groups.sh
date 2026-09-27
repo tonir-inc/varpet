@@ -4,15 +4,18 @@ set -euo pipefail
 # Import extra-model groups (args) into VM + local DB: rows, GLBs, Blender previews, preview-as-photo SigLIP embeddings.
 cd "$(dirname "$0")" || exit 1
 GRPS="$*"
-KEY=$HOME/.ssh/varpet_ed25519
-VM=sergey@152.53.158.86
-set -a; source ~/.config/varpet/env; set +a
+KEY=${VARPET_SSH_KEY:-$HOME/.ssh/varpet_ed25519}   # any login with write access to /opt/varpet-catalog works
+VM=${VARPET_SSH:-sergey@152.53.158.86}
+BLENDER=${BLENDER:-blender}
+if [ -f ~/.config/varpet/env ]; then set -a; source ~/.config/varpet/env; set +a; fi
+: "${VARPET_DB_URL:?set VARPET_DB_URL (the tunnel URL) or put it in ~/.config/varpet/env}"
 ST=data/decor-stage; PV=data/decor-previews; mkdir -p $ST $PV data/extra-previews-web data/img
-uv run ingest_extra.py --apply --stage data/extra-stage | tail -2 || exit 1
+# --groups: only the named groups, so half-built folders from running lanes never reach the DB.
+uv run ingest_extra.py --apply --groups $GRPS --stage data/extra-stage | tail -2 || exit 1
 for g in $GRPS; do cp data/extra-stage/extra-$g-*.glb $ST/; done
 echo "staged $(ls $ST | wc -l) GLBs"
-rsync -rltzO -e "ssh -i $KEY" $ST/ $VM:/opt/varpet-catalog/models-web/ && echo "uploaded models"
-blender -b --python render_previews.py -- $ST $PV 2>&1 | grep -E "PREVIEW (DONE|FAILED)"
+rsync -rltzO -e "ssh -i $KEY -o IdentitiesOnly=no" $ST/ $VM:/opt/varpet-catalog/models-web/ && echo "uploaded models"
+"$BLENDER" -b --factory-startup --python render_previews_studio.py -- $ST $PV 2>&1 | grep -E "PREVIEW (DONE|FAILED)"
 uv run python - <<'PY'
 from pathlib import Path
 from PIL import Image
@@ -40,14 +43,16 @@ for m in Path("data/extra").glob("*/entries.json"):
             Image.open(p).convert("RGB").save(out, quality=90); n += 1
 print("photos", n)
 PY
-rsync -rltzO -e "ssh -i $KEY" data/extra-previews-web/ $VM:/opt/varpet-catalog/models-web/previews/ && echo "uploaded previews"
+rsync -rltzO -e "ssh -i $KEY -o IdentitiesOnly=no" data/extra-previews-web/ $VM:/opt/varpet-catalog/models-web/previews/ && echo "uploaded previews"
 SQL="set lock_timeout='3s'; update item set preview_url = 'http://100.107.246.46:8765/previews/extra-' || replace(substr(id, 7), ':', '-') || '.webp' where source = 'extra' and preview_url is null;"
 psql "$VARPET_DB_URL" -Atc "$SQL"
 uv run embed_siglip.py 2>&1 | tail -1
-set -a; source ~/.config/varpet/local.env; set +a
-uv run ingest_extra.py --apply --stage data/extra-stage | tail -1
-psql "$VARPET_DB_URL" -Atc "$SQL"
-uv run embed_siglip.py 2>&1 | tail -1
-rsync -a $ST/ data/demo/web/; rsync -a data/extra-previews-web/ data/demo/web/previews/
+if [ -f ~/.config/varpet/local.env ]; then  # the demo laptop's local catalog, when it has one
+  set -a; source ~/.config/varpet/local.env; set +a
+  uv run ingest_extra.py --apply --groups $GRPS --stage data/extra-stage | tail -1
+  psql "$VARPET_DB_URL" -Atc "$SQL"
+  uv run embed_siglip.py 2>&1 | tail -1
+  rsync -a $ST/ data/demo/web/; rsync -a data/extra-previews-web/ data/demo/web/previews/
+fi
 psql "$VARPET_DB_URL" -Atc "select count(*), count(preview_url) from item where source='extra'"
 echo DECOR DONE
