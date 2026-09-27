@@ -491,6 +491,8 @@ class DraftWatcher:
                 self.started_rooms.append(room)
                 self._emit(f"Designing the {self._name(room).lower()}")
             if cmd == "check":
+                # A room designer's passing check is as good a finish signal as its render round (settles 12 s).
+                self.rendered[room] = now
                 self._emit(f"{self._name(room)}: checked, walkways clear")
             elif cmd in ("render-view", "render-plan"):
                 self.rendered[room] = now
@@ -550,7 +552,8 @@ class DraftWatcher:
             self.previewed = rooms
             self.sent += 1
             if self.on_finished is not None:
-                self.on_finished(work, fresh, {room: self.signatures.get(room) for room in fresh})
+                pieces = _piece_signatures(snapshot)
+                self.on_finished(work, fresh, {room: pieces.get(room) for room in fresh})
 
 
 def _translate(state: SpikeConversation, body: dict, workspace: Path, turn: Path, title: str, description: str) -> dict | None:
@@ -592,6 +595,11 @@ def critic_module():
 
 def _room_signatures(workspace: Path) -> dict[str, str]:
     return _signatures(_read_draft(workspace / "draft.json") or {})
+
+
+def _piece_signatures(draft: dict) -> dict[str, str]:
+    """Per room, the pieces only: a lead's later light or paint touch does not make an early review stale."""
+    return _signatures({"items": draft.get("items") or []})
 
 
 class Recorder:
@@ -640,6 +648,7 @@ class EarlyReviews:
     def __init__(self, brief: str, progress, names: dict[str, str]):
         self.brief, self.progress, self.names = brief, progress, names
         self.results: dict[str, tuple[str | None, list[dict]]] = {}
+        self.errors: list[str] = []
         self.threads: list[threading.Thread] = []
         self.lock = threading.Lock()
 
@@ -655,7 +664,8 @@ class EarlyReviews:
         def run():
             try:
                 issues = critic.critique(work, self.brief, rooms, 1)
-            except Exception:
+            except Exception as error:
+                self.errors.append(f"{type(error).__name__}: {error}"[:200])
                 return
             with self.lock:
                 for room in rooms:
@@ -676,7 +686,8 @@ class EarlyReviews:
 
 
 def _review(state: SpikeConversation, brief: str, rooms: list[str], cancel: threading.Event, progress, timeout: float,
-            round_: int, reply: str = "", early: EarlyReviews | None = None, parallel_config: dict | None = None) -> dict:
+            round_: int, reply: str = "", early: EarlyReviews | None = None, parallel_config: dict | None = None,
+            elapsed: float | None = None) -> dict:
     """One critic round in live chat (latency is bounded to one): review the rooms this turn changed (rooms the
     early reviews already saw as they are now are not reviewed again); on blocker or major issues resume the
     designer thread once to fix them. A fix that fails the check is rolled back."""
@@ -685,7 +696,8 @@ def _review(state: SpikeConversation, brief: str, rooms: list[str], cancel: thre
         return {"skipped": True}
     names = {room["id"]: room.get("name") or room["id"] for room in state.rooms}
     started = time.monotonic()
-    issues, todo = early.settle(_room_signatures(state.workspace), rooms, cancel) if early else ([], list(rooms))
+    final = _piece_signatures(_read_draft(state.workspace / "draft.json") or {})
+    issues, todo = early.settle(final, rooms, cancel) if early else ([], list(rooms))
     reused = len(rooms) - len(todo)
     if todo:
         progress("Reviewing the " + ", ".join(names.get(room, room).lower() for room in todo[:4]))
@@ -693,11 +705,19 @@ def _review(state: SpikeConversation, brief: str, rooms: list[str], cancel: thre
             issues += critic.critique(state.workspace, brief, todo, round_, context=reply or None)
         except Exception as error:  # the reviewer is a second opinion; its failure never sinks the design
             return {"error": f"{type(error).__name__}: {error}"[:300], "seconds": round(time.monotonic() - started, 1)}
-    serious = critic.serious(issues)
-    record = {"issues": len(issues), "serious": len(serious), "reviewed_early": reused,
-              "seconds": round(time.monotonic() - started, 1)}
+    found = critic.serious(issues)
+    # Live chat keeps the customer waiting: blockers (a need from the brief unmet) are always fixed; majors only while
+    # the turn is inside its budget (VARPET_SPIKE_FIX_BUDGET seconds since it started), else they go on the card's notes.
+    in_budget = elapsed is None or elapsed + (time.monotonic() - started) < float(os.environ.get("VARPET_SPIKE_FIX_BUDGET", "240"))
+    serious = [issue for issue in found if issue.get("severity") == "blocker" or in_budget]
+    left = [issue for issue in found if issue not in serious]
+    record = {"issues": len(issues), "serious": len(found), "fixing": len(serious), "reviewed_early": reused,
+              "seconds": round(time.monotonic() - started, 1),
+              **({"early_errors": early.errors[:3]} if early and early.errors else {}),
+              **({"notes": ["Reviewer: " + issue["issue"] + (f" ({names.get(issue['room'], issue['room'])})" if issue.get("room") else "")
+                            for issue in left][:4]} if left else {})}
     if not serious or cancel.is_set():
-        progress("Reviewed: no serious issues" if not serious else "Reviewed")
+        progress("Reviewed: no serious issues" if not found else f"Reviewed: {len(found)} note{'s' if len(found) != 1 else ''} for you")
         return record
     progress(f"Fixing {len(serious)} thing{'s' if len(serious) != 1 else ''} the reviewer found")
     backup = (state.workspace / "draft.json").read_text()
@@ -870,7 +890,7 @@ def propose(conversation, conversation_id: str, body: dict, cancel: threading.Ev
     spike = spike_module()
     timeout = float(os.environ.get("VARPET_SPIKE_TIMEOUT", "1500")) if timeout is None else timeout
     timings: dict[str, float] = {}
-    clock = time.monotonic()
+    clock = turn_started = time.monotonic()
 
     def lap(name: str) -> None:
         nonlocal clock
@@ -977,11 +997,12 @@ def propose(conversation, conversation_id: str, body: dict, cancel: threading.Ev
         after = _room_signatures(state.workspace)
         changed = [room["id"] for room in state.rooms if room["id"] in after and after[room["id"]] != rooms_before.get(room["id"])]
         review = _review(state, brief, changed, cancel, progress, timeout, len(requests), reply, early,
-                         parallel_config if parallel else None)
+                         parallel_config if parallel else None, time.monotonic() - turn_started)
         lap("review")
         if review.get("reply"):
             reply = review["reply"]
-        timings["critic"] = {key: value for key, value in review.items() if key != "reply"}
+        timings["critic"] = {key: value for key, value in review.items() if key not in ("reply", "notes")}
+        review_notes = review.get("notes") or []
         progress("Preparing the preview")
         # The first design is named after the brief, also when this turn only answered the designer's question.
         title = proposal_title(requests[0] if first_design else body["request"])
@@ -993,7 +1014,7 @@ def propose(conversation, conversation_id: str, body: dict, cancel: threading.Ev
         total = sum(int(item.get("price") or 0) for item in draft.get("items", []) if isinstance(item, dict))
         space = _tool("metrics", str(state.workspace))
         lap("preview")
-        notes = _notes(state.workspace)
+        notes = "\n".join(filter(None, [_notes(state.workspace), *review_notes]))[:1600] or None
         timings["partials"] = watcher.sent
         return {"type": "proposal", "conversationId": conversation_id, "proposal": saved["proposal"],
                 "metrics": {"cost_dram": total, "seconds": result["seconds"],
