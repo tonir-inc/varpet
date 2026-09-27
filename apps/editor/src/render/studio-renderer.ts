@@ -100,7 +100,7 @@ export class StudioRenderer {
     // Metres, not screen pixels: nearby floor/wall junctions stay grounded as
     // the camera moves, without a broad dirty halo around the apartment.
     this.occlusion.updateGtaoMaterial({
-      radius: 0.5, thickness: 0.5, distanceExponent: 1.5,
+      radius: 0.42, thickness: 0.45, distanceExponent: 1.5,
       distanceFallOff: 1, scale: 1, screenSpaceRadius: false,
     });
     this.occlusion.updatePdMaterial({ radius: 5, lumaPhi: 8, depthPhi: 3, normalPhi: 4 });
