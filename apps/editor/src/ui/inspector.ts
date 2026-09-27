@@ -5,7 +5,15 @@ import type { CatalogAsset, EntityMetadata, Operation, SceneDocument, SceneObjec
 import { buildAssetReplacementOperations, buildOpeningTypeOperations, OPENING_TYPES } from '../core/inspector-edits';
 import { inspectorOpenings } from '../core/inspector-openings';
 import { buildWindowDimensionOperations, windowDimensionTargets, type WindowDimensionMatch } from '../core/window-dimensions';
-import { buildFinishOperations, FINISH_DRAG_TYPE, FINISH_PRESETS, getPresetForMaterial, type FinishPreset } from '../core/finish-presets';
+import { buildFinishOperations, FINISH_DRAG_TYPE, FINISH_PRESETS, getPresetForMaterial, isWallTile, type FinishPreset } from '../core/finish-presets';
+
+/** Floors are one group; walls list paint, then tiles under their own label. */
+const finishGroups = (category: FinishPreset['category']): [string, FinishPreset[]][] => {
+  const presets = FINISH_PRESETS.filter(preset => preset.category === category);
+  if (category === 'floor') return [['', presets]];
+  const tiles = presets.filter(isWallTile);
+  return [['', presets.filter(preset => !isWallTile(preset))], ...(tiles.length ? [['Tiles', tiles] as [string, FinishPreset[]]] : [])];
+};
 import { wallSurfaceSpans } from '../core/wall-surfaces';
 import { resolveWallFinishTargets } from '../core/wall-finish-targets';
 import { icon } from './icons';
@@ -125,7 +133,7 @@ export function renderEntityInspector(container: HTMLElement, id: string, config
         return assigned?.materialId !== finish?.materialId || (!assigned && selectedWall && scene.walls.find(w => w.id === target.entityId)?.color !== selectedWall.color);
       });
       const current = mixed ? undefined : getPresetForMaterial(material);
-      return `<section class="property-section"><div class="property-label">${label}<span>${esc(mixed ? 'Mixed finishes' : material?.name ?? 'Original')}</span></div>${targets.length > 1 ? '<p class="field-note">Applies to the entire continuous wall face in this room.</p>' : ''}<div class="inspector-swatches" role="group" aria-label="${label}">${FINISH_PRESETS.filter(p => p.category === (room ? 'floor' : 'wall')).map(preset => `<button type="button" data-finish="${preset.id}" data-surface="${surface}" title="${esc(preset.description)}" aria-label="${label}: ${esc(preset.name)}. ${esc(preset.description)}" aria-pressed="${current?.id === preset.id && material?.color.toLowerCase() === preset.color.toLowerCase()}" ${disabled}><span data-finish-preview="${preset.id}"></span><span class="inspector-finish-caption">${esc(preset.name)}${preset.category === 'floor' ? `<small>${esc(preset.description)}</small>` : ''}</span></button>`).join('')}</div></section>`;
+      return `<section class="property-section"><div class="property-label">${label}<span>${esc(mixed ? 'Mixed finishes' : material?.name ?? 'Original')}</span></div>${targets.length > 1 ? '<p class="field-note">Applies to the entire continuous wall face in this room.</p>' : ''}${finishGroups(room ? 'floor' : 'wall').map(([group, presets]) => `${group ? `<p class="field-note">${group}</p>` : ''}<div class="inspector-swatches" role="group" aria-label="${label}${group ? ` ${group.toLowerCase()}` : ''}">${presets.map(preset => `<button type="button" data-finish="${preset.id}" data-surface="${surface}" title="${esc(preset.description)}" aria-label="${label}: ${esc(preset.name)}. ${esc(preset.description)}" aria-pressed="${current?.id === preset.id && material?.color.toLowerCase() === preset.color.toLowerCase()}" ${disabled}><span data-finish-preview="${preset.id}"></span><span class="inspector-finish-caption">${esc(preset.name)}${preset.pattern !== 'solid' ? `<small>${esc(preset.description)}</small>` : ''}</span></button>`).join('')}</div>`).join('')}</section>`;
     }).join('');
     if (config.onFinishDragStart && config.onFinishDragEnd && !disabled) body = `<p class="field-note">Drag a finish onto ${room ? 'a floor' : 'a room-facing wall surface'}, or click to apply it here.</p>${body}`;
     if (selectedWall || (room && hasRoomCeiling(scene, room))) body = heightControlMarkup(scene, { kind: selectedWall ? 'wall' : 'room', id }, !!disabled) + body;

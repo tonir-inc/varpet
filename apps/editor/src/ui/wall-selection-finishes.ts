@@ -1,5 +1,5 @@
 import type { Operation, SceneDocument } from '../contracts';
-import { buildWallSelectionFinishOperations, FINISH_PRESETS, getPresetForMaterial, wallSelectionFinishTargets, type WallSelectionFinishSurface } from '../core/finish-presets';
+import { buildWallSelectionFinishOperations, FINISH_PRESETS, getPresetForMaterial, isWallTile, wallSelectionFinishTargets, type WallSelectionFinishSurface } from '../core/finish-presets';
 import { fillFinishSwatches } from './finish-swatch';
 
 interface WallFinishOptions {
@@ -41,11 +41,14 @@ export function renderWallSelectionFinishes(container: HTMLElement, wallIds: rea
     <label class="text-field">Paint sides<select aria-label="Paint sides">
       ${([['both', 'Both room-facing sides'], ['wall-front', 'Wall side A'], ['wall-back', 'Wall side B']] as const).map(([value, label]) => `<option value="${value}" ${state.surface === value ? 'selected' : ''}>${label}</option>`).join('')}
     </select></label>
-    <p class="field-note">Choose a color for all ${ids.length} selected walls. Undo restores them together.</p>
+    <p class="field-note">Choose a paint or tile for all ${ids.length} selected walls. Undo restores them together.</p>
     ${reason ? `<p class="inspector-assumption">${esc(reason)}</p>` : ''}
-    <div class="inspector-swatches" role="group" aria-label="Paint selected walls">
-      ${FINISH_PRESETS.filter(preset => preset.category === 'wall').map(preset => `<button type="button" data-wall-selection-finish="${preset.id}" title="${esc(preset.description)}" aria-label="Paint selected walls: ${esc(preset.name)}" aria-pressed="${current?.id === preset.id && first?.color === preset.color.toLowerCase()}" ${reason ? 'disabled' : ''}><span data-finish-preview="${preset.id}"></span><span class="inspector-finish-caption">${esc(preset.name)}</span></button>`).join('')}
-    </div>
+    ${([['', 'Paint selected walls', false], ['Tiles', 'Tile selected walls', true]] as const).map(([group, action, tiles]) => {
+      const presets = FINISH_PRESETS.filter(preset => preset.category === 'wall' && isWallTile(preset) === tiles);
+      return presets.length ? `${group ? `<p class="field-note">${group}</p>` : ''}<div class="inspector-swatches" role="group" aria-label="${action}">
+      ${presets.map(preset => `<button type="button" data-wall-selection-finish="${preset.id}" title="${esc(preset.description)}" aria-label="${action}: ${esc(preset.name)}${tiles ? `. ${esc(preset.description)}` : ''}" aria-pressed="${current?.id === preset.id && first?.color === preset.color.toLowerCase()}" ${reason ? 'disabled' : ''}><span data-finish-preview="${preset.id}"></span><span class="inspector-finish-caption">${esc(preset.name)}${tiles ? `<small>${esc(preset.description)}</small>` : ''}</span></button>`).join('')}
+    </div>` : '';
+    }).join('')}
   </section>`;
   fillFinishSwatches(container);
   container.querySelector<HTMLSelectElement>('select')!.onchange = event => {
@@ -58,7 +61,7 @@ export function renderWallSelectionFinishes(container: HTMLElement, wallIds: rea
     const preset = FINISH_PRESETS.find(value => value.id === button.dataset.wallSelectionFinish)!;
     try {
       const operations = buildWallSelectionFinishOperations(config.getScene(), preset, ids, state.surface);
-      if (operations.length) config.execute(operations, `Paint ${ids.length} walls · ${preset.name}`);
+      if (operations.length) config.execute(operations, `${isWallTile(preset) ? 'Tile' : 'Paint'} ${ids.length} walls · ${preset.name}`);
       config.refresh();
     } catch (error) {
       config.notice(error instanceof Error ? error.message : 'The selected walls could not be painted.', true);

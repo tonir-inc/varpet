@@ -1,4 +1,4 @@
-import { FINISH_DRAG_TYPE, FINISH_PRESETS, getFinishPreset, type FinishPreset } from '../core/finish-presets';
+import { FINISH_DRAG_TYPE, FINISH_PRESETS, getFinishPreset, isWallTile, type FinishPreset } from '../core/finish-presets';
 import { createFinishSwatch } from './finish-swatch';
 import './materials.css';
 
@@ -34,6 +34,7 @@ export function createMaterialsUI(container: HTMLElement, callbacks: MaterialsCa
     <p class="materials-note">Concept samples · pricing not included</p>`;
   const grid = root.querySelector<HTMLElement>('.materials-grid')!;
   const cards = new Map<string, HTMLButtonElement>();
+  const tileLabel = document.createElement('p');
 
   for (const preset of FINISH_PRESETS) {
     const card = document.createElement('button');
@@ -80,6 +81,13 @@ export function createMaterialsUI(container: HTMLElement, callbacks: MaterialsCa
       callbacks.onDragEnd();
     }, listenerOptions);
     cards.set(preset.id, card);
+    // Wall tiles follow the paints under their own full-width label.
+    if (preset === FINISH_PRESETS.find(isWallTile)) {
+      tileLabel.className = 'materials-section-label';
+      tileLabel.style.gridColumn = '1 / -1';
+      tileLabel.textContent = 'Tiles · bathroom and kitchen walls';
+      grid.append(tileLabel);
+    }
     grid.append(card);
   }
 
@@ -93,12 +101,13 @@ export function createMaterialsUI(container: HTMLElement, callbacks: MaterialsCa
       card.hidden = card.dataset.category !== category;
       card.setAttribute('aria-pressed', String(activeId === id));
     }
+    tileLabel.hidden = category !== 'wall';
     for (const tab of tabs) {
       const selected = tab.dataset.materialCategory === category;
       tab.setAttribute('aria-selected', String(selected));
       tab.tabIndex = selected ? 0 : -1;
     }
-    const heading = category === 'floor' ? 'Floor finishes' : 'Wall paint';
+    const heading = category === 'floor' ? 'Floor finishes' : 'Wall paint & tiles';
     root.querySelector<HTMLElement>('[data-material-heading]')!.textContent = heading;
     root.querySelector<HTMLElement>('[data-material-count]')!.textContent = `${FINISH_PRESETS.filter(preset => preset.category === category).length} samples`;
     grid.setAttribute('aria-label', heading);

@@ -49,7 +49,18 @@ export const FINISH_PRESETS: FinishPreset[] = [
   { id: 'rose', name: 'Dusty rose', category: 'wall', color: '#c5a5a3', accent: '#a78a88', pattern: 'solid', size: [1, 1], roughness: 0.94, description: 'Soft pink · matte paint' },
   { id: 'blue', name: 'Blue hour', category: 'wall', color: '#8299ad', accent: '#647e95', pattern: 'solid', size: [1, 1], roughness: 0.94, description: 'Muted blue · matte paint' },
   { id: 'graphite', name: 'Graphite', category: 'wall', color: '#575e64', accent: '#41474d', pattern: 'solid', size: [1, 1], roughness: 0.94, description: 'Deep grey · matte paint' },
+  // Wall tiles: u runs along the wall and v up it, so size is [width, height] as hung.
+  // The tile shader lays a straight grid; every wall tile is stack bond.
+  { id: 'metro-white', name: 'White metro', category: 'wall', color: '#f0eee8', accent: '#cdc9c0', pattern: 'tile', size: [0.15, 0.075], roughness: 0.3, description: '15 × 7.5 cm · glazed metro, stack bond' },
+  { id: 'vertical-stack-sage', name: 'Sage vertical stack', category: 'wall', color: '#aebba9', accent: '#e2dfd6', pattern: 'tile', size: [0.075, 0.3], roughness: 0.32, description: '7.5 × 30 cm · glazed, vertical stack' },
+  { id: 'zellige-green', name: 'Zellige green', category: 'wall', color: '#4d7c68', accent: '#d6d0c2', pattern: 'tile', size: [0.1, 0.1], roughness: 0.28, description: '10 × 10 cm · glazed zellige-look' },
+  { id: 'terracotta-wall', name: 'Terracotta square', category: 'wall', color: '#b5725a', accent: '#cfc3b2', pattern: 'tile', size: [0.15, 0.15], roughness: 0.85, description: '15 × 15 cm · natural clay' },
+  { id: 'porcelain-grey-wall', name: 'Grey porcelain', category: 'wall', color: '#a8a9a4', accent: '#8c8d89', pattern: 'tile', size: [0.6, 0.3], roughness: 0.5, texture: 'marble', description: '60 × 30 cm · veined porcelain' },
+  { id: 'travertine-wall', name: 'Travertine', category: 'wall', color: '#d9cbb2', accent: '#c2b59e', pattern: 'tile', size: [0.6, 0.3], roughness: 0.8, texture: 'travertine', description: '60 × 30 cm · honed travertine' },
 ];
+
+/** Patterned wall finishes (tiles); plain wall presets are paint. */
+export const isWallTile = (preset: FinishPreset): boolean => preset.category === 'wall' && preset.pattern !== 'solid';
 
 export function getFinishPreset(id: string): FinishPreset | undefined {
   return FINISH_PRESETS.find(preset => preset.id === id);
@@ -64,7 +75,7 @@ export function materialForPreset(preset: FinishPreset): FinishMaterial {
     color: preset.color,
     unit: 'm2',
     unitCost: 0,
-    thickness: preset.category === 'wall' ? 0.0002 : isWoodPattern(preset.pattern) ? 0.014 : 0.01,
+    thickness: preset.category === 'wall' && preset.pattern === 'solid' ? 0.0002 : isWoodPattern(preset.pattern) ? 0.014 : 0.01,
     wastePercent: 0,
     notes: `${materialMarker(preset)} Conceptual finish sample; no supplier or price has been specified. Set a quoted unit cost before budgeting.`,
   };
@@ -104,7 +115,7 @@ export function buildWallSelectionFinishOperations(
   wallIds: readonly string[],
   surface: WallSelectionFinishSurface = 'both',
 ): Operation[] {
-  if (preset.category !== 'wall') throw new Error('Choose a wall paint for these walls.');
+  if (preset.category !== 'wall') throw new Error('Choose a wall paint or tile for these walls.');
   const targets = wallSelectionFinishTargets(scene, wallIds, surface);
   // Validate the entire selection, including walls without a paintable face.
   // A mixed selection must never silently apply only its unlocked subset.
@@ -126,7 +137,7 @@ export function buildFinishOperations(
   surface: 'floor' | 'wall-front' | 'wall-back',
 ): Operation[] {
   const floor = surface === 'floor';
-  if (preset.category !== (floor ? 'floor' : 'wall')) throw new Error(`Choose ${floor ? 'a floor material' : 'a wall paint'} for this surface.`);
+  if (preset.category !== (floor ? 'floor' : 'wall')) throw new Error(`Choose ${floor ? 'a floor material' : 'a wall paint or tile'} for this surface.`);
   const entity = floor ? scene.rooms.find(room => room.id === entityId) : scene.walls.find(wall => wall.id === entityId);
   if (!entity) throw new Error(`This ${floor ? 'floor' : 'wall'} no longer exists.`);
   const project = scene.project;

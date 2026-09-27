@@ -2,7 +2,7 @@
 import type { FinishMaterial, Operation } from '../contracts';
 import { finishAppearance } from '../render/finish-material';
 import { demoScene, localCatalog } from './demo';
-import { FINISH_PRESETS, buildFinishOperations, getFinishPreset, getPresetForMaterial, materialForPreset } from './finish-presets';
+import { FINISH_PRESETS, buildFinishOperations, buildWallSelectionFinishOperations, getFinishPreset, getPresetForMaterial, isWallTile, materialForPreset } from './finish-presets';
 import { migrateScene } from './renovation';
 import { EditorStore } from './store';
 
@@ -96,5 +96,29 @@ check('Wood grain runs along 120 cm planks with 18 cm row spacing', () => {
   }
 });
 
+check('Wall tiles apply to wall faces with their grid, grout and thickness', () => {
+  const tiles = FINISH_PRESETS.filter(isWallTile);
+  assert(tiles.length >= 5, 'The wall catalog offers tiles as well as paint');
+  for (const preset of tiles) {
+    assert(preset.pattern === 'tile', `${preset.name} is laid as tiles`);
+    assert(materialForPreset(preset).thickness === 0.01, `${preset.name} is quoted as a 1 cm tile layer, not paint`);
+    const store = new EditorStore(demoScene, localCatalog);
+    apply(store, buildFinishOperations(store.scene, preset, 'wall-spine', 'wall-front'));
+    const appearance = finishAppearance(store.scene, 'wall-spine', 'wall-front', '#ffffff');
+    assert(appearance.pattern === 1, `${preset.name} renders the tile pattern on the wall`);
+    assert(appearance.size.join() === preset.size.join(), `${preset.name} keeps its tile size on the wall`);
+    assert(appearance.accent === preset.accent && appearance.texture === preset.texture, `${preset.name} keeps its grout and texture`);
+    let rejected = false;
+    try { buildFinishOperations(store.scene, preset, 'room-living', 'floor'); } catch { rejected = true; }
+    assert(rejected, `${preset.name} is not offered as a floor`);
+    const selection = new EditorStore(demoScene, localCatalog);
+    apply(selection, buildWallSelectionFinishOperations(selection.scene, preset, ['wall-spine']));
+    assert(getPresetForMaterial(selection.scene.project!.materials[0])?.id === preset.id, `${preset.name} applies to a wall selection`);
+  }
+  assert(materialForPreset(getFinishPreset('chalk')!).thickness === 0.0002, 'Paint stays a thin coat');
+  const metro = getFinishPreset('metro-white')!;
+  assert(metro.size[0] > metro.size[1], 'Metro tiles lie horizontally along the wall');
+});
+
 if (failures.length) throw new Error(`Finish regressions failed (${failures.length}):\n${failures.join('\n')}`);
-console.log(`Finish regressions passed: ${assertions} assertions across 5 scenarios.`);
+console.log(`Finish regressions passed: ${assertions} assertions across 6 scenarios.`);
