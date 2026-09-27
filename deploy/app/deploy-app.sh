@@ -63,7 +63,7 @@ app /usr/local/bin/uv sync --frozen --project compiler
 # Designer uses the showcase's pinned Playwright to render through the editor.
 pnpm --filter ./apps/showcase exec playwright install-deps chromium
 app pnpm --filter ./apps/showcase exec playwright install chromium
-install -d -o varpet-app -g varpet-app /opt/varpet-app/repo/node_modules/.vite-temp /opt/varpet-app/repo/apps/editor/node_modules/.vite
+install -d -o varpet-app -g varpet-app /opt/varpet-app/repo/node_modules/.vite-temp /opt/varpet-app/repo/apps/editor/node_modules/.vite /opt/varpet-app/repo/apps/editor/node_modules/.vite-temp
 install -m 644 deploy/app/*.service deploy/app/*.slice /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable varpet-editor varpet-designer varpet-architect
