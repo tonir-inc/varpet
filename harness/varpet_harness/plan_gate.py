@@ -5,11 +5,12 @@ import asyncio
 import json
 import logging
 import os
+import re
 import tempfile
 from pathlib import Path
 
 from PIL import Image
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 log = logging.getLogger(__name__)
 MODEL = 'gpt-6-astra'
@@ -32,11 +33,36 @@ Example kinds: floor plan, room photo, electrical schematic, street map, chart, 
 
 
 class Verdict(BaseModel):
-    model_config = ConfigDict(extra='forbid', strict=True)
+    model_config = ConfigDict(extra='ignore', strict=True)
     is_plan: bool
     kind: str = Field(min_length=1, max_length=80)
     confidence: float = Field(ge=0, le=1)
     reason: str = Field(min_length=1, max_length=300)
+
+
+    @field_validator('reason', mode='before')
+    @classmethod
+    def trim_reason(cls, value):
+        return value[:300] if isinstance(value, str) else value
+
+    @field_validator('confidence', mode='before')
+    @classmethod
+    def clamp_confidence(cls, value):
+        return max(0.0, min(1.0, value)) if isinstance(value, (int, float)) else value
+
+
+class InvalidVerdict(ValueError):
+    """The model replied, but its reply cannot safely authorize a build."""
+
+
+def parse_verdict(raw):
+    try:
+        if isinstance(raw, str):
+            raw = re.sub(r'^```(?:json)?\s*|\s*```$', '', raw.strip())
+            raw = json.loads(raw)
+        return Verdict.model_validate(raw).model_dump()
+    except (ValueError, TypeError) as error:
+        raise InvalidVerdict('The plan check returned an invalid verdict; please try again.') from error
 
 
 def unavailable() -> dict:
@@ -94,7 +120,8 @@ async def classify_plan(image_path, runner=None, *, timeout: float = TIMEOUT) ->
                     reason='The image is too small to read - upload the plan at least 400 px wide.')
     try:
         raw = await asyncio.wait_for((runner or _run)(Path(image_path)), timeout=timeout)
-        return Verdict.model_validate_json(raw).model_dump()
     except Exception:
         log.warning('Plan gate unavailable; allowing reconstruction', exc_info=True)
         return unavailable()
+
+    return parse_verdict(raw)

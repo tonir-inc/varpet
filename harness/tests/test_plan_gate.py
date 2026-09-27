@@ -27,13 +27,12 @@ async def test_classification_one_call(image, is_plan, kind):
     assert calls == [image]
 
 
-@pytest.mark.parametrize('response', ['not json', '{"is_plan":"false"}', '{"is_plan":false,"kind":"photo","confidence":2,"reason":"Photo."}'])
-async def test_invalid_result_fails_open(image, response, caplog):
+@pytest.mark.parametrize('response', ['not json', '{"is_plan":"false"}'])
+async def test_invalid_result_does_not_fail_open(image, response, caplog):
     async def runner(path):
         return response
-    result = await classify_plan(image, runner=runner)
-    assert result['is_plan'] is True and result['confidence'] == 0
-    assert 'plan gate' in caplog.text.lower()
+    with pytest.raises(ValueError):
+        await classify_plan(image, runner=runner)
 
 
 async def test_timeout_fails_open(image, caplog):
@@ -151,3 +150,20 @@ async def test_unreadable_never_calls_model(image, damage):
     assert result['confidence'] == 1.0
     assert result['reason']
     assert calls == []
+
+
+@pytest.mark.parametrize('change', ['fences', 'extra', 'reason', 'high', 'low'])
+async def test_lenient_verdict(image, change):
+    verdict = dict(is_plan=False, kind='photo', confidence=.9, reason='Room.')
+    if change == 'extra': verdict['extra'] = 'ignored'
+    if change == 'reason': verdict['reason'] = 'x' * 400
+    if change == 'high': verdict['confidence'] = 2
+    if change == 'low': verdict['confidence'] = -1
+    raw = json.dumps(verdict)
+    if change == 'fences': raw = '```json\n' + raw + '\n```'
+    async def runner(path): return raw
+    result = await classify_plan(image, runner=runner)
+    assert result['is_plan'] is False
+    assert len(result['reason']) <= 300
+    assert result['confidence'] == (1 if change == 'high' else 0 if change == 'low' else .9)
+    assert 'extra' not in result

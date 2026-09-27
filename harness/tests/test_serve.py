@@ -31,7 +31,7 @@ def post(port, body):
     req = urllib.request.Request(f"http://127.0.0.1:{port}/structure", json.dumps(body).encode(),
                                  {"Content-Type": "application/json"})
     with urllib.request.urlopen(req) as r:
-        assert r.headers["Access-Control-Allow-Origin"] == "*"
+        assert r.headers["Access-Control-Allow-Origin"] is None
         return [json.loads(line) for line in r.read().splitlines()]
 
 

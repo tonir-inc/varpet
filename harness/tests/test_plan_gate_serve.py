@@ -13,7 +13,9 @@ def request(tmp_path, route, classifier):
     cls = serve.handler(Path('.'), tmp_path, classifier=classifier)
     instance = object.__new__(cls)
     instance.path = route
-    instance.headers = {'Content-Length': str(len(body))}
+    instance.headers = {'Content-Length': str(len(body)), 'Content-Type': 'application/json', 'Host': 'localhost:8788'}
+    from types import SimpleNamespace
+    instance.server = SimpleNamespace(server_port=8788)
     instance.rfile = io.BytesIO(body)
     instance.wfile = io.BytesIO()
     instance.send_response = lambda *args: None
@@ -24,7 +26,7 @@ def request(tmp_path, route, classifier):
 
 
 @pytest.mark.parametrize('route', ['/flat', '/structure'])
-@pytest.mark.parametrize('verdict,confidence,builds', [(True, .9, True), (False, .9, False), (False, .6, False), (False, .59, True), (None, 0, True)])
+@pytest.mark.parametrize('verdict,confidence,builds', [(True, .9, True), (False, .9, False), (False, .6, False), (False, .5, False), (False, .49, True), (None, 0, True)])
 def test_gate_before_architect(tmp_path, monkeypatch, caplog, route, verdict, confidence, builds):
     calls = []
     async def classifier(path):
