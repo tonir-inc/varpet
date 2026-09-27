@@ -18,7 +18,7 @@ COMPONENTS = {"fx-kitchen-run-1", "fx-kitchen-run-2", "fx-kitchen-run-3", "fx-ki
 # cabinet-kind furniture (TV console, nightstands) and shelf-kind furniture outside the kitchen (bookcases)
 OBJECTS = {"f-tv-unit", "f-bedside-11a", "f-bedside-11b", "f-bedside-6a", "f-bedside-6b", "f-bedside-9a", "f-bedside-9b",
            "f-bookcase-11", "f-bookcase-9", "f-stool-3", "f-entry-wardrobe", "f-wardrobe-11", "f-wardrobe-9"}
-# three stools along the island's seating ledge (x = worktop edge 4.424 + 0.10 tuck - half the stool's 0.568 depth)
+# three stools along the island's seating ledge, wholly in the living room (the island's worktop edge is at x 4.664, just inside the kitchen)
 STOOLS = {"f-stool-0": 5.95, "f-stool-1": 6.65, "f-stool-2": 7.35}
 STOOL_X = 4.24
 # restylable finishes: role -> glTF material names (the editor also matches Blender '.001' copies). The green lacquer
