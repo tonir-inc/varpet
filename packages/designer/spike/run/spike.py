@@ -150,7 +150,7 @@ def private_home(tool_mode: str, home: Path | None = None) -> tuple[Path, dict]:
     return home, extra
 
 
-SUBAGENT_SLOTS = 4
+SUBAGENT_SLOTS = 6  # the lead's own thread counts: 5 room designers at once
 
 
 def codex_config(effort: str, sandbox: str, network: bool, extra: dict, *, subagents: str | None = None,

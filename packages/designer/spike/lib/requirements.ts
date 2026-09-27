@@ -8,6 +8,7 @@
  *   "sleepers"?: 2,                                // bed places: a bed >= 1.2 m wide or a bunk sleeps 2, others 1
  *   "desks"?: 1, "desk_chairs"?: 1,                // desks (kind desk, or a table named desk) and chairs at them
  *   "items"?: [{ "kind": "tv", "min": 1, "text"?: "armchair" }],   // at least min pieces of kind (name contains text)
+ *   "pieces"?: 14,                                 // at least this many pieces in the room (a finished room, not a minimum)
  *   "exclude"?: ["rug"],                           // kinds that must not be in the room
  *   "budget_dram"?: 900000                         // the room's share; more than 10% over is a problem
  * } } } */
@@ -17,7 +18,7 @@ import { footprint, segDist, type Draft, type DraftItem, type Scene, type Vec2 }
 
 export interface ItemNeed { kind: string; min?: number; text?: string }
 export interface RoomNeeds {
-  for?: string; seats_at_table?: number; seats?: number; sleepers?: number; desks?: number; desk_chairs?: number;
+  for?: string; pieces?: number; seats_at_table?: number; seats?: number; sleepers?: number; desks?: number; desk_chairs?: number;
   items?: ItemNeed[]; exclude?: string[]; budget_dram?: number;
 }
 export interface Requirements { rooms: Record<string, RoomNeeds> }
@@ -81,6 +82,8 @@ export function requirementProblems(scene: Scene, draft: Draft, req: Requirement
       const want = needs[key];
       if (typeof want === 'number' && counts[key] < want) out.push(`requirements: ${roomId} has ${counts[key]} ${label}; the brief needs ${want}`);
     }
+    if (typeof needs.pieces === 'number' && items.length < needs.pieces)
+      out.push(`requirements: ${roomId} has ${items.length} pieces; plan.md asks for a finished room of at least ${needs.pieces}`);
     for (const need of needs.items ?? []) {
       const text = need.text?.toLowerCase(), min = need.min ?? 1;
       const have = items.filter(i => i.kind === need.kind && (!text || (i.name ?? '').toLowerCase().includes(text))).length;
@@ -102,7 +105,7 @@ export function requirementProblems(scene: Scene, draft: Draft, req: Requirement
 export function describeNeeds(req: Requirements | undefined, roomId: string): string {
   const needs = req?.rooms[roomId];
   if (!needs) return `no requirements for ${roomId} (requirements.json)`;
-  const parts = [needs.for ? `for: ${needs.for}` : '', ...NUMBERS.filter(([k]) => typeof needs[k] === 'number').map(([k, label]) => `${label}: at least ${needs[k]}`),
+  const parts = [needs.for ? `for: ${needs.for}` : '', typeof needs.pieces === 'number' ? `pieces: at least ${needs.pieces}` : '', ...NUMBERS.filter(([k]) => typeof needs[k] === 'number').map(([k, label]) => `${label}: at least ${needs[k]}`),
     ...(needs.items ?? []).map(n => `${n.kind}${n.text ? ` "${n.text}"` : ''}: at least ${n.min ?? 1}`),
     needs.exclude?.length ? `no ${needs.exclude.join(', ')}` : '', typeof needs.budget_dram === 'number' ? `budget: ${needs.budget_dram} AMD` : ''];
   return `${roomId} needs (checked by ./varpet check):\n${parts.filter(Boolean).map(p => `- ${p}`).join('\n')}`;

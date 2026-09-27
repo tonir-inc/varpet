@@ -377,11 +377,12 @@ def critique_flat(workspace: Path | str, brief: str, round: int = 1, context: st
             notes.append(f"{name}: render failed ({error})")
     rooms = ", ".join(f"{r['id']} ({r.get('name') or r['id']})" for r in _rooms(workspace).values())
     try:
-        needs = (workspace / "requirements.json").read_text()
-    except OSError:
-        needs = ""
+        counted = _run([str(workspace / "varpet"), "requirements"], workspace, timeout=60).stdout.strip()
+    except (OSError, subprocess.TimeoutExpired):
+        counted = ""
     text = (f"Customer brief:\n{brief.strip()}\n\nRooms: {rooms}.\n"
-            + (f"The brief's counts per room (requirements.json): {needs.strip()}\n" if needs else "")
+            + (f"The brief's needs per room and what the design holds now, counted from its data (trust these counts over a small "
+               f"picture; report a count only if it is below the need):\n{counted}\n" if counted and "no requirements" not in counted else "")
             + (f"Render notes: {'; '.join(notes)}\n" if notes else "")
             + (f"The designer's answer to the previous review: {context.strip()}\n" if context else "")
             + "Review the whole flat now and answer with the JSON object only.")
