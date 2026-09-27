@@ -37,6 +37,17 @@ EXTRA_LAMP_KINDS = ("lamp",)
 # (tags.extra.placement: bpy lanes, Poly Haven, pilot). Older extra furniture without one stays out.
 EXTRA_FURNITURE_KINDS = (*(k for k in PLACEABLE_KINDS if k not in EXTRA_DECOR_KINDS), "curtain", "blind")
 
+# Decorative editor kinds are families: searching kind=decor finds toys, vases, cushions... (the catalog keeps the fine
+# kind; the editor maps it). Furniture kinds stay exact so kind=chair does not start returning stools and benches.
+FAMILY_KINDS = ("decor", "wall_art", "curtain")
+
+
+def kinds_for(kind):
+    if kind not in FAMILY_KINDS:
+        return [kind]
+    return [kind, *(k for k, target in EDITOR_KIND_OF.items() if target == kind)]
+
+
 def build_placeable_sql():
     """Combine unchanged ABO eligibility with extra models, including supported wall decorations."""
     abo = (
@@ -255,7 +266,7 @@ def search(conn, q: Query):
     w = {**DEFAULT_WEIGHTS, **q.weights}
     where, args = ["true"], []
     if q.kind:
-        where.append("kind = %s"); args.append(q.kind)
+        where.append("kind = any(%s)"); args.append(kinds_for(q.kind))
     excluded = excluded_ids(q)
     if excluded:
         where.append("not (id = any(%s))"); args.append(excluded)
