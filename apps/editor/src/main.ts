@@ -1626,6 +1626,12 @@ sandboxLink.href = '/?editor=sandbox'; sandboxLink.target = '_blank'; sandboxLin
 sandboxLink.className = 'button quiet folio-sandbox'; sandboxLink.textContent = 'Sandbox';
 sandboxLink.title = 'Open a separate sandbox to experiment'; sandboxLink.setAttribute('aria-label', 'Open sandbox in a new tab');
 $('.header-actions').prepend(sandboxLink);
+// Opened from a developer's studio: Publish to profile (lane portal-profile, `portal/developer-publish.ts`).
+if (startupSession?.developer) void import('./portal/developer-publish').then(({installDeveloperPublish}) => {
+  if (document.querySelector('#developer-publish')) return; // Installed already (QA probes inject it too).
+  const dispose = installDeveloperPublish({ scene: () => store.scene, products: () => [...catalogProducts.values()], revision: () => store.revision, notify });
+  window.addEventListener('pagehide', event => { if (!event.persisted) dispose(); });
+}).catch(() => notify('Publish to profile could not load. Reload the editor to try again.', true));
 if (!editorSession && !sharedStartup) teamSaves = mountTeamSaves({store, products: () => [...catalogProducts.values()], startup: teamStartup, draft: startupSession, initialKind: 'template', active: () => !shareSession, proposal: () => proposalView, notify, saved: revision => { savedRevision = revision; }});
 refresh();renderAssets();setTool('select');switchPanel(editorSession?'scene':'renovation');if(designerLive)switchPanel('renovation',true);void searchDatabase();void refreshBuiltPieces();
 // Folio: tool panels open only when the buyer asks for them (Add, More, or a piece's toolbar).
