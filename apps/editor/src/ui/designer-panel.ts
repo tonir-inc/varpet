@@ -375,6 +375,8 @@ export function createDesignerConversation(options: ConversationOptions) {
         state.messages.at(-1)!.retryRequest = request;
       } finally {
         if (!disposed && active === abortController) {
+          // A room preview the customer was looking at ends with the turn unless the full design replaces it.
+          if (state.previewingPartial && !autoPreview) options.onResetReview?.();
           active = undefined; state.busy = false; state.progress = ''; state.draft = ''; state.previewingPartial = false; settleSteps(); publish();
           if (autoPreview) controller.act(autoPreview, 'preview');
           // After publish, so the host has already seen the turn end and will accept the next request.

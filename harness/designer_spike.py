@@ -947,10 +947,12 @@ def propose(conversation, conversation_id: str, body: dict, cancel: threading.Ev
                     f"holds it and they applied it.{(' Their earlier requests:' + chr(10) + earlier) if earlier else ''} "
                     + _turn_text(body["request"], False, edits, budget).split("\n", 1)[1])
         elif not first and not state.owned and not (_read_draft(state.workspace / "draft.json") or {}).get("items"):
-            # The customer answered the designer's question: nothing is designed yet, so design now.
-            text = (f"Customer answer: {body['request']}\nNothing is designed yet: now design as your instructions describe, "
-                    "following this answer and the original request." + (f"\nFurniture budget: {budget} AMD (budget.json; "
-                    "./varpet check enforces it)." if budget else ""))
+            # The customer answered the designer's question: nothing is applied yet, so design (or finish) now.
+            parts = sorted(path.stem for path in (state.workspace / "rooms").glob("*.json")) if (state.workspace / "rooms").is_dir() else []
+            started = (f"Rooms designed so far are in rooms/ ({', '.join(parts)}): keep them, finish the rest following this "
+                       "answer, then `./varpet merge`." if parts else "Nothing is designed yet: now design as your instructions describe.")
+            text = (f"Customer answer: {body['request']}\n{started} Follow this answer and the original request."
+                    + (f"\nFurniture budget: {budget} AMD (budget.json; ./varpet check enforces it)." if budget else ""))
         else:
             text = _turn_text(body["request"], first, edits, budget)
         if image:
