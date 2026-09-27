@@ -155,3 +155,12 @@ test('requirements.json room type wins: a child\'s room without toys is styled a
   const desk: DraftItem = { ...item('d', 'desk', [10, 3.6], 0, [1.2, 0.6, 0.75]), room_id: 'bed' };
   expect(styling(s, { items: [desk] }, { rooms: { bed: { type: 'kids' } } }).find(r => r.room_id === 'bed')!.missing.join('\n')).toMatch(/playful wall art/);
 });
+
+test('cushions and a throw on the mattress on the bed make the bed up (the whole support chain counts)', () => {
+  const s = scene(), b = (o: DraftItem): DraftItem => ({ ...o, room_id: 'bed' });
+  const items = [b(item('bed', 'bed', [10, 2.9], 0, [1.6, 2.1, 1.1], { name: 'Oak platform bed' })),
+    b(item('mat', 'mattress', [10, 2.9], 0, [1.6, 2.0, 0.25], { on: 'bed' })),
+    b(small('cu', 'cushion', 'mat', [10, 3.6], 'Pair of linen cushions')), b(small('th', 'throw_blanket', 'mat', [10, 2.2]))];
+  expect(room(s, { items }, 'bed').missing.join('\n')).not.toMatch(/make bed up/);
+  expect(room(s, { items: items.slice(0, 2) }, 'bed').missing.join('\n')).toMatch(/make bed up/);
+});

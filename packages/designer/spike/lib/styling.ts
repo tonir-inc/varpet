@@ -91,7 +91,15 @@ function emptyWall(scene: Scene, room: Room, items: DraftItem[]): { id: string; 
   return best;
 }
 const roomWallId = (scene: Scene, o: DraftItem) => { const w = scene.walls.find(x => x.id === o.wall_id); return w ? w.source_id ?? w.id : undefined; };
-const on = (items: DraftItem[], support: DraftItem) => items.filter(o => o.on === support.id);
+/** Everything resting on support, directly or through a chain (cushions on the mattress on the bed, a vase on a tray). */
+function on(items: DraftItem[], support: DraftItem): DraftItem[] {
+  const out: DraftItem[] = [], ids = new Set([support.id]);
+  for (let grew = true; grew;) {
+    grew = false;
+    for (const o of items) if (o.on !== undefined && ids.has(o.on) && !ids.has(o.id)) { ids.add(o.id); out.push(o); grew = true; }
+  }
+  return out;
+}
 const hangHint = (scene: Scene, over: DraftItem, what: string, w: number, h: number) => {
   const wall = backWall(scene, over);
   return wall ? `${what} (about ${f2(w)} m wide) on ${wall.id}: onWall(scene, "${over.room_id}", "${wall.id}", size, ${f2(wall.along)})` : `${what} (about ${f2(w)} m wide) on the wall behind ${over.id}`;
@@ -127,7 +135,7 @@ function styleRoom(scene: Scene, draft: Draft, room: Room, all: DraftItem[], dec
       const [w, d] = sofa.size, ahead = toWorld(sofa, [0, -d / 2 - 0.6]);
       need('rug', rugs.some(r => inside(ahead, r)), () => `a rug under the seating group, about ${f2(w + 0.6)} x ${f2(Math.max(1.6, d + 1.2))} m, centred at ${at(toWorld(sofa, [0, -d / 2 - 0.45]))} rot ${Math.round(sofa.rot)} so the front legs of ${sofa.id} stand on it`);
       const seats = mine.filter(o => /sofa|armchair/.test(o.kind) && onFloor(o));
-      const cushions = mine.filter(o => isCushion(o) && seats.some(s => s.id === o.on)).reduce((n, o) => n + cushionCount(o), 0);
+      const cushions = seats.flatMap(s => on(mine, s)).filter(isCushion).reduce((n, o) => n + cushionCount(o), 0);
       need('cushions', cushions >= 3, () => `${3 - cushions} more cushion${3 - cushions > 1 ? 's' : ''} on: "${sofa.id}" (./varpet search --kind cushion; 3-5 in total, pos along its back)`);
       need('throw', mine.some(isThrow), () => `a throw on: "${sofa.id}" over one arm (./varpet search --kind throw_blanket), pos ${at(toWorld(sofa, [w / 2 - 0.3, 0]))}`);
       need('sofa-art', art.some(a => toFootprint(a.pos, sofa) <= 1.3) || art.length >= 3, () => `art over ${sofa.id}: ${hangHint(scene, sofa, 'one piece 55-80% of its width or a 3-5 piece gallery', w * 0.65, 0.8)}`);
