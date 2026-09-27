@@ -27,7 +27,8 @@ try {
   await page.waitForFunction(() => document.querySelector('.designer-column')?.getAttribute('aria-busy') === 'true', null, { timeout: 30_000 });
   let partialShot = false;
   const playStart = t();
-  while (await busy()) {
+  // A recording may hold several turns (a question and its answer): play until its proposal has landed.
+  while (await busy() || !(await page.locator('.designer-proposal-card').count())) {
     await page.waitForTimeout(1000);
     if (!partialShot && await page.locator('.designer-partial-preview').count()) {
       partialShot = true; await page.locator('.designer-partial-preview').first().click(); await page.waitForTimeout(2000);
