@@ -1,5 +1,5 @@
 import type { CatalogAsset, SceneDocument, SceneObject } from '../contracts';
-import { hangFromCeiling, hangsFromCeiling, mountDecoration, wallDecoration } from './decoration-placement';
+import { hangFromCeiling, hangsFromCeiling, mountDecoration, wallDecoration, wallShelf } from './decoration-placement';
 import { objectFootprint, pointInPolygon } from './validation';
 
 export interface SurfaceHit { id: string; y: number }
@@ -41,7 +41,7 @@ export const headlessSurface: FurnitureSurfaceResolver = (scene, catalog, object
   for (const support of scene.objects) {
     if (support.id === object.id || (supportId && support.id !== supportId) || isDescendant(scene, support.id, object.id) || scene.project?.metadata[support.id]?.phase === 'remove') continue;
     const asset = catalog.find(a => a.id === support.assetId);
-    if (!asset || wallDecoration(asset) || support.hangsFrom || asset.kind === 'rug' || !supportContains(support, asset, object)) continue;
+    if (!asset || (wallDecoration(asset) && !wallShelf(asset)) || support.hangsFrom || asset.kind === 'rug' || !supportContains(support, asset, object)) continue;
     const height = asset.kind === 'sofa' || asset.kind === 'chair' ? Math.min(.45, asset.dimensions[1]) : asset.kind === 'bed' ? Math.min(bedLevel, asset.dimensions[1]) : asset.dimensions[1];
     const y = support.position[1] + height * support.scale[1];
     if (y <= ceiling + .001 && (!hit || y > hit.y)) hit = { id: support.id, y };
@@ -70,7 +70,9 @@ export function placeFurniture(scene: SceneDocument, catalog: CatalogAsset[], ob
   if (on === null) { next.position[1] = floorHeight(scene, next); return next; }
   if (on && (!scene.objects.some(o => o.id === on) || on === object.id || isDescendant(scene, on, object.id))) throw new Error(`Invalid furniture support “${on}”.`);
   const resolved = resolver?.(scene, catalog, next, on, ceiling);
-  const hit = resolved === undefined ? headlessSurface(scene, catalog, next, on, ceiling) : resolved;
+  // The viewer's mesh resolver skips wall-hung pieces; a hung shelf's top is its box top.
+  const onShelf = on && (asset => asset && wallShelf(asset))(catalog.find(a => a.id === scene.objects.find(o => o.id === on)?.assetId));
+  const hit = resolved === undefined || (resolved === null && onShelf) ? headlessSurface(scene, catalog, next, on, ceiling) : resolved;
   if (hit) {
     const support = scene.objects.find(o => o.id === hit.id), supportAsset = catalog.find(a => a.id === support?.assetId);
     if (!support || !supportAsset || !supportContains(support, supportAsset, next) || !Number.isFinite(hit.y)) throw new Error('No supporting surface under the requested footprint centre.');
