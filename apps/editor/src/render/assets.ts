@@ -6,6 +6,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone as cloneSkeleton } from 'three/addons/utils/SkeletonUtils.js';
 import type { CatalogAsset } from '../contracts';
 import { furnitureMaterial } from './furniture-materials';
+import { simplifyHeavyMeshes } from './simplify';
 
 const materials = (asset: CatalogAsset, color: string) => {
   const worktop = asset.kind === 'table' || asset.kind === 'desk';
@@ -365,8 +366,10 @@ export class AssetLoader {
       const light = lightModelUrl(url);
       // No light copy (or no editor server): the original still loads.
       const download = light ? this.loader.loadAsync(light).catch(() => this.loader.loadAsync(url)) : this.loader.loadAsync(url);
-      const promise = download.then(gltf => {
+      const promise = download.then(async gltf => {
         if (this.disposed) { disposeObject(gltf.scene); throw new Error('Asset loader disposed.'); }
+        // Once per source: every placed copy clones the reduced geometry.
+        await simplifyHeavyMeshes(gltf.scene).catch(() => undefined);
         entry.group = gltf.scene;
         return gltf.scene;
       }, error => {
