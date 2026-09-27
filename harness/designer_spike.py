@@ -487,6 +487,8 @@ class DraftWatcher:
             room, cmd = entry.get("part"), entry.get("cmd")
             if entry.get("event") == "start" and cmd == "merge":
                 self._emit("Putting the rooms together")
+            if entry.get("event") == "start" and cmd == "review" and room:
+                self._emit(f"Reviewing the {self._name(room).lower()}")
             if entry.get("event") != "end" or entry.get("exit") != 0 or not room:
                 continue
             if room not in self.started_rooms:
@@ -689,7 +691,7 @@ class EarlyReviews:
 
 def _review(state: SpikeConversation, brief: str, rooms: list[str], cancel: threading.Event, progress, timeout: float,
             round_: int, reply: str = "", early: EarlyReviews | None = None, parallel_config: dict | None = None,
-            elapsed: float | None = None) -> dict:
+            elapsed: float | None = None, flat: bool = False) -> dict:
     """One critic round in live chat (latency is bounded to one): review the rooms this turn changed (rooms the
     early reviews already saw as they are now are not reviewed again); on blocker or major issues resume the
     designer thread once to fix them. A fix that fails the check is rolled back."""
@@ -701,6 +703,14 @@ def _review(state: SpikeConversation, brief: str, rooms: list[str], cancel: thre
     final = _piece_signatures(_read_draft(state.workspace / "draft.json") or {})
     issues, todo = early.settle(final, rooms, cancel) if early else ([], list(rooms))
     reused = len(rooms) - len(todo)
+    if flat:
+        # Rooms were reviewed and fixed as their designers finished: only the cross-room pass is left.
+        todo = []
+        progress("Reviewing the whole flat")
+        try:
+            issues += critic.critique_flat(state.workspace, brief, round_, context=reply or None)
+        except Exception as error:
+            return {"error": f"{type(error).__name__}: {error}"[:300], "seconds": round(time.monotonic() - started, 1)}
     if todo:
         progress("Reviewing the " + ", ".join(names.get(room, room).lower() for room in todo[:4]))
         try:
@@ -979,14 +989,21 @@ def propose(conversation, conversation_id: str, body: dict, cancel: threading.Ev
                                                  subagents=(RUN / "SUBAGENT.md").read_text())
         parallel = parallel_config is not None and first_design and (mode == "on" or whole_flat(brief, state.rooms))
         timings["parallel"] = parallel
-        early = EarlyReviews(brief, progress, {room["id"]: room.get("name") or room["id"] for room in state.rooms}) if first_design else None
+        critic = critic_module()
+        # Parallel room designers get the critic inside the loop (critic.Reviewer: each room designer asks for a review
+        # with ./varpet review and fixes it while its context is warm); the end is then one whole-flat pass.
+        in_loop = parallel and critic is not None and hasattr(critic, "Reviewer") and os.environ.get("VARPET_SPIKE_CRITIC", "1") != "0"
+        early = (EarlyReviews(brief, progress, {room["id"]: room.get("name") or room["id"] for room in state.rooms})
+                 if first_design and not in_loop else None)
         watcher = DraftWatcher(state, progress, body, turn, observer=observer,
                                on_finished=early.start if early else None,
                                # Room-by-room previews only while the first design is built (also after the designer's
                                # question): a follow-up edits a whole design, and a snapshot of some rooms would preview
                                # the others' design pieces as deleted.
                                partials=first_design and os.environ.get("VARPET_SPIKE_PARTIALS", "1") != "0").start()
-        result = _run_turn(state, turn_input, cancel, observer, timeout, parallel_config if parallel else None)
+        from contextlib import nullcontext
+        with (critic.Reviewer(state.workspace, brief) if in_loop else nullcontext()):
+            result = _run_turn(state, turn_input, cancel, observer, timeout, parallel_config if parallel else None)
         watcher.stop()
         lap("designer")
         reply = (result["final"] or "").strip()
@@ -1006,7 +1023,7 @@ def propose(conversation, conversation_id: str, body: dict, cancel: threading.Ev
         after = _room_signatures(state.workspace)
         changed = [room["id"] for room in state.rooms if room["id"] in after and after[room["id"]] != rooms_before.get(room["id"])]
         review = _review(state, brief, changed, cancel, progress, timeout, len(requests), reply, early,
-                         parallel_config if parallel else None, time.monotonic() - turn_started)
+                         parallel_config if parallel else None, time.monotonic() - turn_started, flat=in_loop)
         lap("review")
         if review.get("reply"):
             reply = review["reply"]
