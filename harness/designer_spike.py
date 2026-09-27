@@ -264,6 +264,8 @@ class Progress:
             return "Searching the catalog" + (f" for {kind.group(1).replace('_', ' ')}" if kind else "")
         if "varpet sheet" in command:
             return "Looking at product photos"
+        if "varpet restyle" in command:
+            return "Restyling the made-to-measure pieces"
         if "varpet materials" in command or "varpet swatches" in command:
             return "Choosing floor and wall finishes"
         if "varpet render-plan" in command:
@@ -338,6 +340,10 @@ class Progress:
                        "caption": caption[:200]})
 
 
+# Room-scoped lists in draft.json (every entry has room_id): restyle holds the flat's made-to-measure pieces restyled by role.
+DRAFT_ROOM_KEYS = ("items", "finishes", "lighting", "restyle")
+
+
 def _read_draft(path: Path) -> dict | None:
     try:
         draft = json.loads(path.read_text())
@@ -356,9 +362,9 @@ def _room_order(draft: dict) -> list[str]:
 
 
 def _signatures(draft: dict) -> dict[str, str]:
-    """One digest per room of everything the draft puts there (pieces, finishes, lights)."""
+    """One digest per room of everything the draft puts there (pieces, finishes, lights, restyled fitted pieces)."""
     rooms: dict[str, list] = {}
-    for key in ("items", "finishes", "lighting"):
+    for key in DRAFT_ROOM_KEYS:
         for entry in draft.get(key) or []:
             if isinstance(entry, dict) and isinstance(entry.get("room_id"), str):
                 rooms.setdefault(entry["room_id"], []).append(entry)
@@ -419,7 +425,7 @@ def _combined(workspace: Path) -> dict | None:
     out = {key: (value if not isinstance(value, list) else
                  [entry for entry in value if not (isinstance(entry, dict) and entry.get("room_id") in parts)])
            for key, value in draft.items()}
-    for key in ("items", "finishes", "lighting"):
+    for key in DRAFT_ROOM_KEYS:
         out.setdefault(key, [])
         for part in parts.values():
             out[key] = list(out[key]) + [entry for entry in part.get(key) or [] if isinstance(entry, dict)]

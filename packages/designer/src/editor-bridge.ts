@@ -268,9 +268,37 @@ export function editorToDesigner(input: unknown, options: EditorBridgeOptions = 
       keep: (options.keep ?? []).includes(object.id) || (object.groupId !== undefined && options.groupPolicy !== 'move-together') || metadata?.locked === true || metadata?.phase === 'retain', sku: asset.id,
       color: object.color ?? asset.color, ...(object.groupId !== undefined && options.groupPolicy === 'move-together' ? { group_id: object.groupId } : {}), ...(object.restsOn === undefined ? {} : { on: object.restsOn }),
       // A floor-leaning mirror keeps its host at y = 0 and still stands on the floor.
-      ...(object.hangsFrom === 'ceiling' ? { mount: 'ceiling' as const } : object.host !== undefined && object.position[1] > EPS ? { mount: 'wall' as const } : {}) });
+      ...(object.hangsFrom === 'ceiling' ? { mount: 'ceiling' as const } : object.host !== undefined && object.position[1] > EPS ? { mount: 'wall' as const } : {}),
+      ...materialFields(asset, object) });
   }
   return parseScene(scene);
+}
+
+type Slotted = CatalogAsset & { materialSlots?: Record<string, string[]> };
+type Finished = SceneObject & { materials?: Record<string, string> };
+/** Restylable roles of a made-to-measure asset (catalog `materialSlots`), in catalog order; empty for everything else. */
+export const materialRoles = (asset: CatalogAsset | undefined): string[] => {
+  const slots = (asset as Slotted | undefined)?.materialSlots;
+  return isRecord(slots) ? Object.keys(slots) : [];
+};
+const objectMaterials = (object: SceneObject): Record<string, string> => {
+  const materials = (object as Finished).materials;
+  return isRecord(materials) ? Object.fromEntries(Object.entries(materials).filter((entry): entry is [string, string] => typeof entry[1] === 'string')) : {};
+};
+/** The designer item's material_slots and current per-role colours, only for pieces with slots. */
+function materialFields(asset: CatalogAsset, object: SceneObject): { material_slots?: string[]; materials?: Record<string, string> } {
+  const roles = materialRoles(asset);
+  if (!roles.length) return {};
+  const materials = Object.fromEntries(Object.entries(objectMaterials(object)).filter(([role]) => roles.includes(role)));
+  return { material_slots: roles, ...(Object.keys(materials).length ? { materials } : {}) };
+}
+/** The editor `update` patch.materials turning `before`'s per-role colours into `after`'s: a changed or new role gets its
+ * colour, a role `after` no longer sets gets null (the model's own finish again). undefined when nothing changes. */
+export function materialsPatch(before: SceneObject, after: SceneObject): Record<string, string | null> | undefined {
+  const was = objectMaterials(before), wants = objectMaterials(after), patch: Record<string, string | null> = {};
+  for (const [role, color] of Object.entries(wants)) if (was[role]?.toLowerCase() !== color.toLowerCase()) patch[role] = color;
+  for (const role of Object.keys(was)) if (!(role in wants)) patch[role] = null;
+  return Object.keys(patch).length ? patch : undefined;
 }
 
 /** Recheck persisted accepted proposals against the exact snapshot, then produce an unapplied command. */
@@ -369,7 +397,15 @@ export function documentCommand(current: SceneDocument, target: SceneDocument, o
     if (!near(before.scale, after.scale)) patch.scale = after.scale;
     if (before.color !== after.color && after.color !== undefined) patch.color = after.color;
     if (before.name !== after.name) patch.name = after.name;
+    const materials = materialsPatch(before, after);
+    if (materials) (patch as { materials?: Record<string, string | null> }).materials = materials;
     if (Object.keys(patch).length) updates.push({ id, patch });
+  }
+  // Restyled made-to-measure pieces: the flat's own objects (not the design's) change only their per-role finishes.
+  for (const before of current.objects) {
+    if (mine.has(before.id)) continue;
+    const after = target.objects.find(object => object.id === before.id), materials = after && materialsPatch(before, after);
+    if (materials) updates.push({ id: before.id, patch: { materials } as Partial<SceneObject> });
   }
   for (let grew = true; grew;) {
     grew = false;

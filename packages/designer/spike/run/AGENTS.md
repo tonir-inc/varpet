@@ -83,6 +83,7 @@ first, finishing each (check OK, render, fix) before the next.
   per room) or `{room_id, type: "fixture", id, name, mount: "pendant"|"ceiling"|"wall", pos [x, y],
   brightness (lumens, ~800), temperature_k (2700 warm), color?}`; a pendant over a table hangs 0.75 m above it.
   Floor and table lamps are catalog items (`--kind lamp`) and light up too.
+  Restyle: `{id, room_id, materials: {role: "#RRGGBB" | null}}`, written by `./varpet restyle` (below).
 - `./varpet <command>` (same as `npx tsx cli.ts <command>`), reads `scene.json` and `draft.json`:
   - `./varpet describe` plain-language brief of rooms, walls (with thickness), openings, free zones and current draft
   - `./varpet search --kind sofa [--text "oak japandi"] [--max-w 2.2] [--max-d 1] [--max-h 1] [--max-price 400000] [--limit 6]`
@@ -106,6 +107,8 @@ first, finishing each (check OK, render, fix) before the next.
     one piece at checked poses (clearances shown). Use these two first; hand-tune coordinates only after.
   - `./varpet at-window room-bedroom window-bedroom 2.1 0.13 2.6` placement of a curtain/blind of that size
   - `./varpet materials` finish materials; `./varpet swatches swatches.png` a picture of them
+  - `./varpet restyle k-run fronts=#1F3A5F worktop=#F5F3EE` recolours a made-to-measure piece by role
+    (`role=default` restores its own finish; no arguments lists the pieces). See "Made-to-measure pieces".
 - Everything you need is in this prompt and in `./varpet` output. Do not read `AGENTS.md` (it is this prompt),
   `cli.ts`, `lib/`, `scene.json`, `source.json` or `events.jsonl`: every file you print stays in your context
   and slows every later step.
@@ -183,6 +186,13 @@ Put several commands in one shell call wherever you can, and do not take a step 
 7. Fix everything you saw in one edit, re-check, render again. At most 3 render rounds per room. Once, at the
    end of each room (or of the flat for small rooms), render `--camera eye --time evening` (use `eye2` if `eye`
    shows only a wall) to judge the light: every zone lit, warm, no dark corners where people sit.
+
+## Made-to-measure pieces
+`./varpet describe` lists the flat's fitted pieces (a kitchen run, island, larder) under MADE-TO-MEASURE with their
+roles (each piece has its own, e.g. fronts, handles, worktop) and colours. You cannot move, remove or change their layout, but
+you can restyle each role when the brief or your palette asks for it: fronts, wood and plinth coordinated with
+the room's scheme, a worktop that works with the floor, handles in a metal tone (brass #B08D57, black #2B2B2B,
+steel #A7A9AC). Restyling costs nothing extra in the furniture total.
 
 ## Budget
 When the brief gives a budget, use 85-95% of it (unless the customer asks to save): better pieces, a finished

@@ -128,7 +128,7 @@ interface ConversationOptions {
 }
 
 /** One object as a proposal left it: id plus its placement and product, so a later Undo is visible. */
-const objectPrint = (object: SceneDocument['objects'][number]) => `${object.id}|${JSON.stringify([object.assetId, object.position, object.rotation, object.scale, object.color ?? null, object.restsOn ?? null])}`;
+const objectPrint = (object: SceneDocument['objects'][number]) => `${object.id}|${JSON.stringify([object.assetId, object.position, object.rotation, object.scale, object.color ?? null, object.restsOn ?? null, object.materials ?? null])}`;
 
 /** The pieces an Apply changed (added, replaced, moved or recoloured), as they were right after it. */
 export function proposalMarks(proposal: AgentProposal, before: SceneDocument, after: SceneDocument): string[] {

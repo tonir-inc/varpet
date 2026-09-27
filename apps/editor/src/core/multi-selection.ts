@@ -1,5 +1,6 @@
 import type { CatalogAsset, ObjectPatch, Operation, SceneDocument, SceneObject, Vec2 } from '../contracts';
 import { expandFurnitureSelection, furnitureUpdates } from './grouping';
+import { patchObject } from './material-slots';
 import { EditorStore, type SceneNormalizer } from './store';
 
 /** A temporary selection applies one rigid transform without changing saved group membership. */
@@ -16,7 +17,7 @@ export function selectionFurnitureUpdates(scene: SceneDocument, id: string, patc
   const delta = (patch.rotation ?? anchor.rotation) - anchor.rotation;
   const cosine = Math.cos(delta), sine = Math.sin(delta);
   return members.map(object => {
-    if (object.id === id) return { ...object, ...patch };
+    if (object.id === id) return patchObject(object, patch);
     const dx = object.position[0] - anchor.position[0], dz = object.position[2] - anchor.position[2];
     return { ...object, position: [destination[0] + cosine * dx + sine * dz,
       object.position[1] + destination[1] - anchor.position[1], destination[2] - sine * dx + cosine * dz], rotation: object.rotation + delta };

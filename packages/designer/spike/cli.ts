@@ -1,7 +1,7 @@
 /** varpet designer CLI. Run from a workspace holding scene.json and draft.json:
  *   npx tsx cli.ts describe | check [--warnings] [--final] | render-plan [out.png] [--room id]
  *     | render-view [out.png] [--room id] [--camera overview|eye|eye2|top] [--time day|evening] [--width 768] [--height 512]   (no --room: whole flat, overview/top)
- *     | requirements [--room id] (the brief's counts per room, requirements.json) | review --part <room> (independent critic) | at-window <room> <window> <w> <d> <h> (curtain/blind placement JSON) | materials | swatches [out.png] | search --kind k [--text t] [--max-w n --max-d n --max-h n --max-price n --limit n]
+ *     | requirements [--room id] (the brief's counts per room, requirements.json) | review --part <room> (independent critic) | at-window <room> <window> <w> <d> <h> (curtain/blind placement JSON) | materials | swatches [out.png] | restyle [id role=#rrggbb ...] | search --kind k [--text t] [--max-w n --max-d n --max-h n --max-price n --limit n]
  *     | sheet sku1 sku2 ... [out.png] | merge
  *     | script <file.ts> | js '<code>' | undo [n] | redo [n]   (lib/sdk.ts scene scripting: the Studio's functions are in scope; the draft saves when the script ends without error)
  *     | check --facts (hard gates only: physics, editor validity, budget, catalog)
@@ -64,22 +64,23 @@ function merge(): string[] {
   const errors: string[] = [], parts = files.map(name => ({ room: basename(name, '.json'), draft: loadDraft(join(dir, name)) }));
   const rooms = new Set(parts.map(p => p.room)), known = new Set(scene.rooms.map(r => r.id));
   const base = loadDraft('draft.json'), keep = <T extends { room_id?: string }>(list: T[] | undefined) => (list ?? []).filter(e => !rooms.has(e.room_id ?? ''));
-  const out = { items: keep(base.items), finishes: keep(base.finishes), lighting: keep(base.lighting) };
+  const out = { items: keep(base.items), finishes: keep(base.finishes), lighting: keep(base.lighting), restyle: keep(base.restyle) };
   const seen = new Map(out.items.map(item => [item.id, 'draft.json']));
   for (const { room, draft } of parts) {
     if (!known.has(room)) errors.push(`rooms/${room}.json: no room ${room} in the flat`);
-    for (const [key, list] of [['items', draft.items], ['finishes', draft.finishes ?? []], ['lighting', draft.lighting ?? []]] as const)
+    for (const [key, list] of [['items', draft.items], ['finishes', draft.finishes ?? []], ['lighting', draft.lighting ?? []], ['restyle', draft.restyle ?? []]] as const)
       for (const entry of list as { room_id?: string; id?: string }[]) {
         if (entry.room_id !== room) errors.push(`rooms/${room}.json: ${key} entry ${entry.id ?? ''} has room_id ${entry.room_id}; it belongs in rooms/${entry.room_id}.json`);
-        if (entry.id !== undefined && key !== 'finishes') {
+        if (entry.id !== undefined && key !== 'finishes' && key !== 'restyle') {
           if (seen.has(entry.id)) errors.push(`id ${entry.id} is in both ${seen.get(entry.id)} and rooms/${room}.json; ids must be unique`);
           seen.set(entry.id, `rooms/${room}.json`);
         }
       }
-    out.items.push(...draft.items); out.finishes.push(...(draft.finishes ?? [])); out.lighting.push(...(draft.lighting ?? []));
+    out.items.push(...draft.items); out.finishes.push(...(draft.finishes ?? [])); out.lighting.push(...(draft.lighting ?? [])); out.restyle.push(...(draft.restyle ?? []));
   }
   if (errors.length) throw new Error('merge refused:\n' + errors.join('\n'));
-  writeFileSync('draft.json', JSON.stringify(out, null, 1) + '\n');
+  const { restyle, ...rest } = out;
+  writeFileSync('draft.json', JSON.stringify(restyle.length ? out : rest, null, 1) + '\n');
   // draft.json is the design again; a later --part starts from it, so no stale room file can overwrite newer edits.
   for (const name of files) unlinkSync(join(dir, name));
   return [...rooms];
@@ -119,7 +120,8 @@ if (part && !explicitDraft && !existsSync(draftPath)) {
   // A room file starts as that room's part of draft.json (empty on a first design).
   const whole = loadDraft('draft.json'), mine = <T extends { room_id?: string }>(list?: T[]) => (list ?? []).filter(e => e.room_id === part);
   mkdirSync(dirname(draftPath), { recursive: true });
-  writeFileSync(draftPath, JSON.stringify({ items: mine(whole.items), finishes: mine(whole.finishes), lighting: mine(whole.lighting) }, null, 1) + '\n');
+  const restyle = mine(whole.restyle);
+  writeFileSync(draftPath, JSON.stringify({ items: mine(whole.items), finishes: mine(whole.finishes), lighting: mine(whole.lighting), ...(restyle.length ? { restyle } : {}) }, null, 1) + '\n');
 }
 let draft = loadDraft(draftPath);
 
@@ -225,6 +227,24 @@ async function main(): Promise<number> {
       const { atWindow } = await import('./lib/scene.ts');
       console.log(JSON.stringify(atWindow(scene, roomId, windowId, size as [number, number, number]))); return 0;
     }
+    case 'restyle': {
+      // restyle <id> role=#rrggbb ... (role=default restores the model's own finish); no arguments lists the pieces.
+      const { describeRestylable } = await import('./lib/finishes.ts');
+      const roomId = flag('room'), [id, ...pairs] = argv;
+      if (!id) { const lines = describeRestylable(scene, draft, roomId); say(lines.length ? lines.join('\n') : 'no made-to-measure pieces here'); return 0; }
+      const materials: Record<string, string | null> = {};
+      for (const pair of pairs) {
+        const m = /^([\w-]+)=(#[0-9a-fA-F]{6}|default|none|null)$/.exec(pair);
+        if (!m) throw new Error(`restyle ${id}: "${pair}" is not role=#rrggbb (or role=default for the model's own finish)`);
+        materials[m[1]!] = m[2]!.startsWith('#') ? m[2]! : null;
+      }
+      const { Studio } = await import('./lib/sdk.ts');
+      const studio = new Studio(dirname(scenePath)); studio.draft = draft;
+      const line = studio.restyle(id, materials);
+      writeFileSync(draftPath, JSON.stringify(studio.draft, null, 1) + '\n');
+      say(`restyled ${line}`);
+      return 0;
+    }
     case 'materials': {
       const { MATERIALS } = await lib('finishes.ts');
       for (const m of MATERIALS) console.log(`${m.id} | ${m.category} | ${m.family} | ${m.color} | ${m.look}`);
@@ -320,7 +340,7 @@ async function main(): Promise<number> {
       console.log(await productSheet(argv, out)); return 0;
     }
     default:
-      console.log('usage: varpet describe | check [--warnings] [--final] | render-plan [out.png] [--room id] | render-view [out.png] [--room id] [--camera overview|eye|eye2|top] [--time day|evening] [--width n] [--height n] | requirements [--room id] | review --part id | place --part id --sku s (--wall w | --window w | --corner | --beside id [--side s] [--gap m] | --facing id | --centered-on id | --center | --at x,y [--rot r]) [--add] | place-group lounge|dining|bed|desk --part id --anchor sku [...] [--add] | prefetch [wishlist.json] | at-window room window w d h | materials | swatches [out.png] | search --kind k [--text t] [--max-w n] [--max-d n] [--max-h n] [--max-price n] [--limit n] | sheet sku... [out.png] | merge | script file.ts | js <code> | undo [n] | redo [n] | check --facts   (any command: --part <room> works on rooms/<room>.json)');
+      console.log('usage: varpet describe | check [--warnings] [--final] | render-plan [out.png] [--room id] | render-view [out.png] [--room id] [--camera overview|eye|eye2|top] [--time day|evening] [--width n] [--height n] | requirements [--room id] | review --part id | place --part id --sku s (--wall w | --window w | --corner | --beside id [--side s] [--gap m] | --facing id | --centered-on id | --center | --at x,y [--rot r]) [--add] | place-group lounge|dining|bed|desk --part id --anchor sku [...] [--add] | prefetch [wishlist.json] | at-window room window w d h | materials | swatches [out.png] | restyle [id role=#rrggbb ...] | search --kind k [--text t] [--max-w n] [--max-d n] [--max-h n] [--max-price n] [--limit n] | sheet sku... [out.png] | merge | script file.ts | js <code> | undo [n] | redo [n] | check --facts   (any command: --part <room> works on rooms/<room>.json)');
       return cmd ? 2 : 0;
   }
 }

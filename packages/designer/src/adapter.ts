@@ -13,6 +13,7 @@ const item = z.object({
   structure: z.object({wall_id:id,bottom_m:num.nonnegative()}).optional(),
   sku: id.optional(), price: num.int().nonnegative().optional(), vendor: z.string().optional(), color: colorSchema.optional(), group_id: id.optional(),
   on: id.optional(), mount: z.enum(['wall','ceiling']).optional(),
+  material_slots: z.array(id).optional(), materials: z.record(z.string(), colorSchema).optional(),
 });
 const sceneInput = z.object({
   north_deg: num.optional(),

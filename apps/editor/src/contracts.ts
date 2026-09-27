@@ -13,6 +13,8 @@ export interface CatalogAsset {
   color: string;
   price: number;
   source: { type: 'procedural' } | { type: 'gltf'; url: string };
+  /** Restylable finishes: role (e.g. `fronts`) -> glTF material names in the model. A name also matches its Blender `.001`-style copies. */
+  materialSlots?: Record<string, string[]>;
 }
 export interface Room { id: string; name: string; polygon: Vec2[]; color: string }
 /** Offset measures metres from wall.start to the near edge, toward wall.end. Doors have sill=0. */
@@ -36,6 +38,8 @@ export interface SceneObject {
   rotation: number; // radians about +Y
   scale: Vec3;
   color?: string;
+  /** Per-role colour overrides, role -> '#rrggbb'; roles come from the asset's `materialSlots`. An absent role keeps the model's own material. */
+  materials?: Record<string, string>;
 }
 export interface SceneDocument {
   format: 'varpet.editor';
@@ -49,7 +53,8 @@ export interface SceneDocument {
   walls: Wall[];
   objects: SceneObject[];
 }
-export type ObjectPatch = Partial<Pick<SceneObject, 'name' | 'position' | 'rotation' | 'scale' | 'color' | 'restsOn'>>;
+/** `materials` merges per role; a null role restores the model's own material. */
+export type ObjectPatch = Partial<Pick<SceneObject, 'name' | 'position' | 'rotation' | 'scale' | 'color' | 'restsOn'>> & { materials?: Record<string, string | null> };
 export type Operation =
   | { type: 'group'; id: string; objectIds: string[] }
   | { type: 'ungroup'; id: string }

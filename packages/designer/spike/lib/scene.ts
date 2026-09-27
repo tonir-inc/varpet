@@ -6,7 +6,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import type { Item, Opening, Scene, Vec2, Wall } from '../../src/scene.ts';
 
-import { describeSurfaces, onFloor, roomHeight, type Draft, type DraftItem } from './finishes.ts';
+import { describeRestylable, describeSurfaces, onFloor, roomHeight, type Draft, type DraftItem } from './finishes.ts';
 
 export type { Item, Scene, Vec2, Draft, DraftItem };
 
@@ -57,7 +57,8 @@ export function loadDraft(path = 'draft.json'): Draft {
   if (!existsSync(path)) return { items: [] };
   const draft = JSON.parse(readFileSync(path, 'utf8')) as Draft;
   return { items: Array.isArray(draft?.items) ? draft.items : [],
-    ...(Array.isArray(draft?.finishes) ? { finishes: draft.finishes } : {}), ...(Array.isArray(draft?.lighting) ? { lighting: draft.lighting } : {}) };
+    ...(Array.isArray(draft?.finishes) ? { finishes: draft.finishes } : {}), ...(Array.isArray(draft?.lighting) ? { lighting: draft.lighting } : {}),
+    ...(Array.isArray(draft?.restyle) ? { restyle: draft.restyle } : {}) };
 }
 
 // ---------- geometry ----------
@@ -342,6 +343,8 @@ export function describe(scene: Scene, draft?: Draft, budget?: number): string {
     const subtotals = draft ? roomSubtotals(draft) : [], total = subtotals.reduce((sum, [, v]) => sum + v, 0);
     L.push('', `BUDGET: ${budget} AMD for furniture; draft total ${total} AMD, ${budget - total} AMD left${subtotals.length ? ` (${subtotals.map(([r, v]) => `${r} ${v}`).join(', ')})` : ''}. ./varpet check fails above it.`);
   }
+  const pieces = describeRestylable(scene, draft ?? { items: [] });
+  if (pieces.length) L.push('', 'MADE-TO-MEASURE (the flat\'s own fitted pieces: fixed in place and layout; restyle a role\'s colour with ./varpet restyle <id> role=#rrggbb):', ...pieces.map(line => `  ${line}`));
   const surfaces = draft ? describeSurfaces(scene, draft) : [];
   L.push('', `FINISHES & LIGHTING (${surfaces.length})${surfaces.length ? ':' : ': none yet (editor defaults: warm white walls, pale plank floor, no designed lights)'}`, ...surfaces);
   return L.join('\n');

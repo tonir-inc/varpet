@@ -10,6 +10,7 @@ import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import type { BuildingComponent, CatalogAsset, ComponentTransformPatch, ObjectPatch, Opening, SceneDocument, SceneObject, ToolMode, Vec3, ViewMode, Viewport, ViewportCallbacks, ViewportLayer, WallMode } from '../contracts';
 import { AssetLoader, disposeObject, makeAssetPlaceholder, makeFurniture, poseWallDecoration } from './assets';
+import { applyMaterialOverrides } from './material-overrides';
 import { makeStructure, type StructureProjection } from './structure';
 import { installComponentModel, LightingPreview, makeServices, type ServiceProjection } from './services';
 import { installOpeningModel, openingModel } from './opening-models';
@@ -1158,6 +1159,8 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
           if (mat instanceof THREE.MeshStandardMaterial) mat.color.set(pending.color!);
         }
       });
+      // The live document's finishes, not the ones current when the load started.
+      applyMaterialOverrides(pending.model, asset, object?.materials);
     }
     applyPracticalLighting(); shadowCache.invalidate();
     updateSelection(); requestRender();
@@ -1551,6 +1554,12 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
         }
       }
       for (const model of record.visual.children) poseWallDecoration(model, asset, object);
+      // Finishes recolour the installed model in place (no reload, no recompile).
+      if (!created && JSON.stringify(previous?.materials ?? null) !== JSON.stringify(object.materials ?? null)) {
+        let recoloured = false;
+        for (const model of record.visual.children) if (installedModels.has(model)) recoloured = applyMaterialOverrides(model, asset, object.materials) || recoloured;
+        if (recoloured) requestRender();
+      }
       record.group.name = object.name;
       if (created || transformChanged || !animate) transitionTransform(motion, record.group, record.pose, object, animate && !created);
       else applyTransform(record.group, object);

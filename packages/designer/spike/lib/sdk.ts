@@ -13,7 +13,7 @@ import {
   loadDraft, loadScene, loadSource, onWall, openingCentre, openingRooms, openingSpans, segDist, wallOutward,
   type Draft, type DraftItem, type Scene, type Vec2,
 } from './scene.ts';
-import { CEILING_STYLES, MATERIALS, onFloor, roomHeight, type CeilingStyle, type Finish, type FixtureLight, type Light } from './finishes.ts';
+import { CEILING_STYLES, HEX, MATERIALS, describeRestylable, onFloor, roomHeight, type CeilingStyle, type Finish, type FixtureLight, type Light } from './finishes.ts';
 
 export interface Product { sku: string; kind: string; name: string; size: [number, number, number]; price: number; vendor: string; image?: string }
 export type Box = { x0: number; x1: number; y0: number; y1: number; w: number; h: number };
@@ -27,7 +27,7 @@ const KINDS = 'sofa chair table bed cabinet lamp rug shelf plant decor wall_art 
   + 'crib changing_table pet_bed mattress kitchen_cabinet fridge washing_machine sink toilet bathtub shower towel_rack toy (dining table: table + text "dining"; sideboard/tv stand: cabinet + text)';
 const HANGS = new Set(['wall_art', 'mirror', 'clock', 'wall_hanging', 'curtain', 'blind']);
 /** Physics gates: what the editor or the body cannot live with. Everything else check() reports is a note. */
-const GATE = /^(collision|containment|door_swing|walkway|operations|price|budget|surfaces|keep|fixed|support|catalog):/;
+const GATE = /^(collision|containment|door_swing|walkway|operations|price|budget|surfaces|restyle|keep|fixed|support|catalog):/;
 
 export class OpeningView {
   constructor(readonly id: string, readonly kind: Opening['kind'], readonly wall_id: string, readonly center: Vec2, readonly width: number,
@@ -109,6 +109,7 @@ export class RoomView {
     return [`${this.name} [${this.id}]: ${f2(this.bbox.w)} x ${f2(this.bbox.h)} m, x ${f2(this.bbox.x0)}..${f2(this.bbox.x1)}, y ${f2(this.bbox.y0)}..${f2(this.bbox.y1)}, ${f2(this.area)} m2, centre (${this.center.map(f2).join(', ')}), ceiling ${f2(this.height)} m`,
       ...this.walls.map(w => '  ' + w.toString()),
       ...this.studio.scene.fixed.filter(x => x.room_id === this.id && !/^structure:(wall|pier)/.test(x.id)).map(x => `  fixed ${x.kind} ${x.id} at (${x.pos.map(f2).join(', ')}) size ${x.size.map(f2).join('x')} rot ${x.rot}`),
+      ...describeRestylable(this.studio.scene, this.studio.draft, this.id).map(line => `  made-to-measure ${line} (fixed in place; restyle(id, {role: '#rrggbb'}))`),
       `  items: ${this.items().length}; free floor: ${this.free().map(r => `x ${f2(r.x0)}..${f2(r.x1)} y ${f2(r.y0)}..${f2(r.y1)}`).join('; ') || 'none'}`].join('\n');
   }
   toString() { return this.info(); }
@@ -323,6 +324,29 @@ export class Studio {
   floor(room: string | RoomView, material: string, color?: string) { this.finish({ room_id: this.room(room).id, surface: 'floor', material, ...(color ? { color } : {}) }); }
   ceilingColor(room: string | RoomView, color: string) { this.finish({ room_id: this.room(room).id, surface: 'ceiling', color }); }
   materials() { return MATERIALS.map(m => `${m.id} | ${m.category} | ${m.color} | ${m.look}`); }
+  /** Restyle a made-to-measure piece of the flat by role (restylable pieces and roles: describe() / room info()):
+   *  restyle('k-run', {fronts: '#1f3a5f', worktop: '#f5f3ee'}); null restores the model's own finish. Merges per role;
+   *  only finishes change, never the piece's place or layout. Returns the piece's line as it now reads. */
+  restyle(id: string, materials: Record<string, string | null>): string {
+    const item = this.scene.items.find(i => i.id === id);
+    if (!item?.material_slots?.length) throw new Error(`${id} is not a made-to-measure piece of the flat; restylable: ${describeRestylable(this.scene, this.draft).map(l => l.split(' ')[0]).join(', ') || 'none'}`);
+    const roles = Object.entries(materials ?? {});
+    if (!roles.length) throw new Error(`restyle ${id}: give at least one role (${item.material_slots.join(', ')})`);
+    for (const [role, color] of roles) {
+      if (!item.material_slots.includes(role)) throw new Error(`restyle ${id}: unknown role ${role}; roles: ${item.material_slots.join(', ')}`);
+      if (color !== null && !(typeof color === 'string' && HEX.test(color))) throw new Error(`restyle ${id}: ${role} must be #rrggbb or null`);
+    }
+    const list = this.draft.restyle ?? [], entry = list.find(e => e.id === id) ?? { id, room_id: item.room_id, materials: {} };
+    for (const [role, color] of roles) {
+      // null undoes a restyle of that role; a role the flat itself set is reset to the model's own finish.
+      if (color === null && !(item.materials && role in item.materials)) delete entry.materials[role];
+      else entry.materials[role] = color === null ? null : color.toLowerCase();
+    }
+    this.draft.restyle = [...list.filter(e => e.id !== id), ...(Object.keys(entry.materials).length ? [entry] : [])];
+    if (!this.draft.restyle.length) delete this.draft.restyle;
+    this.dirty = true;
+    return describeRestylable(this.scene, this.draft).find(line => line.startsWith(`${id} `))!;
+  }
   /** The room's ceiling light design (one per room). */
   ceiling(room: string | RoomView, style: CeilingStyle, o: { brightness?: number; temperature_k?: number } = {}) {
     if (!CEILING_STYLES.includes(style)) throw new Error(`style is ${CEILING_STYLES.join(', ')}`);
@@ -514,9 +538,10 @@ function changes(a: Partial<Draft>, b: Partial<Draft>): string {
   const A = ids(a), B = ids(b);
   const created = [...B.keys()].filter(k => !A.has(k)), removed = [...A.keys()].filter(k => !B.has(k));
   const updated = [...B.keys()].filter(k => A.has(k) && A.get(k) !== B.get(k));
-  const same = (k: 'finishes' | 'lighting') => JSON.stringify(a[k] ?? []) === JSON.stringify(b[k] ?? []);
+  const same = (k: 'finishes' | 'lighting' | 'restyle') => JSON.stringify(a[k] ?? []) === JSON.stringify(b[k] ?? []);
   const parts = [created.length && `created ${created.join(', ')}`, updated.length && `updated ${updated.join(', ')}`,
-    removed.length && `removed ${removed.join(', ')}`, !same('finishes') && 'surfaces changed', !same('lighting') && 'lights changed'].filter(Boolean);
+    removed.length && `removed ${removed.join(', ')}`, !same('finishes') && 'surfaces changed', !same('lighting') && 'lights changed',
+    !same('restyle') && 'made-to-measure finishes changed'].filter(Boolean);
   return parts.join('; ') || 'no change';
 }
 

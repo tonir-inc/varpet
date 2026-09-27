@@ -33,6 +33,26 @@ class SpikeServiceTest(unittest.TestCase):
         self.assertEqual(lines, ["Reading the flat", "Searching the catalog for sofa", "Rendering the living & dining in the evening",
                                  "Checked: OK", "Checked: fixing sofa overlaps rug by 0.2 m", "I will warm it up."])
 
+    def test_restyled_fitted_pieces_count_as_room_changes_and_survive_room_files(self):
+        import json
+        import tempfile
+        from pathlib import Path
+        restyle = {"id": "k-run", "room_id": "room-kitchen", "materials": {"fronts": "#1f3a5f"}}
+        before = designer_spike._signatures({"items": []})
+        after = designer_spike._signatures({"items": [], "restyle": [restyle]})
+        self.assertNotIn("room-kitchen", before)
+        self.assertIn("room-kitchen", after)
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = Path(directory)
+            (workspace / "draft.json").write_text(json.dumps({"items": []}))
+            (workspace / "rooms").mkdir()
+            (workspace / "rooms" / "room-kitchen.json").write_text(json.dumps({"items": [], "restyle": [restyle]}))
+            self.assertEqual(designer_spike._combined(workspace)["restyle"], [restyle])
+        lines = []
+        observer = designer_spike.Progress([], lines.append, None)
+        observer.item("item/started", {"type": "commandExecution", "command": "./varpet restyle k-run fronts=#1f3a5f"})
+        self.assertEqual(lines, ["Restyling the made-to-measure pieces"])
+
 
 if __name__ == "__main__":
     unittest.main()

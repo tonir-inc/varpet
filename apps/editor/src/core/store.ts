@@ -5,6 +5,7 @@ import { isRecord, validateScene, renovationOperationError } from './validation'
 import { applyRenovationOperation, applyWallTranslationBatch, invalidateAssumptions, migrateScene } from './renovation';
 
 import { furnitureUpdates, removeSingletonGroups } from './grouping';
+import { materialPatchError } from './material-slots';
 /** A whole furnished flat from the designer is one command (one Undo): 54 pieces plus finishes and lights run past 200. */
 export const MAX_COMMAND_OPERATIONS = 500;
 
@@ -52,7 +53,8 @@ function commandErrors(command: unknown): string[] {
     if (['group', 'ungroup'].includes(operation.type) && ['__proto__', 'prototype', 'constructor'].includes(operation.id as string)) return ['Group needs a non-reserved ID.'];
     if (operation.type === 'update') {
       if (!isRecord(operation.patch) || (Object.keys(operation.patch).length < 1 && operation.on === undefined)
-        || Object.keys(operation.patch).some(key => !['name', 'position', 'rotation', 'scale', 'color', 'restsOn'].includes(key))) return ['Update contains an empty or unsupported object patch.'];
+        || Object.keys(operation.patch).some(key => !['name', 'position', 'rotation', 'scale', 'color', 'restsOn', 'materials'].includes(key))) return ['Update contains an empty or unsupported object patch.'];
+      if (operation.patch.materials !== undefined) { const error = materialPatchError(operation.patch.materials); if (error) return [error]; }
     }
     if (operation.on !== undefined && operation.on !== null && (typeof operation.on !== 'string' || !operation.on.trim() || operation.on.length > 100)) return ['Support on must be a furniture ID or null.'];
     if (operation.type === 'add' && !isRecord(operation.object)) return ['Add operation needs an object.'];

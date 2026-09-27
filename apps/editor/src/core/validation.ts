@@ -1,3 +1,4 @@
+import { materialSlotsValid, objectMaterialsError } from './material-slots';
 import { furnitureDimensions } from './furniture-bounds';
 import { canRestOnFurniture, floorHeight, isDescendant, supportContains } from './furniture-support';
 import { hangFromCeiling, hangsFromCeiling, mountDecoration, wallDecoration } from './decoration-placement';
@@ -201,6 +202,7 @@ export function validateScene(input: unknown, catalog: CatalogAsset[]): Validati
       || (asset.source.type === 'gltf' && (!text(asset.source.url, 2048) || !/^(https?:\/\/|\/[^/]|\.\.?\/)/.test(asset.source.url)))) {
       fail('Catalog contains an invalid asset.'); continue;
     }
+    if (!materialSlotsValid(asset.materialSlots)) { fail(`Catalog asset “${asset.id}” has invalid material slots; use role -> glTF material names.`); continue; }
     if (assets.has(asset.id)) fail(`Catalog asset ID “${asset.id}” is duplicated.`);
     assets.set(asset.id, asset);
   }
@@ -242,7 +244,7 @@ export function validateScene(input: unknown, catalog: CatalogAsset[]): Validati
   for (const [i, object] of (input.objects as unknown[]).entries()) {
     if (!isRecord(object)) { fail(`Object ${i + 1} must be an object.`); continue; }
     unique(object.id, `Object ${i + 1}`);
-    if (!keys(object, ['id', 'name', 'assetId', 'position', 'rotation', 'scale', 'color', 'groupId', 'host', 'restsOn', 'hangsFrom']) || !text(object.name) || !text(object.assetId, 100)
+    if (!keys(object, ['id', 'name', 'assetId', 'position', 'rotation', 'scale', 'color', 'groupId', 'host', 'restsOn', 'hangsFrom', 'materials']) || !text(object.name) || !text(object.assetId, 100)
       || !vector(object.position, 3, -COORD_LIMIT, COORD_LIMIT) || !finite(object.rotation, -Math.PI * 100, Math.PI * 100)
       || !vector(object.scale, 3, 0.1, 4) || (object.color !== undefined && (typeof object.color !== 'string' || !COLOR.test(object.color)))) { fail(`Object ${i + 1} has invalid fields or a non-finite/out-of-range transform.`); continue; }
     if (object.groupId !== undefined) {
@@ -251,6 +253,7 @@ export function validateScene(input: unknown, catalog: CatalogAsset[]): Validati
     }
     const asset = assets.get(object.assetId);
     if (!asset) fail(`“${object.name}” references unknown catalog asset “${object.assetId}”.`);
+    else { const materialError = objectMaterialsError(object.name as string, object.materials, asset); if (materialError) fail(materialError); }
     if (input.version === 1 && object.host === undefined && object.restsOn === undefined && object.hangsFrom === undefined && Math.abs(object.position[1]!) > EPS) fail(`“${object.name}” must be supported on the floor at y = 0.`);
     if (object.host !== undefined && (!isRecord(object.host) || !text(object.host.wallId, 100) || !finite(object.host.offset, 0, 200) || !finite(object.host.elevation, -100, 100) || ![1, -1].includes(object.host.side as number) || !(input.walls as Wall[]).some(w => w.id === (object.host as RecordValue).wallId))) fail('Furniture has an invalid wall host.');
     if (object.restsOn !== undefined && (!text(object.restsOn, 100) || object.host !== undefined || !asset || !canRestOnFurniture(asset))) fail('Furniture has an invalid support reference or kind.');

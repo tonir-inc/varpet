@@ -17,7 +17,7 @@ import { normalizeWallJunctions } from '../../../../../apps/editor/src/core/wall
 import { headlessSurface, placeFurniture } from '../../../../../apps/editor/src/core/furniture-support.js';
 import { mountDecoration, wallDecoration } from '../../../../../apps/editor/src/core/decoration-placement.js';
 import { snapRoomFaces } from '../../../src/reconcile-geometry.js';
-import { FIXTURE_DEFAULTS, fixtureBottom, material, onFloor, type Draft, type DraftItem } from '../finishes.js';
+import { FIXTURE_DEFAULTS, fixtureBottom, material, onFloor, styledMaterials, type Draft, type DraftItem } from '../finishes.js';
 import { CATALOG_CACHE } from './state.js';
 
 export type { Draft };
@@ -137,8 +137,11 @@ export async function editorDocument(scene: Scene, draft: Draft, source?: unknow
   const base = (item: DraftItem): SceneObject => {
     const [w, d, h] = item.size, asset = assetOf(item), [aw, ah, ad] = asset.dimensions;
     return { id: item.id, name: item.name, assetId: asset.id, position: [item.pos[0], 0, -item.pos[1]], rotation: item.rot * Math.PI / 180,
-      scale: [w / aw, h / ah, d / ad].map(value => Number.isFinite(value) && value > 0 ? value : 1) as [number, number, number], ...(item.color ? { color: item.color } : {}) };
+      scale: [w / aw, h / ah, d / ad].map(value => Number.isFinite(value) && value > 0 ? value : 1) as [number, number, number], ...(item.color ? { color: item.color } : {}),
+      // Made-to-measure pieces keep their per-role finishes, with the draft's restyle over them.
+      ...(item.material_slots?.length && styled(item) ? { materials: styled(item) } : {}) };
   };
+  const styled = (item: DraftItem) => styledMaterials(item, draft);
   for (const item of items.filter(onFloor)) placed.set(item.id, base(item));
   for (const item of items.filter(item => item.wall_id !== undefined)) placed.set(item.id, hang(doc, item, base(item), assetOf(item)));
   // Resting items after their supports; chains resolve over a few passes, the rest fall back to the floor.

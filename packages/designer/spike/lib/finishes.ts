@@ -25,7 +25,47 @@ export type Light = CeilingLight | FixtureLight;
  * floor), pos flush on that wall's face. Resting on another item (vase on a sideboard, cushion on a sofa): `on`
  * = the support's id, pos inside its footprint. Neither takes floor space. */
 export interface DraftItem extends Item { wall_id?: string; height_m?: number; on?: string }
-export interface Draft { items: DraftItem[]; finishes?: Finish[]; lighting?: Light[] }
+/** A made-to-measure piece of the flat (scene item with material_slots) restyled by role: role -> '#rrggbb', or null for
+ * the model's own finish. Only finishes change; the piece keeps its place and layout. */
+export interface Restyle { id: string; room_id: string; materials: Record<string, string | null> }
+export interface Draft { items: DraftItem[]; finishes?: Finish[]; lighting?: Light[]; restyle?: Restyle[] }
+/** The scene item's per-role colours with the draft's restyle over them (null roles dropped). */
+export function styledMaterials(item: Pick<Item, 'id' | 'materials'>, draft: Pick<Draft, 'restyle'>): Record<string, string> | undefined {
+  const out: Record<string, string> = { ...(item.materials ?? {}) };
+  for (const entry of draft.restyle ?? []) if (entry.id === item.id) for (const [role, color] of Object.entries(entry.materials ?? {})) {
+    if (color === null) delete out[role]; else out[role] = color.toLowerCase();
+  }
+  return Object.keys(out).length ? out : undefined;
+}
+/** Hard problems in draft.restyle, one line each (prefix `restyle:`). */
+export function checkRestyle(scene: Scene, draft: Draft): string[] {
+  const problems: string[] = [], seen = new Set<string>();
+  (draft.restyle ?? []).forEach((entry, index) => {
+    const at = `restyle: restyle[${index}] ${entry?.id ?? '?'}`;
+    const keys = Object.keys(entry ?? {}).filter(key => !['id', 'room_id', 'materials'].includes(key));
+    if (keys.length) problems.push(`${at}: unknown keys ${keys.join(', ')}`);
+    const item = scene.items.find(candidate => candidate.id === entry?.id);
+    if (!item?.material_slots?.length) { problems.push(`${at}: not a made-to-measure piece of the flat (restylable: ${restylable(scene).map(i => i.id).join(', ') || 'none'})`); return; }
+    if (entry.room_id !== item.room_id) problems.push(`${at}: room_id must be ${item.room_id}`);
+    if (seen.has(item.id)) problems.push(`${at}: one restyle entry per piece`);
+    seen.add(item.id);
+    if (!entry.materials || typeof entry.materials !== 'object' || Array.isArray(entry.materials) || !Object.keys(entry.materials).length) { problems.push(`${at}: materials must be {role: "#rrggbb" | null}`); return; }
+    for (const [role, color] of Object.entries(entry.materials)) {
+      if (!item.material_slots.includes(role)) problems.push(`${at}: unknown role ${role} (roles: ${item.material_slots.join(', ')})`);
+      if (color !== null && (typeof color !== 'string' || !HEX.test(color))) problems.push(`${at}: ${role} must be #RRGGBB or null`);
+    }
+  });
+  return problems;
+}
+/** The flat's made-to-measure pieces (restylable by role, fixed in place). */
+export const restylable = (scene: Scene): Item[] => scene.items.filter(item => item.material_slots?.length);
+/** One line per restylable piece: roles with their colour (restyled or current), or the model's own finish. */
+export function describeRestylable(scene: Scene, draft: Pick<Draft, 'restyle'>, roomId?: string): string[] {
+  return restylable(scene).filter(item => !roomId || item.room_id === roomId).map(item => {
+    const colours = styledMaterials(item, draft) ?? {};
+    return `${item.id} (${item.name}) [${item.room_id}] restylable: ${item.material_slots!.map(role => `${role} ${colours[role] ?? 'own finish'}`).join(', ')}`;
+  });
+}
 /** Items that stand on the floor (not wall-hung, not resting on another item). */
 export const onFloor = (item: DraftItem) => item.wall_id === undefined && item.on === undefined;
 /** The item without the draft-only placement keys, as src/ schema expects. */

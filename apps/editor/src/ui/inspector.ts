@@ -90,6 +90,28 @@ export function renderAssetChoices(container: HTMLElement, object: SceneObject, 
   };
 }
 
+/** Restylable finishes of a model with material slots: one colour per role, each an undoable update. */
+export function renderMaterialSlots(container: HTMLElement, object: SceneObject, config: InspectorOptions): boolean {
+  const asset = config.getCatalog().find(a => a.id === object.assetId);
+  const roles = Object.keys(asset?.materialSlots ?? {});
+  if (!asset || !roles.length) { container.innerHTML = ''; return false; }
+  const meta = config.getScene().project?.metadata[object.id];
+  const disabled = meta?.locked || meta?.phase === 'remove' ? 'disabled' : '';
+  container.innerHTML = `<section class="property-section inspector-material-slots"><div class="property-label">Finishes</div>${roles.map(role => {
+    const own = object.materials?.[role];
+    return `<div class="finish-row" data-material-role="${esc(role)}"><input type="color" aria-label="${esc(pretty(role))} colour" value="${esc(own ?? '#ffffff')}" ${disabled}><span>${esc(pretty(role))} · ${esc(own ?? 'original')}</span>${own ? `<button type="button" class="text-button" data-material-reset ${disabled}>Reset</button>` : ''}</div>`;
+  }).join('')}${disabled ? '<p class="field-note">Unlock or restore this item in Renovate to change its finishes.</p>' : ''}</section>`;
+  const set = (role: string, value: string | null) => commit(config, () => [{ type: 'update', id: object.id, patch: { materials: { [role]: value } } }],
+    value ? `Change ${role} finish` : `Reset ${role} finish`);
+  container.querySelectorAll<HTMLElement>('[data-material-role]').forEach(row => {
+    const role = row.dataset.materialRole!;
+    row.querySelector<HTMLInputElement>('input')!.onchange = event => set(role, (event.target as HTMLInputElement).value);
+    const reset = row.querySelector<HTMLButtonElement>('[data-material-reset]');
+    if (reset) reset.onclick = () => set(role, null);
+  });
+  return true;
+}
+
 /** Entity-specific controls project the same checked scene as the Renovate workspace. */
 export function renderEntityInspector(container: HTMLElement, id: string, config: InspectorOptions): boolean {
   const scene = config.getScene();

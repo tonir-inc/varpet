@@ -1,7 +1,7 @@
 /** Hard-physics check of a draft: wraps checkLayout from src/layout.ts with one add op per item.
  * Async because src is imported at runtime from designerSrc() (works from a copied workspace). */
 import { footprint, importSrc, isCurtain, loadBrief, openingSpans, roomSubtotals, wallSpot, type Draft, type DraftItem, type Scene, type Vec2 } from './scene.ts';
-import { checkSurfaces, onFloor, plainItem, surfaceQuantities } from './finishes.ts';
+import { checkRestyle, checkSurfaces, describeRestylable, onFloor, plainItem, surfaceQuantities } from './finishes.ts';
 import { designRelations, functionRules, kneeSpaceSofas, tuckedPair, tuckedTargets } from './relations.ts';
 import { stylingLines } from './styling.ts';
 import { createHash } from 'node:crypto';
@@ -228,6 +228,9 @@ export async function check(scene: Scene, draft: Draft, options: { budget?: numb
     if (w && knee.has(w[1]!) && Number(w[2]) >= 0.3 - 1e-6) problems.splice(i, 1);
   }
   problems.push(...checkSurfaces(scene, draft).map(p => `surfaces: ${p}`));
+  problems.push(...checkRestyle(scene, draft));
+  const restyled = new Set((draft.restyle ?? []).map(entry => entry.id));
+  const fitted = describeRestylable(scene, draft).filter(line => restyled.has(line.split(' ')[0]!));
   // Editor finish presets and fixtures carry no supplier price: list the work, never add it to the total.
   const work = surfaceQuantities(scene, draft);
   const bySoft = new Map<string, number>();
@@ -240,7 +243,7 @@ export async function check(scene: Scene, draft: Draft, options: { budget?: numb
   const rooms = subtotals.length > 1 ? `\nby room: ${subtotals.map(([r, v]) => `${r} ${v}`).join(', ')}` : '';
   const budgetLine = options.budget !== undefined ? `\nbudget: ${total} of ${options.budget} AMD` : '';
   const adviceText = advice.length ? `\nadvice (soft, not blocking; fix what you agree with):\n${advice.map(line => `~ ${line}`).join('\n')}` : '';
-  const summary = `${items.length} items, ${problems.length} hard, ${soft.length} soft warnings${soft.length ? ` (${[...bySoft].map(([k, v]) => `${k} ${v}`).join(', ')})` : ''}${cost !== null ? `, furniture total ${cost} AMD` : ''}${work.length ? `\nunquoted finish and lighting work (price on request): ${work.join('; ')}` : ''}${notes}${rooms}${budgetLine}${style.scores.length ? `\nstyling score: ${style.scores.join(', ')}` : ''}${adviceText}`;
+  const summary = `${items.length} items, ${problems.length} hard, ${soft.length} soft warnings${soft.length ? ` (${[...bySoft].map(([k, v]) => `${k} ${v}`).join(', ')})` : ''}${cost !== null ? `, furniture total ${cost} AMD` : ''}${work.length ? `\nunquoted finish and lighting work (price on request): ${work.join('; ')}` : ''}${fitted.length ? `\nrestyled made-to-measure: ${fitted.join('; ')}` : ''}${notes}${rooms}${budgetLine}${style.scores.length ? `\nstyling score: ${style.scores.join(', ')}` : ''}${adviceText}`;
   // Every hard error is either listed in problems or deliberately exempted (tucked chairs), so problems decide.
   return { ok: problems.length === 0, problems, summary, cost_dram: cost, advice };
 }

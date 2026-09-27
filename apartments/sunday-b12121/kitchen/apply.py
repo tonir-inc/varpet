@@ -21,6 +21,15 @@ OBJECTS = {"f-tv-unit", "f-bedside-11a", "f-bedside-11b", "f-bedside-6a", "f-bed
 # three stools along the island's seating ledge (x = worktop edge 4.424 + 0.10 tuck - half the stool's 0.568 depth)
 STOOLS = {"f-stool-0": 5.95, "f-stool-1": 6.65, "f-stool-2": 7.35}
 STOOL_X = 4.24
+# restylable finishes: role -> glTF material names (the editor also matches Blender '.001' copies). The green lacquer
+# is one material for fronts, gables and the hood; the brass is handles and the island tap; the larder has no green.
+_RUN = {"fronts": ["paint:#3c5646"], "plinth": ["paint:#1f2621"], "handles": ["metal:#c29d5f"],
+        "worktop": ["terrazzo#f3eee6"], "wood": ["oak#c19568"]}
+MATERIAL_SLOTS = {
+    "varpet:sunday-b12121:kitchen-run": _RUN,
+    "varpet:sunday-b12121:kitchen-island": _RUN,
+    "varpet:sunday-b12121:kitchen-larder": {k: v for k, v in _RUN.items() if k != "fronts"},
+}
 
 
 def apply(scene: dict, catalog: list | None) -> None:
@@ -35,6 +44,9 @@ def apply(scene: dict, catalog: list | None) -> None:
         if o["id"] in STOOLS:
             o["position"] = [STOOL_X, 0, STOOLS[o["id"]]]
     if catalog is not None:
+        for a in pieces["assets"]:
+            if a["id"] in MATERIAL_SLOTS:
+                a["materialSlots"] = MATERIAL_SLOTS[a["id"]]
         new_assets = {a["id"] for a in pieces["assets"]}
         used = {o["assetId"] for o in scene["objects"]}
         catalog[:] = [a for a in catalog if a["id"] in used and a["id"] not in new_assets] + pieces["assets"]

@@ -160,7 +160,7 @@ function proposalFrom(value:unknown,revision:number,snapshot:SceneDocument,catal
     else if(operation.type==='delete')keys(operation,['type','id'],'Delete operation');
     else if(operation.type==='update'){
       keys(operation,['type','id','patch','on'],'Update operation');
-      keys(record(operation.patch,'Object patch'),['name','position','rotation','scale','color','restsOn'],'Object patch');
+      keys(record(operation.patch,'Object patch'),['name','position','rotation','scale','color','restsOn','materials'],'Object patch');
     }else if(operation.type==='update-wall'){
       keys(operation,['type','id','patch'],'Wall appearance operation');
       const wallId=appearanceWall(snapshot,operation.id),patch=record(operation.patch,'Wall colour patch');
@@ -363,7 +363,7 @@ export function createDesignerHttpAdapter(options:DesignerHttpOptions={}):Design
           if(!conversationId||!Array.isArray(final.assets)||final.assets.length>100)fail('Invalid private assets.');
           const referenced=new Set((record(record(final.proposal,'Proposal').command,'Command').operations as unknown[] ?? []).flatMap(op=>{const o=record(op,'Operation');return o.type==='add'?[record(o.object,'Object').assetId]:[];}));
           assets=final.assets.map(value=>{
-            const a=structuredClone(record(value,'Custom asset'));keys(a,['id','name','category','kind','dimensions','color','price','source'],'Custom asset');
+            const a=structuredClone(record(value,'Custom asset'));keys(a,['id','name','category','kind','dimensions','color','price','source','materialSlots'],'Custom asset');
             const id=text(a.id,'Custom asset ID',100),source=record(a.source,'Custom asset source');
             if(!id.startsWith(`custom-${conversationId}-`)||!/^custom-[A-Za-z0-9-]+-\d+$/.test(id)||!referenced.has(id)||!Number.isSafeInteger(a.price))fail('Invalid private asset identity or price.');
             if(source.type==='gltf'){

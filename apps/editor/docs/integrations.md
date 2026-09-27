@@ -157,6 +157,17 @@ Keep source URLs stable, supply browser-accessible files and any needed CORS hea
 
 The current shape has no currency, SKU metadata, attribution, availability, or asset-version fields. Keep these in the catalog service until an agreed contract extension exists. Do not silently overload `name`, `category`, or `id` with serialized metadata.
 
+### Material slots (restylable finishes, 27 September 2026)
+
+A glTF asset may declare `materialSlots?: Record<string, string[]>`: role -> glTF material names in the model. A name also matches its Blender copies (`metal:#c29d5f` matches `metal:#c29d5f.001`). A placed object may carry `materials?: Record<string, string>`: role -> `#rrggbb`; an absent role keeps the model's own material.
+
+```ts
+{ type: 'update', id: 'k-run', patch: { materials: { fronts: '#1f3a5f', worktop: '#ffffff' } } } // merges per role
+{ type: 'update', id: 'k-run', patch: { materials: { fronts: null } } }                         // restores fronts
+```
+
+`add` accepts `object.materials` too. A role missing from the asset's slots, or a colour that is not `#rrggbb`, rejects the whole command with a message naming the object, role and available slots. The colour tints the material (textures stay: white shows the texture as authored), changes no shader, and is one Undo. The inspector shows a "Finishes" section with one colour per role for slotted models instead of the whole-model colour. Sunday B12121's kitchen: run and island `fronts` (the green lacquer: fronts, gables and hood), `plinth`, `handles` (brass, also the island tap), `worktop` (terrazzo), `wood` (oak); the larder has no `fronts`.
+
 **Existing catalog entries are immutable for a store session.** `EditorStore.registerCatalogAssets` validates and freezes additional database entries before the UI can place them. It rejects changes under an existing ID, preserving dimensions used by the current scene and undo/redo history. Browsing does not change scene revisions. Imports resolve all furniture IDs, including baseline and option snapshots, before scene validation. Unused search records are pruned while all current/baseline/option/history references are retained. The 1,000-entry limit applies to that retained set, rather than all previously browsed products.
 
 ## Approval and revisions

@@ -21,6 +21,10 @@ export interface Item {
   on?: string;
   /** Hung on a wall (editor `host`: wall art, curtains) or from the ceiling (editor `hangsFrom`): no floor footprint. */
   mount?: 'wall' | 'ceiling';
+  /** Made-to-measure pieces (catalog `materialSlots`): the roles whose finish can be restyled (fronts, handles, worktop...). */
+  material_slots?: string[];
+  /** Current colour per restyled role (editor object `materials`); a role not listed shows the model's own finish. */
+  materials?: Record<string, string>;
 }
 /** Only items standing on the floor occupy floor space; supported and mounted items do not. */
 export const onFloor = (item: Pick<Item, 'on' | 'mount'>) => item.on === undefined && item.mount === undefined;
