@@ -150,21 +150,29 @@ def run(scenario: dict, args) -> dict:
                     (workspace / "brief.txt").write_text(brief + "\n")
                     turn_input = spike.followup_text(entry["text"])
                 before = mark(session)
-                with (critic.Reviewer(workspace, brief) if live and label == "request" else nullcontext()) as reviewer:
-                    record = session.turn(turn_input, label)
+                reviewer = critic.Reviewer(workspace, brief) if live and label == "request" else None
                 if reviewer:
-                    summary["reviews"] = {room: {k: entry.get(k) for k in ("issues", "seconds", "error")}
-                                          for room, entry in reviewer.records.items()}
+                    reviewer.__enter__()
+                record = session.turn(turn_input, label)
                 print(f"{label}: {record['status']} in {record['seconds']} s", flush=True)
-                if label == "request" and record["status"] == "completed" and spike.is_question(record["final_message"], workspace):
-                    summary["question"] = record["final_message"]
-                    answer = scenario.get("if_asked", DEFAULT_ANSWER)
+                # The designer may ask before designing (and ask again after the answer): answer at most twice.
+                for n_asked in range(2):
+                    if not (label == "request" and record["status"] == "completed" and spike.is_question(record["final_message"], workspace)):
+                        break
+                    summary.setdefault("questions", []).append(record["final_message"])
+                    answer = scenario.get("if_asked", DEFAULT_ANSWER) if n_asked == 0 else DEFAULT_ANSWER + " Design the whole brief now."
                     brief += f"\nCustomer follow-up: {answer}"
                     (workspace / "brief.txt").write_text(brief + "\n")
-                    asked = session.turn(spike.followup_text(answer), "answer")
+                    if reviewer:
+                        reviewer.brief = brief
+                    asked = session.turn(spike.followup_text(answer), f"answer-{n_asked + 1}")
                     record = {**asked, "seconds": round(record["seconds"] + asked["seconds"], 1),
-                              "question": summary["question"]}
-                    print(f"answer: {record['status']} in {asked['seconds']} s", flush=True)
+                              "question": " / ".join(summary["questions"])}
+                    print(f"answer-{n_asked + 1}: {asked['status']} in {asked['seconds']} s", flush=True)
+                if reviewer:  # around the request and any answer turns: the first design happens in one of them
+                    reviewer.__exit__(None, None, None)
+                    summary["reviews"] = {room: {k: entry.get(k) for k in ("issues", "seconds", "error")}
+                                          for room, entry in reviewer.records.items()}
                 if label == "request" and record["status"] == "completed" and args.critic_rounds > 0:
                     review = spike.critic_loop(session, workspace, brief, session_args, record, flat=live)
                     summary["critic"] = review
