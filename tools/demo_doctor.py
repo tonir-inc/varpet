@@ -21,7 +21,7 @@ import zlib
 
 ROOT = Path(__file__).resolve().parents[1]
 START = ('VITE_DESIGNER_URL=http://127.0.0.1:8787 VITE_ARCHITECT_URL=http://127.0.0.1:8788 '
-         'VARPET_CATALOG_URL=http://127.0.0.1:8765/mcp pnpm dev')
+         'VARPET_CATALOG_URL=http://localhost:18765/mcp pnpm dev')
 PDF_FIX = 'Stop Vite; rm -rf apps/editor/node_modules/.vite; restart with ' + START
 
 
@@ -381,7 +381,7 @@ def main(argv=None):
     parser.add_argument('--json', action='store_true', help='JSON only on stdout')
     parser.add_argument('--vm', nargs='?', const='http://localhost:18765', help='optional VM health check; no URL means localhost:18765')
     parser.add_argument('--only', action='append', help='exact check name; repeat or comma-separate')
-    for name, default in [('catalog', 'http://127.0.0.1:8765'), ('editor', 'http://localhost:5173'),
+    for name, default in [('catalog', 'http://localhost:18765'), ('editor', 'http://localhost:5173'),
                           ('designer', 'http://127.0.0.1:8787'), ('architect', 'http://127.0.0.1:8788')]:
         parser.add_argument('--' + name, default=os.environ.get('DEMO_' + name.upper() + '_URL', default))
     args = parser.parse_args(argv)
