@@ -106,7 +106,7 @@ export function doorSwingPolygon(scene: Scene, opening: Opening): Vec2[] | null 
 
 function obstaclesForRoom(scene: Scene, room: Room): Obstacle[] {
   // Items resting on furniture sit inside their support's footprint and add no floor obstacle.
-  const obstacles: Obstacle[] = [...scene.items, ...scene.fixed].filter(i => i.room_id === room.id && !i.structure && !isFloorRug(i) && onFloor(i)).map(item => ({ polygon: itemPolygon(item) }));
+  const obstacles: Obstacle[] = [...scene.items, ...scene.fixed].filter(i => !i.structure && !isFloorRug(i) && onFloor(i)).map(item => ({ polygon: itemPolygon(item) }));
   // A walking person needs headroom: raised fixtures/pipes still obstruct circulation.
   obstacles.push(...wallSolidPolygons(scene, 2).map(solid => ({ polygon: solid.polygon })));
   for (const opening of scene.openings) {

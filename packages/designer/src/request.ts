@@ -1,3 +1,4 @@
+import { footprintRoomArea } from './room-ownership.js';
 import {requestPolicy,canonicalKind} from './request-policy.js';
 import { z } from 'zod';
 import { colorTargetSchema, wallCompass, wallOutward } from './adapter.js';
@@ -121,7 +122,7 @@ function preferenceError(scene: Scene, preference: GeometricPreference): Request
   }
   if (preference.type === 'away_from') {
     if (preference.anchor_id === item.id) return fail(`Preference away_from: ${item.id} cannot be its own anchor`);
-    const anchor = [...scene.items, ...scene.fixed].find(candidate => candidate.id === preference.anchor_id && candidate.room_id === item.room_id);
+    const anchor = [...scene.items, ...scene.fixed].find(candidate => candidate.id === preference.anchor_id && (candidate.room_id === item.room_id || footprintRoomArea(itemPolygon(candidate), scene.rooms.find(r => r.id === item.room_id)!.polygon) > EPS));
     const target = anchor ? itemPolygon(anchor) : windowSpan(preference.anchor_id);
     if (!target) return fail(`Preference away_from: unknown anchor ${preference.anchor_id} in room ${item.room_id}`);
     const distance = footprintDistance(polygon, target), minimum = preference.min_distance_m ?? 1;
@@ -136,7 +137,7 @@ function preferenceError(scene: Scene, preference: GeometricPreference): Request
     const passed = walls.some((wall, index) => { const outward = wallOutward(scene, wall); return distances[index]! < EPS && -dot(front, outward) >= 1 - EPS; });
     return passed ? undefined : fail(`${item.id} must have its back against wall ${preference.wall_id ?? preference.compass ?? 'in this room'} and face inward`, Math.min(...distances));
   }
-  const anchor = [...scene.items, ...scene.fixed].find(candidate => candidate.id === preference.anchor_id && candidate.room_id === item.room_id);
+  const anchor = [...scene.items, ...scene.fixed].find(candidate => candidate.id === preference.anchor_id && (candidate.room_id === item.room_id || footprintRoomArea(itemPolygon(candidate), scene.rooms.find(r => r.id === item.room_id)!.polygon) > EPS));
   if (!anchor || anchor.id === item.id) return fail(`Preference facing: unknown or self anchor ${preference.anchor_id}`);
   const delta = subtract(anchor.pos, item.pos), length = Math.hypot(...delta);
   if (length < EPS) return fail(`${item.id} cannot face a coincident anchor ${anchor.id}`);

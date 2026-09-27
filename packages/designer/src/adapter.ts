@@ -16,6 +16,7 @@ const item = z.object({
   material_slots: z.array(id).optional(), materials: z.record(z.string(), colorSchema).optional(),
 });
 const sceneInput = z.object({
+  conversion_warnings: z.array(z.string()).optional(),
   north_deg: num.optional(),
   geometry_audit: z.object({tolerance_m:num.nonnegative(),adjustments:z.array(z.object({room_id:id,vertex:num.int().nonnegative(),before:point,after:point,distance_m:num.nonnegative()})),warnings:z.array(z.string()),obstacle_wall_ids:z.array(id),opening_room_ids:z.record(z.string(),z.array(id))}).optional(),
   rooms: z.array(z.object({ id, name: z.string().optional(), polygon: z.array(point).min(3), zone: z.enum(['balcony','loggia','terrace']).optional() })),
@@ -194,6 +195,7 @@ export function sceneSummary(scene: Scene, roomIds?: string[]) {
   const walls = scene.walls.filter(w => selected(w.room_id) || sharedWallIds.has(w.id));
   return structuredClone({
     north_deg: scene.north_deg ?? null,
+    ...(scene.conversion_warnings ? { conversion_warnings: scene.conversion_warnings } : {}),
     ...(scene.geometry_audit?{geometry_audit:scene.geometry_audit}:{}),
     coordinate_convention: 'metres; x right, y plan-up; rot counterclockwise; front local -y; north_deg clockwise from plan-up',
     appearance: 'color ops accept #RRGGBB for item or wall. A wall color paints both faces and all segments sharing source_id. Missing wall color can mean mixed face finishes. Paint and labour are not quoted.',

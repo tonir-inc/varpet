@@ -72,6 +72,8 @@ def model_scene(source):
     else:
         view = {key:records(source[key], fields) for key,fields in FIELDS.items() if key in source}
         if 'north_deg' in source: view['north_deg'] = clean(source['north_deg'])
+        if source.get('conversion_warnings'):
+            view['conversion_warnings'] = [str(w)[:1000] for w in source['conversion_warnings'][:400]]
         if source.get('geometry_audit'):
             audit=source['geometry_audit']
             view['geometry_notes'] = {'tolerance_m':audit.get('tolerance_m'),

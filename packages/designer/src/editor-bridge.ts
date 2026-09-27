@@ -12,6 +12,7 @@ import { EditorStore } from '../../../apps/editor/src/core/store.js';
 import { isRecord, objectFootprint, placementIssues, validateScene } from '../../../apps/editor/src/core/validation.js';
 import { parseOps, parseScene, sceneDigest, wallOutward } from './adapter.js';
 import { catalogItems } from './catalog.js';
+import { footprintOwner } from './room-ownership.js';
 import { outsidePoint } from './local-checks.js';
 import type { Opening, Scene, Vec2 } from './scene.js';
 import { snapRoomFaces, reconciledWall } from './reconcile-geometry.js';
@@ -92,11 +93,15 @@ export function bridgeCatalog(input: unknown, catalog: CatalogAsset[]): BridgeCa
 
 function validatedEditor(input: unknown, catalog: CatalogAsset[]): SceneDocument {
   const validation = validateScene(input, catalog);
-  if (!validation.ok) throw new Error(`Invalid editor scene: ${validation.errors.join(' ')}`);
+  // Only well-formed legacy placement failures are degradable; never inspect malformed transforms.
+  const placementOnly = validation.errors.length > 0 && validation.errors.every(message => /^“.*” (must fit completely|intersects wall|has no supporting surface|has an inconsistent wall mount|does not hang from the ceiling)/.test(message));
+  const placement = placementOnly ? placementIssues(input as SceneDocument, catalog).map(issue => issue.message) : [];
+  const errors = validation.errors.filter(message => !placement.includes(message));
+  if (errors.length) throw new Error(`Invalid editor scene: ${errors.join(' ')}`);
   return structuredClone(input as SceneDocument);
 }
 
-function checkSupported(scene: SceneDocument, options: EditorBridgeOptions, unrecognised: ReadonlySet<string> = new Set()): void {
+function checkSupported(scene: SceneDocument, options: EditorBridgeOptions): void {
   if(options.geometryPolicy!==undefined&&!['strict','reconcile'].includes(options.geometryPolicy))throw new Error("Unsupported geometryPolicy");
   if (options.groupPolicy !== undefined && !['preserve', 'move-together'].includes(options.groupPolicy)) throw new Error('Unsupported groupPolicy; use preserve or move-together');
   if (options.northDeg !== undefined && !Number.isFinite(options.northDeg)) throw new Error('northDeg must be finite');
@@ -107,12 +112,11 @@ function checkSupported(scene: SceneDocument, options: EditorBridgeOptions, unre
     if (!openings.some(opening => opening.id === id && opening.kind === 'door')) throw new Error(`Unknown door swing ID: ${id}`);
     if (!Object.hasOwn(swings, swing)) throw new Error(`Unsupported door swing: ${swing}`);
   }
-  // Furniture resting on furniture (restsOn), wall-hung (host) and ceiling-hung items are elevated by contract.
-  for (const object of scene.objects) if (!unrecognised.has(object.id) && Math.abs(object.position[1]) > EPS && object.restsOn === undefined && object.host === undefined && object.hangsFrom !== 'ceiling') throw new Error(`Unsupported elevated object: ${object.id}`);
   for (const opening of openings) if (opening.kind === 'door' && opening.sill > EPS) throw new Error(`Unsupported elevated door: ${opening.id}`);
   const project = scene.project;
   if (!project) return;
   for (const [id, metadata] of Object.entries(project.metadata)) {
+    if (scene.objects.some(object => object.id === id)) continue; // Object metadata is preserved as a fixed obstacle below.
     if (metadata.elevation !== undefined && Math.abs(metadata.elevation) > EPS) throw new Error(`Unsupported elevation on ${id}`);
     if (metadata.phase === 'remove' || metadata.phase === 'replace') throw new Error(`Unsupported renovation phase ${metadata.phase} on ${id}`);
     if ((metadata.threshold ?? 0) > EPS) throw new Error(`Unsupported raised threshold on ${id}`);
@@ -204,8 +208,8 @@ function addServiceObstacles(editor: SceneDocument, scene: Scene): void {
 function addUnrecognised(scene: Scene, object: SceneDocument['objects'][number], asset: CatalogAsset, footprint: Vec2[], options: EditorBridgeOptions): void {
   if (object.host !== undefined || object.hangsFrom !== undefined || object.restsOn !== undefined || !Array.isArray(object.position)) return;
   const pos: Vec2 = [object.position[0], -object.position[2]];
-  const room = scene.rooms.find(candidate => outsidePoint(footprint, candidate.polygon) === undefined) ?? scene.rooms.find(candidate => outsidePoint([pos], candidate.polygon) === undefined);
-  if (!room) return;
+  const room = footprintOwner(footprint, pos, scene.rooms).room;
+  (scene.conversion_warnings ??= []).push(`Object ${object.id} assigned to ${room.id}; unrecognised catalog asset retained as a fixed obstacle with approximate dimensions.`);
   scene.fixed.push({ id: object.id, name: `${object.name} (unrecognised catalog item ${object.assetId}: fixed in place, approximate size)`.slice(0, 300), kind: UNRECOGNISED_KIND,
     room_id: room.id, pos, rot: object.rotation * 180 / Math.PI, size: [asset.dimensions[0] * object.scale[0], asset.dimensions[2] * object.scale[2], asset.dimensions[1] * object.scale[1]], keep: true,
     ...(object.groupId !== undefined && options.groupPolicy === 'move-together' ? { group_id: object.groupId } : {}) });
@@ -218,9 +222,25 @@ export function editorToDesigner(input: unknown, options: EditorBridgeOptions = 
   let editor = validatedEditor(input, catalog);
   const reconciliation = (options.geometryPolicy ?? (editor.version === 2 ? "reconcile" : "strict")) === "reconcile" ? snapRoomFaces(editor) : undefined;
   if(reconciliation)editor=reconciliation.editor;
-  checkSupported(editor, options, unrecognised);
+  checkSupported(editor, options);
   const blocking = placementIssues(editor, catalog).filter(issue => issue.blocking && !unrecognised.has(issue.entityId));
-  if (blocking.length) throw new Error(`Unsupported editor placement: ${blocking.map(issue => issue.message).join(' ')}`);
+  const frozen = new Map<string, string[]>();
+  const freeze = (id: string, reason: string) => frozen.set(id, [...(frozen.get(id) ?? []), reason]);
+  for (const issue of blocking) freeze(issue.entityId, issue.message);
+  for (const object of editor.objects) {
+    if (Math.abs(object.position[1]) > EPS && !object.restsOn && !object.host && !object.hangsFrom) freeze(object.id, 'Unsupported elevated object');
+    const metadata = editor.project?.metadata[object.id];
+    if (metadata && ((metadata.elevation ?? 0) !== 0 || (metadata.threshold ?? 0) > 0 || ['remove', 'replace'].includes(metadata.phase ?? ''))) freeze(object.id, 'Unsupported object renovation metadata');
+    const owner = footprintOwner(objectFootprint(object, catalog.find(a => a.id === object.assetId)!).map(plan), [object.position[0], -object.position[2]], editor.rooms.map(r => ({ ...r, polygon: r.polygon.map(plan) })));
+    if (owner.area <= EPS) freeze(object.id, 'Footprint is fully outside all rooms');
+  }
+  // Preserve whole support chains when one member cannot be manipulated safely.
+  for (let changed = true; changed;) {
+    changed = false;
+    for (const object of editor.objects) if (object.restsOn && (frozen.has(object.id) || frozen.has(object.restsOn))) {
+      for (const id of [object.id, object.restsOn]) if (!frozen.has(id)) { freeze(id, 'Part of a fixed support chain'); changed = true; }
+    }
+  }
   const zone = (id: string) => { const value = editor.project?.metadata[id]?.zone; return value && value !== 'interior' ? { zone: value } : {}; };
   const scene: Scene = { rooms: editor.rooms.map(room => ({ id: room.id, name: room.name, polygon: room.polygon.map(plan), ...zone(room.id) })), walls: [], openings: [], items: [], fixed: [] };
   if (options.northDeg !== undefined) scene.north_deg = options.northDeg;
@@ -260,16 +280,20 @@ export function editorToDesigner(input: unknown, options: EditorBridgeOptions = 
     const asset = catalog.find(candidate => candidate.id === object.assetId)!;
     const footprint = objectFootprint(object, asset).map(plan);
     if (unrecognised.has(object.id)) { addUnrecognised(scene, object, asset, footprint, options); continue; }
-    const rooms = scene.rooms.filter(room => outsidePoint(footprint, room.polygon) === undefined);
-    if (rooms.length !== 1) throw new Error(`Object ${object.id} must fit in exactly one room; spanning or overlapping room ownership is unsupported`);
+    const owner = footprintOwner(footprint, [object.position[0], -object.position[2]], scene.rooms);
+    const contained = scene.rooms.filter(room => outsidePoint(footprint, room.polygon) === undefined);
+    const warnings = frozen.get(object.id);
+    if (warnings || contained.length !== 1 || owner.overlapping.length > 1) (scene.conversion_warnings ??= []).push(`Object ${object.id} assigned to ${owner.room.id} by largest footprint share (centre/nearest room breaks ties).${warnings ? ` Kept as a fixed obstacle: ${warnings.join('; ')}.` : ' Its footprint remains an obstacle in every overlapping room.'}`);
     const metadata = editor.project?.metadata[object.id];
-    scene.items.push({ id: object.id, name: object.name, room_id: rooms[0]!.id, kind: catalogFunction(asset), pos: [object.position[0], -object.position[2]], rot: object.rotation * 180 / Math.PI,
+    const item: Scene['items'][number] = { id: object.id, name: object.name, room_id: owner.room.id, kind: catalogFunction(asset), pos: [object.position[0], -object.position[2]], rot: object.rotation * 180 / Math.PI,
       size: [asset.dimensions[0] * object.scale[0], asset.dimensions[2] * object.scale[2], asset.dimensions[1] * object.scale[1]],
       keep: (options.keep ?? []).includes(object.id) || (object.groupId !== undefined && options.groupPolicy !== 'move-together') || metadata?.locked === true || metadata?.phase === 'retain', sku: asset.id,
       color: object.color ?? asset.color, ...(object.groupId !== undefined && options.groupPolicy === 'move-together' ? { group_id: object.groupId } : {}), ...(object.restsOn === undefined ? {} : { on: object.restsOn }),
       // A floor-leaning mirror keeps its host at y = 0 and still stands on the floor.
       ...(object.hangsFrom === 'ceiling' ? { mount: 'ceiling' as const } : object.host !== undefined && object.position[1] > EPS ? { mount: 'wall' as const } : {}),
-      ...materialFields(asset, object) });
+      ...materialFields(asset, object) };
+    if (warnings) { delete item.on; delete item.mount; item.keep = true; scene.fixed.push(item); }
+    else scene.items.push(item);
   }
   return parseScene(scene);
 }
@@ -359,11 +383,13 @@ export function proposalToEditor(input: unknown, editorInput: unknown, revision:
     }
   }
   const id = `designer-${digest({ snapshot: editor, revision, proposal: candidate })}`;
-  const proposal: AgentProposal = { id, title: 'Designer layout proposal', description: candidate.rationale, command: { id, label: 'Apply designer layout', source: 'designer', baseRevision: revision, operations } };
+  const proposal: AgentProposal = { id, title: 'Designer layout proposal', description: [candidate.rationale, ...(scene.conversion_warnings ?? [])].join('\n'), command: { id, label: 'Apply designer layout', source: 'designer', baseRevision: revision, operations } };
   // This store is private and disposable; the caller's snapshot is never modified or approved.
   const preview = new EditorStore(editor, catalog), checked = preview.execute({ ...proposal.command, baseRevision: 0 }, true);
   if (!checked.ok) throw new Error(`Editor rejected translated proposal: ${checked.errors.join(' ')}`);
-  const blocking = placementIssues(preview.scene, catalog).filter(issue => issue.blocking && !unrecognised.has(issue.entityId));
+  const baseline = placementIssues(editor, catalog);
+  const blocking = placementIssues(preview.scene, catalog).filter(issue => issue.blocking && !unrecognised.has(issue.entityId) && !(baseline.some(old => old.entityId === issue.entityId && old.kind === issue.kind && old.message === issue.message)
+    && JSON.stringify(editor.objects.find(o => o.id === issue.entityId)) === JSON.stringify(preview.scene.objects.find(o => o.id === issue.entityId))));
   if (blocking.length) throw new Error(`Translated proposal has unsupported placement: ${blocking.map(issue => issue.message).join(' ')}`);
   return proposal;
 }

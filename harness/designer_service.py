@@ -63,7 +63,7 @@ def cleanup_service_directories():
 def with_geometry_notice(presentation: dict, saved: dict) -> dict:
     """Keep the bridge's measured geometry caveat visible after customer copy formatting."""
     notices = [note["message"] for note in saved.get("checks", {}).get("notes", [])
-               if note.get("check") == "geometry_reconciliation" and isinstance(note.get("message"), str)]
+               if note.get("check") in ("geometry_reconciliation", "object_conversion") and isinstance(note.get("message"), str)]
     if not notices:
         return presentation
     text = " ".join(notices)

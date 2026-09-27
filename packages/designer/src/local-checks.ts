@@ -125,7 +125,7 @@ export function localGeometryErrors(input:Scene):LayoutError[] {
     errors.push(...wallHits.values());
     for(let j=i+1;j<items.length;j++) {
       const other=items[j]!;
-      if(!isFloorRug(item)&&!isFloorRug(other)&&other.room_id===item.room_id&&polygonsOverlap(footprints[i]!,footprints[j]!)) {
+      if(!isFloorRug(item)&&!isFloorRug(other)&&polygonsOverlap(footprints[i]!,footprints[j]!)) {
         errors.push({check:'overlap',room_id:room.id,item_ids:[item.id,other.id],at:[(item.pos[0]+other.pos[0])/2,(item.pos[1]+other.pos[1])/2],deficit_m:penetration(footprints[i]!,footprints[j]!),message:`${item.id} overlaps ${other.id}`});
       }
     }

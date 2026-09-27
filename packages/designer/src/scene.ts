@@ -30,6 +30,7 @@ export interface Item {
 export const onFloor = (item: Pick<Item, 'on' | 'mount'>) => item.on === undefined && item.mount === undefined;
 export interface Scene {
   rooms: Room[]; walls: Wall[]; openings: Opening[]; items: Item[]; fixed: Item[];
+  conversion_warnings?: string[];
   north_deg?: number;
   geometry_audit?: import("./reconcile-geometry.js").GeometryAudit;
 }
