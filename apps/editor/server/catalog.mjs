@@ -22,8 +22,10 @@ function payload(result) {
 }
 
 /** Each browser request uses a read-only MCP session and a single wall deadline. */
-async function queryCatalog(options, action) {
+async function queryCatalog(options, action, clientSignal) {
   const controller = new AbortController();
+  // The browser went away: stop the upstream call too.
+  if (clientSignal) { if (clientSignal.aborted) controller.abort(); else clientSignal.addEventListener('abort', () => controller.abort(), { once: true }); }
   const requestOptions = { signal: controller.signal, timeout: options.timeoutMs, maxTotalTimeout: options.timeoutMs };
   const transport = new StreamableHTTPClientTransport(options.url, {
     fetch: (url, init) => options.fetch(url, { ...init,
@@ -41,8 +43,10 @@ async function queryCatalog(options, action) {
     await client.connect(transport, requestOptions);
     return action(read);
   };
+  const running = work();
+  running.catch(() => {}); // a late failure after the deadline is not an unhandled rejection
   try {
-    return await Promise.race([work(), expired]);
+    return await Promise.race([running, expired]);
   } finally {
     clearTimeout(timer);
     controller.abort();
@@ -57,9 +61,22 @@ async function item(read, id, allowMissing = false) {
   return detail;
 }
 
+/** Never throws: a response the client already left, or one already started, is just closed. */
 function send(response, status, data) {
-  response.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
-  response.end(JSON.stringify(data));
+  try {
+    if (response.headersSent || response.writableEnded || response.destroyed) { if (!response.writableEnded) response.destroy(); return; }
+    response.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+    response.end(JSON.stringify(data));
+  } catch { response.destroy(); }
+}
+
+/** Aborted when the browser closes the request (navigation, a cancelled search). */
+function clientSignal(request, response) {
+  const controller = new AbortController();
+  const gone = () => { if (!response.writableEnded) controller.abort(); };
+  if (typeof request.once === 'function') request.once('aborted', gone);
+  if (typeof response.once === 'function') response.once('close', gone);
+  return controller.signal;
 }
 
 const MODEL = /^\/api\/catalog\/models\/([A-Za-z0-9_-]{1,120}\.glb)$/;
@@ -67,19 +84,26 @@ const MODEL_TIMEOUT_MS = 60_000;
 
 /** The catalog's 1024 px copy of a model (optimize_models.py), relayed so the browser never needs the tailnet.
  * No copy is an uncached 404, and the asset loader falls back to the S3 original. */
-async function relayModel(settings, name, response) {
-  let upstream = null;
+async function relayModel(settings, name, response, signal) {
+  let upstream = null, timedOut = false;
   try {
-    upstream = await settings.fetch(new URL(`/models/${name}`, settings.url), { method: 'GET', signal: AbortSignal.timeout(MODEL_TIMEOUT_MS) });
-  } catch { /* 502 below */ }
+    const deadline = AbortSignal.timeout(MODEL_TIMEOUT_MS);
+    upstream = await settings.fetch(new URL(`/models/${name}`, settings.url), { method: 'GET', signal: AbortSignal.any([deadline, signal]) });
+  } catch (error) { timedOut = error?.name === 'TimeoutError'; /* 502/504 below */ }
+  if (signal.aborted) { upstream?.body?.cancel().catch(() => {}); if (!response.writableEnded) response.destroy(); return; }
   if (!upstream?.ok || !upstream.body) {
-    response.writeHead(upstream?.status === 404 ? 404 : 502, { 'Cache-Control': 'no-store' });
+    upstream?.body?.cancel().catch(() => {});
+    if (response.headersSent || response.destroyed) return void response.destroy();
+    response.writeHead(upstream?.status === 404 ? 404 : timedOut ? 504 : 502, { 'Cache-Control': 'no-store' });
     return response.end();
   }
   const length = upstream.headers.get('content-length');
   response.writeHead(200, { 'Content-Type': 'model/gltf-binary', 'Cache-Control': 'public, max-age=31536000, immutable',
     ...(length ? { 'Content-Length': length } : {}) });
-  await pipeline(Readable.fromWeb(upstream.body), response).catch(() => response.destroy());
+  let body;
+  try { body = Readable.fromWeb(upstream.body); } catch { return void response.destroy(); }
+  body.on('error', () => {}); // pipeline reports it; a late error after close must not escape
+  await pipeline(body, response).catch(() => { body.destroy(); response.destroy(); });
 }
 
 /** Server-only URL; never exposed through Vite's client environment or bundled source. */
@@ -89,7 +113,12 @@ export function createCatalogMiddleware(options = {}) {
   const timeoutMs = options.timeoutMs ?? 15_000;
   if (!Number.isFinite(timeoutMs) || timeoutMs <= 0 || timeoutMs > 15_000) throw new Error('Invalid catalog timeout');
   const settings = { url, timeoutMs, fetch: options.fetch ?? globalThis.fetch };
+  // Connect does not await middleware: nothing may escape this promise, or the dev server dies.
   return async (request, response, next) => {
+    try { await handle(request, response, next); }
+    catch { send(response, 502, unavailable); }
+  };
+  async function handle(request, response, next) {
     const path = new URL(request.url ?? '/', 'http://localhost');
     if (path.pathname.startsWith('/api/catalog/models/')) {
       if (request.method !== 'GET') {
@@ -98,7 +127,7 @@ export function createCatalogMiddleware(options = {}) {
       }
       const model = MODEL.exec(path.pathname);
       if (!model) { response.writeHead(404, { 'Cache-Control': 'no-store' }); return response.end(); }
-      return relayModel(settings, model[1], response);
+      return relayModel(settings, model[1], response, clientSignal(request, response));
     }
     if (!['/api/catalog/search', '/api/catalog/items', '/api/catalog/vocab'].includes(path.pathname)) return next();
     if (request.method !== 'GET') {
@@ -114,6 +143,7 @@ export function createCatalogMiddleware(options = {}) {
       || (path.pathname.endsWith('/items') && (!ids.length || ids.length > 100 || ids.some(id => id.length > 256)))) {
       return send(response, 400, { reason: 'Invalid catalog query.' });
     }
+    const signal = clientSignal(request, response);
     try {
       const data = await queryCatalog(settings, async read => {
         if (path.pathname.endsWith('/vocab')) return read('list_vocab');
@@ -130,20 +160,39 @@ export function createCatalogMiddleware(options = {}) {
           return { ...raw, ...await item(read, raw.id) };
         }));
         return { ...search, results };
-      });
+      }, signal);
       send(response, 200, data);
-    } catch {
-      // Upstream exceptions can contain URLs, credentials or SQL diagnostics.
+    } catch (error) {
+      // Upstream exceptions can contain URLs, credentials or SQL diagnostics. The editor retries on its next search.
+      if (signal.aborted) { if (!response.writableEnded) response.destroy(); return; }
       send(response, 503, unavailable);
     }
-  };
+  }
+}
+
+/** Network failures of an upstream catalog stream that surface outside a request (a late socket reset in the MCP
+ * transport) are logged, not fatal: the dev server keeps serving the pitch. Anything else keeps Node's behaviour. */
+const NETWORK = /ECONNRESET|ECONNREFUSED|ETIMEDOUT|EPIPE|UND_ERR|terminated|socket hang up|AbortError|TimeoutError|Catalog deadline|other side closed/i;
+let guarded = false;
+function guardProcess(log = message => console.warn(message)) {
+  if (guarded) return;
+  guarded = true;
+  const network = error => NETWORK.test(`${error?.name ?? ''} ${error?.code ?? ''} ${error?.cause?.code ?? ''} ${error?.message ?? error}`);
+  process.on('unhandledRejection', error => {
+    if (network(error)) { log(`[varpet-catalog] ignored a late catalog network error: ${error?.message ?? error}`); return; }
+    throw error;
+  });
+  process.on('uncaughtException', (error, origin) => {
+    if (network(error)) { log(`[varpet-catalog] ignored a late catalog network error: ${error?.message ?? error}`); return; }
+    console.error(error); process.exit(1);
+  });
 }
 
 export function catalogPlugin(options = {}) {
   const middleware = createCatalogMiddleware(options);
   return {
     name: 'varpet-catalog',
-    configureServer(server) { server.middlewares.use(middleware); },
+    configureServer(server) { guardProcess(); server.middlewares.use(middleware); },
     configurePreviewServer(server) { server.middlewares.use(middleware); },
   };
 }

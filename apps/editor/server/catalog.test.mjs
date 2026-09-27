@@ -208,3 +208,34 @@ test('long extra model names up to 120 characters are relayed', async () => {
     } else assert.deepEqual(stub.calls, []);
   }
 });
+
+test('a browser leaving mid-download or a catalog dying mid-stream never escapes the middleware', async t => {
+  const escaped = [];
+  const onRejection = error => escaped.push(error);
+  process.on('unhandledRejection', onRejection);
+  t.after(() => process.off('unhandledRejection', onRejection));
+  let cancelled = false;
+  const fetch = async (_url, init) => new Response(new ReadableStream({
+    pull: controller => new Promise(resolve => setTimeout(() => { if (!cancelled) controller.enqueue(new Uint8Array(64 * 1024)); resolve(); }, 5)),
+    cancel: () => { cancelled = true; },
+  }), { status: 200, headers: { 'Content-Length': '99999999' } });
+  const url = await editor(t, { fetch, url: 'http://catalog.test/mcp' });
+  const controller = new AbortController();
+  const response = await globalThis.fetch(`${url}/api/catalog/models/a.glb`, { signal: controller.signal });
+  assert.equal(response.status, 200);
+  controller.abort();
+  const dying = await editor(t, { url: 'http://catalog.test/mcp', fetch: async () => new Response(new ReadableStream({
+    start: controller => { controller.enqueue(new Uint8Array(10)); setTimeout(() => controller.error(new TypeError('terminated')), 20); } }), { status: 200 }) });
+  await (await globalThis.fetch(`${dying}/api/catalog/models/b.glb`)).arrayBuffer().catch(() => {});
+  await new Promise(resolve => setTimeout(resolve, 200));
+  assert.equal(cancelled, true, 'the upstream download stops with the browser');
+  assert.deepEqual(escaped, []);
+});
+
+test('the middleware promise never rejects, even when the response cannot be written', async () => {
+  const middleware = catalog.createCatalogMiddleware({ url: 'http://catalog.test/mcp', fetch: async () => { throw new Error('down'); } });
+  const response = new Writable({ write(_chunk, _encoding, done) { done(); } });
+  response.writeHead = () => { throw new Error('headers already sent'); };
+  await middleware({ method: 'GET', url: '/api/catalog/search?text=x' }, response, () => assert.fail('Unexpected route'));
+  await middleware({ method: 'GET', url: '/api/catalog/models/a.glb' }, response, () => assert.fail('Unexpected route'));
+});
