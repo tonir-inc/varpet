@@ -76,7 +76,7 @@ export async function judge(scene: Scene, draft: Draft, cand: Omit<Candidate, 'p
   const before = await baselines.get(draft)!;
   const trial: Draft = { ...draft, items: [...draft.items, ...cand.items], lighting: [...(draft.lighting ?? []), ...cand.lighting] };
   const result = await check(scene, trial, options as never);
-  return result.problems.filter(line => !before.has(line) && !/^(budget|requirements):/.test(line));
+  return result.problems.filter(line => !before.has(line) && !/^(budget|requirements|paint):/.test(line));
 }
 
 export async function placeOne(scene: Scene, draft: Draft, roomId: string, product: Product, id: string, spec: PlaceSpec, options: CheckOptions) {

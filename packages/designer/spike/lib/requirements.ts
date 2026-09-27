@@ -69,10 +69,33 @@ const NUMBERS: [keyof ReturnType<typeof roomCounts>, string][] = [
   ['desks', 'desks'], ['desk_chairs', 'chairs at desks'],
 ];
 
+const lightness = (hex: string | undefined): number | undefined => {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex ?? '');
+  if (!m) return undefined;
+  const v = [0, 2, 4].map(i => parseInt(m[1]!.slice(i, i + 2), 16) / 255);
+  return (Math.max(...v) + Math.min(...v)) / 2;
+};
+const WET_OR_OUTSIDE = /\b(bath|wc|toilet|shower|kitchen|balcony|terrace|loggia|storage|closet|laundry)\b/i;
+
+/** Designed living spaces need a colour story: walls painted, and either a real colour on the walls or an accent
+ * wall dark enough to read in a daylit render (HSL lightness <= 0.72; chalk #EEEAE0 is 0.9, sage #A8B5A2 0.67). */
+export function paintProblems(scene: Scene, draft: Draft): string[] {
+  const out: string[] = [], finishes = draft.finishes ?? [];
+  for (const room of scene.rooms) {
+    if (WET_OR_OUTSIDE.test(`${room.name ?? ''} ${room.id}`) || !(draft.items ?? []).some(i => i.room_id === room.id)) continue;
+    const mine = finishes.filter(f => f.room_id === room.id && (f.surface === 'walls' || f.surface === 'wall'));
+    const tones = mine.map(f => lightness(f.color)).filter((l): l is number => l !== undefined);
+    if (!mine.length) out.push(`paint: ${room.id} has no wall colour; paint its walls or an accent wall behind the focal piece (e.g. sage #A8B5A2, dusty blue #7D93A8, terracotta #C0704F)`);
+    else if (tones.length && Math.min(...tones) > 0.72)
+      out.push(`paint: ${room.id} walls read white (lightest-to-darkest ${tones.map(l => l.toFixed(2)).join(', ')} lightness); give it a real colour or an accent wall at lightness 0.72 or darker behind the focal piece (e.g. sage #A8B5A2, clay #C98F7E)`);
+  }
+  return out;
+}
+
 /** Hard lines for every room the requirements name. */
 export function requirementProblems(scene: Scene, draft: Draft, req: Requirements | undefined): string[] {
-  if (!req) return [];
-  const out: string[] = [], known = new Set(scene.rooms.map(r => r.id));
+  if (!req) return paintProblems(scene, draft);
+  const out: string[] = paintProblems(scene, draft), known = new Set(scene.rooms.map(r => r.id));
   for (const [roomId, needs] of Object.entries(req.rooms)) {
     if (!known.has(roomId)) { out.push(`requirements: ${roomId} is not a room of this flat (requirements.json)`); continue; }
     const items = (draft.items ?? []).filter(i => i.room_id === roomId);

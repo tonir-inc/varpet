@@ -170,7 +170,9 @@ Put several commands in one shell call wherever you can, and do not take a step 
    - plants: one large floor plant per main room plus a small one on a surface
    - styled surfaces: 2-3 objects on the coffee table, sideboard, shelves and each nightstand (vase, candle, books,
      bowl, tray, basket); a centrepiece on the dining table (tablescape sets); toys in kids' rooms (`--kind toy`)
-   A living room ends with about 8-12 of these, a bedroom 6-8, a hall 2-3. Then render and look again.
+   A living room ends with about 8-12 of these, a bedroom 6-8, a hall 2-3. Wall pieces hang at the `height_m` you
+   give (shelves and ledges too; decor can stand `on` a hung shelf). If the design is still under 85% of the budget,
+   spend the headroom here and on better anchors and lamps. Then render and look again.
 7. Fix everything you saw in one edit, re-check, render again. At most 3 render rounds per room. Once, at the
    end of each room (or of the flat for small rooms), render `--camera eye --time evening` (use `eye2` if `eye`
    shows only a wall) to judge the light: every zone lit, warm, no dark corners where people sit.

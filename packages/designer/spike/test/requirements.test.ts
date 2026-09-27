@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import type { Scene } from '../../src/scene.js';
 import type { DraftItem } from '../lib/finishes.js';
-import { describeNeeds, requirementProblems, roomCounts } from '../lib/requirements.js';
+import { describeNeeds, paintProblems, requirementProblems, roomCounts } from '../lib/requirements.js';
 
 const scene = { rooms: [{ id: 'liv', name: 'Living', polygon: [[0, 0], [6, 0], [6, 6], [0, 6]] }], walls: [], openings: [], items: [], fixed: [] } as unknown as Scene;
 const item = (id: string, kind: string, pos: [number, number], size: [number, number, number], rot = 0, name = kind, price = 100): DraftItem =>
@@ -19,7 +19,7 @@ describe('requirements', () => {
   });
 
   test('every unmet count, missing piece, excluded kind and budget overrun is a hard line naming the room', () => {
-    const lines = requirementProblems(scene, { items }, { rooms: { liv: {
+    const lines = requirementProblems(scene, { items, finishes: [{ room_id: 'liv', surface: 'walls', material: 'paint', color: '#A8B5A2' }] }, { rooms: { liv: {
       seats_at_table: 6, sleepers: 2, desks: 1, items: [{ kind: 'tv', min: 1 }, { kind: 'sofa' }], exclude: ['rug'], budget_dram: 500 } } });
     expect(lines).toEqual([
       'requirements: liv has 4 seats at one table; the brief needs 6',
@@ -31,8 +31,14 @@ describe('requirements', () => {
 
   test('an undesigned room and a met brief are quiet; an unknown room is reported', () => {
     expect(requirementProblems(scene, { items: [] }, { rooms: { liv: { seats_at_table: 6 } } })).toEqual([]);
-    expect(requirementProblems(scene, { items }, { rooms: { liv: { seats_at_table: 4, desk_chairs: 1 } } })).toEqual([]);
-    expect(requirementProblems(scene, { items }, { rooms: { nope: {} } })[0]).toContain('nope is not a room');
+    expect(requirementProblems(scene, { items, finishes: [{ room_id: 'liv', surface: 'wall', wall_id: 'w', material: 'paint', color: '#7D93A8' }] }, { rooms: { liv: { seats_at_table: 4, desk_chairs: 1 } } })).toEqual([]);
+    expect(requirementProblems(scene, { items }, { rooms: { nope: {} } })).toContain('requirements: nope is not a room of this flat (requirements.json)');
+  });
+
+  test('a designed room with no paint or only near-white walls gets a paint line', () => {
+    expect(paintProblems(scene, { items })[0]).toContain('liv has no wall colour');
+    expect(paintProblems(scene, { items, finishes: [{ room_id: 'liv', surface: 'walls', material: 'paint', color: '#EEEAE0' }] })[0]).toContain('walls read white');
+    expect(paintProblems(scene, { items, finishes: [{ room_id: 'liv', surface: 'walls', material: 'paint', color: '#EEEAE0' }, { room_id: 'liv', surface: 'wall', wall_id: 'w', material: 'paint', color: '#C0704F' }] })).toEqual([]);
     expect(describeNeeds({ rooms: { liv: { seats_at_table: 6, exclude: ['rug'] } } }, 'liv')).toContain('no rug');
   });
 });
