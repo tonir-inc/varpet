@@ -16,7 +16,8 @@ export type { Draft, ViewCamera } from './view/document.js';
 /** time: day (afternoon sun, lamps off) or evening (after dusk, every designed light on). */
 /** roomId undefined frames the whole flat (overview/top cameras only). source: the flat's editor document (source.json);
  * without it the Avani demo shell is used. */
-export interface RenderViewOptions { roomId?: string; source?: unknown; camera?: ViewCamera; time?: 'day' | 'evening'; width?: number; height?: number }
+/** assetTimeoutMs: how long to wait for catalog models before shooting (placeholders stand in for the rest). */
+export interface RenderViewOptions { roomId?: string; source?: unknown; camera?: ViewCamera; time?: 'day' | 'evening'; width?: number; height?: number; assetTimeoutMs?: number }
 
 const here = dirname(fileURLToPath(import.meta.url));
 const designerRoot = resolve(here, '../..');
@@ -70,23 +71,27 @@ export async function renderView(scene: Scene, draft: Draft, outPng: string, opt
   const port = await daemon();
   const response = await fetch(`http://127.0.0.1:${port}/render`, { method: 'POST', headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ scene, draft, source: options.source, roomId: options.roomId, camera: options.camera ?? 'overview', time: options.time ?? 'day', outPng: resolve(outPng),
-      width: options.width ?? 1200, height: options.height ?? 800, assetTimeoutMs: 25_000 }) });
+      width: options.width ?? 1200, height: options.height ?? 800, assetTimeoutMs: options.assetTimeoutMs ?? 25_000 }) });
   const result = await response.json() as { ok: boolean; error?: string; missing?: string[]; timedOut?: boolean };
   if (!result.ok) throw new Error(`renderView failed: ${result.error}`);
   if (result.missing?.length) process.stderr.write(`renderView: models not loaded (${result.timedOut ? 'timeout' : 'failed'}): ${result.missing.join(', ')}\n`);
   return resolve(outPng);
 }
 /** Human-facing shots of one room: cutaway overview and eye level by day, eye level in the evening. */
+/** Report shots are not waited on by a designer turn: give slow catalog models time instead of shooting placeholders. */
+const REPORT_ASSET_MS = 90_000;
 export async function renderViewsForReport(scene: Scene, draft: Draft, outDir: string, roomId: string, source?: unknown): Promise<string[]> {
-  return [await renderView(scene, draft, resolve(outDir, `${roomId}-overview.png`), { roomId, source, camera: 'overview' }),
-    await renderView(scene, draft, resolve(outDir, `${roomId}-eye.png`), { roomId, source, camera: 'eye' }),
-    await renderView(scene, draft, resolve(outDir, `${roomId}-evening.png`), { roomId, source, camera: 'eye', time: 'evening' })];
+  const assetTimeoutMs = REPORT_ASSET_MS;
+  return [await renderView(scene, draft, resolve(outDir, `${roomId}-overview.png`), { roomId, source, camera: 'overview', assetTimeoutMs }),
+    await renderView(scene, draft, resolve(outDir, `${roomId}-eye.png`), { roomId, source, camera: 'eye', assetTimeoutMs }),
+    await renderView(scene, draft, resolve(outDir, `${roomId}-evening.png`), { roomId, source, camera: 'eye', time: 'evening', assetTimeoutMs })];
 }
 
 /** Whole-flat shots: cutaway overview and top view. */
 export async function renderFlatForReport(scene: Scene, draft: Draft, outDir: string, source?: unknown): Promise<string[]> {
-  return [await renderView(scene, draft, resolve(outDir, 'flat-overview.png'), { source, camera: 'overview' }),
-    await renderView(scene, draft, resolve(outDir, 'flat-top.png'), { source, camera: 'top' })];
+  const assetTimeoutMs = REPORT_ASSET_MS;
+  return [await renderView(scene, draft, resolve(outDir, 'flat-overview.png'), { source, camera: 'overview', assetTimeoutMs }),
+    await renderView(scene, draft, resolve(outDir, 'flat-top.png'), { source, camera: 'top', assetTimeoutMs })];
 }
 
 /** Stop the warm daemon (runners call this at the end of a batch; it also exits on its own when idle). */
