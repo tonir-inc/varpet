@@ -661,6 +661,20 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
       warmUp();
     }, 400);
   }
+  /** Both programs a model uses: opaque, and transparent while it fades in. It is not in the world yet. */
+  function precompileModel(model: THREE.Object3D): Promise<unknown> {
+    const opaque = studioRenderer.compile(() => renderer.compileAsync(model, camera, world));
+    const flipped: THREE.Material[] = [];
+    model.traverse(object => {
+      if (object instanceof THREE.Mesh) for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
+        if (!material.transparent) { material.transparent = true; flipped.push(material); }
+      }
+    });
+    let faded: Promise<unknown> = Promise.resolve();
+    try { if (flipped.length) faded = studioRenderer.compile(() => renderer.compileAsync(model, camera, world)); }
+    finally { for (const material of flipped) { material.transparent = false; material.needsUpdate = true; } }
+    return Promise.all([opaque, faded]).catch(() => undefined);
+  }
   const warmed = new WeakSet<THREE.Material>();
   // A hidden loading placeholder keeps its programs compiled and alive, so an applied design's
   // first frame (dozens of placeholders at once) compiles nothing.
@@ -673,9 +687,11 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
       skyboxes.get('daylight', night ? effectiveSunlight(normalizeSun({ timeOfDay: 12, enabled: true }, sunSettings)) : skySun);
       skyboxes.get('twilight', night ? skySun : effectiveSunlight(normalizeSun({ timeOfDay: 22, enabled: false }, sunSettings)));
     } catch { /* The sky is captured again on use; a failure is reported there. */ }
-    // Cutaway walls and entering furniture fade through transparent materials, a separate program.
+    // Cutaway walls fade through transparent materials, a separate program. Furniture is left alone:
+    // re-flagging a just-applied design's materials would cost a full parameter pass in the next frame.
     const flipped: THREE.Material[] = [];
-    world.traverse(object => {
+    const shell = new THREE.Group(); if (structure) shell.children.push(structure.group, structure.ceilings);
+    shell.traverse(object => {
       if (!(object instanceof THREE.Mesh) || object.userData.studioAO === false) return;
       for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
         if (material.transparent || warmed.has(material)) continue;
@@ -792,9 +808,14 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
   function installLoadedModels(budget = Infinity): void {
     if (drag) return;
     const started = performance.now();
+    // Geometry uploads on first draw: also cap the triangles a single frame brings in.
+    let triangles = 0;
     for (const [id, pending] of pendingModels) {
-      if (performance.now() - started > budget) { requestRender(); break; }
+      if (performance.now() - started > budget || (budget !== Infinity && triangles > 120_000)) { requestRender(); break; }
       pendingModels.delete(id);
+      if (budget !== Infinity) pending.model.traverse(child => {
+        if (child instanceof THREE.Mesh) triangles += (child.geometry.index?.count ?? child.geometry.getAttribute('position')?.count ?? 0) / 3;
+      });
       const current = rendered.get(id);
       if (disposed || !current || current.token !== pending.token) { disposeObject(pending.model); continue; }
       if (budget !== Infinity) pending.model.traverse(child => {
@@ -1188,7 +1209,7 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
           const token = record.token;
           loadingModels++;
           // Compile the model's programs off the frame before it appears (parallel shader compile).
-          void loader.load(asset).then(model => (topLighting.wrap(model), studioRenderer.compile(() => renderer.compileAsync(model, camera, world)).catch(() => undefined).then(() => model)))
+          void loader.load(asset).then(model => (topLighting.wrap(model), precompileModel(model).then(() => model)))
             .finally(() => { loadingModels--; }).then(model => {
             const current = rendered.get(object.id);
             if (disposed || !current || current.token !== token) { disposeObject(model); return; }

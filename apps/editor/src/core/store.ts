@@ -141,6 +141,7 @@ export class EditorStore {
     try {
       const operations = structuredClone(command.operations);
       let candidate = structuredClone(this.current);
+      let validated: SceneDocument | undefined;
       let previous: SceneDocument | undefined = this.current;
       const wallBatch = applyWallTranslationBatch(candidate, operations);
       if (wallBatch) candidate = wallBatch;
@@ -214,7 +215,7 @@ export class EditorStore {
             // Validate before later operations can access an imported document's fields.
             const imported = validateScene(operation.scene, this.catalog);
             if (!imported.ok) return this.rejection(imported.errors);
-            candidate = operation.scene;
+            candidate = operation.scene; validated = candidate;
             previous = undefined;
             break;
           }
@@ -225,8 +226,9 @@ export class EditorStore {
       }
       // Validate the complete raw edit before topology can partition openings or
       // remap dependants, then validate again before the single atomic commit.
+      // An imported document just validated needs no second pass before normalizing (perf only).
       if (this.normalize) {
-        const draftValidation = validateScene(candidate, this.catalog);
+        const draftValidation = candidate === validated && operations.at(-1)?.type === 'replace-scene' ? { ok: true as const } : validateScene(candidate, this.catalog);
         if (!draftValidation.ok) return { ...draftValidation, revision: this.revision };
         candidate = this.normalize(candidate, previous);
       }

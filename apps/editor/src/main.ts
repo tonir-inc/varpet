@@ -1099,7 +1099,38 @@ function refresh(){
   // The architect temporarily owns this renderer; background catalog/save refreshes
   // must not replace the streamed shell with the checked editor document mid-build.
   if (!stage) { viewport.setScene(scene,catalog);viewport.setSelection(selectedId, selectionIds()); }
+  // A whole design arriving at once (import, designer apply) paints the 3D view in this frame;
+  // the plan, panels and inspectors follow after it, so no single frame carries all of it.
+  const heavy = heavyChange(scene);
+  clearTimeout(panelsTimer); panelsTimer = undefined;
+  if (heavy) { requestAnimationFrame(() => { panelsTimer = setTimeout(() => { panelsTimer = undefined; refreshPanels(); }, 0); }); refreshHeader(scene); }
+  else refreshPanels();
+}
+let panelsTimer: ReturnType<typeof setTimeout> | undefined;
+let lastRefreshObjects: readonly SceneObject[] | undefined;
+function heavyChange(scene: SceneDocument): boolean {
+  const previous = lastRefreshObjects; lastRefreshObjects = scene.objects;
+  if (!previous || previous === scene.objects) return false;
+  let changed = Math.abs(previous.length - scene.objects.length);
+  const ids = new Set(previous.map(object => object.id));
+  for (const object of scene.objects) if (!ids.has(object.id)) changed++;
+  return changed > 12;
+}
+function refreshPanels(){
+  const scene=store.scene;
   floorPlan.setScene(scene,catalog);floorPlan.setSelection(selectedId, selectionIds());
+  refreshHeader(scene);
+  $('#apartment-height').innerHTML = heightControlMarkup(scene);
+  bindHeightControl($('#apartment-height'), { getScene: () => store.scene, execute: (operations, label) => run(operations, label), notice: notify, showFullHeight });
+  renderWallControls();
+  renderHierarchy();renderInspector();renderProposal();
+  renovationUI?.render();
+  ceilingUI.render();
+  $('#selection-status').textContent=selectionLabel();
+  renderViewportHints();
+  folioShell?.update();
+}
+function refreshHeader(scene: SceneDocument){
   $('#project-name').textContent=scene.name;
   const area=scene.rooms.reduce((sum,r)=>sum+Math.abs(r.polygon.reduce((a,p,i)=>{const q=r.polygon[(i+1)%r.polygon.length]!;return a+p[0]*q[1]-q[0]*p[1];},0))/2,0);
   $('#scene-area').textContent=`${area.toFixed(0)} m²`;
@@ -1121,15 +1152,6 @@ function refresh(){
     publish.disabled = proposalView || !shareSession || shareSession.saving || shareSession.savedRevision === store.revision;
     publish.textContent = shareSession?.saving ? 'Publishing…' : shareSession?.savedRevision === store.revision ? 'Progress published' : 'Publish progress';
   }
-  $('#apartment-height').innerHTML = heightControlMarkup(scene);
-  bindHeightControl($('#apartment-height'), { getScene: () => store.scene, execute: (operations, label) => run(operations, label), notice: notify, showFullHeight });
-  renderWallControls();
-  renderHierarchy();renderInspector();renderProposal();
-  renovationUI?.render();
-  ceilingUI.render();
-  $('#selection-status').textContent=selectionLabel();
-  renderViewportHints();
-  folioShell?.update();
 }
 store.subscribe(refresh);
 const designerHost = document.createElement('section');
@@ -1269,7 +1291,7 @@ $('#file-menu').onclick=()=>{
   $('#export-json').onclick=()=>{exportProject('project');modal.close();};$('#export-report').onclick=()=>{exportProject('report');modal.close();};$('#export-schedule').onclick=()=>{exportProject('schedule');modal.close();};
   $('#reset-apartment').onclick=()=>{if(run([{type:'replace-scene',scene:createInitialScene()}],'Restore empty apartment')){select(null);focusView();modal.close();}};
 };
-$('#file-input').onchange=async event=>{const input=event.target as HTMLInputElement;const file=input.files?.[0];if(!file)return;const baseRevision=store.revision;try{if(file.size>24_000_000)throw new Error('Project file exceeds the 24 MB limit.');const scene=await parseDatabaseScene(await file.text());if(run([{type:'replace-scene',scene}],'Import scene',baseRevision)){select(null);focusView();}}catch(error){notify(error instanceof Error?error.message:String(error),true);}finally{input.value='';}};
+$('#file-input').onchange=async event=>{const input=event.target as HTMLInputElement;const file=input.files?.[0];if(!file)return;const baseRevision=store.revision;try{if(file.size>24_000_000)throw new Error('Project file exceeds the 24 MB limit.');const scene=await parseDatabaseScene(await file.text());await new Promise<void>(resolve=>requestAnimationFrame(()=>setTimeout(resolve,0)));if(run([{type:'replace-scene',scene}],'Import scene',baseRevision)){select(null);focusView();}}catch(error){notify(error instanceof Error?error.message:String(error),true);}finally{input.value='';}};
 async function publishProgress() {
   const session = shareSession, revision = store.revision;
   if (!session || session.saving || proposalView) return;
