@@ -124,11 +124,18 @@ def run(scenario: dict, args) -> dict:
         summary["warmup"] = spike.warm_renderer(workspace, spike.scope(case, rooms)[0]).get("seconds")
     session_args = SimpleNamespace(tool_mode="default", effort=args.effort, sandbox="workspace-write",
                                    no_network=False, timeout=args.timeout, critic_rounds=args.critic_rounds,
-                                   no_critic=args.critic_rounds <= 0)
+                                   no_critic=args.critic_rounds <= 0, subagent_effort=None)
+    # As the service does: several rooms run on parallel room designers, each reviewed by the critic as it finishes
+    # (critic.Reviewer), then one cross-room critic pass on the lead thread.
+    parallel = args.parallel == "on" or (args.parallel == "auto" and len(spike.scope(case, rooms)) > 1)
+    live = parallel and args.critic_rounds > 0
+    summary["parallel"] = parallel
     brief = scenario["request"]
     turns: list[tuple[str, object, dict]] = []  # label, input, follow-up entry
     try:
-        with spike.Session(workspace, session_args, workspace / "events.jsonl") as session:
+        from contextlib import nullcontext
+        critic = spike.critic_module()
+        with spike.Session(workspace, session_args, workspace / "events.jsonl", parallel) as session:
             from openai_codex import LocalImageInput, TextInput
             first = spike.turn_text(case)
             turn_input = [LocalImageInput(path=str(SPIKE / case["image"])), TextInput(text=first)] if case.get("image") else first
@@ -143,7 +150,11 @@ def run(scenario: dict, args) -> dict:
                     (workspace / "brief.txt").write_text(brief + "\n")
                     turn_input = spike.followup_text(entry["text"])
                 before = mark(session)
-                record = session.turn(turn_input, label)
+                with (critic.Reviewer(workspace, brief) if live and label == "request" else nullcontext()) as reviewer:
+                    record = session.turn(turn_input, label)
+                if reviewer:
+                    summary["reviews"] = {room: {k: entry.get(k) for k in ("issues", "seconds", "error")}
+                                          for room, entry in reviewer.records.items()}
                 print(f"{label}: {record['status']} in {record['seconds']} s", flush=True)
                 if label == "request" and record["status"] == "completed" and spike.is_question(record["final_message"], workspace):
                     summary["question"] = record["final_message"]
@@ -155,13 +166,13 @@ def run(scenario: dict, args) -> dict:
                               "question": summary["question"]}
                     print(f"answer: {record['status']} in {asked['seconds']} s", flush=True)
                 if label == "request" and record["status"] == "completed" and args.critic_rounds > 0:
-                    critic = spike.critic_loop(session, workspace, brief, session_args, record)
-                    summary["critic"] = critic
-                    fixes = [r["fix"] for r in critic.get("rounds", []) if r.get("fix")]
+                    review = spike.critic_loop(session, workspace, brief, session_args, record, flat=live)
+                    summary["critic"] = review
+                    fixes = [r["fix"] for r in review.get("rounds", []) if r.get("fix")]
+                    record = {**record, "seconds": round(record["seconds"] + sum(f["seconds"] for f in fixes)
+                                                         + sum(r["critic_seconds"] for r in review["rounds"]), 1)}
                     if fixes:
-                        record = {**record, "final_message": fixes[-1]["final_message"] or record["final_message"],
-                                  "seconds": round(record["seconds"] + sum(f["seconds"] for f in fixes)
-                                                   + sum(r["critic_seconds"] for r in critic["rounds"]), 1)}
+                        record["final_message"] = fixes[-1]["final_message"] or record["final_message"]
                 n += 1
                 shot = snapshot(workspace, n, label, record, session, before, render)
                 shot["customer"] = entry.get("text") if entry else scenario["request"]
@@ -207,7 +218,9 @@ def main() -> int:
     parser.add_argument("--effort", default="medium", choices=("low", "medium", "high"))
     parser.add_argument("--timeout", type=float, default=None, help="wall seconds per turn (default: the scenario's, else 1500)")
     parser.add_argument("--turns", type=int, default=None, help="send only the first N follow-ups")
-    parser.add_argument("--critic-rounds", type=int, default=0, help="critic rounds after the first design (default 0)")
+    parser.add_argument("--critic-rounds", type=int, default=1, help="critic rounds after the first design (default 1, as the service)")
+    parser.add_argument("--parallel", default="auto", choices=("auto", "on", "off"),
+                        help="parallel room designers on the first design (auto: when the scenario has several rooms)")
     parser.add_argument("--no-render", action="store_true")
     parser.add_argument("--no-export", action="store_true")
     parser.add_argument("--export-dir", type=Path, default=ROOT / "apps/editor/public/demo-flats")
