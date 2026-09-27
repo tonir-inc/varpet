@@ -15,6 +15,7 @@ Writes, next to the trace:
     shell.json            the flat in metres, tidied and checked (harness/varpet_harness/shell.py)
     scene.json            the empty flat as an editor project (the editor's own export, so it opens)
     scene.furnished.json  the same with the furniture: real catalog models closest in size to each footprint
+    startup.json          scene.furnished.json plus the catalog models it uses (the editor's default flat reads this)
     review/overlay.png    the trace drawn over the plan (red walls, orange doors, blue windows, green rooms)
     review/top.png        the finished flat from above
     report.json           checks, scale, areas, furniture picks
@@ -183,7 +184,8 @@ def build(flat: Path) -> dict:
     faults = check_file(flat / "shell.json", flat / "review")  # tidies in place, like the architect's check
     shell = Shell.model_validate_json((flat / "shell.json").read_text())
     structure = to_editor(shell)
-    v1 = {"format": "varpet.editor", "version": 1, "id": flat.name, "name": flat.name, "units": "m", "upAxis": "Y",
+    title = (flat / "name.txt").read_text().strip() if (flat / "name.txt").exists() else flat.name  # shown in the editor's top bar
+    v1 = {"format": "varpet.editor", "version": 1, "id": flat.name, "name": title, "units": "m", "upAxis": "Y",
           "rooms": structure["rooms"], "walls": structure["walls"], "objects": []}
     components = structure.get("components", [])
     report = {"flat": flat.name, "scale": raw["notes"][0], "faults": faults}
@@ -191,6 +193,9 @@ def build(flat: Path) -> dict:
     objects, used, picks = furniture(svg, transform, structure["rooms"], catalog())
     report["furniture"] = picks
     report["furnished_export"] = export({**v1, "objects": objects}, components, used, flat / "scene.furnished.json", work) or "ok"
+    if report["furnished_export"] == "ok":  # what the editor needs to open it with no catalog service: the scene and its models
+        (flat / "startup.json").write_text(json.dumps({"scene": json.loads((flat / "scene.furnished.json").read_text()),
+                                                       "catalog": used}))
     printed = shell.printed
     report["rooms"] = [{"room": r.name, "m2": round(Polygon(r.polygon).area, 2),
                         "printed": (printed[r.id].area_m2 or (printed[r.id].dims_m[0] * printed[r.id].dims_m[1] if printed[r.id].dims_m else None))

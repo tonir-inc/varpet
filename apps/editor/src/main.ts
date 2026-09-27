@@ -20,6 +20,7 @@ import { CATALOG_CURRENCY } from './adapters/catalog-http';
 import { mountFolioShell } from './ui/folio-shell';
 import type { AgentProposal, CatalogAsset, EditCommand, ObjectPatch, Operation, SceneDocument, SceneObject, ToolMode, Vec3, ViewMode, ViewportLayer, WallMode } from './contracts';
 import { createInitialScene } from './core/initial-scene';
+import defaultFlat from '../../../apartments/sunday-b12121/startup.json';
 import { databaseCatalog, catalogKinds, catalogCategories, resolveSceneProducts, retainRegisteredProducts, type CatalogProduct } from './adapters/database-catalog';
 import { createApartmentStore } from './core/apartment-store';
 import { normalizeWallJunctions } from './core/wall-junctions';
@@ -154,10 +155,15 @@ const shareOwnerId = () => editorSession ? editorSession.apartment?.id ?? '__acc
 let shareSession = sharedStartup ? new SharingSession(sharedStartup.reference, sharedStartup.project) : editorSession?.sharingSession ?? null;
 const shareCreation = new ShareCreation();
 const shareAttachment = new ApartmentShareAttachment();
-let catalog: CatalogAsset[] = sharedStartup?.project.catalog ?? editorSession?.catalog.map(product => product.asset) ?? [];
-const store = createApartmentStore(sharedStartup?.project.scene ?? editorSession?.scene ?? createInitialScene(), catalog);
+// With no shared link or session, the editor opens the demo flat: Sunday Towers B12121, furnished
+// (apartments/sunday-b12121; startup.json carries the catalog models it uses, so it opens offline).
+const startupFlat = defaultFlat as unknown as { scene: SceneDocument; catalog: CatalogAsset[] };
+let catalog: CatalogAsset[] = sharedStartup?.project.catalog ?? editorSession?.catalog.map(product => product.asset) ?? startupFlat.catalog;
+const store = createApartmentStore(sharedStartup?.project.scene ?? editorSession?.scene ?? startupFlat.scene, catalog);
 const startupProducts: CatalogProduct[] = sharedStartup ? catalog.map(asset => ({ asset,
-  priceSource: 'shared project · unverified', sizeStatus: 'shared project', attribution: 'Catalog captured with the shared project' })) : editorSession?.catalog ?? [];
+  priceSource: 'shared project · unverified', sizeStatus: 'shared project', attribution: 'Catalog captured with the shared project' }))
+  : editorSession?.catalog ?? startupFlat.catalog.map(asset => ({ asset, priceSource: 'catalog · demo price', sizeStatus: 'catalog',
+    attribution: 'Amazon Berkeley Objects, CC BY 4.0' }));
 const catalogProducts = new Map<string, CatalogProduct>(startupProducts.map(product => [product.asset.id, product]));
 const designerCatalog = new DesignerProposalCatalog();
 let catalogResults: CatalogProduct[] = [];
