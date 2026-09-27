@@ -234,12 +234,13 @@ export function applySurfaces(input: SceneDocument, scene: Scene, draft: Draft):
   return doc;
 }
 
-/** The wall whose face is nearest an editor point (x, z), within 0.5 m, as a component host on the point's side. */
+/** The wall whose face is nearest an editor point (x, z), within 0.5 m and tall enough to carry the light, as a component
+ * host on the point's side. */
 function wallHost(doc: SceneDocument, [x, z]: [number, number], elevation: number): ComponentHost | undefined {
   let best: { host: ComponentHost; gap: number } | undefined;
   for (const wall of doc.walls) {
     const dx = wall.end[0] - wall.start[0], dz = wall.end[1] - wall.start[1], length = Math.hypot(dx, dz);
-    if (length < 1e-6) continue;
+    if (length < 1e-6 || wall.height < elevation + 0.3) continue;  // a parapet or railing wall lower than the light
     const along = ((x - wall.start[0]) * dx + (z - wall.start[1]) * dz) / length;
     if (along < 0 || along > length) continue;
     const across = ((x - wall.start[0]) * -dz + (z - wall.start[1]) * dx) / length;

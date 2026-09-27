@@ -76,6 +76,14 @@ test('a wall light is hosted on its nearest wall on the room side, so the editor
   expect(component('pendant').host).toBeUndefined();
 });
 
+test('a wall light skips a parapet lower than itself and takes the full-height wall behind it', async () => {
+  const flat = source();
+  flat.walls.push({ id: 'rail', start: [0.5, 2.5], end: [2.5, 2.5], height: 1.1, thickness: 0.1, color: '#ffffff', openings: [] });
+  const scene = editorToDesigner(flat);
+  const { scene: doc } = await editorDocument(scene, { items: [], lighting: [{ room_id: 'A', type: 'fixture', id: 'sconce', mount: 'wall', pos: [1.5, -2.62] }] }, flat);
+  expect(doc.project!.components.find(item => item.id === 'sconce')!.host?.wallId).toBe('north');
+});
+
 test('the spike check refuses what the editor cannot hang or stack', () => {
   const scene = editorToDesigner(source());
   const west = scene.walls.find(wall => (wall.source_id ?? wall.id) === 'west' && wall.room_id === 'A')!;
