@@ -1,4 +1,4 @@
-"""Furniture catalog MCP server (stdio). Read-only.
+"""Furniture catalog MCP server (stdio), with shared saved-flat HTTP routes.
 
 Run: uv run mcp_server.py (stdio), or with CATALOG_HTTP_HOST set for HTTP at /mcp. Needs VARPET_DB_URL.
 Sizes are metres [w, d, h]; prices whole dram. Hard constraints (kind, fit, price) are filters;
@@ -299,6 +299,22 @@ try:
                                            headers={"Cache-Control": "max-age=300"}))
 except ImportError:  # stdio-only installs
     pass
+
+
+# Saved flats use the same connection timeouts and local-origin CORS as catalog routes.
+from flats import PostgresRepository, make_route as make_flats_route
+
+flats_repository = PostgresRepository(_conn)
+for _path, _actions in (
+    ("/flats", {"GET": "list", "POST": "create"}),
+    ("/flats/{flat_id}", {"GET": "get", "PUT": "save", "PATCH": "rename", "DELETE": "delete"}),
+    ("/flats/{flat_id}/thumbnail", {"GET": "thumbnail"}),
+    ("/flats/{flat_id}/versions", {"GET": "versions"}),
+    ("/flats/{flat_id}/versions/{revision}", {"GET": "version"}),
+    ("/flats/{flat_id}/restore", {"POST": "restore"}),
+):
+    server.custom_route(_path, methods=[*_actions, "OPTIONS"])(
+        make_flats_route(flats_repository, _actions, _cors))
 
 
 MODELS_DIR = os.environ.get("CATALOG_MODELS_DIR", "/opt/varpet-catalog/models-web")

@@ -6,7 +6,7 @@ dram (mock). Details and test results: Notion, Docs / Furniture DB & search.
 ## How it runs
 
 - **Service:** `varpet-catalog` (systemd) on the team VM `mc-server`, MCP over streamable HTTP, bound to
-  the Tailscale address only: **`http://100.107.246.46:8765/mcp`**. Read-only, runs as its own user,
+  the Tailscale address only: **`http://100.107.246.46:8765/mcp`**. Catalog read-only; saved-flat writes are isolated in `flats`. Runs as its own user,
   capped at 4 GB RAM and 6 of 8 CPUs (27 Sept: raised from 2 GB / 2 CPUs for parallel room designers).
 - **Database:** Postgres 17 + pgvector on the same VM, database `varpet`, localhost only. Only the
   service talks to it.
@@ -365,3 +365,39 @@ It updates attribution and license text, preserving the first old values under
 `tags.fix_credit_20260927`; reruns preserve that backup. JPL credits do not claim
 an unrestricted public-domain license. If counts differ, inspect the printed
 matches and adjust the reviewed patterns before rerunning; do not remove the guard.
+
+## Saved flats (team workspace)
+
+The catalog service also stores shared flats in the separate `flats` Postgres schema,
+without sign-in. Catalog tables remain read-only. Scene documents (including project
+and sources) and their registered catalog assets are saved together; each flat retains
+its latest 50 revisions. Deletes hide flats without erasing history. PUT uses
+`base_revision` and returns 409 with the current revision, timestamp and author on a
+conflict. Restore copies a retained version into a new revision.
+
+Routes on the existing service: `GET/POST /flats`, `GET/PUT/PATCH/DELETE /flats/{id}`,
+`GET /flats/{id}/thumbnail`, `GET /flats/{id}/versions`,
+`GET /flats/{id}/versions/{revision}`, `POST /flats/{id}/restore` (`{revision}`).
+PATCH takes `{name}`. List excludes deleted flats unless `include_deleted=1` and
+returns metadata only. Errors use `{error:{code,message}}`. Bodies are limited to
+25 MiB (413); names to 120 characters; JPEG/PNG/WebP base64 thumbnail data URLs to
+300 KiB decoded. Version history records the author at save time; restore has no
+author input and records null. Thumbnail MIME type is stored alongside its bytes.
+
+The editor server relays `/api/flats/*` to `/flats/*`; derive the service base from
+`VARPET_CATALOG_URL` without `/mcp`, or override with `VARPET_FLATS_URL`. The browser
+uses only the same-origin relay. Access remains tailnet/tunnel-only, with the same
+local-origin CORS rule as `/editor/assets`.
+
+Before deploying, run the idempotent migration **as a database admin** from the repo root:
+
+```sh
+psql "$ADMIN_DATABASE_URL" -v ON_ERROR_STOP=1 -f catalog/fixes/2026-09-27-flats-schema.sql
+```
+
+It creates the two tables and indexes and grants `varpet_ro` and `varpet` schema usage
+and table SELECT/INSERT/UPDATE/DELETE only in `flats`; other grants are unchanged.
+Offline tests: `cd catalog && UV_OFFLINE=1 uv run --no-sync pytest -q`.
+After applying the schema, opt into real SQL tests (including concurrent saves, rollback
+and pruning) with `VARPET_FLATS_TEST_DB="$TEST_DATABASE_URL" uv run --no-sync pytest -q tests/test_flats_sql.py`
+from `catalog/`. The SQL tests clean up only their own generated flat UUIDs.
