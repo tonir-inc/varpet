@@ -1,20 +1,16 @@
 import {mountTeamApartments} from './team-apartments';
 import { api, type ApartmentSummary, type User } from './api';
 import { getTemplate, mountPlanPreview, type ApartmentTemplate } from './templates';
-import { showAuth } from './auth';
 import { icon } from '../ui/icons';
 import './portal.css';
 import { mountBlueprintLanding, type BlueprintLandingOptions } from './blueprint';
 import { setEditorSession } from './session';
 import { saveBlueprintCheckpoint, clearBlueprintCheckpoint } from './blueprint-checkpoint';
-import { mountThemeToggle } from '../ui/theme';
+import { escapeHtml, mountPortalAccount, renderPortalFooter, renderPortalHeader } from './portal-header';
 
 type PortalView = 'explore' | 'apartments';
 const mounts = new WeakMap<HTMLElement, () => void>();
 
-function escapeHtml(value: string): string {
-  return value.replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]!);
-}
 
 function bedroomLabel(bedrooms: number): string {
   return bedrooms === 0 ? 'Studio' : `${bedrooms} bedroom${bedrooms === 1 ? '' : 's'}`;
@@ -49,7 +45,7 @@ export async function mountPortal(host: HTMLElement, view: PortalView): Promise<
     if (!event.persisted) dispose();
   };
   const onPageShow = (event: PageTransitionEvent) => {
-    if (event.persisted && !disposed) void loadAccount();
+    if (event.persisted && !disposed) void account.reload();
   };
   mounts.set(host, dispose);
   window.addEventListener('pagehide', onPageHide);
@@ -57,20 +53,25 @@ export async function mountPortal(host: HTMLElement, view: PortalView): Promise<
   host.classList.add('portal-host');
   host.innerHTML = `
     <div class="portal ${view === 'explore' ? 'blueprint-home' : ''}">
-      <header class="portal-header"><div class="portal-header-inner">
-        <a class="portal-brand" href="/" aria-label="Varpet home"><span class="portal-brand-mark" aria-hidden="true">v</span>varpet</a>
-        <nav class="portal-nav" aria-label="Main navigation"><a href="/" ${view === 'explore' ? 'aria-current="page"' : ''}>Start with a plan</a><a href="/?editor=sandbox" title="Explore an empty apartment and save to the team">Sandbox</a><a href="/?view=apartments" ${view === 'apartments' ? 'aria-current="page"' : ''}>Saved apartments</a></nav>
-        <div class="portal-account"><span class="portal-account-loading" role="status">Checking account…</span></div>
-      </div></header>
-      <div class="portal-notice" role="status" hidden></div>
+      ${renderPortalHeader(view)}
       <main class="portal-main" id="portal-main"></main>
-      <footer class="portal-footer"><a class="portal-brand" href="/" aria-label="Varpet home"><span class="portal-brand-mark" aria-hidden="true">v</span>varpet</a><p>A little planning. A place that feels like you.</p><span>Made for living.</span></footer>
+      ${renderPortalFooter()}
     </div>`;
 
   const main = host.querySelector<HTMLElement>('.portal-main')!;
-  const account = host.querySelector<HTMLElement>('.portal-account')!;
-  const notice = host.querySelector<HTMLElement>('.portal-notice')!;
-  disposers.push(mountThemeToggle(host.querySelector<HTMLElement>('.portal-header-inner')!));
+  const account = mountPortalAccount(host, {
+    showSignup: view === 'apartments',
+    onUser: async (user) => {
+      ++requestVersion;
+      currentUser = user;
+      if (view === 'apartments') await renderApartments();
+    },
+    onUnavailable: async () => {
+      const version = ++requestVersion;
+      if (view === 'apartments') await mountTeamApartments(main, () => !disposed && version === requestVersion);
+    },
+  });
+  disposers.push(() => account.dispose());
 
   function preview(element: HTMLElement, template: ApartmentTemplate, target: Array<() => void> = disposers): void {
     element.setAttribute('role', 'img');
@@ -185,61 +186,7 @@ export async function mountPortal(host: HTMLElement, view: PortalView): Promise<
     return `<article class="portal-apartment-card"><div class="portal-card-stage"><div class="portal-preview" data-saved-preview="${index}">${template && index < 8 ? '' : `<div class="portal-preview-fallback">${icon('home')}<span>${template ? escapeHtml(template.name) : 'Your apartment'}</span></div>`}</div><span class="portal-card-badge">${template ? 'Original floor plan' : 'Saved apartment'}</span></div><div class="portal-card-body"><p class="portal-kicker">${escapeHtml(formatDate(apartment.updatedAt))}</p><h3>${escapeHtml(apartment.name)}</h3><p class="portal-location">${template ? `Started from ${escapeHtml(template.name)}` : 'Your personal project'}</p><div class="portal-card-bottom"><span class="portal-saved-state">${icon('save')}Saved in your account</span><a class="portal-card-link" href="/?apartment=${encodeURIComponent(apartment.id)}" aria-label="Open ${escapeHtml(apartment.name)}">Open apartment${icon('arrow')}</a></div></div></article>`;
   }
 
-  function renderAccount(): void {
-    account.innerHTML = currentUser
-      ? `<a class="portal-account-profile" href="/?view=apartments" aria-label="${escapeHtml(currentUser.name)}’s apartments"><span class="portal-avatar" aria-hidden="true">${escapeHtml(currentUser.name.charAt(0).toUpperCase())}</span><span>${escapeHtml(currentUser.name)}</span></a><button class="portal-text-button portal-signout" type="button">Sign out</button>`
-      : `<button class="portal-text-button" type="button" data-login>Sign in</button>${view === 'apartments' ? '<button class="portal-button portal-header-signup" type="button" data-register>Create account</button>' : ''}`;
-    account.querySelector('[data-login]')?.addEventListener('click', () => authenticate('login'));
-    account.querySelector('[data-register]')?.addEventListener('click', () => authenticate('register'));
-    account.querySelector('.portal-signout')?.addEventListener('click', async (event) => {
-      const button = event.currentTarget as HTMLButtonElement;
-      button.disabled = true;
-      try {
-        await api.logout();
-        if (disposed) return;
-        currentUser = null;
-        notice.hidden = true;
-        renderAccount();
-        if (view === 'apartments') await renderApartments();
-      } catch (cause) {
-        if (disposed) return;
-        notice.textContent = cause instanceof Error ? cause.message : 'We could not sign you out. Please try again.';
-        notice.hidden = false;
-        button.disabled = false;
-      }
-    });
-  }
-
-  async function authenticate(mode: 'login' | 'register'): Promise<void> {
-    const user = await showAuth(mode);
-    if (!user || disposed) return;
-    ++requestVersion;
-    currentUser = user;
-    notice.hidden = true;
-    renderAccount();
-    if (view === 'apartments') await renderApartments();
-  }
-
-  async function loadAccount(): Promise<void> {
-    const version = ++requestVersion;
-    try {
-      const user = await api.session();
-      if (disposed || version !== requestVersion) return;
-      currentUser = user;
-      notice.hidden = true;
-      renderAccount();
-      if (view === 'apartments') await renderApartments();
-    } catch {
-      if (disposed || version !== requestVersion) return;
-      account.innerHTML = '<button class="portal-text-button" type="button" data-account-retry>Reconnect account</button>';
-      account.querySelector('[data-account-retry]')!.addEventListener('click', () => { void loadAccount(); });
-      if (view === 'apartments') {
-        await mountTeamApartments(main, () => !disposed && version === requestVersion);
-      }
-    }
-  }
-
   if (view === 'explore') renderExplore();
   else main.innerHTML = `${profileHeading()}<div class="portal-profile-status" role="status">Checking your account…</div>`;
-  await loadAccount();
+  await account.reload();
 }

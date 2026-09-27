@@ -36,6 +36,8 @@ export interface BlueprintLandingOptions {
   /** `presentation` carries the construction view's ground and camera into the editor's first frame. */
   openProject(scene: SceneDocument, catalog: CatalogProduct[], presentation?: EditorPresentation): Promise<void>;
   /** Explicit local preview dependency; the ordinary upload always uses the live build. */
+  /** `developer`: a developer's studio upload, published to their profile afterwards. Changes copy only. */
+  audience?: 'developer';
   preview?: {
     build: typeof startBlueprintBuild;
     catalog: CatalogProduct[];
@@ -49,11 +51,16 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
   const pasteShortcut = /Mac|iPhone|iPad|iPod/.test(navigator.platform) ? '⌘V' : 'Ctrl+V';
   const reducedQuery = typeof matchMedia === 'function' ? matchMedia('(prefers-reduced-motion: reduce)') : undefined;
   const reduced = () => reducedQuery?.matches ?? false;
+  const developer = options.audience === 'developer';
   host.innerHTML = `
     <section class="blueprint-welcome" aria-labelledby="blueprint-title">
-      <div class="blueprint-heading"><p class="blueprint-eyebrow"><span></span>A LITTLE PLAN. A WHOLE NEW PERSPECTIVE.</p>
+      <div class="blueprint-heading">${developer
+          ? `<p class="blueprint-eyebrow"><span></span>DEVELOPER STUDIO · NEW PLAN</p>
+        <h1 id="blueprint-title">Add a plan to <em>your profile.</em></h1>
+        <p>Drop a floor plan. We build it in 3D, you design it, then publish it.</p>`
+          : `<p class="blueprint-eyebrow"><span></span>A LITTLE PLAN. A WHOLE NEW PERSPECTIVE.</p>
         <h1 id="blueprint-title">It starts with <em>a plan.</em></h1>
-        <p>Drop your blueprint. We’ll start reading it right away.</p></div>
+        <p>Drop your blueprint. We’ll start reading it right away.</p>`}</div>
       <div class="blueprint-drawing">
         <div class="blueprint-board" style="--paper:${PAPER}">
           <div class="bp-grid" aria-hidden="true"></div>
@@ -74,18 +81,20 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
           <input type="file" class="blueprint-file-input" accept="image/jpeg,image/png,image/webp,application/pdf" hidden>
         </div>
       </div>
-      <p class="blueprint-build-note" id="blueprint-upload-notice">Upload only plans and photos of a home you own or rent. They are sent to OpenAI as soon as you add them to rebuild your flat, and photo location data is removed first.</p>
+      <p class="blueprint-build-note" id="blueprint-upload-notice">${developer
+        ? 'Upload only plans your company may publish. They are sent to OpenAI as soon as you add them to build the 3D model, with image metadata removed first. Nothing is public until you publish it.'
+        : 'Upload only plans and photos of a home you own or rent. They are sent to OpenAI as soon as you add them to rebuild your flat, and photo location data is removed first.'}</p>
       <div class="blueprint-next" hidden>
         <small class="blueprint-pdf-note" role="status" hidden></small>
         <div class="blueprint-file"><span>${icon('layers')}<strong></strong></span><button type="button" data-change>Change plan</button></div>
         <div class="blueprint-photos"><button type="button" data-photos>${icon('plus')} Add room photos <span>optional</span></button><input type="file" accept="image/jpeg,image/png,image/webp" multiple hidden><div class="blueprint-photo-list"></div></div>
         <button type="button" class="portal-button portal-primary blueprint-build" disabled>Bring my plan to life ${icon('arrow')}</button>
-        <p class="blueprint-build-note" role="status">A few minutes to build. Yours to review and make your own.</p>
+        <p class="blueprint-build-note" role="status">${developer ? 'A few minutes to build. Design it, then publish it to your profile.' : 'A few minutes to build. Yours to review and make your own.'}</p>
       </div>
       <p class="blueprint-error" role="alert" hidden></p>
       <div class="blueprint-bottom"><span>${icon('layers')} Your plan</span><i></i><span>${icon('walls')} A space in 3D</span><i></i><span>${icon('home')} Make it yours</span></div>
-      <details class="blueprint-samples"><summary>No plan handy? <span>Try a sample ${icon('arrow')}</span></summary><div>${apartmentTemplates.map((template, index) => `<button type="button" data-sample="${index}">${escape(template.name)}<span>${template.area} m² ${icon('arrow')}</span></button>`).join('')}</div></details>
-      <p class="blueprint-watch"><a href="/?editor&session=sunday-b12121">Watch the designer furnish Sunday Towers ${icon('arrow')}</a></p>
+      ${developer ? '' : `<details class="blueprint-samples"><summary>No plan handy? <span>Try a sample ${icon('arrow')}</span></summary><div>${apartmentTemplates.map((template, index) => `<button type="button" data-sample="${index}">${escape(template.name)}<span>${template.area} m² ${icon('arrow')}</span></button>`).join('')}</div></details>
+      <p class="blueprint-watch"><a href="/?editor&session=sunday-b12121">Watch the designer furnish Sunday Towers ${icon('arrow')}</a></p>`}
     </section>
     <section class="blueprint-flow" aria-label="Your apartment taking shape" style="--paper:${PAPER}" hidden>
       <div class="blueprint-stage"></div>
@@ -390,7 +399,7 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
   welcome.addEventListener('dragover', onDrag);
   welcome.addEventListener('drop', onDrop);
   window.addEventListener('paste', onPaste);
-  q('.blueprint-samples').querySelectorAll<HTMLButtonElement>('[data-sample]').forEach(button => {
+  host.querySelector('.blueprint-samples')?.querySelectorAll<HTMLButtonElement>('[data-sample]').forEach(button => {
     button.onclick = () => options.showSample(apartmentTemplates[Number(button.dataset.sample)]!);
   });
 
