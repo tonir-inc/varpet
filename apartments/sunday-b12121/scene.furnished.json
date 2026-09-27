@@ -1628,29 +1628,13 @@
       ]
     },
     {
-      "id": "f-tv-unit",
-      "name": "TV console",
-      "assetId": "abo:B074KMW499",
-      "position": [
-        0.359,
-        0,
-        6.4518
-      ],
-      "rotation": 1.5707963267948966,
-      "scale": [
-        1,
-        1,
-        1
-      ]
-    },
-    {
       "id": "f-stool-0",
       "name": "Counter stool",
       "assetId": "abo:B0853KM5Q3",
       "position": [
-        4.4416,
+        4.24,
         0,
-        5.6864
+        5.95
       ],
       "rotation": 1.5707963267948966,
       "scale": [
@@ -1664,9 +1648,9 @@
       "name": "Counter stool",
       "assetId": "abo:B0853KM5Q3",
       "position": [
-        4.4416,
+        4.24,
         0,
-        6.1967
+        6.65
       ],
       "rotation": 1.5707963267948966,
       "scale": [
@@ -1680,43 +1664,11 @@
       "name": "Counter stool",
       "assetId": "abo:B0853KM5Q3",
       "position": [
-        4.4416,
+        4.24,
         0,
-        6.707
+        7.35
       ],
       "rotation": 1.5707963267948966,
-      "scale": [
-        1,
-        1,
-        1
-      ]
-    },
-    {
-      "id": "f-stool-3",
-      "name": "Counter stool",
-      "assetId": "abo:B0853KM5Q3",
-      "position": [
-        4.4416,
-        0,
-        7.2173
-      ],
-      "rotation": 1.5707963267948966,
-      "scale": [
-        1,
-        1,
-        1
-      ]
-    },
-    {
-      "id": "f-entry-wardrobe",
-      "name": "Wardrobe",
-      "assetId": "abo:B07GFS1VB6",
-      "position": [
-        1.1664,
-        0,
-        10.024
-      ],
-      "rotation": 0,
       "scale": [
         1,
         1,
@@ -1747,38 +1699,6 @@
         8.3527,
         0,
         4.7058
-      ],
-      "rotation": 1.5707963267948966,
-      "scale": [
-        1,
-        1,
-        1
-      ]
-    },
-    {
-      "id": "f-bedside-11a",
-      "name": "Nightstand",
-      "assetId": "abo:B07B4W2FFY",
-      "position": [
-        7.5253,
-        0,
-        3.6743
-      ],
-      "rotation": 1.5707963267948966,
-      "scale": [
-        1,
-        1,
-        1
-      ]
-    },
-    {
-      "id": "f-bedside-11b",
-      "name": "Nightstand",
-      "assetId": "abo:B07B4W2FFY",
-      "position": [
-        7.5253,
-        0,
-        5.7374
       ],
       "rotation": 1.5707963267948966,
       "scale": [
@@ -1820,38 +1740,6 @@
       ]
     },
     {
-      "id": "f-wardrobe-11",
-      "name": "Wardrobe",
-      "assetId": "abo:B07GFS1VB6",
-      "position": [
-        8.2033,
-        0,
-        6.8418
-      ],
-      "rotation": 3.141592653589793,
-      "scale": [
-        1,
-        1,
-        1
-      ]
-    },
-    {
-      "id": "f-bookcase-11",
-      "name": "Bookcase",
-      "assetId": "abo:B075ZBW22K",
-      "position": [
-        9.4353,
-        0,
-        6.9403
-      ],
-      "rotation": 3.141592653589793,
-      "scale": [
-        1,
-        1,
-        1
-      ]
-    },
-    {
       "id": "f-rug-6",
       "name": "Bedroom rug",
       "assetId": "abo:B07QHL6SF2",
@@ -1875,38 +1763,6 @@
         6.1365,
         0,
         17.686
-      ],
-      "rotation": -1.5707963267948966,
-      "scale": [
-        1,
-        1,
-        1
-      ]
-    },
-    {
-      "id": "f-bedside-6a",
-      "name": "Nightstand",
-      "assetId": "abo:B07B4W2FFY",
-      "position": [
-        6.964,
-        0,
-        16.6617
-      ],
-      "rotation": -1.5707963267948966,
-      "scale": [
-        1,
-        1,
-        1
-      ]
-    },
-    {
-      "id": "f-bedside-6b",
-      "name": "Nightstand",
-      "assetId": "abo:B07B4W2FFY",
-      "position": [
-        6.964,
-        0,
-        18.7103
       ],
       "rotation": -1.5707963267948966,
       "scale": [
@@ -1980,38 +1836,6 @@
       ]
     },
     {
-      "id": "f-bedside-9a",
-      "name": "Nightstand",
-      "assetId": "abo:B07B4W2FFY",
-      "position": [
-        7.5253,
-        0,
-        16.6617
-      ],
-      "rotation": 1.5707963267948966,
-      "scale": [
-        1,
-        1,
-        1
-      ]
-    },
-    {
-      "id": "f-bedside-9b",
-      "name": "Nightstand",
-      "assetId": "abo:B07B4W2FFY",
-      "position": [
-        7.5253,
-        0,
-        18.7103
-      ],
-      "rotation": 1.5707963267948966,
-      "scale": [
-        1,
-        1,
-        1
-      ]
-    },
-    {
       "id": "f-desk-9",
       "name": "Desk",
       "assetId": "abo:B075ZBW1SN",
@@ -2035,38 +1859,6 @@
         10.3138,
         0,
         18.5353
-      ],
-      "rotation": 0,
-      "scale": [
-        1,
-        1,
-        1
-      ]
-    },
-    {
-      "id": "f-wardrobe-9",
-      "name": "Wardrobe",
-      "assetId": "abo:B07GFS1VB6",
-      "position": [
-        8.2033,
-        0,
-        15.1818
-      ],
-      "rotation": 0,
-      "scale": [
-        1,
-        1,
-        1
-      ]
-    },
-    {
-      "id": "f-bookcase-9",
-      "name": "Bookcase",
-      "assetId": "abo:B075ZBW22K",
-      "position": [
-        9.4353,
-        0,
-        15.0834
       ],
       "rotation": 0,
       "scale": [
@@ -2195,6 +1987,54 @@
         9.1547,
         0,
         20.1793
+      ],
+      "rotation": 3.141592653589793,
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "id": "k-run",
+      "name": "Kitchen run",
+      "assetId": "varpet:sunday-b12121:kitchen-run",
+      "position": [
+        6.8765,
+        0,
+        6.745
+      ],
+      "rotation": -1.5707963267948966,
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "id": "k-island",
+      "name": "Kitchen island",
+      "assetId": "varpet:sunday-b12121:kitchen-island",
+      "position": [
+        4.9028,
+        0,
+        6.65
+      ],
+      "rotation": 1.5707963267948966,
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "id": "k-larder",
+      "name": "Oak larder with coffee niche",
+      "assetId": "varpet:sunday-b12121:kitchen-larder",
+      "position": [
+        5.3075,
+        0,
+        9.2832
       ],
       "rotation": 3.141592653589793,
       "scale": [
@@ -2459,291 +2299,6 @@
       }
     },
     "components": [
-      {
-        "id": "fx-kitchen-run-1",
-        "name": "Kitchen run",
-        "kind": "cabinet",
-        "position": [
-          6.8382,
-          0,
-          4.7769
-        ],
-        "dimensions": [
-          0.849,
-          0.9,
-          0.688
-        ],
-        "rotation": -1.5708,
-        "color": "#f4f4f2",
-        "phase": "existing",
-        "roomId": "r-kitchen"
-      },
-      {
-        "id": "fx-kitchen-run-2",
-        "name": "Kitchen run",
-        "kind": "cabinet",
-        "position": [
-          6.8382,
-          0,
-          6.5794
-        ],
-        "dimensions": [
-          0.926,
-          0.9,
-          0.688
-        ],
-        "rotation": -1.5708,
-        "color": "#f4f4f2",
-        "phase": "existing",
-        "roomId": "r-kitchen"
-      },
-      {
-        "id": "fx-kitchen-run-3",
-        "name": "Kitchen run",
-        "kind": "cabinet",
-        "position": [
-          6.8382,
-          0,
-          8.2106
-        ],
-        "dimensions": [
-          1.09,
-          0.9,
-          0.688
-        ],
-        "rotation": -1.5708,
-        "color": "#f4f4f2",
-        "phase": "existing",
-        "roomId": "r-kitchen"
-      },
-      {
-        "id": "fx-kitchen-return",
-        "name": "Kitchen corner run",
-        "kind": "cabinet",
-        "position": [
-          6.5225,
-          0,
-          8.9578
-        ],
-        "dimensions": [
-          1.32,
-          0.9,
-          0.361
-        ],
-        "rotation": 3.1416,
-        "color": "#f4f4f2",
-        "phase": "existing",
-        "roomId": "r-kitchen"
-      },
-      {
-        "id": "fx-kitchen-sink",
-        "name": "Kitchen sink",
-        "kind": "sink",
-        "position": [
-          6.8382,
-          0,
-          5.659
-        ],
-        "dimensions": [
-          0.871,
-          0.85,
-          0.688
-        ],
-        "rotation": -1.5708,
-        "color": "#f4f4f2",
-        "phase": "existing",
-        "roomId": "r-kitchen"
-      },
-      {
-        "id": "fx-hob",
-        "name": "Hob",
-        "kind": "appliance",
-        "position": [
-          6.8382,
-          0,
-          7.354
-        ],
-        "dimensions": [
-          0.688,
-          0.85,
-          0.58
-        ],
-        "rotation": 0,
-        "color": "#f4f4f2",
-        "phase": "existing",
-        "roomId": "r-kitchen"
-      },
-      {
-        "id": "fx-island",
-        "name": "Kitchen island",
-        "kind": "worktop",
-        "position": [
-          5.152,
-          0,
-          6.4883
-        ],
-        "dimensions": [
-          2.092,
-          0.9,
-          0.853
-        ],
-        "rotation": -1.5708,
-        "color": "#f4f4f2",
-        "phase": "existing",
-        "roomId": "r-kitchen"
-      },
-      {
-        "id": "fx-pantry",
-        "name": "Utility cabinet",
-        "kind": "cabinet",
-        "position": [
-          5.3073,
-          0,
-          9.1984
-        ],
-        "dimensions": [
-          1.067,
-          0.9,
-          0.769
-        ],
-        "rotation": 3.1416,
-        "color": "#f4f4f2",
-        "phase": "existing",
-        "roomId": "r-kitchen"
-      },
-      {
-        "id": "fx-hall-wardrobe-1",
-        "name": "Hall wardrobe",
-        "kind": "cabinet",
-        "position": [
-          6.5648,
-          0,
-          9.4754
-        ],
-        "dimensions": [
-          1.235,
-          0.9,
-          0.426
-        ],
-        "rotation": 0,
-        "color": "#f4f4f2",
-        "phase": "existing",
-        "roomId": "r-closet-1"
-      },
-      {
-        "id": "fx-bed11-closet",
-        "name": "Closet",
-        "kind": "cabinet",
-        "position": [
-          8.114,
-          0,
-          9.4754
-        ],
-        "dimensions": [
-          1.616,
-          0.9,
-          0.426
-        ],
-        "rotation": 0,
-        "color": "#f4f4f2",
-        "phase": "existing",
-        "roomId": "r-bedroom-11"
-      },
-      {
-        "id": "fx-living-wardrobe",
-        "name": "Living storage wall",
-        "kind": "cabinet",
-        "position": [
-          1.1664,
-          0,
-          9.2476
-        ],
-        "dimensions": [
-          2.009,
-          0.9,
-          0.671
-        ],
-        "rotation": 3.1416,
-        "color": "#f4f4f2",
-        "phase": "existing",
-        "roomId": "r-living"
-      },
-      {
-        "id": "fx-entry-wardrobe",
-        "name": "Entrance wardrobe",
-        "kind": "cabinet",
-        "position": [
-          1.1169,
-          0,
-          12.5246
-        ],
-        "dimensions": [
-          1.91,
-          0.9,
-          0.671
-        ],
-        "rotation": 3.1416,
-        "color": "#f4f4f2",
-        "phase": "existing",
-        "roomId": "r-closet-2"
-      },
-      {
-        "id": "fx-hall-wardrobe-2",
-        "name": "Hall wardrobe",
-        "kind": "cabinet",
-        "position": [
-          6.1763,
-          0,
-          12.4006
-        ],
-        "dimensions": [
-          2.012,
-          0.9,
-          0.423
-        ],
-        "rotation": 3.1416,
-        "color": "#f4f4f2",
-        "phase": "existing",
-        "roomId": "r-closet-3"
-      },
-      {
-        "id": "fx-bed9-closet",
-        "name": "Closet",
-        "kind": "cabinet",
-        "position": [
-          8.114,
-          0,
-          12.4006
-        ],
-        "dimensions": [
-          1.616,
-          0.9,
-          0.423
-        ],
-        "rotation": 3.1416,
-        "color": "#f4f4f2",
-        "phase": "existing",
-        "roomId": "r-bedroom-9"
-      },
-      {
-        "id": "fx-bal4-store",
-        "name": "Balcony storage",
-        "kind": "cabinet",
-        "position": [
-          6.696,
-          0,
-          3.1494
-        ],
-        "dimensions": [
-          1.597,
-          0.9,
-          0.413
-        ],
-        "rotation": -1.5708,
-        "color": "#f4f4f2",
-        "phase": "existing",
-        "roomId": "r-balcony-4"
-      },
       {
         "id": "fx-bath5-duct",
         "name": "Service duct",

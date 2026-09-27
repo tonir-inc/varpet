@@ -174,7 +174,7 @@ const store = createApartmentStore(sharedStartup?.project.scene ?? teamStartup?.
 const startupProducts: CatalogProduct[] = sharedStartup ? catalog.map(asset => ({ asset,
   priceSource: 'shared project · unverified', sizeStatus: 'shared project', attribution: 'Catalog captured with the shared project' }))
   : teamStartup?.catalog ?? startupSession?.catalog ?? startupFlat.catalog.map(asset => ({ asset, priceSource: 'catalog · demo price', sizeStatus: 'catalog',
-    attribution: 'Amazon Berkeley Objects, CC BY 4.0' }));
+    attribution: asset.id.startsWith('abo:') ? 'Amazon Berkeley Objects, CC BY 4.0' : 'Made to measure for this flat (varpet)' }));
 const catalogProducts = new Map<string, CatalogProduct>(startupProducts.map(product => [product.asset.id, product]));
 const designerCatalog = new DesignerProposalCatalog();
 let catalogResults: CatalogProduct[] = [];
