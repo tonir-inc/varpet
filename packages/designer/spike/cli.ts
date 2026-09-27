@@ -249,7 +249,7 @@ async function main(): Promise<number> {
       const spec = { wall: flag('wall'), window: flag('window'), corner: bool('corner'), beside: flag('beside'), side: side as 'left' | 'right' | 'front' | 'back' | undefined,
         facing: flag('facing'), centeredOn: flag('centered-on'), gap: num('gap'), rot: num('rot'), center: bool('center'),
         at: atXY ? atXY.split(',').map(Number) as [number, number] : undefined, notWall: flag('not-wall')?.split(',') };
-      const add = bool('add');
+      const add = bool('add'); // --force adds A even with problems
       let result: { candidates: import('./lib/place.ts').Candidate[]; reason?: string };
       if (cmd === 'place') {
         const sku = flag('sku');
@@ -270,6 +270,10 @@ async function main(): Promise<number> {
       }
       if (!result.candidates.length) { say(`no pose found: ${result.reason ?? 'no candidate'}`); return 1; }
       result.candidates.forEach((c, n) => say(P.describeCandidate(c, String.fromCharCode(65 + n))));
+      if (add && result.candidates[0]!.problems.length && !bool('force')) {
+        say('not added: no option passes. Free the space it needs, try another --wall/--at/--beside, a smaller piece, or --force to add A anyway and fix by hand');
+        return 1;
+      }
       if (add) {
         const best = result.candidates[0]!;
         const file = loadDraft(draftPath);

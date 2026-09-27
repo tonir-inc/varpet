@@ -37,11 +37,6 @@ gives (six for board games, a table for eight, two monitors, a bed per child) an
 table or desk; `sleepers` = bed places, a bed 1.2 m or wider sleeps two; `pieces` = the piece count of a finished
 room from "How to work", e.g. living 14, bedroom 9, hall 4). Change it only when the customer does.
 
-Then, still in one step, write `catalog/wishlist.json` with every piece every room needs (the lounge, dining,
-bed and desk anchors and their companions, storage, lamps, rugs, curtains, decor, plants): `[{"room": "<room
-id>", "kind": "sofa", "text": "walnut mid-century", "max_w": 2.2, "max_price": 600000}, ...]` (about 8-15 per
-room, `limit` 6 by default) and run `./varpet prefetch`: it runs them all at once and writes
-`catalog/<room id>.md`, which each room designer reads instead of searching again.
 
 Then design the rooms in parallel if you have the `spawn_agent` tool (you are asked to delegate here): right
 after plan.md and requirements.json, in one step, spawn one sub-agent per main room (living, bedrooms, study or
@@ -50,7 +45,7 @@ balconies), up to 5 at once, `fork_turns: "all"`; spawn any further room as soon
 the task_name is the room id; the message names the room id and name, who uses it and how, its style notes from
 plan.md, and ends: "Design only this room (or these small rooms), as fully
 as the studio instructions ask. Work with `./varpet ... --part <room id>` and write only `rooms/<room id>.json`; `./varpet requirements --part <room id>`
-lists what the brief needs there; `catalog/<room id>.md` holds your first catalog picks."
+lists what the brief needs there."
 While they work, do nothing but wait (wait_agent). Wait until EVERY sub-agent has finished (wait_agent) before you run
 `./varpet merge`: merge removes the room files. A finished sub-agent's room is done: do not redesign it or
 re-search its pieces. Then run `./varpet merge` (folds `rooms/*.json` into
@@ -94,7 +89,8 @@ first, finishing each (check OK, render, fix) before the next.
     dining `--anchor <table> --chair <sku> --chairs N [--pendant]`; bed `--anchor <bed> [--nightstand] [--lamp]
     [--rug]`; desk `--anchor <desk> [--chair] [--monitor <sku> --monitors 2] [--lamp]` (beside a window, no
     glare). It picks the spot; `--wall <wall id>`, `--window <id>` or `--at x,y --rot r` choose it. It prints up
-    to three checked options (A is added) with any problems left. Place the biggest group first.
+    to three checked options and adds A only if it passes (else says why; `--force` adds it anyway). Place the
+    biggest group first; in a small room place the bed(s) first. Small decor goes `on` a surface by hand.
   - `./varpet place --room <room> --sku <sku> --add` with `--wall <wall id>` | `--corner` | `--beside <id> --side
     left|right|front|back [--gap 0.1]` | `--facing <id>` | `--window <id>` | `--centered-on <id>` | `--at x,y --rot r`:
     one piece at checked poses (clearances shown). Use these two first; hand-tune coordinates only after.
