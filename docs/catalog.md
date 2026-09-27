@@ -7,7 +7,7 @@ dram (mock). Details and test results: Notion, Docs / Furniture DB & search.
 
 - **Service:** `varpet-catalog` (systemd) on the team VM `mc-server`, MCP over streamable HTTP, bound to
   the Tailscale address only: **`http://100.107.246.46:8765/mcp`**. Read-only, runs as its own user,
-  capped at 2 GB RAM and 2 CPUs (the box is shared).
+  capped at 4 GB RAM and 6 of 8 CPUs (27 Sept: raised from 2 GB / 2 CPUs for parallel room designers).
 - **Database:** Postgres 17 + pgvector on the same VM, database `varpet`, localhost only. Only the
   service talks to it.
 - **Tools:** `list_vocab`, `search_furniture`, `find_similar`, `get_item`, `check_fit`.

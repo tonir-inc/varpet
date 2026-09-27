@@ -3,9 +3,11 @@
 Every soft signal is optional and switchable so approaches can be compared on the eval set:
   colour_mode: listing | image | both      text_mode: fts | vector | both
 """
+import functools
 import json
 import os
 import re
+import time
 import threading
 from dataclasses import dataclass, field
 
@@ -217,9 +219,16 @@ OPENAI_TEXT = "text-embedding-3-large"
 
 
 def _text_vec(conn, text, model):
-    """Embed the query text with the same SigLIP model (lazy import: torch is heavy)."""
-    import embed_siglip_query
-    return embed_siglip_query.text(text, model)
+    """Embed the query text with the same SigLIP model; parallel room designers repeat queries, so cache them."""
+    return _cached_text_vec(" ".join(text.lower().split()), model)
+
+
+@functools.lru_cache(maxsize=4096)
+def _cached_text_vec(text, model):
+    import embed_siglip_query  # lazy: torch is heavy
+    vec = embed_siglip_query.text(text, model)
+    vec.setflags(write=False)
+    return vec
 
 
 def _openai_vec(text):
@@ -228,9 +237,19 @@ def _openai_vec(text):
     return np.array(embed_openrouter.embed([text], f"openai/{OPENAI_TEXT}")[0])
 
 
+KIND_TTL_S = 60
+_KINDS = {}
+
+
 def kind_counts(conn):
-    """Shared vocabulary for validation and MCP list_vocab."""
-    return dict(conn.execute("select kind, count(*) from item group by 1 order by 2 desc").fetchall())
+    """Shared vocabulary for validation and MCP list_vocab; recounted at most once a minute (it ran on every search)."""
+    now = time.monotonic()
+    hit = _KINDS.get("v")
+    if hit and now - hit[0] < KIND_TTL_S:
+        return dict(hit[1])
+    counts = dict(conn.execute("select kind, count(*) from item group by 1 order by 2 desc").fetchall())
+    _KINDS["v"] = (now, counts)
+    return dict(counts)
 
 
 def validate_query(q):

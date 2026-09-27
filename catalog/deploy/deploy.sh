@@ -24,7 +24,7 @@ vm 'set -euo pipefail
 rsync -az --delete -e "ssh -i $KEY" --exclude .venv --exclude data --exclude eval/sheets --exclude __pycache__ \
   ./ "$HOST:/opt/varpet-catalog/app/"
 # The secret travels on stdin, never in the local or remote ssh argv.
-printf 'VARPET_DB_URL=postgresql://varpet:%s@localhost:5432/varpet\nCATALOG_HTTP_HOST=%s\nCATALOG_HTTP_PORT=8765\nHF_HOME=/opt/varpet-catalog/hf\nUV_CACHE_DIR=/opt/varpet-catalog/uv-cache\nOMP_NUM_THREADS=2\nSIGLIP_DIR=/opt/varpet-catalog/models\n' "$PW" "$TS_IP" |
+printf 'VARPET_DB_URL=postgresql://varpet:%s@localhost:5432/varpet\nCATALOG_HTTP_HOST=%s\nCATALOG_HTTP_PORT=8765\nHF_HOME=/opt/varpet-catalog/hf\nUV_CACHE_DIR=/opt/varpet-catalog/uv-cache\nOMP_NUM_THREADS=4\nSIGLIP_DIR=/opt/varpet-catalog/models\n' "$PW" "$TS_IP" |
   vm 'set -euo pipefail; sudo -n tee /etc/varpet-catalog.env >/dev/null'
 vm "set -euo pipefail
     sudo -n chown root:varpet-catalog /etc/varpet-catalog.env && sudo -n chmod 640 /etc/varpet-catalog.env
