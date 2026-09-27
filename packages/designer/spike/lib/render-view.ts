@@ -22,35 +22,44 @@ const here = dirname(fileURLToPath(import.meta.url));
 const designerRoot = resolve(here, '../..');
 const LOG = STATE_FILE.replace(/\.json$/, '.log');
 
-async function ping(): Promise<number | null> {
+/** The running daemon's port, and whether it runs older code than this checkout. */
+async function ping(): Promise<{ port: number; stale: boolean } | null> {
   try {
     const { port, version } = JSON.parse(await readFile(STATE_FILE, 'utf8')) as { port: number; version?: number };
     const response = await fetch(`http://127.0.0.1:${port}/ping`, { signal: AbortSignal.timeout(1500) });
-    if (response.ok && version !== codeVersion()) {
-      // Code changed since the daemon started: stop it so the next call starts a fresh one.
-      await fetch(`http://127.0.0.1:${port}/shutdown`, { method: 'POST' }).catch(() => {});
-      await new Promise(r => setTimeout(r, 500));
-      return null;
-    }
-    return response.ok ? port : null;
+    return response.ok ? { port, stale: version !== codeVersion() } : null;
   } catch { return null; }
 }
 
 async function daemon(): Promise<number> {
   const warm = await ping();
-  if (warm) return warm;
+  if (warm && !warm.stale) return warm.port;
+  // Code changed since the daemon started: start a fresh one, then stop the old one. A sandboxed caller cannot start
+  // Chrome, so it keeps using the stale daemon instead of losing every render until someone outside restarts it.
+  try {
+    const port = await spawnDaemon(warm?.port);
+    if (warm) await fetch(`http://127.0.0.1:${warm.port}/shutdown`, { method: 'POST' }).catch(() => {});
+    return port;
+  } catch (error) {
+    if (warm) { process.stderr.write(`renderView: could not restart the render daemon (${error instanceof Error ? error.message : error}); using the running one\n`); return warm.port; }
+    throw error;
+  }
+}
+
+async function spawnDaemon(previous?: number): Promise<number> {
   const tsx = resolve(designerRoot, 'node_modules/.bin/tsx');
   if (!existsSync(tsx)) throw new Error(`renderView needs tsx at ${tsx} (pnpm install)`);
   const log = openSync(LOG, 'a');
   const child = spawn(tsx, [resolve(here, 'view/server.ts')], { detached: true, stdio: ['ignore', log, log] });
   let exited = false;
   child.on('exit', () => { exited = true; });
+  child.on('error', () => { exited = true; });
   child.unref();
   const deadline = Date.now() + 90_000;
   while (Date.now() < deadline && !exited) {
     await new Promise(r => setTimeout(r, 300));
-    const port = await ping();
-    if (port) return port;
+    const up = await ping();
+    if (up && up.port !== previous) return up.port;
   }
   throw new Error(`renderView daemon did not start; see ${LOG}`);
 }
@@ -82,6 +91,6 @@ export async function renderFlatForReport(scene: Scene, draft: Draft, outDir: st
 
 /** Stop the warm daemon (runners call this at the end of a batch; it also exits on its own when idle). */
 export async function stopViewDaemon(): Promise<void> {
-  const port = await ping();
+  const port = (await ping())?.port;
   if (port) await fetch(`http://127.0.0.1:${port}/shutdown`, { method: 'POST' }).catch(() => {});
 }

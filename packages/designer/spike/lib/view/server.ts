@@ -2,7 +2,7 @@
  * Started on demand by render-view.ts; exits after IDLE_MS without requests. */
 import { createServer } from 'node:http';
 import { createRequire } from 'node:module';
-import { mkdir, writeFile, rm } from 'node:fs/promises';
+import { mkdir, readFile, writeFile, rm } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { renderPayload, type Draft, type ViewCamera } from './document.js';
@@ -44,7 +44,9 @@ async function main() {
 
   let queue: Promise<unknown> = Promise.resolve();
   let idle = setTimeout(shutdown, IDLE_MS);
-  async function shutdown() { await rm(STATE_FILE, { force: true }); await browser.close().catch(() => {}); await server.close().catch(() => {}); process.exit(0); }
+  let ownPort = 0;
+  // A newer daemon may already have taken the state file (the client restarts stale daemons): only remove our own.
+  async function shutdown() { if (await readFile(STATE_FILE, 'utf8').then(text => JSON.parse(text).port === ownPort, () => false)) await rm(STATE_FILE, { force: true }); await browser.close().catch(() => {}); await server.close().catch(() => {}); process.exit(0); }
 
   async function render(request: RenderRequest) {
     const started = Date.now(); pageErrors.length = 0;
@@ -81,6 +83,7 @@ async function main() {
   });
   http.listen(0, '127.0.0.1', async () => {
     const port = (http.address() as { port: number }).port;
+    ownPort = port;
     await writeFile(STATE_FILE, JSON.stringify({ port, pid: process.pid, origin, version: codeVersion() }));
     process.stdout.write(`ready ${port}\n`);
   });
