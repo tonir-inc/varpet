@@ -1060,6 +1060,24 @@ def propose(conversation, conversation_id: str, body: dict, cancel: threading.Ev
         # The first design is named after the brief, also when this turn only answered the designer's question.
         title = proposal_title(requests[0] if first_design else body["request"])
         saved = _translate(state, body, state.workspace, turn, title, reply or "Your design is ready to preview.")
+        support_notes: list[str] = []
+        for _ in range(3):
+            # The spike check and the editor disagree on what can rest on what (a cushion on a bed): the editor
+            # decides. Take the pieces resting on the refused support out of the design, say so, and translate again.
+            refused = re.search(r"Invalid furniture support [“\"']?([\w:.-]+?)[”\"']?(?:\.|$|\s)", str((saved or {}).get("error", "")))
+            if not refused:
+                break
+            draft = _read_draft(state.workspace / "draft.json") or {}
+            resting = [item for item in draft.get("items", []) if isinstance(item, dict) and item.get("on") == refused.group(1)]
+            if not resting:
+                break
+            draft["items"] = [item for item in draft["items"] if item not in resting]
+            (state.workspace / "draft.json").write_text(json.dumps(draft, ensure_ascii=False, indent=1) + "\n")
+            if _run([state.workspace / "varpet", "check"], cwd=state.workspace).returncode != 0:
+                break
+            support_notes.append(f"Left out {', '.join(str(item.get('name') or item.get('id'))[:60] for item in resting[:4])}: "
+                                 f"the editor cannot rest {'them' if len(resting) > 1 else 'it'} on {refused.group(1)}.")
+            saved = _translate(state, body, state.workspace, turn, title, reply or "Your design is ready to preview.")
         if saved is None or "error" in saved:
             raise RuntimeError("The design could not become an editor preview: " + str((saved or {}).get("error", "translation failed")))
         state.owned = saved["owned"]
@@ -1067,7 +1085,7 @@ def propose(conversation, conversation_id: str, body: dict, cancel: threading.Ev
         total = sum(int(item.get("price") or 0) for item in draft.get("items", []) if isinstance(item, dict))
         space = _tool("metrics", str(state.workspace))
         lap("preview")
-        notes = "\n".join(filter(None, [_notes(state.workspace), *unmet_notes, *review_notes]))[:1600] or None
+        notes = "\n".join(filter(None, [_notes(state.workspace), *unmet_notes, *support_notes, *review_notes]))[:1600] or None
         timings["partials"] = watcher.sent
         return {"type": "proposal", "conversationId": conversation_id, "proposal": saved["proposal"],
                 "metrics": {"cost_dram": total, "seconds": result["seconds"],
