@@ -1,0 +1,8 @@
+.team-save-actions { display: inline-flex; align-items: center; gap: 4px; }
+.team-save-actions[hidden] { display: none; }
+.team-save-actions details { position: relative; }
+.team-save-actions summary { cursor: pointer; list-style: none; }
+.team-save-actions summary::-webkit-details-marker { display: none; }
+.team-save-menu { position: absolute; left: 0; top: 100%; z-index: 100; min-width: 210px; padding: 12px; display: grid; gap: 10px; background: var(--raised, white); border: 1px solid var(--control-line, #ccc); border-radius: 8px; box-shadow: 0 8px 24px #0002; }
+.team-save-menu [hidden] { display: none; }
+.team-save-menu a { padding: 5px 10px; }

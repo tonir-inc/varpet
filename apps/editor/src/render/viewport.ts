@@ -193,7 +193,7 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
   let renderer: THREE.WebGLRenderer;
   try {
     // The composer draws the last pass to the screen; a multisampled drawing buffer would only add a resolve.
-    renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false, powerPreference: 'high-performance' });
+    renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false, preserveDrawingBuffer: true, powerPreference: 'high-performance' });
   } catch {
     callbacks.onError('This browser could not create a WebGL viewport. Enable hardware acceleration and reload.');
     const message = document.createElement('p');

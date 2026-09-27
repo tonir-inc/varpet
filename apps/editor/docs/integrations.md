@@ -301,3 +301,61 @@ It does not build a project. Classifier errors, invalid output and the 45-second
 timeout are logged and fail open: `is_plan: true`, `kind: "unknown"`, confidence 0.
 The classifier disables tools and uses a private direct-mode copy of the local
 Codex model cache; missing model metadata also fails open. No global config changes.
+
+## Team saves (27 September 2026)
+
+Anonymous editor drafts now use the shared team workspace, including sample templates and
+completed uploads. The first **Save / ⌘S** asks for a name and an optional display name
+(`localStorage["varpet.team.display-name"]`, asked once), then replaces the URL with
+`/?flat=<uuid>`. Account sessions and shared-link sessions keep their existing save paths.
+`/?view=apartments` lists team saves for signed-out visitors, with thumbnails, newest-first
+ordering, provenance/design badges, Open, Rename and confirmed Delete. Signed-in visitors
+retain My apartments. A failed account-service lookup does not block the team list.
+
+After creation, committed store revisions autosave after two seconds of inactivity. Only
+one PUT runs at a time; its acknowledgement marks the captured local revision, not edits
+made during the request. Network failures retry at 2, 4, 8, 16, then 30 seconds. A 409 stops
+retries and offers Reload theirs or Save mine as a copy. Initial POST failures require
+pressing Save again (blind POST retries could create duplicate flats). Browser unload and
+same-origin link navigation guard dirty/pending/failed saves. Versions lists saved time and
+who, and Restore creates a new backend revision before reopening. Restoration waits for
+an in-flight autosave to finish so it cannot overwrite the restored version.
+
+The Vite development **and preview** relay is `server/flats.mjs`. Configure server-only
+`VARPET_FLATS_URL`, or use `VARPET_CATALOG_URL` with its trailing `/mcp` removed. The default
+is `http://100.107.246.46:8765`. Only the agreed `/flats` methods/routes are forwarded;
+UUIDs and positive safe-integer revisions are validated, writes require the same origin
+as the account API, JSON bodies are limited to 25 MiB, and upstream requests time out in
+30 seconds. Status codes/error JSON and thumbnail image bytes pass through; responses
+use `Cache-Control: no-store`. Production hosting outside Vite needs an equivalent relay.
+
+Backend handoff (the shared CONTRACT.md remains authoritative):
+
+- `catalog` is the existing **CatalogProduct[]** account snapshot shape (`asset`,
+  `priceSource`, `sizeStatus`, `attribution`, plus any other product fields). Keep it intact
+  with the complete scene/project/sources. It includes the assets referenced by current,
+  baseline and option scenes. Opening registers those assets before scene validation.
+- Create returns `{id, revision, ...meta}`; PUT accepts `base_revision` and returns
+  `{revision, updated_at}`. A conflict must be HTTP 409 with
+  `{error:{code:"conflict", current_revision, updated_at, updated_by}}`.
+- PATCH `{name}` renames without advancing the scene revision. POST restore accepts
+  `{revision}`, creates a new latest revision, and returns `{revision}`. Versions include
+  `revision`, `saved_at`, `bytes`, and optional `updated_by`.
+- `thumbnail` is an optional JPEG data URL, at most 300 KiB. The editor captures the actual
+  WebGL viewport at up to 480 px wide, first save and at most once per 60 seconds thereafter.
+  The viewport uses `preserveDrawingBuffer`; a tainted/unavailable canvas skips the thumbnail
+  without blocking the scene save. The thumbnail endpoint returns image bytes.
+- `designed` means `scene.objects.length > 0`; `kind` preserves template/upload/blank origin.
+  `updated_by` is an optional display label, not an authenticated identity.
+
+Verification: new socket-free node tests cover relay validation/forwarding, adapter errors,
+autosave debounce/in-flight edits/backoff/conflicts, unload guards, card markup and team
+restore. `pnpm typecheck` and the production editor build pass. The full editor test command
+reaches existing server tests but cannot bind `127.0.0.1` in the restricted sandbox (`EPERM`).
+No live VM/network verification was performed.
+
+The current sandbox startup is the furnished Sunday Towers demo, so it is recorded as a
+template; uploaded drafts are upload, and an empty startup can supply blank. The focused
+team/account/shared-link regression run reports `tests 32, pass 32, fail 0`. A separate
+broader client run also exposed an unrelated assertion at `tests/decoration.test.mjs:60`
+(mesh support raycast), in addition to socket-blocked tests; it did not complete cleanly.

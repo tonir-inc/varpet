@@ -1,3 +1,4 @@
+import {restoreTeamFlat, setTeamStartup} from './portal/team-session';
 import './ui/style.css';
 import './portal/portal.css';
 import { api, AccountError } from './portal/api';
@@ -10,6 +11,13 @@ const host = document.querySelector<HTMLElement>('#app')!;
 const route = new URLSearchParams(location.search);
 
 async function start() {
+  const flatId = route.get('flat');
+  if (flatId) {
+    host.innerHTML = '<main class="portal-loading" role="status">Opening team apartment…</main>';
+    setTeamStartup(await restoreTeamFlat(flatId));
+    await import('./main');
+    return;
+  }
   const checkpoint = route.get('blueprint');
   if (checkpoint) {
     host.innerHTML = '<main class="portal-loading" role="status">Opening your completed apartment…</main>';
@@ -30,14 +38,13 @@ async function start() {
     return;
   }
   if (!templateId && !apartmentId && route.has('editor')) {
-    // The sandbox uses the editor's local project and save/load path. Opening it
-    // must not depend on an account service or turn the draft into a plan copy.
+    // Opening the sandbox does not depend on accounts. Its Save uses the team store.
     host.innerHTML = '<main class="portal-loading" role="status">Opening the sandbox…</main>';
     await import('./main');
     return;
   }
   host.innerHTML = '<main class="portal-loading" role="status">Opening your apartment…</main>';
-  let user = await api.session();
+  let user = await api.session().catch(error => { if (apartmentId) throw error; return null; });
   if (apartmentId && !user) {
     user = await showAuth('login');
     if (!user) { location.replace('/?view=apartments'); return; }

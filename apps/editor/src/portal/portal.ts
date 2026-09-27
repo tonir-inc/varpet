@@ -1,3 +1,4 @@
+import {mountTeamApartments} from './team-apartments';
 import { api, type ApartmentSummary, type User } from './api';
 import { getTemplate, mountPlanPreview, type ApartmentTemplate } from './templates';
 import { showAuth } from './auth';
@@ -58,7 +59,7 @@ export async function mountPortal(host: HTMLElement, view: PortalView): Promise<
     <div class="portal ${view === 'explore' ? 'blueprint-home' : ''}">
       <header class="portal-header"><div class="portal-header-inner">
         <a class="portal-brand" href="/" aria-label="Varpet home"><span class="portal-brand-mark" aria-hidden="true">v</span>varpet</a>
-        <nav class="portal-nav" aria-label="Main navigation"><a href="/" ${view === 'explore' ? 'aria-current="page"' : ''}>Start with a plan</a><a href="/?editor=sandbox" title="Explore an empty apartment and save on this device">Sandbox</a><a href="/?view=apartments" ${view === 'apartments' ? 'aria-current="page"' : ''}>My apartments</a></nav>
+        <nav class="portal-nav" aria-label="Main navigation"><a href="/" ${view === 'explore' ? 'aria-current="page"' : ''}>Start with a plan</a><a href="/?editor=sandbox" title="Explore an empty apartment and save to the team">Sandbox</a><a href="/?view=apartments" ${view === 'apartments' ? 'aria-current="page"' : ''}>Saved apartments</a></nav>
         <div class="portal-account"><span class="portal-account-loading" role="status">Checking account…</span></div>
       </div></header>
       <div class="portal-notice" role="status" hidden></div>
@@ -92,7 +93,7 @@ export async function mountPortal(host: HTMLElement, view: PortalView): Promise<
       <div class="plan-dialog-details"><p class="portal-kicker">${escapeHtml(template.developer)}</p><h2 id="plan-dialog-title">${escapeHtml(template.name)}</h2><p class="portal-location">${escapeHtml(template.location)}</p>
       <div class="plan-facts">${templateFacts(template)}</div><p class="plan-description">${escapeHtml(template.description)}</p>
       <div class="plan-options"><div><h3>Make it yours</h3><span class="portal-small-label">Coming soon</span></div><p>More options from the developer, all in one place.</p><div class="plan-option-buttons"><button type="button" disabled>${icon('layers')}Choose a floor</button><button type="button" disabled>${icon('sun')}View orientation</button></div></div>
-      <a class="portal-button portal-primary" href="/?template=${encodeURIComponent(template.id)}">Start with this plan${icon('arrow')}</a><p class="plan-start-note">Your own copy, ready to arrange. Save it to your account when you're ready.</p></div></div>`;
+      <a class="portal-button portal-primary" href="/?template=${encodeURIComponent(template.id)}">Start with this plan${icon('arrow')}</a><p class="plan-start-note">Your own copy, ready to arrange. Save it to the team when you're ready.</p></div></div>`;
     document.body.append(dialog);
     let stopPreview: (() => void) | undefined;
     const close = () => dialog.close();
@@ -154,9 +155,7 @@ export async function mountPortal(host: HTMLElement, view: PortalView): Promise<
     const version = ++requestVersion;
     cardDisposers.splice(0).forEach((cleanup) => cleanup());
     if (!currentUser) {
-      main.innerHTML = `${profileHeading()}<section class="portal-empty"><span class="portal-empty-icon">${icon('home')}</span><p class="portal-eyebrow">A home for your ideas</p><h2>Your next chapter starts here.</h2><p>Sign in to find your saved apartments, or create an account and start making a space your own.</p><div class="portal-empty-actions"><button class="portal-button portal-primary" data-profile-login>Sign in${icon('arrow')}</button><button class="portal-button" data-profile-register>Create account</button></div><a class="portal-text-link" href="/">Start with a blueprint</a></section>`;
-      main.querySelector('[data-profile-login]')!.addEventListener('click', () => authenticate('login'));
-      main.querySelector('[data-profile-register]')!.addEventListener('click', () => authenticate('register'));
+      await mountTeamApartments(main, () => !disposed && version === requestVersion);
       return;
     }
     main.innerHTML = `${profileHeading()}<div class="portal-profile-status" role="status">Loading your apartments…</div>`;
@@ -235,8 +234,7 @@ export async function mountPortal(host: HTMLElement, view: PortalView): Promise<
       account.innerHTML = '<button class="portal-text-button" type="button" data-account-retry>Reconnect account</button>';
       account.querySelector('[data-account-retry]')!.addEventListener('click', () => { void loadAccount(); });
       if (view === 'apartments') {
-        main.innerHTML = `${profileHeading()}<section class="portal-empty"><span class="portal-empty-icon">${icon('connections')}</span><h2>Let's reconnect.</h2><p role="alert">We couldn't reach your account. Please check your connection and try again.</p><button class="portal-button" type="button" data-session-retry>Try again</button></section>`;
-        main.querySelector('[data-session-retry]')!.addEventListener('click', () => { void loadAccount(); });
+        await mountTeamApartments(main, () => !disposed && version === requestVersion);
       }
     }
   }

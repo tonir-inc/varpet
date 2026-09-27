@@ -1,0 +1,15 @@
+import {flatsApi,type FlatMeta} from '../adapters/flats-http';
+import {askSaveName} from '../ui/team-saves';
+const escape=(s:string)=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
+export function teamCards(flats:FlatMeta[]):string {
+ if(!flats.length)return '<section class="portal-empty"><h2>No saved apartments yet</h2><p>Open a plan and Save to share it with the team.</p><a href="/">Start with a plan</a></section>';
+ return `<div class="portal-apartment-grid portal-saved-grid">${[...flats].sort((a,b)=>b.updated_at.localeCompare(a.updated_at)).map(flat=>`<article class="portal-apartment-card"><div class="portal-card-stage">${flat.has_thumbnail?`<img src="${flatsApi.thumbnail(flat.id)}" alt="${escape(flat.name)}" style="width:100%;height:100%;object-fit:cover" loading="lazy">`:'<div class="portal-preview-fallback">Plan saved</div>'}<span class="portal-card-badge">${flat.designed?'Designed':'Plan only'} · ${escape(({template:'Template',upload:'Upload',blank:'Blank',other:'Other'})[flat.kind])}</span></div><div class="portal-card-body"><h3>${escape(flat.name)}</h3><p>${escape(new Date(flat.updated_at).toLocaleString())}${flat.updated_by?' · '+escape(flat.updated_by):''}</p><div class="portal-card-bottom"><a href="/?flat=${encodeURIComponent(flat.id)}">Open</a><button data-rename="${flat.id}">Rename</button><button data-delete="${flat.id}">Delete</button></div></div></article>`).join('')}</div>`;
+}
+export async function mountTeamApartments(host:HTMLElement,isCurrent=()=>true){
+ host.innerHTML='<h1>Saved apartments</h1><p role="status">Loading team apartments…</p>';
+ try{const flats=await flatsApi.list();if(!isCurrent())return;host.innerHTML='<h1>Saved apartments</h1><p>Shared with everyone on the team. No sign-in needed.</p>'+teamCards(flats);
+ const error=(cause:unknown)=>{const p=document.createElement('p');p.setAttribute('role','alert');p.textContent=cause instanceof Error?cause.message:'Could not update apartment.';host.prepend(p);};
+ host.querySelectorAll<HTMLButtonElement>('[data-rename]').forEach(button=>button.onclick=async()=>{const flat=flats.find(f=>f.id===button.dataset.rename)!;const name=await askSaveName('Rename apartment',flat.name);if(!name)return;try{await flatsApi.rename(flat.id,name);if(isCurrent())await mountTeamApartments(host,isCurrent);}catch(e){error(e);}});
+ host.querySelectorAll<HTMLButtonElement>('[data-delete]').forEach(button=>button.onclick=async()=>{if(!window.confirm('Delete this saved apartment from the team collection?'))return;button.disabled=true;try{await flatsApi.delete(button.dataset.delete!);if(isCurrent())await mountTeamApartments(host,isCurrent);}catch(e){button.disabled=false;error(e);}});
+ }catch(error){if(!isCurrent())return;host.innerHTML='<h1>Saved apartments</h1><p role="alert"></p><button>Retry</button>';host.querySelector('p')!.textContent=error instanceof Error?error.message:'Could not load team apartments.';host.querySelector('button')!.onclick=()=>void mountTeamApartments(host,isCurrent);}
+}

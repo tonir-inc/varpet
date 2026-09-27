@@ -1,5 +1,7 @@
+import {teamStartup} from './portal/team-session';
+import {mountTeamSaves} from './ui/team-saves-editor';
 import { placeFurniture, floorHeight } from './core/furniture-support';
-import { BLUEPRINT_PAPER, editorSession, apartmentPayload, restoreApartmentSharing, ApartmentShareAttachment } from './portal/session';
+import { BLUEPRINT_PAPER, editorSession as startupSession, apartmentPayload, restoreApartmentSharing, ApartmentShareAttachment } from './portal/session';
 import { api, AccountError } from './portal/api';
 import { showAuth } from './portal/auth';
 import { createCeilingUI } from './ui/ceiling-design';
@@ -55,6 +57,9 @@ import { renderWallSelectionFinishes, type WallFinishSelectionState } from './ui
 import { bindFurnitureDragCard } from './ui/furniture-drag';
 import { mountThemeToggle } from './ui/theme';
 import './ui/arrival.css';
+
+// Anonymous template/upload sessions carry startup data, but save into the team workspace.
+const editorSession = startupSession?.user || startupSession?.apartment ? startupSession : null;
 
 // The live designer is the default (VITE_DESIGNER_URL, else the local service on 127.0.0.1:8787); an offline service
 // says so in the chat. The keyword replay runs only when asked for: ?designer=replay or VITE_DESIGNER_REPLAY=1.
@@ -161,11 +166,11 @@ const shareAttachment = new ApartmentShareAttachment();
 // With no shared link or session, the editor opens the demo flat: Sunday Towers B12121, furnished
 // (apartments/sunday-b12121; startup.json carries the catalog models it uses, so it opens offline).
 const startupFlat = defaultFlat as unknown as { scene: SceneDocument; catalog: CatalogAsset[] };
-let catalog: CatalogAsset[] = sharedStartup?.project.catalog ?? editorSession?.catalog.map(product => product.asset) ?? startupFlat.catalog;
-const store = createApartmentStore(sharedStartup?.project.scene ?? editorSession?.scene ?? startupFlat.scene, catalog);
+let catalog: CatalogAsset[] = sharedStartup?.project.catalog ?? teamStartup?.catalog.map(product => product.asset) ?? startupSession?.catalog.map(product => product.asset) ?? startupFlat.catalog;
+const store = createApartmentStore(sharedStartup?.project.scene ?? teamStartup?.scene ?? startupSession?.scene ?? startupFlat.scene, catalog);
 const startupProducts: CatalogProduct[] = sharedStartup ? catalog.map(asset => ({ asset,
   priceSource: 'shared project · unverified', sizeStatus: 'shared project', attribution: 'Catalog captured with the shared project' }))
-  : editorSession?.catalog ?? startupFlat.catalog.map(asset => ({ asset, priceSource: 'catalog · demo price', sizeStatus: 'catalog',
+  : teamStartup?.catalog ?? startupSession?.catalog ?? startupFlat.catalog.map(asset => ({ asset, priceSource: 'catalog · demo price', sizeStatus: 'catalog',
     attribution: 'Amazon Berkeley Objects, CC BY 4.0' }));
 const catalogProducts = new Map<string, CatalogProduct>(startupProducts.map(product => [product.asset.id, product]));
 const designerCatalog = new DesignerProposalCatalog();
@@ -210,7 +215,8 @@ let snap = true;
 let interacting = false;
 let selectionRevealFrame = 0;
 let interactionRevision = 0;
-let savedRevision = editorSession?.apartment ? 0 : -1;
+let savedRevision = editorSession?.apartment || teamStartup ? 0 : -1;
+let teamSaves: ReturnType<typeof mountTeamSaves> | undefined;
 let accountSaving = false;
 let pending: AgentProposal | null = null;
 let busy = false;
@@ -239,7 +245,7 @@ function notify(message: string, error = false) {
   $('#status-text').textContent = message;
 }
 
-const presentation = editorSession?.presentation;
+const presentation = startupSession?.presentation;
 const viewportCallbacks: FinishViewportCallbacks = {
   onLightingChange: () => ceilingUI.syncLighting(),
   onSunChange: settings => {
@@ -1212,6 +1218,7 @@ function refreshHeader(scene: SceneDocument){
   $('#save').title = editorSession ? 'Save to My apartments · ⌘S' : shareSession ? 'Save shared progress · ⌘S' : 'Save on this device · ⌘S';
   $('.project-name > span').textContent = editorSession ? editorSession.apartment ? 'My apartment' : 'Plan copy' : shareSession ? 'Shared project · Can edit' : 'Sandbox · local project';
   if (shareSession && !editorSession && $('#status-text').textContent === 'All changes stay on this device') $('#status-text').textContent = 'Save publishes progress to this shared project';
+  teamSaves?.render();
   const publish = document.querySelector<HTMLButtonElement>('#publish-progress');
   if (publish) {
     publish.hidden = !shareSession;
@@ -1438,6 +1445,7 @@ async function publishProgress() {
 $('#save').onclick=async()=>{
   if (editorSession) { await saveToAccount(); return; }
   if (shareSession) { await publishProgress(); return; }
+  if (teamSaves) { await teamSaves.save(); return; }
   try { saveLocal(store.scene); savedRevision=store.revision; notify('Scene saved on this device'); }
   catch(error) { notify(error instanceof Error ? error.message : 'Could not save your progress. Try again.', true); }
   finally { refresh(); }
@@ -1484,7 +1492,7 @@ let highQuality=false;$('#quality').onclick=()=>{highQuality=!highQuality;viewpo
 // Demos (recorded sessions, ?quality=high) render at full resolution with 4x MSAA and sharper shadows.
 { const params = new URLSearchParams(location.search); if (params.get('quality') === 'high' || (params.has('session') && params.get('quality') !== 'balanced')) $('#quality').click(); }
 $('#suggest').onclick=()=>void requestProposal('designer');
-$('#help').onclick=()=>showModal('Keyboard & navigation',`<p class="modal-intro">Select walls, openings, rooms, furniture and systems in the canvas or Renovate panel. In Select mode, click a selected door or switch again to test it.</p><div class="shortcut-list">${[['1 / 2 / 3 / 4 / 5 / 6','Scene / Furniture / Assistant / Renovate / Materials / Ceilings'],['[','Toggle sidebar'],['P','Enter / exit preview'],['W A S D / arrows','Move around the scene (click canvas first)'],['Space + drag','Pan in 3D, Top or Plan'],['Drag / Esc','Look around / leave Inside'],['V / G / R / E','Select / Move / Rotate / Resize'],['F','Frame selection / apartment'],['⌘ / Ctrl + S',editorSession?'Save to My apartments':shareSession?'Save shared progress':'Save on this device'],['Shift + click','Add / remove walls or furniture from selection'],['⌘ / Ctrl + G','Group selected furniture'],['⌘ / Ctrl + Shift + G','Ungroup furniture'],['⌘ / Ctrl + D','Duplicate furniture'],['Delete / Backspace','Delete selected furniture'],['⌘ / Ctrl + Z','Undo'],['⌘ / Ctrl + Shift + Z','Redo'],['Esc','Cancel drag / clear selection / exit preview']].map(([key,label])=>`<div><span>${label}</span><kbd>${key}</kbd></div>`).join('')}</div><p class="modal-footnote">Plan: drag furniture, fixtures, walls, doors or windows to move them. Hold Space and drag, drag empty floor, Alt-drag, or right/middle drag to pan. Hold Shift for finer placement. Inside: standing eye height is 1.65 m above the current floor. Click the canvas, then use WASD or arrows to walk; drag to look around. Doors open for the walkthrough and restore when you leave. Click the canvas, then use WASD or arrows to move in 3D, Top or Plan. 3D: drag empty space to orbit, hold Space and drag or right drag to pan, scroll to zoom. Top: drag to pan. Hold Space to show the hand cursor and pan over selected items without moving them. Select a window to show handles: drag its center or the window to move along the wall and up/down; drag an edge or corner to resize. The vertical arrow raises or lowers it without changing its size. Top view offers sideways movement and width handles; use 3D for height. Select a door, choose Move (G), then drag it or its purple arrows along the wall. Openings stay inside their wall section and stop at neighbouring openings. Move snaps to 0.05 m for openings and walls. Wall corners also catch nearby straight and 90° alignments, including connected corners. Click Snap / Smooth in the toolbar to turn snapping on or off. Release to apply, Esc to cancel, or Undo to restore the previous position. Shift-click walls or models, or turn on Select multiple items, to build a selection. Choose Move to move the selection together; one Undo restores every selected item. Select a single wall and choose Move to drag it back or forth with its purple center arrows; connected walls and room boundaries follow. The endpoint spheres adjust individual corners; use Renovate for precise dimensions, evidence and service editing.</p>`);
+$('#help').onclick=()=>showModal('Keyboard & navigation',`<p class="modal-intro">Select walls, openings, rooms, furniture and systems in the canvas or Renovate panel. In Select mode, click a selected door or switch again to test it.</p><div class="shortcut-list">${[['1 / 2 / 3 / 4 / 5 / 6','Scene / Furniture / Assistant / Renovate / Materials / Ceilings'],['[','Toggle sidebar'],['P','Enter / exit preview'],['W A S D / arrows','Move around the scene (click canvas first)'],['Space + drag','Pan in 3D, Top or Plan'],['Drag / Esc','Look around / leave Inside'],['V / G / R / E','Select / Move / Rotate / Resize'],['F','Frame selection / apartment'],['⌘ / Ctrl + S',editorSession?'Save to My apartments':shareSession?'Save shared progress':'Save to team'],['Shift + click','Add / remove walls or furniture from selection'],['⌘ / Ctrl + G','Group selected furniture'],['⌘ / Ctrl + Shift + G','Ungroup furniture'],['⌘ / Ctrl + D','Duplicate furniture'],['Delete / Backspace','Delete selected furniture'],['⌘ / Ctrl + Z','Undo'],['⌘ / Ctrl + Shift + Z','Redo'],['Esc','Cancel drag / clear selection / exit preview']].map(([key,label])=>`<div><span>${label}</span><kbd>${key}</kbd></div>`).join('')}</div><p class="modal-footnote">Plan: drag furniture, fixtures, walls, doors or windows to move them. Hold Space and drag, drag empty floor, Alt-drag, or right/middle drag to pan. Hold Shift for finer placement. Inside: standing eye height is 1.65 m above the current floor. Click the canvas, then use WASD or arrows to walk; drag to look around. Doors open for the walkthrough and restore when you leave. Click the canvas, then use WASD or arrows to move in 3D, Top or Plan. 3D: drag empty space to orbit, hold Space and drag or right drag to pan, scroll to zoom. Top: drag to pan. Hold Space to show the hand cursor and pan over selected items without moving them. Select a window to show handles: drag its center or the window to move along the wall and up/down; drag an edge or corner to resize. The vertical arrow raises or lowers it without changing its size. Top view offers sideways movement and width handles; use 3D for height. Select a door, choose Move (G), then drag it or its purple arrows along the wall. Openings stay inside their wall section and stop at neighbouring openings. Move snaps to 0.05 m for openings and walls. Wall corners also catch nearby straight and 90° alignments, including connected corners. Click Snap / Smooth in the toolbar to turn snapping on or off. Release to apply, Esc to cancel, or Undo to restore the previous position. Shift-click walls or models, or turn on Select multiple items, to build a selection. Choose Move to move the selection together; one Undo restores every selected item. Select a single wall and choose Move to drag it back or forth with its purple center arrows; connected walls and room boundaries follow. The endpoint spheres adjust individual corners; use Renovate for precise dimensions, evidence and service editing.</p>`);
 window.addEventListener('keydown',event=>{
   if(stage)return; // The construction viewport owns navigation while the architect works.
   if(document.querySelector('dialog[open]') || (event.target instanceof HTMLElement && (event.target.closest('input,textarea,select') || event.target.isContentEditable)))return;
@@ -1572,6 +1580,7 @@ sandboxLink.href = '/?editor=sandbox'; sandboxLink.target = '_blank'; sandboxLin
 sandboxLink.className = 'button quiet folio-sandbox'; sandboxLink.textContent = 'Sandbox';
 sandboxLink.title = 'Open a separate sandbox to experiment'; sandboxLink.setAttribute('aria-label', 'Open sandbox in a new tab');
 $('.header-actions').prepend(sandboxLink);
+if (!editorSession && !sharedStartup) teamSaves = mountTeamSaves({store, products: () => [...catalogProducts.values()], startup: teamStartup, draft: startupSession, initialKind: 'template', active: () => !shareSession, proposal: () => proposalView, notify, saved: revision => { savedRevision = revision; }});
 refresh();renderAssets();setTool('select');switchPanel(editorSession?'scene':'renovation');if(designerLive)switchPanel('renovation',true);void searchDatabase();void refreshBuiltPieces();
 // Folio: tool panels open only when the buyer asks for them (Add, More, or a piece's toolbar).
 if (panelOpen) switchPanel(activePanel, true);
