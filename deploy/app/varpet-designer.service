@@ -26,7 +26,7 @@ NoNewPrivileges=true
 ProtectSystem=strict
 ProtectHome=true
 PrivateTmp=true
-ReadWritePaths=/opt/varpet-app/codex-home /opt/varpet-app/data /opt/varpet-app/shares /opt/varpet-app/cache /opt/varpet-app/repo/node_modules/.vite-temp /opt/varpet-app/repo/apps/editor/node_modules/.vite /tmp
+ReadWritePaths=/opt/varpet-app/codex-home /opt/varpet-app/data /opt/varpet-app/shares /opt/varpet-app/cache /opt/varpet-app/repo/node_modules/.vite-temp /opt/varpet-app/repo/apps/editor/node_modules/.vite /opt/varpet-app/repo/apps/editor/node_modules/.vite-temp /tmp
 UMask=0077
 
 [Install]
