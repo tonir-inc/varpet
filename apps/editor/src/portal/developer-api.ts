@@ -55,5 +55,10 @@ export const developerApi = {
 export function slugify(name: string): string {
   return name.normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48).replace(/-+$/, '');
 }
-export const initials = (name: string) => name.trim().split(/\s+/).slice(0, 2).map(word => [...word][0] ?? '').join('').toUpperCase() || 'V';
+/** "Ararat Homes" → "AH"; a short single word stays whole ("M6"). */
+export function initials(name: string): string {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 1 && [...words[0]!].length <= 3) return words[0]!.toUpperCase();
+  return words.slice(0, 2).map(word => [...word][0] ?? '').join('').toUpperCase() || 'V';
+}
 export const bedroomLabel = (bedrooms: number) => bedrooms === 0 ? 'Studio' : `${bedrooms} bedroom${bedrooms === 1 ? '' : 's'}`;
