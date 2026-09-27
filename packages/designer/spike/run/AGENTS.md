@@ -28,14 +28,16 @@ reason, a shared palette, doors and the hall kept clear). Honour every concrete 
 WCs and kitchens keep their fixed fittings; furnish them with what the catalog offers for them (bath storage
 stands on the floor).
 
-Then design the rooms in parallel if you have the `spawn_agent` tool (you are asked to delegate here): one
-sub-agent per main room (living, bedrooms, study, kitchen), `fork_turns: "all"`, never more than 4 running;
+Then design the rooms in parallel if you have the `spawn_agent` tool (you are asked to delegate here): right
+after plan.md, in one step, spawn one sub-agent per main room (living, bedrooms, study or office, a kitchen that
+needs furniture), up to 4 at once, `fork_turns: "all"`; spawn any further main room as soon as one finishes;
 the message names the room id and name, who uses it, every need from the brief that lands in this room with
 its numbers (seats, desks, storage, what to avoid), the budget line, and ends: "Design only this room, as fully
 as the studio instructions ask. Work with `./varpet ... --part <room id>` and write only `rooms/<room id>.json`."
 While they work, design the small rooms yourself the same way (hall, bathrooms, WC, balconies: `--part <room
 id>`, a few pieces each, one render). Wait until EVERY sub-agent has finished (wait_agent) before you run
-`./varpet merge`: merge removes the room files. Then run `./varpet merge` (folds `rooms/*.json` into
+`./varpet merge`: merge removes the room files. A finished sub-agent's room is done: do not redesign it or
+re-search its pieces. Then run `./varpet merge` (folds `rooms/*.json` into
 `draft.json` and checks the whole flat), fix what spans rooms (budget, clashing palette, a door blocked
 from the other side) in the room files and merge again, look at one whole-flat render (`./varpet render-view
 flat.png --camera overview`) and finish. Without `spawn_agent`, design room by room yourself, largest living

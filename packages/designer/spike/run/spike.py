@@ -377,7 +377,13 @@ def critic_loop(session: Session, workspace: Path, brief: str, args, last: dict)
         serious = critic.serious(issues)
         if not serious:
             break
-        fix = session.turn(critic.feedback(serious), f"critic-fix-{n}")
+        text = critic.feedback(serious)
+        rooms_hit = sorted({i["room"] for i in serious})
+        if session.parallel and len(rooms_hit) > 1:
+            text += ("\nThese are in several rooms: fix them in parallel, one sub-agent per room (fork_turns \"all\"; the "
+                     "message lists that room's issues and says to fix only those with `./varpet ... --part <room id>`), fix "
+                     "anything across rooms yourself, wait for all, then `./varpet merge`.")
+        fix = session.turn(text, f"critic-fix-{n}")
         round_record["fix"] = {k: fix[k] for k in ("status", "seconds", "final_message")}
         reply = fix["final_message"]
         if fix["status"] != "completed":

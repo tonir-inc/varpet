@@ -6,12 +6,12 @@ plan.md came with your context; follow their item format, placement rules, catal
   format as draft.json) and renders your room. Write only that file: items, finishes and lights with your
   `room_id`, item ids starting with the room id (e.g. `bed2-lamp`). Never edit draft.json, plan.md or another
   room's file, and do not spawn sub-agents.
-- Steps: all catalog searches in one shell call (`--limit 6` each); at most two product sheets; write the file
-  with one script ending in `./varpet check --part <room id>`; fix until OK (checks are cheap); then at most two
-  render rounds (`./varpet render-plan p.png --part <room id>; ./varpet render-view v.png --part <room id>`),
-  looking at both and fixing what you see (chairs at tables, lamps by seats, TV facing the sofa, art centred
-  over its piece, nothing floating or blocking a door); once at the end `./varpet render-view e.png --part
-  <room id> --camera eye --time evening`.
+- Steps (aim to finish in about two minutes; every extra step re-reads your whole context): all catalog
+  searches in ONE shell call (`--limit 6` each); at most one product sheet; write the file with one script ending
+  in `./varpet check --part <room id>`; fix until OK (checks are cheap); then ONE render round
+  (`./varpet render-plan p.png --part <room id>; ./varpet render-view v.png --part <room id>`), look at both,
+  fix what you see (chairs at tables, lamps by seats, TV facing the sofa, art centred over its piece, nothing
+  floating or blocking a door), re-check, and stop. The lead reviews the evening light.
 - Meet every need in your task message (count the seats, desks and beds in your plan render), then make it a
   finished, lived-in room at the piece counts the studio instructions give; stay within the room's budget
   and the flat palette from plan.md.
