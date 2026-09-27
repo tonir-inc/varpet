@@ -60,6 +60,29 @@ def draft_numbers(workspace: Path) -> dict:
             "draft_error": error}
 
 
+DECOR = {"decor", "vase", "candle", "books", "cushion", "throw_blanket", "basket", "tray", "bowl", "lantern", "picture_frame",
+         "planter", "plant", "clock", "wall_hanging", "wall_art", "mirror", "rug", "curtain", "blind", "toy"}
+
+
+def styling(draft: dict) -> dict:
+    """Per room: pieces, decor pieces (styling layer: art, textiles, plants, objects) and the wall, floor and accent colours."""
+    rooms: dict[str, dict] = {}
+    for item in draft.get("items") or []:
+        room = rooms.setdefault(item.get("room_id") or "?", {"items": 0, "decor": 0, "walls": None, "accents": [], "floor": None})
+        room["items"] += 1
+        room["decor"] += item.get("kind") in DECOR
+    for finish in draft.get("finishes") or []:
+        room = rooms.setdefault(finish.get("room_id") or "?", {"items": 0, "decor": 0, "walls": None, "accents": [], "floor": None})
+        colour = finish.get("color") or finish.get("material")
+        if finish.get("surface") == "walls":
+            room["walls"] = colour
+        elif finish.get("surface") == "wall":
+            room["accents"].append(colour)
+        elif finish.get("surface") == "floor":
+            room["floor"] = finish.get("material") or colour
+    return rooms
+
+
 def budget(workspace: Path) -> int | None:
     try:
         return json.loads((workspace / "budget.json").read_text())["budget_dram"]
@@ -82,6 +105,7 @@ def snapshot(workspace: Path, n: int, label: str, record: dict, session: spike.S
            "seconds": record["seconds"], "tokens": delta(tokens, before["tokens"]), "tokens_cumulative": tokens,
            "tool_calls": tool_delta, "renders_viewed": len(session.images) - before["images"],
            "budget_dram": budget(workspace), **draft_numbers(workspace),
+           "styling": styling(spike.read_draft(workspace)[0] or {}),
            "check": {"ok": check.get("exit") == 0, "output": (check.get("stdout") or check.get("error") or "").strip()[-1500:]},
            "reply": record.get("final_message")}
     if render:
