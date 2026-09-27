@@ -90,3 +90,12 @@ def test_a_lettered_question_becomes_option_buttons():
     assert options == ["A: kids share Bedroom 9", "B: office in the living room"]
     assert designer_spike.question_options("Should I keep the sofa?") is None
     assert designer_spike.question_options("Done: A) sofa, B) table.") is None
+
+
+def test_translation_errors_leave_renderer_notes_out(tmp_path, monkeypatch):
+    import subprocess
+    stderr = "renderView: soft-glow ceiling design does not fit r-closet-1; drawn as one ceiling light\nThe design needs 600 editor operations; the limit is 500\n"
+    monkeypatch.setattr(designer_spike, "_run", lambda *a, **k: subprocess.CompletedProcess([], 1, "", stderr))
+    state = _state(tmp_path, [], [])
+    saved = designer_spike._translate(state, {"scene": {}, "revision": 0}, tmp_path, tmp_path, "t", "d")
+    assert saved == {"error": "The design needs 600 editor operations; the limit is 500"}

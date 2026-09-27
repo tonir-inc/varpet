@@ -468,7 +468,9 @@ def _translate(state: SpikeConversation, body: dict, workspace: Path, turn: Path
                        str(body["revision"]), turn / "owned.json", out,
                        "--title", title if len(title) <= 120 else title[:119] + "…", "--description", description])
     if translated.returncode:
-        return {"error": translated.stderr.strip()[-800:] or "translation failed"}
+        # Renderer notes (a ceiling design drawn as one light) are not the reason; keep the actual error.
+        reason = [line for line in translated.stderr.strip().splitlines() if line.strip() and not line.startswith("renderView:")]
+        return {"error": "\n".join(reason)[-800:] or "translation failed"}
     saved = json.loads(out.read_text())
     snap = _tool("snap", str(turn / "current.json"))
     operations = saved["proposal"]["command"]["operations"]
@@ -732,9 +734,11 @@ def propose(conversation, conversation_id: str, body: dict, cancel: threading.Ev
         progress("Planning the flat" if first else "Thinking about your follow-up")
         observer = Progress(state.rooms, progress, state.workspace)
         watcher = DraftWatcher(state, progress, body, turn,
-                               # Room-by-room previews on the first design only: a follow-up edits a whole design, and a
-                               # snapshot of some rooms would preview the others' design pieces as deleted.
-                               partials=first and os.environ.get("VARPET_SPIKE_PARTIALS", "1") != "0").start()
+                               # Room-by-room previews only while the first design is built (also after the designer's
+                               # question): a follow-up edits a whole design, and a snapshot of some rooms would preview
+                               # the others' design pieces as deleted.
+                               partials=not state.owned and not (_read_draft(state.workspace / "draft.json") or {}).get("items")
+                               and os.environ.get("VARPET_SPIKE_PARTIALS", "1") != "0").start()
         result = _run_turn(state, turn_input, cancel, observer, timeout)
         watcher.stop()
         lap("designer")

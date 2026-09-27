@@ -5,6 +5,8 @@ import { isRecord, validateScene, renovationOperationError } from './validation'
 import { applyRenovationOperation, applyWallTranslationBatch, invalidateAssumptions, migrateScene } from './renovation';
 
 import { furnitureUpdates, removeSingletonGroups } from './grouping';
+/** A whole furnished flat from the designer is one command (one Undo): 54 pieces plus finishes and lights run past 200. */
+export const MAX_COMMAND_OPERATIONS = 500;
 
 const HISTORY_LIMIT = 100;
 type HistoryEntry = { scene: SceneDocument; label: string };
@@ -26,7 +28,7 @@ function commandErrors(command: unknown): string[] {
   if (typeof command.label !== 'string' || !command.label.trim() || command.label.length > 160) return ['Command needs a concise label.'];
   if (typeof command.source !== 'string' || !['human', 'designer', 'architect'].includes(command.source)) return ['Command has an unknown source.'];
   if (!Number.isSafeInteger(command.baseRevision) || (command.baseRevision as number) < 0) return ['Command has an invalid base revision.'];
-  if (!Array.isArray(command.operations) || command.operations.length < 1 || command.operations.length > 100) return ['A command needs 1–100 operations.'];
+  if (!Array.isArray(command.operations) || command.operations.length < 1 || command.operations.length > MAX_COMMAND_OPERATIONS) return [`A command needs 1–${MAX_COMMAND_OPERATIONS} operations.`];
   for (const operation of command.operations) {
     if (!isRecord(operation)) return ['Each operation must be an object.'];
     const allowed: Record<string, string[]> = {

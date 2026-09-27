@@ -399,7 +399,8 @@ export function documentCommand(current: SceneDocument, target: SceneDocument, o
     for (const component of before?.components ?? []) if (mine.has(component.id) && !after.components.some(entry => entry.id === component.id)) operations.push({ type: 'delete-component', id: component.id });
   }
   if (!operations.length) throw new Error('The design matches the editor already; nothing to apply');
-  if (operations.length > 100) throw new Error(`The design needs ${operations.length} editor operations; the limit is 100`);
+  // The editor applies a whole-flat design as one command (MAX_COMMAND_OPERATIONS in apps/editor/src/core/store.ts).
+  if (operations.length > 500) throw new Error(`The design needs ${operations.length} editor operations; the limit is 500`);
   const id = `designer-${digest({ current, target, revision })}`;
   const proposal: AgentProposal = { id, title: (options.title ?? 'Designer proposal').slice(0, 160), description: (options.description ?? 'A designed room.').slice(0, 4000),
     command: { id, label: 'Apply the design', source: 'designer', baseRevision: revision, operations } };

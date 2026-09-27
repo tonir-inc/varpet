@@ -147,7 +147,7 @@ function proposalFrom(value:unknown,revision:number,snapshot:SceneDocument,catal
   text(command.id,'Command ID',120);text(command.label,'Command label',160);
   if(command.source!=='designer')fail('Proposal command source must be designer.','validation');
   if(command.baseRevision!==revision)fail('Designer proposal is stale or has a different base revision.','validation');
-  if(!Array.isArray(command.operations)||command.operations.length<1||command.operations.length>100)fail('A proposal needs 1–100 furniture or appearance operations.','validation');
+  if(!Array.isArray(command.operations)||command.operations.length<1||command.operations.length>500)fail('A proposal needs 1–500 furniture or appearance operations.','validation');
   const newMaterials=new Map<string,Json>(),usedMaterials=new Set<string>(),finishIds=new Set<string>(),finishFaces=new Set<string>(),deletedFinishes=new Map<string,string>();
   let migrations=0,finishes=0;
   // Validate the whole transaction before the disposable store applies any of it.
