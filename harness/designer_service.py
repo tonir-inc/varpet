@@ -26,6 +26,7 @@ import designer_inspiration
 import designer_spike
 
 import designer
+from varpet_harness.http_policy import public_origin, origin_allowed, client_ip, HourlyLimit
 from designer_context import validate_request_text, model_scene
 import designer_vision
 from designer_events import DesignerEvents
@@ -574,6 +575,9 @@ class DesignerService:
 
 
 def make_server(service: DesignerService, port=8787) -> ThreadingHTTPServer:
+    public_origin()  # Validate deployment configuration before accepting requests.
+    turn_limit = HourlyLimit('VARPET_DESIGNER_LIMIT_PER_HOUR', 30)
+
     class Handler(BaseHTTPRequestHandler):
         # Close-delimited HTTP streaming: flush each NDJSON line and close after the final line.
         protocol_version = "HTTP/1.0"
@@ -594,7 +598,7 @@ def make_server(service: DesignerService, port=8787) -> ThreadingHTTPServer:
 
         def headers_origin_allowed(self):
             origin = self.headers.get("Origin")
-            return origin is None or bool(LOCAL_ORIGIN.match(origin))
+            return origin_allowed(origin, LOCAL_ORIGIN)
 
         def write_line(self, record):
             self.wfile.write((json.dumps(record, ensure_ascii=False, allow_nan=False) + "\n").encode())
@@ -668,6 +672,10 @@ def make_server(service: DesignerService, port=8787) -> ThreadingHTTPServer:
             except (ValueError, OSError) as error:
                 self.send_headers(400)
                 self.write_line({"type": "error", "message": str(error)})
+                return
+            if not turn_limit.allow(client_ip(self)):
+                self.send_headers(429)
+                self.write_line({"type": "error", "message": f"Designer limit reached ({turn_limit.maximum} turns per hour). Please try again in an hour."})
                 return
             self.send_headers(200)
             cancel = threading.Event()

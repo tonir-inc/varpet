@@ -84,7 +84,7 @@ function sameOrigin(request: IncomingMessage, publicOrigin: string | undefined):
   if (!origin) return true; // CLI and server clients do not send Origin.
   try {
     const protocol = 'encrypted' in request.socket && request.socket.encrypted ? 'https:' : 'http:';
-    return new URL(origin).origin === (publicOrigin ?? `${protocol}//${request.headers.host}`);
+    return origin === publicOrigin || origin === `${protocol}//${request.headers.host}`;
   } catch { return false; }
 }
 function bearer(request: IncomingMessage): string {

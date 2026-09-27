@@ -35,6 +35,7 @@ from urllib.parse import parse_qs, urlparse
 from PIL import Image, ImageOps, UnidentifiedImageError
 
 from .plan_gate import classify_plan, unavailable, parse_verdict, InvalidVerdict, TIMEOUT
+from .http_policy import public_origin, origin_allowed, client_ip, HourlyLimit
 from .graph import Job
 from .pieces import catalog, runs as list_runs
 from .shell import Shell, to_editor
@@ -226,13 +227,18 @@ async def check_plan(body: dict, classifier=None) -> dict:
 
 def handler(repo: Path, runs: Path, runner_factory=None, *, classifier=None):
     build_lock = threading.Lock()
+    public = public_origin()
+    build_limit = HourlyLimit('VARPET_BUILD_LIMIT_PER_HOUR', 3)
+    plan_limit = HourlyLimit('VARPET_PLAN_CHECK_LIMIT_PER_HOUR', 30)
 
     class Handler(BaseHTTPRequestHandler):
         def _allowed(self):
             origin = self.headers.get('Origin')
             host = self.headers.get('Host')
             allowed_hosts = {f'{name}:{self.server.server_port}' for name in ('localhost', '127.0.0.1', '[::1]')}
-            if (origin is not None and not LOCAL_ORIGIN.fullmatch(origin)) or host not in allowed_hosts:
+            if public:
+                allowed_hosts.add(urlparse(public).netloc)
+            if not origin_allowed(origin, LOCAL_ORIGIN) or host not in allowed_hosts:
                 self._json(403, {'error': 'Origin or Host is not allowed'})
                 return False
             return True
@@ -245,7 +251,7 @@ def handler(repo: Path, runs: Path, runner_factory=None, *, classifier=None):
 
         def _cors(self) -> None:
             origin = self.headers.get('Origin')
-            if origin and LOCAL_ORIGIN.fullmatch(origin):
+            if origin and origin_allowed(origin, LOCAL_ORIGIN):
                 self.send_header('Access-Control-Allow-Origin', origin)
             self.send_header('Vary', 'Origin')
             self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
@@ -271,7 +277,7 @@ def handler(repo: Path, runs: Path, runner_factory=None, *, classifier=None):
             if not self._allowed():
                 return
             url = urlparse(self.path)
-            base = f"http://{self.headers.get('Host') or '127.0.0.1'}"
+            base = public or f"http://{self.headers.get('Host') or '127.0.0.1'}"
             if url.path == "/runs":
                 return self._json(200, list_runs(runs))
             if url.path == "/pieces":
@@ -309,6 +315,8 @@ def handler(repo: Path, runs: Path, runner_factory=None, *, classifier=None):
                 self.send_error(413 if size else 411)
                 return
             if route == "/plan-check":
+                if not plan_limit.allow(client_ip(self)):
+                    return self._json(429, {'error': f'Plan check limit reached ({plan_limit.maximum} per hour). Please try again in an hour.'})
                 try:
                     body = json.loads(self.rfile.read(size))
                     return self._json(200, asyncio.run(check_plan(body, classifier)))
@@ -317,6 +325,8 @@ def handler(repo: Path, runs: Path, runner_factory=None, *, classifier=None):
             if not build_lock.acquire(blocking=False):
                 return self._json(429, {'error': 'A build is already running'})
             try:
+                if not build_limit.allow(client_ip(self)):
+                    return self._json(429, {'error': f'Build limit reached ({build_limit.maximum} per hour). Please try again in an hour.'})
                 self._build(route, size)
             finally:
                 build_lock.release()
@@ -341,7 +351,7 @@ def handler(repo: Path, runs: Path, runner_factory=None, *, classifier=None):
                     return
                 if route == "/flat":
                     project = _run_connected(furnished_flat(body, repo, runs, progress, emit=line,
-                                                         base_url=f"http://{self.headers.get('Host') or '127.0.0.1:8788'}"), self._disconnected)
+                                                         base_url=public or f"http://{self.headers.get('Host') or '127.0.0.1:8788'}"), self._disconnected)
                     line({"type": "project", "project": project})
                 else:
                     structure = _run_connected(reconstruct(body, repo, runs, progress, runner_factory), self._disconnected)

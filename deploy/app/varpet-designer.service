@@ -1,0 +1,33 @@
+[Unit]
+Description=Varpet designer
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=varpet-app
+Group=varpet-app
+Slice=varpet-app.slice
+WorkingDirectory=/opt/varpet-app/repo/harness
+EnvironmentFile=/etc/varpet-app.env
+Environment=HOME=/opt/varpet-app
+Environment=PATH=/opt/varpet-app/repo/harness/.venv/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/varpet-app/repo/harness/.venv/bin/python designer_service.py --port 8787
+Restart=always
+RestartSec=5
+TimeoutStopSec=30
+KillMode=control-group
+MemoryHigh=1280M
+MemoryMax=2G
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/opt/varpet-app/codex-home /opt/varpet-app/data /opt/varpet-app/shares /opt/varpet-app/cache /opt/varpet-app/repo/node_modules/.vite-temp /opt/varpet-app/repo/apps/editor/node_modules/.vite /tmp
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

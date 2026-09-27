@@ -31,8 +31,9 @@ export function createFlatsMiddleware(options = {}) {
    if([...params].some(([k,v])=>id||req.method!=='GET'||k!=='include_deleted'||!['0','1'].includes(v))) throw fail(400,'Invalid query.');
    let body;
    if(req.method!=='GET') {
-    const origin=options.origin ? new URL(options.origin).origin : `${req.socket?.encrypted?'https':'http'}://${req.headers.host}`;
-    if(req.headers.origin!==origin || req.headers['sec-fetch-site']==='cross-site') throw fail(403,'Same-origin writes only.');
+    const configured=options.origin ?? process.env.VARPET_APP_ORIGIN ?? process.env.VARPET_PUBLIC_ORIGIN;
+    const origin=configured ? new URL(configured).origin : `${req.socket?.encrypted?'https':'http'}://${req.headers.host}`;
+    if(!req.headers.origin || (req.headers.origin!==process.env.VARPET_PUBLIC_ORIGIN && req.headers.origin!==origin && req.headers.origin!==`${req.socket?.encrypted?'https':'http'}://${req.headers.host}`) || req.headers['sec-fetch-site']==='cross-site') throw fail(403,'Same-origin writes only.');
     if(req.method!=='DELETE') {
      if((req.headers['content-type']??'').split(';')[0].trim()!=='application/json') throw fail(415,'Send application/json.');
      const text = await readBody(req, Math.min(options.maxBodyBytes ?? 25*1024*1024, 25*1024*1024));

@@ -166,7 +166,8 @@ export function createAccountsHandler(options = {}) {
   const maxBodyBytes = options.maxBodyBytes ?? MAX_PROJECT_BYTES;
   const sessionDays = options.sessionDays ?? 30;
   const limit = { max: 20, windowMs: 15 * 60_000, ...options.rateLimit };
-  const configuredOrigin = options.origin ?? process.env.VARPET_APP_ORIGIN;
+  const publicOrigin = process.env.VARPET_PUBLIC_ORIGIN;
+  const configuredOrigin = options.origin ?? process.env.VARPET_APP_ORIGIN ?? process.env.VARPET_PUBLIC_ORIGIN;
   const appOrigin = configuredOrigin ? new URL(configuredOrigin).origin : null;
   if (appOrigin && !/^https?:\/\//.test(appOrigin)) throw new Error('Account origin must use HTTP or HTTPS.');
   if (!Number.isInteger(maxBodyBytes) || maxBodyBytes <= 0 || maxBodyBytes > MAX_PROJECT_BYTES) throw new Error('Invalid account body limit.');
@@ -271,7 +272,7 @@ export function createAccountsHandler(options = {}) {
         throw new HttpError(405, 'method_not_allowed', 'This endpoint does not support that method.');
       }
       if (request.method !== 'GET') {
-        if (!request.headers.origin || request.headers.origin !== originFor(request)
+        if (!request.headers.origin || (request.headers.origin !== publicOrigin && request.headers.origin !== originFor(request) && request.headers.origin !== `${request.socket.encrypted ? 'https' : 'http'}://${request.headers.host}`)
           || request.headers['sec-fetch-site'] === 'cross-site') {
           throw new HttpError(403, 'origin_mismatch', 'This request must come from the Varpet page.');
         }

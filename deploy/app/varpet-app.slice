@@ -1,0 +1,7 @@
+[Unit]
+Description=Varpet public app aggregate memory budget
+
+[Slice]
+MemoryHigh=3G
+MemoryMax=3584M
+MemorySwapMax=0

@@ -13,7 +13,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const repo = resolve(here, '../../../../..');
 const editorRoot = resolve(repo, 'apps/editor');
 const IDLE_MS = Number(process.env.VARPET_VIEW_IDLE_MS ?? 30 * 60_000);
-const CHROME = process.env.VARPET_CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+import { browserLaunch } from './browser-launch.js';
 
 async function importFrom(pkgJson: string, name: string): Promise<any> {
   return import(pathToFileURL(createRequire(pkgJson).resolve(name)).href);
@@ -33,7 +33,7 @@ async function main() {
   await server.listen(); process.chdir(cwd);
   const address = server.httpServer.address();
   const origin = `http://127.0.0.1:${address.port}`;
-  const browser = await chromium.launch({ executablePath: CHROME, headless: true, args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=metal'] });
+  const browser = await chromium.launch(browserLaunch(process.platform, process.env.VARPET_CHROME));
   const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 1 });
   const page = await context.newPage();
   const pageErrors: string[] = [];

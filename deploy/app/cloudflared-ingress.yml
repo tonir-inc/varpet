@@ -1,0 +1,10 @@
+# INSERT these entries in the existing ingress list BEFORE http_status:404.
+# Preserve the existing langfuse.snek.page entry and tunnel/credentials settings.
+- hostname: varpet.snek.page
+  path: ^/designer/
+  service: http://127.0.0.1:8787
+- hostname: varpet.snek.page
+  path: ^/(flat|structure|plan-check|runs|files|pieces)(/|$)
+  service: http://127.0.0.1:8788
+- hostname: varpet.snek.page
+  service: http://127.0.0.1:4173

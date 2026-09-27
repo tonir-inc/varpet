@@ -29,6 +29,12 @@ export class PlanRejectedError extends ArchitectServiceError {
   }
 }
 const MAX_PHOTOS=4,MAX_FILE=12_000_000;
+async function httpError(response:Response):Promise<ArchitectServiceError>{
+  let detail='';
+  try{const body=await response.json();if(typeof body.error==='string')detail=body.error.slice(0,500);}catch{/* generic fallback */}
+  return new ArchitectServiceError(detail||`Architect service answered HTTP ${response.status}.`);
+}
+
 
 export function pickImages():Promise<File[]>{
   return new Promise((resolve,reject)=>{
@@ -96,7 +102,7 @@ export function createArchitectHttpAdapter(options:ArchitectHttpOptions={}):Stru
       options.onProgress?.(`Sending ${plan.name} and ${photos.length} photo${photos.length===1?'':'s'} to the architect`);
       const body=JSON.stringify({plan:await encode(plan),photos:await Promise.all(photos.map(encode))});
       const response=await request(`${base}/structure`,{method:'POST',headers:{'Content-Type':'application/json'},body,signal});
-      if(!response.ok||!response.body)throw new ArchitectServiceError(`Architect service answered HTTP ${response.status}.`);
+      if(!response.ok||!response.body)throw await httpError(response);
       const reader=response.body.pipeThrough(new TextDecoderStream()).getReader();
       let buffer='';
       for(;;){
@@ -168,7 +174,7 @@ export async function buildFurnishedFlat(input:{plan:File;photos:File[];name:str
   const request=options.fetch??globalThis.fetch.bind(globalThis);
   const body=JSON.stringify({name:input.name,plan:await encode(input.plan),photos:await Promise.all(input.photos.slice(0,10).map(encode))});
   const response=await request(`${base}/flat`,{method:'POST',headers:{'Content-Type':'application/json'},body,signal:options.signal});
-  if(!response.ok||!response.body)throw new ArchitectServiceError(`Architect service answered HTTP ${response.status}.`);
+  if(!response.ok||!response.body)throw await httpError(response);
   const reader=response.body.pipeThrough(new TextDecoderStream()).getReader();
   let buffer='';
   for(;;){

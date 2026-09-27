@@ -1,0 +1,33 @@
+[Unit]
+Description=Varpet editor
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=varpet-app
+Group=varpet-app
+Slice=varpet-app.slice
+WorkingDirectory=/opt/varpet-app/repo/apps/editor
+EnvironmentFile=/etc/varpet-app.env
+Environment=HOME=/opt/varpet-app
+Environment=PATH=/opt/varpet-app/repo/harness/.venv/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/node /opt/varpet-app/repo/apps/editor/node_modules/vite/bin/vite.js preview --host 127.0.0.1 --port 4173 --strictPort
+Restart=always
+RestartSec=5
+TimeoutStopSec=30
+KillMode=control-group
+MemoryHigh=384M
+MemoryMax=640M
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/opt/varpet-app/data /opt/varpet-app/shares /opt/varpet-app/repo/node_modules/.vite-temp /tmp
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target
