@@ -185,6 +185,20 @@ function edgeDistance(point: Vec2, polygon: Vec2[]): number {
   return best;
 }
 
+/** Within an open door leaf's swing (Inside opens every door). */
+function nearDoor(scene: SceneDocument, point: Vec2): boolean {
+  return scene.walls.some(wall => {
+    const dx = wall.end[0] - wall.start[0], dz = wall.end[1] - wall.start[1], length = Math.hypot(dx, dz);
+    if (length < EPS) return false;
+    return wall.openings.some(opening => {
+      if (opening.kind !== 'door') return false;
+      const along = opening.offset + opening.width / 2;
+      const cx = wall.start[0] + dx / length * along, cz = wall.start[1] + dz / length * along;
+      return Math.hypot(point[0] - cx, point[1] - cz) < opening.width + 0.3;
+    });
+  });
+}
+
 /** Room enough to stand without a chair back filling the view; closer than the trigger, the start moves. */
 const PRESENTATION_CLEARANCE = 0.7, CRAMPED = 0.45;
 
@@ -202,7 +216,7 @@ export function findWalkSpawn(scene: SceneDocument, catalog: CatalogAsset[], pre
       const point = candidates[index]!;
       if (!contains(room.polygon, point)) continue;
       const room_ = Math.min(context.clearance(point, floor), edgeDistance(point, room.polygon) + 0.2);
-      if (room_ < PRESENTATION_CLEARANCE) continue;
+      if (room_ < PRESENTATION_CLEARANCE || nearDoor(scene, point)) continue;
       const toCentre = centre ? Math.hypot(centre[0] - point[0], centre[1] - point[1]) : 0;
       if (centre && toCentre > 0.3) {
         // The furniture must be in open view: no piece at arm's length, no wall before the room's middle.
@@ -229,7 +243,7 @@ export function findWalkSpawn(scene: SceneDocument, catalog: CatalogAsset[], pre
     for (const point of candidates) {
       if (!contains(room.polygon, point) || !context.safe(point, floor)) continue;
       const broad = context.viewDirection(point, floor);
-      const presented = context.clearance(point, floor) < CRAMPED && context.viewBlocked(point, broad, floor) ? presentationSpot(room, floor, candidates, preferredPoint) : null;
+      const presented = ((context.clearance(point, floor) < CRAMPED && context.viewBlocked(point, broad, floor)) || edgeDistance(point, room.polygon) < 0.5 || nearDoor(scene, point)) ? presentationSpot(room, floor, candidates, preferredPoint) : null;
       const chosen = presented ?? point;
       const centre = presented ? context.furnitureCentre(room, floor) : null;
       const length = centre ? Math.hypot(centre[0] - chosen[0], centre[1] - chosen[1]) : 0;

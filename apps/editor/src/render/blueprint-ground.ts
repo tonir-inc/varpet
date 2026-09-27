@@ -135,6 +135,11 @@ export class BlueprintGround {
     this.group.updateMatrixWorld(true);
   }
 
+  /** The ground shadow follows the sun: none after dusk (a ShadowMaterial ignores light intensity). */
+  setShadowStrength(amount: number): void {
+    (this.shadow.material as THREE.ShadowMaterial).opacity = 0.3 * Math.max(0, Math.min(1, amount));
+  }
+
   dispose(): void {
     this.sheetUniforms.uMap.value?.dispose();
     for (const mesh of [this.grid, this.shadow, this.sheet]) { mesh.geometry.dispose(); (mesh.material as THREE.Material).dispose(); }

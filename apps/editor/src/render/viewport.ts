@@ -477,7 +477,9 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
     world.environmentIntensity = THREE.MathUtils.lerp(0.008, lightingSky ? 0.35 : 0.4, daylight);
     // A light studio: soft sky above, warm paper below; after dusk a warm lamplit bounce.
     // Inside by day reads like an airy listing photo: brighter floor-to-ceiling bounce and a soft room fill.
-    ambient.intensity = THREE.MathUtils.lerp(0.1, inside ? 0.6 : 0.42, daylight);
+    // After dusk the dollhouse keeps a blue-hour read of its shell instead of black walls.
+    ambient.intensity = THREE.MathUtils.lerp(inside ? 0.1 : 0.3, inside ? 0.6 : 0.42, daylight);
+    blueprint.setShadowStrength(unlitTop ? 1 : sunSettings.enabled === false ? 0 : daylight);
     ambient.color.set('#dfe4ec').lerp(eveningSky, 1 - daylight);
     ambient.groundColor.set(inside ? '#cbb9a3' : '#a89580').lerp(eveningGround, 1 - daylight);
     eveningLights.setLevel(unlitTop ? 0 : inside ? THREE.MathUtils.lerp(1, 0.3, daylight) : 1 - daylight);
