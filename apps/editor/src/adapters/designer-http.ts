@@ -21,6 +21,7 @@ export interface DesignerHttpOptions {
   northDeg?:number;
   doorSwings?:Record<string,DesignerDoorSwing>;
   conversationId?:string;
+  design?:DesignerRequest['design'];
   catalog?:CatalogAsset[];
   /** Explicit catalog price provenance; omitted by default. */
   catalogCurrency?:'AMD';
@@ -47,6 +48,8 @@ export interface DesignerRequest {
   scene:SceneDocument;revision:number;request:string;conversationId?:string;
   keep?:string[];doorSwings?:Record<string,DesignerDoorSwing>;northDeg?:number;
   catalog?:CatalogAsset[];catalogCurrency?:'AMD';events?:boolean;
+  /** Continue a recorded design live (new conversation only): its draft, owned ids and the customer's words. */
+  design?:{draft:Record<string,unknown>;owned:string[];requests:string[]};
 }
 export type DesignerReply=
   | {type:'proposal';conversationId:string;proposal:AgentProposal;metrics?:unknown;notes?:string;assets?:CatalogAsset[]}
@@ -54,7 +57,7 @@ export type DesignerReply=
   | {type:'message';conversationId:string;message:string;suggestions?:string[]}
   | {type:'decline';conversationId:string;message:string}
   | {type:'error';message:string};
-export interface AskDesignerOptions {onPartial?:(partial:DesignerPartial)=>void;onPreview?:(preview:DesignerPreview)=>void;onEvent?:(event:DesignerEvent)=>void;vision?:VisionCaptureOptions;baseUrl?:string;onProgress?:(message:string)=>void;onMessageDelta?:(delta:string)=>void;signal?:AbortSignal;resolveAssets?:DesignerHttpOptions['resolveAssets']}
+export interface AskDesignerOptions {fetch?:typeof globalThis.fetch;onPartial?:(partial:DesignerPartial)=>void;onPreview?:(preview:DesignerPreview)=>void;onEvent?:(event:DesignerEvent)=>void;vision?:VisionCaptureOptions;baseUrl?:string;onProgress?:(message:string)=>void;onMessageDelta?:(delta:string)=>void;signal?:AbortSignal;resolveAssets?:DesignerHttpOptions['resolveAssets']}
 export class DesignerServiceError extends Error {
   readonly name='DesignerServiceError';
   constructor(message:string,readonly code:'http'|'protocol'|'validation'|'service',readonly status?:number){super(message);}
@@ -240,7 +243,7 @@ export function createDesignerHttpAdapter(options:DesignerHttpOptions={}):Design
     request:options.request??'Make the room feel bigger by rearranging the furniture I already own at zero cost.',
     keep:options.keep===undefined?undefined:structuredClone(options.keep),
     northDeg:options.northDeg,doorSwings:options.doorSwings===undefined?undefined:structuredClone(options.doorSwings),
-    conversationId:options.conversationId,catalog:options.catalog===undefined?undefined:structuredClone(options.catalog),
+    conversationId:options.conversationId,design:options.design===undefined?undefined:structuredClone(options.design),catalog:options.catalog===undefined?undefined:structuredClone(options.catalog),
     vision:options.vision===undefined?undefined:structuredClone(options.vision),
     catalogCurrency:options.catalogCurrency,resolveAssets:options.resolveAssets,onPreview:options.onPreview,onPartial:options.onPartial,onProgress:options.onProgress,onMessageDelta:options.onMessageDelta,onConversationId:options.onConversationId,onMetrics:options.onMetrics,onNotes:options.onNotes,
     fetch:options.fetch??globalThis.fetch.bind(globalThis),
@@ -268,7 +271,7 @@ export function createDesignerHttpAdapter(options:DesignerHttpOptions={}):Design
       ...(configured.image===undefined?{}:{image:configured.image}),
       ...(configured.vision===undefined?{}:{vision:configured.vision}),
       ...(configured.keep===undefined?{}:{keep:configured.keep}),...(configured.northDeg===undefined?{}:{northDeg:configured.northDeg}),
-      ...(configured.doorSwings===undefined?{}:{doorSwings:configured.doorSwings}),...(configured.conversationId===undefined?{}:{conversationId:configured.conversationId}),
+      ...(configured.doorSwings===undefined?{}:{doorSwings:configured.doorSwings}),...(configured.conversationId===undefined?{}:{conversationId:configured.conversationId}),...(configured.design===undefined?{}:{design:configured.design}),
       ...(configured.catalog===undefined?{}:{catalog:configured.catalog}),...(configured.catalogCurrency===undefined?{}:{catalogCurrency:configured.catalogCurrency})});
     if(new TextEncoder().encode(body).byteLength>MAX_BYTES)fail('Designer request exceeds the 4 MB payload limit.','validation');
     let reader:ReadableStreamDefaultReader<Uint8Array>|undefined,response:Response|undefined;
@@ -422,7 +425,7 @@ export async function askDesigner(req:DesignerRequest,opts:AskDesignerOptions={}
     checkAbort(opts.signal);
     const adapter=createDesignerHttpAdapter({
       events:req.events,onEvent:opts.onEvent,onAssets:value=>{assets=value;},
-      image:req.image,vision,url:serviceUrl(opts.baseUrl),request:req.request,conversationId:req.conversationId,
+      image:req.image,vision,url:serviceUrl(opts.baseUrl),request:req.request,conversationId:req.conversationId,design:req.design,fetch:opts.fetch,
       keep:req.keep,doorSwings:req.doorSwings,northDeg:req.northDeg,catalog:req.catalog,catalogCurrency:req.catalogCurrency,resolveAssets:opts.resolveAssets,
       onPreview:opts.onPreview,onPartial:opts.onPartial,onProgress:opts.onProgress,onMessageDelta:opts.onMessageDelta,onConversationId:id=>{conversationId=id;},onMetrics:value=>{metrics=value;},onNotes:value=>{notes=value;},
     });

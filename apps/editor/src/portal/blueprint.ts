@@ -82,6 +82,7 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
       <p class="blueprint-error" role="alert" hidden></p>
       <div class="blueprint-bottom"><span>${icon('layers')} Your plan</span><i></i><span>${icon('walls')} A space in 3D</span><i></i><span>${icon('home')} Make it yours</span></div>
       <details class="blueprint-samples"><summary>No plan handy? <span>Try a sample ${icon('arrow')}</span></summary><div>${apartmentTemplates.map((template, index) => `<button type="button" data-sample="${index}">${escape(template.name)}<span>${template.area} m² ${icon('arrow')}</span></button>`).join('')}</div></details>
+      <p class="blueprint-watch"><a href="/?editor&session=sunday-b12121">Watch the designer furnish Sunday Towers ${icon('arrow')}</a></p>
     </section>
     <section class="blueprint-flow" aria-label="Your apartment taking shape" style="--paper:${PAPER}" hidden>
       <div class="blueprint-stage"></div>

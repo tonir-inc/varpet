@@ -6,6 +6,7 @@ import { designerIcon, designerIconButton } from './designer-icons';
 export { designerMarkdown } from './designer-markdown';
 import { EditorStore } from '../core/store';
 import type { AgentProposal, CatalogAsset, SceneDocument } from '../contracts';
+import { createReplayClock, loadSession, recordedFetch, sessionBadge, type DesignerSession, type RecordedTurn } from './designer-replay';
 import { askDesigner, type DesignerHealth, type DesignerPartial, type DesignerPreview, type DesignerRequest } from '../adapters/designer-http';
 type AskDesigner = typeof askDesigner;
 
@@ -496,8 +497,18 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
   const live = options.live === true;
   const estimates = new Map<string, CatalogAsset>();
   const baseAsk = options.ask ?? (live ? askDesigner : createRecordedDesigner());
+  // A recorded session (?session=<name>) plays a real run through the same ask and adapter (a paced fetch); the first
+  // live question after it continues the recorded design in a new live conversation.
+  const replayClock = createReplayClock();
+  let session: DesignerSession | undefined, replayTurn: RecordedTurn | undefined, replaySpeed = 10;
   // Custom pieces arrive with the reply, not the catalog; remember them so their chips can show an estimate.
   const ask: AskDesigner = async (request, askOptions) => {
+    const playing = replayTurn;
+    if (playing) askOptions = { ...askOptions, fetch: recordedFetch(playing, replaySpeed, replayClock) };
+    else if (session?.design && request.conversationId === session.conversationId) {
+      request = { ...request, conversationId: undefined, design: session.design };
+      setBadge('Live · continuing the recorded design');
+    } else if (session) setBadge(null);
     const reply = await baseAsk(request, askOptions);
     if (reply.type === 'proposal') for (const asset of reply.assets ?? []) estimates.set(asset.id, asset);
     return reply;
@@ -551,6 +562,13 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
     const label = value ? 'Open designer' : 'Collapse designer';
     collapse.setAttribute('aria-label', label); collapse.title = label; collapse.setAttribute('aria-expanded', String(!value));
   };
+  /** A short label beside the title (a recorded run, its speed); null removes it. */
+  function setBadge(text: string | null) {
+    let badge = host.querySelector<HTMLElement>('.designer-badge');
+    if (!text) { badge?.remove(); return; }
+    if (!badge) { badge = document.createElement('span'); badge.className = 'mock-label designer-badge'; find<HTMLElement>('.designer-title').after(badge); }
+    badge.textContent = text;
+  }
   function setContext(next: DesignerContext | null) {
     const label = typeof next?.label === 'string' ? next.label.trim().slice(0, 120) : '';
     context = next && typeof next.id === 'string' && label ? { id: next.id, label } : null;
@@ -798,7 +816,7 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
     const warming = health.ok && health.warm && Object.values(health.warm).some(value => value !== 'ready' && value !== 'failed');
     healthTimer = setTimeout(() => { void checkHealth(); }, !health.ok ? 3000 : warming ? 2000 : 20000);
   };
-  const controller = createDesignerConversation({ ...options, storage, history: live, ask, onChange: render, onUnreachable: () => { void checkHealth(); } });
+  const controller = createDesignerConversation({ now: () => replayClock.now(), ...options, storage, history: live, ask, onChange: render, onUnreachable: () => { void checkHealth(); } });
   const renderKeeps = () => {
     const list = find<HTMLElement>('.designer-keep-list'); list.replaceChildren();
     for (const object of options.snapshot().scene.objects) {
@@ -849,6 +867,23 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
     open() { setCollapsed(false); input.focus(); },
     /** The buyer's current focus (a selected piece), or null. Shown as a chip; prefixes what they type next. */
     setContext,
+    setBadge,
+    /** ?session=<name>[&speed=1..10]: open the recorded run's flat (`load` replaces the editor scene) and play it. */
+    async playSession(load: (scene: unknown) => Promise<boolean> | boolean, search = location.search) {
+      const params = new URLSearchParams(search), name = params.get('session');
+      if (!name || !live) return;
+      try {
+        const recorded = await loadSession(name);
+        replaySpeed = Math.min(10, Math.max(1, Number(params.get('speed')) || 10));
+        if (!(await load(recorded.scene))) return;
+        controller.newConversation(); session = recorded; setBadge(sessionBadge(recorded, replaySpeed)); setCollapsed(false);
+        for (const [index, turn] of recorded.turns.entries()) {
+          await new Promise(resolve => setTimeout(resolve, index ? 2500 : 1200));
+          replayTurn = turn;
+          try { await controller.send(turn.request); } finally { replayTurn = undefined; }
+        }
+      } catch (error) { setBadge(null); statusLine.hidden = false; statusLine.textContent = error instanceof Error ? error.message : String(error); }
+    },
     dispose() { if (ticker !== undefined) clearInterval(ticker); if (healthTimer !== undefined) clearTimeout(healthTimer); controller.dispose(); unsubscribe?.(); host.replaceChildren(); },
   };
 }

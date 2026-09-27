@@ -594,6 +594,44 @@ def _room_signatures(workspace: Path) -> dict[str, str]:
     return _signatures(_read_draft(workspace / "draft.json") or {})
 
 
+class Recorder:
+    """VARPET_RECORD_DIR set: every streamed record of a request with its time, and the final reply plus the design
+    (draft.json, owned ids, customer requests) at the end, so a real run can be replayed in the editor
+    (tools/demo_session.py) and continued live from its design."""
+
+    def __init__(self, path: Path, body: dict):
+        self.path, self.started = path, time.monotonic()
+        self.lock = threading.Lock()
+        self._write({"type": "request", "request": body["request"], "revision": body["revision"],
+                     "sceneId": body["scene"].get("id"), "at": time.strftime("%Y-%m-%dT%H:%M:%S")})
+
+    @classmethod
+    def open(cls, conversation_id: str, body: dict) -> "Recorder | None":
+        directory = os.environ.get("VARPET_RECORD_DIR")
+        if not directory:
+            return None
+        Path(directory).mkdir(parents=True, exist_ok=True)
+        return cls(Path(directory) / f"{conversation_id}-{time.strftime('%H%M%S')}.ndjson", body)
+
+    def _write(self, record) -> None:
+        with self.lock, self.path.open("a") as handle:
+            handle.write(json.dumps({"t": round(time.monotonic() - getattr(self, "started", time.monotonic()), 2),
+                                     "record": record}, ensure_ascii=False) + "\n")
+
+    def wrap(self, progress):
+        def recorded(message):
+            self._write(message if isinstance(message, dict) else {"type": "progress", "message": message})
+            progress(message)
+        return recorded
+
+    def finish(self, reply: dict, conversation) -> None:
+        self._write(reply)
+        state = getattr(conversation, "spike", None)
+        if state is not None:
+            self._write({"type": "design", "draft": _read_draft(state.workspace / "draft.json"), "owned": state.owned,
+                         "requests": list(getattr(conversation, "customer_requests", []))})
+
+
 class EarlyReviews:
     """The critic on rooms as they finish, in the background while the designer works on the rest (live chat): each
     finished-room snapshot is reviewed once; at the end a room whose design did not change since is not reviewed
@@ -844,6 +882,11 @@ def propose(conversation, conversation_id: str, body: dict, cancel: threading.Ev
     if first:
         conversation.spike = _workspace(conversation.root)
     state: SpikeConversation = conversation.spike
+    seeded = first and isinstance(body.get("design"), dict)
+    if seeded:
+        # Continue a recorded design live: its draft and owned pieces become this conversation's design.
+        (state.workspace / "draft.json").write_text(json.dumps(body["design"]["draft"], ensure_ascii=False) + "\n")
+        state.owned = [str(item) for item in body["design"]["owned"]]
     turn = conversation.root / f"turn-{time.time_ns()}"
     turn.mkdir()
     watcher = None
@@ -868,7 +911,7 @@ def propose(conversation, conversation_id: str, body: dict, cancel: threading.Ev
             suffix = Path(image).suffix
             shutil.copyfile(image, state.workspace / ("inspiration" + suffix))
         if first:
-            state.instructions = spike.fill_prompt({"id": conversation_id, "request": body["request"], "rooms": "all",
+            state.instructions = spike.fill_prompt({"id": conversation_id, "request": requests[0], "rooms": "all",
                                                     **({"budget_dram": state.budget} if state.budget else {})},
                                                    state.rooms, suffix)
             (state.workspace / "AGENTS.md").write_text(state.instructions)
@@ -877,7 +920,14 @@ def propose(conversation, conversation_id: str, body: dict, cancel: threading.Ev
         progress("Warming up the renderer")
         spike.warm_renderer(state.workspace, state.rooms[0]["id"])
         lap("renderer")
-        text = _turn_text(body["request"], first, edits, budget)
+        if seeded:
+            edits = sync_edits(state, body["scene"])
+            earlier = "\n".join(f"- {text}" for text in requests[:-1])
+            text = (f"Customer follow-up: {body['request']}\nThis continues a design you made earlier for this customer; draft.json "
+                    f"holds it and they applied it.{(' Their earlier requests:' + chr(10) + earlier) if earlier else ''} "
+                    + _turn_text(body["request"], False, edits, budget).split("\n", 1)[1])
+        else:
+            text = _turn_text(body["request"], first, edits, budget)
         if image:
             from openai_codex import LocalImageInput, TextInput
             turn_input = [LocalImageInput(path=str(state.workspace / ("inspiration" + suffix))),

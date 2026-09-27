@@ -127,3 +127,24 @@ def test_whole_flat_briefs_take_the_parallel_path_and_one_room_requests_do_not()
     assert designer_spike.whole_flat("Furnish the living room with kitchen and the reading room", rooms)
     assert not designer_spike.whole_flat("Make the bedroom cosy", rooms)
     assert not designer_spike.whole_flat("Furnish Bedroom 1 as a nursery", rooms)
+
+
+def test_a_recorded_run_becomes_a_replayable_session(tmp_path, monkeypatch):
+    import importlib.util
+    monkeypatch.setenv("VARPET_RECORD_DIR", str(tmp_path / "rec"))
+    body = {"request": "Furnish the flat", "revision": 0, "scene": {"id": "flat"}}
+    recorder = designer_spike.Recorder.open("conv1", body)
+    seen = []
+    progress = recorder.wrap(seen.append)
+    for message in ("Planning the flat", "Planning the flat", {"type": "preview", "image": "data:image/jpeg;base64,AA", "caption": "View"}):
+        progress(message)
+    proposal = {"type": "proposal", "conversationId": "conv1", "proposal": {"id": "p"}}
+    state = _state(tmp_path, [_item("sofa", [1, -1])], ["sofa"])
+    recorder.finish(proposal, type("C", (), {"spike": state, "customer_requests": ["Furnish the flat"]})())
+    assert seen[0] == "Planning the flat" and len(seen) == 3
+    spec = importlib.util.spec_from_file_location("demo_session", Path(__file__).resolve().parents[2] / "tools/demo_session.py")
+    demo_session = importlib.util.module_from_spec(spec); spec.loader.exec_module(demo_session)
+    turns, conversation, design, recorded = demo_session.turns_of(tmp_path / "rec")
+    assert conversation == "conv1" and recorded
+    assert [event["record"]["type"] for event in turns[0]["events"]] == ["progress", "preview", "proposal"]
+    assert design == {"draft": {"items": [_item("sofa", [1, -1])]}, "owned": ["sofa"], "requests": ["Furnish the flat"]}

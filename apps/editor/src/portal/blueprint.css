@@ -261,3 +261,8 @@
   .bp-grid { -webkit-mask: none; mask: none; }
   .bp-frame rect { stroke-dashoffset: 0; }
 }
+
+/* A recorded real designer run (demo-sessions/sunday-b12121.json), played in the editor. */
+.blueprint-watch { margin: 12px 0 0; text-align: center; font-size: 12px; animation: bp-rise 800ms var(--bp-ease) 1500ms both; }
+.blueprint-watch a { color: inherit; opacity: .8; text-decoration: underline; text-underline-offset: 3px; }
+.blueprint-watch a:hover { opacity: 1; }

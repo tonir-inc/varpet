@@ -71,6 +71,8 @@ def main() -> int:
     parser.add_argument("--follow-up", default=FOLLOW_UP)
     parser.add_argument("--service", help="use a running designer service at this base URL")
     parser.add_argument("--editor", help="use a running editor at this base URL (it must point at --service)")
+    parser.add_argument("--session", metavar="NAME", help="record the run and write apps/editor/public/demo-sessions/NAME.json")
+    parser.add_argument("--title", help="the session's title (with --session)")
     args = parser.parse_args()
     work = Path(tempfile.mkdtemp(prefix="varpet-rehearse-"))
     out = Path(args.out) if args.out else work / "shots"
@@ -81,8 +83,10 @@ def main() -> int:
         if not service:
             port = free_port()
             service = f"http://127.0.0.1:{port}"
+            env = {**os.environ, **({"VARPET_RECORD_DIR": str(work / "recordings")} if args.session else {})}
             started.append(subprocess.Popen(["uv", "run", "python", "designer_service.py", "--port", str(port)],
-                                            cwd=ROOT / "harness", stdout=open(work / "service.log", "w"), stderr=subprocess.STDOUT))
+                                            cwd=ROOT / "harness", stdout=open(work / "service.log", "w"), stderr=subprocess.STDOUT,
+                                            env=env))
             timings["service_up_s"] = round(wait_for(service + "/designer/health", 120), 1)
             # Warm start: the render daemon and Codex come up before the first request.
             clock = time.monotonic()
@@ -103,9 +107,14 @@ def main() -> int:
                                             stdout=open(work / "vite.log", "w"), stderr=subprocess.STDOUT))
             timings["editor_up_s"] = round(wait_for(editor, 60), 1)
         print(json.dumps({"event": "boot", "service": service, "editor": editor, **timings}), flush=True)
+        flat = flat_path(args.flat, work)
         driver = subprocess.run(["node", str(ROOT / "tools/demo_rehearse.mjs"), editor + "/?editor",
-                                 str(flat_path(args.flat, work)), str(out), args.brief, args.follow_up], text=True,
+                                 str(flat), str(out), args.brief, args.follow_up], text=True,
                                 capture_output=True)
+        if args.session and (work / "recordings").is_dir():
+            made = subprocess.run([sys.executable, str(ROOT / "tools/demo_session.py"), str(work / "recordings"), str(flat),
+                                   args.session, "--title", args.title or args.flat], capture_output=True, text=True)
+            print((made.stdout or made.stderr).strip(), flush=True)
         result = {}
         for line in driver.stdout.splitlines():
             print(line, flush=True)

@@ -1193,6 +1193,7 @@ window.addEventListener('pagehide', event => { if (!event.persisted) { designerP
 
 const modal=$<HTMLDialogElement>('#modal');
 if (architectLive && new URLSearchParams(location.search).has('architect')) queueMicrotask(replayMode ? () => void replayArchitect() : openArchitect);
+void designerPanel.playSession(async scene => { const doc = await parseDatabaseScene(JSON.stringify(scene)); const ok = run([{ type: 'replace-scene', scene: doc }], 'Open recorded session'); if (ok) { select(null); focusView(); refresh(); } return ok; });
 /** ?open=/demo-flats/<name>.json loads a saved design shipped with the editor (designer demo exports); same origin only. */
 const openDocument = new URLSearchParams(location.search).get('open');
 if (openDocument && /^\/demo-flats\/[\w-]+\.json$/.test(openDocument)) queueMicrotask(async () => {

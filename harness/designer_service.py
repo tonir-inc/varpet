@@ -85,6 +85,15 @@ def validate_request(body) -> dict:
         designer_inspiration.validate_image(body["image"])
     if "vision" in body:
         designer_vision.validate_vision(body["vision"], scene, body["revision"], body["request"])
+    if "design" in body:
+        # A recorded design the customer continues live: {draft, owned, requests} (spike engine only).
+        design = body["design"]
+        if (not isinstance(design, dict) or not isinstance(design.get("draft"), dict)
+                or not isinstance(design.get("owned"), list) or any(not isinstance(i, str) for i in design["owned"])
+                or not isinstance(design.get("requests", []), list) or len(json.dumps(design)) > 2_000_000):
+            raise ValueError("design must be {draft, owned, requests} of a recorded design")
+        if "conversationId" in body:
+            raise ValueError("design starts a new conversation; omit conversationId")
     return body
 
 
@@ -258,8 +267,14 @@ class DesignerService:
             if "image" in body:
                 conversation.inspiration_image = designer_inspiration.store_image(body["image"], conversation.root)
             if self.engine == "spike":
+                if isinstance(body.get("design"), dict) and not conversation.customer_requests:
+                    conversation.customer_requests.extend(str(text) for text in body["design"].get("requests") or [])
                 conversation.customer_requests.append(body["request"])
-                reply = designer_spike.propose(conversation, conversation_id, body, cancel, progress)
+                recorder = designer_spike.Recorder.open(conversation_id, body)
+                reply = designer_spike.propose(conversation, conversation_id, body, cancel,
+                                               recorder.wrap(progress) if recorder else progress)
+                if recorder:
+                    recorder.finish(reply, conversation)
                 outcome = reply["type"]
                 return reply
             from designer_fast import routing_classes
