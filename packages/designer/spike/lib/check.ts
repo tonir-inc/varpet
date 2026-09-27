@@ -8,6 +8,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { centerOf } from './scene.ts';
+import { loadRequirements, requirementProblems, type Requirements } from './requirements.ts';
 import type { CatalogAsset } from '../../../../apps/editor/src/contracts.js';
 import { wallDecoration } from '../../../../apps/editor/src/core/decoration-placement.js';
 import { canRestOnFurniture } from '../../../../apps/editor/src/core/furniture-support.js';
@@ -160,7 +161,8 @@ export function checkDecor(scene: Scene, draft: Draft, kindOf: (kind: string) =>
 
 /** budget: furniture budget in AMD (workspace budget.json); going over it is a hard problem. */
 /** brief: the customer request (default: the workspace AGENTS.md in cwd); it decides whether curtains are required. */
-export async function check(scene: Scene, draft: Draft, options: { budget?: number; brief?: string } = {}): Promise<CheckResult> {
+/** requirements: the brief's counts per room (default: requirements.json in cwd; lib/requirements.ts). */
+export async function check(scene: Scene, draft: Draft, options: { budget?: number; brief?: string; requirements?: Requirements } = {}): Promise<CheckResult> {
   const { checkLayout, layoutPrice } = await importSrc<typeof import('../../src/layout.ts')>('layout.ts');
   const { opsSchema } = await importSrc<typeof import('../../src/adapter.ts')>('adapter.ts');
   const items = draft.items ?? [];
@@ -206,6 +208,7 @@ export async function check(scene: Scene, draft: Draft, options: { budget?: numb
   const fixable = (line: string) => { const words = line.split(/[\s,:;()"+]+/); return words.some(w => draftIds.has(w)) || !words.some(w => keptIds.has(w)); };
   problems.push(...rules.hard.filter(fixable));
   const advice = [...rules.hard.filter(line => !fixable(line)), ...rules.soft];
+  problems.push(...requirementProblems(scene, draft, options.requirements ?? loadRequirements()));
   problems.push(...checkSurfaces(scene, draft).map(p => `surfaces: ${p}`));
   // Editor finish presets and fixtures carry no supplier price: list the work, never add it to the total.
   const work = surfaceQuantities(scene, draft);

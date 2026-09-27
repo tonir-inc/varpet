@@ -28,12 +28,21 @@ reason, a shared palette, doors and the hall kept clear). Honour every concrete 
 WCs and kitchens keep their fixed fittings; furnish them with what the catalog offers for them (bath storage
 stands on the floor).
 
+In the same step write `requirements.json`: every countable need of the brief, per room, which `./varpet check`
+then enforces (`./varpet requirements` prints it with the room's current counts). Put every number the brief
+gives (six for board games, a table for eight, two monitors, a bed per child) and every exclusion ("no rugs"):
+`{"rooms": {"<room id>": {"for": "who and what", "seats_at_table": 6, "seats": 5, "sleepers": 2, "desks": 1,
+"desk_chairs": 1, "items": [{"kind": "tv", "min": 1}, {"kind": "chair", "text": "armchair", "min": 1}],
+"exclude": ["rug"], "budget_dram": 900000}}}` (all keys optional; `seats` = sofa places and armchairs, not at a
+table or desk; `sleepers` = bed places, a bed 1.2 m or wider sleeps two). Change it only when the customer does.
+
 Then design the rooms in parallel if you have the `spawn_agent` tool (you are asked to delegate here): right
 after plan.md, in one step, spawn one sub-agent per main room (living, bedrooms, study or office, a kitchen that
 needs furniture), up to 4 at once, `fork_turns: "all"`; spawn any further main room as soon as one finishes;
-the message names the room id and name, who uses it, every need from the brief that lands in this room with
-its numbers (seats, desks, storage, what to avoid), the budget line, and ends: "Design only this room, as fully
-as the studio instructions ask. Work with `./varpet ... --part <room id>` and write only `rooms/<room id>.json`."
+the task_name is the room id; the message names the room id and name, who uses it and how, its style notes from
+plan.md, and ends: "Design only this room, as fully
+as the studio instructions ask. Work with `./varpet ... --part <room id>` and write only `rooms/<room id>.json`; `./varpet requirements --part <room id>`
+lists what the brief needs there."
 While they work, design the small rooms yourself the same way (hall, bathrooms, WC, balconies: `--part <room
 id>`, a few pieces each, one render). Wait until EVERY sub-agent has finished (wait_agent) before you run
 `./varpet merge`: merge removes the room files. A finished sub-agent's room is done: do not redesign it or

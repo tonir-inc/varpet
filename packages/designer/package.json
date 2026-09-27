@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start": "tsx src/server.ts",
-    "test": "vitest run && python3 -m unittest discover -s ../../harness -p 'designer*_test.py' && python3 -m unittest discover -s eval -p 'test_*.py'",
+    "test": "vitest run && python3 -m unittest discover -s ../../harness -p 'designer*_test.py' && python3 -m unittest discover -s eval -p 'test_*.py' && python3 -m unittest discover -s spike/run -p '*_test.py'",
     "eval": "python3 eval/run.py",
     "typecheck": "tsc -p ."
   },

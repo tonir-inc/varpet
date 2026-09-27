@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 import sys
 import tempfile
+import time
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -39,6 +40,33 @@ class CriticTest(unittest.TestCase):
             self.assertFalse(spike.is_question("Done.", workspace))
             (workspace / "draft.json").write_text('{"items": [{"id": "bed"}]}')
             self.assertFalse(spike.is_question("Shall I add a rug?", workspace))
+
+    def test_reviewer_answers_a_logged_review_request_once(self):
+        calls = []
+
+        def fake_review(workspace, brief, rooms, scene_rooms, draft, out, context, part=False):
+            calls.append((tuple(rooms), part, brief))
+            return {rooms[0]: {"issues": [{"room": rooms[0], "severity": "major", "issue": "chairs away",
+                                           "evidence": "plan", "fix": "move"}]}}
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace = Path(tmp)
+            (workspace / "scene.json").write_text(json.dumps({"rooms": [{"id": "liv", "polygon": []}]}))
+            original, critic._review = critic._review, fake_review
+            try:
+                with critic.Reviewer(workspace, "brief") as reviewer:
+                    self.assertTrue((workspace / "reviews" / ".on").exists())
+                    line = json.dumps({"cmd": "review", "event": "start", "part": "liv"}) + "\n"
+                    (workspace / ".varpet-log.jsonl").write_text(line + line)
+                    deadline = time.monotonic() + 10
+                    while not (workspace / "reviews" / "liv.json").exists() and time.monotonic() < deadline:
+                        time.sleep(0.1)
+                answer = json.loads((workspace / "reviews" / "liv.json").read_text())
+            finally:
+                critic._review = original
+            self.assertEqual(calls, [(("liv",), True, "brief")])
+            self.assertEqual(answer["issues"][0]["issue"], "chairs away")
+            self.assertIn("liv", reviewer.records)
+            self.assertFalse((workspace / "reviews" / ".on").exists())
 
 
 if __name__ == "__main__":

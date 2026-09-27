@@ -333,7 +333,11 @@ def run_thread(workspace: Path, case: dict, args, events_path: Path, result: dic
     brief = case["request"]
     rooms = json.loads((workspace / "scene.json").read_text())["rooms"]
     parallel = args.parallel == "on" or (args.parallel == "auto" and len(scope(case, rooms)) > 1)
-    with Session(workspace, args, events_path, parallel) as session:
+    from contextlib import nullcontext
+    critic = critic_module()
+    live = parallel and not args.no_critic and args.critic_rounds > 0
+    with Session(workspace, args, events_path, parallel) as session, \
+            (critic.Reviewer(workspace, brief) if live else nullcontext()) as reviewer:
         try:
             last = session.turn(turn_input, "request")
             result["question"] = last["final_message"] if is_question(last["final_message"], workspace) else None
@@ -343,14 +347,23 @@ def run_thread(workspace: Path, case: dict, args, events_path: Path, result: dic
                     break
                 brief += f"\nCustomer follow-up: {answer}"
                 (workspace / "brief.txt").write_text(brief + "\n")
+                if reviewer:
+                    reviewer.brief = brief
                 last = session.turn(followup_text(answer), f"followup-{n}")
-            result["critic"] = critic_loop(session, workspace, brief, args, last)
+            result["critic"] = critic_loop(session, workspace, brief, args, last, flat=live)
+            if reviewer:
+                result["critic"]["rooms"] = {room: {k: entry.get(k) for k in ("issues", "seconds", "started", "error")}
+                                             for room, entry in reviewer.records.items()}
+                for entry in result["critic"]["rooms"].values():
+                    if entry.get("started"):
+                        entry["started_s"] = round(entry.pop("started") - session.epoch, 1)
         finally:
             result.update(session.summary())
 
 
-def critic_loop(session: Session, workspace: Path, brief: str, args, last: dict) -> dict:
-    """critique -> fix turn, at most args.critic_rounds times; skipped for a question or a failed turn."""
+def critic_loop(session: Session, workspace: Path, brief: str, args, last: dict, flat: bool = False) -> dict:
+    """critique -> fix turn, at most args.critic_rounds times; skipped for a question or a failed turn.
+    flat: rooms were reviewed as their designers finished (critic.Reviewer), so only the cross-room pass runs."""
     record = {"rounds": [], "skipped": None}
     if args.no_critic or args.critic_rounds <= 0:
         record["skipped"] = "disabled"
@@ -365,12 +378,15 @@ def critic_loop(session: Session, workspace: Path, brief: str, args, last: dict)
     reply = None
     for n in range(1, args.critic_rounds + 1):
         began = time.monotonic()
-        issues = critic.critique(workspace, brief, None, n, context=reply)
-        round_record = {"round": n, "issues": issues, "critic_seconds": round(time.monotonic() - began, 1)}
+        issues = (critic.critique_flat(workspace, brief, n, context=reply) if flat
+                  else critic.critique(workspace, brief, None, n, context=reply))
+        round_record = {"round": n, "kind": "flat" if flat else "rooms", "issues": issues,
+                        "critic_seconds": round(time.monotonic() - began, 1)}
         try:
-            detail = json.loads((workspace / "critic" / f"round-{n}" / "critic.json").read_text())
+            detail = json.loads((workspace / "critic" / (f"flat-{n}" if flat else f"round-{n}") / "critic.json").read_text())
+            rooms = detail.get("rooms", {}).values() if not flat else [detail]
             round_record["critic_tokens"] = sum(((room.get("usage") or {}).get("total") or {}).get("totalTokens") or 0
-                                                for room in detail.get("rooms", {}).values())
+                                                for room in rooms)
         except (OSError, ValueError):
             pass
         record["rounds"].append(round_record)

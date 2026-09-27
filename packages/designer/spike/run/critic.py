@@ -10,6 +10,8 @@ looks only at the pictures (plus the brief and the room's piece list) and return
       context:   optional keyword, the designer's reply to the previous round
     Each issue: {room, severity: "blocker"|"major"|"minor", issue, evidence, fix}.
     serious(issues) keeps blocker+major; feedback(issues) is the follow-up text for the designer thread.
+    critique_flat(workspace, brief, round, context) -> cross-room issues only (after per-room reviews).
+    Reviewer(workspace, brief): context manager that answers `./varpet review --part <room>` from room designers.
     Details of the last call (images, seconds, usage, raw replies) are in <workspace>/critic/round-<n>/critic.json.
 
 Load it like designer_spike loads spike.py (importlib spec_from_file_location); it imports spike.py beside it.
@@ -90,6 +92,14 @@ def _run(argv: list[str], cwd: Path, timeout: float = 300) -> subprocess.Complet
     return subprocess.run(argv, cwd=cwd, capture_output=True, text=True, timeout=timeout)
 
 
+def _part_draft(workspace: Path, room_id: str) -> dict:
+    try:
+        draft = json.loads((workspace / "rooms" / f"{room_id}.json").read_text())
+        return draft if isinstance(draft, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
 def _draft(workspace: Path) -> dict:
     try:
         draft = json.loads((workspace / "draft.json").read_text())
@@ -131,14 +141,17 @@ def _jpeg(png: Path, px: int = IMAGE_PX) -> Path:
     return png
 
 
-def render_room(workspace: Path, room_id: str, out: Path, draft: dict) -> dict:
-    """plan, overview, eye and (when lit) evening pictures of one room; model-load failures as notes."""
+def render_room(workspace: Path, room_id: str, out: Path, draft: dict, part: bool = False) -> dict:
+    """plan, overview, eye and (when lit) evening pictures of one room; model-load failures as notes.
+    part: render the room's own file rooms/<room>.json (a room designer's work in progress)."""
     shots = [("plan", ["render-plan", str(out / f"{room_id}-plan.png"), "--room", room_id]),
              ("overview", ["render-view", str(out / f"{room_id}-overview.png"), "--room", room_id, "--camera", "overview"]),
              ("eye", ["render-view", str(out / f"{room_id}-eye.png"), "--room", room_id, "--camera", "eye"])]
     if lit(draft, room_id):
         shots.append(("evening", ["render-view", str(out / f"{room_id}-evening.png"), "--room", room_id,
                                   "--camera", "eye", "--time", "evening"]))
+    if part:
+        shots = [(name, [*argv, "--part", room_id]) for name, argv in shots]
     images, notes = [], []
     for name, argv in shots:
         try:
@@ -165,8 +178,17 @@ def _fixed(workspace: Path, room_id: str) -> list[str]:
                    and "switch" not in str(f.get("name", "")).lower()})
 
 
+def _needs(workspace: Path, room_id: str) -> str:
+    """The room's line in requirements.json (the brief's counts), if the lead wrote one."""
+    try:
+        needs = json.loads((workspace / "requirements.json").read_text())["rooms"].get(room_id)
+    except (OSError, ValueError, KeyError, AttributeError):
+        return ""
+    return f"\nThe brief's counts for this room (requirements.json): {json.dumps(needs, ensure_ascii=False)}" if needs else ""
+
+
 def _prompt(brief: str, room: dict, draft: dict, shots: dict, context: str | None = None,
-            fixed: list[str] | None = None) -> str:
+            fixed: list[str] | None = None, needs: str = "") -> str:
     items = [i for i in draft.get("items") or [] if isinstance(i, dict) and i.get("room_id") == room["id"]]
     lines = [f"- {i.get('id')} | {i.get('kind')} | {i.get('name')} | "
              f"{'x'.join(f'{float(n):.2f}' for n in i.get('size') or [])} m"
@@ -175,7 +197,7 @@ def _prompt(brief: str, room: dict, draft: dict, shots: dict, context: str | Non
     pictures = ", ".join(f"({n + 1}) {image['name']}" for n, image in enumerate(shots["images"]))
     notes = "\n".join(f"- {note}" for note in shots["notes"]) or "- none"
     return (f"Customer brief:\n{brief.strip()}\n\nRoom under review: {room['id']} ({room.get('name') or room['id']}), "
-            f"{_size(room)}.\nPictures attached in order: {pictures}.\nRender notes:\n{notes}\n\n"
+            f"{_size(room)}.{needs}\nPictures attached in order: {pictures}.\nRender notes:\n{notes}\n\n"
             f"Fixed fittings (the flat's): {', '.join(fixed or []) or 'none'}.\n"
             f"Pieces in this room (id | kind | name | w x d x h):\n" + ("\n".join(lines) or "- (none)")
             + (f"\n\nThe designer's answer to the previous review (re-raise an issue only if the pictures show it is still "
@@ -219,7 +241,7 @@ def _config(extra: dict) -> dict:
 
 
 def _review(workspace: Path, brief: str, rooms: list[str], scene_rooms: dict, draft: dict, out: Path,
-            context: str | None) -> dict[str, dict]:
+            context: str | None, part: bool = False) -> dict[str, dict]:
     """One worker: its own CODEX_HOME and app-server; renders then reviews each of its rooms in a fresh thread."""
     from openai_codex import ApprovalMode, Codex, CodexConfig, LocalImageInput, Sandbox, TextInput
     from openai_codex.generated.v2_all import ReasoningEffort
@@ -233,7 +255,8 @@ def _review(workspace: Path, brief: str, rooms: list[str], scene_rooms: dict, dr
             spike.disable_skills(codex, str(workspace))
             for room_id in rooms:
                 began = time.monotonic()
-                shots = render_room(workspace, room_id, out, draft)
+                room_draft = _part_draft(workspace, room_id) if part else draft
+                shots = render_room(workspace, room_id, out, room_draft, part)
                 entry: dict = {"images": [i["path"] for i in shots["images"]], "notes": shots["notes"],
                                "render_seconds": round_(time.monotonic() - began)}
                 try:
@@ -241,8 +264,8 @@ def _review(workspace: Path, brief: str, rooms: list[str], scene_rooms: dict, dr
                                                 sandbox=Sandbox("read-only"), cwd=str(workspace),
                                                 developer_instructions=RUBRIC, ephemeral=True)
                     inputs = [LocalImageInput(path=i["path"]) for i in shots["images"]]
-                    inputs.append(TextInput(text=_prompt(brief, scene_rooms[room_id], draft, shots, context,
-                                                         _fixed(workspace, room_id))))
+                    inputs.append(TextInput(text=_prompt(brief, scene_rooms[room_id], room_draft, shots, context,
+                                                         _fixed(workspace, room_id), _needs(workspace, room_id))))
                     result = thread.run(inputs, effort=ReasoningEffort(EFFORT), approval_mode=ApprovalMode.deny_all,
                                         output_schema=SCHEMA)
                     entry["raw"] = result.final_response
@@ -290,6 +313,157 @@ def critique(workspace: Path | str, brief: str, rooms: list[str] | None = None, 
         record["seconds"] = round_(time.monotonic() - started)
         (out / "critic.json").write_text(json.dumps(record, indent=2, ensure_ascii=False))
     return record["issues"]
+
+
+FLAT_RUBRIC = """You are an independent reviewer of a whole furnished flat. Each room was designed and reviewed on its
+own already; judge ONLY what spans rooms, from the pictures: a labelled whole-flat plan, a top view and a
+cutaway overview.
+1. Flow: the entrance and hall kept clear (~0.9 m), every door openable, no piece in one room blocking a door or
+   path into another, balconies reachable.
+2. Coherence: one palette and material story across rooms (floors, woods, colours) matching the brief; a room
+   that clashes with the rest.
+3. The brief across the flat: every person has their room, bed, desk and seat as asked; nothing asked is missing
+   from every room (count across rooms).
+Do not report issues inside one room (placement, lamps, art); those were reviewed. Faults of the flat itself
+(walls, fixed fittings) are minor with the issue starting "flat:". Severity as usual: blocker = a brief need unmet,
+major = a cross-room fault the customer would see, minor = polish. An empty list is a fine answer.
+Answer with JSON only: {"issues": [{"room": "<room id or 'flat'>", "severity": "blocker|major|minor", "issue":
+"...", "evidence": "<which picture, where>", "fix": "<one concrete change, with item ids>"}]}."""
+
+
+def _ask(workspace: Path, instructions: str, images: list[str], text: str) -> dict:
+    """One fresh tool-less thread: images + text in, {raw, usage, status} out."""
+    from openai_codex import ApprovalMode, Codex, CodexConfig, LocalImageInput, Sandbox, TextInput
+    from openai_codex.generated.v2_all import ReasoningEffort
+    home, extra = spike.private_home("default")
+    config = _config(extra)
+    sdk = CodexConfig(cwd=str(workspace), env={"CODEX_HOME": str(home)},
+                      config_overrides=tuple(k + "=" + spike.toml(v) for k, v in config.items()))
+    try:
+        with Codex(sdk) as codex:
+            spike.disable_skills(codex, str(workspace))
+            thread = codex.thread_start(model=spike.MODEL, approval_mode=ApprovalMode.deny_all, sandbox=Sandbox("read-only"),
+                                        cwd=str(workspace), developer_instructions=instructions, ephemeral=True)
+            result = thread.run([*(LocalImageInput(path=i) for i in images), TextInput(text=text)],
+                                effort=ReasoningEffort(EFFORT), approval_mode=ApprovalMode.deny_all, output_schema=SCHEMA)
+            usage = result.usage
+            return {"raw": result.final_response, "status": str(getattr(result.status, "value", result.status)),
+                    "usage": usage.model_dump(mode="json", by_alias=True) if hasattr(usage, "model_dump") else usage}
+    finally:
+        shutil.rmtree(home, ignore_errors=True)
+
+
+def critique_flat(workspace: Path | str, brief: str, round: int = 1, context: str | None = None) -> list[dict]:
+    """Whole-flat pass for cross-room issues only (flow between rooms, palette, brief counts across rooms), for
+    designs whose rooms were reviewed one by one (see Reviewer). Output in <workspace>/critic/flat-<round>/."""
+    workspace = Path(workspace).resolve()
+    out = workspace / "critic" / f"flat-{round}"
+    if out.exists():
+        shutil.rmtree(out)
+    out.mkdir(parents=True)
+    started = time.monotonic()
+    record: dict = {"round": round, "issues": []}
+    images, notes = [], []
+    for name, argv in (("plan", ["render-plan", str(out / "flat-plan.png")]),
+                       ("top", ["render-view", str(out / "flat-top.png"), "--camera", "top", "--width", "1024"]),
+                       ("overview", ["render-view", str(out / "flat-overview.png"), "--camera", "overview", "--width", "1024"])):
+        try:
+            result = _run([str(workspace / "varpet"), *argv], workspace)
+            if result.returncode == 0 and Path(argv[1]).is_file():
+                images.append(str(_jpeg(Path(argv[1]), PLAN_PX)))
+            else:
+                notes.append(f"{name}: render failed")
+        except (OSError, subprocess.TimeoutExpired) as error:
+            notes.append(f"{name}: render failed ({error})")
+    rooms = ", ".join(f"{r['id']} ({r.get('name') or r['id']})" for r in _rooms(workspace).values())
+    try:
+        needs = (workspace / "requirements.json").read_text()
+    except OSError:
+        needs = ""
+    text = (f"Customer brief:\n{brief.strip()}\n\nRooms: {rooms}.\n"
+            + (f"The brief's counts per room (requirements.json): {needs.strip()}\n" if needs else "")
+            + (f"Render notes: {'; '.join(notes)}\n" if notes else "")
+            + (f"The designer's answer to the previous review: {context.strip()}\n" if context else "")
+            + "Review the whole flat now and answer with the JSON object only.")
+    try:
+        answer = _ask(workspace, FLAT_RUBRIC, images, text)
+        record.update(answer)
+        record["issues"] = parse(answer["raw"], "flat")
+    except Exception as error:
+        record["error"] = f"{type(error).__name__}: {error}"
+    record["images"], record["seconds"] = images, round_(time.monotonic() - started)
+    (out / "critic.json").write_text(json.dumps(record, indent=2, ensure_ascii=False))
+    return record["issues"]
+
+
+class Reviewer:
+    """Reviews a room the moment its designer asks: `./varpet review --part <room>` (a room sub-agent, when its
+    room checks OK) logs a start line to .varpet-log.jsonl and waits for reviews/<room>.json, which this writes
+    after rendering rooms/<room>.json and asking a fresh critic thread. Rooms are reviewed concurrently (WORKERS),
+    overlapping with the other rooms' design, and fixed by the room designer while its context is warm.
+
+        with Reviewer(workspace, brief):   # the spike runner or the service, around the designer's turn
+            ... run the turn ...
+    Without a Reviewer running, `./varpet review` answers at once that no reviewer is available."""
+
+    def __init__(self, workspace: Path | str, brief: str):
+        from concurrent.futures import ThreadPoolExecutor
+        import threading
+        self.workspace, self.brief = Path(workspace).resolve(), brief
+        self.pool = ThreadPoolExecutor(max_workers=WORKERS)
+        self.stop = threading.Event()
+        self.thread = threading.Thread(target=self._watch, daemon=True)
+        self.seen: set[str] = set()
+        self.records: dict[str, dict] = {}
+
+    def __enter__(self):
+        (self.workspace / "reviews").mkdir(exist_ok=True)
+        (self.workspace / "reviews" / ".on").write_text("1")
+        self.thread.start()
+        return self
+
+    def __exit__(self, *exc):
+        self.stop.set()
+        self.thread.join(timeout=5)
+        (self.workspace / "reviews" / ".on").unlink(missing_ok=True)
+        self.pool.shutdown(wait=True, cancel_futures=True)
+
+    def _watch(self) -> None:
+        log, offset = self.workspace / ".varpet-log.jsonl", 0
+        while not self.stop.wait(0.5):
+            try:
+                with log.open() as handle:
+                    handle.seek(offset)
+                    lines = handle.readlines()
+                    offset = handle.tell()
+            except OSError:
+                continue
+            for line in lines:
+                try:
+                    entry = json.loads(line)
+                except ValueError:
+                    continue
+                room = entry.get("part")
+                if entry.get("cmd") == "review" and entry.get("event") == "start" and room and room not in self.seen:
+                    self.seen.add(room)
+                    self.pool.submit(self._review_room, room)
+
+    def _review_room(self, room: str) -> None:
+        began = time.monotonic()
+        out = self.workspace / "critic" / f"room-{room}"
+        target = self.workspace / "reviews" / f"{room}.json"
+        try:
+            if out.exists():
+                shutil.rmtree(out)
+            out.mkdir(parents=True)
+            entry = _review(self.workspace, self.brief, [room], _rooms(self.workspace), {}, out, None, part=True).get(room, {})
+        except Exception as error:
+            entry = {"error": f"{type(error).__name__}: {error}", "issues": []}
+        entry["seconds"] = round_(time.monotonic() - began)
+        entry["started"] = round(time.time() - (time.monotonic() - began), 1)
+        self.records[room] = entry
+        (out / "critic.json").write_text(json.dumps(entry, indent=2, ensure_ascii=False))
+        target.write_text(json.dumps({"issues": entry.get("issues", []), "error": entry.get("error")}, ensure_ascii=False))
 
 
 def round_(seconds: float) -> float:

@@ -1,7 +1,7 @@
 /** varpet designer CLI. Run from a workspace holding scene.json and draft.json:
  *   npx tsx cli.ts describe | check [--warnings] | render-plan [out.png] [--room id]
  *     | render-view [out.png] [--room id] [--camera overview|eye|eye2|top] [--time day|evening] [--width 768] [--height 512]   (no --room: whole flat, overview/top)
- *     | at-window <room> <window> <w> <d> <h> (curtain/blind placement JSON) | materials | swatches [out.png] | search --kind k [--text t] [--max-w n --max-d n --max-h n --max-price n --limit n]
+ *     | requirements [--room id] (the brief's counts per room, requirements.json) | review --part <room> (independent critic) | at-window <room> <window> <w> <d> <h> (curtain/blind placement JSON) | materials | swatches [out.png] | search --kind k [--text t] [--max-w n --max-d n --max-h n --max-price n --limit n]
  *     | sheet sku1 sku2 ... [out.png] | merge
  * Optional --scene path / --draft path override the cwd files. `--part <room>` works on one room's file rooms/<room>.json
  * (seeded from that room's part of draft.json when missing; --room defaults to it; check keeps only that room's lines);
@@ -101,7 +101,9 @@ async function main(): Promise<number> {
       const { check, warnings } = await import('./lib/check.ts');
       // brief.txt beside scene.json (the request plus any answers) decides brief-driven rules; else check reads AGENTS.md.
       const briefPath = join(dirname(scenePath), 'brief.txt');
-      const r = await check(scene, draft, { budget, brief: existsSync(briefPath) ? readFileSync(briefPath, 'utf8') : undefined });
+      const { loadRequirements } = await import('./lib/requirements.ts');
+      const r = await check(scene, draft, { budget, brief: existsSync(briefPath) ? readFileSync(briefPath, 'utf8') : undefined,
+        requirements: loadRequirements(scenePath) });
       const ids = new Set(draft.items.map(item => item.id));
       const problems = roomId ? r.problems.filter(line => about(line, roomId, ids)) : r.problems;
       say(!problems.length ? 'OK' : `FAIL (${problems.length} hard)`);
@@ -126,6 +128,34 @@ async function main(): Promise<number> {
       if (!['day', 'evening'].includes(time)) throw new Error('--time is day or evening');
       const { renderView } = await lib('render-view.ts');
       say(await renderView(scene, draft, out, { roomId, camera, time, width, height, source: loadSource(scenePath) })); return 0;
+    }
+    case 'requirements': {
+      const { describeNeeds, loadRequirements, roomCounts } = await import('./lib/requirements.ts');
+      const req = loadRequirements(scenePath), roomId = flag('room');
+      if (!req) { say('no requirements.json yet'); return 0; }
+      for (const id of roomId ? [roomId] : Object.keys(req.rooms)) {
+        say(describeNeeds(req, id));
+        const items = draft.items.filter(item => item.room_id === id);
+        if (items.length) say(`  now: ${Object.entries(roomCounts(items)).map(([k, v]) => `${k} ${v}`).join(', ')}`);
+      }
+      return 0;
+    }
+    case 'review': {
+      // An independent reviewer (run/critic.py Reviewer, outside the sandbox) renders rooms/<room>.json and answers here.
+      if (!part) throw new Error('review needs --part <room id>');
+      const dir = join(dirname(scenePath), 'reviews'), answer = join(dir, `${part}.json`);
+      if (!existsSync(join(dir, '.on'))) { say('no reviewer in this session; rely on your own render review'); return 0; }
+      const again = existsSync(answer);
+      const deadline = Date.now() + 300_000;
+      while (!existsSync(answer) && Date.now() < deadline) await new Promise(resolve => setTimeout(resolve, 1000));
+      if (!existsSync(answer)) { say('the reviewer did not answer in time; rely on your own render review'); return 0; }
+      const { issues = [], error } = JSON.parse(readFileSync(answer, 'utf8')) as { issues?: { severity: string; issue: string; evidence: string; fix: string }[]; error?: string };
+      if (again) say('(each room is reviewed once; this is its review again)');
+      if (error) say(`reviewer failed: ${error}; rely on your own render review`);
+      const serious = issues.filter(i => i.severity === 'blocker' || i.severity === 'major');
+      say(serious.length ? `${serious.length} to fix (fix each, or say in your answer why it is right; then check --part again):` : 'no blocker or major issues');
+      for (const i of issues) say(`- [${i.severity}] ${i.issue} (seen: ${i.evidence}) fix: ${i.fix}`);
+      return 0;
     }
     case 'at-window': {
       const [roomId, windowId, ...dims] = argv;
@@ -161,7 +191,7 @@ async function main(): Promise<number> {
       console.log(await productSheet(argv, out)); return 0;
     }
     default:
-      console.log('usage: varpet describe | check [--warnings] | render-plan [out.png] [--room id] | render-view [out.png] [--room id] [--camera overview|eye|eye2|top] [--time day|evening] [--width n] [--height n] | at-window room window w d h | materials | swatches [out.png] | search --kind k [--text t] [--max-w n] [--max-d n] [--max-h n] [--max-price n] [--limit n] | sheet sku... [out.png] | merge   (any command: --part <room> works on rooms/<room>.json)');
+      console.log('usage: varpet describe | check [--warnings] | render-plan [out.png] [--room id] | render-view [out.png] [--room id] [--camera overview|eye|eye2|top] [--time day|evening] [--width n] [--height n] | requirements [--room id] | review --part id | at-window room window w d h | materials | swatches [out.png] | search --kind k [--text t] [--max-w n] [--max-d n] [--max-h n] [--max-price n] [--limit n] | sheet sku... [out.png] | merge   (any command: --part <room> works on rooms/<room>.json)');
       return cmd ? 2 : 0;
   }
 }
