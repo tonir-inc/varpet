@@ -122,6 +122,11 @@ const shadowStates = new WeakMap<THREE.Object3D, boolean>();
 export function setProjectionOpacity(group: THREE.Object3D, amount: number): void {
   const opacity = Number.isFinite(amount) ? Math.max(0, Math.min(1, amount)) : 1;
   group.visible = opacity > 0;
+  // Settled walls are re-applied every frame; a settled state already applied needs no traversal.
+  // New children arrive opaque, so only mid-fade states must always walk the subtree.
+  const settled = opacity === 0 || opacity === 1;
+  if (settled && group.userData.projectionOpacity === opacity) return;
+  group.userData.projectionOpacity = opacity;
   group.traverse(object => {
     if (!('material' in object)) return;
     const material = (object as THREE.Mesh).material;
