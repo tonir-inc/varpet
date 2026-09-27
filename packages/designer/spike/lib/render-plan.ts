@@ -166,7 +166,9 @@ function drawOpenings(scene: Scene, x: Xform): string {
       const [cx, cy] = x.toPx(closedTip);
       const rPx = o.width * x.pxPerM;
       parts.push(`<line x1="${hx.toFixed(1)}" y1="${hy.toFixed(1)}" x2="${ox.toFixed(1)}" y2="${oy.toFixed(1)}" stroke="#3a3f44" stroke-width="1.5" stroke-dasharray="4,3"/>`);
-      const sweepFlag = hingeAtStart === inward ? 1 : 0;
+      // Centre the arc on the hinge: in screen space (y down) sweep 1 turns clockwise, which is a positive cross product
+      // from the open tip to the closed tip around the hinge. The swing name alone misses walls that run the other way.
+      const sweepFlag = (ox - hx) * (cy - hy) - (oy - hy) * (cx - hx) > 0 ? 1 : 0;
       parts.push(`<path d="M ${ox.toFixed(1)} ${oy.toFixed(1)} A ${rPx.toFixed(1)} ${rPx.toFixed(1)} 0 0 ${sweepFlag} ${cx.toFixed(1)} ${cy.toFixed(1)}" fill="none" stroke="#3a3f44" stroke-width="1.5" stroke-dasharray="4,3"/>`);
     }
   }
