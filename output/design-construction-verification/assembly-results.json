@@ -1,0 +1,10 @@
+{
+  "checks": [
+    "actual loaded model has an active staggered assembly with hidden and lifted parts",
+    "live OS preference makes every part visible at its exact original pose on the next render",
+    "assembly and settling leave the authoritative scene unchanged",
+    "renderer returns to idle after reduced-motion settling",
+    "assembly stays settled when reduced motion was already enabled"
+  ],
+  "pageErrors": []
+}

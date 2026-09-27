@@ -1,0 +1,27 @@
+{
+  "checks": [
+    "Build has three journey steps and completed source drawing",
+    "Build hands the same canvas to Design, with editing chrome inert",
+    "Design uses live event request with the reconstructed scene",
+    "Actual build status is visible without fabricated in-room placement",
+    "Builder refinement updates the same piece status",
+    "Checked proposal previews with explicit Use this design",
+    "Customize applies once, reveals controls and preserves the world/conversation",
+    "Initial design is one undoable edit",
+    "Mobile reduced-motion Design keeps actions inside the viewport",
+    "Failure preserves the brief and makes retry/skip available",
+    "Skip during retry aborts design and opens unchanged apartment"
+  ],
+  "pageErrors": [],
+  "realModelRequests": [],
+  "screenshots": [
+    "01-build.png",
+    "02-design-brief.png",
+    "03-design-building.png",
+    "04-design-review.png",
+    "05-customize.png",
+    "06-mobile-design.png",
+    "07-mobile-retry.png",
+    "08-mobile-customize.png"
+  ]
+}

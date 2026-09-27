@@ -1,0 +1,16 @@
+{
+  "checks": [
+    "empty overlay hidden and no animation frame scheduled",
+    "truthful build states update one named card without fake placement",
+    "failure reason survives a later tool activity",
+    "guided arrival keeps construction visible below the phase journey",
+    "checked preview animates catalog placement and custom assembly once",
+    "camera frame repositions existing DOM and leaves scene untouched",
+    "marks wait for model loading then fade after assembly settles",
+    "repeated settled preview does not replay arrival",
+    "clear removes failure and lets a new turn animate its proposal",
+    "live reduced motion settles visible marks immediately",
+    "dispose cancels pending work, unsubscribes and removes all nodes"
+  ],
+  "pageErrors": []
+}

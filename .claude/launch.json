@@ -88,6 +88,38 @@
         "--strictPort"
       ],
       "port": 5178
+    },
+    {
+      "name": "editor-design-worktree",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "-y",
+        "pnpm@10.0.0",
+        "--dir",
+        "/Users/davitstepanyan/Documents/varpet-editor-design/apps/editor",
+        "exec",
+        "vite",
+        "--port",
+        "5180",
+        "--strictPort"
+      ],
+      "port": 5180
+    },
+    {
+      "name": "editor-portal-worktree",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "-y",
+        "pnpm@10.0.0",
+        "--dir",
+        "/Users/davitstepanyan/Documents/varpet-catalog/apps/editor",
+        "exec",
+        "vite",
+        "--port",
+        "5181",
+        "--strictPort"
+      ],
+      "port": 5181
     }
   ]
 }

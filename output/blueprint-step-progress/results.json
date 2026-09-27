@@ -1,0 +1,25 @@
+{
+  "checks": [
+    "normal motion: opens on Build with Read and Draw completed",
+    "normal motion: input validation stays Build",
+    "normal motion: shell arrival stays Build",
+    "normal motion: individual furniture checks stay Build",
+    "normal motion: Place advances before placements arrive",
+    "normal motion: late shell events cannot regress Place",
+    "normal motion: Review advances before the final result",
+    "normal motion: retry starts a fresh Build",
+    "reduced motion: opens on Build with Read and Draw completed",
+    "reduced motion: input validation stays Build",
+    "reduced motion: shell arrival stays Build",
+    "reduced motion: individual furniture checks stay Build",
+    "reduced motion: Place advances before placements arrive",
+    "reduced motion: late shell events cannot regress Place",
+    "reduced motion: Review advances before the final result",
+    "reduced motion: retry starts a fresh Build",
+    "mobile Build marks only Read and Draw completed",
+    "explicit reading checkpoint remains available",
+    "explicit walls checkpoint remains available"
+  ],
+  "errors": [],
+  "requests": 0
+}

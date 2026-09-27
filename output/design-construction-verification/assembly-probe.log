@@ -1,0 +1,6 @@
+PASS actual loaded model has an active staggered assembly with hidden and lifted parts
+PASS live OS preference makes every part visible at its exact original pose on the next render
+PASS assembly and settling leave the authoritative scene unchanged
+PASS renderer returns to idle after reduced-motion settling
+PASS assembly stays settled when reduced motion was already enabled
+{"status":"passed","checks":5,"pageErrors":0}

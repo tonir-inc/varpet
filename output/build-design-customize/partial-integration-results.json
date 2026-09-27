@@ -1,0 +1,14 @@
+{
+  "checks": [
+    "Checked partial arrives during guided Design without an early Apply or baseline mutation",
+    "Final checked proposal replaces in-flight partial status and exposes approval",
+    "Approval following partial commits once and preserves canvas",
+    "Approval following partial remains one undoable edit",
+    "Polled offline health is detected during guided Design and skip is available",
+    "Offline request failure preserves brief and is retryable",
+    "Skip after offline retry aborts request and opens unchanged apartment"
+  ],
+  "pageErrors": [],
+  "realModelRequests": [],
+  "screenshots": []
+}

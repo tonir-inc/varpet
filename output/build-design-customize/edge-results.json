@@ -1,0 +1,19 @@
+{
+  "checks": [
+    "Guided keyboard shortcuts cannot expose editing tools",
+    "Designer question offers actionable choices",
+    "A choice continues the same conversation",
+    "Error remains readable on attempt 1",
+    "Error remains readable on attempt 2",
+    "Background refresh preserves the checked preview and baseline",
+    "Edit request restores the original scene without applying",
+    "Later Customize requests reuse the live construction visuals",
+    "Stopping a Customize request aborts and clears its overlays",
+    "Mobile Design fills the viewport and both actions are directly reachable"
+  ],
+  "pageErrors": [],
+  "realModelRequests": [],
+  "screenshots": [
+    "edge-mobile-fullscreen.png"
+  ]
+}

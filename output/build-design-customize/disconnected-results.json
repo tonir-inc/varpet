@@ -1,0 +1,16 @@
+{
+  "checks": [
+    "Disconnected designer is explicitly unavailable with no request or success controls",
+    "Disconnected skip enters Customize without changing scene or sending a request",
+    "Mobile disconnected Design fills screen and skip passes hit testing",
+    "Mobile-to-desktop resize keeps hidden designer out of canvas",
+    "Resized disconnected skip restores editable workspace"
+  ],
+  "pageErrors": [],
+  "realModelRequests": [],
+  "screenshots": [
+    "disconnected-desktop-design.png",
+    "disconnected-mobile-design.png",
+    "disconnected-resized-design.png"
+  ]
+}
