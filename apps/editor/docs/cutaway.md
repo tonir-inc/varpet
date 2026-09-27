@@ -49,6 +49,15 @@ case and approved the final correction. No schema, fixtures or existing test
 expectations changed. Notion tooling and the referenced definition-of-done skill
 were unavailable; this records the behavior and required verification locally.
 
+## Aerial camera over the footprint · 27 September 2026
+
+The "camera inside" gate tested only x/z, so zooming or panning the dollhouse view until the camera
+sat over a room restored every wall to full height. A camera over the footprint but above the wall tops
+(`bounds.max.y`) is now an aerial view: exterior walls whose outward face points against the camera's
+horizontal look direction are cut, without the beyond-the-face test. At or below the wall tops the
+exterior-only rules below are unchanged; interior partitions still never cut. Claude Opus 5.5:
+`check-cutaway` 520, `check-balcony-cutaway` 442, `check-projection-motion` 16, all unchanged and passing.
+
 ## Exterior-only cutaway update · 26 September 2026
 
 The current behavior supersedes the midpoint policy documented below. Automatic

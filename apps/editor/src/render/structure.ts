@@ -439,15 +439,20 @@ export function makeStructure(document: SceneDocument, reveal?: FinishReveal, op
     previewOpeningOffset(id, offset) { previewOpenings.get(id)?.({ offset }); },
     updateWalls(camera, mode, top, now = performance.now(), reduced = false, selectedOpeningId) {
       let active = false;
-      const inside = !top && interiorRooms.some(room => cameraOverRoom(camera, room));
-      direction.copy(camera.position).sub(center).setY(0).normalize();
+      const overRoom = !top && interiorRooms.some(room => cameraOverRoom(camera, room));
+      // Zooming or panning a dollhouse view brings the camera over the footprint while it is still
+      // above the walls: keep cutting the exterior walls on the camera's side, judged by where it looks.
+      const aerial = overRoom && camera.position.y > bounds.max.y;
+      const inside = overRoom && !aerial;
+      if (aerial) camera.getWorldDirection(direction).negate().setY(0).normalize();
+      else direction.copy(camera.position).sub(center).setY(0).normalize();
       for (const wall of walls) {
         toCamera.copy(camera.position).sub(wall.midpoint).setY(0);
         // The camera must be beyond the exterior face, not merely on the
         // near side of the apartment's bounding box. Keep angular hysteresis
         // so nearly edge-on perimeter walls do not flicker while orbiting.
         const facingThreshold = wall.initialized ? (wall.cut ? 0.22 : 0.30) : 0.26;
-        wall.cut = top ? wall.topCut : !inside && wall.exterior && toCamera.dot(wall.outward) > wall.thickness / 2
+        wall.cut = top ? wall.topCut : !inside && wall.exterior && (aerial || toCamera.dot(wall.outward) > wall.thickness / 2)
           && wall.outward.dot(direction) > facingThreshold;
         // Openings follow their cut wall; reveal its frames again while an
         // opening is selected so inspection and direct manipulation stay clear.
