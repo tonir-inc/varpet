@@ -151,6 +151,7 @@ export function progressStep(steps: DesignerStep[], message: string, at: number)
   next.push({ key: `progress:${next.length}:${label}`, label, status: 'running', at, timed: true });
   return next.slice(-60);
 }
+const minorRoom = (caption?: string) => /closet|hall|bath|wc\b|toilet|shower|laundry|storage|pantry|ensuite/i.test(caption ?? '');
 const unreachable = /failed to fetch|networkerror|load failed|fetch failed|err_connection/i;
 export const DESIGNER_START_HINT = 'cd harness && uv run python designer_service.py';
 
@@ -357,7 +358,10 @@ export function createDesignerConversation(options: ConversationOptions) {
           onProgress: message => { if (active === abortController && !disposed) {
             state.progress = message; if (!typedEvents) state.steps = progressStep(state.steps, message, (now() - started) / 1000); publish(false);
           } },
-          onPreview: preview => { if (active === abortController && !disposed) { state.preview = preview; publish(false); } },
+          onPreview: preview => { if (active === abortController && !disposed) {
+            // The card keeps a main room's render: a closet or bathroom shot is shown only until a better one arrives.
+            if (!state.preview || !minorRoom(preview.caption) || minorRoom(state.preview.caption)) { state.preview = preview; publish(false); }
+          } },
           onPartial: partial => { if (active === abortController && !disposed) {
             state.partial = { proposal: structuredClone(partial.proposal), rooms: [...partial.rooms] };
             // Already looking at the rooms so far: follow the designer as more rooms are finished.
