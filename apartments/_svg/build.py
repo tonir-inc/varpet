@@ -37,6 +37,7 @@ sys.path.insert(0, str(REPO / "harness"))
 
 from varpet_harness.shell import Shell, check_file, to_editor  # noqa: E402
 from varpet_harness.trace import _elements, _rect, to_shell  # noqa: E402
+from orient import orient  # noqa: E402
 
 CATALOG_URL = "http://100.107.246.46:8765/editor/assets"
 CACHE = Path(__file__).resolve().parent / "catalog-cache.json"
@@ -177,6 +178,7 @@ def build(flat: Path) -> dict:
     work.mkdir(exist_ok=True)
     raw = to_shell(svg)
     transform = raw.pop("transform")
+    orient(raw["rooms"], raw["components"])  # the trace knows a fitting's axis, not which side is its front
     (flat / "shell.json").write_text(json.dumps(raw, indent=1))
     faults = check_file(flat / "shell.json", flat / "review")  # tidies in place, like the architect's check
     shell = Shell.model_validate_json((flat / "shell.json").read_text())

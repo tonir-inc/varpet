@@ -1779,7 +1779,7 @@
           0.85,
           0.471
         ],
-        "rotation": 0,
+        "rotation": 3.1416,
         "color": "#f4f4f2",
         "phase": "existing",
         "roomId": "bathroom"
@@ -1855,7 +1855,7 @@
           0.85,
           0.543
         ],
-        "rotation": 0,
+        "rotation": 3.1416,
         "color": "#f4f4f2",
         "phase": "existing",
         "roomId": "shower-room"
