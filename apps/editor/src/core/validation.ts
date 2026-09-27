@@ -277,7 +277,8 @@ export function validateScene(input: unknown, catalog: CatalogAsset[]): Validati
   }
   if (errors.length) return result();
   const floorVertices = scene.rooms.reduce((total, room) => total + room.polygon.length, 0);
-  if (floorVertices > 192 || scene.objects.length * floorVertices * floorVertices > 1_500_000) {
+  // Only the plan's size is capped: a fully styled flat (150+ pieces with decor) must still validate.
+  if (floorVertices > 192) {
     fail('This floor plan is too complex to validate interactively. Simplify room polygons or split the scene into smaller apartments.');
     return result();
   }

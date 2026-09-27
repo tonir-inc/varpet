@@ -613,7 +613,7 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
   // A recorded session (?session=<name>) plays a real run through the same ask and adapter (a paced fetch); the first
   // live question after it continues the recorded design in a new live conversation.
   const replayClock = createReplayClock();
-  let session: DesignerSession | undefined, replayTurn: RecordedTurn | undefined, replaySpeed = 10;
+  let session: DesignerSession | undefined, replayTurn: RecordedTurn | undefined, replaySpeed = 15;
   // Custom pieces arrive with the reply, not the catalog; remember them so their chips can show an estimate.
   const ask: AskDesigner = async (request, askOptions) => {
     const playing = replayTurn;
@@ -1068,13 +1068,13 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
     /** Attach something in the flat to the next message, as a chip above the composer. */
     attachEntity(entity: DesignerEntity) { setCollapsed(false); controller.attachEntity(entity); },
     setBadge,
-    /** ?session=<name>[&speed=1..10]: open the recorded run's flat (`load` replaces the editor scene) and play it. */
+    /** ?session=<name>[&speed=1..20, default 15]: open the recorded run's flat (`load` replaces the editor scene) and play it. */
     async playSession(load: (scene: unknown) => Promise<boolean> | boolean, search = location.search) {
       const params = new URLSearchParams(search), name = params.get('session');
       if (!name || !live) return;
       try {
         const recorded = await loadSession(name);
-        replaySpeed = Math.min(10, Math.max(1, Number(params.get('speed')) || 10));
+        replaySpeed = Math.min(20, Math.max(1, Number(params.get('speed')) || 15));
         if (!(await load(recorded.scene))) return;
         controller.newConversation(); session = recorded; setBadge(sessionBadge(recorded, replaySpeed)); setCollapsed(false);
         for (const [index, turn] of recorded.turns.entries()) {

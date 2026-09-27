@@ -1,5 +1,5 @@
 /** Recorded designer sessions (apps/editor/public/demo-sessions/<name>.json, made by tools/demo_session.py from a
- * real live run): the recorded NDJSON stream is played through the real HTTP adapter at 4–10× speed, so validation,
+ * real live run): the recorded NDJSON stream is played through the real HTTP adapter at 4–20× speed (15× by default), so validation,
  * catalog lookups, room previews and Apply behave exactly as they did live. Its clock shows the recorded times. The
  * run ends in the real proposal; follow-ups then go to the live service, continuing the recorded design. */
 
