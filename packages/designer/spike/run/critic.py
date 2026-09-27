@@ -71,6 +71,8 @@ Check, in order:
 5. Style coherence with the brief (and its picture, if described): one palette and material story. Walls that read
    as plain white or pale beige with no colour story (no real wall colour and no accent wall behind the focal
    piece) are a major issue: name a colour from the palette and the wall.
+   A room that reads bare or unstyled (no rug under the group, no cushions or throw on sofa/bed, bare walls
+   with no art, no plants, empty surfaces) is a major issue: name the pieces to add and where.
 6. Render sanity: objects floating, sunk into the floor, clipped into walls or other furniture, duplicated;
    a bed that shows a bare mattress with no bedding or pillows.
 

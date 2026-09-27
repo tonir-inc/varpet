@@ -14,7 +14,8 @@ plan.md came with your context; follow their item format, placement rules, catal
   script ending in `./varpet check --part <room id>`; fix until OK (checks are cheap); then ONE render round
   (`./varpet render-plan p.png --part <room id>; ./varpet render-view v.png --part <room id>`), look at both,
   fix what you see (chairs at tables, lamps by seats, TV facing the sofa, art centred over its piece, nothing
-  floating or blocking a door) and re-check. Then run `./varpet review --part <room id>` once: an independent
+  floating or blocking a door) and re-check. Then the styling pass from the studio instructions (textiles, art, plants, styled surfaces, toys for
+  children; one script, re-check). Then run `./varpet review --part <room id>` once: an independent
   reviewer looks at renders of your room (it takes about a minute). Fix every blocker and major it lists; skip one
   only when the fix would break a need of the brief or the check, and say so in your answer. Re-check until OK,
   and stop. If your task is several small rooms, do each the same way (one `--part` per room). The lead reviews the evening light.

@@ -159,7 +159,17 @@ Put several commands in one shell call wherever you can, and do not take a step 
    - circulation: clear paths from every door, ~0.8 m main walkways, doors and windows unblocked
    - balance and scale: pieces sized to the room and to each other, nothing floating, clipped or crammed
    - style coherence: floor, walls, light and furniture read as one scheme; matches the request/picture
-6. Fix everything you saw in one edit, re-check, render again. At most 3 render rounds per room. Once, at the
+6. Styling pass, once the layout passes (this is what makes a room designed, not furnished): in one script add
+   the layer a stylist would, all real catalog pieces, small ones `on` their surface:
+   - textiles: a rug under each seating group and bed; 3-5 cushions and a throw `on` the sofa and bed
+     (`--kind cushion`, `--kind throw_blanket`); curtains on every window
+   - art: a large piece or a gallery of 2-4 over the sofa, the headboard and the dining sideboard (`--kind wall_art`,
+     kids' rooms `--text kids`/dinosaur/space/alphabet)
+   - plants: one large floor plant per main room plus a small one on a surface
+   - styled surfaces: 2-3 objects on the coffee table, sideboard, shelves and each nightstand (vase, candle, books,
+     bowl, tray, basket); a centrepiece on the dining table (tablescape sets); toys in kids' rooms (`--kind toy`)
+   A living room ends with about 8-12 of these, a bedroom 6-8, a hall 2-3. Then render and look again.
+7. Fix everything you saw in one edit, re-check, render again. At most 3 render rounds per room. Once, at the
    end of each room (or of the flat for small rooms), render `--camera eye --time evening` (use `eye2` if `eye`
    shows only a wall) to judge the light: every zone lit, warm, no dark corners where people sit.
 
