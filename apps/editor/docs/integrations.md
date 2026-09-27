@@ -245,7 +245,9 @@ The browser installs `store.setSurfaceResolver(viewport.furnitureSurface)`. This
 straight down at the footprint centre against the normalized, rendered model meshes,
 using snapshot transforms (not animation transforms). Drag/drop first picks the visible
 furniture under the cursor so lower shelf boards remain reachable; the vertical ray
-then chooses the actual surface. Holes in loaded geometry do not fall back to a box.
+then chooses the actual surface. Holes in loaded geometry do not fall back to a box,
+except for explicit bed supports (the implied deck/mattress surface between frame slats)
+and wall-hung shelves (skipped by the mesh resolver).
 Without `on`, eligible moved/dropped items automatically use the surface under their
 centre, or the room floor if none is hit. The item itself and its dependants are excluded.
 
@@ -253,7 +255,8 @@ centre, or the room floor if none is hit. The item itself and its dependants are
 scaled catalog height for table, desk, cabinet/nightstand, dresser, shelf and other
 supports; sofa/chair seat is `min(0.45, catalogHeight)`, bed is
 `min(0.55, catalogHeight)`. These are approximate surfaces, not model-specific shelves.
-A loaded mesh with no surface at the requested centre returns an error for explicit `on`.
+A loaded mesh with no surface at the requested centre returns an error for explicit `on`,
+apart from the bed and wall-shelf exceptions above; their footprint checks still apply.
 Register assets before placing items; meshes may still be loading at that time.
 
 Moving/rotating a support applies its rigid transform to all supported descendants.

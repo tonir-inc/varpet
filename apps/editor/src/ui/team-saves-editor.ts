@@ -4,7 +4,7 @@ import type {CatalogProduct} from '../adapters/database-catalog';
 import type {EditorStore} from '../core/store';
 import {apartmentPayload, type EditorSession} from '../portal/session';
 import type {TeamStartup} from '../portal/team-session';
-import {TeamAutosave,askSaveName,teamDisplayName,captureTeamThumbnail,guardTeamUnload} from './team-saves';
+import {TeamAutosave,askSaveName,teamDisplayName,captureTeamThumbnail,guardTeamUnload,teamReloadGuard,saveTeamBeforeReload} from './team-saves';
 export function mountTeamSaves(deps:{store:EditorStore;products:()=>CatalogProduct[];startup:TeamStartup|null;draft:EditorSession|null;active:()=>boolean;proposal:()=>boolean;initialKind?:FlatKind;notify:(message:string,error?:boolean)=>void;saved:(revision:number)=>void}){
  const {store}=deps;let flat:FlatMeta|null=deps.startup?.flat??null;let controller:TeamAutosave|undefined;let creating=false;let thumbnailAt=0;let who='';let allowLeave=false;let attempted=false;
  const kind:FlatKind=flat?.kind??(deps.draft?.templateId?'template':deps.draft?'upload':deps.initialKind??'blank');
@@ -27,8 +27,9 @@ export function mountTeamSaves(deps:{store:EditorStore;products:()=>CatalogProdu
   const thumbnail=(forceThumbnail||Date.now()-thumbnailAt>=60000)&&!deps.proposal()?captureTeamThumbnail():undefined;
   return {scene:payload.scene,catalog:payload.catalog,designed:store.scene.objects.length>0,summary:{...flat?.summary,rooms:store.scene.rooms.length,items:store.scene.objects.length,area_m2:store.scene.rooms.reduce((sum,room)=>sum+Math.abs(room.polygon.reduce((area,p,i)=>{const q=room.polygon[(i+1)%room.polygon.length]!;return area+p[0]*q[1]-q[0]*p[1];},0))/2,0),source:flat?.summary?.source??deps.draft?.templateId??store.scene.name},updated_by:who||undefined,thumbnail};
  }
- function attach(local:number){controller=new TeamAutosave({revision:()=>store.revision,snapshot,save:async(base,payload)=>{
+ function attach(local:number){controller=new TeamAutosave({revision:()=>store.revision,snapshot,save:async(base,payload,keepalive)=>{
    if(!deps.active()||deps.proposal())throw new Error('Save paused during shared session or proposal review.');
+   if(keepalive)return saveTeamBeforeReload(flat!.id,base,payload);
    if(!who)who=await teamDisplayName();payload.updated_by=who||undefined;
    const result=await flatsApi.save(flat!.id,{...payload,base_revision:base});if(payload.thumbnail)thumbnailAt=Date.now();return result;
   },changed:()=>{if(controller&&!controller.dirty)deps.saved(controller.savedRevision);render();}},flat!.revision,local);}
@@ -52,7 +53,8 @@ export function mountTeamSaves(deps:{store:EditorStore;products:()=>CatalogProdu
   dialog.onclose=()=>dialog.remove();document.body.append(dialog);dialog.showModal();
  }catch(e){deps.notify(String(e),true);}};
  store.subscribe(()=>{if(deps.active())controller?.edit();else controller?.pause();render();});
- window.addEventListener('beforeunload',event=>guardTeamUnload(event,!allowLeave&&dirty()));
+ const reloading=teamReloadGuard(import.meta.hot,async()=>{if(flat&&dirty()&&!deps.proposal())await controller?.flush(true);});
+ window.addEventListener('beforeunload',event=>guardTeamUnload(event,!allowLeave&&dirty(),reloading()));
  document.addEventListener('click',event=>{const link=(event.target as Element).closest?.('a[href]') as HTMLAnchorElement|null;if(!link||link.target==='_blank'||event.ctrlKey||event.metaKey||!dirty())return;const url=new URL(link.href,location.href);if(url.origin!==location.origin)return;if(!window.confirm('Leave without saving?'))event.preventDefault();else allowLeave=true;},true);
  render();return {save,render};
 }
