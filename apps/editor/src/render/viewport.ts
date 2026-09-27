@@ -56,6 +56,9 @@ import { BLUEPRINT_PAPER, BlueprintGround, type BlueprintBackdrop } from './blue
 import { WindowSkyLights } from './window-sky-lights';
 import { setFinishTextureAnisotropy } from './finish-textures';
 import { windowPortals } from './interior-daylight';
+import { RoomSweep } from './room-sweep';
+import { ArrivalDrawings } from './arrival-drawing';
+import { HoverFrame } from './hover-frame';
 
 interface RenderObject { group: THREE.Group; pose: THREE.Group; visual: THREE.Group; signature: string; token: object; dimensions: [number, number, number]; opacity: number }
 interface DragSnapshot {
@@ -110,9 +113,32 @@ export interface FinishViewportCallbacks extends ViewportCallbacks {
   onLightingChange?(): void;
   onFinish?(presetId: string, target: FinishTarget): boolean;
   onFurnitureDrop?(assetId: string, position: SceneObject['position']): void;
+  /** The viewport changed the wall mode itself (focusRoom turns full walls to cutaway). */
+  onWallsChange?(mode: WallMode): void;
+}
+
+/** How a previewed proposal's new pieces arrive (see presentArrival). */
+export interface ArrivalPlan {
+  /** The room that changed most: the camera goes there and its pieces arrive as construction drawings. */
+  roomId: string | null;
+  /** New pieces in that room. */
+  ids: string[];
+  /** New pieces elsewhere: they drop in quietly afterwards. */
+  elsewhere: string[];
+  /** Free viewer area for framing the room. */
+  available?: ScreenRect;
 }
 
 export interface FinishViewport extends Viewport {
+  /**
+   * A previewed proposal arrives (~3-4 s): the camera glides to its room (full walls become cutaway), a measuring
+   * sweep passes over the floor, the room's new pieces appear as construction drawings and resolve into their
+   * models part by part; pieces elsewhere drop in quietly. Reduced motion shows the final state. A new plan or
+   * scene cancels the one in flight.
+   */
+  presentArrival(plan: ArrivalPlan): void;
+  /** World-space point above an entity (furniture, wall, room, opening, component) for a floating control; null when unknown. */
+  entityAnchor(id: string): Vec3 | null;
   /** Move the live world and its input surface to a new host without recreating GPU resources. */
   attach(container: HTMLElement, callbacks: FinishViewportCallbacks, normalizeScene?: SceneNormalizer): void;
   /** One-use restore of camera and lighting previews after the original scene returns from construction. */
@@ -174,7 +200,7 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
     message.textContent = '3D view unavailable. Enable browser hardware acceleration and reload.';
     message.style.cssText = 'margin:auto;padding:2rem;color:#6a5849;max-width:28rem;text-align:center';
     container.append(message);
-    return { attach(next) { next.append(container); }, preservePresentation() { return () => {}; }, furnitureSurface() { return undefined; }, setFurnitureDrag() {}, setInsideLens() {}, setSkybox() { return false; }, getSun() { return { ...DEFAULT_SUN }; }, setSun() {}, setTopLighting() {}, setLightingMood() {}, inspectCeiling() { return false; }, project() { return null; }, onFrame() { return () => {}; }, animateAssembly() {}, setHidden() {}, cameraPose() { return null; }, setBackdrop() { return null; }, setLocked() {}, setCameraPose() {}, riseStructure() {}, loading() { return false; }, redraw() {}, playTour() { return Promise.resolve(false); }, cancelTour() {}, setFinishBrush() {}, setAdditiveSelection() {}, revealSelection() {}, setScene() {}, animatePlacement() {}, setSelection() {}, setTool() {}, setView() {}, setSnap() {}, setWalls() {}, setQuality() {}, setLayer() {}, setDoorAngle() {}, getDoorAngle() { return 0; }, toggleSwitch() {}, setSwitchLevel() {}, getSwitchLevel() { return 0; }, setComparison() {}, focus() {}, cancelInteraction() {}, dispose() { container.remove(); } };
+    return { presentArrival() {}, entityAnchor() { return null; }, attach(next) { next.append(container); }, preservePresentation() { return () => {}; }, furnitureSurface() { return undefined; }, setFurnitureDrag() {}, setInsideLens() {}, setSkybox() { return false; }, getSun() { return { ...DEFAULT_SUN }; }, setSun() {}, setTopLighting() {}, setLightingMood() {}, inspectCeiling() { return false; }, project() { return null; }, onFrame() { return () => {}; }, animateAssembly() {}, setHidden() {}, cameraPose() { return null; }, setBackdrop() { return null; }, setLocked() {}, setCameraPose() {}, riseStructure() {}, loading() { return false; }, redraw() {}, playTour() { return Promise.resolve(false); }, cancelTour() {}, setFinishBrush() {}, setAdditiveSelection() {}, revealSelection() {}, setScene() {}, animatePlacement() {}, setSelection() {}, setTool() {}, setView() {}, setSnap() {}, setWalls() {}, setQuality() {}, setLayer() {}, setDoorAngle() {}, getDoorAngle() { return 0; }, toggleSwitch() {}, setSwitchLevel() {}, getSwitchLevel() { return 0; }, setComparison() {}, focus() {}, cancelInteraction() {}, dispose() { container.remove(); } };
   }
   renderer.setClearColor(BLUEPRINT_PAPER);
   // Floors are mostly seen at a grazing angle: full anisotropic filtering keeps plank grain sharp.
@@ -355,6 +381,33 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
   const box = new THREE.Box3();
   const size = new THREE.Vector3();
   const center = new THREE.Vector3();
+  // Proposal arrival overlays: outside every pick root, so picking works unchanged under a preview.
+  const roomSweep = new RoomSweep();
+  const arrivalDrawings = new ArrivalDrawings();
+  world.add(roomSweep.group, arrivalDrawings.group);
+  let overlaysCompiled = false;
+  /** Build the overlays' few unlit programs once, off the frame (compile gathers hidden objects too). */
+  function precompileOverlays(): void {
+    if (overlaysCompiled || disposed) return;
+    overlaysCompiled = true;
+    const sample = new THREE.Group(); sample.add(roomSweep.compileSample(), arrivalDrawings.compileSample(), hoverFrame.compileSample());
+    try { void studioRenderer.compile(() => renderer.compileAsync(sample, camera, world)).catch(() => undefined); } catch { /* compiled on first draw instead */ }
+  }
+  /** Pieces waiting for a quiet staggered drop (frame-driven, so dispose and reduced motion stay trivial). */
+  let arrivals: { id: string; at: number }[] = [];
+  /** Hidden new pieces of a proposal in flight: their models assemble when they appear, not while hidden. */
+  const waiting = new Set<string>();
+  /** The arrival in flight before its drawings start: the sweep, then the room's drawings. */
+  let presentation: { roomId: string | null; sweepAt: number; drawAt: number; ids: string[]; swept: boolean } | null = null;
+  const PRESENT = { focus: 850, sweep: 1500, drawAfterSweep: 900, stagger: 110, spread: 900, quietAfter: 500 } as const;
+  // Hover: a light outline on what a click would pick. One frame object, reused.
+  const hoverFrame = new HoverFrame();
+  const hoverBox = new THREE.Box3(), hoverCentre = new THREE.Vector3();
+  /** How far the hovered thing is from the eye, for a stroke of constant screen width (Top view: from its zoom). */
+  const hoverDistance = (point: THREE.Vector3) => camera instanceof THREE.OrthographicCamera
+    ? (camera.top - camera.bottom) / camera.zoom * 1.4 : camera.position.distanceTo(point);
+  world.add(hoverFrame.object);
+  let hoverId: string | null = null, hoverClient: [number, number] | null = null, brushActive = false;
   const walk = new WalkthroughControls(insideCamera, renderer.domElement,
     (position, delta) => documentState ? moveWalkPosition(documentState, catalogState, position, delta) : position, requestRender, event => {
       pointerRay(event);
@@ -480,6 +533,7 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
     }
     furniture.visible = layers.furniture;
     outgoingFurniture.visible = layers.furniture;
+    arrivalDrawings.group.visible = layers.furniture;
     for (const projection of [services, wallPreviewServices]) if (projection) {
       projection.group.visible = layers.services && (!wallPreviewServices || projection === wallPreviewServices);
       for (const component of projection.components.values()) {
@@ -642,6 +696,10 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
       if (keyboardNavigation.update(now)) animating = true;
       if (placementMotion.update(now)) { animating = true; shadowsChanged = true; }
       if (updateAssemblies(now)) { animating = true; shadowsChanged = true; }
+      if (updateArrivals(now)) { animating = true; shadowsChanged = true; }
+      if (updatePresentation(now)) { animating = true; shadowsChanged = true; }
+      if (roomSweep.update(now)) animating = true;
+      if (hoverClient) updateHover();
       // SunOccluders keep the intact shell in the sun's map, so cutaway fades reuse cached shadows.
       if (structure?.updateWalls(camera, view === 'inside' ? 'full' : walls, view === 'top', now, motion.reduced, selectedId ?? undefined)) { animating = true; profiler?.tag('wall fade'); }
       if (walk.update(now)) animating = true;
@@ -781,6 +839,7 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
   const placeholderSample = makeAssetPlaceholder({ id: 'warm-up', name: 'Warm-up', category: 'view', kind: 'chair', dimensions: [1, 1, 1], color: '#9299a3', price: 0, source: { type: 'procedural' } });
   placeholderSample.visible = false; topLighting.wrap(placeholderSample); world.add(placeholderSample);
   function warmUp(): void {
+    precompileOverlays();
     try {
       // One capture per preset is cached: pre-capture the other mood exactly as setLightingMood will ask for it.
       const night = sunSettings.timeOfDay != null && timeOfDayLighting(sunSettings.timeOfDay).daylight < 0.05;
@@ -906,6 +965,162 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
     return true;
   }
 
+  /** Glide the camera to frame a room (dollhouse; Inside turns toward its centre). Full walls become cutaway so the room reads. */
+  function focusRoom(roomId: string, options: { available?: ScreenRect; duration?: number } = {}): void {
+    if (disposed || !documentState || tour || drag || endpointDrag || openingDrag || wallMove.active || furnitureDrop.active) return;
+    const scene = documentState;
+    const room = scene.rooms.find(item => item.id === roomId);
+    const centre = room && polygonCentroid(room.polygon);
+    if (!room || !centre || room.polygon.length < 3) return;
+    const elevation = scene.project?.metadata[room.id]?.elevation ?? 0;
+    const duration = options.duration ?? 900;
+    handPan.cancel(); keyboardNavigation.cancel();
+    cameraMotion.sample('camera'); cameraMotion.cancel('camera');
+    if (view === 'inside') {
+      const eye = insideCamera.position, look = new THREE.Vector3(centre[0], eye.y, centre[1]);
+      if (eye.distanceToSquared(look) < 0.09) return;
+      const from = insideCamera.quaternion.clone();
+      const to = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(eye, look, insideCamera.up));
+      cameraMotion.animate('camera', duration, t => { insideCamera.quaternion.slerpQuaternions(from, to, t); }, () => walk.orient());
+      return;
+    }
+    if (walls === 'full') {
+      walls = 'cutaway'; shadowCache.invalidate(); updateOpeningHandle(); wallMove.refresh();
+      callbacks.onWallsChange?.(walls);
+    }
+    const xs = room.polygon.map(point => point[0]), zs = room.polygon.map(point => point[1]);
+    const bounds = new THREE.Box3(new THREE.Vector3(Math.min(...xs), elevation, Math.min(...zs)),
+      new THREE.Vector3(Math.max(...xs), elevation + roomCeilingHeight(scene, room), Math.max(...zs)));
+    const available = options.available ?? { left: 0, top: 0, right: width, bottom: height };
+    const frame = roomCameraFrame(camera, bounds, { width, height }, available);
+    if (!frame) { requestRender(); return; }
+    const fromPosition = camera.position.clone(), fromTarget = orbit.target.clone(), fromZoom = camera.zoom;
+    const framingCamera = camera;
+    const distance = frame.position.distanceTo(frame.target);
+    orbit.maxDistance = Math.max(65, distance * 2);
+    framingCamera.far = Math.max(250, distance * 4);
+    cameraMotion.animate('camera', duration, t => {
+      framingCamera.position.lerpVectors(fromPosition, frame.position, t);
+      orbit.target.lerpVectors(fromTarget, frame.target, t);
+      framingCamera.zoom = fromZoom + (frame.zoom - fromZoom) * t;
+      framingCamera.updateProjectionMatrix();
+      framingCamera.lookAt(orbit.target); orbit.update();
+    });
+  }
+  /** "The designer is measuring this room": a light blade sweeps its floor with dimension ticks, then fades. */
+  function sweepRoom(roomId: string, durationMs: number): void {
+    if (disposed || !documentState || motion.reduced) return;
+    const scene = documentState;
+    const room = scene.rooms.find(item => item.id === roomId);
+    if (!room) return;
+    precompileOverlays();
+    const elevation = scene.project?.metadata[room.id]?.elevation ?? 0;
+    roomSweep.start(room.polygon, elevation, roomCeilingHeight(scene, room), durationMs);
+    requestRender();
+  }
+  /** Drop the arrivals whose slot has come; true while any are still waiting. */
+  function updateArrivals(now: number): boolean {
+    if (!arrivals.length) return false;
+    const due = arrivals.filter(arrival => arrival.at <= now);
+    if (!due.length) return true;
+    arrivals = arrivals.filter(arrival => arrival.at > now);
+    for (const { id } of due) {
+      waiting.delete(id);
+      const record = rendered.get(id);
+      if (!record) continue;
+      record.visual.visible = true;
+      if (!drag) placementMotion.enter(id, record.visual, record.dimensions);
+    }
+    return true;
+  }
+  /** Sweep, then the room's pieces as drawings; true while any of it is still running. */
+  function updatePresentation(now: number): boolean {
+    let active = false;
+    const plan = presentation;
+    if (plan) {
+      if (!plan.swept && now >= plan.sweepAt) { plan.swept = true; if (plan.roomId) sweepRoom(plan.roomId, PRESENT.sweep); }
+      if (now >= plan.drawAt) {
+        presentation = null;
+        const stagger = plan.ids.length > 1 ? Math.min(PRESENT.stagger, PRESENT.spread / (plan.ids.length - 1)) : 0;
+        plan.ids.forEach((id, index) => {
+          const record = rendered.get(id);
+          if (!record) { waiting.delete(id); return; }
+          record.group.updateWorldMatrix(true, false);
+          arrivalDrawings.add(id, record.group.matrixWorld, record.dimensions, now + index * stagger);
+        });
+      }
+      active = true;
+    }
+    if (arrivalDrawings.update(now, resolveDrawing)) active = true;
+    return active;
+  }
+  /** A drawing hands over: the model assembles part by part, or a placeholder drops in and assembles once loaded. */
+  function resolveDrawing(id: string): void {
+    waiting.delete(id);
+    const record = rendered.get(id);
+    if (!record || disposed) return;
+    record.visual.visible = true;
+    const model = record.visual.children.find(child => installedModels.has(child));
+    if (model && !motion.reduced) { assemblyWanted.delete(id); startAssembly(model, record.dimensions[1]); }
+    else if (!drag) placementMotion.enter(id, record.visual, record.dimensions);
+    shadowCache.invalidate();
+  }
+  /** What hover can light: furniture, walls, rooms (their floor) and openings; not ceilings or services. */
+  function hoverable(id: string): boolean {
+    const scene = documentState;
+    return rendered.has(id) || Boolean(scene && (scene.rooms.some(room => room.id === id)
+      || scene.walls.some(wall => wall.id === id || wall.openings.some(opening => opening.id === id))));
+  }
+  function setHover(id: string | null): void {
+    if (id === hoverId) return;
+    hoverId = id;
+    const room = id ? documentState?.rooms.find(item => item.id === id) : undefined;
+    const root = id && !room ? entity(id) : undefined;
+    if (room) {
+      const elevation = documentState?.project?.metadata[room.id]?.elevation ?? 0;
+      hoverFrame.showPolygon(room.polygon, elevation + 0.03, hoverDistance(orbit.target));
+    } else if (root) {
+      entityBounds(root, hoverBox);
+      hoverFrame.showBox(hoverBox, hoverDistance(hoverBox.getCenter(hoverCentre)));
+    } else hoverFrame.hide();
+    renderer.domElement.style.cursor = id ? 'pointer' : '';
+    requestRender();
+  }
+  /** Once per frame at most: pick under the last pointer position and light it. */
+  function updateHover(): void {
+    const client = hoverClient; hoverClient = null;
+    if (!client || view === 'inside' || locked || tour || brushActive || tool !== 'select' || drag || endpointDrag || openingDrag || wallMove.active) { setHover(null); return; }
+    const rect = renderer.domElement.getBoundingClientRect();
+    pointer.set((client[0] - rect.left) / rect.width * 2 - 1, -(client[1] - rect.top) / rect.height * 2 + 1); raycaster.setFromCamera(pointer, camera);
+    const hit = pickEntity();
+    setHover(hit && !hit.ceiling && hit.id !== selectedId && hoverable(hit.id) ? hit.id : null);
+  }
+  function onPointerHover(event: PointerEvent): void {
+    // No hover while a button is held: that is an orbit, pan or drag.
+    if (event.buttons) { if (hoverId) setHover(null); return; }
+    hoverClient = [event.clientX, event.clientY]; requestRender();
+  }
+  function onPointerLeave(): void { hoverClient = null; setHover(null); }
+  /** Stop an arrival in flight and show every piece it was holding back. */
+  function cancelPresentation(): void {
+    presentation = null; arrivals = [];
+    arrivalDrawings.clear();
+    for (const id of waiting) { const record = rendered.get(id); if (record) record.visual.visible = true; assemblyWanted.delete(id); }
+    waiting.clear();
+  }
+  function polygonCentroid(polygon: [number, number][]): [number, number] | null {
+    let area = 0, cx = 0, cz = 0;
+    polygon.forEach(([x0, z0], index) => {
+      const [x1, z1] = polygon[(index + 1) % polygon.length]!;
+      const cross = x0 * z1 - x1 * z0; area += cross; cx += (x0 + x1) * cross; cz += (z0 + z1) * cross;
+    });
+    if (Math.abs(area) < 1e-9) {
+      if (!polygon.length) return null;
+      return [polygon.reduce((sum, p) => sum + p[0], 0) / polygon.length, polygon.reduce((sum, p) => sum + p[1], 0) / polygon.length];
+    }
+    return [cx / (3 * area), cz / (3 * area)];
+  }
+
   /** A budget (ms) spreads a burst of arriving models, with their texture uploads, over several frames. */
   function installLoadedModels(budget = Infinity): void {
     if (drag) return;
@@ -929,7 +1144,8 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
       current.visual.add(pending.model); installedModels.add(pending.model);
       const object = documentState?.objects.find(o => o.id === id), asset = catalogState.find(a => a.id === object?.assetId);
       if (object && asset) poseWallDecoration(pending.model, asset, object);
-      if (assemblyWanted.delete(id)) startAssembly(pending.model, current.dimensions[1]);
+      // A piece still waiting for its arrival assembles when it appears, not while hidden.
+      if (!waiting.has(id) && assemblyWanted.delete(id)) startAssembly(pending.model, current.dimensions[1]);
       if (pending.color) pending.model.traverse(child => {
         if (child instanceof THREE.Mesh) for (const mat of Array.isArray(child.material) ? child.material : [child.material]) {
           if (mat instanceof THREE.MeshStandardMaterial) mat.color.set(pending.color!);
@@ -1220,6 +1436,7 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
     furnitureDrop.cancel();
     if (disposed) return;
     if (drag || endpointDrag || openingDrag || wallMove.active) { pendingScene = { scene: next, catalog }; return; }
+    cancelPresentation(); setHover(null);
     const previousObjects = new Map(documentState?.objects.map(object => [object.id, object]));
     const animate = initialized && documentState?.id === next.id;
     if (documentState?.id !== next.id) ceilingSelectionId = null;
@@ -1803,6 +2020,8 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
   // so the app's interaction gate is clear before onSelect runs.
   window.addEventListener('pointerup', onPointerUp);
   renderer.domElement.addEventListener('pointermove', onPointerMove);
+  renderer.domElement.addEventListener('pointermove', onPointerHover);
+  renderer.domElement.addEventListener('pointerleave', onPointerLeave);
   renderer.domElement.addEventListener('pointercancel', onPointerCancel);
   renderer.domElement.addEventListener('lostpointercapture', onLostPointerCapture);
   renderer.domElement.addEventListener('webglcontextlost', onContextLoss);
@@ -1921,7 +2140,69 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
       furnitureDrop.setAsset(asset);
     },
     revealSelection,
-    setFinishBrush(id) { onPointerCancel(); finishInteraction.setBrush(id); },
+    setFinishBrush(id) { onPointerCancel(); brushActive = id !== null; if (brushActive) setHover(null); finishInteraction.setBrush(id); },
+    entityAnchor(id) {
+      if (disposed || !documentState) return null;
+      const scene = documentState;
+      const record = rendered.get(id);
+      if (record) {
+        const bounds = entityBounds(record.group);
+        if (bounds.isEmpty()) return null;
+        const middle = bounds.getCenter(new THREE.Vector3());
+        return [middle.x, bounds.max.y, middle.z];
+      }
+      const metadata = scene.project?.metadata ?? {};
+      const wall = scene.walls.find(item => item.id === id);
+      if (wall) {
+        const rise = wall.height >= 2 ? 1.6 : wall.height / 2;
+        return [(wall.start[0] + wall.end[0]) / 2, (metadata[wall.id]?.elevation ?? 0) + rise, (wall.start[1] + wall.end[1]) / 2];
+      }
+      for (const host of scene.walls) {
+        const opening = host.openings.find(item => item.id === id);
+        if (!opening) continue;
+        const dx = host.end[0] - host.start[0], dz = host.end[1] - host.start[1], length = Math.hypot(dx, dz) || 1;
+        const along = opening.offset + opening.width / 2;
+        return [host.start[0] + dx / length * along, (metadata[host.id]?.elevation ?? 0) + opening.sill + opening.height / 2, host.start[1] + dz / length * along];
+      }
+      const room = scene.rooms.find(item => item.id === id);
+      if (room) {
+        const centre = polygonCentroid(room.polygon);
+        return centre ? [centre[0], (metadata[room.id]?.elevation ?? 0) + 1.2, centre[1]] : null;
+      }
+      const component = scene.project?.components.find(item => item.id === id);
+      const projected = services?.components.get(id) ?? entity(id);
+      if (projected) {
+        const bounds = entityBounds(projected);
+        if (!bounds.isEmpty()) return bounds.getCenter(new THREE.Vector3()).toArray() as Vec3;
+      }
+      if (component) {
+        const position = componentPosition(scene, component);
+        return [position[0], position[1] + component.dimensions[1] / 2, position[2]];
+      }
+      return null;
+    },
+    presentArrival({ roomId, ids, elsewhere, available }) {
+      if (disposed || !documentState) return;
+      cancelPresentation();
+      const room = roomId ? documentState.rooms.find(item => item.id === roomId) : undefined;
+      const here = [...new Set(ids)].filter(id => rendered.has(id));
+      const rest = [...new Set(elsewhere)].filter(id => rendered.has(id) && !here.includes(id));
+      if (motion.reduced) { if (room) focusRoom(room.id, { available, duration: 0 }); requestRender(); return; }
+      precompileOverlays();
+      for (const id of [...here, ...rest]) { rendered.get(id)!.visual.visible = false; waiting.add(id); }
+      // A catalog model still loading assembles part by part when it replaces the placeholder.
+      for (const id of here) {
+        const record = rendered.get(id)!, asset = catalogState.find(item => item.id === documentState?.objects.find(object => object.id === id)?.assetId);
+        if (asset?.source.type === 'gltf' && !record.visual.children.some(child => installedModels.has(child))) assemblyWanted.add(id);
+      }
+      const now = performance.now();
+      if (room) focusRoom(room.id, { available, duration: PRESENT.focus });
+      const sweepAt = now + (room ? PRESENT.focus : 0), drawAt = sweepAt + (room ? PRESENT.drawAfterSweep : 0);
+      presentation = { roomId: room?.id ?? null, sweepAt, drawAt, ids: here, swept: !room };
+      const quietAt = drawAt + PRESENT.quietAfter, quietStagger = rest.length > 1 ? Math.min(40, 1400 / rest.length) : 0;
+      rest.forEach((id, index) => arrivals.push({ id, at: quietAt + index * quietStagger }));
+      shadowCache.invalidate(); requestRender();
+    },
     animatePlacement(id) {
       const record = rendered.get(id);
       if (disposed || drag || !record) return;
@@ -1942,6 +2223,7 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
     onFrame(listener) { frameListeners.add(listener); return () => { frameListeners.delete(listener); }; },
     setHidden(ids) { hiddenIds = new Set(ids); applyHidden(); shadowCache.invalidate(); requestRender(); },
     setSelection(id, ids) {
+      if (id && id === hoverId) setHover(null);
       if (id !== ceilingSelectionId) ceilingSelectionId = null;
       const requested = id ? [...new Set([id, ...(ids ?? [])])] : [];
       const furnitureIds = documentState ? expandFurnitureSelection(documentState, requested) : [];
@@ -2055,6 +2337,8 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
       renderer.domElement.removeEventListener('pointerdown', onPointerDown, true);
       window.removeEventListener('pointerup', onPointerUp);
       renderer.domElement.removeEventListener('pointermove', onPointerMove);
+      renderer.domElement.removeEventListener('pointermove', onPointerHover);
+      renderer.domElement.removeEventListener('pointerleave', onPointerLeave);
       renderer.domElement.removeEventListener('pointercancel', onPointerCancel);
       renderer.domElement.removeEventListener('lostpointercapture', onLostPointerCapture);
       renderer.domElement.removeEventListener('webglcontextlost', onContextLoss);
@@ -2062,7 +2346,8 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
       transform.removeEventListener('objectChange', changedTransform); transform.removeEventListener('change', requestRender);
       orbit.removeEventListener('change', requestRender); orbit.removeEventListener('start', onOrbitStart); orbit.removeEventListener('end', onOrbitEnd);
       wallMove.dispose(); transform.dispose(); orbit.dispose();
-      placementMotion.dispose(); frameListeners.clear(); assemblies = [];
+      placementMotion.dispose(); frameListeners.clear(); assemblies = []; arrivals = [];
+      arrivalDrawings.dispose(); roomSweep.dispose(); hoverFrame.dispose();
       motion.dispose(); cameraMotion.dispose();
       for (const group of retiring) disposeObject(group); retiring.clear();
       placementFeedback.dispose();

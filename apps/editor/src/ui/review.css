@@ -1,0 +1,13 @@
+/* The proposal bar (review-bar.ts): the only control in the viewer while a designer proposal is previewed. */
+.proposal-bar { position: absolute; top: 12px; left: 50%; z-index: 17; transform: translateX(-50%); display: flex; align-items: center; gap: 6px;
+  max-width: calc(100% - 24px); padding: 5px 5px 5px 14px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); box-shadow: var(--shadow-2); color: var(--ink); font-size: 13px; }
+.proposal-bar[hidden] { display: none; }
+.proposal-bar-title { min-width: 0; margin: 0 6px 0 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.proposal-bar-title em { font-family: var(--serif); font-size: 15px; font-weight: 600; }
+.proposal-bar-title span { color: var(--muted); }
+.proposal-bar-button { flex: none; min-height: 30px; padding: 0 12px; border: 1px solid var(--control-line); border-radius: var(--radius-sm); background: var(--raised); color: var(--ink); font: inherit; font-weight: 500; cursor: pointer; }
+.proposal-bar-button:hover:not(:disabled) { background: var(--hover); }
+.proposal-bar-button:disabled { opacity: .45; cursor: default; }
+.proposal-bar-accept { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
+.proposal-bar-accept:hover:not(:disabled) { background: var(--accent-hover); }
+@container (max-width: 560px) { .proposal-bar-title span { display: none; } }

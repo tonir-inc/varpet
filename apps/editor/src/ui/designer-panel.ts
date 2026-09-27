@@ -8,6 +8,7 @@ import { EditorStore } from '../core/store';
 import type { AgentProposal, CatalogAsset, SceneDocument } from '../contracts';
 import { createReplayClock, loadSession, recordedFetch, sessionBadge, type DesignerSession, type RecordedTurn } from './designer-replay';
 import type { DesignerImage } from '../adapters/designer-inspiration';
+import { entityBlock, type DesignerEntity } from './proposal-review';
 import { askDesigner, type DesignerHealth, type DesignerPartial, type DesignerPreview, type DesignerRequest } from '../adapters/designer-http';
 type AskDesigner = typeof askDesigner;
 
@@ -17,6 +18,8 @@ export type ProposalAction = 'preview' | 'apply' | 'dismiss';
 interface Message { role: 'user' | 'designer'; text: string; metrics?: MetricRow[]; proposal?: AgentProposal; status?: ProposalStatus; options?: string[]; notes?: string; suggestions?: string[]; retryRequest?: string; steps?: DesignerTurnSteps; preview?: DesignerPreview;
   /** An inspiration picture the customer attached (a data URL, at most 256 KiB). */
   image?: string;
+  /** Things in the flat the customer attached; the designer received their ids with the text. */
+  entities?: DesignerEntity[];
   /** What the proposal buys: new pieces with room, shop, photo and price, fixed when the proposal arrived. */
   buying?: Basket;
   /** `id|assetId` of the pieces an applied proposal brought that were not in the flat before: they say whether it is still in. */
@@ -95,6 +98,8 @@ export interface DesignerPanelState {
   queued: string;
   /** An inspiration picture waiting to go with the next message. */
   attachment?: DesignerImage;
+  /** Things in the flat waiting to go with the next message. */
+  entities: DesignerEntity[];
   /** Checked rooms the designer has finished while it works on the rest: preview only. */
   partial?: { proposal: AgentProposal; rooms: string[] };
   /** The customer is looking at `partial` in the editor; newer partials and the final design replace it there. */
@@ -118,6 +123,8 @@ interface ConversationOptions {
   onProposalAction?: (proposal: AgentProposal, action: ProposalAction) => { ok: boolean; message?: string };
   /** Whether the editor still shows a proposal preview (the customer may have left it). */
   isPreviewing?: () => boolean;
+  /** Preview every complete proposal in the flat as soon as it lands (the editor's review), without a click. */
+  autoPreview?: boolean;
 }
 
 /** One object as a proposal left it: id plus its placement and product, so a later Undo is visible. */
@@ -193,9 +200,13 @@ const minorRoom = (caption?: string) => /closet|hall|bath|wc\b|toilet|shower|lau
 const unreachable = /failed to fetch|networkerror|load failed|fetch failed|err_connection/i;
 export const DESIGNER_START_HINT = 'cd harness && uv run python designer_service.py';
 
+const ENTITY_KINDS = ['furniture', 'wall', 'room', 'opening', 'component'];
+const validEntities = (value: unknown): value is DesignerEntity[] => Array.isArray(value) && value.length <= 12 && value.every(item => item && typeof item === 'object'
+  && typeof item.id === 'string' && typeof item.label === 'string' && ENTITY_KINDS.includes(item.kind) && (item.room === undefined || typeof item.room === 'string'));
+
 /** Owns chat state only. A proposal can only leave through the editor's review callback. */
 export function createDesignerConversation(options: ConversationOptions) {
-  const state: DesignerPanelState = { messages: [], draft: '', busy: false, progress: '', options: [], steps: [], queued: '', previewingPartial: false, keep: [], elapsedSeconds: 0, northPersisted: false, northError: '', activeHistoryId: '', conversations: [], historyPersisted: false };
+  const state: DesignerPanelState = { messages: [], draft: '', busy: false, progress: '', options: [], steps: [], queued: '', entities: [], previewingPartial: false, keep: [], elapsedSeconds: 0, northPersisted: false, northError: '', activeHistoryId: '', conversations: [], historyPersisted: false };
   let active: AbortController | undefined, disposed = false;
   const now = options.now ?? (() => performance.now());
   let started = 0, settingsScene = options.snapshot().scene.id;
@@ -234,6 +245,7 @@ export function createDesignerConversation(options: ConversationOptions) {
               if (!message || !['user', 'designer'].includes(message.role) || typeof message.text !== 'string') throw Error('Invalid message');
               // Steps are a record of work, not a decision: a damaged one is dropped, the message is kept.
               if (message.steps !== undefined && !validDesignerTurnSteps(message.steps)) delete message.steps;
+              if (message.entities !== undefined && !validEntities(message.entities)) delete message.entities;
               if (message.notes !== undefined && (typeof message.notes !== 'string' || !message.notes.trim() || message.notes.length > 1600)) throw Error('Invalid notes');
               if (message.metrics && (!Array.isArray(message.metrics) || message.metrics.some(row => !row || typeof row.label !== 'string' || typeof row.value !== 'string'))) throw Error('Invalid metrics');
               if (message.suggestions && (!Array.isArray(message.suggestions) || message.suggestions.length > 4 || message.suggestions.some(value => typeof value !== 'string' || !value.trim() || value.length > 300))) throw Error('Invalid suggestions');
@@ -318,7 +330,8 @@ export function createDesignerConversation(options: ConversationOptions) {
       if (disposed || !options.history || id === state.activeHistoryId || !history.conversations.some(thread => thread.id === id)) return;
       state.queued = ''; controller.cancel(); persist(); options.onResetReview?.(); history.activeId = id; loadHistory(); state.keep = []; controller.refreshSettings();
     },
-    act(id: string, action: ProposalAction) {
+    /** `quiet`: an automatic preview that fails says nothing in the chat; the card's Preview stays. */
+    act(id: string, action: ProposalAction, quiet = false) {
       if (disposed || state.busy || !options.history) return false;
       controller.refreshSettings();
       const message = state.messages.find(item => item.proposal?.id === id);
@@ -327,10 +340,10 @@ export function createDesignerConversation(options: ConversationOptions) {
         const before = structuredClone(options.snapshot().scene);
         const result = options.onProposalAction?.(structuredClone(message.proposal), action);
         if (action === 'apply' && result?.ok) message.marks = proposalMarks(message.proposal, before, options.snapshot().scene);
-        if (!result?.ok) { reply(result?.message ?? 'This proposal cannot be applied right now.'); publish(); return false; }
+        if (!result?.ok) { if (!quiet) reply(result?.message ?? 'This proposal cannot be applied right now.'); publish(); return false; }
         if (action !== 'preview') message.status = action === 'apply' ? 'applied' : 'dismissed';
         publish(); return true;
-      } catch (error) { reply(error instanceof Error ? error.message : 'The editor could not complete this action.'); publish(); return false; }
+      } catch (error) { if (!quiet) reply(error instanceof Error ? error.message : 'The editor could not complete this action.'); publish(); return false; }
     },
     /** Look at the rooms finished so far while the designer continues. */
     previewPartial() {
@@ -373,20 +386,30 @@ export function createDesignerConversation(options: ConversationOptions) {
     },
     /** An inspiration picture for the next message (null removes it). */
     attach(image: DesignerImage | null) { if (disposed) return; if (image) state.attachment = image; else delete state.attachment; publish(false); },
+    /** Something in the flat for the next message; attaching it again keeps one chip. */
+    attachEntity(entity: DesignerEntity) {
+      if (disposed || !validEntities([entity])) return;
+      state.entities = [...state.entities.filter(item => item.id !== entity.id), { ...entity }].slice(-12); publish(false);
+    },
+    detachEntity(id: string) { if (disposed) return; state.entities = state.entities.filter(item => item.id !== id); publish(false); },
     async send(message: string, picture?: DesignerImage) {
-      const request = message.trim();
-      if (disposed || state.busy || !request) return;
+      const text = message.trim();
+      if (disposed || state.busy || !text) return;
       controller.refreshSettings();
       if (state.northError) { reply(state.northError); publish(); return; }
       if (options.canRequest?.() === false) { reply('Finish the current preview or request, then try again.'); publish(); return; }
       const { scene, revision, catalog, catalogCurrency } = options.snapshot();
       const abortController = new AbortController(); active = abortController;
-      let restart: string | undefined;
+      let restart: { text: string; entities: DesignerEntity[] } | undefined;
       state.keep = state.keep.filter(id => scene.objects.some(object => object.id === id));
       const image = picture ?? state.attachment; delete state.attachment;
-      state.messages.push({ role: 'user', text: request, ...(image ? { image: image.dataUrl } : {}) });
+      // Attached things travel as a compact id block after the words; the bubble shows them as chips.
+      const entities = state.entities; state.entities = [];
+      const request = text + entityBlock(entities);
+      state.messages.push({ role: 'user', text, ...(image ? { image: image.dataUrl } : {}), ...(entities.length ? { entities } : {}) });
+      const asked = state.messages.at(-1)!;
       started = now(); state.elapsedSeconds = 0; state.draft = ''; state.steps = []; delete state.preview; delete state.partial;
-      let typedEvents = false, autoPreview: string | undefined;
+      let typedEvents = false, autoPreview: string | undefined, partialDeclined = false;
       state.busy = true; state.progress = 'Sending your request to the designer…'; state.options = []; publish();
       try {
         const result = await options.ask({ events: true, scene: structuredClone(scene), revision, request, ...(image ? { image } : {}),
@@ -402,8 +425,11 @@ export function createDesignerConversation(options: ConversationOptions) {
           } },
           onPartial: partial => { if (active === abortController && !disposed) {
             state.partial = { proposal: structuredClone(partial.proposal), rooms: [...partial.rooms] };
-            // Already looking at the rooms so far: follow the designer as more rooms are finished.
-            if (state.previewingPartial && options.isPreviewing?.() !== false) controller.previewPartial(); else { state.previewingPartial = false; publish(false); }
+            // Already looking at the rooms so far: follow the designer as more rooms are finished. With auto-preview
+            // the rooms show as they are done, until the customer leaves that preview for this turn.
+            const following = state.previewingPartial && options.isPreviewing?.() !== false;
+            if (state.previewingPartial && !following) partialDeclined = true;
+            if (following || (options.autoPreview && options.history && !partialDeclined)) controller.previewPartial(); else { state.previewingPartial = false; publish(false); }
           } },
           onEvent: event => { if (active === abortController && !disposed) {
             if (!typedEvents) { typedEvents = true; state.steps = []; }
@@ -423,6 +449,7 @@ export function createDesignerConversation(options: ConversationOptions) {
           else reply(`${result.proposal.title}\n${result.proposal.description}\nReview the proposed change below before applying it.`, proposalMetrics(result.metrics), result.notes);
           options.onProposal(result.proposal);
           if (state.previewingPartial && options.isPreviewing?.() !== false && options.history) autoPreview = result.proposal.id;
+          else if (options.autoPreview && options.history && state.messages.at(-1)?.status === 'pending') autoPreview = result.proposal.id;
         } else if (result.type === 'question') {
           reply(result.question); state.options = [...result.options];
           if (options.history) state.messages.at(-1)!.options = [...result.options];
@@ -430,7 +457,7 @@ export function createDesignerConversation(options: ConversationOptions) {
           // The service restarted and forgot this thread: say so and start a fresh one with the same words.
           state.conversationId = undefined;
           reply('The designer service restarted, so I am starting a fresh design thread for this request.');
-          restart = request;
+          restart = { text, entities };
         } else {
           reply(result.type === 'error' && unreachable.test(result.message) ? `I can’t reach the designer service. Start it with \`${DESIGNER_START_HINT}\`, then press Retry.` : result.message);
           if (result.type === 'message') state.messages.at(-1)!.suggestions = result.suggestions ?? ['Show me another option', 'Make it warmer', 'What would it cost?'];
@@ -445,12 +472,13 @@ export function createDesignerConversation(options: ConversationOptions) {
           // A room preview the customer was looking at ends with the turn unless the full design replaces it.
           if (state.previewingPartial && !autoPreview) options.onResetReview?.();
           active = undefined; state.busy = false; state.progress = ''; state.draft = ''; state.previewingPartial = false; settleSteps(); publish();
-          if (autoPreview) controller.act(autoPreview, 'preview');
+          if (autoPreview) controller.act(autoPreview, 'preview', true);
           // After publish, so the host has already seen the turn end and will accept the next request.
-          const next = restart ?? state.queued;
+          const next = restart?.text ?? state.queued;
           if (restart) {
-            const index = state.messages.map(message => message.role === 'user' && message.text === restart).lastIndexOf(true);
+            const index = state.messages.indexOf(asked);
             if (index >= 0) state.messages.splice(index, 1);
+            state.entities = [...restart.entities, ...state.entities.filter(item => !restart!.entities.some(entity => entity.id === item.id))];
             publish();
           }
           else if (next) state.queued = '';
@@ -529,7 +557,7 @@ interface MountOptions extends Omit<ConversationOptions, 'ask' | 'onChange'> {
   onBusyChange?: (busy: boolean) => void;
 }
 
-/** What the buyer is pointing at: their own selection, shown as a yellow chip above the composer. */
+/** What the buyer is pointing at, as a text prefix. */
 export interface DesignerContext { id: string; label: string }
 
 /** A picture as a JPEG data URL under the service's 256 KiB: scaled to at most 1280 px, then lower quality. */
@@ -571,6 +599,7 @@ export function proposalProducts(proposal: AgentProposal, catalog: CatalogAsset[
 /** Replies the recorded demo understands. Nothing here reaches a model. */
 const recordedStarters: DesignerStarter[] = ['Move the table', 'Make it cozier', 'Pick paint colours', 'Why minimalism?']
   .map((label, index) => ({ id: `example:recorded-${index}`, label, request: label }));
+const entityIcons: Record<DesignerEntity['kind'], string> = { furniture: 'sofa', wall: 'walls', room: 'room', opening: 'box', component: 'box' };
 const stepMarks = { done: ['check', 'Done'], failed: ['cross', 'Failed'], unfinished: ['wait', 'Not finished when the designer replied'] } as const;
 const money = (value: number) => `${value.toLocaleString('en-US')} ֏`;
 
@@ -607,7 +636,7 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
       <div class="designer-north"><label for="designer-north">North angle °</label><input id="designer-north" type="number" min="0" max="359.999999" step="any" placeholder="Unknown" aria-describedby="designer-north-help"/><small id="designer-north-help">Clockwise from plan-up: 0° ↑, 90° →. Leave blank if unknown.</small><small class="designer-north-status" role="status"></small></div>
       <details class="designer-keeps"><summary>Keep pieces in place</summary><div class="designer-keep-list"></div></details></details>
       <div class="designer-attachment" hidden><img alt="Inspiration picture to send"/><span>Inspiration picture · sent with your message</span></div>
-      <div class="designer-about" hidden><span class="designer-about-chip"><span>About: <strong class="designer-about-label"></strong></span></span></div>
+      <ul class="designer-entities designer-entities-draft" aria-label="Attached from the flat" hidden></ul>
       <form class="designer-form"><label for="designer-request" class="designer-visually-hidden">Message your designer</label>
         <div class="designer-input"><textarea id="designer-request" rows="1" maxlength="20000" placeholder="Ask anything" required></textarea>
         <div class="designer-actions"><input type="file" class="designer-attach-input" accept="image/jpeg,image/png,image/webp" hidden/><button type="submit" class="designer-icon-button designer-send" aria-label="Send" title="Send">${designerIcon('send')}</button><button type="button" class="designer-icon-button designer-cancel" aria-label="Stop the designer" title="Stop" hidden>${designerIcon('stop')}</button></div></div></form>
@@ -620,7 +649,7 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
   let storage = options.storage;
   if (!storage) { try { storage = window.localStorage; } catch { /* Session-only chat. */ } }
   let messageKey = '', historyKey = '', previousBusy = false, activeThread = '', collapsed = false, hasMessages = false, contextualStarters = false;
-  let ticker: ReturnType<typeof setInterval> | undefined, context: DesignerContext | null = null;
+  let ticker: ReturnType<typeof setInterval> | undefined, entityKey = '';
   const openSteps = new Set<string>();
   const reducedMotion = () => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return false; } };
   const button = (label: string, action: () => void, className = 'button') => {
@@ -631,7 +660,6 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
   const collapse = designerIconButton('panel-close', 'Collapse designer', () => setCollapsed(!collapsed), 'designer-collapse');
   collapse.setAttribute('aria-expanded', 'true');
   find<HTMLElement>('.designer-header-actions').append(newChat, collapse);
-  const clearContext = designerIconButton('close', 'Clear context', () => setContext(null), 'designer-about-clear');
   // An inspiration picture goes with the next message (live designer only), shrunk to the service's 256 KiB.
   const attachInput = find<HTMLInputElement>('.designer-attach-input');
   const attach = designerIconButton('upload', 'Attach an inspiration picture', () => attachInput.click(), 'designer-attach');
@@ -644,7 +672,6 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
     try { controller.attach({ name: file.name.replace(/[\/\\\0\r\n]/g, '_').slice(0, 120) || 'inspiration.jpg', dataUrl: await shrinkPicture(file) }); }
     catch (error) { statusLine.hidden = false; statusLine.textContent = error instanceof Error ? error.message : 'That picture could not be read.'; }
   };
-  find<HTMLElement>('.designer-about-chip').append(clearContext);
   const jump = designerIconButton('down', 'Jump to latest', () => scroller.scrollTo({ top: scroller.scrollHeight, behavior: reducedMotion() ? 'auto' : 'smooth' }), 'designer-jump');
   jump.hidden = true; scroller.append(jump);
   const updateJump = () => { jump.hidden = scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < 120; };
@@ -664,12 +691,25 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
     if (!badge) { badge = document.createElement('span'); badge.className = 'mock-label designer-badge'; find<HTMLElement>('.designer-title').after(badge); }
     badge.textContent = text;
   }
-  function setContext(next: DesignerContext | null) {
-    const label = typeof next?.label === 'string' ? next.label.trim().slice(0, 120) : '';
-    context = next && typeof next.id === 'string' && label ? { id: next.id, label } : null;
-    find<HTMLElement>('.designer-about').hidden = !context;
-    find<HTMLElement>('.designer-about-label').textContent = context?.label ?? '';
-  }
+  /** A chip for something in the flat: its kind's glyph, name and room; removable in the composer. */
+  const entityChip = (entity: DesignerEntity, remove?: () => void) => {
+    const chip = document.createElement('li'); chip.className = 'designer-entity'; chip.title = `${entity.label}${entity.room ? ` · ${entity.room}` : ''} (${entity.kind})`;
+    const glyph = document.createElement('span'); glyph.className = 'designer-entity-glyph'; glyph.innerHTML = designerIcon(entityIcons[entity.kind], 14);
+    const name = document.createElement('span'); name.className = 'designer-entity-name'; name.textContent = entity.label;
+    if (entity.room) { const room = document.createElement('small'); room.textContent = ` · ${entity.room}`; name.append(room); }
+    chip.append(glyph, name);
+    if (remove) chip.append(designerIconButton('close', `Remove ${entity.label}`, remove, 'designer-entity-remove'));
+    return chip;
+  };
+  const renderEntities = (entities: DesignerEntity[]) => {
+    const key = JSON.stringify(entities);
+    if (key === entityKey) return;
+    entityKey = key;
+    const list = find<HTMLElement>('.designer-entities-draft');
+    list.replaceChildren(...entities.map(entity => entityChip(entity, () => { controller.detachEntity(entity.id); input.focus(); })));
+    list.hidden = !entities.length;
+  };
+
 
   /** One step row. The ring's phase follows the clock so a rebuilt row does not visibly restart. */
   const stepRow = (step: DesignerStep, current: boolean) => {
@@ -848,6 +888,7 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
         const text = document.createElement('div'); text.className = 'designer-message-copy';
         if (message.role === 'designer') text.innerHTML = designerMarkdown(message.text); else text.textContent = message.text;
         if (message.image) { const picture = document.createElement('img'); picture.className = 'designer-attached'; picture.src = message.image; picture.alt = 'Inspiration picture'; item.append(picture); }
+        if (message.entities?.length) { const list = document.createElement('ul'); list.className = 'designer-entities designer-entities-sent'; list.setAttribute('aria-label', 'Attached from the flat'); list.append(...message.entities.map(entity => entityChip(entity))); item.append(list); }
         item.append(text);
         if (message.proposal) { const basket = message.buying ? basketView(message.buying, `${state.activeHistoryId}:${index}`) : undefined; const chips = basket ? undefined : productChips(message.proposal); if (basket) item.append(basket); else if (chips) item.append(chips); }
         if (message.metrics) {
@@ -930,6 +971,7 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
         control.setAttribute('aria-current', String(thread.id === state.activeHistoryId)); list.append(control);
       }
     }
+    renderEntities(state.entities);
     const pending = find<HTMLElement>('.designer-attachment');
     pending.hidden = !state.attachment;
     const preview = pending.querySelector('img')!;
@@ -1002,18 +1044,13 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
   };
   stopButton.onclick = () => {
     const unsent = controller.cancel();
-    if (unsent) {
-      // Hand the queued words back without the context prefix the composer would add again.
-      const prefix = context ? designerContextRequest('x', context).slice(0, -1) : '';
-      const text = prefix && unsent.startsWith(prefix) ? unsent.slice(prefix.length) : unsent;
-      setInput(input.value.trim() ? `${text}\n\n${input.value}` : text);
-    }
+    if (unsent) setInput(input.value.trim() ? `${unsent}\n\n${input.value}` : unsent);
     input.focus();
   };
   north.onchange = () => { controller.setNorth(north.validity.badInput ? 'invalid' : north.value); north.reportValidity(); renderStarters(); };
   form.onsubmit = event => {
     event.preventDefault();
-    const request = designerContextRequest(input.value, context);
+    const request = input.value.trim();
     if (!request) return;
     if (controller.state.busy) { void controller.queue(request); setInput(''); return; }
     void controller.send(request); if (controller.state.busy) setInput('');
@@ -1025,8 +1062,8 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
   return {
     controller,
     open() { setCollapsed(false); input.focus(); },
-    /** The buyer's current focus (a selected piece), or null. Shown as a chip; prefixes what they type next. */
-    setContext,
+    /** Attach something in the flat to the next message, as a chip above the composer. */
+    attachEntity(entity: DesignerEntity) { setCollapsed(false); controller.attachEntity(entity); },
     setBadge,
     /** ?session=<name>[&speed=1..10]: open the recorded run's flat (`load` replaces the editor scene) and play it. */
     async playSession(load: (scene: unknown) => Promise<boolean> | boolean, search = location.search) {

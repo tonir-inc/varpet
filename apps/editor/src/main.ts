@@ -14,6 +14,8 @@ import './ui/walkthrough.css';
 import { DEFAULT_INSIDE_LENS, isInsideLens } from './render/walkthrough-camera';
 import './ui/designer-panel.css';
 import { mountDesignerPanel, previewDesignerProposal } from './ui/designer-panel';
+import { mountProposalBar } from './ui/review-bar';
+import { describeEntity, proposalArrival } from './ui/proposal-review';
 import { askDesigner, designerHealth } from './adapters/designer-http';
 import { DesignerProposalCatalog } from './core/designer-catalog';
 import { CATALOG_CURRENCY } from './adapters/catalog-http';
@@ -129,7 +131,7 @@ app.innerHTML = `
         <p class="muted catalog-note">Shop prices in AMD, labeled with their source. Pieces built from your photos are not priced.</p><p class="muted catalog-note">Models: <a href="https://amazon-berkeley-objects.s3.amazonaws.com/index.html" target="_blank" rel="noopener noreferrer">Amazon Berkeley Objects</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Models are centered, oriented and scaled to catalog fit dimensions.</p>
       </section>
       </aside>
-      <aside id="selection-properties" class="right-panel" aria-label="Selection properties" hidden><div class="inspector-heading"><span>Properties</span><button id="close-inspector" class="icon-button" aria-label="Close properties" title="Close properties">${icon('close')}</button></div><div id="inspector" class="inspector"></div></aside>
+      <aside id="selection-properties" class="right-panel" aria-label="Selection properties" hidden><div class="inspector-heading"><span>Properties</span><button id="ask-designer" class="button quiet inspector-ask" title="Attach it to your next message to the designer">${icon('sparkles')} Ask the designer</button><button id="close-inspector" class="icon-button" aria-label="Close properties" title="Close properties">${icon('close')}</button></div><div id="inspector" class="inspector"></div></aside>
       <div id="toast" class="toast" role="status" aria-live="polite"></div>
       <div id="render-error" class="render-error" hidden></div>
     </main>
@@ -254,7 +256,10 @@ const viewportCallbacks: FinishViewportCallbacks = {
     } catch (error) { notify(error instanceof Error ? error.message : 'This finish could not be applied.', true); return false; }
   },
   onViewChange: next => setView(next),
-  onSelect: (id, additive) => { if (!previewMode && view !== 'inside') select(id, additive); },
+  // Reviewing a designer proposal: anything in the proposed flat can be picked to comment on; nothing is edited.
+  // While a designer proposal is previewed, a click attaches what it hits to the next chat message; it never edits.
+  onSelect: (id, additive) => { if (review) { if (id) attachToDesigner(id, review.scene); return; } if (!previewMode && view !== 'inside') select(id, additive); },
+  onWallsChange: mode => { wallMode = mode; renderWallControls(); },
   onFurnitureDrop: (assetId, position) => {
     if (previewMode || proposalView) return;
     const asset = catalog.find(item => item.id === assetId);
@@ -301,6 +306,27 @@ const adoptedViewport = presentation?.takeViewport?.();
 const viewport = adoptedViewport ?? createViewport($('#viewport'), viewportCallbacks, normalizeWallJunctions);
 if (adoptedViewport) viewport.attach($('#viewport'), viewportCallbacks, normalizeWallJunctions);
 store.setSurfaceResolver(viewport.furnitureSurface);
+/** The designer proposal previewed in the flat: its scene, and the new pieces this turn has already shown. */
+let review: { proposal: AgentProposal; scene: SceneDocument; shown: Set<string> } | null = null;
+const proposalBar = mountProposalBar({
+  host: $('.viewport-shell'),
+  accept: proposal => { designerPanel.controller.act(proposal.id, 'apply'); },
+  reject: (proposal, partial) => { if (partial || !designerPanel.controller.act(proposal.id, 'dismiss')) setPreview(false); },
+});
+function endReview() { review = null; proposalBar.hide(); }
+/** Attach something in `scene` to the designer chat's next message, as a chip. */
+function attachToDesigner(id: string, scene: SceneDocument): boolean {
+  const entity = describeEntity(scene, id, catalog);
+  if (!entity) return false;
+  if (panelOpen) switchPanel(activePanel, true);
+  designerPanel.attachEntity(entity);
+  return true;
+}
+/** Free viewer area for framing a room: below the proposal bar, above the dock. */
+function arrivalArea() {
+  const shell = $('.viewport-shell'), dock = document.querySelector<HTMLElement>('.folio-dock');
+  return { left: 24, right: shell.clientWidth - 24, top: 72, bottom: (dock?.offsetTop ?? shell.clientHeight - 80) - 16 };
+}
 // Every editor entry uses the blueprint workspace, including saved flats and the sandbox.
 // Construction handoff additionally preserves its exact camera and tool arrival.
 if (!adoptedViewport) viewport.setBackdrop({ paper: presentation?.paper ?? BLUEPRINT_PAPER });
@@ -670,6 +696,7 @@ function renderInspector() {
   const name = selectedId ? entityName(selectedId) : undefined;
   if (!name) inspectorOpen = false;
   $('#selection-properties').hidden = !inspectorVisible();
+  $('#ask-designer').hidden = !selectedId || !describeEntity(store.scene, selectedId);
   document.body.classList.toggle('folio-inspect', inspectorVisible());
   $('.selection-chip').hidden = !name;
   $('#selected-name').textContent = name ? selectionLabel() : '';
@@ -995,13 +1022,15 @@ function setView(next:ApartmentView){
   renderViewportHints();
   folioShell?.update();
 }
-function setPreview(enabled:boolean){
+/** `frame`: frame the flat on entering (a designer proposal frames its own room instead). */
+function setPreview(enabled:boolean, frame = true){
   if (activeFinish) chooseFinish(null);
   viewport.cancelInteraction();
   if (enabled) {
     previewReturnView = view;
     if (view === 'plan') setView('perspective');
   }
+  if (!enabled) endReview();
   if (!enabled && proposalView) { proposalView = false; viewport.setScene(store.scene, catalog); $<HTMLButtonElement>('#save').disabled = false; }
   previewMode=enabled;
   select(null);
@@ -1020,7 +1049,7 @@ function setPreview(enabled:boolean){
     previewReturnView = null;
     setView(previousView);
   }
-  if (view !== 'inside') requestAnimationFrame(()=>focusView());
+  if (view !== 'inside' && frame) requestAnimationFrame(()=>focusView());
   folioShell?.update();
 }
 
@@ -1104,7 +1133,8 @@ function refresh(){
   if(selectedId&&!entityName(selectedId))selectedId=selectionIds().at(-1)??null;
   // The architect temporarily owns this renderer; background catalog/save refreshes
   // must not replace the streamed shell with the checked editor document mid-build.
-  if (!stage) { viewport.setScene(scene,catalog);viewport.setSelection(selectedId, selectionIds()); }
+  // A proposal under review keeps the proposed flat on screen until it is accepted or rejected.
+  if (!stage && !review) { viewport.setScene(scene,catalog);viewport.setSelection(selectedId, selectionIds()); }
   // A whole design arriving at once (import, designer apply) paints the 3D view in this frame;
   // the plan, panels and inspectors follow after it, so no single frame carries all of it.
   const heavy = heavyChange(scene);
@@ -1185,13 +1215,17 @@ const designerPanel = mountDesignerPanel(designerHost, {
   live: designerLive, snapshot: () => ({ scene: store.scene, revision: store.revision, catalog, catalogCurrency: CATALOG_CURRENCY }),
   health: designerLive ? () => designerHealth() : undefined,
   isPreviewing: () => previewMode && proposalView,
-  subscribe: listener => store.subscribe(listener), canRequest: () => !busy && !previewMode,
-  onBusyChange: waiting => { busy = waiting; $<HTMLButtonElement>('#suggest').disabled = waiting; },
+  // Talking to the designer stays open while its proposal is previewed (a follow-up, a replay's next turn).
+  subscribe: listener => store.subscribe(listener), canRequest: () => !busy && (!previewMode || review !== null),
+  autoPreview: true,
+  onBusyChange: waiting => { busy = waiting; $<HTMLButtonElement>('#suggest').disabled = waiting; proposalBar.setBusy(waiting); },
   onProposal: proposal => { pending = proposal; renderProposal(); },
   onResetReview: () => { if(pending?.command.source==='designer'){if(proposalView)setPreview(false);pending=null;renderProposal();} },
   onProposalAction: (proposal, action) => {
     if(interacting)return {ok:false,message:'Finish your current edit before reviewing a proposal.'};
-    if(previewMode)setPreview(false);
+    // A newer preview (the next room, a revision) replaces the one on screen in place; anything else leaves it first.
+    const continuing = action === 'preview' && previewMode && proposalView && review !== null;
+    if(previewMode && !continuing)setPreview(false);
     pending=proposal;
     if(action==='dismiss'){designerCatalog.forget(proposal);pending=null;renderProposal();notify('Proposal dismissed');return {ok:true};}
     if(proposal.command.baseRevision!==store.revision)return {ok:false,message:'This proposal is stale. Request a fresh proposal.'};
@@ -1199,8 +1233,16 @@ const designerPanel = mountDesignerPanel(designerHost, {
     if(products.length)registerProducts(products);
     if(action==='apply')return applyPendingProposal();
     const proposed=previewDesignerProposal(store.scene,store.revision,proposal,catalog);
-    setPreview(true);proposalView=true;$<HTMLButtonElement>('#save').disabled=true;viewport.setScene(proposed,catalog);focusView();
-    notify('Proposed change preview. Apply or dismiss it in the conversation.');return {ok:true};
+    if(!previewMode)setPreview(true, false);
+    proposalView=true;$<HTMLButtonElement>('#save').disabled=true;viewport.setScene(proposed,catalog);
+    // The camera goes to the room that changed most and its new pieces arrive; pieces this turn already showed stay.
+    const shown = continuing && review ? review.shown : new Set<string>();
+    const arrival = proposalArrival(store.scene, proposed, shown);
+    review = { proposal, scene: proposed, shown: new Set([...shown, ...arrival.added]) };
+    viewport.presentArrival({ roomId: arrival.roomId, ids: arrival.ids, elsewhere: arrival.elsewhere, available: arrivalArea() });
+    // Partial room previews come from the turn in flight; they are looked at, not accepted.
+    proposalBar.show(proposal, { partial: designerPanel.controller.state.partial?.proposal.id === proposal.id, busy });
+    return {ok:true};
   },
 });
 folioShell = mountFolioShell({
@@ -1209,13 +1251,7 @@ folioShell = mountFolioShell({
   setTool, openPanel: panel => switchPanel(panel), closePanel: () => { if (panelOpen) switchPanel(activePanel, true); }, isPanelOpen: panel => panelOpen && (!panel || activePanel === panel),
   remove: deleteSelected, undo: () => $<HTMLButtonElement>('#undo').click(),
   toggleInspector: () => setInspectorOpen(!inspectorVisible()), isInspectorOpen: inspectorVisible,
-  askAbout: (id, label) => {
-    if (panelOpen) switchPanel(activePanel, true);
-    designerPanel.open();
-    const panel = designerPanel as unknown as { setContext?(context: { id: string; label: string } | null): void };
-    if (panel.setContext) panel.setContext({ id, label });
-    else { const input = designerHost.querySelector<HTMLTextAreaElement | HTMLInputElement>('textarea, input[type=text]'); if (input) { input.value = `About the ${label}: `; input.focus(); } }
-  },
+  askAbout: id => { attachToDesigner(id, store.scene); },
 });
 window.addEventListener('pagehide', event => { if (!event.persisted) { designerPanel.dispose(); folioShell?.dispose(); } });
 /** Pitch tour of the finished flat. Other lanes start it with document.dispatchEvent(new CustomEvent('varpet:tour')). */
@@ -1236,6 +1272,11 @@ document.addEventListener('varpet:tour', () => { void startTour(); });
 /** Lane pitch's shopping list on the proposal card selects and frames a listed piece. */
 document.addEventListener('varpet:select', event => {
   const ids = ((event as CustomEvent).detail?.ids ?? []) as string[];
+  if (review) {
+    const shown = review.scene, id = ids.find(entry => shown.objects.some(object => object.id === entry));
+    if (id) viewport.focus(id);
+    return;
+  }
   const id = ids.find(entry => store.scene.objects.some(object => object.id === entry));
   if (id && !previewMode) { select(id); focusView(id); }
 });
@@ -1356,6 +1397,8 @@ $('#catalog-retry').onclick=()=>{void searchDatabase();void refreshBuiltPieces()
 $('#asset-search').oninput=()=>{catalogRequest?.abort();clearTimeout(catalogSearchTimer);catalogResults=[];catalogLoading=true;catalogError='';$('#catalog-scroll').scrollTop=0;renderAssets();catalogSearchTimer=setTimeout(()=>void searchDatabase(),300);};
 $('#scene-search').oninput=renderHierarchy;
 $('#close-inspector').onclick=()=>{setInspectorOpen(false);$('[data-folio=inspect]').focus();};
+// Walls, rooms and openings have no floating toolbar: their properties carry the designer's ask.
+$('#ask-designer').onclick=()=>{ if (selectedId) attachToDesigner(selectedId, store.scene); };
 $('#focus-selected').onclick=()=>focusView(selectedId??undefined);
 $('#preview').onclick=()=>setPreview(!previewMode);
 $('#inside-view').onclick=()=>setView('inside');$('#perspective').onclick=()=>setView('perspective');$('#top-view').onclick=()=>setView('top');$('#plan-view').onclick=()=>setView('plan');
