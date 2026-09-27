@@ -30,6 +30,17 @@ async function start() {
     void clearBlueprintCheckpoint(checkpoint).catch(() => {});
     return;
   }
+  const bundleId = route.get('bundle');
+  if (bundleId) {
+    const {launchBundle} = await import('./portal/catalog-launch');
+    await launchBundle(host, bundleId, {beforeEditor: () => { host.innerHTML = ''; }});
+    return;
+  }
+  if (route.get('view') === 'catalog') {
+    const {mountCatalog} = await import('./portal/catalog');
+    await mountCatalog(host);
+    return;
+  }
   const developer = route.get('developer');
   if (developer || route.get('view') === 'studio') {
     const {mountDeveloperProfile} = await import('./portal/developer-profile');
