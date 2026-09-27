@@ -18,10 +18,12 @@ export interface DesignerSession {
 
 /** A clock that runs `scale` times faster while a recording plays and can be set to a recorded time. */
 export function createReplayClock(real: () => number = () => performance.now()) {
-  let virtual = 0, last = real(), scale = 1;
+  let virtual = 0, last = real(), scale = 1, ceiling = Infinity;
   const clock = {
-    now() { const at = real(); virtual += (at - last) * scale; last = at; return virtual; },
-    set scale(value: number) { clock.now(); scale = value; },
+    now() { const at = real(); virtual = Math.max(virtual, Math.min(virtual + (at - last) * scale, ceiling)); last = at; return virtual; },
+    /** Never run past `ms` (the next recorded event) until it arrives: the clock shows recorded time, not replay lag. */
+    cap(ms: number) { clock.now(); ceiling = ms; },
+    set scale(value: number) { clock.now(); scale = value; if (value === 1) ceiling = Infinity; },
     get scale() { return scale; },
     /** Jump forward to `ms` (recorded time since the turn started at `origin`), never backwards. */
     reach(origin: number, ms: number) { clock.now(); virtual = Math.max(virtual, origin + ms); },
@@ -64,6 +66,7 @@ export function recordedFetch(turn: RecordedTurn, speed: number, clock?: ReplayC
         try {
           let previous = 0;
           for (const { t, record } of turn.events) {
+            clock?.cap(origin + t * 1000);
             await sleep(Math.min(Math.max(0, t - previous) * 1000 / speed, maxGapMs), signal);
             previous = t;
             clock?.reach(origin, t * 1000);

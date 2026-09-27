@@ -24,8 +24,8 @@ Open the tabs you need in advance (one per flat): replays load their own flat.
 | Flat | Recorded run (opens the flat and plays) | Recorded | Plays in |
 |---|---|---|---|
 | Sunday Towers penthouse, 188 m² | `http://localhost:5173/?editor&session=sunday-b12121&speed=10` (also the start screen's "Watch the designer furnish Sunday Towers") | 15:41 | 1:45 |
-| Orion type 8, 121 m² | `http://localhost:5173/?editor&session=orion-t8&speed=10` | 14:23 | 1:20 |
-| Orion type 7, 134 m² (with an inspiration picture) | `http://localhost:5173/?editor&session=orion-t7&speed=10` | ORION_T7_RECORDED | ORION_T7_PLAY |
+| Orion type 8, 121 m² | `http://localhost:5173/?editor&session=orion-t8&speed=10` | 14:23 | 1:30 |
+| Orion type 7, 134 m² (with an inspiration picture) | `http://localhost:5173/?editor&session=orion-t7&speed=10` | 10:30 | 1:25 |
 
 `speed` is 1-10; 10 keeps a whole flat under two minutes, 4 lets you talk over each room.
 

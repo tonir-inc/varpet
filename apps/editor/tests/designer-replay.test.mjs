@@ -38,3 +38,12 @@ test('the badge says it is a recording, when and how fast', () => {
   assert.equal(validSession({ format: 'varpet.designer-session', version: 1, name: 'x', turns: [turn], conversationId: 'c' }), true);
   assert.equal(validSession({ format: 'other' }), false);
 });
+
+test('the replay clock never runs past the next recorded event, so it shows the recorded time', () => {
+  let real = 0; const clock = createReplayClock(() => real);
+  clock.scale = 10; clock.cap(5000);
+  real = 2000; assert.equal(clock.now(), 5000);
+  clock.reach(0, 3000); assert.equal(clock.now(), 5000);
+  clock.cap(9000); real = 2100; assert.equal(clock.now(), 6000);
+  clock.scale = 1; real = 10_000; assert.equal(clock.now(), 6000 + 7900);
+});
