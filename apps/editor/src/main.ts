@@ -418,7 +418,6 @@ function focusView(id?: string) {
 }
 
 function run(operations: Operation[], label: string, revision = store.revision, onDeferredApply?: () => void) {
-  if (guidedDesign) return false;
   if (previewMode) { notify('Exit preview to edit the apartment.'); return false; }
   const command: EditCommand = {id:uid(), label, source:'human', baseRevision:revision, operations};
   // Preflight shell edits with the same checks and junction policy as the real
@@ -453,6 +452,7 @@ function run(operations: Operation[], label: string, revision = store.revision, 
 }
 
 function executeHumanCommand(command: EditCommand) {
+  if (guidedDesign || previewMode) return false;
   const result = store.execute(command, true);
   if (!result.ok) notify(result.errors.join(' '), true);
   else if (result.warnings.length) notify(`${command.label}. ${result.warnings[0]}`);
@@ -1185,7 +1185,7 @@ function refresh(){
   // must not replace the streamed shell with the checked editor document mid-build.
   // Keep a checked proposal visible through background catalog and save refreshes.
   if (review && review.proposal.command.baseRevision !== store.revision) setPreview(false);
-  if (!stage) { viewport.setScene(review?.scene ?? scene,catalog);viewport.setSelection(selectedId, selectionIds()); }
+  if (!stage && !review) { viewport.setScene(scene,catalog);viewport.setSelection(selectedId, selectionIds()); }
   // A whole design arriving at once (import, designer apply) paints the 3D view in this frame;
   // the plan, panels and inspectors follow after it, so no single frame carries all of it.
   const heavy = heavyChange(scene);
@@ -1318,6 +1318,7 @@ const designerPanel = mountDesignerPanel(designerHost, {
     if (guidedDesign) {
       designConstruction.preview(proposed, catalog, changedIds(proposed));
     } else {
+      designConstruction.clear();
       viewport.presentArrival({ roomId: arrival.roomId, ids: arrival.ids, elsewhere: arrival.elsewhere, available: arrivalArea() });
       // Partial room previews belong to the turn in flight and cannot be accepted.
       proposalBar.show(proposal, { partial: designerPanel.controller.state.partial?.proposal.id === proposal.id, busy });

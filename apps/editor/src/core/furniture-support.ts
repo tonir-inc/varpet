@@ -70,11 +70,11 @@ export function placeFurniture(scene: SceneDocument, catalog: CatalogAsset[], ob
   if (on === null) { next.position[1] = floorHeight(scene, next); return next; }
   if (on && (!scene.objects.some(o => o.id === on) || on === object.id || isDescendant(scene, on, object.id))) throw new Error(`Invalid furniture support “${on}”.`);
   const resolved = resolver?.(scene, catalog, next, on, ceiling);
-  // The viewer's mesh resolver skips wall-hung pieces; a hung shelf's top is its box top.
-  const onShelf = on && (asset => asset && wallShelf(asset))(catalog.find(a => a.id === scene.objects.find(o => o.id === on)?.assetId));
-  // An explicit support the model raycast misses (a mesh offset from its catalog box) still holds the piece at the
-  // catalog height, as the headless preview placed it: Apply must not refuse what Preview showed.
-  const hit = resolved === undefined || (resolved === null && (onShelf || on)) ? headlessSurface(scene, catalog, next, on, ceiling) : resolved;
+  const supportAsset = on ? catalog.find(a => a.id === scene.objects.find(o => o.id === on)?.assetId) : undefined;
+  // Wall-hung shelves are skipped by the mesh resolver; bed frames have an implied deck/mattress surface.
+  // These explicit supports use catalog height on a miss. Holes in other loaded geometry still reject placement.
+  const impliedSurface = supportAsset && (wallShelf(supportAsset) || supportAsset.kind === 'bed');
+  const hit = resolved === undefined || (resolved === null && impliedSurface) ? headlessSurface(scene, catalog, next, on, ceiling) : resolved;
   if (hit) {
     const support = scene.objects.find(o => o.id === hit.id), supportAsset = catalog.find(a => a.id === support?.assetId);
     if (!support || !supportAsset || !supportContains(support, supportAsset, next) || !Number.isFinite(hit.y)) throw new Error('No supporting surface under the requested footprint centre.');
