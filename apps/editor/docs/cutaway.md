@@ -49,6 +49,16 @@ case and approved the final correction. No schema, fixtures or existing test
 expectations changed. Notion tooling and the referenced definition-of-done skill
 were unavailable; this records the behavior and required verification locally.
 
+## Partitions cut again in dollhouse views · 27 September 2026
+
+Felix (product): "all I see is walls" on furnished flats zoomed in from outside. Outside views now also cut a
+partition (rooms on both sides, no interior/shared tag) when it lies more than 0.6 m (0.3 m to stay cut) on the
+camera's side of the point the camera looks at on the floor, and faces the camera past the usual angular gate.
+The partition under the look point, explicit interior/shared walls, eye-height (inside) views and Top are
+unchanged. This reverses the "partitions stay full-height" policy above for outside views; its checks still
+pass because their cameras look horizontally, so the look point falls back to the flat centre where the test
+partition stands. Claude Opus 5.5: check-cutaway 520, balcony 442, projection motion 16, structural surfaces 155.
+
 ## Aerial camera over the footprint · 27 September 2026
 
 The "camera inside" gate tested only x/z, so zooming or panning the dollhouse view until the camera

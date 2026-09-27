@@ -419,7 +419,9 @@ export function makeStructure(document: SceneDocument, reveal?: FinishReveal, op
     const protectedBoundary = meta.boundary === 'interior' || meta.boundary === 'shared';
     const exterior = !protectedBoundary && front !== back;
     const outward = new THREE.Vector3(-wallAxis.z, 0, wallAxis.x).multiplyScalar(front ? -1 : 1);
-    const state = { full, low, openingGroup, outward, exterior, thickness: wall.thickness,
+    // A partition has rooms on both sides and no explicit interior/shared tag (party walls stay).
+    const partition = !protectedBoundary && !exterior && front && back;
+    const state = { full, low, openingGroup, outward, exterior, partition, thickness: wall.thickness,
       // Preserve the existing Top projection for standalone walls without rooms.
       topCut: exterior || (!document.rooms.length && !protectedBoundary),
       midpoint: new THREE.Vector3((wall.start[0] + wall.end[0]) / 2, 0, (wall.start[1] + wall.end[1]) / 2),
@@ -427,6 +429,7 @@ export function makeStructure(document: SceneDocument, reveal?: FinishReveal, op
     return state;
   });
   const direction = new THREE.Vector3(); const toCamera = new THREE.Vector3(); dimensions.visible = false;
+  const look = new THREE.Vector3(), focus = new THREE.Vector3(), fromFocus = new THREE.Vector3(), toWall = new THREE.Vector3();
   return {
     group, bounds, entities, openings, ceilings, dimensions,
     updateFinishes(now) {
@@ -448,14 +451,23 @@ export function makeStructure(document: SceneDocument, reveal?: FinishReveal, op
       const inside = overRoom && !aerial;
       if (aerial) camera.getWorldDirection(direction).negate().setY(0).normalize();
       else direction.copy(camera.position).sub(center).setY(0).normalize();
+      // Where the camera looks on the floor, kept on the flat. Partitions on the camera's side of it hide
+      // the rooms being looked at, so a dollhouse view cuts them; the one under the focus stays.
+      camera.getWorldDirection(look);
+      if (look.y < -0.05) focus.copy(camera.position).addScaledVector(look, (bounds.min.y - camera.position.y) / look.y).clamp(bounds.min, bounds.max);
+      else focus.copy(center);
+      fromFocus.copy(camera.position).sub(focus).setY(0).normalize();
       for (const wall of walls) {
         toCamera.copy(camera.position).sub(wall.midpoint).setY(0);
         // The camera must be beyond the exterior face, not merely on the
         // near side of the apartment's bounding box. Keep angular hysteresis
         // so nearly edge-on perimeter walls do not flicker while orbiting.
         const facingThreshold = wall.initialized ? (wall.cut ? 0.22 : 0.30) : 0.26;
-        wall.cut = top ? wall.topCut : !inside && wall.exterior && (aerial || toCamera.dot(wall.outward) > wall.thickness / 2)
-          && wall.outward.dot(direction) > facingThreshold;
+        toWall.copy(wall.midpoint).sub(focus).setY(0);
+        const nearSide = toWall.dot(fromFocus) > (wall.cut ? 0.3 : 0.6);
+        wall.cut = top ? wall.topCut : !inside && (wall.exterior
+          ? (aerial || toCamera.dot(wall.outward) > wall.thickness / 2) && wall.outward.dot(direction) > facingThreshold
+          : wall.partition && nearSide && Math.abs(wall.outward.dot(fromFocus)) > facingThreshold);
         // Openings follow their cut wall; reveal its frames again while an
         // opening is selected so inspection and direct manipulation stay clear.
         const editingOpening = selectedOpeningId !== undefined && wall.openingGroup.children.some(opening => opening.userData.entityId === selectedOpeningId);
