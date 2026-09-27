@@ -16,6 +16,14 @@ interface FrameRecord {
 interface Hitch { at: number; ms: number; cpu: number; gpu?: number; tags: string[] }
 interface Segment { label: string; started: number; children: number }
 type TimerExtension = { TIME_ELAPSED_EXT: number; GPU_DISJOINT_EXT: number };
+interface Bench { config: string; avg?: number; p95?: number; cpu?: number; frames: number }
+/** What the viewport lets the profiler switch, console-variable style. */
+export interface ProfilerControls {
+  scale(): number; pixelRatio(): number; setScale(scale: number): void;
+  debug(): { ao: boolean; smaa: boolean };
+  setDebug(options: { ao?: boolean; smaa?: boolean }): void;
+  benchmark(): Promise<void>;
+}
 
 const RING = 300;
 const IDLE_MS = 1000;
@@ -45,6 +53,10 @@ export class FrameProfiler {
   private previousTextures = 0;
   private previousGeometries = 0;
   private paused = false;
+  private nextExpected = false;
+  private lastHadInput = false;
+  private readonly benches: Bench[] = [];
+  private readonly switches?: HTMLDivElement;
   private lastText = 0;
   private readonly autoReset: boolean;
   private readonly shadowRender: THREE.WebGLShadowMap['render'];
@@ -54,7 +66,7 @@ export class FrameProfiler {
   private readonly graph: HTMLCanvasElement;
   private readonly gpuName: string;
 
-  constructor(private readonly renderer: THREE.WebGLRenderer, container: HTMLElement, private readonly onClose: () => void) {
+  constructor(private readonly renderer: THREE.WebGLRenderer, container: HTMLElement, private readonly onClose: () => void, private readonly controls?: ProfilerControls) {
     const context = renderer.getContext();
     this.gl = typeof WebGL2RenderingContext !== 'undefined' && context instanceof WebGL2RenderingContext ? context : null;
     this.timer = (this.gl?.getExtension('EXT_disjoint_timer_query_webgl2') as TimerExtension | null) ?? null;
@@ -97,10 +109,60 @@ export class FrameProfiler {
     this.graph = document.createElement('canvas');
     this.graph.width = 400; this.graph.height = 84; this.graph.style.cssText = 'display:block;width:100%;height:84px;margin:4px 0';
     this.text = document.createElement('pre'); this.text.style.cssText = 'margin:0;white-space:pre-wrap';
-    this.root.append(bar, this.graph, this.text);
+    this.root.append(bar);
+    if (controls) {
+      this.switches = document.createElement('div');
+      this.switches.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px;margin:2px 0 4px;pointer-events:auto';
+      this.root.append(this.switches); this.renderSwitches();
+    }
+    this.root.append(this.graph, this.text);
     container.append(this.root);
     for (const type of ['pointermove', 'wheel', 'keydown'] as const) window.addEventListener(type, this.onInput, { capture: true, passive: true });
+    // Scripted A/B runs (Playwright) drive the same switches and bench as the HUD.
+    (globalThis as { __varpetProfiler?: FrameProfiler }).__varpetProfiler = this;
   }
+
+  /** The viewport's switches, for scripted runs. */
+  get switchboard(): ProfilerControls | undefined { return this.controls; }
+
+  private renderSwitches(): void {
+    const controls = this.controls, box = this.switches; if (!controls || !box) return;
+    const state = controls.debug(), scale = controls.scale();
+    const chip = (label: string, active: boolean, action: () => void) => {
+      const element = document.createElement('button'); element.type = 'button'; element.textContent = label;
+      element.style.cssText = `font:inherit;color:inherit;border-radius:4px;padding:1px 5px;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:${active ? 'rgba(90,169,230,.45)' : 'rgba(255,255,255,.06)'}`;
+      element.onclick = () => { action(); this.renderSwitches(); }; return element;
+    };
+    box.replaceChildren(
+      ...[0.5, 0.67, 1].map(value => chip(`${Math.round(value * 100)}%`, Math.abs(scale - value) < 0.01, () => controls.setScale(value))),
+      chip('AO', state.ao, () => controls.setDebug({ ao: !state.ao })),
+      chip('SMAA', state.smaa, () => controls.setDebug({ smaa: !state.smaa })),
+      chip('Bench 360°', false, () => { void this.bench(); }),
+    );
+  }
+
+  private config(): string {
+    const controls = this.controls; if (!controls) return '';
+    const state = controls.debug();
+    return `${Math.round(controls.scale() * 100)}% (px ${controls.pixelRatio().toFixed(2)}, ${this.renderer.domElement.width}x${this.renderer.domElement.height})${state.ao ? ' AO' : ''}${state.smaa ? ' SMAA' : ''}`;
+  }
+
+  /** Orbit once around the flat and record frame spacing: the honest GPU number when timer queries queue. */
+  async bench(): Promise<Bench | undefined> {
+    if (!this.controls) return undefined;
+    const first = this.frameId + 3, config = this.config();
+    await this.controls.benchmark();
+    const frames = this.frames.filter(frame => frame.id >= first);
+    const intervals = frames.map(frame => frame.interval).filter(Number.isFinite);
+    this.benches.push({ config, frames: intervals.length, avg: intervals.length ? intervals.reduce((a, b) => a + b, 0) / intervals.length : undefined,
+      p95: quantile(intervals, 0.95), cpu: quantile(frames.map(frame => frame.update + frame.submit), 0.5) });
+    if (this.benches.length > 8) this.benches.shift();
+    this.text.textContent = this.summary();
+    return this.benches[this.benches.length - 1];
+  }
+
+  /** The viewport asks for another frame (animation, benchmark): the next interval is real frame time, not idle. */
+  expectNext(): void { this.nextExpected = true; }
 
   private onInput = (event: Event): void => {
     if (event instanceof PointerEvent && event.type === 'pointermove' && !event.buttons) return;
@@ -111,8 +173,11 @@ export class FrameProfiler {
   beginFrame(now: number): void {
     this.poll();
     if (this.frame) this.endFrame();
-    const interval = this.lastStart && now - this.lastStart < IDLE_MS ? now - this.lastStart : NaN;
-    this.lastStart = now;
+    // Only back-to-back frames measure frame time: an animation that asked for more, or input on both frames.
+    // The first frame of a drag otherwise reports the idle gap before it as a hitch.
+    const continued = this.nextExpected || (this.inputs.length > 0 && this.lastHadInput);
+    const interval = continued && this.lastStart && now - this.lastStart < IDLE_MS ? now - this.lastStart : NaN;
+    this.lastStart = now; this.nextExpected = false; this.lastHadInput = this.inputs.length > 0;
     this.frame = { id: ++this.frameId, start: now, interval, update: 0, submit: 0, cpu: {}, gpu: {}, gpuPending: 0, gpuLost: false,
       draws: 0, triangles: 0, programs: 0, textures: 0, geometries: 0, tags: this.tagsBefore, ...(this.inputs.length ? { input: now - Math.min(...this.inputs) } : {}) };
     this.tagsBefore = []; this.inputs.length = 0;
@@ -294,6 +359,8 @@ export class FrameProfiler {
       submit: { p50: quantile(frames.map(frame => frame.submit), 0.5), p95: quantile(frames.map(frame => frame.submit), 0.95), max: quantile(frames.map(frame => frame.submit), 1) },
       gpu: this.timer ? { p50: quantile(gpuFrames.map(frame => this.gpuTotal(frame)!), 0.5), p95: quantile(gpuFrames.map(frame => this.gpuTotal(frame)!), 0.95), passes: gpuPasses } : null,
       cpuPasses,
+      gpuBound: quantile(intervals, 0.5) !== undefined ? Math.max(0, quantile(intervals, 0.5)! - (quantile(frames.map(frame => frame.update + frame.submit), 0.5) ?? 0)) : undefined,
+      benches: this.benches,
       input: { p50: quantile(frames.flatMap(frame => frame.input ?? []), 0.5), max: quantile(frames.flatMap(frame => frame.input ?? []), 1) },
       counters: last ? { draws: last.draws, triangles: last.triangles, programs: last.programs, textures: last.textures, geometries: last.geometries } : null,
       hitches, frames: frames.length,
@@ -302,15 +369,22 @@ export class FrameProfiler {
 
   private summary(): string {
     const s = this.stats(); const now = performance.now();
+    // Timer queries on ANGLE/Metal include queueing, so absolute GPU ms overstate; the split between passes holds.
+    const shares = (record: Record<string, number>) => {
+      const total = Object.values(record).reduce((sum, value) => sum + value, 0);
+      return total ? Object.entries(record).filter(([, ms]) => ms > 0).sort((a, b) => b[1] - a[1]).map(([label, ms]) => `${label} ${Math.round(ms / total * 100)}%`).join(' · ') : '–';
+    };
     const passes = (record: Record<string, number>) => Object.entries(record).sort((a, b) => b[1] - a[1]).map(([label, ms]) => `${label} ${nf(ms)}`).join(' · ');
     const lines = [
       `FPS ${nf(s.fps, 0)}  1% low ${nf(s.lowFps1, 0)}  display ${s.refreshHz} Hz  (${s.frames} frames)`,
       `frame  p50 ${nf(s.interval.p50)}  p95 ${nf(s.interval.p95)}  p99 ${nf(s.interval.p99)}  max ${nf(s.interval.max)} ms`,
       `CPU    update ${nf(s.update.p50)} (p95 ${nf(s.update.p95)})  submit ${nf(s.submit.p50)} (p95 ${nf(s.submit.p95)}, max ${nf(s.submit.max)}) ms`,
       `  cpu  ${passes(s.cpuPasses)}`,
-      s.gpu ? `GPU    ${nf(s.gpu.p50)} ms (p95 ${nf(s.gpu.p95)})\n  gpu  ${passes(s.gpu.passes)}` : 'GPU    timer query unavailable',
+      `GPU    ~${nf(s.gpuBound)} ms per frame beyond the CPU (frame p50 − CPU p50)`,
+      s.gpu ? `  gpu share  ${shares(s.gpu.passes)}` : '  gpu share  timer query unavailable',
       s.counters ? `draws ${s.counters.draws}  tris ${(s.counters.triangles / 1000).toFixed(0)}k  programs ${s.counters.programs}  textures ${s.counters.textures}  geometries ${s.counters.geometries}` : '',
       `input→frame  p50 ${nf(s.input.p50)}  max ${nf(s.input.max)} ms`,
+      ...(s.benches.length ? ['bench (avg / p95 frame, CPU):', ...s.benches.map(bench => `  ${nf(bench.avg)} / ${nf(bench.p95)} ms, cpu ${nf(bench.cpu)}  ${bench.config}`)] : []),
       s.hitches.length ? 'hitches:' : 'no hitches',
       ...s.hitches.map(hitch => `  -${nf((now - hitch.at) / 1000)}s  ${nf(hitch.ms, 0)} ms (cpu ${nf(hitch.cpu, 0)}${hitch.gpu !== undefined ? `, gpu ${nf(hitch.gpu, 0)}` : ''})  ${hitch.tags.join(', ') || '–'}`),
     ];
@@ -320,7 +394,8 @@ export class FrameProfiler {
   report(): unknown {
     const canvas = this.renderer.domElement;
     return {
-      at: new Date().toISOString(), gpu: this.gpuName, pixelRatio: this.renderer.getPixelRatio(),
+      at: new Date().toISOString(), gpu: this.gpuName, pixelRatio: this.renderer.getPixelRatio(), config: this.config(),
+      note: 'gpu ms come from timer queries, which on ANGLE/Metal include queueing: compare shares and bench frame times, not absolute gpu ms',
       canvas: [canvas.width, canvas.height], devicePixelRatio: window.devicePixelRatio, stats: this.stats(),
       frames: this.frames.map(frame => ({ ...frame, gpuTotal: this.gpuTotal(frame) })),
     };
@@ -336,6 +411,8 @@ export class FrameProfiler {
     this.observer?.disconnect();
     for (const type of ['pointermove', 'wheel', 'keydown'] as const) window.removeEventListener(type, this.onInput, { capture: true });
     this.root.remove();
+    const global = globalThis as { __varpetProfiler?: FrameProfiler };
+    if (global.__varpetProfiler === this) delete global.__varpetProfiler;
     performance.clearMeasures('varpet update'); performance.clearMeasures('varpet submit');
   }
 }

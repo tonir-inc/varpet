@@ -93,10 +93,13 @@ export class StudioRenderer {
   private disposed = false;
   private interior = false;
   private interacting = false;
+  private debug = { ao: true, smaa: true };
   private profiler?: { profiler: FrameProfiler; unwrap: () => void };
 
   constructor(private readonly renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: StudioCamera) {
-    const target = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: Math.min(4, renderer.capabilities.maxSamples) });
+    // No MSAA anywhere: on ANGLE/Metal each sample cost about 10 ms a frame (M4 Pro, 1890x1422, empty flat:
+    // 0x 16.6 ms at vsync, 2x 38, 4x 57; furnished family-b24 65 ms -> 17 ms). SMAA handles the edges.
+    const target = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType });
     target.texture.name = 'Studio linear HDR';
     this.composer = new EffectComposer(renderer, target);
     this.beauty = new RenderPass(scene, camera);
@@ -158,8 +161,10 @@ export class StudioRenderer {
     this.selection.renderCamera = camera;
     // Top mode is a measurement-oriented orthographic view. Keep its fills
     // even and its overlays clear rather than carrying perspective AO into it.
-    this.occlusion.enabled = camera instanceof THREE.PerspectiveCamera;
-    this.grade.uniforms.strength!.value = this.occlusion.enabled ? (this.interior ? 0.2 : 1) : 0;
+    const perspective = camera instanceof THREE.PerspectiveCamera;
+    this.occlusion.enabled = perspective && this.debug.ao;
+    this.antialias.enabled = this.debug.smaa;
+    this.grade.uniforms.strength!.value = perspective ? (this.interior ? 0.2 : 1) : 0;
     this.composer.render();
   }
 
@@ -224,15 +229,15 @@ export class StudioRenderer {
   setQuality(quality: 'balanced' | 'high'): void {
     if (this.disposed) return;
     this.occlusion.setQuality(quality);
-    // MSAA resolves geometry edges before tone mapping; 4 samples even when balanced (cheap on tiled GPUs).
-    const samples = Math.min(4, this.renderer.capabilities.maxSamples);
-    for (const target of [this.composer.renderTarget1, this.composer.renderTarget2]) {
-      if (target.samples !== samples) {
-        target.samples = samples;
-        target.dispose();
-      }
-    }
   }
+
+  /** Profiler switches: AO and SMAA on or off. */
+  setDebug(options: { ao?: boolean; smaa?: boolean }): void {
+    if (options.ao !== undefined) this.debug.ao = options.ao;
+    if (options.smaa !== undefined) this.debug.smaa = options.smaa;
+  }
+
+  debugState(): { ao: boolean; smaa: boolean } { return { ...this.debug }; }
 
   dispose(): void {
     if (this.disposed) return;

@@ -166,7 +166,8 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
   host.append(container);
   let renderer: THREE.WebGLRenderer;
   try {
-    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
+    // The composer draws the last pass to the screen; a multisampled drawing buffer would only add a resolve.
+    renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false, powerPreference: 'high-performance' });
   } catch {
     callbacks.onError('This browser could not create a WebGL viewport. Enable hardware acceleration and reload.');
     const message = document.createElement('p');
@@ -183,7 +184,9 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
   renderer.toneMappingExposure = 1.02;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+  // The profiler's render scale multiplies the quality's pixel ratio; 1 outside profiling.
+  let basePixelRatio = Math.min(window.devicePixelRatio, 1.5), renderScale = 1;
+  renderer.setPixelRatio(basePixelRatio);
   renderer.domElement.style.cssText = 'display:block;width:100%;height:100%;outline:none;touch-action:none';
   renderer.domElement.tabIndex = 0;
   renderer.domElement.setAttribute('aria-label', 'Interactive 3D apartment. Click rooms, walls, openings, furniture, or building services to select. Tap a door or window in Select to open or close it. Shift-click walls or furniture to select several and move them together. Select a window, then drag its center to move or its edge handles to resize. Choose Move to drag a selected door along its wall. Click a selected switch again to test it. Drag empty space to orbit, hold Space and drag or right drag to pan, and scroll to zoom. Click the canvas, then use W A S D or arrow keys to move around.');
@@ -682,6 +685,7 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
       interactionChanged = false;
       studioRenderer.setInteracting(view !== 'top' && now < interactionUntil);
       if (animating) requestRender();
+      if (animating || benchmarking) profiler?.expectNext();
       // Resolve live roots, including wall-drag projections and loaded models.
       const selectedRoots = new Set<THREE.Object3D>();
       for (const id of selectedIds) {
@@ -2017,7 +2021,8 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
     setSnap(enabled) { snapEnabled = enabled; transform.setTranslationSnap(enabled ? 0.25 : null); transform.setRotationSnap(enabled ? Math.PI / 12 : null); transform.setScaleSnap(enabled ? 0.1 : null); requestRender(); },
     setWalls(mode) { finishOpening(true); wallMove.finish(true); walls = mode; shadowCache.invalidate(); updateOpeningHandle(); wallMove.refresh(); renderer.domElement.style.cursor = ''; requestRender(); },
     setQuality(mode) {
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, mode === 'high' ? 2 : 1.5));
+      basePixelRatio = Math.min(window.devicePixelRatio, mode === 'high' ? 2 : 1.5);
+      renderer.setPixelRatio(basePixelRatio * renderScale);
       studioRenderer.setQuality(mode);
       // The sun map spans the whole flat: 2048 texels stair-step window and furniture shadow edges.
       const resolution = 4096;
@@ -2073,9 +2078,35 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
       studioRenderer.dispose(); skyboxes.dispose(); environment.dispose(); renderer.dispose(); container.remove();
     },
   };
+  let benchmarking = false;
+  /** A fixed 360° orbit, one render per display frame: repeatable frame times for A/B, like a flythrough. */
+  async function benchmark(frames = 240): Promise<void> {
+    if (benchmarking || disposed || view === 'inside') return;
+    benchmarking = true; cameraMotion.cancel('camera'); keyboardNavigation.cancel();
+    const offset = camera.position.clone().sub(orbit.target), up = new THREE.Vector3(0, 1, 0);
+    try {
+      for (let i = 0; i < frames && !disposed; i++) {
+        offset.applyAxisAngle(up, Math.PI * 2 / frames);
+        camera.position.copy(orbit.target).add(offset); orbit.update(); requestRender();
+        await new Promise(resolve => requestAnimationFrame(resolve));
+      }
+    } finally { benchmarking = false; }
+  }
   function setProfiler(on: boolean): void {
     studioRenderer.setProfiler(undefined); profiler?.dispose(); profiler = undefined;
-    if (on && !disposed) { profiler = new FrameProfiler(renderer, container, () => setProfiler(false)); studioRenderer.setProfiler(profiler); }
+    if (!on || disposed) {
+      if (renderScale !== 1) { renderScale = 1; renderer.setPixelRatio(basePixelRatio); resize(); }
+      studioRenderer.setDebug({ ao: true, smaa: true });
+      requestRender(); return;
+    }
+    profiler = new FrameProfiler(renderer, container, () => setProfiler(false), {
+      scale: () => renderScale, pixelRatio: () => renderer.getPixelRatio(),
+      setScale(scale) { renderScale = scale; renderer.setPixelRatio(basePixelRatio * scale); resize(); },
+      debug: () => studioRenderer.debugState(),
+      setDebug(options) { studioRenderer.setDebug(options); requestRender(); },
+      benchmark,
+    });
+    studioRenderer.setProfiler(profiler);
     requestRender();
   }
   const toggleProfiler = (event: KeyboardEvent) => {
