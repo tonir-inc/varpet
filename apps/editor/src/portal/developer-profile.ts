@@ -17,6 +17,7 @@ import type { User } from './api';
 import { icon } from '../ui/icons';
 import { BLUEPRINT_PAPER, setEditorSession, type EditorPresentation } from './session';
 import type { BlueprintLandingOptions } from './blueprint';
+import type { FurnishedPreview } from './preview';
 import './developer-profile.css';
 
 /** Developer profiles (lane portal-profile). */
@@ -24,7 +25,6 @@ export type DeveloperProfileTarget = { slug: string } | { studio: true };
 
 const mounts = new WeakMap<HTMLElement, () => void>();
 const reduced = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
-const MAX_LIVE_PREVIEWS = 12;
 
 export async function mountDeveloperProfile(host: HTMLElement, target: DeveloperProfileTarget): Promise<void> {
   mounts.get(host)?.();
@@ -226,7 +226,7 @@ export async function mountDeveloperProfile(host: HTMLElement, target: Developer
   async function mountUpload(user: User | null) {
     const v = ++version;
     disposeUpload?.(); disposeUpload = undefined;
-    host.querySelector('.dev-upload-back')?.remove();
+    host.querySelector('.dev-upload-bar')?.remove();
     const root = host.querySelector('.portal');
     root?.classList.toggle('blueprint-home', Boolean(user));
     root?.classList.toggle('developer-page', !user);
@@ -265,9 +265,10 @@ export async function mountDeveloperProfile(host: HTMLElement, target: Developer
         if (checkpoint) void clearBlueprintCheckpoint(checkpoint).catch(() => {});
       },
     };
-    const back = document.createElement('a');
-    back.className = 'dev-upload-back'; back.href = studioHref;
-    back.innerHTML = `${icon('undo')} ${escape(developer.name)} studio`;
+    // A zero-height bar right under the header, so the link sits below it at every header height.
+    const back = document.createElement('div');
+    back.className = 'dev-upload-bar';
+    back.innerHTML = `<a class="dev-upload-back" href="${studioHref}">${icon('undo')} ${escape(developer.name)} studio</a>`;
     main.before(back);
     disposers.push(() => back.remove());
     if (import.meta.env.DEV) {
@@ -441,39 +442,54 @@ function formatDate(value: string): string {
 }
 
 /**
- * The 3D half of each card: fetched and drawn only when the card scrolls into view, so a long profile
- * neither downloads every scene nor opens a renderer per plan up front.
+ * The 3D half of each card: fetched and built only when the card first scrolls into view. Previews share one
+ * WebGL context (preview.ts); visibility lets off-screen cards release their scenes, and hover or focus
+ * turns the model slowly.
  */
 class CardPreviews {
   private observer: IntersectionObserver | null = null;
-  private pending = new Map<Element, BundleSummary>();
+  private summaries = new Map<Element, BundleSummary>();
+  private previews = new Map<Element, FurnishedPreview>();
+  private started = new Set<Element>();
   private cleanups: Array<() => void> = [];
   private controller = new AbortController();
-  private live = 0;
 
   observe(element: HTMLElement, bundle: BundleSummary) {
-    if (typeof IntersectionObserver === 'undefined') { void this.mount(element, bundle); return; }
+    this.summaries.set(element, bundle);
+    const card = element.closest<HTMLElement>('.dev-card');
+    if (card) {
+      const active = (on: boolean) => () => this.previews.get(element)?.setActive(on);
+      const enter = active(true), leave = active(false);
+      card.addEventListener('pointerenter', enter); card.addEventListener('pointerleave', leave);
+      card.addEventListener('focusin', enter); card.addEventListener('focusout', leave);
+      this.cleanups.push(() => { card.removeEventListener('pointerenter', enter); card.removeEventListener('pointerleave', leave);
+        card.removeEventListener('focusin', enter); card.removeEventListener('focusout', leave); });
+    }
+    if (typeof IntersectionObserver === 'undefined') { void this.mount(element, true); return; }
     this.observer ??= new IntersectionObserver(entries => {
       for (const entry of entries) {
-        if (!entry.isIntersecting) continue;
-        const summary = this.pending.get(entry.target);
-        this.observer?.unobserve(entry.target); this.pending.delete(entry.target);
-        if (summary) void this.mount(entry.target as HTMLElement, summary);
+        const preview = this.previews.get(entry.target);
+        if (preview) preview.setVisible(entry.isIntersecting);
+        else if (entry.isIntersecting && !this.started.has(entry.target)) void this.mount(entry.target as HTMLElement, true);
       }
     }, { rootMargin: '200px 0px' });
-    this.pending.set(element, bundle);
     this.observer.observe(element);
   }
 
-  private async mount(element: HTMLElement, summary: BundleSummary) {
+  private async mount(element: HTMLElement, visible: boolean) {
+    const summary = this.summaries.get(element);
+    if (!summary) return;
+    this.started.add(element);
     const signal = this.controller.signal;
-    if (this.live >= MAX_LIVE_PREVIEWS) { fallback(element, 'Open to explore in 3D'); return; }
-    this.live++;
     element.classList.add('is-loading');
     try {
       const [bundle, { renderBundlePreview }] = await Promise.all([developerApi.bundle(summary.id, signal), import('./developer-preview')]);
       if (signal.aborted || !element.isConnected) return;
-      this.cleanups.push(renderBundlePreview(element, bundle as Bundle));
+      const preview = renderBundlePreview(element, bundle as Bundle, reduced);
+      this.previews.set(element, preview);
+      preview.setVisible(visible);
+      await preview.ready;
+      if (signal.aborted) return;
       element.classList.remove('is-loading');
       element.classList.add('is-ready');
     } catch {
@@ -484,10 +500,11 @@ class CardPreviews {
   }
 
   clear() {
-    this.observer?.disconnect(); this.observer = null; this.pending.clear();
+    this.observer?.disconnect(); this.observer = null;
     this.controller.abort(); this.controller = new AbortController();
+    this.previews.forEach(preview => preview.dispose()); this.previews.clear();
     this.cleanups.splice(0).forEach(cleanup => cleanup());
-    this.live = 0;
+    this.summaries.clear(); this.started.clear();
   }
   dispose() { this.clear(); }
 }

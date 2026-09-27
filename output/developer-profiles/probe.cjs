@@ -19,9 +19,12 @@ let browser,context,page;
 async function check(name,fn){await fn();results.checks.push(name);console.log('PASS '+name);}
 async function settle(){await page.evaluate(async()=>{await Promise.all(document.getAnimations().filter(a=>a.effect?.getComputedTiming().iterations!==Infinity).map(a=>a.finished.catch(()=>{})));});}
 async function screenshot(name){await settle();await page.waitForTimeout(250);
- const scroll=await page.evaluate(()=>{const app=document.querySelector('#app.portal-host');if(!app)return false;app.style.height='auto';app.style.overflow='visible';return true;});
- await page.screenshot({path:out+'/'+name,fullPage:true});
- if(scroll)await page.evaluate(()=>{const app=document.querySelector('#app');app.style.height='';app.style.overflow='';});
+ // The portal scrolls inside #app: grow the viewport to the content for a full-length capture, then restore it.
+ const size=page.viewportSize();
+ const height=await page.evaluate(()=>{const app=document.querySelector('#app.portal-host');return app?app.scrollHeight:0;});
+ if(height>size.height){await page.setViewportSize({width:size.width,height});await page.waitForTimeout(400);}
+ await page.screenshot({path:out+'/'+name});
+ if(height>size.height)await page.setViewportSize(size);
  results.screenshots.push(name);}
 async function send(kind,event,index=0){await page.evaluate(({kind,event,index})=>window.qaStreams[kind][index].controller.enqueue(new TextEncoder().encode(JSON.stringify(event)+'\n')),{kind,event,index});}
 async function close(kind,index=0){await page.evaluate(({kind,index})=>window.qaStreams[kind][index].controller.close(),{kind,index});}
@@ -282,6 +285,37 @@ const api=async path=>(await context.request.get(base+path)).json();
  await page.locator('.dev-card').waitFor();
  await page.waitForFunction(()=>document.querySelector('.dev-card-3d.is-ready canvas'),null,{timeout:30000});
  await screenshot('14-public-m6-desktop-reduced.png');
+
+ // Development test states run in the studio too: the checked Avani result opens the editor with Publish.
+ await fresh();
+ await page.goto(base+'/?view=studio&upload&blueprintTest=complete');
+ await check('Blueprint test state "complete" from the studio opens the editor with Publish to profile',async()=>{
+  await page.locator('#developer-publish').waitFor({state:'visible',timeout:40000});
+  await page.waitForFunction(()=>!document.body.classList.contains('editor-arriving'));
+  await page.locator('#developer-publish').click();
+  await page.waitForFunction(()=>document.querySelector('.developer-publish-plan img')?.naturalWidth>0);
+  assert.equal(await page.locator('.developer-publish-submit').isDisabled(),false);
+  assert.match(await page.locator('.developer-publish-top').textContent(),/Probe Homes Ltd/);
+  await page.locator('.developer-publish-dialog [data-close]').first().click();
+  assert.equal((await api('/api/bundles?developer='+slug)).bundles.length,0,'closing the dialog publishes nothing');
+ });
+ await screenshot('15-test-state-editor-publish-desktop.png');
+
+ await fresh({mobile:true});
+ await page.goto(base+'/?view=studio&upload&blueprintTest=complete');
+ await check('Mobile editor: the publish action fits the header and its dialog fits the screen',async()=>{
+  await page.locator('#developer-publish').waitFor({state:'visible',timeout:40000});
+  await page.waitForFunction(()=>!document.body.classList.contains('editor-arriving'));
+  const box=await page.locator('#developer-publish').boundingBox();
+  assert.ok(box.x>=0&&box.x+box.width<=390,JSON.stringify(box));
+  const hit=await page.evaluate(({x,y})=>document.elementFromPoint(x,y)?.closest('#developer-publish')!==null,{x:box.x+box.width/2,y:box.y+box.height/2});
+  assert.equal(hit,true);
+  await page.locator('#developer-publish').click();
+  const dialog=await page.locator('.developer-publish-dialog').boundingBox();
+  assert.ok(dialog.x>=0&&dialog.x+dialog.width<=390,JSON.stringify(dialog));
+  await page.waitForFunction(()=>document.querySelector('.developer-publish-plan img')?.naturalWidth>0);
+ });
+ await settle();await page.screenshot({path:out+'/16-publish-dialog-mobile.png'});results.screenshots.push('16-publish-dialog-mobile.png');
 
  await check('Zero page errors and zero live model requests',async()=>{
   assert.deepEqual(results.pageErrors,[]);
