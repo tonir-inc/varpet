@@ -18,7 +18,7 @@ The brief uses the existing designer-panel controller and live service, includin
 
 `ui/design-construction.ts` adapts the buyer prototype's construction language to the current viewport. `event()` renders real per-piece queued/building/refining/ready/failed states and customer-facing activity. It never edits the scene, fabricates a countdown, or estimates a percentage from elapsed time.
 
-The live designer events provide slot IDs and size but no early proposed position/rotation. Consequently, build-status cards appear while work runs; accurately anchored green footprints, wireframe cages and numbered labels appear after a checked scene preview exists. `preview()` takes that scene, its registered catalog, and the changed object IDs. Custom pieces assemble using the shared renderer; catalog additions use placement motion. Unchanged previews do not restart animations. These visuals also accompany later designer turns in Customize.
+The live designer events provide slot IDs and size but no early proposed position/rotation. Consequently, build-status cards appear while work runs; accurately anchored green footprints, wireframe cages and numbered labels appear after a checked scene preview exists. `preview()` takes that scene, its registered catalog, and the changed object IDs. Custom pieces assemble using the shared renderer; catalog additions use placement motion. Unchanged previews do not restart animations. Later Customize turns show these live build statuses, then hand checked proposals to the editor's room-framing arrival animation and Accept/Reject bar.
 
 The overlays reuse viewport frame callbacks to follow the camera, update existing DOM nodes, and fade after models settle. No separate scene or idle animation loop is added. Reduced motion skips decorative entry; switching to reduced motion during an active model assembly immediately settles its parts. Failure reasons remain in the conversation, and overlays/listeners are cleared on cancel, exit, or disposal.
 
@@ -57,3 +57,26 @@ Browser QA caught a hidden mobile chat row still reserving screen space and a ph
 On 2026-09-27 the workflow was rebased onto `afe1dce`, preserving the newer designer partials, health polling, tours, rendering and frame profiler. Typecheck, editor build, and the 21 primary/edge browser checks pass again. The full suite reaches one upstream failure: `apps/editor/tests/decoration.test.mjs:60` still requires a mesh-hole miss to reject placement, while `9c7fa02` and its new mattress-support test require an explicit-support miss to fall back to catalog height. The focused pair reproduces 14 passes and one failure; these tests and all their imported core/render dependencies are unchanged by this workflow. The discrepancy is recorded in the editor QA board. No test or placement contract was changed to conceal it.
 
 Earlier pre-push runs timed out while macOS slept. Power logs matched the test delays; a temporary `caffeinate -dimsu` guard allowed the unmodified suite to pass on the earlier base. The failure above is distinct and reproducible while awake.
+
+### Push integration, 2026-09-27
+
+Rebased onto `987814f`, retaining team saves, structural-wall confirmation and the newer proposal arrival animation. Guided Design uses the same checked review owner as Customize, preserves its construction camera, and keeps approval in the guided controls. Background refreshes leave valid review animations running; Customize clears build-status overlays when its checked proposal arrives. Human edits are gated at command execution, including deferred wall confirmations.
+
+The support-placement regression is fixed in code: explicit beds retain their implied deck/mattress fallback and wall shelves retain their existing exception; other loaded mesh holes reject. Existing decoration, mattress-support and structural-wall UI tests pass together (18 passed, 0 failed). No tests, fixtures or schemas were changed.
+
+Final command output, 2026-09-27, Codex (GPT-6):
+
+```text
+pnpm test: exit 0
+buyer: 10 passed; showcase: 17 passed
+designer: 150 test files, 749 tests passed; Python: 214 + 81 + 5 tests, OK
+editor: 32 server tests passed; 305 application tests passed, 1 skipped, 0 failed
+all editor render/domain checks passed
+pnpm typecheck: exit 0; all workspace packages Done
+pnpm --filter @varpet/editor build: exit 0; existing chunk-size advisory
+node output/build-design-customize/probe.cjs: 11 checks passed; zero page errors or live model requests
+node output/build-design-customize/edge-probe.cjs: 10 edge checks passed; zero page errors or model requests
+git diff --check: exit 0
+```
+
+The first edge-probe run crossed a Vite restart during synchronization and timed out at mobile handoff. An unchanged rerun against the stable server passed all ten checks.
