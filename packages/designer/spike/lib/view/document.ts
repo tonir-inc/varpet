@@ -160,16 +160,27 @@ const EDITOR_KINDS = new Set<string>(['sofa', 'chair', 'table', 'desk', 'bed', '
 /** The editor asset kind a designer kind becomes when its product has no catalog record. */
 export const editorAssetKind = (kind: string): string => EDITOR_KINDS.has(kind) ? kind : editorKindOf[kind] ?? 'cabinet';
 
-/** The editor's own wall mount (nearest room-facing wall face, its standard hanging height). The editor hangs only
- * wall decorations (art, mirrors, curtains, clocks); anything else asked to hang stands on the floor below its spot,
- * as the spike check tells the model. */
+/** The editor's own wall mount (nearest room-facing wall face) at the draft's height: height_m is the centre height
+ * above the room floor, so the bottom asked for is height_m - h/2; the editor clamps it to [0.3 m, ceiling - 0.1 m - h]
+ * and refuses a height that covers a door or window (then the standard height is used). Without height_m the editor's
+ * standard height applies (centre ~1.5 m). The editor hangs art, mirrors, curtains, clocks, wall hangings, wall shelves
+ * and ledges, wall planters and sconces; anything else asked to hang stands on the floor below its spot, as the spike
+ * check tells the model. */
 function hang(doc: SceneDocument, item: DraftItem, object: SceneObject, asset: CatalogAsset): SceneObject {
   const floor = doc.project?.metadata[item.room_id]?.elevation ?? 0;
   if (!wallDecoration(asset)) {
     process.stderr.write(`renderView: ${item.id} (${asset.kind}) cannot hang on a wall in the editor; stood on the floor\n`);
     return { ...object, position: [object.position[0], floor, object.position[2]] };
   }
-  try { return mountDecoration(doc, object, asset); } catch (error) {
+  const elevation = item.height_m !== undefined && Number.isFinite(item.height_m) ? floor + item.height_m - item.size[2] / 2 : undefined;
+  try { return mountDecoration(doc, object, asset, { elevation }); } catch (error) {
+    if (elevation !== undefined) {
+      try {
+        const mounted = mountDecoration(doc, object, asset);
+        process.stderr.write(`renderView: ${item.id} at height_m ${item.height_m}: ${error instanceof Error ? error.message : error}; hung at the standard height\n`);
+        return mounted;
+      } catch { /* reported below */ }
+    }
     process.stderr.write(`renderView: ${item.id} on ${item.wall_id}: ${error instanceof Error ? error.message : error}; left on the floor\n`);
     return { ...object, position: [object.position[0], floor, object.position[2]] };
   }
