@@ -116,39 +116,68 @@ function toolPayload(result: Awaited<ReturnType<Client['callTool']>>): Record<st
 
 type CatalogCall = (name: string, args: Record<string, unknown>) => Promise<Record<string, unknown>>;
 
-/** One read-only MCP session per call of the returned function, with one wall deadline for everything in it. */
+interface Live { client: Client; transport: StreamableHTTPClientTransport; controller: AbortController }
+/** Default-endpoint sessions shared by every query and items function in this process (keyed by URL). */
+const shared = new Map<string, { live?: Promise<Live> }>();
+
+/** One read-only MCP session per process and endpoint, opened lazily on the first call and kept alive; a failed or
+ * timed-out call drops it so the next call reconnects, and a call that failed on a reused session is retried once on a
+ * fresh one. Every call of the returned function has one wall deadline for everything in it (connect included). */
 function catalogSession(options: HttpCatalogOptions) {
   const url = new URL(options.url || catalogUrl()), timeoutMs = options.timeoutMs ?? 20_000;
   if (!['http:', 'https:'].includes(url.protocol)) throw new Error('Catalog URL must use HTTP or HTTPS');
   if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) throw new Error('Catalog timeout must be positive and finite');
-  return async <T>(work: (call: CatalogCall) => Promise<T>): Promise<T> => {
+  const fetch = options.fetch ?? globalThis.fetch;
+  // An injected fetch (tests) gets its own session; the real endpoint is shared across the process.
+  const slot = options.fetch ? { live: undefined as Promise<Live> | undefined } : (shared.get(url.href) ?? shared.set(url.href, {}).get(url.href)!);
+  const open = async (signal: AbortSignal): Promise<Live> => {
     const controller = new AbortController();
-    const fetch = options.fetch ?? globalThis.fetch;
     const transport = new StreamableHTTPClientTransport(url, {
-      fetch: (target, init) => fetch(target, { ...init,
-        signal: init?.signal ? AbortSignal.any([controller.signal, init.signal]) : controller.signal }),
-      reconnectionOptions: { initialReconnectionDelay: 100, maxReconnectionDelay: 100,
-        reconnectionDelayGrowFactor: 1, maxRetries: 0 },
+      // No standalone GET event stream: it would hold the process open, and search needs only request/response.
+      fetch: (target, init) => (init?.method ?? 'GET').toUpperCase() === 'GET' ? Promise.resolve(new Response(null, { status: 405 }))
+        : fetch(target, { ...init, signal: init?.signal ? AbortSignal.any([controller.signal, init.signal]) : controller.signal }),
+      reconnectionOptions: { initialReconnectionDelay: 100, maxReconnectionDelay: 100, reconnectionDelayGrowFactor: 1, maxRetries: 0 },
     });
     const client = new Client({ name: 'varpet-designer-catalog', version: '1' });
+    await client.connect(transport, { signal, timeout: timeoutMs, maxTotalTimeout: timeoutMs });
+    return { client, transport, controller };
+  };
+  const drop = async (session: Promise<Live>) => {
+    if (slot.live === session) slot.live = undefined;
+    const live = await session.catch(() => undefined);
+    if (!live) return;
+    live.controller.abort();
+    await live.client.close().catch(() => undefined);
+  };
+  return async <T>(work: (call: CatalogCall) => Promise<T>): Promise<T> => {
+    const deadline = new AbortController();
     let timer: ReturnType<typeof setTimeout>;
     const expired = new Promise<never>((_, reject) => {
-      timer = setTimeout(() => { controller.abort(); reject(new Error('Catalog request timed out')); }, timeoutMs);
+      // A stalled request leaves the session unusable: abort its HTTP traffic and let the next call reconnect.
+      timer = setTimeout(() => { deadline.abort(); if (slot.live) void drop(slot.live); reject(new Error('Catalog request timed out')); }, timeoutMs);
     });
-    const requestOptions = { signal: controller.signal, timeout: timeoutMs, maxTotalTimeout: timeoutMs };
-    const run = async () => {
-      await client.connect(transport, requestOptions);
-      return work(async (name, args) => toolPayload(await client.callTool({ name, arguments: args }, undefined, requestOptions)));
+    const requestOptions = { signal: deadline.signal, timeout: timeoutMs, maxTotalTimeout: timeoutMs };
+    const attempt = async (retry: boolean): Promise<T> => {
+      const reused = slot.live !== undefined, session = slot.live ??= open(deadline.signal);
+      try {
+        const { client } = await session;
+        return await work(async (name, args) => toolPayload(await client.callTool({ name, arguments: args }, undefined, requestOptions)));
+      } catch (error) {
+        // A tool error is an answer, not a broken session; anything else (timeout, transport, expired session) reconnects.
+        if (error instanceof Error && error.message === 'Catalog tool failed') throw error;
+        await drop(session);
+        if (retry && reused && !deadline.signal.aborted) return attempt(false);
+        throw error;
+      }
     };
-    try { return await Promise.race([run(), expired]); }
-    finally {
-      clearTimeout(timer!);
-      controller.abort();
-      await client.close();
-      await transport.close();
-    }
+    try { return await Promise.race([attempt(true), expired]); }
+    finally { clearTimeout(timer!); }
   };
 }
+
+/** search_furniture rows already carry currency, provenance and fit size; only rows without them need get_item. */
+const complete = (raw: Record<string, unknown>) => typeof raw.currency === 'string' && 'source' in raw && 'price_source' in raw
+  && 'size_evidence' in raw && Array.isArray(raw.size_m);
 
 /** One read-only MCP session with one wall deadline for connect, search and provenance. */
 export function createHttpCatalogQuery(options: HttpCatalogOptions = {}): CatalogQuery {
@@ -159,6 +188,7 @@ export function createHttpCatalogQuery(options: HttpCatalogOptions = {}): Catalo
     // Bare bed bases are dropped here too, so every caller of this query (including the designer spike) is covered.
     const results = await mapLimited(response.results.filter(raw => !bareBedBase(raw)).slice(0, input.limit ?? 10), CATALOG_CONCURRENCY, async raw => {
       if (!object(raw) || typeof raw.id !== 'string' || !raw.id) return raw;
+      if (complete(raw)) return raw;
       // search_furniture supplies ranked fit dimensions; get_item supplies the
       // actual currency and provenance. Neither is inferred from the endpoint.
       const detail = await call('get_item', { item_id: raw.id });
