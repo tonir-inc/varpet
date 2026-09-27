@@ -40,8 +40,9 @@ id>`, a few pieces each, one render). Wait until EVERY sub-agent has finished (w
 re-search its pieces. Then run `./varpet merge` (folds `rooms/*.json` into
 `draft.json` and checks the whole flat), fix what spans rooms (budget, clashing palette, a door blocked
 from the other side) in the room files and merge again, look at one whole-flat render (`./varpet render-view
-flat.png --camera overview`) and finish. Without `spawn_agent`, design room by room yourself, largest living
-space first, finishing each (check OK, render, fix) before the next.
+flat.png --camera overview`) and finish. Without `spawn_agent`, design room by room yourself in `draft.json`
+directly (no `--part`, no merge: the customer's preview follows draft.json room by room), largest living space
+first, finishing each (check OK, render, fix) before the next.
 
 ## Your workspace
 - `scene.json`: the flat (metres; x right, y up; `rot` in degrees CCW; an item's front faces its local -y).
