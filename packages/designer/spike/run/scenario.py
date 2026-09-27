@@ -182,9 +182,27 @@ def run(scenario: dict, args) -> dict:
     return summary
 
 
+def rerender(workspace: Path) -> None:
+    """Redraw every turn's renders from its draft snapshot with the current renderer (after a renderer fix)."""
+    summary = json.loads((workspace / "summary.json").read_text())
+    scene_rooms = [r["id"] for r in json.loads((workspace / "scene.json").read_text())["rooms"]]
+    for turn in summary["turns"]:
+        turn_dir = workspace / f"turn-{turn['turn']}"
+        draft = json.loads((turn_dir / "draft.json").read_text())
+        used = {i.get("room_id") for i in draft.get("items", [])}
+        rooms = [r for r in scene_rooms if r in used]
+        angles = spike.report_angles(workspace / "scene.json", turn_dir / "draft.json", turn_dir / "report", rooms)
+        turn["renders"] = {"exit": angles.get("exit"), "paths": [str(Path(p).relative_to(workspace)) for p in angles.get("paths", [])
+                                                                 if p.startswith(str(workspace))],
+                           "stderr": angles.get("stderr") or angles.get("error"), "rerendered": True}
+        print(f"turn {turn['turn']}: {len(turn['renders']['paths'])} renders, exit {angles.get('exit')}", flush=True)
+    (workspace / "summary.json").write_text(json.dumps(summary, indent=2, ensure_ascii=False))
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--scenario", required=True)
+    parser.add_argument("--scenario", help="scenario id from run/scenarios.json")
+    parser.add_argument("--rerender", type=Path, help="redraw every turn of a finished scenario workspace, then exit")
     parser.add_argument("--scenarios", type=Path, default=RUN / "scenarios.json")
     parser.add_argument("--effort", default="medium", choices=("low", "medium", "high"))
     parser.add_argument("--timeout", type=float, default=None, help="wall seconds per turn (default: the scenario's, else 1500)")
@@ -195,6 +213,11 @@ def main() -> int:
     parser.add_argument("--export-dir", type=Path, default=ROOT / "apps/editor/public/demo-flats")
     parser.add_argument("--rooms", nargs="+", help="override the scenario's rooms (smoke runs)")
     args = parser.parse_args()
+    if args.rerender:
+        rerender(args.rerender.resolve())
+        return 0
+    if not args.scenario:
+        parser.error("--scenario or --rerender is required")
     scenario = load_scenario(args.scenario, args.scenarios)
     if args.rooms:
         scenario = {**scenario, "rooms": args.rooms}
