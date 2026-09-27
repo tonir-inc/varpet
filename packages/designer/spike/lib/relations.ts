@@ -274,6 +274,30 @@ function headboard(scene: Scene, bed: DraftItem, out: Findings) {
     out.soft.push(`bedroom: ${bed.id}'s headboard is under window ${s.opening.id}; a window behind the head is draughty and bright: use a solid wall if the room allows`);
 }
 
+/** The coffee table in front of a sofa (low, not a side table, overlapping its width, up to 1.6 m ahead), with its
+ * footprint corners in the sofa's frame. */
+function coffeeFor(sofa: DraftItem, items: DraftItem[]): { t: DraftItem; c: V[] } | undefined {
+  const [w, d] = sofa.size;
+  return items.filter(o => o.room_id === sofa.room_id && onFloor(o) && (o.kind === 'table' || o.kind === 'coffee_table') && o.size[2] < 0.55 && !/\b(side|end|night|bedside)\b/i.test(label(o))
+      && (o.size[0] * o.size[1] >= 0.2 || /coffee/i.test(label(o))))
+    .map(t => ({ t, c: footprint(t).map(p => toLocal(p as V, sofa)) }))
+    .filter(({ c }) => Math.max(...c.map(p => p[1])) < -d / 2 + 0.05 && Math.max(...c.map(p => p[1])) > -d / 2 - 1.6 && Math.min(...c.map(p => p[0])) < w / 2 && Math.max(...c.map(p => p[0])) > -w / 2)
+    .sort((a, b) => Math.max(...b.c.map(p => p[1])) - Math.max(...a.c.map(p => p[1])))[0];
+}
+/** Sofas whose coffee table stands in reach (the 0.33-0.52 m knee space the living rule asks for). People reach such
+ * a sofa through that knee space and past the table's ends, so the 0.6 m front-approach walkway does not apply to it;
+ * check.ts accepts a path of >= 0.3 m to these sofas. */
+export function kneeSpaceSofas(items: DraftItem[]): Set<string> {
+  const out = new Set<string>();
+  for (const sofa of items.filter(o => o.kind === 'sofa' && onFloor(o))) {
+    const coffee = coffeeFor(sofa, items);
+    if (!coffee) continue;
+    const gap = -sofa.size[1] / 2 - Math.max(...coffee.c.map(p => p[1]));
+    if (gap >= 0.3 && gap <= 0.55) out.add(sofa.id);
+  }
+  return out;
+}
+
 /** The main sofa of each room and the table in front of it; rug under its front legs; conversation seats close. */
 function living(scene: Scene, draft: Draft, items: DraftItem[], out: Findings) {
   const rooms = new Set(items.map(o => o.room_id));
@@ -282,12 +306,7 @@ function living(scene: Scene, draft: Draft, items: DraftItem[], out: Findings) {
     const sofa = mine.filter(o => o.kind === 'sofa').sort((a, b) => b.size[0] - a.size[0])[0];
     if (!sofa) continue;
     const [w, d] = sofa.size, fr = front(sofa);
-    const tables = mine.filter(o => (o.kind === 'table' || o.kind === 'coffee_table') && o.size[2] < 0.55 && !/\b(side|end|night|bedside)\b/i.test(label(o))
-      && (o.size[0] * o.size[1] >= 0.2 || /coffee/i.test(label(o))))
-      .map(t => ({ t, c: footprint(t).map(p => toLocal(p as V, sofa)) }))
-      .filter(({ c }) => Math.max(...c.map(p => p[1])) < -d / 2 + 0.05 && Math.max(...c.map(p => p[1])) > -d / 2 - 1.6 && Math.min(...c.map(p => p[0])) < w / 2 && Math.max(...c.map(p => p[0])) > -w / 2)
-      .sort((a, b) => Math.max(...b.c.map(p => p[1])) - Math.max(...a.c.map(p => p[1])));
-    const coffee = tables[0];
+    const coffee = coffeeFor(sofa, mine);
     if (coffee) {
       const gap = -d / 2 - Math.max(...coffee.c.map(p => p[1])), lx = coffee.c.map(p => p[0]);
       if (gap < 0.33 || gap > 0.52) {

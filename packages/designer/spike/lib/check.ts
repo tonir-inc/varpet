@@ -2,13 +2,13 @@
  * Async because src is imported at runtime from designerSrc() (works from a copied workspace). */
 import { footprint, importSrc, isCurtain, loadBrief, openingSpans, roomSubtotals, wallSpot, type Draft, type DraftItem, type Scene, type Vec2 } from './scene.ts';
 import { checkSurfaces, onFloor, plainItem, surfaceQuantities } from './finishes.ts';
-import { designRelations, functionRules, tuckedPair, tuckedTargets } from './relations.ts';
+import { designRelations, functionRules, kneeSpaceSofas, tuckedPair, tuckedTargets } from './relations.ts';
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { centerOf } from './scene.ts';
-import { loadRequirements, requirementProblems, sofaKneeSpace, type Requirements } from './requirements.ts';
+import { loadRequirements, requirementProblems, type Requirements } from './requirements.ts';
 import type { CatalogAsset } from '../../../../apps/editor/src/contracts.js';
 import { wallDecoration } from '../../../../apps/editor/src/core/decoration-placement.js';
 import { canRestOnFurniture } from '../../../../apps/editor/src/core/furniture-support.js';
@@ -210,7 +210,13 @@ export async function check(scene: Scene, draft: Draft, options: { budget?: numb
   problems.push(...rules.hard.filter(fixable));
   const advice = [...rules.hard.filter(line => !fixable(line)), ...rules.soft];
   problems.push(...requirementProblems(scene, draft, requirements));
-  for (let i = problems.length - 1; i >= 0; i--) if (sofaKneeSpace(problems[i]!, items)) problems.splice(i, 1);
+  // The knee space between a sofa and its coffee table (0.35-0.5 m, the living rule) is how people reach the sofa, not a
+  // walkway: a path of at least 0.3 m to such a sofa passes. A sofa shut in on every side still fails (no path).
+  const knee = kneeSpaceSofas(items);
+  for (let i = problems.length - 1; i >= 0; i--) {
+    const w = /^walkway: \S+ to item:(\S+): ([\d.]+) m path/.exec(problems[i]!);
+    if (w && knee.has(w[1]!) && Number(w[2]) >= 0.3 - 1e-6) problems.splice(i, 1);
+  }
   problems.push(...checkSurfaces(scene, draft).map(p => `surfaces: ${p}`));
   // Editor finish presets and fixtures carry no supplier price: list the work, never add it to the total.
   const work = surfaceQuantities(scene, draft);

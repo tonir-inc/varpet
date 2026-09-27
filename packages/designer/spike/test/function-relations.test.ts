@@ -257,3 +257,18 @@ describe('round 2: scenario flaws', () => {
     expect(soft).toMatch(/sofa is the only seat in its corner of a 48\.00 m2 room; add an armchair facing it at \(\d\.\d\d, 4\.\d\d\), rot \d+/);
   });
 });
+
+describe('round 3: coffee table and walkway agree', () => {
+  test('a sofa with its coffee table in reach passes the whole check; the knee space is not a walkway', async () => {
+    const { check } = await import('../lib/check.js');
+    const s = scene(), r = await check(s, { items: living(s) }, { brief: '', requirements: { rooms: {} } });
+    expect(r.problems.filter(p => /walkway|living:/.test(p))).toEqual([]);
+  });
+  test('only a sofa with its coffee table in the knee-space range is exempt from the front walkway', async () => {
+    const { kneeSpaceSofas } = await import('../lib/relations.js');
+    const s = scene();
+    expect([...kneeSpaceSofas(living(s))]).toEqual(['sofa']);
+    expect([...kneeSpaceSofas(swap(living(s), 'coffee', { pos: [3.5, 3.9] }))]).toEqual([]);
+    expect([...kneeSpaceSofas(without(living(s), 'coffee'))]).toEqual([]);
+  });
+});
