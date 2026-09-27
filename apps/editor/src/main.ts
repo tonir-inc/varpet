@@ -1,3 +1,4 @@
+import {guardTeamUnload,teamReloadGuard} from './ui/team-saves';
 import {teamStartup} from './portal/team-session';
 import {mountTeamSaves} from './ui/team-saves-editor';
 import { placeFurniture, floorHeight } from './core/furniture-support';
@@ -452,6 +453,7 @@ function run(operations: Operation[], label: string, revision = store.revision, 
 }
 
 function executeHumanCommand(command: EditCommand) {
+  if (guidedDesign || previewMode) return false;
   const result = store.execute(command, true);
   if (!result.ok) notify(result.errors.join(' '), true);
   else if (result.warnings.length) notify(`${command.label}. ${result.warnings[0]}`);
@@ -1184,7 +1186,7 @@ function refresh(){
   // must not replace the streamed shell with the checked editor document mid-build.
   // Keep a checked proposal visible through background catalog and save refreshes.
   if (review && review.proposal.command.baseRevision !== store.revision) setPreview(false);
-  if (!stage) { viewport.setScene(review?.scene ?? scene,catalog);viewport.setSelection(selectedId, selectionIds()); }
+  if (!stage && !review) { viewport.setScene(scene,catalog);viewport.setSelection(selectedId, selectionIds()); }
   // A whole design arriving at once (import, designer apply) paints the 3D view in this frame;
   // the plan, panels and inspectors follow after it, so no single frame carries all of it.
   const heavy = heavyChange(scene);
@@ -1317,6 +1319,7 @@ const designerPanel = mountDesignerPanel(designerHost, {
     if (guidedDesign) {
       designConstruction.preview(proposed, catalog, changedIds(proposed));
     } else {
+      designConstruction.clear();
       viewport.presentArrival({ roomId: arrival.roomId, ids: arrival.ids, elsewhere: arrival.elsewhere, available: arrivalArea() });
       // Partial room previews belong to the turn in flight and cannot be accepted.
       proposalBar.show(proposal, { partial: designerPanel.controller.state.partial?.proposal.id === proposal.id, busy });
@@ -1616,7 +1619,8 @@ if (editorSession) {
   $('.project-name > span').textContent=editorSession.apartment?'My apartment':'Plan copy';
   $('#save').title='Save to My apartments · ⌘S';
   $('#status-text').textContent=editorSession.sharingError ? 'Apartment loaded. Open Share to retry reconnecting your existing link.' : 'Make this apartment yours. Save to keep it in My apartments.';
-  window.addEventListener('beforeunload',event=>{if(accountSaving || (store.revision>0 && store.revision!==savedRevision)){event.preventDefault();event.returnValue='';}});
+  const reloading=teamReloadGuard(import.meta.hot);
+  window.addEventListener('beforeunload',event=>guardTeamUnload(event,accountSaving || (store.revision>0 && store.revision!==savedRevision),reloading()));
 }
 const sandboxLink = document.createElement('a');
 sandboxLink.href = '/?editor=sandbox'; sandboxLink.target = '_blank'; sandboxLink.rel = 'noopener';

@@ -8,7 +8,7 @@ import {build} from 'vite';
 const root=fileURLToPath(new URL('..',import.meta.url)),out=await mkdtemp(join(tmpdir(),'team-saves-'));
 after(()=>rm(out,{recursive:true,force:true}));
 await build({root,configFile:false,publicDir:false,logLevel:'error',plugins:[{name:'entry',resolveId(id){if(id.endsWith('team-entry'))return '\0entry';},load(id){if(id==='\0entry')return ['adapters/flats-http','ui/team-saves','portal/team-apartments','portal/team-session','portal/templates'].map(p=>`export * from '${root}/src/${p}.ts';`).join('\n');}}],build:{ssr:'team-entry',target:'node22',outDir:out,rolldownOptions:{output:{entryFileNames:'test.mjs'}}}});
-const {createFlatsApi,FlatsError,TeamAutosave,guardTeamUnload,teamCards,restoreTeamFlat,createTemplateScene}=await import(pathToFileURL(join(out,'test.mjs')));
+const {createFlatsApi,FlatsError,TeamAutosave,guardTeamUnload,teamReloadGuard,saveTeamBeforeReload,teamCards,restoreTeamFlat,createTemplateScene}=await import(pathToFileURL(join(out,'test.mjs')));
 const id='12345678-1234-1234-1234-123456789abc';
 test('adapter methods, revisions and conflict details',async()=>{const calls=[];const api=createFlatsApi(async(url,init)=>{calls.push([url,init]);return new Response(JSON.stringify({error:{code:'conflict',updated_by:'Serg',current_revision:4}}),{status:409});});await assert.rejects(api.save(id,{base_revision:3}),e=>e instanceof FlatsError&&e.details.updated_by==='Serg');assert.equal(calls[0][0],`/api/flats/${id}`);assert.equal(JSON.parse(calls[0][1].body).base_revision,3);assert.throws(()=>api.thumbnail('../bad'));});
 test('debounce, snapshot revision and conflict stop automatic writes',async t=>{
@@ -34,4 +34,49 @@ test('adapter maps list/create/get/rename/delete/history/restore to the contract
  const calls=[];const api=createFlatsApi(async(url,init)=>{calls.push([url,init.method,init.body&&JSON.parse(init.body)]);if(init.method==='DELETE')return new Response(null,{status:204});return new Response(JSON.stringify(url.endsWith('/versions')?{versions:[]}:url.includes('?')?{flats:[]}:{}));});
  assert.deepEqual(await api.list(),[]);await api.create({name:'Flat',kind:'blank',scene:{},catalog:[]});await api.get(id);await api.rename(id,'New');await api.delete(id);assert.deepEqual(await api.versions(id),[]);await api.version(id,3);await api.restore(id,2);
  assert.deepEqual(calls.map(([url,method])=>[url,method]),[['/api/flats?include_deleted=0','GET'],['/api/flats','POST'],[`/api/flats/${id}`,'GET'],[`/api/flats/${id}`,'PATCH'],[`/api/flats/${id}`,'DELETE'],[`/api/flats/${id}/versions`,'GET'],[`/api/flats/${id}/versions/3`,'GET'],[`/api/flats/${id}/restore`,'POST']]);assert.deepEqual(calls[7][2],{revision:2});
+});
+
+test('Vite reload flushes dirty changes and suppresses only the reload prompt',async t=>{
+ t.mock.timers.enable({apis:['setTimeout']});
+ const listeners={};let writes=0;
+ const c=new TeamAutosave({revision:()=>1,snapshot:()=>({scene:{},catalog:[]}),save:async(base,payload,keepalive)=>{assert.equal(keepalive,true);writes++;return {revision:base+1};},changed:()=>{}},1,0);
+ const reloading=teamReloadGuard({on(event,fn){listeners[event]=fn;}},()=>c.flush(true));
+ const prompt=()=>{let prevented=false;guardTeamUnload({preventDefault(){prevented=true;}},true,reloading());return prevented;};
+ assert.equal(prompt(),true);
+ await listeners['vite:beforeFullReload']();assert.equal(writes,1);assert.equal(prompt(),false);
+ t.mock.timers.tick(1000);assert.equal(prompt(),true);
+ await listeners['vite:beforeFullReload']();assert.equal(writes,1);c.dispose();
+});
+test('ordinary HMR updates and production keep real unload protection',async t=>{
+ t.mock.timers.enable({apis:['setTimeout']});
+ const listeners={};let flushes=0;
+ const previous=globalThis.document;globalThis.document={querySelector:()=>null};
+ try{const reloading=teamReloadGuard({on(event,fn){listeners[event]=fn;}},async()=>{flushes++;});
+ await listeners['vite:beforeUpdate']();assert.equal(reloading(),false);assert.equal(flushes,0);
+ assert.equal(teamReloadGuard(undefined)(),false);
+ }finally{if(previous===undefined)delete globalThis.document;else globalThis.document=previous;}
+});
+test('reload transport uses keepalive and omits large thumbnails',async()=>{
+ let request;await saveTeamBeforeReload(id,4,{scene:{},catalog:[],thumbnail:'large'},async(url,init)=>{request={url,...init};return new Response(JSON.stringify({revision:5}));});
+ assert.equal(request.url,`/api/flats/${id}`);assert.equal(request.keepalive,true);assert.equal(request.method,'PUT');
+ assert.equal(JSON.parse(request.body).base_revision,4);assert.equal(JSON.parse(request.body).thumbnail,undefined);assert.equal(request.signal,undefined);
+});
+test('reload flush waits for the active write before saving newer edits',async t=>{
+ t.mock.timers.enable({apis:['setTimeout']});let revision=1,resolve;const calls=[];
+ const c=new TeamAutosave({revision:()=>revision,snapshot:()=>({scene:{},catalog:[]}),save:(base,payload,keepalive)=>{calls.push([base,keepalive]);return calls.length===1?new Promise(r=>{resolve=r;}):Promise.resolve({revision:base+1});},changed:()=>{}},7,0);
+ const first=c.flush();revision=2;const reload=c.flush(true);assert.deepEqual(calls,[[7,false]]);
+ resolve({revision:8});await first;await reload;assert.deepEqual(calls,[[7,false],[8,true]]);assert.equal(c.dirty,false);c.dispose();
+});
+test('failed reload flush still allows Vite reload',async t=>{
+ t.mock.timers.enable({apis:['setTimeout']});const listeners={};
+ const reloading=teamReloadGuard({on(event,fn){listeners[event]=fn;}},async()=>{throw new Error('offline');});
+ await listeners['vite:beforeFullReload']();assert.equal(reloading(),true);
+});
+test('first update with a Vite error overlay prepares its fallback reload',async t=>{
+ t.mock.timers.enable({apis:['setTimeout']});const listeners={};let flushes=0;
+ const previous=globalThis.document;globalThis.document={querySelector:()=>({})};
+ try{const reloading=teamReloadGuard({on(event,fn){listeners[event]=fn;}},async()=>{flushes++;});
+ await listeners['vite:beforeUpdate']();assert.equal(reloading(),true);assert.equal(flushes,1);
+ t.mock.timers.tick(1000);await listeners['vite:beforeUpdate']();assert.equal(reloading(),false);assert.equal(flushes,1);
+ }finally{if(previous===undefined)delete globalThis.document;else globalThis.document=previous;}
 });
