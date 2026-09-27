@@ -6,11 +6,13 @@
  * table settings ("Dinner for four"). */
 import { bbox, footprint, openingCentre, openingRooms, openingSpans, segDist, type Draft, type DraftItem, type Scene, type Vec2 } from './scene.ts';
 import { onFloor } from './finishes.ts';
+import type { Requirements } from './requirements.ts';
 import { bareWindows, coffeeFor, floorPoint, inside, isBed, isDesk, isLamp, toFootprint, toLocal, toWorld } from './relations.ts';
 
 type V = Vec2;
 type Room = Scene['rooms'][number];
 export type RoomType = 'living' | 'bedroom' | 'kids' | 'dining' | 'hall' | 'bathroom' | 'office';
+const TYPES: RoomType[] = ['living', 'bedroom', 'kids', 'dining', 'hall', 'bathroom', 'office'];
 export interface RoomStyling { room_id: string; types: RoomType[]; passed: number; total: number; missing: string[] }
 
 const f2 = (n: number) => (Math.abs(n) < 0.005 ? 0 : n).toFixed(2);
@@ -96,8 +98,11 @@ const hangHint = (scene: Scene, over: DraftItem, what: string, w: number, h: num
 };
 
 /** One room's missing layers. */
-function styleRoom(scene: Scene, draft: Draft, room: Room, all: DraftItem[]): RoomStyling {
-  const mine = all.filter(o => o.room_id === room.id), types = roomTypes(room, mine), missing: string[] = [], seen = new Set<string>();
+function styleRoom(scene: Scene, draft: Draft, room: Room, all: DraftItem[], declared?: RoomType): RoomStyling {
+  const mine = all.filter(o => o.room_id === room.id), missing: string[] = [], seen = new Set<string>();
+  // requirements.json's room type wins over inference (a child's room without toys is still a child's room); a declared
+  // living room with a dining table is styled for dining too.
+  const types: RoomType[] = declared ? [declared, ...(declared === 'living' && diningTable(mine) ? ['dining' as const] : [])] : roomTypes(room, mine);
   let total = 0;
   const need = (key: string, ok: boolean, line: () => string) => { if (seen.has(key)) return; seen.add(key); total++; if (!ok) missing.push(line()); };
   const floorItems = mine.filter(o => onFloor(o) && o.kind !== 'rug'), rugs = mine.filter(o => o.kind === 'rug');
@@ -116,8 +121,9 @@ function styleRoom(scene: Scene, draft: Draft, room: Room, all: DraftItem[]): Ro
     need('empty-wall', len < 3 || hung >= 3, () => `wall decor on the plain ${f2(len)} m stretch of ${wall!.id} (${f2(wall!.from)}..${f2(wall!.to)} m along): a gallery wall of 3-5 frames (./varpet search --kind wall_art --text gallery; two rows at height_m ~1.30 and ~1.75, 5-8 cm apart), or a picture ledge or floating shelf (--kind shelf --text floating, or --kind wall_hanging --text ledge) at height_m ~1.40 with 2-3 small objects on it (on: <its id>), centred with onWall(scene, "${room.id}", "${wall!.id}", size, ${f2((wall!.from + wall!.to) / 2)}, height_m)`);
   }
   for (const type of types) {
-    if (type === 'living') {
-      const sofa = mine.filter(o => o.kind === 'sofa' && onFloor(o)).sort((a, b) => b.size[0] - a.size[0])[0]!;
+    const sofa = mine.filter(o => o.kind === 'sofa' && onFloor(o)).sort((a, b) => b.size[0] - a.size[0])[0];
+    if (type === 'living' && !sofa) need('sofa', false, () => `a sofa: the living layers (rug, cushions, throw, art) build around it`);
+    if (type === 'living' && sofa) {
       const [w, d] = sofa.size, ahead = toWorld(sofa, [0, -d / 2 - 0.6]);
       need('rug', rugs.some(r => inside(ahead, r)), () => `a rug under the seating group, about ${f2(w + 0.6)} x ${f2(Math.max(1.6, d + 1.2))} m, centred at ${at(toWorld(sofa, [0, -d / 2 - 0.45]))} rot ${Math.round(sofa.rot)} so the front legs of ${sofa.id} stand on it`);
       const seats = mine.filter(o => /sofa|armchair/.test(o.kind) && onFloor(o));
@@ -133,8 +139,8 @@ function styleRoom(scene: Scene, draft: Draft, room: Room, all: DraftItem[]): Ro
       curtains();
       need('light-layers', lights >= 3, () => `${3 - lights} more light source${3 - lights > 1 ? 's' : ''} (floor or table lamps beside seats, a sconce or pendant) for three layers`);
     }
-    if (type === 'bedroom' || type === 'kids') {
-      const bed = mine.filter(o => onFloor(o) && (isBed(o) || o.kind === 'crib')).sort((a, b) => b.size[0] - a.size[0])[0]!;
+    const bed = mine.filter(o => onFloor(o) && (isBed(o) || o.kind === 'crib')).sort((a, b) => b.size[0] - a.size[0])[0];
+    if ((type === 'bedroom' || type === 'kids') && bed) {
       const [w, d] = bed.size, onBed = on(mine, bed);
       need('made-bed', DRESSED.test(bed.name ?? '') || /beds-dressed/.test(bed.sku ?? '') || bed.kind === 'crib' || (onBed.some(isCushion) && onBed.some(isThrow)),
         () => `make ${bed.id} up: ${onBed.some(isCushion) ? '' : '2 cushions'}${onBed.some(isCushion) || onBed.some(isThrow) ? '' : ' and '}${onBed.some(isThrow) ? '' : 'a throw or bed runner across the foot'} on: "${bed.id}" (or pick a dressed bed: ./varpet search --kind bed --text dressed)`);
@@ -149,25 +155,29 @@ function styleRoom(scene: Scene, draft: Draft, room: Room, all: DraftItem[]): Ro
         () => `a rug under the lower two thirds of ${bed.id}, about ${f2(w + 0.9)} x ${f2(Math.min(2.4, d))} m, centred at ${at(toWorld(bed, [0, -d / 2 + 0.7]))} rot ${Math.round(bed.rot)}`);
       if (type === 'bedroom') need('plant', plants.length >= 1, () => `a plant (on a dresser with on: <id>, or a floor plant in a corner)`);
       if (type === 'bedroom') curtains();
-      if (type === 'kids') {
-        need('kids-art', art.length >= 1, () => `playful wall art (./varpet search --kind wall_art --text kids): ${hangHint(scene, bed, 'a set of prints', Math.min(1.2, w * 0.8), 0.5)}`);
+    }
+    if (type === 'kids') {
+      {
+        const spot = corner(scene, room, all);
+        need('kids-art', art.length >= 1, () => `playful wall art (./varpet search --kind wall_art --text kids) hung at the child's eye level (height_m ~1.3)${bed ? `: ${hangHint(scene, bed, 'a set of prints', Math.min(1.2, bed.size[0] * 0.8), 0.5)}` : ''}`);
         const toys = mine.filter(isToy).length;
         need('toys', toys >= 2, () => `${2 - toys} more toy${toys ? '' : 's'} (./varpet search --kind toy: a teepee, a play kitchen, a toy basket) on the floor or on a low shelf (on: <id>)`);
-        need('kids-rug', rugs.length >= 1, () => `a play rug (about 1.6 x 2.3 m) in the free floor at ${at(corner(scene, room, all) ?? toWorld(bed, [0, -d / 2 - 1.0]))}`);
+        need('kids-rug', rugs.length >= 1, () => `a play rug (about 1.6 x 2.3 m) in the free floor${spot ? ` near ${at(spot)}` : bed ? ` at ${at(toWorld(bed, [0, -bed.size[1] / 2 - 1.0]))}` : ''}`);
         need('soft-seat', mine.some(o => SOFT_SEAT.test(`${o.kind} ${o.name}`) && onFloor(o)), () => `soft seating: a floor cushion or pouf (./varpet search --kind cushion --text floor) on the rug`);
         curtains();
       }
     }
-    if (type === 'dining') {
-      const table = diningTable(mine)!;
+    const table = diningTable(mine);
+    if (type === 'dining' && table) {
       need('centrepiece', on(mine, table).length >= 1, () => `a centrepiece on: "${table.id}" (a table setting ./varpet search --kind decor --text "dinner for", or a vase, bowl or candles), pos ${at(table.pos)}`);
       need('pendant', (draft.lighting ?? []).some(l => l.type === 'fixture' && l.mount === 'pendant' && inside(l.pos, table, 0.2)),
         () => `a pendant over ${table.id}: {room_id: "${room.id}", type: "fixture", id: "dining-pendant", mount: "pendant", pos: [${f2(table.pos[0])}, ${f2(table.pos[1])}]}`);
       need('dining-wall', mine.some(o => (isArt(o) || (o.kind === 'mirror' && o.wall_id !== undefined)) && toFootprint(o.pos, table) <= 2.2),
         () => `art or a mirror on the wall nearest ${table.id} (within 2 m of it, onWall())`);
     }
-    if (type === 'office') {
-      const desk = mine.filter(o => isDesk(o) && onFloor(o))[0]!, onDesk = on(mine, desk);
+    const desk = mine.filter(o => isDesk(o) && onFloor(o))[0];
+    if (type === 'office' && desk) {
+      const onDesk = on(mine, desk);
       need('task-lamp', mine.some(l => isLamp(l) && (l.on === desk.id || toFootprint(l.pos, desk) <= 0.8)), () => `a task lamp on: "${desk.id}" (./varpet search --kind lamp --text desk)`);
       need('desk-objects', onDesk.some(o => !isLamp(o) && !/monitor|computer|laptop|tv/.test(o.kind)), () => `1-2 objects on: "${desk.id}" (books, a tray, a small plant or vase)`);
       need('plant', plants.length >= 1, () => `a plant (on: "${desk.id}" or a floor plant in a corner)`);
@@ -189,15 +199,15 @@ function styleRoom(scene: Scene, draft: Draft, room: Room, all: DraftItem[]): Ro
 }
 
 /** Rooms the draft furnishes (any draft item in them), outdoor spaces and kitchens aside. */
-export function styling(scene: Scene, draft: Draft): RoomStyling[] {
+export function styling(scene: Scene, draft: Draft, req?: Requirements): RoomStyling[] {
   const all = [...scene.items, ...(draft.items ?? [])], used = new Set((draft.items ?? []).map(o => o.room_id));
   return scene.rooms.filter(r => used.has(r.id) && r.zone === undefined && !/balcon|loggia|terrace|closet|storage|pantry|laundry/i.test(name(r))
       && !(/kitchen/i.test(name(r)) && !/living|dining|lounge/i.test(name(r))))
-    .map(r => styleRoom(scene, draft, r, all)).filter(r => r.total > 0);
+    .map(r => styleRoom(scene, draft, r, all, TYPES.find(t => t === req?.rooms[r.id]?.type))).filter(r => r.total > 0);
 }
 /** One "styling:" line per missing layer, and a score line per room. */
-export function stylingLines(scene: Scene, draft: Draft): { problems: string[]; scores: string[] } {
-  const rooms = styling(scene, draft);
+export function stylingLines(scene: Scene, draft: Draft, req?: Requirements): { problems: string[]; scores: string[] } {
+  const rooms = styling(scene, draft, req);
   return {
     problems: rooms.flatMap(r => r.missing.map(m => `styling: ${r.room_id} (${r.types.join('+')}) needs ${m}`)),
     scores: rooms.map(r => `${r.room_id} ${r.passed}/${r.total}`),

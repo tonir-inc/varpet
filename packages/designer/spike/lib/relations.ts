@@ -361,7 +361,7 @@ function living(scene: Scene, draft: Draft, items: DraftItem[], out: Findings) {
 
 const HUNG_OVER = /sofa|bed|cabinet|dresser|sideboard|desk|table|console|bench|chest|media|credenza|buffet|shelf/;
 /** Art over furniture: centred on it and 55-80% of its width; mirrors keep 0.2 m of wall at each side. */
-function wallDecor(scene: Scene, items: DraftItem[], out: Findings) {
+function wallDecor(scene: Scene, items: DraftItem[], out: Findings, req?: Requirements) {
   const hung = items.filter(o => o.wall_id !== undefined).map(o => ({ o, spot: wallSpot(scene, o) })).filter((h): h is { o: DraftItem; spot: NonNullable<ReturnType<typeof wallSpot>> } => h.spot !== undefined);
   type Hung = (typeof hung)[number];
   const groups = new Map<string, { over: DraftItem; span: [number, number]; spot: Hung['spot']; art: DraftItem[]; pieces: Hung[]; bottom: number; fromTo: [number, number] }>();
@@ -376,7 +376,7 @@ function wallDecor(scene: Scene, items: DraftItem[], out: Findings) {
     const artFrom = spot.along - o.size[0] / 2, artTo = spot.along + o.size[0] / 2;
     let best: { over: DraftItem; from: number; to: number; overlap: number } | undefined;
     for (const x of items) {
-      if (x.room_id !== o.room_id || !onFloor(x) || !HUNG_OVER.test(x.kind) || isLamp(x) || x.size[2] > 1.3 || x.size[2] > spot.top - 0.1) continue;
+      if (x.room_id !== o.room_id || !onFloor(x) || !HUNG_OVER.test(x.kind) || isLamp(x) || x.size[2] > (x.kind === 'bed' ? 1.8 : 1.3) || x.size[2] > spot.top - 0.1) continue;
       const corners = footprint(x) as V[], offs = corners.map(p => segDist(p, wall.a, wall.b) - (wall.thickness ?? 0) / 2);
       if (Math.min(...offs) > 1.1) continue; // a sofa may stand off the wall in front of a radiator
       const al = corners.map(p => along0(p) + shift), from = Math.min(...al), to = Math.max(...al), overlap = Math.min(to, artTo) - Math.max(from, artFrom);
@@ -395,7 +395,7 @@ function wallDecor(scene: Scene, items: DraftItem[], out: Findings) {
   for (const g of groups.values()) {
     const fw = g.fromTo[1] - g.fromTo[0], aw = g.span[1] - g.span[0], off = (g.span[0] + g.span[1]) / 2 - (g.fromTo[0] + g.fromTo[1]) / 2;
     const names = g.art.map(a => a.id).join(' + '), top = g.over.size[2];
-    if (Math.abs(off) > 0.1) {
+    if (Math.abs(off) > 0.05) {
       const l = g.spot.length, u: V = [(g.spot.wall.b[0] - g.spot.wall.a[0]) / l, (g.spot.wall.b[1] - g.spot.wall.a[1]) / l];
       const moves = g.art.map(a => `${g.art.length > 1 ? `${a.id} ` : ''}pos ${at([a.pos[0] - u[0] * off, a.pos[1] - u[1] * off])}`).join(', ');
       out.hard.push(`decor: ${names} hangs ${f2(Math.abs(off))} m off the centre of ${g.over.id} below it; centre it on ${g.over.id}: ${moves}`);
@@ -417,7 +417,8 @@ function wallDecor(scene: Scene, items: DraftItem[], out: Findings) {
   for (const c of clusters) {
     const mirror = c.every(h => h.o.kind === 'mirror'), centre = (Math.min(...c.map(h => h.spot.bottom)) + Math.max(...c.map(h => h.spot.top))) / 2;
     // A child's room hangs art at the child's eye level.
-    const room = scene.rooms.find(r => r.id === c[0]!.o.room_id), kids = !mirror && room !== undefined && (/\b(kid|child|nursery|toddler|play)/i.test(`${room.id} ${room.name ?? ''}`)
+    const room = scene.rooms.find(r => r.id === c[0]!.o.room_id), declared = room ? req?.rooms[room.id]?.type : undefined;
+    const kids = !mirror && room !== undefined && declared !== undefined ? declared === 'kids' : !mirror && room !== undefined && (/\b(kid|child|nursery|toddler|play)/i.test(`${room.id} ${room.name ?? ''}`)
       || items.some(o => o.room_id === room.id && (o.kind === 'crib' || o.kind === 'toy' || (o.kind === 'bed' && /\b(kids?|child|toddler|bunk)\b/i.test(o.name ?? '')))));
     const [lo, hi, aim, say] = mirror ? [1.45, 1.7, 1.57, '1.50-1.65'] : kids ? [1.0, 1.65, 1.3, '1.10-1.60 in a child\'s room'] : [1.4, 1.65, 1.52, '1.45-1.60'];
     if (centre < lo || centre > hi) out.hard.push(`decor: ${c.map(h => h.o.id).join(' + ')} on a free wall centres at ${f2(centre)} m (eye level is ${say} m): ${raise(c, aim - centre)}`);
@@ -540,7 +541,7 @@ export function functionRules(scene: Scene, draft: Draft, brief?: string, requir
   lighting(scene, draft, all, out);
   bedrooms(scene, draft, all, out);
   living(scene, draft, all, out);
-  wallDecor(scene, all, out);
+  wallDecor(scene, all, out, requirements);
   coverage(scene, draft, all, out);
   windows(scene, all, brief, requirements, out);
   fixtures(scene, draft, all, out);

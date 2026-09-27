@@ -145,3 +145,13 @@ test('a hung floating shelf counts as a wall piece', () => {
     { ...item('fs2', 'shelf', [0, 0], 0, [1.0, 0.2, 0.08], { name: 'Oak floating shelf' }), ...onWall(s, 'liv', 'e', [1.0, 0.2, 0.08], 3, 1.4) });
   expect(room(s, d).missing.join('\n')).not.toMatch(/wall decor on the plain/);
 });
+
+test('requirements.json room type wins: a child\'s room without toys is styled as kids', () => {
+  const s = scene(), bed: DraftItem = { ...item('b1', 'bed', [10, 3], 0, [0.9, 2.0, 0.8], { name: 'Oak single bed, dressed' }), room_id: 'bed' };
+  expect(styling(s, { items: [bed] }).find(r => r.room_id === 'bed')!.types).toEqual(['bedroom']);
+  const r = styling(s, { items: [bed] }, { rooms: { bed: { type: 'kids' } } }).find(r => r.room_id === 'bed')!;
+  expect(r.types).toEqual(['kids']);
+  expect(r.missing.join('\n')).toMatch(/2 more toys/);
+  const desk: DraftItem = { ...item('d', 'desk', [10, 3.6], 0, [1.2, 0.6, 0.75]), room_id: 'bed' };
+  expect(styling(s, { items: [desk] }, { rooms: { bed: { type: 'kids' } } }).find(r => r.room_id === 'bed')!.missing.join('\n')).toMatch(/playful wall art/);
+});

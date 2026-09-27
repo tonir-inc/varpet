@@ -301,3 +301,18 @@ describe('round 3: gallery walls and heights', () => {
     expect(checkDecor(s, { items: [print, { ...vase, on: 'pr' }] }, kind).join('\n')).toMatch(/cannot rest on wall-hung pr/);
   });
 });
+
+describe('round 4: declared kids rooms and centred pairs', () => {
+  test('a declared kids room hangs free-wall art at the child\'s eye level', () => {
+    const s = scene(), print: DraftItem = { ...item('p', 'wall_art', [0, 0], 0, [0.5, 0.03, 0.6]), ...onWall(s, 'liv', 'w', [0.5, 0.03, 0.6], 3, 1.25) };
+    expect(rules(s, [print]).hard.join('\n')).toMatch(/p on a free wall centres at 1\.25 m/);
+    expect(rules(s, [print], undefined, [], { rooms: { liv: { type: 'kids' } } }).hard).toEqual([]);
+  });
+  test('a pair of prints over a tall headboard is centred as a group within 5 cm', () => {
+    const s = scene(), b = (o: DraftItem): DraftItem => ({ ...o, room_id: 'bed' });
+    const bed = b(item('bed', 'bed', [10, 2.9], 0, [1.6, 2.1, 1.4], { name: 'Upholstered bed, dressed' }));
+    const pair = (shift: number) => [0.35, -0.35].map((x, i) => b({ ...item(`pr${i}`, 'wall_art', [0, 0], 0, [0.5, 0.03, 0.6]), ...onWall(s, 'bed', 'bn', [0.5, 0.03, 0.6], 2 - x + shift, 1.92) }));
+    expect(rules(s, [bed, ...pair(0)]).hard.join('\n')).not.toMatch(/off the centre/);
+    expect(rules(s, [bed, ...pair(0.08)]).hard.join('\n')).toMatch(/pr0 \+ pr1 hangs 0\.08 m off the centre of bed below it/);
+  });
+});

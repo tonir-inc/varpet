@@ -217,7 +217,7 @@ export async function check(scene: Scene, draft: Draft, options: { budget?: numb
   const fixable = (line: string) => { const words = line.split(/[\s,:;()"+]+/); return words.some(w => draftIds.has(w)) || !words.some(w => keptIds.has(w)); };
   problems.push(...rules.hard.filter(fixable));
   const advice = [...rules.hard.filter(line => !fixable(line)), ...rules.soft];
-  const style = stylingLines(scene, draft), styleHard = (options.styling ?? (process.env.VARPET_STYLING === 'hard' ? 'hard' : 'advice')) === 'hard';
+  const style = stylingLines(scene, draft, requirements), styleHard = (options.styling ?? (process.env.VARPET_STYLING === 'hard' ? 'hard' : 'advice')) === 'hard';
   (styleHard ? problems : advice).push(...style.problems);
   problems.push(...requirementProblems(scene, draft, requirements));
   // The knee space between a sofa and its coffee table (0.35-0.5 m, the living rule) is how people reach the sofa, not a
