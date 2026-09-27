@@ -41,6 +41,14 @@ try {
   await screenshot('replay-proposal');
   await card.locator('.designer-apply').click(); await page.waitForTimeout(4000);
   log('applied', { status: await card.locator('.designer-proposal-status').textContent() }); await screenshot('replay-applied');
+  const tour = page.locator('.designer-tour');
+  if (await tour.count()) {
+    const tourAt = t(); await tour.click();
+    await page.waitForFunction(() => document.querySelector('[data-folio=tour]')?.getAttribute('aria-pressed') === 'true', null, { timeout: 10_000 }).catch(() => fail('tour did not start'));
+    await page.waitForTimeout(6000); await screenshot('tour');
+    await page.waitForFunction(() => document.querySelector('[data-folio=tour]')?.getAttribute('aria-pressed') !== 'true', null, { timeout: 180_000 }).catch(() => fail('tour did not end in 3 min'));
+    log('tour', { seconds: Math.round((t() - tourAt) * 10) / 10 });
+  } else fail('no Take the tour button after Apply');
   if (followUp) {
     await page.fill('#designer-request', followUp); await page.press('#designer-request', 'Enter');
     await page.waitForTimeout(2000);
