@@ -54,6 +54,20 @@ class Handler(BaseHTTPRequestHandler):
             return self.send({'is_plan': not tiny, 'kind': 'unknown' if self.server.fail_open else 'too small' if tiny else 'floor plan',
                               'confidence': 0 if self.server.fail_open else 1})
         if self.path == '/designer/propose':
+            stream = self.server.designer_stream
+            if stream is not None:
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/x-ndjson')
+                self.end_headers()
+                try:
+                    for delay, record in stream:
+                        time.sleep(delay)
+                        if record is not None:
+                            self.wfile.write((json.dumps(record) + '\n').encode())
+                            self.wfile.flush()
+                except (BrokenPipeError, ConnectionResetError):
+                    pass
+                return
             return self.send(self.server.designer_reply, content_type='application/x-ndjson')
         if body['method'] == 'notifications/initialized':
             return self.send(b'', 202)
@@ -88,6 +102,7 @@ class DoctorTest(unittest.TestCase):
         cls.thread.join()
 
     def setUp(self):
+        self.server.designer_stream = None
         self.server.ready = True
         self.server.magic = b'glTF'
         self.server.stale = False
@@ -173,6 +188,46 @@ class DoctorTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'no added item'):
             doctor.designer(doctor.HTTP(2), self.url)
 
+    def test_stream_progress_then_proposal(self):
+        proposal = json.loads(self.server.designer_reply)
+        self.server.designer_stream = [
+            (0, {'type': 'progress', 'message': 'Rendering views'}),
+            (.02, {'type': 'partial', 'rooms': ['Bedroom 1'], 'proposal': proposal['proposal']}),
+            (.02, proposal), (.5, None)]
+        result = self.cli('--full', '--only', 'designer-turn', '--designer-timeout', '.3', '--json')
+        row = json.loads(result.stdout)[0]
+        self.assertEqual(row['status'], 'PASS', result.stdout)
+        self.assertIn('2 progress events', row['detail'])
+        self.assertEqual(result.returncode, 0)
+
+    def test_stream_progress_past_deadline(self):
+        self.server.designer_stream = [(.02, {'type': 'progress', 'message': 'Picking lamps'})] * 30
+        result = self.cli('--full', '--only', 'designer-turn', '--designer-timeout', '.15', '--json')
+        row = json.loads(result.stdout)[0]
+        self.assertEqual(row['status'], 'WARN', result.stdout)
+        self.assertIn('still working after', row['detail'])
+        self.assertIn('Picking lamps', row['detail'])
+        self.assertEqual(result.returncode, 0)
+
+    def test_stream_silence(self):
+        self.server.designer_stream = [(.5, None)]
+        progress = doctor.DesignerProgress(quiet=True)
+        with patch.object(doctor, 'DESIGNER_IDLE', .08):
+            row = doctor.run([doctor.Check('designer-turn', 1,
+                lambda h: doctor.designer(h, self.url, progress), 'retry', progress=progress)])[0]
+        self.assertEqual(row.status, 'FAIL')
+        self.assertIn('no progress for', row.detail)
+
+    def test_stream_error_text(self):
+        for message in ('geometry is supported', 'catalog service unavailable',
+                        'catalog is broken', 'fetch failed', "Cannot find package '@resvg/resvg-js'"):
+            self.server.designer_stream = [(0, {'type': 'progress', 'message': message}), (.3, None)]
+            result = self.cli('--full', '--only', 'designer-turn', '--json')
+            row = json.loads(result.stdout)[0]
+            self.assertEqual(row['status'], 'FAIL', result.stdout)
+            self.assertIn(message, row['detail'])
+            self.assertEqual(result.returncode, 1)
+
     def test_modes_and_unknown_only(self):
         self.assertEqual(self.cli('--quick', '--only', 'plan-positive').returncode, 2)
         self.assertEqual(self.cli('--only', 'designer-turn').returncode, 2)
@@ -197,6 +252,62 @@ class LocalTest(unittest.TestCase):
         results = doctor.run([doctor.Check(str(i), .08, lambda h: time.sleep(.4), 'retry') for i in range(3)])
         self.assertLess(time.monotonic() - start, .3)
         self.assertTrue(all(r.status == 'FAIL' and r.fix == 'retry' for r in results))
+
+    def test_ndjson_stream_without_socket(self):
+        from unittest.mock import MagicMock
+        proposal = {'type': 'proposal', 'proposal': {'command': {
+            'operations': [{'type': 'add', 'object': {'id': 'bed'}}]}}}
+        records = [{'type': 'progress', 'message': 'Rendering views'},
+                   {'type': 'partial', 'rooms': ['Bedroom 1'], 'proposal': proposal['proposal']}, proposal]
+        response = MagicMock(status=200)
+        response.getheader.return_value = 'application/x-ndjson'
+        response.getheaders.return_value = []
+        response.readline.side_effect = [(json.dumps(r) + '\n').encode() for r in records]
+        connection = MagicMock()
+        connection.getresponse.return_value = response
+        with patch.object(doctor.http.client, 'HTTPConnection', return_value=connection):
+            result = doctor.designer(doctor.HTTP(2), 'http://fake')
+        self.assertIn('1 added items', result)
+        self.assertIn('2 progress events', result)
+        self.assertEqual(response.readline.call_count, 3)
+        connection.close.assert_called_once()
+
+    def test_designer_progress_and_deadline_without_socket(self):
+        progress = doctor.DesignerProgress(quiet=True)
+        progress.consume({'type': 'progress', 'message': 'Rendering views'})
+        progress.consume({'type': 'partial', 'rooms': ['Bedroom 1']})
+        self.assertEqual(progress.count, 2)
+        self.assertIn('live draft partial', progress.last)
+        self.assertEqual(progress.deadline_result(420)[0], 'WARN')
+        progress.updated -= 91
+        self.assertEqual(progress.deadline_result(420)[0], 'FAIL')
+        result = progress.consume({'type': 'proposal', 'proposal': {'command': {
+            'operations': [{'type': 'add', 'object': {'id': 'bed'}}]}}})
+        self.assertIn('1 added items', result)
+        for text in ('catalog unavailable', 'catalog broken', 'fetch failed',
+                     'geometry is supported', 'missing dependency @resvg'):
+            with self.assertRaisesRegex(ValueError, text):
+                progress.consume({'type': 'progress', 'message': text})
+
+    def test_designer_coordinator_and_heartbeat_without_socket(self):
+        import contextlib
+        import io
+        for quiet in (False, True):
+            progress = doctor.DesignerProgress(quiet=quiet)
+            def working(http):
+                progress.consume({'type': 'progress', 'message': 'Picking lamps'})
+                time.sleep(.3)
+            output = io.StringIO()
+            with patch.object(doctor, 'DESIGNER_HEARTBEAT', .01), contextlib.redirect_stdout(output):
+                row = doctor.run([doctor.Check('designer-turn', .05, working, 'retry', progress=progress)])[0]
+            self.assertEqual(row.status, 'WARN')
+            self.assertEqual('designer: working, 1 progress events, last: Picking lamps' in output.getvalue(), not quiet)
+        progress = doctor.DesignerProgress(quiet=True)
+        with patch.object(doctor, 'DESIGNER_IDLE', .03):
+            row = doctor.run([doctor.Check('designer-turn', .5,
+                lambda h: time.sleep(.4), 'retry', progress=progress)])[0]
+        self.assertEqual(row.status, 'FAIL')
+        self.assertIn('no progress for', row.detail)
 
     def test_process_ancestry_and_memory(self):
         ps = '10 1 20:00 python -m varpet_harness.serve\n11 10 12:00 helper\n12 11 11:00 /bin/codex app-server\n13 1 20:00 codex\n14 10 01:00 codex\n'

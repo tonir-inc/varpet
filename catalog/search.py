@@ -9,6 +9,7 @@ import os
 import re
 import time
 import threading
+import unicodedata
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -218,6 +219,36 @@ def colour_score(req, listing_cols, img_cols, astra, mode):
 TEXT_ALIASES = {"both": "fts+vector", "all": "fts+vector+openai"}
 OPENAI_TEXT = "text-embedding-3-large"
 
+_NAME_STOPWORDS = set("a an and are as at be by for from in is it of on or the to with".split())
+# Generic descriptors alone are not evidence of a product-name lookup. They still
+# count for exact, phrase and all-token matches; only partial overlap ignores them.
+_NAME_GENERIC = (_FAMILY_COLORS | set(PLACEABLE_KINDS) | set(NATIVE_EXTRA_KINDS)
+                 | set("painting print framed frame furniture velvet leather fabric wood wooden metal plastic cotton linen modern small large".split()))
+
+
+@functools.lru_cache(maxsize=65536)
+def _name_words(text):
+    folded = unicodedata.normalize("NFKD", (text or "").casefold())
+    folded = "".join(c for c in folded if not unicodedata.combining(c))
+    return tuple(re.findall(r"[^\W_]+", folded))
+
+
+def _name_match(query_words, name):
+    """Return a priority tier and a small, distinctive partial-name bonus."""
+    words = _name_words(name)
+    tokens = set(query_words) - _NAME_STOPWORDS
+    if not tokens:
+        return 0, 0.0
+    if query_words == words:
+        return 3, 0.0
+    if f" {' '.join(query_words)} " in f" {' '.join(words)} ":
+        return 2, 0.0
+    overlap = tokens & set(words)
+    if overlap == tokens:
+        return 1, 0.0
+    distinctive = tokens - _NAME_GENERIC
+    return 0, 0.1 * len(overlap & distinctive) / max(1, len(distinctive))
+
 
 def _text_vec(conn, text, model):
     """Embed the query text with the same SigLIP model; parallel room designers repeat queries, so cache them."""
@@ -370,6 +401,17 @@ def search(conn, q: Query):
         used.add("room")
 
     total = sum(w[k] * scores[k] for k in used) if used else np.zeros(len(passed))
+    if q.text:
+        # All eligible rows are already candidates (no SQL/vector top-k). Apply
+        # before paging AND variant collapse so the matching variant represents
+        # its family. A tier exceeds the entire base-score span, even with custom
+        # weights; semantic scores still order equally strong name matches.
+        query_words = _name_words(q.text)
+        matches = [_name_match(query_words, rec["name"]) for rec, _ in passed]
+        tier_span = float(np.ptp(total)) + 1.0
+        scores["name"] = np.array([tier * tier_span + partial for tier, partial in matches])
+        total = total + scores["name"]
+        used.add("name")
     # Ties break on id, so offset pages are stable across calls.
     order = sorted(range(len(passed)), key=lambda i: (-total[i], ids[i]))
     out = []

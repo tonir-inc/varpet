@@ -41,11 +41,13 @@ class Check:
     action: object
     fix: str
     failure: str = 'FAIL'
+    progress: object = None
 
 
 class HTTP:
     """A shared wall deadline includes connect, headers and every streamed read."""
     def __init__(self, timeout):
+        self.timeout = timeout
         self.deadline = time.monotonic() + timeout
 
     def remaining(self):
@@ -54,7 +56,7 @@ class HTTP:
             raise TimeoutError('check deadline exceeded')
         return left
 
-    def request(self, url, body=None, headers=None, method=None, prefix=None, rpc_id=None):
+    def request(self, url, body=None, headers=None, method=None, prefix=None, rpc_id=None, on_record=None):
         parsed = urlsplit(url)
         if parsed.scheme not in ('http', 'https'):
             raise ValueError('expected HTTP(S) URL')
@@ -76,18 +78,28 @@ class HTTP:
                     pass
             settle()
             if response.status not in (200, 202, 204):
+                if on_record:
+                    raw = response.readline(1_048_577)
+                    if raw.strip():
+                        on_record(json.loads(raw))
                 raise ValueError(f'HTTP {response.status} {response.reason} at {url}')
             output = bytearray()
             sse = 'text/event-stream' in response.getheader('Content-Type', '')
             event = []
             while response.status == 200:
                 settle()
-                chunk = response.readline(1_048_577) if sse else response.read1(min(65536, prefix or 65536))
+                chunk = response.readline(1_048_577) if sse or on_record else response.read1(min(65536, prefix or 65536))
                 if not chunk:
                     break
                 output.extend(chunk)
                 if len(output) > 32_000_000:
                     raise ValueError('response exceeds 32 MB')
+                if on_record and chunk.strip():
+                    if len(chunk) > 1_048_576:
+                        raise ValueError('designer response line exceeds 1 MB')
+                    value = on_record(json.loads(chunk))
+                    if value is not None:
+                        return value, dict(response.getheaders())
                 if sse:
                     line = chunk.decode().strip()
                     if line.startswith('data:'):
@@ -247,25 +259,80 @@ def plan(http, architect, positive):
     return f'is_plan={result["is_plan"]}; {result["kind"]}; confidence={result["confidence"]}'
 
 
-def designer(http, base):
+DESIGNER_IDLE = 90
+DESIGNER_RECENT = 60
+DESIGNER_HEARTBEAT = 20
+
+
+class DesignerProgress:
+    def __init__(self, quiet=False):
+        self.count = 0
+        self.last = 'waiting for progress'
+        self.updated = time.monotonic()
+        self.heartbeat = self.updated
+        self.quiet = quiet
+        self.error = None
+
+    def consume(self, record):
+        text = json.dumps(record, ensure_ascii=False)
+        failed = (record.get('type') == 'error' or
+                  (record.get('type') in ('tool', 'build') and
+                   (record.get('status') in ('error', 'failed') or
+                    record.get('phase') == 'error' or record.get('error'))))
+        if failed or re.search(r'fetch failed|no checked fit|geometry is supported|'
+                               r'catalog[^\n]*?(?:unavailable|broken)|'
+                               r'cannot find (?:module|package)|'
+                               r'module not found|ModuleNotFoundError|missing dependency', text, re.I):
+            self.error = text
+            raise ValueError(text)
+        kind = record.get('type')
+        if kind in ('progress', 'partial', 'preview', 'tool', 'build', 'message_delta'):
+            self.last = ' '.join(str(record.get('message') or record.get('caption') or
+                                record.get('delta') or ('live draft partial: ' +
+                                ', '.join(record.get('rooms', [])) if kind == 'partial' else kind)).split())[:500]
+            self.updated = time.monotonic()
+            self.count += 1
+        if kind == 'proposal':
+            added = sum(op.get('type') == 'add' and isinstance(op.get('object'), dict)
+                        for op in record.get('proposal', {}).get('command', {}).get('operations', []))
+            require(added >= 1, 'no added item in proposal')
+            return f'proposal received with {added} added items (not applied); {self.count} progress events'
+        if kind in ('message', 'question', 'decline'):
+            raise ValueError(f'no added item in proposal; terminal={text}')
+
+    def deadline_result(self, elapsed):
+        if self.error:
+            return 'FAIL', self.error, 'Inspect designer service logs'
+        age = time.monotonic() - self.updated
+        if age >= DESIGNER_IDLE:
+            return 'FAIL', f'no progress for {age:.0f}s (last progress: {self.last})', 'Inspect designer service logs'
+        # The 60–90s gap is inconclusive, not a stalled turn yet.
+        detail = f'still working after {elapsed:g}s (last progress: {self.last}); {self.count} progress events'
+        if not self.count or age > DESIGNER_RECENT:
+            detail += '; awaiting fresh progress'
+        return 'WARN', detail, 'Inspect designer service logs; retry with a longer --designer-timeout'
+
+    def tick(self, now):
+        if not self.quiet and now - self.heartbeat >= DESIGNER_HEARTBEAT:
+            print(f'designer: working, {self.count} progress events, last: {self.last}', flush=True)
+            self.heartbeat = now
+
+
+def designer(http, base, progress=None):
+    progress = progress or DesignerProgress()
     scene = json.loads((ROOT / 'apartments/m6-12-54/scene.json').read_text())
     require(scene.get('format') == 'varpet.editor', 'fixture must be an editor SceneDocument')
     # Fixture is the empty editor shell; do not substitute the engine/designer schema.
     require(not scene.get('objects'), 'fixture now contains furniture; supply its catalog before using this smoke')
     body = {'scene': scene, 'revision': 0, 'request': 'Furnish the Bedroom 1.',
             'catalog': [], 'catalogCurrency': 'AMD', 'events': True}
-    raw, _ = http.request(base + '/designer/propose', body, {'Accept': 'application/x-ndjson'})
-    text = raw.decode()
-    errors = [value for value in ('fetch failed', 'no checked fit', 'geometry is supported') if value in text.lower()]
-    records = [json.loads(line) for line in text.splitlines() if line.strip()]
-    errors.extend(json.dumps(r) for r in records if r.get('type') == 'error' or
-                  (r.get('type') == 'tool' and (r.get('status') in ('error', 'failed') or r.get('phase') == 'error' or r.get('error'))))
-    require(not errors, '; '.join(errors))
-    proposals = [r for r in records if r.get('type') == 'proposal']
-    added = sum(op.get('type') == 'add' and isinstance(op.get('object'), dict)
-                for r in proposals for op in r.get('proposal', {}).get('command', {}).get('operations', []))
-    require(added >= 1, f'no added item in proposal; terminal={records[-1] if records else "empty stream"}')
-    return f'proposal received with {added} added items (not applied)'
+    try:
+        result, _ = http.request(base + '/designer/propose', body,
+                                 {'Accept': 'application/x-ndjson'}, on_record=progress.consume)
+    except TimeoutError:
+        return progress.deadline_result(http.timeout)
+    require(isinstance(result, str), 'no added item in proposal; empty or unfinished stream')
+    return result
 
 
 def processes(http):
@@ -335,7 +402,8 @@ def checks(args):
                        Check('plan-positive', 55, lambda h: plan(h, architect, True), 'Check architect plan_gate logs and Codex authentication/model metadata'),
                        Check('plan-negative', 15, lambda h: plan(h, architect, False), 'Check architect /plan-check tiny-image rejection')])
     if args.full:
-        result.append(Check('designer-turn', 180, lambda h: designer(h, design), 'Inspect designer tool events/logs, catalog URL and fit checks; retry --full --only designer-turn'))
+        progress = DesignerProgress(quiet=args.json)
+        result.append(Check('designer-turn', args.designer_timeout, lambda h: designer(h, design, progress), 'Inspect designer events/logs, catalog URL and fit checks; retry --full --only designer-turn', progress=progress))
     return result
 
 
@@ -358,17 +426,25 @@ def run(selected):
     while pending:
         delay = max(0, min(start + c.timeout for c, start in pending.values()) - time.monotonic())
         try:
-            result = out.get(timeout=delay)
+            result = out.get(timeout=min(delay, .2))
             if result.check in pending:
                 check, _ = pending.pop(result.check)
-                if result.time > check.timeout:
+                if result.time > check.timeout and check.progress is None:
                     result = Result(check.name, check.failure, result.time, 'check deadline exceeded', check.fix)
                 results[result.check] = result
         except queue.Empty:
             pass
         for name, (check, start) in list(pending.items()):
-            if time.monotonic() - start >= check.timeout:
-                results[name] = Result(name, check.failure, check.timeout, 'check deadline exceeded', check.fix)
+            now = time.monotonic()
+            if check.progress:
+                check.progress.tick(now)
+            idle = check.progress and now - check.progress.updated >= DESIGNER_IDLE
+            if now - start >= check.timeout or idle:
+                if check.progress:
+                    status, detail, fix = check.progress.deadline_result(round(now - start, 3))
+                    results[name] = Result(name, status, round(now - start, 3), detail, fix)
+                else:
+                    results[name] = Result(name, check.failure, check.timeout, 'check deadline exceeded', check.fix)
                 del pending[name]
     return [results[check.name] for check in selected]
 
@@ -377,7 +453,8 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument('--quick', action='store_true', help='skip golden-path checks')
-    mode.add_argument('--full', action='store_true', help='also spend one designer model turn (180s limit)')
+    mode.add_argument('--full', action='store_true', help='also spend one designer model turn (420s default limit)')
+    parser.add_argument('--designer-timeout', type=float, default=420, help='designer turn deadline in seconds (default: 420)')
     parser.add_argument('--json', action='store_true', help='JSON only on stdout')
     parser.add_argument('--vm', nargs='?', const='http://localhost:18765', help='optional VM health check; no URL means localhost:18765')
     parser.add_argument('--only', action='append', help='exact check name; repeat or comma-separate')
@@ -385,6 +462,8 @@ def main(argv=None):
                           ('designer', 'http://127.0.0.1:8787'), ('architect', 'http://127.0.0.1:8788')]:
         parser.add_argument('--' + name, default=os.environ.get('DEMO_' + name.upper() + '_URL', default))
     args = parser.parse_args(argv)
+    if not 0 < args.designer_timeout < float('inf'):
+        parser.error('--designer-timeout must be a positive finite number')
     selected = checks(args)
     if args.only:
         names = {name for group in args.only for name in group.split(',')}
