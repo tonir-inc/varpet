@@ -118,6 +118,8 @@ def strip_design(doc: dict, owned: list[str]) -> dict:
     if isinstance(project, dict):
         project["components"] = [c for c in project.get("components", []) if c.get("id") not in mine]
         project["finishes"] = [f for f in project.get("finishes", []) if not str(f.get("id", "")).startswith(DESIGN_FINISH)]
+        # The design's own finish materials go with its finishes (the design adds them again; twice is an error).
+        project["materials"] = [m for m in project.get("materials", []) if not str(m.get("id", "")).startswith("spike-finish:")]
     return doc
 
 

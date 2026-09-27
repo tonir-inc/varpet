@@ -107,7 +107,9 @@ try {
       await page.waitForTimeout(2500);
       timings.undo_seconds = Math.round((Date.now() - undoAt) / 100) / 10 - 2.5;
       const cards = () => page.locator('.designer-proposal-status').allTextContents();
-      log('undo', { toast: await page.locator('#toast').textContent().catch(() => ''), cards: await cards() });
+      const history = () => page.evaluate(() => Object.entries(localStorage).filter(([key]) => key.startsWith('varpet.designer.history:'))
+        .flatMap(([, value]) => JSON.parse(value).conversations.flatMap(thread => thread.messages.filter(m => m.proposal).map(m => ({ id: m.proposal.id, status: m.status, marks: m.marks?.length, adds: m.proposal.command.operations.filter(o => o.type === 'add').length })))));
+      log('undo', { toast: await page.locator('#toast').textContent().catch(() => ''), cards: await cards(), history: await history() });
       await screenshot('undo');
       if (!(await cards()).at(-1)?.startsWith('Undone')) fail('follow-up card does not read Undone after Undo');
       // Undo the first design too: its card follows.

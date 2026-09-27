@@ -155,3 +155,12 @@ def test_a_markdown_lettered_question_becomes_option_buttons():
         "The balcony bay is 2.3 m wide; would you prefer **A:** a table for four there, or **B:** dining for six on the long balcony?")
     assert question == "The balcony bay is 2.3 m wide; would you prefer?"
     assert options == ["A: a table for four there", "B: dining for six on the long balcony"]
+
+
+def test_the_designs_own_finish_materials_leave_with_its_finishes():
+    doc = {"objects": [{"id": "sofa"}, {"id": "own"}], "project": {"components": [], "finishes": [{"id": "spike:living:floor"}, {"id": "mine"}],
+           "materials": [{"id": "spike-finish:paint:chalk|#eeeae0"}, {"id": "oak"}]}}
+    out = designer_spike.strip_design(doc, ["sofa"])
+    assert [o["id"] for o in out["objects"]] == ["own"]
+    assert [f["id"] for f in out["project"]["finishes"]] == ["mine"]
+    assert [m["id"] for m in out["project"]["materials"]] == ["oak"]
