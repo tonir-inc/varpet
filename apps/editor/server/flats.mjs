@@ -48,6 +48,7 @@ export function createFlatsMiddleware(options = {}) {
  };
 }
 export function flatsPlugin(options={}) {
- const configure=server=>server.middlewares.use(createFlatsMiddleware(options));
+ // Braces matter: a value returned from configureServer is run by Vite as a post hook.
+ const configure=server=>{server.middlewares.use(createFlatsMiddleware(options));};
  return {name:'varpet-flats',configureServer:configure,configurePreviewServer:configure};
 }
