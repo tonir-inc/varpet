@@ -201,7 +201,8 @@ def get_item(item_id: str) -> dict:
     with _conn() as c:
         cur = c.execute(
             """select id, source, source_id, kind, name, brand, size_m, fit_size_m, size_status, size_evidence, price, currency,
-                      price_source, color_std, colors_img, materials, styles, glb_url, main_image_url, preview_url, image_urls, license
+                      price_source, color_std, colors_img, materials, styles, glb_url, main_image_url, preview_url, image_urls, license,
+                      tags->'extra'->>'placement' as placement
                from item where id=%s""", (item_id,))
         row = cur.fetchone()
         if not row:

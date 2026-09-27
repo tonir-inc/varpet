@@ -418,7 +418,8 @@ def _static_rec(r):
            "styles": styles, "materials": mats, "image": img, "preview": preview, "glb_url": glb,
            "colors_astra": (astra.get("main_color") or []) + (astra.get("other_colors") or []),
            "style_astra": astra.get("style") or [], "materials_astra": astra.get("materials") or [],
-           "wd_swapped": bool((ev or {}).get("wd_swapped")), "_fts": float(fts), "_astra": astra}
+           "wd_swapped": bool((ev or {}).get("wd_swapped")), "_fts": float(fts), "_astra": astra,
+           "placement": ((tags or {}).get("extra") or {}).get("placement")}
     return rec, cimg, size, price
 
 
