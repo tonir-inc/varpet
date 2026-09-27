@@ -25,7 +25,7 @@ export function tourRooms(scene: SceneDocument): Room[] {
   return order;
 }
 
-interface Plan { points: THREE.Vector3[]; stops: Array<{ index: number; look: THREE.Vector3 }> }
+interface Plan { points: THREE.Vector3[]; stops: Array<{ index: number; look: THREE.Vector3 }>; doors: THREE.Vector3[] }
 
 /**
  * Plans the walking leg on a 0.3 m grid of standing space, cooperatively: call step() every frame
@@ -50,14 +50,6 @@ function* planTour(scene: SceneDocument, catalog: CatalogAsset[]): Generator<voi
   if (!rooms.length) return null;
   const probe = walkProbe(scene, catalog);
   const floor = probe.elevation(rooms[0]!);
-  const spawns: Array<{ point: Vec2; look: THREE.Vector3 }> = [];
-  for (const room of rooms) {
-    if (probe.elevation(room) !== floor) continue;
-    const spawn = findWalkSpawn(scene, catalog, { roomId: room.id });
-    if (spawn) spawns.push({ point: [spawn.position[0], spawn.position[2]], look: new THREE.Vector3(...spawn.target) });
-    yield;
-  }
-  if (!spawns.length) return null;
   const level = probe.rooms.filter(room => probe.elevation(room) === floor);
   const xs = level.flatMap(room => room.polygon.map(p => p[0])), zs = level.flatMap(room => room.polygon.map(p => p[1]));
   const minX = Math.min(...xs), minZ = Math.min(...zs), cell = 0.2;
@@ -73,6 +65,7 @@ function* planTour(scene: SceneDocument, catalog: CatalogAsset[]): Generator<voi
   // Doorways: the body test rejects the wall-thickness gap between two room floors, so open a
   // narrow lane straight through every usable door (and only doors: never through a wall).
   const metadata = scene.project?.metadata ?? {};
+  const leaves: number[] = [];
   for (const wall of scene.walls) {
     if (metadata[wall.id]?.phase === 'remove' || (metadata[wall.id]?.elevation ?? 0) !== floor) continue;
     const dx = wall.end[0] - wall.start[0], dz = wall.end[1] - wall.start[1], length = Math.hypot(dx, dz);
@@ -81,6 +74,13 @@ function* planTour(scene: SceneDocument, catalog: CatalogAsset[]): Generator<voi
     for (const door of wall.openings) {
       if (door.kind !== 'door' || metadata[door.id]?.mechanism === 'fixed' || metadata[door.id]?.phase === 'remove' || door.width < 0.55) continue;
       const along = door.offset + door.width / 2;
+      // The open leaf stands out from the hinge jamb; keep it solid so the path keeps its distance.
+      const hinge = metadata[door.id]?.hinge === 'right' ? door.offset + door.width : door.offset;
+      for (let across = -door.width; across <= door.width; across += 0.1) {
+        const x = wall.start[0] + ux * hinge - uz * across, z = wall.start[1] + uz * hinge + ux * across;
+        const i = Math.floor((x - minX) / cell), j = Math.floor((z - minZ) / cell);
+        if (i >= 0 && j >= 0 && i < nx && j < nz) leaves.push(j * nx + i);
+      }
       for (let across = -0.9; across <= 0.9; across += 0.1) for (const side of [-0.1, 0, 0.1]) {
         const x = wall.start[0] + ux * (along + side) - uz * across, z = wall.start[1] + uz * (along + side) + ux * across;
         const i = Math.floor((x - minX) / cell), j = Math.floor((z - minZ) / cell);
@@ -98,16 +98,55 @@ function* planTour(scene: SceneDocument, catalog: CatalogAsset[]): Generator<voi
     }
     return best;
   };
-  // Hugging a wall reads as a security camera; open floor costs less.
-  const penalty = new Float32Array(nx * nz);
-  for (let index = 0; index < walkable.length; index++) {
-    const i = index % nx, j = Math.floor(index / nx); let blocked = 0;
-    for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) {
-      const x = i + di, z = j + dj; if (x < 0 || z < 0 || x >= nx || z >= nz || !walkable[z * nx + x]) blocked++;
-    }
-    penalty[index] = blocked * 0.08;
+  // Metres to the nearest wall, furniture or door jamb (two-pass chamfer distance).
+  const distance = new Float32Array(nx * nz);
+  for (let index = 0; index < distance.length; index++) distance[index] = walkable[index] ? 1e9 : 0;
+  const relax = (index: number, other: number, step: number) => { if (distance[other]! + step < distance[index]!) distance[index] = distance[other]! + step; };
+  for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) {
+    const index = j * nx + i; if (!walkable[index]) continue;
+    if (i === 0 || j === 0 || i === nx - 1 || j === nz - 1) { distance[index] = cell; continue; }
+    relax(index, index - 1, cell); relax(index, index - nx, cell); relax(index, index - nx - 1, cell * 1.414); relax(index, index - nx + 1, cell * 1.414);
+  }
+  for (let j = nz - 2; j > 0; j--) for (let i = nx - 2; i > 0; i--) {
+    const index = j * nx + i; if (!walkable[index]) continue;
+    relax(index, index + 1, cell); relax(index, index + nx, cell); relax(index, index + nx + 1, cell * 1.414); relax(index, index + nx - 1, cell * 1.414);
   }
   yield;
+  // Keep 0.8 m from walls, door leaves and furniture wherever the floor allows it.
+  const penalty = new Float32Array(nx * nz);
+  for (let index = 0; index < penalty.length; index++) penalty[index] = Math.max(0, 0.9 - distance[index]!) * 4;
+  // Open door leaves: costly to brush past (a leaf filling the frame), never a wall to the route.
+  for (const index of leaves) for (let dj = -2; dj <= 2; dj++) for (let di = -2; di <= 2; di++) {
+    const i = index % nx + di, j = Math.floor(index / nx) + dj;
+    if (i >= 0 && j >= 0 && i < nx && j < nz) penalty[j * nx + i]! += 2.5 / (1 + Math.abs(di) + Math.abs(dj));
+  }
+  // Where to stand in each room: open floor 2.4-4.5 m from its focal piece (sofa, bed, table),
+  // with a clear sight line and at least 0.8 m to anything; the focal piece is what the shot holds on.
+  const spawns: Array<{ point: Vec2; look: THREE.Vector3 }> = [];
+  for (const room of rooms) {
+    if (probe.elevation(room) !== floor) continue;
+    const focal = probe.focalPiece(room, floor) ?? probe.furnitureCentre(room, floor);
+    if (!focal && spawns.length) continue; // an empty room has nothing to show
+    let best: Vec2 | null = null, bestScore = -Infinity;
+    if (focal) for (let index = 0; index < walkable.length; index++) {
+      if (!walkable[index] || distance[index]! < 0.6) continue;
+      const point = at(index % nx, Math.floor(index / nx));
+      if (!probe.contains(room, point)) continue;
+      const reach = Math.hypot(focal[0] - point[0], focal[1] - point[1]);
+      if (reach < 1.6) continue;
+      const score = -Math.abs(reach - 3.2) + Math.min(distance[index]!, 1.4) * 1.2;
+      if (score > bestScore && !probe.wallBetween(point, focal)) { bestScore = score; best = point; }
+      if (index % 64 === 0) yield;
+    }
+    const eye = floor + WALK_EYE_HEIGHT;
+    if (best && focal) spawns.push({ point: best, look: new THREE.Vector3(focal[0], floor + 0.75, focal[1]) });
+    else {
+      const spawn = findWalkSpawn(scene, catalog, { roomId: room.id });
+      if (spawn) spawns.push({ point: [spawn.position[0], spawn.position[2]], look: new THREE.Vector3(...spawn.target) });
+    }
+    yield;
+  }
+  if (!spawns.length) return null;
   function* route(from: number, to: number): Generator<void, number[] | null> {
     const cost = new Float32Array(nx * nz).fill(Infinity), previous = new Int32Array(nx * nz).fill(-1), closed = new Uint8Array(nx * nz);
     const open: number[] = [from]; cost[from] = 0;
@@ -142,7 +181,7 @@ function* planTour(scene: SceneDocument, catalog: CatalogAsset[]): Generator<voi
     for (let s = 0; s <= steps; s++) {
       const point: Vec2 = [a[0] + (b[0] - a[0]) * s / steps, a[1] + (b[1] - a[1]) * s / steps];
       const i = Math.floor((point[0] - minX) / cell), j = Math.floor((point[1] - minZ) / cell);
-      if (i < 0 || j < 0 || i >= nx || j >= nz || !walkable[j * nx + i] || penalty[j * nx + i]! > 0.35) return false;
+      if (i < 0 || j < 0 || i >= nx || j >= nz || !walkable[j * nx + i] || distance[j * nx + i]! < 0.55) return false;
     }
     return true;
   };
@@ -166,13 +205,32 @@ function* planTour(scene: SceneDocument, catalog: CatalogAsset[]): Generator<voi
     stops.push({ index: points.length - 1, look: waypoints[w]!.look });
     yield;
   }
+  // Grid steps read as a jitter at eye height: relax the path (stops stay put) a few times.
+  const fixed = new Set(stops.map(stop => stop.index));
+  for (let pass = 0; pass < 4; pass++) {
+    const copy = points.map(point => [...point] as Vec2);
+    for (let k = 1; k < points.length - 1; k++) if (!fixed.has(k)) {
+      points[k] = [copy[k - 1]![0] * 0.25 + copy[k]![0] * 0.5 + copy[k + 1]![0] * 0.25, copy[k - 1]![1] * 0.25 + copy[k]![1] * 0.5 + copy[k + 1]![1] * 0.25];
+    }
+  }
+  const doors: Vec2[] = [];
+  for (const wall of scene.walls) {
+    const dx = wall.end[0] - wall.start[0], dz = wall.end[1] - wall.start[1], length = Math.hypot(dx, dz) || 1;
+    for (const door of wall.openings) if (door.kind === 'door') doors.push([wall.start[0] + dx / length * (door.offset + door.width / 2), wall.start[1] + dz / length * (door.offset + door.width / 2)]);
+  }
   if (typeof location !== 'undefined' && new URLSearchParams(location.search).has('perf'))
     console.info(`tour plan: ${rooms.map(room => room.name).join(' > ')}; ${spawns.length} standing points, ${stops.length} stops, ${points.length} path points; ${debug.join(' ')}`);
-  if (stops.length < 2) return null;
-  return { points: points.map(([x, z]) => new THREE.Vector3(x, floor + WALK_EYE_HEIGHT, z)), stops };
+  if (stops.length < 2 || points.length < 2) return null;
+  return { points: points.map(([x, z]) => new THREE.Vector3(x, floor + WALK_EYE_HEIGHT, z)), stops,
+    doors: doors.map(([x, z]) => new THREE.Vector3(x, floor + WALK_EYE_HEIGHT, z)) };
 }
 
 interface Leg { start: number; end: number; pose(t: number, out: TourPose): void }
+function pitched(direction: THREE.Vector3): THREE.Vector3 {
+  const flat = Math.hypot(direction.x, direction.z) || 1;
+  const pitch = Math.max(-0.31, Math.min(0, Math.atan2(direction.y, flat)));
+  return new THREE.Vector3(direction.x / flat * Math.cos(pitch), Math.sin(pitch), direction.z / flat * Math.cos(pitch));
+}
 
 /**
  * The cinematic path: dollhouse orbit, a glide down into the living room, a walk through the
@@ -219,7 +277,19 @@ export class TourPlayback {
     } });
     // Walking: constant pace between stops, a slow look around at each.
     const lengths = [0]; for (let k = 1; k < plan.points.length; k++) lengths.push(lengths[k - 1]! + plan.points[k]!.distanceTo(plan.points[k - 1]!));
-    const total = lengths.at(-1)!, pause = 3.2, evening = 6;
+    // Pace: doorways pass at twice the speed, so a door leaf never lingers in frame.
+    const middle = new THREE.Vector3();
+    const paced = [0]; for (let k = 1; k < plan.points.length; k++) {
+      middle.copy(plan.points[k - 1]!).add(plan.points[k]!).multiplyScalar(0.5);
+      const doorway = plan.doors.some(door => door.distanceTo(middle) < 1.1);
+      paced.push(paced[k - 1]! + (lengths[k]! - lengths[k - 1]!) * (doorway ? 0.45 : 1));
+    }
+    const arcAt = (p: number) => {
+      let k = 1; while (k < paced.length - 1 && paced[k]! < p) k++;
+      const span = paced[k]! - paced[k - 1]!;
+      return lengths[k - 1]! + (lengths[k]! - lengths[k - 1]!) * (span > 0 ? THREE.MathUtils.clamp((p - paced[k - 1]!) / span, 0, 1) : 0);
+    };
+    const total = paced.at(-1)!, pause = 3, evening = 6;
     const budget = 54 - (t0 + glide) - evening - pause * (plan.stops.length - 1);
     const speed = THREE.MathUtils.clamp(total / Math.max(8, budget), 0.7, 1.8);
     const at = (s: number, target: THREE.Vector3) => {
@@ -231,28 +301,35 @@ export class TourPlayback {
     let clock = t0 + glide;
     for (let stop = 0; stop < plan.stops.length; stop++) {
       const here = plan.stops[stop]!, last = stop === plan.stops.length - 1;
-      const base = here.look.clone().sub(plan.points[here.index]!).setY(0).normalize();
+      // Pitched down onto the focal piece (a bed reads from above its footboard), capped at 18 degrees.
+      const base = pitched(here.look.clone().sub(plan.points[here.index]!));
       const hold = last ? evening : pause;
       this.legs.push({ start: clock, end: clock + hold, pose: (t, out) => {
-        const swing = last ? -0.25 * ease(t) : 0.45 * Math.sin(t * Math.PI);
-        out.view = 'inside'; out.fov = this.insideFov; out.evening = last ? easeInOut(t) : 0;
+        const swing = last ? -0.2 * ease(t) : 0.28 * Math.sin(t * Math.PI);
+        out.view = 'inside'; out.fov = this.insideFov; out.evening = last ? easeInOut(Math.min(1, t / 0.75)) : 0;
         out.position.copy(plan.points[here.index]!);
         out.target.copy(out.position).add(base.clone().applyAxisAngle(THREE.Object3D.DEFAULT_UP, swing));
       } });
       clock += hold;
       if (last) break;
-      const next = plan.stops[stop + 1]!, s0 = lengths[here.index]!, s1 = lengths[next.index]!;
-      const nextBase = next.look.clone().sub(plan.points[next.index]!).setY(0).normalize();
-      const duration = Math.max(2, (s1 - s0) / speed);
+      const next = plan.stops[stop + 1]!, s0 = lengths[here.index]!, s1 = lengths[next.index]!, p0 = paced[here.index]!, p1 = paced[next.index]!;
+      const nextBase = pitched(next.look.clone().sub(plan.points[next.index]!));
+      const duration = Math.max(2, (p1 - p0) / speed);
+      // Only turn toward the next room's furniture once through its door.
+      let lastDoor = s0;
+      for (let k = here.index; k <= next.index; k++) if (plan.doors.some(door => door.distanceTo(plan.points[k]!) < 1.1)) lastDoor = lengths[k]!;
+      const turnFrom = Math.min(s1 - 0.8, Math.max(lastDoor + 0.9, s0 + (s1 - s0) * 0.45));
       this.legs.push({ start: clock, end: clock + duration, pose: (t, out) => {
-        const s = s0 + (s1 - s0) * easeInOut(t);
+        const s = arcAt(p0 + (p1 - p0) * easeInOut(t));
         out.view = 'inside'; out.fov = this.insideFov; out.evening = 0;
         at(s, out.position);
         // Look along the path a little ahead, blending from and into each stop's view.
         ahead.set(0, 0, 0);
-        for (let k = 1; k <= 4; k++) ahead.add(at(Math.min(s1, s + k * 0.45), sample).sub(out.position).setY(0));
+        // A long look-ahead aims through doorways instead of at the leaf beside them.
+        for (let k = 1; k <= 8; k++) ahead.add(at(Math.min(s1, s + k * 0.45), sample).sub(out.position).setY(0));
         if (ahead.lengthSq() < 1e-6) ahead.copy(nextBase); ahead.normalize();
-        const blendIn = 1 - ease(t / 0.25), blendOut = ease((t - 0.75) / 0.25);
+        // Arriving, turn toward the next room's furniture well before the stop.
+        const blendIn = 1 - ease(t / 0.25), blendOut = ease((s - turnFrom) / Math.max(0.6, s1 - turnFrom));
         ahead.lerp(base, blendIn).lerp(nextBase, blendOut).normalize();
         out.target.copy(out.position).add(ahead);
       } });

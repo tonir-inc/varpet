@@ -186,7 +186,34 @@ function walkContext(scene: SceneDocument, catalog: CatalogAsset[]) {
     }
     return false;
   }
-  return { rooms, elevation, safe, floorAt, viewDirection, clearance, furnitureCentre, viewBlocked, wallAhead };
+  /** The room's largest standing piece (sofa, bed, dining table): what a photographer frames. */
+  function focalPiece(room: Room, floor: number): Vec2 | null {
+    let best: Vec2 | null = null, bestArea = 0;
+    for (const obstacle of obstacles) {
+      if (obstacle.top <= floor + 0.3) continue;
+      const cx = obstacle.polygon.reduce((sum, p) => sum + p[0], 0) / obstacle.polygon.length;
+      const cz = obstacle.polygon.reduce((sum, p) => sum + p[1], 0) / obstacle.polygon.length;
+      const area = polygonArea(obstacle.polygon);
+      if (area > bestArea && contains(room.polygon, [cx, cz])) { bestArea = area; best = [cx, cz]; }
+    }
+    return best;
+  }
+  /** True when a straight sight line crosses solid wall (door openings are open). */
+  function wallBetween(a: Vec2, b: Vec2): boolean {
+    for (const wall of walls) {
+      const wx = wall.end[0] - wall.start[0], wz = wall.end[1] - wall.start[1], length = Math.hypot(wx, wz);
+      if (length < EPS) continue;
+      const rx = b[0] - a[0], rz = b[1] - a[1], denominator = rx * wz - rz * wx;
+      if (Math.abs(denominator) < EPS) continue;
+      const qx = wall.start[0] - a[0], qz = wall.start[1] - a[1];
+      const t = (qx * wz - qz * wx) / denominator, u = (qx * rz - qz * rx) / denominator;
+      if (t <= 0 || t >= 1 || u < 0 || u > 1) continue;
+      const along = u * length;
+      if (!wall.openings.some(opening => opening.kind === 'door' && along >= opening.offset && along <= opening.offset + opening.width)) return true;
+    }
+    return false;
+  }
+  return { rooms, elevation, safe, floorAt, viewDirection, clearance, furnitureCentre, viewBlocked, wallAhead, focalPiece, wallBetween };
 }
 
 function polygonDistance(point: Vec2, polygon: Vec2[]): number {
@@ -302,5 +329,5 @@ export function moveWalkPosition(scene: SceneDocument, catalog: CatalogAsset[], 
 /** Standing-space queries for planners (the viewport's camera tour): same rules as walking. */
 export function walkProbe(scene: SceneDocument, catalog: CatalogAsset[]) {
   const context = walkContext(scene, catalog);
-  return { rooms: context.rooms, elevation: context.elevation, safe: context.safe, clearance: context.clearance, contains: (room: Room, point: Vec2) => contains(room.polygon, point) };
+  return { rooms: context.rooms, elevation: context.elevation, safe: context.safe, clearance: context.clearance, furnitureCentre: context.furnitureCentre, focalPiece: context.focalPiece, wallBetween: context.wallBetween, contains: (room: Room, point: Vec2) => contains(room.polygon, point) };
 }

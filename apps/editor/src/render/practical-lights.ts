@@ -87,11 +87,14 @@ export class EveningRoomLights {
     this.group.updateMatrixWorld(true);
   }
 
-  /** 0 by day, 1 at night. */
-  setLevel(level: number): void {
+  private readonly dayTint = new THREE.Color('#fff7ef');
+  private readonly lampTint = new THREE.Color('#ffe9d2');
+  /** Level 0 by day to 1 at night; warmth 0 keeps a daytime fill neutral so paint keeps its hue. */
+  setLevel(level: number, warmth = 1): void {
     for (const child of this.group.children) {
       const light = child as THREE.PointLight;
       light.intensity = level * (light.userData.fillBase as number);
+      light.color.copy(this.dayTint).lerp(this.lampTint, Math.max(0, Math.min(1, warmth)));
     }
   }
 }

@@ -488,8 +488,8 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
     ambient.intensity = THREE.MathUtils.lerp(inside ? 0.1 : 0.3, inside ? 0.6 : 0.42, daylight);
     blueprint.setShadowStrength(unlitTop ? 1 : sunSettings.enabled === false ? 0 : daylight);
     ambient.color.set('#dfe4ec').lerp(eveningSky, 1 - daylight);
-    ambient.groundColor.set(inside ? '#cbb9a3' : '#a89580').lerp(eveningGround, 1 - daylight);
-    eveningLights.setLevel(unlitTop ? 0 : inside ? THREE.MathUtils.lerp(1, 0.3, daylight) : 1 - daylight);
+    ambient.groundColor.set(inside ? '#c9c5bd' : '#a89580').lerp(eveningGround, 1 - daylight);
+    eveningLights.setLevel(unlitTop ? 0 : inside ? THREE.MathUtils.lerp(1, 0.3, daylight) : 1 - daylight, 1 - daylight);
     const sun = effectiveSunlight(sunSettings);
     sunlight.color.set(sun.sunColor); sunlight.intensity = sun.sunIntensity;
     // Keep the studio readable without painting false pools of sunlight through walls.
@@ -497,8 +497,10 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
     fill.intensity = 0.08 * daylight; rim.intensity = 0.12 * daylight;
     warmPool.visible = secondPool.visible = false;
     applyPracticalLighting();
-    renderer.toneMappingExposure = inside ? THREE.MathUtils.lerp(1.02, 1.2, daylight) : 1.02;
-    renderer.toneMapping = unlitTop ? THREE.NoToneMapping : THREE.ACESFilmicToneMapping;
+    // PBR Neutral maps mid-greys lower than ACES did: lift exposure so pale paint reads pale.
+    renderer.toneMappingExposure = inside ? THREE.MathUtils.lerp(1.1, 1.25, daylight) : THREE.MathUtils.lerp(1.1, 1.4, daylight);
+    // Khronos PBR Neutral keeps a paint swatch's hue and lightness (ACES pushed pale sage to beige).
+    renderer.toneMapping = unlitTop ? THREE.NoToneMapping : THREE.NeutralToneMapping;
     // Unlit Top bypasses lighting in the shader; toggling shadowMap.enabled would recompile every material.
     renderer.shadowMap.enabled = true;
     scheduleWarmUp();
@@ -595,9 +597,11 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
       let animating = geometryMoving;
       let shadowsChanged = geometryMoving;
       if (tour) {
-        const pose = tour.playback.update(now);
-        if (pose) { applyTourPose(pose); animating = true; }
-        if (tour.playback.finished) finishTour(true);
+        try {
+          const pose = tour.playback.update(now);
+          if (pose) { applyTourPose(pose); animating = true; }
+          if (tour?.playback.finished) finishTour(true);
+        } catch { finishTour(false); }
       }
       if (cameraMotion.update(now)) animating = true;
       if (keyboardNavigation.update(now)) animating = true;
@@ -675,6 +679,14 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
     const bounds = structure.bounds.clone(), center = bounds.getCenter(new THREE.Vector3()).setY(0.4);
     // Frame the whole flat: its diagonal fills about 80% of the view height at the perspective lens.
     const radius = Math.max(10, bounds.getSize(new THREE.Vector3()).length() / (2 * Math.tan(THREE.MathUtils.degToRad(perspective.fov) / 2)) * 0.8);
+    // Before the first frame: skies captured and the Inside background program linked, so the glide
+    // into the room and the sunset never compile or capture mid-shot.
+    warmUp();
+    try {
+      const saved = world.background, savedIntensity = world.backgroundIntensity, eveningSky = skyboxes.get('twilight', effectiveSunlight(normalizeSun({ timeOfDay: 22, enabled: false }, sunSettings)));
+      world.background = eveningSky.background; studioRenderer.render(insideCamera);
+      world.background = saved; world.backgroundIntensity = savedIntensity;
+    } catch { /* A failed warm-up only means a later first use compiles. */ }
     const playback = new TourPlayback(new TourPlanner(documentState, catalogState), { position: perspective.position.clone(), target: orbit.target.clone(), fov: perspective.fov }, center, radius, insideCamera.fov);
     for (const type of tourInputs) window.addEventListener(type, stopTourOnInput, { capture: true, passive: true });
     return new Promise(resolve => { tour = { playback, resolve, evening: 0 }; requestRender(); });
@@ -684,7 +696,7 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
     const { resolve, evening } = tour; tour = null;
     for (const type of tourInputs) window.removeEventListener(type, stopTourOnInput, { capture: true });
     if (view === 'inside') walk.orient();
-    if (evening > 0) api.setLightingMood(evening >= 0.5 ? 'evening' : 'day');
+    if (evening > 0 && evening < 0.999) api.setLightingMood(evening >= 0.5 ? 'evening' : 'day');
     resolve(completed);
   }
   function applyTourPose(pose: TourPose): void {
@@ -699,8 +711,10 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
     }
     if (tour && Math.abs(pose.evening - tour.evening) > 0.01) {
       tour.evening = pose.evening;
-      // The sun sets over the closing shot; the finished tour settles on the real evening mood.
-      api.setSun({ timeOfDay: 12 + 9.5 * pose.evening, enabled: true });
+      // The sun sets over the closing shot, stopping just before night so the window sky never
+      // recaptures mid-fade; at the end the evening mood lands on its pre-captured blue-hour sky.
+      if (pose.evening >= 0.999) api.setLightingMood('evening');
+      else api.setSun({ timeOfDay: 12 + 6.7 * pose.evening, enabled: true });
     }
   }
   let warmTimer: ReturnType<typeof setTimeout> | undefined;
@@ -2026,6 +2040,15 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
       studioRenderer.dispose(); skyboxes.dispose(); environment.dispose(); renderer.dispose(); container.remove();
     },
   };
-  perfProbe = installPerfProbe({ viewport: api, renderer, world });
+  perfProbe = installPerfProbe({ viewport: api, renderer, world, pick(x, y) {
+    const rect = renderer.domElement.getBoundingClientRect();
+    pointer.set(x / rect.width * 2 - 1, -y / rect.height * 2 + 1); raycaster.setFromCamera(pointer, camera);
+    const meshes: THREE.Object3D[] = [];
+    for (const root of [furniture, structure?.group, structure?.ceilings]) if (root?.visible) root.traverseVisible(object => { if (object instanceof THREE.Mesh) meshes.push(object); });
+    const hit = raycaster.intersectObjects(meshes, false)[0];
+    if (!hit) return null;
+    const surfaces = hit.object.userData.finishSurfaces as Record<number, string> | undefined;
+    return { surface: surfaces?.[hit.face?.materialIndex ?? -1], entityId: hit.object.userData.finishEntityId, distance: hit.distance };
+  } });
   return api;
 }

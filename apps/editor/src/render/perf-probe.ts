@@ -5,6 +5,8 @@ export interface PerfProbe {
   viewport: unknown;
   renderer: THREE.WebGLRenderer;
   world: THREE.Scene;
+  /** What is under a canvas point (CSS px): the first visible mesh, with its wall finish surface if any. */
+  pick(x: number, y: number): { surface?: string; entityId?: string; distance: number } | null;
   /** One entry per rendered frame, oldest first: CPU submit ms, draw calls and triangles over all passes. The harness drains it. */
   submits: Array<{ at: number; ms: number; calls: number; triangles: number }>;
 }
