@@ -175,6 +175,8 @@
 .developer-publish-arrow { color: var(--muted); }
 .developer-publish-arrow svg { width: 18px; height: 18px; }
 .developer-publish-form .portal-field-hint { margin-top: -8px; }
+.developer-publish-photos { display: flex; gap: 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--warning-wash); color: var(--warning); font-size: var(--text-xs); line-height: 1.5; }
+.developer-publish-photos svg { width: 15px; height: 15px; flex: 0 0 auto; margin-top: 1px; }
 .developer-publish-done { display: flex; flex-direction: column; align-items: center; gap: 10px; padding-top: 18px; text-align: center; }
 .developer-publish-done h2:focus { outline: none; }
 .developer-publish-done > p { max-width: 420px; color: var(--muted); line-height: 1.6; }

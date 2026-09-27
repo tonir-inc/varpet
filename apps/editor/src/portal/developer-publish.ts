@@ -78,6 +78,7 @@ export function installDeveloperPublish(host: DeveloperPublishHost, context: Dev
     if (dialog) return;
     const scene = host.scene();
     const plan = scenePlanImage(scene);
+    const photos = scene.version === 2 ? (scene.project?.sources ?? []).filter(source => source.kind === 'photo' && source.dataUrl).length : 0;
     const updating = Boolean(published);
     const previousFocus = document.activeElement;
     dialog = document.createElement('dialog');
@@ -101,6 +102,7 @@ export function installDeveloperPublish(host: DeveloperPublishHost, context: Dev
           <label class="portal-field">Area, m²<input name="area" type="number" inputmode="decimal" min="1" max="5000" step="0.1" value="${sceneArea(scene)}"></label>
         </div>
         <p class="portal-field-hint">Area is summed from the model’s room outlines. Enter your own figure if you publish one.</p>
+        ${photos ? `<p class="developer-publish-photos">${icon('eye')} ${photos} room photo${photos === 1 ? '' : 's'} you added stay${photos === 1 ? 's' : ''} attached to this model as evidence, so anyone who opens it can see ${photos === 1 ? 'it' : 'them'}.</p>` : ''}
         <p class="portal-error" role="alert" hidden></p>
         <button class="portal-button portal-primary developer-publish-submit" type="submit" ${plan ? '' : 'disabled'}>${updating ? 'Update on profile' : 'Publish to profile'} ${icon('arrow')}</button>
       </form>
