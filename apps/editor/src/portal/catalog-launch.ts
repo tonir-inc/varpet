@@ -64,7 +64,8 @@ export async function launchBundle(host: HTMLElement, id: string, options: Launc
     options.beforeEditor?.();
     host.classList.remove('portal-host');
     setEditorSession({
-      ...restored, user, apartment: null, templateId: null,
+      // Provenance for saves: team flats file it as a template copy, account apartments keep the bundle id.
+      ...restored, user, apartment: null, templateId: `bundle:${bundle.id}`,
       presentation: {
         paper: BLUEPRINT_PAPER, arriving: true, workflow: 'design',
         bundle: { id: bundle.id, name: bundle.name, developerName: bundle.developerName, developerHref: developerHref(bundle.developerSlug),

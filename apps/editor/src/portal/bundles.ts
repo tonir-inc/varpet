@@ -144,9 +144,10 @@ export async function restoreBundle(bundle: Pick<Bundle, 'scene' | 'catalog'>, r
   const shipped = checkProducts(bundle.catalog);
   const known = new Map(shipped.map(product => [product.asset.id, product]));
   let catalog: CatalogProduct[];
-  try { catalog = await resolveSceneProducts(bundle.scene, known, resolve); }
+  // A bundle that ships all its products never touches the furniture database.
+  try { catalog = await resolveSceneProducts(bundle.scene, known, ids => ids.length ? resolve(ids) : Promise.resolve([])); }
   catch { throw new BundleError('Some furniture in this design is unavailable right now. Check your connection, then try again.', 0, 'catalog_unavailable'); }
-  // Keep shipped products the scene does not reference (options, baselines) out of the session.
+  // Only products the scene (with its baseline and options) references enter the session.
   const scene = parseScene(JSON.stringify(bundle.scene), catalog.map(product => product.asset));
   scene.id = crypto.randomUUID();
   return { scene, catalog };

@@ -1,12 +1,13 @@
 // Catalog tab and bundle → Design hand-off, in a real browser against the dev server on :5181.
-// The bundle API (portal-profile lane) is mocked here from apartments/*, faithful to bundles-contract.ts,
-// unless PROBE_REAL_API=1 (then /api/developers and /api/bundles come from the dev server).
+// Reads the real bundle API (server/developers.mjs from portal/profile). PROBE_MOCK=1 instead serves a mock
+// built from apartments/*, faithful to bundles-contract.ts (used before the API landed).
 // Run from the worktree root: node output/plan-catalog/probe.cjs
 const {chromium}=require('/Users/davitstepanyan/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
 const fs=require('node:fs');
 const path=require('node:path');
 const assert=require('node:assert/strict');
-const base=process.env.PROBE_BASE||'http://127.0.0.1:5181',out=__dirname,realApi=process.env.PROBE_REAL_API==='1';
+const base=process.env.PROBE_BASE||'http://127.0.0.1:5181',out=__dirname,realApi=process.env.PROBE_MOCK!=='1';
+const bid=id=>realApi?`sample-${id}`:id;
 const results={date:new Date().toISOString(),realApi,checks:[],pageErrors:[],consoleErrors:[],screenshots:[],measurements:{}};
 const apartments=path.join(__dirname,'../../apartments');
 let browser,context,page;
@@ -94,7 +95,7 @@ async function inDesign(){await page.locator('.design-onboarding').waitFor({stat
   const shelves=await page.locator('.developer-shelf').evaluateAll(n=>n.map(s=>({name:s.querySelector('h2').textContent,cards:s.querySelectorAll('.bundle-card').length,href:s.querySelector('.developer-profile-link').getAttribute('href')})));
   results.measurements.shelves=shelves;
   assert.equal(shelves.length,3);
-  assert.deepEqual(shelves.map(s=>s.href),['/?developer=sunday-towers','/?developer=orion','/?developer=m6']);
+  assert.deepEqual(shelves.map(s=>s.href).sort(),['/?developer=m6','/?developer=orion','/?developer=sunday-towers']);
   assert.equal(shelves.find(s=>s.name==='Orion').cards,2);
  });
  await check('Cards draw the plan and the furnished 3D model, with one GL context',async()=>{
@@ -139,14 +140,14 @@ async function inDesign(){await page.locator('.design-onboarding').waitFor({stat
   assert.equal(await page.locator('.bundle-card').count(),4);
  });
  await check('Opening a card lands in Design with the developer design, furniture and designer chat',async()=>{
-  await page.evaluate(()=>document.querySelector('.bundle-card[data-bundle-id="orion-t7"]').scrollIntoView({block:'center'}));
+  await page.evaluate(id=>document.querySelector(`.bundle-card[data-bundle-id="${id}"]`).scrollIntoView({block:'center'}),bid('orion-t7'));
   await page.waitForTimeout(1500);
   const t=Date.now();
-  await page.locator('.bundle-card[data-bundle-id="orion-t7"] .bundle-stage').click();
+  await page.locator(`.bundle-card[data-bundle-id="${bid('orion-t7')}"] .bundle-stage`).click();
   await page.locator('.bundle-launch').waitFor({state:'attached'});
   await page.waitForTimeout(180);await shot('03-opening-sheet.png');
   await inDesign();results.measurements.clickToDesignMs=Date.now()-t;
-  assert.match(page.url(),/\?bundle=orion-t7$/);
+  assert.ok(page.url().endsWith('?bundle='+bid('orion-t7')),page.url());
   assert.equal(await page.locator('#design-heading').textContent(),'Type 7 · top floor');
   assert.match(await page.locator('.design-plan-done').textContent(),/Built by Orion/);
   assert.equal(await page.locator('.design-bundle-plan a').getAttribute('href'),'/?developer=orion');
@@ -173,7 +174,7 @@ async function inDesign(){await page.locator('.design-onboarding').waitFor({stat
   await shot('06-customize.png');
  });
 
- await fresh({url:'/?bundle=sunday-b12121'});
+ await fresh({url:'/?bundle='+bid('sunday-b12121')});
  await check('Direct /?bundle= route opens in Design',async()=>{
   await inDesign();
   assert.equal(await page.locator('#design-heading').textContent(),'B12121 · floor 12');
@@ -182,7 +183,7 @@ async function inDesign(){await page.locator('.design-onboarding').waitFor({stat
  await fresh({url:'/?bundle=no-such-plan'});
  await check('A missing bundle shows a retry and a way back, not a blank page',async()=>{
   await page.locator('.bundle-launch.is-error').waitFor();
-  assert.match(await page.locator('.bundle-launch-note').textContent(),/no longer in the catalog/);
+  assert.match(await page.locator('.bundle-launch-note').textContent(),/no longer in the catalog|could not be found/);
   assert.equal(await page.locator('.bundle-launch-back').getAttribute('href'),'/?view=catalog');
   await shot('07-missing-bundle.png');
  });
@@ -204,9 +205,9 @@ async function inDesign(){await page.locator('.design-onboarding').waitFor({stat
  await page.evaluate(()=>document.querySelector('#app').scrollTo(0,700));await page.waitForTimeout(1600);
  await shot('09-catalog-mobile-scrolled.png');
  await check('390 px: opening a bundle lands in Design',async()=>{
-  await page.evaluate(()=>document.querySelector('.bundle-card[data-bundle-id="orion-t8"]').scrollIntoView({block:'center'}));
+  await page.evaluate(id=>document.querySelector(`.bundle-card[data-bundle-id="${id}"]`).scrollIntoView({block:'center'}),bid('orion-t8'));
   await page.waitForTimeout(800);
-  await page.locator('.bundle-card[data-bundle-id="orion-t8"] .bundle-open').click();
+  await page.locator(`.bundle-card[data-bundle-id="${bid('orion-t8')}"] .bundle-open`).click();
   await inDesign();await page.waitForTimeout(1200);
   const brief=await page.locator('.design-brief').boundingBox();
   assert.ok(brief.x>=0&&brief.x+brief.width<=390,JSON.stringify(brief));

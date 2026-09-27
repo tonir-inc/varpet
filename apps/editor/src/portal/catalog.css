@@ -132,7 +132,7 @@
   .catalog-toolbar .portal-filters::-webkit-scrollbar { display: none; }
   .catalog-toolbar .portal-filters button { flex: 0 0 auto; }
   .developer-mark { width: 40px; height: 40px; font-size: 15px; }
-  .developer-shelf-title { flex: 1 1 0; }
+  .developer-shelf-title { flex: 1 1 calc(100% - 60px); }
   .developer-profile-link { width: auto; margin-left: 56px; padding: 0; border-left: 0; font-size: var(--text-xs); }
   .bundle-stage { height: 200px; }
   .bundle-ink { inset: 22px 12px 28px; width: calc(100% - 24px); height: calc(100% - 50px); }
