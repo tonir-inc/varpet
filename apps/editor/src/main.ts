@@ -1227,6 +1227,12 @@ async function startTour(): Promise<boolean> {
 }
 tourButton.onclick = () => { void startTour(); };
 document.addEventListener('varpet:tour', () => { void startTour(); });
+/** Lane pitch's shopping list on the proposal card selects and frames a listed piece. */
+document.addEventListener('varpet:select', event => {
+  const ids = ((event as CustomEvent).detail?.ids ?? []) as string[];
+  const id = ids.find(entry => store.scene.objects.some(object => object.id === entry));
+  if (id && !previewMode) { select(id); focusView(id); }
+});
 
 const modal=$<HTMLDialogElement>('#modal');
 if (architectLive && new URLSearchParams(location.search).has('architect')) queueMicrotask(replayMode ? () => void replayArchitect() : openArchitect);
