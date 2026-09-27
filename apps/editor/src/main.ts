@@ -418,7 +418,6 @@ function focusView(id?: string) {
 }
 
 function run(operations: Operation[], label: string, revision = store.revision, onDeferredApply?: () => void) {
-  if (guidedDesign) return false;
   if (previewMode) { notify('Exit preview to edit the apartment.'); return false; }
   const command: EditCommand = {id:uid(), label, source:'human', baseRevision:revision, operations};
   // Preflight shell edits with the same checks and junction policy as the real
