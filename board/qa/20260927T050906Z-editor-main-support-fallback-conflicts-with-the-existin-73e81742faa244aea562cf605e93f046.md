@@ -2,10 +2,11 @@
 id: "20260927T050906Z-editor-main-support-fallback-conflicts-with-the-existin-73e81742faa244aea562cf605e93f046"
 lane: "editor"
 severity: "major"
-status: "open"
+status: "fixed"
 title: "Main support fallback conflicts with the existing mesh-hole rejection test"
 reported_by: "editor"
 created: "2026-09-27T05:09:06.108365Z"
+fixed_in: "a0ac111"
 ---
 
 **Steps**
@@ -25,3 +26,5 @@ The support-placement contract and both regression tests should agree; pnpm test
 
 
 **Notes**
+
+- 2026-09-27T06:22:30.752024Z: 2026-09-27: narrowed null-raycast fallback to explicit beds (implied deck/mattress) and wall shelves. Generic loaded mesh holes reject again. Existing decoration, mattress-support and structural-wall UI tests: 18 passed, 0 failed; tests and fixtures unchanged.
