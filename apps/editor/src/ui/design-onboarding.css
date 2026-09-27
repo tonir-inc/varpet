@@ -32,6 +32,16 @@ body.editor-arriving .viewport-shell > .design-onboarding:not(#viewport, #archit
 .design-navigation span { margin: 0 8px; opacity: .6; }
 .design-onboarding [hidden] { display: none !important; }
 .project-name > .design-customize-phase { display: flex; flex-shrink: 0; border: 1px solid var(--accent); border-radius: 2px; padding: 2px 6px; color: var(--accent-ink); font: 11px/1.4 var(--condensed); white-space: nowrap; }
+/* Opened from the catalog: the developer's plan stays beside the brief, as it was on the card. */
+.design-bundle-plan { display: grid; grid-template-columns: 112px 1fr; align-items: center; gap: 14px; margin: 0 0 16px; padding: 0 0 14px; border-bottom: 1px solid #dae8e62e; }
+.design-bundle-plan img { display: block; width: 112px; height: 76px; object-fit: contain; filter: grayscale(1) invert(1) contrast(1.4) drop-shadow(0 0 3px #ffffff40); mix-blend-mode: screen; opacity: .92; animation: design-plan-in 700ms cubic-bezier(.16, 1, .3, 1) both; }
+.design-bundle-plan figcaption { display: flex; flex-direction: column; gap: 4px; min-width: 0; font-size: 13px; color: #b1d2c2; }
+.design-bundle-plan figcaption > span { font: 11px/1.4 monospace; letter-spacing: .1em; text-transform: uppercase; }
+.design-bundle-plan a { overflow: hidden; color: #f2f7f4; font-size: 15px; text-overflow: ellipsis; white-space: nowrap; text-decoration: underline; text-decoration-color: #f2f7f455; text-underline-offset: 3px; }
+.design-bundle-plan a:hover { text-decoration-color: #f2f7f4; }
+.design-bundle-plan a:focus-visible { outline: 2px solid #e5ee9d; outline-offset: 3px; }
+.design-from-bundle .design-brief h1 { overflow-wrap: anywhere; }
+@keyframes design-plan-in { from { opacity: 0; transform: translateX(-8px); } }
 @keyframes design-live-pulse { 50% { opacity: .4; } }
 @media (max-width: 640px) {
   .project-name > .design-customize-phase { position: fixed; top: 120px; left: 12px; background: var(--surface); box-shadow: var(--shadow-1); pointer-events: none; }
@@ -41,5 +51,7 @@ body.editor-arriving .viewport-shell > .design-onboarding:not(#viewport, #archit
   .design-intro { font-size: 14px; margin-bottom: 12px; }
   .design-navigation { display: none; }
   .design-brief textarea { min-height: 62px; }
+  .design-bundle-plan { grid-template-columns: 76px 1fr; gap: 12px; margin-bottom: 12px; padding-bottom: 10px; }
+  .design-bundle-plan img { width: 76px; height: 50px; }
 }
-@media (prefers-reduced-motion: reduce) { .design-live-dot { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .design-live-dot, .design-bundle-plan img { animation: none; } }
