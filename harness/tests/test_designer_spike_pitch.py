@@ -103,3 +103,27 @@ def test_translation_errors_leave_renderer_notes_out(tmp_path, monkeypatch):
 
 def test_repeated_room_names_are_counted_once():
     assert designer_spike.room_labels(["Balcony", "Bathroom", "Balcony", "Kitchen", "Bathroom", "Bathroom"]) == ["Balcony ×2", "Bathroom ×3", "Kitchen"]
+
+
+def test_a_rendered_room_is_finished_once_it_settles_even_while_others_change():
+    finished = designer_spike.finished_rooms
+    changed = {"living": 100, "bed1": 104, "bed2": 110}
+    assert finished(["living", "bed1", "bed2"], changed, 117, 30, {"bed1": 105}) == ("bed1",)
+    assert finished(["living", "bed1", "bed2"], changed, 112, 30, {"bed1": 105}) == ()
+
+
+def test_room_files_of_parallel_designers_overlay_the_draft(tmp_path):
+    (tmp_path / "rooms").mkdir()
+    (tmp_path / "draft.json").write_text(json.dumps({"items": [_item("old-sofa", [0, 0]), {**_item("bed", [1, 1]), "room_id": "bed1"}]}))
+    (tmp_path / "rooms" / "living.json").write_text(json.dumps({"items": [_item("sofa", [2, 2])], "finishes": [{"room_id": "living", "surface": "floor"}]}))
+    combined = designer_spike._combined(tmp_path)
+    assert [item["id"] for item in combined["items"]] == ["bed", "sofa"]
+    assert combined["finishes"] == [{"room_id": "living", "surface": "floor"}]
+
+
+def test_whole_flat_briefs_take_the_parallel_path_and_one_room_requests_do_not():
+    rooms = [{"id": "living", "name": "Living room and kitchen"}, {"id": "lounge", "name": "Reading room"}, {"id": "bedroom-1", "name": "Bedroom 1"}]
+    assert designer_spike.whole_flat("Furnish the whole flat for a family of four", rooms)
+    assert designer_spike.whole_flat("Furnish the living room with kitchen and the reading room", rooms)
+    assert not designer_spike.whole_flat("Make the bedroom cosy", rooms)
+    assert not designer_spike.whole_flat("Furnish Bedroom 1 as a nursery", rooms)

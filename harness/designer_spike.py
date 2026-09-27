@@ -350,6 +350,22 @@ def _signatures(draft: dict) -> dict[str, str]:
     return {room: hashlib.sha1(json.dumps(entries, sort_keys=True).encode()).hexdigest() for room, entries in rooms.items()}
 
 
+WHOLE_FLAT = re.compile(r"\b(whole|entire|every|all)\b.{0,20}\b(flat|apartment|home|rooms|house)\b|\bfurnish (the|my|our|this) "
+                        r"(flat|apartment|home)\b|\bfamily\b.{0,80}\bbedrooms?\b", re.I)
+
+
+def whole_flat(request: str, rooms: list[dict]) -> bool:
+    """Several rooms in one brief: the whole flat, or two or more of its rooms by name or kind. Those run on parallel
+    room designers; a one-room request keeps the simple single-thread path."""
+    if WHOLE_FLAT.search(request):
+        return True
+    text = request.lower()
+    kinds = {"living", "kitchen", "bedroom", "bathroom", "reading", "study", "office", "hall", "entrance", "balcony"}
+    named = {room["id"] for room in rooms if (room.get("name") or "").lower() and (room.get("name") or "").lower() in text}
+    mentioned = {kind for kind in kinds if re.search(rf"\b{kind}", text)}
+    return len(named) >= 2 or len(mentioned) >= 2
+
+
 def room_labels(names: list[str]) -> list[str]:
     """Room names for a card: flats repeat names (four "Bathroom"s), so a repeated name is counted once."""
     counts: dict[str, int] = {}
@@ -358,38 +374,72 @@ def room_labels(names: list[str]) -> list[str]:
     return [name if count == 1 else f"{name} ×{count}" for name, count in counts.items()]
 
 
-def finished_rooms(started: list[str], changed: dict[str, float], now: float, quiet: float) -> tuple[str, ...]:
-    """Rooms this turn worked on that have been quiet for `quiet` seconds, never the one changed last (the
-    designer is still in it). Works whether rooms are designed one after another or in parallel."""
+def finished_rooms(started: list[str], changed: dict[str, float], now: float, quiet: float,
+                   rendered: dict[str, float] | None = None, settle: float = 12.0) -> tuple[str, ...]:
+    """Rooms this turn worked on that are finished: rendered and then untouched for `settle` seconds (a room
+    designer's last step is one render round), or untouched for `quiet` seconds while another room was changed
+    after them. Works whether rooms are designed one after another or in parallel, in any order."""
+    rendered = rendered or {}
     touched = [room for room in started if room in changed]
-    if len(touched) < 2:
-        return ()
-    latest = max(touched, key=lambda room: changed[room])
-    return tuple(room for room in touched if room != latest and now - changed[room] >= quiet)
+    latest = max(touched, key=lambda room: changed[room]) if len(touched) > 1 else None
+    return tuple(room for room in touched
+                 if (room in rendered and rendered[room] >= changed[room] - 1 and now - changed[room] >= settle)
+                 or (room != latest and latest is not None and now - changed[room] >= quiet))
+
+
+def _combined(workspace: Path) -> dict | None:
+    """draft.json with each room designer's rooms/<room>.json over its room (parallel room sub-agents write those
+    until `./varpet merge` folds them back in)."""
+    draft = _read_draft(workspace / "draft.json")
+    if draft is None:
+        return None
+    parts = {}
+    for path in sorted((workspace / "rooms").glob("*.json")) if (workspace / "rooms").is_dir() else []:
+        part = _read_draft(path)
+        if part is None:
+            return None  # mid-write: try again next poll
+        parts[path.stem] = part
+    if not parts:
+        return draft
+    out = {key: (value if not isinstance(value, list) else
+                 [entry for entry in value if not (isinstance(entry, dict) and entry.get("room_id") in parts)])
+           for key, value in draft.items()}
+    for key in ("items", "finishes", "lighting"):
+        out.setdefault(key, [])
+        for part in parts.values():
+            out[key] = list(out[key]) + [entry for entry in part.get(key) or [] if isinstance(entry, dict)]
+    return out
 
 
 class DraftWatcher:
-    """Watches draft.json while the thread works: a line per room as the designer moves into it, and when a room is
-    finished (the designer has moved on to the next one) a checked preview of the finished rooms, so the customer can
-    look at them while the rest continues. A preview is sent only when ./varpet check passes on exactly those rooms."""
+    """Watches the design while the thread works (draft.json and, with parallel room designers, rooms/*.json and the
+    ./varpet command log): a line per room as it starts, the room designers' renders as previews, and when a room is
+    finished a checked preview of the finished rooms, so the customer can look at them while the rest continues. A
+    preview is sent only when ./varpet check passes on exactly those rooms. Finished rooms can also be handed to the
+    critic right away (`on_finished`), so the review overlaps the rest of the design."""
 
     def __init__(self, state: SpikeConversation, progress, body: dict, turn: Path, partials: bool = True,
-                 interval: float = 1.5, quiet: float = 30.0):
+                 interval: float = 1.5, quiet: float = 30.0, observer=None, on_finished=None):
         self.state, self.progress, self.body, self.turn = state, progress, body, turn
         self.names = {room["id"]: room.get("name") or room["id"] for room in state.rooms}
         self.partials, self.interval = partials, interval
+        self.observer, self.on_finished = observer, on_finished
         self.stopped = threading.Event()
         self.emit_lock = threading.Lock()
-        before = _read_draft(state.workspace / "draft.json") or {}
-        self.digest = _draft_digest(state.workspace)
+        before = _combined(state.workspace) or {}
+        self.digest = ""
         self.started_rooms: list[str] = _room_order(before)
         self.previewed: tuple[str, ...] = ()
         self.sent = 0
-        # When each room's part of the draft last changed; a room is finished once it has been quiet for `quiet`
-        # seconds while the designer works elsewhere (in order or, with parallel room designers, out of order).
         self.signatures: dict[str, str] = _signatures(before)
         self.changed: dict[str, float] = {}
+        self.rendered: dict[str, float] = {}
         self.quiet = quiet
+        self.log = state.workspace / ".varpet-log.jsonl"
+        try:
+            self.log_offset = self.log.stat().st_size
+        except OSError:
+            self.log_offset = 0
         self.thread = threading.Thread(target=self._loop, daemon=True)
 
     def start(self) -> "DraftWatcher":
@@ -414,32 +464,67 @@ class DraftWatcher:
             except Exception:  # progress lines and previews are a bonus; the turn goes on without them
                 pass
 
-    def poll(self, now: float) -> None:
-        digest = _draft_digest(self.state.workspace)
-        draft = _read_draft(self.state.workspace / "draft.json") if digest and digest != self.digest else None
-        if draft is not None:
-            self.digest = digest
-            for room, signature in _signatures(draft).items():
-                if self.signatures.get(room) != signature:
-                    self.signatures[room], self.changed[room] = signature, now
-            for room in _room_order(draft):
-                if room not in self.started_rooms:
-                    self.started_rooms.append(room)
-                    self._emit(f"Designing the {self.names.get(room, room).lower()}")
-        if not self.partials:
+    def _name(self, room: str) -> str:
+        return self.names.get(room, room)
+
+    def _commands(self, now: float) -> None:
+        """New lines of ./varpet's command log: what the room designers (sub-agents included) are doing."""
+        try:
+            with self.log.open() as handle:
+                handle.seek(self.log_offset)
+                chunk = handle.read()
+        except OSError:
             return
-        done = finished_rooms(self.started_rooms, self.changed, now, self.quiet)
+        complete = chunk[:chunk.rfind("\n") + 1]
+        self.log_offset += len(complete.encode())
+        for line in complete.splitlines():
+            try:
+                entry = json.loads(line)
+            except ValueError:
+                continue
+            room, cmd = entry.get("part"), entry.get("cmd")
+            if entry.get("event") == "start" and cmd == "merge":
+                self._emit("Putting the rooms together")
+            if entry.get("event") != "end" or entry.get("exit") != 0 or not room:
+                continue
+            if room not in self.started_rooms:
+                self.started_rooms.append(room)
+                self._emit(f"Designing the {self._name(room).lower()}")
+            if cmd == "check":
+                self._emit(f"{self._name(room)}: checked, walkways clear")
+            elif cmd in ("render-view", "render-plan"):
+                self.rendered[room] = now
+                out = next((text.strip() for text in str(entry.get("out") or "").splitlines() if text.strip().endswith(".png")), None)
+                if out and self.observer is not None and not self.stopped.is_set():
+                    path = Path(out) if Path(out).is_absolute() else self.state.workspace / out
+                    self.observer.preview(path, ("Plan" if cmd == "render-plan" else "View") + f", {self._name(room)}")
+
+    def poll(self, now: float) -> None:
+        self._commands(now)
+        draft = _combined(self.state.workspace)
+        if draft is not None:
+            digest = hashlib.sha256(json.dumps(draft, sort_keys=True).encode()).hexdigest()
+            if digest != self.digest:
+                self.digest = digest
+                for room, signature in _signatures(draft).items():
+                    if self.signatures.get(room) != signature:
+                        self.signatures[room], self.changed[room] = signature, now
+                for room in _room_order(draft):
+                    if room not in self.started_rooms:
+                        self.started_rooms.append(room)
+                        self._emit(f"Designing the {self._name(room).lower()}")
+        if not self.partials or draft is None:
+            return
+        done = finished_rooms(self.started_rooms, self.changed, now, self.quiet, self.rendered)
         # Rooms may finish in any order (parallel designers): preview whenever a room joins the finished set.
         if done and not set(done) <= set(self.previewed):
-            current = _read_draft(self.state.workspace / "draft.json")
-            if current is not None:
-                self._partial(current, done)
+            self._partial(draft, tuple(sorted(set(done) | set(self.previewed), key=self.started_rooms.index)))
 
     def _partial(self, draft: dict, rooms: tuple[str, ...]) -> None:
         keep = set(rooms)
         snapshot = {key: ([entry for entry in value if isinstance(entry, dict) and entry.get("room_id") in keep]
                           if isinstance(value, list) else value) for key, value in draft.items()}
-        work = self.turn / f"partial-{len(rooms)}"
+        work = self.turn / f"partial-{self.sent + 1}"
         work.mkdir(exist_ok=True)
         for name in ("scene.json", "source.json", "budget.json", "brief.txt"):
             if (self.state.workspace / name).exists():
@@ -449,7 +534,8 @@ class DraftWatcher:
                      cwd=self.state.workspace, timeout=180)
         if check.returncode != 0 or self.stopped.is_set():
             return
-        names = room_labels([self.names.get(room, room) for room in rooms])
+        fresh = [room for room in rooms if room not in self.previewed]
+        names = room_labels([self._name(room) for room in rooms])
         label = ", ".join(names)
         self._emit(f"Checked {label}: ready to preview")
         proposal = _translate(self.state, self.body, work, work, f"Rooms ready so far: {label}"[:160],
@@ -463,6 +549,8 @@ class DraftWatcher:
         if self._emit(record):
             self.previewed = rooms
             self.sent += 1
+            if self.on_finished is not None:
+                self.on_finished(work, fresh, {room: self.signatures.get(room) for room in fresh})
 
 
 def _translate(state: SpikeConversation, body: dict, workspace: Path, turn: Path, title: str, description: str) -> dict | None:
@@ -506,30 +594,84 @@ def _room_signatures(workspace: Path) -> dict[str, str]:
     return _signatures(_read_draft(workspace / "draft.json") or {})
 
 
+class EarlyReviews:
+    """The critic on rooms as they finish, in the background while the designer works on the rest (live chat): each
+    finished-room snapshot is reviewed once; at the end a room whose design did not change since is not reviewed
+    again."""
+
+    def __init__(self, brief: str, progress, names: dict[str, str]):
+        self.brief, self.progress, self.names = brief, progress, names
+        self.results: dict[str, tuple[str | None, list[dict]]] = {}
+        self.threads: list[threading.Thread] = []
+        self.lock = threading.Lock()
+
+    def start(self, work: Path, rooms: list[str], signatures: dict[str, str | None]) -> None:
+        critic = critic_module()
+        if critic is None or not rooms or os.environ.get("VARPET_SPIKE_CRITIC", "1") == "0":
+            return
+        try:
+            spike_module().link_tools(work)
+        except FileExistsError:
+            pass
+
+        def run():
+            try:
+                issues = critic.critique(work, self.brief, rooms, 1)
+            except Exception:
+                return
+            with self.lock:
+                for room in rooms:
+                    self.results[room] = (signatures.get(room), [issue for issue in issues if issue.get("room") == room])
+        self.progress("Reviewing the " + ", ".join(self.names.get(room, room).lower() for room in rooms[:3]))
+        thread = threading.Thread(target=run, daemon=True)
+        thread.start()
+        self.threads.append(thread)
+
+    def settle(self, final: dict[str, str], rooms: list[str], cancel: threading.Event) -> tuple[list[dict], list[str]]:
+        """Issues of rooms reviewed as they are now, and the rooms still to review."""
+        for thread in self.threads:
+            while thread.is_alive() and not cancel.is_set():
+                thread.join(1)
+        with self.lock:
+            done = {room: issues for room, (signature, issues) in self.results.items() if final.get(room) == signature}
+        return [issue for room in rooms if room in done for issue in done[room]], [room for room in rooms if room not in done]
+
+
 def _review(state: SpikeConversation, brief: str, rooms: list[str], cancel: threading.Event, progress, timeout: float,
-            round_: int, reply: str = "") -> dict:
-    """One critic round in live chat (latency is bounded to one): review the rooms this turn changed; on blocker or
-    major issues resume the designer thread once to fix them. A fix that fails the check is rolled back."""
+            round_: int, reply: str = "", early: EarlyReviews | None = None, parallel_config: dict | None = None) -> dict:
+    """One critic round in live chat (latency is bounded to one): review the rooms this turn changed (rooms the
+    early reviews already saw as they are now are not reviewed again); on blocker or major issues resume the
+    designer thread once to fix them. A fix that fails the check is rolled back."""
     critic = critic_module()
     if critic is None or not rooms or os.environ.get("VARPET_SPIKE_CRITIC", "1") == "0":
         return {"skipped": True}
     names = {room["id"]: room.get("name") or room["id"] for room in state.rooms}
-    progress("Reviewing the design" + (f": {', '.join(names.get(room, room).lower() for room in rooms[:4])}" if rooms else ""))
     started = time.monotonic()
-    try:
-        issues = critic.critique(state.workspace, brief, rooms, round_, context=reply or None)
-    except Exception as error:  # the reviewer is a second opinion; its failure never sinks the design
-        return {"error": f"{type(error).__name__}: {error}"[:300], "seconds": round(time.monotonic() - started, 1)}
+    issues, todo = early.settle(_room_signatures(state.workspace), rooms, cancel) if early else ([], list(rooms))
+    reused = len(rooms) - len(todo)
+    if todo:
+        progress("Reviewing the " + ", ".join(names.get(room, room).lower() for room in todo[:4]))
+        try:
+            issues += critic.critique(state.workspace, brief, todo, round_, context=reply or None)
+        except Exception as error:  # the reviewer is a second opinion; its failure never sinks the design
+            return {"error": f"{type(error).__name__}: {error}"[:300], "seconds": round(time.monotonic() - started, 1)}
     serious = critic.serious(issues)
-    record = {"issues": len(issues), "serious": len(serious), "seconds": round(time.monotonic() - started, 1)}
+    record = {"issues": len(issues), "serious": len(serious), "reviewed_early": reused,
+              "seconds": round(time.monotonic() - started, 1)}
     if not serious or cancel.is_set():
         progress("Reviewed: no serious issues" if not serious else "Reviewed")
         return record
     progress(f"Fixing {len(serious)} thing{'s' if len(serious) != 1 else ''} the reviewer found")
     backup = (state.workspace / "draft.json").read_text()
     observer = Progress(state.rooms, progress, state.workspace)
+    text = critic.feedback(serious)
+    rooms_hit = sorted({issue["room"] for issue in serious})
+    if parallel_config and len(rooms_hit) > 1:
+        text += ("\nThese are in several rooms: fix them in parallel, one sub-agent per room (fork_turns \"all\"; the "
+                 "message lists that room's issues and says to fix only those with `./varpet ... --part <room id>`), fix "
+                 "anything across rooms yourself, wait for all, then `./varpet merge`.")
     try:
-        fix = _run_turn(state, critic.feedback(serious), cancel, observer, timeout)
+        fix = _run_turn(state, text, cancel, observer, timeout, parallel_config if len(rooms_hit) > 1 else None)
     except RuntimeError:
         if cancel.is_set():
             raise
@@ -540,6 +682,11 @@ def _review(state: SpikeConversation, brief: str, rooms: list[str], cancel: thre
         (state.workspace / "draft.json").write_text(backup)
         return {**record, "fixed": False}
     return {**record, "fixed": True, "reply": (fix.get("final") or "").strip(), "fix_seconds": fix["seconds"]}
+
+
+def _codex_extra(state: "SpikeConversation") -> dict:
+    """The private home's extra config (model catalog) that codex_config needs again for a parallel turn."""
+    return {key: state.config[key] for key in ("model_catalog_json",) if key in state.config}
 
 
 def _workspace(conversation_root: Path) -> SpikeConversation:
@@ -599,12 +746,13 @@ def _turn_text(request: str, first: bool, edits: dict | None = None, budget: int
             "question, answer it in that paragraph and leave draft.json alone.")
 
 
-def _run_turn(state: SpikeConversation, turn_input, cancel: threading.Event, observer: Progress, timeout: float) -> dict:
+def _run_turn(state: SpikeConversation, turn_input, cancel: threading.Event, observer: Progress, timeout: float,
+              config: dict | None = None) -> dict:
     spike = spike_module()
     from openai_codex import ApprovalMode, Codex, CodexConfig, Sandbox
     from openai_codex.generated.v2_all import ReasoningEffort
     sdk = CodexConfig(cwd=str(state.workspace), env={"CODEX_HOME": str(state.home)},
-                      config_overrides=tuple(k + "=" + spike.toml(v) for k, v in state.config.items()))
+                      config_overrides=tuple(k + "=" + spike.toml(v) for k, v in (config or state.config).items()))
     final = completed = usage = None
     timed_out = threading.Event()
     with Codex(sdk) as codex, (state.workspace / "events.jsonl").open("a") as log:
@@ -742,12 +890,24 @@ def propose(conversation, conversation_id: str, body: dict, cancel: threading.Ev
         progress("Planning the flat" if first else "Thinking about your follow-up")
         observer = Progress(state.rooms, progress, state.workspace)
         first_design = not state.owned and not (_read_draft(state.workspace / "draft.json") or {}).get("items")
-        watcher = DraftWatcher(state, progress, body, turn,
+        brief = "\n\n".join(requests)
+        # A whole-flat first design runs on parallel room designers (run/SUBAGENT.md); a one-room request and
+        # follow-ups keep the single thread. VARPET_SPIKE_PARALLEL=on|off|auto.
+        mode = os.environ.get("VARPET_SPIKE_PARALLEL", "auto")
+        parallel_config = None
+        if (RUN / "SUBAGENT.md").exists() and mode != "off":
+            parallel_config = spike.codex_config(EFFORT, "workspace-write", True, _codex_extra(state),
+                                                 subagents=(RUN / "SUBAGENT.md").read_text())
+        parallel = parallel_config is not None and first_design and (mode == "on" or whole_flat(brief, state.rooms))
+        timings["parallel"] = parallel
+        early = EarlyReviews(brief, progress, {room["id"]: room.get("name") or room["id"] for room in state.rooms}) if first_design else None
+        watcher = DraftWatcher(state, progress, body, turn, observer=observer,
+                               on_finished=early.start if early else None,
                                # Room-by-room previews only while the first design is built (also after the designer's
                                # question): a follow-up edits a whole design, and a snapshot of some rooms would preview
                                # the others' design pieces as deleted.
                                partials=first_design and os.environ.get("VARPET_SPIKE_PARTIALS", "1") != "0").start()
-        result = _run_turn(state, turn_input, cancel, observer, timeout)
+        result = _run_turn(state, turn_input, cancel, observer, timeout, parallel_config if parallel else None)
         watcher.stop()
         lap("designer")
         reply = (result["final"] or "").strip()
@@ -766,8 +926,8 @@ def propose(conversation, conversation_id: str, body: dict, cancel: threading.Ev
             return {"type": "message", "conversationId": conversation_id, "message": (reply[:4000 - len(note)] + note)[:4000]}
         after = _room_signatures(state.workspace)
         changed = [room["id"] for room in state.rooms if room["id"] in after and after[room["id"]] != rooms_before.get(room["id"])]
-        brief = "\n\n".join(getattr(conversation, "customer_requests", None) or [body["request"]])
-        review = _review(state, brief, changed, cancel, progress, timeout, len(getattr(conversation, "customer_requests", []) or [1]), reply)
+        review = _review(state, brief, changed, cancel, progress, timeout, len(requests), reply, early,
+                         parallel_config if parallel else None)
         lap("review")
         if review.get("reply"):
             reply = review["reply"]
