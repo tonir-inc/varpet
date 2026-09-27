@@ -321,3 +321,47 @@ embedding load when cold. Slot/alternative ranking runs in memory. Offline selec
 rows with 768-dimensional cached vectors measured 0.338 s (27 Sept); this excludes DB/cold-cache costs.
 The <2 s live local-catalog target still needs measurement against the real DB. `show_kit` uses the
 existing preview-fetch deadline and is separate from selection latency.
+
+## Read-only service and credit fixes (27 Sept 2026)
+
+Run these manually against **database `varpet`**, with `psql -X` and
+`ON_ERROR_STOP=1`; deployment does not run migrations. Neither script has been
+executed against the VM by this change.
+
+1. As a database administrator, run
+   `catalog/fixes/2026-09-27-readonly-role.sql` with `-v ro_password=...`.
+   Prefer `\prompt -s 'Read-only password: ' ro_password` inside an interactive
+   psql session followed by `\i catalog/fixes/2026-09-27-readonly-role.sql`, so
+   the password does not appear in shell history or process arguments.
+   The script creates/updates `varpet_ro`, grants CONNECT, public-schema USAGE
+   and SELECT on existing tables, and SELECT on future tables made by `varpet`.
+   It grants no sequence or write privileges. Use a dedicated role without
+   existing memberships or owned objects; inherited PUBLIC privileges still
+   apply (check especially schema CREATE and writable SECURITY DEFINER functions).
+2. Set local `VARPET_CATALOG_RO_PASSWORD` to that password, then deploy.
+   `VARPET_CATALOG_RO_URL` defaults to
+   `postgresql://varpet_ro@localhost:5432/varpet`; only this VM-local role/database
+   is accepted. Its password is replaced with the percent-encoded password from
+   `VARPET_CATALOG_RO_PASSWORD`. Python 3 is required locally.
+   `/etc/varpet-catalog.env` receives the result as `VARPET_DB_URL` over SSH stdin;
+   secrets are never embedded in SSH arguments. Without a nonempty RO password,
+   deployment warns and reuses the owner password from `VARPET_DB_URL` as before.
+3. Verify as `varpet_ro`: `SELECT current_user; SELECT count(*) FROM public.item;`
+   succeeds; `BEGIN; DELETE FROM public.item WHERE false; ROLLBACK;` must fail
+   with permission denied. Check `has_schema_privilege('varpet_ro','public','CREATE')`
+   is false. Keep ingest/maintenance jobs on their separate owner connection.
+
+`mcp_server.py` and `search.py` only select on normal search/read paths.
+`request_generation` inserts into `generation_request`, so deployment explicitly
+sets `CATALOG_ENABLE_GENERATION=0`, including during owner fallback. Do not enable
+it on this read-only service.
+
+As the owner, run `psql -X -v ON_ERROR_STOP=1 -d varpet -f
+catalog/fixes/2026-09-27-credits.sql` (use the appropriate connection locally).
+It prints matched IDs and source URLs before updating, requires exactly one
+Pillars of Creation item and six JPL Visions of the Future posters, and rolls
+back on a count mismatch. Source URLs are stored in `tags.extra.source_url`.
+It updates attribution and license text, preserving the first old values under
+`tags.fix_credit_20260927`; reruns preserve that backup. JPL credits do not claim
+an unrestricted public-domain license. If counts differ, inspect the printed
+matches and adjust the reviewed patterns before rerunning; do not remove the guard.

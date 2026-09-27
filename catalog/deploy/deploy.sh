@@ -1,12 +1,43 @@
 #!/usr/bin/env bash
 # Deploy the catalog MCP service to the team VM. Run from catalog/: ./deploy/deploy.sh
-# Needs VARPET_DB_URL (the tunnel URL; only the password is reused) and SSH access to the VM.
+# Needs SSH access and VARPET_CATALOG_RO_PASSWORD (or VARPET_DB_URL for owner fallback).
 set -euo pipefail
 cd "$(dirname "$0")/.."  # rsync mirrors ./ onto the VM: always the catalog/ dir, wherever this is run from
 HOST=${VARPET_SSH:-sergey@152.53.158.86}
 KEY=${VARPET_SSH_KEY:-$HOME/.ssh/varpet_ed25519}
 TS_IP=${VARPET_TS_IP:-100.107.246.46}
-PW=$(sed -E 's#.*://[^:]+:([^@]+)@.*#\1#' <<<"$VARPET_DB_URL")
+# Build a URL without placing credentials in process arguments. The RO URL is VM-side.
+DB_URL=$(python3 - <<'PYTHON'
+import os
+import sys
+from urllib.parse import quote, urlsplit
+
+password = os.environ.get("VARPET_CATALOG_RO_PASSWORD")
+if password:
+    raw = os.environ.get("VARPET_CATALOG_RO_URL") or "postgresql://varpet_ro@localhost:5432/varpet"
+    try:
+        url = urlsplit(raw)
+        valid = (url.scheme in ("postgresql", "postgres") and url.username == "varpet_ro"
+                 and url.hostname == "localhost" and url.port in (None, 5432)
+                 and url.path == "/varpet" and not url.query and not url.fragment)
+    except ValueError:
+        valid = False
+    if not valid:
+        sys.exit("invalid VARPET_CATALOG_RO_URL: expected postgresql://varpet_ro@localhost:5432/varpet")
+    print("postgresql://varpet_ro:" + quote(password, safe="") + "@localhost:5432/varpet")
+else:
+    print("WARNING: VARPET_CATALOG_RO_PASSWORD is unset; deploying with the varpet owner role", file=sys.stderr)
+    try:
+        url = urlsplit(os.environ["VARPET_DB_URL"])
+        password = url.password
+        if url.scheme not in ("postgres", "postgresql") or not password:
+            raise ValueError()
+    except (KeyError, ValueError):
+        sys.exit("VARPET_DB_URL must contain the owner password for fallback")
+    # Preserve URI escaping in the existing tunnel URL's password.
+    print("postgresql://varpet:" + password + "@localhost:5432/varpet")
+PYTHON
+)
 vm() { ssh -i "$KEY" "$HOST" "$@"; }
 
 # rsync --delete mirrors this tree onto the VM, so deploy only exactly what is on origin/main:
@@ -24,7 +55,7 @@ vm 'set -euo pipefail
 rsync -az --delete -e "ssh -i $KEY" --exclude .venv --exclude data --exclude eval/sheets --exclude __pycache__ \
   ./ "$HOST:/opt/varpet-catalog/app/"
 # The secret travels on stdin, never in the local or remote ssh argv.
-printf 'VARPET_DB_URL=postgresql://varpet:%s@localhost:5432/varpet\nCATALOG_HTTP_HOST=%s\nCATALOG_HTTP_PORT=8765\nHF_HOME=/opt/varpet-catalog/hf\nUV_CACHE_DIR=/opt/varpet-catalog/uv-cache\nOMP_NUM_THREADS=4\nSIGLIP_DIR=/opt/varpet-catalog/models\n' "$PW" "$TS_IP" |
+printf 'VARPET_DB_URL=%s\nCATALOG_ENABLE_GENERATION=0\nCATALOG_HTTP_HOST=%s\nCATALOG_HTTP_PORT=8765\nHF_HOME=/opt/varpet-catalog/hf\nUV_CACHE_DIR=/opt/varpet-catalog/uv-cache\nOMP_NUM_THREADS=4\nSIGLIP_DIR=/opt/varpet-catalog/models\n' "$DB_URL" "$TS_IP" |
   vm 'set -euo pipefail; sudo -n tee /etc/varpet-catalog.env >/dev/null'
 vm "set -euo pipefail
     sudo -n chown root:varpet-catalog /etc/varpet-catalog.env && sudo -n chmod 640 /etc/varpet-catalog.env
