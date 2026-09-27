@@ -113,6 +113,7 @@ _FAMILY_COLORS = set(PALETTE) | set(
 _SIZE = re.compile(r'\b\d+(?:\.\d+)?\s*(?:["″”][wdh]?|(?:cm|mm|inches|inch|in)\b)', re.I)
 
 
+@functools.lru_cache(maxsize=65536)
 def family_key(name, kind):
     """Normalised product name and kind; None means an ungroupable unnamed item."""
     if name is None:
@@ -291,33 +292,16 @@ def search(conn, q: Query):
         where.append("not (id = any(%s))"); args.append(excluded)
     if q.scope in ("placeable", "editor"):
         where.append(PLACEABLE)
-    tsq = "plainto_tsquery('english', %s)"
-    rank = f"ts_rank_cd(fts, {tsq}, 32)" if q.text else "0"
-    rows = conn.execute(
-        f"""select id, name, kind, coalesce(fit_size_m, size_m), size_status, price, color_std, colors_img, styles, materials,
-                   main_image_url, preview_url, glb_url, size_evidence, tags, {rank}, currency, source, price_source
-            from item where {' and '.join(where)}""",
-        ([q.text] if q.text else []) + args,
-    ).fetchall()
-
+    fts_text = q.text if q.text and "fts" in modes(q.text_mode, TEXT_ALIASES) else None
     passed, misses = [], []
-    for r in rows:
-        (iid, name, kind, size, status, price, cstd, cimg, styles, mats, img, preview, glb, ev, tags, fts,
-         currency, source, price_source) = r
-        astra = {k: _words(v) for k, v in ((tags or {}).get("astra") or {}).items() if k in ("main_color", "other_colors", "materials", "style")}
+    for static, cimg, size, price in _candidate_rows(conn, where, args, fts_text):
+        rec = dict(static)
         fail = []
         margins = fits(size, q.fit_box, q.allow_rotate) if q.fit_box else None
         if margins and min(margins) < 0:
             fail.append({"fit": [round(m, 3) for m in margins]})
         if q.price_max is not None and (price is None or price > q.price_max):
             fail.append({"price_over": (price or 0) - q.price_max})
-        rec = {"id": iid, "name": name, "kind": kind, "size_m": size, "size_status": status, "price": price,
-               "currency": currency, "source": source, "price_source": price_source, "size_evidence": ev,
-               "colors_listing": listing_palette(cstd), "colors_image": [c["name"] for c in cimg or []],
-               "styles": styles, "materials": mats, "image": img, "preview": preview, "glb_url": glb,
-               "colors_astra": (astra.get("main_color") or []) + (astra.get("other_colors") or []),
-               "style_astra": astra.get("style") or [], "materials_astra": astra.get("materials") or [],
-               "wd_swapped": bool((ev or {}).get("wd_swapped")), "_fts": float(fts), "_astra": astra}
         if fail:
             rec["failed"] = fail
             misses.append(rec)
@@ -402,6 +386,67 @@ def search(conn, q: Query):
         rec["score"] = round(rec["score"], 3)
     more = q.offset + q.limit < len(out)
     return {"results": page, "candidates": len(passed), "next_offset": q.offset + q.limit if more else None}
+
+
+# Candidate rows per filter set, parsed once: the SQL and JSON decoding cost ~70 us per candidate (a kind-less search
+# decoded ~16k JSON fields, ~0.5 s) and serialised parallel room designers. Text only changes scoring, so rows are shared
+# across query texts; the full-text rank depends on the text and stays uncached. Dropped when the catalog changes.
+ROWS_TTL_S = 10
+_ROWS = {}
+_ROWS_LOCK = threading.Lock()
+_ROWS_VER = {"t": float("-inf"), "v": None}
+_ROW_SQL = """select id, name, kind, coalesce(fit_size_m, size_m), size_status, price, color_std, colors_img, styles,
+                     materials, main_image_url, preview_url, glb_url, size_evidence, tags, {rank}, currency, source,
+                     price_source from item where {where}"""
+
+
+def _catalog_version(conn):
+    now = time.monotonic()
+    if now - _ROWS_VER["t"] > ROWS_TTL_S:
+        _ROWS_VER["v"] = tuple(conn.execute("select count(*), max(ingested_at) from item").fetchone())
+        _ROWS_VER["t"] = now
+    return _ROWS_VER["v"]
+
+
+def _static_rec(r):
+    (iid, name, kind, size, status, price, cstd, cimg, styles, mats, img, preview, glb, ev, tags, fts,
+     currency, source, price_source) = r
+    astra = {k: _words(v) for k, v in ((tags or {}).get("astra") or {}).items() if k in ("main_color", "other_colors", "materials", "style")}
+    rec = {"id": iid, "name": name, "kind": kind, "size_m": size, "size_status": status, "price": price,
+           "currency": currency, "source": source, "price_source": price_source, "size_evidence": ev,
+           "colors_listing": listing_palette(cstd), "colors_image": [c["name"] for c in cimg or []],
+           "styles": styles, "materials": mats, "image": img, "preview": preview, "glb_url": glb,
+           "colors_astra": (astra.get("main_color") or []) + (astra.get("other_colors") or []),
+           "style_astra": astra.get("style") or [], "materials_astra": astra.get("materials") or [],
+           "wd_swapped": bool((ev or {}).get("wd_swapped")), "_fts": float(fts), "_astra": astra}
+    return rec, cimg, size, price
+
+
+def _freeze(value):
+    return tuple(_freeze(v) for v in value) if isinstance(value, (list, tuple)) else value
+
+
+def _candidate_rows(conn, where, args, fts_text=None):
+    """[(static record, image colours, fit size, price)] for the filters; cached unless ranked by full-text."""
+    where_sql = " and ".join(where)
+    if fts_text:
+        sql = _ROW_SQL.format(rank="ts_rank_cd(fts, plainto_tsquery('english', %s), 32)", where=where_sql)
+        return [_static_rec(r) for r in conn.execute(sql, [fts_text, *args]).fetchall()]
+    if not isinstance(conn, psycopg.Connection):  # test doubles and other callers: plain query, no shared cache
+        return [_static_rec(r) for r in conn.execute(_ROW_SQL.format(rank="0", where=where_sql), args).fetchall()]
+    key, version = (where_sql, _freeze(args)), _catalog_version(conn)
+    hit = _ROWS.get(key)
+    if hit and hit[0] == version:
+        return hit[1]
+    with _ROWS_LOCK:
+        hit = _ROWS.get(key)
+        if hit and hit[0] == version:
+            return hit[1]
+        rows = [_static_rec(r) for r in conn.execute(_ROW_SQL.format(rank="0", where=where_sql), args).fetchall()]
+        if len(_ROWS) > 256:
+            _ROWS.clear()
+        _ROWS[key] = (version, rows)
+        return rows
 
 
 # Embeddings held in memory per (model, modality): parsing ~8k vectors from text on every query cost ~0.5 s of

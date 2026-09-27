@@ -3,6 +3,7 @@ import sys
 import types
 
 import numpy as np
+import psycopg
 
 import search
 
@@ -35,3 +36,30 @@ def test_kind_counts_cached_within_ttl(monkeypatch):
     monkeypatch.setattr(search, "KIND_TTL_S", -1)
     search.kind_counts(c)
     assert c.n == 2
+
+
+class RowsConn(psycopg.Connection):
+    def __new__(cls):
+        return object.__new__(cls)
+
+    def __init__(self):
+        self.row_queries = 0
+
+    def execute(self, sql, args=()):
+        if "count(*), max(ingested_at)" in sql:
+            return types.SimpleNamespace(fetchone=lambda: (10, "t0"))
+        self.row_queries += 1
+        row = ("abo:1", "Oak sofa", "sofa", [2.0, 0.9, 0.8], "confirmed", 1000, ["Beige"], None, [], [], None, None,
+               "x.glb", {}, {"astra": {"style": "japandi"}}, 0.0, "AMD", "abo", "mock")
+        return types.SimpleNamespace(fetchall=lambda: [row])
+
+
+def test_candidate_rows_shared_across_texts_and_fts_uncached():
+    search._ROWS.clear()
+    search._ROWS_VER.update(t=float("-inf"), v=None)
+    c = RowsConn()
+    a = search._candidate_rows(c, ["kind = any(%s)"], [["sofa"]])
+    b = search._candidate_rows(c, ["kind = any(%s)"], [["sofa"]])
+    assert c.row_queries == 1 and a is b and a[0][0]["id"] == "abo:1"
+    search._candidate_rows(c, ["kind = any(%s)"], [["sofa"]], fts_text="oak")
+    assert c.row_queries == 2
