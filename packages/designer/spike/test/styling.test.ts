@@ -136,5 +136,12 @@ describe('check', () => {
 
 test('a room with a long plain wall and little wall decor is asked for a gallery, ledge or floating shelves', () => {
   const s = scene(), r = room(s, without(styled(s), 'ledge', 'mirror'));
-  expect(r.missing.join('\n')).toMatch(/wall decor on the plain 5\.70 m stretch of [we] \(0\.15\.\.5\.85 m along\): a gallery wall of 3-5 frames .*--kind wall_hanging.*onWall\(scene, "liv", "[we]", size, 3\.00\)/);
+  expect(r.missing.join('\n')).toMatch(/wall decor on the plain 5\.70 m stretch of [we] \(0\.15\.\.5\.85 m along\): a gallery wall of 3-5 frames .*floating shelf .*on: <its id>.*onWall\(scene, "liv", "[we]", size, 3\.00, height_m\)/);
+});
+
+test('a hung floating shelf counts as a wall piece', () => {
+  const s = scene(), d = without(styled(s), 'ledge', 'mirror');
+  d.items.push({ ...item('fs', 'shelf', [0, 0], 0, [1.0, 0.2, 0.08], { name: 'Oak floating shelf' }), ...onWall(s, 'liv', 'w', [1.0, 0.2, 0.08], 3, 1.4) },
+    { ...item('fs2', 'shelf', [0, 0], 0, [1.0, 0.2, 0.08], { name: 'Oak floating shelf' }), ...onWall(s, 'liv', 'e', [1.0, 0.2, 0.08], 3, 1.4) });
+  expect(room(s, d).missing.join('\n')).not.toMatch(/wall decor on the plain/);
 });

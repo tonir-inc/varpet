@@ -11,7 +11,7 @@ import { join } from 'node:path';
 import { centerOf } from './scene.ts';
 import { loadRequirements, requirementProblems, type Requirements } from './requirements.ts';
 import type { CatalogAsset } from '../../../../apps/editor/src/contracts.js';
-import { wallDecoration } from '../../../../apps/editor/src/core/decoration-placement.js';
+import { wallDecoration, wallShelf } from '../../../../apps/editor/src/core/decoration-placement.js';
 import { canRestOnFurniture } from '../../../../apps/editor/src/core/furniture-support.js';
 
 /** One live lookup per process: are mattress products searchable yet? A failed search counts as no. */
@@ -115,24 +115,29 @@ export function checkDecor(scene: Scene, draft: Draft, kindOf: (kind: string) =>
       const margin = Math.max(0, ...scene.walls.map(x => (x.thickness ?? 0) / 2));
       if (spot.along - w / 2 < margin - 0.01 || spot.along + w / 2 > spot.length - margin + 0.01)
         out.push(`decor: ${item.id} runs past the end of ${item.wall_id} (spans ${(spot.along - w / 2).toFixed(2)}..${(spot.along + w / 2).toFixed(2)} m of ${spot.length.toFixed(2)} m)`);
+      // The editor clamps a requested height to a bottom >= 0.3 m and a top <= ceiling - 0.1 m: say so instead of moving it silently.
+      if (item.height_m !== undefined && !(item.kind === 'mirror' && item.size[2] > 1.4)) {
+        const asked = item.height_m - item.size[2] / 2;
+        if (Math.abs(asked - spot.bottom) > 0.01) out.push(`decor: ${item.id} height_m ${item.height_m.toFixed(2)} puts it ${asked < spot.bottom ? 'below 0.3 m off the floor' : 'within 0.1 m of the ceiling'}; the editor would hang it at centre ${((spot.bottom + spot.top) / 2).toFixed(2)} m: set height_m ${((spot.bottom + spot.top) / 2).toFixed(2)}`);
+      }
       if (spot.top > spot.wallHeight + 0.001) out.push(`decor: ${item.id} top ${spot.top.toFixed(2)} m is above the ${spot.wallHeight.toFixed(2)} m wall`);
       for (const o of openingSpans(scene, spot.wall)) {
         const across = Math.min(spot.along + w / 2, o.to) - Math.max(spot.along - w / 2, o.from);
         const up = Math.min(spot.top, o.opening.sill + o.opening.height) - Math.max(spot.bottom, o.opening.sill);
-        if (across > 0.01 && up > 0.01) out.push(`decor: ${item.id} covers ${o.opening.kind} ${o.opening.id} on ${item.wall_id} (${across.toFixed(2)} m)`);
+        if (across > 0.01 && up > 0.01) out.push(`decor: ${item.id} covers ${o.opening.kind} ${o.opening.id} on ${item.wall_id} (${across.toFixed(2)} m); move it along the wall clear of it (the editor refuses it there)`);
       }
       // Tall floor pieces in front of the art hide it (art above a sofa or sideboard is fine).
       const strip = footprint({ pos: item.pos, rot: item.rot, size: [w, d + 0.3, 1] });
       for (const other of floor) {
         if (other.room_id !== item.room_id || other.kind === 'rug' || other.size[2] <= spot.bottom + 0.05) continue;
-        if (overlapDepth(strip, footprint(other)) > 0.01) out.push(`decor: ${item.id} (bottom ${spot.bottom.toFixed(2)} m) is behind ${other.id} (${other.size[2].toFixed(2)} m tall); the editor hangs it at a fixed height (height_m is ignored), so move it along the wall or to another wall`);
+        if (overlapDepth(strip, footprint(other)) > 0.01) out.push(`decor: ${item.id} (bottom ${spot.bottom.toFixed(2)} m) is behind ${other.id} (${other.size[2].toFixed(2)} m tall); set height_m >= ${(other.size[2] + 0.15 + item.size[2] / 2).toFixed(2)} or move it along the wall`);
       }
       hung.push({ item, spot });
     }
     if (item.on !== undefined) {
       const support = byId.get(item.on);
       if (!support) { out.push(`decor: ${item.id} rests on missing item ${item.on}`); continue; }
-      if (support.wall_id !== undefined) { out.push(`decor: ${item.id} cannot rest on wall-hung ${support.id}`); continue; }
+      if (support.wall_id !== undefined && !wallShelf(editorAsset(support, kindOf))) { out.push(`decor: ${item.id} cannot rest on wall-hung ${support.id}; only wall shelves and picture ledges hold objects`); continue; }
       if (!canRestOnFurniture(editorAsset(item, kindOf))) { out.push(`decor: ${item.id} ${item.kind} (${item.size.map(v => v.toFixed(2)).join('x')} m) cannot rest on ${support.id}: the editor stacks only decor, plants, lamps, TVs up to 2 m wide and small electronics; drop \`on\` and stand it on the floor`); continue; }
       if (kindOf(support.kind) === 'rug') { out.push(`decor: ${item.id} cannot rest on rug ${support.id}; the editor puts it on the floor, so drop \`on\``); continue; }
       const seen = new Set([item.id]);

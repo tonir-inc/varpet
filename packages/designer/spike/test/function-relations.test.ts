@@ -177,13 +177,15 @@ describe('wall decor', () => {
     const s = scene(), items = living(s).map(o => (o.id === 'art' ? { ...o, size: [0.5, 0.03, 0.4] as [number, number, number], ...onWall(s, 'liv', 'n', [0.5, 0.03, 0.4], 4.5) } : o));
     const soft = rules(s, items).soft.join('\n');
     expect(soft).toMatch(/art spans 23% of sofa's 2\.20 m width \(aim for 55-80%/);
-    expect(soft).toMatch(/art floats 0\.\d\d m above sofa/);
+    expect(rules(s, items).hard.join('\n')).toMatch(/art hangs with its bottom 0\.45 m above the top of sofa \(keep 0\.15-0\.30 m\): height_m 1\.27/);
   });
-  test('a mirror crowding a door fails; the editor ignores height_m, so the check does too', () => {
+  test('a mirror crowding a door fails; height_m is honoured within the editor bounds', () => {
     const s = scene(), mirror: DraftItem = { ...item('m', 'mirror', [0, 0], 0, [0.7, 0.05, 0.9]), ...onWall(s, 'liv', 'n', [0.7, 0.05, 0.9], 0.55) };
     expect(rules(s, [mirror]).hard.join('\n')).toMatch(/mirror m \(0\.70 m wide\) leaves 0\.10 m to door door on its/);
-    const spot = wallSpot(s, { ...mirror, height_m: 0.6 })!;
-    expect(spot.bottom).toBeCloseTo(1.05, 3);
+    const low = { ...mirror, height_m: 0.6 }, spot = wallSpot(s, low)!;
+    expect(spot.bottom).toBeCloseTo(0.3, 3);
+    expect(checkDecor(s, { items: [low] }).join('\n')).toMatch(/m height_m 0\.60 puts it below 0\.3 m off the floor; .*set height_m 0\.75/);
+    expect(rules(s, [low]).hard.join('\n')).toMatch(/m on a free wall centres at 0\.75 m .*: height_m 1\.57/);
     const tall = wallSpot(s, { ...mirror, size: [0.6, 0.05, 1.7] })!;
     expect(tall.bottom).toBe(0);
   });
@@ -270,5 +272,32 @@ describe('round 3: coffee table and walkway agree', () => {
     expect([...kneeSpaceSofas(living(s))]).toEqual(['sofa']);
     expect([...kneeSpaceSofas(swap(living(s), 'coffee', { pos: [3.5, 3.9] }))]).toEqual([]);
     expect([...kneeSpaceSofas(without(living(s), 'coffee'))]).toEqual([]);
+  });
+});
+
+describe('round 3: gallery walls and heights', () => {
+  test('a two-row gallery over the sofa does not overlap and hangs 0.15-0.30 m above it', () => {
+    const s = scene(), frame = (id: string, along: number, h: number): DraftItem => ({ ...item(id, 'wall_art', [0, 0], 0, [0.4, 0.03, 0.5]), ...onWall(s, 'liv', 'n', [0.4, 0.03, 0.5], along, h) });
+    const gallery = [frame('g1', 4.0, 1.35), frame('g2', 4.5, 1.35), frame('g3', 5.0, 1.35), frame('g4', 4.25, 1.9), frame('g5', 4.75, 1.9)];
+    const items = [...living(s).filter(o => o.id !== 'art'), ...gallery];
+    expect(checkDecor(s, { items: gallery }).join('\n')).not.toMatch(/overlaps/);
+    expect(rules(s, items).hard.join('\n')).not.toMatch(/decor:/);
+    const high = [...living(s).filter(o => o.id !== 'art'), ...gallery.map(g => ({ ...g, height_m: g.height_m! + 0.3 }))];
+    expect(rules(s, high).hard.join('\n')).toMatch(/g1 \+ .* hangs with its bottom 0\.55 m above the top of sofa .*g1 height_m 1\.32.*g4 height_m 1\.87/);
+    const clash = [frame('a', 4.0, 1.5), frame('b', 4.2, 1.6)];
+    expect(checkDecor(s, { items: clash }).join('\n')).toMatch(/a overlaps b on the wall/);
+  });
+  test('art on a free wall centres at eye level', () => {
+    const s = scene(), low: DraftItem = { ...item('p', 'wall_art', [0, 0], 0, [0.5, 0.03, 0.6]), ...onWall(s, 'liv', 'w', [0.5, 0.03, 0.6], 3, 1.1) };
+    expect(rules(s, [low]).hard.join('\n')).toMatch(/p on a free wall centres at 1\.10 m .*: height_m 1\.52/);
+    expect(rules(s, [{ ...low, height_m: 1.52 }]).hard).toEqual([]);
+  });
+  test('small decor may rest on a hung wall shelf but not on a framed print', () => {
+    const s = scene(), shelf: DraftItem = { ...item('ledge', 'shelf', [0, 0], 0, [1.0, 0.15, 0.08], { name: 'Oak floating shelf' }), ...onWall(s, 'liv', 'w', [1.0, 0.15, 0.08], 3, 1.4) };
+    const vase = item('v', 'vase', shelf.pos, 0, [0.1, 0.1, 0.2], { on: 'ledge' });
+    const kind = (k: string) => (k === 'vase' ? 'decor' : k);
+    expect(checkDecor(s, { items: [shelf, vase] }, kind).join('\n')).not.toMatch(/cannot rest/);
+    const print: DraftItem = { ...item('pr', 'wall_art', [0, 0], 0, [1.0, 0.15, 0.6]), ...onWall(s, 'liv', 'w', [1.0, 0.15, 0.6], 3) };
+    expect(checkDecor(s, { items: [print, { ...vase, on: 'pr' }] }, kind).join('\n')).toMatch(/cannot rest on wall-hung pr/);
   });
 });

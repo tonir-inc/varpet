@@ -112,8 +112,8 @@ function styleRoom(scene: Scene, draft: Draft, room: Room, all: DraftItem[]): Ro
   if (types.some(t => t === 'living' || t === 'bedroom' || t === 'kids' || t === 'dining' || t === 'office')) {
     // Plain walls are fine once the room carries three or more wall pieces; below that a >= 3 m plain stretch asks for one.
     const wall = emptyWall(scene, room, all), len = wall ? wall.to - wall.from : 0;
-    const hung = mine.filter(o => (isArt(o) || o.kind === 'mirror') && o.wall_id !== undefined).reduce((n, o) => n + (/\b(set of|trio|gallery)\b/i.test(o.name ?? '') ? 3 : 1), 0);
-    need('empty-wall', len < 3 || hung >= 3, () => `wall decor on the plain ${f2(len)} m stretch of ${wall!.id} (${f2(wall!.from)}..${f2(wall!.to)} m along): a gallery wall of 3-5 frames (./varpet search --kind wall_art --text gallery), a picture ledge or floating shelves (--kind wall_hanging), centred with onWall(scene, "${room.id}", "${wall!.id}", size, ${f2((wall!.from + wall!.to) / 2)})`);
+    const hung = mine.filter(o => o.wall_id !== undefined && !/curtain|blind|lamp/.test(o.kind)).reduce((n, o) => n + (/\b(set of|trio|gallery)\b/i.test(o.name ?? '') ? 3 : 1), 0);
+    need('empty-wall', len < 3 || hung >= 3, () => `wall decor on the plain ${f2(len)} m stretch of ${wall!.id} (${f2(wall!.from)}..${f2(wall!.to)} m along): a gallery wall of 3-5 frames (./varpet search --kind wall_art --text gallery; two rows at height_m ~1.30 and ~1.75, 5-8 cm apart), or a picture ledge or floating shelf (--kind shelf --text floating, or --kind wall_hanging --text ledge) at height_m ~1.40 with 2-3 small objects on it (on: <its id>), centred with onWall(scene, "${room.id}", "${wall!.id}", size, ${f2((wall!.from + wall!.to) / 2)}, height_m)`);
   }
   for (const type of types) {
     if (type === 'living') {

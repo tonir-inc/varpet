@@ -363,9 +363,10 @@ const HUNG_OVER = /sofa|bed|cabinet|dresser|sideboard|desk|table|console|bench|c
 /** Art over furniture: centred on it and 55-80% of its width; mirrors keep 0.2 m of wall at each side. */
 function wallDecor(scene: Scene, items: DraftItem[], out: Findings) {
   const hung = items.filter(o => o.wall_id !== undefined).map(o => ({ o, spot: wallSpot(scene, o) })).filter((h): h is { o: DraftItem; spot: NonNullable<ReturnType<typeof wallSpot>> } => h.spot !== undefined);
-  const groups = new Map<string, { over: DraftItem; span: [number, number]; spot: (typeof hung)[number]['spot']; art: DraftItem[]; bottom: number; fromTo: [number, number] }>();
+  type Hung = (typeof hung)[number];
+  const groups = new Map<string, { over: DraftItem; span: [number, number]; spot: Hung['spot']; art: DraftItem[]; pieces: Hung[]; bottom: number; fromTo: [number, number] }>();
   // Pass 0 hangs each piece over the furniture it mostly covers; pass 1 lets a gallery piece that only grazes it join.
-  const art = hung.filter(h => h.o.kind === 'wall_art'), left: typeof art = [];
+  const art = hung.filter(h => ART.test(h.o.kind) || (h.o.kind === 'mirror' && h.o.size[2] <= 1.4)), left: typeof art = [];
   for (const pass of [0, 1]) for (const h of pass ? left : art) {
     const { o, spot } = h;
     const { wall } = spot, l = spot.length, [fa] = [wall.a], ux = (wall.b[0] - wall.a[0]) / l, uy = (wall.b[1] - wall.a[1]) / l;
@@ -375,19 +376,21 @@ function wallDecor(scene: Scene, items: DraftItem[], out: Findings) {
     const artFrom = spot.along - o.size[0] / 2, artTo = spot.along + o.size[0] / 2;
     let best: { over: DraftItem; from: number; to: number; overlap: number } | undefined;
     for (const x of items) {
-      if (x.room_id !== o.room_id || !onFloor(x) || !HUNG_OVER.test(x.kind) || isLamp(x) || x.size[2] > 1.3 || x.size[2] > spot.bottom + 0.05) continue;
+      if (x.room_id !== o.room_id || !onFloor(x) || !HUNG_OVER.test(x.kind) || isLamp(x) || x.size[2] > 1.3 || x.size[2] > spot.top - 0.1) continue;
       const corners = footprint(x) as V[], offs = corners.map(p => segDist(p, wall.a, wall.b) - (wall.thickness ?? 0) / 2);
       if (Math.min(...offs) > 1.1) continue; // a sofa may stand off the wall in front of a radiator
       const al = corners.map(p => along0(p) + shift), from = Math.min(...al), to = Math.max(...al), overlap = Math.min(to, artTo) - Math.max(from, artFrom);
       if (overlap > o.size[0] * 0.5 && (!best || overlap > best.overlap)) best = { over: x, from, to, overlap };
     }
+    // Mirrors hang at face height and art over low pieces (benches, shoe cabinets) at eye level: free-wall rules below.
+    if (best && (o.kind === 'mirror' || best.over.size[2] < 0.6)) best = undefined;
     if (!best && !pass) { left.push(h); continue; }
-    if (!best) best = [...groups.values()].filter(g => (g.spot.wall.source_id ?? g.spot.wall.id) === (wall.source_id ?? wall.id) && g.over.room_id === o.room_id
+    if (!best && o.kind !== 'mirror') best = [...groups.values()].filter(g => (g.spot.wall.source_id ?? g.spot.wall.id) === (wall.source_id ?? wall.id) && g.over.room_id === o.room_id
       && Math.min(g.fromTo[1], artTo) - Math.max(g.fromTo[0], artFrom) > 0.05).map(g => ({ over: g.over, from: g.fromTo[0], to: g.fromTo[1], overlap: 0 }))[0];
     if (!best) continue;
     const key = `${best.over.id}|${wall.source_id ?? wall.id}`, g = groups.get(key);
-    if (g) { g.art.push(o); g.span = [Math.min(g.span[0], artFrom), Math.max(g.span[1], artTo)]; g.bottom = Math.min(g.bottom, spot.bottom); }
-    else groups.set(key, { over: best.over, span: [artFrom, artTo], spot, art: [o], bottom: spot.bottom, fromTo: [best.from, best.to] });
+    if (g) { g.art.push(o); g.pieces.push(h); g.span = [Math.min(g.span[0], artFrom), Math.max(g.span[1], artTo)]; g.bottom = Math.min(g.bottom, spot.bottom); }
+    else groups.set(key, { over: best.over, span: [artFrom, artTo], spot, art: [o], pieces: [h], bottom: spot.bottom, fromTo: [best.from, best.to] });
   }
   for (const g of groups.values()) {
     const fw = g.fromTo[1] - g.fromTo[0], aw = g.span[1] - g.span[0], off = (g.span[0] + g.span[1]) / 2 - (g.fromTo[0] + g.fromTo[1]) / 2;
@@ -399,8 +402,25 @@ function wallDecor(scene: Scene, items: DraftItem[], out: Findings) {
     }
     const ratio = aw / fw;
     if (ratio < 0.5 || ratio > 0.85) out.soft.push(`decor: ${names} spans ${Math.round(ratio * 100)}% of ${g.over.id}'s ${f2(fw)} m width (aim for 55-80%: ${f2(fw * 0.55)}-${f2(fw * 0.8)} m${g.art.length === 1 && ratio < 0.5 ? ', or two or three pieces side by side' : ''})`);
+    // The lowest frame's bottom sits 0.15-0.30 m above the furniture top; the whole group moves together.
     const gap = g.bottom - top;
-    if (gap > 0.45) out.soft.push(`decor: ${names} floats ${f2(gap)} m above ${g.over.id} (the editor hangs art at a standard centre of 1.5 m); a taller piece (h >= ${f2(2 * (1.2 - top))} m) brings the gap to about 0.3 m`);
+    if (gap < 0.12 || gap > 0.35) out.hard.push(`decor: ${names} hangs with its bottom ${f2(gap)} m ${gap < 0 ? 'below' : 'above'} the top of ${g.over.id} (keep 0.15-0.30 m): ${raise(g.pieces, top + 0.22 - g.bottom)}`);
+  }
+  // Art and mirrors on a free wall (not over furniture): each cluster's centre at eye level, 1.45-1.60 m (mirrors 1.50-1.65 m).
+  const grouped = new Set([...groups.values()].flatMap(g => g.art.map(a => a.id))), clusters: Hung[][] = [];
+  for (const h of art.filter(h => !grouped.has(h.o.id)).sort((a, b) => a.spot.along - b.spot.along)) {
+    const wall = h.spot.wall.source_id ?? h.spot.wall.id, last = clusters[clusters.length - 1]?.at(-1);
+    if (last && (last.spot.wall.source_id ?? last.spot.wall.id) === wall && last.o.room_id === h.o.room_id
+      && h.spot.along - h.o.size[0] / 2 - (last.spot.along + last.o.size[0] / 2) <= 0.4) clusters[clusters.length - 1]!.push(h);
+    else clusters.push([h]);
+  }
+  for (const c of clusters) {
+    const mirror = c.every(h => h.o.kind === 'mirror'), centre = (Math.min(...c.map(h => h.spot.bottom)) + Math.max(...c.map(h => h.spot.top))) / 2;
+    // A child's room hangs art at the child's eye level.
+    const room = scene.rooms.find(r => r.id === c[0]!.o.room_id), kids = !mirror && room !== undefined && (/\b(kid|child|nursery|toddler|play)/i.test(`${room.id} ${room.name ?? ''}`)
+      || items.some(o => o.room_id === room.id && (o.kind === 'crib' || o.kind === 'toy' || (o.kind === 'bed' && /\b(kids?|child|toddler|bunk)\b/i.test(o.name ?? '')))));
+    const [lo, hi, aim, say] = mirror ? [1.45, 1.7, 1.57, '1.50-1.65'] : kids ? [1.0, 1.65, 1.3, '1.10-1.60 in a child\'s room'] : [1.4, 1.65, 1.52, '1.45-1.60'];
+    if (centre < lo || centre > hi) out.hard.push(`decor: ${c.map(h => h.o.id).join(' + ')} on a free wall centres at ${f2(centre)} m (eye level is ${say} m): ${raise(c, aim - centre)}`);
   }
   // Hung mirrors keep at least 0.2 m of plain wall at each side (wall ends, doors and windows).
   for (const { o, spot } of hung.filter(h => h.o.kind === 'mirror' && h.o.size[2] <= 1.4)) {
@@ -420,6 +440,12 @@ function wallDecor(scene: Scene, items: DraftItem[], out: Findings) {
   }
 }
 
+/** The height_m each hung piece needs after moving the group up by delta (as the editor would render it). */
+function raise(pieces: { o: DraftItem; spot: { bottom: number; top: number } }[], delta: number): string {
+  return pieces.map(({ o, spot }) => `${pieces.length > 1 ? `${o.id} ` : ''}height_m ${f2((spot.bottom + spot.top) / 2 + delta)}`).join(', ');
+}
+/** Hung art for placement rules: framed art, clocks and wall hangings (not ledges or shelves, which hold objects). */
+const ART = /^(wall_art|wall_hanging|clock)$/;
 /** The item's pos moved by t metres along its wall (towards the wall's b end). */
 function slide(item: DraftItem, spot: NonNullable<ReturnType<typeof wallSpot>>, t: number): V {
   const l = Math.hypot(spot.wall.b[0] - spot.wall.a[0], spot.wall.b[1] - spot.wall.a[1]);

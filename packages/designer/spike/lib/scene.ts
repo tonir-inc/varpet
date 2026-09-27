@@ -202,14 +202,17 @@ export function onWall(scene: Scene, roomId: string, wallId: string, size: [numb
 }
 /** Curtains and blinds: the editor hangs them from a rod just under the ceiling, centred on the nearest window. */
 export const isCurtain = (item: Pick<Item, 'kind'>) => item.kind === 'curtain' || item.kind === 'blind';
-/** Bottom height the editor renders a wall-hung item at (apps/editor/src/core/decoration-placement.ts mountDecoration):
- * height_m is ignored there. Mirrors taller than 1.4 m lean on the floor; curtains hang from a rod 3 cm under the
- * ceiling; everything else hangs at the standard max(0.9, 1.5 - h/2). */
-export function renderedBottom(item: Pick<Item, 'kind' | 'size'>, wallHeight: number): number {
+/** Bottom height the editor renders a wall-hung item at (apps/editor/src/core/decoration-placement.ts mountDecoration,
+ * since 412a841): mirrors taller than 1.4 m lean on the floor; curtains hang from a rod 3 cm under the ceiling; anything
+ * else hangs at height_m (centre above the floor) clamped to a bottom >= 0.3 m and a top <= ceiling - 0.1 m, or at the
+ * standard max(0.9, 1.5 - h/2) without height_m. */
+export function renderedBottom(item: Pick<DraftItem, 'kind' | 'size' | 'height_m'>, wallHeight: number): number {
   const h = item.size[2];
   if (item.kind === 'mirror' && h > 1.4) return 0;
   if (isCurtain(item)) return Math.max(0, wallHeight - 0.03 - h);
-  return Math.max(0.9, 1.5 - h / 2);
+  if (item.height_m === undefined || !Number.isFinite(item.height_m)) return Math.max(0.9, 1.5 - h / 2);
+  const low = 0.3, high = wallHeight - 0.1 - h;
+  return high >= low ? Math.min(high, Math.max(low, item.height_m - h / 2)) : Math.max(0.9, 1.5 - h / 2);
 }
 /** A curtain or blind hung over window windowId: {pos, rot, wall_id, height_m} for the draft item (pos flush on the
  * window's wall, centred on it; the editor centres a curtain on the window and hangs its rod under the ceiling). */
@@ -222,7 +225,7 @@ export function atWindow(scene: Scene, roomId: string, windowId: string, size: [
   return { ...placed, height_m: Math.round((renderedBottom({ kind: 'curtain', size }, wallHeight) + size[2] / 2) * 1000) / 1000 };
 }
 /** Where a wall-hung item sits on its wall: centre metres along the room alias from `a`, distance of pos from the
- * wall's room-side face, wall length, and bottom/top heights as the editor renders them (height_m is ignored).
+ * wall's room-side face, wall length, and bottom/top heights as the editor renders them (height_m, clamped).
  * undefined if the wall is unknown. */
 export function wallSpot(scene: Scene, item: DraftItem): { wall: Wall; along: number; offFace: number; length: number; bottom: number; top: number; wallHeight: number } | undefined {
   let wall: Wall;
