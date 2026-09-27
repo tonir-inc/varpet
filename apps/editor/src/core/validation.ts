@@ -319,7 +319,15 @@ export function placementIssues(scene: SceneDocument, catalog: CatalogAsset[]): 
       if (!valid) result.push({entityId:object.id,kind:'support',blocking:true,message:`“${object.name}” does not hang from the ceiling above it.`});
     }
     if (!floorSupported(object.host || object.restsOn || object.hangsFrom ? { ...object, position: [object.position[0], floorHeight(scene, object), object.position[2]] } : object, asset, scene)) result.push({entityId:object.id,kind:'support',blocking:true,message:`“${object.name}” must fit completely inside the floor plan${scene.version === 2 ? ' at the room’s floor elevation' : ''}.`});
-    const collision = scene.walls.find(wall => scene.project?.metadata[wall.id]?.phase !== 'remove' && wallCollision(object, asset, wall, footprint, scene.project?.metadata[wall.id]?.elevation ?? 0));
+    // A bounding-box reject skips the exact test for the walls nowhere near this piece.
+    const fx = footprint.map(p => p[0]), fz = footprint.map(p => p[1]);
+    const [minX, maxX, minZ, maxZ] = [Math.min(...fx), Math.max(...fx), Math.min(...fz), Math.max(...fz)];
+    const collision = scene.walls.find(wall => {
+      const reach = wall.thickness + 0.05;
+      if (Math.min(wall.start[0], wall.end[0]) - reach > maxX || Math.max(wall.start[0], wall.end[0]) + reach < minX
+        || Math.min(wall.start[1], wall.end[1]) - reach > maxZ || Math.max(wall.start[1], wall.end[1]) + reach < minZ) return false;
+      return scene.project?.metadata[wall.id]?.phase !== 'remove' && wallCollision(object, asset, wall, footprint, scene.project?.metadata[wall.id]?.elevation ?? 0);
+    });
     if (collision) result.push({entityId:object.id,kind:'wall',blocking:true,message:`“${object.name}” intersects wall “${collision.id}”. Move it clear of the wall or into a door opening.`});
   }
   let overlapCount = 0;

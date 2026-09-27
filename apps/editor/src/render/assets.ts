@@ -324,6 +324,17 @@ interface ModelSource {
 }
 
 /** Owned, bounded source cache; returned instances own their render resources. */
+let slots: Promise<void> = Promise.resolve();
+function parseSlot(): Promise<void> {
+  const slot = slots.then(() => new Promise<void>(resolve => {
+    // After the next frame (or 50 ms when frames pause in a hidden tab).
+    const timer = setTimeout(resolve, 50);
+    requestAnimationFrame(() => setTimeout(() => { clearTimeout(timer); resolve(); }, 0));
+  }));
+  slots = slot;
+  return slot;
+}
+
 export class AssetLoader {
   private loader = new GLTFLoader();
   private cache = new Map<string, ModelSource>();
@@ -364,8 +375,10 @@ export class AssetLoader {
     let source = this.cache.get(url);
     if (!source) {
       const light = lightModelUrl(url);
-      // No light copy (or no editor server): the original still loads.
-      const download = light ? this.loader.loadAsync(light).catch(() => this.loader.loadAsync(url)) : this.loader.loadAsync(url);
+      // No light copy (or no editor server): the original still loads. One download/parse starts per
+      // frame, so a whole design arriving at once does not stack a dozen GLB parses between two frames.
+      const start = () => light ? this.loader.loadAsync(light).catch(() => this.loader.loadAsync(url)) : this.loader.loadAsync(url);
+      const download = typeof requestAnimationFrame === 'undefined' ? start() : parseSlot().then(start);
       const promise = download.then(async gltf => {
         if (this.disposed) { disposeObject(gltf.scene); throw new Error('Asset loader disposed.'); }
         // Once per source: every placed copy clones the reduced geometry.

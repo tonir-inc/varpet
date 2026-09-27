@@ -9,7 +9,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import type { BuildingComponent, CatalogAsset, ComponentTransformPatch, ObjectPatch, Opening, SceneDocument, SceneObject, ToolMode, Vec3, ViewMode, Viewport, ViewportCallbacks, ViewportLayer, WallMode } from '../contracts';
-import { AssetLoader, disposeObject, makeFurniture, poseWallDecoration } from './assets';
+import { AssetLoader, disposeObject, makeAssetPlaceholder, makeFurniture, poseWallDecoration } from './assets';
 import { makeStructure, type StructureProjection } from './structure';
 import { installComponentModel, LightingPreview, makeServices, type ServiceProjection } from './services';
 import { installOpeningModel, openingModel } from './opening-models';
@@ -662,6 +662,10 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
     }, 400);
   }
   const warmed = new WeakSet<THREE.Material>();
+  // A hidden loading placeholder keeps its programs compiled and alive, so an applied design's
+  // first frame (dozens of placeholders at once) compiles nothing.
+  const placeholderSample = makeAssetPlaceholder({ id: 'warm-up', name: 'Warm-up', category: 'view', kind: 'chair', dimensions: [1, 1, 1], color: '#9299a3', price: 0, source: { type: 'procedural' } });
+  placeholderSample.visible = false; topLighting.wrap(placeholderSample); world.add(placeholderSample);
   function warmUp(): void {
     try {
       // One capture per preset is cached: pre-capture the other mood exactly as setLightingMood will ask for it.
