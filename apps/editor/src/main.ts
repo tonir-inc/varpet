@@ -1,3 +1,4 @@
+import {guardTeamUnload,teamReloadGuard} from './ui/team-saves';
 import {teamStartup} from './portal/team-session';
 import {mountTeamSaves} from './ui/team-saves-editor';
 import { placeFurniture, floorHeight } from './core/furniture-support';
@@ -1573,7 +1574,8 @@ if (editorSession) {
   $('.project-name > span').textContent=editorSession.apartment?'My apartment':'Plan copy';
   $('#save').title='Save to My apartments · ⌘S';
   $('#status-text').textContent=editorSession.sharingError ? 'Apartment loaded. Open Share to retry reconnecting your existing link.' : 'Make this apartment yours. Save to keep it in My apartments.';
-  window.addEventListener('beforeunload',event=>{if(accountSaving || (store.revision>0 && store.revision!==savedRevision)){event.preventDefault();event.returnValue='';}});
+  const reloading=teamReloadGuard(import.meta.hot);
+  window.addEventListener('beforeunload',event=>guardTeamUnload(event,accountSaving || (store.revision>0 && store.revision!==savedRevision),reloading()));
 }
 const sandboxLink = document.createElement('a');
 sandboxLink.href = '/?editor=sandbox'; sandboxLink.target = '_blank'; sandboxLink.rel = 'noopener';
