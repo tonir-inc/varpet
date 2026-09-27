@@ -17,6 +17,8 @@ export type ProposalAction = 'preview' | 'apply' | 'dismiss';
 interface Message { role: 'user' | 'designer'; text: string; metrics?: MetricRow[]; proposal?: AgentProposal; status?: ProposalStatus; options?: string[]; notes?: string; suggestions?: string[]; retryRequest?: string; steps?: DesignerTurnSteps; preview?: DesignerPreview;
   /** An inspiration picture the customer attached (a data URL, at most 256 KiB). */
   image?: string;
+  /** What the proposal buys: new pieces with room, shop, photo and price, fixed when the proposal arrived. */
+  buying?: Basket;
   /** `id|assetId` of the pieces an applied proposal brought that were not in the flat before: they say whether it is still in. */
   marks?: string[] }
 interface Conversation { id: string; title: string; conversationId?: string; messages: Message[]; options: string[] }
@@ -141,6 +143,42 @@ export function proposalInScene(proposal: AgentProposal, scene: SceneDocument, m
   if (!added.length) return undefined;
   const ids = new Set(scene.objects.map(object => object.id));
   return added.some(id => ids.has(id)) ? 'applied' : 'undone';
+}
+
+export interface BasketPiece { id: string; assetId: string; name: string; room: string; shop: string; price?: number; estimate?: boolean; image?: string }
+export interface Basket { pieces: BasketPiece[]; budget?: number; unquoted?: string }
+
+const inside = ([x, z]: [number, number], polygon: [number, number][]) => {
+  let hit = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const [xi, zi] = polygon[i]!, [xj, zj] = polygon[j]!;
+    if ((zi > z) !== (zj > z) && x < (xj - xi) * (z - zi) / (zj - zi) + xi) hit = !hit;
+  }
+  return hit;
+};
+/** "extra" is the team's own model catalog; ABO pieces carry their brand. */
+const shopName = (vendor: string | undefined, assetId: string) =>
+  vendor && vendor.toLowerCase() !== 'extra' ? vendor : assetId.startsWith('extra:') ? 'Varpet collection (sample prices)' : assetId.startsWith('custom-') ? 'Workshop (made to measure)' : 'Catalog';
+
+/** The pieces a proposal buys: its adds that were not already in the flat (a re-hung piece is not a purchase),
+ * each with the room it stands in, its shop (service basket, else the catalog prefix), photo and price. */
+export function proposalBasket(proposal: AgentProposal, scene: SceneDocument, catalog: CatalogAsset[], estimates: CatalogAsset[], metrics: unknown): Basket {
+  const had = new Set(scene.objects.map(object => `${object.id}|${object.assetId}`));
+  const assets = new Map(catalog.map(asset => [asset.id, asset])), custom = new Map(estimates.map(asset => [asset.id, asset]));
+  const extra = new Map((Array.isArray(record(record(metrics).basket).items) ? record(record(metrics).basket).items as unknown[] : []).map(value => [String(record(value).id), record(value)]));
+  const pieces = proposal.command.operations.flatMap(operation => {
+    if (operation.type !== 'add' || had.has(`${operation.object.id}|${operation.object.assetId}`)) return [];
+    const object = operation.object, asset = assets.get(object.assetId) ?? custom.get(object.assetId), more = extra.get(object.id) ?? {};
+    const position = object.position ?? scene.objects.find(entry => entry.id === operation.on)?.position;
+    const room = position ? scene.rooms.find(entry => inside([position[0], position[2]], entry.polygon))?.name : undefined;
+    const price = asset && Number.isFinite(asset.price) && asset.price > 0 ? asset.price : undefined;
+    return [{ id: object.id, assetId: object.assetId, name: object.name?.trim() || asset?.name || 'New piece', room: room ?? 'Other',
+      shop: shopName(typeof more.vendor === 'string' ? more.vendor : undefined, object.assetId),
+      ...(price === undefined ? {} : { price }), ...(custom.has(object.assetId) && !assets.has(object.assetId) ? { estimate: true } : {}),
+      ...(typeof more.image === 'string' && /^https?:\/\//.test(more.image) ? { image: more.image } : {}) }];
+  });
+  const budget = record(metrics).budget_dram, unquoted = record(record(metrics).basket).unquoted;
+  return { pieces, ...(measured(budget) && budget > 0 ? { budget } : {}), ...(typeof unquoted === 'string' && unquoted.trim() ? { unquoted: unquoted.trim().slice(0, 600) } : {}) };
 }
 
 /** A turn without typed events still reads as steps: each new progress line closes the previous one. */
@@ -376,8 +414,11 @@ export function createDesignerConversation(options: ConversationOptions) {
         if (disposed || active !== abortController) return;
         if (result.type !== 'error') state.conversationId = result.conversationId;
         if (result.type === 'proposal') {
+          const now_ = options.snapshot();
+          const buying = proposalBasket(result.proposal, now_.scene, now_.catalog ?? [], result.assets ?? [], result.metrics);
           if (options.history) state.messages.push({ role: 'designer', text: result.proposal.description, proposal: structuredClone(result.proposal),
-            status: result.proposal.command.baseRevision === options.snapshot().revision ? 'pending' : 'stale', metrics: proposalMetrics(result.metrics),
+            status: result.proposal.command.baseRevision === now_.revision ? 'pending' : 'stale', metrics: proposalMetrics(result.metrics),
+            ...(buying.pieces.length ? { buying } : {}),
             ...(result.notes === undefined ? {} : { notes: result.notes }) });
           else reply(`${result.proposal.title}\n${result.proposal.description}\nReview the proposed change below before applying it.`, proposalMetrics(result.metrics), result.notes);
           options.onProposal(result.proposal);
@@ -711,6 +752,60 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
     }, 'designer-copy');
     return control;
   };
+  // "What you're buying": grouped by room or by shop, quantities of the same product together; a row selects the piece.
+  const basketModes = new Map<string, 'room' | 'shop'>(), openBaskets = new Set<string>();
+  const basketView = (basket: Basket, key: string) => {
+    const mode = basketModes.get(key) ?? 'room';
+    const total = basket.pieces.reduce((sum, piece) => sum + (piece.price ?? 0), 0);
+    const details = document.createElement('details'); details.className = 'designer-basket'; details.open = openBaskets.has(key);
+    details.ontoggle = () => { if (details.open) openBaskets.add(key); else openBaskets.delete(key); };
+    const summary = document.createElement('summary');
+    summary.textContent = `What you're buying · ${basket.pieces.length} piece${basket.pieces.length === 1 ? '' : 's'} · ${money(total)}`;
+    details.append(summary);
+    const switcher = document.createElement('div'); switcher.className = 'designer-basket-modes';
+    for (const [value, label] of [['room', 'By room'], ['shop', 'By shop']] as const) {
+      const control = button(label, () => { basketModes.set(key, value); openBaskets.add(key); messageKey = ''; render(controller.state); }, `button quiet designer-basket-mode${mode === value ? ' active' : ''}`);
+      control.setAttribute('aria-pressed', String(mode === value)); switcher.append(control);
+    }
+    details.append(switcher);
+    const groups = new Map<string, BasketPiece[][]>();
+    for (const piece of basket.pieces) {
+      const group = mode === 'room' ? piece.room : piece.shop;
+      const rows = groups.get(group) ?? []; groups.set(group, rows);
+      const same = rows.find(row => row[0]!.assetId === piece.assetId);
+      if (same) same.push(piece); else rows.push([piece]);
+    }
+    for (const [group, rows] of groups) {
+      const section = document.createElement('section'); section.className = 'designer-basket-group';
+      const heading = document.createElement('h4');
+      const subtotal = rows.flat().reduce((sum, piece) => sum + (piece.price ?? 0), 0);
+      heading.textContent = `${group} · ${money(subtotal)}`; section.append(heading);
+      const list = document.createElement('ul');
+      for (const row of rows) {
+        const piece = row[0]!, entry = document.createElement('li');
+        const pick = document.createElement('button'); pick.type = 'button'; pick.className = 'designer-basket-row';
+        pick.title = 'Show this piece in the flat';
+        // The editor selects and frames the piece when it is in the flat (after Apply).
+        pick.onclick = () => document.dispatchEvent(new CustomEvent('varpet:select', { detail: { id: piece.id, ids: row.map(item => item.id) } }));
+        if (piece.image) { const photo = document.createElement('img'); photo.src = piece.image; photo.alt = ''; photo.loading = 'lazy'; photo.onerror = () => photo.remove(); pick.append(photo); }
+        else { const swatch = document.createElement('span'); swatch.className = 'designer-basket-swatch'; pick.append(swatch); }
+        const name = document.createElement('span'); name.className = 'designer-basket-name';
+        name.textContent = `${row.length > 1 ? `${row.length} × ` : ''}${piece.name}`;
+        const meta = document.createElement('small'); meta.textContent = mode === 'room' ? piece.shop : piece.room; name.append(meta);
+        const price = document.createElement('span'); price.className = 'designer-basket-price';
+        price.textContent = piece.price === undefined ? 'price on request' : `${piece.estimate ? '≈ ' : ''}${money(piece.price * row.length)}`;
+        pick.append(name, price); entry.append(pick); list.append(entry);
+      }
+      section.append(list); details.append(section);
+    }
+    const foot = document.createElement('dl'); foot.className = 'designer-basket-total';
+    const line = (label: string, value: string) => { const dt = document.createElement('dt'), dd = document.createElement('dd'); dt.textContent = label; dd.textContent = value; foot.append(dt, dd); };
+    line('Furniture total', money(total));
+    if (basket.budget) line('Budget', `${money(basket.budget)} · ${total <= basket.budget ? `${money(basket.budget - total)} left` : `${money(total - basket.budget)} over`}`);
+    if (basket.unquoted) line('Not in the total', `finishes and lighting, price on request: ${basket.unquoted}`);
+    details.append(foot);
+    return details;
+  };
   const productChips = (proposal: AgentProposal) => {
     const { catalog = [], catalogCurrency } = options.snapshot();
     const products = proposalProducts(proposal, catalog, [...estimates.values()]);
@@ -754,7 +849,7 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
         if (message.role === 'designer') text.innerHTML = designerMarkdown(message.text); else text.textContent = message.text;
         if (message.image) { const picture = document.createElement('img'); picture.className = 'designer-attached'; picture.src = message.image; picture.alt = 'Inspiration picture'; item.append(picture); }
         item.append(text);
-        if (message.proposal) { const chips = productChips(message.proposal); if (chips) item.append(chips); }
+        if (message.proposal) { const basket = message.buying ? basketView(message.buying, `${state.activeHistoryId}:${index}`) : undefined; const chips = basket ? undefined : productChips(message.proposal); if (basket) item.append(basket); else if (chips) item.append(chips); }
         if (message.metrics) {
           const metrics = document.createElement('dl'); metrics.className = 'designer-metrics';
           for (const row of message.metrics) { const dt = document.createElement('dt'), dd = document.createElement('dd'); dt.textContent = row.label; dd.textContent = row.value; metrics.append(dt, dd); }

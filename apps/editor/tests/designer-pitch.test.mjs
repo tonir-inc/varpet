@@ -124,3 +124,18 @@ test('undoing a follow-up that only moved and re-hung existing pieces reads Undo
   assert.equal(proposalInScene(follow, before, marks), 'undone');
   assert.equal(proposalInScene(follow, before, []), undefined);
 });
+
+test('what you are buying: new pieces only, with the room they stand in, the shop and the price', async () => {
+  const { proposalBasket } = await import(pathToFileURL(join(output, 'panel.mjs')));
+  const flat = { ...scene, rooms: [{ id: 'living', name: 'Living room', polygon: [[0, 0], [5, 0], [5, 4], [0, 4]], color: '#fff' }],
+    objects: [{ id: 'art', name: 'Art', assetId: 'abo:art', position: [1, 1.5, 0.1], rotation: 0, scale: [1, 1, 1] }] };
+  const add = (id, assetId, x, z) => ({ type: 'add', object: { id, name: id, assetId, position: [x, 0, z], rotation: 0, scale: [1, 1, 1] } });
+  const proposal = { id: 'p', title: 't', description: 'd', command: { id: 'p', label: 'l', source: 'designer', baseRevision: 3,
+    operations: [{ type: 'delete', id: 'art' }, add('art', 'abo:art', 1, 0.1), add('chair-1', 'extra:chair', 2, 2), add('chair-2', 'extra:chair', 3, 2), add('lamp', 'abo:lamp', 9, 9)] } };
+  const catalog = [{ id: 'extra:chair', name: 'Chair', price: 50000 }, { id: 'abo:lamp', name: 'Lamp', price: 30000 }];
+  const basket = proposalBasket(proposal, flat, catalog, [], { budget_dram: 200000, basket: { items: [{ id: 'lamp', vendor: 'Rivet', image: 'http://x/lamp.webp' }], unquoted: 'paint 40 m²' } });
+  assert.deepEqual(basket.pieces.map(piece => [piece.id, piece.room, piece.shop, piece.price]),
+    [['chair-1', 'Living room', 'Varpet collection (sample prices)', 50000], ['chair-2', 'Living room', 'Varpet collection (sample prices)', 50000], ['lamp', 'Other', 'Rivet', 30000]]);
+  assert.equal(basket.pieces[2].image, 'http://x/lamp.webp');
+  assert.equal(basket.budget, 200000); assert.equal(basket.unquoted, 'paint 40 m²');
+});

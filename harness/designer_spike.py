@@ -1111,13 +1111,17 @@ def propose(conversation, conversation_id: str, body: dict, cancel: threading.Ev
         draft = json.loads((state.workspace / "draft.json").read_text())
         total = sum(int(item.get("price") or 0) for item in draft.get("items", []) if isinstance(item, dict))
         space = _tool("metrics", str(state.workspace))
+        shopping = _tool("basket", str(state.workspace)) or {}
+        work = re.search(r"unquoted finish and lighting work \(price on request\): (.+)", check.stdout or "")
+        if work:
+            shopping["unquoted"] = work.group(1).strip()[:600]
         lap("preview")
         notes = "\n".join(filter(None, [_notes(state.workspace), *unmet_notes, *support_notes, *review_notes]))[:1600] or None
         timings["partials"] = watcher.sent
         return {"type": "proposal", "conversationId": conversation_id, "proposal": saved["proposal"],
                 "metrics": {"cost_dram": total, "seconds": result["seconds"],
                             **({"budget_dram": state.budget} if state.budget else {}),
-                            **({"space": space} if space else {}), "timings": timings},
+                            **({"space": space} if space else {}), **({"basket": shopping} if shopping else {}), "timings": timings},
                 **({"notes": notes} if notes else {})}
     finally:
         if watcher is not None:

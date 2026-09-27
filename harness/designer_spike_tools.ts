@@ -1,6 +1,7 @@
 /** Small measurements the designer service needs around a spike turn (run with packages/designer's tsx):
  *   tsx harness/designer_spike_tools.ts metrics <workspace>        -> {rooms:[...], free_before_m2, free_after_m2}
  *   tsx harness/designer_spike_tools.ts snap <editor-document.json> -> {operations:[update-room...]}
+ *   tsx harness/designer_spike_tools.ts basket <workspace>         -> {items:[{id, vendor, image?}]}
  * metrics: free floor and the narrowest reachable walkway per room, before (scene.json, the customer's own flat) and
  * after (plus draft.json's floor pieces), from the designer's own space metrics (the ones ./varpet check walks).
  * snap: the room outlines the spike's 3D export snaps onto wall faces (reconcile-geometry snapRoomFaces); the editor
@@ -13,6 +14,7 @@ import { snapRoomFaces } from '../packages/designer/src/reconcile-geometry.ts';
 import type { Scene } from '../packages/designer/src/scene.ts';
 import { onFloor, plainItem, type DraftItem } from '../packages/designer/spike/lib/finishes.ts';
 import type { SceneDocument } from '../apps/editor/src/contracts.ts';
+import { catalogItems } from '../packages/designer/src/catalog.ts';
 
 const json = (path: string) => JSON.parse(readFileSync(path, 'utf8'));
 const round = (value: number, digits = 2) => Math.round(value * 10 ** digits) / 10 ** digits;
@@ -48,12 +50,30 @@ export function snapOperations(doc: SceneDocument) {
   });
 }
 
+/** What the customer buys, per design piece: its shop and a product photo from the catalog (the card groups and
+ * prices the pieces itself from the proposal). A catalog outage leaves the photos out, never the pieces. */
+export async function basket(items: DraftItem[]) {
+  const skus = [...new Set(items.flatMap(item => typeof item.sku === 'string' ? [item.sku] : []))];
+  const images = new Map<string, string>();
+  try {
+    for (const record of await catalogItems(skus) as Record<string, unknown>[]) {
+      const url = [record.main_image_url, record.preview_url, record.image].find(value => typeof value === 'string' && /^https?:\/\//.test(value));
+      if (typeof record.id === 'string' && typeof url === 'string') images.set(record.id, url);
+    }
+  } catch { /* photos are optional */ }
+  return { items: items.map(item => ({ id: item.id, vendor: typeof item.vendor === 'string' && item.vendor ? item.vendor : undefined,
+    ...(typeof item.sku === 'string' && images.has(item.sku) ? { image: images.get(item.sku) } : {}) })) };
+}
+
 if (process.argv[1] && import.meta.url.endsWith(process.argv[1].split('/').pop()!)) {
   const [command, path] = process.argv.slice(2);
   if (command === 'metrics' && path) {
     const scene = json(join(path, 'scene.json')) as Scene, draft = json(join(path, 'draft.json')) as { items?: DraftItem[] };
     scene.items ??= []; scene.fixed ??= []; scene.openings ??= [];
     console.log(JSON.stringify(roomMetrics(scene, draft.items ?? [])));
+  } else if (command === 'basket' && path) {
+    const draft = json(join(path, 'draft.json')) as { items?: DraftItem[] };
+    console.log(JSON.stringify(await basket(draft.items ?? [])));
   } else if (command === 'snap' && path) {
     console.log(JSON.stringify({ operations: snapOperations(json(path) as SceneDocument) }));
   } else {
