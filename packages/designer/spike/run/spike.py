@@ -153,9 +153,21 @@ def private_home(tool_mode: str, home: Path | None = None) -> tuple[Path, dict]:
 SUBAGENT_SLOTS = 6  # the lead's own thread counts: 5 room designers at once
 
 
+MCP_TOOLS = ["get_scene", "get_room", "find_items", "describe_item", "search_catalog", "product_sheet", "fits", "apply_patch",
+             "undo", "redo", "measure", "check", "look", "run_script"]
+
+
+def scene_mcp(workspace: Path) -> dict:
+    """The scene MCP (spike/mcp.ts) on this workspace, as a Codex mcp_servers entry."""
+    return {"command": shutil.which("node") or "node", "args": ["--import", TSX_LOADER.as_uri(), str(SPIKE / "mcp.ts"), "--workspace", str(workspace)],
+            "cwd": str(workspace), "default_tools_approval_mode": "approve", "enabled_tools": MCP_TOOLS,
+            "startup_timeout_sec": 60, "tool_timeout_sec": 300}
+
+
 def codex_config(effort: str, sandbox: str, network: bool, extra: dict, *, subagents: str | None = None,
-                 subagent_effort: str | None = None) -> dict:
-    """subagents: developer instructions for room sub-agents; set, it turns on spawn_agent/wait_agent (multi-agent v2)."""
+                 subagent_effort: str | None = None, mcp_workspace: Path | None = None) -> dict:
+    """subagents: developer instructions for room sub-agents; set, it turns on spawn_agent/wait_agent (multi-agent v2).
+    mcp_workspace: the scene MCP is the designer's only tool (shell and code mode off, like harness/designer.py)."""
     config = {
         "model": MODEL,
         "model_reasoning_effort": effort,
@@ -169,6 +181,9 @@ def codex_config(effort: str, sandbox: str, network: bool, extra: dict, *, subag
         "sandbox_mode": {"full-access": "danger-full-access"}.get(sandbox, sandbox),
         "sandbox_workspace_write": {"network_access": network},
     }
+    if mcp_workspace is not None:
+        config["features"].update({name: False for name in ("shell_tool", "unified_exec", "code_mode_host", "code_mode", "code_mode_only")})
+        config["mcp_servers"] = {"varpet-scene": scene_mcp(mcp_workspace)}
     if subagents:
         config["features"]["multi_agent_v2"] = {"enabled": True, "max_concurrent_threads_per_session": SUBAGENT_SLOTS,
                                                 "subagent_developer_instructions": subagents}
@@ -218,7 +233,8 @@ class Session:
         subagents = (RUN / "SUBAGENT.md").read_text() if parallel else None
         self.parallel = parallel
         self.config = codex_config(args.effort, args.sandbox, not args.no_network, self.extra, subagents=subagents,
-                                   subagent_effort=getattr(args, "subagent_effort", None))
+                                   subagent_effort=getattr(args, "subagent_effort", None),
+                                   mcp_workspace=workspace if getattr(args, "tools", "shell") == "mcp" else None)
         self.counts, self.commands, self.images, self.tools = Counter(), [], [], []
         self.usage = None
         self.turns: list[dict] = []
@@ -317,7 +333,7 @@ class Session:
     def summary(self) -> dict:
         ignored = {"agentMessage", "reasoning", "userMessage", None}
         last = self.turns[-1] if self.turns else {}
-        return {"service_tier": self.service_tier, "prompt": getattr(self.args, "prompt", None) and str(self.args.prompt), "parallel": self.parallel, "tool_mode": self.args.tool_mode, "original_tool_mode": self.extra.get("original_tool_mode"),
+        return {"service_tier": self.service_tier, "tools": getattr(self.args, "tools", "shell"), "prompt": getattr(self.args, "prompt", None) and str(self.args.prompt), "parallel": self.parallel, "tool_mode": self.args.tool_mode, "original_tool_mode": self.extra.get("original_tool_mode"),
                 "sandbox": self.args.sandbox, "network": not self.args.no_network, "config": self.config,
                 "skills_enabled": getattr(self, "skills_enabled", None), "thread_id": getattr(self, "thread", None) and self.thread.id,
                 "status": last.get("status", "missing_completion"), "error": last.get("error"),
@@ -525,9 +541,15 @@ def main() -> int:
     parser.add_argument("--parallel", default="auto", choices=("auto", "on", "off"),
                         help="room sub-agents (spawn_agent, run/SUBAGENT.md); auto = on for multi-room cases")
     parser.add_argument("--prompt", type=Path, help="designer prompt template (default run/AGENTS.md; run/AGENTS.script.md = scene scripting)")
+    parser.add_argument("--tools", default="shell", choices=("shell", "mcp"),
+                        help="shell: ./varpet in a shell; mcp: the scene MCP (spike/mcp.ts) only, prompt run/AGENTS.mcp.md by default")
     parser.add_argument("--service-tier", help="Codex service tier for the thread: priority (the 'Fast' tier; 'fast' is an alias), default (standard), or omitted (the model's default)")
     parser.add_argument("--subagent-effort", choices=("low", "medium", "high"), help="sub-agent effort (default: --effort)")
     args = parser.parse_args()
+    if args.tools == "mcp":
+        # Code mode is off with the MCP (its host would run the shell), so the model calls the tools directly.
+        args.prompt = args.prompt or RUN / "AGENTS.mcp.md"
+        args.tool_mode = "direct"
     case = load_case(args.case, args.cases)
     if not args.cli.exists():
         raise SystemExit(f"{args.cli} does not exist yet")

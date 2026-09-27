@@ -24,9 +24,11 @@ an error (an error saves nothing). Metres; x right, y up (plan); `rot` degrees C
 - `add(product, {pos, rot})`, or `{wall, along?}` (floor pieces back on the wall; art, mirrors, clocks hang on it,
   `height` = centre height), or `{on: supportId}` (vase, lamp, cushion; `pos` inside the support), or `{window: id}`
   (curtains, blinds); optional `id`, `room`. Returns the item. `move(id, [x, y] | {dx, dy}, rot?)`, `rotate(id, rot)`,
-  `remove(id)` (with what rests on it), `get(id)`, `list(room?)`
+  `remove(id)` (with what rests on it), `get(id)`, `list(room?)`, `find({kind?, name?, room?})`; each saved script is one
+  undo step and reports the ids it created, updated or removed: `./varpet undo [n]` / `./varpet redo [n]`
 - geometry: `bbox(id)`, `footprint(id)`, `distance(a, b)`, `gap(a, b)` (edge to edge, negative = overlap),
-  `facing(a, b)` ({angle, faces}), `clear([x, y], r)` (what is near a point), `freeRects(room)`
+  `facing(a, b)` ({angle, faces}), `clear([x, y], r)` (what is near a point), `freeRects(room)`,
+  `fits(product, {pos, rot} | {wall, along} ...)` tries a piece without adding it (collisions, near gaps, door zones)
 - surfaces and light: `paint(room, '#hex', {wall?})` (all walls, or one accent wall), `floor(room, material, '#hex'?)`,
   `materials()`, `ceiling(room, 'quiet'|'soft-glow'|'architectural')`, `fixture(room, {mount: 'pendant'|'ceiling'|'wall', pos,
   height_m?})`; floor and table lamps are catalog items (`kind: 'lamp'`)

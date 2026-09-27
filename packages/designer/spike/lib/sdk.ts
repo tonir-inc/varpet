@@ -455,7 +455,7 @@ export class Studio {
   save(): string {
     const path = join(this.dir, 'draft.json'), before = existsSync(path) ? readFileSync(path, 'utf8') : '{"items": []}\n';
     const after = JSON.stringify(this.draft, null, 1) + '\n';
-    if (before !== after) {
+    if (JSON.stringify(JSON.parse(before)) !== JSON.stringify(this.draft)) {
       const history = join(this.dir, '.history');
       mkdirSync(join(history, 'redo'), { recursive: true });
       writeFileSync(join(history, `${String(historySteps(history).length + 1).padStart(4, '0')}.json`), before);
@@ -525,6 +525,7 @@ export function scriptScope(studio: Studio): Record<string, unknown> {
 export async function runScript(studio: Studio, code: string, capture = false): Promise<{ output: string; saved?: string }> {
   if (/^\s*import\s/m.test(code)) throw new Error('scripts need no imports: every Studio function (room, add, look, ...) is already in scope');
   const scope = scriptScope(studio), lines: string[] = [], original = { log: console.log, error: console.error };
+  const start = structuredClone(studio.draft), dirty = studio.dirty;
   (globalThis as Record<string, unknown>).__varpet = scope;
   const file = join(studio.dir, `.varpet-script-${process.pid}-${Date.now()}.mts`);
   writeFileSync(file, `const { ${Object.keys(scope).join(', ')} } = (globalThis as any).__varpet; {\n${code}\n}\nexport {};\n`);
@@ -535,6 +536,7 @@ export async function runScript(studio: Studio, code: string, capture = false): 
     // esbuild syntax errors: "<file>:<line>:<col>: ERROR: <what>"; the body starts on line 2 of the module file.
     const syntax = /:(\d+):(\d+): ERROR: (.*)/.exec(text);
     const at = syntax ? undefined : error instanceof Error ? /\.varpet-script-[\d-]+\.m?ts:(\d+)/.exec(error.stack ?? '')?.[1] : undefined;
+    studio.draft = start; studio.dirty = dirty;
     const message = syntax ? `syntax error: ${syntax[3]} (script line ${Number(syntax[1]) - 1}, column ${syntax[2]})` : text.split('\n')[0];
     throw new Error(`${lines.length ? lines.join('\n') + '\n' : ''}${message}${at ? ` (script line ${Number(at) - 1})` : ''}; nothing saved`);
   } finally { Object.assign(console, original); unlinkSync(file); }

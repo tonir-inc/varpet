@@ -421,7 +421,8 @@ class DraftWatcher:
     critic right away (`on_finished`), so the review overlaps the rest of the design."""
 
     def __init__(self, state: SpikeConversation, progress, body: dict, turn: Path, partials: bool = True,
-                 interval: float = 1.5, quiet: float = 30.0, observer=None, on_finished=None):
+                 interval: float = 1.5, quiet: float = 30.0, observer=None, on_finished=None,
+                 live: bool | None = None, live_delay: float = 2.0):
         self.state, self.progress, self.body, self.turn = state, progress, body, turn
         self.names = {room["id"]: room.get("name") or room["id"] for room in state.rooms}
         self.partials, self.interval = partials, interval
@@ -442,6 +443,14 @@ class DraftWatcher:
             self.log_offset = self.log.stat().st_size
         except OSError:
             self.log_offset = 0
+        # Live sync (Pascal's live_sync): every settled change of the design is translated and sent as a partial, so
+        # the customer watches the room being built. VARPET_SPIKE_LIVE=0 turns it off; skips go to live.jsonl.
+        self.live = os.environ.get("VARPET_SPIKE_LIVE", "1") != "0" if live is None else live
+        self.live_delay = live_delay
+        self.live_digest = hashlib.sha256(json.dumps(before, sort_keys=True).encode()).hexdigest()
+        self.live_pending: tuple[str, dict, float] | None = None
+        self.live_thread: threading.Thread | None = None
+        self.live_step = 0
         self.thread = threading.Thread(target=self._loop, daemon=True)
 
     def start(self) -> "DraftWatcher":
@@ -519,12 +528,68 @@ class DraftWatcher:
                     if room not in self.started_rooms:
                         self.started_rooms.append(room)
                         self._emit(f"Designing the {self._name(room).lower()}")
+                if self.live and digest != self.live_digest:
+                    self.live_pending = (digest, draft, now)  # a newer save replaces a pending one (coalesce)
+                elif self.live:
+                    self.live_pending = None  # back to what the editor already shows (an undo)
+        self._live_dispatch(now)
         if not self.partials or draft is None:
             return
         done = finished_rooms(self.started_rooms, self.changed, now, self.quiet, self.rendered)
         # Rooms may finish in any order (parallel designers): preview whenever a room joins the finished set.
         if done and not set(done) <= set(self.previewed):
             self._partial(draft, tuple(sorted(set(done) | set(self.previewed), key=self.started_rooms.index)))
+
+    def _live_log(self, entry: dict) -> None:
+        try:
+            with (self.turn / "live.jsonl").open("a") as handle:
+                handle.write(json.dumps({"at": time.strftime("%H:%M:%S"), **entry}, ensure_ascii=False) + "\n")
+        except OSError:
+            pass
+
+    def _live_dispatch(self, now: float) -> None:
+        """Start one live translation once the latest change has settled for `live_delay` s; at most one in flight."""
+        if not self.live or self.live_pending is None or self.stopped.is_set():
+            return
+        if now - self.live_pending[2] < self.live_delay:
+            return
+        if self.live_thread is not None and self.live_thread.is_alive():
+            return  # the next poll after it finishes sends the newest pending change
+        digest, draft, _ = self.live_pending
+        self.live_pending, self.live_digest = None, digest
+        self.live_step += 1
+        self.live_thread = threading.Thread(target=self._live, args=(draft, self.live_step), daemon=True)
+        self.live_thread.start()
+
+    def _live(self, draft: dict, step: int) -> None:
+        """Translate the whole design as it is now and send it as a partial (hard gates only: ./varpet check --facts)."""
+        try:
+            work = self.turn / "live"
+            work.mkdir(exist_ok=True)
+            for name in ("scene.json", "source.json", "budget.json", "brief.txt"):
+                if (self.state.workspace / name).exists():
+                    shutil.copyfile(self.state.workspace / name, work / name)
+            (work / "draft.json").write_text(json.dumps(draft, ensure_ascii=False))
+            gates = _run([self.state.workspace / "varpet", "check", "--facts", "--scene", work / "scene.json",
+                          "--draft", work / "draft.json"], cwd=self.state.workspace, timeout=120)
+            if gates.returncode != 0:
+                reason = [line for line in (gates.stdout or "").splitlines() if line.strip()][:6] or [(gates.stderr or "").strip()[-400:]]
+                self._live_log({"step": step, "skipped": "gates failed", "reason": reason})
+                return
+            if self.stopped.is_set():
+                self._live_log({"step": step, "skipped": "turn finished"})
+                return
+            names = room_labels([self._name(room) for room in _room_order(draft)])
+            proposal = _translate(self.state, self.body, work, work, "The design so far",
+                                  "The design as the designer builds it, live. The full design arrives with Apply when it is done.")
+            if proposal is None or "error" in proposal:
+                self._live_log({"step": step, "skipped": "translation failed",
+                                "reason": (proposal or {}).get("error", "no proposal")[-400:]})
+                return
+            sent = self._emit({"type": "partial", "proposal": proposal["proposal"], "rooms": names[:20]})
+            self._live_log({"step": step, "sent": sent, **({} if sent else {"skipped": "turn finished"}), "rooms": names[:20]})
+        except Exception as error:  # live sync is a bonus; a failure is logged and the next change tries again
+            self._live_log({"step": step, "skipped": "error", "reason": f"{type(error).__name__}: {error}"[:400]})
 
     def _partial(self, draft: dict, rooms: tuple[str, ...]) -> None:
         keep = set(rooms)
@@ -790,15 +855,26 @@ def _codex_extra(state: "SpikeConversation") -> dict:
     return {key: state.config[key] for key in ("model_catalog_json",) if key in state.config}
 
 
+def tools(environ=os.environ) -> str:
+    """VARPET_SPIKE_TOOLS: shell (./varpet, the default) or mcp (the scene MCP)."""
+    value = environ.get("VARPET_SPIKE_TOOLS", "shell").strip().lower() or "shell"
+    if value not in ("shell", "mcp"):
+        raise ValueError("VARPET_SPIKE_TOOLS must be shell or mcp")
+    return value
+
+
 def _workspace(conversation_root: Path) -> SpikeConversation:
     spike = spike_module()
     workspace = conversation_root / "spike"
     workspace.mkdir()
     spike.link_tools(workspace)
     (workspace / "draft.json").write_text('{"items": []}\n')
-    home, extra = spike.private_home("default", conversation_root / "codex-home")
+    # VARPET_SPIKE_TOOLS=mcp: the scene MCP (spike/mcp.ts: small tool edits plus run_script) instead of a shell with
+    # ./varpet; its model calls tools directly (code mode would need the shell).
+    mcp = tools() == "mcp"
+    home, extra = spike.private_home("direct" if mcp else "default", conversation_root / "codex-home")
     # Network stays on in the sandbox for ./varpet (catalog MCP); the prompt forbids any other use.
-    config = spike.codex_config(EFFORT, "workspace-write", True, extra)
+    config = spike.codex_config(EFFORT, "workspace-write", True, extra, mcp_workspace=workspace if mcp else None)
     return SpikeConversation(workspace=workspace, home=home, config=config)
 
 
@@ -860,6 +936,10 @@ def _run_turn(state: SpikeConversation, turn_input, cancel: threading.Event, obs
         spike.disable_skills(codex, str(state.workspace))
         options = dict(model=spike.MODEL, approval_mode=ApprovalMode.deny_all, sandbox=Sandbox("workspace-write"),
                        cwd=str(state.workspace), developer_instructions=state.instructions)
+        # The Fast tier (priority) unless VARPET_SPIKE_SERVICE_TIER says otherwise ("" = the model's default).
+        tier = os.environ.get("VARPET_SPIKE_SERVICE_TIER", "priority").strip()
+        if tier:
+            options["service_tier"] = tier
         thread = codex.thread_resume(state.thread_id, **options) if state.thread_id else codex.thread_start(**options)
         state.thread_id = thread.id
         # No per-turn sandbox: the SDK's turn preset would switch the sandbox network off.
@@ -976,7 +1056,8 @@ def propose(conversation, conversation_id: str, body: dict, cancel: threading.Ev
         if first:
             state.instructions = spike.fill_prompt({"id": conversation_id, "request": requests[0], "rooms": "all",
                                                     **({"budget_dram": state.budget} if state.budget else {})},
-                                                   state.rooms, suffix)
+                                                   state.rooms, suffix,
+                                                   RUN / "AGENTS.mcp.md" if tools() == "mcp" else None)
             (state.workspace / "AGENTS.md").write_text(state.instructions)
         if cancel.is_set():
             raise RuntimeError("Request cancelled")
@@ -1015,7 +1096,8 @@ def propose(conversation, conversation_id: str, body: dict, cancel: threading.Ev
         # follow-ups keep the single thread. VARPET_SPIKE_PARALLEL=on|off|auto.
         mode = os.environ.get("VARPET_SPIKE_PARALLEL", "auto")
         parallel_config = None
-        if (RUN / "SUBAGENT.md").exists() and mode != "off":
+        # Room sub-agents work through ./varpet in a shell: the scene MCP designer works alone.
+        if (RUN / "SUBAGENT.md").exists() and mode != "off" and tools() != "mcp":
             parallel_config = spike.codex_config(EFFORT, "workspace-write", True, _codex_extra(state),
                                                  subagents=(RUN / "SUBAGENT.md").read_text())
         parallel = parallel_config is not None and first_design and (mode == "on" or whole_flat(brief, state.rooms))
