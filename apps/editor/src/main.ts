@@ -1212,6 +1212,21 @@ folioShell = mountFolioShell({
   },
 });
 window.addEventListener('pagehide', event => { if (!event.persisted) { designerPanel.dispose(); folioShell?.dispose(); } });
+/** Pitch tour of the finished flat. Other lanes start it with document.dispatchEvent(new CustomEvent('varpet:tour')). */
+const tourButton = document.createElement('button');
+tourButton.type = 'button'; tourButton.className = 'folio-action'; tourButton.dataset.folio = 'tour';
+tourButton.setAttribute('aria-label', 'Play a guided tour of the flat; any input stops it');
+tourButton.innerHTML = `${icon('sparkles')}<span>Tour</span>`;
+document.querySelector('.folio-dock [data-slot=actions]')?.prepend(tourButton);
+async function startTour(): Promise<boolean> {
+  if (stage || modal.open) return false;
+  tourButton.setAttribute('aria-pressed', 'true');
+  if (view !== 'perspective') setView('perspective');
+  try { return await viewport.playTour(); }
+  finally { tourButton.removeAttribute('aria-pressed'); setView(viewport.cameraPose() ? 'perspective' : 'inside'); }
+}
+tourButton.onclick = () => { void startTour(); };
+document.addEventListener('varpet:tour', () => { void startTour(); });
 
 const modal=$<HTMLDialogElement>('#modal');
 if (architectLive && new URLSearchParams(location.search).has('architect')) queueMicrotask(replayMode ? () => void replayArchitect() : openArchitect);

@@ -46,6 +46,7 @@ import { DEFAULT_SUN, normalizeSun, fitSunShadow, effectiveSunlight, type SunSet
 import { timeOfDayLighting } from './time-of-day';
 import { SunOccluders } from './sun-occluders';
 import { SceneShadowCache } from './shadow-cache';
+import { TourPlanner, TourPlayback, type TourPose } from './tour';
 import { EveningRoomLights, PracticalLightPool, type RoomFill } from './practical-lights';
 import { installPerfProbe, type PerfProbe } from './perf-probe';
 import { TopLightingProjection } from './top-lighting';
@@ -146,6 +147,12 @@ export interface FinishViewport extends Viewport {
   loading(): boolean;
   /** Draw again after presentation-only changes made from outside (the blueprint sheet). */
   redraw(): void;
+  /**
+   * The pitch tour: dollhouse orbit, glide into the living room, walk the main rooms through their doors,
+   * then day to evening. About 45-60 s; any pointer, wheel or key input stops it. Resolves true when it ran to the end.
+   */
+  playTour(): Promise<boolean>;
+  cancelTour(): void;
 }
 export function createViewport(host: HTMLElement, callbacks: FinishViewportCallbacks, normalizeScene?: SceneNormalizer): FinishViewport {
   // Keep canvas-relative helpers and drag listeners together when construction becomes editing.
@@ -162,7 +169,7 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
     message.textContent = '3D view unavailable. Enable browser hardware acceleration and reload.';
     message.style.cssText = 'margin:auto;padding:2rem;color:#6a5849;max-width:28rem;text-align:center';
     container.append(message);
-    return { attach(next) { next.append(container); }, preservePresentation() { return () => {}; }, furnitureSurface() { return undefined; }, setFurnitureDrag() {}, setInsideLens() {}, setSkybox() { return false; }, getSun() { return { ...DEFAULT_SUN }; }, setSun() {}, setTopLighting() {}, setLightingMood() {}, inspectCeiling() { return false; }, project() { return null; }, onFrame() { return () => {}; }, animateAssembly() {}, setHidden() {}, cameraPose() { return null; }, setBackdrop() { return null; }, setLocked() {}, setCameraPose() {}, riseStructure() {}, loading() { return false; }, redraw() {}, setFinishBrush() {}, setAdditiveSelection() {}, revealSelection() {}, setScene() {}, animatePlacement() {}, setSelection() {}, setTool() {}, setView() {}, setSnap() {}, setWalls() {}, setQuality() {}, setLayer() {}, setDoorAngle() {}, getDoorAngle() { return 0; }, toggleSwitch() {}, setSwitchLevel() {}, getSwitchLevel() { return 0; }, setComparison() {}, focus() {}, cancelInteraction() {}, dispose() { container.remove(); } };
+    return { attach(next) { next.append(container); }, preservePresentation() { return () => {}; }, furnitureSurface() { return undefined; }, setFurnitureDrag() {}, setInsideLens() {}, setSkybox() { return false; }, getSun() { return { ...DEFAULT_SUN }; }, setSun() {}, setTopLighting() {}, setLightingMood() {}, inspectCeiling() { return false; }, project() { return null; }, onFrame() { return () => {}; }, animateAssembly() {}, setHidden() {}, cameraPose() { return null; }, setBackdrop() { return null; }, setLocked() {}, setCameraPose() {}, riseStructure() {}, loading() { return false; }, redraw() {}, playTour() { return Promise.resolve(false); }, cancelTour() {}, setFinishBrush() {}, setAdditiveSelection() {}, revealSelection() {}, setScene() {}, animatePlacement() {}, setSelection() {}, setTool() {}, setView() {}, setSnap() {}, setWalls() {}, setQuality() {}, setLayer() {}, setDoorAngle() {}, getDoorAngle() { return 0; }, toggleSwitch() {}, setSwitchLevel() {}, getSwitchLevel() { return 0; }, setComparison() {}, focus() {}, cancelInteraction() {}, dispose() { container.remove(); } };
   }
   renderer.setClearColor(BLUEPRINT_PAPER);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -587,6 +594,11 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
       const geometryMoving = motion.update(now);
       let animating = geometryMoving;
       let shadowsChanged = geometryMoving;
+      if (tour) {
+        const pose = tour.playback.update(now);
+        if (pose) { applyTourPose(pose); animating = true; }
+        if (tour.playback.finished) finishTour(true);
+      }
       if (cameraMotion.update(now)) animating = true;
       if (keyboardNavigation.update(now)) animating = true;
       if (placementMotion.update(now)) { animating = true; shadowsChanged = true; }
@@ -651,6 +663,46 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
     });
   }
 
+  let tour: { playback: TourPlayback; resolve(done: boolean): void; evening: number } | null = null;
+  const tourInputs = ['pointerdown', 'wheel', 'keydown', 'touchstart'] as const;
+  const stopTourOnInput = (event: Event) => { if (event.isTrusted) finishTour(false); };
+  function playTour(): Promise<boolean> {
+    finishTour(false);
+    if (disposed || !documentState || !structure) return Promise.resolve(false);
+    if (view !== 'perspective') setView('perspective');
+    cameraMotion.cancel('camera'); keyboardNavigation.cancel(); handPan.cancel(); onPointerCancel();
+    if (sunSettings.timeOfDay != null && timeOfDayLighting(sunSettings.timeOfDay).daylight < 0.5) api.setLightingMood('day');
+    const bounds = structure.bounds.clone(), center = bounds.getCenter(new THREE.Vector3()).setY(0.4);
+    // Frame the whole flat: its diagonal fills about 80% of the view height at the perspective lens.
+    const radius = Math.max(10, bounds.getSize(new THREE.Vector3()).length() / (2 * Math.tan(THREE.MathUtils.degToRad(perspective.fov) / 2)) * 0.8);
+    const playback = new TourPlayback(new TourPlanner(documentState, catalogState), { position: perspective.position.clone(), target: orbit.target.clone(), fov: perspective.fov }, center, radius, insideCamera.fov);
+    for (const type of tourInputs) window.addEventListener(type, stopTourOnInput, { capture: true, passive: true });
+    return new Promise(resolve => { tour = { playback, resolve, evening: 0 }; requestRender(); });
+  }
+  function finishTour(completed: boolean): void {
+    if (!tour) return;
+    const { resolve, evening } = tour; tour = null;
+    for (const type of tourInputs) window.removeEventListener(type, stopTourOnInput, { capture: true });
+    if (view === 'inside') walk.orient();
+    if (evening > 0) api.setLightingMood(evening >= 0.5 ? 'evening' : 'day');
+    resolve(completed);
+  }
+  function applyTourPose(pose: TourPose): void {
+    if (pose.view === 'inside') {
+      if (view !== 'inside') { setView('inside'); insideCamera.fov = pose.fov; insideCamera.updateProjectionMatrix(); }
+      insideCamera.position.copy(pose.position); insideCamera.lookAt(pose.target);
+    } else {
+      if (view !== 'perspective') setView('perspective');
+      perspective.position.copy(pose.position); orbit.target.copy(pose.target);
+      if (Math.abs(perspective.fov - pose.fov) > 1e-3) { perspective.fov = pose.fov; perspective.updateProjectionMatrix(); }
+      perspective.lookAt(pose.target);
+    }
+    if (tour && Math.abs(pose.evening - tour.evening) > 0.01) {
+      tour.evening = pose.evening;
+      // The sun sets over the closing shot; the finished tour settles on the real evening mood.
+      api.setSun({ timeOfDay: 12 + 9.5 * pose.evening, enabled: true });
+    }
+  }
   let warmTimer: ReturnType<typeof setTimeout> | undefined;
   /** Idle warm-up of first-use costs: the inside day/evening skies and the faded-wall/furniture programs. */
   function scheduleWarmUp(): void {
@@ -1264,10 +1316,15 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
     const point = chosen ? entityBounds(chosen).getCenter(new THREE.Vector3()) : orbit.target;
     return findWalkSpawn(documentState, catalogState, { point: [point.x, point.z] });
   }
-  function openWalkDoors(): void {
+  /** Inside opens every door, except a leaf that would swing into the opening shot (`near` the standing point). */
+  function openWalkDoors(near?: THREE.Vector3): void {
     for (const wall of documentState?.walls ?? []) for (const door of wall.openings) {
       const projection = structure?.openings.get(door.id);
       if (door.kind !== 'door' || !projection || projection.fixed) continue;
+      if (near) {
+        const dx = wall.end[0] - wall.start[0], dz = wall.end[1] - wall.start[1], length = Math.hypot(dx, dz) || 1, along = door.offset + door.width / 2;
+        if (Math.hypot(near.x - wall.start[0] - dx / length * along, near.z - wall.start[1] - dz / length * along) < door.width + 2) continue;
+      }
       if (!previousDoorAngles.has(door.id)) previousDoorAngles.set(door.id, projection.target);
       projection.target = Math.PI / 2; projection.setAngle(Math.PI / 2); doorAngles.set(door.id, Math.PI / 2);
     }
@@ -1285,7 +1342,7 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
       previousDoorAngles = new Map(); view = next; camera = insideCamera;
       insideCamera.position.fromArray(spawn!.position); insideCamera.lookAt(new THREE.Vector3(...spawn!.target));
       orbit.enabled = false; transform.enabled = false; transform.camera = camera;
-      finishInteraction.setBrush(null); openWalkDoors();
+      finishInteraction.setBrush(null); openWalkDoors(tour ? undefined : insideCamera.position);
       renderer.domElement.setAttribute('aria-label', 'Inside apartment. Eye height 1.65 metres above the floor. Drag to look around. W A S D or arrow keys to walk. Escape to leave Inside.');
       walk.setEnabled(true);
     } else {
@@ -1806,6 +1863,8 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
       }, () => { for (const group of groups) group.scale.y = 1; sunOccluders.group.scale.y = 1; });
     },
     loading() { return loadingModels > 0 || pendingModels.size > 0; },
+    playTour,
+    cancelTour() { finishTour(false); },
     redraw() { requestRender(); },
     setFurnitureDrag(asset) {
       onPointerCancel();
@@ -1940,7 +1999,7 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
       furnitureDrop.dispose();
       stopFinishTextureUpdates();
       handPan.dispose(); walk.dispose(); keyboardNavigation.dispose();
-      cancelAnimationFrame(frame); clearTimeout(settleTimer); clearTimeout(warmTimer); clearTimeout(collisionTimer); clearTimeout(skyUpdateTimer); resizeObserver.disconnect();
+      finishTour(false); cancelAnimationFrame(frame); clearTimeout(settleTimer); clearTimeout(warmTimer); clearTimeout(collisionTimer); clearTimeout(skyUpdateTimer); resizeObserver.disconnect();
       window.removeEventListener('blur', onPointerCancel);
       renderer.domElement.removeEventListener('pointerdown', onPointerDown, true);
       window.removeEventListener('pointerup', onPointerUp);
