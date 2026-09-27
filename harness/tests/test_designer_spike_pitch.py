@@ -99,3 +99,7 @@ def test_translation_errors_leave_renderer_notes_out(tmp_path, monkeypatch):
     state = _state(tmp_path, [], [])
     saved = designer_spike._translate(state, {"scene": {}, "revision": 0}, tmp_path, tmp_path, "t", "d")
     assert saved == {"error": "The design needs 600 editor operations; the limit is 500"}
+
+
+def test_repeated_room_names_are_counted_once():
+    assert designer_spike.room_labels(["Balcony", "Bathroom", "Balcony", "Kitchen", "Bathroom", "Bathroom"]) == ["Balcony ×2", "Bathroom ×3", "Kitchen"]

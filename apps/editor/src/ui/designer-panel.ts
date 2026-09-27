@@ -12,7 +12,9 @@ type AskDesigner = typeof askDesigner;
 interface MetricRow { label: string; value: string }
 type ProposalStatus = 'pending' | 'applied' | 'undone' | 'dismissed' | 'stale';
 export type ProposalAction = 'preview' | 'apply' | 'dismiss';
-interface Message { role: 'user' | 'designer'; text: string; metrics?: MetricRow[]; proposal?: AgentProposal; status?: ProposalStatus; options?: string[]; notes?: string; suggestions?: string[]; retryRequest?: string; steps?: DesignerTurnSteps; preview?: DesignerPreview }
+interface Message { role: 'user' | 'designer'; text: string; metrics?: MetricRow[]; proposal?: AgentProposal; status?: ProposalStatus; options?: string[]; notes?: string; suggestions?: string[]; retryRequest?: string; steps?: DesignerTurnSteps; preview?: DesignerPreview;
+  /** `id|assetId` of the pieces an applied proposal brought that were not in the flat before: they say whether it is still in. */
+  marks?: string[] }
 interface Conversation { id: string; title: string; conversationId?: string; messages: Message[]; options: string[] }
 interface History { version: 1; activeId: string; conversations: Conversation[] }
 const record = (value: unknown): Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
@@ -110,13 +112,14 @@ interface ConversationOptions {
   isPreviewing?: () => boolean;
 }
 
-/** Is an applied proposal still in the flat? Judged by the pieces it added (their ids are unique to it); a proposal
- * that adds nothing keeps its status. */
-export function proposalInScene(proposal: AgentProposal, scene: SceneDocument): 'applied' | 'undone' | undefined {
-  const added = proposal.command.operations.flatMap(operation => operation.type === 'add' ? [operation.object.id] : []);
-  if (!added.length) return undefined;
-  const ids = new Set(scene.objects.map(object => object.id));
-  return added.some(id => ids.has(id)) ? 'applied' : 'undone';
+/** Is an applied proposal still in the flat? Judged by the pieces it brought (`marks`, recorded at Apply: a re-hung
+ * piece with the same product says nothing); without marks, by every piece it adds. A proposal that adds nothing
+ * keeps its status. */
+export function proposalInScene(proposal: AgentProposal, scene: SceneDocument, marks?: string[]): 'applied' | 'undone' | undefined {
+  const keys = marks ?? proposal.command.operations.flatMap(operation => operation.type === 'add' ? [`${operation.object.id}|${operation.object.assetId}`] : []);
+  if (!keys.length) return undefined;
+  const present = new Set(scene.objects.map(object => `${object.id}|${object.assetId}`));
+  return keys.some(key => present.has(key)) ? 'applied' : 'undone';
 }
 
 /** A turn without typed events still reads as steps: each new progress line closes the previous one. */
@@ -239,7 +242,7 @@ export function createDesignerConversation(options: ConversationOptions) {
         // Undo and Redo move an applied proposal out of the flat and back: follow what the scene holds now.
         for (const message of state.messages) {
           if ((message.status !== 'applied' && message.status !== 'undone') || !message.proposal) continue;
-          const status = proposalInScene(message.proposal, scene);
+          const status = proposalInScene(message.proposal, scene, message.marks);
           if (status) message.status = status;
         }
       }
@@ -261,7 +264,10 @@ export function createDesignerConversation(options: ConversationOptions) {
       const message = state.messages.find(item => item.proposal?.id === id);
       if (!message?.proposal || message.status !== 'pending') return false;
       try {
+        const before = new Set(options.snapshot().scene.objects.map(object => `${object.id}|${object.assetId}`));
         const result = options.onProposalAction?.(structuredClone(message.proposal), action);
+        if (action === 'apply' && result?.ok) message.marks = message.proposal.command.operations
+          .flatMap(operation => operation.type === 'add' ? [`${operation.object.id}|${operation.object.assetId}`] : []).filter(key => !before.has(key));
         if (!result?.ok) { reply(result?.message ?? 'This proposal cannot be applied right now.'); publish(); return false; }
         if (action !== 'preview') message.status = action === 'apply' ? 'applied' : 'dismissed';
         publish(); return true;

@@ -350,6 +350,14 @@ def _signatures(draft: dict) -> dict[str, str]:
     return {room: hashlib.sha1(json.dumps(entries, sort_keys=True).encode()).hexdigest() for room, entries in rooms.items()}
 
 
+def room_labels(names: list[str]) -> list[str]:
+    """Room names for a card: flats repeat names (four "Bathroom"s), so a repeated name is counted once."""
+    counts: dict[str, int] = {}
+    for name in names:
+        counts[name] = counts.get(name, 0) + 1
+    return [name if count == 1 else f"{name} ×{count}" for name, count in counts.items()]
+
+
 def finished_rooms(started: list[str], changed: dict[str, float], now: float, quiet: float) -> tuple[str, ...]:
     """Rooms this turn worked on that have been quiet for `quiet` seconds, never the one changed last (the
     designer is still in it). Works whether rooms are designed one after another or in parallel."""
@@ -441,7 +449,7 @@ class DraftWatcher:
                      cwd=self.state.workspace, timeout=180)
         if check.returncode != 0 or self.stopped.is_set():
             return
-        names = [self.names.get(room, room) for room in rooms]
+        names = room_labels([self.names.get(room, room) for room in rooms])
         label = ", ".join(names)
         self._emit(f"Checked {label}: ready to preview")
         proposal = _translate(self.state, self.body, work, work, f"Rooms ready so far: {label}"[:160],
@@ -733,12 +741,12 @@ def propose(conversation, conversation_id: str, body: dict, cancel: threading.Ev
         rooms_before = _room_signatures(state.workspace)
         progress("Planning the flat" if first else "Thinking about your follow-up")
         observer = Progress(state.rooms, progress, state.workspace)
+        first_design = not state.owned and not (_read_draft(state.workspace / "draft.json") or {}).get("items")
         watcher = DraftWatcher(state, progress, body, turn,
                                # Room-by-room previews only while the first design is built (also after the designer's
                                # question): a follow-up edits a whole design, and a snapshot of some rooms would preview
                                # the others' design pieces as deleted.
-                               partials=not state.owned and not (_read_draft(state.workspace / "draft.json") or {}).get("items")
-                               and os.environ.get("VARPET_SPIKE_PARTIALS", "1") != "0").start()
+                               partials=first_design and os.environ.get("VARPET_SPIKE_PARTIALS", "1") != "0").start()
         result = _run_turn(state, turn_input, cancel, observer, timeout)
         watcher.stop()
         lap("designer")
@@ -765,7 +773,8 @@ def propose(conversation, conversation_id: str, body: dict, cancel: threading.Ev
             reply = review["reply"]
         timings["critic"] = {key: value for key, value in review.items() if key != "reply"}
         progress("Preparing the preview")
-        title = proposal_title(body["request"])
+        # The first design is named after the brief, also when this turn only answered the designer's question.
+        title = proposal_title(requests[0] if first_design else body["request"])
         saved = _translate(state, body, state.workspace, turn, title, reply or "Your design is ready to preview.")
         if saved is None or "error" in saved:
             raise RuntimeError("The design could not become an editor preview: " + str((saved or {}).get("error", "translation failed")))

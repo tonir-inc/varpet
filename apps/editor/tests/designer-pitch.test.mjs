@@ -94,3 +94,20 @@ test('an applied card reads Undone after Undo and Applied again after Redo', asy
   assert.equal(controller.state.messages.at(-1).status, 'applied');
   assert.equal(proposalInScene(proposal(), scene), undefined);
 });
+
+test('undoing a follow-up that re-hangs earlier pieces reads Undone; the first design stays Applied', async () => {
+  const object = (id, assetId) => ({ id, name: id, assetId, position: [0, 0, 0], rotation: 0, scale: [1, 1, 1] });
+  const make = (id, objects) => ({ id, title: id, description: id, command: { id, label: id, source: 'designer', baseRevision: 3, operations: objects.map(o => ({ type: 'add', object: o })) } });
+  const first = make('first', [object('sofa', 'sofa-a'), object('rug', 'rug-ivory'), object('art', 'art-1')]);
+  const follow = make('follow', [object('rug', 'rug-oat'), object('art', 'art-1')]);
+  let objects = [], turn = 0;
+  const controller = createDesignerConversation({ history: true, snapshot: () => ({ scene: { ...scene, objects }, revision: 3 }), onProposal: () => {},
+    ask: async () => ({ type: 'proposal', conversationId: 'c1', proposal: [first, follow][turn++] }),
+    onProposalAction: p => { const ids = new Set(p.command.operations.map(op => op.object.id)); objects = [...objects.filter(o => !ids.has(o.id)), ...p.command.operations.map(op => op.object)]; return { ok: true }; } });
+  await controller.send('Design'); controller.act('first', 'apply'); const afterFirst = objects;
+  await controller.send('Warmer rug'); controller.act('follow', 'apply');
+  objects = afterFirst; controller.refreshSettings();
+  assert.deepEqual(controller.state.messages.filter(m => m.proposal).map(m => m.status), ['applied', 'undone']);
+  objects = []; controller.refreshSettings();
+  assert.deepEqual(controller.state.messages.filter(m => m.proposal).map(m => m.status), ['undone', 'undone']);
+});
