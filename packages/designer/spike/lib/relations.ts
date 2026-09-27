@@ -107,15 +107,15 @@ export interface Findings { hard: string[]; soft: string[] }
 const f2 = (n: number) => (Math.abs(n) < 0.005 ? 0 : n).toFixed(2);
 const at = (p: V) => `(${f2(p[0])}, ${f2(p[1])})`;
 /** Point in an item's frame: x along its width, y along its depth (front is -y). */
-function toLocal(p: V, item: DraftItem): V {
+export function toLocal(p: V, item: DraftItem): V {
   const r = (-item.rot * Math.PI) / 180, dx = p[0] - item.pos[0], dy = p[1] - item.pos[1];
   return [dx * Math.cos(r) - dy * Math.sin(r), dx * Math.sin(r) + dy * Math.cos(r)];
 }
-function toWorld(item: DraftItem, l: V): V {
+export function toWorld(item: DraftItem, l: V): V {
   const r = (item.rot * Math.PI) / 180;
   return [item.pos[0] + l[0] * Math.cos(r) - l[1] * Math.sin(r), item.pos[1] + l[0] * Math.sin(r) + l[1] * Math.cos(r)];
 }
-const inside = (p: V, item: DraftItem, grow = 0) => { const [x, y] = toLocal(p, item); return Math.abs(x) <= item.size[0] / 2 + grow && Math.abs(y) <= item.size[1] / 2 + grow; };
+export const inside = (p: V, item: DraftItem, grow = 0) => { const [x, y] = toLocal(p, item); return Math.abs(x) <= item.size[0] / 2 + grow && Math.abs(y) <= item.size[1] / 2 + grow; };
 const label = (item: DraftItem) => `${item.id} ${item.name ?? ''}`;
 
 /** kind lamp also holds misfiled lamp tables and side tables: a lamp's name says lamp or light (not "lamp table"). */
@@ -123,8 +123,8 @@ export const isLamp = (item: DraftItem) => item.kind === 'lamp'
   && (/\b(lamp|light|sconce|lantern|torchiere)\b(?!\s+table)/i.test(item.name ?? '') || !/\b(table|nightstand|stand|desk|shelf)\b/i.test(item.name ?? ''));
 const isFloorLamp = (item: DraftItem) => isLamp(item) && onFloor(item) && item.size[2] >= 1.0;
 const isTableLamp = (item: DraftItem) => isLamp(item) && item.size[2] < 1.0;
-const isBed = (item: DraftItem) => item.kind === 'bed' && !/\b(crib|cot|bassinet|pet|dog|cat)\b/i.test(item.name ?? '');
-const isDesk = (item: DraftItem) => item.kind === 'desk' || (item.kind === 'table' && /\bdesk\b/i.test(label(item)));
+export const isBed = (item: DraftItem) => item.kind === 'bed' && !/\b(crib|cot|bassinet|pet|dog|cat)\b/i.test(item.name ?? '');
+export const isDesk = (item: DraftItem) => item.kind === 'desk' || (item.kind === 'table' && /\bdesk\b/i.test(label(item)));
 const isRug = (item: DraftItem) => item.kind === 'rug';
 /** A seat people lounge or read in: sofas and armchairs, and chairs that are not pulled up to a table or desk. */
 function isLoungeSeat(item: DraftItem, items: DraftItem[]): boolean {
@@ -140,7 +140,7 @@ const service = (room: Scene['rooms'][number]) => /\b(hall|corridor|entr|bath|wc
 const isBedroom = (room: Scene['rooms'][number], items: DraftItem[]) => items.some(item => item.room_id === room.id && isBed(item) && onFloor(item));
 
 /** Room-side geometry for access strips: inside the polygon and clear of every wall body. */
-function floorPoint(scene: Scene, roomId: string, p: V): boolean {
+export function floorPoint(scene: Scene, roomId: string, p: V): boolean {
   const room = scene.rooms.find(r => r.id === roomId);
   if (!room || !inPoly(p, room.polygon)) return false;
   return scene.walls.every(w => w.open || w.room_id !== roomId || segDist(p, w.a, w.b) >= (w.thickness ?? 0) / 2 - 1e-6);
@@ -219,7 +219,7 @@ function lighting(scene: Scene, draft: Draft, items: DraftItem[], out: Findings)
   }
 }
 /** A free floor spot 0.3 m past a seat's arm, left or right, for a lamp or side table. */
-function armSpot(scene: Scene, seat: DraftItem, items: DraftItem[]): V | undefined {
+export function armSpot(scene: Scene, seat: DraftItem, items: DraftItem[]): V | undefined {
   for (const sign of [1, -1]) {
     const p = toWorld(seat, [sign * (seat.size[0] / 2 + 0.3), 0]);
     if (floorPoint(scene, seat.room_id, p) && !items.some(o => o !== seat && onFloor(o) && !isRug(o) && inside(p, o, 0.1))) return p;
@@ -276,7 +276,7 @@ function headboard(scene: Scene, bed: DraftItem, out: Findings) {
 
 /** The coffee table in front of a sofa (low, not a side table, overlapping its width, up to 1.6 m ahead), with its
  * footprint corners in the sofa's frame. */
-function coffeeFor(sofa: DraftItem, items: DraftItem[]): { t: DraftItem; c: V[] } | undefined {
+export function coffeeFor(sofa: DraftItem, items: DraftItem[]): { t: DraftItem; c: V[] } | undefined {
   const [w, d] = sofa.size;
   return items.filter(o => o.room_id === sofa.room_id && onFloor(o) && (o.kind === 'table' || o.kind === 'coffee_table') && o.size[2] < 0.55 && !/\b(side|end|night|bedside)\b/i.test(label(o))
       && (o.size[0] * o.size[1] >= 0.2 || /coffee/i.test(label(o))))
@@ -463,6 +463,7 @@ function coverage(scene: Scene, draft: Draft, all: DraftItem[], out: Findings) {
 /** A dead zone: an empty rectangle at least 1.5 m on each side (a walkway is narrower) with items grown by a 0.45 m use
  * zone and door clear zones kept, of >= 4 m2 and >= 10% of the room. Measured 27 Sept 2026 on the saved spike runs: the
  * half-empty Japandi living room has 5.4 m2 (12%); furnished living rooms and bedrooms have none. */
+export { toFootprint };
 export const DEAD_ZONE = { side: 1.5, area: 4, share: 0.1 };
 
 /** A positive need for a dark or private bedroom. "dark" alone is not one ("we dislike heavy, dark bedrooms"). */
@@ -475,6 +476,20 @@ export function asksForDark(text: string | undefined): boolean {
   return false;
 }
 /** Bedrooms (and any room when the brief asks for dark or privacy) want a curtain or blind on every window. */
+/** Windows of a room (>= 0.4 m, within the room's stretch of a shared outer wall) with no curtain or blind over them. */
+export function bareWindows(scene: Scene, roomId: string, items: DraftItem[]) {
+  const curtains = items.filter(o => o.room_id === roomId && isCurtain(o) && o.wall_id !== undefined).map(o => ({ o, spot: wallSpot(scene, o) }));
+  const out: { o: Scene['openings'][number]; wall: Scene['walls'][number]; span: { from: number; to: number } }[] = [];
+  for (const o of scene.openings.filter(o => o.kind === 'window' && o.width >= 0.4 && openingRooms(scene, o).includes(roomId))) {
+    let wall; try { wall = roomWall(scene, roomId, o.wall_id); } catch { continue; }
+    const span = openingSpans(scene, wall).find(s => s.opening.id === o.id)!, length = Math.hypot(wall.b[0] - wall.a[0], wall.b[1] - wall.a[1]);
+    if ((span.from + span.to) / 2 < 0 || (span.from + span.to) / 2 > length) continue;
+    const covered = curtains.some(({ o: c, spot }) => spot && (spot.wall.source_id ?? spot.wall.id) === (wall.source_id ?? wall.id)
+      && spot.along >= span.from - c.size[0] / 2 && spot.along <= span.to + c.size[0] / 2 && c.size[0] >= o.width * 0.9);
+    if (!covered) out.push({ o, wall, span });
+  }
+  return out;
+}
 /** requirements.json (when the lead wrote one) decides per room: its "for" text or an items need of kind curtain/blind;
  * otherwise the brief as a whole. */
 function windows(scene: Scene, items: DraftItem[], brief: string | undefined, req: Requirements | undefined, out: Findings) {
@@ -486,15 +501,7 @@ function windows(scene: Scene, items: DraftItem[], brief: string | undefined, re
   };
   for (const room of scene.rooms.filter(r => used.has(r.id) && !outdoor(r) && isBedroom(r, items))) {
     const asks = asksIn(room.id);
-    const curtains = items.filter(o => o.room_id === room.id && isCurtain(o) && o.wall_id !== undefined).map(o => ({ o, spot: wallSpot(scene, o) }));
-    for (const o of scene.openings.filter(o => o.kind === 'window' && o.width >= 0.4 && openingRooms(scene, o).includes(room.id))) {
-      let wall; try { wall = roomWall(scene, room.id, o.wall_id); } catch { continue; }
-      // A shared outer wall is split per room: only windows within this room's stretch of it are its windows.
-      const span = openingSpans(scene, wall).find(s => s.opening.id === o.id)!, length = Math.hypot(wall.b[0] - wall.a[0], wall.b[1] - wall.a[1]);
-      if ((span.from + span.to) / 2 < 0 || (span.from + span.to) / 2 > length) continue;
-      const covered = curtains.some(({ o: c, spot }) => spot && (spot.wall.source_id ?? spot.wall.id) === (wall.source_id ?? wall.id)
-        && spot.along >= span.from - c.size[0] / 2 && spot.along <= span.to + c.size[0] / 2 && c.size[0] >= o.width * 0.9);
-      if (covered) continue;
+    for (const { o, wall, span } of bareWindows(scene, room.id, items)) {
       const line = `window ${o.id} in ${room.id} (${f2(o.width)} m wide on ${wall.id}) has no curtain or blind${asks ? ' and the brief asks for dark/privacy' : ''}; hang one at least ${f2(o.width)} m wide: ./varpet search --kind curtain (or blind) --max-w ${f2(Math.min(span.to - span.from + 1.2, Math.hypot(wall.b[0] - wall.a[0], wall.b[1] - wall.a[1])))}, then wall_id "${wall.id}" and pos from atWindow(scene, "${room.id}", "${o.id}", size)`;
       (asks ? out.hard : out.soft).push(`windows: ${line}`);
     }

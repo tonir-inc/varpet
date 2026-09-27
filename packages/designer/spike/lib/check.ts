@@ -3,6 +3,7 @@
 import { footprint, importSrc, isCurtain, loadBrief, openingSpans, roomSubtotals, wallSpot, type Draft, type DraftItem, type Scene, type Vec2 } from './scene.ts';
 import { checkSurfaces, onFloor, plainItem, surfaceQuantities } from './finishes.ts';
 import { designRelations, functionRules, kneeSpaceSofas, tuckedPair, tuckedTargets } from './relations.ts';
+import { stylingLines } from './styling.ts';
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -162,7 +163,9 @@ export function checkDecor(scene: Scene, draft: Draft, kindOf: (kind: string) =>
 /** budget: furniture budget in AMD (workspace budget.json); going over it is a hard problem. */
 /** brief: the customer request (default: the workspace AGENTS.md in cwd); it decides whether curtains are required. */
 /** requirements: the brief's counts per room (default: requirements.json in cwd; lib/requirements.ts). */
-export async function check(scene: Scene, draft: Draft, options: { budget?: number; brief?: string; requirements?: Requirements } = {}): Promise<CheckResult> {
+/** styling: 'hard' (the lead's final check: pass it, or set VARPET_STYLING=hard) makes each missing styling layer a
+ * problem; the default 'advice' lists them without failing (room designers mid-work). Scores print either way. */
+export async function check(scene: Scene, draft: Draft, options: { budget?: number; brief?: string; requirements?: Requirements; styling?: 'hard' | 'advice' } = {}): Promise<CheckResult> {
   const { checkLayout, layoutPrice } = await importSrc<typeof import('../../src/layout.ts')>('layout.ts');
   const { opsSchema } = await importSrc<typeof import('../../src/adapter.ts')>('adapter.ts');
   const items = draft.items ?? [];
@@ -209,6 +212,8 @@ export async function check(scene: Scene, draft: Draft, options: { budget?: numb
   const fixable = (line: string) => { const words = line.split(/[\s,:;()"+]+/); return words.some(w => draftIds.has(w)) || !words.some(w => keptIds.has(w)); };
   problems.push(...rules.hard.filter(fixable));
   const advice = [...rules.hard.filter(line => !fixable(line)), ...rules.soft];
+  const style = stylingLines(scene, draft), styleHard = (options.styling ?? (process.env.VARPET_STYLING === 'hard' ? 'hard' : 'advice')) === 'hard';
+  (styleHard ? problems : advice).push(...style.problems);
   problems.push(...requirementProblems(scene, draft, requirements));
   // The knee space between a sofa and its coffee table (0.35-0.5 m, the living rule) is how people reach the sofa, not a
   // walkway: a path of at least 0.3 m to such a sofa passes. A sofa shut in on every side still fails (no path).
@@ -230,7 +235,7 @@ export async function check(scene: Scene, draft: Draft, options: { budget?: numb
   const rooms = subtotals.length > 1 ? `\nby room: ${subtotals.map(([r, v]) => `${r} ${v}`).join(', ')}` : '';
   const budgetLine = options.budget !== undefined ? `\nbudget: ${total} of ${options.budget} AMD` : '';
   const adviceText = advice.length ? `\nadvice (soft, not blocking; fix what you agree with):\n${advice.map(line => `~ ${line}`).join('\n')}` : '';
-  const summary = `${items.length} items, ${problems.length} hard, ${soft.length} soft warnings${soft.length ? ` (${[...bySoft].map(([k, v]) => `${k} ${v}`).join(', ')})` : ''}${cost !== null ? `, furniture total ${cost} AMD` : ''}${work.length ? `\nunquoted finish and lighting work (price on request): ${work.join('; ')}` : ''}${notes}${rooms}${budgetLine}${adviceText}`;
+  const summary = `${items.length} items, ${problems.length} hard, ${soft.length} soft warnings${soft.length ? ` (${[...bySoft].map(([k, v]) => `${k} ${v}`).join(', ')})` : ''}${cost !== null ? `, furniture total ${cost} AMD` : ''}${work.length ? `\nunquoted finish and lighting work (price on request): ${work.join('; ')}` : ''}${notes}${rooms}${budgetLine}${style.scores.length ? `\nstyling score: ${style.scores.join(', ')}` : ''}${adviceText}`;
   // Every hard error is either listed in problems or deliberately exempted (tucked chairs), so problems decide.
   return { ok: problems.length === 0, problems, summary, cost_dram: cost, advice };
 }
