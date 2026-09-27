@@ -136,14 +136,86 @@ function walkContext(scene: SceneDocument, catalog: CatalogAsset[]) {
     }
     return direction;
   }
-  return { rooms, elevation, safe, floorAt, viewDirection };
+  /** Metres from a standing point to the nearest furniture a person could bump into. */
+  function clearance(point: Vec2, floor: number): number {
+    let nearest = Infinity;
+    for (const obstacle of obstacles) {
+      if (obstacle.top <= floor + 0.08 || obstacle.bottom >= floor + BODY_HEIGHT) continue;
+      nearest = Math.min(nearest, polygonDistance(point, obstacle.polygon));
+    }
+    return nearest;
+  }
+  /** Footprint centre of the furniture standing in a room, if any. */
+  function furnitureCentre(room: Room, floor: number): Vec2 | null {
+    let x = 0, z = 0, count = 0;
+    for (const obstacle of obstacles) {
+      if (obstacle.top <= floor + 0.08) continue;
+      const cx = obstacle.polygon.reduce((sum, p) => sum + p[0], 0) / obstacle.polygon.length;
+      const cz = obstacle.polygon.reduce((sum, p) => sum + p[1], 0) / obstacle.polygon.length;
+      if (!contains(room.polygon, [cx, cz])) continue;
+      x += cx; z += cz; count++;
+    }
+    return count ? [x / count, z / count] : null;
+  }
+  /** Furniture within arm's length across the middle of the view (a chair back filling the frame). */
+  function viewBlocked(point: Vec2, direction: Vec2, floor: number): boolean {
+    for (const angle of [-0.45, -0.2, 0, 0.2, 0.45]) {
+      const c = Math.cos(angle), s = Math.sin(angle), dx = direction[0] * c - direction[1] * s, dz = direction[0] * s + direction[1] * c;
+      for (const distance of [0.3, 0.55, 0.8]) {
+        const sample: Vec2 = [point[0] + dx * distance, point[1] + dz * distance];
+        if (obstacles.some(obstacle => obstacle.top > floor + 0.08 && obstacle.bottom < floor + BODY_HEIGHT && contains(obstacle.polygon, sample))) return true;
+      }
+    }
+    return false;
+  }
+  return { rooms, elevation, safe, floorAt, viewDirection, clearance, furnitureCentre, viewBlocked };
 }
+
+function polygonDistance(point: Vec2, polygon: Vec2[]): number {
+  return contains(polygon, point) ? 0 : edgeDistance(point, polygon);
+}
+function edgeDistance(point: Vec2, polygon: Vec2[]): number {
+  let best = Infinity;
+  for (let i = 0; i < polygon.length; i++) {
+    const a = polygon[i]!, b = polygon[(i + 1) % polygon.length]!;
+    const ex = b[0] - a[0], ez = b[1] - a[1], length = ex * ex + ez * ez;
+    const t = length < EPS ? 0 : Math.max(0, Math.min(1, ((point[0] - a[0]) * ex + (point[1] - a[1]) * ez) / length));
+    best = Math.min(best, Math.hypot(point[0] - a[0] - ex * t, point[1] - a[1] - ez * t));
+  }
+  return best;
+}
+
+/** Room enough to stand without a chair back filling the view; closer than the trigger, the start moves. */
+const PRESENTATION_CLEARANCE = 0.7, CRAMPED = 0.45;
 
 /** Deterministic standing position, favouring the selected room and a usable requested point. */
 export function findWalkSpawn(scene: SceneDocument, catalog: CatalogAsset[], preferred?: { roomId?: string; point?: Vec2 }): { position: Vec3; target: Vec3 } | null {
   const context = walkContext(scene, catalog);
   const preference = (room: Room) => room.id === preferred?.roomId ? 2 : preferred?.point && contains(room.polygon, preferred.point) ? 1 : 0;
   const rooms = [...context.rooms].sort((a, b) => preference(b) - preference(a) || polygonArea(b.polygon) - polygonArea(a.polygon));
+  /** Open floor with a view over the room's furniture: clearance first, then enough distance to see it all. */
+  function presentationSpot(room: Room, floor: number, candidates: Vec2[], preferredPoint: Vec2): Vec2 | null {
+    const centre = context.furnitureCentre(room, floor);
+    let best: Vec2 | null = null, bestScore = -Infinity;
+    // Every other grid point is plenty for a start pose and keeps entering Inside under a frame.
+    for (let index = 2; index < candidates.length; index += 2) {
+      const point = candidates[index]!;
+      if (!contains(room.polygon, point)) continue;
+      const room_ = Math.min(context.clearance(point, floor), edgeDistance(point, room.polygon) + 0.2);
+      if (room_ < PRESENTATION_CLEARANCE) continue;
+      const toCentre = centre ? Math.hypot(centre[0] - point[0], centre[1] - point[1]) : 0;
+      if (centre && toCentre > 0.3) {
+        // The furniture must be in open view: no piece at arm's length, no wall before the room's middle.
+        const direction: Vec2 = [(centre[0] - point[0]) / toCentre, (centre[1] - point[1]) / toCentre];
+        const wall = Math.min(Infinity, ...rayCrossings(point, direction, room.polygon));
+        if (context.viewBlocked(point, direction, floor) || wall < Math.min(2.5, toCentre)) continue;
+      }
+      const view = Math.min(4.5, toCentre);
+      const score = Math.min(room_, 1.4) * 2 + view * 0.8 - Math.hypot(point[0] - preferredPoint[0], point[1] - preferredPoint[1]) * 0.1;
+      if (score > bestScore && context.safe(point, floor)) { bestScore = score; best = point; }
+    }
+    return best;
+  }
   for (const room of rooms) {
     const floor = context.elevation(room), xs = room.polygon.map(point => point[0]), zs = room.polygon.map(point => point[1]);
     const minX = Math.min(...xs), maxX = Math.max(...xs), minZ = Math.min(...zs), maxZ = Math.max(...zs);
@@ -156,8 +228,14 @@ export function findWalkSpawn(scene: SceneDocument, catalog: CatalogAsset[], pre
     candidates.sort((a, b) => Math.hypot(a[0] - preferredPoint[0], a[1] - preferredPoint[1]) - Math.hypot(b[0] - preferredPoint[0], b[1] - preferredPoint[1]));
     for (const point of candidates) {
       if (!contains(room.polygon, point) || !context.safe(point, floor)) continue;
-      const direction = context.viewDirection(point, floor);
-      const position: Vec3 = [point[0], floor + WALK_EYE_HEIGHT, point[1]];
+      const broad = context.viewDirection(point, floor);
+      const presented = context.clearance(point, floor) < CRAMPED && context.viewBlocked(point, broad, floor) ? presentationSpot(room, floor, candidates, preferredPoint) : null;
+      const chosen = presented ?? point;
+      const centre = presented ? context.furnitureCentre(room, floor) : null;
+      const length = centre ? Math.hypot(centre[0] - chosen[0], centre[1] - chosen[1]) : 0;
+      // A cramped start moves to open floor and faces the furniture; an open one keeps its broad view.
+      const direction: Vec2 = centre && length > 0.3 ? [(centre[0] - chosen[0]) / length, (centre[1] - chosen[1]) / length] : presented ? context.viewDirection(chosen, floor) : broad;
+      const position: Vec3 = [chosen[0], floor + WALK_EYE_HEIGHT, chosen[1]];
       return { position, target: [position[0] + direction[0], position[1], position[2] + direction[1]] };
     }
   }
