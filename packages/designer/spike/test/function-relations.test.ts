@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest';
 import type { Scene } from '../../src/scene.js';
 import { checkDecor } from '../lib/check.js';
 import type { Draft, DraftItem } from '../lib/finishes.js';
-import { functionRules, isBedFrame, isLamp } from '../lib/relations.js';
+import { asksForDark, functionRules, isBedFrame, isLamp } from '../lib/relations.js';
 import { atWindow, onWall, wallSpot } from '../lib/scene.js';
 
 /** One 8 x 6 m room (wall centre lines on the polygon, 0.1 m thick, 2.7 m high): a 1.5 m window in the bottom wall
@@ -41,7 +41,7 @@ function living(s: Scene): DraftItem[] {
     item('chair-2', 'chair', [3.9, 2.25], 0, [0.45, 0.5, 0.9], { name: 'Dining chair' }),
   ];
 }
-const rules = (s: Scene, items: DraftItem[], brief?: string, lighting: Draft['lighting'] = []) => functionRules(s, { items, lighting }, brief);
+const rules = (s: Scene, items: DraftItem[], brief?: string, lighting: Draft['lighting'] = [], req?: Parameters<typeof functionRules>[3]) => functionRules(s, { items, lighting }, brief, req);
 const without = (items: DraftItem[], ...ids: string[]) => items.filter(o => !ids.includes(o.id));
 const swap = (items: DraftItem[], id: string, patch: Partial<DraftItem>) => items.map(o => (o.id === id ? { ...o, ...patch } : o));
 
@@ -197,5 +197,63 @@ describe('coverage', () => {
     expect(soft).toMatch(/coverage: liv has a dead zone of \d+\.\d\d m2/);
     expect(soft).toMatch(/all furniture in liv .* sits in its top half/);
     expect(rules(s, living(s)).soft.join('\n')).not.toMatch(/no dining zone|sits in its/);
+  });
+});
+
+describe('round 2: scenario flaws', () => {
+  const bedIn = (): DraftItem => ({ ...item('bed1', 'bed', [10, 2.9], 0, [0.9, 2.0, 0.9], { name: 'Single bed, dressed' }), room_id: 'bed' });
+  test('a dislike of dark rooms is not a need for dark; positive needs are', () => {
+    expect(asksForDark('We dislike cold greys, chrome and heavy, dark bedrooms.')).toBe(false);
+    expect(asksForDark("We don't want blackout curtains anywhere.")).toBe(false);
+    expect(asksForDark('I sleep badly, so the bedroom must be calm.')).toBe(true);
+    expect(asksForDark('Make the guest room work for a long stay: blackout curtains and a better chair.')).toBe(true);
+    const s = scene();
+    expect(rules(s, [bedIn()], 'We dislike heavy, dark bedrooms.').hard.join('\n')).not.toMatch(/windows/);
+  });
+  test('a "Bedroom" used as a studio (no bed) wants no curtain', () => {
+    const s = scene(), desk: DraftItem = { ...item('desk', 'desk', [10, 2], 0, [1.4, 0.7, 0.75]), room_id: 'bed' };
+    const lamp: DraftItem = { ...item('dl', 'lamp', [10, 2], 0, [0.2, 0.2, 0.4], { name: 'Desk lamp', on: 'desk' }), room_id: 'bed' };
+    const r = rules(s, [desk, lamp], 'I sleep badly');
+    expect([...r.hard, ...r.soft].join('\n')).not.toMatch(/windows/);
+  });
+  test('requirements.json decides curtains per room when it exists', () => {
+    const s = scene();
+    expect(rules(s, [bedIn()], 'I sleep badly', [], { rooms: { bed: { for: 'guest room' } } }).hard.join('\n')).not.toMatch(/windows/);
+    expect(rules(s, [bedIn()], undefined, [], { rooms: { bed: { items: [{ kind: 'curtain', min: 1, text: 'blackout' }] } } }).hard.join('\n')).toMatch(/windows: window bwin/);
+    expect(rules(s, [bedIn()], undefined, [], { rooms: { bed: { for: 'Nare naps here after lunch' } } }).hard.join('\n')).toMatch(/windows: window bwin/);
+  });
+  test('a pendant over a nightstand hangs at head height; over the dining table it is fine', () => {
+    const s = scene(), ns = item('ns', 'nightstand', [5.5, 3], 0, [0.45, 0.4, 0.55]);
+    const pendant = (id: string, pos: [number, number]) => ({ room_id: 'liv', type: 'fixture' as const, id, mount: 'pendant' as const, pos });
+    const hard = rules(s, [...living(s), ns], undefined, [pendant('p-bed', [5.5, 3]), pendant('p-dining', [3.5, 1.6])]).hard.join('\n');
+    expect(hard).toMatch(/pendant p-bed hangs with its bottom at 1\.30 m over ns, where heads are; set height_m: 1\.9/);
+    expect(hard).not.toMatch(/p-dining/);
+  });
+  test('a ceiling light on an open balcony fails; a wall light passes', () => {
+    const s = scene(); s.rooms[1] = { ...s.rooms[1]!, name: 'Balcony', zone: 'balcony' } as Scene['rooms'][number];
+    const chair: DraftItem = { ...item('stool', 'stool', [10, 2], 0, [0.4, 0.4, 0.45]), room_id: 'bed' };
+    const lights: Draft['lighting'] = [{ room_id: 'bed', type: 'ceiling', style: 'quiet' }, { room_id: 'bed', type: 'fixture', id: 'glow', mount: 'ceiling', pos: [10, 2] }];
+    const hard = rules(s, [chair], undefined, lights).hard.join('\n');
+    expect(hard).toMatch(/bed is open to the sky, so its ceiling design floats/);
+    expect(hard).toMatch(/glow is a ceiling light on bed, which has no ceiling; set mount: "wall"/);
+    expect(rules(s, [chair], undefined, [{ room_id: 'bed', type: 'fixture', id: 'w', mount: 'wall', pos: [11.95, 2] }]).hard).toEqual([]);
+  });
+  test('a floor lamp standing in the floor in front of the sofa is moved beside the arm', () => {
+    const s = scene(), items = swap(living(s), 'floor-lamp', { pos: [2.7, 4.8] });
+    expect(rules(s, items).hard.join('\n')).toMatch(/floor lamp floor-lamp stands in the floor in front of sofa; move it to \(\d\.\d\d, 5\.50\) beside the arm/);
+  });
+  test('a lamp that lights nothing is sent to the nearest unlit seat', () => {
+    const s = scene(), items = [...without(living(s), 'floor-lamp'), item('stray', 'lamp', [7.4, 1], 0, [0.4, 0.4, 1.55], { name: 'Floor lamp' })];
+    expect(rules(s, items).hard.join('\n')).toMatch(/floor lamp stray lights nothing: .*; move stray to \(\d\.\d\d, 5\.50\) beside sofa/);
+  });
+  test('a double bed against a side wall is told where to slide', () => {
+    const s = scene(), b = (o: DraftItem) => ({ ...o, room_id: 'bed' });
+    const items = [b(item('bed2', 'bed', [8.85, 2.9], 0, [1.6, 2.1, 1.1], { name: 'Oak bed, dressed' }))];
+    expect(rules(s, items).hard.join('\n')).toMatch(/move bed2 to \(9\.\d\d, 2\.90\)/);
+  });
+  test('a thin sofa corner in a big living room gets a coffee table and armchair spot', () => {
+    const s = scene(), soft = rules(s, without(living(s), 'coffee')).soft.join('\n');
+    expect(soft).toMatch(/sofa has no coffee table in front; add one about 1\.30 m wide and 0\.6 m deep centred at \(3\.50, 4\.33\), rot 0/);
+    expect(soft).toMatch(/sofa is the only seat in its corner of a 48\.00 m2 room; add an armchair facing it at \(\d\.\d\d, 4\.\d\d\), rot \d+/);
   });
 });

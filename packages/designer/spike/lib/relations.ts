@@ -1,7 +1,8 @@
 /** Functional relations the physics checker cannot see: a dining chair belongs at its table, a TV stands
  * on a unit and faces the seating. Plan metres, rot CCW degrees, front is local -y. */
 import { area, bbox, emptyRects, footprint, inPoly, isCurtain, openingRooms, openingSpans, rectText, roomWall, segDist, wallSpot, type Draft, type DraftItem, type Rect, type Scene } from './scene.ts';
-import { onFloor, type FixtureLight } from './finishes.ts';
+import { fixtureBottom, onFloor, roomHeight, type FixtureLight } from './finishes.ts';
+import type { Requirements } from './requirements.ts';
 
 type V = [number, number];
 const front = (item: DraftItem): V => { const r = (item.rot * Math.PI) / 180; return [Math.sin(r), -Math.cos(r)]; };
@@ -135,8 +136,8 @@ function isLoungeSeat(item: DraftItem, items: DraftItem[]): boolean {
 }
 const outdoor = (room: Scene['rooms'][number]) => room.zone !== undefined || /balcon|loggia|terrace|patio|garden/i.test(`${room.id} ${room.name ?? ''}`);
 const service = (room: Scene['rooms'][number]) => /\b(hall|corridor|entr|bath|wc|toilet|shower|kitchen|laundry|utility|storage|closet|pantry)/i.test(`${room.id} ${room.name ?? ''}`) && !/living|dining/i.test(room.name ?? '');
-const isBedroom = (room: Scene['rooms'][number], items: DraftItem[]) =>
-  /\b(bed|sleep|nursery|kid|child|guest)/i.test(`${room.id} ${room.name ?? ''}`) || items.some(item => item.room_id === room.id && isBed(item));
+/** A room people sleep in: it holds a bed (a "Bedroom" re-assigned as a studio or office is not one). */
+const isBedroom = (room: Scene['rooms'][number], items: DraftItem[]) => items.some(item => item.room_id === room.id && isBed(item) && onFloor(item));
 
 /** Room-side geometry for access strips: inside the polygon and clear of every wall body. */
 function floorPoint(scene: Scene, roomId: string, p: V): boolean {
@@ -173,11 +174,19 @@ function lighting(scene: Scene, draft: Draft, items: DraftItem[], out: Findings)
   for (const lamp of items.filter(isTableLamp)) if (onFloor(lamp)) {
     const support = items.filter(o => o.room_id === lamp.room_id && onFloor(o) && SURFACE.test(o.kind) && !isLamp(o) && o.size[2] >= 0.35 && o.size[2] <= 1.1)
       .map(o => ({ o, d: toFootprint(lamp.pos, o) })).sort((a, b) => a.d - b.d)[0];
-    out.hard.push(`lighting: ${lamp.id} is a table lamp (${f2(lamp.size[2])} m) standing on the floor; rest it on a side table, nightstand, desk or sideboard with on: "<id>"${support && support.d < 1.5 ? ` (e.g. on: "${support.o.id}", pos inside it)` : ''}`);
+    out.hard.push(`lighting: ${lamp.id} is a table lamp (${f2(lamp.size[2])} m) standing on the floor; rest it on a side table, nightstand, desk or sideboard ${support && support.d < 1.5 ? `: set on: "${support.o.id}" and pos ${at(support.o.pos)}` : ' with on: "<its id>" (add one if the room has none), or swap it for a floor lamp (./varpet search --kind lamp --text floor)'}`);
   }
+  const targetsOf = (roomId: string) => items.filter(o => o.room_id === roomId && onFloor(o) && (/sofa|armchair|chair|bench|stool|ottoman|pouf/.test(o.kind) || isBed(o) || isDesk(o)));
+  /** Where a lamp should go instead: beside the arm of the nearest seat, bed or desk that no lamp serves yet. */
+  const newHome = (lamp: DraftItem): string => {
+    const lights = lightsIn(draft, items, lamp.room_id).filter(l => l.id !== lamp.id);
+    const dark = targetsOf(lamp.room_id).filter(o => !lit(lights, o) && !(o.kind === 'chair' && !isLoungeSeat(o, items)))
+      .map(o => ({ o, spot: armSpot(scene, o, items), d: Math.hypot(o.pos[0] - lamp.pos[0], o.pos[1] - lamp.pos[1]) })).filter(c => c.spot).sort((a, b) => a.d - b.d)[0];
+    return dark ? `move ${lamp.id} to ${at(dark.spot!)} beside ${dark.o.id}` : `remove ${lamp.id}`;
+  };
   for (let i = 0; i < floorLamps.length; i++) for (let j = i + 1; j < floorLamps.length; j++) {
     const a = floorLamps[i]!, b = floorLamps[j]!, d = Math.hypot(a.pos[0] - b.pos[0], a.pos[1] - b.pos[1]);
-    if (a.room_id === b.room_id && d < 1.5) out.hard.push(`lighting: floor lamps ${a.id} and ${b.id} stand ${f2(d)} m apart (keep >= 1.5 m); spread the light: keep one and move the other beside a different seat, bed or desk`);
+    if (a.room_id === b.room_id && d < 1.5) out.hard.push(`lighting: floor lamps ${a.id} and ${b.id} stand ${f2(d)} m apart (keep >= 1.5 m); ${newHome(b)}`);
   }
   const served = (lamp: DraftItem) => {
     const r = Math.max(lamp.size[0], lamp.size[1]) / 2;
@@ -186,7 +195,10 @@ function lighting(scene: Scene, draft: Draft, items: DraftItem[], out: Findings)
   };
   for (const lamp of floorLamps) {
     const near = served(lamp);
-    if (!near || near.d > 0.8) out.hard.push(`lighting: floor lamp ${lamp.id} lights nothing: ${near ? `the nearest seat, bed or desk (${near.o.id}) is ${f2(near.d)} m away` : 'no seat, bed or desk in the room'}; stand it within 0.8 m of the seat, bed or desk it serves (beside an arm, behind a reading chair)`);
+    if (!near || near.d > 0.8) { out.hard.push(`lighting: floor lamp ${lamp.id} lights nothing: ${near ? `the nearest seat, bed or desk (${near.o.id}) is ${f2(near.d)} m away` : 'no seat, bed or desk in the room'}; ${newHome(lamp)}`); continue; }
+    // A lamp stands beside or behind a seat, never in the floor in front of it.
+    const blocking = targetsOf(lamp.room_id).find(o => isLoungeSeat(o, items) && (() => { const [x, y] = toLocal(lamp.pos, o); return Math.abs(x) <= o.size[0] / 2 + 0.05 && y < -o.size[1] / 2 && y > -o.size[1] / 2 - 1.0; })());
+    if (blocking) { const spot = armSpot(scene, blocking, items); out.hard.push(`lighting: floor lamp ${lamp.id} stands in the floor in front of ${blocking.id}; ${spot ? `move it to ${at(spot)} beside the arm` : 'move it beside the arm or behind the seat'}`); }
   }
   // Every seating group, desk and bed has its own light (the ceiling design alone leaves them dim).
   for (const room of scene.rooms.filter(r => !outdoor(r))) {
@@ -222,20 +234,33 @@ function bedrooms(scene: Scene, draft: Draft, items: DraftItem[], out: Findings)
     const sides = ([1, -1] as const).map(sign => {
       const reach = clearDepth(scene, bed, obstacles, sign, -d / 2 + 0.05, d / 2 - 0.75, 0.6);
       const head = toWorld(bed, [sign * (w / 2 + 0.25), d / 2 - 0.25]);
-      const stand = obstacles.some(o => !isLamp(o) && o.size[2] >= 0.3 && o.size[2] <= 0.95 && toFootprint(head, o) <= 0.3);
+      const stand = obstacles.find(o => !isLamp(o) && o.size[2] >= 0.3 && o.size[2] <= 0.95 && toFootprint(head, o) <= 0.3);
       const light = lights.some(l => Math.hypot(l.pos[0] - head[0], l.pos[1] - head[1]) <= (l.lamp ? 0.8 : 1.0));
       return { sign, reach, head, stand, light, open: reach.depth >= 0.5 - 1e-6 };
     });
     // Below 0.5 m nobody gets in; 0.5-0.6 m is tight but usable in a small room, so it is advice.
     if (double) for (const s of sides.filter(s => s.reach.depth < 0.6 - 1e-6))
-      (s.open ? out.soft : out.hard).push(`bedroom: ${bed.id} (${f2(w)} m wide) has only ${f2(s.reach.depth)} m beside its side toward ${at(s.head)} (blocked by ${s.reach.by}); a double bed needs >= 0.6 m on both long sides to get in: centre it on its wall or move ${s.reach.by === 'the wall' ? 'the bed' : s.reach.by}`);
+      (s.open ? out.soft : out.hard).push(`bedroom: ${bed.id} (${f2(w)} m wide) has only ${f2(s.reach.depth)} m beside its side toward ${at(s.head)} (blocked by ${s.reach.by}); a double bed needs >= 0.6 m on both long sides; ${bedFix(scene, bed, obstacles, s.sign, s.reach, s.head)}`);
     const served = double ? sides.filter(s => s.open) : sides.filter(s => s.open).slice(0, 1);
     if (double) for (const s of served) {
-      if (!s.stand) out.hard.push(`bedroom: ${bed.id} has no nightstand at its side toward ${at(s.head)}; stand one there (0.4-0.6 m high) with a lamp on it`);
-      else if (!s.light) out.hard.push(`bedroom: the ${bed.id} side toward ${at(s.head)} has no reading light; put a table lamp on its nightstand or a wall sconce above it`);
-    } else if (!sides.some(s => s.light)) out.hard.push(`bedroom: ${bed.id} has no bedside light; put a lamp on a nightstand at its head or a wall sconce above it`);
+      if (!s.stand) out.hard.push(`bedroom: ${bed.id} has no nightstand at its side toward ${at(s.head)}; stand one (0.4-0.6 m high) at ${at(s.head)} with a table lamp on it`);
+      else if (!s.light) out.hard.push(`bedroom: the ${bed.id} side toward ${at(s.head)} has no reading light; put a table lamp on its nightstand: on: "${s.stand.id}", pos ${at(s.stand.pos)}`);
+    } else if (!sides.some(s => s.light)) {
+      const s = sides.find(x => x.stand) ?? sides.find(x => x.open) ?? sides[0]!;
+      out.hard.push(`bedroom: ${bed.id} has no bedside light; ${s.stand ? `put a table lamp on ${s.stand.id}: on: "${s.stand.id}", pos ${at(s.stand.pos)}` : `stand a nightstand at ${at(s.head)} with a table lamp on it`}`);
+    }
     headboard(scene, bed, out);
   }
+}
+/** One step that opens a blocked bed side: slide the bed across when the far side has room, move a nightstand that
+ * stands mid-side to the head, else a narrower bed. */
+function bedFix(scene: Scene, bed: DraftItem, obstacles: DraftItem[], sign: 1 | -1, reach: { depth: number; by?: string }, head: V): string {
+  const blocker = obstacles.find(o => o.id === reach.by);
+  if (blocker && blocker.size[2] <= 0.95 && Math.hypot(blocker.pos[0] - head[0], blocker.pos[1] - head[1]) > 0.35) return `move ${blocker.id} to the head of the bed at ${at(head)}`;
+  const shift = 0.6 - reach.depth, d = bed.size[1], far = clearDepth(scene, bed, obstacles, (-sign) as 1 | -1, -d / 2 + 0.05, d / 2 - 0.75, 0.6 + shift);
+  if (far.depth >= 0.6 + shift - 1e-6) return `move ${bed.id} to ${at(toWorld(bed, [-sign * (shift + 0.02), 0]))}`;
+  const narrower = bed.size[0] - (1.2 - reach.depth - far.depth);
+  return narrower >= 1.2 ? `pick a bed <= ${f2(narrower)} m wide (./varpet search --kind bed --max-w ${f2(narrower)}) and centre it` : `move ${bed.id} to a wall with >= ${f2(bed.size[0] + 1.2)} m of clear floor, or use a single bed`;
 }
 /** The wall the headboard (local +y edge) is against, and a window centred behind it (soft). */
 function headboard(scene: Scene, bed: DraftItem, out: Findings) {
@@ -250,7 +275,7 @@ function headboard(scene: Scene, bed: DraftItem, out: Findings) {
 }
 
 /** The main sofa of each room and the table in front of it; rug under its front legs; conversation seats close. */
-function living(scene: Scene, items: DraftItem[], out: Findings) {
+function living(scene: Scene, draft: Draft, items: DraftItem[], out: Findings) {
   const rooms = new Set(items.map(o => o.room_id));
   for (const roomId of rooms) {
     const mine = items.filter(o => o.room_id === roomId && onFloor(o));
@@ -274,6 +299,22 @@ function living(scene: Scene, items: DraftItem[], out: Findings) {
         out.hard.push(`living: coffee table ${coffee.t.id} reaches past ${sofa.id}'s ends (${f2(Math.abs(shift))} m off centre${Math.max(...lx) - Math.min(...lx) > w ? ', wider than the sofa' : ''}); centre it on the sofa at ${at(to)}${Math.max(...lx) - Math.min(...lx) > w ? ' and pick a narrower one' : ''}`);
       }
     }
+    // A thin sofa corner in a real living room: no table in front, no second seat. Advice with a spot to use.
+    const room = scene.rooms.find(r => r.id === roomId), big = room ? area(room.polygon) : 0;
+    if (room && big >= 15 && !isBedroom(room, items)) {
+      const free = (p: V, r: number) => floorPoint(scene, roomId, p) && !mine.some(o => o !== sofa && !isRug(o) && toFootprint(p, o) < r);
+      if (!coffee && !mine.some(o => /ottoman|pouf/.test(o.kind) && inside(toWorld(sofa, [0, -d / 2 - 0.7]), o, 0.4))) {
+        const p = toWorld(sofa, [0, -d / 2 - 0.72]);
+        out.soft.push(`living: ${sofa.id} has no coffee table in front; add one about ${f2(Math.min(1.3, w * 0.6))} m wide and 0.6 m deep centred at ${at(p)}, rot ${Math.round(((sofa.rot % 360) + 360) % 360)}`);
+      }
+      const others = mine.filter(o => o !== sofa && isLoungeSeat(o, items) && Math.hypot(o.pos[0] - sofa.pos[0], o.pos[1] - sofa.pos[1]) <= 3);
+      if (!others.length && big >= 20) {
+        const focus = coffee?.t.pos ?? toWorld(sofa, [0, -d / 2 - 0.72]);
+        const spot = ([1, -1] as const).map(sign => toWorld(sofa, [sign * (w / 2 + 0.6), -d / 2 - 0.9])).find(p => free(p, 0.45));
+        const rot = spot ? Math.round(((Math.atan2(focus[0] - spot[0], -(focus[1] - spot[1])) * 180 / Math.PI) + 360) % 360) : 0;
+        out.soft.push(`living: ${sofa.id} is the only seat in its corner of a ${f2(big)} m2 room; add an armchair facing it${spot ? ` at ${at(spot)}, rot ${rot}` : ' across the coffee table'}`);
+      }
+    }
     // A rug in front of the sofa (holding the coffee table or the floor just ahead) should run under its front legs.
     const ahead = toWorld(sofa, [0, -d / 2 - 0.6]);
     for (const rug of mine.filter(o => isRug(o) && (inside(ahead, o) || (coffee && inside(coffee.t.pos, o))))) {
@@ -285,7 +326,7 @@ function living(scene: Scene, items: DraftItem[], out: Findings) {
       out.hard.push(need > 0.01
         ? `living: rug ${rug.id} stops ${f2(need - 0.05)} m short of ${sofa.id}'s front legs; move it to ${at(to)} (or pick a larger one) so at least the front legs stand on it`
         : Math.max(...lx) - Math.min(...lx) < w - 0.2
-          ? `living: rug ${rug.id} is narrower than ${sofa.id} (${f2(Math.max(...lx) - Math.min(...lx))} vs ${f2(w)} m along it), so a front leg misses it; pick a rug at least as wide as the sofa`
+          ? `living: rug ${rug.id} is narrower than ${sofa.id} (${f2(Math.max(...lx) - Math.min(...lx))} vs ${f2(w)} m along it), so a front leg misses it; pick one at least ${f2(w + 0.4)} m wide (./varpet search --kind rug) centred in front of the sofa`
           : `living: rug ${rug.id} sits ${f2(Math.abs(side))} m off ${sofa.id}'s centre, so a front leg misses it; centre it on the sofa at ${at(to)}`);
     }
     // Conversation seats face the sofa's group and sit within 3 m of it.
@@ -293,7 +334,8 @@ function living(scene: Scene, items: DraftItem[], out: Findings) {
     for (const seat of mine.filter(o => o !== sofa && isLoungeSeat(o, items))) {
       const to: V = [focus[0] - seat.pos[0], focus[1] - seat.pos[1]], dist = Math.hypot(...to), sf = front(seat);
       const facing = dist > 0 && (to[0] * sf[0] + to[1] * sf[1]) / dist > 0.6, apart = Math.hypot(seat.pos[0] - sofa.pos[0], seat.pos[1] - sofa.pos[1]);
-      if (facing && apart > 3 && apart < 5) out.soft.push(`living: ${seat.id} faces ${sofa.id}'s group but sits ${f2(apart)} m from the sofa; conversation seats sit within 3 m (move it closer to ${coffee ? coffee.t.id : 'the sofa'})`);
+      const corner = lit(lightsIn(draft, items, seat.room_id), seat) && items.some(o => o.room_id === seat.room_id && /table/.test(o.kind) && o.size[2] < 0.7 && toFootprint(o.pos, seat) < 0.6);
+      if (facing && apart > 3 && apart < 5 && !corner) out.soft.push(`living: ${seat.id} faces ${sofa.id}'s group but sits ${f2(apart)} m from the sofa; conversation seats sit within 3 m: move it to about ${at([sofa.pos[0] + (seat.pos[0] - sofa.pos[0]) * 2.4 / apart, sofa.pos[1] + (seat.pos[1] - sofa.pos[1]) * 2.4 / apart])}, or give it its own lamp and side table as a reading corner`);
     }
   }
 }
@@ -316,7 +358,7 @@ function wallDecor(scene: Scene, items: DraftItem[], out: Findings) {
     for (const x of items) {
       if (x.room_id !== o.room_id || !onFloor(x) || !HUNG_OVER.test(x.kind) || isLamp(x) || x.size[2] > 1.3 || x.size[2] > spot.bottom + 0.05) continue;
       const corners = footprint(x) as V[], offs = corners.map(p => segDist(p, wall.a, wall.b) - (wall.thickness ?? 0) / 2);
-      if (Math.min(...offs) > 0.6) continue;
+      if (Math.min(...offs) > 1.1) continue; // a sofa may stand off the wall in front of a radiator
       const al = corners.map(p => along0(p) + shift), from = Math.min(...al), to = Math.max(...al), overlap = Math.min(to, artTo) - Math.max(from, artFrom);
       if (overlap > o.size[0] * 0.5 && (!best || overlap > best.overlap)) best = { over: x, from, to, overlap };
     }
@@ -354,7 +396,7 @@ function wallDecor(scene: Scene, items: DraftItem[], out: Findings) {
     const left = spot.along - o.size[0] / 2 - lo, right = hi - spot.along - o.size[0] / 2;
     if (left < 0.2 - 0.01 || right < 0.2 - 0.01) {
       const stretch = hi - lo, fits = stretch - 0.4;
-      (sink ? out.soft : out.hard).push(`decor: mirror ${o.id} (${f2(o.size[0])} m wide) leaves ${f2(Math.max(0, Math.min(left, right)))} m to ${left < right ? loBy : hiBy} on its ${f2(stretch)} m stretch of ${o.wall_id}; keep >= 0.2 m each side: ${fits >= o.size[0] ? `move it to pos ${at(slide(o, spot, left < 0.2 ? 0.2 - left : right - 0.2))}` : `pick a mirror <= ${f2(Math.max(0, fits))} m wide or another wall`}`);
+      (sink ? out.soft : out.hard).push(`decor: mirror ${o.id} (${f2(o.size[0])} m wide) leaves ${f2(Math.max(0, Math.min(left, right)))} m to ${left < right ? loBy : hiBy} on its ${f2(stretch)} m stretch of ${o.wall_id}; keep >= 0.2 m each side: ${fits >= o.size[0] ? `move it to pos ${at(slide(o, spot, left < 0.2 ? 0.2 - left : right - 0.2))}` : fits >= 0.3 ? `pick a mirror <= ${f2(fits)} m wide (./varpet search --kind mirror --max-w ${f2(fits)}) or hang it on another wall` : 'hang it on another wall (this stretch is too short for a mirror)'}`);
     }
   }
 }
@@ -404,11 +446,27 @@ function coverage(scene: Scene, draft: Draft, all: DraftItem[], out: Findings) {
  * half-empty Japandi living room has 5.4 m2 (12%); furnished living rooms and bedrooms have none. */
 export const DEAD_ZONE = { side: 1.5, area: 4, share: 0.1 };
 
-const DARK = /\b(sleep\w*|dark\w*|blackout|privacy|private|nap\w*|insomnia|light sleeper|shift work\w*)\b/i;
+/** A positive need for a dark or private bedroom. "dark" alone is not one ("we dislike heavy, dark bedrooms"). */
+const DARK = /\b(blackout|black-out|light sleepers?|sleeps? (badly|poorly|lightly|late|in)|sleeping in|insomnia|night shifts?|shift work\w*|naps?|napping|privacy|private|overlooked|street ?lights?|pitch[- ]dark|dark (to|for) sleep\w*|(needs?|wants?|likes?|prefers?) (it |a |the room )?dark\w*)\b/gi;
+const NEGATED = /\b(no|not|never|without|don'?t|doesn'?t|dislikes?|hates?|avoid\w*)\b[^.;!?]{0,30}$/i;
+/** The brief asks for dark or privacy: a positive phrase not negated within its sentence. */
+export function asksForDark(text: string | undefined): boolean {
+  if (!text) return false;
+  for (const m of text.matchAll(DARK)) if (!NEGATED.test(text.slice(Math.max(0, m.index! - 40), m.index))) return true;
+  return false;
+}
 /** Bedrooms (and any room when the brief asks for dark or privacy) want a curtain or blind on every window. */
-function windows(scene: Scene, items: DraftItem[], brief: string | undefined, out: Findings) {
-  const asks = brief !== undefined && DARK.test(brief), used = new Set(items.filter(o => !o.keep).map(o => o.room_id));
+/** requirements.json (when the lead wrote one) decides per room: its "for" text or an items need of kind curtain/blind;
+ * otherwise the brief as a whole. */
+function windows(scene: Scene, items: DraftItem[], brief: string | undefined, req: Requirements | undefined, out: Findings) {
+  const used = new Set(items.filter(o => !o.keep).map(o => o.room_id));
+  const asksIn = (roomId: string) => {
+    if (!req) return asksForDark(brief);
+    const needs = req.rooms[roomId];
+    return !!needs && (asksForDark(needs.for) || (needs.items ?? []).some(n => /curtain|blind/.test(n.kind) || /blackout/i.test(n.text ?? '')));
+  };
   for (const room of scene.rooms.filter(r => used.has(r.id) && !outdoor(r) && isBedroom(r, items))) {
+    const asks = asksIn(room.id);
     const curtains = items.filter(o => o.room_id === room.id && isCurtain(o) && o.wall_id !== undefined).map(o => ({ o, spot: wallSpot(scene, o) }));
     for (const o of scene.openings.filter(o => o.kind === 'window' && o.width >= 0.4 && openingRooms(scene, o).includes(room.id))) {
       let wall; try { wall = roomWall(scene, room.id, o.wall_id); } catch { continue; }
@@ -425,13 +483,38 @@ function windows(scene: Scene, items: DraftItem[], brief: string | undefined, ou
 }
 
 /** The function rules over the whole scene. brief = the customer request (dark/privacy wishes make curtains hard). */
-export function functionRules(scene: Scene, draft: Draft, brief?: string): Findings {
+export function functionRules(scene: Scene, draft: Draft, brief?: string, requirements?: Requirements): Findings {
   const out: Findings = { hard: [], soft: [] }, all: DraftItem[] = [...scene.items, ...(draft.items ?? [])];
   lighting(scene, draft, all, out);
   bedrooms(scene, draft, all, out);
-  living(scene, all, out);
+  living(scene, draft, all, out);
   wallDecor(scene, all, out);
   coverage(scene, draft, all, out);
-  windows(scene, all, brief, out);
+  windows(scene, all, brief, requirements, out);
+  fixtures(scene, draft, all, out);
   return out;
+}
+
+/** An open balcony or terrace has no ceiling to hang from (editor hasRoomCeiling); a loggia does. */
+const openAir = (room: Scene['rooms'][number]) => room.zone === 'balcony' || room.zone === 'terrace'
+  || (room.zone === undefined && /balcon|terrace|patio|garden/i.test(`${room.id} ${room.name ?? ''}`));
+/** Only tables people sit or work at take a low pendant; over anything else it hangs where heads are. */
+const PENDANT_OK = (o: DraftItem) => (isSeatTable(o) && !/\b(side|end|night|bedside|console)\b/i.test(label(o))) || /island|counter/.test(o.kind);
+function fixtures(scene: Scene, draft: Draft, items: DraftItem[], out: Findings) {
+  for (const light of draft.lighting ?? []) {
+    const room = scene.rooms.find(r => r.id === light.room_id);
+    if (!room) continue;
+    if (openAir(room) && (light.type === 'ceiling' || light.mount !== 'wall')) {
+      // A room only named balcony may be covered by the floor above: its ceiling design is advice, a hanging fixture is not.
+      (light.type === 'ceiling' && room.zone === undefined ? out.soft : out.hard).push(light.type === 'ceiling'
+        ? `lighting: ${room.id} is open to the sky, so its ceiling design floats in the air; remove the ceiling entry for ${room.id} and light it with a wall light (type fixture, mount "wall") on the house wall`
+        : `lighting: ${light.id} is a ${light.mount} light on ${room.id}, which has no ceiling; set mount: "wall" with pos on the house wall, or use a lantern or table lamp`);
+      continue;
+    }
+    if (light.type !== 'fixture' || light.mount !== 'pendant') continue;
+    const under = items.find(o => o.room_id === light.room_id && onFloor(o) && !isRug(o) && inside(light.pos, o));
+    const bottom = fixtureBottom(light, items, roomHeight(scene, light.room_id));
+    if (bottom < 1.85 && !(under && PENDANT_OK(under)))
+      out.hard.push(`lighting: pendant ${light.id} hangs with its bottom at ${f2(bottom)} m${under ? ` over ${under.id}` : ''}, where heads are; set height_m: 1.9 (or mount: "wall" for a bedside sconce)`);
+  }
 }
