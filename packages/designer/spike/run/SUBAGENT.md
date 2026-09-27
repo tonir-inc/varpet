@@ -18,6 +18,9 @@ plan.md came with your context; follow their item format, placement rules, catal
   reviewer looks at renders of your room (it takes about a minute). Fix every blocker and major it lists; skip one
   only when the fix would break a need of the brief or the check, and say so in your answer. Re-check until OK,
   and stop. If your task is several small rooms, do each the same way (one `--part` per room). The lead reviews the evening light.
+- Crowded room: if the check still fails after 6 tries, the room cannot hold everything. Drop the
+  lowest-priority piece (decor, a second chair, extra storage before any bed, desk or seat the brief asks for),
+  or use a smaller one, and say which in your final answer; never loop on the same problem.
 - Meet every need in your task message (count the seats, desks and beds in your plan render), then make it a
   finished, lived-in room at the piece counts the studio instructions give; stay within the room's budget
   and the flat palette from plan.md.

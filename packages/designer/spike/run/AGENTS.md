@@ -22,7 +22,8 @@ answer. Small gaps (a piece the catalog lacks, a slightly smaller table) are not
 ## Whole-apartment briefs
 When the request covers several rooms or the whole flat, write `plan.md` first (short): who lives here and
 what each person needs, which room does what (you may re-assign rooms: a study, a kid's room, a guest corner),
-the style and palette for the flat (floor, wall colours, wood and metal, textiles) and any per-room variation,
+the style and palette for the flat (floor, a wall colour or accent wall per room with hex values, wood and metal,
+textiles) and any per-room variation,
 and a budget split per room with about 5% reserve. Keep the flat coherent (same floor unless there is a
 reason, a shared palette, doors and the hall kept clear). Honour every concrete need in the brief. Bathrooms,
 WCs and kitchens keep their fixed fittings; furnish them with what the catalog offers for them (bath storage
@@ -87,7 +88,9 @@ first, finishing each (check OK, render, fix) before the next.
     that already passes the check and adds it: lounge `--anchor <sofa> [--table <coffee table>] [--rug] [--side-table]
     [--lamp] [--media <tv unit> --tv <tv>]` (with a media unit the TV goes on a wall and the sofa faces it);
     dining `--anchor <table> --chair <sku> --chairs N [--pendant]`; bed `--anchor <bed> [--nightstand] [--lamp]
-    [--rug]`; desk `--anchor <desk> [--chair] [--monitor <sku> --monitors 2] [--lamp]` (beside a window, no
+    [--rug]`; twin (two children sharing) `--anchor <single bed> --nightstand <sku> [--lamp] [--rug]` (two beds on
+    one wall, a nightstand between); small-bed (a small room) `--anchor <bed> [--nightstand] [--lamp]` (bed in a
+    corner, one nightstand on the open side); desk `--anchor <desk> [--chair] [--monitor <sku> --monitors 2] [--lamp]` (beside a window, no
     glare). It picks the spot; `--wall <wall id>`, `--window <id>` or `--at x,y --rot r` choose it. It prints up
     to three checked options and adds A only if it passes (else says why; `--force` adds it anyway). Place the
     biggest group first; in a small room place the bed(s) first. Small decor goes `on` a surface by hand.
@@ -120,8 +123,13 @@ Put several commands in one shell call wherever you can, and do not take a step 
 1. `./varpet describe; ./varpet materials` in one call. Understand the room(s) in scope: size, doors and their
    swing, windows, what the room is for, how people walk through it.
 2. Decide a concept in two or three sentences: style, palette, focal point, zones.
-   The room is walls, floor, ceiling, light and furniture: choose the floor, the wall colours (an accent wall
-   only if it earns it) and the light together with the pieces, as one palette.
+   The room is walls, floor, ceiling, light and furniture: choose the floor, the walls and the light together
+   with the pieces, as one palette. Paint every room you design with a considered colour, never default white:
+   either a real colour on all walls, or a strong accent wall behind the focal piece (bed headboard wall,
+   sofa or TV wall, dining wall) with the rest in a tone that supports it. Pick colours saturated enough to read
+   in a bright daylit render: sage #A8B5A2 not #E8EDE4; terracotta #C0704F, deep green #3E5C4A, dusty blue
+   #7D93A8, warm ochre #C99A4B, clay pink #C98F7E, as the style suggests. Kids' rooms get playful colour. Off-white
+   walls only as a deliberate choice you explain in plan.md; ceilings may stay white.
 3. Search the catalog for every piece of a room in ONE shell call (chain `./varpet search ... --limit 6` lines
    with `;`). Then look at up to three product sheets per room (at most 8 skus each) and pick pieces that share
    the style, material and colour story. Design a finished, lived-in room, not a minimum: after the anchors

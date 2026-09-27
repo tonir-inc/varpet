@@ -68,7 +68,9 @@ Check, in order:
    too wide for its wall or piece).
 4. Coverage: dead empty zones or corners that make the room feel unfinished; crowding; blocked doors,
    windows or walkways (~0.8 m main paths).
-5. Style coherence with the brief (and its picture, if described): one palette and material story.
+5. Style coherence with the brief (and its picture, if described): one palette and material story. Walls that read
+   as plain white or pale beige with no colour story (no real wall colour and no accent wall behind the focal
+   piece) are a major issue: name a colour from the palette and the wall.
 6. Render sanity: objects floating, sunk into the floor, clipped into walls or other furniture, duplicated;
    a bed that shows a bare mattress with no bedding or pillows.
 
@@ -321,7 +323,7 @@ cutaway overview.
 1. Flow: the entrance and hall kept clear (~0.9 m), every door openable, no piece in one room blocking a door or
    path into another, balconies reachable.
 2. Coherence: one palette and material story across rooms (floors, woods, colours) matching the brief; a room
-   that clashes with the rest.
+   that clashes with the rest. Rooms whose walls read as plain white (no colour and no accent wall) are major.
 3. The brief across the flat: every person has their room, bed, desk and seat as asked; nothing asked is missing
    from every room (count across rooms).
 Do not report issues inside one room (placement, lamps, art); those were reviewed. Faults of the flat itself

@@ -104,14 +104,14 @@ function wallAhead(scene: Scene, roomId: string, pos: Vec2, rot: number): number
   return best;
 }
 
-export type GroupKind = 'lounge' | 'dining' | 'bed' | 'desk';
+export type GroupKind = 'lounge' | 'dining' | 'bed' | 'desk' | 'twin' | 'small-bed';
 export interface GroupProducts {
   anchor: Product; table?: Product; rug?: Product; side?: Product; lamp?: Product; tv?: Product; media?: Product;
   chair?: Product; chairs?: number; nightstand?: Product; monitor?: Product; monitors?: number; pendant?: boolean;
 }
 
 /** One group laid out around an anchor pose. */
-interface Variant { gap: number; shift: number; lampGap?: number; tv?: number }
+interface Variant { gap: number; shift: number; lampGap?: number; tv?: number; sides?: number[] }
 function buildGroup(scene: Scene, draft: Draft, roomId: string, kind: GroupKind, p: GroupProducts, anchorPose: { pos: Vec2; rot: number },
   v: Variant = { gap: 0.42, shift: 0 }): Omit<Candidate, 'problems'> {
   const items: DraftItem[] = [], lighting: FixtureLight[] = [], work: Draft = { ...draft, items: [...draft.items] };
@@ -127,8 +127,20 @@ function buildGroup(scene: Scene, draft: Draft, roomId: string, kind: GroupKind,
     media = add(m, 'media', anchorPose.pos, anchorPose.rot);
     anchorPose = { pos: at(anchorPose.pos, [fm, m.size[1] / 2 + dist + p.anchor.size[1] / 2]), rot: anchorPose.rot + 180 };
   }
+  if (kind === 'twin') {
+    // Two beds against one wall, headboards on it, a shared nightstand between them (the pose is the pair's centre).
+    const b = p.anchor, ns = p.nightstand, rot = anchorPose.rot, f = fwd(rot), r = rgt(rot), back: Vec2 = [-f[0], -f[1]];
+    const gap = ((ns?.size[0] ?? 0.4) + 0.1) / 2, [W, D] = b.size;
+    for (const s of [-1, 1]) add(b, 'bed', at(anchorPose.pos, [r, s * (W / 2 + gap)]), rot);
+    if (ns) {
+      const n = add(ns, 'nightstand', at(anchorPose.pos, [back, D / 2 - ns.size[1] / 2]), rot);
+      if (p.lamp) add(p.lamp, 'lamp', n.pos as Vec2, rot, { on: n.id });
+    }
+    if (p.rug) add(p.rug, 'rug', at(anchorPose.pos, [f, D / 2 + 0.2]), rot);
+    return { items, lighting };
+  }
   const a = p.anchor, rot = anchorPose.rot, f = fwd(rot), r = rgt(rot), back: Vec2 = [-f[0], -f[1]];
-  const anchor = add(a, kind === 'lounge' ? 'sofa' : kind === 'dining' ? 'table' : kind, anchorPose.pos, rot);
+  const anchor = add(a, kind === 'lounge' ? 'sofa' : kind === 'dining' ? 'table' : kind === 'small-bed' ? 'bed' : kind, anchorPose.pos, rot);
   const P = anchor.pos as Vec2, [W, D] = a.size;
   if (kind === 'lounge') {
     if (p.table) add(p.table, 'coffee-table', at(P, [f, D / 2 + v.gap + p.table.size[1] / 2], [r, v.shift * Math.max(0, (W - p.table.size[0]) / 2)]), rot);
@@ -155,8 +167,8 @@ function buildGroup(scene: Scene, draft: Draft, roomId: string, kind: GroupKind,
       for (let e = 0; e < ends; e++) add(chair, 'chair', at(P, [r, (e === 0 ? 1 : -1) * (W / 2 + chair.size[1] / 2 - 0.08)]), rot + (e === 0 ? 270 : 90));
     }
     if (p.pendant) lighting.push({ room_id: roomId, type: 'fixture', id: uniqueId(work, scene, `${roomId}-pendant`), name: 'Pendant over the table', mount: 'pendant', pos: [r3(P[0]), r3(P[1])], brightness: 800, temperature_k: 2700 } as FixtureLight);
-  } else if (kind === 'bed') {
-    for (const s of [-1, 1]) {
+  } else if (kind === 'bed' || kind === 'small-bed') {
+    for (const s of v.sides ?? [-1, 1]) {
       if (!p.nightstand) break;
       const ns = add(p.nightstand, 'nightstand', at(P, [r, s * (W / 2 + 0.05 + p.nightstand.size[0] / 2)], [back, D / 2 - p.nightstand.size[1] / 2]), rot);
       if (p.lamp) add(p.lamp, 'lamp', ns.pos as Vec2, rot, { on: ns.id });
@@ -196,6 +208,15 @@ async function anchorPoses(scene: Scene, draft: Draft, roomId: string, kind: Gro
   if (given) return (await poses(scene, draft, roomId, anchorProduct, id, spec)).poses;
   const walls = scene.walls.filter(w => w.room_id === roomId && !w.open).map(w => w.id);
   const perWall = async () => wallPoses(scene, roomId, p.anchor);
+  if (kind === 'twin') {
+    const [W, D, H] = p.anchor.size, pair: Product = { ...p.anchor, size: [2 * W + (p.nightstand?.size[0] ?? 0.4) + 0.1, D, H] };
+    return wallPoses(scene, roomId, pair).slice(0, 6);
+  }
+  if (kind === 'small-bed') {
+    // A bed pushed into a corner (long side on a wall) leaves the most floor; one nightstand on the open side.
+    const corner = await poses(scene, draft, roomId, p.anchor, id, { ...spec, corner: true }).catch(() => ({ poses: [] as { pos: Vec2; rot: number }[] }));
+    return [...corner.poses, ...wallPoses(scene, roomId, p.anchor)].slice(0, 6);
+  }
   if (kind === 'lounge' && p.media) {
     // The media unit against a wall with 3-5 m of floor ahead (the sofa goes there).
     const all = wallPoses(scene, roomId, p.media);
@@ -261,6 +282,7 @@ export async function placeGroup(scene: Scene, draft: Draft, roomId: string, kin
   const anchors = await anchorPoses(scene, draft, roomId, kind, products, anchorId, spec);
   const variants: Variant[] = kind === 'lounge'
     ? [{ gap: 0.45, shift: 0 }, { gap: 0.45, shift: 0, lampGap: 0.25 }, { gap: 0.45, shift: 0, lampGap: 0.25, tv: 2.4 }, { gap: 0.45, shift: 0.6, lampGap: 0.25, tv: 3.2 }]
+    : kind === 'small-bed' ? [{ gap: 0, shift: 0, sides: [1] }, { gap: 0, shift: 0, sides: [-1] }, { gap: 0, shift: 0, sides: [] }]
     : [{ gap: 0.42, shift: 0 }];
   const out: Candidate[] = [];
   for (const pose of anchors) {

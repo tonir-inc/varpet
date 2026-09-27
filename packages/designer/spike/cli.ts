@@ -259,7 +259,7 @@ async function main(): Promise<number> {
         result = await P.placeOne(scene, draft, roomId, product, id, spec, options);
       } else {
         const kind = argv[0] as import('./lib/place.ts').GroupKind;
-        if (!['lounge', 'dining', 'bed', 'desk'].includes(kind)) throw new Error('place-group lounge|dining|bed|desk --part <room> --anchor <sku> ...');
+        if (!['lounge', 'dining', 'bed', 'desk', 'twin', 'small-bed'].includes(kind)) throw new Error('place-group lounge|dining|bed|desk|twin|small-bed --part <room> --anchor <sku> ...');
         const get = async (name: string) => { const v = flag(name); return v ? productBySku(v) : undefined; };
         const anchor = await get('anchor');
         if (!anchor) throw new Error('place-group needs --anchor <sku> (sofa, dining table, bed or desk)');

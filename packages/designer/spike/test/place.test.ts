@@ -31,3 +31,19 @@ describe('place and place-group', () => {
     expect(candidates[0]!.items[0]!.rot).toBe(90);
   }, 60_000);
 });
+
+describe('children sharing and small bedrooms', () => {
+  const single = product('b', 'bed', [0.95, 2.0, 0.5], 'Single dressed bed'), ns = product('n', 'nightstand', [0.4, 0.35, 0.55]);
+  test('twin puts two beds on one wall with a nightstand between and passes', async () => {
+    const { candidates } = await placeGroup(scene, { items: [] }, 'room-bedroom', 'twin', { anchor: single, nightstand: ns }, {}, {});
+    const beds = candidates[0]!.items.filter(i => i.kind === 'bed');
+    expect(beds).toHaveLength(2);
+    expect(beds[0]!.rot).toBe(beds[1]!.rot);
+    expect(roomCounts(candidates[0]!.items).sleepers).toBe(2);
+  }, 60_000);
+  test('small-bed keeps one nightstand at most', async () => {
+    const { candidates } = await placeGroup(scene, { items: [] }, 'room-bedroom', 'small-bed', { anchor: product('q', 'bed', [1.6, 2.1, 0.5], 'Dressed double bed'), nightstand: ns }, {}, {});
+    expect(candidates.length).toBeGreaterThan(0);
+    expect(candidates[0]!.items.filter(i => i.kind === 'nightstand').length).toBeLessThanOrEqual(1);
+  }, 60_000);
+});
