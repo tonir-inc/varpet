@@ -1019,6 +1019,21 @@ def propose(conversation, conversation_id: str, body: dict, cancel: threading.Ev
                     "message": (reply or "I have no change to suggest for that.")[:4000]}
         progress("Checking walkways and clearances")
         check = _run([state.workspace / "varpet", "check"], cwd=state.workspace)
+        if check.returncode != 0 and not cancel.is_set():
+            # One repair turn: the designer finished with the flat check failing (a door clearance, a budget line).
+            problems = [line[2:] for line in check.stdout.splitlines() if line.startswith("- ")][:8]
+            progress("Fixing what the final check found")
+            try:
+                fix = _run_turn(state, "./varpet check fails on the finished design:\n" + "\n".join(f"- {line}" for line in problems)
+                                + "\nFix every line (move, resize or remove the piece; a missing piece is better than a blocked door), "
+                                "run ./varpet check until it says OK, and end with the same kind of short customer paragraph as before.",
+                                cancel, Progress(state.rooms, progress, state.workspace), timeout)
+                if (fix.get("final") or "").strip():
+                    reply = fix["final"].strip()
+            except RuntimeError:
+                if cancel.is_set():
+                    raise
+            check = _run([state.workspace / "varpet", "check"], cwd=state.workspace)
         lap("check")
         if check.returncode != 0:
             problems = [line[2:] for line in check.stdout.splitlines() if line.startswith("- ")][:3]
