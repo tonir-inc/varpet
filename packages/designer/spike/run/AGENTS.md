@@ -164,7 +164,9 @@ Put several commands in one shell call wherever you can, and do not take a step 
    - textiles: a rug under each seating group and bed; 3-5 cushions and a throw `on` the sofa and bed
      (`--kind cushion`, `--kind throw_blanket`); curtains on every window
    - art: a large piece or a gallery of 2-4 over the sofa, the headboard and the dining sideboard (`--kind wall_art`,
-     kids' rooms `--text kids`/dinosaur/space/alphabet)
+     kids' rooms `--text kids`/dinosaur/space/alphabet); for big empty walls `--kind wall_art --text "gallery" |
+     "floating shelf" | "picture ledge" | "macrame" | "tapestry" | "wall planter"` (with objects `on` shelves and
+     ledges), clocks and wall hangings; sconces are `--kind lamp` wall pieces; floor mirrors lean, wall mirrors hang
    - plants: one large floor plant per main room plus a small one on a surface
    - styled surfaces: 2-3 objects on the coffee table, sideboard, shelves and each nightstand (vase, candle, books,
      bowl, tray, basket); a centrepiece on the dining table (tablescape sets); toys in kids' rooms (`--kind toy`)
