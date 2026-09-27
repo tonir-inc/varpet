@@ -946,6 +946,11 @@ def propose(conversation, conversation_id: str, body: dict, cancel: threading.Ev
             text = (f"Customer follow-up: {body['request']}\nThis continues a design you made earlier for this customer; draft.json "
                     f"holds it and they applied it.{(' Their earlier requests:' + chr(10) + earlier) if earlier else ''} "
                     + _turn_text(body["request"], False, edits, budget).split("\n", 1)[1])
+        elif not first and not state.owned and not (_read_draft(state.workspace / "draft.json") or {}).get("items"):
+            # The customer answered the designer's question: nothing is designed yet, so design now.
+            text = (f"Customer answer: {body['request']}\nNothing is designed yet: now design as your instructions describe, "
+                    "following this answer and the original request." + (f"\nFurniture budget: {budget} AMD (budget.json; "
+                    "./varpet check enforces it)." if budget else ""))
         else:
             text = _turn_text(body["request"], first, edits, budget)
         if image:
