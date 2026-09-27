@@ -5,7 +5,7 @@ import type { CatalogProduct } from '../adapters/database-catalog';
 import type { StageEvent, StagePhase } from '../ui/architect-stage';
 import type { BlueprintConstruction } from './blueprint-construction';
 import { BLUEPRINT_PAPER, type EditorPresentation } from './blueprint-presentation';
-import { BLUEPRINT_TOTAL_LIMIT, retainBlueprintEvidence, prepareBlueprintPlan, validateBlueprintFile } from './blueprint-evidence';
+import { BLUEPRINT_TOTAL_LIMIT, retainBlueprintEvidence, prepareBlueprintPlan, prepareBlueprintImage, validateBlueprintFile } from './blueprint-evidence';
 import { startBlueprintBuild } from './blueprint-build';
 import { clearBlueprintCheckpoint } from './blueprint-checkpoint';
 import type { BlueprintInk } from './blueprint-ink';
@@ -62,7 +62,7 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
           <div class="bp-title" aria-hidden="true"><span>VARPET · FLOOR PLAN</span><strong>Awaiting your plan</strong><span>SHEET 01 / 01</span></div>
           <div class="bp-area">
             <canvas class="bp-ink" hidden></canvas>
-            <button class="blueprint-drop" type="button" aria-describedby="blueprint-file-hint">
+            <button class="blueprint-drop" type="button" aria-describedby="blueprint-file-hint blueprint-upload-notice">
               <span class="blueprint-upload-mark" aria-hidden="true">${icon('upload')}</span>
               <strong data-idle="Drop your blueprint here" data-over="Release to place it on the sheet">Drop your blueprint here</strong><span>or <u>browse files</u></span>
               <span>Paste an image or PDF with <kbd>${pasteShortcut}</kbd></span>
@@ -72,6 +72,7 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
           <input type="file" class="blueprint-file-input" accept="image/jpeg,image/png,image/webp,application/pdf" hidden>
         </div>
       </div>
+      <p class="blueprint-build-note" id="blueprint-upload-notice">Upload only plans and photos of a home you own or rent. They are sent to OpenAI as soon as you add them to rebuild your flat, and photo location data is removed first.</p>
       <div class="blueprint-next" hidden>
         <small class="blueprint-pdf-note" role="status" hidden></small>
         <div class="blueprint-file"><span>${icon('layers')}<strong></strong></span><button type="button" data-change>Change plan</button></div>
@@ -118,11 +119,11 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
     const job = (options.preview?.build ?? startBlueprintBuild)(plan, photos, () => {
       if (disposed || reading !== job) return;
       if (job.rejection) { rejectPlan(job.rejection.message); return; }
-      q('.blueprint-build-note').textContent = job.status === 'ready'
+      q('.blueprint-next .blueprint-build-note').textContent = job.status === 'ready'
         ? 'Your apartment is ready to preview.' : 'We couldn’t read your plan yet. Continue to try again.';
     });
     reading = job;
-    q('.blueprint-build-note').textContent = 'Reading your blueprint while you get ready…';
+    q('.blueprint-next .blueprint-build-note').textContent = 'Reading your blueprint while you get ready…';
     return job;
   }
   function rejectPlan(message: string) {
@@ -148,15 +149,18 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
       button.onclick = () => { photos.splice(Number(button.dataset.removePhoto), 1); renderPhotos(); startReading(); };
     });
   }
-  function addPhotos(files: File[], restart = true) {
+  async function addPhotos(files: File[], restart = true) {
+    const version = selection;
     if (!files.length) return;
     try {
       files.forEach(validate);
+      files = await Promise.all(files.map(prepareBlueprintImage));
+      if (disposed || version !== selection) return;
       if (photos.length + files.length > 10) throw new Error('Add up to 10 room photos. Remove a photo to make space.');
       if ([plan, ...photos, ...files].reduce((sum, file) => sum + (file?.size ?? 0), 0) > MAX_TOTAL) throw new Error('Keep the plan and photos under 12 MB in total.');
       photos.push(...files); renderPhotos(); error.hidden = true;
       if (restart) startReading();
-    } catch (cause) { report((cause as Error).message); }
+    } catch (cause) { if (!disposed && version === selection) report((cause as Error).message); }
   }
   async function chooseFiles(files: File[], from: Point, immediate = false) {
     if (!files.length || !flow.hidden) return;
@@ -178,7 +182,8 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
       q('.blueprint-pdf-note').textContent = prepared.note;
       q('.blueprint-pdf-note').hidden = !prepared.note; error.hidden = true;
       void warmBuild().catch(() => {}); // Submit reports any module-loading failure with a retry.
-      if (files.length > 1) addPhotos(files.filter(file => file !== candidate), false);
+      if (files.length > 1) await addPhotos(files.filter(file => file !== candidate), false);
+      if (disposed || version !== selection) return;
       startReading();
       if (immediate) {
         // A checkpoint initializes in place; replaying the upload would obscure the chosen state.
@@ -348,7 +353,7 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
   q('[data-change]').onclick = () => { pickedFrom = centre(q('[data-change]')); picker.click(); };
   picker.onchange = () => { void chooseFiles([...picker.files ?? []], pickedFrom ?? source()); picker.value = ''; };
   q('[data-photos]').onclick = () => photoInput.click();
-  photoInput.onchange = () => { addPhotos([...photoInput.files ?? []]); photoInput.value = ''; };
+  photoInput.onchange = () => { void addPhotos([...photoInput.files ?? []]); photoInput.value = ''; };
   const dropLabel = q('.blueprint-drop strong');
   const setOver = (over: boolean) => {
     board.classList.toggle('is-over', over);
@@ -434,7 +439,7 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
     flow.querySelectorAll('.bp-ghost').forEach(node => node.remove());
     flow.getAnimations().forEach(animation => animation.cancel());
     host.closest('.portal')?.classList.remove('is-building');
-    q('.blueprint-build-note').textContent = 'Your plan is here. Continue when you’re ready to build.';
+    q('.blueprint-next .blueprint-build-note').textContent = 'Your plan is here. Continue when you’re ready to build.';
     build.disabled = !plan; build.focus();
   }
   q('.blueprint-back').onclick = back; q('[data-return]').onclick = back;
@@ -613,8 +618,9 @@ export function mountBlueprintLanding(host: HTMLElement, options: BlueprintLandi
   }
   if (options.preview?.initial) {
     const {plan: initialPlan, photos: initialPhotos, showBuild} = options.preview.initial;
+    const initialSelection = selection + 1;
     void chooseFiles([initialPlan, ...initialPhotos], centre(board), true).then(() => {
-      if (showBuild && !disposed && plan === initialPlan) return startBuild(false, true);
+      if (showBuild && !disposed && selection === initialSelection && plan) return startBuild(false, true);
     });
   }
   return () => {

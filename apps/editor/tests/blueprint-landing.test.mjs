@@ -24,7 +24,7 @@ const file = (name = 'plan.png', bytes = new Uint8Array([0, 255, 128, 10]), type
 const dataUrl = async source => `data:${source.type};base64,${Buffer.from(await source.arrayBuffer()).toString('base64')}`;
 
 // These exercise the upload-to-project boundary, including the existing authoritative parser.
-test('uploaded plan and photos retain exact original bytes through editor save and reopen', async () => {
+test('prepared plan and photos retain exact transport bytes through editor save and reopen', async () => {
   const input = shell(), before = structuredClone(input);
   const plan = file('My floor plan.png'), photo = file('Kitchen <morning>.webp', new Uint8Array([15, 10, 0, 129, 253]), 'image/webp');
   const result = await retainBlueprintEvidence(input, plan, [photo]);
@@ -37,6 +37,7 @@ test('uploaded plan and photos retain exact original bytes through editor save a
     { name: photo.name, kind: 'photo', dataUrl: await dataUrl(photo) },
   ]);
   assert.notEqual(reopened.project.sources[0].id, reopened.project.sources[1].id);
+  assert.ok(reopened.project.sources.every(source => source.notes.includes('Image metadata removed')));
 });
 
 test('existing evidence and reviewed project metadata survive upload attachment independently', async () => {

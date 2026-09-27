@@ -30,19 +30,23 @@ function setup({ pages = 1, sizes = [100], fail = false } = {}) {
       }; },
     }), async destroy() { destroyed = true; } };
   };
-  globalThis.document = { createElement: () => ({ width: 0, height: 0, getContext: () => ({}),
+  globalThis.document = { createElement: () => ({ width: 0, height: 0, getContext: () => ({drawImage() {}}),
     toBlob(callback, type, quality) { encodes.push([type, quality]); callback(new Blob([new Uint8Array(sizes.shift() ?? 100)], { type })); },
   }) };
   return { calls, encodes, get destroyed() { return destroyed; } };
 }
-test('PDF over image limit converts page 1 to a bounded PNG; images pass through', async () => {
+test('PDF over image limit converts page 1 to a bounded PNG; raster images are re-encoded', async t => {
+  const originalBitmap = globalThis.createImageBitmap;
+  t.after(() => {globalThis.createImageBitmap = originalBitmap;});
+  globalThis.createImageBitmap = async () => ({width: 2, height: 3, close() {}});
   const mock = setup();
   const result = await api.prepareBlueprintPlan(pdf(3_000_000));
   assert.equal(result.file.name, 'floor-plan.png'); assert.equal(result.file.type, 'image/png');
   assert.equal(result.note, ''); assert.deepEqual(mock.calls, [{ width: 1800, height: 2400 }]);
   assert.ok(mock.destroyed); api.validateBlueprintFile(result.file);
   const image = new File(['x'], 'plan.png', { type: 'image/png' });
-  assert.equal((await api.prepareBlueprintPlan(image)).file, image);
+  const prepared = (await api.prepareBlueprintPlan(image)).file;
+  assert.notEqual(prepared, image); assert.equal(prepared.type, image.type);
   assert.throws(() => api.validateBlueprintFile(pdf()), /image/);
 });
 test('multi-page PDF reports first-page choice and falls back to JPEG 0.85', async () => {

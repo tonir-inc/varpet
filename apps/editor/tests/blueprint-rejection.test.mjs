@@ -40,6 +40,7 @@ function element(selector = '') {
     querySelector(s) {if (!children.has(s)) children.set(s, element(s)); return children.get(s);},
     querySelectorAll: () => [], addEventListener() {}, removeEventListener() {}, closest: () => null,
     focus() {}, getAnimations: () => [], getBoundingClientRect: () => ({left: 0, top: 0, width: 2, height: 2}),
+    toBlob(callback, type) {callback(new Blob(['pixels'], {type}));},
     getContext: () => ({drawImage() {}, clearRect() {}, putImageData() {},
       getImageData: () => ({data: new Uint8ClampedArray(16).fill(255)}),
       createImageData: (w,h) => ({data: new Uint8ClampedArray(w*h*4)})}),
@@ -54,6 +55,7 @@ for (const submit of [false, true]) test(`rejection ${submit ? 'during construct
   set('matchMedia', () => ({matches: true}));
   set('window', {addEventListener() {}, removeEventListener() {}, setInterval, clearInterval});
   set('document', {createElement: () => element(), querySelector: () => null});
+  set('createImageBitmap', async () => ({width: 2, height: 2, close() {}}));
   set('Image', class {naturalWidth=2; naturalHeight=2; async decode() {}});
   let send;
   set('fetch', async () => new Response(new ReadableStream({start(controller) {send = value => {controller.enqueue(new TextEncoder().encode(JSON.stringify(value)+'\n')); controller.close();};}})));
