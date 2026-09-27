@@ -402,6 +402,8 @@ export function cornerPoses(scene: Scene, draft: Draft, roomId: string, fittings
     const doorInFrame = doors.some(door => Math.hypot(door.at[0] - eye[0], door.at[1] - eye[1]) < 3 && bearing(eye, door.at, heading) < half + 0.2);
     // Furniture right under the lens (a sofa back filling the lower third) hides the room behind it.
     const close = items.filter(item => item.size[2] > 0.5 && bearing(eye, item.pos, heading) < half && Math.hypot(item.pos[0] - eye[0], item.pos[1] - eye[1]) - Math.max(item.size[0], item.size[1]) / 2 < 1.3).length;
+    // A tall piece (floor lamp, plant, shelving) right at the lens fills a third of the frame, even off to the side.
+    const hogs = items.filter(item => item.size[2] > 1 && (item as DraftItem).wall_id === undefined && bearing(eye, item.pos, heading) < half + 0.3 && Math.hypot(item.pos[0] - eye[0], item.pos[1] - eye[1]) - Math.max(item.size[0], item.size[1]) / 2 < 1.2).length;
     // A window in frame shows the daylight and the view out, as listing photographs do.
     const windowInFrame = windows.some(window => bearing(eye, window.at, heading) < half * 0.85);
     // Standing in a niche (a kitchen recess, beside a pier) fills the sides of the frame with wall: count the rays across
@@ -410,7 +412,7 @@ export function cornerPoses(scene: Scene, draft: Draft, roomId: string, fittings
       for (let d = 0.1; d < 2; d += 0.1) if (!inside(polygon, [eye[0] + Math.cos(angle) * d, eye[1] + Math.sin(angle) * d])) return true;
       return false;
     }).length;
-    return { eye, far, score: seen + Math.min(far, 5) * 0.6 + (windowInFrame ? 3 : 0) - close * 4 - walled * 2 - (doorInFrame ? 100 : 0) - (far < 2 ? 50 : 0) };
+    return { eye, far, score: seen + Math.min(far, 5) * 0.6 + (windowInFrame ? 3 : 0) - close * 4 - hogs * 10 - walled * 2 - (doorInFrame ? 100 : 0) - (far < 2 ? 50 : 0) };
   });
   // Too small for a corner shot (no clear standing spot 2 m or more from what it looks at): stand just inside a
   // doorway and look into the room, as a photographer does in a bathroom, a WC or a narrow hall.
