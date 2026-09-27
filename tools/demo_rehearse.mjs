@@ -57,7 +57,7 @@ async function turn(label, text) {
   timings[`${label}_seconds`] = Math.round((t() - turnStart) * 10) / 10;
   const last = page.locator('.designer-message-designer').last();
   const card = await last.evaluate(node => ({ proposal: node.classList.contains('designer-proposal-card'),
-    text: node.textContent?.slice(0, 600) ?? '', metrics: [...node.querySelectorAll('.designer-metrics dt')].map(dt => `${dt.textContent}: ${dt.nextElementSibling?.textContent}`) }));
+    text: node.textContent?.slice(0, 600) ?? '', asks: /\?\s*$/.test(node.querySelector('.designer-message-copy')?.textContent ?? ''), metrics: [...node.querySelectorAll('.designer-metrics dt')].map(dt => `${dt.textContent}: ${dt.nextElementSibling?.textContent}`) }));
   log('reply', { turn: label, ...card });
   await screenshot(`${label}-reply`);
   if (card.metrics.some(row => /Unknown/.test(row))) fail(`${label}: card shows an Unknown measurement`);
@@ -78,7 +78,7 @@ try {
 
   let first = await turn('brief', brief);
   // The designer may ask one question when the brief does not fit the flat: answer with its first option.
-  if (!first.proposal && (await page.locator('.designer-options button').count() || /\?\s*(Show me another option|Tell me|$)/.test(first.text))) {
+  if (!first.proposal && (await page.locator('.designer-options button').count() || first.asks)) {
     const option = page.locator('.designer-options button').first();
     const answer = process.env.REHEARSE_ANSWER ?? (await option.count() ? await option.textContent() : 'A, please go ahead.');
     log('question', { answer }); await screenshot('question');

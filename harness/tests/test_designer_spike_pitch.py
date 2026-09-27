@@ -148,3 +148,10 @@ def test_a_recorded_run_becomes_a_replayable_session(tmp_path, monkeypatch):
     assert conversation == "conv1" and recorded
     assert [event["record"]["type"] for event in turns[0]["events"]] == ["progress", "preview", "proposal"]
     assert design == {"draft": {"items": [_item("sofa", [1, -1])]}, "owned": ["sofa"], "requests": ["Furnish the flat"]}
+
+
+def test_a_markdown_lettered_question_becomes_option_buttons():
+    question, options = designer_spike.question_options(
+        "The balcony bay is 2.3 m wide; would you prefer **A:** a table for four there, or **B:** dining for six on the long balcony?")
+    assert question == "The balcony bay is 2.3 m wide; would you prefer?"
+    assert options == ["A: a table for four there", "B: dining for six on the long balcony"]

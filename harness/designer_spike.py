@@ -171,7 +171,7 @@ def parse_budget(text: str) -> int | None:
 def question_options(reply: str) -> tuple[str, list[str]] | None:
     """The designer's one question when a brief does not fit ("...: A) ...; or B) ...?") as a question with option
     buttons; None for any other reply."""
-    text = " ".join(reply.split())
+    text = " ".join(reply.replace("**", "").replace("__", "").split())
     if not text.endswith("?"):
         return None
     marks = list(re.finditer(r"(?:^|[\s:;,(])(?:or\s+)?\(?([A-D])[).:]\s", text))
