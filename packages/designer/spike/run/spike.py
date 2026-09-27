@@ -284,7 +284,7 @@ class Session:
         if seconds >= self.args.timeout:
             status = "timeout"
         # A design turn never ends with hard problems: mark it when it does (the question path has no draft).
-        check = varpet(self.workspace, "check") if status == "completed" and not is_question(final, self.workspace) else None
+        check = varpet(self.workspace, "check", "--final") if status == "completed" and not is_question(final, self.workspace) else None
         record = {"label": label, "status": status, "error": (completed or {}).get("error"),
                   "seconds": round(seconds, 1), "final_message": final,
                   "check_ok": None if check is None else check.get("exit") == 0,

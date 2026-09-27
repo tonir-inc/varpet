@@ -3,6 +3,7 @@
  *
  * requirements.json: { "rooms": { "<room id>": {
  *   "for"?: "who uses it and for what",           // shown to room designers, not checked
+ *   "type"?: "kids",                              // living|bedroom|kids|dining|hall|bathroom|office, for the styling rules
  *   "seats_at_table"?: 6,                          // chairs/stools/bench places pulled up to one table
  *   "seats"?: 5,                                   // lounge seats: sofa places (~0.6 m each) + armchairs etc., not at a table or desk
  *   "sleepers"?: 2,                                // bed places: a bed >= 1.2 m wide or a bunk sleeps 2, others 1
@@ -18,7 +19,7 @@ import { footprint, segDist, type Draft, type DraftItem, type Scene, type Vec2 }
 
 export interface ItemNeed { kind: string; min?: number; text?: string }
 export interface RoomNeeds {
-  for?: string; pieces?: number; seats_at_table?: number; seats?: number; sleepers?: number; desks?: number; desk_chairs?: number;
+  for?: string; type?: 'living' | 'bedroom' | 'kids' | 'dining' | 'hall' | 'bathroom' | 'office'; pieces?: number; seats_at_table?: number; seats?: number; sleepers?: number; desks?: number; desk_chairs?: number;
   items?: ItemNeed[]; exclude?: string[]; budget_dram?: number;
 }
 export interface Requirements { rooms: Record<string, RoomNeeds> }
@@ -143,19 +144,3 @@ export function requirementAdvice(draft: Draft): string[] {
   return out;
 }
 
-/** A sofa is reached through the 0.35-0.5 m knee space in front of it when a coffee table stands there (the
- * relation rule asks for exactly that gap), so the 0.6 m front-approach walkway line for that sofa is not a
- * problem. Returns true for a walkway line that this exempts. */
-export function sofaKneeSpace(line: string, items: DraftItem[]): boolean {
-  const m = /^walkway: \S+ to item:(\S+): ([\d.]+) m path/.exec(line);
-  if (!m || Number(m[2]) < 0.3) return false;
-  const sofa = items.find(i => i.id === m[1] && i.kind === 'sofa');
-  if (!sofa) return false;
-  const a = sofa.rot * Math.PI / 180, f: Vec2 = [Math.sin(a), -Math.cos(a)], r: Vec2 = [Math.cos(a), Math.sin(a)];
-  return items.some(t => t.room_id === sofa.room_id && t.kind === 'table' && t.size[2] < 0.55 && t.id !== sofa.id && (() => {
-    const d: Vec2 = [t.pos[0] - sofa.pos[0], t.pos[1] - sofa.pos[1]];
-    const ahead = d[0] * f[0] + d[1] * f[1], side = Math.abs(d[0] * r[0] + d[1] * r[1]);
-    const depth = Math.min(t.size[0], t.size[1]), gap = ahead - sofa.size[1] / 2 - depth / 2;
-    return gap > 0.2 && gap < 0.65 && side < sofa.size[0] / 2;
-  })());
-}

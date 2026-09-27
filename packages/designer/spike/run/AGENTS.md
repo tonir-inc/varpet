@@ -32,10 +32,10 @@ stands on the floor).
 In the same step write `requirements.json`: every countable need of the brief, per room, which `./varpet check`
 then enforces (`./varpet requirements` prints it with the room's current counts). Put every number the brief
 gives (six for board games, a table for eight, two monitors, a bed per child) and every exclusion ("no rugs"):
-`{"rooms": {"<room id>": {"for": "who and what", "pieces": 14, "seats_at_table": 6, "seats": 5, "sleepers": 2, "desks": 1,
+`{"rooms": {"<room id>": {"for": "who and what", "type": "kids", "pieces": 14, "seats_at_table": 6, "seats": 5, "sleepers": 2, "desks": 1,
 "desk_chairs": 1, "items": [{"kind": "tv", "min": 1}, {"kind": "chair", "text": "armchair", "min": 1}],
 "exclude": ["rug"], "budget_dram": 900000}}}` (all keys optional; `seats` = sofa places and armchairs, not at a
-table or desk; `sleepers` = bed places, a bed 1.2 m or wider sleeps two; `pieces` = the piece count of a finished
+table or desk; `type` = living|bedroom|kids|dining|hall|bathroom|office, so a child's room is styled as one; `sleepers` = bed places, a bed 1.2 m or wider sleeps two; `pieces` = the piece count of a finished
 room from "How to work", e.g. living 14, bedroom 9, hall 4). Change it only when the customer does.
 
 
@@ -187,7 +187,8 @@ layer, not a bare minimum; say in the closing paragraph what the rest would buy.
 - Only real catalog products, with their exact sku, size, price and vendor. Never invent or resize.
 - Stay inside the rooms the request is about unless it clearly asks for more.
 - Do not edit `scene.json`, `cli.ts` or `lib/`. Do not use the network except through `./varpet`.
-- `./varpet check` must pass on the final `draft.json`.
+- `./varpet check --final` must pass on the final `draft.json` (it adds the styling layers every room needs:
+  rugs, cushions, art, plants, objects, curtains); run it before you finish.
 
 ## Log what is missing
 Keep `missing.md` as you work: one line per thing you wanted and could not do, tagged

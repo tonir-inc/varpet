@@ -1,5 +1,5 @@
 /** varpet designer CLI. Run from a workspace holding scene.json and draft.json:
- *   npx tsx cli.ts describe | check [--warnings] | render-plan [out.png] [--room id]
+ *   npx tsx cli.ts describe | check [--warnings] [--final] | render-plan [out.png] [--room id]
  *     | render-view [out.png] [--room id] [--camera overview|eye|eye2|top] [--time day|evening] [--width 768] [--height 512]   (no --room: whole flat, overview/top)
  *     | requirements [--room id] (the brief's counts per room, requirements.json) | review --part <room> (independent critic) | at-window <room> <window> <w> <d> <h> (curtain/blind placement JSON) | materials | swatches [out.png] | search --kind k [--text t] [--max-w n --max-d n --max-h n --max-price n --limit n]
  *     | sheet sku1 sku2 ... [out.png] | merge
@@ -127,13 +127,14 @@ async function main(): Promise<number> {
     case 'merge':
     case 'check': {
       if (cmd === 'merge') { say(`merged ${merge().join(', ')} into draft.json`); draft = loadDraft('draft.json'); }
-      const verbose = bool('warnings'), roomId = part ? flag('room') : undefined;
+      // --final (and merge): the finished design must be styled, so missing styling layers are hard; else advice.
+      const verbose = bool('warnings'), final = bool('final') || cmd === 'merge', roomId = part ? flag('room') : undefined;
       const { check, warnings } = await import('./lib/check.ts');
       // brief.txt beside scene.json (the request plus any answers) decides brief-driven rules; else check reads AGENTS.md.
       const briefPath = join(dirname(scenePath), 'brief.txt');
       const { loadRequirements } = await import('./lib/requirements.ts');
       const r = await check(scene, draft, { budget, brief: existsSync(briefPath) ? readFileSync(briefPath, 'utf8') : undefined,
-        requirements: loadRequirements(scenePath) });
+        requirements: loadRequirements(scenePath), ...(final ? { styling: 'hard' as const } : {}) });
       const ids = new Set(draft.items.map(item => item.id));
       const problems = roomId ? r.problems.filter(line => about(line, roomId, ids)) : r.problems;
       say(!problems.length ? 'OK' : `FAIL (${problems.length} hard)`);
@@ -291,7 +292,7 @@ async function main(): Promise<number> {
       console.log(await productSheet(argv, out)); return 0;
     }
     default:
-      console.log('usage: varpet describe | check [--warnings] | render-plan [out.png] [--room id] | render-view [out.png] [--room id] [--camera overview|eye|eye2|top] [--time day|evening] [--width n] [--height n] | requirements [--room id] | review --part id | place --part id --sku s (--wall w | --window w | --corner | --beside id [--side s] [--gap m] | --facing id | --centered-on id | --center | --at x,y [--rot r]) [--add] | place-group lounge|dining|bed|desk --part id --anchor sku [...] [--add] | prefetch [wishlist.json] | at-window room window w d h | materials | swatches [out.png] | search --kind k [--text t] [--max-w n] [--max-d n] [--max-h n] [--max-price n] [--limit n] | sheet sku... [out.png] | merge   (any command: --part <room> works on rooms/<room>.json)');
+      console.log('usage: varpet describe | check [--warnings] [--final] | render-plan [out.png] [--room id] | render-view [out.png] [--room id] [--camera overview|eye|eye2|top] [--time day|evening] [--width n] [--height n] | requirements [--room id] | review --part id | place --part id --sku s (--wall w | --window w | --corner | --beside id [--side s] [--gap m] | --facing id | --centered-on id | --center | --at x,y [--rot r]) [--add] | place-group lounge|dining|bed|desk --part id --anchor sku [...] [--add] | prefetch [wishlist.json] | at-window room window w d h | materials | swatches [out.png] | search --kind k [--text t] [--max-w n] [--max-d n] [--max-h n] [--max-price n] [--limit n] | sheet sku... [out.png] | merge   (any command: --part <room> works on rooms/<room>.json)');
       return cmd ? 2 : 0;
   }
 }
