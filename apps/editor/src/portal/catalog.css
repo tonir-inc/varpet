@@ -95,9 +95,10 @@
 .bundle-launch-note { color: #d1e2df; font-size: 15px; }
 .bundle-launch:not(.is-error) .bundle-launch-note::after { display: inline-block; width: 1.2em; text-align: left; content: '…'; animation: launch-dots 1.2s steps(4, end) infinite; clip-path: inset(0 100% 0 0); }
 .bundle-launch.is-error .bundle-launch-frame { opacity: .25; }
+.bundle-launch.is-error .bundle-launch-copy { top: 50%; bottom: auto; transform: translate(-50%, -50%); }
 .bundle-launch-actions { display: flex; justify-content: center; gap: var(--space-6); margin-top: 18px; }
 .bundle-launch-actions button, .bundle-launch-actions a { min-height: 42px; padding: 10px 16px; border: 1px solid #d7e59f; border-radius: 2px; background: #d7e59f; color: #14342b; font: 600 16px var(--condensed); cursor: pointer; }
-.bundle-launch-actions a { border-color: #e6f3f266; background: transparent; color: #f4fbfa; }
+.bundle-launch-actions a:not(.is-primary) { border-color: #e6f3f266; background: transparent; color: #f4fbfa; }
 .bundle-launch :focus-visible { outline: 2px solid #e5ee9d; outline-offset: 4px; }
 
 @keyframes catalog-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }

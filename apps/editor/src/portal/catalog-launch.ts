@@ -5,7 +5,7 @@
  */
 import { api } from './api';
 import { developerHref, catalogHref, type Bundle, type BundleSummary } from './bundles-contract';
-import { bundlesApi, restoreBundle } from './bundles';
+import { BundleError, bundlesApi, restoreBundle } from './bundles';
 import { BLUEPRINT_PAPER, setEditorSession } from './session';
 import { escapeHtml } from './portal-header';
 import './catalog.css';
@@ -80,13 +80,16 @@ export async function launchBundle(host: HTMLElement, id: string, options: Launc
     return true;
   } catch (cause) {
     const message = cause instanceof Error ? cause.message : 'Please try again.';
+    // A plan that is gone will not come back on retry; only offer it for failures that can pass.
+    const retryable = !(cause instanceof BundleError && cause.status === 404);
     sheet.getAnimations().forEach(animation => animation.finish());
     sheet.classList.add('is-error');
     sheet.setAttribute('role', 'alert');
     sheet.querySelector('.bundle-launch-copy')!.innerHTML = `<span class="bundle-launch-eyebrow">Could not open this plan</span><p class="bundle-launch-title">${escapeHtml(title.textContent ?? '')}</p><p class="bundle-launch-note">${escapeHtml(message)}</p>
-      <div class="bundle-launch-actions"><button type="button" class="bundle-launch-retry">Try again</button><a class="bundle-launch-back" href="${catalogHref}">Back to the catalog</a></div>`;
-    sheet.querySelector<HTMLButtonElement>('.bundle-launch-retry')!.onclick = () => { location.assign(`/?bundle=${encodeURIComponent(id)}`); };
-    sheet.querySelector<HTMLButtonElement>('.bundle-launch-retry')!.focus();
+      <div class="bundle-launch-actions">${retryable ? '<button type="button" class="bundle-launch-retry">Try again</button>' : ''}<a class="bundle-launch-back${retryable ? '' : ' is-primary'}" href="${catalogHref}">Back to the catalog</a></div>`;
+    const retry = sheet.querySelector<HTMLButtonElement>('.bundle-launch-retry');
+    if (retry) retry.onclick = () => { location.assign(`/?bundle=${encodeURIComponent(id)}`); };
+    (retry ?? sheet.querySelector<HTMLElement>('.bundle-launch-back')!).focus();
     // Before the hand-over the catalog is still underneath: going back just lifts the sheet.
     if (handedOver || !options.from) return new Promise<boolean>(() => {});
     return new Promise<boolean>(resolve => {

@@ -7,12 +7,13 @@ const fs=require('node:fs');
 const path=require('node:path');
 const assert=require('node:assert/strict');
 const base=process.env.PROBE_BASE||'http://127.0.0.1:5181',out=__dirname,realApi=process.env.PROBE_MOCK!=='1';
+const built=process.env.PROBE_BUILD==='1';
 const bid=id=>realApi?`sample-${id}`:id;
 const results={date:new Date().toISOString(),realApi,checks:[],pageErrors:[],consoleErrors:[],screenshots:[],measurements:{}};
 const apartments=path.join(__dirname,'../../apartments');
 let browser,context,page;
 async function check(name,fn){const t=Date.now();await fn();results.checks.push({name,ms:Date.now()-t});console.log('PASS '+name);}
-async function shot(name,full=false){await page.waitForTimeout(250);await page.screenshot({path:path.join(out,name),fullPage:full});results.screenshots.push(name);}
+async function shot(name,full=false){if(built)name='build-'+name;await page.waitForTimeout(250);await page.screenshot({path:path.join(out,name),fullPage:full});results.screenshots.push(name);}
 
 const developers=[
  {slug:'sunday-towers',name:'Sunday Towers',city:'Yerevan',tagline:'Arabkir residences',logoUrl:null},
@@ -79,9 +80,11 @@ async function inDesign(){await page.locator('.design-onboarding').waitFor({stat
  });
 
  // The M6 sample uses the editor's demo catalog; read it through the dev server like the app does.
- await fresh({url:'/?view=apartments'});
- demoCatalog=await page.evaluate(async()=>(await import('/src/core/demo.ts')).localCatalog);
- bundles=sampleSpecs.map(bundleOf);
+ if(!realApi){
+  await fresh({url:'/?view=apartments'});
+  demoCatalog=await page.evaluate(async()=>(await import('/src/core/demo.ts')).localCatalog);
+  bundles=sampleSpecs.map(bundleOf);
+ }
 
  await fresh();
  await check('Catalog tab is in the shared portal header and marked current',async()=>{
@@ -105,9 +108,11 @@ async function inDesign(){await page.locator('.design-onboarding').waitFor({stat
   assert.ok(frame.lit>200,'model frame has pixels');
   const ink=await canvasHash('.bundle-card .bundle-ink');
   assert.ok(ink.lit>50,'plan ink drawn');
-  const stats=await page.evaluate(async()=>(await import('/src/portal/preview.ts')).furnishedPreviewStats());
-  results.measurements.desktopPreviewStats=stats;
-  assert.ok(stats.contexts<=1&&stats.liveScenes<=6,JSON.stringify(stats));
+  if(!built){
+   const stats=await page.evaluate(async()=>(await import('/src/portal/preview.ts')).furnishedPreviewStats());
+   results.measurements.desktopPreviewStats=stats;
+   assert.ok(stats.contexts<=1&&stats.liveScenes<=6,JSON.stringify(stats));
+  }
   assert.equal(await page.evaluate(()=>document.querySelectorAll('canvas').length-document.querySelectorAll('canvas.furnished-preview-frame, canvas.bundle-ink').length),0,'no stray WebGL canvases in the page');
   const count=await page.locator('.bundle-card .portal-card-facts').first().textContent();
   assert.match(count,/bedroom/);
@@ -232,13 +237,13 @@ async function inDesign(){await page.locator('.design-onboarding').waitFor({stat
 
  await check('Zero page errors across the run',async()=>{assert.deepEqual(results.pageErrors,[]);});
  results.requests={bundles:requests.bundle.length,designer:requests.designer.length};
- fs.writeFileSync(path.join(out,'results.json'),JSON.stringify(results,null,2));
+ fs.writeFileSync(path.join(out,built?'results-build.json':'results.json'),JSON.stringify(results,null,2));
  console.log(`${results.checks.length} checks passed; ${results.pageErrors.length} page errors`);
  console.log(JSON.stringify(results.measurements));
  await browser.close();
 })().catch(async error=>{
  console.error('FAIL',error);
  try{if(page)await page.screenshot({path:path.join(out,'failure.png')});}catch{}
- fs.writeFileSync(path.join(out,'results.json'),JSON.stringify({...results,failure:String(error&&error.stack||error)},null,2));
+ fs.writeFileSync(path.join(out,built?'results-build.json':'results.json'),JSON.stringify({...results,failure:String(error&&error.stack||error)},null,2));
  await browser?.close();process.exit(1);
 });
