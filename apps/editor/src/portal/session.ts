@@ -17,7 +17,11 @@ export interface EditorSession {
   sharingSession?: SharingSession | null;
   sharingError?: string;
   presentation?: EditorPresentation;
+  /** Opened from a developer's studio: the editor offers Publish to profile (`developer-publish.ts`). */
+  developer?: DeveloperContext;
 }
+/** Session-only; never serialized into the project. */
+export interface DeveloperContext { slug: string; name: string }
 export let editorSession: EditorSession | null = null;
 export function setEditorSession(session: EditorSession) { editorSession = session; }
 

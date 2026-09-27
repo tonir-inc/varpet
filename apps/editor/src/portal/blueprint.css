@@ -127,6 +127,7 @@
 .blueprint-photo-list button svg { width: 10px; height: 10px; }
 .blueprint-build { min-height: 47px; padding-inline: 25px; }
 .blueprint-build-note { color: #92998b; font-size: 11px; margin-top: -7px; text-align: center; }
+.blueprint-welcome > #blueprint-upload-notice { max-width: min(640px, 100%); margin-top: 14px; line-height: 1.5; }
 .blueprint-error { max-width: 640px; margin-top: 20px; color: var(--danger); font-size: 13px; text-align: center; }
 .blueprint-bottom { display: flex; justify-content: center; align-items: center; gap: 21px; margin-top: 34px; color: #737f6e; font-size: 11px; animation: bp-rise 800ms var(--bp-ease) 1300ms both; }
 .blueprint-bottom > span { display: flex; align-items: center; gap: 7px; }
