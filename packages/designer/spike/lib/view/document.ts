@@ -439,8 +439,8 @@ function isolateRoom(doc: SceneDocument, catalog: CatalogAsset[], roomId: string
   const within = (x: number, z: number) => inside(polygon, [x, z]);
   // Traced rooms stop a few centimetres short of the wall face, so probe 12 cm beyond each face along the wall. A wall
   // facing the room is trimmed to the room's stretch (plus any opening it cuts through); a wall between the room and the
-  // overview camera is left out so the camera looks in, as the editor's cutaway does for exterior walls.
-  const trimmed = new Map<string, number>();
+  // overview camera becomes a 20 cm kerb so the camera looks in, as the editor's cutaway does for exterior walls.
+  const trimmed = new Map<string, number>(), stubs = new Set<string>();
   const walls = doc.walls.flatMap(wall => {
     const dx = wall.end[0] - wall.start[0], dz = wall.end[1] - wall.start[1], length = Math.hypot(dx, dz);
     if (length < 1e-6) return [];
@@ -455,14 +455,23 @@ function isolateRoom(doc: SceneDocument, catalog: CatalogAsset[], roomId: string
     }
     if (!plus && !minus) return [];
     const roomSide = plus >= minus ? 1 : -1, outward = [uz * roomSide, -ux * roomSide];
-    if (outward[0]! * OVERVIEW_AZIMUTH[0] + outward[1]! * OVERVIEW_AZIMUTH[1] > 0.26) return [];
+    const facing = outward[0]! * OVERVIEW_AZIMUTH[0] + outward[1]! * OVERVIEW_AZIMUTH[1] > 0.26;
     let from = Math.max(0, first - length / steps - wall.thickness), to = Math.min(length, last + length / steps + wall.thickness);
     for (const opening of wall.openings) if (opening.offset < to && opening.offset + opening.width > from) { from = Math.min(from, opening.offset); to = Math.max(to, opening.offset + opening.width); }
-    trimmed.set(wall.id, from);
     const at = (offset: number): [number, number] => [wall.start[0] + ux * offset, wall.start[1] + uz * offset];
+    if (facing) {
+      // A low kerb where the wall stood, broken at its openings, so a wardrobe against it reads as against a wall.
+      const cuts = wall.openings.filter(opening => opening.offset < to && opening.offset + opening.width > from).sort((a, b) => a.offset - b.offset);
+      const spans: [number, number][] = [];
+      let start = from;
+      for (const opening of cuts) { if (opening.offset - start > 0.1) spans.push([start, opening.offset]); start = Math.max(start, opening.offset + opening.width); }
+      if (to - start > 0.1) spans.push([start, to]);
+      return spans.map(([a, b], k) => { stubs.add(`${wall.id}::kerb-${k}`); return { ...wall, id: `${wall.id}::kerb-${k}`, start: at(a), end: at(b), height: 0.2, openings: [] }; });
+    }
+    trimmed.set(wall.id, from);
     return [{ ...wall, start: at(from), end: at(to), openings: wall.openings.filter(opening => opening.offset >= from - 1e-6 && opening.offset + opening.width <= to + 1e-6).map(opening => ({ ...opening, offset: opening.offset - from })) }];
   });
-  const wallIds = new Set(walls.map(wall => wall.id));
+  const wallIds = new Set(walls.map(wall => wall.id).filter(id => !stubs.has(id)));
   const rehost = <T extends { host?: { wallId: string; offset: number } }>(item: T): T => item.host ? { ...item, host: { ...item.host, offset: item.host.offset - (trimmed.get(item.host.wallId) ?? 0) } } : item;
   let objects = doc.objects.filter(object => (!object.host || wallIds.has(object.host.wallId)) && within(object.position[0], object.position[2])).map(rehost);
   for (let pass = 0; pass < 4; pass++) { const ids = new Set(objects.map(object => object.id)); objects = objects.filter(object => !object.restsOn || ids.has(object.restsOn)); }
