@@ -4,7 +4,7 @@
  *     | requirements [--room id] (the brief's counts per room, requirements.json) | review --part <room> (independent critic) | at-window <room> <window> <w> <d> <h> (curtain/blind placement JSON) | materials | swatches [out.png] | search --kind k [--text t] [--max-w n --max-d n --max-h n --max-price n --limit n]
  *     | sheet sku1 sku2 ... [out.png] | merge
  *     | script <file.ts> | js '<code>' | undo [n] | redo [n]   (lib/sdk.ts scene scripting: the Studio's functions are in scope; the draft saves when the script ends without error)
- *     | check --facts (hard gates for physics, editor validity and budget; every other rule is a note)
+ *     | check --facts (hard gates only: physics, editor validity, budget, catalog)
  * Optional --scene path / --draft path override the cwd files. `--part <room>` works on one room's file rooms/<room>.json
  * (seeded from that room's part of draft.json when missing; --room defaults to it; check keeps only that room's lines);
  * `merge` folds rooms/*.json into draft.json (then removes them) and checks the whole flat. Every command appends start/end lines to .varpet-log.jsonl beside scene.json
@@ -154,7 +154,6 @@ async function main(): Promise<number> {
         say(r.ok ? 'GATES OK' : `GATES FAIL (${r.gates.length})`);
         for (const g of r.gates) say(`- ${g}`);
         say(`furniture total ${r.total} AMD${budget ? ` of ${budget}` : ''}`);
-        if (r.notes.length) say(`notes (rules of thumb; follow, or keep your choice for a reason):\n${r.notes.map(n => `~ ${n}`).join('\n')}`);
         return r.ok ? 0 : 1;
       }
       const verbose = bool('warnings'), final = bool('final') || cmd === 'merge', roomId = part ? flag('room') : undefined;

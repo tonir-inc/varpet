@@ -33,7 +33,7 @@ an error (an error saves nothing). Metres; x right, y up (plan); `rot` degrees C
   `materials()`, `ceiling(room, 'quiet'|'soft-glow'|'architectural')`, `fixture(room, {mount: 'pendant'|'ceiling'|'wall', pos,
   height_m?})`; floor and table lamps are catalog items (`kind: 'lamp'`)
 - `await measure(room?)` -> facts: walkway widths, gaps, what each piece faces, what hangs over what, free floor
-- `await check()` -> `{ok, gates, notes}`; `./varpet check --facts` prints the same
+- `await check()` -> `{ok, gates, total}` (hard gates only); `./varpet check --facts` prints the same
 - `await look(view, {room?, time?})` -> PNG path. `look('plan', {room})` top-down plan; `look(room)` cutaway overview;
   `look('eye', {room})` / `'eye2'` standing in a corner; `look({from: [x, y, 1.5], at: [x, y, 0.9]}, {room})` any camera;
   `{time: 'evening'}` lights on. Open every PNG with your image tool{image_tool_note}. Looking is the point.
@@ -52,9 +52,9 @@ an error (an error saves nothing). Metres; x right, y up (plan); `rot` degrees C
   enough to read in daylight), textiles (rug anchoring each group, cushions and a throw, curtains on windows), art
   or a mirror at a sensible scale over the pieces it belongs to, plants, a few objects styled on surfaces, and
   light in layers (ceiling, task, accent). Kids' rooms playful; follow the brief's style over these defaults.
-- `check()` gates are physics and the editor's rules: collisions, walls, door swings, walkways under 0.6 m, bad
-  mounts or supports, budget, valid catalog items. They must pass at the end. Its notes are rules of thumb
-  (clearances, lamps, art height, styling): follow them unless your design has a reason not to, and say so.
+- `check()` reports only hard gates, physics and the editor's rules: collisions, walls, door swings, walkways under
+  0.6 m, bad mounts or supports, budget, valid catalog items. They must pass at the end. Everything else (comfort
+  clearances, lamps, art height, styling) is your judgement, from the facts and the pictures.
 - Optional reference: `./varpet place-group lounge|dining|bed|desk --room <id> --anchor <sku> ...` prints standard
   layouts that pass the check; use it only as a starting idea, not as the design.
 - Only real catalog products with their exact sku, size and price. Stay in the rooms in scope. Do not edit

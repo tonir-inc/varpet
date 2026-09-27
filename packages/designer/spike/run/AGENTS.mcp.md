@@ -22,7 +22,7 @@ Metres; x right, y up (plan); `rot` degrees CCW; an item's front faces its local
   updated or removed and the gates failing now. `undo {steps?}` / `redo` step back and forth.
 - Facts, not rules: `fits {sku, placement}` tries a piece without adding it (collisions, gaps under 0.6 m, door
   zones); `measure {a, b}` distance, edge gap, who faces whom; `measure {room}` walkway widths, gaps, what hangs
-  over what, free floor; `check` gates plus notes.
+  over what, free floor; `check` hard gates.
 - Look: `look {view: plan | overview | eye | eye2 | camera, room, from?, at?, time?}` returns the picture.
   A camera: `from [x, y, 1.5]` where a person stands (doorway, sofa, bed), `at [x, y, 0.9]`. `time: evening` = lights on.
 - Large changes: `run_script {code}`, TypeScript with every scene function in scope (room, find, add, move,
@@ -47,9 +47,9 @@ Metres; x right, y up (plan); `rot` degrees CCW; an item's front faces its local
   enough to read in daylight), textiles (a rug anchoring each group, cushions and a throw, curtains on windows), art
   or a mirror at a sensible scale over the pieces it belongs to, plants, a few objects styled on surfaces, and
   light in layers (ceiling, task, accent). Kids' rooms playful; follow the brief's style over these defaults.
-- `check` gates are physics and the editor's rules: collisions, walls, door swings, walkways under 0.6 m, bad
-  mounts or supports, budget, valid catalog items. They must pass at the end. Its notes are rules of thumb
-  (clearances, lamps, art height, styling): follow them unless your design has a reason not to, and say so.
+- `check` reports only hard gates, physics and the editor's rules: collisions, walls, door swings, walkways under
+  0.6 m, bad mounts or supports, budget, valid catalog items. They must pass at the end. Everything else (clearances
+  for comfort, lamps, art height, styling) is your judgement, from the facts and the pictures.
 - Only real catalog products with their exact sku, size and price. Stay in the rooms in scope. For several rooms,
   finish one before the next, largest first.
 - Budget: when the brief gives one, use most of it (85-95%) on better anchors and the finishing layer.

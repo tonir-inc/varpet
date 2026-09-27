@@ -6,7 +6,7 @@ import { pathToFileURL } from 'node:url';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { describe, expect, test } from 'vitest';
-import { Studio, runScript, scriptScope, type Product } from '../lib/sdk.js';
+import { Studio, leanGates, runScript, scriptScope, type Product } from '../lib/sdk.js';
 
 function workspace(): string {
   const dir = mkdtempSync(join(tmpdir(), 'varpet-sdk-'));
@@ -58,14 +58,26 @@ describe('scene scripting sdk', () => {
     expect(s.facing(b, a).faces).toBe(false);
   });
 
-  test('check --facts: overlaps are gates, rules of thumb are notes', async () => {
+  test('check --facts: overlaps are gates and nothing else is reported', async () => {
     const s = studio(), c = s.room('room-living').center;
     s.add(sofa, { pos: c, rot: 0 }); s.add(sofa, { pos: [c[0] + 0.5, c[1]], rot: 0 });
     const r = await s.check();
     expect(r.ok).toBe(false);
     expect(r.gates.some(g => g.startsWith('collision:'))).toBe(true);
-    expect(r.notes.every(n => !n.startsWith('collision:'))).toBe(true);
+    expect(r).not.toHaveProperty('notes');
+    expect(r.gates.every(g => !/lamp|cushion|styling|\.\/varpet/.test(g))).toBe(true);
   }, 60_000);
+
+  test('leanGates: one walkway line per door, no prescriptions', () => {
+    expect(leanGates([
+      'walkway: door:door-balcony to item:living-table: 0.35 m path; minimum 0.60 m (0.25 m)',
+      'walkway: door:door-balcony to item:living-lamp: 0.22 m path; minimum 0.60 m (0.38 m)',
+      'containment: living-plant extends outside room living (0.05 m); move it to (3.5, -10.4)',
+    ])).toEqual([
+      'containment: living-plant extends outside room living (0.05 m)',
+      'walkway: door:door-balcony has a 0.22 m path (needs 0.60 m), narrowed by living-table, living-lamp',
+    ]);
+  });
 
   test('finishes and lights replace per surface; save writes the draft; the script scope binds methods', () => {
     const s = studio();

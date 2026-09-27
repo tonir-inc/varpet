@@ -378,19 +378,18 @@ export class Studio {
   }
 
   // ---------- facts ----------
-  /** Hard gates (physics, editor validity, budget) and notes (rules of thumb you may overrule with a reason). */
-  async check(): Promise<{ ok: boolean; gates: string[]; notes: string[]; total: number }> {
+  /** Hard gates only: physics, the editor's validity rules, budget and catalog. Facts, never advice: taste is the designer's. */
+  async check(): Promise<{ ok: boolean; gates: string[]; total: number }> {
     const { check, checkDecor } = await import('./check.ts');
     const { loadRequirements } = await import('./requirements.ts');
     const { importSrc } = await import('./scene.ts');
     const { editorKindOf } = await importSrc<typeof import('../../src/editor-bridge.ts')>('editor-bridge.ts');
     const r = await check(this.scene, this.draft, { budget: this.budget, brief: this.brief ?? '', requirements: loadRequirements(join(this.dir, 'scene.json')), styling: 'advice' });
     const physical = new Set(checkDecor(this.scene, this.draft, kind => editorKindOf[kind] ?? kind));
-    const gates = r.problems.filter(line => GATE.test(line) || physical.has(line));
+    const gates = leanGates(r.problems.filter(line => GATE.test(line) || physical.has(line)));
     for (const item of this.draft.items) if (!item.sku || typeof item.price !== 'number') gates.push(`catalog: ${item.id} has no sku or price`);
-    const notes = [...r.problems.filter(line => !gates.includes(line)), ...r.advice];
     const total = this.draft.items.reduce((s, i) => s + (i.price ?? 0), 0);
-    return { ok: gates.length === 0, gates, notes, total };
+    return { ok: gates.length === 0, gates, total };
   }
   /** Measured facts about a room (or every furnished room): walkways, gaps, what faces what, wall pieces, free floor. */
   async measure(room?: string | RoomView): Promise<string[]> {
@@ -483,6 +482,24 @@ export class Studio {
     this.draft = loadDraft(path); this.dirty = false;
     return `${way === 'undo' ? 'undid' : 'redid'} ${done} step${done === 1 ? '' : 's'}; ${changes(before, this.draft)}`;
   }
+}
+
+/** Gate lines as facts: one walkway line per door (its tightest path and what narrows it), no prescriptions
+ * ("move it to (x, y)", "./varpet ..."): what to do about a gate is the designer's call. */
+export function leanGates(lines: string[]): string[] {
+  const doors = new Map<string, { path: number; need: number; items: string[] }>(), out: string[] = [];
+  for (const line of lines) {
+    const w = /^walkway: (door:\S+) to item:(\S+): ([\d.]+) m path; minimum ([\d.]+) m/.exec(line);
+    if (w) {
+      const d = doors.get(w[1]!) ?? { path: Infinity, need: Number(w[4]), items: [] };
+      d.path = Math.min(d.path, Number(w[3])); d.items.push(w[2]!); doors.set(w[1]!, d);
+      continue;
+    }
+    const fact = line.replace(/\s*(;|:|,|\.)\s*(move|add|put|shift|rotate|use|try|place|centre|center|remove|resize|pick|search|run)\b.*$/i, '').replace(/\s*\(?\.\/varpet[^)]*\)?/g, '');
+    if (!out.includes(fact)) out.push(fact);
+  }
+  for (const [door, d] of doors) out.push(`walkway: ${door} has a ${d.path.toFixed(2)} m path (needs ${d.need.toFixed(2)} m), narrowed by ${d.items.join(', ')}`);
+  return out;
 }
 
 function historySteps(dir: string): string[] {

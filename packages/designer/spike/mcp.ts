@@ -75,8 +75,8 @@ server.registerTool('measure', { description: 'Facts, not rules. With a and b: c
   tool(async (s, a: { room?: string; a?: string; b?: string }) => a.a && a.b
     ? text({ distance: s.distance(a.a, a.b), gap: s.gap(a.a, a.b), a_faces_b: s.facing(a.a, a.b), b_faces_a: s.facing(a.b, a.a) })
     : text((await s.measure(a.room)).join('\n'))));
-server.registerTool('check', { description: 'Gates (collisions, walls, door swings, walkways < 0.6 m, supports and mounts, budget, catalog validity) must pass at the end; notes are rules of thumb you may overrule with a reason.', inputSchema: {} },
-  tool(async s => { const r = await s.check(); return text(`${r.ok ? 'GATES OK' : `GATES FAIL (${r.gates.length})`}\n${r.gates.map(g => `- ${g}`).join('\n')}\ntotal ${r.total} AMD${s.budget ? ` of ${s.budget}` : ''}\nnotes:\n${r.notes.map(n => `~ ${n}`).join('\n')}`); }));
+server.registerTool('check', { description: 'Hard gates only (collisions, walls, door swings, walkways < 0.6 m, supports and mounts, budget, catalog validity); they must pass at the end. Everything else is your judgement.', inputSchema: {} },
+  tool(async s => { const r = await s.check(); return text(`${r.ok ? 'GATES OK' : `GATES FAIL (${r.gates.length})`}\n${r.gates.map(g => `- ${g}`).join('\n')}\ntotal ${r.total} AMD${s.budget ? ` of ${s.budget}` : ''}`); }));
 server.registerTool('look', { description: 'Render the current design and see it. view: plan (top-down), overview (cutaway), eye / eye2 (standing in a corner; needs room), camera (from + at, [x, y, height] m). time evening = lights on.', inputSchema: { view: z.enum(['plan', 'overview', 'eye', 'eye2', 'camera']), room: room.optional(), from: z.array(z.number()).min(2).max(3).optional(), at: z.array(z.number()).min(2).max(3).optional(), time: z.enum(['day', 'evening']).optional() } },
   tool(async (s, a: { view: string; room?: string; from?: number[]; at?: number[]; time?: 'day' | 'evening' }) => {
     const view = a.view === 'camera' ? { from: a.from as [number, number, number?], at: a.at as [number, number, number?] } : a.view === 'overview' ? (a.room ?? 'overview') : a.view;

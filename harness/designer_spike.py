@@ -301,6 +301,19 @@ class Progress:
                     if line.strip().endswith(".png"):
                         path = Path(line.strip())
                         self.renders[str(path if path.is_absolute() else self.workspace / path)] = caption
+        elif kind == "mcpToolCall":
+            # The scene MCP designer (VARPET_SPIKE_TOOLS=mcp): a line per step and the renders it looks at.
+            tool, args = item.get("tool"), item.get("arguments") or {}
+            if method == "item/started":
+                line = MCP_LINES.get(tool)
+                if line:
+                    self.progress(line)
+            elif tool == "look" and item.get("status") == "completed":
+                texts = [c.get("text", "") for c in ((item.get("result") or {}).get("content") or []) if isinstance(c, dict)]
+                path = next((t.strip() for t in texts if t.strip().endswith(".png")), None)
+                if path:
+                    view = "Plan" if args.get("view") == "plan" else "View"
+                    self.preview(Path(path), view + (", evening" if args.get("time") == "evening" else ""))
         elif kind == "imageView" and method == "item/completed":
             path = str(item.get("path") or "")
             if path in self.renders:
@@ -411,6 +424,12 @@ def _combined(workspace: Path) -> dict | None:
         for part in parts.values():
             out[key] = list(out[key]) + [entry for entry in part.get(key) or [] if isinstance(entry, dict)]
     return out
+
+
+MCP_LINES = {"get_room": "Reading the room", "search_catalog": "Searching the catalog", "product_sheet": "Comparing products",
+             "apply_patch": "Placing furniture", "run_script": "Arranging the room", "undo": "Trying another arrangement",
+             "fits": "Checking a piece fits", "measure": "Measuring clearances", "check": "Checking walkways and clearances",
+             "look": "Looking at the room"}
 
 
 class DraftWatcher:
@@ -601,7 +620,7 @@ class DraftWatcher:
             if (self.state.workspace / name).exists():
                 shutil.copyfile(self.state.workspace / name, work / name)
         (work / "draft.json").write_text(json.dumps(snapshot, ensure_ascii=False))
-        check = _run([self.state.workspace / "varpet", "check", "--scene", work / "scene.json", "--draft", work / "draft.json"],
+        check = _run([self.state.workspace / "varpet", *check_args(), "--scene", work / "scene.json", "--draft", work / "draft.json"],
                      cwd=self.state.workspace, timeout=180)
         if check.returncode != 0 or self.stopped.is_set():
             return
@@ -751,7 +770,7 @@ class EarlyReviews:
 
     def start(self, work: Path, rooms: list[str], signatures: dict[str, str | None]) -> None:
         critic = critic_module()
-        if critic is None or not rooms or os.environ.get("VARPET_SPIKE_CRITIC", "1") == "0":
+        if critic is None or not rooms or os.environ.get("VARPET_SPIKE_CRITIC", "1") == "0" or tools() == "mcp":
             return
         try:
             spike_module().link_tools(work)
@@ -789,7 +808,7 @@ def _review(state: SpikeConversation, brief: str, rooms: list[str], cancel: thre
     early reviews already saw as they are now are not reviewed again); on blocker or major issues resume the
     designer thread once to fix them. A fix that fails the check is rolled back."""
     critic = critic_module()
-    if critic is None or not rooms or os.environ.get("VARPET_SPIKE_CRITIC", "1") == "0":
+    if critic is None or not rooms or os.environ.get("VARPET_SPIKE_CRITIC", "1") == "0" or tools() == "mcp":
         return {"skipped": True}
     names = {room["id"]: room.get("name") or room["id"] for room in state.rooms}
     started = time.monotonic()
@@ -843,7 +862,7 @@ def _review(state: SpikeConversation, brief: str, rooms: list[str], cancel: thre
             raise
         (state.workspace / "draft.json").write_text(backup)
         return {**record, "fixed": False}
-    check = _run([state.workspace / "varpet", "check"], cwd=state.workspace)
+    check = _run([state.workspace / "varpet", *check_args()], cwd=state.workspace)
     if check.returncode != 0:
         (state.workspace / "draft.json").write_text(backup)
         return {**record, "fixed": False}
@@ -861,6 +880,11 @@ def tools(environ=os.environ) -> str:
     if value not in ("shell", "mcp"):
         raise ValueError("VARPET_SPIKE_TOOLS must be shell or mcp")
     return value
+
+
+def check_args() -> list[str]:
+    """The finished-design check: the scene MCP designer answers only to the hard gates (physics, editor, budget)."""
+    return ["check", "--facts"] if tools() == "mcp" else ["check"]
 
 
 def _workspace(conversation_root: Path) -> SpikeConversation:
@@ -1105,7 +1129,7 @@ def propose(conversation, conversation_id: str, body: dict, cancel: threading.Ev
         critic = critic_module()
         # Parallel room designers get the critic inside the loop (critic.Reviewer: each room designer asks for a review
         # with ./varpet review and fixes it while its context is warm); the end is then one whole-flat pass.
-        in_loop = parallel and critic is not None and hasattr(critic, "Reviewer") and os.environ.get("VARPET_SPIKE_CRITIC", "1") != "0"
+        in_loop = parallel and critic is not None and hasattr(critic, "Reviewer") and os.environ.get("VARPET_SPIKE_CRITIC", "1") != "0" and tools() != "mcp"
         early = (EarlyReviews(brief, progress, {room["id"]: room.get("name") or room["id"] for room in state.rooms})
                  if first_design and not in_loop else None)
         watcher = DraftWatcher(state, progress, body, turn, observer=observer,
@@ -1127,22 +1151,23 @@ def propose(conversation, conversation_id: str, body: dict, cancel: threading.Ev
             return {"type": "message", "conversationId": conversation_id,
                     "message": (reply or "I have no change to suggest for that.")[:4000]}
         progress("Checking walkways and clearances")
-        check = _run([state.workspace / "varpet", "check"], cwd=state.workspace)
+        check = _run([state.workspace / "varpet", *check_args()], cwd=state.workspace)
         if check.returncode != 0 and not cancel.is_set():
             # One repair turn: the designer finished with the flat check failing (a door clearance, a budget line).
             problems = [line[2:] for line in check.stdout.splitlines() if line.startswith("- ")][:8]
             progress("Fixing what the final check found")
             try:
-                fix = _run_turn(state, "./varpet check fails on the finished design:\n" + "\n".join(f"- {line}" for line in problems)
-                                + "\nFix every line (move, resize or remove the piece; a missing piece is better than a blocked door), "
-                                "run ./varpet check until it says OK, and end with the same kind of short customer paragraph as before.",
+                tool = "the check tool" if tools() == "mcp" else "./varpet check"
+                fix = _run_turn(state, f"{tool} fails on the finished design:\n" + "\n".join(f"- {line}" for line in problems)
+                                + f"\nFix every line (move, resize or remove the piece; a missing piece is better than a blocked door), "
+                                f"run {tool} until it says GATES OK, and end with the same kind of short customer paragraph as before.",
                                 cancel, Progress(state.rooms, progress, state.workspace), timeout)
                 if (fix.get("final") or "").strip():
                     reply = fix["final"].strip()
             except RuntimeError:
                 if cancel.is_set():
                     raise
-            check = _run([state.workspace / "varpet", "check"], cwd=state.workspace)
+            check = _run([state.workspace / "varpet", *check_args()], cwd=state.workspace)
         lap("check")
         failing = [line[2:] for line in check.stdout.splitlines() if line.startswith("- ")]
         # Window coverings the catalog cannot supply are an unmet need, not physics: the card says so instead.
@@ -1182,7 +1207,7 @@ def propose(conversation, conversation_id: str, body: dict, cancel: threading.Ev
                 break
             draft["items"] = [item for item in draft["items"] if item not in resting]
             (state.workspace / "draft.json").write_text(json.dumps(draft, ensure_ascii=False, indent=1) + "\n")
-            if _run([state.workspace / "varpet", "check"], cwd=state.workspace).returncode != 0:
+            if _run([state.workspace / "varpet", *check_args()], cwd=state.workspace).returncode != 0:
                 break
             support_notes.append(f"Left out {', '.join(str(item.get('name') or item.get('id'))[:60] for item in resting[:4])}: "
                                  f"the editor cannot rest {'them' if len(resting) > 1 else 'it'} on {refused.group(1)}.")

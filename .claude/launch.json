@@ -1,9 +1,93 @@
 {
   "version": "0.0.1",
   "configurations": [
-    { "name": "editor", "runtimeExecutable": "pnpm", "runtimeArgs": ["--filter", "@varpet/editor", "dev"], "port": 5173 },
-    { "name": "editor-architect", "runtimeExecutable": "env", "runtimeArgs": ["VITE_ARCHITECT_URL=http://127.0.0.1:8788", "pnpm", "--filter", "@varpet/editor", "exec", "vite", "--port", "5174", "--strictPort"], "port": 5174 },
-    { "name": "buyer-worktree", "runtimeExecutable": "pnpm", "runtimeArgs": ["--dir", "/Users/snek/dev/varpet-buyer/apps/buyer", "exec", "vite", "--host", "127.0.0.1", "--port", "5195", "--strictPort"], "port": 5195 },
-    { "name": "editor-blueprint", "runtimeExecutable": "pnpm", "runtimeArgs": ["--filter", "@varpet/editor", "exec", "vite", "--port", "5176", "--strictPort"], "port": 5176 }
+    {
+      "name": "editor",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "--filter",
+        "@varpet/editor",
+        "dev"
+      ],
+      "port": 5173
+    },
+    {
+      "name": "editor-architect",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "VITE_ARCHITECT_URL=http://127.0.0.1:8788",
+        "pnpm",
+        "--filter",
+        "@varpet/editor",
+        "exec",
+        "vite",
+        "--port",
+        "5174",
+        "--strictPort"
+      ],
+      "port": 5174
+    },
+    {
+      "name": "buyer-worktree",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "--dir",
+        "/Users/snek/dev/varpet-buyer/apps/buyer",
+        "exec",
+        "vite",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "5195",
+        "--strictPort"
+      ],
+      "port": 5195
+    },
+    {
+      "name": "editor-blueprint",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "--filter",
+        "@varpet/editor",
+        "exec",
+        "vite",
+        "--port",
+        "5176",
+        "--strictPort"
+      ],
+      "port": 5176
+    },
+    {
+      "name": "designer-mcp",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "VARPET_SPIKE_TOOLS=mcp",
+        "uv",
+        "--project",
+        "harness",
+        "run",
+        "python",
+        "harness/designer_service.py",
+        "--port",
+        "8789"
+      ],
+      "port": 8789
+    },
+    {
+      "name": "editor-designer-mcp",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "VITE_DESIGNER_URL=http://127.0.0.1:8789",
+        "pnpm",
+        "--filter",
+        "@varpet/editor",
+        "exec",
+        "vite",
+        "--port",
+        "5178",
+        "--strictPort"
+      ],
+      "port": 5178
+    }
   ]
 }
