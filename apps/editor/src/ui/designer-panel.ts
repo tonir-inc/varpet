@@ -762,6 +762,11 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
         if (message.proposal) {
           const status = document.createElement('p'); status.className = 'designer-proposal-status'; status.setAttribute('role', 'status');
           status.textContent = { pending: 'Ready for your review', applied: 'Applied', undone: 'Undone · no longer in your flat', dismissed: 'Dismissed', stale: 'Stale · the scene changed or was reopened. Ask for a fresh proposal.' }[message.status ?? 'stale']; item.append(status);
+          if (message.status === 'applied' && index === state.messages.map(entry => entry.status).lastIndexOf('applied')) {
+            // The editor's cinematic walk through the furnished flat (viewport.playTour), started only by this click.
+            const tour = button('Take the tour', () => { document.dispatchEvent(new CustomEvent('varpet:tour')); }, 'button primary designer-tour');
+            tour.disabled = state.busy; item.append(tour);
+          }
           if (message.status === 'pending') {
             const actions = document.createElement('div'); actions.className = 'designer-proposal-actions';
             const act = (action: ProposalAction) => () => controller.act(message.proposal!.id, action);

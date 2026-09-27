@@ -52,7 +52,13 @@ try {
     log('followup', { proposal, text: (await last.textContent()).slice(0, 400) });
     await screenshot('live-followup');
     if (!proposal) fail('live follow-up did not return a proposal');
-    else { await last.locator('.designer-apply').click(); await page.waitForTimeout(3000); await screenshot('live-followup-applied'); }
+    else {
+      await last.locator('.designer-apply').click(); await page.waitForTimeout(3000); await screenshot('live-followup-applied');
+      const undoAt = t(); await page.click('#undo'); await page.waitForTimeout(2000);
+      const cards = await page.locator('.designer-proposal-status').allTextContents();
+      log('undo', { seconds: Math.round((t() - undoAt) * 10) / 10, cards }); await screenshot('undo');
+      if (!cards.at(-1)?.startsWith('Undone') || !cards.at(-2)?.startsWith('Applied')) fail('after Undo the follow-up should read Undone and the recorded design Applied');
+    }
   }
 } catch (error) { fail(String(error).slice(0, 400)); await screenshot('error').catch(() => {}); }
 finally { log('done', { ok }); await browser.close(); }

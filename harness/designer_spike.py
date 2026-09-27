@@ -1035,6 +1035,14 @@ def propose(conversation, conversation_id: str, body: dict, cancel: threading.Ev
                     raise
             check = _run([state.workspace / "varpet", "check"], cwd=state.workspace)
         lap("check")
+        failing = [line[2:] for line in check.stdout.splitlines() if line.startswith("- ")]
+        # Window coverings the catalog cannot supply are an unmet need, not physics: the card says so instead.
+        unmet = [line for line in failing if line.startswith("windows:")]
+        if check.returncode != 0 and failing and len(unmet) == len(failing):
+            unmet_notes = ["Not met: " + line.removeprefix("windows: ") for line in unmet][:4]
+            check = subprocess.CompletedProcess(check.args, 0, check.stdout, check.stderr)
+        else:
+            unmet_notes = []
         if check.returncode != 0:
             problems = [line[2:] for line in check.stdout.splitlines() if line.startswith("- ")][:3]
             note = "\n\nThe design does not pass the physical check yet, so there is nothing to preview: " + "; ".join(problems)
@@ -1059,7 +1067,7 @@ def propose(conversation, conversation_id: str, body: dict, cancel: threading.Ev
         total = sum(int(item.get("price") or 0) for item in draft.get("items", []) if isinstance(item, dict))
         space = _tool("metrics", str(state.workspace))
         lap("preview")
-        notes = "\n".join(filter(None, [_notes(state.workspace), *review_notes]))[:1600] or None
+        notes = "\n".join(filter(None, [_notes(state.workspace), *unmet_notes, *review_notes]))[:1600] or None
         timings["partials"] = watcher.sent
         return {"type": "proposal", "conversationId": conversation_id, "proposal": saved["proposal"],
                 "metrics": {"cost_dram": total, "seconds": result["seconds"],
