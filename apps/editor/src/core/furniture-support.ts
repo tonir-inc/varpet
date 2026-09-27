@@ -72,7 +72,9 @@ export function placeFurniture(scene: SceneDocument, catalog: CatalogAsset[], ob
   const resolved = resolver?.(scene, catalog, next, on, ceiling);
   // The viewer's mesh resolver skips wall-hung pieces; a hung shelf's top is its box top.
   const onShelf = on && (asset => asset && wallShelf(asset))(catalog.find(a => a.id === scene.objects.find(o => o.id === on)?.assetId));
-  const hit = resolved === undefined || (resolved === null && onShelf) ? headlessSurface(scene, catalog, next, on, ceiling) : resolved;
+  // An explicit support the model raycast misses (a mesh offset from its catalog box) still holds the piece at the
+  // catalog height, as the headless preview placed it: Apply must not refuse what Preview showed.
+  const hit = resolved === undefined || (resolved === null && (onShelf || on)) ? headlessSurface(scene, catalog, next, on, ceiling) : resolved;
   if (hit) {
     const support = scene.objects.find(o => o.id === hit.id), supportAsset = catalog.find(a => a.id === support?.assetId);
     if (!support || !supportAsset || !supportContains(support, supportAsset, next) || !Number.isFinite(hit.y)) throw new Error('No supporting surface under the requested footprint centre.');

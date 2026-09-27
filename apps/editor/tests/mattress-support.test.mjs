@@ -25,3 +25,9 @@ test('a mattress lies on the bed frame deck, not at the implied mattress top', (
 test('other decor on a bed still sits at the implied mattress top', () => {
  assert.ok(Math.abs(placeFurniture(scene(),catalog,object('b','book',[3,0,3]),'bed').position[1]-.55)<1e-9);
 });
+test('an explicit support the model raycast misses falls back to its catalog box height', () => {
+ const miss=()=>null;
+ const placed=placeFurniture(scene(),catalog,object('b','book',[3,0,3.5]),'bed',miss);
+ assert.equal(placed.restsOn,'bed');assert.ok(Math.abs(placed.position[1]-.55)<1e-9);
+ assert.throws(()=>placeFurniture(scene(),catalog,object('b','book',[5.5,0,5.5]),'bed',miss),/No supporting surface on/);
+});
