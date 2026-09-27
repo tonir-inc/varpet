@@ -51,6 +51,12 @@ class Verdict(BaseModel):
         return max(0.0, min(1.0, value)) if isinstance(value, (int, float)) else value
 
 
+class VerdictOutput(Verdict):
+    """Strict model-facing schema; replies still use the lenient Verdict parser."""
+
+    model_config = ConfigDict(extra='forbid', strict=True)
+
+
 class InvalidVerdict(ValueError):
     """The model replied, but its reply cannot safely authorize a build."""
 
@@ -96,7 +102,7 @@ async def _run(image_path: Path) -> str:
             thread = await codex.thread_start(model=MODEL, cwd=folder, config=config,
                                               approval_mode=ApprovalMode.deny_all, sandbox=Sandbox.read_only)
             result = await thread.run([TextInput(PROMPT), LocalImageInput(path=str(image_path.resolve()))],
-                                      effort='low', output_schema=Verdict.model_json_schema())
+                                      effort='low', output_schema=VerdictOutput.model_json_schema())
             return result.final_response
         finally:
             await codex.close()

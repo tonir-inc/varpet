@@ -60,6 +60,13 @@ async def test_sdk_uses_one_low_effort_image_turn_without_tools(tmp_path, monkey
         async def run(self, items, **options):
             calls.append('turn')
             assert options['effort'] == 'low'
+            schema = options['output_schema']
+            assert schema['type'] == 'object'
+            assert schema['additionalProperties'] is False
+            assert schema['required'] == ['is_plan', 'kind', 'confidence', 'reason']
+            assert {name: field['type'] for name, field in schema['properties'].items()} == {
+                'is_plan': 'boolean', 'kind': 'string', 'confidence': 'number', 'reason': 'string',
+            }
             assert len(items) == 2
             assert isinstance(items[1], openai_codex.LocalImageInput)
             assert items[1].path == str((tmp_path / 'image.png').resolve())
