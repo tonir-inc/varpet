@@ -560,8 +560,35 @@ class DraftWatcher:
                 self.on_finished(work, fresh, {room: pieces.get(room) for room in fresh})
 
 
+def supports_first(items: list) -> list:
+    """Draft items with every support before what rests on it (a lamp `on` a table): the editor adds pieces in this
+    order and refuses one whose support is not there yet. Merged room files do not keep that order."""
+    by_id = {item.get("id"): item for item in items if isinstance(item, dict)}
+    ordered, placed = [], set()
+
+    def place(item, depth=0):
+        key = item.get("id")
+        if key in placed or depth > 20:
+            return
+        support = by_id.get(item.get("on"))
+        if support is not None and support is not item:
+            place(support, depth + 1)
+        placed.add(key)
+        ordered.append(item)
+    for item in items:
+        if isinstance(item, dict):
+            place(item)
+    return ordered
+
+
 def _translate(state: SpikeConversation, body: dict, workspace: Path, turn: Path, title: str, description: str) -> dict | None:
     """run/proposal.ts for a workspace (the live one or a snapshot), plus the room snap; None when it fails."""
+    draft = _read_draft(workspace / "draft.json")
+    if draft and isinstance(draft.get("items"), list):
+        ordered = supports_first(draft["items"])
+        if [item.get("id") for item in ordered] != [item.get("id") for item in draft["items"] if isinstance(item, dict)]:
+            draft["items"] = ordered
+            (workspace / "draft.json").write_text(json.dumps(draft, ensure_ascii=False, indent=1) + "\n")
     (turn / "current.json").write_text(json.dumps(body["scene"], ensure_ascii=False))
     (turn / "owned.json").write_text(json.dumps(state.owned))
     if not (turn / "catalog.json").exists():

@@ -271,8 +271,13 @@ class DesignerService:
                     conversation.customer_requests.extend(str(text) for text in body["design"].get("requests") or [])
                 conversation.customer_requests.append(body["request"])
                 recorder = designer_spike.Recorder.open(conversation_id, body)
-                reply = designer_spike.propose(conversation, conversation_id, body, cancel,
-                                               recorder.wrap(progress) if recorder else progress)
+                try:
+                    reply = designer_spike.propose(conversation, conversation_id, body, cancel,
+                                                   recorder.wrap(progress) if recorder else progress)
+                except Exception as error:
+                    if recorder:  # a failed run is recorded too, with its design, so it can be reproduced
+                        recorder.finish({"type": "error", "message": str(error)[:2000]}, conversation)
+                    raise
                 if recorder:
                     recorder.finish(reply, conversation)
                 outcome = reply["type"]

@@ -23,9 +23,9 @@ Open the tabs you need in advance (one per flat): replays load their own flat.
 
 | Flat | Recorded run (opens the flat and plays) | Recorded | Plays in |
 |---|---|---|---|
-| Sunday Towers penthouse, 188 m² | `http://localhost:5173/?editor&session=sunday-b12121&speed=10` (also the start screen's "Watch the designer furnish Sunday Towers") | 15:41 | about 1:40 |
-| Orion type 8, 121 m² | `http://localhost:5173/?editor&session=orion-t8&speed=10` | 14:23 | about 1:20 |
-| Orion type 7, 134 m² (with an inspiration picture) | `http://localhost:5173/?editor&session=orion-t7&speed=10` | see table | see table |
+| Sunday Towers penthouse, 188 m² | `http://localhost:5173/?editor&session=sunday-b12121&speed=10` (also the start screen's "Watch the designer furnish Sunday Towers") | 15:41 | 1:45 |
+| Orion type 8, 121 m² | `http://localhost:5173/?editor&session=orion-t8&speed=10` | 14:23 | 1:20 |
+| Orion type 7, 134 m² (with an inspiration picture) | `http://localhost:5173/?editor&session=orion-t7&speed=10` | ORION_T7_RECORDED | ORION_T7_PLAY |
 
 `speed` is 1-10; 10 keeps a whole flat under two minutes, 4 lets you talk over each room.
 
@@ -42,18 +42,23 @@ Open the tabs you need in advance (one per flat): replays load their own flat.
    - "Ready to look at: …" cards: press **Preview these rooms** to see finished rooms while the rest is designed;
    - "Reviewing …": an independent reviewer looks at each room's renders and the designer fixes what it finds.
 3. **The proposal card**: open floor before and after, the narrowest walkway per room, budget used
-   (6,949,800 of 16,000,000 ֏). Press **Apply**. The flat furnishes; walk through it (Inside view, evening light).
-4. **Live follow-up** (the service is live from here; the badge reads "Live · continuing the recorded design"). Type
+   (6,949,800 of 16,000,000 ֏). Press **Apply**. The flat furnishes.
+4. **Take the tour** (button on the applied card, or Tour in the dock): about a minute of cinematic walk through
+   the furnished flat. Any click or key stops it. It never starts by itself.
+5. **Live follow-up** (the service is live from here; the badge reads "Live · continuing the recorded design"). Type
    one of the measured short follow-ups below, and talk while it works (under two minutes). **Apply**, then
    **Undo** to show the customer stays in control: the card reads "Undone · no longer in your flat".
-5. Optional: move a piece by hand, then ask another follow-up: the designer keeps the customer's move.
+6. Optional: move a piece by hand, then ask another follow-up: the designer keeps the customer's move.
 
 ### Short live follow-ups (measured, after the recorded design)
 
 | Flat | Type this | Time to proposal |
 |---|---|---|
-| Sunday Towers | `Swap the living room sofa for a deep green velvet one.` | see table |
-| Orion type 8 | `Add a floor lamp next to the living room sofa.` | see table |
+| Sunday Towers | `Swap the living room sofa for a deep green velvet one.` | 1:31 and 2:00 (two runs) |
+| Orion type 8 | `Add a floor lamp next to the living room sofa.` | 2:10 |
+
+Name things the flat has: "the armchair in the reading room" on Orion type 8 got a (correct) question back,
+because that room has a desk chair, not an armchair.
 
 Avoid asking for things the catalog lacks (a teepee, dinosaur art): the designer says so honestly and changes
 nothing, which is right but slow on stage. Avoid whole-flat requests live: they take 10-15 minutes (that is what
@@ -95,6 +100,23 @@ records every streamed line of a real run (`VARPET_RECORD_DIR`) and writes
 question and its answer included), previews and room previews, and the final design for live follow-ups.
 Commit it if it is under about 3 MB.
 
-## Measured run-of-show (27 Sept)
+## Measured run-of-show (27 Sept, 06:20, demo Mac, one pass)
 
-See the table below; filled from the full run.
+`designer_service.py` + `vite` fresh, then `node tools/demo_replay_check.mjs <editor> sunday-b12121 <out> "Swap the
+living room sofa for a deep green velvet one."`, which clicks through exactly the show above:
+
+| Step | Time |
+|---|---|
+| Designer service up / warm (renderer + Codex ready) | 0.8 s / 1.5 s |
+| Editor up | 1.8 s |
+| `demo_doctor --quick --only designer` | PASS, 0.4 s |
+| Replay badge on screen | 2 s after opening the URL |
+| First "Ready to look at" room card (clock reads 3:37) | 28 s |
+| Replay ends on the real proposal (clock reads the recorded 15:41) | 1:45 |
+| Apply | 5 s |
+| Take the tour, to the end | 1:06 |
+| Live follow-up to proposal (sofa swap; 61 s design + 24 s review) | 1:31 |
+| Apply + Undo (cards read Applied / Undone) | 6 s |
+| **Whole show** | **4:40** |
+
+The same command reproduces the pass and saves a screenshot of each step into its output directory.

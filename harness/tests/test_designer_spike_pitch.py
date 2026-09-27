@@ -164,3 +164,8 @@ def test_the_designs_own_finish_materials_leave_with_its_finishes():
     assert [o["id"] for o in out["objects"]] == ["own"]
     assert [f["id"] for f in out["project"]["finishes"]] == ["mine"]
     assert [m["id"] for m in out["project"]["materials"]] == ["oak"]
+
+
+def test_supports_come_before_what_rests_on_them():
+    items = [{"id": "lamp", "on": "table"}, {"id": "book", "on": "lamp"}, {"id": "table"}, {"id": "rug"}]
+    assert [item["id"] for item in designer_spike.supports_first(items)] == ["table", "lamp", "book", "rug"]
