@@ -318,7 +318,7 @@ function currentQuote(scene: SceneDocument, list: CatalogAsset[]) {
 const groupText: Record<QuoteGroupId, { title: string; who: string; action?: string; blue?: boolean }> = {
   shop: { title: 'A Yerevan furniture shop', who: 'Example shop, no agreement yet', action: 'Message the shop' },
   workshop: { title: 'A workshop, made to measure', who: 'Example workshop, no agreement yet', action: 'Send the drawing', blue: true },
-  developer: { title: 'In the flat now, from the developer', who: 'Real products. Buy them, or tick the ones you already own.' },
+  developer: { title: 'In the flat now, from the developer', who: 'Catalog products (sample prices). Tick the ones you already own.' },
   yours: { title: 'Already yours', who: 'Costs nothing' },
 };
 function renderQuote(scene: SceneDocument, list: CatalogAsset[]) {
@@ -331,8 +331,8 @@ function renderQuote(scene: SceneDocument, list: CatalogAsset[]) {
     ${quote.groups.map(group => { const text = groupText[group.id]; return `<section class="grp"><div class="grp-h"><h3>${esc(text.title)}<span class="who">${esc(text.who)}</span></h3>${text.action ? `<button class="${text.blue ? 'blue' : ''}" data-contact="${group.id}">${esc(text.action)}</button>` : ''}</div>
       ${group.lines.map(line => `<div class="line"><span class="t">${esc(line.tag)}</span><span class="d">${esc(line.name)}${line.count > 1 ? ` × ${line.count}` : ''}<small class="num">${esc(line.size)}</small></span>
         <span class="v num">${line.unit === null ? '–' : money(line.unit * line.count, flat.currency)}${line.note ? `<small>${esc(line.note)}</small>` : ''}</span></div>`).join('')}</section>`; }).join('')}
-    <div class="qtotal"><span>To make this flat real</span><strong class="num">${money(quote.total, flat.currency)}</strong></div>
-    <p class="qfoot soft">${flat.currency ? 'Sample prices.' : 'Demo prices with no currency.'} ${quote.real} of ${quote.pieces} pieces are products you can buy or already own; the rest are made-to-measure estimates.</p>
+    <div class="qtotal"><span>Sample total</span><strong class="num">${money(quote.total, flat.currency)}</strong></div>
+    <p class="qfoot soft">${flat.currency ? 'Sample prices.' : 'Demo prices with no currency.'} ${quote.real} of ${quote.pieces} pieces are catalog products (sample prices); the rest are made-to-measure estimates.</p>
     <div class="qacts"><button class="primary" data-contact="advisor">Send to my advisor</button><button data-contact="share">Share with family</button></div>`;
 }
 

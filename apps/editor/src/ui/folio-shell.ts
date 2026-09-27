@@ -135,7 +135,7 @@ export function mountFolioShell(deps: FolioShellDeps) {
   const groupText: Record<QuoteGroupId, { title: string; who: string }> = {
     shop: { title: 'Yerevan shops', who: 'Example shops, no agreements yet' },
     workshop: { title: 'Made to measure', who: 'Example workshop; estimates the workshop confirms' },
-    developer: { title: 'In the flat now, from the developer', who: 'Real products. Buy them, or mark the ones you already own.' },
+    developer: { title: 'In the flat now, from the developer', who: 'Catalog products (sample prices). Mark the ones you already own.' },
     yours: { title: 'Already yours', who: 'Costs nothing' },
   };
 
@@ -147,8 +147,8 @@ export function mountFolioShell(deps: FolioShellDeps) {
       ${q.groups.map(group => `<section class="folio-group"><h3>${esc(groupText[group.id].title)}</h3><p>${esc(groupText[group.id].who)}</p>
         ${group.lines.map(line => `<div class="folio-line"><span>${esc(line.name)}${line.count > 1 ? ` × ${line.count}` : ''}<small class="folio-num">${esc(line.size)}</small></span>
           <span class="folio-num">${line.unit === null ? '–' : money(line.unit * line.count, deps.currency)}${line.note ? `<small>${esc(line.note)}</small>` : ''}</span></div>`).join('')}</section>`).join('')}
-      <div class="folio-total"><span>To make this flat real</span><strong class="folio-num">${money(q.total, deps.currency)}</strong></div>
-      <p class="folio-note">${deps.currency ? 'Sample prices.' : 'Demo prices with no currency.'} ${q.real} of ${q.pieces} pieces are products you can buy or already own.</p>`;
+      <div class="folio-total"><span>Sample total</span><strong class="folio-num">${money(q.total, deps.currency)}</strong></div>
+      <p class="folio-note">${deps.currency ? 'Sample prices.' : 'Demo prices with no currency.'} ${q.real} of ${q.pieces} pieces are catalog products (sample prices).</p>`;
   }
 
   function renderToolbar() {

@@ -792,7 +792,7 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
     }, 'designer-copy');
     return control;
   };
-  // "What you're buying": grouped by room or by shop, quantities of the same product together; a row selects the piece.
+  // "Proposed pieces (sample prices)": grouped by room or by shop, quantities of the same product together; a row selects the piece.
   const basketModes = new Map<string, 'room' | 'shop'>(), openBaskets = new Set<string>();
   const basketView = (basket: Basket, key: string) => {
     const mode = basketModes.get(key) ?? 'room';
@@ -800,7 +800,7 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
     const details = document.createElement('details'); details.className = 'designer-basket'; details.open = openBaskets.has(key);
     details.ontoggle = () => { if (details.open) openBaskets.add(key); else openBaskets.delete(key); };
     const summary = document.createElement('summary');
-    summary.textContent = `What you're buying · ${basket.pieces.length} piece${basket.pieces.length === 1 ? '' : 's'} · ${money(total)}`;
+    summary.textContent = `Proposed pieces (sample prices) · ${basket.pieces.length} piece${basket.pieces.length === 1 ? '' : 's'} · ${money(total)}`;
     details.append(summary);
     const switcher = document.createElement('div'); switcher.className = 'designer-basket-modes';
     for (const [value, label] of [['room', 'By room'], ['shop', 'By shop']] as const) {
@@ -833,14 +833,14 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
         name.textContent = `${row.length > 1 ? `${row.length} × ` : ''}${piece.name}`;
         const meta = document.createElement('small'); meta.textContent = mode === 'room' ? piece.shop : piece.room; name.append(meta);
         const price = document.createElement('span'); price.className = 'designer-basket-price';
-        price.textContent = piece.price === undefined ? 'price on request' : `${piece.estimate ? '≈ ' : ''}${money(piece.price * row.length)}`;
+        price.textContent = piece.price === undefined ? 'price on request' : `${piece.estimate ? '≈ ' : ''}${money(piece.price * row.length)} · sample price`;
         pick.append(name, price); entry.append(pick); list.append(entry);
       }
       section.append(list); details.append(section);
     }
     const foot = document.createElement('dl'); foot.className = 'designer-basket-total';
     const line = (label: string, value: string) => { const dt = document.createElement('dt'), dd = document.createElement('dd'); dt.textContent = label; dd.textContent = value; foot.append(dt, dd); };
-    line('Furniture total', money(total));
+    line('Sample furniture total', money(total));
     if (basket.budget) line('Budget', `${money(basket.budget)} · ${total <= basket.budget ? `${money(basket.budget - total)} left` : `${money(total - basket.budget)} over`}`);
     if (basket.unquoted) line('Not in the total', `finishes and lighting, price on request: ${basket.unquoted}`);
     details.append(foot);

@@ -40,7 +40,8 @@ import { BUILT_CATEGORY, loadBuiltProducts, resolveFurnitureProducts } from './a
 import { createReconstructionProposal, previewReconstructionProposal } from './core/reconstruction-proposal';
 import { createViewport, type FinishViewportCallbacks } from './render/viewport';
 import { SKYBOX_PRESETS, isSkyboxPreset, type SkyboxPreset } from './render/skybox';
-import { selectionTransformOperations, wallSelectionOperations } from './core/multi-selection';
+import { mayChangeWallStructure, structuralWallChanges } from './core/structural-wall-confirmation';
+import { previewSelectionOperations, selectionTransformOperations, wallSelectionOperations } from './core/multi-selection';
 import { createFloorPlan } from './render/floor-plan';
 import { createCatalogPreviews } from './render/catalog-previews';
 import { icon } from './ui/icons';
@@ -128,7 +129,7 @@ app.innerHTML = `
         <div id="catalog-status" role="status" aria-live="polite"></div>
         <button id="catalog-retry" class="button full" hidden>Retry furniture connections</button>
         <div id="catalog-scroll"><div id="asset-list" class="asset-list"></div></div>
-        <p class="muted catalog-note">Shop prices in AMD, labeled with their source. Pieces built from your photos are not priced.</p><p class="muted catalog-note">Models: <a href="https://amazon-berkeley-objects.s3.amazonaws.com/index.html" target="_blank" rel="noopener noreferrer">Amazon Berkeley Objects</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Models are centered, oriented and scaled to catalog fit dimensions.</p>
+        <p class="muted catalog-note">Sample prices in AMD, labeled with their source. Pieces built from your photos are not priced.</p><p class="muted catalog-note">Models: <a href="https://amazon-berkeley-objects.s3.amazonaws.com/index.html" target="_blank" rel="noopener noreferrer">Amazon Berkeley Objects</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Models are centered, oriented and scaled to catalog fit dimensions.</p>
       </section>
       </aside>
       <aside id="selection-properties" class="right-panel" aria-label="Selection properties" hidden><div class="inspector-heading"><span>Properties</span><button id="ask-designer" class="button quiet inspector-ask" title="Attach it to your next message to the designer">${icon('sparkles')} Ask the designer</button><button id="close-inspector" class="icon-button" aria-label="Close properties" title="Close properties">${icon('close')}</button></div><div id="inspector" class="inspector"></div></aside>
@@ -402,9 +403,37 @@ function focusView(id?: string) {
   else viewport.focus(id);
 }
 
-function run(operations: Operation[], label: string, revision = store.revision) {
+function run(operations: Operation[], label: string, revision = store.revision, onDeferredApply?: () => void) {
   if (previewMode) { notify('Exit preview to edit the apartment.'); return false; }
   const command: EditCommand = {id:uid(), label, source:'human', baseRevision:revision, operations};
+  // Preflight shell edits with the same checks and junction policy as the real
+  // store. Compare the result so connected walls count, but paint/type changes do not.
+  const shellEdit = operations.some(mayChangeWallStructure);
+  if (store.scene.project?.mode === 'renovate' && shellEdit && revision === store.revision) {
+    try {
+      const candidate = previewSelectionOperations(store.scene, operations, catalog, normalizeWallJunctions);
+      const walls = structuralWallChanges(store.scene, candidate, operations).filter(wall => wall.role === 'structural');
+      if (walls.length) {
+        showModal('Change a load-bearing wall?',
+          `<p class="modal-intro">${escape(label)} affects ${walls.length === 1 ? 'this wall' : 'these walls'}. Do you want to continue?</p><ul>${walls.map(wall => `<li><strong>${escape(wall.name)}</strong> — recorded as load-bearing</li>`).join('')}</ul><p class="modal-intro">This changes the renovation proposal. Have a structural professional review the work before changing the real building.</p><div class="file-actions"><button id="cancel-wall-change" type="button" class="button">Cancel</button><button id="confirm-wall-change" type="button" class="button primary">Apply proposed change</button></div>`);
+        $('#cancel-wall-change').onclick = () => modal.close();
+        modal.addEventListener('close', () => {
+          renderInspector();
+          renovationUI?.render();
+        }, { once: true });
+        $('#confirm-wall-change').onclick = () => {
+          modal.close();
+          // Retain the reviewed revision: a later edit must never reuse consent.
+          if (executeHumanCommand(command)) onDeferredApply?.();
+        };
+        $('#cancel-wall-change').focus();
+        return false;
+      }
+    } catch (error) {
+      notify(error instanceof Error ? error.message : 'This wall change could not be checked.', true);
+      return false;
+    }
+  }
   return executeHumanCommand(command);
 }
 
@@ -549,7 +578,8 @@ function exportProject(kind: 'project' | 'schedule' | 'report') {
 
 renovationUI = createRenovationUI($('#renovation-panel'), {
   getScene: () => store.scene, getCatalog: () => catalog,
-  execute: (label, operations) => run(operations, label), select: (id, additive) => select(id, additive || multiSelection),
+  isAwaitingConfirmation: () => modal.open && !!modal.querySelector('#confirm-wall-change'),
+  execute: (label, operations, onDeferredApply) => run(operations, label, store.revision, onDeferredApply), select: (id, additive) => select(id, additive || multiSelection),
   focus: id => focusView(id), notice: notify,
   testDoor: (id, angle) => viewport.setDoorAngle(id, angle), getDoorAngle: id => viewport.getDoorAngle(id),
   toggleSwitch: id => viewport.toggleSwitch(id), setSwitchLevel: (id, level) => viewport.setSwitchLevel(id, level), getSwitchLevel: id => viewport.getSwitchLevel(id), onSources: () => intake.sources(), onReconstruct: () => intake.reconstruction(), onArchitect: architectLive ? openArchitect : undefined, onExport: exportProject,
@@ -703,7 +733,7 @@ function renderInspector() {
   const inspectorOptions = {
     selectionOnly: true,
     getScene: () => store.scene, getCatalog: () => catalog,
-    execute: (operations: Operation[], label: string) => run(operations, label),
+    execute: (operations: Operation[], label: string, onDeferredApply?: () => void) => run(operations, label, store.revision, onDeferredApply),
     notice: notify, refresh: renderInspector, showFullHeight, select: (id: string) => select(id),
     advanced: () => { switchPanel('renovation'); renovationUI?.setSelection(selectedId, selectionIds()); },
     getDoorAngle: (id: string) => viewport.getDoorAngle(id),
@@ -1157,7 +1187,7 @@ function refreshPanels(){
   floorPlan.setScene(scene,catalog);floorPlan.setSelection(selectedId, selectionIds());
   refreshHeader(scene);
   $('#apartment-height').innerHTML = heightControlMarkup(scene);
-  bindHeightControl($('#apartment-height'), { getScene: () => store.scene, execute: (operations, label) => run(operations, label), notice: notify, showFullHeight });
+  bindHeightControl($('#apartment-height'), { getScene: () => store.scene, execute: (operations, label, onDeferredApply) => run(operations, label, store.revision, onDeferredApply), notice: notify, showFullHeight });
   renderWallControls();
   renderHierarchy();renderInspector();renderProposal();
   renovationUI?.render();
@@ -1169,7 +1199,7 @@ function refreshPanels(){
 function refreshHeader(scene: SceneDocument){
   $('#project-name').textContent=scene.name;
   const area=scene.rooms.reduce((sum,r)=>sum+Math.abs(r.polygon.reduce((a,p,i)=>{const q=r.polygon[(i+1)%r.polygon.length]!;return a+p[0]*q[1]-q[0]*p[1];},0))/2,0);
-  $('#scene-area').textContent=`${area.toFixed(0)} m²`;
+  $('#scene-area').textContent=`${area.toFixed(0)} m² · approximate — check with a tape measure`;
   $('#room-count').textContent=`${scene.rooms.length} rooms`;
   $('#revision').textContent=`Revision ${store.revision}`;
   $<HTMLButtonElement>('#undo').disabled=previewMode||!store.canUndo;$<HTMLButtonElement>('#redo').disabled=previewMode||!store.canRedo;
@@ -1293,6 +1323,41 @@ if (openDocument && /^\/demo-flats\/[\w-]+\.json$/.test(openDocument)) queueMicr
   } catch (error) { notify(error instanceof Error ? error.message : String(error), true); }
 });
 const sharingUI = mountSharing($<HTMLButtonElement>('#share'), {
+  async revokeLink() {
+    if (accountSaving) throw new Error('Wait for your apartment to finish saving, then try again.');
+    const session = shareSession, apartment = editorSession?.apartment;
+    if (!session && !apartment?.sharing) throw new Error('There is no active sharing link.');
+    accountSaving = true;
+    try {
+      if (session) {
+        await session.revoke();
+        // Drop the revoked capability even if account cleanup needs a retry.
+        if (shareSession === session) shareSession = null;
+        if (editorSession) editorSession.sharingSession = null;
+        else savedRevision = -1;
+        if (location.hash.startsWith('#share=')) history.replaceState(null, '', location.pathname + location.search);
+      }
+      if (apartment?.sharing && editorSession) {
+        // The account API's typed helper only accepts new references; this endpoint
+        // also accepts null to remove an association and tolerates an already revoked link.
+        const response = await fetch(`/api/apartments/${encodeURIComponent(apartment.id)}/sharing`, {
+          method: 'PUT', credentials: 'same-origin', cache: 'no-store',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ version: apartment.version, reference: null }),
+          signal: AbortSignal.timeout(30000),
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error ?? 'Could not clear sharing from My apartments. Try again.');
+        editorSession.apartment = result.apartment;
+        editorSession.sharingSession = null;
+      }
+      if (editorSession) editorSession.sharingError = undefined;
+      if (location.hash.startsWith('#share=')) history.replaceState(null, '', location.pathname + location.search);
+    } finally {
+      accountSaving = false;
+      refresh();
+    }
+  },
   async createLink(access) {
     if (accountSaving) throw new Error('Wait for your apartment to finish saving, then try again.');
     if (editorSession && (!editorSession.apartment || editorSession.apartment.scene.id !== store.scene.id)) {
@@ -1339,7 +1404,7 @@ const sharingUI = mountSharing($<HTMLButtonElement>('#share'), {
 function showModal(title:string,body:string){$('#modal-content').innerHTML=`<div class="modal-heading"><h2>${title}</h2><button id="close-modal" class="icon-button" aria-label="Close dialog">${icon('close')}</button></div>${body}`;$('#close-modal').onclick=()=>modal.close();modal.showModal();}
 modal.onclick=e=>{if(e.target===modal)modal.close();};
 $('#integrations').onclick=()=>{
-  showModal('Sources & connections',`<p class="modal-intro">Local reconstruction tools are ready. Furniture comes from the shared database. ${architectLive?'Architect reconstruction is connected.':'Architect reconstruction is a local demo.'} ${designerLive?'The designer is connected.':'Designer proposals are local demos.'}</p><div class="file-actions"><button id="local-sources" class="button">${icon('upload')} Attach photos and plans</button><button id="local-reconstruct" class="button primary">${icon('walls')} Build the apartment shell</button></div><div class="integration-row"><span>${icon('walls')}</span><div><h3>Architect <span class="mock-label">${architectLive?'Live':'Demo'}</span></h3><p>${architectLive?'Read a floor plan and up to four photos into an empty apartment shell. Review before replacing your current apartment.':'Exercise the proposal workflow with the original demo structure.'}</p><button id="mock-structure" class="button">${architectLive?'Choose plan and photos':'Preview demo structural import'}</button></div></div><div class="integration-row"><span>${icon('sparkles')}</span><div><h3>Designer <span class="mock-label">${designerLive?'Live':'Demo'}</span></h3><p>Propose validated edits against a scene revision. You approve each batch.</p><button id="mock-designer" class="button">${designerLive?'Ask the live designer':'Request demo design proposal'}</button></div></div><div class="integration-row"><span>${icon('box')}</span><div><h3>Furniture database</h3><p>Real ABO 3D models, catalog dimensions and AMD prices with provenance. Requires a connection to the team catalog service.</p><button id="database-catalog" class="button">Browse database</button></div></div><p class="modal-footnote">Database browsing uses the configured catalog service. A proposal becomes stale if the scene changes before approval.</p>`);
+  showModal('Sources & connections',`<p class="modal-intro">Local reconstruction tools are ready. Furniture comes from the shared database. ${architectLive?'Architect reconstruction is connected.':'Architect reconstruction is a local demo.'} ${designerLive?'The designer is connected.':'Designer proposals are local demos.'}</p><div class="file-actions"><button id="local-sources" class="button">${icon('upload')} Attach photos and plans</button><button id="local-reconstruct" class="button primary">${icon('walls')} Build the apartment shell</button></div><div class="integration-row"><span>${icon('walls')}</span><div><h3>Architect <span class="mock-label">${architectLive?'Live':'Demo'}</span></h3><p>${architectLive?'Read a floor plan and up to four photos into an empty apartment shell. Review before replacing your current apartment.':'Exercise the proposal workflow with the original demo structure.'}</p><button id="mock-structure" class="button">${architectLive?'Choose plan and photos':'Preview demo structural import'}</button></div></div><div class="integration-row"><span>${icon('sparkles')}</span><div><h3>Designer <span class="mock-label">${designerLive?'Live':'Demo'}</span></h3><p>Propose validated edits against a scene revision. You approve each batch.</p><button id="mock-designer" class="button">${designerLive?'Ask the live designer':'Request demo design proposal'}</button></div></div><div class="integration-row"><span>${icon('box')}</span><div><h3>Furniture database</h3><p>Real ABO 3D models, catalog dimensions and sample prices in AMD. Requires a connection to the team catalog service.</p><button id="database-catalog" class="button">Browse database</button></div></div><p class="modal-footnote">Database browsing uses the configured catalog service. A proposal becomes stale if the scene changes before approval.</p>`);
   $('#local-sources').onclick=()=>{modal.close();intake.sources();};$('#local-reconstruct').onclick=()=>{modal.close();intake.reconstruction();};
   $('#mock-structure').onclick=()=>{modal.close();void requestProposal('architect');};$('#mock-designer').onclick=()=>{modal.close();void requestProposal('designer');};
   $('#database-catalog').onclick=()=>{modal.close();switchPanel('assets');void searchDatabase();};

@@ -1,8 +1,8 @@
 # Window selection and wall-change confirmation
 
-Update, 2026-09-27: the structural-role confirmation dialog is temporarily removed at the user's request. Human wall and opening edits now apply directly through the checked store with undo/redo. Structural classifications and review requirements remain project data. The confirmation behavior and checks below describe the original implementation.
+Update, 2026-09-27: Renovate mode asks “Change a load-bearing wall?” before geometry or demolition changes affecting walls recorded as structural, including connected walls. Cancel has default focus. Correction/survey mode and unknown-role walls do not prompt. Confirmation retains the reviewed revision and applies through the checked, undoable store; it does not approve work on the real building. The UI-path regression test is `node --test apps/editor/tests/structural-wall-ui.test.mjs`.
 
-Verification of the removal, Codex (GPT-6): in a separate unsaved Avani sandbox on the production preview, changed Window 1.1's offset from 4.5 m to 4.6 m with **Apply to this window**. It applied immediately without a dialog. One Undo restored 4.5 m and disabled Undo; Redo restored 4.6 m. The editor remained unobstructed in the inspected screenshot. The independent reviewer returned **APPROVE**.
+Historical verification of the previous removal (superseded by the restoration above), Codex (GPT-6): in a separate unsaved Avani sandbox on the production preview, changed Window 1.1's offset from 4.5 m to 4.6 m with **Apply to this window**. It applied immediately without a dialog. One Undo restored 4.5 m and disabled Undo; Redo restored 4.6 m. The editor remained unobstructed in the inspected screenshot. The independent reviewer returned **APPROVE**.
 
 ```text
 VITEST_MAX_WORKERS=2 pnpm test
@@ -21,17 +21,17 @@ git diff --check
 exit 0
 ```
 
-Definition-of-done audit: **DONE: 6 of 7**. (1) ✓ Browser actions and proving outputs above. (2) ✓ Untargeted root tests and typecheck passed. (3) ✗ No new tests for this temporary UI removal; existing tests and a direct browser check were used. (4) ✓ No test, fixture, schema, or protected contract changed. (5) ✓ Independent review: APPROVE. (6) ✓ The request is interpreted as removing both unknown-role and structural-role variants of the same dialog; domain checks and agent proposal review are unchanged. (7) ✓ This task edited only the command/adapter regions in `main.ts`, three related documents, and its board notice; unrelated shared-checkout edits were preserved under the editor coordination rule. Not proven: automated coverage of modal absence; a pointer-drag rerun (the numeric opening edit used the same command entry point).
+Historical removal audit (not the current verification): **DONE: 6 of 7**. (1) ✓ Browser actions and proving outputs above. (2) ✓ Untargeted root tests and typecheck passed. (3) ✗ No new tests for this temporary UI removal; existing tests and a direct browser check were used. (4) ✓ No test, fixture, schema, or protected contract changed. (5) ✓ Independent review: APPROVE. (6) ✓ The request is interpreted as removing both unknown-role and structural-role variants of the same dialog; domain checks and agent proposal review are unchanged. (7) ✓ This task edited only the command/adapter regions in `main.ts`, three related documents, and its board notice; unrelated shared-checkout edits were preserved under the editor coordination rule. Not proven: automated coverage of modal absence; a pointer-drag rerun (the numeric opening edit used the same command entry point).
 
 ## Original implementation
 
 Verified 2026-09-26 with Codex (GPT-6), against the M6 template in the local editor.
 
-Success criteria: reach window-type controls from a selected room even when cutaway hides the window; change its mechanism with undo/redo; require confirmation before changing a structural or unclassified wall; cancellation must leave history unchanged.
+Success criteria: reach window-type controls from a selected room even when cutaway hides the window; change its mechanism with undo/redo; require confirmation in Renovate mode before changing a structural wall; cancellation must leave history unchanged.
 
 Cutaway hides some exterior openings until selected. Room and wall Properties now list their doors and windows above height and finish controls. Room membership uses the existing wall-face spans and vertical overlap rather than listing all apartment openings. The existing checked type-change operation remains authoritative.
 
-The wall confirmation compares the original scene with a disposable EditorStore candidate using the same topology normalizer. This includes indirectly moved connected walls. Structural roles come from metadata: the M6 template has unknown wall roles, so its warning says unconfirmed rather than claiming load-bearing status. Window mechanism and paint changes do not change the wall hole and need no geometry warning. Imports and saved-option navigation retain their existing flows.
+The wall confirmation compares the original scene with a disposable EditorStore candidate using the same topology normalizer. This includes indirectly moved connected walls. Structural roles come from metadata: unknown roles do not prompt; correction mode bypasses the dialog. Window mechanism and paint changes do not change the wall hole and need no geometry warning. Imports and saved-option navigation retain their existing flows.
 
 The pending command retains its revision and runs through the store again on confirmation. No metadata is promoted to professionally reviewed. Deferred-success callbacks preserve the existing full-height display, selection of newly added openings, and deletion cleanup. A pending confirmation is not reported as an edit conflict. Fresh-context review approved these behaviors after the callback fixes.
 
