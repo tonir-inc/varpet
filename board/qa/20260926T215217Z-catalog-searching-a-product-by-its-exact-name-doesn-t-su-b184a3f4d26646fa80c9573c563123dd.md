@@ -2,10 +2,11 @@
 id: "20260926T215217Z-catalog-searching-a-product-by-its-exact-name-doesn-t-su-b184a3f4d26646fa80c9573c563123dd"
 lane: "catalog"
 severity: "minor"
-status: "open"
+status: "fixed"
 title: "Searching a product by its exact name doesn't surface it (ranks 14th, or not in the top 20)"
 reported_by: "bughunt-e2e"
 created: "2026-09-26T21:52:17.588304Z"
+fixed_in: "9b8a09f"
 ---
 
 **Steps**
@@ -25,3 +26,5 @@ Full-name query: item is at index 13 of 20 (first 6 cards shown in the editor ar
 
 
 **Notes**
+
+- 2026-09-27T05:29:26.235080Z: Exact/phrase name tiers; verified on VM data (1st for both queries); deployed.
