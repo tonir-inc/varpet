@@ -80,6 +80,7 @@ export class SharingSession {
   updatedAt: string;
   savedRevision: number;
   saving = false;
+  private revoked = false;
   private readonly sceneId: string;
   private readonly viewToken: string;
   constructor(readonly reference: ShareReference, project: SharedProject, localRevision = 0, private fetcher: typeof fetch = fetch,
@@ -99,12 +100,24 @@ export class SharingSession {
   }
   /** Account copies can retain the same scene ID while belonging to separate saved apartments. */
   matchesProject(sceneId: string, ownerId?: string): boolean {
-    return sceneId === this.sceneId && ownerId === this.ownerId;
+    return !this.revoked && sceneId === this.sceneId && ownerId === this.ownerId;
   }
   link(access: ShareAccess, base: string): string {
+    if (this.revoked) throw new Error('This sharing link has been revoked.');
     return shareLink({ id: this.reference.id, token: access === 'edit' ? this.reference.token : this.viewToken }, base);
   }
+  async revoke(): Promise<void> {
+    if (this.saving) throw new Error('A save is already in progress.');
+    this.saving = true;
+    try {
+      await request(`/api/shares/${this.reference.id}`, { method: 'DELETE', headers: {
+        Authorization: `Bearer ${this.reference.token}`,
+      } }, this.fetcher);
+      this.revoked = true;
+    } finally { this.saving = false; }
+  }
   async save(snapshot: ShareSnapshot, localRevision: number, ownerId?: string): Promise<void> {
+    if (this.revoked) throw new Error('This sharing link has been revoked.');
     if (this.saving) throw new Error('A save is already in progress.');
     if (!this.matchesProject(snapshot.scene.id, ownerId)) throw new Error('This is a different project. Open a new editor tab to share it separately.');
     const captured = createShareSnapshot(snapshot.scene, snapshot.catalog), expected = this.version;

@@ -57,7 +57,9 @@ if (!query.has('frame')) {
       sharing?.destroy();
       const requests = [];
       const notice = [];
+      let revoked = false;
       controller = mountSharing(trigger, {
+        async revokeLink() { revoked = true; },
         createLink: access => new Promise((resolve, reject) => requests.push({ access, resolve, reject })),
         notice: message => notice.push(message),
         warning: () => 'Some attachments are unavailable. <b>Warning stays plain text.</b>',
@@ -113,6 +115,9 @@ if (!query.has('frame')) {
       check(dialog.querySelector('[role="alert"]').hidden && link.value === '', 'failure from a closed dialog is ignored');
       action.click(); requests[5].resolve('https://example.test/shared/view'); await tick();
       check(link.value.endsWith('/view'), 'the reopened dialog can create a fresh view link');
+      dialog.querySelector('[data-share-revoke]').click(); await tick();
+      check(revoked && link.value === '', 'revoke calls the owner callback and clears the link');
+      check(dialog.querySelector('[data-share-status]').textContent.includes('revoked'), 'revocation reports success');
       close.click(); await tick();
       check(document.activeElement === trigger, 'closing returns focus to the share trigger');
       check(trigger.getAttribute('aria-expanded') === 'false', 'closing marks the trigger collapsed');

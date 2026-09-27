@@ -4,6 +4,7 @@ export type ShareAccess = 'view' | 'edit';
 
 export interface SharingOptions {
   createLink(access: ShareAccess): Promise<string>;
+  revokeLink?(): Promise<void>;
   notice?(message: string): void;
   warning?(): string;
   saveDescription?: string;
@@ -57,6 +58,7 @@ export function mountSharing(button: HTMLButtonElement, options: SharingOptions)
     <p class="sharing-error" role="alert" data-share-error hidden></p>
     <footer class="sharing-footer">
       <p class="sharing-status" id="${id}-status" data-share-status role="status" aria-live="polite" aria-atomic="true"></p>
+      <button class="button quiet" type="button" data-share-revoke hidden>Stop sharing / revoke link</button>
       <button class="button primary sharing-action" type="button" data-share-action>Create link</button>
     </footer>
   `;
@@ -64,6 +66,8 @@ export function mountSharing(button: HTMLButtonElement, options: SharingOptions)
   const view = dialog.querySelector<HTMLInputElement>('input[value="view"]')!;
   const edit = dialog.querySelector<HTMLInputElement>('input[value="edit"]')!;
   const action = dialog.querySelector<HTMLButtonElement>('[data-share-action]')!;
+  const revoke = dialog.querySelector<HTMLButtonElement>('[data-share-revoke]')!;
+  revoke.hidden = !options.revokeLink;
   const close = dialog.querySelector<HTMLButtonElement>('[data-share-close]')!;
   const link = dialog.querySelector<HTMLInputElement>('[data-share-link]')!;
   const result = dialog.querySelector<HTMLElement>('[data-share-result]')!;
@@ -86,6 +90,7 @@ export function mountSharing(button: HTMLButtonElement, options: SharingOptions)
   function setBusy(value: boolean): void {
     busy = value;
     action.disabled = value;
+    revoke.disabled = value;
     action.setAttribute('aria-busy', String(value));
     action.textContent = value ? (link.value ? 'Copying…' : 'Creating…') : (link.value ? 'Copy link' : 'Create link');
   }
@@ -172,9 +177,31 @@ export function mountSharing(button: HTMLButtonElement, options: SharingOptions)
     }
   }
 
+  async function revokeLink(): Promise<void> {
+    if (busy || destroyed || !dialog.open || !options.revokeLink) return;
+    const request = ++generation;
+    setBusy(true);
+    error.hidden = true;
+    status.textContent = 'Revoking link…';
+    try {
+      await options.revokeLink();
+      if (!isCurrent(request)) return;
+      clearLink();
+      status.textContent = 'Sharing stopped. View and edit links are revoked. Copies already downloaded are unaffected.';
+      options.notice?.('Sharing stopped. The links no longer work.');
+    } catch (cause) {
+      if (!isCurrent(request)) return;
+      setBusy(false);
+      status.textContent = '';
+      error.textContent = `Couldn’t revoke the link. ${cause instanceof Error ? cause.message : 'Try again.'}`;
+      error.hidden = false;
+    }
+  }
+
   const eventOptions = { signal: listeners.signal };
   button.addEventListener('click', openDialog, eventOptions);
   close.addEventListener('click', closeDialog, eventOptions);
+  revoke.addEventListener('click', () => void revokeLink(), eventOptions);
   action.addEventListener('click', () => void createOrCopy(), eventOptions);
   for (const radio of [view, edit]) {
     radio.addEventListener('change', () => {

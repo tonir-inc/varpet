@@ -1,9 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
-import { mkdtemp, rm, readFile } from 'node:fs/promises';
+import { mkdtemp, rm, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { createHash } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
 
 const implementation = await import('./accounts.mjs').catch(error => {
@@ -364,4 +365,24 @@ test('a failed sharing association rolls back its apartment version change', asy
   assert.equal(retried.status, 200);
   assert.equal(retried.body.apartment.version, 2);
   assert.deepEqual(retried.body.apartment.sharing, { ...shareReference, sceneId: scene.id });
+});
+
+
+test('Stop sharing removes the stored share before unlinking the apartment', async t => {
+  const directory = await mkdtemp(join(tmpdir(), 'varpet-revoke-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const api = await serve(t, { sharesDirectory: directory });
+  const { cookie } = await api.register();
+  const created = await api.request('/api/apartments', { method: 'POST', cookie, body: draft() });
+  const path = `/api/apartments/${created.body.apartment.id}/sharing`;
+  await api.request(path, { method: 'PUT', cookie, body: { version: 1, reference: shareReference } });
+  const file = join(directory, `${shareReference.id}.json`);
+  await writeFile(file, JSON.stringify({ id: shareReference.id,
+    editTokenHash: createHash('sha256').update(shareReference.token).digest('hex') }));
+  assert.equal((await api.request(path, { method: 'PUT', cookie, body: { version: 1, reference: null } })).status, 409);
+  await readFile(file);
+  const stopped = await api.request(path, { method: 'PUT', cookie, body: { version: 2, reference: null } });
+  assert.equal(stopped.status, 200);
+  assert.equal(stopped.body.apartment.sharing, null);
+  await assert.rejects(readFile(file), { code: 'ENOENT' });
 });

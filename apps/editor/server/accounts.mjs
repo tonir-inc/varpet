@@ -1,9 +1,37 @@
 import { randomBytes, randomUUID, createHash, scrypt, timingSafeEqual } from 'node:crypto';
-import { mkdirSync, chmodSync } from 'node:fs';
+import { mkdirSync, chmodSync, readFileSync, unlinkSync, realpathSync } from 'node:fs';
+import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { DatabaseSync } from 'node:sqlite';
+
+// Shared by account revocation and capability writes so an in-flight save cannot resurrect a link.
+const shareWrites = new Map();
+export async function withShareWrite(directory, id, action) {
+  let canonical;
+  try { canonical = realpathSync(directory); } catch { canonical = resolve(directory); }
+  const key = join(canonical, id);
+  const previous = shareWrites.get(key) ?? Promise.resolve();
+  let release;
+  const current = new Promise(resolveLock => { release = resolveLock; });
+  shareWrites.set(key, current);
+  await previous;
+  try { return await action(); }
+  finally { release(); if (shareWrites.get(key) === current) shareWrites.delete(key); }
+}
+
+function revokeStoredShare(directory, id, token) {
+  const path = join(directory, `${id}.json`);
+  let record;
+  try { record = JSON.parse(readFileSync(path, 'utf8')); }
+  catch (error) { if (error.code === 'ENOENT') return; throw error; }
+  if (record.id !== id || !/^[a-f0-9]{64}$/.test(record.editTokenHash ?? '')
+    || !timingSafeEqual(createHash('sha256').update(token).digest(), Buffer.from(record.editTokenHash, 'hex'))) {
+    throw new HttpError(404, 'not_found', 'This sharing link is unavailable.');
+  }
+  unlinkSync(path);
+}
 
 const deriveKey = promisify(scrypt);
 const COOKIE_NAME = 'varpet_session';
@@ -134,6 +162,7 @@ function cookieToken(request) {
 /** Same-origin HTTP API, backed by durable SQLite. Requires Node >=22.13. */
 export function createAccountsHandler(options = {}) {
   const dataDir = resolve(options.dataDir ?? process.env.VARPET_DATA_DIR ?? fileURLToPath(new URL('../.varpet', import.meta.url)));
+  const sharesDirectory = resolve(options.sharesDirectory ?? process.env.VARPET_SHARES_DIR ?? join(homedir(), '.varpet', 'shares'));
   const maxBodyBytes = options.maxBodyBytes ?? MAX_PROJECT_BYTES;
   const sessionDays = options.sessionDays ?? 30;
   const limit = { max: 20, windowMs: 15 * 60_000, ...options.rateLimit };
@@ -308,34 +337,40 @@ export function createAccountsHandler(options = {}) {
       const input = sharingMatch ? sharingInput(body) : apartmentInput(body);
       let saved;
       // The version guard and capability association must commit together, including across server processes.
-      db.exec('BEGIN IMMEDIATE');
-      try {
-        const result = sharingMatch
-          ? db.prepare(`UPDATE apartments SET updated_at = ?, version = version + 1
-            WHERE id = ? AND user_id = ? AND version = ?`).run(new Date().toISOString(), id, user.id, body.version)
-          : db.prepare(`UPDATE apartments SET name = ?, template_id = ?, updated_at = ?, version = version + 1, scene = ?, catalog = ?
-            WHERE id = ? AND user_id = ? AND version = ?`)
-            .run(input.name, input.templateId, new Date().toISOString(), input.scene, input.catalog, id, user.id, body.version);
-        if (result.changes === 0) {
-          throw new HttpError(409, 'version_conflict', 'This apartment was saved in another tab. Open the latest version before saving again.',
-            { apartment: apartment(ownedApartment(id, user.id)) });
+      const update = () => {
+        db.exec('BEGIN IMMEDIATE');
+        try {
+          const result = sharingMatch
+            ? db.prepare(`UPDATE apartments SET updated_at = ?, version = version + 1
+              WHERE id = ? AND user_id = ? AND version = ?`).run(new Date().toISOString(), id, user.id, body.version)
+            : db.prepare(`UPDATE apartments SET name = ?, template_id = ?, updated_at = ?, version = version + 1, scene = ?, catalog = ?
+              WHERE id = ? AND user_id = ? AND version = ?`)
+              .run(input.name, input.templateId, new Date().toISOString(), input.scene, input.catalog, id, user.id, body.version);
+          if (result.changes === 0) {
+            throw new HttpError(409, 'version_conflict', 'This apartment was saved in another tab. Open the latest version before saving again.',
+              { apartment: apartment(ownedApartment(id, user.id)) });
+          }
+          if (sharingMatch && input) {
+            const sceneId = JSON.parse(ownedApartment(id, user.id).scene).id;
+            db.prepare(`INSERT INTO apartment_shares (apartment_id, share_id, token, scene_id) VALUES (?, ?, ?, ?)
+              ON CONFLICT(apartment_id) DO UPDATE SET share_id = excluded.share_id, token = excluded.token, scene_id = excluded.scene_id`)
+              .run(id, input.id, input.token, sceneId);
+          } else if (sharingMatch) {
+            const linked = ownedApartment(id, user.id);
+            if (linked.share_id) revokeStoredShare(sharesDirectory, linked.share_id, linked.share_token);
+            db.prepare('DELETE FROM apartment_shares WHERE apartment_id = ?').run(id);
+          } else {
+            db.prepare('DELETE FROM apartment_shares WHERE apartment_id = ? AND scene_id <> ?').run(id, input.sceneId);
+          }
+          saved = apartment(ownedApartment(id, user.id));
+          db.exec('COMMIT');
+        } catch (error) {
+          db.exec('ROLLBACK');
+          throw error;
         }
-        if (sharingMatch && input) {
-          const sceneId = JSON.parse(ownedApartment(id, user.id).scene).id;
-          db.prepare(`INSERT INTO apartment_shares (apartment_id, share_id, token, scene_id) VALUES (?, ?, ?, ?)
-            ON CONFLICT(apartment_id) DO UPDATE SET share_id = excluded.share_id, token = excluded.token, scene_id = excluded.scene_id`)
-            .run(id, input.id, input.token, sceneId);
-        } else if (sharingMatch) {
-          db.prepare('DELETE FROM apartment_shares WHERE apartment_id = ?').run(id);
-        } else {
-          db.prepare('DELETE FROM apartment_shares WHERE apartment_id = ? AND scene_id <> ?').run(id, input.sceneId);
-        }
-        saved = apartment(ownedApartment(id, user.id));
-        db.exec('COMMIT');
-      } catch (error) {
-        db.exec('ROLLBACK');
-        throw error;
-      }
+      };
+      if (sharingMatch && !input && current.share_id) await withShareWrite(sharesDirectory, current.share_id, update);
+      else update();
       return send(response, 200, { apartment: saved });
     } catch (error) {
       // Keep a server diagnostic without logging messages, stacks, bodies or identities.

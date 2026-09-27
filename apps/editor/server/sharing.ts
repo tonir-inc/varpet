@@ -1,3 +1,4 @@
+import { withShareWrite } from './accounts.mjs';
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { realpathSync } from 'node:fs';
 import { mkdir, open, readFile, rename, rm } from 'node:fs/promises';
@@ -12,7 +13,6 @@ const MAX_BODY_BYTES = 24_000_000;
 const ID = /^[a-f0-9]{32}$/;
 const TOKEN = /^[A-Za-z0-9_-]{43}$/;
 const HASH = /^[a-f0-9]{64}$/;
-const writes = new Map<string, Promise<void>>();
 
 interface SharingOptions {
   directory?: string;
@@ -165,16 +165,6 @@ async function atomicWrite(directory: string, record: StoredShare): Promise<void
     try { await folder.sync(); } finally { await folder.close(); }
   } finally { await rm(temporary, { force: true }); }
 }
-async function serialized<T>(key: string, action: () => Promise<T>): Promise<T> {
-  const previous = writes.get(key) ?? Promise.resolve();
-  let release!: () => void;
-  const current = new Promise<void>(resolveLock => { release = resolveLock; });
-  writes.set(key, current);
-  await previous;
-  try { return await action(); }
-  finally { release(); if (writes.get(key) === current) writes.delete(key); }
-}
-
 /** Single-process capability API. The disk directory must never be a public asset directory. */
 export function createSharingMiddleware(options: SharingOptions = {}) {
   const directory = storageDirectory(options);
@@ -195,8 +185,8 @@ export function createSharingMiddleware(options: SharingOptions = {}) {
       }
       const id = path.slice('/api/shares/'.length);
       if (path !== '/api/shares' && !ID.test(id)) throw new SharingError(404, 'This sharing link is unavailable.');
-      if (path === '/api/shares' || !['GET', 'PUT'].includes(request.method ?? '')) {
-        response.setHeader('Allow', path === '/api/shares' ? 'POST' : 'GET, PUT');
+      if (path === '/api/shares' || !['GET', 'PUT', 'DELETE'].includes(request.method ?? '')) {
+        response.setHeader('Allow', path === '/api/shares' ? 'POST' : 'GET, PUT, DELETE');
         throw new SharingError(405, 'This sharing request method is not supported.');
       }
       const token = bearer(request);
@@ -207,8 +197,16 @@ export function createSharingMiddleware(options: SharingOptions = {}) {
         version: record.version, updatedAt: record.updatedAt, access: permission,
         ...(permission === 'edit' ? { viewToken: record.viewToken } : {}) });
       if (permission !== 'edit') throw new SharingError(403, 'This sharing link only allows viewing.');
+      if (request.method === 'DELETE') {
+        await withShareWrite(directory, id, async () => {
+          const current = await read(directory, id);
+          if (access(current, token) !== 'edit') throw new SharingError(404, 'This sharing link is unavailable.');
+          await rm(join(directory, `${id}.json`));
+        });
+        return send(response, 200, { revoked: true });
+      }
       const content = snapshot(await body(request), true);
-      const saved = await serialized(join(directory, id), async () => {
+      const saved = await withShareWrite(directory, id, async () => {
         const current = await read(directory, id);
         if (access(current, token) !== 'edit') throw new SharingError(404, 'This sharing link is unavailable.');
         if (content.scene.id !== current.scene.id) throw new SharingError(400, 'A different project needs its own sharing link.');

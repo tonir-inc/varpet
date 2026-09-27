@@ -183,3 +183,17 @@ test('pending link creation separates account apartments that contain the same s
   assert.equal(sessionA.matchesProject(sameScene.scene.id, 'apartment-a'), true);
   assert.equal(sessionB.matchesProject(sameScene.scene.id, 'apartment-b'), true);
 });
+
+test('revoking a session sends its edit capability and prevents further saves', async () => {
+  const calls = [];
+  const session = new SharingSession(reference, project(), 0, async (url, init) => {
+    calls.push({ url, init }); return response({ revoked: true });
+  });
+  await session.revoke();
+  assert.equal(calls[0].url, `/api/shares/${id}`);
+  assert.equal(calls[0].init.method, 'DELETE');
+  assert.equal(calls[0].init.headers.Authorization, `Bearer ${edit}`);
+  assert.equal(session.matchesProject(project().scene.id), false);
+  await assert.rejects(session.save(snapshot(), 1), /revoked/i);
+  assert.equal(calls.length, 1);
+});

@@ -240,3 +240,18 @@ test('the sharing plugin registers the API on real Vite development and preview 
   assert.equal(read.status, 200);
   assert.equal((await read.json()).access, 'view');
 });
+
+test('only edit capabilities revoke a share, with same-origin protection and no existence leak', async t => {
+  const { request, directory } = await server(t), share = await create(request);
+  const path = `/api/shares/${share.id}`;
+  assert.equal((await request(path, 'DELETE', undefined, share.viewToken)).status, 403);
+  const wrong = await request(path, 'DELETE', undefined, 'w'.repeat(43));
+  const missing = await request(`/api/shares/${'0'.repeat(32)}`, 'DELETE', undefined, 'w'.repeat(43));
+  assert.equal(wrong.status, 404); assert.deepEqual(wrong.data, missing.data);
+  assert.equal((await request(path, 'DELETE', undefined, share.editToken, { Origin: 'https://evil.example' })).status, 403);
+  assert.equal((await request(path, 'DELETE', undefined, share.editToken, { 'Sec-Fetch-Site': 'cross-site' })).status, 403);
+  assert.equal((await request(path, 'GET', undefined, share.viewToken)).status, 200);
+  assert.equal((await request(path, 'DELETE', undefined, share.editToken)).status, 200);
+  for (const token of [share.viewToken, share.editToken]) assert.equal((await request(path, 'GET', undefined, token)).status, 404);
+  assert.equal((await readdir(directory)).includes(`${share.id}.json`), false);
+});
