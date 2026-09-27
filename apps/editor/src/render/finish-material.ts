@@ -51,6 +51,9 @@ export function finishAppearance(document: SceneDocument, entityId: string, surf
   };
 }
 
+/** Tangent-space slope multiplier: planks and stone read under low sun without looking embossed. */
+const normalStrength = 0.7;
+
 const fragmentDeclarations = /* glsl */`
 varying vec3 vFinishWorld;
 uniform vec3 uFinishBase;
@@ -67,6 +70,11 @@ uniform sampler2D uFinishPreviousColorMap;
 uniform sampler2D uFinishPreviousRoughnessMap;
 uniform vec2 uFinishPreviousTextureRepeat;
 uniform float uFinishPreviousTextureEnabled;
+uniform sampler2D uFinishNormalMap;
+uniform float uFinishNormalEnabled;
+uniform sampler2D uFinishPreviousNormalMap;
+uniform float uFinishPreviousNormalEnabled;
+uniform float uFinishNormalScale;
 uniform vec3 uFinishAxisU;
 uniform vec3 uFinishAxisV;
 uniform vec3 uFinishOrigin;
@@ -204,17 +212,38 @@ vec3 finishColorAt(vec2 p, vec3 base, vec3 accent, vec4 spec) {
   return mix(base, accent, joint * 0.095);
 }
 
-vec4 finishTextureSample(sampler2D map, vec2 p, vec4 spec, vec2 repeatSize) {
-  vec2 uv = p / repeatSize;
-  mat2 axes = mat2(1.0);
+/** Image coordinates for surface point p; \`axes\` is d(local)/d(p), so d(uv)/d(p) = axes / repeatSize. */
+vec2 finishTextureCoords(vec2 p, vec4 spec, vec2 repeatSize, out mat2 axes) {
+  axes = mat2(1.0);
   if (finishIsWood(spec.x)) {
     vec2 dims; vec2 cell;
     vec2 local = finishPlank(p, spec, dims, cell, axes);
     // Every plank samples another part of the veneer, with grain along U.
-    uv = local / repeatSize + vec2(finishHash(cell + 23.1), finishHash(cell + 59.7));
+    return local / repeatSize + vec2(finishHash(cell + 23.1), finishHash(cell + 59.7));
   }
+  return p / repeatSize;
+}
+vec4 finishTextureSample(sampler2D map, vec2 p, vec4 spec, vec2 repeatSize) {
+  mat2 axes;
+  vec2 uv = finishTextureCoords(p, spec, repeatSize, axes);
   // Continuous gradients keep plank seams from dropping to the smallest mip.
   return textureGrad(map, uv, axes * dFdx(p) / repeatSize, axes * dFdy(p) / repeatSize);
+}
+/**
+ * Normal-map relief in surface coordinates: xy is the slope along the surface U/V axes,
+ * z the share of the geometric normal. The rows of \`axes\` are the gradients of the
+ * image u and v over the surface, which follows every plank's rotation (and chevron shear).
+ */
+vec3 finishNormalAt(vec2 p, vec4 spec, sampler2D normalMap, vec2 repeatSize, float enabled, float strength) {
+  if (enabled < 0.5) return vec3(0.0, 0.0, 1.0);
+  mat2 axes;
+  vec2 uv = finishTextureCoords(p, spec, repeatSize, axes);
+  vec3 n = textureGrad(normalMap, uv, axes * dFdx(p) / repeatSize, axes * dFdy(p) / repeatSize).xyz * 2.0 - 1.0;
+  vec2 gradientU = vec2(1.0, 0.0) * axes;
+  vec2 gradientV = vec2(0.0, 1.0) * axes;
+  // One shared scale, as three's perturbNormal2Arb, keeps rotated planks at unit length.
+  float scale = inversesqrt(max(max(dot(gradientU, gradientU), dot(gradientV, gradientV)), 1e-8));
+  return vec3((gradientU * n.x + gradientV * n.y) * scale * strength, n.z);
 }
 float finishTextureJoint(vec2 p, vec4 spec) {
   vec2 size = max(spec.yz, vec2(0.02));
@@ -278,6 +307,11 @@ export function makeFinishMaterial(
     uFinishPreviousRoughnessMap: { value: fallbackTexture as THREE.Texture },
     uFinishPreviousTextureRepeat: { value: new THREE.Vector2(...(previousTexture?.repeat ?? [1, 1] as const)) },
     uFinishPreviousTextureEnabled: { value: 0 },
+    uFinishNormalMap: { value: fallbackTexture as THREE.Texture },
+    uFinishNormalEnabled: { value: 0 },
+    uFinishPreviousNormalMap: { value: fallbackTexture as THREE.Texture },
+    uFinishPreviousNormalEnabled: { value: 0 },
+    uFinishNormalScale: { value: normalStrength },
     uFinishAxisU: { value: axes.u },
     uFinishAxisV: { value: axes.v },
     uFinishOrigin: { value: new THREE.Vector3(...(transition?.reveal.point ?? [0, 0, 0] as const)) },
@@ -286,7 +320,7 @@ export function makeFinishMaterial(
     uFinishProgress: { value: active ? 0 : 1 },
   };
   const material = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: appearance.roughness });
-  material.customProgramCacheKey = () => 'varpet-finish-world-v3';
+  material.customProgramCacheKey = () => 'varpet-finish-world-v4';
   material.onBeforeCompile = shader => {
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = shader.vertexShader
@@ -326,6 +360,25 @@ export function makeFinishMaterial(
           finishRoughness = mix(finishPreviousRoughness, finishRoughness, finishBlend);
         }
         roughnessFactor = finishRoughness;
+      `)
+      .replace('#include <normal_fragment_maps>', /* glsl */`
+        #include <normal_fragment_maps>
+        // Unloaded maps leave three's normal untouched, not even renormalized.
+        if (uFinishNormalEnabled > 0.5 || uFinishPreviousNormalEnabled > 0.5) {
+          vec3 finishRelief = finishNormalAt(finishUv, uFinishPattern, uFinishNormalMap,
+            uFinishTextureRepeat, uFinishNormalEnabled, uFinishNormalScale);
+          if (finishBlend < 1.0) {
+            finishRelief = mix(finishNormalAt(finishUv, uFinishPreviousPattern, uFinishPreviousNormalMap,
+              uFinishPreviousTextureRepeat, uFinishPreviousNormalEnabled, uFinishNormalScale), finishRelief, finishBlend);
+          }
+          // Surface U/V lie in the face plane; view-space N already carries faceDirection.
+          vec3 finishTangent = (viewMatrix * vec4(uFinishAxisU, 0.0)).xyz;
+          vec3 finishBitangent = (viewMatrix * vec4(uFinishAxisV, 0.0)).xyz;
+          finishTangent -= normal * dot(finishTangent, normal);
+          finishBitangent -= normal * dot(finishBitangent, normal);
+          normal = normalize(normal * max(finishRelief.z, 0.05)
+            + finishTangent * finishRelief.x + finishBitangent * finishRelief.y);
+        }
       `);
   };
   let disposed = false;
@@ -340,12 +393,20 @@ export function makeFinishMaterial(
       uniforms.uFinishColorMap.value = currentTexture.color;
       uniforms.uFinishRoughnessMap.value = currentTexture.roughness;
       uniforms.uFinishTextureEnabled.value = 1;
+      if (currentTexture.hasNormal()) {
+        uniforms.uFinishNormalMap.value = currentTexture.normal;
+        uniforms.uFinishNormalEnabled.value = 1;
+      }
     }),
     previousTexture?.ready.then(success => {
       if (!success || disposed || !previousTexture) return;
       uniforms.uFinishPreviousColorMap.value = previousTexture.color;
       uniforms.uFinishPreviousRoughnessMap.value = previousTexture.roughness;
       uniforms.uFinishPreviousTextureEnabled.value = 1;
+      if (previousTexture.hasNormal()) {
+        uniforms.uFinishPreviousNormalMap.value = previousTexture.normal;
+        uniforms.uFinishPreviousNormalEnabled.value = 1;
+      }
     }),
   ]).then(() => {});
   return {

@@ -1,5 +1,19 @@
 # Interior daylight and window rendering
 
+## Sunlit demo look (2026-09-27, Claude Opus 5.5)
+
+The demo is about sunlight. Daytime rooms are lit by the windows, not lamps:
+- A manually placed sun counts as daytime: furniture lamps and the evening room fills are off (`automaticLightLevel` 0).
+  Lamps and warm pools arrive only after dusk, with the interior white balance and grade restored (`setInterior`, `setWhiteBalance`).
+- `WindowSkyLights`: a fixed pool of 6 `RectAreaLight`s, one per largest outdoor window, facing into the room. Area lights
+  cast no shadows, so the fan-shaped mullion shadows of the retired window spotlights cannot return. Fixed pool = no recompiles.
+- An untouched default sun turns to stand behind the flat's largest window (25 degrees off square) so it enters the rooms.
+  The tour forces that sun and no longer fades to evening; it closes on the sunlit living room.
+- Inside, the sun is the key light (x1.4) over a softer hemisphere fill (0.5) whose ground colour stands in for floor bounce.
+- Antialiasing: 4x MSAA in both qualities, SMAA instead of FXAA, sun shadow map 4096. Recorded sessions (`?session=`)
+  and `?quality=high` start in high quality.
+`/lighting-parity-qa.html` still expects the earlier numbers (warm day fills, FXAA); it needs its expectations updated.
+
 Current verification, 2026-09-27: [Blueprint world migration](blueprint-world-migration.md) restores the shared lighting contract below with ACES exposure **1.02**, removes the remaining production window-light override, and replaces the studio pedestal with permanent blueprint ground. All 86 lighting parity checks pass again. Earlier exposure values and measurements below are historical.
 
 ## Shared lighting when entering Inside

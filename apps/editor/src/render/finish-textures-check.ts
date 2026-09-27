@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { makeFinishMaterial, type FinishAppearance } from './finish-material';
-import { subscribeFinishTextures } from './finish-textures';
+import { acquireFinishTexture, setFinishTextureAnisotropy, subscribeFinishTextures } from './finish-textures';
 import type { SceneDocument } from '../contracts';
 
 let assertions = 0;
@@ -15,7 +15,7 @@ const oak: FinishAppearance & { texture: 'oak' } = {
 const inspect = (material: THREE.MeshStandardMaterial) => {
   const shader = { uniforms: {} as Record<string, { value: unknown }>,
     vertexShader: '#include <common>\n#include <worldpos_vertex>',
-    fragmentShader: '#include <common>\n#include <color_fragment>\n#include <roughnessmap_fragment>',
+    fragmentShader: '#include <common>\n#include <color_fragment>\n#include <roughnessmap_fragment>\n#include <normal_fragment_maps>',
   };
   material.onBeforeCompile(shader as Parameters<typeof material.onBeforeCompile>[0], {} as THREE.WebGLRenderer);
   return { shader, value: <T>(name: string) => shader.uniforms[name]?.value as T };
@@ -60,7 +60,7 @@ const unsubscribe = subscribeFinishTextures(() => {
     && firstShader.value<number>('uFinishPreviousTextureEnabled') === 1,
   'render invalidation happens after every loaded material has bound its samplers');
 });
-assert(ControlledImage.pending.length === 4, 'shared finishes decode each color and roughness image once');
+assert(ControlledImage.pending.length === 6, 'shared finishes decode each color, roughness and normal image once');
 assert(firstShader.value<number>('uFinishTextureEnabled') === 0, 'current sampler stays disabled before both maps load');
 assert(firstShader.value<number>('uFinishPreviousTextureEnabled') === 0, 'previous sampler also stays disabled before load');
 for (const image of ControlledImage.pending.splice(0)) image.onload?.();
@@ -76,6 +76,14 @@ assert(color === secondShader.value<THREE.Texture>('uFinishColorMap'), 'material
 assert(color !== oldColor, 'reveal retains the old material texture');
 assert(color.colorSpace === THREE.SRGBColorSpace && roughness.colorSpace === THREE.NoColorSpace, 'color and roughness use their correct color spaces');
 assert(color.wrapS === THREE.RepeatWrapping && color.wrapT === THREE.RepeatWrapping, 'texture is seamless on both surface axes');
+const normal = firstShader.value<THREE.Texture>('uFinishNormalMap');
+assert(firstShader.value<number>('uFinishNormalEnabled') === 1 && firstShader.value<number>('uFinishPreviousNormalEnabled') === 1,
+  'loaded normal maps activate relief for both reveal sides');
+assert(normal === secondShader.value<THREE.Texture>('uFinishNormalMap') && normal !== color, 'materials share the live normal map');
+assert(normal.colorSpace === THREE.NoColorSpace && normal.wrapS === THREE.RepeatWrapping && normal.wrapT === THREE.RepeatWrapping,
+  'normal map is raw data and seamless like the other maps');
+assert(firstShader.shader.fragmentShader.includes('finishNormalAt(finishUv'), 'relief perturbs the lit normal');
+assert(color.anisotropy === 8, 'finish textures default to 8x anisotropic filtering');
 const repeat = firstShader.value<THREE.Vector2>('uFinishTextureRepeat');
 assert(repeat.x === 1.83 && repeat.y === 1.83, 'wood grain keeps its documented physical repeat');
 assert(first.update(250) && !first.update(1000), 'texture readiness does not change reveal timing');
@@ -93,6 +101,26 @@ await cached.ready;
 assert(Number(ControlledImage.pending.length) === 0, 'recreated projections reuse bounded decoded images');
 assert(inspect(cached.material).value<THREE.Texture>('uFinishColorMap') !== color, 'disposed GPU textures are never reused');
 cached.material.dispose();
+
+// A missing normal map flattens relief but never withholds the textured finish.
+const partial = makeFinishMaterial({ ...oak, texture: 'ash' }, axes);
+const partialShader = inspect(partial.material);
+const partialImages = ControlledImage.pending.splice(0);
+assert(partialImages.length === 3, 'each finish requests color, roughness and normal');
+partialImages[0]?.onload?.(); partialImages[1]?.onload?.(); partialImages[2]?.onerror?.();
+await partial.ready;
+assert(partialShader.value<number>('uFinishTextureEnabled') === 1, 'color and roughness alone still texture the finish');
+assert(partialShader.value<number>('uFinishNormalEnabled') === 0, 'failed normal map keeps the geometric normal');
+const live = acquireFinishTexture('ash');
+setFinishTextureAnisotropy(16);
+const fresh = acquireFinishTexture('oak');
+assert(live.color.anisotropy === 16 && live.normal.anisotropy === 16 && fresh.roughness.anisotropy === 16,
+  'renderer anisotropy reaches live and future finish textures');
+setFinishTextureAnisotropy(0);
+assert(Number(live.color.anisotropy) === 1, 'anisotropy never drops below one sample');
+setFinishTextureAnisotropy(8);
+fresh.release(); live.release(); partial.material.dispose();
+for (const image of ControlledImage.pending.splice(0)) image.onload?.();
 
 const abandoned = makeFinishMaterial({ ...oak, texture: 'travertine' }, axes);
 const abandonedShader = inspect(abandoned.material);

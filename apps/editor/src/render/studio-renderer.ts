@@ -1,9 +1,10 @@
 import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { FXAAPass } from 'three/addons/postprocessing/FXAAPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
+import { FXAAPass } from 'three/addons/postprocessing/FXAAPass.js';
 import { SelectionOutline } from './selection-outline';
 import { AdaptiveOcclusionPass } from './adaptive-occlusion';
 
@@ -85,7 +86,9 @@ export class StudioRenderer {
   private readonly grade: ShaderPass;
   private readonly output = new OutputPass();
   private readonly selection: SelectionOutline;
-  private readonly antialias = new FXAAPass();
+  // SMAA finds and blends real edges (window mullions against a bright sky, thin frames) far better than FXAA.
+  // SMAA decodes its lookup tables as images; without a DOM (headless node checks) FXAA stands in.
+  private readonly antialias = typeof Image === 'undefined' ? new FXAAPass() : new SMAAPass();
   private disposed = false;
   private interior = false;
 
@@ -203,9 +206,9 @@ export class StudioRenderer {
 
   setQuality(quality: 'balanced' | 'high'): void {
     if (this.disposed) return;
-    const high = quality === 'high';
     this.occlusion.setQuality(quality);
-    const samples = Math.min(high ? 4 : 2, this.renderer.capabilities.maxSamples);
+    // MSAA resolves geometry edges before tone mapping; 4 samples even when balanced (cheap on tiled GPUs).
+    const samples = Math.min(4, this.renderer.capabilities.maxSamples);
     for (const target of [this.composer.renderTarget1, this.composer.renderTarget2]) {
       if (target.samples !== samples) {
         target.samples = samples;

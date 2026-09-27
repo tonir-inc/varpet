@@ -3,8 +3,8 @@ import type { CatalogAsset, Room, SceneDocument, Vec2 } from '../contracts';
 import { polygonArea } from '../core/geometry';
 import { findWalkSpawn, walkProbe, WALK_EYE_HEIGHT } from '../core/walkthrough';
 
-/** One camera state of the tour. `evening` runs 0 (day) to 1 (evening) in the closing shot. */
-export interface TourPose { view: 'perspective' | 'inside'; position: THREE.Vector3; target: THREE.Vector3; fov: number; evening: number }
+/** One camera state of the tour. */
+export interface TourPose { view: 'perspective' | 'inside'; position: THREE.Vector3; target: THREE.Vector3; fov: number }
 
 const ease = (t: number) => t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t);
 const easeInOut = (t: number) => t <= 0 ? 0 : t >= 1 ? 1 : t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
@@ -185,7 +185,7 @@ function* planTour(scene: SceneDocument, catalog: CatalogAsset[]): Generator<voi
     }
     return true;
   };
-  // Visit each room, then return to the first (the living room) for the evening shot.
+  // Visit each room, then return to the first (the living room) for the closing sunlit shot.
   const waypoints = [...spawns, spawns[0]!];
   const debug: string[] = [`walkable ${walkable.reduce((a, b) => a + b, 0)}/${walkable.length}`];
 
@@ -234,12 +234,12 @@ function pitched(direction: THREE.Vector3): THREE.Vector3 {
 
 /**
  * The cinematic path: dollhouse orbit, a glide down into the living room, a walk through the
- * important rooms by their doors, and a day-to-evening fade back in the living room.
+ * important rooms by their doors, and a slow closing look across the sunlit living room.
  */
 export class TourPlayback {
   private legs: Leg[] = [];
   private readonly started = performance.now();
-  private readonly pose: TourPose = { view: 'perspective', position: new THREE.Vector3(), target: new THREE.Vector3(), fov: 32, evening: 0 };
+  private readonly pose: TourPose = { view: 'perspective', position: new THREE.Vector3(), target: new THREE.Vector3(), fov: 32 };
   private built = false;
   private orbitEnd = 10;
   finished = false;
@@ -253,7 +253,7 @@ export class TourPlayback {
     const azimuth = Math.atan2(offset.x, offset.z) + 1.4 * easeInOut(Math.min(1, t / 10)) + ease(Math.max(0, t - 10)) * 0.04 * Math.max(0, t - 10);
     const elevation = THREE.MathUtils.lerp(0.72, 0.6, ease(t / 10));
     const distance = this.radius;
-    out.view = 'perspective'; out.fov = this.start.fov; out.evening = 0;
+    out.view = 'perspective'; out.fov = this.start.fov;
     out.position.set(this.center.x + Math.sin(azimuth) * Math.cos(elevation) * distance, this.center.y + Math.sin(elevation) * distance, this.center.z + Math.cos(azimuth) * Math.cos(elevation) * distance);
     out.target.copy(this.center);
   }
@@ -272,7 +272,7 @@ export class TourPlayback {
     };
     this.legs.push({ start: t0, end: t0 + glide, pose: (t, out) => {
       const k = easeInOut(t);
-      out.view = 'perspective'; out.evening = 0; bezier(k, out.position);
+      out.view = 'perspective'; bezier(k, out.position);
       out.target.copy(q0).lerp(look, ease(t * 1.3)); out.fov = THREE.MathUtils.lerp(this.start.fov, this.insideFov, k);
     } });
     // Walking: constant pace between stops, a slow look around at each.
@@ -289,8 +289,8 @@ export class TourPlayback {
       const span = paced[k]! - paced[k - 1]!;
       return lengths[k - 1]! + (lengths[k]! - lengths[k - 1]!) * (span > 0 ? THREE.MathUtils.clamp((p - paced[k - 1]!) / span, 0, 1) : 0);
     };
-    const total = paced.at(-1)!, pause = 3, evening = 6;
-    const budget = 54 - (t0 + glide) - evening - pause * (plan.stops.length - 1);
+    const total = paced.at(-1)!, pause = 3, closing = 6;
+    const budget = 54 - (t0 + glide) - closing - pause * (plan.stops.length - 1);
     const speed = THREE.MathUtils.clamp(total / Math.max(8, budget), 0.7, 1.8);
     const at = (s: number, target: THREE.Vector3) => {
       let k = 1; while (k < lengths.length - 1 && lengths[k]! < s) k++;
@@ -303,10 +303,10 @@ export class TourPlayback {
       const here = plan.stops[stop]!, last = stop === plan.stops.length - 1;
       // Pitched down onto the focal piece (a bed reads from above its footboard), capped at 18 degrees.
       const base = pitched(here.look.clone().sub(plan.points[here.index]!));
-      const hold = last ? evening : pause;
+      const hold = last ? closing : pause;
       this.legs.push({ start: clock, end: clock + hold, pose: (t, out) => {
         const swing = last ? -0.2 * ease(t) : 0.28 * Math.sin(t * Math.PI);
-        out.view = 'inside'; out.fov = this.insideFov; out.evening = last ? easeInOut(Math.min(1, t / 0.75)) : 0;
+        out.view = 'inside'; out.fov = this.insideFov;
         out.position.copy(plan.points[here.index]!);
         out.target.copy(out.position).add(base.clone().applyAxisAngle(THREE.Object3D.DEFAULT_UP, swing));
       } });
@@ -321,7 +321,7 @@ export class TourPlayback {
       const turnFrom = Math.min(s1 - 0.8, Math.max(lastDoor + 0.9, s0 + (s1 - s0) * 0.45));
       this.legs.push({ start: clock, end: clock + duration, pose: (t, out) => {
         const s = arcAt(p0 + (p1 - p0) * easeInOut(t));
-        out.view = 'inside'; out.fov = this.insideFov; out.evening = 0;
+        out.view = 'inside'; out.fov = this.insideFov;
         at(s, out.position);
         // Look along the path a little ahead, blending from and into each stop's view.
         ahead.set(0, 0, 0);
@@ -358,4 +358,4 @@ export class TourPlayback {
   }
 }
 
-class TourPoseSnapshot { readonly pose: TourPose = { view: 'perspective', position: new THREE.Vector3(), target: new THREE.Vector3(), fov: 32, evening: 0 }; }
+class TourPoseSnapshot { readonly pose: TourPose = { view: 'perspective', position: new THREE.Vector3(), target: new THREE.Vector3(), fov: 32 }; }

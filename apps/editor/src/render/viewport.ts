@@ -52,6 +52,9 @@ import { installPerfProbe, type PerfProbe } from './perf-probe';
 import { TopLightingProjection } from './top-lighting';
 import { createFurnitureDrop } from './furniture-drop';
 import { BLUEPRINT_PAPER, BlueprintGround, type BlueprintBackdrop } from './blueprint-ground';
+import { WindowSkyLights } from './window-sky-lights';
+import { setFinishTextureAnisotropy } from './finish-textures';
+import { windowPortals } from './interior-daylight';
 
 interface RenderObject { group: THREE.Group; pose: THREE.Group; visual: THREE.Group; signature: string; token: object; dimensions: [number, number, number]; opacity: number }
 interface DragSnapshot {
@@ -149,7 +152,7 @@ export interface FinishViewport extends Viewport {
   redraw(): void;
   /**
    * The pitch tour: dollhouse orbit, glide into the living room, walk the main rooms through their doors,
-   * then day to evening. About 45-60 s; any pointer, wheel or key input stops it. Resolves true when it ran to the end.
+   * then a closing look across the sunlit living room, with the sun aimed through its largest window. About 45-60 s; any pointer, wheel or key input stops it. Resolves true when it ran to the end.
    */
   playTour(): Promise<boolean>;
   cancelTour(): void;
@@ -172,6 +175,8 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
     return { attach(next) { next.append(container); }, preservePresentation() { return () => {}; }, furnitureSurface() { return undefined; }, setFurnitureDrag() {}, setInsideLens() {}, setSkybox() { return false; }, getSun() { return { ...DEFAULT_SUN }; }, setSun() {}, setTopLighting() {}, setLightingMood() {}, inspectCeiling() { return false; }, project() { return null; }, onFrame() { return () => {}; }, animateAssembly() {}, setHidden() {}, cameraPose() { return null; }, setBackdrop() { return null; }, setLocked() {}, setCameraPose() {}, riseStructure() {}, loading() { return false; }, redraw() {}, playTour() { return Promise.resolve(false); }, cancelTour() {}, setFinishBrush() {}, setAdditiveSelection() {}, revealSelection() {}, setScene() {}, animatePlacement() {}, setSelection() {}, setTool() {}, setView() {}, setSnap() {}, setWalls() {}, setQuality() {}, setLayer() {}, setDoorAngle() {}, getDoorAngle() { return 0; }, toggleSwitch() {}, setSwitchLevel() {}, getSwitchLevel() { return 0; }, setComparison() {}, focus() {}, cancelInteraction() {}, dispose() { container.remove(); } };
   }
   renderer.setClearColor(BLUEPRINT_PAPER);
+  // Floors are mostly seen at a grazing angle: full anisotropic filtering keeps plank grain sharp.
+  setFinishTextureAnisotropy(renderer.capabilities.getMaxAnisotropy());
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.02;
@@ -231,7 +236,7 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
   let skySun = effectiveSunlight(sunSettings);
   let skyUpdateTimer: ReturnType<typeof setTimeout> | undefined;
   sunlight.castShadow = true;
-  sunlight.shadow.mapSize.set(2048, 2048);
+  sunlight.shadow.mapSize.set(4096, 4096);
   sunlight.shadow.camera.near = 0.5;
   sunlight.shadow.camera.far = 65;
   sunlight.shadow.bias = -0.00005;
@@ -253,6 +258,7 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
   const sunOccluders = new SunOccluders(); world.add(sunOccluders.group);
   const practicalLights = new PracticalLightPool(); world.add(practicalLights.group);
   const eveningLights = new EveningRoomLights(); world.add(eveningLights.group);
+  const windowSky = new WindowSkyLights(); world.add(windowSky.group);
 
   const pmrem = new THREE.PMREMGenerator(renderer);
   const roomEnvironment = new RoomEnvironment();
@@ -417,8 +423,23 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
     if (target.isEmpty()) target.setFromObject(object);
     return target;
   }
+  let sunAimedAt: string | undefined;
+  /** An untouched default sun is turned to stand behind the flat's largest window, so sunlight enters the rooms. */
+  function aimSunThroughWindow(scene: SceneDocument, force = false): void {
+    sunAimedAt = scene.id;
+    const portal = windowPortals(scene)[0];
+    if (!portal || (!force && (sunSettings.azimuth !== DEFAULT_SUN.azimuth || sunSettings.timeOfDay != null))) return;
+    // Behind the glass (sunDirection's horizontal part is -inward), 25 degrees off square so it rakes the floor.
+    const azimuth = THREE.MathUtils.radToDeg(Math.atan2(-portal.inward[0], portal.inward[1])) + 25;
+    sunSettings = normalizeSun({ azimuth, enabled: true, ...(force ? { timeOfDay: null, elevation: DEFAULT_SUN.elevation } : {}) }, sunSettings);
+    skySun = effectiveSunlight(sunSettings);
+    callbacks.onSunChange?.({ ...sunSettings });
+  }
   function automaticLightLevel(): number | null {
-    return sunSettings.timeOfDay != null && sunSettings.autoLights !== false ? timeOfDayLighting(sunSettings.timeOfDay).autoLights : null;
+    if (sunSettings.autoLights === false) return null;
+    // A manually placed sun is daytime: lamps stay off so the sunlight carries the room.
+    if (sunSettings.timeOfDay == null) return sunSettings.enabled ? 0 : null;
+    return timeOfDayLighting(sunSettings.timeOfDay).autoLights;
   }
   function scalePracticalProjection(root: THREE.Object3D, level: number): void {
     root.traverse(object => {
@@ -485,13 +506,21 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
     // A light studio: soft sky above, warm paper below; after dusk a warm lamplit bounce.
     // Inside by day reads like an airy listing photo: brighter floor-to-ceiling bounce and a soft room fill.
     // After dusk the dollhouse keeps a blue-hour read of its shell instead of black walls.
-    ambient.intensity = THREE.MathUtils.lerp(inside ? 0.1 : 0.3, inside ? 0.6 : 0.42, daylight);
+    ambient.intensity = THREE.MathUtils.lerp(inside ? 0.1 : 0.3, inside ? 0.5 : 0.42, daylight);
     blueprint.setShadowStrength(unlitTop ? 1 : sunSettings.enabled === false ? 0 : daylight);
     ambient.color.set('#dfe4ec').lerp(eveningSky, 1 - daylight);
-    ambient.groundColor.set(inside ? '#c9c5bd' : '#a89580').lerp(eveningGround, 1 - daylight);
-    eveningLights.setLevel(unlitTop ? 0 : inside ? THREE.MathUtils.lerp(1, 0.3, daylight) : 1 - daylight, 1 - daylight);
+    // Inside, the ground term stands in for sunlit floor bouncing onto walls and ceiling.
+    ambient.groundColor.set(inside ? '#e6dccd' : '#a89580').lerp(eveningGround, 1 - daylight);
+    // By day the windows light the rooms (sky rectangles plus the sun through the glass); lamp pools only after dusk.
+    eveningLights.setLevel(unlitTop ? 0 : 1 - daylight, 1 - daylight);
+    windowSky.setLevel(unlitTop || sunSettings.enabled === false ? 0 : daylight);
+    studioRenderer.setInterior(inside);
+    // Lamps at 2700 K photograph orange; balance toward them after dusk, as a photographer would.
+    const balance = inside ? 1 - daylight : 0;
+    studioRenderer.setWhiteBalance(1 - 0.1 * balance, 1 - 0.03 * balance, 1 + 0.14 * balance);
     const sun = effectiveSunlight(sunSettings);
-    sunlight.color.set(sun.sunColor); sunlight.intensity = sun.sunIntensity;
+    // Inside, the sun through the glass is the key light: pools on the floor read against a softer fill.
+    sunlight.color.set(sun.sunColor); sunlight.intensity = sun.sunIntensity * (inside ? 1.4 : 1);
     // Keep the studio readable without painting false pools of sunlight through walls.
     // Intensity only: hiding a light changes every material's program (a full recompile hitch).
     fill.intensity = 0.08 * daylight; rim.intensity = 0.12 * daylight;
@@ -667,7 +696,7 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
     });
   }
 
-  let tour: { playback: TourPlayback; resolve(done: boolean): void; evening: number } | null = null;
+  let tour: { playback: TourPlayback; resolve(done: boolean): void } | null = null;
   const tourInputs = ['pointerdown', 'wheel', 'keydown', 'touchstart'] as const;
   const stopTourOnInput = (event: Event) => { if (event.isTrusted) finishTour(false); };
   function playTour(): Promise<boolean> {
@@ -675,28 +704,31 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
     if (disposed || !documentState || !structure) return Promise.resolve(false);
     if (view !== 'perspective') setView('perspective');
     cameraMotion.cancel('camera'); keyboardNavigation.cancel(); handPan.cancel(); onPointerCancel();
-    if (sunSettings.timeOfDay != null && timeOfDayLighting(sunSettings.timeOfDay).daylight < 0.5) api.setLightingMood('day');
+    // The tour is a daylight shot: the sun stands behind the largest window and pours into the rooms.
+    aimSunThroughWindow(documentState, true);
+    clearTimeout(skyUpdateTimer); skyUpdateTimer = undefined;
+    fitSunShadow(sunlight, structure.bounds.clone().union(new THREE.Box3().setFromObject(sunOccluders.group)), sunSettings);
+    applyLayers();
     const bounds = structure.bounds.clone(), center = bounds.getCenter(new THREE.Vector3()).setY(0.4);
     // Frame the whole flat: its diagonal fills about 80% of the view height at the perspective lens.
     const radius = Math.max(10, bounds.getSize(new THREE.Vector3()).length() / (2 * Math.tan(THREE.MathUtils.degToRad(perspective.fov) / 2)) * 0.8);
     // Before the first frame: skies captured and the Inside background program linked, so the glide
-    // into the room and the sunset never compile or capture mid-shot.
+    // into the room never compiles or captures mid-shot.
     warmUp();
     try {
-      const saved = world.background, savedIntensity = world.backgroundIntensity, eveningSky = skyboxes.get('twilight', effectiveSunlight(normalizeSun({ timeOfDay: 22, enabled: false }, sunSettings)));
-      world.background = eveningSky.background; studioRenderer.render(insideCamera);
+      const saved = world.background, savedIntensity = world.backgroundIntensity, daySky = skyboxes.get(skyboxPreset === 'studio' ? 'daylight' : skyboxPreset, skySun);
+      world.background = daySky.background; studioRenderer.render(insideCamera);
       world.background = saved; world.backgroundIntensity = savedIntensity;
     } catch { /* A failed warm-up only means a later first use compiles. */ }
     const playback = new TourPlayback(new TourPlanner(documentState, catalogState), { position: perspective.position.clone(), target: orbit.target.clone(), fov: perspective.fov }, center, radius, insideCamera.fov);
     for (const type of tourInputs) window.addEventListener(type, stopTourOnInput, { capture: true, passive: true });
-    return new Promise(resolve => { tour = { playback, resolve, evening: 0 }; requestRender(); });
+    return new Promise(resolve => { tour = { playback, resolve }; requestRender(); });
   }
   function finishTour(completed: boolean): void {
     if (!tour) return;
-    const { resolve, evening } = tour; tour = null;
+    const { resolve } = tour; tour = null;
     for (const type of tourInputs) window.removeEventListener(type, stopTourOnInput, { capture: true });
     if (view === 'inside') walk.orient();
-    if (evening > 0 && evening < 0.999) api.setLightingMood(evening >= 0.5 ? 'evening' : 'day');
     resolve(completed);
   }
   function applyTourPose(pose: TourPose): void {
@@ -708,13 +740,6 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
       perspective.position.copy(pose.position); orbit.target.copy(pose.target);
       if (Math.abs(perspective.fov - pose.fov) > 1e-3) { perspective.fov = pose.fov; perspective.updateProjectionMatrix(); }
       perspective.lookAt(pose.target);
-    }
-    if (tour && Math.abs(pose.evening - tour.evening) > 0.01) {
-      tour.evening = pose.evening;
-      // The sun sets over the closing shot, stopping just before night so the window sky never
-      // recaptures mid-fade; at the end the evening mood lands on its pre-captured blue-hour sky.
-      if (pose.evening >= 0.999) api.setLightingMood('evening');
-      else api.setSun({ timeOfDay: 12 + 6.7 * pose.evening, enabled: true });
     }
   }
   let warmTimer: ReturnType<typeof setTimeout> | undefined;
@@ -1199,7 +1224,8 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
       ceilingDesigns = makeCeilingDesigns(next, ceilingRoomId); world.add(ceilingDesigns);
       structure = makeStructure(next, pendingFinishReveal, { openingAssets, onAssetReady() { shadowCache.invalidate(); updateSelection(); requestRender(); } }); pendingFinishReveal = undefined;
       sunOccluders.setScene(next);
-      eveningLights.setRooms(eveningRooms(next));
+      eveningLights.setRooms(eveningRooms(next)); windowSky.setScene(next);
+      if (next.id !== sunAimedAt) aimSunThroughWindow(next);
       structureKey = nextKey; world.add(structure.group, structure.ceilings, structure.dimensions);
       loadOpeningModels(structure, next);
       for (const [id, opening] of structure.openings) { const angle = opening.fixed ? 0 : doorAngles.get(id) ?? 0; if (opening.fixed) doorAngles.delete(id); opening.target = angle; opening.setAngle(angle); }
@@ -1988,7 +2014,8 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
     setQuality(mode) {
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, mode === 'high' ? 2 : 1.5));
       studioRenderer.setQuality(mode);
-      const resolution = mode === 'high' ? 4096 : 2048;
+      // The sun map spans the whole flat: 2048 texels stair-step window and furniture shadow edges.
+      const resolution = 4096;
       sunlight.shadow.radius = mode === 'high' ? 2 : 1.5;
       if (sunlight.shadow.mapSize.x !== resolution) {
         sunlight.shadow.mapSize.set(resolution, resolution);
@@ -2035,7 +2062,7 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
       if (structure) { disposeObject(structure.group); disposeObject(structure.ceilings); disposeObject(structure.dimensions); }
       if (ceilingDesigns) disposeObject(ceilingDesigns);
       if (services) disposeObject(services.group); if (comparison) disposeObject(comparison); disposeObject(annotations); disposeObject(endpointHandles); disposeObject(openingHandle); windowHandles.dispose();
-      practicalLights.dispose(); eveningLights.setRooms([]);
+      practicalLights.dispose(); eveningLights.setRooms([]); windowSky.dispose();
       blueprint.dispose(); sunOccluders.dispose(); loader.dispose(); openingAssets.dispose(); sunlight.shadow.dispose(); topLighting.dispose();
       studioRenderer.dispose(); skyboxes.dispose(); environment.dispose(); renderer.dispose(); container.remove();
     },
