@@ -54,6 +54,7 @@ import { TopLightingProjection } from './top-lighting';
 import { createFurnitureDrop } from './furniture-drop';
 import { BLUEPRINT_PAPER, BlueprintGround, type BlueprintBackdrop } from './blueprint-ground';
 import { WindowSkyLights } from './window-sky-lights';
+import { PhotoSky } from './photo-sky';
 import { setFinishTextureAnisotropy } from './finish-textures';
 import { windowPortals } from './interior-daylight';
 import { RoomSweep } from './room-sweep';
@@ -296,6 +297,9 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
   world.environment = environment.texture;
   world.environmentIntensity = 0.16;
   roomEnvironment.dispose(); pmrem.dispose();
+  // A photographed sky replaces the generic studio room for daytime reflections and the view out of the windows.
+  const photoSky = new PhotoSky();
+  void photoSky.load(renderer).then(ready => { if (ready && !disposed) { applyLayers(); requestRender(); } });
   const studioRenderer = new StudioRenderer(renderer, world, camera);
   studioRenderer.setVignette(0);
 
@@ -556,11 +560,14 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
     // Keep that backdrop separate so entering Inside never substitutes a new rig.
     const lightingSky = skyboxPreset !== 'studio' && view !== 'top' ? skyboxes.get(skyboxPreset, skySun) : null;
     const night = inside && daylight < 0.05;
-    const backgroundSky = inside ? skyboxes.get(night ? 'twilight' : skyboxPreset === 'studio' ? 'daylight' : skyboxPreset, skySun) : null;
-    world.background = backgroundSky?.background ?? (unlitTop ? blueprint.paperColor : blueprint.background);
-    world.backgroundIntensity = backgroundSky ? night ? INSIDE_TWILIGHT : THREE.MathUtils.lerp(0.15, 1, daylight) : 1;
+    // By day the default rig looks out onto the photographed sky; chosen presets and night keep their captures.
+    const photoWindow = inside && !night && skyboxPreset === 'studio' ? photoSky.background : null;
+    const backgroundSky = inside && !photoWindow ? skyboxes.get(night ? 'twilight' : skyboxPreset === 'studio' ? 'daylight' : skyboxPreset, skySun) : null;
+    world.background = photoWindow ?? backgroundSky?.background ?? (unlitTop ? blueprint.paperColor : blueprint.background);
+    world.backgroundIntensity = photoWindow ? THREE.MathUtils.lerp(0.15, 0.9, daylight) : backgroundSky ? night ? INSIDE_TWILIGHT : THREE.MathUtils.lerp(0.15, 1, daylight) : 1;
     world.fog = null;
-    world.environment = lightingSky?.environment ?? environment.texture;
+    const photoLight = !lightingSky && daylight > 0.05 ? photoSky.environment : null;
+    world.environment = lightingSky?.environment ?? photoLight ?? environment.texture;
     world.environmentIntensity = THREE.MathUtils.lerp(0.008, lightingSky ? 0.35 : 0.4, daylight);
     // A light studio: soft sky above, warm paper below; after dusk a warm lamplit bounce.
     // Inside by day reads like an airy listing photo: brighter floor-to-ceiling bounce and a soft room fill.
@@ -2360,7 +2367,7 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
       practicalLights.dispose(); eveningLights.setRooms([]); windowSky.dispose();
       blueprint.dispose(); sunOccluders.dispose(); loader.dispose(); openingAssets.dispose(); sunlight.shadow.dispose(); topLighting.dispose();
       window.removeEventListener('keydown', toggleProfiler); setProfiler(false);
-      studioRenderer.dispose(); skyboxes.dispose(); environment.dispose(); renderer.dispose(); container.remove();
+      studioRenderer.dispose(); skyboxes.dispose(); environment.dispose(); photoSky.dispose(); renderer.dispose(); container.remove();
     },
   };
   let benchmarking = false;

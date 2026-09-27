@@ -4,7 +4,6 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
-import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { FXAAPass } from 'three/addons/postprocessing/FXAAPass.js';
 import { SelectionOutline } from './selection-outline';
 import { AdaptiveOcclusionPass } from './adaptive-occlusion';
@@ -86,8 +85,6 @@ export class StudioRenderer {
   private readonly beauty: RenderPass;
   private readonly occlusion: ContactOcclusionPass;
   private readonly grade: ShaderPass;
-  // A soft glow on the brightest light only: sky through the glass and sun pools, like a photograph's halation.
-  private readonly bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.12, 0.3, 1.6);
   private readonly output = new OutputPass();
   private readonly selection: SelectionOutline;
   // SMAA finds and blends real edges (window mullions against a bright sky, thin frames) far better than FXAA.
@@ -96,7 +93,7 @@ export class StudioRenderer {
   private disposed = false;
   private interior = false;
   private interacting = false;
-  private debug = { ao: true, smaa: true, bloom: true };
+  private debug = { ao: true, smaa: true };
   private profiler?: { profiler: FrameProfiler; unwrap: () => void };
 
   constructor(private readonly renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: StudioCamera) {
@@ -147,7 +144,6 @@ export class StudioRenderer {
     });
     this.composer.addPass(this.beauty);
     this.composer.addPass(this.occlusion);
-    this.composer.addPass(this.bloom);
     this.composer.addPass(this.grade);
     this.composer.addPass(this.output);
     this.composer.addPass(this.selection);
@@ -167,7 +163,6 @@ export class StudioRenderer {
     // even and its overlays clear rather than carrying perspective AO into it.
     const perspective = camera instanceof THREE.PerspectiveCamera;
     this.occlusion.enabled = perspective && this.debug.ao;
-    this.bloom.enabled = perspective && this.debug.bloom;
     this.antialias.enabled = this.debug.smaa;
     this.grade.uniforms.strength!.value = perspective ? (this.interior ? 0.2 : 1) : 0;
     this.composer.render();
@@ -236,14 +231,13 @@ export class StudioRenderer {
     this.occlusion.setQuality(quality);
   }
 
-  /** Profiler switches: AO, SMAA and bloom on or off. */
-  setDebug(options: { ao?: boolean; smaa?: boolean; bloom?: boolean }): void {
+  /** Profiler switches: AO and SMAA on or off. */
+  setDebug(options: { ao?: boolean; smaa?: boolean }): void {
     if (options.ao !== undefined) this.debug.ao = options.ao;
     if (options.smaa !== undefined) this.debug.smaa = options.smaa;
-    if (options.bloom !== undefined) this.debug.bloom = options.bloom;
   }
 
-  debugState(): { ao: boolean; smaa: boolean; bloom: boolean } { return { ...this.debug }; }
+  debugState(): { ao: boolean; smaa: boolean } { return { ...this.debug }; }
 
   dispose(): void {
     if (this.disposed) return;
@@ -251,7 +245,6 @@ export class StudioRenderer {
     this.beauty.dispose();
     this.occlusion.dispose();
     this.grade.dispose();
-    this.bloom.dispose();
     this.output.dispose();
     this.selection.dispose();
     this.antialias.dispose();
