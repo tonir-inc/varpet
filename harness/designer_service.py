@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import argparse
+import fcntl
+import signal
 from dataclasses import dataclass, field
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
@@ -36,6 +38,26 @@ ORIGIN = "http://localhost:5173"
 # any local editor dev server (vite moves to 5174, 5175... when 5173 is taken)
 LOCAL_ORIGIN = re.compile(r"^http://(localhost|127\.0\.0\.1)(:\d{1,5})?$")
 MAX_BODY = 16 * 1024 * 1024
+CONVERSATION_RETENTION = 24 * 60 * 60
+
+
+def cleanup_service_directories():
+    """Reap old crash leftovers; a held owner lock protects a live service."""
+    cutoff = time.time() - CONVERSATION_RETENTION
+    for root in Path(tempfile.gettempdir()).glob("varpet-designer-service-*"):
+        try:
+            if root.is_symlink() or not root.is_dir() or root.stat().st_mtime >= cutoff:
+                continue
+            # O_NOFOLLOW also keeps an unexpected owner symlink from opening another file.
+            # Older versions had no ownership marker; their liveness is unknown.
+            descriptor = os.open(root / ".owner", os.O_RDWR | os.O_NOFOLLOW)
+            with os.fdopen(descriptor, "w") as owner:
+                fcntl.flock(owner, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                shutil.rmtree(root)
+        except OSError:
+            # Busy, vanished, or inaccessible: another instance must remain undisturbed.
+            continue
+
 
 
 def with_geometry_notice(presentation: dict, saved: dict) -> dict:
@@ -137,6 +159,7 @@ def resolve_followup(request, history):
 @dataclass
 class Conversation:
     root: Path
+    last_activity: float = field(default_factory=time.monotonic)
     inspiration_image: str | None = None
     cancel: threading.Event | None = None
     ending: bool = False
@@ -175,7 +198,10 @@ class DesignerService:
         self.worker_command = worker_command or [sys.executable, "-u", str(Path(designer.__file__).resolve()), "--worker"]
         self.progress_interval = progress_interval
         self.idle_timeout = idle_timeout
+        cleanup_service_directories()
         self.directory = tempfile.TemporaryDirectory(prefix="varpet-designer-service-")
+        self.owner = (Path(self.directory.name) / ".owner").open("w")
+        fcntl.flock(self.owner, fcntl.LOCK_EX | fcntl.LOCK_NB)
         self.conversations: dict[str, Conversation] = {}
         self.active: set[threading.Event] = set()
         self.condition = threading.Condition()
@@ -184,6 +210,26 @@ class DesignerService:
         self.catalog_acceleration = None
         if catalog_acceleration or os.environ.get('VARPET_CATALOG_ACCELERATE') == '1':
             self.start_catalog_acceleration()
+        self.retention_stop = threading.Event()
+        self.retention_thread = threading.Thread(target=self._retain_conversations, daemon=True)
+        self.retention_thread.start()
+
+    def _retain_conversations(self):
+        while not self.retention_stop.wait(60):
+            self.expire_conversations()
+
+    def expire_conversations(self):
+        cutoff = time.monotonic() - CONVERSATION_RETENTION
+        with self.condition:
+            for conversation_id, conversation in list(self.conversations.items()):
+                if conversation.cancel is None and not conversation.ending and conversation.last_activity <= cutoff:
+                    try:
+                        shutil.rmtree(conversation.root)
+                    except FileNotFoundError:
+                        pass
+                    except OSError:
+                        continue  # Retry on the next sweep.
+                    self.conversations.pop(conversation_id)
 
     def start_catalog_acceleration(self):
         if self.catalog_acceleration is None:
@@ -195,6 +241,8 @@ class DesignerService:
                 self.catalog_acceleration = None
 
     def close(self):
+        self.retention_stop.set()
+        self.retention_thread.join()
         with self.condition:
             self.closed = True
             for cancel in self.active:
@@ -202,6 +250,7 @@ class DesignerService:
             self.condition.wait_for(lambda: not self.active)
         self.build_pool.close()
         self.directory.cleanup()
+        self.owner.close()
         if self.catalog_acceleration:
             self.catalog_acceleration.close()
 
@@ -237,6 +286,7 @@ class DesignerService:
 
     def propose(self, body, cancel, progress):
         body = validate_request(body)
+        self.expire_conversations()
         with self.condition:
             if self.closed:
                 raise RuntimeError("Designer service is shutting down")
@@ -506,9 +556,20 @@ class DesignerService:
                               "conversationId": conversation_id, "outcome": "aborted" if cancel.is_set() else outcome,
                               "seconds": round(time.monotonic() - started, 3), "usage": usage, "tool_calls": stream.tool_calls}), file=sys.stderr, flush=True)
             with self.condition:
+                conversation.last_activity = time.monotonic()
                 conversation.cancel = None
                 conversation.lock.release()
                 self.active.remove(cancel)
+                # A failed first turn never delivered an id the client could later DELETE.
+                if not conversation.ending and "conversationId" not in body and (cancel.is_set() or outcome == "error"):
+                    try:
+                        shutil.rmtree(conversation.root)
+                    except FileNotFoundError:
+                        self.conversations.pop(conversation_id, None)
+                    except OSError:
+                        pass  # Keep it registered so idle expiry can retry.
+                    else:
+                        self.conversations.pop(conversation_id, None)
                 self.condition.notify_all()
 
 
@@ -670,13 +731,20 @@ def main():
         # Warm start: the render daemon and the Codex app server come up now, not inside the first request.
         threading.Thread(target=designer_spike.warm_up, daemon=True).start()
     print(f"Designer service ({service.engine}): http://127.0.0.1:{server.server_port}", flush=True)
+    def terminate(signum, frame):
+        raise KeyboardInterrupt
+
+    previous_sigterm = signal.signal(signal.SIGTERM, terminate)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
         pass
     finally:
-        service.close()
-        server.server_close()
+        try:
+            service.close()
+        finally:
+            server.server_close()
+            signal.signal(signal.SIGTERM, previous_sigterm)
 
 
 if __name__ == "__main__":

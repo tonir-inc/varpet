@@ -8,6 +8,10 @@ description: Use when proposing or explaining a room layout to a customer: clear
 Numbers come from the tools (`score_layout`, `sun`, `check_layout`); these rules say what to aim for and
 how to explain it. Never state a number the tools did not return.
 
+## Kids' room safety
+
+Kids' rooms: anchor bookcases, dressers and wardrobes to the wall; keep climbable furniture (beds, desks, shelves) away from windows and balcony railings.
+
 ## Space and circulation
 
 - Aim for the largest free rectangle, not only free area: one open 2 x 2 m patch beats the same area
