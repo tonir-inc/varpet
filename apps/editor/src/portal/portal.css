@@ -355,6 +355,10 @@
   .portal-account > .portal-text-button { font-size: var(--text-xs); }
   .portal-account-profile { gap: var(--space-2); }
   .portal-account-profile > span:last-child { max-width: 70px; font-size: var(--text-xs); }
+  /* Four tabs share one row on a phone: tighter spacing, and a sideways scroll rather than a wrap. */
+  .portal-nav { gap: 18px; overflow-x: auto; scrollbar-width: none; }
+  .portal-nav::-webkit-scrollbar { display: none; }
+  .portal-nav a { flex: 0 0 auto; font-size: 13px; }
   .portal-header-signup { padding-inline: 10px; }
   .portal-hero { gap: 28px; padding-top: 32px; }
   .portal-hero h1 { margin-block: 20px; font-size: 46px; letter-spacing: -2.4px; }

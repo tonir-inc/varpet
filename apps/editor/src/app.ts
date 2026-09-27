@@ -30,6 +30,12 @@ async function start() {
     void clearBlueprintCheckpoint(checkpoint).catch(() => {});
     return;
   }
+  const developer = route.get('developer');
+  if (developer || route.get('view') === 'studio') {
+    const {mountDeveloperProfile} = await import('./portal/developer-profile');
+    await mountDeveloperProfile(host, developer ? {slug: developer} : {studio: true});
+    return;
+  }
   const templateId = route.get('template');
   const apartmentId = route.get('apartment');
   if (!templateId && !apartmentId && !route.has('editor')) {
