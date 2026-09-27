@@ -3,7 +3,7 @@
  *     | render-view [out.png] [--room id] [--camera overview|eye|eye2|top] [--time day|evening] [--width 768] [--height 512]   (no --room: whole flat, overview/top)
  *     | requirements [--room id] (the brief's counts per room, requirements.json) | review --part <room> (independent critic) | at-window <room> <window> <w> <d> <h> (curtain/blind placement JSON) | materials | swatches [out.png] | search --kind k [--text t] [--max-w n --max-d n --max-h n --max-price n --limit n]
  *     | sheet sku1 sku2 ... [out.png] | merge
- *     | script <file.ts> | js '<code>'   (lib/sdk.ts scene scripting: the Studio's functions are in scope; the draft saves when the script ends without error)
+ *     | script <file.ts> | js '<code>' | undo [n] | redo [n]   (lib/sdk.ts scene scripting: the Studio's functions are in scope; the draft saves when the script ends without error)
  *     | check --facts (hard gates for physics, editor validity and budget; every other rule is a note)
  * Optional --scene path / --draft path override the cwd files. `--part <room>` works on one room's file rooms/<room>.json
  * (seeded from that room's part of draft.json when missing; --room defaults to it; check keeps only that room's lines);
@@ -18,7 +18,6 @@
 import { createHash } from 'node:crypto';
 import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
-import { pathToFileURL } from 'node:url';
 import { loadBudget, loadDraft, loadScene, loadSource, describe } from './lib/scene.ts';
 
 const KINDS = 'sofa chair table bed cabinet lamp rug shelf plant decor wall_art mirror tv desk dresser wardrobe nightstand stool ottoman bench '
@@ -133,22 +132,15 @@ async function main(): Promise<number> {
       const code = cmd === 'js' ? argv.join(' ') : readFileSync(argv[0] ?? '', 'utf8');
       if (!code.trim()) throw new Error(cmd === 'js' ? "js needs code: ./varpet js 'console.log(room(\"living\").info())'" : 'script needs a file');
       if (/^\s*import\s/m.test(code)) throw new Error('scripts need no imports: every Studio function (room, add, look, ...) is already in scope');
-      const { Studio, scriptScope } = await import('./lib/sdk.ts');
-      const studio = new Studio(dirname(scenePath)), scope = scriptScope(studio);
-      (globalThis as Record<string, unknown>).__varpet = scope;
-      const file = join(dirname(scenePath), `.varpet-script-${process.pid}.mts`);
-      writeFileSync(file, `const { ${Object.keys(scope).join(', ')} } = (globalThis as any).__varpet; {\n${code}\n}\nexport {};\n`);
-      try { await import(pathToFileURL(file).href); }
-      catch (error) {
-        const text = error instanceof Error ? error.message : String(error);
-        // esbuild syntax errors: "<file>:<line>:<col>: ERROR: <what>" on a later line.
-        const syntax = /:(\d+):(\d+): ERROR: (.*)/.exec(text);
-        // The body starts on line 2 of the module file.
-        const at = syntax ? undefined : error instanceof Error ? /\.varpet-script-\d+\.m?ts:(\d+)/.exec(error.stack ?? '')?.[1] : undefined;
-        const message = syntax ? `syntax error: ${syntax[3]} (script line ${Number(syntax[1]) - 1}, column ${syntax[2]})` : text.split('\n')[0];
-        throw new Error(`${message}${at ? ` (script line ${Number(at) - 1})` : ''}; nothing saved`);
-      } finally { unlinkSync(file); }
-      if (studio.dirty) say(studio.save());
+      const { Studio, runScript } = await import('./lib/sdk.ts');
+      const saved = (await runScript(new Studio(dirname(scenePath)), code)).saved;
+      if (saved) say(saved);
+      return 0;
+    }
+    case 'undo':
+    case 'redo': {
+      const { Studio } = await import('./lib/sdk.ts');
+      say(new Studio(dirname(scenePath))[cmd](Number(argv[0] ?? 1)));
       return 0;
     }
     case 'merge':
@@ -329,7 +321,7 @@ async function main(): Promise<number> {
       console.log(await productSheet(argv, out)); return 0;
     }
     default:
-      console.log('usage: varpet describe | check [--warnings] [--final] | render-plan [out.png] [--room id] | render-view [out.png] [--room id] [--camera overview|eye|eye2|top] [--time day|evening] [--width n] [--height n] | requirements [--room id] | review --part id | place --part id --sku s (--wall w | --window w | --corner | --beside id [--side s] [--gap m] | --facing id | --centered-on id | --center | --at x,y [--rot r]) [--add] | place-group lounge|dining|bed|desk --part id --anchor sku [...] [--add] | prefetch [wishlist.json] | at-window room window w d h | materials | swatches [out.png] | search --kind k [--text t] [--max-w n] [--max-d n] [--max-h n] [--max-price n] [--limit n] | sheet sku... [out.png] | merge | script file.ts | js <code> | check --facts   (any command: --part <room> works on rooms/<room>.json)');
+      console.log('usage: varpet describe | check [--warnings] [--final] | render-plan [out.png] [--room id] | render-view [out.png] [--room id] [--camera overview|eye|eye2|top] [--time day|evening] [--width n] [--height n] | requirements [--room id] | review --part id | place --part id --sku s (--wall w | --window w | --corner | --beside id [--side s] [--gap m] | --facing id | --centered-on id | --center | --at x,y [--rot r]) [--add] | place-group lounge|dining|bed|desk --part id --anchor sku [...] [--add] | prefetch [wishlist.json] | at-window room window w d h | materials | swatches [out.png] | search --kind k [--text t] [--max-w n] [--max-d n] [--max-h n] [--max-price n] [--limit n] | sheet sku... [out.png] | merge | script file.ts | js <code> | undo [n] | redo [n] | check --facts   (any command: --part <room> works on rooms/<room>.json)');
       return cmd ? 2 : 0;
   }
 }

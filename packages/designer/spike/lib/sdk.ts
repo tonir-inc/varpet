@@ -3,8 +3,10 @@
  * Axes as everywhere in the spike: metres, x right, y up, rot degrees CCW, an item's front is its local -y.
  * Everything a script needs is on the Studio object (the CLI spreads it into the script's scope). Errors are one line. */
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { format } from 'node:util';
+import { pathToFileURL } from 'node:url';
 import type { Opening, Wall } from '../../src/scene.ts';
 import {
   againstWall, area, atWindow, bbox as polyBox, centerOf, describe as describeScene, emptyRects, footprint, inPoly, innerFace, loadBudget,
@@ -283,6 +285,26 @@ export class Studio {
     }
     return out.sort((x, y) => x[0] - y[0]).map(x => x[1]);
   }
+  /** Items (the design's and the flat's own) matching every given field: kind exact, name/id substring, room id or name. */
+  find(q: { kind?: string; name?: string; room?: string | RoomView } = {}): DraftItem[] {
+    const roomId = q.room === undefined ? undefined : this.room(q.room).id, s = q.name?.toLowerCase();
+    return [...this.draft.items, ...this.scene.items, ...this.scene.fixed as DraftItem[]].filter(i => (!q.kind || i.kind === q.kind)
+      && (!s || i.id.toLowerCase().includes(s) || (i.name ?? '').toLowerCase().includes(s)) && (!roomId || i.room_id === roomId)) as DraftItem[];
+  }
+  /** Would this piece fit here? Read-only: tries the add, reports collisions, near gaps, door zones and walls, then undoes it. */
+  fits(p: Product | string, o: AddOptions = {}): { pos: Vec2; rot: number; room?: string; collisions: string[]; near: string[]; doorZones: string[]; inRoom: boolean } {
+    const saved = structuredClone(this.draft), dirty = this.dirty;
+    try {
+      const item = this.add(p, o), fp = footprint(item), room = item.room_id;
+      const others = [...this.scene.items, ...this.scene.fixed, ...this.draft.items.filter(onFloor)].filter(b => b.id !== item.id && b.kind !== 'rug' && b.room_id === room);
+      const floor = onFloor(item) && item.kind !== 'rug';
+      const gaps = floor ? others.map(b => [b.id, this.gap(item, b as DraftItem)] as const) : [];
+      const zones = floor ? this.room(room).walls.flatMap(w => w.openings).filter(z => z.clearZone.length && fp.some(pt => inPoly(pt, z.clearZone))).map(z => `${z.kind} ${z.id}`) : [];
+      return { pos: item.pos, rot: item.rot, room, collisions: gaps.filter(([, g]) => g < -0.01).map(([id, g]) => `${id} (overlap ${f2(-g)} m)`),
+        near: gaps.filter(([, g]) => g >= -0.01 && g < 0.6).map(([id, g]) => `${id} ${f2(g)} m`), doorZones: [...new Set(zones)],
+        inRoom: fp.every(pt => this.room(room).contains(pt) || this.room(room).walls.some(w => segDist(pt, w.a, w.b) < 0.02)) };
+    } finally { this.draft = saved; this.dirty = dirty; }
+  }
   freeRects(room: string | RoomView, minSide = 0.8, max = 3) {
     const id = this.room(room).id;
     return emptyRects(this.scene, id, [...this.scene.items, ...this.draft.items], max, 0, minSide).map(r => ({ x0: r3(r.x0), x1: r3(r.x1), y0: r3(r.y0), y1: r3(r.y1), w: r3(r.x1 - r.x0), h: r3(r.y1 - r.y0) }));
@@ -429,11 +451,54 @@ export class Studio {
       { roomId, camera: camera as never, time: o.time ?? 'day', width, height, source: loadSource(join(this.dir, 'scene.json')) });
   }
 
+  /** Save draft.json as one undo step and say what changed (created / updated / removed ids, surfaces, lights). */
   save(): string {
-    writeFileSync(join(this.dir, 'draft.json'), JSON.stringify(this.draft, null, 1) + '\n');
+    const path = join(this.dir, 'draft.json'), before = existsSync(path) ? readFileSync(path, 'utf8') : '{"items": []}\n';
+    const after = JSON.stringify(this.draft, null, 1) + '\n';
+    if (before !== after) {
+      const history = join(this.dir, '.history');
+      mkdirSync(join(history, 'redo'), { recursive: true });
+      writeFileSync(join(history, `${String(historySteps(history).length + 1).padStart(4, '0')}.json`), before);
+      for (const name of readdirSync(join(history, 'redo'))) unlinkSync(join(history, 'redo', name));
+    }
+    writeFileSync(path, after);
     this.dirty = false;
-    return `saved draft.json: ${this.draft.items.length} items, ${this.draft.items.reduce((s, i) => s + (i.price ?? 0), 0)} AMD`;
+    return `saved draft.json: ${this.draft.items.length} items, ${this.draft.items.reduce((s, i) => s + (i.price ?? 0), 0)} AMD; ${changes(JSON.parse(before), this.draft)}`;
   }
+  /** Step back through saved drafts (every script run or save is one step); the draft in memory follows. */
+  undo(steps = 1): string { return this.travel(steps, 'undo'); }
+  redo(steps = 1): string { return this.travel(steps, 'redo'); }
+  private travel(steps: number, way: 'undo' | 'redo'): string {
+    const history = join(this.dir, '.history'), path = join(this.dir, 'draft.json');
+    mkdirSync(join(history, 'redo'), { recursive: true });
+    let done = 0;
+    for (; done < steps; done++) {
+      const from = way === 'undo' ? historySteps(history).map(n => join(history, n)).pop() : historySteps(join(history, 'redo')).map(n => join(history, 'redo', n)).pop();
+      if (!from) break;
+      const into = way === 'undo' ? join(history, 'redo') : history;
+      writeFileSync(join(into, `${String(historySteps(into).length + 1).padStart(4, '0')}.json`), readFileSync(path, 'utf8'));
+      writeFileSync(path, readFileSync(from, 'utf8')); unlinkSync(from);
+    }
+    const before = this.draft;
+    this.draft = loadDraft(path); this.dirty = false;
+    return `${way === 'undo' ? 'undid' : 'redid'} ${done} step${done === 1 ? '' : 's'}; ${changes(before, this.draft)}`;
+  }
+}
+
+function historySteps(dir: string): string[] {
+  return existsSync(dir) ? readdirSync(dir).filter(n => /^\d+\.json$/.test(n)).sort() : [];
+}
+
+/** What changed between two drafts, in ids: the model learns what a script actually did. */
+function changes(a: Partial<Draft>, b: Partial<Draft>): string {
+  const ids = (d: Partial<Draft>) => new Map((d.items ?? []).map(i => [i.id, JSON.stringify(i)]));
+  const A = ids(a), B = ids(b);
+  const created = [...B.keys()].filter(k => !A.has(k)), removed = [...A.keys()].filter(k => !B.has(k));
+  const updated = [...B.keys()].filter(k => A.has(k) && A.get(k) !== B.get(k));
+  const same = (k: 'finishes' | 'lighting') => JSON.stringify(a[k] ?? []) === JSON.stringify(b[k] ?? []);
+  const parts = [created.length && `created ${created.join(', ')}`, updated.length && `updated ${updated.join(', ')}`,
+    removed.length && `removed ${removed.join(', ')}`, !same('finishes') && 'surfaces changed', !same('lighting') && 'lights changed'].filter(Boolean);
+  return parts.join('; ') || 'no change';
 }
 
 /** Separating-axis overlap depth of two convex polygons (0 if apart). */
@@ -451,6 +516,27 @@ function overlapDepth(a: Vec2[], b: Vec2[]): number {
 
 /** The names a script sees: every Studio method bound, plus the studio itself. */
 export function scriptScope(studio: Studio): Record<string, unknown> {
-  const names = Object.getOwnPropertyNames(Studio.prototype).filter(n => n !== 'constructor' && typeof (studio as unknown as Record<string, unknown>)[n] === 'function' && !['item', 'own', 'uniqueId', 'finish', 'lookPath', 'openingView', 'productOf'].includes(n));
+  const names = Object.getOwnPropertyNames(Studio.prototype).filter(n => n !== 'constructor' && typeof (studio as unknown as Record<string, unknown>)[n] === 'function' && !['item', 'own', 'uniqueId', 'finish', 'lookPath', 'openingView', 'productOf', 'travel'].includes(n));
   return { studio, scene: studio.scene, ...Object.fromEntries(names.map(n => [n, ((studio as unknown as Record<string, (...a: unknown[]) => unknown>)[n]!).bind(studio)])) };
+}
+
+/** Run a script body against the studio: every Studio name in scope, top-level await, saved (one undo step) only when it
+ * ends without an error. capture collects console output instead of printing it (the MCP server's stdout is the protocol). */
+export async function runScript(studio: Studio, code: string, capture = false): Promise<{ output: string; saved?: string }> {
+  if (/^\s*import\s/m.test(code)) throw new Error('scripts need no imports: every Studio function (room, add, look, ...) is already in scope');
+  const scope = scriptScope(studio), lines: string[] = [], original = { log: console.log, error: console.error };
+  (globalThis as Record<string, unknown>).__varpet = scope;
+  const file = join(studio.dir, `.varpet-script-${process.pid}-${Date.now()}.mts`);
+  writeFileSync(file, `const { ${Object.keys(scope).join(', ')} } = (globalThis as any).__varpet; {\n${code}\n}\nexport {};\n`);
+  if (capture) console.log = console.error = (...a: unknown[]) => { lines.push(format(...a)); };
+  try { await import(pathToFileURL(file).href); }
+  catch (error) {
+    const text = error instanceof Error ? error.message : String(error);
+    // esbuild syntax errors: "<file>:<line>:<col>: ERROR: <what>"; the body starts on line 2 of the module file.
+    const syntax = /:(\d+):(\d+): ERROR: (.*)/.exec(text);
+    const at = syntax ? undefined : error instanceof Error ? /\.varpet-script-[\d-]+\.m?ts:(\d+)/.exec(error.stack ?? '')?.[1] : undefined;
+    const message = syntax ? `syntax error: ${syntax[3]} (script line ${Number(syntax[1]) - 1}, column ${syntax[2]})` : text.split('\n')[0];
+    throw new Error(`${lines.length ? lines.join('\n') + '\n' : ''}${message}${at ? ` (script line ${Number(at) - 1})` : ''}; nothing saved`);
+  } finally { Object.assign(console, original); unlinkSync(file); }
+  return { output: lines.join('\n'), ...(studio.dirty ? { saved: studio.save() } : {}) };
 }
