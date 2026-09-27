@@ -1,0 +1,18 @@
+{
+ "cases": [
+  {
+   "id": "b-midcentury-bedroom",
+   "room": "room-bedroom",
+   "request": "Furnish the bedroom in a warm mid-century modern style."
+  },
+  {
+   "id": "orion-t8-living",
+   "flat": "../../../apartments/orion-t8/scene.json",
+   "rooms": [
+    "living"
+   ],
+   "budget_dram": 2800000,
+   "request": "We are Arman (36) and Siranush (34) Petrosyan with two kids, Tigran (7) and Nare (4), in our new top-floor flat in Orion. Please furnish the big living room with the kitchen, where everything happens: a dining table for six (grandparents come every Friday), a large sofa that survives kids, a TV for movie nights, and a corner where the kids can play without toys taking over the whole room. Siranush reads and does pilates in the evenings, so she wants a clear spot for a yoga mat. Style: bright Scandinavian with warm oak, soft pastels, rounded corners (no sharp glass tables with kids), washable fabrics. We dislike dark colours and anything fragile. Budget: 2,800,000 AMD for this room's furniture."
+  }
+ ]
+}

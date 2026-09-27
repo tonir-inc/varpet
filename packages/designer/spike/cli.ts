@@ -3,6 +3,8 @@
  *     | render-view [out.png] [--room id] [--camera overview|eye|eye2|top] [--time day|evening] [--width 768] [--height 512]   (no --room: whole flat, overview/top)
  *     | requirements [--room id] (the brief's counts per room, requirements.json) | review --part <room> (independent critic) | at-window <room> <window> <w> <d> <h> (curtain/blind placement JSON) | materials | swatches [out.png] | search --kind k [--text t] [--max-w n --max-d n --max-h n --max-price n --limit n]
  *     | sheet sku1 sku2 ... [out.png] | merge
+ *     | script <file.ts> | js '<code>'   (lib/sdk.ts scene scripting: the Studio's functions are in scope; the draft saves when the script ends without error)
+ *     | check --facts (hard gates for physics, editor validity and budget; every other rule is a note)
  * Optional --scene path / --draft path override the cwd files. `--part <room>` works on one room's file rooms/<room>.json
  * (seeded from that room's part of draft.json when missing; --room defaults to it; check keeps only that room's lines);
  * `merge` folds rooms/*.json into draft.json (then removes them) and checks the whole flat. Every command appends start/end lines to .varpet-log.jsonl beside scene.json
@@ -16,6 +18,7 @@
 import { createHash } from 'node:crypto';
 import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { loadBudget, loadDraft, loadScene, loadSource, describe } from './lib/scene.ts';
 
 const KINDS = 'sofa chair table bed cabinet lamp rug shelf plant decor wall_art mirror tv desk dresser wardrobe nightstand stool ottoman bench '
@@ -124,10 +127,44 @@ let draft = loadDraft(draftPath);
 async function main(): Promise<number> {
   switch (cmd) {
     case 'describe': console.log(describe(scene, draft, budget)); return 0;
+    case 'script':
+    case 'js': {
+      // The body runs as an ES module (top-level await) inside a block, so it may shadow any Studio name.
+      const code = cmd === 'js' ? argv.join(' ') : readFileSync(argv[0] ?? '', 'utf8');
+      if (!code.trim()) throw new Error(cmd === 'js' ? "js needs code: ./varpet js 'console.log(room(\"living\").info())'" : 'script needs a file');
+      if (/^\s*import\s/m.test(code)) throw new Error('scripts need no imports: every Studio function (room, add, look, ...) is already in scope');
+      const { Studio, scriptScope } = await import('./lib/sdk.ts');
+      const studio = new Studio(dirname(scenePath)), scope = scriptScope(studio);
+      (globalThis as Record<string, unknown>).__varpet = scope;
+      const file = join(dirname(scenePath), `.varpet-script-${process.pid}.mts`);
+      writeFileSync(file, `const { ${Object.keys(scope).join(', ')} } = (globalThis as any).__varpet; {\n${code}\n}\nexport {};\n`);
+      try { await import(pathToFileURL(file).href); }
+      catch (error) {
+        const text = error instanceof Error ? error.message : String(error);
+        // esbuild syntax errors: "<file>:<line>:<col>: ERROR: <what>" on a later line.
+        const syntax = /:(\d+):(\d+): ERROR: (.*)/.exec(text);
+        // The body starts on line 2 of the module file.
+        const at = syntax ? undefined : error instanceof Error ? /\.varpet-script-\d+\.m?ts:(\d+)/.exec(error.stack ?? '')?.[1] : undefined;
+        const message = syntax ? `syntax error: ${syntax[3]} (script line ${Number(syntax[1]) - 1}, column ${syntax[2]})` : text.split('\n')[0];
+        throw new Error(`${message}${at ? ` (script line ${Number(at) - 1})` : ''}; nothing saved`);
+      } finally { unlinkSync(file); }
+      if (studio.dirty) say(studio.save());
+      return 0;
+    }
     case 'merge':
     case 'check': {
       if (cmd === 'merge') { say(`merged ${merge().join(', ')} into draft.json`); draft = loadDraft('draft.json'); }
       // --final (and merge): the finished design must be styled, so missing styling layers are hard; else advice.
+      if (bool('facts')) {
+        const { Studio } = await import('./lib/sdk.ts');
+        const studio = new Studio(dirname(scenePath)); studio.draft = draft;
+        const r = await studio.check();
+        say(r.ok ? 'GATES OK' : `GATES FAIL (${r.gates.length})`);
+        for (const g of r.gates) say(`- ${g}`);
+        say(`furniture total ${r.total} AMD${budget ? ` of ${budget}` : ''}`);
+        if (r.notes.length) say(`notes (rules of thumb; follow, or keep your choice for a reason):\n${r.notes.map(n => `~ ${n}`).join('\n')}`);
+        return r.ok ? 0 : 1;
+      }
       const verbose = bool('warnings'), final = bool('final') || cmd === 'merge', roomId = part ? flag('room') : undefined;
       const { check, warnings } = await import('./lib/check.ts');
       // brief.txt beside scene.json (the request plus any answers) decides brief-driven rules; else check reads AGENTS.md.
@@ -292,7 +329,7 @@ async function main(): Promise<number> {
       console.log(await productSheet(argv, out)); return 0;
     }
     default:
-      console.log('usage: varpet describe | check [--warnings] [--final] | render-plan [out.png] [--room id] | render-view [out.png] [--room id] [--camera overview|eye|eye2|top] [--time day|evening] [--width n] [--height n] | requirements [--room id] | review --part id | place --part id --sku s (--wall w | --window w | --corner | --beside id [--side s] [--gap m] | --facing id | --centered-on id | --center | --at x,y [--rot r]) [--add] | place-group lounge|dining|bed|desk --part id --anchor sku [...] [--add] | prefetch [wishlist.json] | at-window room window w d h | materials | swatches [out.png] | search --kind k [--text t] [--max-w n] [--max-d n] [--max-h n] [--max-price n] [--limit n] | sheet sku... [out.png] | merge   (any command: --part <room> works on rooms/<room>.json)');
+      console.log('usage: varpet describe | check [--warnings] [--final] | render-plan [out.png] [--room id] | render-view [out.png] [--room id] [--camera overview|eye|eye2|top] [--time day|evening] [--width n] [--height n] | requirements [--room id] | review --part id | place --part id --sku s (--wall w | --window w | --corner | --beside id [--side s] [--gap m] | --facing id | --centered-on id | --center | --at x,y [--rot r]) [--add] | place-group lounge|dining|bed|desk --part id --anchor sku [...] [--add] | prefetch [wishlist.json] | at-window room window w d h | materials | swatches [out.png] | search --kind k [--text t] [--max-w n] [--max-d n] [--max-h n] [--max-price n] [--limit n] | sheet sku... [out.png] | merge | script file.ts | js <code> | check --facts   (any command: --part <room> works on rooms/<room>.json)');
       return cmd ? 2 : 0;
   }
 }

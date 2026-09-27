@@ -93,22 +93,22 @@ def link_tools(out: Path, cli: Path = SPIKE / "cli.ts") -> None:
     (out / "varpet").chmod(0o755)
 
 
-def fill_prompt(case: dict, rooms: list[dict], image_suffix: str | None = None) -> str:
-    """run/AGENTS.md filled for a case; image_suffix when `inspiration<suffix>` sits in the workspace."""
+def fill_prompt(case: dict, rooms: list[dict], image_suffix: str | None = None, prompt: Path | None = None) -> str:
+    """run/AGENTS.md (or `prompt`, e.g. run/AGENTS.script.md) filled for a case; image_suffix when `inspiration<suffix>` sits in the workspace."""
     image_note = image_tool_note = ""
     if image_suffix:
         image_note = (f"The customer attached an inspiration picture (the image in the first message, also "
                       f"`inspiration{image_suffix}`). Match its mood, palette, materials and key pieces; "
                       "ignore its room geometry.")
         image_tool_note = ", and the inspiration picture"
-    prompt = (RUN / "AGENTS.md").read_text()
+    prompt = (prompt or RUN / "AGENTS.md").read_text()
     for key, value in (("case_id", case["id"]), ("request", case["request"]), ("image_note", image_note),
                        ("image_tool_note", image_tool_note), *notes(case, rooms).items()):
         prompt = prompt.replace("{" + key + "}", value)
     return prompt
 
 
-def make_workspace(case: dict, out: Path, cli: Path) -> tuple[Path, list[dict]]:
+def make_workspace(case: dict, out: Path, cli: Path, prompt: Path | None = None) -> tuple[Path, list[dict]]:
     out.mkdir(parents=True)
     rooms = build_flat(case, out)
     if case.get("budget_dram"):
@@ -121,7 +121,7 @@ def make_workspace(case: dict, out: Path, cli: Path) -> tuple[Path, list[dict]]:
         image = SPIKE / case["image"]
         suffix = image.suffix
         shutil.copyfile(image, out / ("inspiration" + suffix))
-    (out / "AGENTS.md").write_text(fill_prompt(case, rooms, suffix))
+    (out / "AGENTS.md").write_text(fill_prompt(case, rooms, suffix, prompt))
     return out, rooms
 
 
@@ -224,6 +224,7 @@ class Session:
         self.turns: list[dict] = []
         self.started = time.monotonic()
         self.epoch = time.time()
+        self.service_tier: dict = {"requested": getattr(args, "service_tier", None), "resolved": None}
 
     def __enter__(self):
         from openai_codex import Codex, CodexConfig, ApprovalMode, Sandbox
@@ -232,9 +233,27 @@ class Session:
         self.codex = Codex(sdk).__enter__()
         self.log = self.events_path.open("w")
         self.skills_enabled = disable_skills(self.codex, str(self.workspace))
-        self.thread = self.codex.thread_start(model=MODEL, approval_mode=ApprovalMode.deny_all,
-                                              sandbox=Sandbox(self.args.sandbox), cwd=str(self.workspace),
-                                              developer_instructions=(self.workspace / "AGENTS.md").read_text())
+        # The server answers thread/start with the tier it resolved: a tier it does not know comes back as None
+        # (a silent fallback, not an error), so record what was asked and what was granted.
+        tier = getattr(self.args, "service_tier", None)
+        client, original = self.codex._client, self.codex._client.thread_start
+        def recording(params):
+            response = original(params)
+            self.service_tier = {"requested": tier, "resolved": getattr(response, "service_tier", None)}
+            return response
+        client.thread_start = recording
+        try:
+            self.thread = self.codex.thread_start(model=MODEL, approval_mode=ApprovalMode.deny_all,
+                                                  sandbox=Sandbox(self.args.sandbox), cwd=str(self.workspace),
+                                                  developer_instructions=(self.workspace / "AGENTS.md").read_text(),
+                                                  **({"service_tier": tier} if tier else {}))
+        except Exception as error:
+            self.service_tier = {"requested": tier, "resolved": None, "error": f"{type(error).__name__}: {error}"}
+            raise
+        finally:
+            client.thread_start = original
+        if tier and self.service_tier.get("resolved") in (None, "") and tier != "default":
+            print(f"service tier {tier!r} NOT accepted: thread/start resolved {self.service_tier.get('resolved')!r}", flush=True)
         return self
 
     def __exit__(self, *exc):
@@ -285,9 +304,12 @@ class Session:
             status = "timeout"
         # A design turn never ends with hard problems: mark it when it does (the question path has no draft).
         check = varpet(self.workspace, "check", "--final") if status == "completed" and not is_question(final, self.workspace) else None
+        # Physics/editor gates only (check --facts): the script prompt treats the other rules as notes.
+        gates = varpet(self.workspace, "check", "--facts") if check is not None else None
         record = {"label": label, "status": status, "error": (completed or {}).get("error"),
                   "seconds": round(seconds, 1), "final_message": final,
                   "check_ok": None if check is None else check.get("exit") == 0,
+                  "gates_ok": None if gates is None else gates.get("exit") == 0,
                   "tokens_total": (self.usage or {}).get("totalTokens")}
         self.turns.append(record)
         return record
@@ -295,7 +317,7 @@ class Session:
     def summary(self) -> dict:
         ignored = {"agentMessage", "reasoning", "userMessage", None}
         last = self.turns[-1] if self.turns else {}
-        return {"parallel": self.parallel, "tool_mode": self.args.tool_mode, "original_tool_mode": self.extra.get("original_tool_mode"),
+        return {"service_tier": self.service_tier, "prompt": getattr(self.args, "prompt", None) and str(self.args.prompt), "parallel": self.parallel, "tool_mode": self.args.tool_mode, "original_tool_mode": self.extra.get("original_tool_mode"),
                 "sandbox": self.args.sandbox, "network": not self.args.no_network, "config": self.config,
                 "skills_enabled": getattr(self, "skills_enabled", None), "thread_id": getattr(self, "thread", None) and self.thread.id,
                 "status": last.get("status", "missing_completion"), "error": last.get("error"),
@@ -502,13 +524,15 @@ def main() -> int:
     parser.add_argument("--no-critic", action="store_true", help="skip the critic")
     parser.add_argument("--parallel", default="auto", choices=("auto", "on", "off"),
                         help="room sub-agents (spawn_agent, run/SUBAGENT.md); auto = on for multi-room cases")
+    parser.add_argument("--prompt", type=Path, help="designer prompt template (default run/AGENTS.md; run/AGENTS.script.md = scene scripting)")
+    parser.add_argument("--service-tier", help="Codex service tier for the thread: priority (the 'Fast' tier; 'fast' is an alias), default (standard), or omitted (the model's default)")
     parser.add_argument("--subagent-effort", choices=("low", "medium", "high"), help="sub-agent effort (default: --effort)")
     args = parser.parse_args()
     case = load_case(args.case, args.cases)
     if not args.cli.exists():
         raise SystemExit(f"{args.cli} does not exist yet")
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-    workspace, rooms = make_workspace(case, SPIKE / "out" / case["id"] / stamp, args.cli)
+    workspace, rooms = make_workspace(case, SPIKE / "out" / case["id"] / stamp, args.cli, args.prompt)
     print(f"workspace: {workspace}", flush=True)
     result = {"case": case["id"], "request": case["request"], "image": case.get("image"), "model": MODEL,
               "effort": args.effort, "workspace": str(workspace), "flat": case.get("flat", "avani"),
@@ -530,7 +554,7 @@ def main() -> int:
     (workspace / "result.json").write_text(json.dumps(result, indent=2, ensure_ascii=False))
     usage = result.get("usage") or {}
     critic = result.get("critic") or {}
-    print(json.dumps({k: result.get(k) for k in ("status", "error", "wall_seconds", "item_count", "total_price")}
+    print(json.dumps({k: result.get(k) for k in ("status", "error", "wall_seconds", "item_count", "total_price", "service_tier")}
                      | {"question": bool(result.get("question")), "turns": [(t["label"], t["seconds"]) for t in result.get("turns") or []],
                         "critic": [(r["round"], len(r["issues"]), len([i for i in r["issues"] if i["severity"] in ("blocker", "major")]))
                                    for r in critic.get("rounds") or []] or critic.get("skipped")}
