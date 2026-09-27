@@ -85,13 +85,15 @@ function wallGeometry(wall: Wall, height: number, elevation: number, spans: Wall
   const length = Math.hypot(wall.end[0] - wall.start[0], wall.end[1] - wall.start[1]);
   const plaster = new THREE.MeshStandardMaterial({ color: '#999999', roughness: 0.94 });
   const trim = new THREE.MeshStandardMaterial({ color: '#f4f0e8', roughness: 0.65 });
+  // The cut top of a full-height wall reads as a section, as on an architect's drawing; sills keep plaster.
+  const section = new THREE.MeshStandardMaterial({ color: '#3b403d', roughness: 0.9 });
   const footprint = wallFootprint(wall, walls, metadata);
   const innerTrim = wallFootprint(wall, walls, metadata, -0.0025), outerTrim = wallFootprint(wall, walls, metadata, 0.0125);
   const trimFront = [innerTrim[3]!, innerTrim[2]!, outerTrim[2]!, outerTrim[3]!];
   const trimBack = [outerTrim[0]!, outerTrim[1]!, innerTrim[1]!, innerTrim[0]!];
   // Pieces sharing a face assignment merge into one mesh per wall projection, and faces
   // sharing a material into one group: about a third of the draw calls, same pixels.
-  const solids = new Map<string, { front: boolean; back: boolean; geometries: THREE.BufferGeometry[] }>();
+  const solids = new Map<string, { front: boolean; back: boolean; cut: boolean; geometries: THREE.BufferGeometry[] }>();
   const skirts: THREE.BufferGeometry[] = [];
   const box = (start: number, end: number, bottom: number, top: number, skirting = false, side = 1) => {
     if (end - start <= 0.001 || top - bottom <= 0.001) return;
@@ -101,8 +103,8 @@ function wallGeometry(wall: Wall, height: number, elevation: number, spans: Wall
       const geometry = wallPrismGeometry(skirting ? (side > 0 ? trimFront : trimBack) : footprint,
         elevation + bottom, elevation + top, left <= 1e-6 ? -Infinity : left, right >= length - 1e-6 ? Infinity : right);
       if (skirting) { skirts.push(geometry); continue; }
-      const key = `${span.front}:${span.back}`;
-      const bucket = solids.get(key) ?? { front: span.front, back: span.back, geometries: [] };
+      const cut = top >= height - 1e-6, key = `${span.front}:${span.back}:${cut}`;
+      const bucket = solids.get(key) ?? { front: span.front, back: span.back, cut, geometries: [] };
       bucket.geometries.push(geometry); solids.set(key, bucket);
     }
   };
@@ -122,8 +124,8 @@ function wallGeometry(wall: Wall, height: number, elevation: number, spans: Wall
     cursor = opening.offset + opening.width;
   }
   for (const side of [-1, 1]) box(cursor, length, 0, Math.min(0.075, height), true, side);
-  for (const { front: hasFront, back: hasBack, geometries } of solids.values()) {
-    const materials = [plaster, plaster, plaster, plaster, hasFront ? front! : plaster, hasBack ? back! : plaster];
+  for (const { front: hasFront, back: hasBack, cut, geometries } of solids.values()) {
+    const materials = [plaster, plaster, cut ? section : plaster, plaster, hasFront ? front! : plaster, hasBack ? back! : plaster];
     const mesh = new THREE.Mesh(mergeByMaterial(geometries, materials), materials);
     mesh.castShadow = true; mesh.receiveShadow = true; group.add(mesh);
     mesh.userData.finishEntityId = wall.id;

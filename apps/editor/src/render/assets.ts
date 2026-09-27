@@ -408,7 +408,11 @@ export class AssetLoader {
           const result = material.clone();
           for (const [key, value] of Object.entries(result)) if (value instanceof THREE.Texture) {
             let copy = textureCopies.get(value);
-            if (!copy) { copy = value.clone(); copy.needsUpdate = true; textureCopies.set(value, copy); }
+            if (!copy) {
+              copy = value.clone(); copy.needsUpdate = true; textureCopies.set(value, copy);
+              // Rugs and upholstery are seen at grazing angles; three caps this at the GPU's maximum.
+              copy.anisotropy = 16;
+            }
             (result as unknown as Record<string, unknown>)[key] = copy;
           }
           return result;
