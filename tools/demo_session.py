@@ -41,7 +41,8 @@ def turns_of(directory: Path) -> tuple[list[dict], str, dict | None, str]:
                 previous = record.get("message") if record.get("type") == "progress" else None
                 events.append({"t": line["t"], "record": record})
             final = events[-1]["record"] if events else {}
-            turns.append({"request": head["request"], "seconds": events[-1]["t"] if events else 0, "events": events})
+            turns.append({"request": head["request"], "seconds": events[-1]["t"] if events else 0, "events": events,
+                          **({"image": head["image"]} if head.get("image") else {})})
             if final.get("type") == "proposal":
                 return turns, conversation, design, recorded
             if final.get("type") not in ("question", "message"):

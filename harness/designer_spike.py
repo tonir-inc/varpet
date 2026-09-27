@@ -615,7 +615,8 @@ class Recorder:
         self.path, self.started = path, time.monotonic()
         self.lock = threading.Lock()
         self._write({"type": "request", "request": body["request"], "revision": body["revision"],
-                     "sceneId": body["scene"].get("id"), "at": time.strftime("%Y-%m-%dT%H:%M:%S")})
+                     "sceneId": body["scene"].get("id"), "at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+                     **({"image": body["image"]["dataUrl"]} if isinstance(body.get("image"), dict) else {})})
 
     @classmethod
     def open(cls, conversation_id: str, body: dict) -> "Recorder | None":

@@ -4,7 +4,7 @@
  * run ends in the real proposal; follow-ups then go to the live service, continuing the recorded design. */
 
 export interface RecordedEvent { t: number; record: Record<string, unknown> }
-export interface RecordedTurn { request: string; seconds: number; events: RecordedEvent[] }
+export interface RecordedTurn { request: string; seconds: number; events: RecordedEvent[]; /** The inspiration picture sent with it. */ image?: string }
 export interface DesignerSession {
   format: 'varpet.designer-session'; version: 1;
   name: string; title: string; recordedAt: string; flat: string;

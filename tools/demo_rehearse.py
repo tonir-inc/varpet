@@ -73,6 +73,7 @@ def main() -> int:
     parser.add_argument("--editor", help="use a running editor at this base URL (it must point at --service)")
     parser.add_argument("--session", metavar="NAME", help="record the run and write apps/editor/public/demo-sessions/NAME.json")
     parser.add_argument("--title", help="the session's title (with --session)")
+    parser.add_argument("--image", help="an inspiration picture attached to the brief")
     args = parser.parse_args()
     work = Path(tempfile.mkdtemp(prefix="varpet-rehearse-"))
     out = Path(args.out) if args.out else work / "shots"
@@ -110,7 +111,7 @@ def main() -> int:
         flat = flat_path(args.flat, work)
         driver = subprocess.run(["node", str(ROOT / "tools/demo_rehearse.mjs"), editor + "/?editor",
                                  str(flat), str(out), args.brief, args.follow_up], text=True,
-                                capture_output=True)
+                                capture_output=True, env={**os.environ, **({"REHEARSE_IMAGE": str(Path(args.image).resolve())} if args.image else {})})
         if args.session and (work / "recordings").is_dir():
             made = subprocess.run([sys.executable, str(ROOT / "tools/demo_session.py"), str(work / "recordings"), str(flat),
                                    args.session, "--title", args.title or args.flat], capture_output=True, text=True)

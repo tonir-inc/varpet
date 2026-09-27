@@ -15,7 +15,7 @@ await build({ root, configFile: false, publicDir: false, logLevel: 'error', buil
   ssr: join(root, 'src/ui/designer-panel.ts'), target: 'node22', outDir: output,
   minify: false, rolldownOptions: { output: { entryFileNames: 'panel.mjs' } },
 } });
-const { createDesignerConversation, progressStep, proposalInScene } = await import(pathToFileURL(join(output, 'panel.mjs')));
+const { createDesignerConversation, progressStep, proposalInScene, proposalMarks } = await import(pathToFileURL(join(output, 'panel.mjs')));
 const scene = { format: 'varpet.editor', version: 1, id: 'flat', name: 'Flat', units: 'm', upAxis: 'Y', rooms: [], walls: [], objects: [] };
 const proposal = (id = 'p1') => ({ id, title: 'Living room', description: 'A warm living room.',
   command: { id, label: 'Design', source: 'designer', baseRevision: 3, operations: [] } });
@@ -110,4 +110,17 @@ test('undoing a follow-up that re-hangs earlier pieces reads Undone; the first d
   assert.deepEqual(controller.state.messages.filter(m => m.proposal).map(m => m.status), ['applied', 'undone']);
   objects = []; controller.refreshSettings();
   assert.deepEqual(controller.state.messages.filter(m => m.proposal).map(m => m.status), ['undone', 'undone']);
+});
+
+test('undoing a follow-up that only moved and re-hung existing pieces reads Undone', () => {
+  const object = (id, x) => ({ id, name: id, assetId: 'a-' + id, position: [x, 0, 0], rotation: 0, scale: [1, 1, 1] });
+  const before = { ...scene, objects: [object('sofa', 1), object('art', 2)] };
+  const follow = { id: 'f', title: 'f', description: 'f', command: { id: 'f', label: 'f', source: 'designer', baseRevision: 3,
+    operations: [{ type: 'delete', id: 'art' }, { type: 'add', object: object('art', 2) }, { type: 'update', id: 'sofa', patch: { position: [3, 0, 0] } }] } };
+  const after = { ...scene, objects: [object('sofa', 3), object('art', 2)] };
+  const marks = proposalMarks(follow, before, after);
+  assert.deepEqual(marks.length, 1);
+  assert.equal(proposalInScene(follow, after, marks), 'applied');
+  assert.equal(proposalInScene(follow, before, marks), 'undone');
+  assert.equal(proposalInScene(follow, before, []), undefined);
 });

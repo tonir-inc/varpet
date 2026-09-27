@@ -28,8 +28,9 @@ let ok = true;
 const fail = (message) => { ok = false; log('fail', { message }); };
 
 /** One designer turn: send, watch steps/previews/partials, wait for the reply. Returns the reply kind. */
-async function turn(label, text) {
+async function turn(label, text, image) {
   const turnStart = t();
+  if (image) { await page.setInputFiles('.designer-attach-input', image); await page.waitForSelector('.designer-attachment:not([hidden])', { timeout: 15_000 }); }
   await page.fill('#designer-request', text);
   await page.press('#designer-request', 'Enter');
   const seen = new Set();
@@ -76,7 +77,7 @@ try {
   await page.waitForTimeout(4000); mark('flat_loaded');
   await screenshot('flat');
 
-  let first = await turn('brief', brief);
+  let first = await turn('brief', brief, process.env.REHEARSE_IMAGE);
   // The designer may ask one question when the brief does not fit the flat: answer with its first option.
   if (!first.proposal && (await page.locator('.designer-options button').count() || first.asks)) {
     const option = page.locator('.designer-options button').first();
