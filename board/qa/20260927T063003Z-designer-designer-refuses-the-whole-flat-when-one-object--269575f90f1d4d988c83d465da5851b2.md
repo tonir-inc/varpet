@@ -6,6 +6,7 @@ status: "fixed"
 title: "Designer refuses the whole flat when one object spans two rooms (f-stool-0 at the kitchen island)"
 reported_by: "Sergey"
 created: "2026-09-27T06:30:03.747107Z"
+fixed_in: "9641a00"
 ---
 
 **Steps**
@@ -29,3 +30,5 @@ Immediate refusal (0:00, 2 steps): 'I cannot read this flat's layout yet: Object
 - 2026-09-27T07:07:56.892127Z: Fix implemented locally, no commit requested. Sunday conversion and unrelated wall-colour round trip pass; reviewing full-suite sandbox failures and planner timeouts.
 
 - 2026-09-27T07:08:49.458222Z: Uncommitted fix verified: Sunday furnished/startup convert; f-stool-0 majority r-living still blocks r-kitchen; actual wall-colour round trip preserves all objects/supports. 59 focused TS tests + 3 Python notice tests pass, pnpm typecheck passes. Full Designer/root tests have sandbox IPC/socket failures; planner timeouts pass isolated. No commit requested.
+
+- 2026-09-27T07:18:04.824127Z: Fixed in 9641a00: majority-footprint room ownership, cross-room obstacles, single-object problems degrade to warned fixed obstacles.

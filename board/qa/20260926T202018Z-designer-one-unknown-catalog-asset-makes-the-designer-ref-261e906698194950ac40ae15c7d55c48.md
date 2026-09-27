@@ -6,7 +6,7 @@ status: "fixed"
 title: "One unknown catalog asset makes the designer refuse the whole scene"
 reported_by: "Sergey"
 created: "2026-09-26T20:20:18.694959Z"
-fixed_in: "d2eaff0"
+fixed_in: "9641a00"
 ---
 
 **Steps**
@@ -28,3 +28,5 @@ editor-bridge to-designer throws 'Invalid editor scene: ... references unknown c
 **Notes**
 
 - 2026-09-26T21:27:57.909900Z: Bridge gives unknown/invalid assets a stand-in (supplied record's dims if usable, else 0.6x0.6x0.9 m x scale); the object becomes a fixed obstacle kind 'unrecognised' named '(unrecognised catalog item ...)', items resting on it are left out, rest of the flat converts and proposals translate. An entirely empty catalog still refuses. Test: test/editor-unknown-asset.test.ts
+
+- 2026-09-27T07:18:04.951507Z: Same fix: single problematic objects become warned fixed obstacles instead of disabling the designer.
