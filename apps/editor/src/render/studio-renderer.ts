@@ -7,6 +7,7 @@ import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
 import { FXAAPass } from 'three/addons/postprocessing/FXAAPass.js';
 import { SelectionOutline } from './selection-outline';
 import { AdaptiveOcclusionPass } from './adaptive-occlusion';
+import type { FrameProfiler } from './frame-profiler';
 
 type StudioCamera = THREE.PerspectiveCamera | THREE.OrthographicCamera;
 
@@ -91,6 +92,8 @@ export class StudioRenderer {
   private readonly antialias = typeof Image === 'undefined' ? new FXAAPass() : new SMAAPass();
   private disposed = false;
   private interior = false;
+  private interacting = false;
+  private profiler?: { profiler: FrameProfiler; unwrap: () => void };
 
   constructor(private readonly renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: StudioCamera) {
     const target = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: Math.min(4, renderer.capabilities.maxSamples) });
@@ -185,7 +188,21 @@ export class StudioRenderer {
 
   /** The viewport owns gesture/settle timing; only AO changes resolution. */
   setInteracting(active: boolean): void {
-    if (!this.disposed) this.occlusion.setInteracting(active);
+    if (this.disposed) return;
+    if (active !== this.interacting) this.profiler?.profiler.tag(active ? 'drag start: AO resize' : 'settle: AO resize');
+    this.interacting = active;
+    this.occlusion.setInteracting(active);
+  }
+
+  /** Time every composer pass as a profiler zone, or remove the zones again. */
+  setProfiler(profiler: FrameProfiler | undefined): void {
+    this.profiler?.unwrap(); this.profiler = undefined;
+    if (!profiler || this.disposed) return;
+    const unwrap = profiler.wrapPasses([
+      { pass: this.beauty, label: 'scene' }, { pass: this.occlusion, label: 'AO' }, { pass: this.grade, label: 'grade' },
+      { pass: this.output, label: 'output' }, { pass: this.selection, label: 'outline' }, { pass: this.antialias, label: 'SMAA' },
+    ]);
+    this.profiler = { profiler, unwrap };
   }
 
   /** Keep an eye-level room view neutral; the dollhouse keeps its studio grade. */

@@ -49,6 +49,7 @@ import { SceneShadowCache } from './shadow-cache';
 import { TourPlanner, TourPlayback, type TourPose } from './tour';
 import { EveningRoomLights, PracticalLightPool, type RoomFill } from './practical-lights';
 import { installPerfProbe, type PerfProbe } from './perf-probe';
+import { FrameProfiler, profilerRequested } from './frame-profiler';
 import { TopLightingProjection } from './top-lighting';
 import { createFurnitureDrop } from './furniture-drop';
 import { BLUEPRINT_PAPER, BlueprintGround, type BlueprintBackdrop } from './blueprint-ground';
@@ -330,6 +331,7 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
   let disposed = false;
   let renderFailed = false;
   let perfProbe: PerfProbe | undefined;
+  let profiler: FrameProfiler | undefined;
   const placementMotion = new PlacementMotion(furniture, () => { shadowCache.invalidate(); requestRender(); });
   const motion = new MotionTimeline(() => { shadowCache.invalidate(); requestRender(); });
   const cameraMotion = new MotionTimeline(requestRender);
@@ -621,7 +623,8 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
       frame = 0;
       if (disposed) return;
       const now = performance.now(); const dt = Math.min((now - lastAnimation) / 1000, 0.06); lastAnimation = now;
-      if (pendingModels.size) installLoadedModels(4);
+      profiler?.beginFrame(now);
+      if (pendingModels.size) { profiler?.tag('model install'); installLoadedModels(4); }
       const geometryMoving = motion.update(now);
       let animating = geometryMoving;
       let shadowsChanged = geometryMoving;
@@ -637,7 +640,7 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
       if (placementMotion.update(now)) { animating = true; shadowsChanged = true; }
       if (updateAssemblies(now)) { animating = true; shadowsChanged = true; }
       // SunOccluders keep the intact shell in the sun's map, so cutaway fades reuse cached shadows.
-      if (structure?.updateWalls(camera, view === 'inside' ? 'full' : walls, view === 'top', now, motion.reduced, selectedId ?? undefined)) animating = true;
+      if (structure?.updateWalls(camera, view === 'inside' ? 'full' : walls, view === 'top', now, motion.reduced, selectedId ?? undefined)) { animating = true; profiler?.tag('wall fade'); }
       if (walk.update(now)) animating = true;
       if (documentState && view === 'inside') {
         const occupied = ceilingDesignRoomAt(documentState, insideCamera.position.toArray());
@@ -802,7 +805,9 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
     if (perfProbe) { renderer.info.autoReset = false; renderer.info.reset(); }
     topLighting.prepare(world, view === 'top' && !topLightingEnabled);
     practicalLights.sync(world, camera);
+    profiler?.beginSubmit();
     studioRenderer.render(camera);
+    profiler?.endSubmit();
     if (perfProbe) perfProbe.submits.push({ at: started, ms: performance.now() - started, calls: renderer.info.render.calls, triangles: renderer.info.render.triangles });
   }
 
@@ -2064,9 +2069,21 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
       if (services) disposeObject(services.group); if (comparison) disposeObject(comparison); disposeObject(annotations); disposeObject(endpointHandles); disposeObject(openingHandle); windowHandles.dispose();
       practicalLights.dispose(); eveningLights.setRooms([]); windowSky.dispose();
       blueprint.dispose(); sunOccluders.dispose(); loader.dispose(); openingAssets.dispose(); sunlight.shadow.dispose(); topLighting.dispose();
+      window.removeEventListener('keydown', toggleProfiler); setProfiler(false);
       studioRenderer.dispose(); skyboxes.dispose(); environment.dispose(); renderer.dispose(); container.remove();
     },
   };
+  function setProfiler(on: boolean): void {
+    studioRenderer.setProfiler(undefined); profiler?.dispose(); profiler = undefined;
+    if (on && !disposed) { profiler = new FrameProfiler(renderer, container, () => setProfiler(false)); studioRenderer.setProfiler(profiler); }
+    requestRender();
+  }
+  const toggleProfiler = (event: KeyboardEvent) => {
+    if (event.code !== 'Backquote' || event.metaKey || event.ctrlKey || event.altKey || (event.target as Element | null)?.closest?.('input, textarea, [contenteditable]')) return;
+    setProfiler(!profiler);
+  };
+  window.addEventListener('keydown', toggleProfiler);
+  if (profilerRequested()) setProfiler(true);
   perfProbe = installPerfProbe({ viewport: api, renderer, world, pick(x, y) {
     const rect = renderer.domElement.getBoundingClientRect();
     pointer.set(x / rect.width * 2 - 1, -y / rect.height * 2 + 1); raycaster.setFromCamera(pointer, camera);
