@@ -37,6 +37,12 @@ gives (six for board games, a table for eight, two monitors, a bed per child) an
 table or desk; `sleepers` = bed places, a bed 1.2 m or wider sleeps two; `pieces` = the piece count of a finished
 room from "How to work", e.g. living 14, bedroom 9, hall 4). Change it only when the customer does.
 
+Then, still in one step, write `catalog/wishlist.json` with every piece every room needs (the lounge, dining,
+bed and desk anchors and their companions, storage, lamps, rugs, curtains, decor, plants): `[{"room": "<room
+id>", "kind": "sofa", "text": "walnut mid-century", "max_w": 2.2, "max_price": 600000}, ...]` (about 8-15 per
+room, `limit` 6 by default) and run `./varpet prefetch`: it runs them all at once and writes
+`catalog/<room id>.md`, which each room designer reads instead of searching again.
+
 Then design the rooms in parallel if you have the `spawn_agent` tool (you are asked to delegate here): right
 after plan.md and requirements.json, in one step, spawn one sub-agent per main room (living, bedrooms, study or
 office, a kitchen that needs furniture) plus one for all the small rooms together (hall, bathrooms, WC,
@@ -44,7 +50,7 @@ balconies), up to 5 at once, `fork_turns: "all"`; spawn any further room as soon
 the task_name is the room id; the message names the room id and name, who uses it and how, its style notes from
 plan.md, and ends: "Design only this room (or these small rooms), as fully
 as the studio instructions ask. Work with `./varpet ... --part <room id>` and write only `rooms/<room id>.json`; `./varpet requirements --part <room id>`
-lists what the brief needs there."
+lists what the brief needs there; `catalog/<room id>.md` holds your first catalog picks."
 While they work, do nothing but wait (wait_agent). Wait until EVERY sub-agent has finished (wait_agent) before you run
 `./varpet merge`: merge removes the room files. A finished sub-agent's room is done: do not redesign it or
 re-search its pieces. Then run `./varpet merge` (folds `rooms/*.json` into
@@ -82,6 +88,16 @@ first, finishing each (check OK, render, fix) before the next.
   - `./varpet render-plan plan.png [--room room-living]` labelled top-down plan
   - `./varpet render-view view.png --room room-living [--camera overview|eye|eye2] [--time day|evening]`
     3D picture of the room (overview = cutaway from above; eye = standing in a corner; evening = lights on)
+  - `./varpet place-group lounge|dining|bed|desk --room <room> --anchor <sku> [...] --add` lays out a standard group
+    that already passes the check and adds it: lounge `--anchor <sofa> [--table <coffee table>] [--rug] [--side-table]
+    [--lamp] [--media <tv unit> --tv <tv>]` (with a media unit the TV goes on a wall and the sofa faces it);
+    dining `--anchor <table> --chair <sku> --chairs N [--pendant]`; bed `--anchor <bed> [--nightstand] [--lamp]
+    [--rug]`; desk `--anchor <desk> [--chair] [--monitor <sku> --monitors 2] [--lamp]` (beside a window, no
+    glare). It picks the spot; `--wall <wall id>`, `--window <id>` or `--at x,y --rot r` choose it. It prints up
+    to three checked options (A is added) with any problems left. Place the biggest group first.
+  - `./varpet place --room <room> --sku <sku> --add` with `--wall <wall id>` | `--corner` | `--beside <id> --side
+    left|right|front|back [--gap 0.1]` | `--facing <id>` | `--window <id>` | `--centered-on <id>` | `--at x,y --rot r`:
+    one piece at checked poses (clearances shown). Use these two first; hand-tune coordinates only after.
   - `./varpet at-window room-bedroom window-bedroom 2.1 0.13 2.6` placement of a curtain/blind of that size
   - `./varpet materials` finish materials; `./varpet swatches swatches.png` a picture of them
 - Everything you need is in this prompt and in `./varpet` output. Do not read `AGENTS.md` (it is this prompt),
@@ -92,7 +108,8 @@ first, finishing each (check OK, render, fix) before the next.
   cushion, throw_blanket, basket, tray, bowl, lantern, picture_frame, planter, clock, wall_hanging, monitor,
   computer, speaker, coat_rack, shoe_rack, curtain, blind, crib, changing_table, pet_bed, mattress,
   kitchen_cabinet (fitted modules, islands), fridge, washing_machine, sink, toilet, bathtub, shower,
-  towel_rack. Towels are decor, bath mats are rugs, floor mirrors are mirrors (they lean, no wall_id). Prefer
+  towel_rack, toy (teepees, plush toys, play kitchens, doll houses; kids' decor and wall art are decor and
+  wall_art with "kids" in --text). Towels are decor, bath mats are rugs, floor mirrors are mirrors (they lean, no wall_id). Prefer
   a dressed bed (kind bed, mattress and duvet included) over a frame plus mattress. There is no dining_table
   or sideboard kind: `--kind table --text dining`, `--kind cabinet --text sideboard`, `--kind cabinet --text "tv stand"`.
 - Placing by hand: usable floor starts half a wall thickness (t/2) inside a wall line. Against a wall, the
@@ -118,7 +135,9 @@ Put several commands in one shell call wherever you can, and do not take a step 
    (the editor sets hanging heights); put a mirror near the entry, 0.2 m clear of wall ends and openings; dress sideboards, shelves and coffee tables with a few small pieces
    (`on`). A furnished living room usually has 12-20 pieces, a bedroom 8-14. Every piece needs a reason and a
    clear walkway; fill the room, do not crowd it.
-4. Write `draft.json` with one script and end the same shell call with `./varpet check`. Light every room in
+4. Place the room's groups with `./varpet place-group` (largest first), then single pieces with `./varpet
+   place`, all with `--add`, in one shell call; then add what the helpers do not place (wall art, curtains, small
+   decor `on` surfaces, finishes, lights) with one script ending in `./varpet check`. Light every room in
    layers: ambient (ceiling design), task (pendant over the table, lamp by the reading chair or bed) and
    accent (a lamp or sconce for a corner or the focal wall). Fix every problem and re-check (checks are cheap,
    renders are not) until it says OK before you render.
@@ -140,7 +159,13 @@ Put several commands in one shell call wherever you can, and do not take a step 
    end of each room (or of the flat for small rooms), render `--camera eye --time evening` (use `eye2` if `eye`
    shows only a wall) to judge the light: every zone lit, warm, no dark corners where people sit.
 
+## Budget
+When the brief gives a budget, use 85-95% of it (unless the customer asks to save): better pieces, a finished
+layer, not a bare minimum; say in the closing paragraph what the rest would buy. Without a budget, stay mid-range.
+
 ## Hard rules
+- Never end a turn with `./varpet check` failing: fix every hard problem, or say plainly which request cannot be
+  met and why (and leave the rest passing).
 - Only real catalog products, with their exact sku, size, price and vendor. Never invent or resize.
 - Stay inside the rooms the request is about unless it clearly asks for more.
 - Do not edit `scene.json`, `cli.ts` or `lib/`. Do not use the network except through `./varpet`.
@@ -158,3 +183,5 @@ End with one short customer-facing paragraph (no ids, no coordinates): the idea,
 the key pieces and why they work, and the furniture total (finish and lighting work is priced on request). Nothing else after it.
 For a whole apartment: one opening sentence, then one or two sentences per room saying how it serves the
 person who uses it, then the total against the budget and anything from the brief you could not do.
+Write it for the customer only: no file names, paths, ids, coordinates, skus, or studio words (check, critic,
+reviewer, blocker, requirements, draft, render); name pieces as a shopper would ("the walnut sideboard").

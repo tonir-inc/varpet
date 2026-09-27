@@ -13,7 +13,8 @@
  * this file when run in-repo, else /Users/snek/dev/varpet-designer-spike/packages/designer/src.
  * In a copied workspace run tsx from the repo (e.g. /Users/snek/dev/varpet-designer-spike/node_modules/.bin/tsx)
  * or set NODE_PATH so the lib modules can resolve their own dependencies. */
-import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import { loadBudget, loadDraft, loadScene, loadSource, describe } from './lib/scene.ts';
 
@@ -82,6 +83,35 @@ function merge(): string[] {
   return [...rooms];
 }
 
+type Product = { sku: string; kind: string; name: string; size: [number, number, number]; price: number; vendor: string; image?: string };
+const productLine = (p: Product) => `${p.sku} | ${p.name} | ${p.size.map(n => n.toFixed(2)).join('x')} m | ${p.price} AMD | ${p.vendor}`;
+const cacheDir = join(dirname(scenePath), 'catalog', 'cache');
+/** Same query, same answer, for every designer in this workspace (one file per query, written atomically). */
+async function searchCached(q: Record<string, unknown>): Promise<Product[]> {
+  const key = createHash('sha1').update(JSON.stringify(Object.entries(q).filter(([, v]) => v !== undefined).sort())).digest('hex').slice(0, 16);
+  const path = join(cacheDir, `${key}.json`);
+  if (existsSync(path)) return JSON.parse(readFileSync(path, 'utf8')).rows as Product[];
+  const { search } = await lib('catalog.ts');
+  const rows = await search(q) as Product[];
+  mkdirSync(cacheDir, { recursive: true });
+  writeFileSync(`${path}.${process.pid}`, JSON.stringify({ q, rows }));
+  renameSync(`${path}.${process.pid}`, path);
+  return rows;
+}
+/** A product seen by any search in this workspace (sku exact), else one search by the sku text. */
+async function productBySku(sku: string): Promise<Product> {
+  if (existsSync(cacheDir)) for (const name of readdirSync(cacheDir).filter(n => n.endsWith('.json'))) {
+    try { const hit = (JSON.parse(readFileSync(join(cacheDir, name), 'utf8')).rows as Product[]).find(p => p.sku === sku); if (hit) return hit; } catch { /* partial file */ }
+  }
+  const used = draft.items.find(i => i.sku === sku);
+  if (used?.price !== undefined) return { sku, kind: used.kind, name: used.name, size: used.size, price: used.price, vendor: used.vendor ?? 'unknown' };
+  const { catalogItems } = await import('../src/catalog.ts');
+  const r = (await catalogItems([sku]))[0] as Record<string, unknown> | undefined;
+  const size = r?.size_m as [number, number, number] | undefined;
+  if (!r || !Array.isArray(size) || typeof r.price !== 'number') throw new Error(`sku ${sku} not found in the catalog`);
+  return { sku, kind: String(r.kind), name: String(r.name).slice(0, 70), size, price: Math.round(r.price), vendor: String(r.brand ?? r.source ?? 'unknown') };
+}
+
 const scene = loadScene(scenePath), budget = loadBudget(scenePath);
 if (part && !explicitDraft && !existsSync(draftPath)) {
   // A room file starts as that room's part of draft.json (empty on a first design).
@@ -109,6 +139,8 @@ async function main(): Promise<number> {
       say(!problems.length ? 'OK' : `FAIL (${problems.length} hard)`);
       for (const p of problems) say(`- ${p}`);
       say(roomId ? `${draft.items.length} items in ${roomId} (rooms/${roomId}.json); whole-flat rules and the budget are checked after merge` : r.summary);
+      const { requirementAdvice } = await import('./lib/requirements.ts');
+      for (const line of requirementAdvice(draft)) if (!roomId || about(line, roomId, ids)) say(`~ ${line}`);
       if (verbose) for (const w of await warnings(scene, draft)) if (!roomId || about(w, roomId, ids)) say(`~ ${w}`);
       return problems.length ? 1 : 0;
     }
@@ -177,12 +209,76 @@ async function main(): Promise<number> {
     case 'search': {
       const kind = flag('kind');
       if (!kind) throw new Error('search needs --kind <kind>');
-      const q = { kind, text: flag('text'), maxW: num('max-w'), maxD: num('max-d'), maxH: num('max-h'), maxPrice: num('max-price'), limit: num('limit') };
-      const { search } = await lib('catalog.ts');
-      const rows: { sku: string; kind: string; name: string; size: number[]; price: number; vendor: string; image?: string }[] = await search(q);
+      const q = { kind, text: flag('text'), maxW: num('max-w'), maxD: num('max-d'), maxH: num('max-h'), maxPrice: num('max-price'), limit: num('limit') ?? 6 };
+      const rows = await searchCached(q);
       if (!rows.length) console.log(`no results for kind ${kind}; kinds: ${KINDS}`);
-      for (const p of rows) console.log(`${p.sku} | ${p.name} | ${p.size.map(n => n.toFixed(2)).join('x')} m | ${p.price} AMD | ${p.vendor}`);
+      for (const p of rows) console.log(productLine(p));
       return 0;
+    }
+    case 'prefetch': {
+      // The lead's one round of searches for every room: catalog/wishlist.json [{room, kind, text?, max_w?, max_d?,
+      // max_h?, max_price?, limit?}] -> catalog/<room>.md, read by each room designer instead of searching again.
+      const list = JSON.parse(readFileSync(argv[0] ?? join(dirname(scenePath), 'catalog', 'wishlist.json'), 'utf8')) as Record<string, string | number | undefined>[];
+      const rooms = new Map<string, string[]>();
+      let next = 0;
+      const worker = async () => {
+        while (next < list.length) {
+          const w = list[next++]!, q = { kind: String(w.kind), text: w.text as string | undefined, maxW: w.max_w as number | undefined,
+            maxD: w.max_d as number | undefined, maxH: w.max_h as number | undefined, maxPrice: w.max_price as number | undefined, limit: (w.limit as number | undefined) ?? 6 };
+          let rows: Product[] = [];
+          try { rows = await searchCached(q); } catch (error) { rows = []; }
+          const head = `## ${q.kind}${q.text ? ` "${q.text}"` : ''}${q.maxW ? ` max-w ${q.maxW}` : ''}${q.maxD ? ` max-d ${q.maxD}` : ''}${q.maxPrice ? ` max-price ${q.maxPrice}` : ''}`;
+          const lines = rooms.get(String(w.room)) ?? []; rooms.set(String(w.room), lines);
+          lines.push(head, ...(rows.length ? rows.map(productLine) : ['(no results)']), '');
+        }
+      };
+      await Promise.all(Array.from({ length: 6 }, worker));
+      mkdirSync(join(dirname(scenePath), 'catalog'), { recursive: true });
+      for (const [room, lines] of rooms) writeFileSync(join(dirname(scenePath), 'catalog', `${room}.md`), `# Catalog picks for ${room} (sku | name | w x d x h | price | vendor)\n\n${lines.join('\n')}`);
+      say(`prefetched ${list.length} searches into ${[...rooms.keys()].map(r => `catalog/${r}.md`).join(', ')}`);
+      return 0;
+    }
+    case 'place':
+    case 'place-group': {
+      const roomId = flag('room');
+      if (!roomId) throw new Error(`${cmd} needs --part <room id> (or --room)`);
+      const P = await import('./lib/place.ts'), { loadRequirements } = await import('./lib/requirements.ts');
+      const briefPath = join(dirname(scenePath), 'brief.txt');
+      const options = { budget: undefined, brief: existsSync(briefPath) ? readFileSync(briefPath, 'utf8') : undefined, requirements: loadRequirements(scenePath) };
+      const atXY = flag('at'), side = flag('side');
+      const spec = { wall: flag('wall'), window: flag('window'), corner: bool('corner'), beside: flag('beside'), side: side as 'left' | 'right' | 'front' | 'back' | undefined,
+        facing: flag('facing'), centeredOn: flag('centered-on'), gap: num('gap'), rot: num('rot'), center: bool('center'),
+        at: atXY ? atXY.split(',').map(Number) as [number, number] : undefined, notWall: flag('not-wall')?.split(',') };
+      const add = bool('add');
+      let result: { candidates: import('./lib/place.ts').Candidate[]; reason?: string };
+      if (cmd === 'place') {
+        const sku = flag('sku');
+        if (!sku) throw new Error('place needs --sku <sku>');
+        const product = await productBySku(sku);
+        const id = flag('id') ?? P.uniqueId(draft, scene, `${roomId}-${product.kind}`);
+        result = await P.placeOne(scene, draft, roomId, product, id, spec, options);
+      } else {
+        const kind = argv[0] as import('./lib/place.ts').GroupKind;
+        if (!['lounge', 'dining', 'bed', 'desk'].includes(kind)) throw new Error('place-group lounge|dining|bed|desk --part <room> --anchor <sku> ...');
+        const get = async (name: string) => { const v = flag(name); return v ? productBySku(v) : undefined; };
+        const anchor = await get('anchor');
+        if (!anchor) throw new Error('place-group needs --anchor <sku> (sofa, dining table, bed or desk)');
+        const products = { anchor, table: await get('table'), rug: await get('rug'), side: await get('side-table'), lamp: await get('lamp'), tv: await get('tv'),
+          media: await get('media'), chair: await get('chair'), chairs: num('chairs'), nightstand: await get('nightstand'), monitor: await get('monitor'),
+          monitors: num('monitors'), pendant: bool('pendant') };
+        result = await P.placeGroup(scene, draft, roomId, kind, products, spec, options);
+      }
+      if (!result.candidates.length) { say(`no pose found: ${result.reason ?? 'no candidate'}`); return 1; }
+      result.candidates.forEach((c, n) => say(P.describeCandidate(c, String.fromCharCode(65 + n))));
+      if (add) {
+        const best = result.candidates[0]!;
+        const file = loadDraft(draftPath);
+        file.items.push(...best.items);
+        if (best.lighting.length) file.lighting = [...(file.lighting ?? []), ...best.lighting];
+        writeFileSync(draftPath, JSON.stringify(file, null, 1) + '\n');
+        say(`added A to ${draftPath}: ${best.items.map(i => i.id).join(', ')}${best.lighting.length ? ', ' + best.lighting.map(l => l.id).join(', ') : ''}`);
+      }
+      return result.candidates[0]!.problems.length ? 1 : 0;
     }
     case 'sheet': {
       const out = argv.length && argv[argv.length - 1]!.endsWith('.png') ? argv.pop()! : 'sheet.png';
@@ -191,7 +287,7 @@ async function main(): Promise<number> {
       console.log(await productSheet(argv, out)); return 0;
     }
     default:
-      console.log('usage: varpet describe | check [--warnings] | render-plan [out.png] [--room id] | render-view [out.png] [--room id] [--camera overview|eye|eye2|top] [--time day|evening] [--width n] [--height n] | requirements [--room id] | review --part id | at-window room window w d h | materials | swatches [out.png] | search --kind k [--text t] [--max-w n] [--max-d n] [--max-h n] [--max-price n] [--limit n] | sheet sku... [out.png] | merge   (any command: --part <room> works on rooms/<room>.json)');
+      console.log('usage: varpet describe | check [--warnings] | render-plan [out.png] [--room id] | render-view [out.png] [--room id] [--camera overview|eye|eye2|top] [--time day|evening] [--width n] [--height n] | requirements [--room id] | review --part id | place --part id --sku s (--wall w | --window w | --corner | --beside id [--side s] [--gap m] | --facing id | --centered-on id | --center | --at x,y [--rot r]) [--add] | place-group lounge|dining|bed|desk --part id --anchor sku [...] [--add] | prefetch [wishlist.json] | at-window room window w d h | materials | swatches [out.png] | search --kind k [--text t] [--max-w n] [--max-d n] [--max-h n] [--max-price n] [--limit n] | sheet sku... [out.png] | merge   (any command: --part <room> works on rooms/<room>.json)');
       return cmd ? 2 : 0;
   }
 }

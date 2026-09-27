@@ -110,3 +110,29 @@ export function describeNeeds(req: Requirements | undefined, roomId: string): st
     needs.exclude?.length ? `no ${needs.exclude.join(', ')}` : '', typeof needs.budget_dram === 'number' ? `budget: ${needs.budget_dram} AMD` : ''];
   return `${roomId} needs (checked by ./varpet check):\n${parts.filter(Boolean).map(p => `- ${p}`).join('\n')}`;
 }
+
+/** Soft advice from the design itself: a seating group (a sofa) wants a rug under its front legs. */
+export function requirementAdvice(draft: Draft): string[] {
+  const out: string[] = [], items = draft.items ?? [];
+  const rooms = [...new Set(items.filter(i => i.kind === 'sofa').map(i => i.room_id))];
+  for (const room of rooms) if (!items.some(i => i.room_id === room && i.kind === 'rug'))
+    out.push(`rug: ${room} has a seating group but no rug; a rug under the sofa's front legs ties it together (./varpet place --centered-on <coffee table> --sku <rug>, or place-group lounge --rug)`);
+  return out;
+}
+
+/** A sofa is reached through the 0.35-0.5 m knee space in front of it when a coffee table stands there (the
+ * relation rule asks for exactly that gap), so the 0.6 m front-approach walkway line for that sofa is not a
+ * problem. Returns true for a walkway line that this exempts. */
+export function sofaKneeSpace(line: string, items: DraftItem[]): boolean {
+  const m = /^walkway: \S+ to item:(\S+): ([\d.]+) m path/.exec(line);
+  if (!m || Number(m[2]) < 0.3) return false;
+  const sofa = items.find(i => i.id === m[1] && i.kind === 'sofa');
+  if (!sofa) return false;
+  const a = sofa.rot * Math.PI / 180, f: Vec2 = [Math.sin(a), -Math.cos(a)], r: Vec2 = [Math.cos(a), Math.sin(a)];
+  return items.some(t => t.room_id === sofa.room_id && t.kind === 'table' && t.size[2] < 0.55 && t.id !== sofa.id && (() => {
+    const d: Vec2 = [t.pos[0] - sofa.pos[0], t.pos[1] - sofa.pos[1]];
+    const ahead = d[0] * f[0] + d[1] * f[1], side = Math.abs(d[0] * r[0] + d[1] * r[1]);
+    const depth = Math.min(t.size[0], t.size[1]), gap = ahead - sofa.size[1] / 2 - depth / 2;
+    return gap > 0.2 && gap < 0.65 && side < sofa.size[0] / 2;
+  })());
+}

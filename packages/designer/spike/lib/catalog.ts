@@ -56,8 +56,10 @@ export function withinLimits(product: Pick<Product, 'size' | 'price'>, input: Se
 
 /** Compact, priced, sized products. kind/size/price are hard filters (as in the underlying
  * catalog); text and style only rank what passed. Prices are whole-AMD integers. */
+let sharedQuery: ReturnType<typeof createHttpCatalogQuery> | undefined;
 export async function search(input: SearchInput = {}): Promise<Product[]> {
-  const query = createHttpCatalogQuery();
+  // One MCP session per process: a prefetch runs dozens of searches, each handshake costs several round trips.
+  const query = sharedQuery ??= createHttpCatalogQuery();
   const wanted = Math.min(Math.max(Math.trunc(input.limit ?? 10), 1), 20);
   const limited = [input.maxW, input.maxD, input.maxH, input.maxPrice].some(v => v !== undefined);
   // Ask for a full page when limits apply, so the client-side guard still leaves enough.

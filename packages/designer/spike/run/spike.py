@@ -283,8 +283,11 @@ class Session:
         status = (completed or {}).get("status", "missing_completion")
         if seconds >= self.args.timeout:
             status = "timeout"
+        # A design turn never ends with hard problems: mark it when it does (the question path has no draft).
+        check = varpet(self.workspace, "check") if status == "completed" and not is_question(final, self.workspace) else None
         record = {"label": label, "status": status, "error": (completed or {}).get("error"),
                   "seconds": round(seconds, 1), "final_message": final,
+                  "check_ok": None if check is None else check.get("exit") == 0,
                   "tokens_total": (self.usage or {}).get("totalTokens")}
         self.turns.append(record)
         return record
@@ -306,12 +309,15 @@ class Session:
 def milestones(workspace: Path, epoch: float) -> dict:
     """Seconds from the first turn to the first room render and first room check OK (main thread or sub-agents),
     from ./varpet's .varpet-log.jsonl; per room, the last check."""
-    out: dict = {"first_room_render_s": None, "first_room_ok_s": None, "rooms": {}}
+    out: dict = {"first_room_render_s": None, "first_room_ok_s": None, "rooms": {}, "failed_checks": {}}
     try:
         lines = [json.loads(line) for line in (workspace / ".varpet-log.jsonl").read_text().splitlines() if line.strip()]
     except (OSError, ValueError):
         return out
     for entry in lines:
+        if entry.get("event") == "end" and entry.get("cmd") == "check" and entry.get("exit") not in (0, None):
+            key = entry.get("part") or "(flat)"
+            out["failed_checks"][key] = out["failed_checks"].get(key, 0) + 1
         if entry.get("event") != "end" or entry.get("exit") != 0:
             continue
         t = round(entry["t"] - epoch, 1)

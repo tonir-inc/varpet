@@ -8,7 +8,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { centerOf } from './scene.ts';
-import { loadRequirements, requirementProblems, type Requirements } from './requirements.ts';
+import { loadRequirements, requirementProblems, sofaKneeSpace, type Requirements } from './requirements.ts';
 import type { CatalogAsset } from '../../../../apps/editor/src/contracts.js';
 import { wallDecoration } from '../../../../apps/editor/src/core/decoration-placement.js';
 import { canRestOnFurniture } from '../../../../apps/editor/src/core/furniture-support.js';
@@ -210,6 +210,7 @@ export async function check(scene: Scene, draft: Draft, options: { budget?: numb
   problems.push(...rules.hard.filter(fixable));
   const advice = [...rules.hard.filter(line => !fixable(line)), ...rules.soft];
   problems.push(...requirementProblems(scene, draft, requirements));
+  for (let i = problems.length - 1; i >= 0; i--) if (sofaKneeSpace(problems[i]!, items)) problems.splice(i, 1);
   problems.push(...checkSurfaces(scene, draft).map(p => `surfaces: ${p}`));
   // Editor finish presets and fixtures carry no supplier price: list the work, never add it to the total.
   const work = surfaceQuantities(scene, draft);

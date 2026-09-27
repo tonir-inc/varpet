@@ -7,9 +7,11 @@ plan.md came with your context; follow their item format, placement rules, catal
   `room_id`, item ids starting with the room id (e.g. `bed2-lamp`). Never edit draft.json, plan.md or another
   room's file, and do not spawn sub-agents.
 - Steps (few, full steps; every extra step re-reads your whole context): first
-  `./varpet requirements --part <room id>` (the brief's counts for your room; the check enforces them); all
-  catalog searches in ONE shell call (`--limit 6` each); at most one product sheet; write the file with one script ending
-  in `./varpet check --part <room id>`; fix until OK (checks are cheap); then ONE render round
+  `./varpet requirements --part <room id>; cat catalog/<room id>.md` (the brief's counts for your room, enforced
+  by the check, and your first catalog picks); only what is missing there: catalog searches in ONE shell call (`--limit 6` each); at most one product sheet; lay out the room's groups
+  with `./varpet place-group ... --part <room id> --add` (largest first) and single pieces with `./varpet place ...
+  --part <room id> --add`, then add the rest (wall art, curtains, decor `on` surfaces, finishes, lights) with one
+  script ending in `./varpet check --part <room id>`; fix until OK (checks are cheap); then ONE render round
   (`./varpet render-plan p.png --part <room id>; ./varpet render-view v.png --part <room id>`), look at both,
   fix what you see (chairs at tables, lamps by seats, TV facing the sofa, art centred over its piece, nothing
   floating or blocking a door) and re-check. Then run `./varpet review --part <room id>` once: an independent
