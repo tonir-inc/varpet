@@ -721,7 +721,10 @@ def _review(state: SpikeConversation, brief: str, rooms: list[str], cancel: thre
     found = critic.serious(issues)
     # Live chat keeps the customer waiting: blockers (a need from the brief unmet) are always fixed; majors only while
     # the turn is inside its budget (VARPET_SPIKE_FIX_BUDGET seconds since it started), else they go on the card's notes.
-    in_budget = elapsed is None or elapsed + (time.monotonic() - started) < float(os.environ.get("VARPET_SPIKE_FIX_BUDGET", "240"))
+    # A follow-up is a quick live exchange: its majors become notes unless the turn is still very young.
+    budget = float(os.environ.get("VARPET_SPIKE_FIX_BUDGET", "240") if early is not None or flat
+                   else os.environ.get("VARPET_SPIKE_FOLLOWUP_FIX_BUDGET", "60"))
+    in_budget = elapsed is None or elapsed + (time.monotonic() - started) < budget
     serious = [issue for issue in found if issue.get("severity") == "blocker" or in_budget]
     left = [issue for issue in found if issue not in serious]
     record = {"issues": len(issues), "serious": len(found), "fixing": len(serious), "reviewed_early": reused,
