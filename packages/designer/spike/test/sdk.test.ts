@@ -73,8 +73,12 @@ describe('scene scripting sdk', () => {
       'walkway: door:door-balcony to item:living-table: 0.35 m path; minimum 0.60 m (0.25 m)',
       'walkway: door:door-balcony to item:living-lamp: 0.22 m path; minimum 0.60 m (0.38 m)',
       'containment: living-plant extends outside room living (0.05 m); move it to (3.5, -10.4)',
+      'collision: room-bedroom-bed intersects wall wall-north by 0.000 m (0.00 m)',
+      'decor: room-bedroom-mirror (bottom 1.09 m) is behind room-bedroom-plant (1.21 m tall); set height_m >= 1.77 or move',
+      'decor: living-curtain curtain must hang over a window: set wall_id and pos with atWindow(scene, room, window, size)',
     ])).toEqual([
       'containment: living-plant extends outside room living (0.05 m)',
+      'decor: living-curtain curtain must hang over a window',
       'walkway: door:door-balcony has a 0.22 m path (needs 0.60 m), narrowed by living-table, living-lamp',
     ]);
   });

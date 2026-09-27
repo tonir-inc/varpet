@@ -489,13 +489,15 @@ export class Studio {
 export function leanGates(lines: string[]): string[] {
   const doors = new Map<string, { path: number; need: number; items: string[] }>(), out: string[] = [];
   for (const line of lines) {
+    // Not physics: a flush fit read as a 0.00x m overlap, a curtain narrower than its window, art behind a tall plant.
+    if (/^collision: .* by 0\.00\d m/.test(line) || /^decor: .* (is narrower than window|is behind )/.test(line)) continue;
     const w = /^walkway: (door:\S+) to item:(\S+): ([\d.]+) m path; minimum ([\d.]+) m/.exec(line);
     if (w) {
       const d = doors.get(w[1]!) ?? { path: Infinity, need: Number(w[4]), items: [] };
       d.path = Math.min(d.path, Number(w[3])); d.items.push(w[2]!); doors.set(w[1]!, d);
       continue;
     }
-    const fact = line.replace(/\s*(;|:|,|\.)\s*(move|add|put|shift|rotate|use|try|place|centre|center|remove|resize|pick|search|run)\b.*$/i, '').replace(/\s*\(?\.\/varpet[^)]*\)?/g, '');
+    const fact = line.replace(/\s*(;|:|,|\.)\s*(move|add|put|shift|rotate|use|try|place|centre|center|remove|resize|pick|search|run|set)\b.*$/i, '').replace(/\s*\(?\.\/varpet[^)]*\)?/g, '');
     if (!out.includes(fact)) out.push(fact);
   }
   for (const [door, d] of doors) out.push(`walkway: ${door} has a ${d.path.toFixed(2)} m path (needs ${d.need.toFixed(2)} m), narrowed by ${d.items.join(', ')}`);
