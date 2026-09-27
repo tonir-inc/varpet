@@ -78,9 +78,10 @@ export class EveningRoomLights {
     for (const child of [...this.group.children]) { this.group.remove(child); (child as THREE.PointLight).dispose(); }
     for (const room of rooms) {
       if (room.area < 2.5) continue;
-      const light = new THREE.PointLight('#ffd3a3', 0, 0, 2);
-      light.position.copy(room.center);
-      light.userData.fillBase = 3.2 * Math.sqrt(room.area);
+      // A pendant-height pool with a real falloff: bright under the lamp, dimmer toward corners and ceiling.
+      const light = new THREE.PointLight('#ffdcb8', 0, Math.max(4.5, Math.sqrt(room.area) * 1.6), 2);
+      light.position.copy(room.center).setY(room.center.y - 0.35);
+      light.userData.fillBase = 3.6 * Math.sqrt(room.area);
       this.group.add(light);
     }
     this.group.updateMatrixWorld(true);

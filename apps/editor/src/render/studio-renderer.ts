@@ -96,11 +96,11 @@ export class StudioRenderer {
     this.beauty = new RenderPass(scene, camera);
     this.selection = new SelectionOutline(scene, camera);
     this.occlusion = new ContactOcclusionPass(scene, camera, 1, 1);
-    this.occlusion.blendIntensity = 0.82;
+    this.occlusion.blendIntensity = 0.95;
     // Metres, not screen pixels: nearby floor/wall junctions stay grounded as
     // the camera moves, without a broad dirty halo around the apartment.
     this.occlusion.updateGtaoMaterial({
-      radius: 0.42, thickness: 0.45, distanceExponent: 1.5,
+      radius: 0.5, thickness: 0.5, distanceExponent: 1.5,
       distanceFallOff: 1, scale: 1, screenSpaceRadius: false,
     });
     this.occlusion.updatePdMaterial({ radius: 5, lumaPhi: 8, depthPhi: 3, normalPhi: 4 });
@@ -188,7 +188,7 @@ export class StudioRenderer {
   /** Keep an eye-level room view neutral; the dollhouse keeps its studio grade. */
   setInterior(inside: boolean): void {
     this.interior = inside;
-    this.occlusion.blendIntensity = inside ? 0.65 : 0.82;
+    this.occlusion.blendIntensity = inside ? 0.85 : 0.95;
   }
 
   /** Edge darkening as a fraction of the studio default; blueprint paper stays flat to meet the page behind it. */

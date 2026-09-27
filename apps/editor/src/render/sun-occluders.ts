@@ -19,6 +19,7 @@ export class SunOccluders {
   private readonly setAngles = new Map<string, (angle: number) => void>();
   private readonly wallGroups = new Map<string, THREE.Group>();
   private scene: SceneDocument | null = null;
+  private roofs = true;
 
   constructor() { this.group.name = 'Sun shadow shell'; this.group.userData.studioAO = false; }
 
@@ -84,6 +85,15 @@ export class SunOccluders {
     const geometry = makeCeilingGeometry(this.scene!, room, true); this.shellGeometries.add(geometry);
     const mesh = this.mesh(this.group, geometry, this.roofMaterial);
     mesh.position.y = (metadata.elevation ?? 0) + height;
+    mesh.visible = this.roofs; mesh.userData.sunRoof = true;
+  }
+
+  /** The dollhouse has no roof: outside views let the sun onto floors and furniture; Inside keeps it. */
+  setRoofs(visible: boolean): boolean {
+    if (this.roofs === visible) return false;
+    this.roofs = visible;
+    for (const child of this.group.children) if (child.userData.sunRoof) child.visible = visible;
+    return true;
   }
 
   private addWall(wall: Wall): void {

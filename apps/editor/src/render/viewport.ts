@@ -78,7 +78,7 @@ interface OpeningDrag {
 // Euler XYZ folds Y past 90 degrees into X/Z turns; read heading from the basis instead.
 const upAxis = new THREE.Vector3(0, 1, 0);
 const INSIDE_TWILIGHT = 0.5;
-const eveningSky = new THREE.Color('#8a7a6a'), eveningGround = new THREE.Color('#6b4a30');
+const eveningSky = new THREE.Color('#6f82a8'), eveningGround = new THREE.Color('#5a5048');
 /** One warm ceiling glow per interior room, just under its ceiling. */
 function eveningRooms(scene: SceneDocument): RoomFill[] {
   const metadata = scene.project?.metadata ?? {};
@@ -462,6 +462,7 @@ export function createViewport(host: HTMLElement, callbacks: FinishViewportCallb
     const unlitTop = view === 'top' && !topLightingEnabled;
     const daylight = unlitTop || sunSettings.timeOfDay == null ? 1 : timeOfDayLighting(sunSettings.timeOfDay).daylight;
     sunOccluders.group.visible = inside || layers.shell;
+    sunOccluders.setRoofs(inside);
     shadowCache.invalidate();
     // The blueprint is the outside world in every editing view. Sky selection
     // changes illumination, while windows still look onto an outdoor backdrop.
