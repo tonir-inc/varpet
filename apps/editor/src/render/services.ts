@@ -252,6 +252,12 @@ export function installComponentModel(projection: THREE.Group, component: Buildi
   for (const child of [...projection.children]) if (child !== clearance && !(child instanceof THREE.Light)) disposeObject(child);
   delete projection.userData.toggles; delete projection.userData.emission;
   model.userData.componentModel = true;
+  if (component.kind === 'light') model.traverse(object => {
+    if (!(object instanceof THREE.Mesh)) return;
+    for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
+      if (material instanceof THREE.MeshStandardMaterial) material.userData.fixtureEmission = material.emissiveIntensity;
+    }
+  });
   if (component.phase === 'remove') model.traverse(object => { if (object instanceof THREE.Mesh) for (const mat of Array.isArray(object.material) ? object.material : [object.material]) { mat.transparent = true; mat.opacity = 0.3; } });
   projection.add(model);
 }
@@ -290,7 +296,14 @@ export function makeServices(document: SceneDocument): ServiceProjection {
         if (component.kind === 'light') {
           const level = document.project?.metadata[component.id]?.phase === 'remove' ? 0 : previewLightLevel(component, levels, automaticLevel);
           const light = projection.userData.light as THREE.PointLight | undefined; if (light) light.intensity = level * (component.light?.brightness ?? 800) / 50;
-          const emission = projection.userData.emission as THREE.MeshStandardMaterial | undefined; if (emission) emission.emissiveIntensity = level;
+          const emissionLevel = level * Math.min(1, Math.max(0, (component.light?.brightness ?? 800) / 800));
+          const emission = projection.userData.emission as THREE.MeshStandardMaterial | undefined; if (emission) emission.emissiveIntensity = emissionLevel;
+          projection.traverse(object => {
+            if (!(object instanceof THREE.Mesh)) return;
+            for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
+              if (material instanceof THREE.MeshStandardMaterial && typeof material.userData.fixtureEmission === 'number') material.emissiveIntensity = material.userData.fixtureEmission * emissionLevel;
+            }
+          });
         }
         if (component.control) {
           const on = component.phase !== 'remove' && (switchLevel ? switchLevel(component.id) > 0 : component.control.targets.some(id => { const target = document.project?.components.find(item => item.id === id); return target ? previewLightLevel(target, levels, automaticLevel) > 0 : false; }));

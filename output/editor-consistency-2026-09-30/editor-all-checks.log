@@ -1,0 +1,709 @@
+
+COMMAND node scripts/check.mjs
+Domain checks passed (265 assertions).
+EXIT 0
+
+COMMAND node scripts/check-renovation.mjs
+Renovation checks passed (102 assertions).
+Reconstruction and handoff checks passed (29 assertions).
+EXIT 0
+
+COMMAND node scripts/check-openings.mjs
+Opening clearance: 80 assertions passed.
+EXIT 0
+
+COMMAND node scripts/check-finishes.mjs
+Finish regressions passed: 214 assertions across 6 scenarios.
+EXIT 0
+
+COMMAND node scripts/check-continuous-wall-finishes.mjs
+Continuous wall finish regressions passed: 76 assertions across 21 scenarios.
+EXIT 0
+
+COMMAND node scripts/check-continuous-finish-render.mjs
+Continuous finish rendering checks passed (29 assertions).
+EXIT 0
+
+COMMAND node scripts/check-finish-texture-presets.mjs
+Finish texture preset checks passed (33 assertions).
+EXIT 0
+
+COMMAND node scripts/check-finish-textures.mjs
+Finish texture checks passed (34 assertions).
+EXIT 0
+
+COMMAND node scripts/check-placement.mjs
+Door barrier checks passed (5922 assertions).
+Placement conflict checks passed (358 assertions).
+EXIT 0
+
+COMMAND node scripts/check-furniture-placement.mjs
+Furniture placement checks passed (12 assertions).
+EXIT 0
+
+COMMAND node scripts/check-walls.mjs
+Wall movement checks passed (87 assertions).
+EXIT 0
+
+COMMAND node scripts/check-wall-controller.mjs
+Wall controller checks passed (423 assertions; 6 wall directions in Top and 3D). Preview rendering requires browser verification.
+EXIT 0
+
+COMMAND node scripts/check-grouping.mjs
+PASS grouping preserves placement, migrates explicitly, and saves membership
+PASS moving any member translates the whole group once and undo restores all
+PASS rotation orbits members about the selected piece without changing scale or spacing
+PASS invalid, stale, unapproved and locked-member transforms are atomic
+PASS invalid membership is rejected and regrouping requires complete existing groups
+PASS ungroup preserves transforms and subsequent moves affect one piece
+PASS delete dissolves singleton groups and undo restores membership
+PASS baseline and options retain independent group membership
+PASS imports reject invalid group IDs, singleton groups and version 1 membership
+PASS 9 grouping checks
+EXIT 0
+
+COMMAND node scripts/check-plan-move.mjs
+Plan movement checks passed (283 assertions).
+EXIT 0
+
+COMMAND node scripts/check-inspector.mjs
+Inspector regressions passed: 102 assertions across 10 scenarios.
+EXIT 0
+
+COMMAND node scripts/check-inspector-openings.mjs
+Inspector opening selection checks passed (12 assertions).
+EXIT 0
+
+COMMAND node scripts/check-structural-wall-confirmation.mjs
+Structural wall confirmation checks passed (266 assertions).
+EXIT 0
+
+COMMAND node scripts/check-motion.mjs
+Editor motion checks passed (52 assertions).
+EXIT 0
+
+COMMAND node scripts/check-transform-motion.mjs
+Transform motion checks passed (11 assertions).
+EXIT 0
+
+COMMAND node scripts/check-placement-motion.mjs
+Placement motion checks passed (25 assertions).
+EXIT 0
+
+COMMAND node scripts/check-projection-motion.mjs
+Projection motion checks passed (16 assertions).
+EXIT 0
+
+COMMAND node scripts/check-cutaway.mjs
+Cutaway checks passed (520 assertions).
+EXIT 0
+
+COMMAND node scripts/check-balcony-cutaway.mjs
+Balcony cutaway checks passed (442 assertions).
+EXIT 0
+
+COMMAND node scripts/check-wall-junctions.mjs
+Wall junction checks passed (64 assertions).
+EXIT 0
+
+COMMAND node scripts/check-apartment-junctions.mjs
+Apartment wall junction checks passed (35 assertions).
+EXIT 0
+
+COMMAND node scripts/check-plan-layers.mjs
+Plan layers checks passed (51 assertions).
+EXIT 0
+
+COMMAND node scripts/check-plan-measurements.mjs
+Plan selection measurements: 92 assertions passed.
+EXIT 0
+
+COMMAND node scripts/check-selection-camera.mjs
+Selection camera checks passed (78 assertions).
+EXIT 0
+
+COMMAND node scripts/check-room-camera.mjs
+Room camera checks passed (1012 assertions).
+EXIT 0
+
+COMMAND node scripts/check-walkthrough.mjs
+Walkthrough geometry: 36 assertions passed.
+EXIT 0
+
+COMMAND node scripts/check-structural-surfaces.mjs
+Structural surface checks passed (155 assertions).
+EXIT 0
+
+COMMAND node scripts/check-heights.mjs
+Height checks passed: legacy ceilings meet the wall tops.
+Height configuration checks passed: 35 assertions.
+EXIT 0
+
+COMMAND node scripts/check-interior-lighting.mjs
+Interior lighting checks passed (25 assertions).
+EXIT 0
+
+COMMAND node scripts/check-skybox.mjs
+Skybox checks passed (94 assertions).
+EXIT 0
+
+COMMAND node scripts/check-sunlight.mjs
+Sunlight checks passed (222 assertions).
+EXIT 0
+
+COMMAND node scripts/check-sun-occluders.mjs
+Sun occluder checks passed (25 assertions).
+EXIT 0
+
+COMMAND node scripts/check-walkthrough-camera.mjs
+Walkthrough camera checks passed (98 assertions).
+EXIT 0
+
+COMMAND node scripts/check-keyboard-navigation.mjs
+Keyboard navigation checks passed (313 assertions).
+EXIT 0
+
+COMMAND node scripts/check-database-catalog.mjs
+Database catalog store checks passed
+Database catalog mapping checks passed
+Database startup and saved-reference checks passed
+Database import, browsing, and currency checks passed
+EXIT 0
+
+COMMAND node scripts/check-assets.mjs
+assets: 354 checks passed
+EXIT 0
+
+COMMAND node --test server/*.test.mjs
+(node:70125) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ registration authenticates with a private cookie; logout revokes it and login verifies the password (204.332958ms)
+✔ apartments preserve the complete project and catalog across a server restart (66.627208ms)
+✔ one user cannot read or update another user’s saved apartment (123.493875ms)
+✔ concurrent saves accept one version and reject a stale overwrite with the current apartment (69.47ms)
+✔ credential validation rejects empty names, malformed email, weak passwords and duplicate normalized accounts (63.751ms)
+✔ mutations reject cross-origin and missing-origin requests, invalid JSON and wrong content types (5.655125ms)
+✔ body limits and scene validation reject invalid saves without damaging a saved apartment (66.894125ms)
+✔ rate limits bound repeated authentication attempts (117.3725ms)
+✔ the database contains salted password hashes and hashed session tokens, and expired sessions cannot authenticate (66.958625ms)
+✔ new accounts require passwords with at least twelve characters (4.548708ms)
+✔ saved apartments preserve database catalog product wrappers and attribution (63.297ms)
+✔ unexpected database failures emit safe diagnostics without exposing private request data (59.782917ms)
+✔ apartment sharing references persist privately across restart without entering project data or lists (64.831917ms)
+✔ only an authenticated apartment owner can change its sharing reference from the same origin (122.162209ms)
+✔ competing apartment sharing changes use the same version guard as scene saves (67.595292ms)
+✔ scene saves preserve sharing only for the same scene and apartment copies start without it (67.311166ms)
+✔ invalid sharing references and versions leave the saved apartment unchanged (68.269916ms)
+✔ a failed sharing association rolls back its apartment version change (62.790166ms)
+✔ Stop sharing removes the stored share before unlinking the apartment (65.964917ms)
+✔ search uses the real SDK, honors session/SSE, and merges raw dimensions, model and provenance (32.259916ms)
+✔ saved item hydration deduplicates ids and reports missing records without fake products (7.342541ms)
+✔ vocabulary is returned directly from the database tool (2.837625ms)
+✔ remote errors and invalid detail identities return sanitized unavailable responses (6.850458ms)
+✔ the request deadline aborts stalled upstream requests (63.50775ms)
+✔ invalid or mutating requests never call the catalog and unrelated routes pass through (3.309833ms)
+✔ light model files are relayed from the catalog service with a one-year cache (2.661584ms)
+✔ a model without a light copy is an uncached 404 so the browser falls back to the original (1.70525ms)
+✔ model routes accept only GET of a plain .glb name and never reach the catalog otherwise (2.181458ms)
+✔ search pages forward an offset and return where the next page starts (4.103917ms)
+✔ long extra model names up to 120 characters are relayed (1.168125ms)
+✔ a browser leaving mid-download or a catalog dying mid-stream never escapes the middleware (232.341084ms)
+✔ the middleware promise never rejects, even when the response cannot be written (0.755333ms)
+(node:70127) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✖ samples: three developers and four bundles from apartments/, each reopening with its catalog (42.882708ms)
+✔ profiles belong to the signed-in account; writes check origin, ownership and reserved addresses (140.99925ms)
+✔ publishing validates the scene with the editor checks, the plan image and model addresses; unpublish is owner-only (254.073917ms)
+(node:70128) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ public env origin works for all write plugins, with direct local access retained (43.173292ms)
+✔ architect UI displays the server rate limit reason for both build routes (17.104625ms)
+ℹ tests 37
+ℹ suites 0
+ℹ pass 36
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1538.82875
+
+✖ failing tests:
+
+test at server/developers.test.mjs:51:1
+✖ samples: three developers and four bundles from apartments/, each reopening with its catalog (42.882708ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  44 !== 54
+
+      at TestContext.<anonymous> (file:///Users/davitstepanyan/Documents/varpet/apps/editor/server/developers.test.mjs:61:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1116:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 44,
+    expected: 54,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+EXIT 1
+
+COMMAND node scripts/check-walkthrough-view.mjs
+Walkthrough view checks passed (41 assertions).
+EXIT 0
+
+COMMAND node scripts/check-architect.mjs
+architect adapter check passed
+Built pieces unavailable, using the catalog without them TypeError: offline
+    at file:///private/var/folders/2s/g_x43drx6vsdf2rpxxbby8hw0000gn/T/varpet-architect-check-2O8t66/check.mjs:3597:8
+    at builtPieces (file:///private/var/folders/2s/g_x43drx6vsdf2rpxxbby8hw0000gn/T/varpet-architect-check-2O8t66/check.mjs:2894:29)
+    at withBuiltPieces (file:///private/var/folders/2s/g_x43drx6vsdf2rpxxbby8hw0000gn/T/varpet-architect-check-2O8t66/check.mjs:2951:28)
+    at file:///private/var/folders/2s/g_x43drx6vsdf2rpxxbby8hw0000gn/T/varpet-architect-check-2O8t66/check.mjs:3596:14
+EXIT 0
+
+COMMAND node scripts/check-reconstruction-proposal.mjs
+Reconstruction proposal checks passed (41 assertions).
+EXIT 0
+
+COMMAND node scripts/check-ceiling-design.mjs
+Ceiling design contract checks passed: 46 assertions.
+Ceiling design checks passed: 406 assertions.
+EXIT 0
+
+COMMAND node scripts/check-ceiling-render.mjs
+Ceiling rendering checks passed (150 assertions).
+EXIT 0
+
+COMMAND node scripts/check-ceiling-visibility.mjs
+Ceiling visibility checks passed (141 assertions).
+EXIT 0
+
+COMMAND node scripts/check-ceiling-seams.mjs
+Ceiling seam checks passed (177 assertions).
+EXIT 0
+
+COMMAND node scripts/check-catalog-http.mjs
+catalog HTTP checks passed
+EXIT 0
+
+COMMAND node --test tests/*.test.mjs
+✔ every selectable plan is valid, empty, and copied independently for each apartment (9.784792ms)
+✔ account save preserves full renovation evidence and copies exact referenced catalog metadata (5.528833ms)
+✔ reopen rejects malformed projects or missing furniture instead of silently dropping content (0.41525ms)
+✔ reopening matching shared progress restores its version and marks revision zero saved (3.686708ms)
+✔ different shared scenes or catalog snapshots stay dirty without replacing account progress (4.846917ms)
+✔ a restored account share rejects saving from a copied apartment with the same scene ID (3.972833ms)
+✔ account scene exports and copied apartment payloads exclude the durable sharing capability (8.079667ms)
+✔ sharing read failures propagate while the saved account snapshot remains unchanged (3.954583ms)
+✔ a sharing record for another scene cannot restore an account sharing session (2.773375ms)
+✔ view-only sharing access cannot become the account’s editing session (7.568416ms)
+✔ absent or locally stale sharing references do not load a shared apartment (10.773917ms)
+✔ simultaneous link choices attach the same share once at the account record version (6.999208ms)
+✔ account share attachment refuses a different apartment owner before writing (1.453833ms)
+✔ permission choices join link creation while the account attachment is still pending (0.76525ms)
+✔ the complete sharing creation pipeline keeps copied account apartments independent (0.759084ms)
+✔ architect fixtures survive HTTP, reconstruction preview, Apply and Undo (46.42075ms)
+✔ architect rejects malformed components and broken room references before offering a proposal (2.6835ms)
+✔ legacy architect response without components remains valid (0.25375ms)
+✔ starts before attachment and sends a snapshot of the original photos (2.633ms)
+✔ replays buffered progress and geometry in wire order, then delivers live updates once (0.372833ms)
+✔ a build completed before attachment reuses its result without a second request (0.216375ms)
+✔ a failure before attachment is caught immediately and remains available to submit (1.231666ms)
+✔ cancellation before attachment aborts and suppresses stale updates (0.297917ms)
+✔ cancellation after attachment aborts and suppresses stale updates (0.152666ms)
+✔ cancelling immediately prevents the deferred transport from starting (0.14975ms)
+✔ a rejected plan has a distinct landing state before submit (0.142333ms)
+✔ checkpoint preserves large original evidence and built catalog across repeated recovery attempts (114.071792ms)
+✔ separate completed plans receive independent checkpoint IDs (0.362416ms)
+✔ save waits for transaction commit before allowing navigation (1.526375ms)
+✔ an aborted write rejects after request success and does not leave a misleading checkpoint (0.374ms)
+✔ unavailable or failed storage rejects so the caller can keep its current plan visible (0.218458ms)
+✔ invalid scenes and catalog metadata are rejected before any write (0.200083ms)
+✔ recovery validates stored data and leaves corrupt records intact for diagnosis (0.153167ms)
+✔ raster preparation applies orientation, preserves format and downsizes oversized encodings (3.556958ms)
+✔ encoding failure releases bitmap and never returns original bytes (0.435042ms)
+✔ landing discloses immediate upload and prepares room photos before adding them (3.696041ms)
+﹣ browser canvas removes JPEG EXIF GPS and PNG text, applying EXIF orientation (0.11675ms) # SKIP
+✔ paper is the common tone and ink the far side of it (1.466583ms)
+✔ a light room fill is faint shading, a wall is full ink (0.510958ms)
+✔ dark ink on paper: only the strokes are ink, drawn along the line (1.313875ms)
+✔ light ink on a blueprint: only the strokes are ink, drawn along the line (0.513958ms)
+✔ an empty sheet has no ink and no pen order (0.105167ms)
+✔ prepared plan and photos retain exact transport bytes through editor save and reopen (4.333375ms)
+✔ existing evidence and reviewed project metadata survive upload attachment independently (0.322584ms)
+✔ reattaching the same original does not duplicate existing plan evidence (0.725042ms)
+✔ unsupported, empty and oversized uploads fail before reading their bytes (5.6655ms)
+✔ exact upload byte limits fit the existing encoded evidence and parser limits (522.929458ms)
+✔ photo-count and combined existing evidence limits reject without changing service state (24.585875ms)
+✔ long uploaded filenames become valid evidence names without changing original bytes (0.307625ms)
+✔ transport names cannot overwrite the blueprint when originals collide after server sanitizing and truncation (0.764875ms)
+✔ PDF over image limit converts page 1 to a bounded PNG; raster images are re-encoded (10.454334ms)
+✔ multi-page PDF reports first-page choice and falls back to JPEG 0.85 (0.981333ms)
+✔ oversized encodings downscale before returning an image under 2 MB (1.890167ms)
+✔ PDF source size limit is 20 MB and image limit remains 2 MB (11.982625ms)
+✔ corrupt, encrypted and zero-page PDFs give actionable error and release worker (2.766958ms)
+✔ rejected event preserves a specific error (flat) (5.215875ms)
+✔ rejected event preserves a specific error (structure) (0.4885ms)
+✔ rejection before submit clears selection and returns to landing (22.630625ms)
+[blueprint] build failed Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'three' imported from /private/var/folders/2s/g_x43drx6vsdf2rpxxbby8hw0000gn/T/blueprint-rejection-VcAyCN/assets/blueprint-construction-Cx30Qc6A.js
+    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)
+    at packageResolve (node:internal/modules/esm/resolve:768:81)
+    at moduleResolve (node:internal/modules/esm/resolve:859:18)
+    at defaultResolve (node:internal/modules/esm/resolve:991:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:713:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:730:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:52)
+    at #resolve (node:internal/modules/esm/loader:695:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:615:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:160:33) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+✔ rejection during construction clears selection and returns to landing (12.946209ms)
+✔ named states cover the full blueprint flow and reject unknown URL values (1.058042ms)
+✔ fixtures retain the real source image and a checked furniture project without service requests (1.092708ms)
+✔ checkpoints synchronously deliver cumulative real geometry and furniture events in wire order (1.098791ms)
+✔ complete and failure states settle only after the construction listener attaches (1.091333ms)
+✔ cancelling any checkpoint settles its promise and suppresses all later callbacks (0.934417ms)
+✔ each job owns its events, final project and photo list independently (0.966709ms)
+✔ built assets become registrable products with explicit unpriced, unverified provenance (28.113542ms)
+✔ saved older-run references hydrate alongside database furniture including option references (3.2875ms)
+✔ missing service or missing built pieces reject hydration without falling back to database records (3.268334ms)
+✔ malformed or shop-priced built payloads cannot enter the product catalog (5.195791ms)
+✔ decoration kinds accept tiny dimensions and render fallback geometry (7.840792ms)
+✔ wall art snaps flush, faces room, sits above sofa and follows moves; undo restores (2.727875ms)
+✔ tall mirrors remain floor based; short mirrors hang; no wall gives a clear rejection (0.414ms)
+✔ on places at a support surface; children follow rotation/translation and drop on deletion with undo (1.335792ms)
+✔ support rejects missing surfaces and large furniture, detects decor overlaps and outside centres (0.700291ms)
+✔ headless sofa seat and default support-centre update; explicit detachment (0.394083ms)
+✔ mesh raycast hits sofa seat and lower shelf, rejects holes instead of using box top (4.126541ms)
+✔ on add can omit position; nested supports move once; invalid cycles and supported large imports reject (0.710792ms)
+✔ full-length mirror leans toward its wall with its complete mesh above the floor and outside the wall (1.076959ms)
+✔ catalog aliases, designer discovery and renovation analysis accept decorations (1.676333ms)
+✔ preview uses support exemptions but shows overlapping decorations and off-edge centres (0.9085ms)
+✔ on alone in an update defaults to the centre without requiring a dummy transform (0.238292ms)
+✔ designer can propose remote ABO products while existing product identity and provenance stay authoritative (3.569375ms)
+✔ remote discovery never reintroduces demo or procedural furniture (0.154917ms)
+✔ browsing the same designer-added SKU preserves its registered appearance and updates provenance (1.668959ms)
+✔ discovery fits the catalog bound without dropping current scene or history references (9.246417ms)
+✔ proposal survives a catalog search, requires approval, and undo restores the empty apartment (1.997291ms)
+✔ same-revision conversations retain only added products and immutable snapshots (0.319208ms)
+✔ reused proposal IDs cannot substitute a different command or bypass revisions (0.127583ms)
+✔ message, suggestions and streamed text cross the HTTP boundary (21.110708ms)
+✔ message suggestions reject malformed values and enforce the four-chip boundary (28.766167ms)
+✔ follow-up answers retain proposal context, suggestions, notes and approval state (1.713083ms)
+✔ streamed draft is replaced once by the final answer and ignored after cancellation (0.273542ms)
+✔ retry resends the failed request in the same thread without applying anything (0.293541ms)
+✔ light markdown renders emphasis and lists while all HTML and links stay inert (0.324583ms)
+✔ recorded demo answers a design question without proposing an edit (2.755416ms)
+✔ cancel clears streamed text immediately and rejects late chunks (0.28875ms)
+✔ opt-in adapter streams tool/build events before final answer and sends the flag (18.715125ms)
+✔ legacy request stays opt-out; malformed or unsolicited events cannot reach callbacks (12.787709ms)
+✔ events after a terminal reply remain a protocol error (1.444792ms)
+✔ chat opts in, shows slot state in the existing progress line and ignores late events (5.303541ms)
+✔ custom assets validate together with the proposal before delivery; source URL uses the service origin (4.968792ms)
+✔ chat HTTP wrapper opts in and delivers events before the final network chunk (7.698666ms)
+✔ opt-in records are validated even without an event callback (0.972083ms)
+✔ published recorded event sample conforms to the adapter contract (9.59175ms)
+✔ optional notes travel outside the unchanged AgentProposal and never apply the scene (16.44325ms)
+✔ legacy proposals without notes remain valid and do not emit a notes callback (6.496334ms)
+✔ notes accept the 1600-character boundary and reject malformed, blank or oversized values (15.958167ms)
+✔ notes cannot escape proposal validation or appear on another terminal response (1.908791ms)
+✔ askDesigner returns envelope notes without changing the proposal (5.670292ms)
+✔ proposal notes persist as plain text and do not change preview, apply or stale-history rules (1.75775ms)
+✔ invalid restored notes cannot enter conversation state (0.292083ms)
+✔ old saved messages without notes remain readable (0.110458ms)
+✔ non-history panel callers retain notes without changing their review callback (0.203875ms)
+✔ reload restores messages, choices and service conversationId; new conversation retains selectable history (2.210542ms)
+✔ scene changes abort work, isolate history and ignore late replies (0.218709ms)
+✔ stored pending proposals become stale even when a reloaded store has the same revision (0.458291ms)
+✔ preview, apply and dismiss are explicit actions; terminal state persists and cannot apply twice (0.436292ms)
+✔ failed approval stays pending and reports the editor error; revision changes mark it stale (0.232334ms)
+✔ storage failures and malformed history do not break requests or scene-local session history (0.416583ms)
+✔ legacy mock mode does not load or save conversation history (0.082208ms)
+✔ preview applies through a scratch command store, checks staleness and leaves the original untouched (2.3995ms)
+✔ a new conversation confirms storage availability before reporting its persistence status (2.581041ms)
+✔ successfully stored long history remains readable on reload (4.569208ms)
+✔ recorded HTTP proposal requires approval, applies through the editor store, and undo restores every object (54.870583ms)
+✔ recorded HTTP question continues the conversation and declines preserve keeps (27.287917ms)
+✔ a scene edited after the request rejects its stale proposal atomically (14.147458ms)
+✔ empty input and overlapping submissions do not start requests (1.595208ms)
+✔ streams progress and sends a captured scene, revision and existing keep ids (0.577166ms)
+✔ question option is the next message in the same conversation (0.176833ms)
+✔ proposal is sent to review once without changing the scene (0.4025ms)
+✔ cancel aborts the signal immediately and ignores late progress and proposals (0.166084ms)
+✔ a cancelled request cannot clear the busy state of a newer request (0.150166ms)
+✔ service errors and network errors are visible and allow retry (0.253125ms)
+✔ disposing aborts without publishing a late reply (0.115792ms)
+✔ recorded demo has proposal, question, decline and respects keeps (6.721291ms)
+✔ proposal numbers come from service score, including zero cost and blocked walkways (3.692417ms)
+✔ missing or malformed proposal numbers remain unknown instead of becoming zero (0.22425ms)
+✔ valid score reports minimum across rooms and whole dram purchases (0.153833ms)
+✔ no door routes or missing metrics are not reported as measured clearance (0.0855ms)
+✔ north is unknown by default, validates degrees, persists per scene and is sent with Suggest (0.311209ms)
+✔ unavailable browser storage preserves north for this session without claiming it was saved (0.118625ms)
+✔ elapsed seconds use elapsed time, reset on retry, and stop after cancellation and disposal (0.175125ms)
+✔ progress lines become steps: a new line closes the previous one, a repeat is ignored (1.159583ms)
+✔ the card shows free floor, the narrowest walkway per designed room and the budget used (4.147625ms)
+✔ rooms finished so far can be previewed while the designer works, and the preview follows (0.411625ms)
+✔ a thread the restarted service forgot is started again with the same words (19.129666ms)
+✔ an applied card reads Undone after Undo and Applied again after Redo (2.032125ms)
+✔ undoing a follow-up that re-hangs earlier pieces reads Undone; the first design stays Applied (1.559125ms)
+✔ undoing a follow-up that only moved and re-hung existing pieces reads Undone (0.118958ms)
+✔ what you are buying: new pieces only, with the room they stand in, the shop and the price (0.780834ms)
+✔ a recorded turn streams its records in order, rebased onto the request revision, with recorded times on the clock (5.780375ms)
+✔ the badge says it is a recording, when and how fast (6.599083ms)
+✔ the replay clock never runs past the next recorded event, so it shows the recorded time (0.086167ms)
+✔ empty flat keeps the four original examples (3.8805ms)
+✔ empty rooms get actionable starters and edits recompute without mutation (2.867625ms)
+✔ unknown furniture and ambiguous cabinets never become false empty or missing-storage claims (2.146375ms)
+✔ native wardrobe kind counts as storage even when its product name gives no clue (0.186125ms)
+✔ room polygons, boundaries and floors determine which room contains furniture (0.139708ms)
+✔ built-in storage and removed entities respect renovation metadata (0.180667ms)
+✔ west-facing wording requires known north and survives reversed wall endpoints (0.580792ms)
+✔ interior, removed and explicitly shared windows never claim west exposure (0.156583ms)
+✔ only four deterministic, distinct suggestions are shown in a large flat (0.145666ms)
+✔ elevated built-in cabinets count without roomId and stay on their own floor (0.157208ms)
+✔ built-in occupancy uses the same shell-derived ceiling as the editor (0.08675ms)
+✔ the recorded event stream becomes plain-English steps (7.608375ms)
+✔ tool calls without ids close the latest open call; errors and failed checks stay visible (0.204958ms)
+✔ piece names come only from known nouns in the slot id, and clocks read m:ss (0.082084ms)
+✔ an unfinished build is not reported as done, and the summary counts it (0.175125ms)
+✔ a turn shows live steps, then moves them onto its reply; damaged stored steps are dropped (1.399459ms)
+✔ a queued message waits for the turn, can be removed, and Stop hands it back instead of sending it (0.948542ms)
+✔ switching conversation drops the queue instead of sending it into another thread (0.220542ms)
+✔ context prefixes only what the buyer typed, and proposal chips price only known pieces (0.643584ms)
+✔ a walkway blocked before the proposal is labelled pre-existing, not blamed on it (3.381209ms)
+✔ a walkway the proposal blocks stays flagged as blocked (0.160834ms)
+✔ a curtain near a window centres on it, faces the room and hangs from a rod just below the ceiling (4.412333ms)
+✔ a curtain away from windows keeps its position along the wall; a long curtain is hemmed to the drop (1.445625ms)
+✔ a curtain cannot rest on furniture and a tampered mount is a support issue (0.87875ms)
+✔ a hanging planter hangs from the ceiling above a sofa without clashing, and nothing rests on it (2.691ms)
+✔ only hanging planters hang; wall, deck and plain planters do not; catalog curtains reach the editor (11.078625ms)
+✔ lens choices accept only the supported names and the editor starts with photo framing (0.81825ms)
+✔ photo reveals more of the room at the screenshot aspect, and wide reveals more again (0.8595ms)
+✔ resizing each lens respects both field limits and preserves the standing pose and clipping distances (0.565167ms)
+✔ omitting the optional lens retains the existing standard framing across viewport shapes (0.211875ms)
+✔ invalid lens names and viewport aspects fall back without corrupting the projection (0.374459ms)
+✔ the M6 repaired outside corner also blocks light in the hidden physical shell (35.172792ms)
+✔ repeated opening previews dispose replaced wall prisms without disposing live shared frame boxes (22.394834ms)
+✔ M6 scene.json: no wall endpoint stops just short of another wall (6.229042ms)
+✔ M6 scene.furnished.json: no wall endpoint stops just short of another wall (9.091292ms)
+✔ a host split at a T junction stays solid under the branch instead of opening a V-shaped notch (0.799ms)
+✔ M6 south pier stays solid where the Bedroom 2 / living partition meets it (14.202542ms)
+✔ M6 south balcony facade renders as one continuous band from the pier to the south return (5.9405ms)
+✔ updates merge per role, null restores a role, and an empty map drops the field (3.381167ms)
+✔ undo and redo step through finishes (0.593333ms)
+✔ unknown roles, bad colours and malformed patches are rejected with a clear message (0.497708ms)
+✔ add accepts materials and the scene validator checks them against the asset (0.43325ms)
+✔ slot names match exactly and with a Blender copy suffix only (0.105125ms)
+✔ viewport overrides tint only slot materials, keep textures and restore the model colour (0.981833ms)
+✔ a grouped piece restyles alone; its group members keep their finishes (1.116959ms)
+✔ a mattress lies on the bed frame deck, not at the implied mattress top (1.524708ms)
+✔ other decor on a bed still sits at the implied mattress top (0.097125ms)
+✔ an explicit support the model raycast misses falls back to its catalog box height (0.239375ms)
+✔ adjacent selected walls move from the original junctions exactly once, independently of order (5.070625ms)
+✔ collinear selection inserts room junctions once and a T branch follows the original host (0.890917ms)
+✔ multi-wall movement preserves hosts and routes and invalidates affected evidence (1.117959ms)
+✔ locks on selected and dependent geometry reject a whole multi-wall command atomically (0.948042ms)
+✔ wall selection rejects room reversal, disconnected T hosts and shortened opening bounds (0.611542ms)
+✔ walls and rooms on a separate level stay fixed during batch translation (0.320958ms)
+✔ batch room connections use the original inferred ceiling height before walls move (0.289125ms)
+✔ batch recognition cannot sanitize malformed endpoints into an accepted command (0.952917ms)
+✔ temporary furniture selection translates and rotates loose pieces without changing membership (1.926959ms)
+✔ two persistent furniture groups and a loose object receive one rigid transform apiece (0.757209ms)
+✔ selection previews use checked commit semantics including normalization, bounds and member locks (2.096541ms)
+✔ bundle summaries are checked: foreign plan images and unsafe ids are dropped (1.313292ms)
+✔ bedroom filter treats 3 as three or more; developer filter is exact (0.107875ms)
+✔ one shelf per developer, in the developers order, empty developers left out (0.711625ms)
+✔ a furnished sample reopens as a valid, independent copy with exactly its furniture (21.837708ms)
+✔ furniture the bundle did not ship is resolved; an unreachable catalog is a clear error (13.088334ms)
+✔ API reads drop malformed records and surface server errors (2.447459ms)
+✔ the shared portal header lists the Catalog tab and marks the current page (0.157208ms)
+✔ finds the scale and offset that put the walls on the plan ink (123.351916ms)
+✔ a flat drawn larger on the page gets a larger sheet (125.297667ms)
+✔ walls that do not match the plan are not forced onto it (100.401459ms)
+✔ no walls, no registration (0.083834ms)
+✔ a proposal arrives in the room it changes most; new pieces elsewhere follow quietly (1.414667ms)
+✔ attached things name their kind and room, and travel as one id block (0.293875ms)
+✔ a message carries its attachments to the designer; the bubble keeps the words and the chips (0.934625ms)
+✔ with auto-preview a complete proposal is previewed as it lands, quietly when the editor cannot (0.5255ms)
+✔ raising the walls re-hangs a curtain at the new rod and a planter from the new ceiling (7.798167ms)
+✔ lowering the walls hems a curtain again instead of pushing it into the floor (2.089ms)
+✔ an edit that does not touch walls or ceilings leaves hung items exactly as they are (1.037292ms)
+✔ main revoke clears account association, sessions and fragment and refreshes (1.696875ms)
+✔ main revoke marks a standalone scene unsaved locally (0.103084ms)
+✔ failed revocation preserves the working link and account association (0.316375ms)
+✔ failed account cleanup drops the dead session and can be retried (0.158833ms)
+(node:70330) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ direct handlers enforce revoke permissions, origin and permanent deletion (74.365292ms)
+✔ account Stop sharing revokes the real link using its stored capability (113.992291ms)
+✔ a concurrent save cannot resurrect a revoked share (39.176584ms)
+✔ account revocation cannot delete with a stored view token and preserves its reference on failure (88.92475ms)
+✔ creation returns independent capabilities and JSON responses disable caching and CORS (55.312625ms)
+✔ view reads include the exact snapshot but never either secret or editable access (51.84925ms)
+✔ editors can recover the viewer capability and publish a validated newer snapshot (108.116125ms)
+✔ viewer PUT cannot elevate permission through headers, query parameters, or a forged body (25.319333ms)
+✔ missing, malformed and unrelated tokens fail without exposing identifiers or secrets (47.283458ms)
+✔ concurrent expected-version writes serialize the entire compare and atomic save (25.127375ms)
+✔ a new server instance reads the committed disk snapshot with the same capabilities (27.30875ms)
+✔ invalid scenes, catalogs, spoofed creation fields and versions are rejected without changing disk (35.59925ms)
+✔ an edit capability cannot silently replace an unrelated project identity (13.554375ms)
+✔ JSON media type, parsing, size and same-origin checks apply to writes (68.880041ms)
+✖ an explicit public origin supports HTTPS proxies without trusting forwarded headers (23.917459ms)
+✔ a configured public origin must be an exact HTTP or HTTPS origin without credentials or a path (1.351958ms)
+✔ storage locations inside served roots, including symlink aliases, are rejected (1.209875ms)
+✔ storage errors return generic JSON without disclosing local paths (1.424917ms)
+✔ the sharing plugin registers the API on real Vite development and preview servers (123.766792ms)
+✔ only edit capabilities revoke a share, with same-origin protection and no existence leak (18.909625ms)
+✔ capabilities live only in URL fragments and permission labels cannot elevate access (1.306875ms)
+✔ landing anchors stay in-page while changed share fragments reload, including malformed links (0.097375ms)
+✔ shared snapshots contain the exact scene and only its referenced catalog (7.667708ms)
+✔ receiving a view capability stays view-only and sends token in Authorization (7.187458ms)
+✔ invalid or mismatched shared data never becomes editable startup data (8.062584ms)
+✔ new sharing publishes current progress and generates distinct view and edit links (1.489792ms)
+✔ saving captures the submitted local revision and rejects a duplicate in-flight save (2.479708ms)
+✔ conflict preserves the local draft, saved revision and server version (1.837167ms)
+✔ save responses and scene identity are checked before marking progress saved (4.311125ms)
+✔ the same scene cannot publish through a different account apartment or an unowned editor (3.065041ms)
+✔ project matching distinguishes account records, drafts, direct shares and replaced scenes (1.200875ms)
+✔ newly created sharing sessions retain their account apartment identity (29.329708ms)
+✔ pending link creation stays with its source project after close, replace and reopen (12.574083ms)
+✔ pending link creation separates account apartments that contain the same scene (3.699084ms)
+✔ revoking a session sends its edit capability and prevents further saves (13.394209ms)
+(node:70335) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Renovate structural edit prompts, defaults to Cancel, and only applies on confirmation (0.932958ms)
+✔ correction and unconfirmed roles apply without a structural dialog (0.107167ms)
+✔ confirmation retains the reviewed revision (0.066791ms)
+✔ relay allows contract routes and preserves conflict JSON (36.817709ms)
+✔ relay rejects path injection, invalid revisions, unsupported methods and foreign writes (1.183ms)
+✔ thumbnail bytes and status pass through without JSON conversion (1.093625ms)
+✔ relay times out upstream and only exposes a safe error (6.348208ms)
+✔ relay routes every contract endpoint and does not forward cookies (2.950875ms)
+✔ adapter methods, revisions and conflict details (2.774125ms)
+✔ debounce, snapshot revision and conflict stop automatic writes (0.832875ms)
+✔ beforeunload only prevents leaving with unsaved changes (0.116542ms)
+✔ team cards escape names and show thumbnail, badges and actions (3.93425ms)
+✔ flat restore validates scene and keeps catalog before editor startup (3.609625ms)
+✔ edits during a save remain dirty and use acknowledged base on next write (0.236084ms)
+✔ failed autosave retries with backoff without advancing its base (0.274084ms)
+✔ adapter maps list/create/get/rename/delete/history/restore to the contract (0.891833ms)
+✔ Vite reload flushes dirty changes and suppresses only the reload prompt (0.300167ms)
+✔ ordinary HMR updates and production keep real unload protection (0.15875ms)
+✔ reload transport uses keepalive and omits large thumbnails (0.227458ms)
+✔ reload flush waits for the active write before saving newer edits (0.137959ms)
+✔ failed reload flush still allows Vite reload (0.080542ms)
+✔ first update with a Vite error overlay prepares its fallback reload (0.07925ms)
+✔ clock accepts fractional hours, clamps endpoints, and safely normalizes invalid input (0.935417ms)
+✔ noon is bright and both midnight endpoints are dark with automatic lights on (0.124125ms)
+✔ dawn brightens smoothly and dusk dims smoothly while automatic lights follow the opposite curve (0.229292ms)
+✔ daylight is continuous at each dawn/dusk boundary and remains finite across the full clock (0.153375ms)
+✔ time lighting results are independent values (0.049417ms)
+✔ default and legacy manual sunlight retain the existing elevation and strength (0.133834ms)
+✔ clock edits derive elevation without mutating the previous settings or patch (0.269042ms)
+✔ compass, strength and auto-light edits preserve the selected time (0.050375ms)
+✔ an explicit elevation edit returns to manual positioning, and reset clears the clock (0.069709ms)
+✔ invalid solar edits preserve a valid active clock and numeric settings (0.125834ms)
+✔ effective sun is absent at night, proportional at dusk, and obeys direct-sun and evening switches (0.105041ms)
+✔ automatic lighting changes only the preview fallback and leaves authored components untouched (0.213334ms)
+✔ switch off wins over night auto-lighting and a dimmer setting survives day/night changes (0.12025ms)
+✔ disabled and removed light fixtures stay off when automatic night lighting is active (0.058042ms)
+✔ a flat-screen TV rests on its TV unit and follows it (4.838667ms)
+✔ an oversized TV is still refused as a furniture load (0.181667ms)
+✔ midnight contributes no artificial sun/sky/ambient light, regardless of selected sky (0.960584ms)
+✔ fitted leaves retain every edge length through swing and tilt, including both mirror axes (2.155125ms)
+✔ practical source budget remains identical when the camera moves across a flat (1.266209ms)
+✔ Inside crosses walls, furniture, room gaps and elevation changes without writing the document (0.292875ms)
+✔ off and zero-brightness installed fixtures also turn off their imported emissive materials (1.089417ms)
+✔ a requested elevation is kept, persists through add, validation and a move along the wall (5.094458ms)
+✔ without a request the standard height applies, and the standard stays valid for pieces the new bounds would reject (0.16475ms)
+✔ requested heights clamp to floor + 0.3 and ceiling - 0.1, and may not cover an opening (0.2635ms)
+✔ the inconsistent-mount guard still flags a stored height out of bounds or a moved position (0.27625ms)
+✔ a gallery wall of five frames at varied heights over a sofa validates (0.834042ms)
+✔ wall shelves, ledges, wall hangings, planters, clocks and sconces hang; floor pieces do not (1.138584ms)
+✔ small decor rests on a hung shelf, validates, and follows it when the shelf moves (1.079708ms)
+✔ unequal walls meet at the outer miter for either orientation and arbitrary corner angle (1.400209ms)
+✔ disconnected, vertically separate and removed walls cannot pull a corner into a false join (0.340708ms)
+✔ almost straight unequal-width and acute joins keep a bounded solid instead of remote miter spikes (0.287458ms)
+✔ T joins and short returns retain positive solid coverage without pushing a corner into an opening (0.656959ms)
+✔ a door beginning at a T junction cannot remove the neighbouring solid corner (4.556ms)
+✔ M6 bedroom entrance corner has continuous painted faces and skirting in full and cutaway projections (47.181209ms)
+ℹ tests 325
+ℹ suites 0
+ℹ pass 323
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 2018.870792
+
+✖ failing tests:
+
+test at tests/sharing-server.test.mjs:181:1
+✖ an explicit public origin supports HTTPS proxies without trusting forwarded headers (23.917459ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  201 !== 403
+
+      at TestContext.<anonymous> (file:///Users/davitstepanyan/Documents/varpet/apps/editor/tests/sharing-server.test.mjs:187:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1116:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:786:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 201,
+    expected: 403,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+EXIT 1
+
+COMMAND node scripts/check-shadow-cache.mjs
+Shadow cache checks passed (8 assertions).
+EXIT 0
+
+COMMAND node scripts/check-sky-lighting.mjs
+Sky lighting checks passed (36 assertions).
+EXIT 0
+
+COMMAND node scripts/check-adaptive-occlusion.mjs
+Adaptive occlusion checks passed (19 assertions).
+EXIT 0
+
+COMMAND node scripts/check-ceiling-shadow-budget.mjs
+Ceiling shadow budget checks passed (28 assertions).
+EXIT 0
+
+COMMAND node scripts/check-architect-project.mjs
+architect project check passed
+EXIT 0
+
+COMMAND node scripts/check-window-dimensions.mjs
+Window dimension checks passed: 75 assertions across 9 scenarios.
+EXIT 0
+
+COMMAND node scripts/check-opening-transform.mjs
+Opening transform checks passed: 512 assertions across 12 scenarios.
+EXIT 0
+
+COMMAND node scripts/check-opening-preview.mjs
+Opening preview checks passed (49 assertions).
+EXIT 0
+
+COMMAND node scripts/check-opening-models.mjs
+opening model checks passed (18 assertions)
+EXIT 0
+
+COMMAND node scripts/check-generated-ceilings.mjs
+Generated ceiling and room switch checks passed (56 assertions).
+EXIT 0
+
+COMMAND node scripts/check-ceiling-controls.mjs
+Ceiling control checks passed (59 assertions).
+EXIT 0
+
+COMMAND node scripts/check-selection-surfaces.mjs
+Selection surface checks passed: 25 assertions.
+EXIT 0
+FINAL {"commands":62,"failed":[{"command":"node --test server/*.test.mjs","status":1},{"command":"node --test tests/*.test.mjs","status":1}]}

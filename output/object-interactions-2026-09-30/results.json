@@ -1,0 +1,73 @@
+{
+  "checks": [
+    "preview leaves document and history unchanged",
+    "held move lifts no more than four centimetres ({\"label\":\"Move preview\",\"revision\":0,\"position\":[-3.25,0,1.48],\"root\":[-3.25,0,0.98],\"visual\":[0,0.02,0],\"scale\":[1,1,1],\"frames\":21,\"maxLift\":0.02,\"belowFloor\":false,\"rootMovedVertically\":false,\"unchanged\":true,\"reduced\":false})",
+    "live measurements are visible during movement",
+    "movement HUD reports the actual half metre displacement",
+    "one release creates exactly one history entry",
+    "landing stays above ground without changing checked root height",
+    "release removes measurements",
+    "one undo restores original position",
+    "invalid move shows named conflict alongside dimensions",
+    "conflict and measurement surfaces do not overlap",
+    "cancel clears feedback without a history entry",
+    "resize measurements reflect independent physical dimensions",
+    "resize preview leaves history untouched",
+    "rotation measurements report the exact candidate yaw",
+    "reduced motion keeps direct movement without decorative lift",
+    "landing descends monotonically without rebound",
+    "precision landing never squashes furniture dimensions",
+    "landing finishes exactly at floor and returns to idle",
+    "no browser page errors"
+  ],
+  "errors": [],
+  "modelChecks": {
+    "heights": [
+      0.04,
+      0.023148148148148154,
+      0.011851851851851856,
+      0.005,
+      0.0014814814814814836,
+      0.00018518518518518602,
+      0
+    ],
+    "scales": [
+      [
+        1,
+        1,
+        1
+      ],
+      [
+        1,
+        1,
+        1
+      ],
+      [
+        1,
+        1,
+        1
+      ],
+      [
+        1,
+        1,
+        1
+      ],
+      [
+        1,
+        1,
+        1
+      ],
+      [
+        1,
+        1,
+        1
+      ],
+      [
+        1,
+        1,
+        1
+      ]
+    ],
+    "idle": true
+  }
+}

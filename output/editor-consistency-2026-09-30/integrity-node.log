@@ -1,0 +1,13 @@
+✔ midnight contributes no artificial sun/sky/ambient light, regardless of selected sky (0.84625ms)
+✔ fitted leaves retain every edge length through swing and tilt, including both mirror axes (1.784792ms)
+✔ practical source budget remains identical when the camera moves across a flat (1.051917ms)
+✔ Inside crosses walls, furniture, room gaps and elevation changes without writing the document (0.250875ms)
+✔ off and zero-brightness installed fixtures also turn off their imported emissive materials (0.979625ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 277.455583

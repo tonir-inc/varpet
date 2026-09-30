@@ -4,6 +4,7 @@ import type { EntityMetadata, Opening, Wall } from '../contracts';
 import manifest from '../../../../catalog/openings/manifest.json';
 import { disposeObject } from './assets';
 import { fitPvcWindow } from './window-asset-fit';
+import { rigidOpeningMotion } from './rigid-opening-motion';
 
 // Vite owns these URLs in development and emits the GLBs in production builds.
 const urls = import.meta.glob<string>('../../../../catalog/openings/*.glb', { eager: true, query: '?url', import: 'default' });
@@ -85,7 +86,7 @@ export class OpeningAssetLoader {
       (fitted ? 1 : wall.thickness / product.wall_m) * swing / authoredSwing);
     group.add(model); model.updateMatrixWorld(true);
     const leaves: THREE.Mesh[] = [];
-    const moving: { pivot: THREE.Group; base: THREE.Vector3; side: number }[] = [];
+    const moving: { pivot: THREE.Group; base: THREE.Vector3; side: number; update: () => void }[] = [];
     for (const [prefix, motion] of Object.entries(product.moving)) {
       if (!motion) continue;
       const pivot = new THREE.Group(); pivot.name = `pivot-${prefix}`;
@@ -98,18 +99,19 @@ export class OpeningAssetLoader {
       const parts: THREE.Mesh[] = [];
       model.traverse(object => { if (object instanceof THREE.Mesh && object.name.startsWith(prefix)) parts.push(object); });
       for (const part of parts) { pivot.attach(part); leaves.push(part); }
-      moving.push({ pivot, base: pivot.position.clone(), side: prefix.endsWith('-r') ? -1 : 1 });
+      moving.push({ pivot, base: pivot.position.clone(), side: prefix.endsWith('-r') ? -1 : 1, update: rigidOpeningMotion(pivot, group.scale) });
     }
     const mechanism = previewOpeningMechanism(opening, metadata);
     return {
       group, leaves,
       setAngle(value) {
         const angle = THREE.MathUtils.clamp(value, 0, Math.PI / 2);
-        for (const { pivot, base, side } of moving) {
+        for (const { pivot, base, side, update } of moving) {
           pivot.position.copy(base); pivot.rotation.set(0, 0, 0);
           if (mechanism === 'sliding') pivot.position.x -= 1.12 * angle / (Math.PI / 2);
           else if (mechanism === 'tilt') pivot.rotation.x = angle / (Math.PI / 2) * THREE.MathUtils.degToRad(file === 'window-bath-hopper.glb' ? 12 : 10);
           else if (mechanism !== 'fixed') pivot.rotation.y = -angle * side * authoredSwing;
+          update();
         }
         group.updateMatrixWorld(true);
       },

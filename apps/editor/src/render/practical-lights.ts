@@ -7,7 +7,7 @@ import * as THREE from 'three';
  * with a designer proposal, or a light switching on, would recompile all materials
  * (a 0.3 to 1.5 s freeze). Source lights (lamps, fixtures, evening room fills) stay in
  * the scene graph for their owners to move and dim, but never render themselves: each
- * frame the pool copies the sources nearest the camera into its own always-present lights.
+ * frame the pool copies a stable selection of sources into its own always-present lights.
  */
 export class PracticalLightPool {
   readonly group = new THREE.Group();
@@ -15,7 +15,6 @@ export class PracticalLightPool {
   private readonly sources: THREE.PointLight[] = [];
   private readonly scores: number[] = [];
   private readonly order: number[] = [];
-  private readonly position = new THREE.Vector3();
   private readonly positions: THREE.Vector3[] = [];
 
   constructor(readonly size = 8) {
@@ -27,8 +26,8 @@ export class PracticalLightPool {
     }
   }
 
-  /** Call once per frame, after owners updated their sources and world matrices. */
-  sync(world: THREE.Object3D, camera: THREE.Camera): void {
+  /** Source selection is independent of the camera; changing views must never turn lights on/off. */
+  sync(world: THREE.Object3D, _camera: THREE.Camera): void {
     const sources = this.sources; sources.length = 0;
     world.traverse(object => {
       if (!(object instanceof THREE.PointLight) || object.userData.pooled) return;
@@ -36,18 +35,17 @@ export class PracticalLightPool {
       object.visible = false;
       if (object.intensity > 0 && ancestorsVisible(object)) sources.push(object);
     });
-    camera.getWorldPosition(this.position);
     const scores = this.scores, order = this.order; scores.length = 0; order.length = 0;
     for (let index = 0; index < sources.length; index++) {
       const source = sources[index]!;
       source.updateWorldMatrix(true, false);
       const point = this.positions[index] ?? (this.positions[index] = new THREE.Vector3());
       point.setFromMatrixPosition(source.matrixWorld);
-      // Brightest and nearest first: what the camera can actually see lit.
-      scores.push(source.intensity / (1 + point.distanceToSquared(this.position)));
+      scores.push(source.intensity);
       order.push(index);
     }
-    order.sort((a, b) => scores[b]! - scores[a]!);
+    // Traversal order is stable for a document; ties preserve it instead of following the eye.
+    order.sort((a, b) => scores[b]! - scores[a]! || a - b);
     for (let slot = 0; slot < this.lights.length; slot++) {
       const light = this.lights[slot]!, index = order[slot];
       if (index === undefined) { light.intensity = 0; continue; }

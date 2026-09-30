@@ -111,6 +111,11 @@ export class AdaptiveOcclusionPass extends GTAOPass {
   override render(renderer: THREE.WebGLRenderer, writeBuffer: THREE.WebGLRenderTarget,
     readBuffer: THREE.WebGLRenderTarget, deltaTime: number, maskActive: boolean): void {
     const camera = this.camera as THREE.PerspectiveCamera | THREE.OrthographicCamera;
+    const perspective = camera instanceof THREE.PerspectiveCamera ? 1 : 0;
+    if (this.gtaoMaterial.defines.PERSPECTIVE_CAMERA !== perspective) {
+      this.gtaoMaterial.defines.PERSPECTIVE_CAMERA = perspective;
+      this.gtaoMaterial.needsUpdate = true;
+    }
     this.blendMaterial.uniforms.studioCameraNearFar!.value.set(camera.near, camera.far);
     this.blendMaterial.uniforms.studioPerspective!.value = camera instanceof THREE.PerspectiveCamera;
     super.render(renderer, writeBuffer, readBuffer, deltaTime, maskActive);

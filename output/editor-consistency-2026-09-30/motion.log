@@ -1,0 +1,8 @@
+
+> @varpet/editor@0.0.0 test:motion /Users/davitstepanyan/Documents/varpet/apps/editor
+> node scripts/check-motion.mjs && node scripts/check-transform-motion.mjs && node scripts/check-placement-motion.mjs && node scripts/check-projection-motion.mjs
+
+Editor motion checks passed (52 assertions).
+Transform motion checks passed (11 assertions).
+Placement motion checks passed (25 assertions).
+Projection motion checks passed (16 assertions).

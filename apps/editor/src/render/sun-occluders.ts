@@ -88,7 +88,7 @@ export class SunOccluders {
     mesh.visible = this.roofs; mesh.userData.sunRoof = true;
   }
 
-  /** The dollhouse has no roof: outside views let the sun onto floors and furniture; Inside keeps it. */
+  /** Physical roofs remain in shadow maps even when the editor cuts their visible meshes away. */
   setRoofs(visible: boolean): boolean {
     if (this.roofs === visible) return false;
     this.roofs = visible;

@@ -41,7 +41,8 @@ export class PlacementMotion {
     if (this.media?.matches) this.clear();
   };
 
-  constructor(private readonly parent: THREE.Group, private readonly requestRender: () => void) {
+  constructor(private readonly parent: THREE.Group, private readonly requestRender: () => void,
+    private readonly now: () => number = () => performance.now()) {
     this.media?.addEventListener('change', this.onMotionPreference);
   }
 
@@ -76,7 +77,7 @@ export class PlacementMotion {
 
   private start(id: string, visual: THREE.Group, dimensions: [number, number, number], kind: MotionKind): void {
     if (this.disposed) return;
-    const now = performance.now();
+    const now = this.now();
     const previous = this.motions.get(id);
     // Sample an interrupted animation so picking up and releasing stays continuous.
     if (previous?.visual === visual) this.advance(previous, now);
@@ -97,9 +98,9 @@ export class PlacementMotion {
     }
     const motion: Motion = {
       visual, root, kind, started: now,
-      duration: kind === 'enter' ? 520 : kind === 'lift' ? 120 : 320,
+      duration: kind === 'enter' ? 520 : kind === 'lift' ? 100 : 180,
       fromY: visual.position.y,
-      targetY: kind === 'lift' ? clamp(height * 0.075, 0.07, 0.12) / scaleY : 0,
+      targetY: kind === 'lift' ? clamp(height * 0.025, 0.02, 0.04) / scaleY : 0,
       rebound: (kind === 'enter' ? 0.032 : 0.018) / scaleY,
       scaleX: visual.scale.x, scaleY: visual.scale.y, scaleZ: visual.scale.z,
       held: false, pulseX: 0, pulseZ: 0,
@@ -142,6 +143,15 @@ export class PlacementMotion {
     if (motion.kind === 'lift') {
       const smooth = t * t * (3 - 2 * t);
       motion.visual.position.y = motion.fromY + (motion.targetY - motion.fromY) * smooth;
+    } else if (motion.kind === 'land') {
+      // Precision edits settle once, without elastic rebound or changing size.
+      // New catalog arrivals retain their separate entrance choreography.
+      motion.visual.position.y = motion.fromY * (1 - eased);
+      if (motion.pulse) {
+        motion.pulse.scale.set(motion.pulseX * (1 + t * 0.08), motion.pulseZ * (1 + t * 0.08), 1);
+        motion.pulse.material.opacity = Math.sin(Math.PI * t) * (1 - t) * 0.2;
+        motion.pulse.visible = t > 0 && t < 1;
+      }
     } else {
       const impact = motion.kind === 'enter' ? 0.6 : 0.46;
       if (t < impact) {

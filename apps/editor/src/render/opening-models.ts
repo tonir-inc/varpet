@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type { EntityMetadata, Opening } from '../contracts';
 import { openingModelEntry, type OpeningModelEntry } from '../core/opening-catalog';
 import type { OpeningProjection } from './structure';
+import { rigidOpeningMotion } from './rigid-opening-motion';
 
 export type { OpeningModelEntry } from '../core/opening-catalog';
 
@@ -14,10 +15,10 @@ export function openingModel(assetId: string | undefined): { url: string; entry:
   return entry && url ? { url, entry } : undefined;
 }
 
-interface Motion { pivot: THREE.Object3D; axis: 'x' | 'y' | 'slide'; max: number; sign: number }
+interface Motion { pivot: THREE.Object3D; axis: 'x' | 'y' | 'slide'; max: number; sign: number; update: () => void }
 
 /** How a moving part opens, read from the manifest's motion text; the tilt of a tilt-turn sash only when the opening tilts. */
-function motionOf(text: string, point: number[], mechanism: string): Omit<Motion, 'pivot'> {
+function motionOf(text: string, point: number[], mechanism: string): Omit<Motion, 'pivot' | 'update'> {
   const slide = /translate 0\.\.([\d.]+) m along ([+-])X/.exec(text);
   if (slide) return { axis: 'slide', max: Number(slide[1]), sign: slide[2] === '-' ? -1 : 1 };
   const tilt = /(?:tilt:|about X)[^;]*?0\.\.(\d+)deg/.exec(text);
@@ -47,7 +48,7 @@ export function installOpeningModel(projection: OpeningProjection, opening: Open
     if (!parts.length) continue;
     const pivot = new THREE.Group(); pivot.position.fromArray(part.point_m); model.add(pivot); pivot.updateMatrixWorld(true);
     for (const object of parts) pivot.attach(object);
-    motions.push({ pivot, ...motionOf(part.motion, part.point_m, metadata.mechanism ?? entry.mechanism) });
+    motions.push({ pivot, ...motionOf(part.motion, part.point_m, metadata.mechanism ?? entry.mechanism), update: rigidOpeningMotion(pivot, holder.scale) });
   }
   model.traverse(object => {
     if (!(object instanceof THREE.Mesh)) return;
@@ -59,10 +60,11 @@ export function installOpeningModel(projection: OpeningProjection, opening: Open
   projection.setAngle = (angle: number) => {
     procedural(angle);
     const t = projection.angle / (Math.PI / 2);
-    for (const { pivot, axis, max, sign } of motions) {
+    for (const { pivot, axis, max, sign, update } of motions) {
       pivot.rotation.set(0, 0, 0);
       if (axis === 'slide') pivot.position.x = pivot.userData.restX + sign * max * t;
       else pivot.rotation[axis] = sign * max * t;
+      update();
     }
     group.updateMatrixWorld(true);
   };

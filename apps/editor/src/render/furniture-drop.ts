@@ -31,14 +31,14 @@ export function createFurnitureDrop(options: FurnitureDropOptions) {
   const bounds = new THREE.Group(); bounds.name = 'Furniture drop preview'; bounds.visible = false;
   const geometry = new THREE.BoxGeometry(1, 1, 1);
   const fill = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: '#b6b3c2', transparent: true, opacity: .16, depthWrite: false, toneMapped: false }));
-  const outline = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), new THREE.LineBasicMaterial({ color: '#65d6ad', transparent: true, opacity: .95, depthTest: false, depthWrite: false, toneMapped: false }));
+  const outline = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), new THREE.LineBasicMaterial({ color: '#f1d384', transparent: true, opacity: .95, depthTest: false, depthWrite: false, toneMapped: false }));
   fill.renderOrder = 870; outline.renderOrder = 871;
   fill.raycast = () => {}; outline.raycast = () => {};
   bounds.add(fill, outline); options.world.add(bounds);
   const feedback = new PlacementFeedback(options.container); options.world.add(feedback.group);
   const hint = document.createElement('div');
   hint.className = 'furniture-drop-hint'; hint.hidden = true; hint.setAttribute('role', 'status');
-  hint.style.cssText = 'position:absolute;z-index:12;pointer-events:none;padding:8px 12px;border:1px solid #65d6ad;border-radius:9px;background:#25222eef;color:#f0eaff;font-size:12px;box-shadow:0 6px 24px #0004;max-width:270px;';
+  hint.style.cssText = 'position:absolute;z-index:12;pointer-events:none;padding:8px 12px;border:1px solid #f1d384;border-radius:9px;background:#292923ed;color:#f5f1e7;font-size:12px;box-shadow:0 6px 24px #0004;max-width:270px;';
   options.container.append(hint);
   let asset: CatalogAsset | null = null;
   let candidateId = '';
@@ -64,7 +64,7 @@ export function createFurnitureDrop(options: FurnitureDropOptions) {
   function matches(event: DragEvent): boolean {
     return !!asset && !!event.dataTransfer?.types.includes(FURNITURE_DRAG_TYPE);
   }
-  function hover(event: Pick<DragEvent, 'clientX' | 'clientY'>) {
+  function hover(event: Pick<DragEvent, 'clientX' | 'clientY'> & Partial<Pick<DragEvent, 'shiftKey'>>) {
     const scene = options.scene();
     if (!asset || !scene || !options.enabled()) { clearPreview(); return null; }
     const rect = canvas.getBoundingClientRect();
@@ -74,8 +74,9 @@ export function createFurnitureDrop(options: FurnitureDropOptions) {
     const surface = canRestOnFurniture(asset) ? options.pointerSurface?.(raycaster) : undefined;
     const point = surface ?? raycaster.ray.intersectPlane(floor, new THREE.Vector3());
     if (!point || !Number.isFinite(point.x) || !Number.isFinite(point.z)) { clearPreview(); return null; }
-    const x = options.snap() ? Math.round(point.x * 4) / 4 : point.x;
-    const z = options.snap() ? Math.round(point.z * 4) / 4 : point.z;
+    const snap = options.snap() && !event.shiftKey;
+    const x = snap ? Math.round(point.x * 4) / 4 : point.x;
+    const z = snap ? Math.round(point.z * 4) / 4 : point.z;
     { // Re-evaluate geometry: the pointer may move between shelf boards at the same X/Z.
       let object: SceneObject = { id: candidateId, name: asset.name, assetId: asset.id, position: [x, 0, z], rotation: 0, scale: [1, 1, 1] };
       const catalog = options.catalog();
@@ -87,9 +88,9 @@ export function createFurnitureDrop(options: FurnitureDropOptions) {
       const valid = supported && validation.ok;
       const error = !supported ? mountingError ?? 'Place the whole piece on the apartment floor.' : validation.errors[0];
       last = { scene, asset, x, z, valid, error, object, warnings: conflicts.length > 0 };
-      feedback.update(conflicts);
-      outline.material.color.set(valid && !conflicts.length ? '#65d6ad' : '#ff5660');
-      hint.style.borderColor = valid && !conflicts.length ? '#65d6ad' : '#ff5660';
+      feedback.update(conflicts, { object, asset, mode: 'add', snap });
+      outline.material.color.set(!valid ? '#ff5660' : conflicts.length ? '#eab36a' : '#f1d384');
+      hint.style.borderColor = !valid ? '#ff5660' : conflicts.length ? '#eab36a' : '#f1d384';
     }
     bounds.visible = true; bounds.position.set(last.object.position[0], last.object.position[1] + asset.dimensions[1] / 2, last.object.position[2]); bounds.rotation.y = last.object.rotation;
     const host = options.container.getBoundingClientRect();

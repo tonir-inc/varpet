@@ -1,5 +1,4 @@
 /* Folio buyer workspace: designer left, flat centre, tools only where you touch them. */
-.folio .workspace-nav,
 .folio .status-bar,
 .folio .canvas-label,
 .folio .canvas-bottom,
@@ -9,6 +8,18 @@
 .folio .view-options #quality,
 .folio .view-options #preview,
 .folio .header-actions #file-menu { display: none !important; }
+
+/* A labeled, persistent home for the six workspaces; More holds secondary settings. */
+.folio .workspace-nav { order: -1; width: 72px; padding: 10px 4px; gap: 4px; background: var(--surface); overflow-y: auto; }
+.folio .workspace-nav .nav-button { width: 62px; min-height: 52px; font-size: 11px; color: var(--ink); }
+.folio .workspace-nav .nav-button.active { background: var(--select); color: var(--accent); }
+.folio .workspace-nav .nav-button[aria-expanded=true] { box-shadow: inset 3px 0 0 var(--accent); }
+.folio .workspace-nav .nav-spacer { min-height: 8px; }
+.folio .preview-mode .workspace-nav { display: none; }
+.folio button:focus-visible, .folio select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.folio-navigation-hint { display: none; position: absolute; top: 12px; left: 12px; right: 12px; z-index: 14; width: fit-content; max-width: calc(100% - 24px); padding: 8px 12px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); pointer-events: none; }
+.folio .inside-mode .folio-navigation-hint { display: block; }
+.folio-navigation-hint #view-hint { color: var(--ink); text-shadow: none; }
 
 /* General tools share the left workspace; Furniture and Properties use the right. */
 .folio .workspace > .viewport-shell { order: 1; }
@@ -64,7 +75,7 @@
 .folio-seg { display: flex; align-items: center; gap: 2px; padding: 3px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md); box-shadow: var(--shadow-1); pointer-events: auto; }
 .folio-seg:empty { display: none; }
 .folio-dock .view-switch { display: flex; gap: 2px; padding: 0; background: none; border: 0; box-shadow: none; }
-.folio-dock .view-switch button, .folio-dock #sun { width: 38px; height: 34px; padding: 0; font-size: 0; gap: 0; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--ink); }
+.folio-dock .view-switch button, .folio-dock #sun { min-height: 36px; padding: 0 10px; font-size: 13px; gap: 6px; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--ink); white-space: nowrap; }
 .folio-dock .view-switch button svg, .folio-dock #sun svg { width: 18px; height: 18px; }
 .folio-dock .view-switch button.active, .folio-dock .view-switch button[aria-pressed=true] { background: var(--accent); color: var(--on-accent); }
 .folio-dock #sun[aria-pressed=true], .folio-dock #sun.active { background: var(--select); }
@@ -91,7 +102,8 @@
 .folio-who span { font-size: 13px; color: var(--muted); }
 .folio-ask { color: var(--designer); }
 
-.folio-toast { position: absolute; left: 16px; bottom: 16px; z-index: 14; display: flex; align-items: center; gap: 6px; height: 40px; padding: 0 4px 0 12px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md); box-shadow: var(--shadow-1); font-size: 13.5px; }
+.folio-toast { position: absolute; left: 16px; bottom: 108px; z-index: 16; display: flex; align-items: center; gap: 6px; min-height: 40px; max-width: calc(100% - 32px); padding: 0 4px 0 12px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md); box-shadow: var(--shadow-1); font-size: 13.5px; }
+.folio-toast > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 
 .folio-drawer { position: fixed; inset: 0; margin: auto; width: min(480px, calc(100vw - 32px)); max-height: calc(100dvh - 48px); overflow: auto; padding: 18px 20px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-2); }
 .folio-drawer header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
@@ -108,10 +120,15 @@
 
 /* Tablets and phones: the flat on top, the designer as a sheet below it, tool panels as an overlay sheet. */
 @media (max-width: 900px) {
-  .folio .designer-workspace { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
-  .folio .designer-workspace > .viewport-shell { grid-column: 1; grid-row: 1; }
-  .folio .designer-workspace > section { grid-column: 1; grid-row: 2; width: auto; max-height: 42dvh; border-right: 0; border-top: 1px solid var(--line); overflow: auto; }
-  .folio .designer-workspace > .left-panel, .folio .designer-workspace:has(.designer-collapsed) > .left-panel { position: absolute; inset: auto 0 0 0; z-index: 25; width: auto; height: 62dvh; max-width: none; border-left: 0; border-top: 1px solid var(--line); box-shadow: var(--shadow-2); }
+  .folio .designer-workspace { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; }
+  .folio .designer-workspace > .workspace-nav { grid-column: 1; grid-row: 1; width: 100%; flex-direction: row; align-items: stretch; justify-content: flex-start; padding: 3px 6px; gap: 2px; overflow-x: auto; overflow-y: hidden; border-right: 0; border-bottom: 1px solid var(--line); }
+  .folio .workspace-nav .nav-button { flex-shrink: 0; width: 62px; min-height: 48px; padding: 5px 2px; gap: 3px; }
+  .folio .workspace-nav .nav-button[aria-expanded=true] { box-shadow: inset 0 -3px 0 var(--accent); }
+  .folio .workspace-nav .nav-spacer { display: none; }
+  .folio .workspace-nav > #integrations { margin-top: 0; }
+  .folio .designer-workspace > .viewport-shell { grid-column: 1; grid-row: 2; }
+  .folio .designer-workspace > section { grid-column: 1; grid-row: 3; width: auto; max-height: 42dvh; border-right: 0; border-top: 1px solid var(--line); overflow: auto; }
+  .folio .designer-workspace > .left-panel, .folio .designer-workspace:has(.designer-collapsed) > .left-panel { position: absolute; inset: auto 0 112px 0; z-index: 25; width: auto; height: min(48dvh, calc(100% - 240px)); max-width: none; border-left: 0; border-top: 1px solid var(--line); box-shadow: var(--shadow-2); }
   .folio .designer-workspace:has(.furniture-panel:not([hidden])) > section { display: none; }
 }
 @media (max-width: 760px) {
@@ -119,7 +136,7 @@
   .folio-dock { bottom: 10px; gap: 6px; }
   .folio-menu { right: 10px; }
   .folio-toolbar .folio-who strong { max-width: 110px; }
-  .folio-toast { left: 10px; bottom: 58px; }
+  .folio-toast { left: 10px; bottom: 144px; }
 }
 @media (prefers-reduced-motion: reduce) { .folio-quote, .folio-ib { transition: none; } }
 
@@ -138,22 +155,30 @@
 .folio .preview-mode .folio-dock #preview { display: inline-flex; }
 
 @container (max-width: 540px) {
-  .folio-edit-tools button { width: 30px !important; }
+  .folio-edit-tools button { width: 36px !important; min-height: 40px; }
   .folio-edit-tools #snap { width: auto !important; }
   .folio-edit-tools #snap svg { display: none; }
   .folio-edit-tools #snap strong { font-size: 11px !important; }
   .folio-edit-tools .tool-divider { margin: 0 1px; }
   .folio-dock { gap: 4px; bottom: 10px; }
-  .folio-dock .view-switch button { width: 32px; }
-  .folio-dock .skybox-control { max-width: 86px; padding: 0 2px; }
+  .folio-dock .view-switch button { min-width: 58px; min-height: 40px; padding: 0 7px; gap: 4px; font-size: 12px; }
+  .folio-dock .view-switch button svg { width: 15px; height: 15px; }
+  .folio-dock [data-slot=views] { flex-basis: auto; }
+  .folio-dock .folio-ib, .folio-dock .folio-preview, .folio-dock .folio-action, .folio-dock #sun { min-height: 40px; }
+  .folio-dock .skybox-control { max-width: 72px; padding: 0 2px; }
   .folio-dock .skybox-control select { min-width: 0; width: 100%; }
   .folio-dock #top-lighting { padding: 0 5px; }
   .folio-dock #top-lighting span { display: none; }
   .folio-dock [data-slot=actions] { flex-basis: auto; }
+  .folio-dock [data-folio=tour] { display: none; }
+  .folio-dock #sun { padding: 0 5px; font-size: 12px; }
 }
 
 @media (max-width: 600px) {
   .folio .folio-sandbox { font-size: 12px; padding-inline: 6px; }
-  .folio .viewport-shell .right-panel { top: 94px; bottom: 112px; max-height: calc(100% - 206px); }
-  .furniture-panel { top: 94px; bottom: 112px; width: min(280px, calc(100% - 72px)); }
+  .folio .app-header .folio-sandbox, .folio .app-header [data-team-rename] { display: none; }
+  .folio .app-header .folio-quote { width: 36px; padding: 0; }
+  .folio .app-header .folio-quote .folio-num { display: none; }
+  .folio .viewport-shell .right-panel { top: 112px; bottom: 112px; max-height: calc(100% - 224px); }
+  .furniture-panel { top: 112px; bottom: 112px; width: min(280px, calc(100% - 72px)); }
 }

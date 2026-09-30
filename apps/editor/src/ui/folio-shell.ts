@@ -6,7 +6,8 @@ import { buildQuote, sizeOf, type Ownership, type QuoteGroupId } from '../core/q
 /**
  * The buyer's workspace in the Folio language: the designer on the left, the flat in the middle,
  * tools only where you touch them. Existing panels and controls are moved, never rebuilt, so their
- * handlers, ids and shortcuts keep working; panels that buyers rarely need live behind More.
+ * handlers, ids and shortcuts keep working. Core workspaces stay labeled and directly reachable;
+ * secondary view and project settings live behind More.
  */
 type Panel = 'scene' | 'assets' | 'assistant' | 'materials' | 'ceilings' | 'renovation';
 type View = 'perspective' | 'top' | 'inside' | 'plan';
@@ -75,16 +76,27 @@ export function mountFolioShell(deps: FolioShellDeps) {
   shell.append(dock);
   const views = document.querySelector('.view-switch');
   if (views) dock.querySelector('[data-slot=views]')!.append(views);
+  const viewLabels: Record<string, string> = { perspective: '3D', 'top-view': 'Top', 'inside-view': 'Inside', 'plan-view': 'Plan' };
+  views?.querySelectorAll<HTMLButtonElement>('button').forEach(control => {
+    control.setAttribute('aria-label', viewLabels[control.id] ?? control.textContent!.trim());
+    // Existing icons, buttons and handlers survive; text is visible at every viewport size.
+    control.classList.add('folio-view');
+  });
   const sun = document.getElementById('sun');
   if (sun) dock.querySelector('[data-slot=light]')!.append(sun);
-  const topLighting = document.getElementById('top-lighting');
-  if (topLighting) dock.querySelector('[data-slot=light]')!.prepend(topLighting);
   const sky = document.querySelector('.skybox-control');
   if (sky) dock.querySelector('[data-slot=light]')!.append(sky);
   const preview = document.getElementById('preview');
   if (preview) {
     preview.classList.add('folio-preview');
     dock.querySelector('[data-folio=more]')!.before(preview);
+  }
+  // Inside has no editing rail. Keep its existing live movement/exit guidance visible.
+  const viewHint = document.getElementById('view-hint');
+  if (viewHint) {
+    const guidance = document.createElement('div');
+    guidance.className = 'folio-navigation-hint';
+    guidance.append(viewHint); shell.append(guidance);
   }
 
   const rail = shell.querySelector<HTMLElement>('.tool-rail');
@@ -103,6 +115,7 @@ export function mountFolioShell(deps: FolioShellDeps) {
     item('panel:ceilings', 'Ceilings and lights', 'lamp'), item('panel:renovation', 'Walls and renovation', 'walls'),
     item('panel:assistant', 'Proposals and reconstruction', 'ask'), item('click:#walls', 'Wall visibility', 'walls'), item('click:#quality', 'Rendering quality', 'eye'),
     item('click:#preview', 'Clean preview', 'eye'), item('click:#file-menu', 'Files', 'file'), item('click:#integrations', 'Sources and connections', 'plug'),
+    item('click:[data-folio=tour]', 'Guided apartment tour', 'eye'),
     item('click:#help', 'Keyboard shortcuts', 'keys')].join('');
   shell.append(menu);
 
@@ -142,6 +155,7 @@ export function mountFolioShell(deps: FolioShellDeps) {
   function renderQuote() {
     const q = quote();
     quoteButton.innerHTML = `${icon('receipt')}<span class="folio-num">${money(q.total, deps.currency)}</span>`;
+    quoteButton.setAttribute('aria-label', `Costs and shopping list · ${money(q.total, deps.currency)}`);
     if (!drawer.open) return;
     drawer.innerHTML = `<header><h2>What it costs</h2>${button('quote', 'Close', 'close')}</header>
       ${q.groups.map(group => `<section class="folio-group"><h3>${esc(groupText[group.id].title)}</h3><p>${esc(groupText[group.id].who)}</p>
@@ -160,10 +174,12 @@ export function mountFolioShell(deps: FolioShellDeps) {
     if (toolbar.dataset.id !== object.id || toolbar.dataset.owned !== String(ownership.get(object.id) === 'owned')) {
       toolbar.dataset.id = object.id; toolbar.dataset.owned = String(ownership.get(object.id) === 'owned');
       const owned = ownership.get(object.id) === 'owned';
-      toolbar.innerHTML = `<span class="folio-who"><strong>${esc(object.name)}</strong><span class="folio-num">${owned ? 'Yours' : asset.price > 0 ? money(asset.price, deps.currency) : sizeOf(asset, object)}</span></span>
-        ${button('tool:move', 'Move', 'move')}${button('tool:rotate', 'Turn', 'rotate')}${button('tool:scale', 'Resize', 'scale')}${button('swap', 'Swap for one that fits', 'swap')}${button('colour', 'Colour', 'drop')}
+      toolbar.innerHTML = `<span class="folio-who"><strong></strong><span class="folio-num"></span></span>
+        ${button('tool:move', 'Move', 'move')}${button('tool:rotate', 'Turn', 'rotate')}${button('tool:scale', 'Resize', 'scale')}${button('properties', 'Properties and replacement options', 'list')}${button('colour', 'Colour', 'drop')}
         ${button('remove', 'Remove', 'trash')}${original.has(object.id) ? button('own', owned ? 'Not mine' : 'I already own this', 'receipt', owned ? 'on' : '') : ''}${button('ask', 'Ask the designer about it', 'ask', 'folio-ask')}`;
     }
+    toolbar.querySelector('.folio-who strong')!.textContent = object.name;
+    toolbar.querySelector('.folio-who .folio-num')!.textContent = ownership.get(object.id) === 'owned' ? 'Yours' : asset.price > 0 ? money(asset.price, deps.currency) : sizeOf(asset, object);
     toolbar.hidden = false;
     place();
   }
@@ -201,7 +217,7 @@ export function mountFolioShell(deps: FolioShellDeps) {
     else if (action.startsWith('panel:')) deps.openPanel(action.slice(6) as Panel);
     else if (action.startsWith('click:')) document.querySelector<HTMLElement>(action.slice(6))?.click();
     else if (action.startsWith('tool:')) deps.setTool(action.slice(5) as ToolMode);
-    else if (action === 'swap') deps.openPanel('assets');
+    else if (action === 'properties') { if (!deps.isInspectorOpen()) deps.toggleInspector(); }
     else if (action === 'colour') deps.openPanel('materials');
     else if (action === 'remove') { const name = deps.getScene().objects.find(o => o.id === deps.getSelectedId())?.name ?? 'Piece'; deps.remove(); showToast(`${name} removed`); }
     else if (action === 'undo') { deps.undo(); toast.hidden = true; }
@@ -215,6 +231,20 @@ export function mountFolioShell(deps: FolioShellDeps) {
   };
   document.addEventListener('click', onClick);
   const onKey = (event: KeyboardEvent) => {
+    if (event.target instanceof HTMLElement && views?.contains(event.target) && ['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) {
+      event.preventDefault(); event.stopPropagation();
+      const controls = [...views.querySelectorAll<HTMLButtonElement>('button:not(:disabled)')];
+      const index = controls.indexOf(document.activeElement as HTMLButtonElement);
+      const next = event.key === 'Home' ? 0 : event.key === 'End' ? controls.length - 1 : (index + (event.key === 'ArrowRight' ? 1 : -1) + controls.length) % controls.length;
+      controls[next]?.focus();
+      return;
+    }
+    if (document.activeElement === more && ['ArrowDown', 'ArrowUp'].includes(event.key)) {
+      event.preventDefault(); event.stopPropagation(); setMenu(true);
+      const controls = [...menu.querySelectorAll<HTMLButtonElement>('button:not(:disabled)')];
+      (event.key === 'ArrowUp' ? controls.at(-1) : controls[0])?.focus();
+      return;
+    }
     if (event.key === 'Escape') {
       if (menuOpen) { event.preventDefault(); event.stopPropagation(); setMenu(false, true); }
     }
@@ -227,6 +257,10 @@ export function mountFolioShell(deps: FolioShellDeps) {
     }
   };
   document.addEventListener('keydown', onKey);
+  const onFocus = (event: FocusEvent) => {
+    if (menuOpen && event.target instanceof Node && !menu.contains(event.target) && event.target !== more) setMenu(false);
+  };
+  document.addEventListener('focusin', onFocus);
 
   function update() {
     dock.querySelector('[data-folio=add]')?.setAttribute('aria-expanded', String(deps.isPanelOpen('assets')));
@@ -245,6 +279,6 @@ export function mountFolioShell(deps: FolioShellDeps) {
   update();
   return {
     update,
-    dispose() { drawer.close(); drawer.remove(); clearTimeout(toastTimer); stopFrames(); document.removeEventListener('click', onClick); document.removeEventListener('keydown', onKey); },
+    dispose() { drawer.close(); drawer.remove(); clearTimeout(toastTimer); stopFrames(); document.removeEventListener('click', onClick); document.removeEventListener('keydown', onKey); document.removeEventListener('focusin', onFocus); },
   };
 }

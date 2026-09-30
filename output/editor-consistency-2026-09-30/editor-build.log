@@ -1,0 +1,119 @@
+
+> @varpet/editor@0.0.0 build /Users/davitstepanyan/Documents/varpet/apps/editor
+> vite build
+
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "./server/sharing" without a file extension (vite.config.ts:6:31). Add the file extension
+  - import "../src/contracts" without a file extension (server/sharing.ts:9:50). Add the file extension
+  - import "../src/core/validation" without a file extension (server/sharing.ts:10:41). Add the file extension
+  - import "./material-slots" without a file extension (src/core/validation.ts:1:58). Add the file extension
+  - import "./furniture-bounds" without a file extension (src/core/validation.ts:2:37). Add the file extension
+  - import "./furniture-support" without a file extension (src/core/validation.ts:3:80). Add the file extension
+  - import "./decoration-placement" without a file extension (src/core/validation.ts:4:84). Add the file extension
+  - import "../contracts" without a file extension (src/core/validation.ts:5:132). Add the file extension
+  - import "./geometry" without a file extension (src/core/validation.ts:7:35). Add the file extension
+  - import "./opening-collision" without a file extension (src/core/validation.ts:8:61). Add the file extension
+  - import "./ceiling-design" without a file extension (src/core/validation.ts:9:57). Add the file extension
+  - import "./heights" without a file extension (src/core/validation.ts:10:32). Add the file extension
+  - import "../contracts" without a file extension (src/core/heights.ts:1:59). Add the file extension
+  - import "../contracts" without a file extension (src/core/geometry.ts:1:73). Add the file extension
+  - import "../contracts" without a file extension (src/core/opening-collision.ts:1:57). Add the file extension
+  - import "../contracts" without a file extension (src/core/material-slots.ts:1:61). Add the file extension
+  - import "../contracts" without a file extension (src/core/furniture-bounds.ts:1:54). Add the file extension
+  - import "../contracts" without a file extension (src/core/furniture-support.ts:1:63). Add the file extension
+  - import "./furniture-bounds" without a file extension (src/core/decoration-placement.ts:1:37). Add the file extension
+  - import "../contracts" without a file extension (src/core/ceiling-design.ts:1:94). Add the file extension
+  - import "./wall-surfaces" without a file extension (src/core/heights.ts:2:34). Add the file extension
+  - import "./geometry" without a file extension (src/core/opening-collision.ts:2:28). Add the file extension
+  - import "./decoration-placement" without a file extension (src/core/furniture-support.ts:2:95). Add the file extension
+  - import "../contracts" without a file extension (src/core/decoration-placement.ts:2:63). Add the file extension
+  - import "./heights" without a file extension (src/core/ceiling-design.ts:2:51). Add the file extension
+  - import "./validation" without a file extension (src/core/furniture-support.ts:3:49). Add the file extension
+  - import "./validation" without a file extension (src/core/decoration-placement.ts:3:32). Add the file extension
+  - import "./heights" without a file extension (src/core/decoration-placement.ts:4:51). Add the file extension
+  - import "../contracts" without a file extension (src/core/wall-surfaces.ts:1:55). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+vite v8.3.1 building client environment for production...
+(node:79208) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+transforming...
+✓ 276 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                       1.83 kB │ gzip:   0.84 kB
+dist/assets/normal-BAg905ag.jpg                       6.45 kB
+dist/assets/normal-CG34lv0B.jpg                       6.55 kB
+dist/assets/simplify-worker-BJ7o2fzf.js              42.59 kB
+dist/assets/normal-BOV_Ky2F.jpg                      58.88 kB
+dist/assets/roughness-CvBUliYO.jpg                   67.93 kB
+dist/assets/normal-CMIszHw9.jpg                      72.66 kB
+dist/assets/normal-D7dqdYp1.jpg                      83.77 kB
+dist/assets/window-oak-box-B6ZAKB1-.glb             148.03 kB
+dist/assets/basecolor-CII6jJTV.jpg                  180.32 kB
+dist/assets/door-shaker-sage-DdCud-75.glb           181.68 kB
+dist/assets/roughness-D99O-dXN.jpg                  182.37 kB
+dist/assets/door-flush-white-CACAuCbg.glb           190.94 kB
+dist/assets/window-panoramic-slider-BBg0cUp9.glb    192.76 kB
+dist/assets/basecolor-Dw9Lz3II.jpg                  222.84 kB
+dist/assets/basecolor-BtF-RFhP.jpg                  224.56 kB
+dist/assets/window-bath-hopper-BN7UT36G.glb         245.90 kB
+dist/assets/basecolor-ByAeVaum.jpg                  257.16 kB
+dist/assets/door-steel-french-CP_NSiHi.glb          284.24 kB
+dist/assets/window-pvc-tilt-turn-C8Nm6Hxq.glb       288.95 kB
+dist/assets/door-oak-glazed-C5-Tb1Js.glb            292.74 kB
+dist/assets/roughness-BrR4thzw.jpg                  328.38 kB
+dist/assets/window-alu-transom-We908v6M.glb         347.27 kB
+dist/assets/roughness-BEj5AgH4.jpg                  367.25 kB
+dist/assets/door-entrance-armored-DeBeL-n2.glb      368.92 kB
+dist/assets/window-pvc-tall-D-pdQeSN.glb            380.42 kB
+dist/assets/window-pvc-single-BWIqREOn.glb          380.42 kB
+dist/assets/basecolor-CmfNOeZl.jpg                  380.43 kB
+dist/assets/roughness-BfvNI1lq.jpg                  411.53 kB
+dist/assets/pdf.worker.min-Dswkl-cV.mjs           1,265.41 kB
+dist/assets/sky-partly-cloudy-1k-C35ymwQp.hdr     1,435.11 kB
+dist/assets/blueprint-source-Sqj6WUxM.css             1.18 kB │ gzip:   0.48 kB
+dist/assets/viewport-KF9VjJeK.css                     1.43 kB │ gzip:   0.56 kB
+dist/assets/blueprint-construction-DZpd2eTm.css       5.51 kB │ gzip:   1.69 kB
+dist/assets/catalog-wWxm_nWu.css                     11.67 kB │ gzip:   3.25 kB
+dist/assets/blueprint-CHQmOTA4.css                   19.72 kB │ gzip:   5.02 kB
+dist/assets/developer-profile-BTNTiR_3.css           19.82 kB │ gzip:   4.86 kB
+dist/assets/auth-BrAp1ICl.css                        22.81 kB │ gzip:   4.38 kB
+dist/assets/index-DmkcpnWI.css                       45.66 kB │ gzip:   8.98 kB
+dist/assets/main-CICqdGkP.css                       105.68 kB │ gzip:  19.02 kB
+dist/assets/blueprint-checkpoint-Bp1ygo77.js          0.11 kB │ gzip:   0.10 kB
+dist/assets/developer-preview-Ch7fVwMc.js             0.18 kB │ gzip:   0.16 kB
+dist/assets/bundles-contract-BZAi1OS_.js              0.32 kB │ gzip:   0.18 kB
+dist/assets/persistence-qXhwFBIs.js                   1.14 kB │ gzip:   0.65 kB
+dist/assets/built-catalog-Cwxnhyov.js                 1.83 kB │ gzip:   0.94 kB
+dist/assets/blueprint-ink-idxX5Div.js                 1.96 kB │ gzip:   0.94 kB
+dist/assets/developer-profile-QjpZjxbq.js             2.02 kB │ gzip:   0.99 kB
+dist/assets/blueprint-source-0Tt2N4I-.js              2.13 kB │ gzip:   1.06 kB
+dist/assets/shared-viewer-BLNhiIcq.js                 2.86 kB │ gzip:   1.27 kB
+dist/assets/portal-header-_JxE4LqS.js                 3.22 kB │ gzip:   1.41 kB
+dist/assets/team-saves-Df5eTBiK.js                    3.95 kB │ gzip:   1.84 kB
+dist/assets/catalog-launch-Bax5LEK4.js                4.32 kB │ gzip:   1.99 kB
+dist/assets/catalog-D4jhzbIR.js                       4.54 kB │ gzip:   1.94 kB
+dist/assets/architect-http-Le1K-6Uw.js                4.92 kB │ gzip:   2.10 kB
+dist/assets/database-catalog-Dd5intSM.js              5.63 kB │ gzip:   2.59 kB
+dist/assets/preview-DYu1ejEc.js                       6.44 kB │ gzip:   3.09 kB
+dist/assets/developer-publish-DBMT0uoI.js             8.09 kB │ gzip:   3.36 kB
+dist/assets/portal-PzR4iDuO.js                       10.13 kB │ gzip:   3.92 kB
+dist/assets/blueprint-construction-Qe8M1jy6.js       11.78 kB │ gzip:   5.09 kB
+dist/assets/catalog-DY14Bidc.js                      12.01 kB │ gzip:   4.53 kB
+dist/assets/auth-BBSqzmaj.js                         13.72 kB │ gzip:   5.35 kB
+dist/assets/developer-profile-8v5xIDAi.js            21.58 kB │ gzip:   7.59 kB
+dist/assets/blueprint-theme-BtfaZpO4.js              28.87 kB │ gzip:   9.77 kB
+dist/assets/blueprint-DDKXTWIE.js                    30.48 kB │ gzip:  11.10 kB
+dist/assets/index-C0UAGOm7.js                        62.99 kB │ gzip:  22.36 kB
+dist/assets/viewport-DD7r9p2X.js                    397.29 kB │ gzip: 142.61 kB
+dist/assets/main-DGdApKPB.js                        429.62 kB │ gzip: 137.31 kB
+dist/assets/blueprint-pdf-CPElY7nu.js               430.84 kB │ gzip: 129.21 kB
+dist/assets/structure-ChEYFEnr.js                   991.82 kB │ gzip: 301.46 kB
+dist/assets/app-Cp5HQ-aB.js                       1,196.12 kB │ gzip: 840.04 kB
+
+✓ built in 226ms
+[plugin builtin:vite-reporter]
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.

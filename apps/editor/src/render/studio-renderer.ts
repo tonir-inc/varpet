@@ -22,6 +22,7 @@ class ContactOcclusionPass extends AdaptiveOcclusionPass {
     // [-1, 1]. The stock r186 horizon integration feeds them into sqrt/acos,
     // creating sparse non-finite pixels even across a perfectly flat floor.
     this.gtaoMaterial.fragmentShader = this.gtaoMaterial.fragmentShader
+      .replace('vec3 viewDir = normalize(-viewPos.xyz);', 'vec3 viewDir = PERSPECTIVE_CAMERA == 1 ? normalize(-viewPos.xyz) : vec3(0.0, 0.0, 1.0);')
       .replace('vec2 sinHorizons = sqrt(1. - cosHorizons * cosHorizons);', `
         cosHorizons = clamp(cosHorizons, vec2(-1.0), vec2(1.0));
         vec2 sinHorizons = sqrt(max(vec2(0.0), 1.0 - cosHorizons * cosHorizons));
@@ -159,12 +160,10 @@ export class StudioRenderer {
     this.beauty.camera = camera;
     this.occlusion.camera = camera;
     this.selection.renderCamera = camera;
-    // Top mode is a measurement-oriented orthographic view. Keep its fills
-    // even and its overlays clear rather than carrying perspective AO into it.
-    const perspective = camera instanceof THREE.PerspectiveCamera;
-    this.occlusion.enabled = perspective && this.debug.ao;
+    // Projection changes the view, never the apartment's lighting or colour treatment.
+    this.occlusion.enabled = this.debug.ao;
     this.antialias.enabled = this.debug.smaa;
-    this.grade.uniforms.strength!.value = perspective ? (this.interior ? 0.2 : 1) : 0;
+    this.grade.uniforms.strength!.value = 0.2;
     this.composer.render();
   }
 

@@ -113,8 +113,7 @@ export class WalkthroughControls {
     if (Math.hypot(...delta) > 0) {
       const before = this.camera.position.toArray(), after = this.move(before, delta);
       this.camera.position.fromArray(after);
-      // Do not retain momentum through a solid boundary. All travel, including the tail,
-      // still passes through the existing swept collision and grounded-eye-height logic.
+      // A movement adapter may constrain travel; never retain momentum against its limit.
       if (Math.abs(after[0] - before[0] - delta[0]) > 1e-5) this.velocity[0] = 0;
       if (Math.abs(after[2] - before[2] - delta[1]) > 1e-5) this.velocity[1] = 0;
     }
