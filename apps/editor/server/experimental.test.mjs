@@ -61,6 +61,16 @@ test('the plan image is served, falling back to the generated top view when the 
   assert.equal(top.status, 200);
 });
 
+test('the flat’s pieces are served as the designer’s own design, every scene piece owned once', async t => {
+  const origin = await serve(t);
+  const { design } = await (await fetch(`${origin}/api/experimental/flats/komitas-b3-t11/design`)).json();
+  const { bundle } = await (await fetch(`${origin}/api/experimental/flats/komitas-b3-t11`)).json();
+  const ids = bundle.scene.objects.map(object => object.id).sort();
+  assert.deepEqual([...design.owned].sort(), ids);
+  assert.deepEqual(design.draft.items.map(item => item.id).sort(), ids);
+  for (const item of design.draft.items) assert.ok(item.sku && item.price > 0 && item.vendor && item.keep === false, `${item.id} is a priced, movable design piece`);
+});
+
 test('unknown flats and other paths are not served', async t => {
   const origin = await serve(t);
   const missing = await fetch(`${origin}/api/experimental/flats/nope`);

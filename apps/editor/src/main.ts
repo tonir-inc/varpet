@@ -21,7 +21,7 @@ import { mountProposalBar } from './ui/review-bar';
 import { describeEntity, proposalArrival } from './ui/proposal-review';
 import { mountDesignOnboarding } from './ui/design-onboarding';
 import { createDesignConstruction } from './ui/design-construction';
-import { askDesigner, designerHealth } from './adapters/designer-http';
+import { askDesigner, designerHealth, type DesignerRequest } from './adapters/designer-http';
 import { DesignerProposalCatalog } from './core/designer-catalog';
 import { CATALOG_CURRENCY } from './adapters/catalog-http';
 import { mountFolioShell } from './ui/folio-shell';
@@ -1249,11 +1249,33 @@ store.subscribe(refresh);
 const designerHost = document.createElement('section');
 // Designer and general tools share the left workspace.
 $('.workspace').classList.add('designer-workspace');$('.left-panel').before(designerHost);
+/** An Experimental flat's furniture was traced, not designed: the designer only edits pieces of a design it owns, so
+ * a new conversation hands it the flat's pieces as its design (server/experimental.mjs, apartments/_svg/design.ts),
+ * each where it stands now; pieces deleted since are left out and pieces added stay the person's. */
+type OwnedDesign = { draft: { items: Array<Record<string, unknown>> } & Record<string, unknown>; owned: string[]; requests: string[] };
+let experimentalDesign: Promise<OwnedDesign | undefined> | undefined;
+async function ownedDesign(): Promise<DesignerRequest['design']> {
+  const bundle = presentation?.bundle;
+  if (!bundle?.furnishedBy) return undefined;
+  experimentalDesign ??= fetch(`/api/experimental/flats/${encodeURIComponent(bundle.id)}/design`)
+    .then(async response => response.ok ? (await response.json() as { design: OwnedDesign }).design : undefined).catch(() => undefined);
+  const design = await experimentalDesign;
+  if (!design) return undefined;
+  const objects = new Map(store.scene.objects.map(object => [object.id, object]));
+  const items = design.draft.items.filter(item => objects.has(String(item.id))).map(item => {
+    const object = objects.get(String(item.id))!;
+    return { ...item, pos: [object.position[0], -object.position[2]], rot: object.rotation * 180 / Math.PI } as Record<string, unknown>;
+  });
+  return { draft: { ...design.draft, items }, owned: items.map(item => String(item.id)), requests: design.requests };
+}
+
 const designerPanel = mountDesignerPanel(designerHost, {
   ask: designerLive ? async (request, options) => {
     // The request carries the products this scene already uses; the designer searches the catalog itself,
     // and purchases it proposes are fetched by id through the same lookup as saved projects.
     const products = structuredClone([...catalogProducts.values()]);
+    const design = request.conversationId || request.design ? undefined : await ownedDesign();
+    if (design) request = { ...request, design };
     const reply = await askDesigner({ ...request, catalog: products.map(product => product.asset), catalogCurrency: CATALOG_CURRENCY }, { ...options,
       // Rooms finished so far are previewed like a proposal, so their products must be known to the editor too.
       onPartial: partial => { if (request.revision === store.revision) designerCatalog.remember(partial.proposal, [...products]); options?.onPartial?.(partial); },

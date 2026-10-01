@@ -87,9 +87,15 @@ export function createExperimentalHandler(options = {}) {
     // Re-read per request: rebuilding a flat shows up without restarting the dev server.
     const flats = loadFlats(repoRoot);
     if (path === '/api/experimental/flats') return send(response, 200, { bundles: flats.map(flat => flat.summary) });
-    const match = /^\/api\/experimental\/flats\/([a-z0-9-]{1,80})(\/blueprint)?$/.exec(path);
+    const match = /^\/api\/experimental\/flats\/([a-z0-9-]{1,80})(\/blueprint|\/design)?$/.exec(path);
     const flat = match && flats.find(item => item.summary.id === match[1]);
     if (!flat) return send(response, 404, { error: 'This flat could not be found.', code: 'not_found' });
+    if (match[2] === '/design') {
+      // The flat's pieces as the designer's own design (apartments/_svg/design.ts), sent with its first request.
+      const design = join(repoRoot, 'apartments', flat.summary.id, 'design.json');
+      if (!existsSync(design)) return send(response, 404, { error: 'This flat has no designer design.', code: 'not_found' });
+      return send(response, 200, { design: JSON.parse(readFileSync(design, 'utf8')) });
+    }
     if (match[2]) {
       response.statusCode = 200;
       response.setHeader('Content-Type', 'image/png');
