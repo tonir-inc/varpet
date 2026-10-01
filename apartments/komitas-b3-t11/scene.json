@@ -823,18 +823,37 @@
         "roomId": "bathroom"
       },
       {
-        "id": "shower",
-        "name": "Shower tray",
-        "kind": "shower",
+        "id": "washer",
+        "name": "Washing machine",
+        "kind": "appliance",
         "position": [
-          8.1804,
+          8.1806,
           0,
           5.1931
         ],
         "dimensions": [
           0.58,
+          0.85,
+          0.474
+        ],
+        "rotation": 0,
+        "color": "#f4f4f2",
+        "phase": "existing",
+        "roomId": "bathroom"
+      },
+      {
+        "id": "shower",
+        "name": "Walk-in shower",
+        "kind": "shower",
+        "position": [
+          7.9694,
+          0,
+          6.7747
+        ],
+        "dimensions": [
+          1.002,
           2,
-          0.51
+          0.791
         ],
         "rotation": 0,
         "color": "#f4f4f2",
