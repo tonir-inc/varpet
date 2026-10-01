@@ -3,51 +3,64 @@
  "scale": "traced in pixels; scale 56.9 px/m from 4 dimension lines",
  "faults": [],
  "empty_export": "ok",
+ "settled": [
+  "dining-chair-s1 0.155 m off dining-table",
+  "dining-chair-s2 0.155 m off dining-table",
+  "dining-chair-w 0.080 m off dining-table",
+  "dining-chair-e 0.080 m off dining-table",
+  "bedside 0.070 m off bed",
+  "desk-chair 0.185 m off desk",
+  "sofa 0.050 m into living",
+  "tv-unit 0.060 m into living",
+  "bed 0.075 m into bedroom",
+  "wardrobe-bedroom-a 0.060 m into bedroom",
+  "wardrobe-bedroom-b 0.060 m into bedroom"
+ ],
  "furniture": [
   {
    "id": "sofa",
    "kind": "sofa",
    "room": "living",
    "footprint_m": [
-    2.18,
-    0.74
+    2.179,
+    0.738
    ],
-   "asset": "abo:B075X2WNWG",
+   "asset": "abo:B07B4G5QD4",
    "asset_m": [
-    2.1,
-    0.8
+    2.22,
+    0.86
    ],
-   "name": "Amazon Brand \u2013 Rivet Uptown Mid-Century Tufted Customizable Daybed Sofa, 78\"W, R"
+   "name": "Amazon Brand \u2013 Rivet Edgewest Low Back Modern Sofa, 87\"W, Blue"
   },
   {
    "id": "armchair-west",
    "kind": "chair",
    "room": "living",
    "footprint_m": [
-    0.72,
+    0.721,
+    0.668
+   ],
+   "asset": "extra:bpy-living2:mcm-swivel-tub-armchair-cognac-leather",
+   "asset_m": [
+    0.69,
     0.67
    ],
-   "asset": "abo:B082VMWB4G",
-   "asset_m": [
-    0.79,
-    0.82
-   ],
-   "name": "Amazon Brand \u2013 Rivet Jamie Upholstered Mid-Century Modern Low Arm Accent Chair, "
+   "name": "Mid-century swivel tub armchair, walnut outer shell, cognac leather back and sea"
   },
   {
    "id": "armchair-east",
    "kind": "chair",
    "room": "living",
    "footprint_m": [
-    0.72,
-    0.72
+    0.721,
+    0.721
    ],
-   "asset": "abo:B082VMWB4G",
+   "asset": "extra:bpy-living2:mcm-swivel-tub-armchair-cognac-leather",
    "asset_m": [
-    0.79,
-    0.82
+    0.69,
+    0.67
    ],
-   "name": "Amazon Brand \u2013 Rivet Jamie Upholstered Mid-Century Modern Low Arm Accent Chair, "
+   "name": "Mid-century swivel tub armchair, walnut outer shell, cognac leather back and sea"
   },
   {
    "id": "coffee-table",
@@ -69,233 +82,188 @@
    "kind": "cabinet",
    "room": "living",
    "footprint_m": [
-    1.2,
-    0.21
+    1.195,
+    0.211
    ],
-   "asset": "abo:B07HSKW3D6",
+   "asset": "abo:B07ML7P93X",
    "asset_m": [
-    1.3,
-    0.4
+    1.2,
+    0.35
    ],
-   "name": "Amazon Brand \u2013 Rivet Stevens Modern Wood TV Media Center Cabinet, 51.18\"W, Brush"
+   "name": "Amazon Brand \u2013 Ravenna Home Classic Solid Wood Media Center, 47.87\"W, Black"
   },
   {
    "id": "dining-table",
    "kind": "table",
    "room": "living",
    "footprint_m": [
-    1.69,
+    1.687,
+    0.808
+   ],
+   "asset": "abo:B075YMXWZC",
+   "asset_m": [
+    1.61,
     0.81
    ],
-   "asset": "abo:B075YPTG8S",
-   "asset_m": [
-    1.79,
-    0.88
-   ],
-   "name": "Amazon Brand \u2013 Rivet Industrial Mid-Century Modern Hairpin Dining Table, 70.9\"L,"
-  },
-  {
-   "id": "dining-chair-n1",
-   "kind": "chair",
-   "room": "living",
-   "footprint_m": [
-    0.42,
-    0.42
-   ],
-   "asset": "abo:B07DBD9VY1",
-   "asset_m": [
-    0.41,
-    0.41
-   ],
-   "name": "Amazon Brand \u2013 Ravenna Home Decorah Stackable Metal Kitchen Counter Bar Stools, "
-  },
-  {
-   "id": "dining-chair-n2",
-   "kind": "chair",
-   "room": "living",
-   "footprint_m": [
-    0.42,
-    0.42
-   ],
-   "asset": "abo:B07DBD9VY1",
-   "asset_m": [
-    0.41,
-    0.41
-   ],
-   "name": "Amazon Brand \u2013 Ravenna Home Decorah Stackable Metal Kitchen Counter Bar Stools, "
-  },
-  {
-   "id": "dining-chair-n3",
-   "kind": "chair",
-   "room": "living",
-   "footprint_m": [
-    0.42,
-    0.42
-   ],
-   "asset": "abo:B07DBD9VY1",
-   "asset_m": [
-    0.41,
-    0.41
-   ],
-   "name": "Amazon Brand \u2013 Ravenna Home Decorah Stackable Metal Kitchen Counter Bar Stools, "
+   "name": "Amazon Brand \u2013 Rivet Mid-Century Modern Oak Dining Table, 63\"L, Walnut Finish"
   },
   {
    "id": "dining-chair-s1",
    "kind": "chair",
    "room": "living",
    "footprint_m": [
-    0.42,
-    0.42
+    0.422,
+    0.422
    ],
-   "asset": "abo:B07DBD9VY1",
+   "asset": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
    "asset_m": [
-    0.41,
-    0.41
+    0.47,
+    0.49
    ],
-   "name": "Amazon Brand \u2013 Ravenna Home Decorah Stackable Metal Kitchen Counter Bar Stools, "
+   "name": "Mid-century walnut dining chair, sculpted curved backrest, cognac leather uphols"
   },
   {
    "id": "dining-chair-s2",
    "kind": "chair",
    "room": "living",
    "footprint_m": [
-    0.42,
-    0.42
+    0.422,
+    0.422
    ],
-   "asset": "abo:B07DBD9VY1",
+   "asset": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
    "asset_m": [
-    0.41,
-    0.41
+    0.47,
+    0.49
    ],
-   "name": "Amazon Brand \u2013 Ravenna Home Decorah Stackable Metal Kitchen Counter Bar Stools, "
-  },
-  {
-   "id": "dining-chair-s3",
-   "kind": "chair",
-   "room": "living",
-   "footprint_m": [
-    0.42,
-    0.42
-   ],
-   "asset": "abo:B07DBD9VY1",
-   "asset_m": [
-    0.41,
-    0.41
-   ],
-   "name": "Amazon Brand \u2013 Ravenna Home Decorah Stackable Metal Kitchen Counter Bar Stools, "
+   "name": "Mid-century walnut dining chair, sculpted curved backrest, cognac leather uphols"
   },
   {
    "id": "dining-chair-w",
    "kind": "chair",
    "room": "living",
    "footprint_m": [
-    0.42,
-    0.42
+    0.422,
+    0.422
    ],
-   "asset": "abo:B07DBD9VY1",
+   "asset": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
    "asset_m": [
-    0.41,
-    0.41
+    0.47,
+    0.49
    ],
-   "name": "Amazon Brand \u2013 Ravenna Home Decorah Stackable Metal Kitchen Counter Bar Stools, "
+   "name": "Mid-century walnut dining chair, sculpted curved backrest, cognac leather uphols"
   },
   {
    "id": "dining-chair-e",
    "kind": "chair",
    "room": "living",
    "footprint_m": [
-    0.42,
-    0.42
+    0.422,
+    0.422
    ],
-   "asset": "abo:B07DBD9VY1",
+   "asset": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
    "asset_m": [
-    0.41,
-    0.41
+    0.47,
+    0.49
    ],
-   "name": "Amazon Brand \u2013 Ravenna Home Decorah Stackable Metal Kitchen Counter Bar Stools, "
+   "name": "Mid-century walnut dining chair, sculpted curved backrest, cognac leather uphols"
   },
   {
    "id": "bed",
    "kind": "bed",
    "room": "bedroom",
    "footprint_m": [
-    1.79,
-    2.04
+    1.793,
+    2.039
    ],
-   "asset": "abo:B08FTN8KHY",
+   "asset": "extra:bpy-beds-dressed:mcm-walnut-cane-bed-160-terracotta",
    "asset_m": [
-    1.88,
-    2.04
+    1.89,
+    2.17
    ],
-   "name": "Amazon Brand - Solimo Senna Metal Glossy King Bed (Black)"
+   "name": "Mid-century walnut bed 160x200 with cane headboard, terracotta linen bedding"
   },
   {
    "id": "bedside",
    "kind": "cabinet",
    "room": "bedroom",
    "footprint_m": [
-    0.44,
-    0.44
+    0.439,
+    0.439
    ],
-   "asset": "abo:B07H8SKPWP",
+   "asset": "abo:B075YZ16V4",
    "asset_m": [
-    0.43,
-    0.4
+    0.46,
+    0.41
    ],
-   "name": "Amazon Brand -\u00a0Movian Lahn 2-Drawer Nightstand (Set of 2), 45 x 36cm, Alpine Whi"
+   "name": "Amazon Brand \u2013 Rivet Mid-Century Stark 2-Drawer Nightstand, 24\"H, Walnut"
   },
   {
-   "id": "wardrobe-bedroom",
+   "id": "wardrobe-bedroom-a",
    "kind": "wardrobe",
    "room": "bedroom",
    "footprint_m": [
-    1.99,
-    0.53
+    1.002,
+    0.527
    ],
-   "asset": "abo:B01LWRYSFS",
+   "asset": "extra:bpy-bedroom:reeded-oak-2-door-wardrobe-100",
    "asset_m": [
-    1.77,
-    0.48
+    1,
+    0.63
    ],
-   "name": "Amazon Brand - Movian Idro 2-Column Open Wardrobe, 177 x 48 x 200cm, Light Brown"
+   "name": "Reeded rift oak two-door wardrobe, long brass bar handles, black plinth"
+  },
+  {
+   "id": "wardrobe-bedroom-b",
+   "kind": "wardrobe",
+   "room": "bedroom",
+   "footprint_m": [
+    1.002,
+    0.527
+   ],
+   "asset": "extra:bpy-bedroom:reeded-oak-2-door-wardrobe-100",
+   "asset_m": [
+    1,
+    0.63
+   ],
+   "name": "Reeded rift oak two-door wardrobe, long brass bar handles, black plinth"
   },
   {
    "id": "desk",
    "kind": "desk",
    "room": "bedroom",
    "footprint_m": [
-    1.34,
-    0.7
+    1.336,
+    0.703
    ],
-   "asset": "abo:B082YNV6F7",
+   "asset": "extra:bpy-office:desk-walnut-mcm-tapered",
    "asset_m": [
-    1.38,
-    0.69
+    1.3,
+    0.6
    ],
-   "name": "Amazon Brand - Movian Desk, 138 x 74.5 x 69 cm, Dark Oak"
+   "name": "Mid-century walnut desk with three drawers and tapered legs, 130x60 cm"
   },
   {
    "id": "desk-chair",
    "kind": "chair",
    "room": "bedroom",
    "footprint_m": [
-    0.53,
+    0.527,
     0.58
    ],
-   "asset": "abo:B075YN3GVN",
+   "asset": "extra:bpy-office:chair-mcm-walnut-leather",
    "asset_m": [
-    0.52,
-    0.56
+    0.46,
+    0.5
    ],
-   "name": "Amazon Brand \u2013 Rivet Ricky Mid-Century Modern Set of 2 Upholstered Dining Room K"
+   "name": "Mid-century walnut desk chair with cognac leather"
   },
   {
    "id": "wardrobe-hall",
    "kind": "wardrobe",
    "room": "hall",
    "footprint_m": [
-    1.39,
-    0.62
+    1.388,
+    0.615
    ],
    "asset": "abo:B07GFS1R5B",
    "asset_m": [
@@ -306,6 +274,29 @@
   }
  ],
  "furnished_export": "ok",
+ "options": {
+  "as-drawn": {
+   "export": "ok",
+   "pieces": "21/21",
+   "settled": [
+    "bedside 0.070 m off bed",
+    "desk-chair 0.185 m off desk",
+    "dining-chair-n1 0.155 m off dining-table",
+    "dining-chair-n2 0.155 m off dining-table",
+    "dining-chair-n3 0.155 m off dining-table",
+    "dining-chair-s1 0.155 m off dining-table",
+    "dining-chair-s2 0.155 m off dining-table",
+    "dining-chair-s3 0.155 m off dining-table",
+    "dining-chair-w 0.080 m off dining-table",
+    "dining-chair-e 0.080 m off dining-table",
+    "sofa 0.050 m into living",
+    "tv-unit 0.060 m into living",
+    "bed 0.075 m into bedroom",
+    "wardrobe-bedroom-a 0.060 m into bedroom",
+    "wardrobe-bedroom-b 0.060 m into bedroom"
+   ]
+  }
+ },
  "rooms": [
   {
    "room": "Balcony",

@@ -59,11 +59,11 @@
         ],
         [
           8.4704,
-          4.2529
+          4.2528
         ],
         [
           6.7835,
-          4.2529
+          4.2528
         ],
         [
           6.7835,
@@ -176,11 +176,11 @@
       "polygon": [
         [
           6.9065,
-          4.9382
+          4.938
         ],
         [
           8.4704,
-          4.9382
+          4.938
         ],
         [
           8.4704,
@@ -420,30 +420,30 @@
     {
       "id": "wall-kitchen-bath",
       "start": [
-        6.845,
-        4.3144
+        6.7835,
+        4.4198
       ],
       "end": [
         8.6199,
-        4.3144
+        4.4198
       ],
       "height": 2.7,
-      "thickness": 0.123,
+      "thickness": 0.334,
       "color": "#f2f0eb",
       "openings": []
     },
     {
-      "id": "wall-shaft-south",
+      "id": "wall-shaft-bath",
       "start": [
         6.845,
-        4.8767
+        4.7625
       ],
       "end": [
         8.6199,
-        4.8767
+        4.7625
       ],
       "height": 2.7,
-      "thickness": 0.123,
+      "thickness": 0.351,
       "color": "#f2f0eb",
       "openings": []
     },
@@ -451,11 +451,11 @@
       "id": "wall-bath-west",
       "start": [
         6.845,
-        7.2404
+        4.7625
       ],
       "end": [
         6.845,
-        4.3144
+        7.2404
       ],
       "height": 2.7,
       "thickness": 0.123,
@@ -464,7 +464,7 @@
         {
           "id": "door-bathroom",
           "kind": "door",
-          "offset": 0.9314000000000002,
+          "offset": 0.7908,
           "width": 0.7557,
           "height": 2.05,
           "sill": 0,
@@ -618,7 +618,7 @@
         "phase": "existing",
         "review": "unreviewed"
       },
-      "wall-shaft-south": {
+      "wall-shaft-bath": {
         "structuralRole": "unknown",
         "phase": "existing",
         "review": "unreviewed"
@@ -699,11 +699,11 @@
           2.6009
         ],
         "dimensions": [
-          0.615,
+          0.387,
           0.9,
-          0.387
+          0.615
         ],
-        "rotation": 0,
+        "rotation": -1.5707963267948966,
         "color": "#f4f4f2",
         "phase": "existing",
         "roomId": "living"
@@ -718,11 +718,11 @@
           3.0403
         ],
         "dimensions": [
-          0.615,
+          0.492,
           0.85,
-          0.492
+          0.615
         ],
-        "rotation": 0,
+        "rotation": -1.5707963267948966,
         "color": "#f4f4f2",
         "phase": "existing",
         "roomId": "living"
@@ -737,11 +737,11 @@
           3.4708
         ],
         "dimensions": [
-          0.615,
+          0.369,
           0.85,
-          0.369
+          0.615
         ],
-        "rotation": 0,
+        "rotation": -1.5707963267948966,
         "color": "#f4f4f2",
         "phase": "existing",
         "roomId": "living"
@@ -753,7 +753,7 @@
         "position": [
           8.04,
           0,
-          3.9539
+          3.9538
         ],
         "dimensions": [
           0.861,
@@ -772,14 +772,14 @@
         "position": [
           7.3107,
           0,
-          3.9539
+          3.9538
         ],
         "dimensions": [
           0.598,
           0.85,
           0.598
         ],
-        "rotation": -1.5708,
+        "rotation": 3.141592653589793,
         "color": "#f4f4f2",
         "phase": "existing",
         "roomId": "living"
@@ -813,11 +813,11 @@
           5.237
         ],
         "dimensions": [
-          0.598,
+          0.369,
           0.8,
-          0.369
+          0.598
         ],
-        "rotation": -1.5708,
+        "rotation": 0,
         "color": "#f4f4f2",
         "phase": "existing",
         "roomId": "bathroom"
