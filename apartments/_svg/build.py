@@ -167,6 +167,8 @@ def settle(objects: list[dict], assets: dict, rooms: list[dict], components: lis
     names = {o["id"]: o for o in objects}
     fixtures = [footprint(c, {"dimensions": c["dimensions"]}) for c in components if not c.get("host")]
     for o in objects:
+        if o.get("_on"):
+            continue
         rule = role(o["name"])
         pattern = rule["faces"][0] if rule.get("faces") else rf"\b{rule['beside']}$" if rule.get("beside") else None
         target = min((t for t in objects if t is not o and re.search(pattern, t["name"], re.I)), default=None,
@@ -190,13 +192,15 @@ def settle(objects: list[dict], assets: dict, rooms: list[dict], components: lis
     stuck = {}
     for _ in range(3):  # a piece can be boxed in by one that has not moved yet: another round frees it
         for o in objects:
+            if o.get("_on"):
+                continue
             a = assets[o["assetId"]]
             x, z = o["position"][0], o["position"][2]
             room = next((r for r in rooms if Polygon(r["polygon"]).contains(Point(x, z))), None)
             if room is None:
                 continue
             inner = Polygon(room["polygon"]).buffer(-0.005)
-            obstacles = fixtures + [footprint(p, assets[p["assetId"]]) for p in objects if p is not o]
+            obstacles = fixtures + [footprint(p, assets[p["assetId"]]) for p in objects if p is not o and not p.get("_on")]
             ok = lambda fx, fz: inner.contains(footprint(o, a, (fx, fz))) and not any(
                 footprint(o, a, (fx, fz)).intersection(f).area > 1e-6 for f in obstacles)
             if ok(x, z):
@@ -214,6 +218,21 @@ def settle(objects: list[dict], assets: dict, rooms: list[dict], components: lis
             else:
                 stuck[o["id"]] = f"{o['id']} does not fit its room within 0.25 m"
     return moved + list(stuck.values())
+
+
+def rest(objects: list[dict], assets: dict) -> list[str]:
+    """A piece traced with data-on (a TV on its unit) stands centred on top of that piece, turned the same way."""
+    placed = []
+    names = {o["id"]: o for o in objects}
+    for o in objects:
+        support = names.get(o.pop("_on", None) or "")
+        if support is None:
+            continue
+        o["position"] = [support["position"][0], round(support["position"][1] + assets[support["assetId"]]["dimensions"][1], 4),
+                         support["position"][2]]
+        o["rotation"], o["restsOn"] = support["rotation"], support["id"]
+        placed.append(f"{o['id']} on {support['id']}")
+    return placed
 
 
 def furniture(svg: str, transform: dict, rooms: list[dict], assets: list[dict]) -> tuple[list[dict], list[dict], list[dict]]:
@@ -242,7 +261,8 @@ def furniture(svg: str, transform: dict, rooms: list[dict], assets: list[dict]) 
         used[asset["id"]] = asset
         room = next((rid for rid, poly in polys if poly.contains(Point(x, z))), None)
         objects.append({"id": a.get("id") or f"piece-{i + 1}", "name": name, "assetId": asset["id"],
-                        "position": [round(x, 4), 0, round(z, 4)], "rotation": FRONT.get(front, 0.0), "scale": [1, 1, 1]})
+                        "position": [round(x, 4), 0, round(z, 4)], "rotation": FRONT.get(front, 0.0), "scale": [1, 1, 1],
+                        **({"_on": a["data-on"]} if a.get("data-on") else {})})
         picks.append({"id": objects[-1]["id"], "kind": kind, "room": room, "footprint_m": [round(w, 3), round(d, 3)],
                       "asset": asset["id"], "asset_m": [round(asset["dimensions"][0], 2), round(asset["dimensions"][2], 2)],
                       "name": asset["name"][:80]})
@@ -346,12 +366,23 @@ def design_options(flat: Path, svg: str, variants: list[Path], v1: dict, compone
         oid, text = variant.name.split(".")[1], variant.read_text()
         objects, extra, picks = furniture(text, transform, rooms, catalog())
         models.update({a["id"]: a for a in extra})
-        settled = settle(objects, models, rooms, components)
+        settled = settle(objects, models, rooms, components) + rest(objects, models)
         out = work / f"option-{oid}.json"
         failed = export({**v1, "objects": objects}, components, list(models.values()), out, work)
         report["options"][oid] = {"export": failed or "ok", "pieces": f"{sum(1 for p in picks if p['asset'])}/{len(picks)}", "settled": settled}
         if not failed:
             options.append({"id": oid, "name": name(text, oid), "snapshot": snap(json.loads(out.read_text())["objects"])})
+    # option.<id>.json (option.ts): a designer proposal on the main arrangement, saved whole: furniture, lights,
+    # finishes and the catalog records of its new pieces. It was made on the main arrangement as it was then.
+    for saved in sorted(flat.glob("option.*.json")):
+        oid, data = saved.name.split(".")[1], json.loads(saved.read_text())
+        models.update({a["id"]: a for a in data["catalog"]})
+        have = {m["id"] for m in project["materials"]}
+        project["materials"] += [m for m in data.get("materials", []) if m["id"] not in have]
+        options.append({"id": oid, "name": data["name"], "snapshot": {**snap(data["objects"]), "components": data["components"],
+                                                                       "finishes": data["finishes"], "routes": data["routes"],
+                                                                       **({"metadata": data["metadata"]} if "metadata" in data else {})}})
+        report["options"][oid] = {"saved": saved.name, "pieces": len(data["objects"])}
     project["options"], project["activeOptionId"] = options, "main"
     path.write_text(json.dumps(scene, indent=2, ensure_ascii=False))
     return list(models.values())
@@ -378,10 +409,11 @@ def build(flat: Path) -> dict:
     report = {"flat": flat.name, "scale": raw["notes"][0], "faults": faults}
     report["empty_export"] = export(v1, components, [], flat / "scene.json", work) or "ok"
     objects, used, picks = furniture(svg, transform, structure["rooms"], catalog())
-    report["settled"] = settle(objects, {a["id"]: a for a in used}, structure["rooms"], components)
+    report["settled"] = settle(objects, {a["id"]: a for a in used}, structure["rooms"], components) + rest(objects, {a["id"]: a for a in used})
     report["furniture"] = picks
     report["furnished_export"] = export({**v1, "objects": objects}, components, used, flat / "scene.furnished.json", work) or "ok"
-    if report["furnished_export"] == "ok" and (variants := sorted(flat.glob("trace.*.svg"))):
+    variants = sorted(flat.glob("trace.*.svg"))
+    if report["furnished_export"] == "ok" and (variants or any(flat.glob("option.*.json"))):
         used = design_options(flat, svg, variants, v1, components, structure["rooms"], transform, used, work, report)
     if report["furnished_export"] == "ok":  # what the editor needs to open it with no catalog service: the scene and its models
         (flat / "startup.json").write_text(json.dumps({"scene": json.loads((flat / "scene.furnished.json").read_text()),

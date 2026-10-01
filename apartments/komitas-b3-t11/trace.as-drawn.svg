@@ -6,6 +6,10 @@
   <polygon id="armchair-east" class="furniture" data-kind="chair" data-name="Armchair" data-front="left" data-asset="extra:bpy-living2:mcm-swivel-tub-armchair-cognac-leather" points="835,401 876,401 876,442 835,442"/>
   <polygon id="coffee-table" class="furniture" data-kind="table" data-name="Coffee table" data-front="down" data-asset="abo:B07DBDMN5F" points="742,408 816,408 816,437 742,437"/>
   <polygon id="tv-unit" class="furniture" data-kind="cabinet" data-name="TV unit" data-front="up" data-asset="abo:B07ML7P93X" points="745,600 813,600 813,612 745,612"/>
+  <!-- The fridge is the plan's small blue rectangle at the window end of the east counter. The TV is not drawn: it
+       stands on the plan's TV unit. The X boxes (black by the kitchen, blue in the bathroom) are service shafts: nothing. -->
+  <polygon id="fridge" class="furniture" data-kind="fridge" data-name="Fridge" data-front="left" data-asset="extra:bpy-appliances:fridge-combi-stainless-60" points="955,349 989,349 989,383 955,383"/>
+  <polygon id="tv" class="furniture" data-kind="tv" data-name="TV" data-front="up" data-on="tv-unit" data-asset="extra:electronics:tv-50-feet-black" points="747,602 811,602 811,610 747,610"/>
   <polygon id="bed" class="furniture" data-kind="bed" data-name="Double bed" data-front="left" data-asset="extra:bpy-beds-dressed:mcm-walnut-cane-bed-160-terracotta" points="710,645 826,645 826,747 710,747"/>
   <polygon id="bedside" class="furniture" data-kind="cabinet" data-name="Bedside table" data-front="left" points="797,747 822,747 822,772 797,772"/>
   <polygon id="wardrobe-bedroom-a" class="furniture" data-kind="wardrobe" data-name="Wardrobe" data-front="down" data-asset="extra:bpy-bedroom:reeded-oak-2-door-wardrobe-100" points="535,620 592,620 592,650 535,650"/>

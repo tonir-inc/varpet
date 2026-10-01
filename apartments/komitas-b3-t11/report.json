@@ -12,9 +12,11 @@
   "desk-chair 0.185 m off desk",
   "sofa 0.050 m into living",
   "tv-unit 0.060 m into living",
+  "fridge 0.055 m into living",
   "bed 0.075 m into bedroom",
   "wardrobe-bedroom-a 0.060 m into bedroom",
-  "wardrobe-bedroom-b 0.060 m into bedroom"
+  "wardrobe-bedroom-b 0.060 m into bedroom",
+  "tv on tv-unit"
  ],
  "furniture": [
   {
@@ -91,6 +93,36 @@
     0.35
    ],
    "name": "Amazon Brand \u2013 Ravenna Home Classic Solid Wood Media Center, 47.87\"W, Black"
+  },
+  {
+   "id": "fridge",
+   "kind": "fridge",
+   "room": "living",
+   "footprint_m": [
+    0.598,
+    0.598
+   ],
+   "asset": "extra:bpy-appliances:fridge-combi-stainless-60",
+   "asset_m": [
+    0.6,
+    0.66
+   ],
+   "name": "Fridge-freezer 60 cm, brushed stainless, bottom freezer, 185 cm"
+  },
+  {
+   "id": "tv",
+   "kind": "tv",
+   "room": "living",
+   "footprint_m": [
+    1.125,
+    0.141
+   ],
+   "asset": "extra:electronics:tv-50-feet-black",
+   "asset_m": [
+    1.12,
+    0.22
+   ],
+   "name": "50\" TV on corner feet, black"
   },
   {
    "id": "dining-table",
@@ -277,7 +309,7 @@
  "options": {
   "as-drawn": {
    "export": "ok",
-   "pieces": "21/21",
+   "pieces": "23/23",
    "settled": [
     "bedside 0.070 m off bed",
     "desk-chair 0.185 m off desk",
@@ -291,10 +323,16 @@
     "dining-chair-e 0.080 m off dining-table",
     "sofa 0.050 m into living",
     "tv-unit 0.060 m into living",
+    "fridge 0.055 m into living",
     "bed 0.075 m into bedroom",
     "wardrobe-bedroom-a 0.060 m into bedroom",
-    "wardrobe-bedroom-b 0.060 m into bedroom"
+    "wardrobe-bedroom-b 0.060 m into bedroom",
+    "tv on tv-unit"
    ]
+  },
+  "styled": {
+   "saved": "option.styled.json",
+   "pieces": 44
   }
  },
  "rooms": [

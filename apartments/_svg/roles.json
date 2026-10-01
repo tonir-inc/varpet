@@ -15,6 +15,9 @@
   {"name": "^tv unit", "height": [0.3, 0.75], "wall": true},
   {"name": "^dining table", "height": [0.72, 0.79]},
   {"name": "^coffee table", "height": [0.3, 0.55]},
-  {"name": "^desk$", "height": [0.7, 0.79], "wall": true}
+  {"name": "^desk$", "height": [0.7, 0.79], "wall": true},
+  {"name": "^fridge", "height": [1.4, 2.1], "not": "under-?counter|mini|wine", "wall": true},
+  {"name": "^washing machine", "height": [0.8, 0.9], "not": "stack|dryer", "wall": true},
+  {"name": "^tv$", "height": [0.4, 1.0], "not": "projector|crt|easel|frame"}
  ]
 }

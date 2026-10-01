@@ -37,8 +37,14 @@ const inside = (p: V, poly: V[]) => {
   return hit;
 };
 
-function audit(flat: string): string[] {
+function audit(flat: string, option?: { id: string; snapshot: Record<string, unknown> }): string[] {
   const scene = JSON.parse(readFileSync(join(flat, 'scene.furnished.json'), 'utf8'));
+  // A design option (As drawn, Styled) is audited as the scene it switches to: its furniture, fixtures and finishes.
+  if (option) {
+    const { objects, components, finishes, routes } = option.snapshot as Record<string, unknown[]>;
+    Object.assign(scene, { objects });
+    Object.assign(scene.project, { components, finishes, routes, options: [], activeOptionId: undefined });
+  }
   const catalog: Asset[] = JSON.parse(readFileSync(join(flat, 'startup.json'), 'utf8')).catalog;
   const picks: Pick[] = JSON.parse(readFileSync(join(flat, 'report.json'), 'utf8')).furniture;
   const assets = new Map(catalog.map(a => [a.id, a]));
@@ -125,9 +131,15 @@ const sub = (p: V, q: V): V => [p[0] - q[0], p[1] - q[1]];
 
 let failed = false;
 for (const flat of process.argv.slice(2)) {
-  const faults = audit(flat);
-  failed ||= faults.length > 0;
-  console.log(`${flat}: ${faults.length} fault(s)`);
-  for (const f of faults) console.log(`  FAULT ${f}`);
+  const options: { id: string; name: string; snapshot: Record<string, unknown> }[] =
+    JSON.parse(readFileSync(join(flat, 'scene.furnished.json'), 'utf8')).project?.options ?? [];
+  // The main arrangement, then every other design option of the flat.
+  for (const option of [undefined, ...options.filter(o => o.id !== 'main')]) {
+    if (option) console.log(`\n== option ${option.name}`);
+    const faults = audit(flat, option);
+    failed ||= faults.length > 0;
+    console.log(`${flat}${option ? ` (${option.name})` : ''}: ${faults.length} fault(s)`);
+    for (const f of faults) console.log(`  FAULT ${f}`);
+  }
 }
 process.exit(failed ? 1 : 0);

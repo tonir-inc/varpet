@@ -18,6 +18,7 @@ const designer = editorToDesigner(scene, { catalog, catalogCurrency: 'AMD' });
 const items = designer.items.map(item => ({
   id: item.id, room_id: item.room_id, kind: item.kind, name: item.name, pos: item.pos, rot: item.rot, size: item.size,
   keep: false, sku: item.sku, price: prices.get(item.sku ?? '') ?? item.price ?? 0, vendor: (item.sku ?? '').split(':')[0] || 'catalog',
+  ...(item.on ? { on: item.on } : {}),  // a piece standing on another (the TV on its unit)
 }));
 const design = { draft: { items, finishes: [], lighting: [] }, owned: items.map(item => item.id), requests: [] };
 writeFileSync(join(flat, 'design.json'), JSON.stringify(design, null, 1) + '\n');

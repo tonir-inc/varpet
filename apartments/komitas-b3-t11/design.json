@@ -102,6 +102,47 @@
     "vendor": "abo"
    },
    {
+    "id": "fridge",
+    "room_id": "living",
+    "kind": "fridge",
+    "name": "Fridge",
+    "pos": [
+     7.8356,
+     -0.4343
+    ],
+    "rot": -90,
+    "size": [
+     0.6,
+     0.6585,
+     1.85
+    ],
+    "keep": false,
+    "sku": "extra:bpy-appliances:fridge-combi-stainless-60",
+    "price": 380000,
+    "vendor": "extra"
+   },
+   {
+    "id": "tv",
+    "room_id": "living",
+    "kind": "tv",
+    "name": "TV",
+    "pos": [
+     4.4989,
+     -4.5971
+    ],
+    "rot": 180,
+    "size": [
+     1.12,
+     0.222,
+     0.789
+    ],
+    "keep": false,
+    "sku": "extra:electronics:tv-50-feet-black",
+    "price": 240000,
+    "vendor": "extra",
+    "on": "tv-unit"
+   },
+   {
     "id": "dining-table",
     "room_id": "living",
     "kind": "table",
@@ -351,6 +392,8 @@
   "armchair-east",
   "coffee-table",
   "tv-unit",
+  "fridge",
+  "tv",
   "dining-table",
   "dining-chair-s1",
   "dining-chair-s2",

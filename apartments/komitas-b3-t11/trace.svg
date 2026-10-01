@@ -39,16 +39,15 @@
   <line id="dim-4700" class="dimension" data-m="4.7" x1="735" y1="347" x2="735" y2="613"/>
   <line id="dim-2300" class="dimension" data-m="2.3" x1="535" y1="428" x2="667" y2="428"/>
 
-  <polygon id="worktop-east" class="fixture" data-kind="worktop" data-name="Worktop" points="955,348 987,348 987,443 955,443"/>
+  <polygon id="worktop-east" class="fixture" data-kind="worktop" data-name="Worktop" points="955,383 987,383 987,443 955,443"/>
   <polygon id="worktop-sink-left" class="fixture" data-kind="worktop" data-name="Worktop" data-front="left" points="970,478 1005,478 1005,500 970,500"/>
   <polygon id="kitchen-sink" class="fixture" data-kind="sink" data-name="Kitchen sink" data-front="left" points="970,500 1005,500 1005,528 970,528"/>
-  <polygon id="dishwasher" class="fixture" data-kind="dishwasher" data-name="Dishwasher" data-front="left" points="970,528 1005,528 1005,549 970,549"/>
+  <polygon id="drainer" class="fixture" data-kind="worktop" data-name="Draining board" points="970,528 1005,528 1005,549 970,549"/>
   <polygon id="worktop-corner" class="fixture" data-kind="worktop" data-name="Worktop" points="956,549 1005,549 1005,583 956,583"/>
   <polygon id="hob" class="fixture" data-kind="hob" data-name="Hob" data-front="up" points="922,549 956,549 956,583 922,583"/>
   <polygon id="worktop-hob-left" class="fixture" data-kind="worktop" data-name="Worktop" points="909,549 922,549 922,583 909,583"/>
   <polygon id="toilet" class="fixture" data-kind="toilet" data-name="Toilet" data-front="down" points="927,622 948,622 948,656 927,656"/>
-  <polygon id="washer" class="fixture" data-kind="washing_machine" data-name="Washing machine" points="972,623 1005,623 1005,650 972,650"/>
-  <polygon id="shower" class="fixture" data-kind="shower" data-name="Walk-in shower" points="948,704 1005,704 1005,749 948,749"/>
+    <polygon id="shower" class="fixture" data-kind="shower" data-name="Walk-in shower" points="948,704 1005,704 1005,749 948,749"/>
   <polygon id="basin" class="fixture" data-kind="basin" data-name="Washbasin" points="988,665 1005,665 1005,690 988,690"/>
   <polygon id="railing-west" class="fixture" data-kind="railing" data-name="Balcony railing" points="536,349 539,349 539,444 536,444"/>
   <polygon id="railing-north" class="fixture" data-kind="railing" data-name="Balcony railing" points="536,348 669,348 669,351 536,351"/>
@@ -58,6 +57,10 @@
   <polygon id="armchair-east" class="furniture" data-kind="chair" data-name="Armchair" data-front="left" data-asset="extra:bpy-living2:mcm-swivel-tub-armchair-cognac-leather" points="835,401 876,401 876,442 835,442"/>
   <polygon id="coffee-table" class="furniture" data-kind="table" data-name="Coffee table" data-front="down" data-asset="abo:B07DBDMN5F" points="742,419 816,419 816,448 742,448"/>
   <polygon id="tv-unit" class="furniture" data-kind="cabinet" data-name="TV unit" data-front="up" data-asset="abo:B07ML7P93X" points="745,600 813,600 813,612 745,612"/>
+  <!-- The fridge is the plan's small blue rectangle at the window end of the east counter. The TV is not drawn: it
+       stands on the plan's TV unit. The X boxes (black by the kitchen, blue in the bathroom) are service shafts: nothing. -->
+  <polygon id="fridge" class="furniture" data-kind="fridge" data-name="Fridge" data-front="left" data-asset="extra:bpy-appliances:fridge-combi-stainless-60" points="955,349 989,349 989,383 955,383"/>
+  <polygon id="tv" class="furniture" data-kind="tv" data-name="TV" data-front="up" data-on="tv-unit" data-asset="extra:electronics:tv-50-feet-black" points="747,602 811,602 811,610 747,610"/>
   <polygon id="dining-table" class="furniture" data-kind="table" data-name="Dining table" data-front="down" data-asset="abo:B075YMXWZC" points="562.6,533.7 658.6,533.7 658.6,579.7 562.6,579.7"/>
   <polygon id="dining-chair-s1" class="furniture" data-kind="chair" data-name="Dining chair" data-front="up" data-asset="extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather" points="575.9,573.7 599.9,573.7 599.9,597.7 575.9,597.7"/>
   <polygon id="dining-chair-s2" class="furniture" data-kind="chair" data-name="Dining chair" data-front="up" data-asset="extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather" points="621.4,573.7 645.4,573.7 645.4,597.7 621.4,597.7"/>

@@ -134,5 +134,56 @@
    "type": "gltf",
    "url": "/api/catalog/models/extra-bpy-office-desk-walnut-mcm-tapered.glb"
   }
+ },
+ "extra:bpy-appliances:fridge-combi-stainless-60": {
+  "id": "extra:bpy-appliances:fridge-combi-stainless-60",
+  "name": "Fridge-freezer 60 cm, brushed stainless, bottom freezer, 185 cm",
+  "category": "fridge",
+  "kind": "fridge",
+  "dimensions": [
+   0.6,
+   1.85,
+   0.6585
+  ],
+  "color": "#b8b4ad",
+  "price": 380000,
+  "source": {
+   "type": "gltf",
+   "url": "/api/catalog/models/extra-bpy-appliances-fridge-combi-stainless-60.glb"
+  }
+ },
+ "extra:bpy-appliances:washing-machine-front-loader-white-60": {
+  "id": "extra:bpy-appliances:washing-machine-front-loader-white-60",
+  "name": "Front-loading washing machine 60 cm, white, 9 kg",
+  "category": "washing_machine",
+  "kind": "washing_machine",
+  "dimensions": [
+   0.6,
+   0.85,
+   0.644
+  ],
+  "color": "#b8b4ad",
+  "price": 235000,
+  "source": {
+   "type": "gltf",
+   "url": "/api/catalog/models/extra-bpy-appliances-washing-machine-front-loader-white-60.glb"
+  }
+ },
+ "extra:electronics:tv-50-feet-black": {
+  "id": "extra:electronics:tv-50-feet-black",
+  "name": "50\" TV on corner feet, black",
+  "category": "tv",
+  "kind": "tv",
+  "dimensions": [
+   1.12,
+   0.789,
+   0.222
+  ],
+  "color": "#b8b4ad",
+  "price": 240000,
+  "source": {
+   "type": "gltf",
+   "url": "/api/catalog/models/extra-electronics-tv-50-feet-black.glb"
+  }
  }
 }
