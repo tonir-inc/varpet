@@ -27,7 +27,7 @@ test('the experimental list carries Komitas 2-5 as a bundle summary', async t =>
   assert.equal(flat.developerName, 'Komitas Park');
   assert.equal(flat.bedrooms, 1);
   assert.equal(flat.area, 66.3);
-  assert.equal(flat.furnishedPieces, 20);
+  assert.equal(flat.furnishedPieces, 17);
   assert.equal(flat.source, 'sample');
   assert.match(flat.blueprintUrl, /^\/api\/experimental\/flats\/komitas-b3-t11\/blueprint$/);
 });

@@ -15,6 +15,10 @@ interface DesignOnboardingOptions {
   skip(): void;
   /** Opened from the plan catalog: the scene is a developer's furnished design, not an empty reconstruction. */
   bundle?: BundlePresentation;
+  /** The design's saved arrangements (its design options, e.g. "Adjusted" and "As drawn"); a switch shows for two or more. */
+  arrangements?: { id: string; name: string }[];
+  activeArrangement?: string;
+  arrange?(id: string): boolean;
 }
 
 const escapeHtml = (value: string) => value.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
@@ -32,9 +36,13 @@ function copy(bundle?: BundlePresentation) {
     blank: 'Keep the existing furniture and fixtures. Furnish the empty spaces into a cohesive, comfortable home using available catalog pieces, with clear walkways. Ask me if you need a preference before proposing the layout.',
   };
   const pieces = `${bundle.furnishedPieces} piece${bundle.furnishedPieces === 1 ? '' : 's'}`;
+  const by = bundle.furnishedBy;
   return {
-    done: `✓ Built by ${bundle.developerName}`, eyebrow: `02 / DESIGN · ${bundle.developerName.toUpperCase()}`, heading: bundle.name,
-    intro: `This is ${bundle.developerName}’s furnished design for this plan, ${pieces} in place. Ask your designer to change anything, or customize it yourself.`,
+    done: by ? `✓ From ${bundle.developerName}’s plan` : `✓ Built by ${bundle.developerName}`,
+    eyebrow: by ? `02 / DESIGN · FURNISHED BY ${by.toUpperCase()}` : `02 / DESIGN · ${bundle.developerName.toUpperCase()}`, heading: bundle.name,
+    intro: by
+      ? `${bundle.developerName}’s own floor plan, traced wall for wall and furnished by ${by} with catalog pieces where the plan draws furniture. Ask your designer to change anything, or customize it yourself.`
+      : `This is ${bundle.developerName}’s furnished design for this plan, ${pieces} in place. Ask your designer to change anything, or customize it yourself.`,
     unavailable: 'The designer is not connected here. You can still explore this design and customize it yourself.',
     label: 'What would you change?', placeholder: 'A lighter sofa, a desk in the small bedroom, more room to walk around the dining table…',
     hint: 'Your designer starts from this design and changes only what you ask. Nothing is saved until you save.',
@@ -51,11 +59,12 @@ export function mountDesignOnboarding(host: HTMLElement, options: DesignOnboardi
   const words = copy(options.bundle), bundle = options.bundle;
   element.setAttribute('aria-label', bundle ? `Design · ${bundle.name}` : 'Design your apartment');
   if (bundle) element.classList.add('design-from-bundle');
-  const plan = bundle ? `<figure class="design-bundle-plan"><img src="${escapeHtml(bundle.blueprintUrl)}" alt="${escapeHtml(bundle.developerName)}’s floor plan for ${escapeHtml(bundle.name)}"><figcaption><span>Original plan</span><a href="${escapeHtml(bundle.developerHref)}">${escapeHtml(bundle.developerName)} <span aria-hidden="true">↗</span></a></figcaption></figure>` : '';
+  const plan = bundle ? `<figure class="design-bundle-plan"><img src="${escapeHtml(bundle.blueprintUrl)}" alt="${escapeHtml(bundle.developerName)}’s floor plan for ${escapeHtml(bundle.name)}"><figcaption><span>Original plan</span><a href="${escapeHtml(bundle.developerHref)}"${/^https?:/.test(bundle.developerHref) ? ' target="_blank" rel="noopener"' : ''}>${escapeHtml(bundle.developerName)} <span aria-hidden="true">↗</span></a></figcaption></figure>` : '';
   element.innerHTML = `<div class="design-journey"><span class="design-plan-done">${escapeHtml(words.done)}</span>${blueprintJourneyMarkup('design')}</div>
     <section class="design-brief" aria-labelledby="design-heading">
       ${plan}<span class="design-eyebrow">${escapeHtml(words.eyebrow)}</span><h1 id="design-heading">${escapeHtml(words.heading)}</h1>
       <p class="design-intro">${escapeHtml(words.intro)}</p>
+      ${(options.arrangements?.length ?? 0) > 1 ? `<div class="design-arrangements" role="radiogroup" aria-label="Furniture arrangement">${options.arrangements!.map(a => `<button type="button" role="radio" data-arrangement="${escapeHtml(a.id)}" aria-checked="${a.id === options.activeArrangement}">${escapeHtml(a.name)}</button>`).join('')}</div>` : ''}
       <p class="design-unavailable" ${options.live ? 'hidden' : ''}>${escapeHtml(words.unavailable)}</p>
       <div class="design-response" aria-live="polite" hidden></div>
       <div class="design-options" aria-label="Suggested replies" hidden></div>
@@ -74,6 +83,11 @@ export function mountDesignOnboarding(host: HTMLElement, options: DesignOnboardi
   const response = find<HTMLElement>('.design-response'), choices = find<HTMLElement>('.design-options');
   const working = find<HTMLElement>('.design-working'), review = find<HTMLElement>('.design-review');
   const submit = find<HTMLButtonElement>('[type=submit]');
+  element.querySelectorAll<HTMLButtonElement>('[data-arrangement]').forEach(button => button.addEventListener('click', () => {
+    const id = button.dataset.arrangement!;
+    if (button.getAttribute('aria-checked') === 'true' || !options.arrange?.(id)) return;
+    element.querySelectorAll('[data-arrangement]').forEach(other => other.setAttribute('aria-checked', String(other === button)));
+  }));
   let reviewing = false, busy = false, sent = false, disposed = false, choiceKey = '';
   const send = (request: string) => {
     if (busy || !options.live) return;

@@ -53,9 +53,14 @@ export const experimentalApi = {
 };
 
 /** `/?experimental=<id>`: straight into Design, as `/?bundle=<id>` does for the Catalog. */
+/** Developers' own sites: no Varpet profile exists for these developers, so the plan credit links there. */
+const DEVELOPER_SITES: Record<string, string> = { 'komitas-park': 'https://komitaspark.am' };
+
 export async function launchExperimental(host: HTMLElement, id: string, options: { summary?: BundleSummary; from?: DOMRect; frame?: HTMLCanvasElement; bundle?: Promise<Bundle>; beforeEditor?(): void } = {}): Promise<boolean> {
   const { launchBundle } = await import('./catalog-launch');
-  return launchBundle(host, id, { ...options, bundle: options.bundle ?? experimentalApi.flat(id) });
+  const bundle = options.bundle ?? experimentalApi.flat(id);
+  const site = await bundle.then(b => DEVELOPER_SITES[b.developerSlug], () => undefined);
+  return launchBundle(host, id, { ...options, bundle, presentation: { furnishedBy: 'varpet', ...(site ? { developerHref: site } : {}) } });
 }
 
 const mounts = new WeakMap<HTMLElement, () => void>();

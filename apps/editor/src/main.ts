@@ -1697,8 +1697,17 @@ function enterCustomize() {
 function startGuidedDesign() {
   if (designOnboarding) return;
   // The camera and renderer are the construction world's; only the brief arrives here.
+  const arrangements = presentation?.bundle ? store.scene.project?.options ?? [] : [];
   designOnboarding = mountDesignOnboarding($('.viewport-shell'), {
     live: designerLive, bundle: presentation?.bundle,
+    arrangements: arrangements.map(({ id, name }) => ({ id, name })), activeArrangement: store.scene.project?.activeOptionId,
+    // Choosing an arrangement is the person's own edit, allowed while the guided brief holds other edits back.
+    arrange: id => {
+      discardGuidedReview();
+      const result = store.execute({ id: uid(), label: 'Show arrangement', source: 'human', baseRevision: store.revision, operations: [{ type: 'switch-option', id }] }, true);
+      if (!result.ok) notify(result.errors.join(' '), true);
+      return result.ok;
+    },
     submit: request => {
       if (!designerLive || busy) return;
       discardGuidedReview();

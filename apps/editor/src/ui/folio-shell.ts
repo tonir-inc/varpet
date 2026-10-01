@@ -154,14 +154,14 @@ export function mountFolioShell(deps: FolioShellDeps) {
 
   function renderQuote() {
     const q = quote();
-    quoteButton.innerHTML = `${icon('receipt')}<span class="folio-num">${money(q.total, deps.currency)}</span>`;
-    quoteButton.setAttribute('aria-label', `Costs and shopping list · ${money(q.total, deps.currency)}`);
+    quoteButton.innerHTML = `${icon('receipt')}<span class="folio-num">${money(q.total, deps.currency)}</span><small class="folio-mock">mock</small>`;
+    quoteButton.setAttribute('aria-label', `Costs and shopping list · ${money(q.total, deps.currency)} · mock catalog prices`);
     if (!drawer.open) return;
     drawer.innerHTML = `<header><h2>What it costs</h2>${button('quote', 'Close', 'close')}</header>
       ${q.groups.map(group => `<section class="folio-group"><h3>${esc(groupText[group.id].title)}</h3><p>${esc(groupText[group.id].who)}</p>
         ${group.lines.map(line => `<div class="folio-line"><span>${esc(line.name)}${line.count > 1 ? ` × ${line.count}` : ''}<small class="folio-num">${esc(line.size)}</small></span>
           <span class="folio-num">${line.unit === null ? '–' : money(line.unit * line.count, deps.currency)}${line.note ? `<small>${esc(line.note)}</small>` : ''}</span></div>`).join('')}</section>`).join('')}
-      <div class="folio-total"><span>Sample total</span><strong class="folio-num">${money(q.total, deps.currency)}</strong></div>
+      <div class="folio-total"><span>Mock total · catalog prices, not shop offers</span><strong class="folio-num">${money(q.total, deps.currency)}</strong></div>
       <p class="folio-note">${deps.currency ? 'Sample prices.' : 'Demo prices with no currency.'} ${q.real} of ${q.pieces} pieces are catalog products (sample prices).</p>`;
   }
 
@@ -179,7 +179,7 @@ export function mountFolioShell(deps: FolioShellDeps) {
         ${button('remove', 'Remove', 'trash')}${original.has(object.id) ? button('own', owned ? 'Not mine' : 'I already own this', 'receipt', owned ? 'on' : '') : ''}${button('ask', 'Ask the designer about it', 'ask', 'folio-ask')}`;
     }
     toolbar.querySelector('.folio-who strong')!.textContent = object.name;
-    toolbar.querySelector('.folio-who .folio-num')!.textContent = ownership.get(object.id) === 'owned' ? 'Yours' : asset.price > 0 ? money(asset.price, deps.currency) : sizeOf(asset, object);
+    toolbar.querySelector('.folio-who .folio-num')!.textContent = ownership.get(object.id) === 'owned' ? 'Yours' : asset.price > 0 ? `${money(asset.price, deps.currency)} · mock` : sizeOf(asset, object);
     toolbar.hidden = false;
     place();
   }

@@ -802,7 +802,7 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
     const details = document.createElement('details'); details.className = 'designer-basket'; details.open = openBaskets.has(key);
     details.ontoggle = () => { if (details.open) openBaskets.add(key); else openBaskets.delete(key); };
     const summary = document.createElement('summary');
-    summary.textContent = `Proposed pieces (sample prices) · ${basket.pieces.length} piece${basket.pieces.length === 1 ? '' : 's'} · ${money(total)}`;
+    summary.textContent = `Proposed pieces (mock prices) · ${basket.pieces.length} piece${basket.pieces.length === 1 ? '' : 's'} · ${money(total)}`;
     details.append(summary);
     const switcher = document.createElement('div'); switcher.className = 'designer-basket-modes';
     for (const [value, label] of [['room', 'By room'], ['shop', 'By shop']] as const) {
@@ -835,14 +835,14 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
         name.textContent = `${row.length > 1 ? `${row.length} × ` : ''}${piece.name}`;
         const meta = document.createElement('small'); meta.textContent = mode === 'room' ? piece.shop : piece.room; name.append(meta);
         const price = document.createElement('span'); price.className = 'designer-basket-price';
-        price.textContent = piece.price === undefined ? 'price on request' : `${piece.estimate ? '≈ ' : ''}${money(piece.price * row.length)} · sample price`;
+        price.textContent = piece.price === undefined ? 'price on request' : `${piece.estimate ? '≈ ' : ''}${money(piece.price * row.length)} · mock price`;
         pick.append(name, price); entry.append(pick); list.append(entry);
       }
       section.append(list); details.append(section);
     }
     const foot = document.createElement('dl'); foot.className = 'designer-basket-total';
     const line = (label: string, value: string) => { const dt = document.createElement('dt'), dd = document.createElement('dd'); dt.textContent = label; dd.textContent = value; foot.append(dt, dd); };
-    line('Sample furniture total', money(total));
+    line('Mock furniture total', money(total));
     if (basket.budget) line('Budget', `${money(basket.budget)} · ${total <= basket.budget ? `${money(basket.budget - total)} left` : `${money(total - basket.budget)} over`}`);
     if (basket.unquoted) line('Not in the total', `finishes and lighting, price on request: ${basket.unquoted}`);
     details.append(foot);
@@ -860,7 +860,7 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
       chip.append(number, name);
       if (product.price !== undefined && catalogCurrency === 'AMD') {
         const price = document.createElement('span'); price.className = 'designer-product-price';
-        price.textContent = product.estimate ? `≈ ${money(product.price)}` : money(product.price);
+        price.textContent = product.estimate ? `≈ ${money(product.price)} · mock` : `${money(product.price)} · mock`;
         if (product.estimate) price.title = 'Sample estimate for a made-to-measure piece; the workshop confirms';
         chip.append(price);
       }
@@ -895,7 +895,7 @@ export function mountDesignerPanel(host: HTMLElement, options: MountOptions) {
         if (message.proposal) { const basket = message.buying ? basketView(message.buying, `${state.activeHistoryId}:${index}`) : undefined; const chips = basket ? undefined : productChips(message.proposal); if (basket) item.append(basket); else if (chips) item.append(chips); }
         if (message.metrics) {
           const metrics = document.createElement('dl'); metrics.className = 'designer-metrics';
-          for (const row of message.metrics) { const dt = document.createElement('dt'), dd = document.createElement('dd'); dt.textContent = row.label; dd.textContent = row.value; metrics.append(dt, dd); }
+          for (const row of message.metrics) { const dt = document.createElement('dt'), dd = document.createElement('dd'); dt.textContent = row.label; dd.textContent = row.value.includes('֏') ? `${row.value} · mock` : row.value; metrics.append(dt, dd); }
           item.append(metrics);
           if (message.notes === undefined) { const note = document.createElement('small'); note.textContent = 'Service estimates. Paint and labour are not priced here.'; item.append(note); }
         }

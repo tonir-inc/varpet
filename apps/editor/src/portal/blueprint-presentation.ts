@@ -23,4 +23,6 @@ export interface BundlePresentation {
   /** Same-origin plan image, shown beside the brief so Design reads as the catalog card, opened. */
   blueprintUrl: string;
   furnishedPieces: number;
+  /** Who furnished it when not the developer (Experimental flats: varpet, from the developer's own plan). */
+  furnishedBy?: string;
 }
