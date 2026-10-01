@@ -591,7 +591,7 @@
       "name": "Armchair",
       "assetId": "extra:bpy-living2:mcm-swivel-tub-armchair-cognac-leather",
       "position": [
-        5.8433,
+        6.4496,
         0,
         1.4147
       ],
@@ -607,9 +607,9 @@
       "name": "Coffee table",
       "assetId": "abo:B07DBDMN5F",
       "position": [
-        4.4989,
+        4.7801,
         0,
-        1.6256
+        1.8804
       ],
       "rotation": 0,
       "scale": [
@@ -672,9 +672,9 @@
       "name": "Dining table",
       "assetId": "abo:B075YMXWZC",
       "position": [
-        1.5395,
+        2.2494,
         0,
-        3.7907
+        3.1492
       ],
       "rotation": 0,
       "scale": [
@@ -688,9 +688,9 @@
       "name": "Dining chair",
       "assetId": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
       "position": [
-        1.1405,
+        1.847,
         0,
-        4.4553
+        3.8118
       ],
       "rotation": 3.141592653589793,
       "scale": [
@@ -704,9 +704,9 @@
       "name": "Dining chair",
       "assetId": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
       "position": [
-        1.9401,
+        2.6519,
         0,
-        4.4553
+        3.8118
       ],
       "rotation": 3.141592653589793,
       "scale": [
@@ -720,9 +720,9 @@
       "name": "Dining chair",
       "assetId": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
       "position": [
-        0.4753,
+        1.188,
         0,
-        3.7907
+        3.1492
       ],
       "rotation": 1.5707963267948966,
       "scale": [
@@ -736,9 +736,9 @@
       "name": "Dining chair",
       "assetId": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
       "position": [
-        2.6036,
+        3.3109,
         0,
-        3.7907
+        3.1492
       ],
       "rotation": -1.5707963267948966,
       "scale": [
@@ -752,11 +752,11 @@
       "name": "Double bed",
       "assetId": "extra:bpy-beds-dressed:mcm-walnut-cane-bed-160-terracotta",
       "position": [
-        4.2306,
+        2.9998,
         0,
-        6.2387
+        7.5848
       ],
-      "rotation": -1.5707963267948966,
+      "rotation": 3.141592653589793,
       "scale": [
         1,
         1,
@@ -768,11 +768,11 @@
       "name": "Bedside table",
       "assetId": "abo:B075YZ16V4",
       "position": [
-        5.0349,
+        4.179,
         0,
-        7.4246
+        8.3599
       ],
-      "rotation": -1.5707963267948966,
+      "rotation": 3.141592653589793,
       "scale": [
         1,
         1,
@@ -816,9 +816,9 @@
       "name": "Desk",
       "assetId": "extra:bpy-office:desk-walnut-mcm-tapered",
       "position": [
-        0.5624,
+        0.5606,
         0,
-        8.0137
+        6.8503
       ],
       "rotation": 1.5707963267948966,
       "scale": [
@@ -832,9 +832,9 @@
       "name": "Desk chair",
       "assetId": "extra:bpy-office:chair-mcm-walnut-leather",
       "position": [
-        1.1252,
+        1.13,
         0,
-        8.2421
+        6.8503
       ],
       "rotation": -1.5707963267948966,
       "scale": [
@@ -1802,7 +1802,7 @@
               "name": "Armchair",
               "assetId": "extra:bpy-living2:mcm-swivel-tub-armchair-cognac-leather",
               "position": [
-                5.8433,
+                6.4496,
                 0,
                 1.4147
               ],
@@ -1818,9 +1818,9 @@
               "name": "Coffee table",
               "assetId": "abo:B07DBDMN5F",
               "position": [
-                4.4989,
+                4.7801,
                 0,
-                1.6256
+                1.8804
               ],
               "rotation": 0,
               "scale": [
@@ -1883,9 +1883,9 @@
               "name": "Dining table",
               "assetId": "abo:B075YMXWZC",
               "position": [
-                1.5395,
+                2.2494,
                 0,
-                3.7907
+                3.1492
               ],
               "rotation": 0,
               "scale": [
@@ -1899,9 +1899,9 @@
               "name": "Dining chair",
               "assetId": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
               "position": [
-                1.1405,
+                1.847,
                 0,
-                4.4553
+                3.8118
               ],
               "rotation": 3.141592653589793,
               "scale": [
@@ -1915,9 +1915,9 @@
               "name": "Dining chair",
               "assetId": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
               "position": [
-                1.9401,
+                2.6519,
                 0,
-                4.4553
+                3.8118
               ],
               "rotation": 3.141592653589793,
               "scale": [
@@ -1931,9 +1931,9 @@
               "name": "Dining chair",
               "assetId": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
               "position": [
-                0.4753,
+                1.188,
                 0,
-                3.7907
+                3.1492
               ],
               "rotation": 1.5707963267948966,
               "scale": [
@@ -1947,9 +1947,9 @@
               "name": "Dining chair",
               "assetId": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
               "position": [
-                2.6036,
+                3.3109,
                 0,
-                3.7907
+                3.1492
               ],
               "rotation": -1.5707963267948966,
               "scale": [
@@ -1963,11 +1963,11 @@
               "name": "Double bed",
               "assetId": "extra:bpy-beds-dressed:mcm-walnut-cane-bed-160-terracotta",
               "position": [
-                4.2306,
+                2.9998,
                 0,
-                6.2387
+                7.5848
               ],
-              "rotation": -1.5707963267948966,
+              "rotation": 3.141592653589793,
               "scale": [
                 1,
                 1,
@@ -1979,11 +1979,11 @@
               "name": "Bedside table",
               "assetId": "abo:B075YZ16V4",
               "position": [
-                5.0349,
+                4.179,
                 0,
-                7.4246
+                8.3599
               ],
-              "rotation": -1.5707963267948966,
+              "rotation": 3.141592653589793,
               "scale": [
                 1,
                 1,
@@ -2027,9 +2027,9 @@
               "name": "Desk",
               "assetId": "extra:bpy-office:desk-walnut-mcm-tapered",
               "position": [
-                0.5624,
+                0.5606,
                 0,
-                8.0137
+                6.8503
               ],
               "rotation": 1.5707963267948966,
               "scale": [
@@ -2043,9 +2043,9 @@
               "name": "Desk chair",
               "assetId": "extra:bpy-office:chair-mcm-walnut-leather",
               "position": [
-                1.1252,
+                1.13,
                 0,
-                8.2421
+                6.8503
               ],
               "rotation": -1.5707963267948966,
               "scale": [

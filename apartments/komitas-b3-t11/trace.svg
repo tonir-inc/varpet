@@ -54,23 +54,23 @@
 
   <polygon id="sofa" class="furniture" data-kind="sofa" data-name="Sofa" data-front="down" points="717,348 841,348 841,390 717,390"/>
   <polygon id="armchair-west" class="furniture" data-kind="chair" data-name="Armchair" data-front="right" data-asset="extra:bpy-living2:mcm-swivel-tub-armchair-cognac-leather" points="684,401 722,401 722,442 684,442"/>
-  <polygon id="armchair-east" class="furniture" data-kind="chair" data-name="Armchair" data-front="left" data-asset="extra:bpy-living2:mcm-swivel-tub-armchair-cognac-leather" points="835,401 876,401 876,442 835,442"/>
-  <polygon id="coffee-table" class="furniture" data-kind="table" data-name="Coffee table" data-front="down" data-asset="abo:B07DBDMN5F" points="742,419 816,419 816,448 742,448"/>
+  <polygon id="armchair-east" class="furniture" data-kind="chair" data-name="Armchair" data-front="left" data-asset="extra:bpy-living2:mcm-swivel-tub-armchair-cognac-leather" points="869.5,401.0 910.5,401.0 910.5,442.0 869.5,442.0"/>
+  <polygon id="coffee-table" class="furniture" data-kind="table" data-name="Coffee table" data-front="down" data-asset="abo:B07DBDMN5F" points="758.0,433.5 832.0,433.5 832.0,462.5 758.0,462.5"/>
   <polygon id="tv-unit" class="furniture" data-kind="cabinet" data-name="TV unit" data-front="up" data-asset="abo:B07ML7P93X" points="745,600 813,600 813,612 745,612"/>
   <!-- The fridge is the plan's small blue rectangle at the window end of the east counter. The TV is not drawn: it
        stands on the plan's TV unit. The X boxes (black by the kitchen, blue in the bathroom) are service shafts: nothing. -->
   <polygon id="fridge" class="furniture" data-kind="fridge" data-name="Fridge" data-front="left" data-asset="extra:bpy-appliances:fridge-combi-stainless-60" points="955,349 989,349 989,383 955,383"/>
   <polygon id="tv" class="furniture" data-kind="tv" data-name="TV" data-front="up" data-on="tv-unit" data-asset="extra:electronics:tv-50-feet-black" points="747,602 811,602 811,610 747,610"/>
-  <polygon id="dining-table" class="furniture" data-kind="table" data-name="Dining table" data-front="down" data-asset="abo:B075YMXWZC" points="562.6,533.7 658.6,533.7 658.6,579.7 562.6,579.7"/>
-  <polygon id="dining-chair-s1" class="furniture" data-kind="chair" data-name="Dining chair" data-front="up" data-asset="extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather" points="575.9,573.7 599.9,573.7 599.9,597.7 575.9,597.7"/>
-  <polygon id="dining-chair-s2" class="furniture" data-kind="chair" data-name="Dining chair" data-front="up" data-asset="extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather" points="621.4,573.7 645.4,573.7 645.4,597.7 621.4,597.7"/>
-  <polygon id="dining-chair-w" class="furniture" data-kind="chair" data-name="Dining chair" data-front="right" data-asset="extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather" points="542.6,544.7 566.6,544.7 566.6,568.7 542.6,568.7"/>
-  <polygon id="dining-chair-e" class="furniture" data-kind="chair" data-name="Dining chair" data-front="left" data-asset="extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather" points="654.6,544.7 678.6,544.7 678.6,568.7 654.6,568.7"/>
-  <polygon id="bed" class="furniture" data-kind="bed" data-name="Double bed" data-front="left" data-asset="extra:bpy-beds-dressed:mcm-walnut-cane-bed-160-terracotta" points="710,645 826,645 826,747 710,747"/>
-  <polygon id="bedside" class="furniture" data-kind="cabinet" data-name="Bedside table" data-front="left" points="797,747 822,747 822,772 797,772"/>
+  <polygon id="dining-table" class="furniture" data-kind="table" data-name="Dining table" data-front="down" data-asset="abo:B075YMXWZC" points="603.0,497.2 699.0,497.2 699.0,543.2 603.0,543.2"/>
+  <polygon id="dining-chair-s1" class="furniture" data-kind="chair" data-name="Dining chair" data-front="up" data-asset="extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather" points="616.1,545.9 640.1,545.9 640.1,569.9 616.1,569.9"/>
+  <polygon id="dining-chair-s2" class="furniture" data-kind="chair" data-name="Dining chair" data-front="up" data-asset="extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather" points="661.9,545.9 685.9,545.9 685.9,569.9 661.9,569.9"/>
+  <polygon id="dining-chair-w" class="furniture" data-kind="chair" data-name="Dining chair" data-front="right" data-asset="extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather" points="578.6,508.2 602.6,508.2 602.6,532.2 578.6,532.2"/>
+  <polygon id="dining-chair-e" class="furniture" data-kind="chair" data-name="Dining chair" data-front="left" data-asset="extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather" points="699.4,508.2 723.4,508.2 723.4,532.2 699.4,532.2"/>
+  <polygon id="bed" class="furniture" data-kind="bed" data-name="Double bed" data-front="up" data-asset="extra:bpy-beds-dressed:mcm-walnut-cane-bed-160-terracotta" points="642.7,714.6 744.7,714.6 744.7,830.6 642.7,830.6"/>
+  <polygon id="bedside" class="furniture" data-kind="cabinet" data-name="Bedside table" data-front="up" points="748.3,804.2 773.3,804.2 773.3,829.2 748.3,829.2"/>
   <polygon id="wardrobe-bedroom-a" class="furniture" data-kind="wardrobe" data-name="Wardrobe" data-front="down" data-asset="extra:bpy-bedroom:reeded-oak-2-door-wardrobe-100" points="535,620 592,620 592,650 535,650"/>
   <polygon id="wardrobe-bedroom-b" class="furniture" data-kind="wardrobe" data-name="Wardrobe" data-front="down" data-asset="extra:bpy-bedroom:reeded-oak-2-door-wardrobe-100" points="593,620 650,620 650,650 593,650"/>
-  <polygon id="desk" class="furniture" data-kind="desk" data-name="Desk" data-front="right" data-asset="extra:bpy-office:desk-walnut-mcm-tapered" points="535,759 575,759 575,835 535,835"/>
-  <polygon id="desk-chair" class="furniture" data-kind="chair" data-name="Desk chair" data-front="left" data-asset="extra:bpy-office:chair-mcm-walnut-leather" points="560,795 593,795 593,825 560,825"/>
+  <polygon id="desk" class="furniture" data-kind="desk" data-name="Desk" data-front="right" data-asset="extra:bpy-office:desk-walnut-mcm-tapered" points="534.9,692.8 574.9,692.8 574.9,768.8 534.9,768.8"/>
+  <polygon id="desk-chair" class="furniture" data-kind="chair" data-name="Desk chair" data-front="left" data-asset="extra:bpy-office:chair-mcm-walnut-leather" points="570.8,715.8 603.8,715.8 603.8,745.8 570.8,745.8"/>
   <polygon id="wardrobe-hall" class="furniture" data-kind="wardrobe" data-name="Hall wardrobe" data-front="left" points="970,756 1005,756 1005,835 970,835"/>
 </svg>
