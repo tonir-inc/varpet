@@ -1713,7 +1713,7 @@ function enterCustomize() {
   const phase = document.createElement('span'); phase.className = 'design-customize-phase';
   phase.textContent = '03 Customize'; phase.setAttribute('aria-label', 'Phase 3: Customize'); $('.project-name').append(phase);
   revealEditorTools();
-  notify(presentation?.bundle ? `Customize · ${presentation.bundle.developerName}’s design is yours to change. Click a piece, or ask your designer on the left.` : 'Customize · Click a piece to edit it, or ask your designer on the left.');
+  notify(presentation?.bundle ? `Customize · ${presentation.bundle.furnishedBy ? 'This' : `${presentation.bundle.developerName}’s`} design is yours to change. Click a piece, or ask your designer on the left.` : 'Customize · Click a piece to edit it, or ask your designer on the left.');
 }
 
 function startGuidedDesign() {
