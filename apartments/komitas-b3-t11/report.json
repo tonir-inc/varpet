@@ -1,0 +1,336 @@
+{
+ "flat": "komitas-b3-t11",
+ "scale": "traced in pixels; scale 56.9 px/m from 4 dimension lines",
+ "faults": [],
+ "empty_export": "ok",
+ "furniture": [
+  {
+   "id": "sofa",
+   "kind": "sofa",
+   "room": "living",
+   "footprint_m": [
+    2.18,
+    0.74
+   ],
+   "asset": "abo:B075X2WNWG",
+   "asset_m": [
+    2.1,
+    0.8
+   ],
+   "name": "Amazon Brand \u2013 Rivet Uptown Mid-Century Tufted Customizable Daybed Sofa, 78\"W, R"
+  },
+  {
+   "id": "armchair-west",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.72,
+    0.67
+   ],
+   "asset": "abo:B082VMWB4G",
+   "asset_m": [
+    0.79,
+    0.82
+   ],
+   "name": "Amazon Brand \u2013 Rivet Jamie Upholstered Mid-Century Modern Low Arm Accent Chair, "
+  },
+  {
+   "id": "armchair-east",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.72,
+    0.72
+   ],
+   "asset": "abo:B082VMWB4G",
+   "asset_m": [
+    0.79,
+    0.82
+   ],
+   "name": "Amazon Brand \u2013 Rivet Jamie Upholstered Mid-Century Modern Low Arm Accent Chair, "
+  },
+  {
+   "id": "coffee-table",
+   "kind": "table",
+   "room": "living",
+   "footprint_m": [
+    1.3,
+    0.51
+   ],
+   "asset": "abo:B07DBDMN5F",
+   "asset_m": [
+    1.21,
+    0.58
+   ],
+   "name": "Amazon Brand \u2013 Ravenna Home Parker Coffee Table, 47.2\"W, Glass & Gold"
+  },
+  {
+   "id": "tv-unit",
+   "kind": "cabinet",
+   "room": "living",
+   "footprint_m": [
+    1.2,
+    0.21
+   ],
+   "asset": "abo:B07HSKW3D6",
+   "asset_m": [
+    1.3,
+    0.4
+   ],
+   "name": "Amazon Brand \u2013 Rivet Stevens Modern Wood TV Media Center Cabinet, 51.18\"W, Brush"
+  },
+  {
+   "id": "dining-table",
+   "kind": "table",
+   "room": "living",
+   "footprint_m": [
+    1.69,
+    0.81
+   ],
+   "asset": "abo:B075YPTG8S",
+   "asset_m": [
+    1.79,
+    0.88
+   ],
+   "name": "Amazon Brand \u2013 Rivet Industrial Mid-Century Modern Hairpin Dining Table, 70.9\"L,"
+  },
+  {
+   "id": "dining-chair-n1",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.42,
+    0.42
+   ],
+   "asset": "abo:B07DBD9VY1",
+   "asset_m": [
+    0.41,
+    0.41
+   ],
+   "name": "Amazon Brand \u2013 Ravenna Home Decorah Stackable Metal Kitchen Counter Bar Stools, "
+  },
+  {
+   "id": "dining-chair-n2",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.42,
+    0.42
+   ],
+   "asset": "abo:B07DBD9VY1",
+   "asset_m": [
+    0.41,
+    0.41
+   ],
+   "name": "Amazon Brand \u2013 Ravenna Home Decorah Stackable Metal Kitchen Counter Bar Stools, "
+  },
+  {
+   "id": "dining-chair-n3",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.42,
+    0.42
+   ],
+   "asset": "abo:B07DBD9VY1",
+   "asset_m": [
+    0.41,
+    0.41
+   ],
+   "name": "Amazon Brand \u2013 Ravenna Home Decorah Stackable Metal Kitchen Counter Bar Stools, "
+  },
+  {
+   "id": "dining-chair-s1",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.42,
+    0.42
+   ],
+   "asset": "abo:B07DBD9VY1",
+   "asset_m": [
+    0.41,
+    0.41
+   ],
+   "name": "Amazon Brand \u2013 Ravenna Home Decorah Stackable Metal Kitchen Counter Bar Stools, "
+  },
+  {
+   "id": "dining-chair-s2",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.42,
+    0.42
+   ],
+   "asset": "abo:B07DBD9VY1",
+   "asset_m": [
+    0.41,
+    0.41
+   ],
+   "name": "Amazon Brand \u2013 Ravenna Home Decorah Stackable Metal Kitchen Counter Bar Stools, "
+  },
+  {
+   "id": "dining-chair-s3",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.42,
+    0.42
+   ],
+   "asset": "abo:B07DBD9VY1",
+   "asset_m": [
+    0.41,
+    0.41
+   ],
+   "name": "Amazon Brand \u2013 Ravenna Home Decorah Stackable Metal Kitchen Counter Bar Stools, "
+  },
+  {
+   "id": "dining-chair-w",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.42,
+    0.42
+   ],
+   "asset": "abo:B07DBD9VY1",
+   "asset_m": [
+    0.41,
+    0.41
+   ],
+   "name": "Amazon Brand \u2013 Ravenna Home Decorah Stackable Metal Kitchen Counter Bar Stools, "
+  },
+  {
+   "id": "dining-chair-e",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.42,
+    0.42
+   ],
+   "asset": "abo:B07DBD9VY1",
+   "asset_m": [
+    0.41,
+    0.41
+   ],
+   "name": "Amazon Brand \u2013 Ravenna Home Decorah Stackable Metal Kitchen Counter Bar Stools, "
+  },
+  {
+   "id": "bed",
+   "kind": "bed",
+   "room": "bedroom",
+   "footprint_m": [
+    1.79,
+    2.04
+   ],
+   "asset": "abo:B08FTN8KHY",
+   "asset_m": [
+    1.88,
+    2.04
+   ],
+   "name": "Amazon Brand - Solimo Senna Metal Glossy King Bed (Black)"
+  },
+  {
+   "id": "bedside",
+   "kind": "cabinet",
+   "room": "bedroom",
+   "footprint_m": [
+    0.44,
+    0.44
+   ],
+   "asset": "abo:B07H8SKPWP",
+   "asset_m": [
+    0.43,
+    0.4
+   ],
+   "name": "Amazon Brand -\u00a0Movian Lahn 2-Drawer Nightstand (Set of 2), 45 x 36cm, Alpine Whi"
+  },
+  {
+   "id": "wardrobe-bedroom",
+   "kind": "wardrobe",
+   "room": "bedroom",
+   "footprint_m": [
+    1.99,
+    0.53
+   ],
+   "asset": "abo:B01LWRYSFS",
+   "asset_m": [
+    1.77,
+    0.48
+   ],
+   "name": "Amazon Brand - Movian Idro 2-Column Open Wardrobe, 177 x 48 x 200cm, Light Brown"
+  },
+  {
+   "id": "desk",
+   "kind": "desk",
+   "room": "bedroom",
+   "footprint_m": [
+    1.34,
+    0.7
+   ],
+   "asset": "abo:B082YNV6F7",
+   "asset_m": [
+    1.38,
+    0.69
+   ],
+   "name": "Amazon Brand - Movian Desk, 138 x 74.5 x 69 cm, Dark Oak"
+  },
+  {
+   "id": "desk-chair",
+   "kind": "chair",
+   "room": "bedroom",
+   "footprint_m": [
+    0.53,
+    0.58
+   ],
+   "asset": "abo:B075YN3GVN",
+   "asset_m": [
+    0.52,
+    0.56
+   ],
+   "name": "Amazon Brand \u2013 Rivet Ricky Mid-Century Modern Set of 2 Upholstered Dining Room K"
+  },
+  {
+   "id": "wardrobe-hall",
+   "kind": "wardrobe",
+   "room": "hall",
+   "footprint_m": [
+    1.39,
+    0.62
+   ],
+   "asset": "abo:B07GFS1R5B",
+   "asset_m": [
+    1.29,
+    0.51
+   ],
+   "name": "Amazon Brand - Movian Indre 3-Door 3-Drawer Wardrobe, 129 x 51 x 191cm, Dark Gre"
+  }
+ ],
+ "furnished_export": "ok",
+ "rooms": [
+  {
+   "room": "Balcony",
+   "m2": 4.09,
+   "printed": 3.9
+  },
+  {
+   "room": "Living room and kitchen",
+   "m2": 30.55,
+   "printed": 31.6
+  },
+  {
+   "room": "Entrance hall",
+   "m2": 7.94,
+   "printed": 8.0
+  },
+  {
+   "room": "Bedroom",
+   "m2": 19.32,
+   "printed": 19.2
+  },
+  {
+   "room": "Bathroom",
+   "m2": 3.52,
+   "printed": 3.6
+  }
+ ]
+}

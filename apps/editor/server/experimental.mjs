@@ -1,0 +1,104 @@
+import { existsSync, readFileSync, statSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+/*
+ * Experimental tab (`/?view=experimental`): furnished flats prepared for pitching to a developer, served in the
+ * plan-bundle shape (`Bundle` in src/portal/bundles-contract.ts) so the Catalog's preview and launch code open
+ * them unchanged. Read-only, from `apartments/<flat>/` (startup.json from `apartments/_svg/build.py`).
+ *
+ * A developer's plan image (`source.png`) is never committed for flats whose plans are private (Komitas): when it
+ * is absent the generated `review/top.png` stands in, so every checkout still lists the flat.
+ */
+
+const repoRootDefault = fileURLToPath(new URL('../../../', import.meta.url));
+
+export const EXPERIMENTAL_FLATS = [
+  { flat: 'komitas-b3-t11', developerSlug: 'komitas-park', developerName: 'Komitas Park', name: 'Type 11 · flat 2-5',
+    building: 'Komitas Park · Building 3' },
+];
+
+const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+const roundArea = value => Math.round(value * 10) / 10;
+const countBedrooms = scene => scene.rooms.filter(room => /bed ?room|спальн|ննջ/i.test(room.name ?? '')).length;
+const aboProduct = asset => ({ asset, priceSource: 'catalog · demo price', sizeStatus: 'catalog', attribution: 'Amazon Berkeley Objects, CC BY 4.0' });
+
+function polygonArea(scene) {
+  return scene.rooms.reduce((sum, room) => {
+    const p = room.polygon ?? [];
+    let twice = 0;
+    for (let i = 0; i < p.length; i++) { const [x1, z1] = p[i], [x2, z2] = p[(i + 1) % p.length]; twice += x1 * z2 - x2 * z1; }
+    return sum + Math.abs(twice) / 2;
+  }, 0);
+}
+
+function printedArea(root) {
+  const match = /data-printed="([0-9.]+) m2"/.exec(readFileSync(join(root, 'trace.svg'), 'utf8').slice(0, 2000));
+  return match ? Number(match[1]) : NaN;
+}
+
+/** Flats whose files are missing are skipped, never invented. */
+function loadFlats(repoRoot) {
+  const flats = [];
+  for (const entry of EXPERIMENTAL_FLATS) {
+    const root = join(repoRoot, 'apartments', entry.flat);
+    try {
+      const { scene, catalog } = JSON.parse(readFileSync(join(root, 'startup.json'), 'utf8'));
+      if (!object(scene) || !Array.isArray(scene.rooms) || !Array.isArray(scene.objects) || !Array.isArray(catalog)) continue;
+      const plan = join(root, 'source.png'), top = join(root, 'review', 'top.png');
+      const imagePath = existsSync(plan) ? plan : existsSync(top) ? top : null;
+      if (!imagePath) continue;
+      let area = NaN;
+      try { area = printedArea(root); } catch { /* fall back to the scene's rooms */ }
+      flats.push({
+        summary: {
+          id: entry.flat, developerSlug: entry.developerSlug, developerName: entry.developerName, name: entry.name,
+          building: entry.building, bedrooms: countBedrooms(scene),
+          area: roundArea(Number.isFinite(area) && area > 0 ? area : polygonArea(scene)),
+          blueprintUrl: `/api/experimental/flats/${entry.flat}/blueprint`, source: 'sample', furnishedPieces: scene.objects.length,
+          updatedAt: statSync(join(root, 'startup.json')).mtime.toISOString(),
+        },
+        scene, catalog, imagePath,
+      });
+    } catch { /* a partial checkout keeps the other flats */ }
+  }
+  return flats;
+}
+
+function send(response, status, data) {
+  response.statusCode = status;
+  response.setHeader('Content-Type', 'application/json; charset=utf-8');
+  response.setHeader('Cache-Control', 'no-store');
+  response.end(JSON.stringify(data));
+}
+
+export function createExperimentalHandler(options = {}) {
+  const repoRoot = options.repoRoot ?? repoRootDefault;
+  return (request, response, next) => {
+    let path;
+    try { path = new URL(request.url ?? '/', 'http://localhost').pathname; } catch { return next(); }
+    if (path !== '/api/experimental/flats' && !path.startsWith('/api/experimental/flats/')) return next();
+    if (request.method !== 'GET' && request.method !== 'HEAD') {
+      response.setHeader('Allow', 'GET, HEAD');
+      return send(response, 405, { error: 'Experimental flats are read-only.', code: 'method_not_allowed' });
+    }
+    // Re-read per request: rebuilding a flat shows up without restarting the dev server.
+    const flats = loadFlats(repoRoot);
+    if (path === '/api/experimental/flats') return send(response, 200, { bundles: flats.map(flat => flat.summary) });
+    const match = /^\/api\/experimental\/flats\/([a-z0-9-]{1,80})(\/blueprint)?$/.exec(path);
+    const flat = match && flats.find(item => item.summary.id === match[1]);
+    if (!flat) return send(response, 404, { error: 'This flat could not be found.', code: 'not_found' });
+    if (match[2]) {
+      response.statusCode = 200;
+      response.setHeader('Content-Type', 'image/png');
+      response.setHeader('Cache-Control', 'no-store');
+      return response.end(readFileSync(flat.imagePath));
+    }
+    return send(response, 200, { bundle: { ...flat.summary, scene: flat.scene, catalog: flat.catalog.map(aboProduct) } });
+  };
+}
+
+export function experimentalPlugin(options = {}) {
+  const install = server => { server.middlewares.use(createExperimentalHandler(options)); };
+  return { name: 'varpet-experimental', configureServer: install, configurePreviewServer: install };
+}
