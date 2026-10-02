@@ -352,6 +352,13 @@ export function loadChat(storage: Pick<Storage, 'getItem'> | undefined, key: str
     if (data.version !== 1 || !Array.isArray(data.messages)) return { messages: [] }
     const messages = data.messages.filter((message) => message && typeof message.id === 'string'
       && (message.role === 'user' || message.role === 'agent') && typeof message.text === 'string')
+      // A damaged card or step record is dropped; the message is kept.
+      .map(({ proposal, steps, images, ...message }) => ({
+        ...message,
+        ...(proposal && typeof proposal.proposalSceneId === 'string' && typeof proposal.summary === 'string' && Array.isArray(proposal.products) ? { proposal } : {}),
+        ...(steps && Array.isArray(steps.steps) && typeof steps.seconds === 'number' ? { steps } : {}),
+        ...(Array.isArray(images) ? { images: images.filter((image) => typeof image === 'string' && image.startsWith('data:image/')) } : {}),
+      }))
     return { ...(typeof data.conversationId === 'string' ? { conversationId: data.conversationId } : {}), messages }
   } catch { return { messages: [] } }
 }
