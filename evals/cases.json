@@ -6,7 +6,8 @@
     "room": "Living room",
     "skill": "furnish-room",
     "turns": ["Furnish the living room."],
-    "expect": "A complete living room: sofa, more seats, coffee table, rug, side tables, lamps, a focal piece, plants; walkways kept; prices and total."
+    "expect": "A complete living room: sofa, more seats, coffee table, rug, side tables, lamps, a focal piece, plants; walkways kept; prices and total.",
+    "references": ["references/living-living-room-unsplash.jpg", "references/living-bookshelf-and-blue-couch-unsplash.jpg", "references/living-dining-flat-in-budapest-unsplash.jpg"]
   },
   {
     "id": "furnish-bedroom-orion-t7",
@@ -15,7 +16,8 @@
     "room": "Bedroom 1",
     "skill": "furnish-room",
     "turns": ["Furnish bedroom 1 for a couple who both work late."],
-    "expect": "Double bed on a solid wall reachable from both sides, bedside tables and lamps, wardrobe with 0.9 m in front, rug, mirror; prices and total."
+    "expect": "Double bed on a solid wall reachable from both sides, bedside tables and lamps, wardrobe with 0.9 m in front, rug, mirror; prices and total.",
+    "references": ["references/bedroom-ali-inay-2015-02-25-unsplash.jpg", "references/bedroom-ny-loft-bedroom-unsplash.jpg"]
   },
   {
     "id": "furnish-kitchen-dining-m6",
@@ -24,7 +26,8 @@
     "room": "Living & dining",
     "skill": "furnish-room",
     "turns": ["Set up a dining area in the living & dining room where four people can eat together, and furnish the rest as a living room."],
-    "expect": "A table for four with chairs and 0.9 m around it, light over it, plus a living group; zones separated; prices and total."
+    "expect": "A table for four with chairs and 0.9 m around it, light over it, plus a living group; zones separated; prices and total.",
+    "references": ["references/living-dining-artchapiz1-artchapiz-es-apartment-rental-granada-01.jpg", "references/dining-new-home-unsplash.jpg", "references/living-dining-flat-in-budapest-unsplash.jpg"]
   },
   {
     "id": "budget-living-orion-t8",
@@ -33,7 +36,8 @@
     "room": "Living room and kitchen",
     "skill": "budget-and-quote",
     "turns": ["Furnish the living room for under 1,500,000 AMD and give me the quote."],
-    "expect": "A complete living room at or under 1,500,000 AMD, a line-by-line quote and the total."
+    "expect": "A complete living room at or under 1,500,000 AMD, a line-by-line quote and the total.",
+    "references": ["references/living-cozy-interior-with-a-sofa-unsplash.jpg", "references/living-living-room-unsplash.jpg"]
   },
   {
     "id": "restyle-artdeco-orion-t7",
@@ -42,7 +46,8 @@
     "room": "Living room and kitchen",
     "skill": "restyle",
     "turns": ["Restyle the living room as moody art deco: dark green walls, a herringbone floor, velvet and brass."],
-    "expect": "Walls changed to a dark green finish and the floor to a herringbone/chevron parquet, art-deco furniture, finishes named."
+    "expect": "Walls changed to a dark green finish and the floor to a herringbone/chevron parquet, art-deco furniture, finishes named.",
+    "references": ["references/living-flaunter-interior-unsplash.jpg", "references/living-new-orleans-french-quarter-apartment-living-room.jpg", "references/kitchen-dining-blue-white-kitchen-interior-unsplash.jpg"]
   },
   {
     "id": "restyle-japandi-sunday",
@@ -51,7 +56,8 @@
     "room": "Bedroom",
     "skill": "restyle",
     "turns": ["Make the bedroom next to the living room Japandi, floors and walls too."],
-    "expect": "Warm neutral walls, light or smoked oak floor, low japandi furniture, the room fully furnished."
+    "expect": "Warm neutral walls, light or smoked oak floor, low japandi furniture, the room fully furnished.",
+    "references": ["references/bedroom-ny-loft-bedroom-unsplash.jpg", "references/studio-warsaw-sunrise-unsplash.jpg"]
   },
   {
     "id": "cozier-bedroom-m6",
@@ -60,7 +66,8 @@
     "room": "Bedroom 1",
     "skill": "furnish-room",
     "turns": ["Put a double bed, two bedside tables and a wardrobe in bedroom 1.", "Make it cozier."],
-    "expect": "Turn 2 keeps the pieces and adds warmth: rug, lamps, soft seat, plants, maybe a warm wall finish."
+    "expect": "Turn 2 keeps the pieces and adds warmth: rug, lamps, soft seat, plants, maybe a warm wall finish.",
+    "references": ["references/bedroom-ali-inay-2015-02-25-unsplash.jpg", "references/studio-apartment-hotel-nice.jpg"]
   },
   {
     "id": "fit-sofa-m6",
@@ -78,7 +85,8 @@
     "room": "Living room and kitchen",
     "skill": "fit-and-swap",
     "turns": ["Furnish the living room.", "Swap the sofa for something cheaper."],
-    "expect": "Turn 2 replaces only the sofa with a cheaper one of a fitting size at the same spot, re-checks clearances and states old and new price."
+    "expect": "Turn 2 replaces only the sofa with a cheaper one of a fitting size at the same spot, re-checks clearances and states old and new price.",
+    "references": ["references/living-budapest-apartment-unsplash.jpg", "references/living-living-room-unsplash.jpg"]
   },
   {
     "id": "why-layout-orion-t7",
@@ -87,7 +95,8 @@
     "room": "Bedroom 2",
     "skill": "explain-layout",
     "turns": ["Furnish bedroom 2 as a guest room with a desk.", "Why this layout?"],
-    "expect": "Turn 2 changes nothing and explains placement by function with measured clearances and one trade-off."
+    "expect": "Turn 2 changes nothing and explains placement by function with measured clearances and one trade-off.",
+    "references": ["references/bedroom-ny-loft-bedroom-unsplash.jpg"]
   },
   {
     "id": "office-reading-orion-t8",
@@ -96,7 +105,8 @@
     "room": "Reading room",
     "skill": "furnish-room",
     "turns": ["Turn the reading room into a home office for one person."],
-    "expect": "Desk with side light from the window, chair, storage, reading chair and lamp, rug; prices and total."
+    "expect": "Desk with side light from the window, chair, storage, reading chair and lamp, rug; prices and total.",
+    "references": ["references/living-bookshelf-and-blue-couch-unsplash.jpg", "references/bedroom-ny-loft-bedroom-unsplash.jpg"]
   },
   {
     "id": "plan-orion-t8",

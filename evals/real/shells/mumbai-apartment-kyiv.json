@@ -1,0 +1,23 @@
+{
+  "id": "mumbai-apartment-kyiv",
+  "name": "Mumbai Apartment, Kyiv (traced)",
+  "note": "Traced by hand on the cached plan (1102 x 1280 px, evals/real/fetch.ts). No scale bar: 82 px/m fits the printed total (62 m2) and room areas within about 15% (hall 5.1, bath 5.9, living+kitchen 38.4, bedroom 11.9). Room outlines at the inner wall faces, simplified to rectangles; the kitchen niche and the duct beside the bathroom are folded into the living room; the bedroom's glass partition is a wall.",
+  "scale": 82,
+  "origin": [222, 187],
+  "height": 2.8,
+  "thickness": 0.12,
+  "rooms": [
+    { "name": "Bedroom", "rect": [222, 187, 520, 465] },
+    { "name": "Living room and kitchen", "polygon": [[520, 187], [805, 187], [805, 530], [880, 530], [880, 802], [645, 802], [645, 752], [535, 752], [222, 752], [222, 465], [520, 465]] },
+    { "name": "Hall", "rect": [535, 752, 645, 1010] },
+    { "name": "Bathroom", "rect": [645, 802, 880, 1000] }
+  ],
+  "open": [[535, 752, 645, 752]],
+  "openings": [
+    { "kind": "window", "at": [318, 187], "width": 2.2, "sill": 0.3, "height": 2.2 },
+    { "kind": "window", "at": [620, 187], "width": 2.4, "sill": 0.3, "height": 2.2 },
+    { "kind": "door", "at": [520, 225], "width": 0.8 },
+    { "kind": "door", "at": [645, 900], "width": 0.75 },
+    { "kind": "door", "at": [567, 1010], "width": 0.9 }
+  ]
+}

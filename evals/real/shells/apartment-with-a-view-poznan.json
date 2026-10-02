@@ -1,0 +1,36 @@
+{
+  "id": "apartment-with-a-view-poznan",
+  "name": "Apartment With a View, Poznan (traced)",
+  "note": "Traced by hand on the cached plan (1280 x 631 px, evals/real/fetch.ts), scale from the plan's 0-2 m bar (65.5 px/m). Slightly skewed outer walls squared off; the two balconies left out (their glazing is kept as windows and doors); the entrance vestibule and the wardrobe corridor (6) are one L-shaped hall; toilet (5) and storage (7) are kept as small rooms.",
+  "scale": 65.5,
+  "origin": [150, 28],
+  "height": 2.7,
+  "thickness": 0.15,
+  "rooms": [
+    { "name": "Living room", "polygon": [[150, 28], [415, 28], [415, 118], [730, 118], [730, 345], [380, 345], [150, 345]] },
+    { "name": "Kitchen", "rect": [380, 345, 730, 500] },
+    { "name": "Toilet", "rect": [415, 28, 535, 118] },
+    { "name": "Storage", "rect": [535, 28, 610, 118] },
+    { "name": "Hall", "polygon": [[610, 28], [740, 28], [740, 118], [875, 118], [875, 415], [730, 415], [730, 118], [610, 118]] },
+    { "name": "Bathroom", "rect": [730, 415, 955, 500] },
+    { "name": "Bedroom", "polygon": [[875, 95], [1255, 95], [1255, 350], [955, 350], [955, 415], [875, 415]] }
+  ],
+  "open": [[380, 345, 730, 345], [610, 118, 730, 118]],
+  "openings": [
+    { "kind": "window", "at": [150, 195], "width": 2.2, "sill": 0.3, "height": 2.2 },
+    { "kind": "window", "at": [222, 345], "width": 1.1, "sill": 0.6, "height": 1.6 },
+    { "kind": "door", "at": [288, 345], "width": 0.8 },
+    { "kind": "door", "at": [380, 395], "width": 0.8 },
+    { "kind": "window", "at": [460, 500], "width": 1.2, "sill": 0.9 },
+    { "kind": "window", "at": [572, 500], "width": 0.5, "sill": 0.9 },
+    { "kind": "window", "at": [650, 500], "width": 1.2, "sill": 0.9 },
+    { "kind": "window", "at": [867, 500], "width": 1.1, "sill": 1.2, "height": 1.0 },
+    { "kind": "door", "at": [475, 118], "width": 0.7 },
+    { "kind": "door", "at": [572, 118], "width": 0.8 },
+    { "kind": "door", "at": [740, 70], "width": 0.9 },
+    { "kind": "door", "at": [800, 415], "width": 0.7 },
+    { "kind": "door", "at": [875, 320], "width": 0.8 },
+    { "kind": "door", "at": [1060, 350], "width": 0.9 },
+    { "kind": "window", "at": [1170, 350], "width": 1.6, "sill": 0.4, "height": 1.8 }
+  ]
+}

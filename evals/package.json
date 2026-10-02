@@ -6,7 +6,7 @@
   "scripts": {
     "eval": "node --experimental-strip-types --no-warnings run.ts",
     "typecheck": "tsc --noEmit -p .",
-    "test": "node --test --experimental-strip-types *.test.ts"
+    "test": "node --test --experimental-strip-types *.test.ts real/*.test.ts"
   },
   "dependencies": {
     "@pascal-app/mcp": "workspace:*",
