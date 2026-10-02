@@ -84,6 +84,22 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
+  evals:
+    dependencies:
+      '@pascal-app/mcp':
+        specifier: 1.0.3
+        version: 1.0.3(@pascal-app/core@1.0.3(@react-three/drei@10.7.9(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(@types/three@0.186.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(react@19.3.0)(three@0.186.1)(use-sync-external-store@1.7.0(react@19.3.0)))(react@19.3.0)
+      playwright-core:
+        specifier: 1.63.0
+        version: 1.63.0
+    devDependencies:
+      '@types/node':
+        specifier: ^22.19.12
+        version: 22.20.5
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
   packages/agents:
     dependencies:
       '@pascal-app/core':
@@ -1771,6 +1787,11 @@ packages:
   pkce-challenge@5.0.1:
     resolution: {integrity: sha512-wQ0b/W4Fr01qtpHlqSqspcj3EhBvimsdh0KlHhH8HRZnMsEa0ea2fTULOXOS9ccQr3om+GcGRk4e+isrZWV8qQ==}
     engines: {node: '>=16.20.0'}
+
+  playwright-core@1.63.0:
+    resolution: {integrity: sha512-rYCsBF/M5HjUch52bbtVONEFjv6Xu8sm8h72dNlR5bzIE1fvC/bxgspzkjSfU+MweEMmPM8KJebG6nnyxo5mCg==}
+    engines: {node: '>=20'}
+    hasBin: true
 
   png-js@1.1.0:
     resolution: {integrity: sha512-PM/uYGzGdNSzqeOgly68+6wKQDL1SY0a/N+OEa/+br6LnHWOAJB0Npiamnodfq3jd2LS/i2fMeOKSAILjA+m5Q==}
@@ -3777,6 +3798,8 @@ snapshots:
   picocolors@1.1.1: {}
 
   pkce-challenge@5.0.1: {}
+
+  playwright-core@1.63.0: {}
 
   png-js@1.1.0:
     dependencies:
