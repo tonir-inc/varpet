@@ -29,17 +29,20 @@ export interface PlanIntakeProps {
 export function PlanIntake({ sceneId, onPreview, onApply, onDismiss, fetchImpl, className = '' }: PlanIntakeProps) {
   // The conversation and its running turn outlive this component (Pascal remounts sidebar tabs).
   const chat = useAgentChat({ role: 'architect', sceneId, fetchImpl, onPreview })
-  const { state, elapsed, previewing, preview } = chat
+  const { state, elapsed, previewing, preview, draft, setDraft } = chat
   const busy = state.turn !== null
-  const [plan, setPlan] = useState<{ name: string; url: string } | null>(null)
-  const [note, setNote] = useState('')
+  // The chosen plan and the note live on the session, so switching tabs keeps them.
+  const { plan, note } = draft
+  const setPlan = (next: { name: string; url: string } | null) => setDraft({ plan: next })
+  const setNote = (next: string) => setDraft({ note: next })
   const [error, setError] = useState('')
   const [dragging, setDragging] = useState(false)
   const [acting, setActing] = useState<string | null>(null)
   const input = useRef<HTMLInputElement>(null)
 
   // A plan chosen on the portal ("Bring my plan to life") waits here for the person to start the build.
-  useEffect(() => { const handed = readPlanHandoff(sceneId); if (handed) setPlan(handed) }, [sceneId])
+  // A plan the person already chose here (kept across remounts) wins over the handoff.
+  useEffect(() => { const handed = readPlanHandoff(sceneId); if (handed && !plan) setDraft({ plan: handed }) }, [sceneId, setDraft]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const choose = async (file: File | undefined) => {
     if (input.current) input.current.value = ''

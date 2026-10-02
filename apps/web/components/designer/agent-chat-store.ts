@@ -15,7 +15,19 @@ export interface ChatSnapshot {
   saved: boolean | null
   /** The proposal scene the panel shows in the editor, or null. */
   previewing: string | null
+  /** What the person is composing, kept across panel remounts (memory only, never saved). */
+  draft: ChatDraft
 }
+
+/** Unsent input: composer text and pictures, plus the plan intake's chosen plan and note. */
+export interface ChatDraft {
+  text: string
+  images: string[]
+  plan: { name: string; url: string } | null
+  note: string
+}
+
+export const EMPTY_DRAFT: ChatDraft = { text: '', images: [], plan: null, note: '' }
 
 /** The mounted panel's onPreview. Kept after it unmounts so a turn that ends meanwhile still settles the editor. */
 export type PreviewHost = (proposalSceneId: string | null, working: boolean) => void
@@ -33,7 +45,7 @@ export interface ChatSession {
   auto: string | null
 }
 
-export const EMPTY_SNAPSHOT: ChatSnapshot = { chat: emptyChat, queued: '', saved: null, previewing: null }
+export const EMPTY_SNAPSHOT: ChatSnapshot = { chat: emptyChat, queued: '', saved: null, previewing: null, draft: EMPTY_DRAFT }
 
 const sessions = new Map<string, ChatSession>()
 const uid = () => (typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`)
@@ -164,11 +176,16 @@ export function queueChat(session: ChatSession, text: string) {
 
 export const unqueueChat = (session: ChatSession) => session.store.setState({ queued: '' })
 
+/** Keep part of the unsent input on the session, so a remounted panel shows it again. */
+export const setChatDraft = (session: ChatSession, patch: Partial<ChatDraft>) =>
+  session.store.setState({ draft: { ...session.store.getState().draft, ...patch } })
+
 export function newChat(session: ChatSession) {
   const controller = session.controller
   session.controller = null
   controller?.abort()
-  session.store.setState({ queued: '' })
+  // A new chat drops the pictures and the chosen plan; text being typed stays in the box.
+  session.store.setState({ queued: '', draft: { ...EMPTY_DRAFT, text: session.store.getState().draft.text } })
   dispatch(session, { type: 'reset' })
 }
 

@@ -7,7 +7,7 @@ import { useSceneEditor } from '../editor/scene-editor-store'
 import type { AgentRole, ProposalStatus, StreamTurnOptions } from '../../lib/agent-stream'
 import {
   EMPTY_SNAPSHOT, attachChat, cancelChat, getChatSession, leaveOtherScenes, leaveScene, newChat, noteChat, previewChat,
-  queueChat, sendChat, setProposalStatus, unqueueChat, type ChatSession,
+  queueChat, sendChat, setChatDraft, setProposalStatus, unqueueChat, type ChatDraft, type ChatSession,
 } from './agent-chat-store'
 
 export interface AgentChatOptions {
@@ -34,7 +34,7 @@ const serverStore = createStore(() => EMPTY_SNAPSHOT)
 export function useAgentChat({ role, sceneId, fetchImpl, persist = true, onPreview }: AgentChatOptions) {
   const session: ChatSession | null = useMemo(
     () => (typeof window === 'undefined' ? null : getChatSession(role, sceneId, { persist })), [role, sceneId, persist])
-  const { chat: state, queued, saved, previewing } = useStore(session?.store ?? serverStore)
+  const { chat: state, queued, saved, previewing, draft } = useStore(session?.store ?? serverStore)
   const [now, setNow] = useState(0)
   const host = useRef(onPreview)
   host.current = onPreview
@@ -65,8 +65,10 @@ export function useAgentChat({ role, sceneId, fetchImpl, persist = true, onPrevi
     note: (text: string, error = false) => { if (session) noteChat(session, text, error) },
     /** Show a proposal (or the flat, null) in the editor. */
     preview: (id: string | null) => { if (session) previewChat(session, id) },
+    /** Keep unsent input (composer text, pictures, chosen plan) across remounts. */
+    setDraft: (patch: Partial<ChatDraft>) => { if (session) setChatDraft(session, patch) },
   }), [session])
 
   const elapsed = state.turn ? Math.max(0, (Math.max(now, state.turn.startedAt) - state.turn.startedAt) / 1000) : 0
-  return { state, elapsed, queued, saved, previewing, ...actions }
+  return { state, elapsed, queued, saved, previewing, draft, ...actions }
 }
