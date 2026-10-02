@@ -5,7 +5,7 @@ import { test } from 'node:test'
 import { SceneBridge } from '@pascal-app/mcp/bridge'
 import { apiGraphSchema } from '../scenes/graph-schema.ts'
 import { buildTemplate, SOURCES } from './build-templates.ts'
-import { convertV1Scene, polygonArea, type V1Scene } from './convert.ts'
+import { convertV1Scene, polygonArea, type V1Scene, WALL_PAINT } from './convert.ts'
 
 const dir = import.meta.dirname
 const source = (id: string) => JSON.parse(readFileSync(join(dir, 'sources', `${id}.json`), 'utf8')) as V1Scene
@@ -108,4 +108,11 @@ test('an opening off its wall is refused', () => {
   const wall = v1.walls.find((w) => w.openings?.length)!
   wall.openings![0]!.offset = 100
   assert.throws(() => convertV1Scene(v1), /runs off wall/)
+})
+
+test('both faces of every wall are painted', () => {
+  const { graph } = convertV1Scene(source('sunday-b12121'))
+  for (const wall of (Object.values(graph.nodes) as Node[]).filter((n) => n.type === 'wall')) {
+    assert.deepEqual(wall.slots, { interior: WALL_PAINT, exterior: WALL_PAINT })
+  }
 })
