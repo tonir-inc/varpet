@@ -1,7 +1,7 @@
 // POST /api/agents/{architect|designer}/turn: TurnRequest in, one AgentEvent per NDJSON line out.
 // Relative import until apps/web depends on @varpet/agents (workspace:*).
-import { runTurn } from '../../../../../../../packages/agents/src/index'
-import type { AgentEvent, AgentRole, TurnRequest } from '../../../../../../../packages/contracts/src/index'
+import { runTurn } from '@varpet/agents'
+import type { AgentEvent, AgentRole, TurnRequest } from '@varpet/contracts'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
