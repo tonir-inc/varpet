@@ -90,14 +90,15 @@ test('a designer turn streams session, deltas, tools, proposal and done in order
   const at = (flag: string) => argv[argv.indexOf(flag) + 1]
   assert.equal(at('--model'), 'claude-opus-5-5')
   assert.equal(at('--effort'), 'medium')
-  assert.equal(at('--tools'), 'ListMcpResourcesTool,ReadMcpResourceTool')
+  assert.equal(at('--tools'), 'ListMcpResourcesTool,ReadMcpResourceTool,Skill')
   assert.equal(at('--setting-sources'), '')
   assert.equal(at('--permission-mode'), 'dontAsk')
   assert.equal(at('--session-id'), session.conversationId)
-  for (const f of ['--strict-mcp-config', '--disable-slash-commands', '--verbose', '--include-partial-messages']) {
+  for (const f of ['--strict-mcp-config', '--verbose', '--include-partial-messages']) {
     assert.ok(argv.includes(f), f)
   }
-  assert.equal(at('--allowedTools'), 'mcp__scene,ListMcpResourcesTool,ReadMcpResourceTool')
+  assert.equal(at('--allowedTools'), 'mcp__scene,ListMcpResourcesTool,ReadMcpResourceTool,Skill')
+  assert.equal(at('--plugin-dir'), join(root, 'agent-plugins', 'designer'))
   assert.match(at('--disallowedTools'), /mcp__scene__save_scene/)
   const mcp = JSON.parse(at('--mcp-config')).mcpServers.scene
   assert.equal(mcp.env.VARPET_SCENE_ID, session.proposalSceneId)
@@ -140,7 +141,8 @@ test('the architect uses high effort and gets the same tools as the designer', a
   const session = events[0] as Extract<AgentEvent, { type: 'session' }>
   const argv = JSON.parse(readFileSync(join(dataDir, 'agents', session.conversationId, 'argv.json'), 'utf8')) as string[]
   assert.equal(argv[argv.indexOf('--effort') + 1], 'high')
-  assert.equal(argv[argv.indexOf('--allowedTools') + 1], toolFlags().allowed)
+  assert.equal(argv[argv.indexOf('--allowedTools') + 1], `${toolFlags().allowed},Skill`)
+  assert.equal(argv[argv.indexOf('--plugin-dir') + 1], join(root, 'agent-plugins', 'architect'))
   assert.ok(!toolFlags().disallowed.includes('place_product'))
   assert.ok(toolFlags().disallowed.includes('mcp__scene__load_scene'))
 })

@@ -1,0 +1,111 @@
+[
+  {
+    "id": "furnish-living-sunday",
+    "role": "designer",
+    "templateId": "sunday-b12121",
+    "room": "Living room",
+    "skill": "furnish-room",
+    "turns": ["Furnish the living room."],
+    "expect": "A complete living room: sofa, more seats, coffee table, rug, side tables, lamps, a focal piece, plants; walkways kept; prices and total."
+  },
+  {
+    "id": "furnish-bedroom-orion-t7",
+    "role": "designer",
+    "templateId": "orion-t7",
+    "room": "Bedroom 1",
+    "skill": "furnish-room",
+    "turns": ["Furnish bedroom 1 for a couple who both work late."],
+    "expect": "Double bed on a solid wall reachable from both sides, bedside tables and lamps, wardrobe with 0.9 m in front, rug, mirror; prices and total."
+  },
+  {
+    "id": "furnish-kitchen-dining-m6",
+    "role": "designer",
+    "templateId": "m6-12-54",
+    "room": "Living & dining",
+    "skill": "furnish-room",
+    "turns": ["Set up a dining area in the living & dining room where four people can eat together, and furnish the rest as a living room."],
+    "expect": "A table for four with chairs and 0.9 m around it, light over it, plus a living group; zones separated; prices and total."
+  },
+  {
+    "id": "budget-living-orion-t8",
+    "role": "designer",
+    "templateId": "orion-t8",
+    "room": "Living room and kitchen",
+    "skill": "budget-and-quote",
+    "turns": ["Furnish the living room for under 1,500,000 AMD and give me the quote."],
+    "expect": "A complete living room at or under 1,500,000 AMD, a line-by-line quote and the total."
+  },
+  {
+    "id": "restyle-artdeco-orion-t7",
+    "role": "designer",
+    "templateId": "orion-t7",
+    "room": "Living room and kitchen",
+    "skill": "restyle",
+    "turns": ["Restyle the living room as moody art deco: dark green walls, a herringbone floor, velvet and brass."],
+    "expect": "Walls changed to a dark green finish and the floor to a herringbone/chevron parquet, art-deco furniture, finishes named."
+  },
+  {
+    "id": "restyle-japandi-sunday",
+    "role": "designer",
+    "templateId": "sunday-b12121",
+    "room": "Bedroom",
+    "skill": "restyle",
+    "turns": ["Make the bedroom next to the living room Japandi, floors and walls too."],
+    "expect": "Warm neutral walls, light or smoked oak floor, low japandi furniture, the room fully furnished."
+  },
+  {
+    "id": "cozier-bedroom-m6",
+    "role": "designer",
+    "templateId": "m6-12-54",
+    "room": "Bedroom 1",
+    "skill": "furnish-room",
+    "turns": ["Put a double bed, two bedside tables and a wardrobe in bedroom 1.", "Make it cozier."],
+    "expect": "Turn 2 keeps the pieces and adds warmth: rug, lamps, soft seat, plants, maybe a warm wall finish."
+  },
+  {
+    "id": "fit-sofa-m6",
+    "role": "designer",
+    "templateId": "m6-12-54",
+    "room": "Living & dining",
+    "skill": "fit-and-swap",
+    "turns": ["Will a 2 m sofa, 95 cm deep, fit in the living & dining room?"],
+    "expect": "A verdict from a check on the real room (where it fits, at what clearance), the room left unchanged or the piece shown, and what was not checked."
+  },
+  {
+    "id": "swap-sofa-orion-t8",
+    "role": "designer",
+    "templateId": "orion-t8",
+    "room": "Living room and kitchen",
+    "skill": "fit-and-swap",
+    "turns": ["Furnish the living room.", "Swap the sofa for something cheaper."],
+    "expect": "Turn 2 replaces only the sofa with a cheaper one of a fitting size at the same spot, re-checks clearances and states old and new price."
+  },
+  {
+    "id": "why-layout-orion-t7",
+    "role": "designer",
+    "templateId": "orion-t7",
+    "room": "Bedroom 2",
+    "skill": "explain-layout",
+    "turns": ["Furnish bedroom 2 as a guest room with a desk.", "Why this layout?"],
+    "expect": "Turn 2 changes nothing and explains placement by function with measured clearances and one trade-off."
+  },
+  {
+    "id": "office-reading-orion-t8",
+    "role": "designer",
+    "templateId": "orion-t8",
+    "room": "Reading room",
+    "skill": "furnish-room",
+    "turns": ["Turn the reading room into a home office for one person."],
+    "expect": "Desk with side light from the window, chair, storage, reading chair and lamp, rug; prices and total."
+  },
+  {
+    "id": "plan-orion-t8",
+    "role": "architect",
+    "templateId": null,
+    "room": "whole flat",
+    "skill": "plan-to-shell",
+    "images": ["fixtures/plans/orion-t8.png"],
+    "turns": ["Here is the developer's plan of my flat. Build the empty flat from it."],
+    "expect": "Walls, rooms with names and areas close to the printed ones, doors and windows in their gaps, every room reachable, assumptions listed."
+  }
+]

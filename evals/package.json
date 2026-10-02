@@ -1,0 +1,16 @@
+{
+  "name": "@varpet/evals",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "eval": "node --experimental-strip-types --no-warnings run.ts",
+    "typecheck": "tsc --noEmit -p .",
+    "test": "node --test --experimental-strip-types *.test.ts"
+  },
+  "dependencies": {
+    "@pascal-app/mcp": "1.0.3",
+    "playwright-core": "1.63.0"
+  },
+  "devDependencies": { "@types/node": "^22.19.12", "typescript": "^5.9.3" }
+}
