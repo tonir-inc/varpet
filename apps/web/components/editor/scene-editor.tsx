@@ -22,6 +22,7 @@ import { ArchitectTab, DesignerTab } from './agent-tabs'
 import { CatalogTab } from './catalog-tab'
 import { bindSceneEditorController, useSceneEditor } from './scene-editor-store'
 import { useCatalogMetadata } from './use-catalog-metadata'
+import { applyViewerLookDefaults, configureViewerLook, frameFlat, withWallSides } from './viewer-look'
 
 type Tab = SidebarTab & { component: ComponentType }
 
@@ -64,6 +65,13 @@ export function SceneEditor({ meta, initialGraph, initialPreviewSceneId = null, 
   const [previewGraph, setPreviewGraph] = useState<SceneGraph | null>(null)
   const previewSceneId = useSceneEditor((s) => s.previewSceneId)
   const previewError = useSceneEditor((s) => s.previewError)
+  // Before <Editor> mounts: the Viewer reads these on its first effect and materials are built once.
+  useState(() => {
+    configureViewerLook()
+    applyViewerLookDefaults()
+    return null
+  })
+  const framedRef = useRef(false)
   useCatalogMetadata()
 
   const setVersion = useCallback((version: number) => {
@@ -72,7 +80,8 @@ export function SceneEditor({ meta, initialGraph, initialPreviewSceneId = null, 
   }, [])
 
   /** Puts a graph that came from the server into the editor without saving it straight back. */
-  const applyRemote = useCallback((graph: SceneGraph) => {
+  const applyRemote = useCallback((remote: SceneGraph) => {
+    const graph = withWallSides(remote)
     lastRemoteGraphJsonRef.current = sceneGraphSignature(graph)
     suppressRemoteSaveUntilRef.current = Date.now() + 2500
     applySceneGraphToEditor(graph)
@@ -136,7 +145,17 @@ export function SceneEditor({ meta, initialGraph, initialPreviewSceneId = null, 
     if (url.href !== window.location.href) window.history.replaceState(window.history.state, '', url)
   }, [previewSceneId])
 
-  const handleLoad = useCallback(async () => initialGraphRef.current, [])
+  const handleLoad = useCallback(async () => withWallSides(initialGraphRef.current), [])
+
+  // Once the first scene is on screen, frame the flat (not on a proposal link, which keeps Pascal's own framing).
+  const handleLoaderChange = useCallback(
+    (visible: boolean) => {
+      if (visible || framedRef.current || initialPreviewSceneId) return
+      framedRef.current = true
+      setTimeout(() => frameFlat(editorGraph()), 400)
+    },
+    [initialPreviewSceneId],
+  )
 
   const handleSave = useCallback(
     async (graph: SceneGraph, options?: { keepalive?: boolean }) => {
@@ -231,13 +250,13 @@ export function SceneEditor({ meta, initialGraph, initialPreviewSceneId = null, 
         previewingRef.current = true
       }
       previewVersion = body.meta.version
-      setPreviewGraph(body.graph)
+      setPreviewGraph(withWallSides(body.graph))
       source = new EventSource(`/api/scenes/${id}/events`)
       source.addEventListener('scene', (event) => {
         const payload = parseEvent(event)
         if (!payload || payload.version <= previewVersion) return
         previewVersion = payload.version
-        setPreviewGraph(payload.graph)
+        setPreviewGraph(withWallSides(payload.graph))
       })
     })().catch((error: unknown) => {
       if (cancelled) return
@@ -280,6 +299,7 @@ export function SceneEditor({ meta, initialGraph, initialPreviewSceneId = null, 
         isVersionPreviewMode={previewing}
         layoutVersion="v2"
         onLoad={handleLoad}
+        onLoaderChange={handleLoaderChange}
         onSave={handleSave}
         previewScene={previewGraph ?? undefined}
         projectId={meta.projectId ?? meta.id}
