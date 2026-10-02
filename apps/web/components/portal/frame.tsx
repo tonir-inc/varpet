@@ -110,7 +110,7 @@ export function PortalFrame({ children }: { children: ReactNode }) {
           <nav className="portal-nav" aria-label="Main navigation">
             <Link href="/" {...current('explore')}>Start with a plan</Link>
             <Link href={catalogHref} {...current('catalog')} title="Developer plans with a furnished 3D apartment">Catalog</Link>
-            <a href="/editor" title="Explore an empty apartment and save to the team">Sandbox</a>
+            <a href="/editor" title="Explore a copy of Sunday Towers B12121, an empty reconstructed flat">Sandbox</a>
             <Link href="/apartments" {...current('apartments')}>Saved apartments</Link>
           </nav>
           <div className="portal-account">

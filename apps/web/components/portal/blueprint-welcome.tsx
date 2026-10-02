@@ -96,7 +96,7 @@ export function BlueprintWelcome({ audience, studioName }: { audience?: 'develop
       if (!account) { setBuilding(false); return }
       const name = plan.name.replace(/\.[a-z]+$/i, '').trim().slice(0, 120) || 'My apartment'
       const url = await dataUrl(plan)
-      const sceneId = await createScene(name)
+      const sceneId = await createScene(name, null)
       await accountApi.createApartment({ name, templateId: null, sceneId })
       savePlanHandoff(sceneId, { name: plan.name, url })
       location.assign(editorHref(sceneId))

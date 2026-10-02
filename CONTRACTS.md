@@ -7,6 +7,12 @@ that file and this one in the same commit, and say so in the commit message.
 - Store: `createSceneStore()` from `@pascal-app/mcp/storage`, one SQLite file at `PASCAL_DB_PATH`, shared by the
   web app and every scene MCP process. Writers that should reach open editors call `appendSceneEvent`.
 - `GET /api/scenes` list, `POST /api/scenes` create `{name, projectId?}` -> `SceneMeta` (lane A)
+- `POST /api/scenes` also takes `templateId?: string | null` and `graph?`. `graph` is stored as is. Otherwise the
+  scene starts as a copy of a flat template (`apps/web/lib/flats/templates/manifest.json`: `sunday-b12121`,
+  `orion-t7`, `orion-t8`, `m6-12-54`); omitted means `sunday-b12121`, `null` means empty (the editor fills Pascal's
+  default site; plan uploads use this), an unknown id is 400 `unknown_template`.
+- Flat templates: one level; per room a zone (named, `metadata.v1Id`), slab and ceiling; walls with their doors and
+  windows; centred on the origin. Rebuild with `node apps/web/lib/flats/build-templates.ts` (tests check they are current).
 - `GET /api/scenes/:id` -> `{meta, graph}`; `PUT /api/scenes/:id` with `If-Match: <version>` -> 409 on conflict;
   `DELETE /api/scenes/:id` (lane A)
 - `GET /api/scenes/:id/events` SSE: each event is a full `{version, graph}` from `scene_events` (lane A)

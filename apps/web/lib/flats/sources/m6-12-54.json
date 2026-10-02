@@ -1,0 +1,1286 @@
+{
+ "format": "varpet.editor",
+ "version": 2,
+ "id": "m6-12-54",
+ "name": "M6-12-54 · two balconies · plan estimate",
+ "units": "m",
+ "upAxis": "Y",
+ "rooms": [
+  {
+   "id": "room-hall",
+   "name": "Entrance hall",
+   "color": "#d5c5ab",
+   "polygon": [
+    [
+     -5.752577,
+     -5.072165
+    ],
+    [
+     -2.742268,
+     -5.072165
+    ],
+    [
+     -2.742268,
+     -3.494845
+    ],
+    [
+     -2.917526,
+     -3.494845
+    ],
+    [
+     -2.917526,
+     -2.835052
+    ],
+    [
+     -2.731959,
+     -2.835052
+    ],
+    [
+     -2.731959,
+     -2.340206
+    ],
+    [
+     -2.639175,
+     -2.340206
+    ],
+    [
+     -2.639175,
+     -1.226804
+    ],
+    [
+     -2.721649,
+     -1.226804
+    ],
+    [
+     -2.721649,
+     -0.371134
+    ],
+    [
+     -2.536082,
+     -0.371134
+    ],
+    [
+     -2.536082,
+     0.536082
+    ],
+    [
+     -2.721649,
+     0.536082
+    ],
+    [
+     -2.721649,
+     0.639175
+    ],
+    [
+     -4.237113,
+     0.639175
+    ],
+    [
+     -4.237113,
+     -3.154639
+    ],
+    [
+     -4.041237,
+     -3.154639
+    ],
+    [
+     -4.041237,
+     -3.896907
+    ],
+    [
+     -5.752577,
+     -3.896907
+    ]
+   ]
+  },
+  {
+   "id": "room-bathroom",
+   "name": "Bathroom",
+   "color": "#c6d0ce",
+   "polygon": [
+    [
+     -5.762887,
+     -3.134021
+    ],
+    [
+     -4.407216,
+     -3.134021
+    ],
+    [
+     -4.407216,
+     -1.350515
+    ],
+    [
+     -4.237113,
+     -1.350515
+    ],
+    [
+     -4.237113,
+     -0.649485
+    ],
+    [
+     -4.407216,
+     -0.649485
+    ],
+    [
+     -4.407216,
+     -0.283505
+    ],
+    [
+     -5.762887,
+     -0.283505
+    ]
+   ]
+  },
+  {
+   "id": "room-kitchen",
+   "name": "Kitchen",
+   "color": "#e2d6c2",
+   "polygon": [
+    [
+     -2.340206,
+     -3.020619
+    ],
+    [
+     0.42268,
+     -3.020619
+    ],
+    [
+     0.42268,
+     -1.206186
+    ],
+    [
+     0.329897,
+     -1.206186
+    ],
+    [
+     0.329897,
+     -0.56701
+    ],
+    [
+     -2.551546,
+     -0.56701
+    ],
+    [
+     -2.551546,
+     -1.226804
+    ],
+    [
+     -2.639175,
+     -1.226804
+    ],
+    [
+     -2.639175,
+     -2.340206
+    ],
+    [
+     -2.340206,
+     -2.340206
+    ]
+   ]
+  },
+  {
+   "id": "room-living",
+   "name": "Living & dining",
+   "color": "#dcc8ab",
+   "polygon": [
+    [
+     0.42268,
+     -3.020619
+    ],
+    [
+     3.56701,
+     -3.020619
+    ],
+    [
+     3.56701,
+     -2.896907
+    ],
+    [
+     4.14433,
+     -2.896907
+    ],
+    [
+     4.14433,
+     -2.061856
+    ],
+    [
+     3.927835,
+     -2.061856
+    ],
+    [
+     3.927835,
+     -0.618557
+    ],
+    [
+     3.835052,
+     -0.618557
+    ],
+    [
+     3.835052,
+     3.247423
+    ],
+    [
+     3.56701,
+     3.247423
+    ],
+    [
+     3.56701,
+     3.350515
+    ],
+    [
+     1.206186,
+     3.350515
+    ],
+    [
+     1.206186,
+     3.298969
+    ],
+    [
+     0.515464,
+     3.298969
+    ],
+    [
+     0.515464,
+     -1.206186
+    ],
+    [
+     0.42268,
+     -1.206186
+    ]
+   ]
+  },
+  {
+   "id": "room-bedroom-large",
+   "name": "Bedroom 1",
+   "color": "#d5bca0",
+   "polygon": [
+    [
+     -5.762887,
+     -0.128866
+    ],
+    [
+     -4.407216,
+     -0.128866
+    ],
+    [
+     -4.407216,
+     0.804124
+    ],
+    [
+     -3.597938,
+     0.804124
+    ],
+    [
+     -3.597938,
+     0.639175
+    ],
+    [
+     -2.690722,
+     0.639175
+    ],
+    [
+     -2.690722,
+     3.103093
+    ],
+    [
+     -2.865979,
+     3.103093
+    ],
+    [
+     -2.865979,
+     3.597938
+    ],
+    [
+     -2.597938,
+     3.597938
+    ],
+    [
+     -2.597938,
+     4.051546
+    ],
+    [
+     -2.443299,
+     4.051546
+    ],
+    [
+     -2.443299,
+     4.072165
+    ],
+    [
+     -2.247423,
+     4.072165
+    ],
+    [
+     -2.247423,
+     4.958763
+    ],
+    [
+     -2.443299,
+     4.958763
+    ],
+    [
+     -2.443299,
+     5.025773
+    ],
+    [
+     -3.340206,
+     5.025773
+    ],
+    [
+     -3.340206,
+     4.927835
+    ],
+    [
+     -5.762887,
+     4.927835
+    ]
+   ]
+  },
+  {
+   "id": "room-bedroom-small",
+   "name": "Bedroom 2",
+   "color": "#e1cdb3",
+   "polygon": [
+    [
+     -2.536082,
+     -0.371134
+    ],
+    [
+     0.329897,
+     -0.371134
+    ],
+    [
+     0.329897,
+     3.298969
+    ],
+    [
+     -0.608247,
+     3.298969
+    ],
+    [
+     -0.608247,
+     3.402062
+    ],
+    [
+     -1.453608,
+     3.402062
+    ],
+    [
+     -1.453608,
+     3.608247
+    ],
+    [
+     -2.247423,
+     3.608247
+    ],
+    [
+     -2.247423,
+     3.113402
+    ],
+    [
+     -2.350515,
+     3.113402
+    ],
+    [
+     -2.350515,
+     0.536082
+    ],
+    [
+     -2.536082,
+     0.536082
+    ]
+   ]
+  },
+  {
+   "id": "room-balcony-east",
+   "name": "Balcony · living room",
+   "color": "#becac5",
+   "polygon": [
+    [
+     4.298969,
+     -2.989691
+    ],
+    [
+     5.639175,
+     -2.989691
+    ],
+    [
+     5.639175,
+     -0.030928
+    ],
+    [
+     4.340206,
+     -0.030928
+    ],
+    [
+     4.340206,
+     -2.061856
+    ],
+    [
+     4.14433,
+     -2.061856
+    ],
+    [
+     4.14433,
+     -2.896907
+    ],
+    [
+     4.298969,
+     -2.896907
+    ]
+   ]
+  },
+  {
+   "id": "room-balcony-south",
+   "name": "Balcony · both bedrooms",
+   "color": "#becac5",
+   "polygon": [
+    [
+     -2.247423,
+     3.608247
+    ],
+    [
+     -1.453608,
+     3.608247
+    ],
+    [
+     -1.453608,
+     3.762887
+    ],
+    [
+     0.57732,
+     3.762887
+    ],
+    [
+     0.57732,
+     5.103093
+    ],
+    [
+     -2.247423,
+     5.103093
+    ]
+   ]
+  }
+ ],
+ "walls": [
+  {
+   "id": "wall-hall-north",
+   "start": [
+    -5.814433,
+    -5.134021
+   ],
+   "end": [
+    -2.680412,
+    -5.134021
+   ],
+   "height": 2.8,
+   "thickness": 0.123711,
+   "color": "#b5ada0",
+   "openings": []
+  },
+  {
+   "id": "wall-entrance",
+   "start": [
+    -5.814433,
+    -5.134021
+   ],
+   "end": [
+    -5.814433,
+    -3.824742
+   ],
+   "height": 2.8,
+   "thickness": 0.123711,
+   "color": "#b5ada0",
+   "openings": [
+    {
+     "id": "door-entrance",
+     "kind": "door",
+     "offset": 0.092784,
+     "width": 1.030928,
+     "height": 2.2,
+     "sill": 0
+    }
+   ]
+  },
+  {
+   "id": "wall-hall-east",
+   "start": [
+    -2.680412,
+    -5.134021
+   ],
+   "end": [
+    -2.680412,
+    -3.412371
+   ],
+   "height": 2.8,
+   "thickness": 0.123711,
+   "color": "#b5ada0",
+   "openings": []
+  },
+  {
+   "id": "wall-core-north",
+   "start": [
+    -5.814433,
+    -3.824742
+   ],
+   "end": [
+    -4.123711,
+    -3.824742
+   ],
+   "height": 2.8,
+   "thickness": 0.14433,
+   "color": "#b5ada0",
+   "openings": []
+  },
+  {
+   "id": "wall-core-east",
+   "start": [
+    -4.123711,
+    -3.824742
+   ],
+   "end": [
+    -4.123711,
+    -3.195876
+   ],
+   "height": 2.8,
+   "thickness": 0.14433,
+   "color": "#b5ada0",
+   "openings": []
+  },
+  {
+   "id": "wall-bath-north",
+   "start": [
+    -5.814433,
+    -3.195876
+   ],
+   "end": [
+    -4.123711,
+    -3.195876
+   ],
+   "height": 2.8,
+   "thickness": 0.123711,
+   "color": "#b5ada0",
+   "openings": []
+  },
+  {
+   "id": "wall-west-bath",
+   "start": [
+    -5.814433,
+    -3.195876
+   ],
+   "end": [
+    -5.814433,
+    -0.206186
+   ],
+   "height": 2.8,
+   "thickness": 0.103093,
+   "color": "#b5ada0",
+   "openings": []
+  },
+  {
+   "id": "wall-west-bedroom",
+   "start": [
+    -5.814433,
+    -0.206186
+   ],
+   "end": [
+    -5.814433,
+    4.989691
+   ],
+   "height": 2.8,
+   "thickness": 0.103093,
+   "color": "#b5ada0",
+   "openings": []
+  },
+  {
+   "id": "wall-bath-east",
+   "start": [
+    -4.319588,
+    -3.195876
+   ],
+   "end": [
+    -4.319588,
+    0.721649
+   ],
+   "height": 2.8,
+   "thickness": 0.175258,
+   "color": "#eee3d2",
+   "openings": [
+    {
+     "id": "door-bathroom",
+     "kind": "door",
+     "offset": 1.845361,
+     "width": 0.701031,
+     "height": 2.2,
+     "sill": 0
+    }
+   ]
+  },
+  {
+   "id": "wall-bath-south",
+   "start": [
+    -5.814433,
+    -0.206186
+   ],
+   "end": [
+    -4.319588,
+    -0.206186
+   ],
+   "height": 2.8,
+   "thickness": 0.154639,
+   "color": "#eee3d2",
+   "openings": []
+  },
+  {
+   "id": "wall-bedroom-large-entry",
+   "start": [
+    -4.319588,
+    0.721649
+   ],
+   "end": [
+    -2.525773,
+    0.721649
+   ],
+   "height": 2.8,
+   "thickness": 0.164948,
+   "color": "#eee3d2",
+   "openings": [
+    {
+     "id": "door-bedroom-large",
+     "kind": "door",
+     "offset": 0.721649,
+     "width": 0.907216,
+     "height": 2.2,
+     "sill": 0
+    }
+   ]
+  },
+  {
+   "id": "wall-hall-pier-step",
+   "start": [
+    -2.680412,
+    -3.412371
+   ],
+   "end": [
+    -2.783505,
+    -3.412371
+   ],
+   "height": 2.8,
+   "thickness": 0.185567,
+   "color": "#87918e",
+   "openings": []
+  },
+  {
+   "id": "wall-hall-pier-side",
+   "start": [
+    -2.783505,
+    -3.412371
+   ],
+   "end": [
+    -2.783505,
+    -2.896907
+   ],
+   "height": 2.8,
+   "thickness": 0.206186,
+   "color": "#87918e",
+   "openings": []
+  },
+  {
+   "id": "wall-hall-pier-return",
+   "start": [
+    -2.783505,
+    -2.896907
+   ],
+   "end": [
+    -2.525773,
+    -2.896907
+   ],
+   "height": 2.8,
+   "thickness": 0.206186,
+   "color": "#87918e",
+   "openings": []
+  },
+  {
+   "id": "wall-kitchen-pier",
+   "start": [
+    -2.525773,
+    -3.103093
+   ],
+   "end": [
+    -2.525773,
+    -2.391753
+   ],
+   "height": 2.8,
+   "thickness": 0.28866,
+   "color": "#87918e",
+   "openings": []
+  },
+  {
+   "id": "wall-north-kitchen",
+   "start": [
+    -2.525773,
+    -3.103093
+   ],
+   "end": [
+    0.42268,
+    -3.103093
+   ],
+   "height": 2.8,
+   "thickness": 0.257732,
+   "color": "#87918e",
+   "openings": []
+  },
+  {
+   "id": "wall-north-living",
+   "start": [
+    0.42268,
+    -3.103093
+   ],
+   "end": [
+    3.649485,
+    -3.103093
+   ],
+   "height": 2.8,
+   "thickness": 0.257732,
+   "color": "#87918e",
+   "openings": []
+  },
+  {
+   "id": "wall-northeast-step",
+   "start": [
+    3.649485,
+    -3.103093
+   ],
+   "end": [
+    3.649485,
+    -2.948454
+   ],
+   "height": 2.8,
+   "thickness": 0.103093,
+   "color": "#87918e",
+   "openings": []
+  },
+  {
+   "id": "wall-northeast-return",
+   "start": [
+    3.649485,
+    -2.948454
+   ],
+   "end": [
+    4.030928,
+    -2.948454
+   ],
+   "height": 2.8,
+   "thickness": 0.103093,
+   "color": "#87918e",
+   "openings": []
+  },
+  {
+   "id": "wall-kitchen-stub",
+   "start": [
+    -2.639175,
+    -1.14433
+   ],
+   "end": [
+    -2.639175,
+    -0.474227
+   ],
+   "height": 2.8,
+   "thickness": 0.175258,
+   "color": "#eee3d2",
+   "openings": []
+  },
+  {
+   "id": "wall-bedroom-small-north",
+   "start": [
+    -2.639175,
+    -0.474227
+   ],
+   "end": [
+    0.42268,
+    -0.474227
+   ],
+   "height": 2.8,
+   "thickness": 0.185567,
+   "color": "#eee3d2",
+   "openings": []
+  },
+  {
+   "id": "wall-bedroom-small-east",
+   "start": [
+    0.42268,
+    -1.14433
+   ],
+   "end": [
+    0.42268,
+    3.505155
+   ],
+   "height": 2.8,
+   "thickness": 0.185567,
+   "color": "#eee3d2",
+   "openings": []
+  },
+  {
+   "id": "wall-bedroom-small-entry",
+   "start": [
+    -2.525773,
+    -0.474227
+   ],
+   "end": [
+    -2.525773,
+    0.597938
+   ],
+   "height": 2.8,
+   "thickness": 0.185567,
+   "color": "#eee3d2",
+   "openings": [
+    {
+     "id": "door-bedroom-small",
+     "kind": "door",
+     "offset": 0.103093,
+     "width": 0.907216,
+     "height": 2.2,
+     "sill": 0
+    }
+   ]
+  },
+  {
+   "id": "wall-bedroom-divider",
+   "start": [
+    -2.525773,
+    0.597938
+   ],
+   "end": [
+    -2.525773,
+    3.350515
+   ],
+   "height": 2.8,
+   "thickness": 0.329897,
+   "color": "#87918e",
+   "openings": []
+  },
+  {
+   "id": "wall-divider-pier",
+   "start": [
+    -2.865979,
+    3.350515
+   ],
+   "end": [
+    -2.402062,
+    3.350515
+   ],
+   "height": 2.8,
+   "thickness": 0.494845,
+   "color": "#87918e",
+   "openings": []
+  },
+  {
+   "id": "wall-divider-tail",
+   "start": [
+    -2.402062,
+    3.350515
+   ],
+   "end": [
+    -2.402062,
+    4.051546
+   ],
+   "height": 2.8,
+   "thickness": 0.309278,
+   "color": "#87918e",
+   "openings": []
+  },
+  {
+   "id": "wall-bedroom-large-balcony",
+   "start": [
+    -2.402062,
+    4.051546
+   ],
+   "end": [
+    -2.402062,
+    5.154639
+   ],
+   "height": 2.8,
+   "thickness": 0.309278,
+   "color": "#b5ada0",
+   "openings": [
+    {
+     "id": "door-balcony-large",
+     "kind": "door",
+     "offset": 0.020619,
+     "width": 0.886598,
+     "height": 2.2,
+     "sill": 0
+    }
+   ]
+  },
+  {
+   "id": "wall-bedroom-large-south",
+   "start": [
+    -5.814433,
+    4.989691
+   ],
+   "end": [
+    -3.340206,
+    4.989691
+   ],
+   "height": 2.8,
+   "thickness": 0.123711,
+   "color": "#b5ada0",
+   "openings": [
+    {
+     "id": "window-bedroom-large",
+     "kind": "window",
+     "offset": 0.742268,
+     "width": 1.670103,
+     "height": 2.35,
+     "sill": 0.25
+    }
+   ]
+  },
+  {
+   "id": "wall-bedroom-large-south-step",
+   "start": [
+    -3.340206,
+    4.989691
+   ],
+   "end": [
+    -3.340206,
+    5.154639
+   ],
+   "height": 2.8,
+   "thickness": 0.123711,
+   "color": "#b5ada0",
+   "openings": []
+  },
+  {
+   "id": "wall-bedroom-large-south-return",
+   "start": [
+    -3.340206,
+    5.154639
+   ],
+   "end": [
+    -2.402062,
+    5.154639
+   ],
+   "height": 2.8,
+   "thickness": 0.257732,
+   "color": "#87918e",
+   "openings": []
+  },
+  {
+   "id": "wall-bedroom-small-glazing",
+   "start": [
+    -2.402062,
+    3.505155
+   ],
+   "end": [
+    -0.597938,
+    3.505155
+   ],
+   "height": 2.8,
+   "thickness": 0.206186,
+   "color": "#b5ada0",
+   "openings": [
+    {
+     "id": "door-balcony-small",
+     "kind": "door",
+     "offset": 0.154639,
+     "width": 0.793814,
+     "height": 2.2,
+     "sill": 0
+    },
+    {
+     "id": "window-bedroom-small",
+     "kind": "window",
+     "offset": 0.948454,
+     "width": 0.85567,
+     "height": 2.35,
+     "sill": 0.25
+    }
+   ]
+  },
+  {
+   "id": "wall-south-pier",
+   "start": [
+    -0.597938,
+    3.505155
+   ],
+   "end": [
+    1.185567,
+    3.505155
+   ],
+   "height": 2.8,
+   "thickness": 0.412371,
+   "color": "#87918e",
+   "openings": []
+  },
+  {
+   "id": "wall-living-south-window",
+   "start": [
+    1.185567,
+    3.505155
+   ],
+   "end": [
+    2.907216,
+    3.505155
+   ],
+   "height": 2.8,
+   "thickness": 0.309278,
+   "color": "#b5ada0",
+   "openings": [
+    {
+     "id": "window-living-south",
+     "kind": "window",
+     "offset": 0,
+     "width": 1.721649,
+     "height": 2.35,
+     "sill": 0.25
+    }
+   ]
+  },
+  {
+   "id": "wall-living-south-return",
+   "start": [
+    2.907216,
+    3.505155
+   ],
+   "end": [
+    3.649485,
+    3.505155
+   ],
+   "height": 2.8,
+   "thickness": 0.412371,
+   "color": "#87918e",
+   "openings": []
+  },
+  {
+   "id": "wall-living-southeast-step",
+   "start": [
+    3.649485,
+    3.505155
+   ],
+   "end": [
+    3.649485,
+    3.298969
+   ],
+   "height": 2.8,
+   "thickness": 0.391753,
+   "color": "#87918e",
+   "openings": []
+  },
+  {
+   "id": "wall-living-east-return",
+   "start": [
+    3.649485,
+    3.298969
+   ],
+   "end": [
+    4.030928,
+    3.298969
+   ],
+   "height": 2.8,
+   "thickness": 0.391753,
+   "color": "#87918e",
+   "openings": []
+  },
+  {
+   "id": "wall-living-east",
+   "start": [
+    4.030928,
+    -0.618557
+   ],
+   "end": [
+    4.030928,
+    3.298969
+   ],
+   "height": 2.8,
+   "thickness": 0.391753,
+   "color": "#87918e",
+   "openings": []
+  },
+  {
+   "id": "wall-living-balcony-glazing",
+   "start": [
+    4.030928,
+    -2.948454
+   ],
+   "end": [
+    4.030928,
+    -0.618557
+   ],
+   "height": 2.8,
+   "thickness": 0.206186,
+   "color": "#b5ada0",
+   "openings": [
+    {
+     "id": "door-balcony-living",
+     "kind": "door",
+     "offset": 0.051546,
+     "width": 0.835052,
+     "height": 2.2,
+     "sill": 0
+    },
+    {
+     "id": "window-living-east",
+     "kind": "window",
+     "offset": 0.886598,
+     "width": 1.443299,
+     "height": 2.35,
+     "sill": 0.25
+    }
+   ]
+  }
+ ],
+ "project": {
+  "metadata": {
+   "wall-hall-north": {
+    "name": "Hall · north perimeter"
+   },
+   "wall-entrance": {
+    "name": "Hall · cropped entrance boundary"
+   },
+   "door-entrance": {
+    "name": "Apartment entrance"
+   },
+   "wall-hall-east": {
+    "name": "Hall · east perimeter"
+   },
+   "wall-core-north": {
+    "name": "Hall · recessed core boundary"
+   },
+   "wall-core-east": {
+    "name": "Hall · core return"
+   },
+   "wall-bath-north": {
+    "name": "Bathroom · core boundary"
+   },
+   "wall-west-bath": {
+    "name": "Bathroom · west perimeter"
+   },
+   "wall-west-bedroom": {
+    "name": "Bedroom 1 · west perimeter"
+   },
+   "wall-bath-east": {
+    "name": "Bathroom · hall partition"
+   },
+   "door-bathroom": {
+    "name": "Bathroom door"
+   },
+   "wall-bath-south": {
+    "name": "Bathroom / Bedroom 1 partition"
+   },
+   "wall-bedroom-large-entry": {
+    "name": "Bedroom 1 · entrance partition"
+   },
+   "door-bedroom-large": {
+    "name": "Bedroom 1 door"
+   },
+   "wall-hall-pier-step": {
+    "name": "Hatched hall pier · upper step"
+   },
+   "wall-hall-pier-side": {
+    "name": "Hatched hall pier · west face"
+   },
+   "wall-hall-pier-return": {
+    "name": "Hatched hall pier · return"
+   },
+   "wall-kitchen-pier": {
+    "name": "Hatched kitchen pier"
+   },
+   "wall-north-kitchen": {
+    "name": "Kitchen · hatched north facade"
+   },
+   "wall-north-living": {
+    "name": "Living · hatched north facade"
+   },
+   "wall-northeast-step": {
+    "name": "Living · north facade step"
+   },
+   "wall-northeast-return": {
+    "name": "Living · balcony corner return"
+   },
+   "wall-kitchen-stub": {
+    "name": "Kitchen · short west partition"
+   },
+   "wall-bedroom-small-north": {
+    "name": "Kitchen / Bedroom 2 partition"
+   },
+   "wall-bedroom-small-east": {
+    "name": "Living / Bedroom 2 partition"
+   },
+   "wall-bedroom-small-entry": {
+    "name": "Bedroom 2 · entrance"
+   },
+   "door-bedroom-small": {
+    "name": "Bedroom 2 door"
+   },
+   "wall-bedroom-divider": {
+    "name": "Hatched fixed divider between bedrooms"
+   },
+   "wall-divider-pier": {
+    "name": "Hatched widened bedroom pier"
+   },
+   "wall-divider-tail": {
+    "name": "Hatched pier · balcony return"
+   },
+   "wall-bedroom-large-balcony": {
+    "name": "Bedroom 1 · balcony doorway"
+   },
+   "door-balcony-large": {
+    "name": "Bedroom 1 to shared balcony"
+   },
+   "wall-bedroom-large-south": {
+    "name": "Bedroom 1 · south window facade"
+   },
+   "window-bedroom-large": {
+    "name": "Bedroom 1 south window"
+   },
+   "wall-bedroom-large-south-step": {
+    "name": "Bedroom 1 · south facade step"
+   },
+   "wall-bedroom-large-south-return": {
+    "name": "Bedroom 1 · south facade return"
+   },
+   "wall-bedroom-small-glazing": {
+    "name": "Bedroom 2 · balcony door and window"
+   },
+   "door-balcony-small": {
+    "name": "Bedroom 2 to shared balcony"
+   },
+   "window-bedroom-small": {
+    "name": "Bedroom 2 balcony window"
+   },
+   "wall-south-pier": {
+    "name": "Hatched solid south facade pier"
+   },
+   "wall-living-south-window": {
+    "name": "Living · south window"
+   },
+   "window-living-south": {
+    "name": "Living south window"
+   },
+   "wall-living-south-return": {
+    "name": "Living · southeast facade"
+   },
+   "wall-living-southeast-step": {
+    "name": "Living · southeast step"
+   },
+   "wall-living-east-return": {
+    "name": "Living · east lower return"
+   },
+   "wall-living-east": {
+    "name": "Living · hatched east facade"
+   },
+   "wall-living-balcony-glazing": {
+    "name": "Living · east balcony door and window"
+   },
+   "door-balcony-living": {
+    "name": "Living to east balcony"
+   },
+   "window-living-east": {
+    "name": "Living east window"
+   }
+  }
+ }
+}
