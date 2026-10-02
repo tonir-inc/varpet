@@ -49,6 +49,6 @@ test('room shots go to the named zone, the furnished one when two share a name',
       sofa: { id: 'sofa', type: 'item', position: [12, 0, 2] },
     },
   }
-  assert.deepEqual(roomZones(twin, ['Living', 'Hall', 'Garage']), [{ room: 'living', zoneId: 'living_2' }, { room: 'Hall', zoneId: 'hall' }])
+  assert.deepEqual(roomZones(twin, ['Living', 'Hall', 'living', 'Garage']), [{ room: 'living', zoneId: 'living_2' }, { room: 'Hall', zoneId: 'hall' }])
   assert.equal(roomSlug('Living room & kitchen'), 'living-room-kitchen')
 })

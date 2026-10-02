@@ -140,7 +140,7 @@ export function roomZones(graph: Graph, rooms: string[]): Array<{ room: string; 
   const zones = nodes.filter((n) => n.type === 'zone' && Array.isArray(n.polygon) && n.polygon.length >= 3)
   const items = nodes.filter((n) => n.type === 'item' && Array.isArray(n.position))
   const count = (zone: Json) => items.filter((i) => insidePolygon([i.position[0], i.position[2]], zone.polygon)).length
-  return rooms.flatMap((room) => {
+  return [...new Map(rooms.map((r) => [r.toLowerCase(), r])).values()].flatMap((room) => {
     const named = zones.filter((z) => String(z.name ?? '').toLowerCase() === room.toLowerCase())
     const best = named.sort((a, b) => count(b) - count(a))[0]
     return best ? [{ room: String(best.name), zoneId: String(best.id) }] : []
