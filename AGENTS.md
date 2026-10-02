@@ -7,7 +7,7 @@ used as npm packages, not forked.
 ## Layout
 - `apps/web` Next.js app: portal website, editor page (Pascal `<Editor>` in our UI), API routes
 - `packages/contracts` shared types; `packages/scene-mcp` Pascal MCP plus our product tools
-- `packages/agents` runs `claude -p` per agent turn; `prompts/` the agents' system prompts
+- `packages/agents` runs one long-lived `claude -p` per agent conversation (one stdin line per turn); `prompts/` the agents' system prompts
 - Contracts: `CONTRACTS.md`. Work plan: `PLAN.md`.
 
 ## Commands

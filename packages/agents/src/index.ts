@@ -1,9 +1,10 @@
-// One agent turn = one `claude -p` process on Felix's subscription, editing a Pascal scene only through the
-// scene MCP server (packages/scene-mcp). Streams AgentEvents (packages/contracts).
+// One agent conversation = one long-lived `claude -p` process on Felix's subscription (stream-json input, one
+// user line per turn), editing a Pascal scene only through the scene MCP server (packages/scene-mcp). Streams
+// AgentEvents (packages/contracts).
 //
 // This file is imported by the web app's route, so it keeps to bare-specifier imports and type-only relative
 // imports (no `.ts` relative runtime imports; the web typecheck would reject them).
-import { spawn } from 'node:child_process'
+import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process'
 import { randomUUID } from 'node:crypto'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
@@ -25,8 +26,15 @@ export interface RunTurnOptions {
   /** Wall-clock limit; a subscription has no budget flag. Default VARPET_AGENT_TIMEOUT_MS or 15 minutes. */
   timeoutMs?: number
   claudeBin?: string
-  /** Abort (e.g. the HTTP client went away): the process is killed. */
+  /** Abort (e.g. the HTTP client went away): the turn is interrupted, the process is kept. */
   signal?: AbortSignal
+  /** An idle conversation process closes after this. Default VARPET_AGENT_IDLE_MS or 10 minutes. */
+  idleMs?: number
+  /** Live processes kept; past it the least recently used idle one closes. Default VARPET_AGENT_MAX_LIVE or 6. */
+  maxLive?: number
+  /** After an interrupt (or closing stdin) the process is killed if it has not finished within this.
+   * Default VARPET_AGENT_GRACE_MS or 10 s. */
+  graceMs?: number
   /** Receives every raw stream-json line, for debugging and recordings. */
   onRawLine?: (line: string) => void
 }
@@ -84,6 +92,9 @@ interface Settings {
   model: string
   effort: Effort
   timeoutMs: number
+  idleMs: number
+  maxLive: number
+  graceMs: number
   claudeBin: string
   env: NodeJS.ProcessEnv
 }
@@ -111,6 +122,9 @@ function settings(role: AgentRole, opts: RunTurnOptions): Settings {
     model: opts.model ?? env.VARPET_AGENT_MODEL ?? DEFAULT_MODEL,
     effort,
     timeoutMs: opts.timeoutMs ?? (Number(env.VARPET_AGENT_TIMEOUT_MS) || 15 * 60_000),
+    idleMs: opts.idleMs ?? (Number(env.VARPET_AGENT_IDLE_MS) || 10 * 60_000),
+    maxLive: opts.maxLive ?? (Number(env.VARPET_AGENT_MAX_LIVE) || 6),
+    graceMs: opts.graceMs ?? (Number(env.VARPET_AGENT_GRACE_MS) || 10_000),
     claudeBin: opts.claudeBin ?? env.VARPET_CLAUDE_BIN ?? 'claude',
     env,
   }
@@ -245,7 +259,7 @@ export function userMessageLine(message: string, images: string[] = []) {
     content.push({ type: 'image', source: { type: 'base64', media_type: match[1], data: match[2] } })
   }
   content.push({ type: 'text', text: message })
-  return `${JSON.stringify({ type: 'user', message: { role: 'user', content } })}\n`
+  return `${JSON.stringify({ type: 'user', message: { role: 'user', content }, parent_tool_use_id: null })}\n`
 }
 
 function childEnv(env: NodeJS.ProcessEnv) {
@@ -379,11 +393,333 @@ function resultSummary(content: unknown) {
 }
 
 // ---------------------------------------------------------------------------------------------------------------
+// Live processes: one per conversation, kept between turns (Claude Code's streaming input mode).
+
+interface LiveProcess {
+  conversationId: string
+  /** What the process was started with, minus the session flag; a turn that needs other args respawns. */
+  binding: string
+  /** The work scene's version when the last turn ended. The scene MCP holds the graph it loaded at start, so a
+   * scene written by anyone else in between (the person in the editor) needs a fresh process. */
+  sceneVersion: number | null
+  child: ChildProcessWithoutNullStreams
+  stderr: string
+  spawnError: Error | null
+  alive: boolean
+  exitCode: number | null
+  exited: Promise<void>
+  /** The running turn's line handler and exit handler; null while idle. */
+  listener: ((raw: string) => void) | null
+  onExit: (() => void) | null
+  lastUsed: number
+  idleTimer: NodeJS.Timeout | null
+}
+
+interface Pool {
+  live: Map<string, LiveProcess>
+  /** Processes closing (stdin ended), by conversation: a respawn with --resume waits for them. */
+  closing: Map<string, Promise<void>>
+  /** One turn at a time per conversation: the tail of each conversation's queue. */
+  locks: Map<string, Promise<void>>
+}
+
+/** On globalThis so every Next route bundle (and HMR reload) shares the same processes. */
+function pool(): Pool {
+  const key = Symbol.for('varpet.agents.pool')
+  const holder = globalThis as unknown as Record<symbol, Pool | undefined>
+  return (holder[key] ??= { live: new Map(), closing: new Map(), locks: new Map() })
+}
+
+function spawnProcess(conversationId: string, binding: string, bin: string, args: string[], cwd: string, env: NodeJS.ProcessEnv) {
+  const child = spawn(bin, args, { cwd, env, stdio: ['pipe', 'pipe', 'pipe'] })
+  let exited!: () => void
+  const proc: LiveProcess = {
+    conversationId,
+    binding,
+    sceneVersion: null,
+    child,
+    stderr: '',
+    spawnError: null,
+    alive: true,
+    exitCode: null,
+    exited: new Promise<void>((done) => (exited = done)),
+    listener: null,
+    onExit: null,
+    lastUsed: Date.now(),
+    idleTimer: null,
+  }
+  const dead = (code: number | null) => {
+    if (!proc.alive) return
+    proc.alive = false
+    proc.exitCode = code
+    if (proc.idleTimer) clearTimeout(proc.idleTimer)
+    if (pool().live.get(conversationId) === proc) pool().live.delete(conversationId)
+    proc.onExit?.()
+    exited()
+  }
+  child.stderr.on('data', (chunk) => {
+    proc.stderr = (proc.stderr + chunk).slice(-4000)
+  })
+  child.stdin.on('error', () => {})
+  child.on('error', (error) => {
+    proc.spawnError = error
+    if (child.pid === undefined) dead(null)
+  })
+  child.on('close', (code) => dead(code))
+  createInterface({ input: child.stdout, crlfDelay: Infinity }).on('line', (raw) => {
+    if (raw.trim()) proc.listener?.(raw)
+  })
+  pool().live.set(conversationId, proc)
+  return proc
+}
+
+function send(proc: LiveProcess, line: string | Json) {
+  if (proc.alive && proc.child.stdin.writable) proc.child.stdin.write(typeof line === 'string' ? line : `${JSON.stringify(line)}\n`)
+}
+
+/** Idle processes do not keep node alive (a script exits; its child then sees stdin close and exits too). */
+function setRef(proc: LiveProcess, on: boolean) {
+  const { child } = proc
+  for (const handle of [child, child.stdin, child.stdout, child.stderr] as unknown as Array<{ ref?(): void; unref?(): void }>) {
+    if (on) handle.ref?.()
+    else handle.unref?.()
+  }
+}
+
+function killProcess(proc: LiveProcess) {
+  if (pool().live.get(proc.conversationId) === proc) pool().live.delete(proc.conversationId)
+  if (!proc.alive) return
+  proc.child.kill('SIGTERM')
+  setTimeout(() => proc.alive && proc.child.kill('SIGKILL'), 3000).unref()
+}
+
+/** Close stdin (claude then exits on its own); kill it if it is still there after the grace period. */
+function closeProcess(proc: LiveProcess, graceMs: number) {
+  const { live, closing } = pool()
+  if (live.get(proc.conversationId) === proc) live.delete(proc.conversationId)
+  if (proc.idleTimer) clearTimeout(proc.idleTimer)
+  if (!proc.alive) return proc.exited
+  proc.child.stdin.end()
+  setRef(proc, true) // a closing process keeps node alive until it exits (at most graceMs + 3 s)
+  setTimeout(() => killProcess(proc), graceMs).unref()
+  closing.set(proc.conversationId, proc.exited)
+  void proc.exited.then(() => closing.get(proc.conversationId) === proc.exited && closing.delete(proc.conversationId))
+  return proc.exited
+}
+
+/** Back to idle after a turn: closes after idleMs. */
+function park(proc: LiveProcess, s: Settings) {
+  proc.listener = null
+  proc.onExit = null
+  proc.lastUsed = Date.now()
+  if (proc.idleTimer) clearTimeout(proc.idleTimer)
+  proc.idleTimer = setTimeout(() => closeProcess(proc, s.graceMs), s.idleMs)
+  proc.idleTimer.unref()
+  setRef(proc, false)
+}
+
+const sleep = (ms: number) => new Promise<void>((done) => setTimeout(done, ms).unref())
+
+/** The conversation's live process if it was started for the same scene binding; else a fresh one (resuming the
+ * session when the conversation already exists). */
+async function processFor(input: {
+  conversationId: string
+  binding: string
+  sceneVersion: number | null
+  resume: boolean
+  s: Settings
+  dir: string
+  args: (resume: boolean) => string[]
+}) {
+  const { live, closing } = pool()
+  const { s } = input
+  const current = live.get(input.conversationId)
+  if (current?.alive && current.binding === input.binding && current.sceneVersion === input.sceneVersion) {
+    if (current.idleTimer) clearTimeout(current.idleTimer)
+    return current
+  }
+  if (current) void closeProcess(current, s.graceMs)
+  // Two processes must not write one session at once: let the old one exit before resuming.
+  const old = closing.get(input.conversationId)
+  if (old) await Promise.race([old, sleep(s.graceMs + 3500)])
+  while (live.size >= s.maxLive) {
+    const idle = [...live.values()].filter((p) => !p.listener).sort((a, b) => a.lastUsed - b.lastUsed)[0]
+    if (!idle) break // every live process is mid-turn: go over the cap rather than wait
+    void closeProcess(idle, s.graceMs)
+  }
+  return spawnProcess(input.conversationId, input.binding, s.claudeBin, input.args(input.resume), input.dir, childEnv(s.env))
+}
+
+/** Wait for the conversation's previous turn. Resolves to the release function, or null if aborted first. */
+async function acquire(conversationId: string, signal?: AbortSignal): Promise<(() => void) | null> {
+  const { locks } = pool()
+  const previous = locks.get(conversationId) ?? Promise.resolve()
+  let release!: () => void
+  const mine = new Promise<void>((done) => (release = done))
+  const tail = previous.then(() => mine)
+  locks.set(conversationId, tail)
+  void tail.then(() => locks.get(conversationId) === tail && locks.delete(conversationId))
+  if (signal?.aborted) {
+    release()
+    return null
+  }
+  let onAbort = () => {}
+  const aborted = new Promise<'aborted'>((done) => {
+    onAbort = () => done('aborted')
+    signal?.addEventListener('abort', onAbort, { once: true })
+  })
+  const outcome = await Promise.race([previous.then(() => 'ready' as const), aborted])
+  signal?.removeEventListener('abort', onAbort)
+  if (outcome === 'aborted') {
+    release()
+    return null
+  }
+  return release
+}
+
+/** Close every live process (server shutdown, tests). */
+export async function closeAgentSessions(graceMs = 5000) {
+  await Promise.all([...pool().live.values()].map((proc) => closeProcess(proc, graceMs)))
+  await Promise.all([...pool().closing.values()])
+}
+
+/** The live conversation processes, for debugging and tests. */
+export function liveAgentSessions() {
+  return [...pool().live.values()].map((p) => ({
+    conversationId: p.conversationId,
+    pid: p.child.pid ?? null,
+    busy: p.listener !== null,
+    lastUsed: p.lastUsed,
+  }))
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// One turn on a live process: write the user line, map lines until this turn's result.
+
+/** A small async queue the turn fills and the generator drains. */
+class Channel<T> {
+  private items: T[] = []
+  private wake: (() => void) | null = null
+  private closed = false
+  push(item: T) {
+    this.items.push(item)
+    this.wake?.()
+  }
+  close() {
+    this.closed = true
+    this.wake?.()
+  }
+  async *[Symbol.asyncIterator]() {
+    for (;;) {
+      if (this.items.length) {
+        yield this.items.shift()!
+        continue
+      }
+      if (this.closed) return
+      await new Promise<void>((done) => (this.wake = done))
+      this.wake = null
+    }
+  }
+}
+
+interface Turn {
+  events: Channel<AgentEvent>
+  /** Settles when the turn ends (result, process death, or kill after an unanswered interrupt). Never rejects. */
+  finished: Promise<{ result: Json | null; failed: string | null }>
+  done: () => boolean
+  interrupt: (reason: string) => void
+}
+
+/** Runs to completion on its own, so a turn the client walked away from still ends cleanly and frees the process. */
+function startTurn(proc: LiveProcess, userLine: string, s: Settings, opts: RunTurnOptions): Turn {
+  const mapper = new StreamMapper()
+  const events = new Channel<AgentEvent>()
+  let stopReason: string | null = null
+  let finished = false
+  let graceTimer: NodeJS.Timeout | null = null
+  let settle!: (outcome: { result: Json | null; failed: string | null }) => void
+  const done = new Promise<{ result: Json | null; failed: string | null }>((resolve) => (settle = resolve))
+
+  const sendInterrupt = () =>
+    send(proc, { type: 'control_request', request_id: `interrupt-${randomUUID()}`, request: { subtype: 'interrupt' } })
+  const interrupt = (reason: string) => {
+    if (finished) return
+    stopReason ??= reason
+    sendInterrupt()
+    graceTimer ??= setTimeout(() => killProcess(proc), s.graceMs)
+  }
+  const onAbort = () => interrupt('cancelled')
+  const timer = setTimeout(() => interrupt(`timed out after ${Math.round(s.timeoutMs / 1000)} s`), s.timeoutMs)
+  const finish = (failed: string | null) => {
+    if (finished) return
+    finished = true
+    clearTimeout(timer)
+    if (graceTimer) clearTimeout(graceTimer)
+    opts.signal?.removeEventListener('abort', onAbort)
+    events.close()
+    settle({ result: mapper.result, failed })
+  }
+
+  proc.listener = (raw) => {
+    opts.onRawLine?.(raw)
+    let line: Json
+    try {
+      line = JSON.parse(raw)
+    } catch {
+      return
+    }
+    if (line.type === 'control_request') {
+      // We register no hooks or permission tool; refuse anything the CLI asks so it never waits on us.
+      send(proc, { type: 'control_response', response: { subtype: 'error', request_id: line.request_id, error: 'not supported' } })
+      return
+    }
+    if (line.type === 'control_response') return
+    // CLI 2.1.283 acknowledges but drops an interrupt that lands before a later turn's init: send it again.
+    if (line.type === 'system' && line.subtype === 'init' && stopReason) sendInterrupt()
+    for (const event of mapper.map(line)) events.push(event)
+    if (mapper.initError) {
+      killProcess(proc)
+      finish(mapper.initError)
+      return
+    }
+    if (mapper.result) {
+      const result = mapper.result
+      park(proc, s)
+      finish(
+        stopReason
+          ? `agent ${stopReason}`
+          : result.is_error || result.subtype !== 'success'
+            ? `agent failed (${result.subtype ?? 'error'}): ${String(result.result ?? result.errors ?? '').slice(0, 600)}`
+            : null,
+      )
+    }
+  }
+  proc.onExit = () =>
+    finish(
+      proc.spawnError
+        ? `could not start claude: ${errorMessage(proc.spawnError)}`
+        : stopReason
+          ? `agent ${stopReason}`
+          : `claude exited (${proc.exitCode}) without a result${proc.stderr ? `: ${proc.stderr.trim().slice(-600)}` : ''}`,
+    )
+
+  setRef(proc, true)
+  if (!proc.alive) proc.onExit()
+  else send(proc, userLine)
+  opts.signal?.addEventListener('abort', onAbort, { once: true })
+  if (opts.signal?.aborted) onAbort()
+  return { events, finished: done, done: () => finished, interrupt }
+}
+
+// ---------------------------------------------------------------------------------------------------------------
 // The turn
 
 /** Run one agent turn. Yields, in order: session, progress/message_delta/tool/rate_limit, at most one proposal,
- * then exactly one done or error. Never throws. */
-async function* runTurnUnguarded(role: AgentRole, req: TurnRequest, opts: RunTurnOptions = {}): AsyncGenerator<AgentEvent> {
+ * then exactly one done or error. Never throws.
+ *
+ * Turns of one conversation run one at a time: a second turn waits (before its session event) until the first
+ * has ended. While a turn runs, the proposal it edits is busy (isProposalBusy). */
+export async function* runTurn(role: AgentRole, req: TurnRequest, opts: RunTurnOptions = {}): AsyncGenerator<AgentEvent> {
   const started = Date.now()
   if (role !== 'architect' && role !== 'designer') {
     yield { type: 'error', message: `unknown role: ${String(role)}` }
@@ -393,159 +729,141 @@ async function* runTurnUnguarded(role: AgentRole, req: TurnRequest, opts: RunTur
     yield { type: 'error', message: 'sceneId and message are required' }
     return
   }
-  let s: Settings
-  let store: SceneStore
-  let sessionId: string
-  let resume: boolean
-  let dir: string
-  let state: ConversationState
-  let stdinLine: string
-  let systemPrompt: string
-  try {
-    s = settings(role, opts)
-    store = await openStore(s.dbPath)
-    if (req.conversationId !== undefined) {
-      if (!UUID.test(req.conversationId)) throw new Error('conversationId is not a valid id')
-      dir = conversationDir(s, req.conversationId)
-      const previous = readState(dir)
-      if (!previous) throw new Error(`unknown conversation: ${req.conversationId}`)
-      if (previous.role !== role) throw new Error(`conversation ${req.conversationId} belongs to the ${previous.role}`)
-      sessionId = req.conversationId
-      resume = true
-      state = previous
-    } else {
-      sessionId = randomUUID()
-      resume = false
-      dir = conversationDir(s, sessionId)
-      state = { role, baseSceneId: req.sceneId, proposalSceneId: null }
-    }
-    if (!(await store.load(req.sceneId))) throw new Error(`scene not found: ${req.sceneId}`)
-    if (s.edits === 'proposal') {
-      const reusable =
-        state.proposalSceneId && state.baseSceneId === req.sceneId && (await store.load(state.proposalSceneId))
-      if (!reusable) state.proposalSceneId = await copyToProposal(store, req.sceneId)
-    } else {
-      state.proposalSceneId = null
-    }
-    state.baseSceneId = req.sceneId
-    mkdirSync(dir, { recursive: true })
-    writeFileSync(join(dir, 'state.json'), JSON.stringify(state, null, 2))
-    systemPrompt = readFileSync(join(s.root, 'prompts', `${role}.md`), 'utf8')
-    stdinLine = userMessageLine(req.message, req.images)
-  } catch (error) {
-    yield { type: 'error', message: errorMessage(error) }
+  if (req.conversationId !== undefined && !UUID.test(req.conversationId)) {
+    yield { type: 'error', message: 'conversationId is not a valid id' }
+    return
+  }
+  const sessionId = req.conversationId ?? randomUUID()
+  const resume = req.conversationId !== undefined
+  const release = await acquire(sessionId, opts.signal)
+  if (!release) {
+    yield { type: 'error', message: 'agent cancelled' }
     return
   }
 
-  const workSceneId = state.proposalSceneId ?? req.sceneId
-  yield { type: 'session', conversationId: sessionId, role, proposalSceneId: state.proposalSceneId }
-
-  const mcpConfig = JSON.stringify({
-    mcpServers: {
-      [MCP_SERVER]: {
-        type: 'stdio',
-        command: process.execPath,
-        args: ['--experimental-strip-types', '--no-warnings', join(s.root, 'packages/scene-mcp/src/bin.ts')],
-        env: {
-          PASCAL_DB_PATH: s.dbPath,
-          VARPET_SCENE_ID: workSceneId,
-          VARPET_CATALOG_URL: s.catalogUrl,
-          VARPET_PUBLIC_ORIGIN: s.publicOrigin,
-          ...(s.env.PASCAL_ALLOWED_ASSET_ORIGINS ? { PASCAL_ALLOWED_ASSET_ORIGINS: s.env.PASCAL_ALLOWED_ASSET_ORIGINS } : {}),
-        },
-      },
-    },
-  })
-  const args = claudeArgs({ role, s, sessionId, resume, mcpConfig, systemPrompt })
-  const child = spawn(s.claudeBin, args, { cwd: dir, env: childEnv(s.env), stdio: ['pipe', 'pipe', 'pipe'] })
-  let stderr = ''
-  child.stderr.on('data', (chunk) => {
-    stderr = (stderr + chunk).slice(-4000)
-  })
-  let spawnError: Error | null = null
-  child.on('error', (error) => {
-    spawnError = error
-  })
-  const exited = new Promise<number | null>((done) => child.on('close', (code) => done(code)))
-
-  let stopReason: string | null = null
-  const kill = (reason: string) => {
-    stopReason ??= reason
-    if (child.exitCode === null && child.signalCode === null) {
-      child.kill('SIGTERM')
-      setTimeout(() => child.exitCode === null && child.signalCode === null && child.kill('SIGKILL'), 3000).unref()
-    }
+  let busy: string | null = null
+  const releaseBusy = () => {
+    if (busy) busyProposals().delete(busy)
+    busy = null
   }
-  const timer = setTimeout(() => kill(`timed out after ${Math.round(s.timeoutMs / 1000)} s`), s.timeoutMs)
-  const onAbort = () => kill('cancelled')
-  opts.signal?.addEventListener('abort', onAbort, { once: true })
-  if (opts.signal?.aborted) onAbort()
-
-  child.stdin.on('error', () => {})
-  child.stdin.end(stdinLine)
-
-  const mapper = new StreamMapper()
-  let resultTimer: NodeJS.Timeout | null = null
+  let turn: Turn | null = null
   try {
-    for await (const raw of createInterface({ input: child.stdout, crlfDelay: Infinity })) {
-      if (!raw.trim()) continue
-      opts.onRawLine?.(raw)
-      let line: Json
-      try {
-        line = JSON.parse(raw)
-      } catch {
-        continue
-      }
-      for (const event of mapper.map(line)) yield event
-      if (mapper.initError) {
-        kill(mapper.initError)
-        break
-      }
-      if (mapper.result && !resultTimer) {
-        // The result is the last line that matters; do not wait forever for a lingering process.
-        resultTimer = setTimeout(() => kill('done'), 2000)
-      }
-    }
-  } finally {
-    clearTimeout(timer)
-    opts.signal?.removeEventListener('abort', onAbort)
-    if (child.exitCode === null && child.signalCode === null && !mapper.result) kill('stream ended')
-  }
-  const code = await exited
-  if (resultTimer) clearTimeout(resultTimer)
-
-  if (state.proposalSceneId) {
+    let s: Settings
+    let store: SceneStore
+    let dir: string
+    let state: ConversationState
+    let stdinLine: string
+    let systemPrompt: string
     try {
-      const [base, proposal] = await Promise.all([store.load(req.sceneId), store.load(state.proposalSceneId)])
-      if (base && proposal && JSON.stringify(base.graph.nodes) !== JSON.stringify(proposal.graph.nodes)) {
-        yield {
-          type: 'proposal',
-          baseSceneId: req.sceneId,
-          proposalSceneId: state.proposalSceneId,
-          summary: summarize(typeof mapper.result?.result === 'string' ? mapper.result.result : ''),
-          products: proposalProducts(base.graph, proposal.graph),
-        }
+      s = settings(role, opts)
+      store = await openStore(s.dbPath)
+      dir = conversationDir(s, sessionId)
+      if (resume) {
+        const previous = readState(dir)
+        if (!previous) throw new Error(`unknown conversation: ${sessionId}`)
+        if (previous.role !== role) throw new Error(`conversation ${sessionId} belongs to the ${previous.role}`)
+        state = previous
+      } else {
+        state = { role, baseSceneId: req.sceneId, proposalSceneId: null }
       }
+      if (!(await store.load(req.sceneId))) throw new Error(`scene not found: ${req.sceneId}`)
+      if (s.edits === 'proposal') {
+        const reusable =
+          state.proposalSceneId && state.baseSceneId === req.sceneId && (await store.load(state.proposalSceneId))
+        if (!reusable) state.proposalSceneId = await copyToProposal(store, req.sceneId)
+      } else {
+        state.proposalSceneId = null
+      }
+      state.baseSceneId = req.sceneId
+      mkdirSync(dir, { recursive: true })
+      writeFileSync(join(dir, 'state.json'), JSON.stringify(state, null, 2))
+      systemPrompt = readFileSync(join(s.root, 'prompts', `${role}.md`), 'utf8')
+      stdinLine = userMessageLine(req.message, req.images)
     } catch (error) {
-      yield { type: 'error', message: `could not read the proposal: ${errorMessage(error)}` }
+      yield { type: 'error', message: errorMessage(error) }
       return
     }
-  }
 
-  const result = mapper.result
-  const failed = spawnError
-    ? `could not start claude: ${errorMessage(spawnError)}`
-    : mapper.initError
-      ? mapper.initError
-      : stopReason && stopReason !== 'done'
-        ? `agent ${stopReason}`
-        : !result
-          ? `claude exited (${code}) without a result${stderr ? `: ${stderr.trim().slice(-600)}` : ''}`
-          : result.is_error || result.subtype !== 'success'
-            ? `agent failed (${result.subtype ?? 'error'}): ${String(result.result ?? result.errors ?? '').slice(0, 600)}`
-            : null
-  if (failed) yield { type: 'error', message: failed }
-  else yield { type: 'done', conversationId: sessionId, durationMs: Date.now() - started }
+    const workSceneId = state.proposalSceneId ?? req.sceneId
+    const workVersion = async () => ((await store.load(workSceneId)) as { version?: number } | null)?.version ?? null
+    if (state.proposalSceneId) busyProposals().add((busy = state.proposalSceneId))
+    yield { type: 'session', conversationId: sessionId, role, proposalSceneId: state.proposalSceneId }
+
+    const mcpConfig = JSON.stringify({
+      mcpServers: {
+        [MCP_SERVER]: {
+          type: 'stdio',
+          command: process.execPath,
+          args: ['--experimental-strip-types', '--no-warnings', join(s.root, 'packages/scene-mcp/src/bin.ts')],
+          env: {
+            PASCAL_DB_PATH: s.dbPath,
+            VARPET_SCENE_ID: workSceneId,
+            VARPET_CATALOG_URL: s.catalogUrl,
+            VARPET_PUBLIC_ORIGIN: s.publicOrigin,
+            ...(s.env.PASCAL_ALLOWED_ASSET_ORIGINS ? { PASCAL_ALLOWED_ASSET_ORIGINS: s.env.PASCAL_ALLOWED_ASSET_ORIGINS } : {}),
+          },
+        },
+      },
+    })
+    let proc: LiveProcess
+    try {
+      proc = await processFor({
+        conversationId: sessionId,
+        binding: JSON.stringify([s.claudeBin, dir, role, s.model, s.effort, mcpConfig, systemPrompt]),
+        sceneVersion: await workVersion(),
+        resume,
+        s,
+        dir,
+        args: (resume) => claudeArgs({ role, s, sessionId, resume, mcpConfig, systemPrompt }),
+      })
+      turn = startTurn(proc, stdinLine, s, opts)
+    } catch (error) {
+      yield { type: 'error', message: `could not start claude: ${errorMessage(error)}` }
+      return
+    }
+
+    for await (const event of turn.events) yield event
+    const outcome = await turn.finished
+    releaseBusy()
+    try {
+      proc.sceneVersion = await workVersion()
+    } catch {
+      proc.sceneVersion = null
+    }
+
+    if (state.proposalSceneId) {
+      try {
+        const [base, proposal] = await Promise.all([store.load(req.sceneId), store.load(state.proposalSceneId)])
+        if (base && proposal && JSON.stringify(base.graph.nodes) !== JSON.stringify(proposal.graph.nodes)) {
+          yield {
+            type: 'proposal',
+            baseSceneId: req.sceneId,
+            proposalSceneId: state.proposalSceneId,
+            summary: summarize(typeof outcome.result?.result === 'string' ? outcome.result.result : ''),
+            products: proposalProducts(base.graph, proposal.graph),
+          }
+        }
+      } catch (error) {
+        yield { type: 'error', message: `could not read the proposal: ${errorMessage(error)}` }
+        return
+      }
+    }
+
+    if (outcome.failed) yield { type: 'error', message: outcome.failed }
+    else yield { type: 'done', conversationId: sessionId, durationMs: Date.now() - started }
+  } finally {
+    if (turn && !turn.done()) {
+      // The consumer left mid-turn: stop the agent, keep the process; the next turn waits until this one ends.
+      turn.interrupt('cancelled')
+      void turn.finished.then(() => {
+        releaseBusy()
+        release()
+      })
+    } else {
+      releaseBusy()
+      release()
+    }
+  }
 }
 
 function errorMessage(error: unknown) {
@@ -562,22 +880,4 @@ function busyProposals(): Set<string> {
 /** True while an agent turn is writing to this proposal; applying or deleting it then would lose the agent's work. */
 export function isProposalBusy(proposalSceneId: string): boolean {
   return busyProposals().has(proposalSceneId)
-}
-
-/** Run one agent turn (see runTurnUnguarded); the proposal it edits counts as busy until its proposal event. */
-export async function* runTurn(...args: Parameters<typeof runTurnUnguarded>): AsyncGenerator<AgentEvent> {
-  let busy: string | null = null
-  const release = () => {
-    if (busy) busyProposals().delete(busy)
-    busy = null
-  }
-  try {
-    for await (const event of runTurnUnguarded(...args)) {
-      if (event.type === 'session' && event.proposalSceneId) busyProposals().add((busy = event.proposalSceneId))
-      if (event.type === 'proposal' || event.type === 'done' || event.type === 'error') release()
-      yield event
-    }
-  } finally {
-    release()
-  }
 }
