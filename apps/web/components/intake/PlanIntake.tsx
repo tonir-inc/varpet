@@ -9,7 +9,6 @@ import { Icon } from '../designer/icons'
 import { DraftView, MessageView, RateLimitNotice, type ProposalHandlers } from '../designer/messages'
 import { LiveTurn } from '../designer/steps'
 import { useAgentChat } from '../designer/use-agent-chat'
-import { useLivePreview } from '../designer/use-live-preview'
 import { clearPlanHandoff, readPlanHandoff } from '../../lib/plan-handoff'
 
 export const PLAN_REQUEST = 'Here is the floor plan of my flat. Build it: walls, rooms with their names, doors and windows, at the plan’s scale.'
@@ -28,14 +27,14 @@ export interface PlanIntakeProps {
 /** Plan in, architect turn out: upload a floor plan picture, add a note, and watch the architect build the shell
  * with the designer's step rows. Ends on the architect's reply and its proposal card. */
 export function PlanIntake({ sceneId, onPreview, onApply, onDismiss, fetchImpl, className = '' }: PlanIntakeProps) {
-  const chat = useAgentChat({ role: 'architect', sceneId, fetchImpl })
-  const { state, elapsed } = chat
+  // The conversation and its running turn outlive this component (Pascal remounts sidebar tabs).
+  const chat = useAgentChat({ role: 'architect', sceneId, fetchImpl, onPreview })
+  const { state, elapsed, previewing, preview } = chat
   const busy = state.turn !== null
   const [plan, setPlan] = useState<{ name: string; url: string } | null>(null)
   const [note, setNote] = useState('')
   const [error, setError] = useState('')
   const [dragging, setDragging] = useState(false)
-  const [previewing, setPreviewing] = useState<string | null>(null)
   const [acting, setActing] = useState<string | null>(null)
   const input = useRef<HTMLInputElement>(null)
 
@@ -57,8 +56,6 @@ export function PlanIntake({ sceneId, onPreview, onApply, onDismiss, fetchImpl, 
     void chat.send(note.trim() ? `${PLAN_REQUEST}\n\n${note.trim()}` : PLAN_REQUEST, [plan.url])
   }
 
-  const preview = (id: string | null, working = false) => { setPreviewing(id); onPreview?.(id, { working }) }
-  useLivePreview(state, previewing, preview)
   const act = async (id: string, action: 'apply' | 'dismiss') => {
     setActing(id)
     try {

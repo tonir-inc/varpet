@@ -8,7 +8,6 @@ import { Icon, IconButton } from './icons'
 import { DraftView, MessageView, QueuedView, RateLimitNotice, type ProposalHandlers } from './messages'
 import { LiveTurn } from './steps'
 import { useAgentChat } from './use-agent-chat'
-import { useLivePreview } from './use-live-preview'
 
 export const DEFAULT_STARTERS = [
   'Furnish the living room',
@@ -38,23 +37,18 @@ export interface DesignerPanelProps {
 /** The designer column (v1 designer-panel.ts in React): header, greeting and ideas, the conversation with its steps
  * and proposals, and the composer. Speaks only the AgentEvent stream. */
 export function DesignerPanel({ sceneId, onPreview, onApply, onDismiss, starters = DEFAULT_STARTERS, fetchImpl, badge, className = '' }: DesignerPanelProps) {
-  const chat = useAgentChat({ role: 'designer', sceneId, fetchImpl })
-  const { state, elapsed, queued } = chat
+  // The conversation and its running turn outlive this component (Pascal remounts sidebar tabs).
+  const chat = useAgentChat({ role: 'designer', sceneId, fetchImpl, onPreview })
+  const { state, elapsed, queued, previewing, preview } = chat
   const busy = state.turn !== null
   const [images, setImages] = useState<string[]>([])
-  const [previewing, setPreviewing] = useState<string | null>(null)
   const [acting, setActing] = useState<string | null>(null)
   const [collapsed, setCollapsed] = useState(false)
   const [nearBottom, setNearBottom] = useState(true)
   const scroller = useRef<HTMLDivElement>(null)
 
-  const preview = (id: string | null, working = false) => { setPreviewing(id); onPreview?.(id, { working }) }
   const exitPreview = () => { if (previewing) preview(null) }
-
-  // A turn shows the agent's working copy live; a new thread or another scene leaves any preview.
-  useLivePreview(state, previewing, preview)
-  useEffect(() => () => { if (previewing) onPreview?.(null) }, [sceneId]) // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { setPreviewing(null); setImages([]) }, [sceneId])
+  useEffect(() => { setImages([]) }, [sceneId])
 
   // Follow the conversation while the reader is at the bottom.
   const lastId = state.messages.at(-1)?.id
