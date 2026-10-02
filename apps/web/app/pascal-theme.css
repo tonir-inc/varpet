@@ -95,31 +95,6 @@ body:has(.varpet-editor) ::selection {
   width: 100vw;
 }
 
-.varpet-banner {
-  position: absolute;
-  top: 12px;
-  left: 50%;
-  z-index: 70;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  max-width: min(560px, calc(100vw - 32px));
-  transform: translateX(-50%);
-  padding: 8px 12px;
-  border: 1px solid var(--folio-line);
-  border-radius: 4px;
-  background: var(--folio-surface);
-  box-shadow: var(--folio-shadow);
-  font-size: 13px;
-}
-
-.varpet-banner-danger {
-  border-color: var(--folio-danger);
-  background: var(--folio-danger-wash);
-  color: var(--folio-danger);
-}
-
-.varpet-banner button,
 .varpet-preview-banner button {
   padding: 4px 10px;
   border: 1px solid var(--folio-control-line);
@@ -130,7 +105,6 @@ body:has(.varpet-editor) ::selection {
   font-weight: 600;
 }
 
-.varpet-banner button:hover,
 .varpet-preview-banner button:hover {
   background: var(--folio-hover);
 }
@@ -207,17 +181,133 @@ body:has(.varpet-editor) ::selection {
   color: var(--folio-teal);
 }
 
-/* Pascal hardcodes a few dark greys (inputs, segmented controls); repaint them on paper. */
-body:has(.varpet-editor) .bg-\[\#2C2C2E\] {
-  background-color: var(--folio-raised);
+/* ── Theme sweep: Pascal's hardcoded dark greys, lavender and rounded clouds, repainted as Folio. ──────────────
+ * Pascal's class names are escaped Tailwind utilities; recheck them on each Pascal upgrade
+ * (`grep -rhoE "bg-\[#[0-9a-fA-F]+\]" node_modules/@pascal-app/{editor/src,nodes/dist}`). */
+
+/* Folio corners are 2 to 4 px: every rounded-* utility above `md` resolves to 4px inside the editor. */
+body:has(.varpet-editor),
+body:has(.varpet-editor) .dark {
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: 4px;
+  --radius-xl: 4px;
+  --radius-2xl: 4px;
+  --radius-3xl: 4px;
 }
 
+/* One floating shadow (Folio --shadow-1) instead of Pascal's deep glass shadows. */
+body:has(.varpet-editor) :is(.shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl) {
+  --tw-shadow: var(--folio-shadow);
+}
+
+/* Fields, tracks and quiet buttons: paper with a control line. */
+body:has(.varpet-editor) :is(.bg-\[\#2C2C2E\], .bg-\[\#252527\], .bg-\[\#232325\], .bg-\[\#202024\]) {
+  background-color: var(--folio-ground);
+}
+
+body:has(.varpet-editor) :is(.bg-\[\#2C2C2E\], .bg-\[\#252527\]):is(.border) {
+  border-color: var(--folio-control-line);
+}
+
+body:has(.varpet-editor) :is(.bg-\[\#1e1e1e\], .bg-\[\#1b1c1f\], .bg-\[\#1f2433\]) {
+  background-color: var(--folio-surface);
+  color: var(--folio-ink);
+}
+
+/* The selected segment or preset: teal wash, teal text (Folio's pressed state). */
 body:has(.varpet-editor) .bg-\[\#3e3e3e\] {
+  background-color: var(--folio-teal-wash);
+  color: var(--folio-teal);
+  --tw-ring-color: var(--folio-teal);
+}
+
+body:has(.varpet-editor) :is(.hover\:bg-\[\#3e3e3e\], .hover\:bg-\[\#343437\], .hover\:bg-\[\#303033\], .hover\:bg-\[\#2C2C2E\]):hover,
+body:has(.varpet-editor) :is(.active\:bg-\[\#3e3e3e\], .active\:bg-\[\#2C2C2E\]):active {
+  background-color: var(--folio-hover);
+}
+
+/* Lavender and indigo accents become the one teal. */
+body:has(.varpet-editor) :is(.bg-violet-500, .bg-indigo-500, .bg-indigo-700, .bg-indigo-500\/90) {
+  background-color: var(--folio-teal);
+  color: #ffffff;
+}
+
+body:has(.varpet-editor) :is(.ring-indigo-200, .border-indigo-400\/70) {
+  --tw-ring-color: var(--folio-select);
+  border-color: var(--folio-teal);
+}
+
+/* Tool badges by the cursor: white cards with a line, not dark chips. */
+body:has(.varpet-editor) .bg-zinc-900\/95 {
+  border-color: var(--folio-line);
   background-color: var(--folio-surface);
 }
 
-body:has(.varpet-editor) .hover\:bg-\[\#3e3e3e\]:hover {
-  background-color: var(--folio-hover);
+/* The viewer column: square, one hairline, no soft cloud shadow (inline styles, hence !important). */
+.varpet-editor div:has(> [data-viewer-bounds]) {
+  border-left: 1px solid var(--folio-line);
+  border-top-left-radius: 0 !important;
+  box-shadow: none !important;
+  clip-path: none !important;
+}
+
+/* Inspector (Pascal's floating panel): a Folio card with a serif name. */
+[data-viewer-bounds] .fixed.top-20.right-4 {
+  /* Pascal sizes it for no header; the 52px header and the dock both need room. */
+  max-height: calc(100dvh - 206px);
+  border-color: var(--folio-line);
+  background: var(--folio-surface);
+  backdrop-filter: none;
+}
+
+[data-viewer-bounds] .fixed.top-20.right-4 h2 {
+  font-family: var(--font-folio-serif);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: normal;
+  color: var(--folio-teal);
+}
+
+/* Section headers in the inspector: quiet raised band, ink label. */
+[data-viewer-bounds] .fixed.top-20.right-4 .font-medium.text-sm.truncate {
+  color: var(--folio-ink);
+  font-weight: 600;
+}
+
+/* Number fields read as Folio fields: tabular figures in the UI face, not mono. */
+body:has(.varpet-editor) .varpet-editor .font-mono.tabular-nums {
+  font-family: var(--font-folio-sans);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* Popovers, menus and tooltips (Radix portals sit outside the editor wrapper). */
+body:has(.varpet-editor) [data-radix-popper-content-wrapper] > * {
+  border-radius: 4px;
+}
+
+body:has(.varpet-editor) [role="tooltip"],
+body:has(.varpet-editor) [data-slot="tooltip-content"] {
+  border-radius: 3px;
+  background: var(--folio-ink);
+  color: #ffffff;
+}
+
+/* Command palette (cmdk). */
+body:has(.varpet-editor) [cmdk-root] {
+  border-radius: 4px;
+  font-family: var(--font-folio-sans);
+}
+
+body:has(.varpet-editor) [cmdk-item][data-selected="true"] {
+  background: var(--folio-select);
+  color: var(--folio-ink);
+}
+
+/* Pascal's resize grip beside the sidebar: a hairline, not a dark pill. */
+.varpet-editor .cursor-col-resize > .bg-neutral-500 {
+  width: 2px;
+  background: var(--folio-line);
 }
 
 /* The designer and plan chats inside Pascal's sidebar: fill the panel instead of their standalone sizes. */
@@ -232,4 +322,738 @@ body:has(.varpet-editor) .hover\:bg-\[\#3e3e3e\]:hover {
   overflow-y: auto;
   border: 0;
   border-radius: 0;
+}
+
+/* ── Rail (v1 Folio): 72px, stroke icon above an 11px label; the open tab on --select with teal text. ──────────
+ * Pascal's IconRail markup is `div.w-14 > button[aria-pressed]`; our icons carry `.folio-rail-item`. */
+.varpet-editor div:has(> button > .folio-rail-item) {
+  width: 72px;
+  gap: 4px;
+  padding: 8px 0;
+  border-right: 1px solid var(--folio-line);
+  background: var(--folio-surface);
+}
+
+.varpet-editor button:has(> .folio-rail-item) {
+  width: 64px;
+  height: 56px;
+  border-radius: 3px;
+  box-shadow: none;
+  color: var(--folio-ink);
+  transition: background-color 140ms ease, color 140ms ease;
+}
+
+.varpet-editor button:has(> .folio-rail-item):hover {
+  background: var(--folio-hover);
+}
+
+.varpet-editor button:has(> .folio-rail-item)[aria-pressed="true"] {
+  background: var(--folio-select);
+  color: var(--folio-teal);
+}
+
+.folio-rail-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.folio-rail-label {
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* Pascal's plugin gallery tab (+) has no place in a flat editor. */
+.varpet-editor div:has(> button[aria-label="Plugins"]) {
+  display: none;
+}
+
+/* ── Edit tool row (v1 .folio-tools): white strip, 36px icon buttons, tiny shortcut letters, teal when active. ── */
+.folio-tools {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--folio-line);
+  border-radius: 4px;
+  background: var(--folio-surface);
+  box-shadow: var(--folio-shadow);
+  color: var(--folio-ink);
+}
+
+.folio-tool {
+  position: relative;
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: inherit;
+  transition: background-color 140ms ease, color 140ms ease;
+}
+
+.folio-tool:hover:not(:disabled) {
+  background: var(--folio-hover);
+}
+
+.folio-tool[aria-pressed="true"],
+.folio-tool[aria-pressed="true"]:hover {
+  background: var(--folio-teal);
+  color: #ffffff;
+}
+
+.folio-tool:disabled {
+  color: var(--folio-control-line);
+}
+
+.folio-tool-key {
+  position: absolute;
+  right: 3px;
+  bottom: 1px;
+  font-size: 8px;
+  line-height: 1;
+  opacity: 0.8;
+}
+
+.folio-tools-gap {
+  width: 1px;
+  height: 22px;
+  margin: 0 5px;
+  background: var(--folio-line);
+}
+
+.folio-snap {
+  display: flex;
+  height: 36px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--folio-ink);
+  font: inherit;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.folio-snap span {
+  padding: 2px 5px;
+  border-radius: 2px;
+  background: var(--folio-raised);
+}
+
+.folio-snap:hover {
+  background: var(--folio-hover);
+}
+
+/* Flats are one level: Pascal's floating level selector (top-left) goes. */
+[data-viewer-bounds] > div:has([data-guide-target="level-add"]),
+[data-viewer-bounds] > div:has([data-testid="unit-focus-chip"]) {
+  display: none;
+}
+
+/* ── Bottom dock (v1 .folio-dock): three white segments centred on the stage. It renders inside Pascal's overlay
+ * band, which has a transform, so `absolute` here is relative to the viewer column. ─────────────────────────── */
+.folio-dock {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  z-index: 40;
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  transform: translateX(-50%);
+  color: var(--folio-ink);
+  font-size: 13px;
+}
+
+.folio-dock-segment {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--folio-line);
+  border-radius: 4px;
+  background: var(--folio-surface);
+  box-shadow: var(--folio-shadow);
+}
+
+.folio-dock-button,
+.folio-dock-icon {
+  display: flex;
+  height: 36px;
+  align-items: center;
+  gap: 7px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  white-space: nowrap;
+  transition: background-color 140ms ease, color 140ms ease;
+}
+
+.folio-dock-icon {
+  width: 36px;
+  justify-content: center;
+  padding: 0;
+}
+
+.folio-dock-button:hover,
+.folio-dock-icon:hover {
+  background: var(--folio-hover);
+}
+
+.folio-dock-button[aria-pressed="true"] {
+  background: var(--folio-teal);
+  color: #ffffff;
+}
+
+.folio-dock-strong {
+  font-weight: 600;
+}
+
+.folio-dock-light {
+  display: flex;
+  height: 36px;
+  align-items: center;
+  gap: 7px;
+  padding: 0 4px 0 11px;
+}
+
+.folio-dock-light select {
+  height: 30px;
+  min-width: 128px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+.folio-dock-light select:hover {
+  background: var(--folio-hover);
+}
+
+.folio-more {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  display: flex;
+  width: 280px;
+  flex-direction: column;
+  padding: 4px;
+  border: 1px solid var(--folio-line);
+  border-radius: 4px;
+  background: var(--folio-surface);
+  box-shadow: var(--folio-shadow);
+}
+
+.folio-more-row {
+  display: flex;
+  height: 36px;
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--folio-ink);
+  font: inherit;
+  text-align: left;
+}
+
+.folio-more-row:hover {
+  background: var(--folio-hover);
+}
+
+.folio-more-pascal {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+  padding: 6px 6px 2px;
+  border-top: 1px solid var(--folio-line);
+}
+
+.folio-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Pascal's own glass action bar (modes, measure, delete, camera) gives way to the dock. It has no prop to hide it;
+ * this matches its utility classes, so recheck after a Pascal upgrade. */
+[data-viewer-bounds] > div:has(> .fixed.bottom-6.rounded-2xl) {
+  display: none;
+}
+
+/* ── Header (v1 .topbar): 52px paper band with the mark, the flat's name, the cost button and the save state. ── */
+.folio-navbar {
+  display: flex;
+  height: 52px;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 16px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--folio-line);
+  background: var(--folio-ground);
+  color: var(--folio-ink);
+  font-size: 14px;
+}
+
+.folio-brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: inherit;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.folio-mark {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border-radius: 2px;
+  background: var(--folio-teal);
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.folio-flat-name {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folio-navbar-actions {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.folio-num {
+  font-family: var(--font-folio-serif);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.folio-quote {
+  display: flex;
+  height: 34px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 3px;
+  background: var(--folio-teal);
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 600;
+  transition: background-color 140ms ease;
+}
+
+.folio-quote:hover {
+  background: var(--folio-teal-hover);
+}
+
+.folio-save-state {
+  margin: 0 4px;
+  color: var(--folio-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.folio-save-alert {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  border: 1px solid var(--folio-danger);
+  border-radius: 3px;
+  background: var(--folio-danger-wash);
+  color: var(--folio-danger);
+  font-size: 12px;
+}
+
+.folio-save-alert button {
+  padding: 2px 8px;
+  border: 1px solid var(--folio-control-line);
+  border-radius: 3px;
+  background: var(--folio-surface);
+  color: var(--folio-ink);
+  font: inherit;
+  font-weight: 600;
+}
+
+.folio-icon-button {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--folio-ink);
+}
+
+.folio-icon-button.folio-quiet {
+  width: 28px;
+  height: 28px;
+  color: var(--folio-muted);
+}
+
+.folio-icon-button:hover {
+  background: var(--folio-hover);
+  color: var(--folio-ink);
+}
+
+/* "What it costs" (v1 .folio-drawer): a centred dialog with serif prices and a 2px ink rule above the total. */
+.folio-costs {
+  width: min(520px, calc(100vw - 32px));
+  max-height: min(720px, calc(100dvh - 64px));
+  margin: auto;
+  padding: 18px 20px;
+  border: 1px solid var(--folio-line);
+  border-radius: 4px;
+  background: var(--folio-surface);
+  box-shadow: 0 12px 36px #15151529;
+  color: var(--folio-ink);
+  font-family: var(--font-folio-sans);
+  font-size: 14px;
+}
+
+.folio-costs::backdrop {
+  background: #15151533;
+}
+
+.folio-costs header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.folio-costs h2 {
+  margin: 0;
+  font-family: var(--font-folio-serif);
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.folio-group {
+  padding: 10px 0;
+  border-top: 1px solid var(--folio-line);
+}
+
+.folio-group h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.folio-group > p,
+.folio-note {
+  margin: 2px 0 8px;
+  color: var(--folio-muted);
+  font-size: 12px;
+}
+
+.folio-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 5px 0;
+}
+
+.folio-line small {
+  display: block;
+  color: var(--folio-muted);
+  font-size: 12px;
+}
+
+.folio-line > .folio-num {
+  white-space: nowrap;
+}
+
+.folio-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 2px solid var(--folio-ink);
+  font-weight: 600;
+}
+
+.folio-total strong {
+  font-size: 22px;
+}
+
+/* ── Inspector footer: v1 finish swatches (2-column cards) and "Ask the designer about this". ─────────────── */
+.folio-inspector-footer {
+  display: flex;
+  max-height: 45vh;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  padding: 12px;
+  border-top: 1px solid var(--folio-line);
+  color: var(--folio-ink);
+  font-size: 13px;
+}
+
+.folio-finishes summary {
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.folio-swatches {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.folio-swatch {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+  padding: 5px;
+  border: 1px solid var(--folio-line);
+  border-radius: 2px;
+  background: var(--folio-surface);
+  color: inherit;
+  font: inherit;
+  font-size: 11px;
+  text-align: left;
+  transition: border-color 140ms ease, background-color 140ms ease;
+}
+
+.folio-swatch:hover {
+  border-color: var(--folio-control-line);
+}
+
+.folio-swatch[aria-pressed="true"] {
+  border-color: var(--folio-teal);
+  background: var(--folio-teal-wash);
+}
+
+.folio-swatch-chip {
+  height: 18px;
+  border-radius: 1px;
+  background-position: center;
+  background-size: cover;
+  box-shadow: inset 0 0 0 1px #15151514;
+}
+
+.folio-swatch-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folio-ask {
+  display: flex;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid var(--folio-teal);
+  border-radius: 3px;
+  background: var(--folio-surface);
+  color: var(--folio-teal);
+  font: inherit;
+  font-weight: 600;
+}
+
+.folio-ask:hover {
+  background: var(--folio-teal-wash);
+}
+
+/* ── Furniture (v1 furniture drawer, in the sidebar): search, category, 2-column product cards. ───────────── */
+.folio-furniture {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  padding: 14px 16px 16px;
+  background: var(--folio-surface);
+  color: var(--folio-ink);
+  font-size: 13px;
+}
+
+.folio-furniture > * {
+  flex-shrink: 0;
+}
+
+.folio-panel-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.folio-panel-header h2 {
+  margin: 0;
+  font-family: var(--font-folio-serif);
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.folio-count {
+  color: var(--folio-muted);
+  font-size: 12px;
+}
+
+.folio-search {
+  display: flex;
+  height: 40px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  border: 1px solid var(--folio-control-line);
+  border-radius: 3px;
+  background: var(--folio-ground);
+  color: var(--folio-muted);
+}
+
+.folio-search:focus-within {
+  border-color: var(--folio-teal);
+  box-shadow: inset 0 0 0 1px var(--folio-teal);
+}
+
+.folio-search input {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  background: transparent;
+  color: var(--folio-ink);
+  font: inherit;
+  outline: none;
+}
+
+.folio-field-label {
+  margin-top: 4px;
+  color: var(--folio-muted);
+  font-size: 12px;
+}
+
+.folio-select {
+  height: 36px;
+  padding: 0 8px;
+  border: 1px solid var(--folio-control-line);
+  border-radius: 3px;
+  background: var(--folio-ground);
+  color: var(--folio-ink);
+  font: inherit;
+}
+
+.folio-help,
+.folio-source-note {
+  margin: 2px 0;
+  color: var(--folio-muted);
+  font-size: 12px;
+}
+
+.folio-source-note {
+  margin-top: auto;
+  padding-top: 10px;
+}
+
+.folio-products {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.folio-product {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  border: 1px solid var(--folio-line);
+  border-radius: 2px;
+  background: var(--folio-surface);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  transition: border-color 140ms ease, background-color 140ms ease;
+}
+
+.folio-product:hover {
+  border-color: var(--folio-control-line);
+}
+
+.folio-product[aria-pressed="true"] {
+  border-color: var(--folio-teal);
+  background: var(--folio-teal-wash);
+}
+
+.folio-product-image {
+  display: grid;
+  aspect-ratio: 1;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 1px;
+  background: var(--folio-ground);
+  color: var(--folio-muted);
+}
+
+.folio-product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.folio-product-name {
+  display: -webkit-box;
+  overflow: hidden;
+  font-weight: 600;
+  line-height: 1.3;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.folio-product-size {
+  color: var(--folio-muted);
+  font-size: 11px;
+}
+
+.folio-product-price {
+  display: flex;
+  flex-direction: column;
+}
+
+.folio-product-price .folio-num {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.folio-product-price small {
+  overflow: hidden;
+  color: var(--folio-muted);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

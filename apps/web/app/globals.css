@@ -2,8 +2,8 @@
 @import "tw-animate-css";
 @import "./elevation.css";
 @source "../node_modules/@pascal-app/editor/src";
-@source "../node_modules/@pascal-app/nodes/src";
-@source "../node_modules/@pascal-app/viewer/src";
+@source "../node_modules/@pascal-app/nodes/dist";
+@source "../node_modules/@pascal-app/viewer/dist";
 @custom-variant dark (&:is(.dark *));
 
 @theme {

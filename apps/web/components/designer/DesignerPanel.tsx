@@ -39,16 +39,17 @@ export interface DesignerPanelProps {
 export function DesignerPanel({ sceneId, onPreview, onApply, onDismiss, starters = DEFAULT_STARTERS, fetchImpl, badge, className = '' }: DesignerPanelProps) {
   // The conversation and its running turn outlive this component (Pascal remounts sidebar tabs).
   const chat = useAgentChat({ role: 'designer', sceneId, fetchImpl, onPreview })
-  const { state, elapsed, queued, previewing, preview } = chat
+  const { state, elapsed, queued, previewing, preview, draft, setDraft, prefills } = chat
   const busy = state.turn !== null
-  const [images, setImages] = useState<string[]>([])
+  // Pictures and text being composed live on the session, so switching tabs keeps them.
+  const images = draft.images
+  const setImages = (next: string[]) => setDraft({ images: next })
   const [acting, setActing] = useState<string | null>(null)
   const [collapsed, setCollapsed] = useState(false)
   const [nearBottom, setNearBottom] = useState(true)
   const scroller = useRef<HTMLDivElement>(null)
 
   const exitPreview = () => { if (previewing) preview(null) }
-  useEffect(() => { setImages([]) }, [sceneId])
 
   // Follow the conversation while the reader is at the bottom.
   const lastId = state.messages.at(-1)?.id
@@ -137,7 +138,9 @@ export function DesignerPanel({ sceneId, onPreview, onApply, onDismiss, starters
             }} />
           ) : null}
         </div>
-        <Composer busy={busy} images={images} onImages={setImages} onSubmit={(text) => send(text, images)} onStop={chat.cancel} />
+        {/* Remounted on a prefill ("Ask the designer" in the inspector) so the box shows the new text, focused. */}
+        <Composer key={prefills} busy={busy} images={images} onImages={setImages} onSubmit={(text) => send(text, images)} onStop={chat.cancel}
+          initial={draft.text} onTextChange={(text) => setDraft({ text })} autoFocus={prefills > 0} />
         <small className="designer-storage-status">
           {chat.saved === false ? 'This conversation stays in this tab until browser storage is available.' : 'Conversation saved on this device.'}
         </small>

@@ -5,21 +5,24 @@
 import {
   applySceneGraphToEditor,
   Editor,
+  type SaveStatus,
   type SceneGraph,
   useEditor,
   type SidebarTab,
   useScene,
-  ViewerToolbarLeft,
-  ViewerToolbarRight,
 } from '@pascal-app/editor'
-import { Layers, PencilRuler, Settings, Sofa, Sparkles } from 'lucide-react'
+import { Layers, PencilRuler, Sofa, Sparkles } from 'lucide-react'
 import { type ComponentType, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { countGraphNodes, isEmptyGraphOverwrite } from '@/lib/scenes/empty-graph-guard'
 import { sceneGraphSignature } from '@/lib/scenes/scene-signature'
 import type { LiveSceneEvent, SceneMeta, SceneResponse } from '@/lib/scenes/types'
-import { hasPlanHandoff } from '@/lib/plan-handoff'
 import { ArchitectTab, DesignerTab } from './agent-tabs'
 import { CatalogTab } from './catalog-tab'
+import { railIcon, useFolioRailDefaults } from './folio-rail'
+import { FolioDock } from './folio-dock'
+import { FolioNavbar } from './folio-navbar'
+import { FolioTools } from './folio-tools'
+import { InspectorFooter } from './inspector-footer'
 import { bindSceneEditorController, useSceneEditor } from './scene-editor-store'
 import { useCatalogMetadata } from './use-catalog-metadata'
 import { applyViewerLookDefaults, configureViewerLook, frameFlat, withWallSides } from './viewer-look'
@@ -62,6 +65,7 @@ export function SceneEditor({ meta, initialGraph, initialPreviewSceneId = null, 
   const previewingRef = useRef(false)
   const [conflict, setConflict] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
   const [previewGraph, setPreviewGraph] = useState<SceneGraph | null>(null)
   const previewSceneId = useSceneEditor((s) => s.previewSceneId)
   const previewError = useSceneEditor((s) => s.previewError)
@@ -130,12 +134,8 @@ export function SceneEditor({ meta, initialGraph, initialPreviewSceneId = null, 
     return () => observer.disconnect()
   }, [])
 
-  // A plan handed over from the portal opens the plan tab, after the sidebar has registered it.
-  useEffect(() => {
-    if (!hasPlanHandoff(meta.id)) return
-    const timer = setTimeout(() => useEditor.getState().setActiveSidebarPanel('architect'), 0)
-    return () => clearTimeout(timer)
-  }, [meta.id])
+  // Opens on the designer (or Plan, for a plan handed over from the portal), sidebar expanded at v1's width.
+  useFolioRailDefaults(meta.id)
 
   // Keep ?preview= in the address bar so a reload shows the same thing.
   useEffect(() => {
@@ -268,45 +268,44 @@ export function SceneEditor({ meta, initialGraph, initialPreviewSceneId = null, 
     }
   }, [previewSceneId, applyRemote])
 
+  // v1's rail order: the designer first, then the flat's structure, furniture and the plan. Pascal intercepts the ids
+  // `site` (its scene tree, kept as Scene) and `settings` (left out; v1 has no settings tab).
   const sidebarTabs = useMemo<Tab[]>(
     () => [
-      { id: 'site', label: 'Scene', component: sceneSettingsNoop, icon: <Layers className="size-5" />, mobileIcon: <Layers className="size-5" />, mobileDefaultSnap: 0.5 },
-      { id: 'catalog', label: 'Catalog', component: CatalogTab, icon: <Sofa className="size-5" />, mobileIcon: <Sofa className="size-5" />, mobileDefaultSnap: 0.5 },
-      { id: 'designer', label: 'Designer', component: designerPanel ?? DesignerTab, icon: <Sparkles className="size-5" />, mobileIcon: <Sparkles className="size-5" />, mobileDefaultSnap: 0.6 },
-      { id: 'architect', label: 'Plan', component: ArchitectTab, icon: <PencilRuler className="size-5" />, mobileIcon: <PencilRuler className="size-5" />, mobileDefaultSnap: 0.6 },
-      { id: 'settings', label: 'Settings', component: sceneSettingsNoop, icon: <Settings className="size-5" />, mobileIcon: <Settings className="size-5" />, mobileDefaultSnap: 0.5 },
+      { id: 'designer', label: 'Designer', component: designerPanel ?? DesignerTab, icon: railIcon(Sparkles, 'Designer'), mobileIcon: <Sparkles className="size-5" />, mobileDefaultSnap: 0.6 },
+      { id: 'site', label: 'Scene', component: sceneSettingsNoop, icon: railIcon(Layers, 'Scene'), mobileIcon: <Layers className="size-5" />, mobileDefaultSnap: 0.5 },
+      { id: 'catalog', label: 'Furniture', component: CatalogTab, icon: railIcon(Sofa, 'Furniture'), mobileIcon: <Sofa className="size-5" />, mobileDefaultSnap: 0.5 },
+      { id: 'architect', label: 'Plan', component: ArchitectTab, icon: railIcon(PencilRuler, 'Plan'), mobileIcon: <PencilRuler className="size-5" />, mobileDefaultSnap: 0.6 },
     ],
     [designerPanel],
   )
 
   const previewing = previewSceneId !== null && previewGraph !== null
-  const banner = conflict ? (
-    <div className="varpet-banner" role="alert">
-      <span>Another session saved first. Your last change is not saved.</span>
-      <button onClick={() => window.location.reload()} type="button">Reload</button>
-      <button onClick={() => setConflict(false)} type="button">Dismiss</button>
-    </div>
-  ) : saveError || previewError ? (
-    <div className="varpet-banner varpet-banner-danger" role="alert">
-      <span>{previewError ?? saveError}</span>
-    </div>
-  ) : null
-
   return (
     <div className="varpet-editor-stage">
-      {banner}
       <Editor
+        inspectorFooter={<InspectorFooter />}
         isVersionPreviewMode={previewing}
         layoutVersion="v2"
+        navbarSlot={
+          <FolioNavbar
+            conflict={conflict}
+            name={meta.name}
+            onDismissConflict={() => setConflict(false)}
+            saveError={previewError ?? saveError}
+            saveStatus={saveStatus}
+          />
+        }
         onLoad={handleLoad}
         onLoaderChange={handleLoaderChange}
         onSave={handleSave}
+        onSaveStatusChange={setSaveStatus}
         previewScene={previewGraph ?? undefined}
         projectId={meta.projectId ?? meta.id}
         sidebarTabs={sidebarTabs}
-        viewerBanner={previewing ? <PreviewBanner /> : null}
-        viewerToolbarLeft={<ViewerToolbarLeft />}
-        viewerToolbarRight={<ViewerToolbarRight />}
+        viewerBanner={previewing ? <PreviewBanner /> : <FolioDock />}
+        viewerToolbarLeft={<FolioTools />}
+        viewerToolbarRight={null}
       />
     </div>
   )
