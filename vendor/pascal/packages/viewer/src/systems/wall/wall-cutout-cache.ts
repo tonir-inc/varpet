@@ -370,17 +370,18 @@ export class WallCutoutCache {
   }
 
   /**
-   * A cut-away wall takes its doors and windows with it (they are its children
-   * in the scene, but the cutaway only swaps the wall's own materials), except
-   * while the wall is hovered and drawn as a hover target. The node batch keeps
-   * openings of a cut-away wall out of its merged copies (`collectTintedNodes`).
+   * A cut-away wall takes its doors, windows and wall-mounted items (art,
+   * mirrors, wall lamps, curtains) with it (they are its children in the scene,
+   * but the cutaway only swaps the wall's own materials), except while the wall
+   * is hovered and drawn as a hover target. The node batch keeps these children
+   * of a cut-away wall out of its merged copies (`collectTintedNodes`).
    */
   private syncOpenings(wall: CachedWall): void {
     const show = wall.mesh.userData.wallHidden !== true || this.viewer?.hoveredId === wall.node.id
     const nodes = useScene.getState().nodes
     for (const childId of wall.node.children ?? []) {
       const child = nodes[childId as AnyNodeId]
-      if (child?.type !== 'door' && child?.type !== 'window') continue
+      if (child?.type !== 'door' && child?.type !== 'window' && child?.type !== 'item') continue
       const group = sceneRegistry.nodes.get(childId)
       if (!group) continue
       const visible = show && child.visible !== false
