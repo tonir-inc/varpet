@@ -393,3 +393,90 @@ body:has(.varpet-editor) [cmdk-item][data-selected="true"] {
 .varpet-editor div:has(> button[aria-label="Plugins"]) {
   display: none;
 }
+
+/* ── Edit tool row (v1 .folio-tools): white strip, 36px icon buttons, tiny shortcut letters, teal when active. ── */
+.folio-tools {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--folio-line);
+  border-radius: 4px;
+  background: var(--folio-surface);
+  box-shadow: var(--folio-shadow);
+  color: var(--folio-ink);
+}
+
+.folio-tool {
+  position: relative;
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: inherit;
+  transition: background-color 140ms ease, color 140ms ease;
+}
+
+.folio-tool:hover:not(:disabled) {
+  background: var(--folio-hover);
+}
+
+.folio-tool[aria-pressed="true"],
+.folio-tool[aria-pressed="true"]:hover {
+  background: var(--folio-teal);
+  color: #ffffff;
+}
+
+.folio-tool:disabled {
+  color: var(--folio-control-line);
+}
+
+.folio-tool-key {
+  position: absolute;
+  right: 3px;
+  bottom: 1px;
+  font-size: 8px;
+  line-height: 1;
+  opacity: 0.8;
+}
+
+.folio-tools-gap {
+  width: 1px;
+  height: 22px;
+  margin: 0 5px;
+  background: var(--folio-line);
+}
+
+.folio-snap {
+  display: flex;
+  height: 36px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--folio-ink);
+  font: inherit;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.folio-snap span {
+  padding: 2px 5px;
+  border-radius: 2px;
+  background: var(--folio-raised);
+}
+
+.folio-snap:hover {
+  background: var(--folio-hover);
+}
+
+/* Flats are one level: Pascal's floating level selector (top-left) goes. */
+[data-viewer-bounds] > div:has([data-guide-target="level-add"]),
+[data-viewer-bounds] > div:has([data-testid="unit-focus-chip"]) {
+  display: none;
+}

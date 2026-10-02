@@ -9,8 +9,6 @@ import {
   useEditor,
   type SidebarTab,
   useScene,
-  ViewerToolbarLeft,
-  ViewerToolbarRight,
 } from '@pascal-app/editor'
 import { Layers, PencilRuler, Sofa, Sparkles } from 'lucide-react'
 import { type ComponentType, useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -20,6 +18,7 @@ import type { LiveSceneEvent, SceneMeta, SceneResponse } from '@/lib/scenes/type
 import { ArchitectTab, DesignerTab } from './agent-tabs'
 import { CatalogTab } from './catalog-tab'
 import { railIcon, useFolioRailDefaults } from './folio-rail'
+import { FolioTools } from './folio-tools'
 import { bindSceneEditorController, useSceneEditor } from './scene-editor-store'
 import { useCatalogMetadata } from './use-catalog-metadata'
 import { applyViewerLookDefaults, configureViewerLook, frameFlat, withWallSides } from './viewer-look'
@@ -302,8 +301,8 @@ export function SceneEditor({ meta, initialGraph, initialPreviewSceneId = null, 
         projectId={meta.projectId ?? meta.id}
         sidebarTabs={sidebarTabs}
         viewerBanner={previewing ? <PreviewBanner /> : null}
-        viewerToolbarLeft={<ViewerToolbarLeft />}
-        viewerToolbarRight={<ViewerToolbarRight />}
+        viewerToolbarLeft={<FolioTools />}
+        viewerToolbarRight={null}
       />
     </div>
   )
