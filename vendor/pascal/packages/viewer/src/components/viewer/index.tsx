@@ -42,7 +42,12 @@ import { Lights } from './lights'
 import { PerfMonitor } from './perf-monitor'
 import { PerfPanel } from './perf-panel'
 import { PointerRaycastLayers } from './pointer-raycast-layers'
-import PostProcessing, { DEFAULT_HOVER_STYLES, type HoverStyles } from './post-processing'
+import PostProcessing, {
+  DEFAULT_HOVER_STYLES,
+  DEFAULT_SELECTION_STYLE,
+  type HoverStyles,
+  type SelectionStyle,
+} from './post-processing'
 import { RegisteredSystems } from './registered-systems'
 import { useSceneAtmosphere } from './scene-atmosphere'
 import { SceneBvh } from './scene-bvh'
@@ -349,6 +354,8 @@ export interface ViewerImmersiveSession {
 interface ViewerProps {
   children?: React.ReactNode
   hoverStyles?: HoverStyles
+  /** Outline colours of the selection (default white, yellow where occluded). */
+  selectionStyle?: SelectionStyle
   selectionManager?: 'default' | 'custom'
   perf?: boolean
   useBvh?: boolean
@@ -425,6 +432,7 @@ const Viewer = forwardRef<ViewerHandle, ViewerProps>(function Viewer(
   {
     children,
     hoverStyles = DEFAULT_HOVER_STYLES,
+    selectionStyle = DEFAULT_SELECTION_STYLE,
     selectionManager = 'default',
     perf = false,
     useBvh = true,
@@ -634,6 +642,7 @@ const Viewer = forwardRef<ViewerHandle, ViewerProps>(function Viewer(
               <ViewerScene
                 disablePostFx
                 hoverStyles={hoverStyles}
+                selectionStyle={selectionStyle}
                 immersiveXR
                 onRenderError={immersive.onError}
                 onSceneReadyChange={onSceneReadyChange}
@@ -653,6 +662,7 @@ const Viewer = forwardRef<ViewerHandle, ViewerProps>(function Viewer(
               <ViewerScene
                 disablePostFx={disablePostFx}
                 hoverStyles={hoverStyles}
+                selectionStyle={selectionStyle}
                 onSceneReadyChange={onSceneReadyChange}
                 perf={perf}
                 sceneReadyKey={sceneReadyKey}
@@ -674,6 +684,7 @@ function ViewerScene({
   children,
   disablePostFx,
   hoverStyles,
+  selectionStyle,
   immersiveXR = false,
   onRenderError,
   onSceneReadyChange,
@@ -687,6 +698,7 @@ function ViewerScene({
   children?: React.ReactNode
   disablePostFx: boolean
   hoverStyles: HoverStyles
+  selectionStyle: SelectionStyle
   immersiveXR?: boolean
   onRenderError?: (cause: unknown) => void
   onSceneReadyChange?: (ready: boolean) => void
@@ -732,7 +744,13 @@ function ViewerScene({
       <ErrorBoundary fallback={null} onError={onRenderError} scope="viewer-scene">
         <Lights />
         {SceneWrapper ? <SceneWrapper>{spatialScene}</SceneWrapper> : spatialScene}
-        {!immersiveXR && <PostProcessing disablePostFx={disablePostFx} hoverStyles={hoverStyles} />}
+        {!immersiveXR && (
+          <PostProcessing
+            disablePostFx={disablePostFx}
+            hoverStyles={hoverStyles}
+            selectionStyle={selectionStyle}
+          />
+        )}
         {selectionManager === 'default' && <SelectionManager />}
         {(perf || PERF_OVERLAY_ENABLED) && <PerfMonitor />}
         {(perf || PERF_OVERLAY_ENABLED) && <PerfActionSettleSystem />}

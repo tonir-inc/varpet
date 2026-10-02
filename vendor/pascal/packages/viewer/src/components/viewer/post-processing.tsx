@@ -149,6 +149,19 @@ export const DEFAULT_HOVER_STYLES: HoverStyles = {
   default: DEFAULT_HOVER_STYLE,
 }
 
+/** Outline of the selected nodes: colour where visible, colour where occluded, strength. */
+export type SelectionStyle = {
+  visibleColor: number
+  hiddenColor: number
+  strength: number
+}
+
+export const DEFAULT_SELECTION_STYLE: SelectionStyle = {
+  visibleColor: 0xff_ff_ff,
+  hiddenColor: 0xf3_ff_47,
+  strength: 3,
+}
+
 function sanitizeOutlineObjects(objects: Object3D[]) {
   let nextIndex = 0
 
@@ -196,9 +209,11 @@ function recordFrameGpuTiming(renderer: any, submittedAt: number): void {
 
 const PostProcessingPasses = ({
   hoverStyles = DEFAULT_HOVER_STYLES,
+  selectionStyle = DEFAULT_SELECTION_STYLE,
   disablePostFx = false,
 }: {
   hoverStyles?: HoverStyles
+  selectionStyle?: SelectionStyle
   /** Host-controlled equivalent of `?disable=postFx` — see the Viewer prop. */
   disablePostFx?: boolean
 }) => {
@@ -277,6 +292,16 @@ const PostProcessingPasses = ({
   const hoverHiddenColor = useMemo(() => uniform(new Color(DEFAULT_HOVER_STYLE.hiddenColor)), [])
   const hoverStrength = useMemo(() => uniform(DEFAULT_HOVER_STYLE.strength), [])
   const hoverPulseMix = useMemo(() => uniform(DEFAULT_HOVER_STYLE.pulse ? 0 : 1), [])
+  // Selection outline uniforms live outside the pipeline so a style change needs no rebuild.
+  const selectedVisibleColor = useMemo(
+    () => uniform(new Color(DEFAULT_SELECTION_STYLE.visibleColor)),
+    [],
+  )
+  const selectedHiddenColor = useMemo(
+    () => uniform(new Color(DEFAULT_SELECTION_STYLE.hiddenColor)),
+    [],
+  )
+  const selectedStrength = useMemo(() => uniform(DEFAULT_SELECTION_STYLE.strength), [])
 
   // Subscribe to projectId so the pipeline rebuilds on project switch
   const projectId = useViewer((s) => s.projectId)
@@ -339,6 +364,13 @@ const PostProcessingPasses = ({
     hoverVisibleColor,
     invalidate,
   ])
+
+  useEffect(() => {
+    selectedVisibleColor.value.setHex(selectionStyle.visibleColor)
+    selectedHiddenColor.value.setHex(selectionStyle.hiddenColor)
+    selectedStrength.value = selectionStyle.strength
+    invalidate()
+  }, [selectedHiddenColor, selectedStrength, selectedVisibleColor, selectionStyle, invalidate])
 
   // Build / rebuild the post-processing pipeline
   useEffect(() => {
@@ -589,10 +621,7 @@ const PostProcessingPasses = ({
 
         resources.outline = outlineNode
 
-        // Selected: white visible, yellow hidden
-        const selectedVisibleColor = uniform(new Color(0xff_ff_ff))
-        const selectedHiddenColor = uniform(new Color(0xf3_ff_47))
-        const selectedStrength = uniform(3)
+        // Selected: `selectionStyle` (default white visible, yellow hidden)
         const selectedOutline = outlineNode.primaryVisibleEdge
           .mul(selectedVisibleColor)
           .add(outlineNode.primaryHiddenEdge.mul(selectedHiddenColor))
@@ -695,6 +724,9 @@ const PostProcessingPasses = ({
     hoverPulseMix,
     hoverStrength,
     hoverVisibleColor,
+    selectedHiddenColor,
+    selectedStrength,
+    selectedVisibleColor,
     edges,
     inkOpacityOverride,
     pipelineVersion,

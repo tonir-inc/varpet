@@ -504,6 +504,11 @@ const HIGHLIGHT_PROFILES = {
 } as const
 
 type HighlightKind = keyof typeof HIGHLIGHT_PROFILES
+
+/** Host theme: the emissive tint of selected nodes (Editor's `highlightTheme.tint`). */
+export function setSelectionTint(color: number) {
+  HIGHLIGHT_PROFILES.selection.color.setHex(color)
+}
 type HoverHighlightMode = 'default' | 'delete' | 'paint-ready' | 'paint-disabled'
 
 type HighlightableMaterial = Material & {

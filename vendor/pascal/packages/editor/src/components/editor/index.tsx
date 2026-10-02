@@ -12,11 +12,16 @@ import {
   useScene,
 } from '@pascal-app/core'
 import {
+  DEFAULT_SELECTION_STYLE,
+  DEFAULT_SELECTION_TINT,
+  type HoverStyle,
   type HoverStyles,
   InteractiveSystem,
   PERF_OVERLAY_ENABLED,
   recordPerfSample,
   SceneEnvironment,
+  type SelectionStyle,
+  setWallSelectionTint,
   useViewer,
   Viewer,
   type ViewerImmersiveSession,
@@ -30,6 +35,7 @@ import {
   useCallback,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react'
@@ -101,7 +107,7 @@ import { GroupSelectionBox3D } from './group-selection-box-3d'
 import { NodeArrowHandles } from './node-arrow-handles'
 import { QuickMeasurementHud } from './quick-measurement-hud'
 import { RiserDiagramPanel } from './riser-diagram-panel'
-import { SelectionManager } from './selection-manager'
+import { SelectionManager, setSelectionTint } from './selection-manager'
 import { SiteEdgeLabels } from './site-edge-labels'
 import { SlabHoleHighlights } from './slab-hole-highlights'
 import { SnapshotCaptureOverlay } from './snapshot-capture-overlay'
@@ -139,6 +145,25 @@ const EDITOR_HOVER_STYLES: HoverStyles = {
   },
 }
 const EDITOR_DEFAULT_RENDER = { shading: 'solid' } as const
+
+/** Outline colours a host can set (Editor's `highlightTheme`). */
+export type EditorHighlightTheme = {
+  /** The plain hover outline; delete and paint modes keep their own colours. */
+  hover?: Partial<HoverStyle>
+  /** The outline of the selection. */
+  selection?: Partial<SelectionStyle>
+  /** Emissive glow of selected objects (and hovered hidden walls). Default Pascal's indigo #818cf8. */
+  tint?: number
+}
+
+function editorHoverStyles(theme?: EditorHighlightTheme): HoverStyles {
+  if (!theme?.hover) return EDITOR_HOVER_STYLES
+  return { ...EDITOR_HOVER_STYLES, default: { ...EDITOR_HOVER_STYLES.default, ...theme.hover } }
+}
+
+function editorSelectionStyle(theme?: EditorHighlightTheme): SelectionStyle {
+  return theme?.selection ? { ...DEFAULT_SELECTION_STYLE, ...theme.selection } : DEFAULT_SELECTION_STYLE
+}
 
 /**
  * Wire up module-level singletons (spatial grid, space detection, SFX) for
@@ -202,6 +227,8 @@ export interface EditorProps {
    * Default true.
    */
   showActionMenu?: boolean
+  /** Hover and selection outline colours. Default: Pascal's blue hover, white selection. */
+  highlightTheme?: EditorHighlightTheme
   /** Rail width and labels under the icons (v2). Default: 56px, labels as tooltips. */
   rail?: RailOptions
   /**
@@ -1045,6 +1072,8 @@ const ViewerCanvas = memo(function ViewerCanvas({
   floorplanSceneSlot,
   disablePostFx = false,
   immersive,
+  hoverStyles,
+  selectionStyle,
 }: {
   isVersionPreviewMode: boolean
   isLoading: boolean
@@ -1060,6 +1089,8 @@ const ViewerCanvas = memo(function ViewerCanvas({
   floorplanSceneSlot?: ReactNode
   disablePostFx?: boolean
   immersive?: ViewerImmersiveSession
+  hoverStyles: HoverStyles
+  selectionStyle: SelectionStyle
 }) {
   const viewMode = useEditor((s) => s.viewMode)
   const floorplanPaneRatio = useEditor((s) => s.floorplanPaneRatio)
@@ -1179,7 +1210,8 @@ const ViewerCanvas = memo(function ViewerCanvas({
           <Viewer
             defaultRender={EDITOR_DEFAULT_RENDER}
             disablePostFx={disablePostFx}
-            hoverStyles={EDITOR_HOVER_STYLES}
+            hoverStyles={hoverStyles}
+            selectionStyle={selectionStyle}
             isolate={presetIsolation}
             // Preset captures isolate one subtree and keep the exterior transparent.
             // Other modes retain the viewer's configured background policy.
@@ -1279,6 +1311,7 @@ function EditorContent({
   inspectorFooter,
   multiSelectionFooter,
   showActionMenu = true,
+  highlightTheme,
   rail,
   inspectorDefaultExpanded = false,
   viewerSceneSlot,
@@ -1467,6 +1500,12 @@ function EditorContent({
     setDesktopInspectorDefaultCollapsed(!inspectorDefaultExpanded)
   }, [inspectorDefaultExpanded])
 
+  const selectionTint = highlightTheme?.tint ?? DEFAULT_SELECTION_TINT
+  useClientLayoutEffect(() => {
+    setSelectionTint(selectionTint)
+    setWallSelectionTint(selectionTint)
+  }, [selectionTint])
+
   useEffect(() => {
     document.body.classList.add('dark')
     return () => {
@@ -1542,11 +1581,16 @@ function EditorContent({
     }
   }, [isFirstPersonMode])
 
+  // Objects stay stable per theme so the memoised canvas does not re-render.
+  const hoverStyles = useMemo(() => editorHoverStyles(highlightTheme), [highlightTheme])
+  const selectionStyle = useMemo(() => editorSelectionStyle(highlightTheme), [highlightTheme])
+
   const previewViewerContent = (
     <Viewer
       defaultRender={EDITOR_DEFAULT_RENDER}
       disablePostFx={disablePostFx}
-      hoverStyles={EDITOR_HOVER_STYLES}
+      hoverStyles={hoverStyles}
+      selectionStyle={selectionStyle}
       renderContext="editor"
       selectionManager="default"
     >
@@ -1578,7 +1622,9 @@ function EditorContent({
       showLoader={showLoader}
       viewerSceneSlot={viewerSceneSlot}
       floorplanSceneSlot={floorplanSceneSlot}
+      hoverStyles={hoverStyles}
       immersive={immersive}
+      selectionStyle={selectionStyle}
     />
   )
 

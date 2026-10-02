@@ -313,7 +313,9 @@ function createHighlightedWallMaterial(material: Material, kind: WallHighlightKi
 //   2. The wall's finish texture loads async, so an early clone has no map yet →
 //      cache keyed by the source `.map` and rebuild when it changes (self-heals
 //      once the texture lands).
-const SELECTION_HIGHLIGHT_COLOR = new Color('#818cf8')
+/** Default emissive tint of selected (and hovered hidden) walls: Pascal's indigo. */
+export const DEFAULT_SELECTION_TINT = 0x81_8c_f8
+const SELECTION_HIGHLIGHT_COLOR = new Color(DEFAULT_SELECTION_TINT)
 const SELECTION_EMISSIVE_BLEND = 0.4
 const SELECTION_EMISSIVE_INTENSITY = 0.12
 
@@ -338,8 +340,19 @@ const SELECTION_TEXTURE_MAP_KEYS = [
   'lightMap',
 ] as const
 
-const selectionHighlightCache = new WeakMap<Material, { clone: Material; map: unknown }>()
-const hoverHighlightCache = new WeakMap<Material, { clone: Material; map: unknown }>()
+let selectionHighlightCache = new WeakMap<Material, { clone: Material; map: unknown }>()
+let hoverHighlightCache = new WeakMap<Material, { clone: Material; map: unknown }>()
+
+/**
+ * Host theme: the emissive tint of selected and hovered-hidden walls. Drops the
+ * cached highlight clones so walls highlighted from now on take the new tint.
+ */
+export function setWallSelectionTint(color: number) {
+  if (SELECTION_HIGHLIGHT_COLOR.getHex() === color) return
+  SELECTION_HIGHLIGHT_COLOR.setHex(color)
+  selectionHighlightCache = new WeakMap()
+  hoverHighlightCache = new WeakMap()
+}
 
 function getEmissiveHighlightMaterial(
   base: Material,

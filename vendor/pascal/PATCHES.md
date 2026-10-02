@@ -50,3 +50,18 @@ Base: `@pascal-app/core@1.0.3` (`ebe69be2`). One commit each, so each can become
   `packages/editor/src/components/editor/index.tsx`, `packages/editor/src/index.tsx`.
 - Host side removed: the label span in `railIcon` and the `:has(> .folio-rail-item)` width and size rules in
   `apps/web/app/pascal-theme.css` (Folio colours now target the data hooks).
+
+## 6. Editor + viewer: `highlightTheme` (hover and selection colours)
+- Motivation: the hover outline (blue), selection outline (white/yellow) and the selected glow (indigo `#818cf8`)
+  were constants; a host with its own palette (Folio teal) could not change them. The selection outline uniforms were
+  built inside the post-processing pipeline, so they could not change without a rebuild.
+- Change: viewer `<Viewer selectionStyle>` (`SelectionStyle`, `DEFAULT_SELECTION_STYLE`), its uniforms hoisted next to
+  the hover ones; `setWallSelectionTint(color)` (`DEFAULT_SELECTION_TINT`) for the wall glow, dropping cached highlight
+  clones. Editor `<Editor highlightTheme={{ hover, selection, tint }}>` merges `hover` into the default hover style
+  (delete and paint modes keep theirs), passes `selection` to both viewers and sets the tint for walls and the
+  selection manager (`setSelectionTint`). Outlines are still added onto the image, so dark colours read lighter.
+- Files: `packages/viewer/src/components/viewer/post-processing.tsx`, `packages/viewer/src/components/viewer/index.tsx`,
+  `packages/viewer/src/systems/wall/wall-materials.ts`, `packages/viewer/src/index.ts`,
+  `packages/editor/src/components/editor/index.tsx`, `packages/editor/src/components/editor/selection-manager.tsx`,
+  `packages/editor/src/index.tsx`.
+- Host side: `FOLIO_HIGHLIGHT` in `apps/web/components/editor/scene-editor.tsx` (no workaround existed to remove).

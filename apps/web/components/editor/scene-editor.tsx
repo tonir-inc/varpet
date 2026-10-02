@@ -53,6 +53,13 @@ function parseEvent(event: Event): LiveSceneEvent | null {
 
 const sceneSettingsNoop = () => null
 
+/** Folio teal (--folio-teal #155f6d) for the hover and selection outlines and the selected glow; lighter where hidden. */
+const FOLIO_HIGHLIGHT = {
+  hover: { visibleColor: 0x15_5f_6d, hiddenColor: 0x7f_b3_bc },
+  selection: { visibleColor: 0x15_5f_6d, hiddenColor: 0x7f_b3_bc },
+  tint: 0x15_5f_6d,
+} as const
+
 export function SceneEditor({ meta, initialGraph, initialPreviewSceneId = null, designerPanel }: SceneEditorProps) {
   const versionRef = useRef(meta.version)
   // Node count the server is known to hold: an empty save from a not-yet-hydrated editor must never wipe it.
@@ -305,6 +312,7 @@ export function SceneEditor({ meta, initialGraph, initialPreviewSceneId = null, 
         previewScene={previewGraph ?? undefined}
         projectId={meta.projectId ?? meta.id}
         rail={FOLIO_RAIL}
+        highlightTheme={FOLIO_HIGHLIGHT}
         // The Folio dock (viewerBanner) replaces Pascal's floating action menu.
         showActionMenu={false}
         sidebarTabs={sidebarTabs}

@@ -51,9 +51,10 @@ export {
   STAND_FLOAT_HEIGHT,
   WALKTHROUGH_FOV,
 } from './components/viewer/glb-walkthrough-controller'
-export type { HoverStyle, HoverStyles } from './components/viewer/post-processing'
+export type { HoverStyle, HoverStyles, SelectionStyle } from './components/viewer/post-processing'
 export {
   DEFAULT_HOVER_STYLES,
+  DEFAULT_SELECTION_STYLE,
   SSGI_PARAMS,
 } from './components/viewer/post-processing'
 export {
@@ -298,8 +299,10 @@ export {
   type WallCutoutViewerStore,
 } from './systems/wall/wall-cutout-cache'
 export {
+  DEFAULT_SELECTION_TINT,
   getMaterialsForWall,
   getVisibleWallMaterials,
+  setWallSelectionTint,
   type WallMaterialOverride,
   type WallMaterials,
   type WallMaterialsResolver,

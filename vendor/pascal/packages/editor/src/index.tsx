@@ -18,7 +18,7 @@ export {
   useScene,
 } from '@pascal-app/core'
 export { useViewer } from '@pascal-app/viewer'
-export type { EditorProps } from './components/editor'
+export type { EditorHighlightTheme, EditorProps } from './components/editor'
 export { default as Editor } from './components/editor'
 // Headless component aliases: the implementation files keep their
 // internal names (`ParametricInspector`, `FloatingActionMenu`) because
