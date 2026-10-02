@@ -99,7 +99,7 @@
 .designer-message-designer .designer-message-copy { font-family: var(--serif); font-size: 16px; line-height: 1.45; color: var(--ink); }
 .designer-message-copy { margin-top: 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.5; }
 .designer-message-copy p { white-space: normal; margin: 0; }
-.designer-message-copy p + p, .designer-message-copy ul, .designer-message-copy ol { margin-top: var(--space-3); }
+.designer-message-copy p + p, .designer-message-copy ul, .designer-message-copy ol, .designer-message-copy :is(ul, ol) + p { margin-top: var(--space-3); }
 .designer-message-copy ul, .designer-message-copy ol { padding-left: var(--space-5); margin-bottom: 0; }
 .designer-message-copy ul { list-style: disc; }
 .designer-message-copy ol { list-style: decimal; }
@@ -170,8 +170,8 @@
 
 /* Answers, suggestions, retry */
 .designer-suggestions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: var(--space-3); }
-.designer-suggestions .designer-suggestion { justify-content: flex-start; height: auto; min-height: 30px; padding: 4px var(--space-2); white-space: normal; text-align: left; line-height: 1.35; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); color: var(--ink); font-size: var(--text-xs); }
-.designer-suggestions .designer-suggestion:hover:not(:disabled) { border-color: var(--ink); background: var(--surface); }
+.designer-column .designer-suggestions .designer-suggestion { justify-content: flex-start; height: auto; min-height: 30px; padding: 4px var(--space-2); white-space: normal; text-align: left; line-height: 1.35; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); color: var(--ink); font-size: var(--text-xs); }
+.designer-column .designer-suggestions .designer-suggestion:hover:not(:disabled) { border-color: var(--ink); background: var(--surface); }
 .designer-retry { margin-top: var(--space-3); }
 
 /* Greeting and starters */

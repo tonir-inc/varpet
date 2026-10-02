@@ -323,7 +323,11 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
       }
     }
     case 'event': return applyEvent(state, action.event, action.at, action.id)
-    case 'cancel': return endTurn(state, action.at, { id: action.id, role: 'agent', text: 'Stopped. You can ask again or try something else.' })
+    case 'cancel': {
+      // What was already written stays; the stop is said under it.
+      const said = state.turn?.draft.trim()
+      return endTurn(state, action.at, { id: action.id, role: 'agent', text: `${said ? `${said}\n\n` : ''}*Stopped.* You can ask again or try something else.` })
+    }
     case 'fail': return endTurn(state, action.at, { id: action.id, role: 'agent', text: action.message, error: true, retry: state.turn?.request })
     case 'proposal-status': return {
       ...state,
