@@ -211,6 +211,7 @@ export function toolLabel(rawName: string, input: unknown): string {
     case 'search_products': return `Searching Yerevan shops${quoted(args.text ?? args.q ?? args.query)}`
     case 'get_product': return 'Reading a product’s details'
     case 'show_products': return 'Looking at the pieces'
+    case 'view_scene': return args.view === 'top' ? 'Looking at the room from above' : args.view === 'inside' ? 'Looking around the room' : 'Looking at the room'
     case 'place_product': return 'Placing a piece in the flat'
     case 'list_finishes': return args.surface === 'floor' ? 'Looking at floor finishes' : 'Looking at paints and finishes'
     case 'set_wall_finish': return 'Painting a wall'

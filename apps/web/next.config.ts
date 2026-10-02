@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
   typescript: { ignoreBuildErrors: true },
   allowedDevOrigins: ['127.0.0.1'],
   transpilePackages: ['three', '@pascal-app/core', '@pascal-app/viewer', '@pascal-app/editor', '@pascal-app/nodes', '@pascal-app/mcp', '@varpet/agents', '@varpet/contracts'],
-  serverExternalPackages: ['node:sqlite'],
+  serverExternalPackages: ['node:sqlite', 'playwright-core'],
   // Pascal's UI loads its assets from the site root; we keep them under public/pascal.
   async rewrites() {
     return [

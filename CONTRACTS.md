@@ -44,10 +44,36 @@ that file and this one in the same commit, and say so in the commit message.
 - All of Pascal's tools except the scene lifecycle ones (`load_scene`, `save_scene`, `delete_scene`, `rename_scene`,
   `list_scenes`, `create_project`, `get_project_status`), plus `search_products`, `get_product`, `show_products`,
   `place_product(product_id, ...)`, `list_finishes`, `set_wall_finish`, `set_floor_finish`.
+- `view_scene(zone_id?, view?: 3d|top|inside = 3d, width? = 1024)`: the agent's eyes. Renders the MCP's current
+  in-memory graph (this turn's edits included) through `POST /api/render` and returns MCP image content (JPEG,
+  width x 3/4 width) plus one caption line: room, view, camera, orientation, renderer backend, time. Cameras
+  (`planView` in `view-scene.ts`, pure): `top` straight down with a 20 deg lens (near-orthographic), north (-z) up,
+  walls standing, ceilings hidden, the caption gives the x/z floor range and px per metre; `3d` 3/4 from 40 deg
+  above on the diagonal pointing from the flat's middle out through the room, walls cut away, ceilings hidden;
+  `inside` eye level 1.6 m from the room's door (indoor doors before balcony doors), else its best corner, looking
+  at the room's centroid, walls standing. No `zone_id` frames the whole flat (not for `inside`). Render failures
+  and timeouts are `isError` text; the turn goes on. Offered only when the MCP has a renderer (`VARPET_RENDER_URL`,
+  default `<VARPET_PUBLIC_ORIGIN>/api/render`, `off` drops it); the MCP warms the renderer (`GET`) when it starts.
+  The NDJSON `tool` event carries only the summary (`[image] <caption>`), never the image.
 - `place_product` writes an item node whose `asset.src` is `Product.glbUrl`, with `dimensions`, and
   `metadata: {productId, priceAmd, shop}`; it publishes a live snapshot so open editors update.
 - Saving never rewrites the graph the agent built (no wall-side tagging on save; the editor tags unknown wall sides
   at load for cutaway, `withWallSides` in `apps/web/components/editor/viewer-look.ts`).
+
+## Render (internal)
+- `POST /api/render` body `RenderRequest` (`{graph, camera: {projection: 'perspective', position, target, up?,
+  fov?}, wallMode: up|cutaway|down, hideCeilings?, width, height}`, sizes 256..2048) -> `RenderResponse`
+  (`{image: base64 JPEG, mimeType, backend: webgpu|webgl, width, height, renderMs, queuedMs, cold}`); errors are
+  `{error}` with 400 bad body, 403 not internal, 503 `render_busy`, 504 `render_timeout` (60 s warm, 180 s cold),
+  500 `render_failed`. `GET /api/render` starts the renderer and answers `{ready, cold, ms}`.
+- Internal callers only: with `VARPET_RENDER_TOKEN` set, the `x-varpet-render-token` header must match; without, the
+  request must be addressed to a loopback host. On a server set the MCP's `VARPET_RENDER_URL` to the app's loopback
+  address (`http://127.0.0.1:<port>/api/render`), never the public origin.
+- One warm headless Chrome (Playwright, `apps/web/lib/render/browser.ts`) per web process, one page at `/render`
+  (Pascal's bare `<Viewer>` with the editor's look from `viewer-look.ts`, no editor chrome), one job at a time.
+  WebGPU where the GPU allows it, three.js's WebGL2 fallback otherwise. Env: `VARPET_CHROME`, `VARPET_CHROME_ARGS`,
+  `VARPET_RENDER_PAGE_ORIGIN` (default `VARPET_PUBLIC_ORIGIN`, so model URLs are same-origin),
+  `VARPET_RENDER_TIMEOUT_MS`, `VARPET_RENDER_IDLE_MS` (default 15 min), `VARPET_RENDER_DUMP_DIR` (debug copies).
 
 ## Finishes
 - One catalogue: `packages/contracts/src/finishes.ts` (`@varpet/contracts/finishes`), no imports. Each `Finish` is
@@ -73,4 +99,4 @@ that file and this one in the same commit, and say so in the commit message.
 
 ## Env
 See `.env.example`: `PASCAL_DB_PATH`, `VARPET_DATA_DIR`, `VARPET_CATALOG_URL`, `VARPET_PUBLIC_ORIGIN`,
-`VARPET_AGENT_EDITS`, `CLAUDE_CODE_OAUTH_TOKEN`.
+`VARPET_AGENT_EDITS`, `CLAUDE_CODE_OAUTH_TOKEN`, `VARPET_RENDER_URL`, `VARPET_RENDER_TOKEN`.
