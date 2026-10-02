@@ -1,0 +1,221 @@
+/* Folio on Pascal: v1's tokens (apps/editor/src/ui/style.css :root, docs/folio.md) mapped onto the shadcn
+ * variables Pascal's editor reads. Imported by app/editor/layout.tsx only.
+ *
+ * Scope: `body:has(.varpet-editor)` beats both globals.css `:root` and the `.dark` class Pascal's <Editor> puts on
+ * <body> (specificity 0,1,1 over 0,1,0), and it reaches Radix portals rendered outside the editor wrapper.
+ * Pascal's v2 layout also wraps itself in a `.dark` div, hence the second selector (0,2,1).
+ * Folio is light, so the editor also removes `dark` from <body> (see scene-editor.tsx). */
+
+body:has(.varpet-editor),
+body:has(.varpet-editor) .dark {
+  color-scheme: light;
+
+  /* Folio palette, light (white paper, black ink, one teal). */
+  --folio-ground: #f4f4f1;
+  --folio-surface: #ffffff;
+  --folio-raised: #efeeea;
+  --folio-hover: #e7e6e1;
+  --folio-line: #deddd8;
+  --folio-control-line: #a8a69f;
+  --folio-ink: #151515;
+  --folio-muted: #6b6962;
+  --folio-teal: #155f6d;
+  --folio-teal-hover: #104d59;
+  --folio-teal-wash: #e8f2f3;
+  --folio-select: #d6e9ec;
+  --folio-danger: #c4202f;
+  --folio-danger-wash: #fbe5e5;
+  --folio-shadow: 0 4px 16px #1515151f;
+
+  /* shadcn roles Pascal uses. */
+  --background: var(--folio-ground);
+  --foreground: var(--folio-ink);
+  --card: var(--folio-surface);
+  --card-foreground: var(--folio-ink);
+  --popover: var(--folio-surface);
+  --popover-foreground: var(--folio-ink);
+  --primary: var(--folio-teal);
+  --primary-foreground: #ffffff;
+  --secondary: var(--folio-raised);
+  --secondary-foreground: var(--folio-ink);
+  --muted: var(--folio-raised);
+  --muted-foreground: var(--folio-muted);
+  --accent: var(--folio-hover);
+  --accent-foreground: var(--folio-ink);
+  --destructive: var(--folio-danger);
+  --border: var(--folio-line);
+  --input: var(--folio-line);
+  --ring: var(--folio-teal);
+  --sidebar: var(--folio-surface);
+  --sidebar-foreground: var(--folio-ink);
+  --sidebar-primary: var(--folio-teal);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: var(--folio-raised);
+  --sidebar-accent-foreground: var(--folio-ink);
+  --sidebar-border: var(--folio-line);
+  --sidebar-ring: var(--folio-teal);
+  --chart-1: var(--folio-teal);
+  --chart-2: #1f6b45;
+  --chart-3: #8a5a00;
+  --chart-4: #80b8c0;
+  --chart-5: var(--folio-danger);
+
+  /* Folio shape: 2 to 4 px corners (radius-sm 0, md 2, lg 4, xl 8). */
+  --radius: 4px;
+
+  /* Type: Pascal's `font-sans` utility inlines var(--font-barlow). */
+  --font-folio-sans: "Sofia Sans", "Noto Sans Armenian", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-folio-serif: "Source Serif 4", "Noto Serif Armenian", Georgia, serif;
+  --font-folio-condensed: "Sofia Sans Condensed", "Noto Sans Armenian", "Arial Narrow", sans-serif;
+  --font-barlow: var(--font-folio-sans);
+  --font-geist-sans: var(--font-folio-sans);
+}
+
+/* Unlayered rules beat Tailwind's layered utilities, so element styles go on <body> only. */
+body:has(.varpet-editor) {
+  font-family: var(--font-folio-sans);
+  background: var(--folio-ground);
+  color: var(--folio-ink);
+}
+
+body:has(.varpet-editor) ::selection {
+  background: var(--folio-select);
+  color: var(--folio-ink);
+}
+
+/* Folio: no spaced capitals. */
+.varpet-editor .uppercase {
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.varpet-editor-stage {
+  position: relative;
+  height: 100dvh;
+  width: 100vw;
+}
+
+.varpet-banner {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: min(560px, calc(100vw - 32px));
+  transform: translateX(-50%);
+  padding: 8px 12px;
+  border: 1px solid var(--folio-line);
+  border-radius: 4px;
+  background: var(--folio-surface);
+  box-shadow: var(--folio-shadow);
+  font-size: 13px;
+}
+
+.varpet-banner-danger {
+  border-color: var(--folio-danger);
+  background: var(--folio-danger-wash);
+  color: var(--folio-danger);
+}
+
+.varpet-banner button,
+.varpet-preview-banner button {
+  padding: 4px 10px;
+  border: 1px solid var(--folio-control-line);
+  border-radius: 3px;
+  background: var(--folio-surface);
+  color: var(--folio-ink);
+  font: inherit;
+  font-weight: 600;
+}
+
+.varpet-banner button:hover,
+.varpet-preview-banner button:hover {
+  background: var(--folio-hover);
+}
+
+.varpet-preview-banner {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  z-index: 40;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  max-width: min(640px, calc(100% - 32px));
+  transform: translateX(-50%);
+  padding: 8px 12px;
+  border: 1px solid var(--folio-teal);
+  border-radius: 4px;
+  background: var(--folio-teal-wash);
+  color: var(--folio-ink);
+  box-shadow: var(--folio-shadow);
+  font-size: 13px;
+}
+
+.varpet-preview-banner .varpet-button-primary {
+  border-color: var(--folio-teal);
+  background: var(--folio-teal);
+  color: #ffffff;
+}
+
+.varpet-preview-banner .varpet-button-primary:hover {
+  background: var(--folio-teal-hover);
+}
+
+.varpet-preview-banner button:disabled {
+  opacity: 0.6;
+}
+
+.varpet-preview-error {
+  color: var(--folio-danger);
+}
+
+.varpet-panel-note {
+  padding: 16px;
+  color: var(--folio-muted);
+  font-size: 13px;
+}
+
+.varpet-panel-note h2 {
+  margin: 0 0 4px;
+  color: var(--folio-ink);
+  font-family: var(--font-folio-serif);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.varpet-not-found {
+  display: grid;
+  min-height: 100dvh;
+  place-content: center;
+  gap: 8px;
+  padding: 16px;
+  text-align: center;
+}
+
+.varpet-not-found h1 {
+  margin: 0;
+  font-family: var(--font-folio-serif);
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.varpet-not-found a {
+  color: var(--folio-teal);
+}
+
+/* Pascal hardcodes a few dark greys (inputs, segmented controls); repaint them on paper. */
+body:has(.varpet-editor) .bg-\[\#2C2C2E\] {
+  background-color: var(--folio-raised);
+}
+
+body:has(.varpet-editor) .bg-\[\#3e3e3e\] {
+  background-color: var(--folio-surface);
+}
+
+body:has(.varpet-editor) .hover\:bg-\[\#3e3e3e\]:hover {
+  background-color: var(--folio-hover);
+}
