@@ -32,6 +32,9 @@ async function start() {
   }
   const bundleId = route.get('bundle');
   if (bundleId) {
+    const {demoHref} = await import('./portal/bundles-contract');
+    const demo = demoHref(bundleId);
+    if (demo) { location.replace(demo); return; }
     const {launchBundle} = await import('./portal/catalog-launch');
     await launchBundle(host, bundleId, {beforeEditor: () => { host.innerHTML = ''; }});
     return;

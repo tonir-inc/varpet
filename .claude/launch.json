@@ -120,6 +120,100 @@
         "--strictPort"
       ],
       "port": 5181
+    },
+    {
+      "name": "editor-folio-worktree",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "--dir",
+        "/Users/snek/dev/varpet-buyer/apps/editor",
+        "exec",
+        "vite",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "5196",
+        "--strictPort"
+      ],
+      "port": 5196
+    },
+    {
+      "name": "buyer-demo-pink",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "--dir",
+        "/Users/snek/dev/varpet-demo-pink/apps/buyer",
+        "exec",
+        "vite",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "5197",
+        "--strictPort"
+      ],
+      "port": 5197
+    },
+    {
+      "name": "showcase-folio-worktree",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "--dir",
+        "/Users/snek/dev/varpet-buyer/apps/showcase",
+        "exec",
+        "vite",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "5191",
+        "--strictPort"
+      ],
+      "port": 5191
+    },
+    {
+      "name": "designer-service",
+      "runtimeExecutable": "uv",
+      "runtimeArgs": [
+        "--project",
+        "harness",
+        "run",
+        "python",
+        "harness/designer_service.py",
+        "--port",
+        "8787"
+      ],
+      "port": 8787
+    },
+    {
+      "name": "editor-live",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "VITE_DESIGNER_URL=http://127.0.0.1:8787",
+        "pnpm",
+        "--filter",
+        "@varpet/editor",
+        "exec",
+        "vite",
+        "--port",
+        "5177",
+        "--strictPort"
+      ],
+      "port": 5177
+    },
+    {
+      "name": "editor-perf",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "--dir",
+        "/Users/snek/dev/varpet-perf/apps/editor",
+        "exec",
+        "vite",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "5199",
+        "--strictPort"
+      ],
+      "port": 5199
     }
   ]
 }

@@ -5,7 +5,7 @@
  */
 import { icon } from '../ui/icons';
 import { traceInk, type BlueprintInk } from './blueprint-ink';
-import { bundleHref, catalogHref, developerHref, type Bundle, type BundleSummary, type DeveloperSummary } from './bundles-contract';
+import { bundleHref, catalogHref, demoHref, developerHref, type Bundle, type BundleSummary, type DeveloperSummary } from './bundles-contract';
 import { BEDROOM_FILTERS, bedroomLabel, bundlesApi, groupByDeveloper, initials, matchesFilter, type BundleFilter } from './bundles';
 import { escapeHtml, mountPortalShell } from './portal-header';
 import type { FurnishedPreview } from './preview';
@@ -291,6 +291,8 @@ export async function mountCatalog(host: HTMLElement): Promise<void> {
   let launching = false;
   async function launch(bundle: BundleSummary, stage: HTMLElement, frame?: HTMLCanvasElement): Promise<void> {
     if (launching) return;
+    const demo = demoHref(bundle.id);
+    if (demo) { location.assign(demo); return; }
     launching = true;
     const { launchBundle } = await import('./catalog-launch');
     history.pushState(null, '', bundleHref(bundle.id));
