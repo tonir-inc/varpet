@@ -5,12 +5,15 @@
   "type": "module",
   "scripts": {
     "eval": "node --experimental-strip-types --no-warnings run.ts",
-    "typecheck": "tsc --noEmit -p .",
-    "test": "node --test --experimental-strip-types *.test.ts real/*.test.ts"
+    "typecheck": "tsc --noEmit -p . && tsc --noEmit -p architect",
+    "test": "node --test --experimental-strip-types *.test.ts real/*.test.ts architect/*.test.ts"
   },
   "dependencies": {
     "@pascal-app/mcp": "workspace:*",
     "playwright-core": "1.63.0"
   },
-  "devDependencies": { "@types/node": "^22.19.12", "typescript": "^5.9.3" }
+  "devDependencies": {
+    "@types/node": "^22.19.12",
+    "typescript": "^5.9.3"
+  }
 }
