@@ -5,47 +5,71 @@ description: Build the empty flat's walls, rooms, doors and windows from a devel
 
 # Plan to shell
 
-The outcome is the flat as the plan draws it, faithful wall by wall, with every guess written down so the buyer
-can correct it. Each rule below is a mistake a first read made on real developer plans (v1, Sept 2026).
+The outcome is the flat as the plan draws it, wall by wall, with every guess written down so the buyer can
+correct it. Each rule below is a mistake a first read made on real Yerevan developer plans; with them up front a
+plan-reading pass went from 95.3% to 98.3% on held-out plans (Sept 2026).
 
-## Read the plan into gridlines first
+## 1. Read the plan into numbers before drawing
 
-1. **Scale** from three or more printed dimensions that agree. With areas only, choose the one scale that makes
-   all printed room areas agree at once, never one room. Check it on a door (interior 0.8-0.9 m, entrance
-   0.9-1.0 m). "Not to scale" plans still print dimensions: say which you trusted.
-2. Name every **gridline** before drawing: each x where a wall face runs down the plan, each z where one runs
-   across (x right, z down the plan, metres, the flat centred near the origin). Rooms and walls are then built
-   from the same numbers, so they share corners exactly. A wall centreline sits half its thickness outside the
-   room face it bounds.
-3. **A wall exists only where the plan draws a filled, thick or hatched band, and only over that stretch.**
-   Thin lines with ticks, arrows and a number are dimension lines. A wall that runs past its band seals a
-   doorway.
-4. **Openings fill the whole gap** the plan leaves in the band; a narrower door leaves a stub that is not
-   there. A door arc shows the swing; its width is the gap. Windows in Yerevan new builds are often
-   floor-to-ceiling: sill 0, head about 2.6 m, unless drawn otherwise.
-5. Where two rooms meet with no drawn band (hall to living, living to kitchen) draw no wall: an open passage.
-6. Grey boxes with an X are service shafts: a short solid wall box, never floor. Balconies are rooms on the
-   facade line with a door.
-7. The developer's listing can disagree with its own image (2 of 10 did): trace the image and say so.
+- **Scale** from three or more printed dimensions that agree. With areas only, pick the one scale that makes
+  all printed room areas agree at once, never one room. Check it on a door (interior 0.8-0.9 m, entrance
+  0.9-1.0 m). Room areas are net, inside the wall faces. A flat total is net only when it equals the sum of the
+  printed room areas; a lone total (no room areas) may be gross, with outer walls, columns and shafts. Then take
+  the scale from elements (doors, stair treads 0.27-0.30 m, kitchen counters 0.6 m deep), not from the total; if
+  the rooms' sum and the total then differ by more than ~5%, say so and ask which one the developer means.
+- **Gridlines**: list each x where a wall face runs down the plan and each z where one runs across (x right,
+  z down the plan, metres, the flat's middle near the origin: the site's ground is a 30 m square around it). Rooms and walls come from the same numbers, so they share corners exactly. A wall
+  centreline sits half its thickness outside the room face it bounds.
+- Write the room list (name, printed area, gridlines it spans) before the first edit.
 
-## Build
+## 2. What the drawing means
 
-`create_wall` once per band (exterior and load-bearing 0.3-0.4 m, partitions 0.1-0.12 m, height 2.7-3.0 m);
-`set_zone` per room with the polygon on the inner faces, corners in order (L shapes and bays are real corners);
-a slab per room with `apply_patch` (type "slab", the room polygon) so floors can take finishes; `add_door` and
-`add_window` with `t` along the wall (0 start, 1 end) at the real width. One call at a time: edits share the
-scene version.
+- **A wall exists only where the plan draws a filled, thick or hatched band, and only over that stretch.**
+  Thin lines with ticks, arrows and a number are dimension lines. A wall run past its band seals a doorway.
+- **Structure**: a green-hatched ~0.6 m square on a red axis cross is a concrete column; a grey-hatched band is
+  a structural wall. One element per separately hatched piece: an L of two grey pieces round a column is two
+  walls and a column (a short wall box of the column's size).
+- **X boxes** (a rectangle with both diagonals): dark ones anywhere, and light-blue ones in a bathroom, are
+  unused service shafts: a solid box of short walls (or one thick wall) at their size, never floor and not part
+  of any room polygon. A white X inside a thick wall is part of that wall. A light-blue X on a balcony is the
+  AC outdoor unit's place: leave the balcony floor there and mention it. None of these is a shower tray or a
+  washing machine.
+- **Openings fill the whole gap** the plan leaves in the band; a narrower one leaves a stub that is not there.
+  A door arc shows the swing; its width is the gap. Windows are floor-to-ceiling (sill 0, head 2.6 m) unless
+  the plan draws a sill or a narrower pane.
+- Where two rooms meet with no drawn band (hall to living, living to kitchen), draw no wall: an open passage.
+- **Balconies** are rooms (name them "Balcony") on the facade line, reached by a door. Their floor edge lies on
+  the facade wall; draw no parapet walls on their open edges (railings belong only on open slab edges).
+- Every room has a door or an open passage, and the flat has its entrance door on an outer wall.
+- The developer's text can disagree with its own image: trace the image and say so.
 
-## Check against the plan
+## 3. Build (Pascal tools)
 
-Compare, room by room, the built scene with the image and fix the scene until they agree:
-- zone areas from `get_zones` against the printed areas (within 3%; a bigger gap means a gridline or the scale
-  is wrong: move the gridline and rebuild from it, rather than nudging one corner);
-- wall lengths from `get_walls` against the printed dimensions;
-- every room has a door or an open passage, and the flat has its entrance door on an outer wall;
-- no wall crosses a doorway, no gap in a band the plan draws solid;
-- `verify_scene` clean.
+- `get_level_summary` gives the level id; a new flat starts with an empty level.
+- Walls: draw the first with `create_wall`, then the rest in one or a few `apply_patch` batches (one call is
+  atomic and saves once; looping one-op calls is slow). A wall node: `{type: "wall", start: [x, z], end: [x, z],
+  thickness, height}` with `parentId` the level. Exterior and load-bearing walls 0.25-0.4 m, partitions
+  0.1-0.12 m, height 2.7-3.0 m. Measure each thickness off the plan at your scale.
+- Rooms: one zone per room with the polygon on the inner faces (`set_zone`, or `{type: "zone", name, polygon}`
+  in a batch), corners in order (L shapes and bays are real corners), and a slab with the same polygon
+  (`{type: "slab", name: "<room> floor", polygon}`) so its floor can take a finish. `create_room` draws its own
+  walls: only for a free-standing room, else walls double. Bathrooms, WCs and balconies get a tile floor
+  (`list_finishes` with surface floor, then `set_floor_finish`); other rooms keep the default.
+- Doors and windows: `add_door` / `add_window` with `t` the opening's centre along the wall (0 start, 1 end) and
+  the real width, or in a batch `{type: "door"|"window", wallId, position: [metres from wall start to the
+  centre, sill + height / 2, 0], width, height}` with `parentId` the wall.
+- Edits are sequential: wait for one call's result before the next.
 
-Done means: every printed area matched or its mismatch explained, and the answer lists room areas and every
-assumption (scale, a guessed thickness, a dimension too small to read) with the question for the one that
-matters most.
+## 4. Check against the plan, then answer
+
+- `view_scene` with view `top`: compare the picture with the plan wall by wall (missing or extra wall, a wall
+  across a doorway, a room on the wrong side, a shaft drawn as floor). The caption gives the x/z range and
+  pixels per metre. Fix and look again until they agree.
+- `get_zones` areas against the printed areas (within about 3%; a bigger gap means a gridline or the scale is
+  wrong: move the gridline and rebuild from it, rather than nudging one corner). `get_walls` lengths against
+  printed dimensions.
+- `verify_scene` clean, or each remaining issue explained.
+
+Done means every printed area matched or its mismatch explained, and the answer lists rooms with areas, then
+every assumption (scale and how you got it, guessed thicknesses, an unreadable dimension, a symbol you were
+unsure of) with the one question that matters most.
