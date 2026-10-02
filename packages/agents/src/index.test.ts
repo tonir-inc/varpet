@@ -191,6 +191,32 @@ test('the mapper skips subagent output and reports a failed result', () => {
   assert.equal(mapper.result?.subtype, 'error_max_turns')
 })
 
+test('a view_scene result reaches the browser as a short summary, never the image bytes', () => {
+  const mapper = new StreamMapper()
+  mapper.map({ type: 'assistant', message: { content: [{ type: 'tool_use', id: 't1', name: 'mcp__scene__view_scene', input: { zone_id: 'zone_r-living' } }] } })
+  const data = 'A'.repeat(400_000)
+  const [event] = mapper.map({
+    type: 'user',
+    message: {
+      content: [
+        {
+          type: 'tool_result',
+          tool_use_id: 't1',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data } },
+            { type: 'text', text: 'Living room (zone_r-living): 3/4 view from the north-west. Rendered with WebGPU at 1024x768 in 1.3 s.' },
+          ],
+        },
+      ],
+    },
+  })
+  assert.equal(event?.type, 'tool')
+  const line = JSON.stringify(event)
+  assert.ok(line.length < 600, `${line.length} chars`)
+  assert.ok(!line.includes('AAAA'))
+  assert.match((event as { summary: string }).summary, /^\[image\] Living room \(zone_r-living\)/)
+})
+
 test('a proposal is busy from the session event until the agent hands it over', async () => {
   const { env, sceneId } = await fixture()
   let proposalSceneId: string | null = null

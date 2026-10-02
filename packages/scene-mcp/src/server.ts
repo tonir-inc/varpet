@@ -11,6 +11,7 @@ import { z } from 'zod'
 import type { Catalog, ProductHit } from './catalog.ts'
 import { finishMaterialItems } from '../../contracts/src/finishes.ts'
 import { registerFinishTools } from './finishes.ts'
+import { registerViewSceneTool, type Renderer } from './view-scene.ts'
 
 /** Tools that would rebind or delete scenes. The agent is bound to one scene for its whole run. */
 export const HIDDEN_TOOLS = [
@@ -31,16 +32,21 @@ export const PRODUCT_TOOLS = ['search_products', 'get_product', 'show_products',
 
 export { FINISH_TOOLS } from './finishes.ts'
 
+/** The agent's eyes: renders of its own work scene (needs a renderer, see view-scene.ts). */
+export const VIEW_TOOLS = ['view_scene'] as const
+
 export interface SceneServerOptions {
   store: SceneStore
   sceneId: string
   catalog: Catalog
   /** Makes varpet's finish textures absolute here (VARPET_PUBLIC_ORIGIN); without it they stay origin-relative. */
   publicOrigin?: string
+  /** Draws the work scene for view_scene (the web app's POST /api/render); without it the tool is not offered. */
+  render?: Renderer
 }
 
 /** Load the scene, bind Pascal's operations to it and build the server. Throws when the scene does not exist. */
-export async function createSceneServer({ store, sceneId, catalog, publicOrigin }: SceneServerOptions): Promise<{
+export async function createSceneServer({ store, sceneId, catalog, publicOrigin, render }: SceneServerOptions): Promise<{
   server: McpServer
   operations: SceneOperations
 }> {
@@ -56,6 +62,7 @@ export async function createSceneServer({ store, sceneId, catalog, publicOrigin 
   hideTools(server, HIDDEN_TOOLS)
   registerProductTools(server, operations, catalog)
   registerFinishTools(server, operations, publishSnapshot)
+  if (render) registerViewSceneTool(server, operations, render)
   return { server, operations }
 }
 

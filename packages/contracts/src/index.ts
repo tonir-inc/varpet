@@ -47,3 +47,44 @@ export interface ProposalProduct {
   shop: string | null
   count: number
 }
+
+/** A camera for POST /api/render, in level coordinates (metres, y up). The scene MCP computes it (view_scene). */
+export interface RenderCamera {
+  projection: 'perspective'
+  position: [number, number, number]
+  target: [number, number, number]
+  /** Camera up vector; default [0, 1, 0]. A straight-down top view needs another, e.g. [0, 0, -1]. */
+  up?: [number, number, number]
+  /** Vertical field of view in degrees; default 50. A plan-like top view uses a narrow lens from high up. */
+  fov?: number
+}
+
+/** POST /api/render body: draw this graph from this camera with the editor's look. Internal callers only. */
+export interface RenderRequest {
+  /** A Pascal scene graph ({nodes, rootNodeIds, ...}), as the scene MCP exports it. */
+  graph: unknown
+  camera: RenderCamera
+  /** Pascal wall mode: walls standing, cut away toward the camera, or low. */
+  wallMode: 'up' | 'cutaway' | 'down'
+  /** Hide ceilings (top and 3/4 views look in from above). */
+  hideCeilings?: boolean
+  /** Image size in pixels; width 256..2048, height 256..2048. */
+  width: number
+  height: number
+}
+
+/** POST /api/render response. */
+export interface RenderResponse {
+  /** JPEG, base64 (no data: prefix). */
+  image: string
+  mimeType: 'image/jpeg'
+  /** The renderer three.js ended up on: WebGPU, or the WebGL2 fallback. */
+  backend: 'webgpu' | 'webgl'
+  width: number
+  height: number
+  /** Time spent in the renderer for this job (queue wait excluded), and the wait in the queue. */
+  renderMs: number
+  queuedMs: number
+  /** This job started the browser or loaded the render page first. */
+  cold: boolean
+}

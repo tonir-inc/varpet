@@ -818,6 +818,8 @@ export async function* runTurn(role: AgentRole, req: TurnRequest, opts: RunTurnO
             VARPET_SCENE_ID: workSceneId,
             VARPET_CATALOG_URL: s.catalogUrl,
             VARPET_PUBLIC_ORIGIN: s.publicOrigin,
+            ...(s.env.VARPET_RENDER_URL ? { VARPET_RENDER_URL: s.env.VARPET_RENDER_URL } : {}),
+            ...(s.env.VARPET_RENDER_TOKEN ? { VARPET_RENDER_TOKEN: s.env.VARPET_RENDER_TOKEN } : {}),
             ...(s.env.PASCAL_ALLOWED_ASSET_ORIGINS ? { PASCAL_ALLOWED_ASSET_ORIGINS: s.env.PASCAL_ALLOWED_ASSET_ORIGINS } : {}),
           },
         },
