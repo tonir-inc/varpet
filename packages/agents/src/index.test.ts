@@ -2,11 +2,20 @@ import { strict as assert } from 'node:assert'
 import { mkdtempSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
-import { test } from 'node:test'
+import { after, test } from 'node:test'
 import { SceneBridge } from '@pascal-app/mcp/bridge'
 import { createSceneStore } from '@pascal-app/mcp/storage'
 import type { AgentEvent } from '../../contracts/src/index.ts'
-import { StreamMapper, isProposalBusy, proposalProducts, runTurn, toolFlags, userMessageLine } from './index.ts'
+import {
+  StreamMapper,
+  closeAgentSessions,
+  isProposalBusy,
+  liveAgentSessions,
+  proposalProducts,
+  runTurn,
+  toolFlags,
+  userMessageLine,
+} from './index.ts'
 
 const root = resolve(import.meta.dirname, '../../..')
 const fakeClaude = join(import.meta.dirname, 'testdata/fake-claude.mjs')
@@ -21,6 +30,25 @@ async function fixture() {
   const env = { ...process.env, VARPET_DATA_DIR: dataDir, PASCAL_DB_PATH: dbPath, VARPET_CLAUDE_BIN: fakeClaude }
   return { store, env, dataDir, sceneId: meta.id }
 }
+
+after(() => closeAgentSessions(500))
+
+/** One line per fake claude start in the conversation's directory: {pid, args}. */
+function spawns(dataDir: string, conversationId: string) {
+  return readFileSync(join(dataDir, 'agents', conversationId, 'spawns.jsonl'), 'utf8')
+    .trim()
+    .split('\n')
+    .map((line) => JSON.parse(line) as { pid: number; args: string[] })
+}
+
+function stdinLines(dataDir: string, conversationId: string) {
+  return readFileSync(join(dataDir, 'agents', conversationId, 'stdin.jsonl'), 'utf8')
+    .trim()
+    .split('\n')
+    .map((line) => JSON.parse(line) as { type: string; request?: { subtype: string } })
+}
+
+const flagOf = (args: string[], name: string) => (args.includes(name) ? args[args.indexOf(name) + 1] : undefined)
 
 async function collect(iterable: AsyncIterable<AgentEvent>) {
   const events: AgentEvent[] = []
@@ -74,14 +102,18 @@ test('a designer turn streams session, deltas, tools, proposal and done in order
   const mcp = JSON.parse(at('--mcp-config')).mcpServers.scene
   assert.equal(mcp.env.VARPET_SCENE_ID, session.proposalSceneId)
 
-  // The next turn resumes the same session and keeps editing the same proposal.
+  // The next turn goes to the same live process (one more stdin line) and keeps editing the same proposal.
   const next = await collect(
     runTurn('designer', { sceneId, conversationId: session.conversationId, message: 'thanks' }, { root, env }),
   )
   assert.deepEqual(next[0], { ...session })
-  const argv2 = JSON.parse(readFileSync(join(cwd, 'argv.json'), 'utf8')) as string[]
-  assert.equal(argv2[argv2.indexOf('--resume') + 1], session.conversationId)
-  assert.ok(!argv2.includes('--session-id'))
+  assert.equal(next.at(-1)!.type, 'done', JSON.stringify(next.at(-1)))
+  assert.deepEqual(next.filter((e) => e.type === 'message_delta').map((e) => (e as { text: string }).text), ['Placing', '\n\n', 'Two tables.'])
+  assert.equal(spawns(dataDir, session.conversationId).length, 1)
+  const users = stdinLines(dataDir, session.conversationId).filter((l) => l.type === 'user')
+  assert.equal(users.length, 2)
+  assert.deepEqual(users[1], JSON.parse(userMessageLine('thanks')))
+  assert.equal(liveAgentSessions().find((p) => p.conversationId === session.conversationId)?.busy, false)
 })
 
 test('direct mode edits the scene itself and emits no proposal', async () => {
@@ -171,4 +203,146 @@ test('a proposal is busy from the session event until the agent hands it over', 
   assert.equal(busyAt.tool, true)
   assert.equal(busyAt.proposal, false)
   assert.equal(isProposalBusy(proposalSceneId), false)
+})
+
+test('an idle-closed conversation resumes in a new process', async () => {
+  const { env, dataDir, sceneId } = await fixture()
+  const opts = { root, env: { ...env, VARPET_AGENT_IDLE_MS: '150' } }
+  const first = await collect(runTurn('designer', { sceneId, message: 'one' }, opts))
+  const { conversationId } = first[0] as Extract<AgentEvent, { type: 'session' }>
+  assert.ok(liveAgentSessions().some((p) => p.conversationId === conversationId))
+  await new Promise((done) => setTimeout(done, 600))
+  assert.ok(!liveAgentSessions().some((p) => p.conversationId === conversationId), 'closed after the idle timeout')
+  const second = await collect(runTurn('designer', { sceneId, conversationId, message: 'two' }, opts))
+  assert.equal(second.at(-1)!.type, 'done', JSON.stringify(second.at(-1)))
+  const started = spawns(dataDir, conversationId)
+  assert.equal(started.length, 2)
+  assert.equal(flagOf(started[0]!.args, '--session-id'), conversationId)
+  assert.equal(flagOf(started[1]!.args, '--resume'), conversationId)
+  assert.ok(!started[1]!.args.includes('--session-id'))
+})
+
+test('a new work scene (the proposal was applied or dismissed) restarts the process bound to the new copy', async () => {
+  const { store, env, dataDir, sceneId } = await fixture()
+  const first = await collect(runTurn('designer', { sceneId, message: 'one' }, { root, env }))
+  const session = first[0] as Extract<AgentEvent, { type: 'session' }>
+  await store.delete(session.proposalSceneId!)
+  const second = await collect(runTurn('designer', { sceneId, conversationId: session.conversationId, message: 'two' }, { root, env }))
+  const rebound = second[0] as Extract<AgentEvent, { type: 'session' }>
+  assert.notEqual(rebound.proposalSceneId, session.proposalSceneId)
+  assert.equal(second.at(-1)!.type, 'done', JSON.stringify(second.at(-1)))
+  const started = spawns(dataDir, session.conversationId)
+  assert.equal(started.length, 2)
+  assert.equal(flagOf(started[1]!.args, '--resume'), session.conversationId)
+  assert.equal(JSON.parse(flagOf(started[1]!.args, '--mcp-config')!).mcpServers.scene.env.VARPET_SCENE_ID, rebound.proposalSceneId)
+  const live = liveAgentSessions().filter((p) => p.conversationId === session.conversationId)
+  assert.deepEqual(live.map((p) => p.pid), [started[1]!.pid])
+})
+
+test('a cancelled turn is interrupted, re-sent after a later turn\'s init, and keeps its process', async () => {
+  const { env, dataDir, sceneId } = await fixture()
+  const opts = { root, env: { ...env, FAKE_CLAUDE_MODE: 'hang' }, timeoutMs: 60_000, graceMs: 60_000 }
+  // Turn 1: the client goes away after the first words.
+  const abort1 = new AbortController()
+  const first: AgentEvent[] = []
+  for await (const event of runTurn('designer', { sceneId, message: 'one' }, { ...opts, signal: abort1.signal })) {
+    first.push(event)
+    if (event.type === 'message_delta') abort1.abort()
+  }
+  assert.deepEqual(first.at(-1), { type: 'error', message: 'agent cancelled' })
+  const { conversationId } = first[0] as Extract<AgentEvent, { type: 'session' }>
+
+  // Turn 2: cancelled right after the user line, where CLI 2.1.283 drops the interrupt.
+  const abort2 = new AbortController()
+  const startedAt = Date.now()
+  const second: AgentEvent[] = []
+  for await (const event of runTurn('designer', { sceneId, conversationId, message: 'two' }, { ...opts, signal: abort2.signal })) {
+    second.push(event)
+    if (event.type === 'session') abort2.abort()
+  }
+  assert.deepEqual(second.at(-1), { type: 'error', message: 'agent cancelled' })
+  assert.ok(Date.now() - startedAt < 5000, 'the re-sent interrupt ended the turn')
+  const lines = stdinLines(dataDir, conversationId)
+  const afterSecond = lines.slice(lines.findLastIndex((l) => l.type === 'user'))
+  assert.equal(afterSecond.filter((l) => l.request?.subtype === 'interrupt').length, 2)
+
+  // Turn 3: the client walks away without aborting (the route's events.return()); the next turn still runs.
+  for await (const event of runTurn('designer', { sceneId, conversationId, message: 'three' }, opts)) {
+    if (event.type === 'message_delta') break
+  }
+  const abort4 = new AbortController()
+  const fourth: AgentEvent[] = []
+  for await (const event of runTurn('designer', { sceneId, conversationId, message: 'four' }, { ...opts, signal: abort4.signal })) {
+    fourth.push(event)
+    if (event.type === 'message_delta') abort4.abort()
+  }
+  assert.deepEqual(fourth.at(-1), { type: 'error', message: 'agent cancelled' })
+  assert.equal(spawns(dataDir, conversationId).length, 1)
+  assert.ok(liveAgentSessions().some((p) => p.conversationId === conversationId))
+})
+
+test('an interrupt the agent never answers kills the process after the grace period', async () => {
+  const { env, dataDir, sceneId } = await fixture()
+  const events = await collect(
+    runTurn('designer', { sceneId, message: 'x' }, { root, env: { ...env, FAKE_CLAUDE_MODE: 'deaf' }, timeoutMs: 200, graceMs: 200 }),
+  )
+  assert.match((events.at(-1) as { message: string }).message, /^agent timed out/)
+  const { conversationId } = events[0] as Extract<AgentEvent, { type: 'session' }>
+  assert.ok(!liveAgentSessions().some((p) => p.conversationId === conversationId))
+  assert.equal(spawns(dataDir, conversationId).length, 1)
+})
+
+test('a process that dies mid-turn ends the turn with an error and the next turn resumes', async () => {
+  const { env, dataDir, sceneId } = await fixture()
+  const opts = { root, env: { ...env, FAKE_CLAUDE_MODE: 'crash' } }
+  const first = await collect(runTurn('designer', { sceneId, message: 'one' }, opts))
+  assert.equal(first.at(-1)!.type, 'done')
+  const { conversationId } = first[0] as Extract<AgentEvent, { type: 'session' }>
+  const second = await collect(runTurn('designer', { sceneId, conversationId, message: 'two' }, opts))
+  assert.equal(second.at(-1)!.type, 'error')
+  assert.match((second.at(-1) as { message: string }).message, /exited \(3\) without a result/)
+  assert.ok(second.some((e) => e.type === 'message_delta'))
+  assert.ok(!liveAgentSessions().some((p) => p.conversationId === conversationId))
+  const third = await collect(runTurn('designer', { sceneId, conversationId, message: 'three' }, opts))
+  assert.equal(third.at(-1)!.type, 'done')
+  assert.equal(flagOf(spawns(dataDir, conversationId)[1]!.args, '--resume'), conversationId)
+})
+
+test('a second turn on a busy conversation waits for the first', async () => {
+  const { env, dataDir, sceneId } = await fixture()
+  const first = await collect(runTurn('designer', { sceneId, message: 'one' }, { root, env }))
+  const { conversationId } = first[0] as Extract<AgentEvent, { type: 'session' }>
+  const order: string[] = []
+  const run = async (message: string) => {
+    for await (const event of runTurn('designer', { sceneId, conversationId, message }, { root, env })) order.push(`${message}:${event.type}`)
+  }
+  await Promise.all([run('a'), run('b')])
+  const aDone = order.indexOf('a:done')
+  assert.ok(aDone >= 0 && order.indexOf('b:session') > aDone, order.join(' '))
+  assert.equal(order.at(-1), 'b:done')
+  assert.equal(spawns(dataDir, conversationId).length, 1)
+})
+
+test('past the live cap the least recently used idle process closes', async () => {
+  await closeAgentSessions(500)
+  const { env, sceneId } = await fixture()
+  const opts = { root, env: { ...env, VARPET_AGENT_MAX_LIVE: '2' } }
+  const ids: string[] = []
+  for (const message of ['a', 'b', 'c']) {
+    const events = await collect(runTurn('designer', { sceneId, message }, opts))
+    ids.push((events[0] as Extract<AgentEvent, { type: 'session' }>).conversationId)
+  }
+  await new Promise((done) => setTimeout(done, 200))
+  assert.deepEqual(liveAgentSessions().map((p) => p.conversationId).sort(), [ids[1], ids[2]].sort())
+})
+
+test('a proposal stays busy through a turn on a reused process', async () => {
+  const { env, sceneId } = await fixture()
+  const first = await collect(runTurn('designer', { sceneId, message: 'one' }, { root, env }))
+  const { conversationId, proposalSceneId } = first[0] as Extract<AgentEvent, { type: 'session' }>
+  const busyAt: Record<string, boolean> = {}
+  for await (const event of runTurn('designer', { sceneId, conversationId, message: 'two' }, { root, env })) {
+    busyAt[event.type] = isProposalBusy(proposalSceneId!)
+  }
+  assert.deepEqual(busyAt, { session: true, progress: true, message_delta: true, tool: true, rate_limit: true, proposal: false, done: false })
 })

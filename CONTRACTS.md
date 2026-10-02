@@ -21,8 +21,12 @@ that file and this one in the same commit, and say so in the commit message.
 ## Agents
 - `POST /api/agents/{architect|designer}/turn` body `TurnRequest`, response `application/x-ndjson`, one
   `AgentEvent` per line (lane C). The panel (lane D) consumes only this.
-- Each turn is one `claude -p` process: model `claude-opus-5-5`, `--output-format stream-json`, MCP servers only
-  (scene MCP over stdio, pre-bound to one scene), no built-in tools, no user settings, `--resume` across turns.
+- Each conversation is one long-lived `claude -p` process in streaming input mode (`--input-format stream-json`, one
+  user line per turn, stdin kept open): model `claude-opus-5-5`, `--output-format stream-json`, MCP servers only
+  (scene MCP over stdio, pre-bound to one scene), no built-in tools, no user settings. A turn ends at its `result`
+  line; stop = an `interrupt` control_request. One turn at a time per conversation (a second waits). The process is
+  respawned with `--resume` when it is gone (idle `VARPET_AGENT_IDLE_MS`, default 10 min; LRU past
+  `VARPET_AGENT_MAX_LIVE`, default 6; crash; server restart) or its work scene changed (new proposal copy).
 - `VARPET_AGENT_EDITS=proposal` (default): the runner copies the scene, binds the agent to the copy, emits
   `proposal`; the panel previews the copy and Apply calls `/api/scenes/:base/apply`. `direct`: agent edits the
   scene itself, no `proposal` event.
