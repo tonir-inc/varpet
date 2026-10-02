@@ -1,0 +1,13 @@
+{
+  "name": "varpet",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.0.0",
+  "engines": { "node": ">=22.13" },
+  "scripts": {
+    "dev": "pnpm --filter @varpet/web dev",
+    "build": "pnpm --filter @varpet/web build",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "pnpm -r --if-present test"
+  }
+}
