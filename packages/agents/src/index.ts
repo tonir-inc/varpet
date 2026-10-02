@@ -496,7 +496,7 @@ function closeProcess(proc: LiveProcess, graceMs: number) {
   if (proc.idleTimer) clearTimeout(proc.idleTimer)
   if (!proc.alive) return proc.exited
   proc.child.stdin.end()
-  setRef(proc, false)
+  setRef(proc, true) // a closing process keeps node alive until it exits (at most graceMs + 3 s)
   setTimeout(() => killProcess(proc), graceMs).unref()
   closing.set(proc.conversationId, proc.exited)
   void proc.exited.then(() => closing.get(proc.conversationId) === proc.exited && closing.delete(proc.conversationId))
