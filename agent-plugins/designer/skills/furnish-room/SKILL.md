@@ -28,6 +28,10 @@ Think in stations and layers, not in a list of pieces.
 - **Layers that make it lived in.** Textiles: the rug, curtains on the windows, cushions and throws where the catalog
   has them. Dressed walls: art, mirrors, shelves, a bookcase. Books and objects on the surfaces. Plants at different
   heights. Real homes hold things from someone's life.
+- **Decoration belongs to something.** Layers finish furniture; they never stand in for it. Art hangs over a console,
+  a sofa or a bed; objects sit on surfaces; a plant stands beside a chair or a sideboard. A plant alone in an empty
+  corner or a small frame on an otherwise bare wall reads as filler and makes a room look sadder, not fuller. When a
+  spot looks empty, ask what furniture that spot is for first.
 - **Light.** Layered: something overhead or ambient, a lamp at every place people sit or read, an accent that makes
   a corner glow. Seats turned toward the daylight; nothing blocks a window.
 - **Harmony.** One palette and a few materials repeated round the room, one deliberate contrast, one memorable move.
@@ -55,7 +59,8 @@ light, plants, a warm wall finish (`restyle`).
 5. Look at the room: `view_scene` with the room's `zone_id`, `view: 'inside'` (eye level) and `'top'`. Ask whether,
    as a photo of a real home, it looks finished and lived in or whether someone would call it empty: which wall is
    bare, which seat has no lamp or surface, how much floor shows between the pieces, whether the windows have
-   curtains, whether the rug holds the group. Add what is missing and look again. Keep going until it holds up as a
+   curtains, whether the rug holds the group. Add what is missing (the missing furniture first, then what finishes
+   it) and look again. Keep going until it holds up as a
    real, lived-in room; stop before it turns cluttered. Without `view_scene` in your tools, run the same questions
    over the zone outline and the placed pieces' positions.
 6. `check_collisions` with `floorOnly: true` and `minimumClearance` 0.05, then fix every overlap and every piece

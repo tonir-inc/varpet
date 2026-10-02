@@ -35,7 +35,8 @@ Score each criterion 1-5 with a one-line reason that names the evidence, or null
   empty middle.
 - layering: the lived-in question, judged against the real rooms: textiles (rug, curtains, cushions, throws), dressed
   walls, books and objects, plants; neither showroom-bare nor cluttered. A room that looks empty next to the real
-  photos scores low here however correct its pieces are.
+  photos scores low here however correct its pieces are. Decoration standing in for furniture (a lone plant in an
+  empty corner, a small frame on a bare wall, objects with nothing to sit on) is filler and scores low too.
 - light: layered ambient, task and accent light; pools of light where people sit; seating turned to the daylight;
   no window blocked.
 - harmony: a coherent palette and materials with deliberate contrast; the style matches the brief and stays
