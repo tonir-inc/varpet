@@ -234,6 +234,40 @@ export function claudeArgs(input: {
   ]
 }
 
+/**
+ * Skills: the agents load Claude Code skills from our agent plugin only, never the user's ~/.claude config.
+ * VARPET_AGENT_PLUGIN_DIR (default <root>/agent-plugins) holds one plugin per role (`designer/`, `architect/`);
+ * "off" or "" turns skills off. Returns the role's plugin directory, or none.
+ */
+export function agentPluginDirs(role: AgentRole, root: string, env: NodeJS.ProcessEnv = process.env): string[] {
+  const base = env.VARPET_AGENT_PLUGIN_DIR
+  if (base === '' || base === 'off') return []
+  const dir = resolve(base ?? join(root, 'agent-plugins'), role)
+  return existsSync(join(dir, '.claude-plugin', 'plugin.json')) ? [dir] : []
+}
+
+/**
+ * claude args with our plugins' skills on: the Skill tool added to --tools and --allowedTools, slash commands (which
+ * also gate skills) back on, Claude Code's bundled skills off, then one --plugin-dir per plugin. With --setting-sources
+ * "" no user or project skills load. Unchanged when there are no plugin dirs.
+ */
+export function withSkills(args: string[], pluginDirs: string[]): string[] {
+  if (!pluginDirs.length) return args
+  const out: string[] = []
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i]!
+    if (arg === '--disable-slash-commands') continue
+    out.push(arg)
+    if (arg === '--tools' || arg === '--allowedTools') {
+      const value = args[++i] ?? ''
+      out.push(value ? `${value},Skill` : 'Skill')
+    }
+  }
+  out.push('--settings', JSON.stringify({ disableBundledSkills: true }))
+  for (const dir of pluginDirs) out.push('--plugin-dir', dir)
+  return out
+}
+
 /** The user message as a stream-json line: text plus image blocks from data: URLs. */
 export function userMessageLine(message: string, images: string[] = []) {
   const content: unknown[] = []
@@ -246,7 +280,7 @@ export function userMessageLine(message: string, images: string[] = []) {
   return `${JSON.stringify({ type: 'user', message: { role: 'user', content }, parent_tool_use_id: null })}\n`
 }
 
-function childEnv(env: NodeJS.ProcessEnv) {
+export function childEnv(env: NodeJS.ProcessEnv) {
   const out: NodeJS.ProcessEnv = { ...env }
   // Subscription only: never an API key. Drop markers of a parent Claude Code session.
   delete out.ANTHROPIC_API_KEY
@@ -789,16 +823,17 @@ export async function* runTurn(role: AgentRole, req: TurnRequest, opts: RunTurnO
         },
       },
     })
+    const pluginDirs = agentPluginDirs(role, s.root, s.env)
     let proc: LiveProcess
     try {
       proc = await processFor({
         conversationId: sessionId,
-        binding: JSON.stringify([s.claudeBin, dir, role, s.model, s.effort, mcpConfig, systemPrompt]),
+        binding: JSON.stringify([s.claudeBin, dir, role, s.model, s.effort, mcpConfig, systemPrompt, pluginDirs]),
         sceneVersion: await workVersion(),
         resume,
         s,
         dir,
-        args: (resume) => claudeArgs({ role, s, sessionId, resume, mcpConfig, systemPrompt }),
+        args: (resume) => withSkills(claudeArgs({ role, s, sessionId, resume, mcpConfig, systemPrompt }), pluginDirs),
       })
       turn = startTurn(proc, stdinLine, s, opts)
     } catch (error) {
