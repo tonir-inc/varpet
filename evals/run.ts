@@ -247,7 +247,7 @@ function runCritic(c: EvalCase): Promise<Record<string, unknown>> {
     `Data summary:\n${JSON.stringify(forCritic)}`,
   ].join('\n\n')
   const args = [
-    '-p', '--model', 'claude-opus-5-5', '--output-format', 'json', '--input-format', 'stream-json',
+    '-p', '--model', 'claude-opus-5-5', '--output-format', 'stream-json', '--verbose', '--input-format', 'stream-json',
     '--tools', '', '--setting-sources', '', '--strict-mcp-config', '--mcp-config', '{"mcpServers":{}}',
     '--disable-slash-commands', '--no-session-persistence', '--permission-mode', 'dontAsk',
     '--system-prompt', CRITIC_PROMPT, '--json-schema', JSON.stringify(CRITIC_SCHEMA),
@@ -261,13 +261,18 @@ function runCritic(c: EvalCase): Promise<Record<string, unknown>> {
     child.on('error', fail)
     child.on('close', (code) => {
       try {
-        const result = JSON.parse(out) as { structured_output?: Record<string, unknown>; result?: string; is_error?: boolean }
+        // stream-json input needs stream-json output: the answer is the last `result` line.
+        type Result = { type?: string; structured_output?: Record<string, unknown>; result?: string; is_error?: boolean }
+        const parsed = out.split('\n').flatMap((l) => { try { return [JSON.parse(l) as Result] } catch { return [] } })
+        const result = parsed.filter((e) => e.type === 'result').at(-1)
+        if (!result) throw new Error('no result line')
         if (result.is_error) throw new Error(String(result.result))
         done(result.structured_output ?? (JSON.parse(String(result.result)) as Record<string, unknown>))
       } catch (error) {
         fail(new Error(`critic failed (${code}): ${String(error)} ${err.slice(-400)} ${out.slice(-400)}`))
       }
     })
+    child.stdin.on('error', () => {}) // a CLI that refuses to start closes stdin; the close handler reports why
     child.stdin.end(userMessageLine(text, images))
   })
 }
