@@ -597,28 +597,6 @@
    }
   },
   {
-   "name": "Natural linen relaxed roman blind, 94x160 (fits 90 cm window)",
-   "position": [
-    0.8171999999999999,
-    1.5866000000000005,
-    2.08265
-   ],
-   "rotation": 0,
-   "scale": [
-    1,
-    1,
-    1
-   ],
-   "id": "trial-blind-balcony",
-   "assetId": "extra:bpy-curtains:roman-linen-natural-90",
-   "host": {
-    "wallId": "wall-balcony-south",
-    "offset": 0.7118,
-    "elevation": 1.5866000000000005,
-    "side": 1
-   }
-  },
-  {
    "name": "Oat linen sill-length wave curtains on oak rod, 210 cm wide, 150 cm drop",
    "position": [
     0.3346,
@@ -627,7 +605,7 @@
    ],
    "rotation": 1.5707963267948966,
    "scale": [
-    1.0660574909575482,
+    1.1422044545973729,
     1,
     1
    ],
@@ -1009,23 +987,6 @@
   }
  },
  "catalog": [
-  {
-   "id": "extra:bpy-curtains:roman-linen-natural-90",
-   "name": "Natural linen relaxed roman blind, 94x160 (fits 90 cm window)",
-   "kind": "curtain",
-   "category": "Decoration",
-   "dimensions": [
-    0.945,
-    1.0834,
-    0.0881
-   ],
-   "color": "#b8b4ad",
-   "price": 52000,
-   "source": {
-    "type": "gltf",
-    "url": "/api/catalog/models/extra-bpy-curtains-roman-linen-natural-90.glb"
-   }
-  },
   {
    "id": "experimental:gaps:sill-linen-oat-wave-oak-210",
    "name": "Oat linen sill-length wave curtains on oak rod, 210 cm wide, 150 cm drop",

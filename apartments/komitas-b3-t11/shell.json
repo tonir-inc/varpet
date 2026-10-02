@@ -257,18 +257,18 @@
      "kind": "window",
      "offset": 0.3164,
      "width": 0.7908,
-     "height": 1.4,
-     "sill": 0.9,
-     "assetId": null
+     "height": 2.3,
+     "sill": 0.0,
+     "assetId": "extra:openings:window-pvc-tall"
     },
     {
      "id": "door-balcony",
      "kind": "door",
      "offset": 1.1248,
      "width": 0.7732,
-     "height": 2.05,
+     "height": 2.3,
      "sill": 0.0,
-     "assetId": null
+     "assetId": "extra:openings:door-oak-glazed"
     }
    ]
   },

@@ -309,11 +309,11 @@
   },
   "catalog-trial": {
    "saved": "option.catalog-trial.json",
-   "pieces": 36
+   "pieces": 35
   },
   "styled": {
    "saved": "option.styled.json",
-   "pieces": 36
+   "pieces": 35
   }
  },
  "rooms": [
