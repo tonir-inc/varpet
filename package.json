@@ -11,7 +11,7 @@
     "build:pascal": "node scripts/build-pascal.mjs",
     "dev": "node scripts/build-pascal.mjs && pnpm --filter @varpet/web dev",
     "build": "node scripts/build-pascal.mjs && pnpm --filter @varpet/web build",
-    "typecheck": "node scripts/build-pascal.mjs && pnpm -r --filter '!./vendor/**' --if-present typecheck",
+    "typecheck": "node scripts/build-pascal.mjs && vendor/pascal/packages/mcp/node_modules/.bin/tsc --noEmit -p vendor/pascal/packages/editor && pnpm -r --filter '!./vendor/**' --if-present typecheck",
     "test": "node scripts/build-pascal.mjs && pnpm -r --filter '!./vendor/**' --if-present test"
   },
   "devDependencies": {

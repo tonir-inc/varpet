@@ -12,7 +12,7 @@ we used before. We own this copy and patch it here; every patch is listed in `PA
 - `editor` ships TypeScript source; Next transpiles it. `core`, `viewer`, `nodes`, `mcp` are consumed from `dist`, built by
   `scripts/build-pascal.mjs` (`tsc --build` with Pascal's TypeScript 6.0.3, then `scripts/fix-node-esm-imports.ts` on
   `core/dist` and `mcp/dist` under node, as their own build scripts do with bun). It runs on `pnpm install`
-  (postinstall) and before `pnpm dev|build|test|typecheck`; it is incremental. After editing these packages' source
+  (postinstall) and before `pnpm dev|build|test|typecheck` (typecheck also checks the editor source); it is incremental. After editing these packages' source
   while `pnpm dev` runs, run `pnpm build:pascal`.
 - Built from this commit, the JS in `dist` is byte-identical to npm 1.0.3; only some `.d.ts` differ (JSX type import path).
 - Pascal's root `patchedDependencies` (three@0.186.0, iwer) are for its own app; npm consumers never got them and we
