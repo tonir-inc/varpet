@@ -888,3 +888,172 @@ body:has(.varpet-editor) [cmdk-item][data-selected="true"] {
 .folio-ask:hover {
   background: var(--folio-teal-wash);
 }
+
+/* ── Furniture (v1 furniture drawer, in the sidebar): search, category, 2-column product cards. ───────────── */
+.folio-furniture {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  padding: 14px 16px 16px;
+  background: var(--folio-surface);
+  color: var(--folio-ink);
+  font-size: 13px;
+}
+
+.folio-furniture > * {
+  flex-shrink: 0;
+}
+
+.folio-panel-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.folio-panel-header h2 {
+  margin: 0;
+  font-family: var(--font-folio-serif);
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.folio-count {
+  color: var(--folio-muted);
+  font-size: 12px;
+}
+
+.folio-search {
+  display: flex;
+  height: 40px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  border: 1px solid var(--folio-control-line);
+  border-radius: 3px;
+  background: var(--folio-ground);
+  color: var(--folio-muted);
+}
+
+.folio-search:focus-within {
+  border-color: var(--folio-teal);
+  box-shadow: inset 0 0 0 1px var(--folio-teal);
+}
+
+.folio-search input {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  background: transparent;
+  color: var(--folio-ink);
+  font: inherit;
+  outline: none;
+}
+
+.folio-field-label {
+  margin-top: 4px;
+  color: var(--folio-muted);
+  font-size: 12px;
+}
+
+.folio-select {
+  height: 36px;
+  padding: 0 8px;
+  border: 1px solid var(--folio-control-line);
+  border-radius: 3px;
+  background: var(--folio-ground);
+  color: var(--folio-ink);
+  font: inherit;
+}
+
+.folio-help,
+.folio-source-note {
+  margin: 2px 0;
+  color: var(--folio-muted);
+  font-size: 12px;
+}
+
+.folio-source-note {
+  margin-top: auto;
+  padding-top: 10px;
+}
+
+.folio-products {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.folio-product {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  border: 1px solid var(--folio-line);
+  border-radius: 2px;
+  background: var(--folio-surface);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  transition: border-color 140ms ease, background-color 140ms ease;
+}
+
+.folio-product:hover {
+  border-color: var(--folio-control-line);
+}
+
+.folio-product[aria-pressed="true"] {
+  border-color: var(--folio-teal);
+  background: var(--folio-teal-wash);
+}
+
+.folio-product-image {
+  display: grid;
+  aspect-ratio: 1;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 1px;
+  background: var(--folio-ground);
+  color: var(--folio-muted);
+}
+
+.folio-product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.folio-product-name {
+  display: -webkit-box;
+  overflow: hidden;
+  font-weight: 600;
+  line-height: 1.3;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.folio-product-size {
+  color: var(--folio-muted);
+  font-size: 11px;
+}
+
+.folio-product-price {
+  display: flex;
+  flex-direction: column;
+}
+
+.folio-product-price .folio-num {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.folio-product-price small {
+  overflow: hidden;
+  color: var(--folio-muted);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
