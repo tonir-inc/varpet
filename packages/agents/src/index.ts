@@ -406,7 +406,8 @@ function resultSummary(content: unknown) {
       : Array.isArray(content)
         ? content.map((c: Json) => (c.type === 'text' ? c.text : c.type === 'image' ? '[image]' : '')).join(' ')
         : ''
-  const flat = text.replace(/\s+/g, ' ').trim()
+  // Claude Code notes where it saved an image result ("[Image: source: /local/path.jpg]"); the browser needs neither.
+  const flat = text.replace(/\[Image: source: [^\]]*\]/g, '').replace(/\s+/g, ' ').trim()
   return flat.length > 240 ? `${flat.slice(0, 237)}...` : flat
 }
 

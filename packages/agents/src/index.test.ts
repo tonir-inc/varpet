@@ -204,6 +204,7 @@ test('a view_scene result reaches the browser as a short summary, never the imag
           tool_use_id: 't1',
           content: [
             { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data } },
+            { type: 'text', text: '[Image: source: /Users/x/.claude/projects/p/s/tool-results/mcp-scene-blob-1.jpg]' },
             { type: 'text', text: 'Living room (zone_r-living): 3/4 view from the north-west. Rendered with WebGPU at 1024x768 in 1.3 s.' },
           ],
         },
@@ -213,7 +214,7 @@ test('a view_scene result reaches the browser as a short summary, never the imag
   assert.equal(event?.type, 'tool')
   const line = JSON.stringify(event)
   assert.ok(line.length < 600, `${line.length} chars`)
-  assert.ok(!line.includes('AAAA'))
+  assert.ok(!line.includes('AAAA') && !line.includes('tool-results'))
   assert.match((event as { summary: string }).summary, /^\[image\] Living room \(zone_r-living\)/)
 })
 
