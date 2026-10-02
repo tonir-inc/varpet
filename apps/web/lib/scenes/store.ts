@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs'
 import path from 'node:path'
 import type { SceneStore } from '@pascal-app/mcp/storage'
 
@@ -6,8 +7,19 @@ import type { SceneStore } from '@pascal-app/mcp/storage'
 const globalKey = Symbol.for('varpet.sceneStore')
 type GlobalWithStore = typeof globalThis & { [globalKey]?: Promise<SceneStore> }
 
+/** Same default as the agent runner (`packages/agents`): `$VARPET_DATA_DIR/pascal.db`, else `<repo root>/.data`. */
 export function scenesDbPath(): string {
-  return process.env.PASCAL_DB_PATH || path.resolve(process.cwd(), '.data/pascal.db')
+  if (process.env.PASCAL_DB_PATH) return path.resolve(process.env.PASCAL_DB_PATH)
+  if (process.env.VARPET_DATA_DIR) return path.resolve(process.env.VARPET_DATA_DIR, 'pascal.db')
+  return path.join(repoRoot(), '.data', 'pascal.db')
+}
+
+function repoRoot(): string {
+  if (process.env.VARPET_ROOT) return path.resolve(process.env.VARPET_ROOT)
+  for (let dir = process.cwd(); ; dir = path.dirname(dir)) {
+    if (existsSync(path.join(dir, 'pnpm-workspace.yaml'))) return dir
+    if (path.dirname(dir) === dir) return process.cwd()
+  }
 }
 
 export function getSceneStore(): Promise<SceneStore> {
