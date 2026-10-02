@@ -1,10 +1,6 @@
-# Project Codex config. Loads only once this folder is trusted in ~/.codex/config.toml; the hooks in
-# .codex/hooks.json run once each person trusts them with /hooks (Codex reviews hooks by hash).
+# Project Codex config. Loads only once this folder is trusted in ~/.codex/config.toml.
 # Kept small on purpose: every global MCP server costs start-up time and context in every thread,
 # and one thread per job multiplies that. Servers this project does not use are switched off here.
-
-[features]
-hooks = true
 
 # The team's specs live in Notion. Once per person: `codex mcp login notion`, and pick the TEAM workspace.
 [mcp_servers.notion]

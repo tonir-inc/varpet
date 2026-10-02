@@ -31,6 +31,7 @@ from openai_codex import AsyncCodex, LocalImageInput, TextInput
 from pydantic import BaseModel, ConfigDict, Field
 
 from .architect import MAX_PIECE_PHOTOS, settle
+from .product_prompts import resolve_product_prompt
 from .codex_runner import CodexRunner, _strip_frontmatter, _tokens, thread_config
 from .codex_tools import Tool, install, start_thread
 from .dispatch import dispatch
@@ -72,7 +73,7 @@ class SessionReport:
 
 
 def _skill(repo: Path, name: str) -> str:
-    return _strip_frontmatter((repo / ".agents" / "skills" / name / "SKILL.md").read_text())
+    return _strip_frontmatter(resolve_product_prompt(name, repo).read_text())
 
 
 # Measured 27 Sept (7 plans, plan only): this minimal prompt plus submit_shell beat the 7,100-character one that

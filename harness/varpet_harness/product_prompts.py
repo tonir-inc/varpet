@@ -9,10 +9,9 @@ _PROMPTS = {
     "plan-to-scene": "harness/prompts/plan-to-scene.md",
     "furnish-from-plan": "harness/prompts/furnish-from-plan.md",
     "scene-visual-check": "harness/prompts/scene-visual-check.md",
-    # Shared product skills remain owned and maintained by their existing lanes.
-    "flat-shell": ".agents/skills/flat-shell/SKILL.md",
-    "flat-furnish": ".agents/skills/flat-furnish/SKILL.md",
-    "part-dsl-draft": ".agents/skills/part-dsl-draft/SKILL.md",
+    "flat-shell": "harness/prompts/flat-shell.md",
+    "flat-furnish": "harness/prompts/flat-furnish.md",
+    "part-dsl-draft": "harness/prompts/part-dsl-draft.md",
 }
 
 

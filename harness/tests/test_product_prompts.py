@@ -15,16 +15,15 @@ from varpet_harness.product_prompts import product_prompt_names, resolve_product
 
 
 ROOT = Path(__file__).resolve().parents[2]
-MOVED = ("furnish-from-plan", "interior-design-rules", "plan-to-scene", "scene-visual-check")
-SHARED = ("flat-furnish", "flat-shell", "part-dsl-draft")
-DOMAINS = sorted((*MOVED, *SHARED))
+MOVED = ("flat-furnish", "flat-shell", "furnish-from-plan", "interior-design-rules", "part-dsl-draft", "plan-to-scene",
+         "scene-visual-check")
+DOMAINS = sorted(MOVED)
 
 
 @pytest.fixture
 def isolated_repo(tmp_path):
     for name in DOMAINS:
-        path = (tmp_path / "harness/prompts" / f"{name}.md" if name in MOVED
-                else tmp_path / ".agents/skills" / name / "SKILL.md")
+        path = tmp_path / "harness/prompts" / f"{name}.md"
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(f"---\nname: {name}\n---\n\nProduct instructions: {name}\n")
     return tmp_path
@@ -45,8 +44,6 @@ def test_moved_prompts_resolve_without_old_coding_skill_paths(isolated_repo):
     for name in MOVED:
         assert not (isolated_repo / ".agents/skills" / name).exists()
         assert resolve_product_prompt(name, isolated_repo) == isolated_repo / "harness/prompts" / f"{name}.md"
-    for name in SHARED:
-        assert resolve_product_prompt(name, isolated_repo) == isolated_repo / ".agents/skills" / name / "SKILL.md"
     (isolated_repo / "harness/prompts/plan-to-scene.md").unlink()
     with pytest.raises(FileNotFoundError, match="plan-to-scene"):
         resolve_product_prompt("plan-to-scene", isolated_repo)
