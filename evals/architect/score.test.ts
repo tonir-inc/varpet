@@ -66,3 +66,22 @@ test('a room drawn 10% too big and a door 0.3 m off are measured', () => {
   assert.equal(s.doors.matched, 9)
   assert.ok(s.doors.meanPosErr! > 0.02 && s.doors.meanPosErr! < 0.05)
 })
+
+test('a flat drawn 6% too big loses area but keeps its layout score', () => {
+  const g = clone()
+  const k = 1.06
+  for (const n of Object.values(g.nodes)) {
+    if (n.type === 'zone' || n.type === 'slab') n.polygon = n.polygon.map(([x, z]: number[]) => [x * k, z * k])
+    if (n.type === 'wall') {
+      n.start = [n.start[0] * k, n.start[1] * k]
+      n.end = [n.end[0] * k, n.end[1] * k]
+    }
+    if (n.type === 'door' || n.type === 'window') n.position[0] *= k
+  }
+  const s = scoreShell(g, template)
+  assert.ok(Math.abs(s.totalArea.err - (k * k - 1)) < 0.001)
+  assert.ok(s.floorIou < 0.9)
+  assert.ok(Math.abs(s.scaled!.factor - 1 / k) < 0.005, `factor ${s.scaled!.factor}`)
+  assert.ok(s.scaled!.floorIou > 0.98)
+  assert.equal(s.scaled!.doorsMatched, 9)
+})

@@ -14,9 +14,9 @@ plan-reading pass went from 95.3% to 98.3% on held-out plans (Sept 2026).
 - **Scale** from three or more printed dimensions that agree. With areas only, pick the one scale that makes
   all printed room areas agree at once, never one room. Check it on a door (interior 0.8-0.9 m, entrance
   0.9-1.0 m). Room areas are net, inside the wall faces. A flat total is net only when it equals the sum of the
-  printed room areas; a lone total (no room areas) is gross, with outer walls, columns and shafts, and the rooms
-  add up to about 85-90% of it. Never fit the scale to a gross total: take it from doors, wall thicknesses, stair
-  treads (~0.28-0.30 m) or kitchen counters (0.6 m deep), and use the total only to check it.
+  printed room areas; a lone total (no room areas) may be gross, with outer walls, columns and shafts. Then take
+  the scale from elements (doors, stair treads 0.27-0.30 m, kitchen counters 0.6 m deep), not from the total; if
+  the rooms' sum and the total then differ by more than ~5%, say so and ask which one the developer means.
 - **Gridlines**: list each x where a wall face runs down the plan and each z where one runs across (x right,
   z down the plan, metres, the flat's middle near the origin: the site's ground is a 30 m square around it). Rooms and walls come from the same numbers, so they share corners exactly. A wall
   centreline sits half its thickness outside the room face it bounds.
