@@ -5,7 +5,7 @@ import { test } from 'node:test'
 import { SceneBridge } from '@pascal-app/mcp/bridge'
 import { apiGraphSchema } from '../scenes/graph-schema.ts'
 import { buildTemplate, SOURCES } from './build-templates.ts'
-import { convertV1Scene, polygonArea, type V1Scene, WALL_PAINT } from './convert.ts'
+import { convertV1Scene, FLOOR_FINISH, floorKind, polygonArea, type V1Scene, WALL_PAINT } from './convert.ts'
 
 const dir = import.meta.dirname
 const source = (id: string) => JSON.parse(readFileSync(join(dir, 'sources', `${id}.json`), 'utf8')) as V1Scene
@@ -115,4 +115,29 @@ test('both faces of every wall are painted', () => {
   for (const wall of (Object.values(graph.nodes) as Node[]).filter((n) => n.type === 'wall')) {
     assert.deepEqual(wall.slots, { interior: WALL_PAINT, exterior: WALL_PAINT })
   }
+})
+
+test('floors follow the room: tiled bathrooms, outdoor tile on balconies, wood elsewhere', () => {
+  const floor = (id: string) => {
+    const { graph } = convertV1Scene(source(id))
+    return new Map((Object.values(graph.nodes) as Node[]).filter((n) => n.type === 'slab').map((s) => [s.name.replace(/ floor$/, ''), s.slots.surface]))
+  }
+  const sunday = floor('sunday-b12121')
+  assert.equal(sunday.get('Bathroom'), FLOOR_FINISH.wet)
+  assert.equal(sunday.get('Balcony'), FLOOR_FINISH.outdoor)
+  for (const room of ['Living room', 'Bedroom', 'Kitchen', 'Entrance', 'Hall closet']) assert.equal(sunday.get(room), FLOOR_FINISH.dry, room)
+  const t7 = floor('orion-t7')
+  for (const room of ['Ensuite and laundry', 'Shower room', 'Bathroom']) assert.equal(t7.get(room), FLOOR_FINISH.wet, room)
+  assert.equal(floor('m6-12-54').get('Balcony · living room'), FLOOR_FINISH.outdoor)
+  assert.equal(floorKind('WC'), 'wet')
+  assert.equal(floorKind('Loggia'), 'outdoor')
+  assert.equal(floorKind('Store', 'terrace'), 'outdoor')
+})
+
+test('a floor finish the v1 flat assigned wins over the room default', () => {
+  const v1 = source('sunday-b12121')
+  const kitchen = v1.rooms.find((r) => r.name === 'Kitchen')!
+  v1.project = { ...v1.project, materials: [{ id: 'm1', name: 'Travertine tile 60x60' }], finishes: [{ entityId: kitchen.id, surface: 'floor', materialId: 'm1' }] }
+  const slab = (Object.values(convertV1Scene(v1).graph.nodes) as Node[]).find((n) => n.type === 'slab' && n.metadata.v1Id === kitchen.id)!
+  assert.equal(slab.slots.surface, 'library:varpet-travertine')
 })

@@ -175,8 +175,9 @@ function sidesFromZones(wall: AnyNode, zones: Point[][]) {
 }
 
 /**
- * Cutaway hides a wall only when it knows which side faces the room. Pascal tags sides while a person draws walls;
- * walls written by our agents, templates and seeds arrive "unknown", so derive them before showing a graph: Pascal's
+ * Cutaway hides a wall only when it knows which side faces the room. Pascal tags sides while a person draws walls,
+ * and our scene MCP tags the walls agents create (packages/scene-mcp/src/wall-sides.ts, same rules); scenes saved
+ * before that, templates and seeds arrive "unknown", so derive them before showing a graph: Pascal's
  * room detector first, the level's zones where it finds no closed room. Pure: the same graph when nothing changes.
  */
 export function withWallSides<T extends SceneGraph>(graph: T): T {
