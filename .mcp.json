@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "outline": {
+      "type": "http",
+      "url": "https://varpet-internal.snek.page/mcp"
+    }
+  }
+}

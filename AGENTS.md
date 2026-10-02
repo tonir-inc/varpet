@@ -18,6 +18,7 @@ Developer plan and photos in, a furnished 3D flat out, rearranged by a person an
 - `docs/CONSTITUTION.md`. Do not edit tests, fixtures or the schema to make things pass.
 - Keep `pnpm test` and `pnpm typecheck` green on main; teammates build on it.
 - Other lanes: `python3 tools/board.py unread --as <lane>`, skill `.agents/skills/message-board`.
+- Team docs: Outline at https://varpet-internal.snek.page (public Handbook: `/s/varpet`). Read and write it through the `outline` MCP server (`.mcp.json`, `.codex/config.toml`); sign in once with your Varpet account.
 
 ## Host VM
 One box runs everything: `ssh mc-server` (root; public 152.53.158.86, tailnet 100.107.246.46).
