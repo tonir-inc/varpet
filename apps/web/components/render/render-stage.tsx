@@ -124,7 +124,7 @@ export function RenderStage() {
   )
 }
 
-/** Holds the job's camera every frame (before the wall cutout reads it) and hides ceilings when asked. */
+/** Holds the job's camera every frame (before the wall cutout reads it) and hides ceiling surfaces when asked. */
 function CameraRig({ job, onFrame }: { job: Job | null; onFrame: (backend: Backend) => void }) {
   const camera = useThree((state) => state.camera)
   const size = useThree((state) => state.size)
@@ -143,12 +143,21 @@ function CameraRig({ job, onFrame }: { job: Job | null; onFrame: (backend: Backe
       camera.lookAt(...spec.target)
       ;(camera as PerspectiveCamera).updateProjectionMatrix()
       camera.updateMatrixWorld()
-      if (job.hideCeilings) {
-        sceneRegistry.byType.ceiling?.forEach((id) => {
-          const object = sceneRegistry.nodes.get(id)
-          if (object) object.visible = false
-        })
-      }
+      // Hide only the ceiling surfaces: clearing their layers drops the meshes from the render list while three.js
+      // still draws their children (pendants and ceiling lights hang in the ceiling's frame); `visible = false`
+      // would hide those too.
+      sceneRegistry.byType.ceiling?.forEach((id) => {
+        const object = sceneRegistry.nodes.get(id)
+        if (!object) return
+        const data = object.userData as { varpetLayers?: number }
+        if (job.hideCeilings) {
+          data.varpetLayers ??= object.layers.mask
+          object.layers.mask = 0
+        } else if (data.varpetLayers !== undefined) {
+          object.layers.mask = data.varpetLayers
+          delete data.varpetLayers
+        }
+      })
     }
     onFrame(isWebGpu ? 'webgpu' : 'webgl')
   }, -5)
