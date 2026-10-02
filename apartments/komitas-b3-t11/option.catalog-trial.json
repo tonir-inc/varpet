@@ -330,6 +330,72 @@
    }
   },
   {
+   "name": "White matte wall cabinet, two doors, 100 x 36 x 72 cm, wall-mounted",
+   "position": [
+    7.991300000000001,
+    1.45,
+    1.265
+   ],
+   "rotation": -1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "id": "trial-upper-east-1",
+   "assetId": "experimental:gaps:white-wall-cabinet-100",
+   "host": {
+    "wallId": "wall-kitchen-east",
+    "offset": 1.265,
+    "elevation": 1.45,
+    "side": 1
+   }
+  },
+  {
+   "name": "White matte wall cabinet, two doors, 100 x 36 x 72 cm, wall-mounted",
+   "position": [
+    8.2899,
+    1.45,
+    2.93
+   ],
+   "rotation": -1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "id": "trial-upper-east-2",
+   "assetId": "experimental:gaps:white-wall-cabinet-100",
+   "host": {
+    "wallId": "wall-east",
+    "offset": 0.5224000000000002,
+    "elevation": 1.45,
+    "side": 1
+   }
+  },
+  {
+   "name": "White matte wall cabinet, two doors, 80 x 36 x 72 cm, wall-mounted",
+   "position": [
+    8.2899,
+    1.45,
+    3.84
+   ],
+   "rotation": -1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "id": "trial-upper-east-3",
+   "assetId": "experimental:gaps:white-wall-cabinet-80",
+   "host": {
+    "wallId": "wall-east",
+    "offset": 1.4324,
+    "elevation": 1.45,
+    "side": 1
+   }
+  },
+  {
    "name": "Slim electric water heater 50 L, white, wall-hung, 50x28x98 with pipes, wall-mounted",
    "position": [
     7.04775,
@@ -977,6 +1043,23 @@
    }
   },
   {
+   "id": "extra:bpy-curtains:roman-linen-oat-120",
+   "name": "Oat linen relaxed roman blind, 124x160 (fits 120 cm window)",
+   "kind": "curtain",
+   "category": "Decoration",
+   "dimensions": [
+    1.245,
+    1.0881,
+    0.0907
+   ],
+   "color": "#b8b4ad",
+   "price": 64000,
+   "source": {
+    "type": "gltf",
+    "url": "/api/catalog/models/extra-bpy-curtains-roman-linen-oat-120.glb"
+   }
+  },
+  {
    "id": "experimental:gaps:sill-linen-oat-wave-oak-210",
    "name": "Oat linen sill-length wave curtains on oak rod, 210 cm wide, 150 cm drop",
    "kind": "curtain",
@@ -1113,20 +1196,37 @@
    }
   },
   {
-   "id": "extra:bpy-curtains:roman-linen-oat-120",
-   "name": "Oat linen relaxed roman blind, 124x160 (fits 120 cm window)",
-   "kind": "curtain",
+   "id": "experimental:gaps:white-wall-cabinet-80",
+   "name": "White matte wall cabinet, two doors, 80 x 36 x 72 cm, wall-mounted",
+   "kind": "decor",
    "category": "Decoration",
    "dimensions": [
-    1.245,
-    1.0881,
-    0.0907
+    0.8,
+    0.72,
+    0.361
    ],
-   "color": "#b8b4ad",
-   "price": 64000,
+   "color": "#d8d2c6",
+   "price": 112000,
    "source": {
     "type": "gltf",
-    "url": "/api/catalog/models/extra-bpy-curtains-roman-linen-oat-120.glb"
+    "url": "/experimental-models/white-wall-cabinet-80.glb"
+   }
+  },
+  {
+   "id": "experimental:gaps:white-wall-cabinet-100",
+   "name": "White matte wall cabinet, two doors, 100 x 36 x 72 cm, wall-mounted",
+   "kind": "decor",
+   "category": "Decoration",
+   "dimensions": [
+    1,
+    0.72,
+    0.361
+   ],
+   "color": "#d8d2c6",
+   "price": 134000,
+   "source": {
+    "type": "gltf",
+    "url": "/experimental-models/white-wall-cabinet-100.glb"
    }
   }
  ]
