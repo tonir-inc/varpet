@@ -7,8 +7,7 @@
   "sofa 0.050 m into living",
   "tv-unit 0.060 m into living",
   "fridge 0.055 m into living",
-  "wardrobe-bedroom-a 0.060 m into bedroom",
-  "wardrobe-bedroom-b 0.060 m into bedroom",
+  "wardrobe-bedroom 0.060 m into bedroom",
   "tv on tv-unit"
  ],
  "furniture": [
@@ -223,34 +222,20 @@
    "name": "Amazon Brand \u2013 Rivet Mid-Century Stark 2-Drawer Nightstand, 24\"H, Walnut"
   },
   {
-   "id": "wardrobe-bedroom-a",
+   "id": "wardrobe-bedroom",
    "kind": "wardrobe",
    "room": "bedroom",
    "footprint_m": [
-    1.002,
+    2.021,
     0.527
    ],
-   "asset": "extra:bpy-bedroom:reeded-oak-2-door-wardrobe-100",
+   "asset": "abo:B07GFSJ69T",
    "asset_m": [
-    1,
+    1.78,
     0.63
    ],
-   "name": "Reeded rift oak two-door wardrobe, long brass bar handles, black plinth"
-  },
-  {
-   "id": "wardrobe-bedroom-b",
-   "kind": "wardrobe",
-   "room": "bedroom",
-   "footprint_m": [
-    1.002,
-    0.527
-   ],
-   "asset": "extra:bpy-bedroom:reeded-oak-2-door-wardrobe-100",
-   "asset_m": [
-    1,
-    0.63
-   ],
-   "name": "Reeded rift oak two-door wardrobe, long brass bar handles, black plinth"
+   "stretched_x": 1.1354,
+   "name": "Amazon Brand - Movian Kolva Sliding 2-Door Wardrobe, 180 x 61 x 197cm, White"
   },
   {
    "id": "desk",
@@ -302,7 +287,7 @@
  "options": {
   "as-drawn": {
    "export": "ok",
-   "pieces": "23/23",
+   "pieces": "22/22",
    "settled": [
     "bedside 0.070 m off bed",
     "desk-chair 0.185 m off desk",
@@ -318,18 +303,17 @@
     "tv-unit 0.060 m into living",
     "fridge 0.055 m into living",
     "bed 0.075 m into bedroom",
-    "wardrobe-bedroom-a 0.060 m into bedroom",
-    "wardrobe-bedroom-b 0.060 m into bedroom",
+    "wardrobe-bedroom 0.060 m into bedroom",
     "tv on tv-unit"
    ]
   },
   "catalog-trial": {
    "saved": "option.catalog-trial.json",
-   "pieces": 37
+   "pieces": 36
   },
   "styled": {
    "saved": "option.styled.json",
-   "pieces": 37
+   "pieces": 36
   }
  },
  "rooms": [

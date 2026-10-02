@@ -12,8 +12,7 @@
   <polygon id="tv" class="furniture" data-kind="tv" data-name="TV" data-front="up" data-on="tv-unit" data-asset="extra:electronics:tv-50-feet-black" points="747,602 811,602 811,610 747,610"/>
   <polygon id="bed" class="furniture" data-kind="bed" data-name="Double bed" data-front="left" data-asset="extra:bpy-beds-dressed:mcm-walnut-cane-bed-160-terracotta" points="710,645 826,645 826,747 710,747"/>
   <polygon id="bedside" class="furniture" data-kind="cabinet" data-name="Bedside table" data-front="left" points="797,747 822,747 822,772 797,772"/>
-  <polygon id="wardrobe-bedroom-a" class="furniture" data-kind="wardrobe" data-name="Wardrobe" data-front="down" data-asset="extra:bpy-bedroom:reeded-oak-2-door-wardrobe-100" points="535,620 592,620 592,650 535,650"/>
-  <polygon id="wardrobe-bedroom-b" class="furniture" data-kind="wardrobe" data-name="Wardrobe" data-front="down" data-asset="extra:bpy-bedroom:reeded-oak-2-door-wardrobe-100" points="593,620 650,620 650,650 593,650"/>
+  <polygon id="wardrobe-bedroom" class="furniture" data-kind="wardrobe" data-name="Wardrobe" data-front="down" data-asset="abo:B07GFSJ69T" data-fit="width" points="535,620 650,620 650,650 535,650"/>
   <polygon id="desk" class="furniture" data-kind="desk" data-name="Desk" data-front="right" data-asset="extra:bpy-office:desk-walnut-mcm-tapered" points="535,759 575,759 575,835 535,835"/>
   <polygon id="desk-chair" class="furniture" data-kind="chair" data-name="Desk chair" data-front="left" data-asset="extra:bpy-office:chair-mcm-walnut-leather" points="560,795 593,795 593,825 560,825"/>
   <polygon id="wardrobe-hall" class="furniture" data-kind="wardrobe" data-name="Hall wardrobe" data-front="left" points="970,756 1005,756 1005,835 970,835"/>

@@ -9,7 +9,8 @@ The trace is the only hand-made file. It is drawn in the plan image's own pixels
 
 data-kind is an editor furniture kind (sofa, chair, table, desk, bed, cabinet, dresser, wardrobe, shelf, lamp, rug,
 plant, decor); data-front says which way the piece faces on the image (up, down, left, right; default down);
-data-asset pins a catalog id when the automatic pick is wrong.
+data-asset pins a catalog id when the automatic pick is wrong; data-fit="width" then stretches that model across the
+footprint's width (the placement's scale, the catalog record stays as it is) when no catalog size matches the plan.
 
 Writes, next to the trace:
     shell.json            the flat in metres, tidied and checked (harness/varpet_harness/shell.py)
@@ -260,11 +261,13 @@ def furniture(svg: str, transform: dict, rooms: list[dict], assets: list[dict]) 
             continue
         used[asset["id"]] = asset
         room = next((rid for rid, poly in polys if poly.contains(Point(x, z))), None)
+        sx = round(w / asset["dimensions"][0], 4) if a.get("data-fit") == "width" else 1
         objects.append({"id": a.get("id") or f"piece-{i + 1}", "name": name, "assetId": asset["id"],
-                        "position": [round(x, 4), 0, round(z, 4)], "rotation": FRONT.get(front, 0.0), "scale": [1, 1, 1],
+                        "position": [round(x, 4), 0, round(z, 4)], "rotation": FRONT.get(front, 0.0), "scale": [sx, 1, 1],
                         **({"_on": a["data-on"]} if a.get("data-on") else {})})
         picks.append({"id": objects[-1]["id"], "kind": kind, "room": room, "footprint_m": [round(w, 3), round(d, 3)],
                       "asset": asset["id"], "asset_m": [round(asset["dimensions"][0], 2), round(asset["dimensions"][2], 2)],
+                      **({"stretched_x": sx} if sx != 1 else {}),
                       "name": asset["name"][:80]})
     return objects, list(used.values()), picks
 

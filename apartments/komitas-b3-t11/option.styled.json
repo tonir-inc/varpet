@@ -228,38 +228,6 @@
    ]
   },
   {
-   "id": "wardrobe-bedroom-a",
-   "name": "Wardrobe",
-   "assetId": "extra:bpy-bedroom:reeded-oak-2-door-wardrobe-100",
-   "position": [
-    0.7167,
-    0,
-    5.2267
-   ],
-   "rotation": 0,
-   "scale": [
-    1,
-    1,
-    1
-   ]
-  },
-  {
-   "id": "wardrobe-bedroom-b",
-   "name": "Wardrobe",
-   "assetId": "extra:bpy-bedroom:reeded-oak-2-door-wardrobe-100",
-   "position": [
-    1.731,
-    0,
-    5.2267
-   ],
-   "rotation": 0,
-   "scale": [
-    1,
-    1,
-    1
-   ]
-  },
-  {
    "id": "desk",
    "name": "Desk",
    "assetId": "extra:bpy-office:desk-walnut-mcm-tapered",
@@ -500,7 +468,7 @@
    ],
    "rotation": 0,
    "scale": [
-    1,
+    0.9584,
     1,
     1
    ],
@@ -615,7 +583,7 @@
    ],
    "rotation": 1.5707963267948966,
    "scale": [
-    1,
+    1.0667,
     0.9787390029325513,
     1
    ],
@@ -638,6 +606,22 @@
    "rotation": 0,
    "scale": [
     1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "wardrobe-bedroom",
+   "name": "Wardrobe",
+   "assetId": "abo:B07GFSJ69T",
+   "position": [
+    1.2214,
+    0,
+    5.2267
+   ],
+   "rotation": 0,
+   "scale": [
+    1.1354,
     1,
     1
    ]
@@ -1257,6 +1241,23 @@
    "source": {
     "type": "gltf",
     "url": "/api/catalog/models/extra-bpy-curtains-linen-natural-wave-black-210.glb"
+   }
+  },
+  {
+   "id": "abo:B07GFSJ69T",
+   "name": "Amazon Brand - Movian Kolva Sliding 2-Door Wardrobe, 180 x 61 x 197cm, White",
+   "category": "Bedroom",
+   "kind": "wardrobe",
+   "dimensions": [
+    1.7799,
+    1.9604,
+    0.6292
+   ],
+   "color": "#e1e2e6",
+   "price": 243000,
+   "source": {
+    "type": "gltf",
+    "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/T/B07GFSJ69T.glb"
    }
   }
  ],

@@ -228,33 +228,17 @@
    ]
   },
   {
-   "id": "wardrobe-bedroom-a",
+   "id": "wardrobe-bedroom",
    "name": "Wardrobe",
-   "assetId": "extra:bpy-bedroom:reeded-oak-2-door-wardrobe-100",
+   "assetId": "abo:B07GFSJ69T",
    "position": [
-    0.7167,
+    1.2214,
     0,
     5.2267
    ],
    "rotation": 0,
    "scale": [
-    1,
-    1,
-    1
-   ]
-  },
-  {
-   "id": "wardrobe-bedroom-b",
-   "name": "Wardrobe",
-   "assetId": "extra:bpy-bedroom:reeded-oak-2-door-wardrobe-100",
-   "position": [
-    1.731,
-    0,
-    5.2267
-   ],
-   "rotation": 0,
-   "scale": [
-    1,
+    1.1354,
     1,
     1
    ]
@@ -591,24 +575,24 @@
    }
   },
   {
-   "name": "Oat linen relaxed roman blind, 124x160 (fits 120 cm window)",
+   "name": "Oat linen relaxed roman blind, fits a 160 cm window, 160 cm drop (shown part-raised)",
    "position": [
     6.7659,
-    1.5819000000000003,
-    0.15084999999999998
+    1.5801000000000003,
+    0.1504
    ],
    "rotation": 0,
    "scale": [
-    1,
+    0.8972644376899696,
     1,
     1
    ],
    "id": "trial-blind-kitchen",
-   "assetId": "extra:bpy-curtains:roman-linen-oat-120",
+   "assetId": "experimental:gaps:roman-linen-oat-160",
    "host": {
     "wallId": "wall-north",
     "offset": 4.0683,
-    "elevation": 1.5819000000000003,
+    "elevation": 1.5801000000000003,
     "side": 1
    }
   },
@@ -643,7 +627,7 @@
    ],
    "rotation": 1.5707963267948966,
    "scale": [
-    1,
+    1.0660574909575482,
     1,
     1
    ],
@@ -1043,23 +1027,6 @@
    }
   },
   {
-   "id": "extra:bpy-curtains:roman-linen-oat-120",
-   "name": "Oat linen relaxed roman blind, 124x160 (fits 120 cm window)",
-   "kind": "curtain",
-   "category": "Decoration",
-   "dimensions": [
-    1.245,
-    1.0881,
-    0.0907
-   ],
-   "color": "#b8b4ad",
-   "price": 64000,
-   "source": {
-    "type": "gltf",
-    "url": "/api/catalog/models/extra-bpy-curtains-roman-linen-oat-120.glb"
-   }
-  },
-  {
    "id": "experimental:gaps:sill-linen-oat-wave-oak-210",
    "name": "Oat linen sill-length wave curtains on oak rod, 210 cm wide, 150 cm drop",
    "kind": "curtain",
@@ -1091,6 +1058,23 @@
    "source": {
     "type": "gltf",
     "url": "/experimental-models/roller-blackout-sand-240.glb"
+   }
+  },
+  {
+   "id": "experimental:gaps:roman-linen-oat-160",
+   "name": "Oat linen relaxed roman blind, fits a 160 cm window, 160 cm drop (shown part-raised)",
+   "kind": "curtain",
+   "category": "Decoration",
+   "dimensions": [
+    1.645,
+    1.0899,
+    0.0898
+   ],
+   "color": "#d8d2c6",
+   "price": 79000,
+   "source": {
+    "type": "gltf",
+    "url": "/experimental-models/roman-linen-oat-160.glb"
    }
   },
   {

@@ -45,9 +45,9 @@ test('flat summaries are checked and malformed ones dropped', async () => {
 test('a full flat restores into an editor scene without the furniture database', async () => {
   const products = catalog.map(asset => ({ asset, priceSource: 'catalog · demo price', sizeStatus: 'catalog', attribution: 'ABO' }));
   const bundle = await experimentalApi.flat('komitas-b3-t11', json(200, { bundle: { ...summary, scene, catalog: products } }));
-  assert.equal(bundle.scene.objects.length, 19);
+  assert.equal(bundle.scene.objects.length, 18);
   const restored = await restoreBundle(bundle, async () => { throw new Error('the database must not be asked'); });
-  assert.equal(restored.scene.objects.length, 19);
+  assert.equal(restored.scene.objects.length, 18);
   assert.equal(restored.catalog.length, products.length);
   await assert.rejects(experimentalApi.flat('komitas-b3-t11', json(200, { bundle: summary })), error => error instanceof BundleError && error.code === 'invalid');
 });

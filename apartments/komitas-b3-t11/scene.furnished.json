@@ -780,33 +780,17 @@
       ]
     },
     {
-      "id": "wardrobe-bedroom-a",
+      "id": "wardrobe-bedroom",
       "name": "Wardrobe",
-      "assetId": "extra:bpy-bedroom:reeded-oak-2-door-wardrobe-100",
+      "assetId": "abo:B07GFSJ69T",
       "position": [
-        0.7167,
+        1.2214,
         0,
         5.2267
       ],
       "rotation": 0,
       "scale": [
-        1,
-        1,
-        1
-      ]
-    },
-    {
-      "id": "wardrobe-bedroom-b",
-      "name": "Wardrobe",
-      "assetId": "extra:bpy-bedroom:reeded-oak-2-door-wardrobe-100",
-      "position": [
-        1.731,
-        0,
-        5.2267
-      ],
-      "rotation": 0,
-      "scale": [
-        1,
+        1.1354,
         1,
         1
       ]
@@ -1991,33 +1975,17 @@
               ]
             },
             {
-              "id": "wardrobe-bedroom-a",
+              "id": "wardrobe-bedroom",
               "name": "Wardrobe",
-              "assetId": "extra:bpy-bedroom:reeded-oak-2-door-wardrobe-100",
+              "assetId": "abo:B07GFSJ69T",
               "position": [
-                0.7167,
+                1.2214,
                 0,
                 5.2267
               ],
               "rotation": 0,
               "scale": [
-                1,
-                1,
-                1
-              ]
-            },
-            {
-              "id": "wardrobe-bedroom-b",
-              "name": "Wardrobe",
-              "assetId": "extra:bpy-bedroom:reeded-oak-2-door-wardrobe-100",
-              "position": [
-                1.731,
-                0,
-                5.2267
-              ],
-              "rotation": 0,
-              "scale": [
-                1,
+                1.1354,
                 1,
                 1
               ]
@@ -3116,33 +3084,17 @@
               ]
             },
             {
-              "id": "wardrobe-bedroom-a",
+              "id": "wardrobe-bedroom",
               "name": "Wardrobe",
-              "assetId": "extra:bpy-bedroom:reeded-oak-2-door-wardrobe-100",
+              "assetId": "abo:B07GFSJ69T",
               "position": [
-                0.7167,
+                1.2214,
                 0,
                 5.2267
               ],
               "rotation": 0,
               "scale": [
-                1,
-                1,
-                1
-              ]
-            },
-            {
-              "id": "wardrobe-bedroom-b",
-              "name": "Wardrobe",
-              "assetId": "extra:bpy-bedroom:reeded-oak-2-door-wardrobe-100",
-              "position": [
-                1.731,
-                0,
-                5.2267
-              ],
-              "rotation": 0,
-              "scale": [
-                1,
+                1.1354,
                 1,
                 1
               ]
@@ -4465,33 +4417,17 @@
               ]
             },
             {
-              "id": "wardrobe-bedroom-a",
+              "id": "wardrobe-bedroom",
               "name": "Wardrobe",
-              "assetId": "extra:bpy-bedroom:reeded-oak-2-door-wardrobe-100",
+              "assetId": "abo:B07GFSJ69T",
               "position": [
-                0.7167,
+                1.2214,
                 0,
                 5.2267
               ],
               "rotation": 0,
               "scale": [
-                1,
-                1,
-                1
-              ]
-            },
-            {
-              "id": "wardrobe-bedroom-b",
-              "name": "Wardrobe",
-              "assetId": "extra:bpy-bedroom:reeded-oak-2-door-wardrobe-100",
-              "position": [
-                1.731,
-                0,
-                5.2267
-              ],
-              "rotation": 0,
-              "scale": [
-                1,
+                1.1354,
                 1,
                 1
               ]
@@ -4828,24 +4764,24 @@
               }
             },
             {
-              "name": "Oat linen relaxed roman blind, 124x160 (fits 120 cm window)",
+              "name": "Oat linen relaxed roman blind, fits a 160 cm window, 160 cm drop (shown part-raised)",
               "position": [
                 6.7659,
-                1.5819000000000003,
-                0.15084999999999998
+                1.5801000000000003,
+                0.1504
               ],
               "rotation": 0,
               "scale": [
-                1,
+                0.8972644376899696,
                 1,
                 1
               ],
               "id": "trial-blind-kitchen",
-              "assetId": "extra:bpy-curtains:roman-linen-oat-120",
+              "assetId": "experimental:gaps:roman-linen-oat-160",
               "host": {
                 "wallId": "wall-north",
                 "offset": 4.0683,
-                "elevation": 1.5819000000000003,
+                "elevation": 1.5801000000000003,
                 "side": 1
               }
             },
@@ -4880,7 +4816,7 @@
               ],
               "rotation": 1.5707963267948966,
               "scale": [
-                1,
+                1.0660574909575482,
                 1,
                 1
               ],
@@ -6041,38 +5977,6 @@
               ]
             },
             {
-              "id": "wardrobe-bedroom-a",
-              "name": "Wardrobe",
-              "assetId": "extra:bpy-bedroom:reeded-oak-2-door-wardrobe-100",
-              "position": [
-                0.7167,
-                0,
-                5.2267
-              ],
-              "rotation": 0,
-              "scale": [
-                1,
-                1,
-                1
-              ]
-            },
-            {
-              "id": "wardrobe-bedroom-b",
-              "name": "Wardrobe",
-              "assetId": "extra:bpy-bedroom:reeded-oak-2-door-wardrobe-100",
-              "position": [
-                1.731,
-                0,
-                5.2267
-              ],
-              "rotation": 0,
-              "scale": [
-                1,
-                1,
-                1
-              ]
-            },
-            {
               "id": "desk",
               "name": "Desk",
               "assetId": "extra:bpy-office:desk-walnut-mcm-tapered",
@@ -6313,7 +6217,7 @@
               ],
               "rotation": 0,
               "scale": [
-                1,
+                0.9584,
                 1,
                 1
               ],
@@ -6428,7 +6332,7 @@
               ],
               "rotation": 1.5707963267948966,
               "scale": [
-                1,
+                1.0667,
                 0.9787390029325513,
                 1
               ],
@@ -6451,6 +6355,22 @@
               "rotation": 0,
               "scale": [
                 1,
+                1,
+                1
+              ]
+            },
+            {
+              "id": "wardrobe-bedroom",
+              "name": "Wardrobe",
+              "assetId": "abo:B07GFSJ69T",
+              "position": [
+                1.2214,
+                0,
+                5.2267
+              ],
+              "rotation": 0,
+              "scale": [
+                1.1354,
                 1,
                 1
               ]

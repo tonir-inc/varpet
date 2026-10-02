@@ -283,44 +283,24 @@
     "vendor": "abo"
    },
    {
-    "id": "wardrobe-bedroom-a",
+    "id": "wardrobe-bedroom",
     "room_id": "bedroom",
     "kind": "wardrobe",
     "name": "Wardrobe",
     "pos": [
-     0.7167,
+     1.2214,
      -5.2267
     ],
     "rot": 0,
     "size": [
-     1,
-     0.6345,
-     2
+     2.02089846,
+     0.6292,
+     1.9604
     ],
     "keep": false,
-    "sku": "extra:bpy-bedroom:reeded-oak-2-door-wardrobe-100",
-    "price": 468000,
-    "vendor": "extra"
-   },
-   {
-    "id": "wardrobe-bedroom-b",
-    "room_id": "bedroom",
-    "kind": "wardrobe",
-    "name": "Wardrobe",
-    "pos": [
-     1.731,
-     -5.2267
-    ],
-    "rot": 0,
-    "size": [
-     1,
-     0.6345,
-     2
-    ],
-    "keep": false,
-    "sku": "extra:bpy-bedroom:reeded-oak-2-door-wardrobe-100",
-    "price": 468000,
-    "vendor": "extra"
+    "sku": "abo:B07GFSJ69T",
+    "price": 243000,
+    "vendor": "abo"
    },
    {
     "id": "desk",
@@ -401,8 +381,7 @@
   "dining-chair-e",
   "bed",
   "bedside",
-  "wardrobe-bedroom-a",
-  "wardrobe-bedroom-b",
+  "wardrobe-bedroom",
   "desk",
   "desk-chair",
   "wardrobe-hall"
