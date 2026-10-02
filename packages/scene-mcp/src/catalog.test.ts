@@ -30,3 +30,19 @@ test('toProduct derives the model file from the id when source_id is missing', (
   assert.equal(product.glbUrl, 'https://v.example/api/catalog/models/X1.glb')
   assert.equal(product.priceAmd, null)
 })
+
+test('toProduct uses the model file the catalog serves for generated items, not one rebuilt from the id', () => {
+  const product = toProduct(
+    {
+      id: 'extra:bpy-deco:channel-tufted-velvet-sofa-deep-green',
+      source: 'extra',
+      source_id: 'channel-tufted-velvet-sofa-deep-green',
+      name: 'Sofa',
+      kind: 'sofa',
+      size_m: [2.1, 0.9, 0.8],
+      glb_url: 'http://100.107.246.46:8765/models/extra-bpy-deco-channel-tufted-velvet-sofa-deep-green.glb',
+    },
+    'http://localhost:3010',
+  )
+  assert.equal(product.glbUrl, 'http://localhost:3010/api/catalog/models/extra-bpy-deco-channel-tufted-velvet-sofa-deep-green.glb')
+})
