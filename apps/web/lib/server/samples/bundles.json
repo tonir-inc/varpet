@@ -1,0 +1,46 @@
+[
+  {
+    "id": "sample-sunday-b12121",
+    "flat": "sunday-b12121",
+    "developerSlug": "sunday-towers",
+    "name": "B12121 · floor 12",
+    "building": "Sunday Towers · B",
+    "bedrooms": 3,
+    "area": 188.6,
+    "furnishedPieces": 44,
+    "updatedAt": "2026-09-27T07:19:17.634Z"
+  },
+  {
+    "id": "sample-orion-t7",
+    "flat": "orion-t7",
+    "developerSlug": "orion",
+    "name": "Type 7 · top floor",
+    "building": "Orion",
+    "bedrooms": 3,
+    "area": 134,
+    "furnishedPieces": 30,
+    "updatedAt": "2026-09-27T05:26:16.916Z"
+  },
+  {
+    "id": "sample-orion-t8",
+    "flat": "orion-t8",
+    "developerSlug": "orion",
+    "name": "Type 8 · top floor",
+    "building": "Orion",
+    "bedrooms": 2,
+    "area": 120.6,
+    "furnishedPieces": 29,
+    "updatedAt": "2026-09-27T05:26:14.488Z"
+  },
+  {
+    "id": "sample-m6-12-54",
+    "flat": "m6-12-54",
+    "developerSlug": "m6",
+    "name": "M6-12-54 · two balconies",
+    "building": null,
+    "bedrooms": 2,
+    "area": 76.1,
+    "furnishedPieces": 37,
+    "updatedAt": "2026-09-26T20:09:16.619Z"
+  }
+]
