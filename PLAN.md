@@ -5,7 +5,7 @@ the designer chat, the catalog of real products. Pascal's editor needs Next.js a
 is ported to React with the same markup and CSS classes. v1 source (read only): `/Users/snek/dev/varpet` on main.
 
 ## Lanes
-Each lane works in its own worktree and branch (`v2/<lane>`), owns only the paths listed, and commits there.
+Each lane works in its own worktree and branch (`v2-<lane>`, worktree `../varpet-v2-<lane>`), owns only the paths listed, and commits there.
 Shared files (root and app `package.json`, `layout.tsx`, `globals.css`, `next.config.ts`, contracts) are not
 owned by any lane: a lane that needs a dependency or a contract change reports it instead.
 
