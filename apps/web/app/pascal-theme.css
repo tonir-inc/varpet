@@ -254,6 +254,8 @@ body:has(.varpet-editor) .bg-zinc-900\/95 {
 
 /* Inspector (Pascal's floating panel): a Folio card with a serif name. */
 [data-viewer-bounds] .fixed.top-20.right-4 {
+  /* Pascal sizes it for no header; the 52px header and the dock both need room. */
+  max-height: calc(100dvh - 206px);
   border-color: var(--folio-line);
   background: var(--folio-surface);
   backdrop-filter: none;
@@ -802,4 +804,87 @@ body:has(.varpet-editor) [cmdk-item][data-selected="true"] {
 
 .folio-total strong {
   font-size: 22px;
+}
+
+/* ── Inspector footer: v1 finish swatches (2-column cards) and "Ask the designer about this". ─────────────── */
+.folio-inspector-footer {
+  display: flex;
+  max-height: 45vh;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  padding: 12px;
+  border-top: 1px solid var(--folio-line);
+  color: var(--folio-ink);
+  font-size: 13px;
+}
+
+.folio-finishes summary {
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.folio-swatches {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.folio-swatch {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+  padding: 5px;
+  border: 1px solid var(--folio-line);
+  border-radius: 2px;
+  background: var(--folio-surface);
+  color: inherit;
+  font: inherit;
+  font-size: 11px;
+  text-align: left;
+  transition: border-color 140ms ease, background-color 140ms ease;
+}
+
+.folio-swatch:hover {
+  border-color: var(--folio-control-line);
+}
+
+.folio-swatch[aria-pressed="true"] {
+  border-color: var(--folio-teal);
+  background: var(--folio-teal-wash);
+}
+
+.folio-swatch-chip {
+  height: 18px;
+  border-radius: 1px;
+  background-position: center;
+  background-size: cover;
+  box-shadow: inset 0 0 0 1px #15151514;
+}
+
+.folio-swatch-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folio-ask {
+  display: flex;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid var(--folio-teal);
+  border-radius: 3px;
+  background: var(--folio-surface);
+  color: var(--folio-teal);
+  font: inherit;
+  font-weight: 600;
+}
+
+.folio-ask:hover {
+  background: var(--folio-teal-wash);
 }

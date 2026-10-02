@@ -22,6 +22,7 @@ import { railIcon, useFolioRailDefaults } from './folio-rail'
 import { FolioDock } from './folio-dock'
 import { FolioNavbar } from './folio-navbar'
 import { FolioTools } from './folio-tools'
+import { InspectorFooter } from './inspector-footer'
 import { bindSceneEditorController, useSceneEditor } from './scene-editor-store'
 import { useCatalogMetadata } from './use-catalog-metadata'
 import { applyViewerLookDefaults, configureViewerLook, frameFlat, withWallSides } from './viewer-look'
@@ -283,6 +284,7 @@ export function SceneEditor({ meta, initialGraph, initialPreviewSceneId = null, 
   return (
     <div className="varpet-editor-stage">
       <Editor
+        inspectorFooter={<InspectorFooter />}
         isVersionPreviewMode={previewing}
         layoutVersion="v2"
         navbarSlot={

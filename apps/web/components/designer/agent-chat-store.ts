@@ -17,6 +17,8 @@ export interface ChatSnapshot {
   previewing: string | null
   /** What the person is composing, kept across panel remounts (memory only, never saved). */
   draft: ChatDraft
+  /** Bumped when something outside the composer (e.g. "Ask the designer") puts text in it. */
+  prefills: number
 }
 
 /** Unsent input: composer text and pictures, plus the plan intake's chosen plan and note. */
@@ -45,7 +47,7 @@ export interface ChatSession {
   auto: string | null
 }
 
-export const EMPTY_SNAPSHOT: ChatSnapshot = { chat: emptyChat, queued: '', saved: null, previewing: null, draft: EMPTY_DRAFT }
+export const EMPTY_SNAPSHOT: ChatSnapshot = { chat: emptyChat, queued: '', saved: null, previewing: null, draft: EMPTY_DRAFT, prefills: 0 }
 
 const sessions = new Map<string, ChatSession>()
 const uid = () => (typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`)
@@ -175,6 +177,12 @@ export function queueChat(session: ChatSession, text: string) {
 }
 
 export const unqueueChat = (session: ChatSession) => session.store.setState({ queued: '' })
+
+/** Put text in the composer from outside it (the inspector's "Ask the designer"); the panel shows it at once. */
+export function prefillChat(session: ChatSession, text: string) {
+  const { draft, prefills } = session.store.getState()
+  session.store.setState({ draft: { ...draft, text }, prefills: prefills + 1 })
+}
 
 /** Keep part of the unsent input on the session, so a remounted panel shows it again. */
 export const setChatDraft = (session: ChatSession, patch: Partial<ChatDraft>) =>

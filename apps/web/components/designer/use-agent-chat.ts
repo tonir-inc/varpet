@@ -34,7 +34,7 @@ const serverStore = createStore(() => EMPTY_SNAPSHOT)
 export function useAgentChat({ role, sceneId, fetchImpl, persist = true, onPreview }: AgentChatOptions) {
   const session: ChatSession | null = useMemo(
     () => (typeof window === 'undefined' ? null : getChatSession(role, sceneId, { persist })), [role, sceneId, persist])
-  const { chat: state, queued, saved, previewing, draft } = useStore(session?.store ?? serverStore)
+  const { chat: state, queued, saved, previewing, draft, prefills } = useStore(session?.store ?? serverStore)
   const [now, setNow] = useState(0)
   const host = useRef(onPreview)
   host.current = onPreview
@@ -70,5 +70,5 @@ export function useAgentChat({ role, sceneId, fetchImpl, persist = true, onPrevi
   }), [session])
 
   const elapsed = state.turn ? Math.max(0, (Math.max(now, state.turn.startedAt) - state.turn.startedAt) / 1000) : 0
-  return { state, elapsed, queued, saved, previewing, draft, ...actions }
+  return { state, elapsed, queued, saved, previewing, draft, prefills, ...actions }
 }

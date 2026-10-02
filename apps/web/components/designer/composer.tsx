@@ -26,7 +26,7 @@ export async function shrinkPicture(file: Blob, limit = 900 * 1024): Promise<str
   throw new Error('That picture is too large even after resizing; try a smaller one.')
 }
 
-export function Composer({ busy, images, onImages, onSubmit, onStop, placeholder = 'Ask anything', noun = 'designer', attach = true, initial = '', onTextChange }: {
+export function Composer({ busy, images, onImages, onSubmit, onStop, placeholder = 'Ask anything', noun = 'designer', attach = true, initial = '', onTextChange, autoFocus = false }: {
   busy: boolean
   images: string[]
   onImages: (images: string[]) => void
@@ -40,13 +40,19 @@ export function Composer({ busy, images, onImages, onSubmit, onStop, placeholder
   initial?: string
   /** Every change of the typed text, so the owner can keep it across remounts. */
   onTextChange?: (text: string) => void
+  /** Focus the box with the caret at the end on mount. */
+  autoFocus?: boolean
 }) {
   const [text, setTextState] = useState(initial)
   const textChanged = useRef(onTextChange)
   textChanged.current = onTextChange
   const setText = (value: string) => { setTextState(value); textChanged.current?.(value) }
   // A remounted composer starts at the kept text: size the box to it.
-  useEffect(() => { if (initial) grow(input.current) }, [])
+  useEffect(() => {
+    const element = input.current
+    if (initial) grow(element)
+    if (autoFocus && element) { element.focus(); element.setSelectionRange(element.value.length, element.value.length) }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
   const [notice, setNotice] = useState('')
   const input = useRef<HTMLTextAreaElement>(null)
   const files = useRef<HTMLInputElement>(null)

@@ -39,7 +39,7 @@ export interface DesignerPanelProps {
 export function DesignerPanel({ sceneId, onPreview, onApply, onDismiss, starters = DEFAULT_STARTERS, fetchImpl, badge, className = '' }: DesignerPanelProps) {
   // The conversation and its running turn outlive this component (Pascal remounts sidebar tabs).
   const chat = useAgentChat({ role: 'designer', sceneId, fetchImpl, onPreview })
-  const { state, elapsed, queued, previewing, preview, draft, setDraft } = chat
+  const { state, elapsed, queued, previewing, preview, draft, setDraft, prefills } = chat
   const busy = state.turn !== null
   // Pictures and text being composed live on the session, so switching tabs keeps them.
   const images = draft.images
@@ -138,8 +138,9 @@ export function DesignerPanel({ sceneId, onPreview, onApply, onDismiss, starters
             }} />
           ) : null}
         </div>
-        <Composer busy={busy} images={images} onImages={setImages} onSubmit={(text) => send(text, images)} onStop={chat.cancel}
-          initial={draft.text} onTextChange={(text) => setDraft({ text })} />
+        {/* Remounted on a prefill ("Ask the designer" in the inspector) so the box shows the new text, focused. */}
+        <Composer key={prefills} busy={busy} images={images} onImages={setImages} onSubmit={(text) => send(text, images)} onStop={chat.cancel}
+          initial={draft.text} onTextChange={(text) => setDraft({ text })} autoFocus={prefills > 0} />
         <small className="designer-storage-status">
           {chat.saved === false ? 'This conversation stays in this tab until browser storage is available.' : 'Conversation saved on this device.'}
         </small>
