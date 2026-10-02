@@ -359,10 +359,21 @@ def design_options(flat: Path, svg: str, variants: list[Path], v1: dict, compone
     path = flat / "scene.furnished.json"
     scene = json.loads(path.read_text())
     project = scene["project"]
-    snap = lambda objects: {"rooms": scene["rooms"], "walls": scene["walls"], "objects": objects, "metadata": project["metadata"],
-                            "components": project["components"], "routes": project["routes"], "finishes": project["finishes"]}
+    # An opening changed for the main arrangement only carries the plan's own values as data-plan-height / -sill / -asset:
+    # every other option gets the walls with those (e.g. a French window in Adjusted, the plan's window elsewhere).
+    plan = {}
+    for _, _, a, _ in _elements(svg):
+        if a.get("id") and any(k.startswith("data-plan-") for k in a):
+            plan[a["id"]] = {k: a[f"data-plan-{s}"] for k, s in (("height", "height"), ("sill", "sill"), ("assetId", "asset")) if f"data-plan-{s}" in a}
+    plan_walls = json.loads(json.dumps(scene["walls"]))
+    for w in plan_walls:
+        for o in w.get("openings") or []:
+            for k, v in plan.get(o["id"], {}).items():
+                o[k] = v if k == "assetId" else float(v)
+    snap = lambda objects, walls=plan_walls: {"rooms": scene["rooms"], "walls": walls, "objects": objects, "metadata": project["metadata"],
+                                              "components": project["components"], "routes": project["routes"], "finishes": project["finishes"]}
     name = lambda text, default: (re.search(r'data-option-name="([^"]+)"', text[:400]) or [None, default])[1]
-    options = [{"id": "main", "name": name(svg, "Furnished"), "snapshot": snap(scene["objects"])}]
+    options = [{"id": "main", "name": name(svg, "Furnished"), "snapshot": snap(scene["objects"], scene["walls"])}]
     models = {a["id"]: a for a in used}
     report["options"] = {}
     for variant in variants:

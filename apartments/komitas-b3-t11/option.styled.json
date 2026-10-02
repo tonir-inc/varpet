@@ -480,6 +480,28 @@
    }
   },
   {
+   "id": "window-balcony-blind-1",
+   "name": "Natural linen relaxed roman blind, 94x160 (fits 90 cm window)",
+   "assetId": "extra:bpy-curtains:roman-linen-natural-90",
+   "position": [
+    0.8171999999999999,
+    1.5866000000000005,
+    2.08265
+   ],
+   "rotation": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "host": {
+    "wallId": "wall-balcony-south",
+    "offset": 0.7118,
+    "elevation": 1.5866000000000005,
+    "side": 1
+   }
+  },
+  {
    "id": "bedroom-plant",
    "name": "Snake plant in ceramic pot",
    "assetId": "extra:generated-pilot:snake-plant-ceramic",
@@ -561,7 +583,7 @@
    ],
    "rotation": 1.5707963267948966,
    "scale": [
-    1.1429,
+    1.0667,
     0.9787390029325513,
     1
    ],
@@ -1134,6 +1156,23 @@
    "source": {
     "type": "gltf",
     "url": "/api/catalog/models/extra-bpy-curtains-roller-blackout-sand-150.glb"
+   }
+  },
+  {
+   "id": "extra:bpy-curtains:roman-linen-natural-90",
+   "name": "Natural linen relaxed roman blind, 94x160 (fits 90 cm window)",
+   "kind": "curtain",
+   "category": "Decoration",
+   "dimensions": [
+    0.945,
+    1.0834,
+    0.0881
+   ],
+   "color": "#b8b4ad",
+   "price": 52000,
+   "source": {
+    "type": "gltf",
+    "url": "/api/catalog/models/extra-bpy-curtains-roman-linen-natural-90.glb"
    }
   },
   {

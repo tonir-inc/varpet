@@ -26,8 +26,8 @@
 
   <line id="window-living-1" class="window" x1="695" y1="341" x2="825" y2="341"/>
   <line id="window-living-2" class="window" x1="866" y1="341" x2="950" y2="341"/>
-  <line id="window-balcony" class="window" data-sill="0" data-height="2.3" data-asset="extra:openings:window-pvc-tall" x1="547" y1="451" x2="592" y2="451"/><!-- trial 2026-10-02 (Ashot): French window and 2.3 m glazed door so the two tops line up; revert if it looks wrong -->
-  <line id="door-balcony" class="door" data-height="2.3" data-asset="extra:openings:door-oak-glazed" x1="593" y1="451" x2="637" y2="451"/>
+  <line id="window-balcony" class="window" data-sill="0" data-height="2.3" data-asset="extra:openings:window-pvc-tall" data-plan-sill="0.9" data-plan-height="1.4" data-plan-asset="extra:openings:window-pvc-single" x1="547" y1="451" x2="592" y2="451"/><!-- Adjusted only (Ashot, 2026-10-02): French window and 2.3 m glazed door so the two tops line up; the other options keep the plan's openings (data-plan-*) -->
+  <line id="door-balcony" class="door" data-height="2.3" data-asset="extra:openings:door-oak-glazed" data-plan-height="2.05" data-plan-asset="extra:openings:door-shaker-sage" x1="593" y1="451" x2="637" y2="451"/>
   <line id="window-dining" class="window" x1="529" y1="462" x2="529" y2="590"/>
   <line id="window-bedroom" class="window" x1="529" y1="677" x2="529" y2="800"/>
   <line id="door-bedroom" class="door" x1="830" y1="779" x2="830" y2="827"/>
