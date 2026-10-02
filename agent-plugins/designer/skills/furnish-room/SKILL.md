@@ -67,10 +67,15 @@ light, plants, a warm wall finish (`restyle`).
    through a wall or in a door's path with `apply_patch`. Re-check until clean.
 
 Ergonomics that keep a full room usable: walkways about 0.75-0.9 m, a coffee table about 0.4 m from the sofa, about
-0.9 m in front of wardrobes and around a dining table. Wall pieces (art, hanging mirrors, wall shelves) hang: place
-them with their back on the wall face (half the wall's thickness off its centreline), turned to face the room, with
-`position[1]` at their bottom edge, so the centre of art sits near eye height, or a hand's span above the sofa or
-headboard it hangs over.
+0.9 m in front of wardrobes and around a dining table.
+
+Hung pieces: `place_product` mounts them by the product's `mount`. Art, mirrors, wall lamps and wall shelves go on a
+wall by `wall_id`, `along` (metres from the wall's start to the centre) and `height` (bottom edge), with the room's
+`zone_id` as `target_id`: art centred near eye height, or its bottom a hand's span (0.2-0.25 m) above the sofa,
+console or headboard it hangs over, about two thirds of that piece's width (search `min_w` and `target_size` for
+it; an A3 print on a big wall reads as filler). Curtains and blinds go by `window_id`, curtains wider than the
+window. Pendants and ceiling lights hang from the ceiling at the floor point under them: over a dining table the
+bottom about 0.75 m above the top, elsewhere above 2 m; the result gives the bottom height, so choose the drop.
 
 Done means: every station is complete or its gap named as a catalog gap, the room holds up as lived in when you
 look at it, the collision check is clean, and the answer gives each product's price and the total.
