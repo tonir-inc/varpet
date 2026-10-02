@@ -125,3 +125,10 @@ test('search_products returns products without model urls', async () => {
   assert.deepEqual(out.results[0].dimensions, [1.472, 0.94, 1.992])
   assert.equal(out.results[0].glbUrl, undefined)
 })
+
+test('no tool schema uses tuples (prefixItems): Claude Code silently drops such tools', async () => {
+  const { client } = await setup()
+  for (const tool of (await client.listTools()).tools) {
+    assert.ok(!JSON.stringify(tool.inputSchema).includes('prefixItems'), tool.name)
+  }
+})

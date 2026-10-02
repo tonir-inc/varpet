@@ -107,7 +107,7 @@ export function productItemNode(
   })
 }
 
-const vec3 = z.tuple([z.number(), z.number(), z.number()])
+const vec3 = z.array(z.number()).min(3).max(3)
 
 function text(payload: unknown) {
   return { content: [{ type: 'text' as const, text: JSON.stringify(payload) }] }
@@ -231,7 +231,7 @@ function registerProductTools(server: McpServer, operations: SceneOperations, ca
       }
       if (!product) return failure(`product_not_found: ${product_id}`)
       const angle = rotation ?? 0
-      const node = productItemNode(product, position, angle)
+      const node = productItemNode(product, position as [number, number, number], angle)
       const itemId = operations.createNode(node as never, levelId as never)
       await publishSnapshot(operations, 'place_product')
       const [w, , d] = product.dimensions
