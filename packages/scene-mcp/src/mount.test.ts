@@ -220,8 +220,9 @@ test('curtains hang over their window: centred on it, from above it to the floor
   assert.equal(payload.wall.along, 1.239)
   assert.equal(payload.wall.bottom, 0.01)
   assert.ok(payload.wall.top <= 2.7)
-  // 2.1 m of curtain on a 0.7 m window: no note; not "covers window" either.
-  assert.equal(payload.notes, undefined)
+  // 2.1 m of curtain on a 0.7 m window is wide enough; it runs over the balcony door beside the window, which is worth a word.
+  assert.deepEqual(payload.notes.length, 1)
+  assert.match(payload.notes[0], /covers door door_d-living-bal4/)
 })
 
 test('a pendant hangs from the room ceiling, top at the ceiling, by its model\'s real drop', async () => {

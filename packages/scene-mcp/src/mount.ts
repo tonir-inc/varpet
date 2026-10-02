@@ -180,8 +180,8 @@ export interface WallPoseRequest {
   size: [number, number, number]
   /** Skip the "covers an opening" note for these openings (curtains over their window). */
   coversOpening?: string
-  /** Notes about openings matter for pieces that sit flat on the wall; curtains and blinds cover windows. */
-  ignoreOpenings?: boolean
+  /** Curtains and blinds cover windows by design: only doors they run over are noted. */
+  windowsAllowed?: boolean
 }
 
 export interface WallPose {
@@ -258,10 +258,11 @@ export function wallPose(nodes: Nodes, wall: AnyNode, request: WallPoseRequest):
     notes.push(`lowered to fit under the ${round(frame.height)} m wall: bottom ${round(lowered)} m (asked ${round(bottom)})`)
     bottom = lowered
   }
-  if (!request.ignoreOpenings) {
+  {
     for (const childId of (wall.children as string[] | undefined) ?? []) {
       const opening = nodes[childId]
       if (!opening || (opening.type !== 'door' && opening.type !== 'window') || opening.id === request.coversOpening) continue
+      if (request.windowsAllowed && opening.type === 'window') continue
       const [ox, oy] = (opening.position as number[] | undefined) ?? [0, 0]
       const ow = (opening.width as number | undefined) ?? 0
       const oh = (opening.height as number | undefined) ?? 0

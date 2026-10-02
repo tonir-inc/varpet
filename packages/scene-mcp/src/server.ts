@@ -384,7 +384,7 @@ function registerProductTools(server: McpServer, operations: SceneOperations, ca
         }
         bottom ??= defaultWallBottom(product.kind, product.name, size, (wall.height as number | undefined) ?? 2.5)
         const textile = product.kind === 'curtain' || product.kind === 'blind'
-        const pose = wallPose(nodes, wall, { along, bottom, point: windowNode ? undefined : point, zone, size, coversOpening: windowNode?.id, ignoreOpenings: textile })
+        const pose = wallPose(nodes, wall, { along, bottom, point: windowNode ? undefined : point, zone, size, coversOpening: windowNode?.id, windowsAllowed: textile })
         if ('error' in pose) return failure(pose.error)
         if (rotation) notes.push('rotation ignored: a wall piece faces the room')
         const bounds = await modelBounds(product.glbUrl)
