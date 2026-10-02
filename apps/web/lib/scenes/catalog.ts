@@ -1,5 +1,4 @@
 import type { AssetInput } from '@pascal-app/core'
-// Type-only: apps/web does not depend on @varpet/contracts yet (see lane A report).
 import type { Product } from '@varpet/contracts'
 
 /** Pascal's Items panel shows only these categories while the search box is empty. */
