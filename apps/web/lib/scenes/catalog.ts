@@ -64,15 +64,27 @@ export async function searchProducts(query: CatalogQuery, opts: { fixture?: bool
     const q = query.q?.trim().toLowerCase()
     return q ? CATALOG_FIXTURE.filter((p) => `${p.name} ${p.kind}`.toLowerCase().includes(q)) : CATALOG_FIXTURE
   }
-  const params = new URLSearchParams()
-  if (query.q) params.set('q', query.q)
-  if (query.kind) params.set('kind', query.kind)
-  params.set('limit', String(query.limit ?? 60))
-  const response = await fetch(`/api/catalog/search?${params}`, { signal: opts.signal })
-  if (!response.ok) throw new Error(`catalog search failed (${response.status})`)
-  const body = (await response.json()) as { results?: Product[] }
-  return body.results ?? []
+  // The route pages at most PAGE results; follow nextOffset up to the wanted count.
+  const wanted = query.limit ?? 60
+  const products: Product[] = []
+  let offset: number | null = 0
+  while (offset !== null && products.length < wanted) {
+    const params = new URLSearchParams()
+    if (query.q) params.set('q', query.q)
+    if (query.kind) params.set('kind', query.kind)
+    params.set('limit', String(Math.min(PAGE, wanted - products.length)))
+    if (offset) params.set('offset', String(offset))
+    const response = await fetch(`/api/catalog/search?${params}`, { signal: opts.signal })
+    if (!response.ok) throw new Error(`catalog search failed (${response.status})`)
+    const body = (await response.json()) as { results?: Product[]; nextOffset?: number | null }
+    products.push(...(body.results ?? []))
+    offset = body.results?.length && typeof body.nextOffset === 'number' && body.nextOffset > offset ? body.nextOffset : null
+  }
+  return products
 }
+
+/** `/api/catalog/search` returns at most this many per request. */
+const PAGE = 20
 
 // Test fixture: Pascal's public demo models stand in for shop products until lane B's route lands.
 const PASCAL_ITEMS = 'https://byrpxoiotywskoojsrzd.supabase.co/storage/v1/object/public/items/system'
