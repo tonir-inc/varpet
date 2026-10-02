@@ -13,9 +13,12 @@ plan-reading pass went from 95.3% to 98.3% on held-out plans (Sept 2026).
 
 - **Scale** from three or more printed dimensions that agree. With areas only, pick the one scale that makes
   all printed room areas agree at once, never one room. Check it on a door (interior 0.8-0.9 m, entrance
-  0.9-1.0 m). A printed flat total usually includes walls (gross); room areas are net, inside the wall faces.
+  0.9-1.0 m). Room areas are net, inside the wall faces. A flat total is net only when it equals the sum of the
+  printed room areas; a lone total (no room areas) is gross, with outer walls, columns and shafts, and the rooms
+  add up to about 85-90% of it. Never fit the scale to a gross total: take it from doors, wall thicknesses, stair
+  treads (~0.28-0.30 m) or kitchen counters (0.6 m deep), and use the total only to check it.
 - **Gridlines**: list each x where a wall face runs down the plan and each z where one runs across (x right,
-  z down the plan, metres). Rooms and walls come from the same numbers, so they share corners exactly. A wall
+  z down the plan, metres, the flat's middle near the origin: the site's ground is a 30 m square around it). Rooms and walls come from the same numbers, so they share corners exactly. A wall
   centreline sits half its thickness outside the room face it bounds.
 - Write the room list (name, printed area, gridlines it spans) before the first edit.
 
@@ -50,7 +53,8 @@ plan-reading pass went from 95.3% to 98.3% on held-out plans (Sept 2026).
 - Rooms: one zone per room with the polygon on the inner faces (`set_zone`, or `{type: "zone", name, polygon}`
   in a batch), corners in order (L shapes and bays are real corners), and a slab with the same polygon
   (`{type: "slab", name: "<room> floor", polygon}`) so its floor can take a finish. `create_room` draws its own
-  walls: only for a free-standing room, else walls double.
+  walls: only for a free-standing room, else walls double. Bathrooms, WCs and balconies get a tile floor
+  (`list_finishes` with surface floor, then `set_floor_finish`); other rooms keep the default.
 - Doors and windows: `add_door` / `add_window` with `t` the opening's centre along the wall (0 start, 1 end) and
   the real width, or in a batch `{type: "door"|"window", wallId, position: [metres from wall start to the
   centre, sill + height / 2, 0], width, height}` with `parentId` the wall.

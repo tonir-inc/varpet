@@ -4,6 +4,7 @@
 //
 //   node --experimental-strip-types --no-warnings evals/architect/run.ts --run <name> --flat <id>
 //        [--port 3033] [--steps agent,shots,score] [--timeout-min 45] [--model claude-opus-5-5]
+//   node --experimental-strip-types --no-warnings evals/architect/run.ts --summary    (every scored run, one table)
 //
 // Needs the web app on --port for view_scene and the shots (it renders through POST /api/render), started with the
 // same PASCAL_DB_PATH so /editor/<sceneId> shows the result:
@@ -13,7 +14,7 @@
 // Every step writes its own file under .data/architect/runs/<run>/<flat>/ and is skipped when it exists. The agent
 // step spends Felix's subscription.
 import { execFileSync } from 'node:child_process'
-import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { parseArgs } from 'node:util'
 import { SceneBridge } from '@pascal-app/mcp/bridge'
@@ -21,7 +22,7 @@ import { createSceneStore } from '@pascal-app/mcp/storage'
 import type { AgentEvent } from '../../packages/contracts/src/index.ts'
 import { closeAgentSessions, runTurn } from '../../packages/agents/src/index.ts'
 import { httpRenderer, planView } from '../../packages/scene-mcp/src/view-scene.ts'
-import { formatScore, loadTemplate, scoreShell, summaryRow, summaryTable, type Graph } from './score.ts'
+import { formatScore, loadTemplate, scoreShell, summaryRow, summaryTable, type Graph, type ShellScore } from './score.ts'
 
 const ROOT = resolve(import.meta.dirname, '../..')
 const DATA = join(ROOT, '.data/architect')
@@ -36,8 +37,21 @@ const { values: flags } = parseArgs({
     'timeout-min': { type: 'string', default: '45' },
     model: { type: 'string' },
     message: { type: 'string', default: MESSAGE },
+    summary: { type: 'boolean', default: false },
   },
 })
+if (flags.summary) {
+  const rows: string[][] = []
+  const runs = join(DATA, 'runs')
+  for (const run of existsSync(runs) ? readdirSync(runs).sort() : []) {
+    for (const flat of readdirSync(join(runs, run)).sort()) {
+      const scored = join(runs, run, flat, 'score.json')
+      if (existsSync(scored)) rows.push(summaryRow(`${run}/${flat}`, JSON.parse(readFileSync(scored, 'utf8')) as ShellScore))
+    }
+  }
+  console.log(summaryTable(rows))
+  process.exit(0)
+}
 if (!flags.run || !/^[\w.-]+$/.test(flags.run)) throw new Error('--run <name> is required')
 if (!flags.flat || !/^[\w.-]+$/.test(flags.flat)) throw new Error('--flat <template id> is required')
 const steps = new Set(flags.steps!.split(','))
