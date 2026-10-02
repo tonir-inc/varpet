@@ -1,0 +1,26 @@
+[
+  {
+    "id": "real-mumbai-kyiv",
+    "role": "designer",
+    "templateId": null,
+    "shell": "real/shells/mumbai-apartment-kyiv.json",
+    "project": "mumbai-apartment-kyiv",
+    "room": "whole flat",
+    "rooms": ["Living room and kitchen", "Bedroom", "Hall"],
+    "skill": "restyle",
+    "turns": ["Furnish the whole flat for me, floors and walls too. I live alone, cook and have friends over, and I love Dishoom in London: Indian-colonial art deco glam, brass, deep reds and oxblood, velvet, walnut, herringbone oak. The bedroom should feel calm."],
+    "expect": "Each room finished as completely as the real project's photos: a living group facing each other on a rug with side tables and lamps, a place to eat for four, a calm bedroom with bedside stations and storage, a dressed hall; walls and floors in the style; prices and total."
+  },
+  {
+    "id": "real-view-poznan",
+    "role": "designer",
+    "templateId": null,
+    "shell": "real/shells/apartment-with-a-view-poznan.json",
+    "project": "apartment-with-a-view-poznan",
+    "room": "whole flat",
+    "rooms": ["Living room", "Kitchen", "Bedroom", "Hall"],
+    "skill": "furnish-room",
+    "turns": ["Furnish the whole flat for us, a couple who host friends often. Bright Scandinavian: white walls, light ash wood, a touch of green. A living room to sit and talk, a dining table for six by the kitchen, and a calm bedroom."],
+    "expect": "Each room finished as completely as the real project's photos: a conversation group on a rug with side tables and layered light, dining for six with light over it, a bedroom with bedside stations, storage and textiles, a usable hall; prices and total."
+  }
+]

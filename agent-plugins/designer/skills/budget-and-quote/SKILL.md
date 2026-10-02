@@ -11,8 +11,8 @@ The outcome is a complete room at or under the buyer's number, with a quote they
    buyer gave or state the rate you assumed.
 2. Split it before searching: the anchor pieces (sofa, bed, dining table, wardrobe) take about half, seating
    and storage a quarter, rugs, lamps, plants and decor the rest. Pass each role's share as `price_max`.
-3. Fill every role of the room first (the `furnish-room` roles), then upgrade the piece the buyer will touch
-   most if money is left. A complete modest room beats a half room with one expensive piece.
+3. Complete every station of the room and its layers first (`furnish-room`), then upgrade the piece the buyer
+   will touch most if money is left. A complete modest room beats a half room with one expensive piece.
 4. Keep a running total as you place. Over budget: swap the most expensive replaceable piece for a cheaper one
    of the same size (`search_products` with its `kind`, `max_w`/`max_d` and a lower `price_max`).
 5. Prices come from the product records (`priceAmd`); a product with no price is "price on request", left out
