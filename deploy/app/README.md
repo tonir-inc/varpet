@@ -1,4 +1,4 @@
-# Public hackathon app
+# Public app
 
 Deploys the synced **clean origin/main** snapshot to `/opt/varpet-app/repo`.
 Run the script on Sergey's laptop, not in the sandbox. It does not modify DNS or the
