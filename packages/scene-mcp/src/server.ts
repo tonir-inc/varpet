@@ -8,6 +8,7 @@ import { ItemNode } from '@pascal-app/core/schema'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { Catalog, ProductHit } from './catalog.ts'
+import { wallSideUpdates } from './wall-sides.ts'
 
 /** Tools that would rebind or delete scenes. The agent is bound to one scene for its whole run. */
 export const HIDDEN_TOOLS = [
@@ -41,6 +42,7 @@ export async function createSceneServer({ store, sceneId, catalog }: SceneServer
   if (!scene) throw new Error(`scene_not_found: ${sceneId}`)
   const bridge = new SceneBridge()
   const operations = createSceneOperations({ bridge, store })
+  tagWallSidesOnExport(operations)
   operations.loadJSON(scene.graph)
   operations.clearHistory()
   operations.setActiveScene(scene)
@@ -48,6 +50,23 @@ export async function createSceneServer({ store, sceneId, catalog }: SceneServer
   hideTools(server, HIDDEN_TOOLS)
   registerProductTools(server, operations, catalog)
   return { server, operations }
+}
+
+/**
+ * Every graph the server saves or publishes passes through exportSceneGraph: tag the sides of walls the agent
+ * created there, so the editor's cutaway can hide the near walls. The bridge keeps its own copy as is (no undo
+ * entries); the tags are recomputed on each export and stay the same while the walls do.
+ */
+function tagWallSidesOnExport(operations: SceneOperations) {
+  const exportSceneGraph = operations.exportSceneGraph.bind(operations)
+  operations.exportSceneGraph = () => {
+    const graph = exportSceneGraph()
+    const updates = wallSideUpdates(graph.nodes as never)
+    if (updates.length === 0) return graph
+    const nodes = { ...graph.nodes } as Record<string, unknown>
+    for (const { id, frontSide, backSide } of updates) nodes[id] = { ...(nodes[id] as object), frontSide, backSide }
+    return { ...graph, nodes: nodes as typeof graph.nodes }
+  }
 }
 
 function hideTools(server: McpServer, names: readonly string[]) {

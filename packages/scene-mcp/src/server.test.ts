@@ -132,3 +132,18 @@ test('no tool schema uses tuples (prefixItems): Claude Code silently drops such 
     assert.ok(!JSON.stringify(tool.inputSchema).includes('prefixItems'), tool.name)
   }
 })
+
+test('walls the agent creates are saved with their interior and exterior sides', async () => {
+  const { store, client, sceneId, levelId } = await setup()
+  const room = await client.callTool({
+    name: 'create_room',
+    arguments: { levelId, name: 'Bedroom', polygon: [[0, 0], [4, 0], [4, 3], [0, 3]] },
+  })
+  assert.ok(!room.isError, JSON.stringify(room))
+  const saved = (await store.load(sceneId))!
+  type Wall = { type: string; id: string; frontSide?: string; backSide?: string }
+  const nodes = saved.graph.nodes as Record<string, Wall>
+  for (const id of json(room).wallIds as string[]) {
+    assert.deepEqual([nodes[id]!.frontSide, nodes[id]!.backSide].sort(), ['exterior', 'interior'], id)
+  }
+})
