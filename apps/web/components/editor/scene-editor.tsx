@@ -6,18 +6,20 @@ import {
   applySceneGraphToEditor,
   Editor,
   type SceneGraph,
+  useEditor,
   type SidebarTab,
   useScene,
   ViewerToolbarLeft,
   ViewerToolbarRight,
 } from '@pascal-app/editor'
-import { Layers, Settings, Sofa, Sparkles } from 'lucide-react'
+import { Layers, PencilRuler, Settings, Sofa, Sparkles } from 'lucide-react'
 import { type ComponentType, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { countGraphNodes, isEmptyGraphOverwrite } from '@/lib/scenes/empty-graph-guard'
 import { sceneGraphSignature } from '@/lib/scenes/scene-signature'
 import type { LiveSceneEvent, SceneMeta, SceneResponse } from '@/lib/scenes/types'
+import { hasPlanHandoff } from '@/lib/plan-handoff'
+import { ArchitectTab, DesignerTab } from './agent-tabs'
 import { CatalogTab } from './catalog-tab'
-import { DesignerPlaceholder } from './designer-placeholder'
 import { bindSceneEditorController, useSceneEditor } from './scene-editor-store'
 
 type Tab = SidebarTab & { component: ComponentType }
@@ -27,7 +29,7 @@ export interface SceneEditorProps {
   initialGraph: SceneGraph
   /** Proposal scene to show read-only on open (`/editor/:id?preview=<proposalId>`). */
   initialPreviewSceneId?: string | null
-  /** Mounted in the "designer" sidebar tab; a placeholder until lane D's panel is wired. */
+  /** Mounted in the "designer" sidebar tab; the designer chat when absent. */
   designerPanel?: ComponentType
 }
 
@@ -87,7 +89,12 @@ export function SceneEditor({ meta, initialGraph, initialPreviewSceneId = null, 
         const next = (await response.json()) as SceneMeta
         // The applied proposal becomes the graph restored when the preview closes; its own event is then stale.
         const applied = await fetch(`/api/scenes/${encodeURIComponent(meta.id)}`, { cache: 'no-store' })
-        if (applied.ok) baseGraphRef.current = ((await applied.json()) as SceneResponse).graph
+        if (applied.ok) {
+          const graph = ((await applied.json()) as SceneResponse).graph
+          // Applied without a loaded preview (straight from the proposal card): show it now.
+          if (previewingRef.current) baseGraphRef.current = graph
+          else applyRemote(graph)
+        }
         setVersion(next.version)
         serverNodeCountRef.current = next.nodeCount
         useSceneEditor.getState().clearPreview()
@@ -98,7 +105,7 @@ export function SceneEditor({ meta, initialGraph, initialPreviewSceneId = null, 
       bindSceneEditorController(null)
       useSceneEditor.setState({ sceneId: null, version: 0, previewSceneId: null, previewError: null })
     }
-  }, [meta.id, meta.version, initialPreviewSceneId, setVersion])
+  }, [meta.id, meta.version, initialPreviewSceneId, setVersion, applyRemote])
 
   // Pascal's <Editor> adds `dark` to <body> on mount; Folio is light, so keep it off while the editor is open.
   useEffect(() => {
@@ -111,6 +118,13 @@ export function SceneEditor({ meta, initialGraph, initialPreviewSceneId = null, 
     observer.observe(body, { attributes: true, attributeFilter: ['class'] })
     return () => observer.disconnect()
   }, [])
+
+  // A plan handed over from the portal opens the plan tab, after the sidebar has registered it.
+  useEffect(() => {
+    if (!hasPlanHandoff(meta.id)) return
+    const timer = setTimeout(() => useEditor.getState().setActiveSidebarPanel('architect'), 0)
+    return () => clearTimeout(timer)
+  }, [meta.id])
 
   // Keep ?preview= in the address bar so a reload shows the same thing.
   useEffect(() => {
@@ -237,7 +251,8 @@ export function SceneEditor({ meta, initialGraph, initialPreviewSceneId = null, 
     () => [
       { id: 'site', label: 'Scene', component: sceneSettingsNoop, icon: <Layers className="size-5" />, mobileIcon: <Layers className="size-5" />, mobileDefaultSnap: 0.5 },
       { id: 'catalog', label: 'Catalog', component: CatalogTab, icon: <Sofa className="size-5" />, mobileIcon: <Sofa className="size-5" />, mobileDefaultSnap: 0.5 },
-      { id: 'designer', label: 'Designer', component: designerPanel ?? DesignerPlaceholder, icon: <Sparkles className="size-5" />, mobileIcon: <Sparkles className="size-5" />, mobileDefaultSnap: 0.6 },
+      { id: 'designer', label: 'Designer', component: designerPanel ?? DesignerTab, icon: <Sparkles className="size-5" />, mobileIcon: <Sparkles className="size-5" />, mobileDefaultSnap: 0.6 },
+      { id: 'architect', label: 'Plan', component: ArchitectTab, icon: <PencilRuler className="size-5" />, mobileIcon: <PencilRuler className="size-5" />, mobileDefaultSnap: 0.6 },
       { id: 'settings', label: 'Settings', component: sceneSettingsNoop, icon: <Settings className="size-5" />, mobileIcon: <Settings className="size-5" />, mobileDefaultSnap: 0.5 },
     ],
     [designerPanel],

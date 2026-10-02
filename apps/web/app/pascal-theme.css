@@ -219,3 +219,17 @@ body:has(.varpet-editor) .bg-\[\#3e3e3e\] {
 body:has(.varpet-editor) .hover\:bg-\[\#3e3e3e\]:hover {
   background-color: var(--folio-hover);
 }
+
+/* The designer and plan chats inside Pascal's sidebar: fill the panel instead of their standalone sizes. */
+.designer-column.varpet-sidebar-panel {
+  width: 100%;
+  border-right: 0;
+}
+
+.intake-panel.varpet-sidebar-panel {
+  width: 100%;
+  min-height: 100%;
+  overflow-y: auto;
+  border: 0;
+  border-radius: 0;
+}

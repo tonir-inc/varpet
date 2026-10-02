@@ -9,6 +9,7 @@ import type { SceneMeta } from '@/lib/scenes/types'
  *   const { sceneId, previewSceneId, showPreview, clearPreview, applyPreview } = useSceneEditor()
  *   showPreview(proposalSceneId)   // the flat shows the proposal, read-only, live as the agent edits it
  *   await applyPreview()           // POST /api/scenes/:sceneId/apply, then back to the (now updated) flat
+ *   await applyPreview(id)         // the same for a proposal that is not being previewed
  *   clearPreview()                 // Dismiss: back to the flat as it was
  */
 export interface SceneEditorState {
@@ -20,7 +21,7 @@ export interface SceneEditorState {
   previewError: string | null
   showPreview: (proposalSceneId: string) => void
   clearPreview: () => void
-  applyPreview: () => Promise<SceneMeta>
+  applyPreview: (proposalSceneId?: string) => Promise<SceneMeta>
 }
 
 type Controller = { apply: (proposalSceneId: string) => Promise<SceneMeta> }
@@ -38,8 +39,8 @@ export const useSceneEditor = create<SceneEditorState>((set, get) => ({
   previewError: null,
   showPreview: (proposalSceneId) => set({ previewSceneId: proposalSceneId, previewError: null }),
   clearPreview: () => set({ previewSceneId: null, previewError: null }),
-  applyPreview: async () => {
-    const proposal = get().previewSceneId
+  applyPreview: async (proposalSceneId) => {
+    const proposal = proposalSceneId ?? get().previewSceneId
     if (!proposal) throw new Error('no proposal is being previewed')
     if (!controller) throw new Error('no scene editor is open')
     return controller.apply(proposal)

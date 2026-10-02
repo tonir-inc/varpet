@@ -154,6 +154,8 @@ export interface LiveTurn {
   draft: string
   progress: string
   proposal?: ProposalCard
+  /** The scene the agent edits this turn (the `session` event's proposal copy); null when it edits the flat. */
+  workSceneId?: string | null
   request: { text: string; images?: string[] }
 }
 
@@ -290,7 +292,7 @@ function applyEvent(state: ChatState, event: AgentEvent, at: number, id: string)
   if (!turn) return state
   const t = seconds(turn, at)
   switch (event.type) {
-    case 'session': return { ...state, conversationId: event.conversationId }
+    case 'session': return { ...state, conversationId: event.conversationId, turn: { ...turn, workSceneId: event.proposalSceneId } }
     case 'progress': return { ...state, turn: { ...turn, progress: event.text, steps: progressStep(turn.steps, event.text, t) } }
     case 'message_delta': return { ...state, turn: { ...turn, draft: (turn.draft + event.text).slice(-20000) } }
     case 'tool': return { ...state, turn: { ...turn, steps: toolStep(turn.steps, event, t) } }
