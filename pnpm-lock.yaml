@@ -31,6 +31,9 @@ importers:
       '@react-three/fiber':
         specifier: ^9.5.0
         version: 9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1)
+      '@varpet/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       lucide-react:
         specifier: ^1.7.0
         version: 1.50.0(@types/react@19.2.2)(react@19.3.0)

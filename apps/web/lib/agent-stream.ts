@@ -1,6 +1,6 @@
 // The one client of POST /api/agents/{role}/turn: streams NDJSON AgentEvents and folds them into chat state.
 // Types come from the shared contracts; the import is type-only so nothing resolves at runtime.
-import type { AgentEvent, AgentRole, ProposalProduct, TurnRequest } from '../../../packages/contracts/src/index'
+import type { AgentEvent, AgentRole, ProposalProduct, TurnRequest } from '@varpet/contracts'
 
 export type { AgentEvent, AgentRole, ProposalProduct, TurnRequest }
 
