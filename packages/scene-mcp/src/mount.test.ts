@@ -8,6 +8,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
 import { FLAG_TEXT, searchPages, toProduct, type Catalog, type FetchPage, type ProductHit, type RawCatalogItem } from './catalog.ts'
 import { mountOf } from './mount.ts'
+import { gltfBounds, type Bounds } from './model-bounds.ts'
 import { createSceneServer } from './server.ts'
 
 const TEMPLATE = join(import.meta.dirname, '../../../apps/web/lib/flats/templates/sunday-b12121.json')
@@ -148,7 +149,15 @@ async function sundayScene() {
   const store = await createSceneStore({ PASCAL_DB_PATH: join(dir, 'pascal.db') })
   const graph = JSON.parse(readFileSync(TEMPLATE, 'utf8'))
   const meta = await store.save({ name: 'Sunday', graph })
-  const { server } = await createSceneServer({ store, sceneId: meta.id, catalog: fakeCatalog })
+  // Models as the catalog serves them: generated ones stand on their origin, Amazon's lights hang from it.
+  const bounds: Record<string, Bounds> = {
+    'abo:pendant': { min: [-0.15, -1.2, -0.15], max: [0.15, 0, 0.15] },
+  }
+  const modelBounds = async (url: string) => {
+    const product = Object.values(products).find((p) => p.glbUrl === url)
+    return product ? (bounds[product.id] ?? null) : null
+  }
+  const { server } = await createSceneServer({ store, sceneId: meta.id, catalog: fakeCatalog, modelBounds })
   const [a, b] = InMemoryTransport.createLinkedPair()
   const client = new Client({ name: 'test', version: '0' })
   await Promise.all([server.connect(a), client.connect(b)])
@@ -215,15 +224,33 @@ test('curtains hang over their window: centred on it, from above it to the floor
   assert.equal(payload.notes, undefined)
 })
 
-test('a pendant hangs from the room ceiling, top at the ceiling', async () => {
+test('a pendant hangs from the room ceiling, top at the ceiling, by its model\'s real drop', async () => {
   const { place } = await sundayScene()
   const { payload, item } = (await place({ product_id: 'abo:pendant', target_id: 'zone_r-living', position: [-3, 0, -5] })) as { payload: any; item: Item }
   assert.equal(item.parentId, 'ceiling_r-living')
   assert.equal(item.asset.attachTo, 'ceiling')
-  assert.deepEqual(item.position, [-3, -1.05, -5])
+  // The model hangs from its origin (y -1.2..0): lifted by 1.2 so it spans 0..1.2, then hung 1.2 below the ceiling.
+  assert.deepEqual(item.asset.offset, [0, 1.2, 0])
+  assert.deepEqual(item.position, [-3, -1.2, -5])
   assert.equal(payload.mount, 'ceiling')
   assert.ok(payload.ceiling.height > 2.3 && payload.ceiling.height < 2.8, String(payload.ceiling.height))
-  assert.ok(Math.abs(payload.bottom - (payload.ceiling.height - 1.05)) < 1e-3)
+  assert.ok(Math.abs(payload.bottom - (payload.ceiling.height - 1.2)) < 1e-3)
+})
+
+test('gltfBounds reads the box from accessor min/max under node transforms', () => {
+  const box = gltfBounds({
+    scenes: [{ nodes: [0] }],
+    nodes: [
+      { translation: [0, 2, 0], children: [1] },
+      // Quarter turn about y: x -> -z.
+      { mesh: 0, rotation: [0, Math.SQRT1_2, 0, Math.SQRT1_2], scale: [2, 1, 1] },
+    ],
+    meshes: [{ primitives: [{ attributes: { POSITION: 0 } }] }],
+    accessors: [{ min: [0, -1, -0.5], max: [1, 0, 0.5] }],
+  })!
+  const r = (v: number[]) => v.map((x) => Math.round(x * 1000) / 1000 || 0)
+  assert.deepEqual(r(box.min), [-0.5, 1, -2])
+  assert.deepEqual(r(box.max), [0.5, 2, 0])
 })
 
 test('mount overrides the product: a TV on the wall; floor pieces still need a floor target', async () => {

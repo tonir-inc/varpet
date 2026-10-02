@@ -12,6 +12,7 @@ import type { Catalog, ProductHit } from './catalog.ts'
 import { finishMaterialItems } from '../../contracts/src/finishes.ts'
 import { registerFinishTools } from './finishes.ts'
 import { registerViewSceneTool, type Renderer } from './view-scene.ts'
+import { httpModelBounds, type Bounds, type ModelBounds } from './model-bounds.ts'
 import { ceilingPose, defaultWallBottom, MOUNTS, nearestWall, wallPose, windowHang, type Mount } from './mount.ts'
 
 /** Tools that would rebind or delete scenes. The agent is bound to one scene for its whole run. */
@@ -44,10 +45,12 @@ export interface SceneServerOptions {
   publicOrigin?: string
   /** Draws the work scene for view_scene (the web app's POST /api/render); without it the tool is not offered. */
   render?: Renderer
+  /** Reads a model's box so hung pieces sit right whatever their origin (default: fetch the GLB). */
+  modelBounds?: ModelBounds
 }
 
 /** Load the scene, bind Pascal's operations to it and build the server. Throws when the scene does not exist. */
-export async function createSceneServer({ store, sceneId, catalog, publicOrigin, render }: SceneServerOptions): Promise<{
+export async function createSceneServer({ store, sceneId, catalog, publicOrigin, render, modelBounds = httpModelBounds() }: SceneServerOptions): Promise<{
   server: McpServer
   operations: SceneOperations
 }> {
@@ -66,7 +69,7 @@ export async function createSceneServer({ store, sceneId, catalog, publicOrigin,
     name: 'varpet-scene',
     hiddenTools: HIDDEN_TOOLS,
     registerHostTools: (host) => {
-      registerProductTools(host, operations, catalog)
+      registerProductTools(host, operations, catalog, modelBounds)
       registerFinishTools(host, operations, publishSnapshot)
       if (render) registerViewSceneTool(host, operations, render)
     },
@@ -108,9 +111,24 @@ export async function publishSnapshot(operations: SceneOperations, kind: string)
 }
 
 /** How place_product hangs a piece: Pascal's wall-side pose (on a face, in the wall's frame) or under a ceiling. */
-export type ItemMounting =
+export type ItemMounting = (
   | { attachTo: 'wall-side'; wallId: string; side: 'front' | 'back'; wallT: number }
   | { attachTo: 'ceiling' }
+) & { bounds?: Bounds | null }
+
+/**
+ * The model offset that puts a hung piece where Pascal expects it: a wall-side piece spans z 0..d from the wall face
+ * (back on the wall), a ceiling piece y 0..h up to the ceiling, both centred. From the model's measured box; without
+ * one, catalog models are assumed to stand centred on their origin.
+ */
+export function mountOffset(mounting: ItemMounting, depth: number): [number, number, number] {
+  const r = (v: number) => Math.round(v * 1000) / 1000 || 0
+  const b = mounting.bounds
+  if (!b) return [0, 0, mounting.attachTo === 'wall-side' ? r(depth / 2) : 0]
+  const cx = -(b.min[0] + b.max[0]) / 2
+  const cz = mounting.attachTo === 'wall-side' ? -b.min[2] : -(b.min[2] + b.max[2]) / 2
+  return [r(cx), r(-b.min[1]), r(cz)]
+}
 
 /**
  * The item node place_product writes: the product's model at its real size, with what a quote needs. Mounted
@@ -138,7 +156,7 @@ export function productItemNode(
       src: product.glbUrl,
       dimensions: product.dimensions,
       // Catalog models are floor-centred, in metres, Y up.
-      offset: [0, 0, mounting?.attachTo === 'wall-side' ? Math.round((depth / 2) * 1000) / 1000 : 0],
+      offset: mounting ? mountOffset(mounting, depth) : [0, 0, 0],
       ...(mounting ? { attachTo: mounting.attachTo } : {}),
       rotation: [0, 0, 0],
       scale: [1, 1, 1],
@@ -158,7 +176,7 @@ function failure(message: string) {
   return { content: [{ type: 'text' as const, text: message }], isError: true }
 }
 
-function registerProductTools(server: McpServer, operations: SceneOperations, catalog: Catalog) {
+function registerProductTools(server: McpServer, operations: SceneOperations, catalog: Catalog, modelBounds: ModelBounds) {
   server.registerTool(
     'search_products',
     {
@@ -369,7 +387,8 @@ function registerProductTools(server: McpServer, operations: SceneOperations, ca
         const pose = wallPose(nodes, wall, { along, bottom, point: windowNode ? undefined : point, zone, size, coversOpening: windowNode?.id, ignoreOpenings: textile })
         if ('error' in pose) return failure(pose.error)
         if (rotation) notes.push('rotation ignored: a wall piece faces the room')
-        const node = productItemNode(product, pose.position, pose.rotationY, { attachTo: 'wall-side', wallId: pose.wallId, side: pose.side, wallT: pose.wallT })
+        const bounds = await modelBounds(product.glbUrl)
+        const node = productItemNode(product, pose.position, pose.rotationY, { attachTo: 'wall-side', wallId: pose.wallId, side: pose.side, wallT: pose.wallT, bounds })
         const itemId = operations.createNode(node as never, pose.wallId as never)
         await publishSnapshot(operations, 'place_product')
         return text({
@@ -390,9 +409,13 @@ function registerProductTools(server: McpServer, operations: SceneOperations, ca
         return failure(`bad_target: ${target_id} is a ${target.type}; a ceiling piece takes a zone, ceiling or level`)
       }
       if (!point && !zone && target?.type !== 'ceiling') return failure('position_required: give position (the floor point under it) or a zone')
-      const pose = ceilingPose(nodes, levelId, point ?? null, zone, product.dimensions, target?.type === 'ceiling' ? target.id : undefined)
+      // The model's own height (Amazon lights include the cord or chain) decides how low it hangs.
+      const bounds = await modelBounds(product.glbUrl)
+      const [w, catalogHeight, d] = product.dimensions
+      const height = bounds ? Math.round((bounds.max[1] - bounds.min[1]) * 1000) / 1000 : catalogHeight
+      const pose = ceilingPose(nodes, levelId, point ?? null, zone, [w, height, d], target?.type === 'ceiling' ? target.id : undefined)
       if ('error' in pose) return failure(pose.error)
-      const node = productItemNode(product, pose.position, rotation ?? 0, { attachTo: 'ceiling' })
+      const node = productItemNode(product, pose.position, rotation ?? 0, { attachTo: 'ceiling', bounds })
       const itemId = operations.createNode(node as never, pose.ceilingId as never)
       await publishSnapshot(operations, 'place_product')
       return text({
@@ -401,7 +424,7 @@ function registerProductTools(server: McpServer, operations: SceneOperations, ca
         ...placed,
         ceiling: { id: pose.ceilingId, height: pose.ceilingHeight },
         bottom: pose.bottom,
-        center: [pose.position[0], round(pose.bottom + product.dimensions[1] / 2), pose.position[2]],
+        center: [pose.position[0], round(pose.bottom + height / 2), pose.position[2]],
         ...flags,
         ...(pose.notes.length ? { notes: pose.notes } : {}),
       })
