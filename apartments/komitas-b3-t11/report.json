@@ -323,6 +323,10 @@
     "tv on tv-unit"
    ]
   },
+  "catalog-trial": {
+   "saved": "option.catalog-trial.json",
+   "pieces": 34
+  },
   "styled": {
    "saved": "option.styled.json",
    "pieces": 37
