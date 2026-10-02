@@ -2,11 +2,11 @@
 
 // v1's edit tool row (top-left of the stage) on Pascal's editor: select, box select, move, rotate, delete; the flat's
 // list and Frame; the Snap chip; the Properties toggle. Pascal has no persistent move/rotate/resize modes: Move picks
-// the selected piece up (its floating menu's Move) and Rotate turns it a step (its R key).
+// the selected piece up (its floating menu's Move) and Rotate turns it a step (Pascal's rotateSelection, the R key).
 import { useEditor, useViewer } from '@pascal-app/editor'
 import { type ReactNode, useEffect, useState } from 'react'
 import { FolioIcon, type FolioIconName } from './folio-icon'
-import { frame, inspectorToggle, moveSelection, openSidebar, pressKey, selectTool } from './folio-actions'
+import { frame, inspectorToggle, moveSelection, openSidebar, rotate, selectTool } from './folio-actions'
 
 function ToolButton({ icon, label, shortcut, active, disabled, onClick, children }: {
   icon: FolioIconName
@@ -56,7 +56,7 @@ export function FolioTools() {
       <ToolButton active={mode === 'select' && selectionTool === 'click'} icon="select" label="Select" onClick={() => selectTool('select')} shortcut="V" />
       <ToolButton active={mode === 'select' && selectionTool === 'marquee'} icon="marquee" label="Box select" onClick={() => selectTool('marquee')} />
       <ToolButton disabled={selected !== 1} icon="move" label="Move the selection" onClick={moveSelection} />
-      <ToolButton disabled={selected === 0} icon="rotate" label="Turn the selection" onClick={() => pressKey('r')} shortcut="R" />
+      <ToolButton disabled={selected === 0} icon="rotate" label="Turn the selection" onClick={rotate} shortcut="R" />
       <ToolButton active={mode === 'delete'} icon="trash" label="Delete by clicking" onClick={() => selectTool('delete')} shortcut="X" />
       <span className="folio-tools-gap" aria-hidden="true" />
       <ToolButton active={panel === 'site'} icon="layers" label="Everything in the flat" onClick={() => openSidebar('site')} />

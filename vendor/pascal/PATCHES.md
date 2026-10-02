@@ -26,3 +26,14 @@ Base: `@pascal-app/core@1.0.3` (`ebe69be2`). One commit each, so each can become
   (`setDesktopInspectorDefaultCollapsed` in the panel wrapper; clearing the selection resets to it).
 - Files: `packages/editor/src/components/ui/panels/panel-wrapper.tsx`, `packages/editor/src/components/editor/index.tsx`.
 - Host side removed: `useExpandInspectorOnSelect` in `apps/web/components/editor/folio-tools.tsx`.
+
+## 4. Editor: `undo`, `redo`, `rotateSelection` commands
+- Motivation: the history and rotate shortcuts lived only inside the window keydown handler, so a host toolbar had
+  to dispatch synthetic Cmd+Z / R key events.
+- Change: the R/T branch of `useKeyboard` is one function, `rotateSelectionStep(direction)`, used by the keys and by
+  the exported `rotateSelection(direction = 1)` (same guards: a tool owning rotation, mesh editing, read-only).
+  `undo()` / `redo()` run what Cmd+Z / Cmd+Shift+Z run (cancel an interaction in progress, else history), and do
+  nothing on a read-only scene. All three are exported from the package root.
+- Files: `packages/editor/src/hooks/use-keyboard.ts`, `packages/editor/src/index.tsx`.
+- Host side removed: synthetic undo/redo/rotate key presses in `apps/web/components/editor/folio-actions.ts`
+  (`pressKey` stays for the measure tool's M).

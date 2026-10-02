@@ -477,6 +477,8 @@ export {
   type GridEventScreenProjection,
   getGridEventScreenProjection,
 } from './lib/grid-event-presentation'
+// Commands for host toolbars: what the undo/redo/rotate shortcuts do, without the key.
+export { redo, rotateSelection, undo } from './hooks/use-keyboard'
 export {
   getHistoryCommandState,
   type HistoryCommandDelegate,

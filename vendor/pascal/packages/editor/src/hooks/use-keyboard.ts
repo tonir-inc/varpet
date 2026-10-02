@@ -93,6 +93,79 @@ function rotateGroupSelection(direction: 1 | -1): boolean {
   return true
 }
 
+/**
+ * One rotation step on the selection: R (direction 1) or T (-1) without the key.
+ * Multi-selection rotates as a group; a single door or window flips its side on R
+ * (T leaves it); registry `keyboardActions` run; anything else with a rotation
+ * turns 45 degrees. Returns whether the selection took the step.
+ */
+function rotateSelectionStep(direction: 1 | -1): boolean {
+  const key = direction === 1 ? 'r' : 't'
+  if (rotateGroupSelection(direction)) return true
+  const rotatableReference = getRotatableSelectedReference()
+  if (rotatableReference) {
+    useScene.getState().updateNode(rotatableReference.id, {
+      rotation: [
+        rotatableReference.rotation[0],
+        steppedRotation(rotatableReference.rotation[1], direction),
+        rotatableReference.rotation[2],
+      ],
+    })
+    sfxEmitter.emit('sfx:item-rotate')
+    return true
+  }
+  const selectedNodeIds = useViewer.getState().selection.selectedIds as AnyNodeId[]
+  if (selectedNodeIds.length !== 1) return false
+  const sceneNodes = useScene.getState().nodes
+  const selectedNode = sceneNodes[selectedNodeIds[0]!]
+  const node = selectedNode ? resolveDirectManipulationNode(selectedNode, sceneNodes) : null
+  if (node?.type === 'door' || node?.type === 'window') {
+    // R flips the opening's side (front <-> back, rotation += pi); open/close
+    // lives on E. T is a no-op so it doesn't free-rotate a wall-bound node.
+    if (direction === -1) return true
+    useScene.getState().updateNode(node.id, {
+      side: node.side === 'front' ? 'back' : 'front',
+      rotation: [node.rotation[0], node.rotation[1] + Math.PI, node.rotation[2]],
+    })
+    if (node.parentId) {
+      useScene.getState().dirtyNodes.add(node.parentId as AnyNodeId)
+    }
+    sfxEmitter.emit('sfx:item-rotate')
+    return true
+  }
+  const action = node ? nodeRegistry.get(node.type)?.keyboardActions?.[key] : undefined
+  if (node && action?.appliesTo(node)) {
+    // Registry-driven R/T action (skylights toggle open/close on R).
+    action.run(node)
+    sfxEmitter.emit('sfx:item-rotate')
+    return true
+  }
+  if (node && 'rotation' in node) {
+    // Round to the nearest 45 degrees then step one increment.
+    if (typeof node.rotation === 'number') {
+      useScene.getState().updateNode(node.id, { rotation: steppedRotation(node.rotation, direction) })
+    } else if (Array.isArray(node.rotation)) {
+      useScene.getState().updateNode(node.id, {
+        rotation: [node.rotation[0], steppedRotation(node.rotation[1], direction), node.rotation[2]],
+      })
+    }
+    sfxEmitter.emit('sfx:item-rotate')
+    return true
+  }
+  return false
+}
+
+/**
+ * Rotate the selection one step, as the R key (direction 1, default) or T key
+ * (-1) does, for hosts with their own toolbar. Does nothing while a tool owns
+ * rotation or a mesh is being edited. Returns whether anything turned.
+ */
+export function rotateSelection(direction: 1 | -1 = 1): boolean {
+  if (useScene.getState().readOnly) return false
+  if (isToolOwnedRotation(direction === 1 ? 'r' : 't') || !canRunGlobalRotationShortcut()) return false
+  return rotateSelectionStep(direction)
+}
+
 // Tools call this in their onCancel handler when they have an active mid-action to cancel,
 // so that the global Escape handler knows not to also switch to select mode.
 let _toolCancelConsumed = false
@@ -190,6 +263,14 @@ export const runHistoryShortcut = (direction: 'undo' | 'redo') => {
   else runUndo()
   return true
 }
+
+/**
+ * Undo / redo as Cmd/Ctrl+Z and Cmd/Ctrl+Shift+Z do (an interaction in
+ * progress is cancelled instead), for hosts with their own buttons. Nothing
+ * while the scene is read-only (version preview). Returns whether it ran.
+ */
+export const undo = () => !useScene.getState().readOnly && runHistoryShortcut('undo')
+export const redo = () => !useScene.getState().readOnly && runHistoryShortcut('redo')
 
 /** Whether an armed tool owns the rotation key (`R` or `T`) instead of the selection. */
 export const isToolOwnedRotation = (key: 'r' | 't' = 'r') => {
@@ -557,78 +638,7 @@ export const useKeyboard = ({
         // Multi-selection branches to the group rotate before any of the
         // single-selection arms (reference, door/window flip, registry
         // keyboardActions, plain rotate) — those stay single-selection-only.
-        if (rotateGroupSelection(1)) {
-          e.preventDefault()
-          return
-        }
-        const rotatableReference = getRotatableSelectedReference()
-        if (rotatableReference) {
-          e.preventDefault()
-          useScene.getState().updateNode(rotatableReference.id, {
-            rotation: [
-              rotatableReference.rotation[0],
-              steppedRotation(rotatableReference.rotation[1], 1),
-              rotatableReference.rotation[2],
-            ],
-          })
-          sfxEmitter.emit('sfx:item-rotate')
-          return
-        }
-        const selectedNodeIds = useViewer.getState().selection.selectedIds as AnyNodeId[]
-        if (selectedNodeIds.length === 1) {
-          const sceneNodes = useScene.getState().nodes
-          const selectedNode = sceneNodes[selectedNodeIds[0]!]
-          const node = selectedNode ? resolveDirectManipulationNode(selectedNode, sceneNodes) : null
-          if (node?.type === 'door') {
-            e.preventDefault()
-            useScene.getState().updateNode(node.id, {
-              side: node.side === 'front' ? 'back' : 'front',
-              rotation: [node.rotation[0], node.rotation[1] + Math.PI, node.rotation[2]],
-            })
-            if (node.parentId) {
-              useScene.getState().dirtyNodes.add(node.parentId as AnyNodeId)
-            }
-            sfxEmitter.emit('sfx:item-rotate')
-          } else if (node?.type === 'window') {
-            // Windows: R flips side (front ↔ back, rotation += π). Open/
-            // close toggle for operable windows lives on E.
-            e.preventDefault()
-            useScene.getState().updateNode(node.id, {
-              side: node.side === 'front' ? 'back' : 'front',
-              rotation: [node.rotation[0], node.rotation[1] + Math.PI, node.rotation[2]],
-            })
-            if (node.parentId) {
-              useScene.getState().dirtyNodes.add(node.parentId as AnyNodeId)
-            }
-            sfxEmitter.emit('sfx:item-rotate')
-          } else if (node && nodeRegistry.get(node.type)?.keyboardActions?.r?.appliesTo(node)) {
-            // Registry-driven R action. Skylight uses this for open/
-            // close toggling; future kinds with custom R behaviour
-            // declare it on their `def.keyboardActions` without
-            // touching this hook. Door / window still use the legacy
-            // direct calls above (follow-up to migrate).
-            e.preventDefault()
-            nodeRegistry.get(node.type)?.keyboardActions?.r?.run(node)
-            sfxEmitter.emit('sfx:item-rotate')
-          } else if (node && 'rotation' in node) {
-            e.preventDefault()
-            // Round to the nearest 45° then step one increment (not a blind +45°).
-            if (typeof node.rotation === 'number') {
-              useScene
-                .getState()
-                .updateNode(node.id, { rotation: steppedRotation(node.rotation, 1) })
-            } else if (Array.isArray(node.rotation)) {
-              useScene.getState().updateNode(node.id, {
-                rotation: [
-                  node.rotation[0],
-                  steppedRotation(node.rotation[1], 1),
-                  node.rotation[2],
-                ],
-              })
-            }
-            sfxEmitter.emit('sfx:item-rotate')
-          }
-        }
+        if (rotateSelectionStep(1)) e.preventDefault()
       } else if (
         (e.key === 't' || e.key === 'T') &&
         !isVersionPreviewMode &&
@@ -637,60 +647,7 @@ export const useKeyboard = ({
       ) {
         // Rotate selected node counter-clockwise
         // Multi-selection → group rotate, mirroring the R arm above.
-        if (rotateGroupSelection(-1)) {
-          e.preventDefault()
-          return
-        }
-        const rotatableReference = getRotatableSelectedReference()
-        if (rotatableReference) {
-          e.preventDefault()
-          useScene.getState().updateNode(rotatableReference.id, {
-            rotation: [
-              rotatableReference.rotation[0],
-              steppedRotation(rotatableReference.rotation[1], -1),
-              rotatableReference.rotation[2],
-            ],
-          })
-          sfxEmitter.emit('sfx:item-rotate')
-          return
-        }
-        const selectedNodeIds = useViewer.getState().selection.selectedIds as AnyNodeId[]
-        if (selectedNodeIds.length === 1) {
-          const sceneNodes = useScene.getState().nodes
-          const selectedNode = sceneNodes[selectedNodeIds[0]!]
-          const node = selectedNode ? resolveDirectManipulationNode(selectedNode, sceneNodes) : null
-          if (node?.type === 'door') {
-            // Door's open/close moved to E; T is a no-op for doors so
-            // it doesn't free-rotate a wall-bound node by π/4.
-            e.preventDefault()
-          } else if (node?.type === 'window') {
-            // Window's open/close moved to E; T is a no-op so it doesn't
-            // free-rotate a wall-bound node by π/4.
-            e.preventDefault()
-          } else if (node && nodeRegistry.get(node.type)?.keyboardActions?.t?.appliesTo(node)) {
-            // Registry-driven T action. Same shape as the R arm above.
-            e.preventDefault()
-            nodeRegistry.get(node.type)?.keyboardActions?.t?.run(node)
-            sfxEmitter.emit('sfx:item-rotate')
-          } else if (node && 'rotation' in node) {
-            e.preventDefault()
-            // Round to the nearest 45° then step one increment back.
-            if (typeof node.rotation === 'number') {
-              useScene
-                .getState()
-                .updateNode(node.id, { rotation: steppedRotation(node.rotation, -1) })
-            } else if (Array.isArray(node.rotation)) {
-              useScene.getState().updateNode(node.id, {
-                rotation: [
-                  node.rotation[0],
-                  steppedRotation(node.rotation[1], -1),
-                  node.rotation[2],
-                ],
-              })
-            }
-            sfxEmitter.emit('sfx:item-rotate')
-          }
-        }
+        if (rotateSelectionStep(-1)) e.preventDefault()
       } else if ((e.key === 'e' || e.key === 'E') && !isVersionPreviewMode) {
         // Toggle door / operable-window open/closed state. Moved off R,
         // which now flips the opening (side + π rotation).

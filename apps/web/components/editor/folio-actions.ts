@@ -2,7 +2,7 @@
 
 // Editor actions the Folio chrome (tool row, dock, header) shares, on Pascal's public stores and events only.
 import { emitter } from '@pascal-app/core'
-import { type SceneGraph, useEditor, useScene, useSidebarStore, useViewer } from '@pascal-app/editor'
+import { type SceneGraph, redo, rotateSelection, undo, useEditor, useScene, useSidebarStore, useViewer } from '@pascal-app/editor'
 import { frameFlat } from './viewer-look'
 
 export function editorGraph(): SceneGraph {
@@ -10,7 +10,7 @@ export function editorGraph(): SceneGraph {
   return { nodes, rootNodeIds, collections, materials, installedPlugins } as SceneGraph
 }
 
-/** Pascal binds its shortcuts on window keydown and exports no undo/redo/rotate API, so the chrome presses the key. */
+/** Shortcuts Pascal has no command for (the measure tool's M) are pressed as keys on window. */
 export function pressKey(key: string, mods: { shift?: boolean; command?: boolean } = {}) {
   const mac = typeof navigator !== 'undefined' && /mac/i.test(navigator.platform)
   window.dispatchEvent(new KeyboardEvent('keydown', {
@@ -24,8 +24,10 @@ export function pressKey(key: string, mods: { shift?: boolean; command?: boolean
   }))
 }
 
-export const undo = () => pressKey('z', { command: true })
-export const redo = () => pressKey('z', { command: true, shift: true })
+export { redo, undo }
+
+/** Turn the selection one step, as Pascal's R key does. */
+export const rotate = () => rotateSelection(1)
 
 export function selectTool(tool: 'select' | 'marquee' | 'delete') {
   const editor = useEditor.getState()
