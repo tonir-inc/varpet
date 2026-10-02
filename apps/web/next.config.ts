@@ -6,6 +6,14 @@ const nextConfig: NextConfig = {
   agentRules: false,
   transpilePackages: ['three', '@pascal-app/core', '@pascal-app/viewer', '@pascal-app/editor', '@pascal-app/nodes', '@pascal-app/mcp'],
   serverExternalPackages: ['node:sqlite'],
+  // Pascal's UI loads its assets from the site root; we keep them under public/pascal.
+  async rewrites() {
+    return [
+      { source: '/icons/:path*', destination: '/pascal/icons/:path*' },
+      { source: '/audios/:path*', destination: '/pascal/audios/:path*' },
+      { source: '/cursor.svg', destination: '/pascal/cursor.svg' },
+    ]
+  },
   images: { remotePatterns: [{ protocol: 'https', hostname: '**' }] },
 }
 
