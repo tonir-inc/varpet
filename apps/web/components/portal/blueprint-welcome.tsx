@@ -5,7 +5,7 @@
 // the build step says so instead of starting.
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useCallback, useEffect, useRef, useState, type ClipboardEvent as ReactClipboardEvent, type DragEvent } from 'react'
+import { useCallback, useEffect, useRef, useState, type DragEvent } from 'react'
 import { bundlesApi, catalogHref, type BundleSummary } from './api'
 import { Icon } from './icons'
 import { BLUEPRINT_PAPER, drawInk, inkOfImage, reducedMotion } from './ink'
@@ -84,10 +84,9 @@ export function BlueprintWelcome({ audience, studioName }: { audience?: 'develop
     setPhotos([...photos, ...added])
   }
   const onDrop = (event: DragEvent) => { event.preventDefault(); setOver(false); void choose([...event.dataTransfer.files]) }
-  const stopPaste = (event: ReactClipboardEvent) => event.stopPropagation()
 
   return (
-    <section className="blueprint-welcome" aria-labelledby="blueprint-title" onPaste={stopPaste}>
+    <section className="blueprint-welcome" aria-labelledby="blueprint-title">
       <div className="blueprint-heading">{developer
         ? <><p className="blueprint-eyebrow"><span />DEVELOPER STUDIO · NEW PLAN</p>
           <h1 id="blueprint-title">Add a plan to <em>your profile.</em></h1>
