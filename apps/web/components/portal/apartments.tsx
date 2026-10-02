@@ -4,7 +4,9 @@
 // each opening its Pascal scene in the editor. Signed out: the team's shared saves, no sign-in needed.
 import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import type { FlatTemplate } from '@/lib/flats/templates'
 import { accountApi, createScene, editorHref, flatsApi, type ApartmentSummary, type FlatMeta } from './api'
+import { FlatPicker } from './flat-picker'
 import { formatSavedDate, usePortal } from './frame'
 import { Icon } from './icons'
 
@@ -14,6 +16,8 @@ export function ApartmentsPage() {
   const { user, status, showNotice } = usePortal()
   const [state, setState] = useState<State>({ kind: 'loading' })
   const [creating, setCreating] = useState(false)
+  const [picking, setPicking] = useState(false)
+  const [createError, setCreateError] = useState<string | null>(null)
   const version = useRef(0)
 
   const load = useCallback(async () => {
@@ -28,17 +32,16 @@ export function ApartmentsPage() {
   }, [])
   useEffect(() => { if (user) void load(); else ++version.current }, [user, load])
 
-  /** A new, empty apartment: a Pascal scene (lane A's store), then the account record pointing at it. */
-  async function create() {
+  /** A new apartment from a flat template: a Pascal scene (lane A's store), then the account record pointing at it. */
+  async function create(template: FlatTemplate) {
     if (creating) return
-    setCreating(true); showNotice(null)
+    setCreating(true); setCreateError(null); showNotice(null)
     try {
-      const name = 'New apartment'
-      const sceneId = await createScene(name)
-      await accountApi.createApartment({ name, templateId: null, sceneId })
+      const sceneId = await createScene(template.name, template.id)
+      await accountApi.createApartment({ name: template.name, templateId: template.id, sceneId })
       location.assign(editorHref(sceneId))
     } catch (cause) {
-      showNotice(cause instanceof Error ? cause.message : 'Could not create the apartment. Please try again.')
+      setCreateError(cause instanceof Error ? cause.message : 'Could not create the apartment. Please try again.')
       setCreating(false)
     }
   }
@@ -47,7 +50,8 @@ export function ApartmentsPage() {
   const heading = (
     <div className="portal-profile-heading"><div><p className="portal-eyebrow">Your personal collection</p>
       <h1>{firstName ? `${firstName}'s apartments` : 'My apartments'}</h1><p>All your spaces. Every possibility.</p></div>
-      <button className="portal-button portal-primary" type="button" onClick={() => void create()} disabled={creating}><Icon name="plus" />{creating ? 'Creating…' : 'New apartment'}</button></div>
+      <button className="portal-button portal-primary" type="button" onClick={() => setPicking(true)} disabled={creating}><Icon name="plus" />{creating ? 'Creating…' : 'New apartment'}</button>
+      {picking && <FlatPicker busy={creating} error={createError} onPick={template => void create(template)} onClose={() => { setPicking(false); setCreateError(null) }} />}</div>
   )
 
   if (status === 'loading') return <>{heading}<div className="portal-profile-status" role="status">Checking your account…</div></>
