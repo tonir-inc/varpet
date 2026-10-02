@@ -1,0 +1,38 @@
+[
+  {
+    "id": "sunday-b12121",
+    "name": "Sunday Towers · B12121",
+    "note": "Three bedrooms, four bathrooms, three balconies",
+    "area": 191.43,
+    "rooms": 16,
+    "bedrooms": 3,
+    "thumbnail": "/flats/sunday-b12121.png"
+  },
+  {
+    "id": "orion-t7",
+    "name": "Orion · Type 7",
+    "note": "Three bedrooms, open living and kitchen",
+    "area": 118.14,
+    "rooms": 10,
+    "bedrooms": 3,
+    "thumbnail": "/flats/orion-t7.png"
+  },
+  {
+    "id": "orion-t8",
+    "name": "Orion · Type 8",
+    "note": "Two bedrooms and a reading room",
+    "area": 105.7,
+    "rooms": 9,
+    "bedrooms": 2,
+    "thumbnail": "/flats/orion-t8.png"
+  },
+  {
+    "id": "m6-12-54",
+    "name": "M6-12-54",
+    "note": "Two bedrooms, two balconies",
+    "area": 75.92,
+    "rooms": 8,
+    "bedrooms": 3,
+    "thumbnail": "/flats/m6-12-54.png"
+  }
+]

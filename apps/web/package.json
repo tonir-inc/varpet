@@ -7,7 +7,8 @@
     "dev": "next dev --port 3000",
     "build": "next build",
     "start": "next start --port 3000",
-    "typecheck": "node ../../scripts/typecheck.mjs ."
+    "typecheck": "node ../../scripts/typecheck.mjs .",
+    "test": "node --test --experimental-strip-types lib/flats/*.test.ts"
   },
   "dependencies": {
     "@pascal-app/core": "1.0.3",

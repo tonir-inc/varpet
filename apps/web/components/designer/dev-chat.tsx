@@ -1,9 +1,19 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useSyncExternalStore } from 'react'
 import { fixtureFetch } from '../../lib/agent-stream'
 import { PlanIntake } from '../intake/PlanIntake'
 import { DesignerPanel } from './DesignerPanel'
+
+// Pascal's mobile breakpoint: crossing it remounts the editor's sidebar tabs. The dev page does the same to the
+// panels so a running turn can be checked to survive it.
+const NARROW = '(max-width: 767px)'
+const subscribeNarrow = (onChange: () => void) => {
+  const query = window.matchMedia(NARROW)
+  query.addEventListener('change', onChange)
+  return () => query.removeEventListener('change', onChange)
+}
+const useNarrow = () => useSyncExternalStore(subscribeNarrow, () => window.matchMedia(NARROW).matches, () => false)
 
 /** The dev page's body: the panel and the intake against recorded streams, with the host callbacks logged. */
 export function DevChat({ designer, architect, speed = 1 }: { designer: string; architect: string; speed?: number }) {
@@ -11,6 +21,7 @@ export function DevChat({ designer, architect, speed = 1 }: { designer: string; 
   const architectFetch = useMemo(() => fixtureFetch(architect, { speed }), [architect, speed])
   const [log, setLog] = useState<string[]>([])
   const [failApply, setFailApply] = useState(false)
+  const layout = useNarrow() ? 'mobile' : 'desktop'
   const record = (line: string) => setLog((lines) => [`${new Date().toLocaleTimeString()}  ${line}`, ...lines].slice(0, 30))
   const host = {
     onPreview: (id: string | null) => record(`onPreview(${id ?? 'null'})`),
@@ -23,9 +34,9 @@ export function DevChat({ designer, architect, speed = 1 }: { designer: string; 
   }
   return (
     <div className="folio" style={{ display: 'flex', height: '100dvh', background: 'var(--ground)' }}>
-      <DesignerPanel sceneId="dev-scene" fetchImpl={designerFetch} badge="Recorded replay" {...host} />
+      <DesignerPanel key={`designer-${layout}`} sceneId="dev-scene" fetchImpl={designerFetch} badge="Recorded replay" {...host} />
       <main style={{ flex: 1, minWidth: 0, overflowY: 'auto', padding: 24, display: 'grid', gap: 24, alignContent: 'start' }}>
-        <PlanIntake sceneId="dev-scene" fetchImpl={architectFetch} {...host} />
+        <PlanIntake key={`intake-${layout}`} sceneId="dev-scene" fetchImpl={architectFetch} {...host} />
         <section style={{ fontSize: 12, color: 'var(--muted)', maxWidth: 560 }}>
           <label style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
             <input type="checkbox" checked={failApply} onChange={(event) => setFailApply(event.target.checked)} /> Make Apply fail
