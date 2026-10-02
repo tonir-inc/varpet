@@ -2,6 +2,7 @@
 
 import { type ReactNode, useCallback, useEffect, useRef } from 'react'
 import { useIsMobile } from '../../hooks/use-mobile'
+import { cn } from '../../lib/utils'
 import useEditor from '../../store/use-editor'
 
 import { useSidebarStore } from '../ui/primitives/sidebar'
@@ -233,6 +234,8 @@ export interface EditorLayoutV2Props {
   overlays?: ReactNode
   stageOverlay?: ReactNode
   rail?: RailOptions
+  /** Tailwind's `dark` class on the layout root (Editor's `forceDark`). Default true. */
+  forceDark?: boolean
 }
 
 export function EditorLayoutV2({
@@ -246,6 +249,7 @@ export function EditorLayoutV2({
   overlays,
   stageOverlay,
   rail,
+  forceDark = true,
 }: EditorLayoutV2Props) {
   const isCaptureMode = useEditor((s) => s.isCaptureMode)
   const isMobile = useIsMobile()
@@ -253,6 +257,7 @@ export function EditorLayoutV2({
   if (isMobile) {
     return (
       <EditorLayoutMobile
+        forceDark={forceDark}
         navbarSlot={navbarSlot}
         overlays={overlays}
         renderTabContent={renderTabContent}
@@ -266,7 +271,7 @@ export function EditorLayoutV2({
   }
 
   return (
-    <div className="dark flex h-full w-full flex-col bg-sidebar text-foreground">
+    <div className={cn(forceDark && 'dark', 'flex h-full w-full flex-col bg-sidebar text-foreground')}>
       {/* Top navbar */}
       {navbarSlot}
 

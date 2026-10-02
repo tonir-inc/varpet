@@ -129,18 +129,6 @@ export function SceneEditor({ meta, initialGraph, initialPreviewSceneId = null, 
     }
   }, [meta.id, meta.version, initialPreviewSceneId, setVersion, applyRemote])
 
-  // Pascal's <Editor> adds `dark` to <body> on mount; Folio is light, so keep it off while the editor is open.
-  useEffect(() => {
-    const body = document.body
-    const strip = () => {
-      if (body.classList.contains('dark')) body.classList.remove('dark')
-    }
-    strip()
-    const observer = new MutationObserver(strip)
-    observer.observe(body, { attributes: true, attributeFilter: ['class'] })
-    return () => observer.disconnect()
-  }, [])
-
   // Opens on the designer (or Plan, for a plan handed over from the portal), sidebar expanded at v1's width.
   useFolioRailDefaults(meta.id)
 
@@ -312,6 +300,8 @@ export function SceneEditor({ meta, initialGraph, initialPreviewSceneId = null, 
         previewScene={previewGraph ?? undefined}
         projectId={meta.projectId ?? meta.id}
         rail={FOLIO_RAIL}
+        // Folio is light: no `dark` class on <body> or the layout root.
+        forceDark={false}
         highlightTheme={FOLIO_HIGHLIGHT}
         // The Folio dock (viewerBanner) replaces Pascal's floating action menu.
         showActionMenu={false}

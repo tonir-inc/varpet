@@ -76,3 +76,12 @@ Base: `@pascal-app/core@1.0.3` (`ebe69be2`). One commit each, so each can become
   stamp lifts. The headless render page (view_scene) gets this too: no floating doors in its cutaway and down renders.
 - Files: `packages/viewer/src/systems/wall/wall-cutout-cache.ts`, `packages/nodes/src/shared/node-batch/candidates.ts`.
 - Host side removed: `setOpenings` and its per-frame bookkeeping in `apps/web/components/editor/clear-cutaway.tsx`.
+
+## 8. Editor: `forceDark` prop
+- Motivation: the editor always added `dark` to <body> on mount and to its layout root, so a light host theme had to
+  strip the class with a MutationObserver and out-specify `.dark` in its CSS; Tailwind `dark:` variants fired anyway.
+- Change: `<Editor forceDark={false}>` (default true) leaves `dark` off <body>, the v1/v2/mobile layout roots and the
+  preview stage. Small overlays that wrap themselves in `.dark` (walkthrough HUD, stage switcher) are unchanged.
+- Files: `packages/editor/src/components/editor/index.tsx`, `packages/editor/src/components/editor/editor-layout-v2.tsx`,
+  `packages/editor/src/components/editor/editor-layout-mobile.tsx`.
+- Host side removed: the <body> class observer in `apps/web/components/editor/scene-editor.tsx`.

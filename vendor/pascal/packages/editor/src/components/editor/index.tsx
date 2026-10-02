@@ -57,6 +57,7 @@ import {
 } from '../../lib/scene'
 import { disposeSFXBus, initSFXBus } from '../../lib/sfx-bus'
 import { useUnitFocusRules } from '../../lib/units'
+import { cn } from '../../lib/utils'
 import { type CameraHintAction, useCameraHintFocus } from '../../store/use-camera-hint-focus'
 import useEditor from '../../store/use-editor'
 import useFloorplanMode from '../../store/use-floorplan-mode'
@@ -227,6 +228,11 @@ export interface EditorProps {
    * Default true.
    */
   showActionMenu?: boolean
+  /**
+   * Put Tailwind's `dark` class on <body> and the layout root (Pascal's dark
+   * chrome). Hosts with a light theme turn it off. Default true.
+   */
+  forceDark?: boolean
   /** Hover and selection outline colours. Default: Pascal's blue hover, white selection. */
   highlightTheme?: EditorHighlightTheme
   /** Rail width and labels under the icons (v2). Default: 56px, labels as tooltips. */
@@ -1245,12 +1251,14 @@ const ViewerCanvas = memo(function ViewerCanvas({
 })
 
 function PreviewStage({
+  forceDark,
   isFirstPersonMode,
   mode,
   onModeChange,
   showLoader,
   viewerContent,
 }: {
+  forceDark: boolean
   isFirstPersonMode: boolean
   mode: ViewerStageMode
   onModeChange: (mode: ViewerStageMode) => void
@@ -1273,7 +1281,12 @@ function PreviewStage({
   const stageModes = hasFloorplan && !isFirstPersonMode ? undefined : (['3d'] as const)
 
   return (
-    <div className="dark relative h-full w-full overflow-hidden bg-neutral-100 text-foreground">
+    <div
+      className={cn(
+        forceDark && 'dark',
+        'relative h-full w-full overflow-hidden bg-neutral-100 text-foreground',
+      )}
+    >
       {isFirstPersonMode ? (
         <FirstPersonOverlay onExit={() => useEditor.getState().setFirstPersonMode(false)} />
       ) : (
@@ -1311,6 +1324,7 @@ function EditorContent({
   inspectorFooter,
   multiSelectionFooter,
   showActionMenu = true,
+  forceDark = true,
   highlightTheme,
   rail,
   inspectorDefaultExpanded = false,
@@ -1507,11 +1521,12 @@ function EditorContent({
   }, [selectionTint])
 
   useEffect(() => {
+    if (!forceDark) return
     document.body.classList.add('dark')
     return () => {
       document.body.classList.remove('dark')
     }
-  }, [])
+  }, [forceDark])
 
   const handleSceneReadyChange = useCallback((ready: boolean) => {
     setIsViewerSceneReady(ready)
@@ -1691,6 +1706,7 @@ function EditorContent({
 
         {!isLoading && isPreviewMode ? (
           <PreviewStage
+            forceDark={forceDark}
             isFirstPersonMode={isFirstPersonMode}
             mode={previewStageMode}
             onModeChange={setPreviewStageMode}
@@ -1700,6 +1716,7 @@ function EditorContent({
         ) : (
           <>
             <EditorLayoutV2
+              forceDark={forceDark}
               navbarSlot={navbarSlot}
               rail={rail}
               overlays={
@@ -1758,7 +1775,9 @@ function EditorContent({
   const overlayLeft = LAYOUT_PADDING + (isSidebarCollapsed ? 8 : sidebarWidth) + LAYOUT_GAP
 
   return (
-    <div className="dark flex h-full w-full gap-3 bg-neutral-100 p-3 text-foreground">
+    <div
+      className={cn(forceDark && 'dark', 'flex h-full w-full gap-3 bg-neutral-100 p-3 text-foreground')}
+    >
       <FloorplanModeCoordinator />
       {visibleLoader && (
         <div className="fixed inset-0 z-60">
@@ -1772,6 +1791,7 @@ function EditorContent({
 
       {!isLoading && isPreviewMode ? (
         <PreviewStage
+            forceDark={forceDark}
           isFirstPersonMode={isFirstPersonMode}
           mode={previewStageMode}
           onModeChange={setPreviewStageMode}

@@ -2,6 +2,7 @@
 
 import { getSceneTheme, useViewer } from '@pascal-app/viewer'
 import { type ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { cn } from '../../lib/utils'
 import useEditor from '../../store/use-editor'
 import { MobileTabBar } from '../ui/sidebar/mobile-tab-bar'
 import type { SidebarTab } from '../ui/sidebar/tab-bar'
@@ -40,6 +41,8 @@ export interface EditorLayoutMobileProps {
   viewerToolbarRight?: ReactNode
   viewerContent: ReactNode
   overlays?: ReactNode
+  /** Tailwind's `dark` class on the layout root (Editor's `forceDark`). Default true. */
+  forceDark?: boolean
 }
 
 export function EditorLayoutMobile({
@@ -51,6 +54,7 @@ export function EditorLayoutMobile({
   viewerToolbarRight,
   viewerContent,
   overlays,
+  forceDark = true,
 }: EditorLayoutMobileProps) {
   const isCaptureMode = useEditor((s) => s.isCaptureMode)
   const activePanel = useEditor((s) => s.activeSidebarPanel)
@@ -212,7 +216,7 @@ export function EditorLayoutMobile({
   }, [panelSheetHeight, committedSheetH])
 
   return (
-    <div className="dark flex h-full w-full flex-col bg-sidebar text-foreground">
+    <div className={cn(forceDark && 'dark', 'flex h-full w-full flex-col bg-sidebar text-foreground')}>
       {navbarSlot}
 
       <div
