@@ -1,10 +1,10 @@
 /* Folio on Pascal: v1's tokens (apps/editor/src/ui/style.css :root, docs/folio.md) mapped onto the shadcn
  * variables Pascal's editor reads. Imported by app/editor/layout.tsx only.
  *
- * Scope: `body:has(.varpet-editor)` beats both globals.css `:root` and the `.dark` class Pascal's <Editor> puts on
- * <body> (specificity 0,1,1 over 0,1,0), and it reaches Radix portals rendered outside the editor wrapper.
- * Pascal's v2 layout also wraps itself in a `.dark` div, hence the second selector (0,2,1).
- * Folio is light, so the editor also removes `dark` from <body> (see scene-editor.tsx). */
+ * Scope: `body:has(.varpet-editor)` beats globals.css `:root` and `.dark` (specificity 0,1,1 over 0,1,0), and it
+ * reaches Radix portals rendered outside the editor wrapper. The editor runs with `forceDark={false}` (no `dark` on
+ * <body> or the layout root); a few Pascal overlays (walkthrough HUD, stage switcher) still wrap themselves in
+ * `.dark`, hence the second selector (0,2,1). */
 
 body:has(.varpet-editor),
 body:has(.varpet-editor) .dark {
@@ -183,7 +183,7 @@ body:has(.varpet-editor) ::selection {
 
 /* ── Theme sweep: Pascal's hardcoded dark greys, lavender and rounded clouds, repainted as Folio. ──────────────
  * Pascal's class names are escaped Tailwind utilities; recheck them on each Pascal upgrade
- * (`grep -rhoE "bg-\[#[0-9a-fA-F]+\]" node_modules/@pascal-app/{editor/src,nodes/dist}`). */
+ * (`grep -rhoE "bg-\[#[0-9a-fA-F]+\]" vendor/pascal/packages/{editor/src,nodes/dist}`). */
 
 /* Folio corners are 2 to 4 px: every rounded-* utility above `md` resolves to 4px inside the editor. */
 body:has(.varpet-editor),
@@ -324,45 +324,29 @@ body:has(.varpet-editor) [cmdk-item][data-selected="true"] {
   border-radius: 0;
 }
 
-/* ── Rail (v1 Folio): 72px, stroke icon above an 11px label; the open tab on --select with teal text. ──────────
- * Pascal's IconRail markup is `div.w-14 > button[aria-pressed]`; our icons carry `.folio-rail-item`. */
-.varpet-editor div:has(> button > .folio-rail-item) {
-  width: 72px;
-  gap: 4px;
-  padding: 8px 0;
+/* ── Rail (v1 Folio): 72px with labels (Pascal's `rail` prop); the open tab on --select with teal text. ──────── */
+.varpet-editor [data-editor-rail] {
+  padding: 8px 4px;
   border-right: 1px solid var(--folio-line);
   background: var(--folio-surface);
 }
 
-.varpet-editor button:has(> .folio-rail-item) {
-  width: 64px;
-  height: 56px;
+.varpet-editor [data-rail-item] {
+  min-height: 56px;
+  gap: 5px;
   border-radius: 3px;
   box-shadow: none;
   color: var(--folio-ink);
   transition: background-color 140ms ease, color 140ms ease;
 }
 
-.varpet-editor button:has(> .folio-rail-item):hover {
+.varpet-editor [data-rail-item]:hover {
   background: var(--folio-hover);
 }
 
-.varpet-editor button:has(> .folio-rail-item)[aria-pressed="true"] {
+.varpet-editor [data-rail-item][aria-pressed="true"] {
   background: var(--folio-select);
   color: var(--folio-teal);
-}
-
-.folio-rail-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-}
-
-.folio-rail-label {
-  font-size: 11px;
-  line-height: 1;
-  white-space: nowrap;
 }
 
 /* Pascal's plugin gallery tab (+) has no place in a flat editor. */
@@ -589,12 +573,6 @@ body:has(.varpet-editor) [cmdk-item][data-selected="true"] {
   overflow: hidden;
   clip: rect(0 0 0 0);
   white-space: nowrap;
-}
-
-/* Pascal's own glass action bar (modes, measure, delete, camera) gives way to the dock. It has no prop to hide it;
- * this matches its utility classes, so recheck after a Pascal upgrade. */
-[data-viewer-bounds] > div:has(> .fixed.bottom-6.rounded-2xl) {
-  display: none;
 }
 
 /* ── Header (v1 .topbar): 52px paper band with the mark, the flat's name, the cost button and the save state. ── */

@@ -1,6 +1,6 @@
 import type { NextConfig } from 'next'
 
-// Pascal's packages ship TypeScript source, so Next transpiles them (same list as Pascal's own app).
+// Pascal (our fork in vendor/pascal) is transpiled by Next (same list as Pascal's own app).
 const nextConfig: NextConfig = {
   // Next 16 writes AGENTS.md/CLAUDE.md into the app by default; the repo root has ours.
   agentRules: false,

@@ -18,7 +18,7 @@ import { sceneGraphSignature } from '@/lib/scenes/scene-signature'
 import type { LiveSceneEvent, SceneMeta, SceneResponse } from '@/lib/scenes/types'
 import { ArchitectTab, DesignerTab } from './agent-tabs'
 import { CatalogTab } from './catalog-tab'
-import { railIcon, useFolioRailDefaults } from './folio-rail'
+import { FOLIO_RAIL, railIcon, useFolioRailDefaults } from './folio-rail'
 import { FolioDock } from './folio-dock'
 import { FolioNavbar } from './folio-navbar'
 import { FolioTools } from './folio-tools'
@@ -52,6 +52,13 @@ function parseEvent(event: Event): LiveSceneEvent | null {
 }
 
 const sceneSettingsNoop = () => null
+
+/** Folio teal (--folio-teal #155f6d) for the hover and selection outlines and the selected glow; lighter where hidden. */
+const FOLIO_HIGHLIGHT = {
+  hover: { visibleColor: 0x15_5f_6d, hiddenColor: 0x7f_b3_bc },
+  selection: { visibleColor: 0x15_5f_6d, hiddenColor: 0x7f_b3_bc },
+  tint: 0x15_5f_6d,
+} as const
 
 export function SceneEditor({ meta, initialGraph, initialPreviewSceneId = null, designerPanel }: SceneEditorProps) {
   const versionRef = useRef(meta.version)
@@ -121,18 +128,6 @@ export function SceneEditor({ meta, initialGraph, initialPreviewSceneId = null, 
       useSceneEditor.setState({ sceneId: null, version: 0, previewSceneId: null, previewError: null })
     }
   }, [meta.id, meta.version, initialPreviewSceneId, setVersion, applyRemote])
-
-  // Pascal's <Editor> adds `dark` to <body> on mount; Folio is light, so keep it off while the editor is open.
-  useEffect(() => {
-    const body = document.body
-    const strip = () => {
-      if (body.classList.contains('dark')) body.classList.remove('dark')
-    }
-    strip()
-    const observer = new MutationObserver(strip)
-    observer.observe(body, { attributes: true, attributeFilter: ['class'] })
-    return () => observer.disconnect()
-  }, [])
 
   // Opens on the designer (or Plan, for a plan handed over from the portal), sidebar expanded at v1's width.
   useFolioRailDefaults(meta.id)
@@ -272,10 +267,10 @@ export function SceneEditor({ meta, initialGraph, initialPreviewSceneId = null, 
   // `site` (its scene tree, kept as Scene) and `settings` (left out; v1 has no settings tab).
   const sidebarTabs = useMemo<Tab[]>(
     () => [
-      { id: 'designer', label: 'Designer', component: designerPanel ?? DesignerTab, icon: railIcon(Sparkles, 'Designer'), mobileIcon: <Sparkles className="size-5" />, mobileDefaultSnap: 0.6 },
-      { id: 'site', label: 'Scene', component: sceneSettingsNoop, icon: railIcon(Layers, 'Scene'), mobileIcon: <Layers className="size-5" />, mobileDefaultSnap: 0.5 },
-      { id: 'catalog', label: 'Furniture', component: CatalogTab, icon: railIcon(Sofa, 'Furniture'), mobileIcon: <Sofa className="size-5" />, mobileDefaultSnap: 0.5 },
-      { id: 'architect', label: 'Plan', component: ArchitectTab, icon: railIcon(PencilRuler, 'Plan'), mobileIcon: <PencilRuler className="size-5" />, mobileDefaultSnap: 0.6 },
+      { id: 'designer', label: 'Designer', component: designerPanel ?? DesignerTab, icon: railIcon(Sparkles), mobileIcon: <Sparkles className="size-5" />, mobileDefaultSnap: 0.6 },
+      { id: 'site', label: 'Scene', component: sceneSettingsNoop, icon: railIcon(Layers), mobileIcon: <Layers className="size-5" />, mobileDefaultSnap: 0.5 },
+      { id: 'catalog', label: 'Furniture', component: CatalogTab, icon: railIcon(Sofa), mobileIcon: <Sofa className="size-5" />, mobileDefaultSnap: 0.5 },
+      { id: 'architect', label: 'Plan', component: ArchitectTab, icon: railIcon(PencilRuler), mobileIcon: <PencilRuler className="size-5" />, mobileDefaultSnap: 0.6 },
     ],
     [designerPanel],
   )
@@ -284,6 +279,8 @@ export function SceneEditor({ meta, initialGraph, initialPreviewSceneId = null, 
   return (
     <div className="varpet-editor-stage">
       <Editor
+        // v1 opens Properties with the selection.
+        inspectorDefaultExpanded
         inspectorFooter={<InspectorFooter />}
         isVersionPreviewMode={previewing}
         layoutVersion="v2"
@@ -302,6 +299,12 @@ export function SceneEditor({ meta, initialGraph, initialPreviewSceneId = null, 
         onSaveStatusChange={setSaveStatus}
         previewScene={previewGraph ?? undefined}
         projectId={meta.projectId ?? meta.id}
+        rail={FOLIO_RAIL}
+        // Folio is light: no `dark` class on <body> or the layout root.
+        forceDark={false}
+        highlightTheme={FOLIO_HIGHLIGHT}
+        // The Folio dock (viewerBanner) replaces Pascal's floating action menu.
+        showActionMenu={false}
         sidebarTabs={sidebarTabs}
         viewerBanner={previewing ? <PreviewBanner /> : <FolioDock />}
         viewerToolbarLeft={<FolioTools />}

@@ -2,3 +2,10 @@ packages:
   - apps/*
   - packages/*
   - evals
+  # Our fork of Pascal (vendor/pascal, git subtree). Only the packages we use; its apps and tooling stay out.
+  - vendor/pascal/packages/core
+  - vendor/pascal/packages/viewer
+  - vendor/pascal/packages/editor
+  - vendor/pascal/packages/nodes
+  - vendor/pascal/packages/mcp
+  - vendor/pascal/tooling/typescript

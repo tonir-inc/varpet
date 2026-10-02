@@ -4,30 +4,42 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  '@pascal-app/core': workspace:*
+  '@pascal-app/viewer': workspace:*
+  '@pascal-app/editor': workspace:*
+  '@pascal-app/nodes': workspace:*
+  '@pascal-app/mcp': workspace:*
+  '@pascal/typescript-config': workspace:*
+
 importers:
 
-  .: {}
+  .:
+    devDependencies:
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
 
   apps/web:
     dependencies:
       '@pascal-app/core':
-        specifier: 1.0.3
-        version: 1.0.3(@react-three/drei@10.7.9(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(@types/three@0.186.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(react@19.3.0)(three@0.186.1)(use-sync-external-store@1.7.0(react@19.3.0))
+        specifier: workspace:*
+        version: link:../../vendor/pascal/packages/core
       '@pascal-app/editor':
-        specifier: 1.0.3
-        version: 1.0.3(486c770aebfe527d6040ea36ed090c5b)
+        specifier: workspace:*
+        version: link:../../vendor/pascal/packages/editor
       '@pascal-app/mcp':
-        specifier: 1.0.3
-        version: 1.0.3(@pascal-app/core@1.0.3(@react-three/drei@10.7.9(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(@types/three@0.186.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(react@19.3.0)(three@0.186.1)(use-sync-external-store@1.7.0(react@19.3.0)))(react@19.3.0)
+        specifier: workspace:*
+        version: link:../../vendor/pascal/packages/mcp
       '@pascal-app/nodes':
-        specifier: 1.0.3
-        version: 1.0.3(08d989211f3feb92ba54ec0648ffd32f)
+        specifier: workspace:*
+        version: link:../../vendor/pascal/packages/nodes
       '@pascal-app/viewer':
-        specifier: 1.0.3
-        version: 1.0.3(@pascal-app/core@1.0.3(@react-three/drei@10.7.9(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(@types/three@0.186.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(react@19.3.0)(three@0.186.1)(use-sync-external-store@1.7.0(react@19.3.0)))(@react-three/drei@10.7.9(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(@types/three@0.186.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1)(use-sync-external-store@1.7.0(react@19.3.0))
+        specifier: workspace:*
+        version: link:../../vendor/pascal/packages/viewer
       '@react-three/drei':
         specifier: ^10.7.7
-        version: 10.7.9(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(@types/three@0.186.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1)
+        version: 10.7.9(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(@types/three@0.184.1)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1)
       '@react-three/fiber':
         specifier: ^9.5.0
         version: 9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1)
@@ -74,6 +86,9 @@ importers:
       '@types/react-dom':
         specifier: 19.2.2
         version: 19.2.2(@types/react@19.2.2)
+      '@types/three':
+        specifier: 0.184.1
+        version: 0.184.1
       postcss:
         specifier: ^8.5.6
         version: 8.5.28
@@ -90,8 +105,8 @@ importers:
   evals:
     dependencies:
       '@pascal-app/mcp':
-        specifier: 1.0.3
-        version: 1.0.3(@pascal-app/core@1.0.3(@react-three/drei@10.7.9(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(@types/three@0.186.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(react@19.3.0)(three@0.186.1)(use-sync-external-store@1.7.0(react@19.3.0)))(react@19.3.0)
+        specifier: workspace:*
+        version: link:../vendor/pascal/packages/mcp
       playwright-core:
         specifier: 1.63.0
         version: 1.63.0
@@ -106,11 +121,11 @@ importers:
   packages/agents:
     dependencies:
       '@pascal-app/core':
-        specifier: 1.0.3
-        version: 1.0.3(@react-three/drei@10.7.9(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(@types/three@0.186.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(react@19.3.0)(three@0.186.1)(use-sync-external-store@1.7.0(react@19.3.0))
+        specifier: workspace:*
+        version: link:../../vendor/pascal/packages/core
       '@pascal-app/mcp':
-        specifier: 1.0.3
-        version: 1.0.3(@pascal-app/core@1.0.3(@react-three/drei@10.7.9(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(@types/three@0.186.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(react@19.3.0)(three@0.186.1)(use-sync-external-store@1.7.0(react@19.3.0)))(react@19.3.0)
+        specifier: workspace:*
+        version: link:../../vendor/pascal/packages/mcp
     devDependencies:
       '@types/node':
         specifier: ^22.19.12
@@ -131,11 +146,11 @@ importers:
         specifier: ^1.30.0
         version: 1.31.0(zod@4.5.4)
       '@pascal-app/core':
-        specifier: 1.0.3
-        version: 1.0.3(@react-three/drei@10.7.9(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(@types/three@0.186.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(react@19.3.0)(three@0.186.1)(use-sync-external-store@1.7.0(react@19.3.0))
+        specifier: workspace:*
+        version: link:../../vendor/pascal/packages/core
       '@pascal-app/mcp':
-        specifier: 1.0.3
-        version: 1.0.3(@pascal-app/core@1.0.3(@react-three/drei@10.7.9(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(@types/three@0.186.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(react@19.3.0)(three@0.186.1)(use-sync-external-store@1.7.0(react@19.3.0)))(react@19.3.0)
+        specifier: workspace:*
+        version: link:../../vendor/pascal/packages/mcp
       zod:
         specifier: '>=4.5.4 <4.6'
         version: 4.5.4
@@ -146,6 +161,367 @@ importers:
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
+
+  vendor/pascal/packages/core:
+    dependencies:
+      '@react-three/drei':
+        specifier: ^10
+        version: 10.7.9(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(@types/three@0.184.1)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1)
+      '@react-three/fiber':
+        specifier: ^9
+        version: 9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1)
+      dedent:
+        specifier: ^1.7.1
+        version: 1.7.2
+      idb-keyval:
+        specifier: ^6.2.2
+        version: 6.3.0
+      mitt:
+        specifier: ^3.0.1
+        version: 3.0.1
+      nanoid:
+        specifier: ^5.1.6
+        version: 5.1.16
+      react:
+        specifier: ^18 || ^19
+        version: 19.3.0
+      three:
+        specifier: ^0.186
+        version: 0.186.1
+      zod:
+        specifier: '>=4.5.4 <4.6'
+        version: 4.5.4
+      zundo:
+        specifier: ^2.3.0
+        version: 2.3.0(zustand@5.0.15(@types/react@19.2.2)(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0)))
+      zustand:
+        specifier: ^5
+        version: 5.0.15(@types/react@19.2.2)(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0))
+    devDependencies:
+      '@pascal/typescript-config':
+        specifier: workspace:*
+        version: link:../../tooling/typescript
+      '@types/bun':
+        specifier: ^1.3.0
+        version: 1.4.2
+      '@types/react':
+        specifier: ^19.2.2
+        version: 19.2.2
+      '@types/three':
+        specifier: ^0.184.0
+        version: 0.184.1
+      fake-indexeddb:
+        specifier: ^6.2.5
+        version: 6.2.5
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
+
+  vendor/pascal/packages/editor:
+    dependencies:
+      '@dnd-kit/core':
+        specifier: ^6.3.1
+        version: 6.3.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@dnd-kit/sortable':
+        specifier: ^10.0.0
+        version: 10.0.0(@dnd-kit/core@6.3.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0)
+      '@dnd-kit/utilities':
+        specifier: ^3.2.2
+        version: 3.2.2(react@19.3.0)
+      '@iconify/react':
+        specifier: ^6.0.2
+        version: 6.0.2(react@19.3.0)
+      '@number-flow/react':
+        specifier: ^0.6.0
+        version: 0.6.2(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@pascal-app/lingo':
+        specifier: ^0.2.0
+        version: 0.2.1(react@19.3.0)
+      '@radix-ui/react-alert-dialog':
+        specifier: ^1.1.15
+        version: 1.1.23(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@radix-ui/react-context-menu':
+        specifier: ^2.2.16
+        version: 2.3.7(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@radix-ui/react-dialog':
+        specifier: ^1.1.15
+        version: 1.1.23(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@radix-ui/react-dropdown-menu':
+        specifier: ^2.1.16
+        version: 2.1.24(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@radix-ui/react-popover':
+        specifier: ^1.1.15
+        version: 1.1.23(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@radix-ui/react-select':
+        specifier: ^2.2.6
+        version: 2.3.7(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@radix-ui/react-separator':
+        specifier: ^1.1.8
+        version: 1.1.15(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@radix-ui/react-slider':
+        specifier: ^1.3.6
+        version: 1.4.7(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@radix-ui/react-slot':
+        specifier: ^1.2.4
+        version: 1.3.3(@types/react@19.2.2)(react@19.3.0)
+      '@radix-ui/react-switch':
+        specifier: ^1.2.6
+        version: 1.3.7(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@radix-ui/react-tabs':
+        specifier: ^1.1.13
+        version: 1.1.21(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@radix-ui/react-tooltip':
+        specifier: ^1.2.8
+        version: 1.2.16(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@react-three/drei':
+        specifier: ^10
+        version: 10.7.9(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(@types/three@0.184.1)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1)
+      '@react-three/fiber':
+        specifier: ^9
+        version: 9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1)
+      '@visual-json/react':
+        specifier: ^0.4.0
+        version: 0.4.0(react@19.3.0)
+      blob-stream:
+        specifier: ^0.1.3
+        version: 0.1.3
+      class-variance-authority:
+        specifier: ^0.7.1
+        version: 0.7.1
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
+      cmdk:
+        specifier: ^1.1.1
+        version: 1.1.1(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      fflate:
+        specifier: ^0.8.3
+        version: 0.8.3
+      howler:
+        specifier: ^2.2.4
+        version: 2.2.4
+      lucide-react:
+        specifier: ^1.7.0
+        version: 1.50.0(@types/react@19.2.2)(react@19.3.0)
+      manifold-3d:
+        specifier: 3.5.1
+        version: 3.5.1(@gltf-transform/core@4.5.1)(@gltf-transform/extensions@4.5.1)(@gltf-transform/functions@4.5.1)(esbuild-wasm@0.27.7)
+      mitt:
+        specifier: ^3.0.1
+        version: 3.0.1
+      motion:
+        specifier: ^12.34.3
+        version: 12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      nanoid:
+        specifier: ^5.1.6
+        version: 5.1.16
+      next:
+        specifier: '>=15'
+        version: 16.3.0(@types/node@22.20.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      pdfkit:
+        specifier: ^0.19.1
+        version: 0.19.1
+      react:
+        specifier: ^18 || ^19
+        version: 19.3.0
+      react-dom:
+        specifier: ^18 || ^19
+        version: 19.3.0(react@19.3.0)
+      tailwind-merge:
+        specifier: ^3.5.0
+        version: 3.7.0
+      three:
+        specifier: ^0.186
+        version: 0.186.1
+      three-bvh-csg:
+        specifier: ^0.0.18
+        version: 0.0.18(three-mesh-bvh@0.9.15(three@0.186.1))(three@0.186.1)
+      three-mesh-bvh:
+        specifier: ~0.9.8
+        version: 0.9.15(three@0.186.1)
+      zod:
+        specifier: '>=4.5.4 <4.6'
+        version: 4.5.4
+      zustand:
+        specifier: ^5.0.11
+        version: 5.0.15(@types/react@19.2.2)(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0))
+    devDependencies:
+      '@pascal-app/core':
+        specifier: workspace:*
+        version: link:../core
+      '@pascal-app/viewer':
+        specifier: workspace:*
+        version: link:../viewer
+      '@pascal/typescript-config':
+        specifier: workspace:*
+        version: link:../../tooling/typescript
+      '@react-three/test-renderer':
+        specifier: ^9.1.0
+        version: 9.1.1(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(react@19.3.0)(three@0.186.1)
+      '@types/blob-stream':
+        specifier: ^0.1.33
+        version: 0.1.33
+      '@types/bun':
+        specifier: ^1.3.0
+        version: 1.4.2
+      '@types/howler':
+        specifier: ^2.2.12
+        version: 2.2.13
+      '@types/pdfkit':
+        specifier: ^0.17.6
+        version: 0.17.6
+      '@types/react':
+        specifier: 19.2.2
+        version: 19.2.2
+      '@types/react-dom':
+        specifier: 19.2.2
+        version: 19.2.2(@types/react@19.2.2)
+      '@types/three':
+        specifier: ^0.184.0
+        version: 0.184.1
+      fast-xml-parser:
+        specifier: ^5.4.2
+        version: 5.11.2
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
+
+  vendor/pascal/packages/mcp:
+    dependencies:
+      '@modelcontextprotocol/sdk':
+        specifier: ^1.30.0
+        version: 1.31.0(zod@4.5.4)
+      '@pascal-app/lingo':
+        specifier: ^0.2.0
+        version: 0.2.1(react@19.3.0)
+      zod:
+        specifier: '>=4.5.4 <4.6'
+        version: 4.5.4
+    devDependencies:
+      '@pascal-app/core':
+        specifier: workspace:*
+        version: link:../core
+      '@pascal/typescript-config':
+        specifier: workspace:*
+        version: link:../../tooling/typescript
+      '@types/node':
+        specifier: ^22.19.20
+        version: 22.20.5
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
+
+  vendor/pascal/packages/nodes:
+    dependencies:
+      '@react-three/drei':
+        specifier: ^10
+        version: 10.7.9(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(@types/three@0.184.1)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1)
+      '@react-three/fiber':
+        specifier: ^9
+        version: 9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1)
+      lucide-react:
+        specifier: ^1
+        version: 1.50.0(@types/react@19.2.2)(react@19.3.0)
+      react:
+        specifier: ^18 || ^19
+        version: 19.3.0
+      react-dom:
+        specifier: ^18 || ^19
+        version: 19.3.0(react@19.3.0)
+      three:
+        specifier: ^0.186
+        version: 0.186.1
+      zustand:
+        specifier: ^5
+        version: 5.0.15(@types/react@19.2.2)(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0))
+    devDependencies:
+      '@pascal-app/core':
+        specifier: workspace:*
+        version: link:../core
+      '@pascal-app/editor':
+        specifier: workspace:*
+        version: link:../editor
+      '@pascal-app/viewer':
+        specifier: workspace:*
+        version: link:../viewer
+      '@pascal/typescript-config':
+        specifier: workspace:*
+        version: link:../../tooling/typescript
+      '@react-three/test-renderer':
+        specifier: ^9.1.0
+        version: 9.1.1(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(react@19.3.0)(three@0.186.1)
+      '@types/bun':
+        specifier: ^1.3.0
+        version: 1.4.2
+      '@types/node':
+        specifier: ^22.19.12
+        version: 22.20.5
+      '@types/react':
+        specifier: ^19.2.2
+        version: 19.2.2
+      '@types/react-dom':
+        specifier: ^19.2.3
+        version: 19.3.0(@types/react@19.2.2)
+      '@types/three':
+        specifier: ^0.184.0
+        version: 0.184.1
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
+
+  vendor/pascal/packages/viewer:
+    dependencies:
+      '@react-three/drei':
+        specifier: ^10
+        version: 10.7.9(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(@types/three@0.184.1)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1)
+      '@react-three/fiber':
+        specifier: ^9
+        version: 9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1)
+      react:
+        specifier: ^18 || ^19
+        version: 19.3.0
+      react-dom:
+        specifier: ^18 || ^19
+        version: 19.3.0(react@19.3.0)
+      three:
+        specifier: ^0.186
+        version: 0.186.1
+      three-bvh-csg:
+        specifier: ^0.0.18
+        version: 0.0.18(three-mesh-bvh@0.9.15(three@0.186.1))(three@0.186.1)
+      three-mesh-bvh:
+        specifier: ^0.9.8
+        version: 0.9.15(three@0.186.1)
+      zustand:
+        specifier: ^5
+        version: 5.0.15(@types/react@19.2.2)(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0))
+    devDependencies:
+      '@pascal-app/core':
+        specifier: workspace:*
+        version: link:../core
+      '@pascal/typescript-config':
+        specifier: workspace:*
+        version: link:../../tooling/typescript
+      '@react-three/test-renderer':
+        specifier: ^9.1.0
+        version: 9.1.1(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(react@19.3.0)(three@0.186.1)
+      '@types/node':
+        specifier: ^22
+        version: 22.20.5
+      '@types/react':
+        specifier: ^19.2.2
+        version: 19.2.2
+      '@types/react-dom':
+        specifier: 19.2.2
+        version: 19.2.2(@types/react@19.2.2)
+      '@types/three':
+        specifier: ^0.184.0
+        version: 0.184.1
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
+
+  vendor/pascal/tooling/typescript: {}
 
 packages:
 
@@ -474,26 +850,6 @@ packages:
       react: ^18 || ^19
       react-dom: ^18 || ^19
 
-  '@pascal-app/core@1.0.3':
-    resolution: {integrity: sha512-v95AfNJZDG/N7Biwt/ZQCtZuulRtqNuwAiT3cb1/F63hqZmqmoZnTLZGCu+w0Kxu57UFK084YrbtUP+cbGo1sQ==}
-    peerDependencies:
-      '@react-three/drei': ^10
-      '@react-three/fiber': ^9
-      react: ^18 || ^19
-      three: ^0.186
-
-  '@pascal-app/editor@1.0.3':
-    resolution: {integrity: sha512-+LSJ+mxj3JsTM18aay3qexn6OKGinN38ZBko3vNdf79sge/iFWPOXquniiMpkEVtMz4lRHlLM2+fc6WvXT5RHA==}
-    peerDependencies:
-      '@pascal-app/core': ^1.0.3
-      '@pascal-app/viewer': ^1.0.3
-      '@react-three/drei': ^10
-      '@react-three/fiber': ^9
-      next: '>=15'
-      react: ^18 || ^19
-      react-dom: ^18 || ^19
-      three: ^0.186
-
   '@pascal-app/lingo@0.2.1':
     resolution: {integrity: sha512-Y6Nmb4vLSMp/dIdKABc7GjdTdB6yvUyBg95ySlThMz6zKrJjpVG0utexY4cnmWVPkGNSKOFotiHw8UJiQMUVnw==}
     engines: {node: '>=18'}
@@ -502,36 +858,6 @@ packages:
     peerDependenciesMeta:
       react:
         optional: true
-
-  '@pascal-app/mcp@1.0.3':
-    resolution: {integrity: sha512-zPL0huTL1Bug65jFUYOreCtYG01EQr8MWWUMBTWSwlYvVwIox812tkIaQMPryof5iKt/CwxPXlnxZToWipL0ew==}
-    hasBin: true
-    peerDependencies:
-      '@pascal-app/core': ^1.0.3
-
-  '@pascal-app/nodes@1.0.3':
-    resolution: {integrity: sha512-e3tYqB4UUjHFRCpFqjLCe0jfi0zCeo1P/ZtqVQVUnlCXL7jTYXMLrtud7nGBcRDlwNSwWFfI9Pj8SuXyj/rj8A==}
-    peerDependencies:
-      '@pascal-app/core': ^1.0.3
-      '@pascal-app/editor': ^1.0.3
-      '@pascal-app/viewer': ^1.0.3
-      '@react-three/drei': ^10
-      '@react-three/fiber': ^9
-      lucide-react: ^1
-      react: ^18 || ^19
-      react-dom: ^18 || ^19
-      three: ^0.186
-      zustand: ^5
-
-  '@pascal-app/viewer@1.0.3':
-    resolution: {integrity: sha512-HCoKEPVDhDJOl+ydivkwnwpE2If+EK6BgSwMsF/SZqZQJ9jkpt5ZTL1osVutr6XQP916Hf/pbHML8qhWqYjBkw==}
-    peerDependencies:
-      '@pascal-app/core': ^1.0.3
-      '@react-three/drei': ^10
-      '@react-three/fiber': ^9
-      react: ^18 || ^19
-      react-dom: ^18 || ^19
-      three: ^0.186
 
   '@radix-ui/number@1.1.3':
     resolution: {integrity: sha512-Road2bidD0uu/1BGDOWNdPI06g0lIRy6IF9GZcIrDK2KGItfor8IQwQa+yM2ERgHM1MmHxaxpTzk0/Jp42lNfA==}
@@ -990,6 +1316,13 @@ packages:
       react-native:
         optional: true
 
+  '@react-three/test-renderer@9.1.1':
+    resolution: {integrity: sha512-4DmLn0tg+AP8aU0Mb5vekjHqFrwRJ3z11HfQGOJIDj6DxZ/5BjRHRsDxY0Y+g4l8+WHysQ6PeuSdzTDDYoGuXg==}
+    peerDependencies:
+      '@react-three/fiber': '>=9.0.0'
+      react: ^19.0.0
+      three: '>=0.156'
+
   '@swc/helpers@0.5.15':
     resolution: {integrity: sha512-JQ5TuMi45Owi4/BIMAJBoSQoOJu12oOk/gADqlcUL9JEdHB8vyjUSsxqeNXnmXHjYKMi2WcYtezGEEhqUI/E2g==}
 
@@ -1087,8 +1420,17 @@ packages:
   '@tweenjs/tween.js@23.1.3':
     resolution: {integrity: sha512-vJmvvwFxYuGnF2axRtPYocag6Clbb5YS7kLL+SO/TeVFzHqDIWrNKYtcsPMibjDx9O+bu+psAy9NKfWklassUA==}
 
+  '@types/blob-stream@0.1.33':
+    resolution: {integrity: sha512-HNHZ1S6W7F8PhxdyAastunpUC8cAZim78UIfqbL79gLzylp8EZep68yxAh11hTRoEvsqHAg/MECgmKF8+V0HzQ==}
+
+  '@types/bun@1.4.2':
+    resolution: {integrity: sha512-GimotNn7+ZV0uVArItBbriZsR1oNf0+WTzPkdcFrzShI7k2norL0uzEaJT8T33dWr7O/c9ZDuAFQrctKCi72oQ==}
+
   '@types/draco3d@1.4.10':
     resolution: {integrity: sha512-AX22jp8Y7wwaBgAixaSvkoG4M/+PlAcm3Qs4OW8yT9DM4xUpWKeFhLueTAyZF39pviAdcDdeJoACapiAceqNcw==}
+
+  '@types/howler@2.2.13':
+    resolution: {integrity: sha512-40+EBjqIHHrC4VShlz/7i0lBUsE3QkgzZinQQji74Hd8sBkJZUBaT7LWFLK6rcabsDOOQpoMbEJvtaFQwxOu/g==}
 
   '@types/ndarray@1.1.0':
     resolution: {integrity: sha512-go+C6vHBUuO9jH6Tj6qEZ63JEGoMSxFdmd+6QAtthGD6xumBfIz3RbNDDs2aoRVLf9naH8lk5jnWy2UHHKgYQQ==}
@@ -1099,10 +1441,18 @@ packages:
   '@types/offscreencanvas@2019.7.3':
     resolution: {integrity: sha512-ieXiYmgSRXUDeOntE1InxjWyvEelZGP63M+cGuquuRLuIKKT1osnkXjxev9B7d1nXSug5vpunx+gNlbVxMlC9A==}
 
+  '@types/pdfkit@0.17.6':
+    resolution: {integrity: sha512-tIwzxk2uWKp0Cq9JIluQXJid77lYhF52EsIOwhsMF4iWLA6YneoBR1xVKYYdAysHuepUB0OX4tdwMiUDdGKmig==}
+
   '@types/react-dom@19.2.2':
     resolution: {integrity: sha512-9KQPoO6mZCi7jcIStSnlOWn2nEF3mNmyr3rIAsGnAbQKYbRLyqmeSc39EVgtxXVia+LMT8j3knZLAZAh+xLmrw==}
     peerDependencies:
       '@types/react': ^19.2.0
+
+  '@types/react-dom@19.3.0':
+    resolution: {integrity: sha512-ZI7bU42mZXXKHn/qNLEw2IrbiINU7X5+vfgdixBHkCNpYWXjKgfQ/P+uyGb5CjOLB9UcnTeg3rylQtV2hym44Q==}
+    peerDependencies:
+      '@types/react': ^19.3.0
 
   '@types/react-reconciler@0.28.9':
     resolution: {integrity: sha512-HHM3nxyUZ3zAylX8ZEyrDNd2XZOnQ0D5XfunJF5FLQnZbHHYq4UWvW1QfelQNXv1ICNkwYhfxjwfnqivYB6bFg==}
@@ -1115,8 +1465,8 @@ packages:
   '@types/stats.js@0.17.4':
     resolution: {integrity: sha512-jIBvWWShCvlBqBNIZt0KAshWpvSjhkwkEu4ZUcASoAvhmrgAUI2t1dXrjSL4xXVLB4FznPrIsX3nKXFl/Dt4vA==}
 
-  '@types/three@0.186.0':
-    resolution: {integrity: sha512-mxYSBpDC+D0pLfSP6sW4WZTcT+nrtmZcimMqnVmy36Hte3XpeYSrvgg4TRdaM1GemGog1AWzI5qL2VoIfMXbJQ==}
+  '@types/three@0.184.1':
+    resolution: {integrity: sha512-6q4VdiqVsrTRqmk62/BnlcAvIrnDM0zf2ZDVKI5kZiniWrSaOHaQzmbp+BNzoggc/8tgW412pL//wZIxu2PPTA==}
 
   '@types/webxr@0.5.24':
     resolution: {integrity: sha512-h8fgEd/DpoS9CBrjEQXR+dIDraopAEfu4wYVNY2tEPwk60stPWhvZMf4Foo5FakuQ7HFZoa8WceaWFervK2Ovg==}
@@ -1192,6 +1542,9 @@ packages:
 
   buffer@6.0.3:
     resolution: {integrity: sha512-FTiCpNxtwiZZHEZbcbTIcZjERVICn9yq/pDFkTl95/AxzD1naBctN7YO68riM/gLSDY7sdrMby8hofADYuuqOA==}
+
+  bun-types@1.4.2:
+    resolution: {integrity: sha512-bxV1FgK7yBIzjRe5zBozIM4Bem11ZJcCXSrjWRG3YWLt8yFDePu4cLjpebO8OvPeIE9trbyPF4fuj3Cia4Fj3w==}
 
   bytes@3.1.2:
     resolution: {integrity: sha512-/Nf7TyzTx6S3yRJObOAV7956r8cr2+Oj8AC5dt8wSP3BQAoeX58NoHyCU8P8zGkNXStjTSi6fzO6F0pBdcYbEg==}
@@ -1376,6 +1729,10 @@ packages:
   express@5.2.1:
     resolution: {integrity: sha512-hIS4idWWai69NezIdRt2xFVofaF4j+6INOpJlVOLDO8zXGpUVEVzIYk12UUi2JzjEzWL3IOAxcTubgz9Po0yXw==}
     engines: {node: '>= 18'}
+
+  fake-indexeddb@6.2.5:
+    resolution: {integrity: sha512-CGnyrvbhPlWYMngksqrSSUT1BAVP49dZocrHuK0SvtR0D5TMs5wP0o3j7jexDJW01KSadjBp1M/71o/KR3nD1w==}
+    engines: {node: '>=18'}
 
   fast-deep-equal@3.1.3:
     resolution: {integrity: sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==}
@@ -2056,6 +2413,11 @@ packages:
     engines: {node: '>=14.17'}
     hasBin: true
 
+  typescript@6.0.3:
+    resolution: {integrity: sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+
   undici-types@6.21.0:
     resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
 
@@ -2233,14 +2595,14 @@ snapshots:
       '@gltf-transform/core': 4.5.1
       ktx-parse: 1.1.0
 
-  '@gltf-transform/functions@4.5.1(@types/node@22.20.5)':
+  '@gltf-transform/functions@4.5.1':
     dependencies:
       '@gltf-transform/core': 4.5.1
       '@gltf-transform/extensions': 4.5.1
       ktx-parse: 1.1.0
       ndarray: 1.1.1
       ndarray-lanczos: 0.3.0
-      ndarray-pixels: 5.2.0(@types/node@22.20.5)
+      ndarray-pixels: 5.2.0
     transitivePeerDependencies:
       - '@types/node'
 
@@ -2450,125 +2812,9 @@ snapshots:
       react: 19.3.0
       react-dom: 19.3.0(react@19.3.0)
 
-  '@pascal-app/core@1.0.3(@react-three/drei@10.7.9(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(@types/three@0.186.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(react@19.3.0)(three@0.186.1)(use-sync-external-store@1.7.0(react@19.3.0))':
-    dependencies:
-      '@react-three/drei': 10.7.9(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(@types/three@0.186.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1)
-      '@react-three/fiber': 9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1)
-      dedent: 1.7.2
-      idb-keyval: 6.3.0
-      mitt: 3.0.1
-      nanoid: 5.1.16
-      react: 19.3.0
-      three: 0.186.1
-      zod: 4.5.4
-      zundo: 2.3.0(zustand@5.0.15(@types/react@19.2.2)(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0)))
-      zustand: 5.0.15(@types/react@19.2.2)(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0))
-    transitivePeerDependencies:
-      - '@types/react'
-      - babel-plugin-macros
-      - immer
-      - use-sync-external-store
-
-  '@pascal-app/editor@1.0.3(486c770aebfe527d6040ea36ed090c5b)':
-    dependencies:
-      '@dnd-kit/core': 6.3.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@dnd-kit/sortable': 10.0.0(@dnd-kit/core@6.3.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0)
-      '@dnd-kit/utilities': 3.2.2(react@19.3.0)
-      '@iconify/react': 6.0.2(react@19.3.0)
-      '@number-flow/react': 0.6.2(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@pascal-app/core': 1.0.3(@react-three/drei@10.7.9(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(@types/three@0.186.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(react@19.3.0)(three@0.186.1)(use-sync-external-store@1.7.0(react@19.3.0))
-      '@pascal-app/lingo': 0.2.1(react@19.3.0)
-      '@pascal-app/viewer': 1.0.3(@pascal-app/core@1.0.3(@react-three/drei@10.7.9(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(@types/three@0.186.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(react@19.3.0)(three@0.186.1)(use-sync-external-store@1.7.0(react@19.3.0)))(@react-three/drei@10.7.9(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(@types/three@0.186.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1)(use-sync-external-store@1.7.0(react@19.3.0))
-      '@radix-ui/react-alert-dialog': 1.1.23(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@radix-ui/react-context-menu': 2.3.7(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@radix-ui/react-dialog': 1.1.23(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@radix-ui/react-dropdown-menu': 2.1.24(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@radix-ui/react-popover': 1.1.23(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@radix-ui/react-select': 2.3.7(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@radix-ui/react-separator': 1.1.15(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@radix-ui/react-slider': 1.4.7(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@radix-ui/react-slot': 1.3.3(@types/react@19.2.2)(react@19.3.0)
-      '@radix-ui/react-switch': 1.3.7(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@radix-ui/react-tabs': 1.1.21(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@radix-ui/react-tooltip': 1.2.16(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@react-three/drei': 10.7.9(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(@types/three@0.186.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1)
-      '@react-three/fiber': 9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1)
-      '@visual-json/react': 0.4.0(react@19.3.0)
-      blob-stream: 0.1.3
-      class-variance-authority: 0.7.1
-      clsx: 2.1.1
-      cmdk: 1.1.1(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      fflate: 0.8.3
-      howler: 2.2.4
-      lucide-react: 1.50.0(@types/react@19.2.2)(react@19.3.0)
-      manifold-3d: 3.5.1(@gltf-transform/core@4.5.1)(@gltf-transform/extensions@4.5.1)(@gltf-transform/functions@4.5.1(@types/node@22.20.5))(esbuild-wasm@0.27.7)
-      mitt: 3.0.1
-      motion: 12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      nanoid: 5.1.16
-      next: 16.3.0(@types/node@22.20.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      pdfkit: 0.19.1
-      react: 19.3.0
-      react-dom: 19.3.0(react@19.3.0)
-      tailwind-merge: 3.7.0
-      three: 0.186.1
-      three-bvh-csg: 0.0.18(three-mesh-bvh@0.9.15(three@0.186.1))(three@0.186.1)
-      three-mesh-bvh: 0.9.15(three@0.186.1)
-      zod: 4.5.4
-      zustand: 5.0.15(@types/react@19.2.2)(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0))
-    transitivePeerDependencies:
-      - '@emotion/is-prop-valid'
-      - '@gltf-transform/core'
-      - '@gltf-transform/extensions'
-      - '@gltf-transform/functions'
-      - '@types/react'
-      - '@types/react-dom'
-      - esbuild-wasm
-      - immer
-      - use-sync-external-store
-
   '@pascal-app/lingo@0.2.1(react@19.3.0)':
     optionalDependencies:
       react: 19.3.0
-
-  '@pascal-app/mcp@1.0.3(@pascal-app/core@1.0.3(@react-three/drei@10.7.9(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(@types/three@0.186.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(react@19.3.0)(three@0.186.1)(use-sync-external-store@1.7.0(react@19.3.0)))(react@19.3.0)':
-    dependencies:
-      '@modelcontextprotocol/sdk': 1.31.0(zod@4.5.4)
-      '@pascal-app/core': 1.0.3(@react-three/drei@10.7.9(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(@types/three@0.186.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(react@19.3.0)(three@0.186.1)(use-sync-external-store@1.7.0(react@19.3.0))
-      '@pascal-app/lingo': 0.2.1(react@19.3.0)
-      zod: 4.5.4
-    transitivePeerDependencies:
-      - '@cfworker/json-schema'
-      - react
-      - supports-color
-
-  '@pascal-app/nodes@1.0.3(08d989211f3feb92ba54ec0648ffd32f)':
-    dependencies:
-      '@pascal-app/core': 1.0.3(@react-three/drei@10.7.9(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(@types/three@0.186.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(react@19.3.0)(three@0.186.1)(use-sync-external-store@1.7.0(react@19.3.0))
-      '@pascal-app/editor': 1.0.3(486c770aebfe527d6040ea36ed090c5b)
-      '@pascal-app/viewer': 1.0.3(@pascal-app/core@1.0.3(@react-three/drei@10.7.9(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(@types/three@0.186.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(react@19.3.0)(three@0.186.1)(use-sync-external-store@1.7.0(react@19.3.0)))(@react-three/drei@10.7.9(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(@types/three@0.186.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1)(use-sync-external-store@1.7.0(react@19.3.0))
-      '@react-three/drei': 10.7.9(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(@types/three@0.186.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1)
-      '@react-three/fiber': 9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1)
-      lucide-react: 1.50.0(@types/react@19.2.2)(react@19.3.0)
-      react: 19.3.0
-      react-dom: 19.3.0(react@19.3.0)
-      three: 0.186.1
-      zustand: 5.0.15(@types/react@19.2.2)(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0))
-
-  '@pascal-app/viewer@1.0.3(@pascal-app/core@1.0.3(@react-three/drei@10.7.9(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(@types/three@0.186.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(react@19.3.0)(three@0.186.1)(use-sync-external-store@1.7.0(react@19.3.0)))(@react-three/drei@10.7.9(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(@types/three@0.186.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1)(use-sync-external-store@1.7.0(react@19.3.0))':
-    dependencies:
-      '@pascal-app/core': 1.0.3(@react-three/drei@10.7.9(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(@types/three@0.186.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(react@19.3.0)(three@0.186.1)(use-sync-external-store@1.7.0(react@19.3.0))
-      '@react-three/drei': 10.7.9(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(@types/three@0.186.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1)
-      '@react-three/fiber': 9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1)
-      react: 19.3.0
-      react-dom: 19.3.0(react@19.3.0)
-      three: 0.186.1
-      three-bvh-csg: 0.0.18(three-mesh-bvh@0.9.15(three@0.186.1))(three@0.186.1)
-      three-mesh-bvh: 0.9.15(three@0.186.1)
-      zustand: 5.0.15(@types/react@19.2.2)(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0))
-    transitivePeerDependencies:
-      - '@types/react'
-      - immer
-      - use-sync-external-store
 
   '@radix-ui/number@1.1.3': {}
 
@@ -3009,7 +3255,7 @@ snapshots:
 
   '@radix-ui/rect@1.1.3': {}
 
-  '@react-three/drei@10.7.9(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(@types/three@0.186.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1)':
+  '@react-three/drei@10.7.9(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(@types/react@19.2.2)(@types/three@0.184.1)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1)':
     dependencies:
       '@babel/runtime': 7.29.7
       '@mediapipe/tasks-vision': 0.10.17
@@ -3021,10 +3267,10 @@ snapshots:
       detect-gpu: 5.0.70
       glsl-noise: 0.0.0
       hls.js: 1.7.3
-      maath: 0.10.8(@types/three@0.186.0)(three@0.186.1)
+      maath: 0.10.8(@types/three@0.184.1)(three@0.186.1)
       meshline: 3.3.1(three@0.186.1)
       react: 19.3.0
-      stats-gl: 2.4.2(@types/three@0.186.0)(three@0.186.1)
+      stats-gl: 2.4.2(@types/three@0.184.1)(three@0.186.1)
       stats.js: 0.17.0
       suspend-react: 0.1.3(react@19.3.0)
       three: 0.186.1
@@ -3061,6 +3307,12 @@ snapshots:
     transitivePeerDependencies:
       - '@types/react'
       - immer
+
+  '@react-three/test-renderer@9.1.1(@react-three/fiber@9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1))(react@19.3.0)(three@0.186.1)':
+    dependencies:
+      '@react-three/fiber': 9.8.1(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(three@0.186.1)
+      react: 19.3.0
+      three: 0.186.1
 
   '@swc/helpers@0.5.15':
     dependencies:
@@ -3141,7 +3393,17 @@ snapshots:
 
   '@tweenjs/tween.js@23.1.3': {}
 
+  '@types/blob-stream@0.1.33':
+    dependencies:
+      '@types/node': 22.20.5
+
+  '@types/bun@1.4.2':
+    dependencies:
+      bun-types: 1.4.2
+
   '@types/draco3d@1.4.10': {}
+
+  '@types/howler@2.2.13': {}
 
   '@types/ndarray@1.1.0': {}
 
@@ -3151,7 +3413,15 @@ snapshots:
 
   '@types/offscreencanvas@2019.7.3': {}
 
+  '@types/pdfkit@0.17.6':
+    dependencies:
+      '@types/node': 22.20.5
+
   '@types/react-dom@19.2.2(@types/react@19.2.2)':
+    dependencies:
+      '@types/react': 19.2.2
+
+  '@types/react-dom@19.3.0(@types/react@19.2.2)':
     dependencies:
       '@types/react': 19.2.2
 
@@ -3165,7 +3435,7 @@ snapshots:
 
   '@types/stats.js@0.17.4': {}
 
-  '@types/three@0.186.0':
+  '@types/three@0.184.1':
     dependencies:
       '@dimforge/rapier3d-compat': 0.12.0
       '@tweenjs/tween.js': 23.1.3
@@ -3254,6 +3524,10 @@ snapshots:
     dependencies:
       base64-js: 1.5.1
       ieee754: 1.2.1
+
+  bun-types@1.4.2:
+    dependencies:
+      '@types/node': 22.20.5
 
   bytes@3.1.2: {}
 
@@ -3427,6 +3701,8 @@ snapshots:
       vary: 1.1.2
     transitivePeerDependencies:
       - supports-color
+
+  fake-indexeddb@6.2.5: {}
 
   fast-deep-equal@3.1.3: {}
 
@@ -3645,20 +3921,20 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.2
 
-  maath@0.10.8(@types/three@0.186.0)(three@0.186.1):
+  maath@0.10.8(@types/three@0.184.1)(three@0.186.1):
     dependencies:
-      '@types/three': 0.186.0
+      '@types/three': 0.184.1
       three: 0.186.1
 
   magic-string@0.30.21:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.6.0
 
-  manifold-3d@3.5.1(@gltf-transform/core@4.5.1)(@gltf-transform/extensions@4.5.1)(@gltf-transform/functions@4.5.1(@types/node@22.20.5))(esbuild-wasm@0.27.7):
+  manifold-3d@3.5.1(@gltf-transform/core@4.5.1)(@gltf-transform/extensions@4.5.1)(@gltf-transform/functions@4.5.1)(esbuild-wasm@0.27.7):
     dependencies:
       '@gltf-transform/core': 4.5.1
       '@gltf-transform/extensions': 4.5.1
-      '@gltf-transform/functions': 4.5.1(@types/node@22.20.5)
+      '@gltf-transform/functions': 4.5.1
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/trace-mapping': 0.3.31
       '@jscadui/3mf-export': 0.5.0
@@ -3718,7 +3994,7 @@ snapshots:
     dependencies:
       cwise-compiler: 1.1.3
 
-  ndarray-pixels@5.2.0(@types/node@22.20.5):
+  ndarray-pixels@5.2.0:
     dependencies:
       '@types/ndarray': 1.1.0
       ndarray: 1.1.1
@@ -4004,9 +4280,9 @@ snapshots:
 
   source-map-js@1.2.2: {}
 
-  stats-gl@2.4.2(@types/three@0.186.0)(three@0.186.1):
+  stats-gl@2.4.2(@types/three@0.184.1)(three@0.186.1):
     dependencies:
-      '@types/three': 0.186.0
+      '@types/three': 0.184.1
       three: 0.186.1
 
   stats.js@0.17.0: {}
@@ -4094,6 +4370,8 @@ snapshots:
       mime-types: 3.0.2
 
   typescript@5.9.3: {}
+
+  typescript@6.0.3: {}
 
   undici-types@6.21.0: {}
 

@@ -2,7 +2,7 @@
 
 A flat's plan and photos in, a faithful furnished 3D flat out, edited by a person and two agents (architect,
 designer) using real products with real sizes and prices. Built on Pascal (github.com/pascalorg/editor, MIT),
-used as npm packages, not forked.
+forked into `vendor/pascal` (git subtree; how it is wired and patched: `vendor/pascal/VARPET.md`, `PATCHES.md`).
 
 ## Layout
 - `apps/web` Next.js app: portal website, editor page (Pascal `<Editor>` in our UI), API routes

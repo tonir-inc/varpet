@@ -1,7 +1,7 @@
 'use client'
 
-// The v1 Folio rail on Pascal's IconRail: a stroke icon above an 11px label (Pascal renders only `icon`, so the label
-// rides inside it; pascal-theme.css widens the rail to 72px). The editor opens on the designer, like v1.
+// The v1 Folio rail on Pascal's IconRail: a stroke icon above an 11px label, 72px wide (Pascal's `rail` prop draws the
+// labels and sets the width; pascal-theme.css colours it). The editor opens on the designer, like v1.
 import { useEditor, useSidebarStore } from '@pascal-app/editor'
 import type { LucideIcon } from 'lucide-react'
 import { useEffect } from 'react'
@@ -9,15 +9,11 @@ import { hasPlanHandoff } from '@/lib/plan-handoff'
 
 /** v1's left column is 340px beside the 72px rail. */
 export const FOLIO_SIDEBAR_WIDTH = 340
+export const FOLIO_RAIL = { width: 72, labels: true } as const
 const PASCAL_DEFAULT_WIDTH = 288
 
-export function railIcon(Icon: LucideIcon, label: string) {
-  return (
-    <span className="folio-rail-item">
-      <Icon aria-hidden="true" size={18} strokeWidth={1.6} />
-      <span className="folio-rail-label">{label}</span>
-    </span>
-  )
+export function railIcon(Icon: LucideIcon) {
+  return <Icon aria-hidden="true" size={18} strokeWidth={1.6} />
 }
 
 /** On open: the designer column, expanded at v1's width (a plan handed over from the portal opens Plan instead). */
