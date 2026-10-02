@@ -2,7 +2,7 @@
 // (streamable HTTP, stateless tools/call) and returns the contract `Product`: Pascal-order dimensions [w, h, d],
 // price in AMD, and only URLs the browser can load (tailnet files are relayed through /api/catalog/*).
 // apps/web does not depend on @varpet/contracts yet (shared package.json); a type-only relative import erases at build.
-import type { Product } from '../../../../packages/contracts/src/index'
+import type { Product } from '@varpet/contracts'
 import { isObject, json, publicOrigin } from './http'
 
 const DEFAULT_CATALOG_URL = 'http://100.107.246.46:8765'

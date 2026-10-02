@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react'
-import { ClientBootstrap } from './client-bootstrap'
 import './globals.css'
 
 export const metadata = { title: 'Varpet' }
@@ -16,7 +15,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         />
       </head>
       <body>
-        <ClientBootstrap>{children}</ClientBootstrap>
+        {children}
       </body>
     </html>
   )
