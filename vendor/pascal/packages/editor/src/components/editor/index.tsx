@@ -79,7 +79,7 @@ import { AppSidebar } from '../ui/sidebar/app-sidebar'
 import type { ExtraPanel } from '../ui/sidebar/icon-rail'
 import { SettingsPanel, type SettingsPanelProps } from '../ui/sidebar/panels/settings-panel'
 import { SitePanel, type SitePanelProps } from '../ui/sidebar/panels/site-panel'
-import type { SidebarTab } from '../ui/sidebar/tab-bar'
+import type { RailOptions, SidebarTab } from '../ui/sidebar/tab-bar'
 import { useHostPanels } from '../ui/sidebar/use-plugin-panels'
 import { ViewerStage } from '../viewer/viewer-stage'
 import type { ViewerStageMode } from '../viewer/viewer-stage-modes'
@@ -202,6 +202,8 @@ export interface EditorProps {
    * Default true.
    */
   showActionMenu?: boolean
+  /** Rail width and labels under the icons (v2). Default: 56px, labels as tooltips. */
+  rail?: RailOptions
   /**
    * Open the node inspector expanded on a fresh selection instead of
    * collapsed to its header. Default false.
@@ -1277,6 +1279,7 @@ function EditorContent({
   inspectorFooter,
   multiSelectionFooter,
   showActionMenu = true,
+  rail,
   inspectorDefaultExpanded = false,
   viewerSceneSlot,
   floorplanSceneSlot,
@@ -1652,6 +1655,7 @@ function EditorContent({
           <>
             <EditorLayoutV2
               navbarSlot={navbarSlot}
+              rail={rail}
               overlays={
                 <>
                   {!(isCaptureMode || stageOverlay) && <FloatingLevelSelector />}

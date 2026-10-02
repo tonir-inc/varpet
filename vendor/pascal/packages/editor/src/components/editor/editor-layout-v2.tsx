@@ -5,14 +5,12 @@ import { useIsMobile } from '../../hooks/use-mobile'
 import useEditor from '../../store/use-editor'
 
 import { useSidebarStore } from '../ui/primitives/sidebar'
-import { IconRail, type SidebarTab } from '../ui/sidebar/tab-bar'
+import { DEFAULT_RAIL_WIDTH, IconRail, type RailOptions, type SidebarTab } from '../ui/sidebar/tab-bar'
 import { EditorLayoutMobile } from './editor-layout-mobile'
 
 const SIDEBAR_MIN_WIDTH = 300
 const SIDEBAR_MAX_WIDTH = 800
 const SIDEBAR_COLLAPSE_THRESHOLD = 220
-// Matches the `w-14` rail in <IconRail>; the resize math is relative to it.
-const RAIL_WIDTH = 56
 
 // ── Left column: resizable panel with tab bar ────────────────────────────────
 
@@ -20,11 +18,15 @@ function LeftColumn({
   tabs,
   renderTabContent,
   sidebarOverlay,
+  rail,
 }: {
   tabs: SidebarTab[]
   renderTabContent: (tabId: string) => ReactNode
   sidebarOverlay?: ReactNode
+  rail?: RailOptions
 }) {
+  // The resize math is relative to the rail, so it uses the rail's own width.
+  const railWidth = rail?.width ?? DEFAULT_RAIL_WIDTH
   const width = useSidebarStore((s) => s.width)
   const isCollapsed = useSidebarStore((s) => s.isCollapsed)
   const setIsCollapsed = useSidebarStore((s) => s.setIsCollapsed)
@@ -100,8 +102,8 @@ function LeftColumn({
   useEffect(() => {
     const handlePointerMove = (e: PointerEvent) => {
       if (!isResizing.current) return
-      // Rail occupies the leftmost 48px; the panel starts after it.
-      const newWidth = e.clientX - RAIL_WIDTH
+      // The rail occupies the leftmost `railWidth` px; the panel starts after it.
+      const newWidth = e.clientX - railWidth
       if (newWidth < SIDEBAR_COLLAPSE_THRESHOLD) {
         setIsCollapsed(true)
       } else {
@@ -121,15 +123,17 @@ function LeftColumn({
       window.removeEventListener('pointermove', handlePointerMove)
       window.removeEventListener('pointerup', handlePointerUp)
     }
-  }, [setWidth, setIsCollapsed, setIsDragging])
+  }, [setWidth, setIsCollapsed, setIsDragging, railWidth])
 
   return (
     <div className="relative z-10 flex h-full flex-shrink-0 bg-sidebar text-sidebar-foreground">
       <IconRail
         activeTab={activePanel}
         collapsed={isCollapsed}
+        labels={rail?.labels}
         onIconClick={handleRailClick}
         tabs={tabs}
+        width={railWidth}
       />
       {!isCollapsed && !tabs.find((t) => t.id === activePanel)?.noPanel && (
         <div
@@ -228,6 +232,7 @@ export interface EditorLayoutV2Props {
   viewerContent: ReactNode
   overlays?: ReactNode
   stageOverlay?: ReactNode
+  rail?: RailOptions
 }
 
 export function EditorLayoutV2({
@@ -240,6 +245,7 @@ export function EditorLayoutV2({
   viewerContent,
   overlays,
   stageOverlay,
+  rail,
 }: EditorLayoutV2Props) {
   const isCaptureMode = useEditor((s) => s.isCaptureMode)
   const isMobile = useIsMobile()
@@ -268,6 +274,7 @@ export function EditorLayoutV2({
       <div className="flex min-h-0 flex-1">
         {!isCaptureMode && sidebarTabs.length > 0 && (
           <LeftColumn
+            rail={rail}
             renderTabContent={renderTabContent}
             sidebarOverlay={sidebarOverlay}
             tabs={sidebarTabs}

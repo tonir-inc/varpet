@@ -324,45 +324,29 @@ body:has(.varpet-editor) [cmdk-item][data-selected="true"] {
   border-radius: 0;
 }
 
-/* ── Rail (v1 Folio): 72px, stroke icon above an 11px label; the open tab on --select with teal text. ──────────
- * Pascal's IconRail markup is `div.w-14 > button[aria-pressed]`; our icons carry `.folio-rail-item`. */
-.varpet-editor div:has(> button > .folio-rail-item) {
-  width: 72px;
-  gap: 4px;
-  padding: 8px 0;
+/* ── Rail (v1 Folio): 72px with labels (Pascal's `rail` prop); the open tab on --select with teal text. ──────── */
+.varpet-editor [data-editor-rail] {
+  padding: 8px 4px;
   border-right: 1px solid var(--folio-line);
   background: var(--folio-surface);
 }
 
-.varpet-editor button:has(> .folio-rail-item) {
-  width: 64px;
-  height: 56px;
+.varpet-editor [data-rail-item] {
+  min-height: 56px;
+  gap: 5px;
   border-radius: 3px;
   box-shadow: none;
   color: var(--folio-ink);
   transition: background-color 140ms ease, color 140ms ease;
 }
 
-.varpet-editor button:has(> .folio-rail-item):hover {
+.varpet-editor [data-rail-item]:hover {
   background: var(--folio-hover);
 }
 
-.varpet-editor button:has(> .folio-rail-item)[aria-pressed="true"] {
+.varpet-editor [data-rail-item][aria-pressed="true"] {
   background: var(--folio-select);
   color: var(--folio-teal);
-}
-
-.folio-rail-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-}
-
-.folio-rail-label {
-  font-size: 11px;
-  line-height: 1;
-  white-space: nowrap;
 }
 
 /* Pascal's plugin gallery tab (+) has no place in a flat editor. */

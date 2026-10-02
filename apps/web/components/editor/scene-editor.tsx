@@ -18,7 +18,7 @@ import { sceneGraphSignature } from '@/lib/scenes/scene-signature'
 import type { LiveSceneEvent, SceneMeta, SceneResponse } from '@/lib/scenes/types'
 import { ArchitectTab, DesignerTab } from './agent-tabs'
 import { CatalogTab } from './catalog-tab'
-import { railIcon, useFolioRailDefaults } from './folio-rail'
+import { FOLIO_RAIL, railIcon, useFolioRailDefaults } from './folio-rail'
 import { FolioDock } from './folio-dock'
 import { FolioNavbar } from './folio-navbar'
 import { FolioTools } from './folio-tools'
@@ -272,10 +272,10 @@ export function SceneEditor({ meta, initialGraph, initialPreviewSceneId = null, 
   // `site` (its scene tree, kept as Scene) and `settings` (left out; v1 has no settings tab).
   const sidebarTabs = useMemo<Tab[]>(
     () => [
-      { id: 'designer', label: 'Designer', component: designerPanel ?? DesignerTab, icon: railIcon(Sparkles, 'Designer'), mobileIcon: <Sparkles className="size-5" />, mobileDefaultSnap: 0.6 },
-      { id: 'site', label: 'Scene', component: sceneSettingsNoop, icon: railIcon(Layers, 'Scene'), mobileIcon: <Layers className="size-5" />, mobileDefaultSnap: 0.5 },
-      { id: 'catalog', label: 'Furniture', component: CatalogTab, icon: railIcon(Sofa, 'Furniture'), mobileIcon: <Sofa className="size-5" />, mobileDefaultSnap: 0.5 },
-      { id: 'architect', label: 'Plan', component: ArchitectTab, icon: railIcon(PencilRuler, 'Plan'), mobileIcon: <PencilRuler className="size-5" />, mobileDefaultSnap: 0.6 },
+      { id: 'designer', label: 'Designer', component: designerPanel ?? DesignerTab, icon: railIcon(Sparkles), mobileIcon: <Sparkles className="size-5" />, mobileDefaultSnap: 0.6 },
+      { id: 'site', label: 'Scene', component: sceneSettingsNoop, icon: railIcon(Layers), mobileIcon: <Layers className="size-5" />, mobileDefaultSnap: 0.5 },
+      { id: 'catalog', label: 'Furniture', component: CatalogTab, icon: railIcon(Sofa), mobileIcon: <Sofa className="size-5" />, mobileDefaultSnap: 0.5 },
+      { id: 'architect', label: 'Plan', component: ArchitectTab, icon: railIcon(PencilRuler), mobileIcon: <PencilRuler className="size-5" />, mobileDefaultSnap: 0.6 },
     ],
     [designerPanel],
   )
@@ -304,6 +304,7 @@ export function SceneEditor({ meta, initialGraph, initialPreviewSceneId = null, 
         onSaveStatusChange={setSaveStatus}
         previewScene={previewGraph ?? undefined}
         projectId={meta.projectId ?? meta.id}
+        rail={FOLIO_RAIL}
         // The Folio dock (viewerBanner) replaces Pascal's floating action menu.
         showActionMenu={false}
         sidebarTabs={sidebarTabs}

@@ -37,3 +37,16 @@ Base: `@pascal-app/core@1.0.3` (`ebe69be2`). One commit each, so each can become
 - Files: `packages/editor/src/hooks/use-keyboard.ts`, `packages/editor/src/index.tsx`.
 - Host side removed: synthetic undo/redo/rotate key presses in `apps/web/components/editor/folio-actions.ts`
   (`pressKey` stays for the measure tool's M).
+
+## 5. Editor: `rail` prop (width, labels) and stable rail hooks
+- Motivation: the v2 rail was a fixed `w-14` with a separate `RAIL_WIDTH = 56` in the resize math, and labels only as
+  tooltips. A labelled, wider rail meant smuggling the label inside `icon` and widening the rail with `:has()` CSS,
+  which also left the resize math off by the difference.
+- Change: `<Editor rail={{ width, labels }}>`. `IconRail` takes the width (inline) and, with `labels`, draws the label
+  under the icon (no tooltip); `LeftColumn` uses the same width for resizing (`DEFAULT_RAIL_WIDTH` = 56). The rail and
+  its buttons carry `data-editor-rail`, `data-rail-item=<tab id>` and `data-rail-label` for host styling.
+  `RailOptions` is exported.
+- Files: `packages/editor/src/components/ui/sidebar/tab-bar.tsx`, `packages/editor/src/components/editor/editor-layout-v2.tsx`,
+  `packages/editor/src/components/editor/index.tsx`, `packages/editor/src/index.tsx`.
+- Host side removed: the label span in `railIcon` and the `:has(> .folio-rail-item)` width and size rules in
+  `apps/web/app/pascal-theme.css` (Folio colours now target the data hooks).
