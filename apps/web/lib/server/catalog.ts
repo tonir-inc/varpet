@@ -77,8 +77,16 @@ export function toProduct(raw: Record<string, unknown>, origin: string): Product
   if (typeof raw.id !== 'string' || !raw.id || !size || size.length !== 3 || !size.every(n => typeof n === 'number' && Number.isFinite(n) && n > 0)) return null
   // Same model URL as the scene MCP's place_product: the catalog's optimized GLB by source id, relayed by this app
   // (the listing's glb_url is often the raw S3 original, tens of MB).
-  const sourceId = typeof raw.source_id === 'string' ? raw.source_id : raw.id.includes(':') ? raw.id.split(':')[1] : null
-  const glbUrl = sourceId && MODEL.test(`${sourceId}.glb`) ? `${origin}/api/catalog/models/${encodeURIComponent(sourceId)}.glb` : browserUrl(raw.glb_url, origin, 'models')
+  // Generated items name their file on the catalog host in glb_url; Amazon items keep the S3 original there and
+  // the catalog serves its optimised copy as <ASIN>.glb.
+  const sourceId = typeof raw.source_id === 'string' ? raw.source_id : raw.id.includes(':') ? raw.id.split(':').at(-1)! : null
+  const abo = raw.source === 'abo' || raw.id.startsWith('abo:')
+  const relayed = browserUrl(raw.glb_url, origin, 'models')
+  const glbUrl = relayed?.startsWith(`${origin}/api/catalog/models/`)
+    ? relayed
+    : abo && sourceId && MODEL.test(`${sourceId}.glb`)
+      ? `${origin}/api/catalog/models/${encodeURIComponent(sourceId)}.glb`
+      : relayed
   if (!glbUrl) return null
   const [w, d, h] = size as [number, number, number]
   const currency = typeof raw.currency === 'string' ? raw.currency : 'AMD'

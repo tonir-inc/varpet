@@ -76,8 +76,7 @@ export interface RawCatalogItem {
 export function toProduct(raw: RawCatalogItem, publicOrigin: string): ProductHit {
   const [w, d, h] = raw.size_m
   const origin = publicOrigin.replace(/\/+$/, '')
-  const sourceId = raw.source_id ?? (raw.id.includes(':') ? raw.id.split(':')[1] : null)
-  const glbUrl = sourceId ? `${origin}/api/catalog/models/${encodeURIComponent(sourceId)}.glb` : raw.glb_url
+  const glbUrl = modelUrl(raw, origin)
   if (!glbUrl) throw new Error(`catalog item ${raw.id} has no model`)
   const colors = raw.colors_astra?.length ? raw.colors_astra : raw.colors_listing?.length ? raw.colors_listing : raw.colors_image
   return {
@@ -98,6 +97,27 @@ export function toProduct(raw: RawCatalogItem, publicOrigin: string): ProductHit
 }
 
 const round = (value: number) => Math.round(value * 1000) / 1000
+
+/**
+ * The model the browser loads, relayed by the web app from the catalog host's /models/. Generated items name their
+ * file in glb_url (`extra-<group>-<slug>.glb`); Amazon items keep the S3 original there, and the catalog serves
+ * its web-optimised copy as `<ASIN>.glb`.
+ */
+function modelUrl(raw: RawCatalogItem, origin: string): string | null {
+  const relay = (file: string) => `${origin}/api/catalog/models/${encodeURIComponent(file)}`
+  if (raw.glb_url) {
+    try {
+      const url = new URL(raw.glb_url)
+      const file = url.pathname.split('/').pop() ?? ''
+      if (url.pathname.startsWith('/models/') && file.endsWith('.glb')) return relay(file)
+    } catch {
+      // not a URL: fall through
+    }
+  }
+  const sourceId = raw.source_id ?? (raw.id.includes(':') ? raw.id.split(':').at(-1)! : null)
+  if (sourceId && (raw.source === 'abo' || raw.id.startsWith('abo:'))) return relay(`${sourceId}.glb`)
+  return raw.glb_url ?? null
+}
 
 /** Catalog over the service's MCP endpoint. Connects lazily and reconnects after a failure. */
 export function createMcpCatalog(catalogUrl: string, publicOrigin: string): Catalog {
