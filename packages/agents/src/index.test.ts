@@ -239,6 +239,21 @@ test('a new work scene (the proposal was applied or dismissed) restarts the proc
   assert.deepEqual(live.map((p) => p.pid), [started[1]!.pid])
 })
 
+test('a work scene written by someone else between turns restarts the process', async () => {
+  const { store, env, dataDir, sceneId } = await fixture()
+  const first = await collect(runTurn('designer', { sceneId, message: 'one' }, { root, env, edits: 'direct' }))
+  const { conversationId } = first[0] as Extract<AgentEvent, { type: 'session' }>
+  const scene = (await store.load(sceneId))!
+  await store.save({ id: sceneId, name: 'Flat, edited by hand', graph: scene.graph, expectedVersion: scene.version })
+  const second = await collect(runTurn('designer', { sceneId, conversationId, message: 'two' }, { root, env, edits: 'direct' }))
+  assert.equal(second.at(-1)!.type, 'done', JSON.stringify(second.at(-1)))
+  const third = await collect(runTurn('designer', { sceneId, conversationId, message: 'three' }, { root, env, edits: 'direct' }))
+  assert.equal(third.at(-1)!.type, 'done', JSON.stringify(third.at(-1)))
+  const started = spawns(dataDir, conversationId)
+  assert.equal(started.length, 2, 'respawned once after the outside edit, reused after the agent\'s own edits')
+  assert.equal(flagOf(started[1]!.args, '--resume'), conversationId)
+})
+
 test('a cancelled turn is interrupted, re-sent after a later turn\'s init, and keeps its process', async () => {
   const { env, dataDir, sceneId } = await fixture()
   const opts = { root, env: { ...env, FAKE_CLAUDE_MODE: 'hang' }, timeoutMs: 60_000, graceMs: 60_000 }

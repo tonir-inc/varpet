@@ -399,6 +399,9 @@ interface LiveProcess {
   conversationId: string
   /** What the process was started with, minus the session flag; a turn that needs other args respawns. */
   binding: string
+  /** The work scene's version when the last turn ended. The scene MCP holds the graph it loaded at start, so a
+   * scene written by anyone else in between (the person in the editor) needs a fresh process. */
+  sceneVersion: number | null
   child: ChildProcessWithoutNullStreams
   stderr: string
   spawnError: Error | null
@@ -433,6 +436,7 @@ function spawnProcess(conversationId: string, binding: string, bin: string, args
   const proc: LiveProcess = {
     conversationId,
     binding,
+    sceneVersion: null,
     child,
     stderr: '',
     spawnError: null,
@@ -521,6 +525,7 @@ const sleep = (ms: number) => new Promise<void>((done) => setTimeout(done, ms).u
 async function processFor(input: {
   conversationId: string
   binding: string
+  sceneVersion: number | null
   resume: boolean
   s: Settings
   dir: string
@@ -529,7 +534,7 @@ async function processFor(input: {
   const { live, closing } = pool()
   const { s } = input
   const current = live.get(input.conversationId)
-  if (current?.alive && current.binding === input.binding) {
+  if (current?.alive && current.binding === input.binding && current.sceneVersion === input.sceneVersion) {
     if (current.idleTimer) clearTimeout(current.idleTimer)
     return current
   }
@@ -780,6 +785,7 @@ export async function* runTurn(role: AgentRole, req: TurnRequest, opts: RunTurnO
     }
 
     const workSceneId = state.proposalSceneId ?? req.sceneId
+    const workVersion = async () => ((await store.load(workSceneId)) as { version?: number } | null)?.version ?? null
     if (state.proposalSceneId) busyProposals().add((busy = state.proposalSceneId))
     yield { type: 'session', conversationId: sessionId, role, proposalSceneId: state.proposalSceneId }
 
@@ -799,10 +805,12 @@ export async function* runTurn(role: AgentRole, req: TurnRequest, opts: RunTurnO
         },
       },
     })
+    let proc: LiveProcess
     try {
-      const proc = await processFor({
+      proc = await processFor({
         conversationId: sessionId,
         binding: JSON.stringify([s.claudeBin, dir, role, s.model, s.effort, mcpConfig, systemPrompt]),
+        sceneVersion: await workVersion(),
         resume,
         s,
         dir,
@@ -817,6 +825,11 @@ export async function* runTurn(role: AgentRole, req: TurnRequest, opts: RunTurnO
     for await (const event of turn.events) yield event
     const outcome = await turn.finished
     releaseBusy()
+    try {
+      proc.sceneVersion = await workVersion()
+    } catch {
+      proc.sceneVersion = null
+    }
 
     if (state.proposalSceneId) {
       try {
