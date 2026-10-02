@@ -1,0 +1,129 @@
+/* v1 shared tokens and base rules (apps/editor/src/ui/style.css), scoped to the portal wrapper so they never
+ * reach Pascal's editor: tokens live on .portal-root, element rules use :where(.portal-root) to keep v1's
+ * specificity. Tailwind's preflight (globals.css) is undone inside the portal first, so v1 sits on UA defaults
+ * as it did in v1. SVGs are excluded: `all: revert` would also drop their fill/stroke presentation attributes. */
+:where(.portal-root) :where(*:not(svg, svg *)),
+:where(.portal-root) :where(*:not(svg, svg *))::before,
+:where(.portal-root) :where(*:not(svg, svg *))::after { all: revert; }
+:where(.portal-root) :where(svg) { display: inline; }
+
+.portal-root {
+  font-family: "Sofia Sans", "Noto Sans Armenian", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  font-synthesis: none;
+  color-scheme: light;
+  color: var(--ink);
+  background: var(--ground);
+  --serif: "Source Serif 4", "Noto Serif Armenian", Georgia, serif;
+  --condensed: "Sofia Sans Condensed", "Noto Sans Armenian", "Arial Narrow", sans-serif;
+  --ground: #f4f4f1;
+  --surface: #ffffff;
+  --raised: #efeeea;
+  --hover: #e7e6e1;
+  --line: #deddd8;
+  --control-line: #a8a69f;
+  --ink: #151515;
+  --muted: #6b6962;
+  /* Match the drafting sheet's PAPER colour in portal/blueprint.ts. */
+  --accent: #155f6d;
+  --accent-dark: #0d424c;
+  --accent-hover: #104d59;
+  --accent-ink: #155f6d;
+  --accent-wash: #e8f2f3;
+  --on-accent: #ffffff;
+  --select: #d6e9ec;
+  --select-wash: var(--accent-wash);
+  --designer: var(--accent-ink);
+  --designer-soft: #80b8c0;
+  --designer-wash: var(--accent-wash);
+  --positive: #1f6b45;
+  --positive-wash: #e4f1e8;
+  --warning: #8a5a00;
+  --warning-wash: #fbf0d6;
+  --danger: #c4202f;
+  --danger-wash: #fbe5e5;
+  --focus: var(--accent-ink);
+  --stage: #cfd1cf;
+  --scrim: #ffffffeb;
+  --shadow-color: #1515151f;
+  --texture-light: #ffffff66;
+  --texture-dark: #0000000d;
+  --texture-chip: #f5f0e2;
+  --plan-ground: #f4f4f1;
+  --plan-surface: #ffffff;
+  --plan-ink: #151515;
+  --plan-muted: #6b6962;
+  --plan-line: #deddd8;
+  --plan-accent: #151515;
+  --plan-wash: #fdf1a8;
+  --plan-room: #f1efe9;
+  --plan-wall: #151515;
+  --plan-partition: #d9d5cb;
+  --plan-window: #2d6c8c;
+  --plan-entrance: #8a6238;
+  --plan-danger: #c4202f;
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-md: 16px;
+  --text-lg: 20px;
+  --text-xl: 24px;
+  --text-display: 28px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: 4px;
+  --shadow-1: 0 4px 16px var(--shadow-color);
+  --shadow-2: 0 12px 36px var(--shadow-color);
+  --motion-feedback: 140ms;
+  --motion-surface: 180ms;
+  --motion-ease-out: cubic-bezier(.2, .8, .2, 1);
+  /* Compatibility roles for existing and incoming panels. */
+  --panel: var(--surface);
+  --panel-raised: var(--raised);
+  --floating-shadow: var(--shadow-1);
+}
+.portal-root {
+  --sans: var(--font-sofia-sans), var(--font-noto-sans-armenian), system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: var(--sans);
+  --serif: var(--font-source-serif), var(--font-noto-serif-armenian), Georgia, serif;
+  --condensed: var(--font-sofia-sans-condensed), var(--font-noto-sans-armenian), "Arial Narrow", sans-serif;
+}
+:where(.portal-root) :where(h1, h2) { font-family: var(--serif); font-weight: 600; letter-spacing: -0.01em; }
+:where(.portal-root), :where(.portal-root) * { box-sizing: border-box; }
+:where(.portal-root) :where(button, input, select, textarea) { font: inherit; }
+:where(.portal-root) :where(button) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: inherit;
+  cursor: pointer;
+  transition: background var(--motion-feedback) var(--motion-ease-out), border-color var(--motion-feedback) var(--motion-ease-out), color var(--motion-feedback) var(--motion-ease-out);
+}
+:where(.portal-root) :where(button:disabled) { opacity: .35; cursor: not-allowed; }
+:where(.portal-root) :where(button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible, a:focus-visible, textarea:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+:where(.portal-root) :where(button svg, svg) { flex-shrink: 0; vertical-align: middle; }
+:where(.portal-root) :where(button svg) { width: 16px; height: 16px; }
+:where(.portal-root) :where(a) { color: inherit; text-decoration: none; }
+:where(.portal-root) :where(h1, h2, h3, p) { margin: 0; }
+.portal-root [hidden] { display: none !important; }
+:where(.portal-root) :where(kbd) { font-family: inherit; }
+:where(.portal-root) :where(dialog) { width: 520px; max-width: calc(100vw - 30px); max-height: calc(100dvh - 40px); padding: var(--space-6); overflow-y: auto; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); color: var(--ink); box-shadow: var(--shadow-2); }
+:where(.portal-root) :where(dialog)::backdrop { background: var(--scrim); backdrop-filter: none; }
+:where(.portal-root) * { scrollbar-width: thin; scrollbar-color: var(--control-line) transparent; }
+:where(.portal-root) :where(input, select, textarea) { accent-color: var(--accent); }
+:where(.portal-root) :where(input::placeholder, textarea::placeholder) { color: var(--muted); opacity: 1; }
+:where(.portal-root) :where(button:disabled, input:disabled, select:disabled, textarea:disabled) { opacity: .5; }
+@media (prefers-reduced-motion: reduce) { :where(.portal-root) :where(button) { transition: none; } }
+/* v1 ran with font-size 14px / line-height 1.5 on :root. */
+.portal-root { font-size: 14px; line-height: 1.5; font-synthesis: none; color: var(--ink); background: var(--ground); }

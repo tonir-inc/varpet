@@ -1,0 +1,46 @@
+// v1 icon set (apps/editor/src/ui/icons.ts): same paths, same 18px stroke drawing.
+const paths: Record<string, string> = {
+  share:'<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4"/>',
+  sofa:'<path d="M5 12V7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v5M5 18v3M19 18v3M5 12H3v6h18v-6h-2v3H5Z"/>',
+  'panel-close':'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16m7-11-3 3 3 3"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  eye:'<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>',
+  undo:'<path d="M9 5 4 10l5 5M4 10h10a5 5 0 0 1 0 10"/>',
+  redo:'<path d="m15 5 5 5-5 5m5-5H10a5 5 0 0 0 0 10"/>',
+  folder:'<path d="M3 7V5h7l2 2h9v13H3Z"/>',
+  save:'<path d="M4 3h13l4 4v14H3V3Z M7 3v6h10V3 M7 21v-8h10v8"/>',
+  connections:'<rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="15" width="6" height="6" rx="1"/><path d="M6 9v9h9M15 6h6M18 3v6"/>',
+  layers:'<path d="m12 3 10 5-10 5L2 8Zm-10 9 10 5 10-5M2 16l10 5 10-5"/>',
+  box:'<path d="m12 3 9 5v9l-9 5-9-5V8Zm0 10v9M3 8l9 5 9-5M8 5l9 5"/>',
+  home:'<path d="m3 10 9-7 9 7v11H3Zm6 11v-8h6v8"/>',
+  lock:'<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/>',
+  search:'<circle cx="10" cy="10" r="6"/><path d="m15 15 6 6"/>',
+  help:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 4 2c-1 .5-1.5 1-1.5 2M12 17h.01"/>',
+  cube:'<path d="m12 2 9 5v10l-9 5-9-5V7Zm0 10v10M3 7l9 5 9-5"/>',
+  top:'<rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 12h18M13 3v9M8 12v9"/>',
+  walls:'<path d="M3 20V5h18v15M3 13h8v7M15 5v8h6"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M5 19l1.5-1.5M17.5 6.5 19 5"/>',
+  moon:'<path d="M20.5 13a8.5 8.5 0 0 1-9.5-9.5A8.5 8.5 0 1 0 20.5 13Z"/>',
+  select:'<path d="m5 3 15 10-7 1-3 7Z"/>',
+  move:'<path d="M12 3v18M3 12h18M9 6l3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3M18 9l3 3-3 3"/>',
+  rotate:'<path d="M20 10a8 8 0 1 0-1 7M20 3v7h-7"/>',
+  scale:'<path d="M14 3h7v7M21 3l-9 9M10 3H3v18h18v-7"/>',
+  focus:'<path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"/><circle cx="12" cy="12" r="3"/>',
+  grid:'<rect x="3" y="3" width="18" height="18" rx="1"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/>',
+  sliders:'<path d="M4 7h6M16 7h4M4 17h10M20 17h-1"/><circle cx="13" cy="7" r="3"/><circle cx="16" cy="17" r="3"/>',
+  sparkles:'<path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5ZM20 2v4M18 4h4"/>',
+  arrow:'<path d="M4 12h16m-6-6 6 6-6 6"/>',
+  room:'<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 14h5M14 20v-5"/>',
+  duplicate:'<rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V3H3v13h5"/>',
+  trash:'<path d="M3 6h18M6 6l1 15h10l1-15M9 6V3h6v3M10 10v7M14 10v7"/>',
+  close:'<path d="m6 6 12 12M18 6 6 18"/>',
+  upload:'<path d="M12 16V3m-5 5 5-5 5 5M3 15v6h18v-6"/>',
+  download:'<path d="M12 3v13m-5-5 5 5 5-5M3 17v4h18v-4"/>',
+};
+
+export function Icon({ name }: { name: string }) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.65" strokeLinecap="round"
+      strokeLinejoin="round" aria-hidden="true" dangerouslySetInnerHTML={{ __html: paths[name] ?? paths.box! }} />
+  )
+}
