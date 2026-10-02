@@ -284,6 +284,8 @@ export function SceneEditor({ meta, initialGraph, initialPreviewSceneId = null, 
   return (
     <div className="varpet-editor-stage">
       <Editor
+        // v1 opens Properties with the selection.
+        inspectorDefaultExpanded
         inspectorFooter={<InspectorFooter />}
         isVersionPreviewMode={previewing}
         layoutVersion="v2"

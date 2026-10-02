@@ -18,3 +18,11 @@ Base: `@pascal-app/core@1.0.3` (`ebe69be2`). One commit each, so each can become
 - Change: `<Editor showActionMenu={false}>` (default true) leaves the menu out in the v1 and v2 layouts.
 - Files: `packages/editor/src/components/editor/index.tsx`.
 - Host side removed: the action-bar rule in `apps/web/app/pascal-theme.css`.
+
+## 3. Editor: `inspectorDefaultExpanded` prop
+- Motivation: the desktop inspector always opens collapsed on a fresh selection and keeps that state private; we
+  watched the selection and clicked its "Expand panel" button from the DOM.
+- Change: `<Editor inspectorDefaultExpanded>` sets the state a fresh selection opens with
+  (`setDesktopInspectorDefaultCollapsed` in the panel wrapper; clearing the selection resets to it).
+- Files: `packages/editor/src/components/ui/panels/panel-wrapper.tsx`, `packages/editor/src/components/editor/index.tsx`.
+- Host side removed: `useExpandInspectorOnSelect` in `apps/web/components/editor/folio-tools.tsx`.

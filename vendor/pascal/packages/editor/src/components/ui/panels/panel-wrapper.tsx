@@ -40,13 +40,21 @@ const DRAG_MARGIN = 8
 // Pointer travel (px) below which a header press is treated as a click
 // (toggles collapse) rather than a drag.
 const CLICK_SLOP = 4
-let desktopInspectorCollapsed = true
+let desktopInspectorDefaultCollapsed = true
+let desktopInspectorCollapsed = desktopInspectorDefaultCollapsed
 
 /** Forget the shared expanded state. Called when the last selection clears so
- * a fresh selection opens the inspector collapsed — the sharing is only meant
- * to survive swaps between panels (roof ↔ segment), not a close/reopen. */
+ * a fresh selection opens the inspector in its default state (collapsed unless
+ * the host asked otherwise) — the sharing is only meant to survive swaps
+ * between panels (roof ↔ segment), not a close/reopen. */
 export function resetDesktopInspectorCollapsed() {
-  desktopInspectorCollapsed = true
+  desktopInspectorCollapsed = desktopInspectorDefaultCollapsed
+}
+
+/** How a fresh selection opens the desktop inspector (Editor's `inspectorDefaultExpanded`). */
+export function setDesktopInspectorDefaultCollapsed(collapsed: boolean) {
+  desktopInspectorDefaultCollapsed = collapsed
+  desktopInspectorCollapsed = collapsed
 }
 
 function clamp(value: number, min: number, max: number): number {

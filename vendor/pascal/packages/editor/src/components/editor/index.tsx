@@ -70,6 +70,7 @@ import { EditorCommands } from '../ui/command-palette/editor-commands'
 import { FloatingLevelSelector } from '../ui/floating-level-selector'
 import { HelperManager } from '../ui/helpers/helper-manager'
 import { PanelManager } from '../ui/panels/panel-manager'
+import { setDesktopInspectorDefaultCollapsed } from '../ui/panels/panel-wrapper'
 import { ErrorBoundary } from '../ui/primitives/error-boundary'
 import { useSidebarStore } from '../ui/primitives/sidebar'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/primitives/tooltip'
@@ -201,6 +202,11 @@ export interface EditorProps {
    * Default true.
    */
   showActionMenu?: boolean
+  /**
+   * Open the node inspector expanded on a fresh selection instead of
+   * collapsed to its header. Default false.
+   */
+  inspectorDefaultExpanded?: boolean
 
   /** Host-owned content mounted inside the editor's React Three Fiber scene. */
   viewerSceneSlot?: ReactNode
@@ -1271,6 +1277,7 @@ function EditorContent({
   inspectorFooter,
   multiSelectionFooter,
   showActionMenu = true,
+  inspectorDefaultExpanded = false,
   viewerSceneSlot,
   floorplanSceneSlot,
   projectId,
@@ -1452,6 +1459,10 @@ function EditorContent({
   useEffect(() => {
     if (!isPreviewMode) setPreviewStageMode('3d')
   }, [isPreviewMode])
+
+  useClientLayoutEffect(() => {
+    setDesktopInspectorDefaultCollapsed(!inspectorDefaultExpanded)
+  }, [inspectorDefaultExpanded])
 
   useEffect(() => {
     document.body.classList.add('dark')

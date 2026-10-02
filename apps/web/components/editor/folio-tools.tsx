@@ -42,22 +42,7 @@ function useInspectorOpen(hasSelection: boolean) {
   return open
 }
 
-/** v1 opens Properties with the selection; Pascal opens its inspector collapsed, so expand it on a fresh selection. */
-function useExpandInspectorOnSelect() {
-  useEffect(() => useViewer.subscribe((state, previous) => {
-    if (previous.selection.selectedIds.length > 0 || state.selection.selectedIds.length === 0) return
-    let frames = 0
-    const tryExpand = () => {
-      const toggle = inspectorToggle()
-      if (toggle?.getAttribute('aria-label') === 'Expand panel') toggle.click()
-      else if (!toggle && ++frames < 90) requestAnimationFrame(tryExpand)
-    }
-    requestAnimationFrame(tryExpand)
-  }), [])
-}
-
 export function FolioTools() {
-  useExpandInspectorOnSelect()
   const mode = useEditor((s) => s.mode)
   const selectionTool = useEditor((s) => s.floorplanSelectionTool)
   const snapStep = useEditor((s) => s.gridSnapStep)
