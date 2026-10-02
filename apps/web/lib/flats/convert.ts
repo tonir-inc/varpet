@@ -16,6 +16,9 @@ import {
 
 type Vec2 = [number, number]
 
+/** Both faces of every wall: Pascal's warm white matte paint, not its unpainted "Prepared Drywall" default. */
+export const WALL_PAINT = 'library:preset-softwhite'
+
 /** The parts of a v1 `SceneDocument` the converter reads (v1 apps/editor/src/contracts.ts). */
 export interface V1Opening {
   id: string
@@ -138,6 +141,7 @@ export function convertV1Scene(scene: V1Scene): ConvertedFlat {
     levelChildren.push(add(WallNode.parse({
       id: wallId, name: metadataName(wall.id) ?? wall.id, parentId: levelId, start: move(wall.start), end: move(wall.end),
       height: wall.height, thickness: round(wall.thickness), children, metadata: { v1Id: wall.id },
+      slots: { interior: WALL_PAINT, exterior: WALL_PAINT },
     })))
   }
 
