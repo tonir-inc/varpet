@@ -1,0 +1,50 @@
+{
+  "id": "morgado-de-mateus-sao-paulo",
+  "name": "Morgado de Mateus Apartment, Sao Paulo (traced)",
+  "note": "Traced by hand on the cached plan (1280 x 768 px). No scale bar, dimensions or room areas: 74 px/m from the published 115 m2 (traced net rooms 101 m2, 88%), cross-checked with the furniture: queen bed 122 x 149 px = 1.65 x 2.0 m, kitchen counter 47 px = 0.64 m, entrance door 64 px = 0.86 m, fridge 0.8 m. Rooms at the inner wall faces. Rooms by photo and furniture: the master bedroom is L-shaped (its wardrobe wall and the passage to the ensuite are part of it); the kids room (Bedroom 2) and the study/TV room are split by a full-height wardrobe, traced as a wall; the windowless desk room off the laundry is 'Office'; the shared bathroom with its shower bay and the powder room (WC) are polygons; the linen cupboard between the hall and the WC is left out; the bookcase between the WC and the dining area is treated as furniture (the dining edge is on the WC wall). The kitchen is open to the dining area; the laundry is behind a glazed partition with a door. Two entrances (social into the living room, service by the dining/kitchen), a pivot door between the hall and the dining area. The duct in the kitchen counter is a notch in the kitchen. Kitchen as drawn: laundry counter with the tank, a short counter, the main run with hob and double sink under the window, a fridge column.",
+  "scale": 74,
+  "origin": [175, 45],
+  "height": 2.7,
+  "thickness": 0.12,
+  "rooms": [
+    { "name": "Bedroom", "polygon": [[175, 45], [397, 45], [397, 275], [457, 275], [457, 439], [175, 439]] },
+    { "name": "Bedroom 2", "rect": [397, 45, 668, 275] },
+    { "name": "Study", "rect": [668, 45, 892, 275] },
+    { "name": "Bathroom", "polygon": [[185, 439], [320, 439], [320, 650], [215, 650], [215, 588], [185, 588]] },
+    { "name": "Office", "rect": [320, 439, 457, 650] },
+    { "name": "Hall", "rect": [457, 275, 758, 367] },
+    { "name": "Bathroom 2", "polygon": [[457, 367], [685, 367], [685, 437], [612, 437], [612, 515], [457, 515]] },
+    { "name": "WC", "polygon": [[612, 437], [685, 437], [685, 397], [758, 397], [758, 515], [612, 515]] },
+    { "name": "Laundry", "rect": [457, 515, 627, 650] },
+    { "name": "Kitchen", "polygon": [[627, 515], [758, 515], [1047, 515], [1047, 650], [760, 650], [760, 600], [695, 600], [695, 650], [627, 650]] },
+    { "name": "Living room and dining", "polygon": [[892, 45], [1130, 45], [1130, 475], [1047, 475], [1047, 515], [758, 515], [758, 397], [758, 275], [892, 275]] }
+  ],
+  "open": [[758, 515, 1047, 515]],
+  "openings": [
+    { "kind": "window", "at": [295, 45], "width": 1.75 },
+    { "kind": "window", "at": [540, 45], "width": 1.7 },
+    { "kind": "window", "at": [812, 45], "width": 1.75 },
+    { "kind": "window", "at": [1008, 45], "width": 3.0 },
+    { "kind": "window", "at": [245, 650], "width": 0.8, "sill": 1.1, "height": 1.0 },
+    { "kind": "window", "at": [543, 650], "width": 2.0, "sill": 1.1, "height": 1.0 },
+    { "kind": "window", "at": [892, 650], "width": 2.0, "sill": 1.1, "height": 1.0 },
+    { "kind": "door", "at": [1130, 311], "width": 0.85 },
+    { "kind": "door", "at": [1047, 500], "width": 0.75 },
+    { "kind": "door", "at": [758, 321], "width": 0.9 },
+    { "kind": "door", "at": [457, 313], "width": 0.75 },
+    { "kind": "door", "at": [241, 439], "width": 0.65 },
+    { "kind": "door", "at": [580, 275], "width": 0.75 },
+    { "kind": "door", "at": [706, 275], "width": 0.75 },
+    { "kind": "door", "at": [845, 275], "width": 0.6 },
+    { "kind": "door", "at": [572, 367], "width": 0.75 },
+    { "kind": "door", "at": [722, 515], "width": 0.6 },
+    { "kind": "door", "at": [457, 565], "width": 0.8 },
+    { "kind": "door", "at": [627, 565], "width": 0.75 }
+  ],
+  "kitchen": [
+    { "from": [457, 650], "to": [627, 650], "sink": [543, 625] },
+    { "from": [627, 650], "to": [695, 650] },
+    { "from": [760, 650], "to": [975, 650], "hob": [790, 622], "sink": [930, 622] },
+    { "from": [975, 650], "to": [1047, 650], "tall": true }
+  ]
+}

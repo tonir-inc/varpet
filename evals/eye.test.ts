@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { eyeSpots, withSpawn } from './eye.ts'
+import { eyeSpots, roomSlug, roomZones, withSpawn } from './eye.ts'
 
 // Living (x 0..4, z 0..4) with a door at (4, 1) to the hall (x 4..6) and a balcony door at (2, 0).
 const graph = {
@@ -39,4 +39,16 @@ test('withSpawn replaces spawn nodes with one under the level', () => {
   assert.equal(spawns.length, 1)
   assert.deepEqual((out.nodes.level_1 as { children: string[] }).children, ['spawn_eval'])
   assert.deepEqual((graph.nodes.level_1 as { children: string[] }).children, ['spawn_old'])
+})
+
+test('room shots go to the named zone, the furnished one when two share a name', () => {
+  const twin = {
+    nodes: {
+      ...graph.nodes,
+      living_2: { id: 'living_2', type: 'zone', name: 'living', polygon: [[10, 0], [14, 0], [14, 4], [10, 4]] },
+      sofa: { id: 'sofa', type: 'item', position: [12, 0, 2] },
+    },
+  }
+  assert.deepEqual(roomZones(twin, ['Living', 'Hall', 'Garage']), [{ room: 'living', zoneId: 'living_2' }, { room: 'Hall', zoneId: 'hall' }])
+  assert.equal(roomSlug('Living room & kitchen'), 'living-room-kitchen')
 })

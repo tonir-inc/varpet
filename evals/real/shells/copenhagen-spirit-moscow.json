@@ -1,0 +1,32 @@
+{
+  "id": "copenhagen-spirit-moscow",
+  "name": "Copenhagen Spirit, Moscow (traced)",
+  "note": "Traced by hand on the cached plan (1280 x 994 px, evals/real/fetch.ts). No scale bar, dimensions or areas: 105 px/m from the manifest area (57 m2; traced total 56.9 m2, 100% with the folded wall strip, as a Russian total area is close to net) cross-checked with the entrance door (94 px = 0.9 m), kitchen counters (62 px = 0.6 m), bathtub (168 px = 1.6 m) and the bed (192 x 210 px = 1.8 x 2.0 m). Slightly skewed outer walls squared off; the balcony left out (its glazed door kept as a 1.5 m door). The thick bedroom wall is traced on its centre line, with its leafless top passage as an open segment; the thick kitchen/bathroom wall is folded into the bathroom (so the envelope closes; it adds about 0.9 m2) and the bathroom cupboard box is left solid; the bathroom's tub/shower partition is dropped. The entrance hall is open to the living room. Kitchen as drawn: tall units and a sink run on the west wall, a hob run on the south wall, a short shallow counter and a bar peninsula (base units with a raised bar) facing the sofa.",
+  "scale": 105,
+  "origin": [118, 190],
+  "height": 2.7,
+  "thickness": 0.15,
+  "rooms": [
+    { "name": "Living room and kitchen", "polygon": [[118, 190], [785, 190], [785, 651], [445, 651], [445, 561], [296, 561], [296, 597], [118, 597]] },
+    { "name": "Hall", "rect": [445, 651, 785, 805] },
+    { "name": "Bathroom", "polygon": [[118, 597], [296, 597], [296, 651], [445, 651], [445, 805], [118, 805]] },
+    { "name": "Bedroom", "rect": [785, 190, 1160, 610] },
+    { "name": "Dressing room", "rect": [785, 610, 1160, 805] }
+  ],
+  "open": [[445, 651, 785, 651], [785, 272, 785, 366], [1027, 610, 1099, 610]],
+  "openings": [
+    { "kind": "window", "at": [283, 190], "width": 1.5, "sill": 0.8, "height": 1.6 },
+    { "kind": "door", "at": [625, 190], "width": 1.5, "height": 2.2 },
+    { "kind": "window", "at": [993, 190], "width": 1.5, "sill": 0.8, "height": 1.6 },
+    { "kind": "door", "at": [608, 805], "width": 0.9 },
+    { "kind": "door", "at": [445, 687], "width": 0.7 },
+    { "kind": "door", "at": [785, 698], "width": 0.85 }
+  ],
+  "kitchen": [
+    { "from": [118, 339], "to": [118, 466], "tall": true },
+    { "from": [118, 466], "to": [118, 597], "sink": [149, 515] },
+    { "from": [296, 597], "to": [180, 597], "hob": [262, 552] },
+    { "from": [296, 561], "to": [375, 561], "depth": 0.3 },
+    { "from": [394, 330], "to": [394, 560], "depth": 0.45, "island": true }
+  ]
+}

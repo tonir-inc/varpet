@@ -1,7 +1,7 @@
 {
   "id": "mumbai-apartment-kyiv",
   "name": "Mumbai Apartment, Kyiv (traced)",
-  "note": "Traced by hand on the cached plan (1102 x 1280 px, evals/real/fetch.ts). No scale bar: 82 px/m fits the printed total (62 m2) and room areas within about 15% (hall 5.1, bath 5.9, living+kitchen 38.4, bedroom 11.9). Room outlines at the inner wall faces, simplified to rectangles; the kitchen niche and the duct beside the bathroom are folded into the living room; the bedroom's glass partition is a wall.",
+  "note": "Traced by hand on the cached plan (1102 x 1280 px, evals/real/fetch.ts). No scale bar: 82 px/m fits the printed total (62 m2) and room areas within about 15% (hall 5.1, bath 5.9, living+kitchen 38.4, bedroom 11.9). Room outlines at the inner wall faces, simplified to rectangles; the kitchen niche and the duct beside the bathroom are folded into the living room; the bedroom's glass partition is a wall. Kitchen as drawn: a tall-unit wall in the east niche (fridge, oven) and an island with hob and sink.",
   "scale": 82,
   "origin": [222, 187],
   "height": 2.8,
@@ -19,5 +19,9 @@
     { "kind": "door", "at": [520, 225], "width": 0.8 },
     { "kind": "door", "at": [645, 900], "width": 0.75 },
     { "kind": "door", "at": [567, 1010], "width": 0.9 }
+  ],
+  "kitchen": [
+    { "from": [880, 535], "to": [880, 752], "tall": true },
+    { "from": [676, 402], "to": [676, 672], "depth": 0.85, "island": true, "sink": [688, 628], "hob": [688, 515] }
   ]
 }

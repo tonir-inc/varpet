@@ -1,10 +1,15 @@
 // Designer eval: runs each case's turns through the real agent runner (packages/agents runTurn, Felix's
-// subscription), saves the event stream and the proposal graph, screenshots the proposal in the editor (WebGPU,
-// headless Chrome via Playwright, dev server on --port: top, 3/4 and one eye-level view per furnished room), asks a
-// critic `claude -p` to score it against real rooms (evals/critic.ts), writes report.md.
+// subscription), saves the event stream and the proposal graph, screenshots the proposal (the whole flat in the
+// editor, WebGPU, headless Chrome via Playwright; per judged room an eye-level, top and 3/4 view through POST
+// /api/render with view_scene's cameras), asks a critic `claude -p` to score it against real rooms (evals/critic.ts),
+// writes report.md over both case sets. The dev server on --port runs through the agent and shots steps, so the
+// designer's view_scene renders too.
 //
 //   node --experimental-strip-types --no-warnings evals/run.ts --run <name> [--set synthetic|real] [--cases a,b]
-//        [--skills on|off] [--port 3028] [--steps agent,shots,critic,report]
+//        [--skills on|off] [--port 3028] [--steps agent,shots,critic,report] [--max-calls 55]
+//
+// Every agent turn and critic call (retries too) is logged to runs/<run>/calls.log before it starts; the run stops
+// at --max-calls. A turn that fails on a transient error (overload, timeout, network) is retried once.
 //
 // `--set real` (evals/real/cases.json): real projects; the scene starts as the shell traced from the project's plan
 // (evals/real/shells) and the critic gets the project's photos (run evals/real/fetch.ts first).
@@ -21,7 +26,9 @@ import type { AgentEvent } from '../packages/contracts/src/index.ts'
 import { childEnv, closeAgentSessions, runTurn, userMessageLine } from '../packages/agents/src/index.ts'
 import { CASE_FILES, EVALS_DIR, loadCases, selectCases, type CaseSet, type EvalCase } from './cases.ts'
 import { CRITERIA, CRITIC_PROMPT, CRITIC_SCHEMA, criticInput, imageDataUrl as fileDataUrl, scoreOf } from './critic.ts'
-import { eyeSpots, withSpawn } from './eye.ts'
+import { ROOM_VIEWS, roomSlug, roomZones } from './eye.ts'
+import { planView } from '../packages/scene-mcp/src/view-scene.ts'
+import type { RenderResponse } from '../packages/contracts/src/index.ts'
 import { loadShell } from './real/shell.ts'
 import { roomFacts } from './room-facts.ts'
 import { summarize, type CaseSummary } from './summary.ts'
@@ -38,6 +45,7 @@ const { values: flags } = parseArgs({
     skills: { type: 'string', default: 'on' },
     port: { type: 'string', default: '3028' },
     steps: { type: 'string', default: STEPS.join(',') },
+    'max-calls': { type: 'string', default: '55' },
   },
 })
 if (!flags.run || !/^[\w.-]+$/.test(flags.run)) throw new Error('--run <name> is required (letters, digits, . - _)')
@@ -64,6 +72,17 @@ const env: NodeJS.ProcessEnv = {
   ...(flags.skills === 'off' ? { VARPET_AGENT_PLUGIN_DIR: 'off' } : {}),
 }
 const store = await createSceneStore(env)
+
+// Subscription calls: one line per agent turn or critic call, written before it starts.
+const callsFile = join(runDir, 'calls.log')
+const maxCalls = Number(flags['max-calls'])
+function spendCall(kind: 'turn' | 'critic', what: string) {
+  const used = existsSync(callsFile) ? readFileSync(callsFile, 'utf8').split('\n').filter(Boolean).length : 0
+  if (used >= maxCalls) throw new Error(`call budget spent: ${used}/${maxCalls} (runs/${flags.run}/calls.log)`)
+  appendFileSync(callsFile, `${new Date().toISOString()}\t${kind}\t${what}\n`)
+  log(`call ${used + 1}/${maxCalls}: ${kind} ${what}`)
+}
+const TRANSIENT = /overload|\b5\d\d\b|time(d)? ?out|ECONN|EPIPE|socket|network|rate.?limit|fetch failed|exited unexpectedly/i
 
 const caseDir = (c: EvalCase) => join(runDir, c.id)
 const readJson = <T>(file: string): T => JSON.parse(readFileSync(file, 'utf8')) as T
@@ -115,11 +134,22 @@ async function runAgent(c: EvalCase) {
       ...(i === 0 && c.images?.length ? { images: c.images.map(imageDataUrl) } : {}),
     }
     let failed: string | null = null
-    for await (const event of runTurn(c.role, request, { root: ROOT, env, onRawLine: (l) => appendFileSync(rawFile, `${l}\n`) })) {
-      appendFileSync(eventsFile, `${JSON.stringify(event)}\n`)
-      if (event.type === 'session') Object.assign(meta, { conversationId: event.conversationId, proposalSceneId: event.proposalSceneId })
-      if (event.type === 'tool' && event.status === 'running') log(`  ${event.name}`)
-      if (event.type === 'error') failed = event.message
+    for (let attempt = 0; attempt < 2; attempt++) {
+      if (attempt) {
+        log(`  transient failure, retrying once: ${failed}`)
+        appendFileSync(join(dir, `turn-${i + 1}.retried.txt`), `${failed}\n`)
+        writeFileSync(eventsFile, '')
+        writeFileSync(rawFile, '')
+      }
+      failed = null
+      spendCall('turn', `${c.id} ${i + 1}/${c.turns.length}${attempt ? ' retry' : ''}`)
+      for await (const event of runTurn(c.role, { ...request, ...(meta.conversationId ? { conversationId: meta.conversationId } : {}) }, { root: ROOT, env, onRawLine: (l) => appendFileSync(rawFile, `${l}\n`) })) {
+        appendFileSync(eventsFile, `${JSON.stringify(event)}\n`)
+        if (event.type === 'session') Object.assign(meta, { conversationId: event.conversationId, proposalSceneId: event.proposalSceneId })
+        if (event.type === 'tool' && event.status === 'running') log(`  ${event.name}`)
+        if (event.type === 'error') failed = event.message
+      }
+      if (!failed || !TRANSIENT.test(failed)) break
     }
     if (failed) {
       log(`  turn failed: ${failed}`)
@@ -188,8 +218,8 @@ async function openScene(page: import('playwright-core').Page, sceneId: string) 
   await page.waitForTimeout(4000) // models decode and upload after their bytes arrive
 }
 
-async function takeShots(todo: EvalCase[]) {
-  const { chromium } = await import('playwright-core')
+/** The dev server for this run's database, up until stop(); its renderer warmed (GET /api/render) before it returns. */
+async function startServer() {
   log(`starting the dev server on ${origin}`)
   const server = spawn('pnpm', ['--filter', '@varpet/web', 'exec', 'next', 'dev', '--port', String(port)], {
     cwd: ROOT,
@@ -200,13 +230,44 @@ async function takeShots(todo: EvalCase[]) {
   const serverLog = join(runDir, 'dev-server.log')
   server.stdout!.on('data', (chunk) => appendFileSync(serverLog, chunk))
   server.stderr!.on('data', (chunk) => appendFileSync(serverLog, chunk))
+  const stop = () => {
+    try {
+      process.kill(-server.pid!, 'SIGTERM')
+    } catch {}
+    log('dev server stopped')
+  }
+  try {
+    await waitForServer(server)
+    const warm = (await (await fetch(`${origin}/api/render`, { signal: AbortSignal.timeout(200_000) })).json()) as { ready?: boolean }
+    if (!warm.ready) throw new Error(`renderer not ready: ${JSON.stringify(warm)}`)
+    log('renderer ready')
+  } catch (error) {
+    stop()
+    throw error
+  }
+  return { stop }
+}
+
+async function render(request: object): Promise<RenderResponse> {
+  const response = await fetch(`${origin}/api/render`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(request),
+    signal: AbortSignal.timeout(200_000),
+  })
+  const body = (await response.json().catch(() => null)) as (RenderResponse & { error?: string }) | null
+  if (!response.ok || !body?.image) throw new Error(body?.error ?? `render_failed: HTTP ${response.status}`)
+  return body
+}
+
+async function takeShots(todo: EvalCase[]) {
+  const { chromium } = await import('playwright-core')
   const browser = await chromium.launch({
     executablePath: process.env.VARPET_CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
     headless: true,
     args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=metal', '--enable-unsafe-webgpu'],
   })
   try {
-    await waitForServer(server)
     for (const c of todo) {
       const dir = caseDir(c)
       const meta = readJson<CaseMeta>(join(dir, 'meta.json'))
@@ -232,37 +293,28 @@ async function takeShots(todo: EvalCase[]) {
           await page.close()
         }
       }
-      // Eye level, one per judged room: a temporary copy of the result with a spawn node there, in the Inside view.
+      // Per judged room: eye level, top and 3/4, rendered like the designer's own view_scene (same cameras, same page).
       const graph = resultGraph(c) ?? ((await store.load(sceneId))?.graph as { nodes: Record<string, unknown> } | undefined)
-      if (!graph || existsSync(join(dir, 'eye.json'))) continue
-      const spots = eyeSpots(graph, judgedRooms(c, graph)).slice(0, 5)
-      const taken: Array<{ room: string; file: string; position: number[]; yaw: number }> = []
-      for (const spot of spots) {
-        const temp = await store.save({ name: `eval eye ${c.id} ${spot.room}`, graph: withSpawn(graph as never, spot) as never })
-        const page = await browser.newPage({ viewport: { width: 1280, height: 860 } })
-        const file = `shot-eye-${spot.room.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}.jpg`
-        try {
-          log(`${c.id}: eye level in ${spot.room}`)
-          await openScene(page, temp.id)
-          await page.getByRole('button', { name: 'Inside' }).click({ timeout: 10_000 })
-          await page.waitForTimeout(5000)
-          await page.locator('canvas').first().screenshot({ path: join(dir, file), type: 'jpeg', quality: 85 })
-          taken.push({ room: spot.room, file, position: spot.position, yaw: spot.yaw })
-        } catch (error) {
-          log(`  eye-level shot failed: ${String(error)}`)
-        } finally {
-          await page.close()
-          await store.delete(temp.id).catch(() => false)
+      if (!graph || existsSync(join(dir, 'rooms.json'))) continue
+      const taken: Array<{ room: string; view: string; file: string; caption: string; backend: string }> = []
+      for (const { room, zoneId } of roomZones(graph, judgedRooms(c, graph)).slice(0, 5)) {
+        for (const { view, prefix } of ROOM_VIEWS) {
+          const file = `${prefix}-${roomSlug(room)}.jpg`
+          try {
+            const plan = planView(graph as never, { zoneId, view, width: 1024, height: 768 })
+            log(`${c.id}: ${view} of ${room}`)
+            const result = await render({ ...plan.request, graph })
+            writeFileSync(join(dir, file), Buffer.from(result.image, 'base64'))
+            taken.push({ room, view, file, caption: plan.description, backend: result.backend })
+          } catch (error) {
+            log(`  ${view} of ${room} failed: ${String(error)}`)
+          }
         }
       }
-      writeFileSync(join(dir, 'eye.json'), JSON.stringify(taken, null, 2))
+      writeFileSync(join(dir, 'rooms.json'), JSON.stringify(taken, null, 2))
     }
   } finally {
     await browser.close()
-    try {
-      process.kill(-server.pid!, 'SIGTERM')
-    } catch {}
-    log('dev server stopped')
   }
 }
 
@@ -313,41 +365,65 @@ function runCritic(c: EvalCase): Promise<Record<string, unknown>> {
 // ---------------------------------------------------------------------------------------------------------------
 // Report
 
-function writeReport(all: EvalCase[]) {
-  const rows: string[] = []
-  const details: string[] = []
+/** report.md over every case of both sets that has run in this run dir: averages per set, one row per case, details. */
+function writeReport() {
+  const keys = [...CRITERIA, 'overall']
   const score = (critic: Record<string, unknown>, key: string) => String(scoreOf(critic, key) ?? '-')
-  for (const c of all) {
-    const dir = caseDir(c)
-    if (!existsSync(join(dir, 'summary.json'))) continue
-    const s = readJson<CaseSummary>(join(dir, 'summary.json'))
-    const critic = existsSync(join(dir, 'critic.json')) ? readJson<Record<string, unknown>>(join(dir, 'critic.json')) : {}
-    const shots = existsSync(join(dir, 'shots.json')) ? readJson<{ webgpu: boolean }>(join(dir, 'shots.json')) : null
-    rows.push(
-      `| ${c.id} | ${c.skill} | ${s.skillsUsed.join(', ') || 'none'} | ${s.turnsDone}/${c.turns.length} | ${s.added.length} | ` +
-        `${s.finishes.length} | ${s.totalAmd.toLocaleString('en-US')} | ${s.toolErrors} | ${shots ? (shots.webgpu ? 'yes' : 'no GPU') : '-'} | ` +
-        [...CRITERIA, 'overall'].map((k) => score(critic, k)).join(' | ') + ' |',
-    )
-    const issues = Array.isArray(critic.issues) ? (critic.issues as string[]) : []
-    const reasons = [...CRITERIA, 'overall']
-      .map((k) => [k, (critic[k] as { reason?: string } | undefined)?.reason] as const)
-      .filter(([, reason]) => reason)
-      .map(([k, reason]) => `- ${k} ${score(critic, k)}: ${reason}`)
-    details.push(
-      `### ${c.id}\n\n${c.turns.map((t, i) => `${i + 1}. "${t}"`).join('\n')}\n\n` +
-        `Skills loaded: ${s.skillsLoaded.join(', ') || 'none'}. Used: ${s.skillsUsed.join(', ') || 'none'}. ` +
-        `Tools: ${s.toolCount} calls, ${s.toolErrors} errors. Finishes: ${s.finishes.map((f) => `${f.target} ${f.ref}`).join('; ') || 'none'}.` +
-        (s.errors.length ? `\n\nTurn errors: ${s.errors.join(' | ')}` : '') +
-        (reasons.length ? `\n\nCritic scores:\n${reasons.join('\n')}` : '') +
-        `\n\nCritic issues:\n${issues.map((i) => `- ${i}`).join('\n') || '- none'}\n\nAgent's last answer:\n\n> ${s.answers.at(-1)?.replace(/\n+/g, '\n> ') ?? ''}\n`,
+  const tables: string[] = []
+  const averages: string[] = []
+  const details: string[] = []
+  for (const set of Object.keys(CASE_FILES) as CaseSet[]) {
+    const rows: string[] = []
+    const scores: Record<string, number[]> = Object.fromEntries(keys.map((k) => [k, []]))
+    let judged = 0
+    for (const c of loadCases(join(EVALS_DIR, CASE_FILES[set]))) {
+      const dir = caseDir(c)
+      if (!existsSync(join(dir, 'summary.json'))) continue
+      const s = readJson<CaseSummary>(join(dir, 'summary.json'))
+      const critic = existsSync(join(dir, 'critic.json')) ? readJson<Record<string, unknown>>(join(dir, 'critic.json')) : {}
+      if (Object.keys(critic).length) judged++
+      for (const k of keys) {
+        const v = scoreOf(critic, k)
+        if (v !== null) scores[k]!.push(v)
+      }
+      const views = s.trace.flat().filter((t) => /view_scene$/.test(t.name)).length
+      rows.push(
+        `| ${c.id} | ${s.turnsDone}/${c.turns.length} | ${keys.map((k) => score(critic, k)).join(' | ')} | ${s.added.length} | ` +
+          `${s.totalAmd.toLocaleString('en-US')} | ${s.toolErrors} | ${views} | ${s.skillsUsed.join(', ') || 'none'} |`,
+      )
+      const issues = Array.isArray(critic.issues) ? (critic.issues as string[]) : []
+      const reasons = keys
+        .map((k) => [k, (critic[k] as { reason?: string } | undefined)?.reason] as const)
+        .filter(([, reason]) => reason)
+        .map(([k, reason]) => `- ${k} ${score(critic, k)}: ${reason}`)
+      details.push(
+        `### ${c.id}\n\n${c.turns.map((t, i) => `${i + 1}. "${t}"`).join('\n')}\n\n` +
+          `Skills loaded: ${s.skillsLoaded.length}. Used: ${s.skillsUsed.join(', ') || 'none'}. ` +
+          `Tools: ${s.toolCount} calls, ${s.toolErrors} errors, ${views} view_scene. Finishes: ${s.finishes.map((f) => `${f.target} ${f.ref}`).join('; ') || 'none'}.` +
+          (s.errors.length ? `\n\nTurn errors: ${s.errors.join(' | ')}` : '') +
+          (reasons.length ? `\n\nCritic scores:\n${reasons.join('\n')}` : '') +
+          `\n\nCritic issues:\n${issues.map((i) => `- ${i}`).join('\n') || '- none'}\n\nAgent's last answer:\n\n> ${s.answers.at(-1)?.replace(/\n+/g, '\n> ') ?? ''}\n`,
+      )
+    }
+    if (!rows.length) continue
+    const mean = (k: string) => (scores[k]!.length ? (scores[k]!.reduce((a, b) => a + b, 0) / scores[k]!.length).toFixed(1) : '-')
+    averages.push(`| ${set} (${judged} judged) | ${keys.map(mean).join(' | ')} |`)
+    tables.push(
+      `## ${set}\n\n| case | turns | ${keys.join(' | ')} | pieces | total AMD | tool errors | view_scene | skills used |\n` +
+        `|${'---|'.repeat(keys.length + 7)}\n${rows.join('\n')}\n`,
     )
   }
   const report = [
-    `# Designer eval: ${flags.run} (${flags.set} set, skills ${runConfig.skills})`,
+    `# Designer eval: ${flags.run} (skills ${runConfig.skills})`,
     '',
-    `| case | skill expected | skills used | turns | items added | finishes | total AMD | tool errors | render | ${[...CRITERIA, 'overall'].join(' | ')} |`,
-    `|${'---|'.repeat(9 + CRITERIA.length + 1)}`,
-    ...rows,
+    'Averages of the critic scores (1-5; n/a criteria left out):',
+    '',
+    `| set | ${keys.join(' | ')} |`,
+    `|${'---|'.repeat(keys.length + 1)}`,
+    ...averages,
+    '',
+    ...tables,
+    '## Details',
     '',
     ...details,
   ].join('\n')
@@ -357,6 +433,7 @@ function writeReport(all: EvalCase[]) {
 
 // ---------------------------------------------------------------------------------------------------------------
 
+const server = steps.has('agent') || steps.has('shots') ? await startServer() : null
 try {
   if (steps.has('agent')) {
     for (const c of cases) {
@@ -368,7 +445,7 @@ try {
     await closeAgentSessions(2000)
   }
   if (steps.has('shots')) {
-    const todo = cases.filter((c) => existsSync(join(caseDir(c), 'meta.json')) && !(existsSync(join(caseDir(c), 'shots.json')) && existsSync(join(caseDir(c), 'eye.json'))))
+    const todo = cases.filter((c) => existsSync(join(caseDir(c), 'meta.json')) && !(existsSync(join(caseDir(c), 'shots.json')) && existsSync(join(caseDir(c), 'rooms.json'))))
     if (todo.length) await takeShots(todo)
   }
   if (steps.has('critic')) {
@@ -377,14 +454,16 @@ try {
       if (existsSync(file) || !existsSync(join(caseDir(c), 'summary.json'))) continue
       log(`${c.id}: critic`)
       try {
+        spendCall('critic', c.id)
         writeFileSync(file, JSON.stringify(await runCritic(c), null, 2))
       } catch (error) {
         log(`  ${String(error)}`)
       }
     }
   }
-  if (steps.has('report')) writeReport(loadCases(caseFile))
+  if (steps.has('report')) writeReport()
 } finally {
   await closeAgentSessions(2000)
+  server?.stop()
 }
 process.exit(0)

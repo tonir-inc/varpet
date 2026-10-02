@@ -1,7 +1,7 @@
 {
   "id": "apartment-with-a-view-poznan",
   "name": "Apartment With a View, Poznan (traced)",
-  "note": "Traced by hand on the cached plan (1280 x 631 px, evals/real/fetch.ts), scale from the plan's 0-2 m bar (65.5 px/m). Slightly skewed outer walls squared off; the two balconies left out (their glazing is kept as windows and doors); the entrance vestibule and the wardrobe corridor (6) are one L-shaped hall; toilet (5) and storage (7) are kept as small rooms.",
+  "note": "Traced by hand on the cached plan (1280 x 631 px, evals/real/fetch.ts), scale from the plan's 0-2 m bar (65.5 px/m). Slightly skewed outer walls squared off; the two balconies left out (their glazing is kept as windows and doors); the entrance vestibule and the wardrobe corridor (6) are one L-shaped hall; toilet (5) and storage (7) are kept as small rooms. Kitchen as drawn: a counter on the south wall with the sink and a 0.9 m deep peninsula with the hob.",
   "scale": 65.5,
   "origin": [150, 28],
   "height": 2.7,
@@ -32,5 +32,9 @@
     { "kind": "door", "at": [875, 320], "width": 0.8 },
     { "kind": "door", "at": [1060, 350], "width": 0.9 },
     { "kind": "window", "at": [1170, 350], "width": 1.6, "sill": 0.4, "height": 1.8 }
+  ],
+  "kitchen": [
+    { "from": [380, 500], "to": [500, 500], "sink": [487, 483] },
+    { "from": [530, 345], "to": [530, 455], "depth": 0.9, "island": true, "hob": [522, 375] }
   ]
 }
