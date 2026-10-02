@@ -90,15 +90,15 @@ test('a designer turn streams session, deltas, tools, proposal and done in order
   const at = (flag: string) => argv[argv.indexOf(flag) + 1]
   assert.equal(at('--model'), 'claude-opus-5-5')
   assert.equal(at('--effort'), 'medium')
-  assert.equal(at('--tools'), '')
+  assert.equal(at('--tools'), 'ListMcpResourcesTool,ReadMcpResourceTool')
   assert.equal(at('--setting-sources'), '')
   assert.equal(at('--permission-mode'), 'dontAsk')
   assert.equal(at('--session-id'), session.conversationId)
   for (const f of ['--strict-mcp-config', '--disable-slash-commands', '--verbose', '--include-partial-messages']) {
     assert.ok(argv.includes(f), f)
   }
-  assert.match(at('--allowedTools'), /mcp__scene__place_product/)
-  assert.match(at('--disallowedTools'), /mcp__scene__place_item/)
+  assert.equal(at('--allowedTools'), 'mcp__scene,ListMcpResourcesTool,ReadMcpResourceTool')
+  assert.match(at('--disallowedTools'), /mcp__scene__save_scene/)
   const mcp = JSON.parse(at('--mcp-config')).mcpServers.scene
   assert.equal(mcp.env.VARPET_SCENE_ID, session.proposalSceneId)
 
@@ -134,16 +134,15 @@ test('images go in as base64 image blocks before the text', () => {
   assert.throws(() => userMessageLine('x', ['https://example.com/a.png']))
 })
 
-test('the architect uses high effort and cannot place products', async () => {
+test('the architect uses high effort and gets the same tools as the designer', async () => {
   const { env, dataDir, sceneId } = await fixture()
   const events = await collect(runTurn('architect', { sceneId, message: 'walls' }, { root, env }))
   const session = events[0] as Extract<AgentEvent, { type: 'session' }>
   const argv = JSON.parse(readFileSync(join(dataDir, 'agents', session.conversationId, 'argv.json'), 'utf8')) as string[]
   assert.equal(argv[argv.indexOf('--effort') + 1], 'high')
-  const flags = toolFlags('architect')
-  assert.ok(flags.allowed.includes('mcp__scene__create_room'))
-  assert.ok(!flags.allowed.includes('place_product'))
-  assert.ok(flags.disallowed.includes('mcp__scene__place_product'))
+  assert.equal(argv[argv.indexOf('--allowedTools') + 1], toolFlags().allowed)
+  assert.ok(!toolFlags().disallowed.includes('place_product'))
+  assert.ok(toolFlags().disallowed.includes('mcp__scene__load_scene'))
 })
 
 test('a scene MCP server that fails to start ends the turn with an error', async () => {
