@@ -426,6 +426,8 @@ function writeReport() {
     ...averages,
     '',
     ...tables,
+    // Hand-written findings (runs/<run>/findings.md) survive report rewrites.
+    ...(existsSync(join(runDir, 'findings.md')) ? [readFileSync(join(runDir, 'findings.md'), 'utf8'), ''] : []),
     '## Details',
     '',
     ...details,
@@ -436,7 +438,12 @@ function writeReport() {
 
 // ---------------------------------------------------------------------------------------------------------------
 
-const server = steps.has('agent') || steps.has('shots') ? await startServer() : null
+const turnsLeft = (c: EvalCase) => {
+  const metaFile = join(caseDir(c), 'meta.json')
+  return !existsSync(metaFile) || readJson<CaseMeta>(metaFile).turnsDone < c.turns.length
+}
+// The server is needed for turns (view_scene) and shots; re-summarizing finished cases needs none.
+const server = (steps.has('agent') && cases.some(turnsLeft)) || steps.has('shots') ? await startServer() : null
 try {
   if (steps.has('agent')) {
     for (const c of cases) {
