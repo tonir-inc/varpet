@@ -58,11 +58,18 @@ export async function createSceneServer({ store, sceneId, catalog, publicOrigin,
   operations.loadJSON(scene.graph)
   operations.clearHistory()
   operations.setActiveScene(scene)
-  const server = createPascalMcpServer({ bridge, store, operations, name: 'varpet-scene' })
-  hideTools(server, HIDDEN_TOOLS)
-  registerProductTools(server, operations, catalog)
-  registerFinishTools(server, operations, publishSnapshot)
-  if (render) registerViewSceneTool(server, operations, render)
+  const server = createPascalMcpServer({
+    bridge,
+    store,
+    operations,
+    name: 'varpet-scene',
+    hiddenTools: HIDDEN_TOOLS,
+    registerHostTools: (host) => {
+      registerProductTools(host, operations, catalog)
+      registerFinishTools(host, operations, publishSnapshot)
+      if (render) registerViewSceneTool(host, operations, render)
+    },
+  })
   return { server, operations }
 }
 
@@ -72,11 +79,6 @@ function registerVarpetFinishes(origin = '') {
   if (finishesRegistered) return
   finishesRegistered = true
   registerLibraryMaterials(finishMaterialItems(origin) as never)
-}
-
-function hideTools(server: McpServer, names: readonly string[]) {
-  const registered = (server as unknown as { _registeredTools: Record<string, { remove(): void }> })._registeredTools
-  for (const name of names) registered?.[name]?.remove()
 }
 
 /**

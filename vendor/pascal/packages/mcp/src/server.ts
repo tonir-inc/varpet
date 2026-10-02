@@ -28,6 +28,16 @@ export type CreatePascalMcpServerOptions = {
    * Experimental task-based tool registrations are outside this hook.
    */
   executeTool?: PascalMcpToolExecutor
+  /**
+   * Built-in tools to leave out (e.g. scene lifecycle tools for a server bound to one scene).
+   * Unknown names are ignored. A host tool registered through `registerHostTools` may reuse a hidden name.
+   */
+  hiddenTools?: readonly string[]
+  /**
+   * Register the host's own tools on the same server, after Pascal's built-ins and with the same
+   * operations, so they share `executeTool` wrapping and the tools/list schema normalisation.
+   */
+  registerHostTools?: (server: McpServer, operations: SceneOperations) => void
 }
 
 export function createPascalMcpServer(opts: CreatePascalMcpServerOptions): McpServer {
@@ -38,12 +48,43 @@ export function createPascalMcpServer(opts: CreatePascalMcpServerOptions): McpSe
   if (opts.executeTool) installToolExecutor(server, opts.executeTool)
   const operations =
     opts.operations ?? createSceneOperations({ bridge: opts.bridge, store: opts.store })
-  registerTools(server, operations)
-  registerVisionTools(server, operations)
+  const builtins = captureToolRegistrations(server, () => {
+    registerTools(server, operations)
+    registerVisionTools(server, operations)
+  })
+  for (const name of opts.hiddenTools ?? []) builtins.get(name)?.remove()
   registerResources(server, operations)
   registerPrompts(server, operations)
+  opts.registerHostTools?.(server, operations)
   normalizeToolSchemaDialect(server)
   return server
+}
+
+/** Runs `register` and returns every tool it registered (through `registerTool` or `tool`), by name. */
+function captureToolRegistrations(
+  server: McpServer,
+  register: () => void,
+): Map<string, RegisteredTool> {
+  const registered = new Map<string, RegisteredTool>()
+  const registerTool = server.registerTool
+  const tool = server.tool
+  server.registerTool = ((name: string, ...args: unknown[]) => {
+    const registration = Reflect.apply(registerTool, server, [name, ...args]) as RegisteredTool
+    registered.set(name, registration)
+    return registration
+  }) as McpServer['registerTool']
+  server.tool = ((name: string, ...args: unknown[]) => {
+    const registration = Reflect.apply(tool, server, [name, ...args]) as RegisteredTool
+    registered.set(name, registration)
+    return registration
+  }) as McpServer['tool']
+  try {
+    register()
+  } finally {
+    server.registerTool = registerTool
+    server.tool = tool
+  }
+  return registered
 }
 
 function installToolExecutor(server: McpServer, executeTool: PascalMcpToolExecutor): void {
