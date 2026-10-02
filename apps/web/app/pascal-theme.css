@@ -207,17 +207,131 @@ body:has(.varpet-editor) ::selection {
   color: var(--folio-teal);
 }
 
-/* Pascal hardcodes a few dark greys (inputs, segmented controls); repaint them on paper. */
-body:has(.varpet-editor) .bg-\[\#2C2C2E\] {
-  background-color: var(--folio-raised);
+/* ── Theme sweep: Pascal's hardcoded dark greys, lavender and rounded clouds, repainted as Folio. ──────────────
+ * Pascal's class names are escaped Tailwind utilities; recheck them on each Pascal upgrade
+ * (`grep -rhoE "bg-\[#[0-9a-fA-F]+\]" node_modules/@pascal-app/{editor/src,nodes/dist}`). */
+
+/* Folio corners are 2 to 4 px: every rounded-* utility above `md` resolves to 4px inside the editor. */
+body:has(.varpet-editor),
+body:has(.varpet-editor) .dark {
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: 4px;
+  --radius-xl: 4px;
+  --radius-2xl: 4px;
+  --radius-3xl: 4px;
 }
 
+/* One floating shadow (Folio --shadow-1) instead of Pascal's deep glass shadows. */
+body:has(.varpet-editor) :is(.shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl) {
+  --tw-shadow: var(--folio-shadow);
+}
+
+/* Fields, tracks and quiet buttons: paper with a control line. */
+body:has(.varpet-editor) :is(.bg-\[\#2C2C2E\], .bg-\[\#252527\], .bg-\[\#232325\], .bg-\[\#202024\]) {
+  background-color: var(--folio-ground);
+}
+
+body:has(.varpet-editor) :is(.bg-\[\#2C2C2E\], .bg-\[\#252527\]):is(.border) {
+  border-color: var(--folio-control-line);
+}
+
+body:has(.varpet-editor) :is(.bg-\[\#1e1e1e\], .bg-\[\#1b1c1f\], .bg-\[\#1f2433\]) {
+  background-color: var(--folio-surface);
+  color: var(--folio-ink);
+}
+
+/* The selected segment or preset: teal wash, teal text (Folio's pressed state). */
 body:has(.varpet-editor) .bg-\[\#3e3e3e\] {
+  background-color: var(--folio-teal-wash);
+  color: var(--folio-teal);
+  --tw-ring-color: var(--folio-teal);
+}
+
+body:has(.varpet-editor) :is(.hover\:bg-\[\#3e3e3e\], .hover\:bg-\[\#343437\], .hover\:bg-\[\#303033\], .hover\:bg-\[\#2C2C2E\]):hover,
+body:has(.varpet-editor) :is(.active\:bg-\[\#3e3e3e\], .active\:bg-\[\#2C2C2E\]):active {
+  background-color: var(--folio-hover);
+}
+
+/* Lavender and indigo accents become the one teal. */
+body:has(.varpet-editor) :is(.bg-violet-500, .bg-indigo-500, .bg-indigo-700, .bg-indigo-500\/90) {
+  background-color: var(--folio-teal);
+  color: #ffffff;
+}
+
+body:has(.varpet-editor) :is(.ring-indigo-200, .border-indigo-400\/70) {
+  --tw-ring-color: var(--folio-select);
+  border-color: var(--folio-teal);
+}
+
+/* Tool badges by the cursor: white cards with a line, not dark chips. */
+body:has(.varpet-editor) .bg-zinc-900\/95 {
+  border-color: var(--folio-line);
   background-color: var(--folio-surface);
 }
 
-body:has(.varpet-editor) .hover\:bg-\[\#3e3e3e\]:hover {
-  background-color: var(--folio-hover);
+/* The viewer column: square, one hairline, no soft cloud shadow (inline styles, hence !important). */
+.varpet-editor div:has(> [data-viewer-bounds]) {
+  border-left: 1px solid var(--folio-line);
+  border-top-left-radius: 0 !important;
+  box-shadow: none !important;
+  clip-path: none !important;
+}
+
+/* Inspector (Pascal's floating panel): a Folio card with a serif name. */
+[data-viewer-bounds] .fixed.top-20.right-4 {
+  border-color: var(--folio-line);
+  background: var(--folio-surface);
+  backdrop-filter: none;
+}
+
+[data-viewer-bounds] .fixed.top-20.right-4 h2 {
+  font-family: var(--font-folio-serif);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: normal;
+  color: var(--folio-teal);
+}
+
+/* Section headers in the inspector: quiet raised band, ink label. */
+[data-viewer-bounds] .fixed.top-20.right-4 .font-medium.text-sm.truncate {
+  color: var(--folio-ink);
+  font-weight: 600;
+}
+
+/* Number fields read as Folio fields: tabular figures in the UI face, not mono. */
+body:has(.varpet-editor) .varpet-editor .font-mono.tabular-nums {
+  font-family: var(--font-folio-sans);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* Popovers, menus and tooltips (Radix portals sit outside the editor wrapper). */
+body:has(.varpet-editor) [data-radix-popper-content-wrapper] > * {
+  border-radius: 4px;
+}
+
+body:has(.varpet-editor) [role="tooltip"],
+body:has(.varpet-editor) [data-slot="tooltip-content"] {
+  border-radius: 3px;
+  background: var(--folio-ink);
+  color: #ffffff;
+}
+
+/* Command palette (cmdk). */
+body:has(.varpet-editor) [cmdk-root] {
+  border-radius: 4px;
+  font-family: var(--font-folio-sans);
+}
+
+body:has(.varpet-editor) [cmdk-item][data-selected="true"] {
+  background: var(--folio-select);
+  color: var(--folio-ink);
+}
+
+/* Pascal's resize grip beside the sidebar: a hairline, not a dark pill. */
+.varpet-editor .cursor-col-resize > .bg-neutral-500 {
+  width: 2px;
+  background: var(--folio-line);
 }
 
 /* The designer and plan chats inside Pascal's sidebar: fill the panel instead of their standalone sizes. */
