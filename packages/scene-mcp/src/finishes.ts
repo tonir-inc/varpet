@@ -107,7 +107,7 @@ export function registerFinishTools(server: McpServer, operations: SceneOperatio
         'Paint or clad walls. Give zone_id (a room) to finish every wall around it, or wall_ids (with zone_id to say ' +
         'which room they face). side: "room" = the face toward that room (or the interior faces when no zone is ' +
         'given), "outside" = the other face, "both". Writes the wall slot Pascal paints on that face and returns ' +
-        'which walls and slots changed.',
+        'which walls and slots changed; on walls with untagged sides it also stores the sides it used (sidesTagged).',
       inputSchema: {
         finish_id: z.string().min(1),
         zone_id: z.string().optional(),
@@ -152,7 +152,7 @@ export function registerFinishTools(server: McpServer, operations: SceneOperatio
       }
 
       const notes = surfaceNote(finish, 'wall')
-      const changed: Array<{ id: string; name?: string; length: number; slots: WallSlot[] }> = []
+      const changed: Array<{ id: string; name?: string; length: number; slots: WallSlot[]; sidesTagged?: { frontSide: unknown; backSide: unknown } }> = []
       const patches: Array<{ op: 'update'; id: string; data: Record<string, unknown> }> = []
       for (const stored of walls) {
         const wall = withTags(stored)
@@ -181,9 +181,10 @@ export function registerFinishTools(server: McpServer, operations: SceneOperatio
           slots: { ...((stored.slots as Record<string, string> | undefined) ?? {}), ...Object.fromEntries(slots.map((slot) => [slot, finish.ref])) },
         }
         // Keep the sides the slots were chosen by, so the editor's load-time tagging cannot move the paint.
-        if (wall !== stored) Object.assign(data, { frontSide: wall.frontSide, backSide: wall.backSide })
+        const tagged = wall !== stored ? { frontSide: wall.frontSide, backSide: wall.backSide } : undefined
+        if (tagged) Object.assign(data, tagged)
         patches.push({ op: 'update', id: stored.id, data })
-        changed.push({ id: stored.id, name: stored.name, length: wallLength(stored), slots })
+        changed.push({ id: stored.id, name: stored.name, length: wallLength(stored), slots, ...(tagged ? { sidesTagged: tagged } : {}) })
       }
       if (!patches.length) return failure('nothing_to_change')
       operations.applyPatch(patches as never)

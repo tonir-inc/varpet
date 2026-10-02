@@ -23,7 +23,7 @@ export const HIDDEN_TOOLS = [
   'get_project_status',
 ] as const
 
-/** Pascal's built-in demo catalog: never placed by our agents (they use place_product). */
+/** Pascal's built-in demo catalog: reachable, but not purchasable; the prompts steer agents to place_product. */
 export const BUILTIN_CATALOG_TOOLS = ['place_item', 'search_assets', 'furnish_room'] as const
 
 /** Our tools, added next to Pascal's. */

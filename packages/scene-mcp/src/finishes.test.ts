@@ -89,6 +89,10 @@ test('set_wall_finish paints the room side of every wall around a zone and publi
   for (const id of living.wallIds as string[]) assert.ok(ids.includes(id), id)
   assert.ok(!ids.some((id) => (bedroom.wallIds as string[]).includes(id) && !isEast(id)))
   const saved = await nodes()
+  // Facades had untagged sides: the tool stores the sides it chose the slots by, and says so.
+  const tagged = (out.walls as Array<{ id: string; sidesTagged?: { frontSide: string } }>).filter((w) => w.sidesTagged)
+  assert.ok(tagged.length > 0)
+  for (const w of tagged) assert.equal(saved[w.id]!.frontSide, w.sidesTagged!.frontSide)
   for (const { id, slots } of out.walls as Array<{ id: string; slots: string[] }>) {
     const wall = saved[id]!
     assert.equal(slots.length, 1)
@@ -109,6 +113,8 @@ test('set_wall_finish picks the face toward the named room on a wall between two
   const toLiving = json(await call('set_wall_finish', { wall_ids: [between], zone_id: living.zoneId, finish_id: 'preset-plum' }))
   const toBedroom = json(await call('set_wall_finish', { wall_ids: [between], zone_id: bedroom.zoneId, finish_id: 'preset-sage' }))
   assert.notDeepEqual(toLiving.walls[0].slots, toBedroom.walls[0].slots)
+  // A wall between two rooms has no interior/exterior answer, so no side tags are stored.
+  assert.equal(toLiving.walls[0].sidesTagged, undefined)
   const wall = (await nodes())[between]!
   assert.equal(wall.slots?.[toLiving.walls[0].slots[0]], 'library:preset-plum')
   assert.equal(wall.slots?.[toBedroom.walls[0].slots[0]], 'library:preset-sage')
