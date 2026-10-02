@@ -191,9 +191,12 @@ async function waitForServer(server: ChildProcess, timeoutMs = 240_000) {
   throw new Error(`dev server not up on ${origin}`)
 }
 
-/** The rooms a case is judged on: its `rooms`, else every room the result put furniture in. */
+/** The rooms a case is judged on: its `rooms`, else the room the ask is about, then every other room with furniture. */
 function judgedRooms(c: EvalCase, graph: { nodes: Record<string, unknown> }) {
-  return c.rooms ?? roomFacts(graph).map((f) => f.room)
+  if (c.rooms) return c.rooms
+  const furnished = roomFacts(graph).map((f) => f.room)
+  const asked = furnished.find((r) => r.toLowerCase() === c.room.toLowerCase())
+  return asked ? [asked, ...furnished.filter((r) => r !== asked)] : furnished
 }
 
 function resultGraph(c: EvalCase) {
