@@ -4,6 +4,8 @@ import type { NextConfig } from 'next'
 const nextConfig: NextConfig = {
   // Next 16 writes AGENTS.md/CLAUDE.md into the app by default; the repo root has ours.
   agentRules: false,
+  // Pascal ships TypeScript source with its own type errors; our code is checked by pnpm typecheck.
+  typescript: { ignoreBuildErrors: true },
   allowedDevOrigins: ['127.0.0.1'],
   transpilePackages: ['three', '@pascal-app/core', '@pascal-app/viewer', '@pascal-app/editor', '@pascal-app/nodes', '@pascal-app/mcp', '@varpet/agents', '@varpet/contracts'],
   serverExternalPackages: ['node:sqlite'],
