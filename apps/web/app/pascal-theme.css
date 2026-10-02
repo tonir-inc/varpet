@@ -480,3 +480,143 @@ body:has(.varpet-editor) [cmdk-item][data-selected="true"] {
 [data-viewer-bounds] > div:has([data-testid="unit-focus-chip"]) {
   display: none;
 }
+
+/* ── Bottom dock (v1 .folio-dock): three white segments centred on the stage. It renders inside Pascal's overlay
+ * band, which has a transform, so `absolute` here is relative to the viewer column. ─────────────────────────── */
+.folio-dock {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  z-index: 40;
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  transform: translateX(-50%);
+  color: var(--folio-ink);
+  font-size: 13px;
+}
+
+.folio-dock-segment {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--folio-line);
+  border-radius: 4px;
+  background: var(--folio-surface);
+  box-shadow: var(--folio-shadow);
+}
+
+.folio-dock-button,
+.folio-dock-icon {
+  display: flex;
+  height: 36px;
+  align-items: center;
+  gap: 7px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  white-space: nowrap;
+  transition: background-color 140ms ease, color 140ms ease;
+}
+
+.folio-dock-icon {
+  width: 36px;
+  justify-content: center;
+  padding: 0;
+}
+
+.folio-dock-button:hover,
+.folio-dock-icon:hover {
+  background: var(--folio-hover);
+}
+
+.folio-dock-button[aria-pressed="true"] {
+  background: var(--folio-teal);
+  color: #ffffff;
+}
+
+.folio-dock-strong {
+  font-weight: 600;
+}
+
+.folio-dock-light {
+  display: flex;
+  height: 36px;
+  align-items: center;
+  gap: 7px;
+  padding: 0 4px 0 11px;
+}
+
+.folio-dock-light select {
+  height: 30px;
+  min-width: 128px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+.folio-dock-light select:hover {
+  background: var(--folio-hover);
+}
+
+.folio-more {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  display: flex;
+  width: 280px;
+  flex-direction: column;
+  padding: 4px;
+  border: 1px solid var(--folio-line);
+  border-radius: 4px;
+  background: var(--folio-surface);
+  box-shadow: var(--folio-shadow);
+}
+
+.folio-more-row {
+  display: flex;
+  height: 36px;
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--folio-ink);
+  font: inherit;
+  text-align: left;
+}
+
+.folio-more-row:hover {
+  background: var(--folio-hover);
+}
+
+.folio-more-pascal {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+  padding: 6px 6px 2px;
+  border-top: 1px solid var(--folio-line);
+}
+
+.folio-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Pascal's own glass action bar (modes, measure, delete, camera) gives way to the dock. It has no prop to hide it;
+ * this matches its utility classes, so recheck after a Pascal upgrade. */
+[data-viewer-bounds] > div:has(> .fixed.bottom-6.rounded-2xl) {
+  display: none;
+}

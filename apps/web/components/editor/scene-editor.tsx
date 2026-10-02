@@ -18,6 +18,7 @@ import type { LiveSceneEvent, SceneMeta, SceneResponse } from '@/lib/scenes/type
 import { ArchitectTab, DesignerTab } from './agent-tabs'
 import { CatalogTab } from './catalog-tab'
 import { railIcon, useFolioRailDefaults } from './folio-rail'
+import { FolioDock } from './folio-dock'
 import { FolioTools } from './folio-tools'
 import { bindSceneEditorController, useSceneEditor } from './scene-editor-store'
 import { useCatalogMetadata } from './use-catalog-metadata'
@@ -300,7 +301,7 @@ export function SceneEditor({ meta, initialGraph, initialPreviewSceneId = null, 
         previewScene={previewGraph ?? undefined}
         projectId={meta.projectId ?? meta.id}
         sidebarTabs={sidebarTabs}
-        viewerBanner={previewing ? <PreviewBanner /> : null}
+        viewerBanner={previewing ? <PreviewBanner /> : <FolioDock />}
         viewerToolbarLeft={<FolioTools />}
         viewerToolbarRight={null}
       />
