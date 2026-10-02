@@ -1,9 +1,11 @@
 'use client'
 
-// How the furnished flat looks in the editor: render defaults, the default wall finish, our v1 finishes as paint
-// presets, wall sides for cutaway and the opening camera. Host-side configuration of Pascal; nothing here forks it.
+// How the furnished flat looks in the editor: render defaults, the default wall finish, the shared finish
+// catalogue (packages/contracts/src/finishes.ts), wall sides for cutaway and the opening camera. Host-side
+// configuration of Pascal; nothing here forks it.
 import { detectSpacesForLevel, emitter, type MaterialCatalogItem, registerLibraryMaterials, WALL_SLOT_DEFAULT, WALL_SURFACE_SLOT_DEFAULTS } from '@pascal-app/core'
 import { registerViewerPresentation, SSGI_PARAMS, useViewer } from '@pascal-app/viewer'
+import { finishMaterialItems, finishRef } from '@varpet/contracts/finishes'
 import type { SceneGraph } from '@pascal-app/editor'
 
 type AnyNode = { id: string; type: string; parentId?: string | null; [key: string]: unknown }
@@ -53,7 +55,7 @@ function tuneGlobalIllumination() {
 }
 
 /** Warm white matte paint from Pascal's library; the flat templates write the same ref into each wall's slots. */
-export const WALL_PAINT = 'library:preset-softwhite'
+export const WALL_PAINT = finishRef('preset-softwhite')
 
 /**
  * Pascal's unpainted-wall default is "Prepared Drywall" (filler spots and tape seams). The viewer reads the default
@@ -71,58 +73,12 @@ function paintDefaultWalls() {
   ;(WALL_SLOT_DEFAULT as Record<string, string>).exterior = WALL_PAINT
 }
 
-/** v1 finishes (catalog/materials in varpet v1), served from public/finishes. Tile size in metres from material.json. */
-const FINISHES: Array<{ id: string; label: string; category: 'wood' | 'stone'; surfaces: MaterialCatalogItem['surfaces']; color: string; tileM: number; roughness: number }> = [
-  { id: 'oak', label: 'Oak', category: 'wood', surfaces: ['floor', 'furniture'], color: '#a27f58', tileM: 1.83, roughness: 0.55 },
-  { id: 'ash-light', label: 'Light ash', category: 'wood', surfaces: ['floor', 'furniture'], color: '#ac957d', tileM: 1, roughness: 0.55 },
-  { id: 'walnut', label: 'Walnut', category: 'wood', surfaces: ['floor', 'furniture'], color: '#aa8a72', tileM: 1, roughness: 0.5 },
-  { id: 'travertine', label: 'Travertine', category: 'stone', surfaces: ['floor', 'wall'], color: '#dfccac', tileM: 1.2, roughness: 0.7 },
-  { id: 'marble-white-alt', label: 'White marble', category: 'stone', surfaces: ['floor', 'wall'], color: '#adaeb7', tileM: 1, roughness: 0.35 },
-]
-
+/**
+ * varpet's own finishes (v1 textures from public/finishes, strong paint colours Pascal lacks) from the shared
+ * catalogue, so their `library:varpet-*` refs resolve here as they do in the scene MCP.
+ */
 function registerFinishes() {
-  const origin = window.location.origin
-  const items: MaterialCatalogItem[] = FINISHES.map((finish) => {
-    const base = `${origin}/finishes/${finish.id}`
-    // Pascal maps one texture repeat per metre at repeat 1.
-    const repeat = 1 / finish.tileM
-    return {
-      id: `varpet-${finish.id}`,
-      label: finish.label,
-      category: finish.category,
-      source: 'workspace',
-      surfaces: finish.surfaces,
-      description: 'Varpet finish',
-      previewThumbnailUrl: `${base}/basecolor.jpg`,
-      previewColor: finish.color,
-      preset: {
-        maps: { albedoMap: `${base}/basecolor.jpg`, normalMap: `${base}/normal.jpg`, roughnessMap: `${base}/roughness.jpg` },
-        mapProperties: {
-          color: finish.color,
-          roughness: finish.roughness,
-          metalness: 0,
-          repeatX: repeat,
-          repeatY: repeat,
-          rotation: 0,
-          wrapS: 'Repeat',
-          wrapT: 'Repeat',
-          normalScaleX: 1,
-          normalScaleY: 1,
-          emissiveIntensity: 1,
-          displacementScale: 0,
-          transparent: false,
-          flipY: true,
-          bumpScale: 1,
-          emissiveColor: '#000000',
-          aoMapIntensity: 1,
-          side: 0,
-          opacity: 1,
-          lightMapIntensity: 1,
-        },
-      },
-    } as MaterialCatalogItem
-  })
-  registerLibraryMaterials(items)
+  registerLibraryMaterials(finishMaterialItems(window.location.origin) as unknown as MaterialCatalogItem[])
 }
 
 let configured = false
@@ -175,10 +131,11 @@ function sidesFromZones(wall: AnyNode, zones: Point[][]) {
 }
 
 /**
- * Cutaway hides a wall only when it knows which side faces the room. Pascal tags sides while a person draws walls,
- * and our scene MCP tags the walls agents create (packages/scene-mcp/src/wall-sides.ts, same rules); scenes saved
- * before that, templates and seeds arrive "unknown", so derive them before showing a graph: Pascal's
- * room detector first, the level's zones where it finds no closed room. Pure: the same graph when nothing changes.
+ * Cutaway hides a wall only when it knows which side faces the room. Pascal tags sides while a person draws walls;
+ * walls agents create, templates and seeds arrive "unknown", so derive them before showing a graph (a load-time
+ * stopgap; the scene MCP never rewrites saved graphs, and set_wall_finish predicts these tags with the same rules in
+ * packages/scene-mcp/src/wall-sides.ts): Pascal's room detector first, the level's zones where it finds no closed
+ * room. Pure: the same graph when nothing changes.
  */
 export function withWallSides<T extends SceneGraph>(graph: T): T {
   const nodes = (graph as unknown as Graph).nodes

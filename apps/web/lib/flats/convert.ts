@@ -13,11 +13,12 @@ import {
   WindowNode,
   ZoneNode,
 } from '@pascal-app/core/schema'
+import { finishRef } from '@varpet/contracts/finishes'
 
 type Vec2 = [number, number]
 
 /** Both faces of every wall: Pascal's warm white matte paint, not its unpainted "Prepared Drywall" default. */
-export const WALL_PAINT = 'library:preset-softwhite'
+export const WALL_PAINT = finishRef('preset-softwhite')
 
 /** The parts of a v1 `SceneDocument` the converter reads (v1 apps/editor/src/contracts.ts). */
 export interface V1Opening {
@@ -64,21 +65,21 @@ export function floorKind(name: string, zone?: string): FloorKind {
 
 /**
  * Floor finish per kind, as slab `surface` slot refs. Wet rooms: Pascal's light porcelain (large tiles, grout);
- * balconies: its dark porcelain, an outdoor tile; dry rooms: our v1 oak (registered by the editor's viewer look).
+ * balconies: its dark porcelain, an outdoor tile; dry rooms: our v1 oak. Ids from the shared finish catalogue.
  */
 export const FLOOR_FINISH: Record<FloorKind, string> = {
-  wet: 'library:flooring-lightceramic24',
-  outdoor: 'library:flooring-darkceramic22',
-  dry: 'library:varpet-oak',
+  wet: finishRef('flooring-lightceramic24'),
+  outdoor: finishRef('flooring-darkceramic22'),
+  dry: finishRef('varpet-oak'),
 }
 
 /** A v1 floor material by name, when the flat assigned one: our finishes first, then tile for any tiled name. */
 const V1_FLOOR_MATERIAL: Array<[RegExp, string]> = [
-  [/travertine/i, 'library:varpet-travertine'],
-  [/marble/i, 'library:varpet-marble-white-alt'],
-  [/walnut/i, 'library:varpet-walnut'],
-  [/\bash\b/i, 'library:varpet-ash-light'],
-  [/oak|parquet|wood|laminate/i, 'library:varpet-oak'],
+  [/travertine/i, finishRef('varpet-travertine')],
+  [/marble/i, finishRef('varpet-marble-white-alt')],
+  [/walnut/i, finishRef('varpet-walnut')],
+  [/\bash\b/i, finishRef('varpet-ash-light')],
+  [/oak|parquet|wood|laminate/i, finishRef('varpet-oak')],
   [/porcelain|ceramic|tile|stone/i, FLOOR_FINISH.wet],
 ]
 
