@@ -3,11 +3,28 @@
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.0.0",
-  "engines": { "node": ">=22.13" },
+  "engines": {
+    "node": ">=22.13"
+  },
   "scripts": {
-    "dev": "pnpm --filter @varpet/web dev",
-    "build": "pnpm --filter @varpet/web build",
-    "typecheck": "pnpm -r --if-present typecheck",
-    "test": "pnpm -r --if-present test"
+    "postinstall": "node scripts/build-pascal.mjs",
+    "build:pascal": "node scripts/build-pascal.mjs",
+    "dev": "node scripts/build-pascal.mjs && pnpm --filter @varpet/web dev",
+    "build": "node scripts/build-pascal.mjs && pnpm --filter @varpet/web build",
+    "typecheck": "node scripts/build-pascal.mjs && pnpm -r --filter '!./vendor/**' --if-present typecheck",
+    "test": "node scripts/build-pascal.mjs && pnpm -r --filter '!./vendor/**' --if-present test"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "pnpm": {
+    "overrides": {
+      "@pascal-app/core": "workspace:*",
+      "@pascal-app/viewer": "workspace:*",
+      "@pascal-app/editor": "workspace:*",
+      "@pascal-app/nodes": "workspace:*",
+      "@pascal-app/mcp": "workspace:*",
+      "@pascal/typescript-config": "workspace:*"
+    }
   }
 }

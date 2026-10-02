@@ -183,7 +183,7 @@ body:has(.varpet-editor) ::selection {
 
 /* ── Theme sweep: Pascal's hardcoded dark greys, lavender and rounded clouds, repainted as Folio. ──────────────
  * Pascal's class names are escaped Tailwind utilities; recheck them on each Pascal upgrade
- * (`grep -rhoE "bg-\[#[0-9a-fA-F]+\]" node_modules/@pascal-app/{editor/src,nodes/dist}`). */
+ * (`grep -rhoE "bg-\[#[0-9a-fA-F]+\]" vendor/pascal/packages/{editor/src,nodes/dist}`). */
 
 /* Folio corners are 2 to 4 px: every rounded-* utility above `md` resolves to 4px inside the editor. */
 body:has(.varpet-editor),
