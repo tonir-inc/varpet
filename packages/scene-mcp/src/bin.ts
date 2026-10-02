@@ -15,9 +15,10 @@ const required = (name: string) => {
 try {
   const sceneId = required('VARPET_SCENE_ID')
   required('PASCAL_DB_PATH')
-  const catalog = createMcpCatalog(required('VARPET_CATALOG_URL'), required('VARPET_PUBLIC_ORIGIN'))
+  const publicOrigin = required('VARPET_PUBLIC_ORIGIN')
+  const catalog = createMcpCatalog(required('VARPET_CATALOG_URL'), publicOrigin)
   const store = await createSceneStore(process.env)
-  const { server } = await createSceneServer({ store, sceneId, catalog })
+  const { server } = await createSceneServer({ store, sceneId, catalog, publicOrigin })
   await server.connect(new StdioServerTransport())
   console.error(`[varpet-scene-mcp] bound to scene ${sceneId}`)
 } catch (error) {
