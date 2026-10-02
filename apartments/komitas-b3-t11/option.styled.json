@@ -39,7 +39,7 @@
    "name": "Armchair",
    "assetId": "extra:bpy-living2:mcm-swivel-tub-armchair-cognac-leather",
    "position": [
-    5.8433,
+    6.4496,
     0,
     1.4147
    ],
@@ -55,9 +55,9 @@
    "name": "Coffee table",
    "assetId": "abo:B07DBDMN5F",
    "position": [
-    4.4989,
+    4.7801,
     0,
-    1.6256
+    1.8804
    ],
    "rotation": 0,
    "scale": [
@@ -120,9 +120,9 @@
    "name": "Dining table",
    "assetId": "abo:B075YMXWZC",
    "position": [
-    1.5395,
+    2.2494,
     0,
-    3.7907
+    3.1492
    ],
    "rotation": 0,
    "scale": [
@@ -136,9 +136,9 @@
    "name": "Dining chair",
    "assetId": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
    "position": [
-    1.1405,
+    1.847,
     0,
-    4.4553
+    3.8118
    ],
    "rotation": 3.141592653589793,
    "scale": [
@@ -152,9 +152,9 @@
    "name": "Dining chair",
    "assetId": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
    "position": [
-    1.9401,
+    2.6519,
     0,
-    4.4553
+    3.8118
    ],
    "rotation": 3.141592653589793,
    "scale": [
@@ -168,9 +168,9 @@
    "name": "Dining chair",
    "assetId": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
    "position": [
-    0.4753,
+    1.188,
     0,
-    3.7907
+    3.1492
    ],
    "rotation": 1.5707963267948966,
    "scale": [
@@ -184,9 +184,9 @@
    "name": "Dining chair",
    "assetId": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
    "position": [
-    2.6036,
+    3.3109,
     0,
-    3.7907
+    3.1492
    ],
    "rotation": -1.5707963267948966,
    "scale": [
@@ -200,11 +200,11 @@
    "name": "Double bed",
    "assetId": "extra:bpy-beds-dressed:mcm-walnut-cane-bed-160-terracotta",
    "position": [
-    4.2306,
+    2.9998,
     0,
-    6.2387
+    7.5848
    ],
-   "rotation": -1.5707963267948966,
+   "rotation": 3.141592653589793,
    "scale": [
     1,
     1,
@@ -216,11 +216,11 @@
    "name": "Bedside table",
    "assetId": "abo:B075YZ16V4",
    "position": [
-    5.0349,
+    4.179,
     0,
-    7.4246
+    8.3599
    ],
-   "rotation": -1.5707963267948966,
+   "rotation": 3.141592653589793,
    "scale": [
     1,
     1,
@@ -264,9 +264,9 @@
    "name": "Desk",
    "assetId": "extra:bpy-office:desk-walnut-mcm-tapered",
    "position": [
-    0.5624,
+    0.5606,
     0,
-    8.0137
+    6.8503
    ],
    "rotation": 1.5707963267948966,
    "scale": [
@@ -280,9 +280,9 @@
    "name": "Desk chair",
    "assetId": "extra:bpy-office:chair-mcm-walnut-leather",
    "position": [
-    1.1252,
+    1.13,
     0,
-    8.2421
+    6.8503
    ],
    "rotation": -1.5707963267948966,
    "scale": [
@@ -308,13 +308,13 @@
    ]
   },
   {
-   "id": "living-rug",
-   "name": "Amazon Brand – Rivet Shaggy Short Rug, 7'7\" x 9'7\", Ivory",
-   "assetId": "abo:B0714MJKX2",
+   "id": "bedroom-rug",
+   "name": "Amazon Brand – Rivet Diamond Trellis Tassel Wool Rug, 7'6\" x 9'6\", Iv…",
+   "assetId": "abo:B0719STF79",
    "position": [
-    4.499,
+    3,
     0,
-    1.626
+    7.2
    ],
    "rotation": 0,
    "scale": [
@@ -324,29 +324,13 @@
    ]
   },
   {
-   "id": "bedroom-rug",
-   "name": "Amazon Brand – Rivet Shaggy Short Rug, 7'7\" x 9'7\", Ivory",
-   "assetId": "abo:B0714MJKX2",
+   "id": "living-rug",
+   "name": "Amazon Brand – Rivet Diamond Trellis Tassel Wool Rug, 7'6\" x 9'6\", Iv…",
+   "assetId": "abo:B0719STF79",
    "position": [
-    4.231,
+    4.9,
     0,
-    6.239
-   ],
-   "rotation": 4.71238898038469,
-   "scale": [
-    1,
-    1,
-    1
-   ]
-  },
-  {
-   "id": "living-lamp",
-   "name": "Amazon Brand – Stone & Beam Glass Column Living Room Standing Floor L…",
-   "assetId": "abo:B07374C6R9",
-   "position": [
-    6.6,
-    0,
-    1.35
+    1.65
    ],
    "rotation": 0,
    "scale": [
@@ -357,12 +341,12 @@
   },
   {
    "id": "bedroom-lamp",
-   "name": "Stone & Beam Vintage Task Table Desk Lamp with LED Light Bulb - 6.5 x…",
-   "assetId": "abo:B075X2G512",
+   "name": "Stone & Beam Modern Task Lamp, 18.5\"H, Antique Brass with Wireless Ch…",
+   "assetId": "abo:B07B4ZFBWP",
    "position": [
-    0.55,
+    0.56,
     0.7419,
-    7.6
+    6.45
    ],
    "rotation": 0,
    "scale": [
@@ -374,12 +358,12 @@
   },
   {
    "id": "bedroom-lamp-2",
-   "name": "Amazon Brand – Stone & Beam Modern Bedroom Table Desk Lamp With Light…",
-   "assetId": "abo:B07374P6MR",
+   "name": "Amazon Brand – Rivet Modern Glass Globe Living Room Table Desk Lamp W…",
+   "assetId": "abo:B075X2LLWF",
    "position": [
-    5.03,
+    4.18,
     0.6181,
-    7.42
+    8.36
    ],
    "rotation": 0,
    "scale": [
@@ -390,13 +374,47 @@
    "restsOn": "bedside"
   },
   {
-   "id": "hall-mirror",
-   "name": "Amazon Brand – Rivet Modern Octagonal Metalwork Hanging Geometric Wal…",
-   "assetId": "abo:B071DQRXDR",
+   "id": "living-cushion",
+   "name": "Cushion set of three: sage linen 50 cm, oat boucle 50 cm, rust velvet…",
+   "assetId": "extra:bpy-soft:cushion-set-sage-oat-rust",
    "position": [
-    5.53005,
-    1.195,
-    6.95
+    4.05,
+    0.45,
+    0.53
+   ],
+   "rotation": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "restsOn": "sofa"
+  },
+  {
+   "id": "living-throw_blanket",
+   "name": "Stonewashed linen throw 130 x 180 cm with knotted fringe, natural, fo…",
+   "assetId": "extra:bpy-soft:throw-linen-fringe-natural-folded",
+   "position": [
+    5.15,
+    0.45,
+    0.55
+   ],
+   "rotation": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "restsOn": "sofa"
+  },
+  {
+   "id": "hall-mirror",
+   "name": "Round wall mirror, slim brass frame, 60 cm",
+   "assetId": "extra:wall-decor:mirror-round-brass-60",
+   "position": [
+    5.492900000000001,
+    1.3,
+    6.942
    ],
    "rotation": 1.5707963267948963,
    "scale": [
@@ -406,35 +424,73 @@
    ],
    "host": {
     "wallId": "wall-bedroom-hall",
-    "offset": 2.1084000000000005,
-    "elevation": 1.195,
+    "offset": 2.1004000000000005,
+    "elevation": 1.3,
     "side": -1
    }
   },
   {
-   "id": "living-window-blind",
-   "name": "Oat linen relaxed roman blind, 124x160 (fits 120 cm window)",
-   "assetId": "extra:bpy-curtains:roman-linen-oat-120",
+   "id": "living-wall_art",
+   "name": "Organic forms print 50 x 70 cm, sage, olive and clay abstract shapes,…",
+   "assetId": "extra:bpy-modernart:organic-forms-sage-black-50x70",
    "position": [
-    4.165,
-    1.583283833320865,
-    0.15084999999999998
+    2.2,
+    1.17,
+    4.7691
+   ],
+   "rotation": 3.141592653589793,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "host": {
+    "wallId": "wall-living-bedroom",
+    "offset": 2.0946000000000002,
+    "elevation": 1.17,
+    "side": -1
+   }
+  },
+  {
+   "id": "bedroom-wall_art",
+   "name": "Organic forms print 50 x 70 cm, sage, olive and clay abstract shapes,…",
+   "assetId": "extra:bpy-modernart:organic-forms-sage-black-50x70",
+   "position": [
+    2.69,
+    1.2999999999999998,
+    8.670399999999999
+   ],
+   "rotation": 3.141592653589793,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "host": {
+    "wallId": "wall-south",
+    "offset": 2.5846,
+    "elevation": 1.2999999999999998,
+    "side": -1
+   }
+  },
+  {
+   "id": "balcony-plant",
+   "name": "Boxwood ball topiary in a 40 cm square fibre-cement planter",
+   "assetId": "extra:bpy-balconyplants:boxwood-ball-square-planter",
+   "position": [
+    2.19,
+    0,
+    0.51
    ],
    "rotation": 0,
    "scale": [
     1,
-    0.9987282112665521,
+    1,
     1
-   ],
-   "host": {
-    "wallId": "wall-north",
-    "offset": 1.4674,
-    "elevation": 1.583283833320865,
-    "side": 1
-   }
+   ]
   },
   {
-   "id": "living-blind",
+   "id": "window-living-2-blind-1",
    "name": "Sand blackout roller blind with white cassette, 154x160 (fits 150 cm…",
    "assetId": "extra:bpy-curtains:roller-blackout-sand-150",
    "position": [
@@ -456,7 +512,7 @@
    }
   },
   {
-   "id": "living-blind-2",
+   "id": "window-balcony-blind-1",
    "name": "Natural linen relaxed roman blind, 94x160 (fits 90 cm window)",
    "assetId": "extra:bpy-curtains:roman-linen-natural-90",
    "position": [
@@ -478,47 +534,13 @@
    }
   },
   {
-   "id": "living-cushion",
-   "name": "Cushion set of three: sage linen 50 cm, oat boucle 50 cm, rust velvet…",
-   "assetId": "extra:bpy-soft:cushion-set-sage-oat-rust",
-   "position": [
-    4.1,
-    0.45,
-    0.5
-   ],
-   "rotation": 0,
-   "scale": [
-    1,
-    1,
-    1
-   ],
-   "restsOn": "sofa"
-  },
-  {
-   "id": "living-throw_blanket",
-   "name": "Stonewashed linen throw 130 x 180 cm with knotted fringe, natural, fo…",
-   "assetId": "extra:bpy-soft:throw-linen-fringe-natural-folded",
-   "position": [
-    5.2,
-    0.45,
-    0.6
-   ],
-   "rotation": 0,
-   "scale": [
-    1,
-    1,
-    1
-   ],
-   "restsOn": "sofa"
-  },
-  {
-   "id": "living-plant",
+   "id": "bedroom-plant",
    "name": "Snake plant in ceramic pot",
    "assetId": "extra:generated-pilot:snake-plant-ceramic",
    "position": [
-    7,
+    4.8,
     0,
-    2.8
+    5.4
    ],
    "rotation": 0,
    "scale": [
@@ -528,35 +550,29 @@
    ]
   },
   {
-   "id": "living-wall_art",
-   "name": "Organic forms print 50 x 70 cm, sage, olive and clay abstract shapes,…",
-   "assetId": "extra:bpy-modernart:organic-forms-sage-black-50x70",
+   "id": "living-lamp",
+   "name": "Amazon Brand – Stone & Beam Glass Column Living Room Standing Floor L…",
+   "assetId": "abo:B07374C6R9",
    "position": [
-    4.15,
-    0.9,
-    4.7691
+    6.45,
+    0,
+    2.06
    ],
-   "rotation": 3.141592653589793,
+   "rotation": 0,
    "scale": [
     1,
     1,
     1
-   ],
-   "host": {
-    "wallId": "wall-living-bedroom",
-    "offset": 4.0446,
-    "elevation": 0.9,
-    "side": -1
-   }
+   ]
   },
   {
-   "id": "living-vase",
-   "name": "Jar vase, oxblood red glaze, 26 cm",
-   "assetId": "extra:tabletop:vase-jar-glazed-oxblood-26",
+   "id": "living-plant",
+   "name": "Anthurium, small, in sage green bowl pot",
+   "assetId": "extra:plants:anthurium-small-sage-bowl",
    "position": [
-    4.7,
+    4.9,
     0.3979,
-    1.65
+    1.88
    ],
    "rotation": 0,
    "scale": [
@@ -567,140 +583,57 @@
    "restsOn": "coffee-table"
   },
   {
-   "id": "bedroom-plant",
-   "name": "Calathea, small, in white glazed pot",
-   "assetId": "extra:plants:calathea-small-white-pot",
+   "id": "bedroom-art-companion",
+   "name": "Organic forms print 50 x 70 cm, sage, olive and clay abstract shapes,…",
+   "assetId": "extra:bpy-modernart:organic-forms-sage-black-50x70",
    "position": [
-    0.55,
-    0.7419,
-    8.35
+    3.31,
+    1.2999999999999998,
+    8.670399999999999
    ],
-   "rotation": 0,
+   "rotation": 3.141592653589793,
    "scale": [
     1,
     1,
     1
    ],
-   "restsOn": "desk"
+   "host": {
+    "wallId": "wall-south",
+    "offset": 3.2046,
+    "elevation": 1.2999999999999998,
+    "side": -1
+   }
   },
   {
-   "id": "dining-window-blind",
-   "name": "Oat linen relaxed roman blind, 124x160 (fits 120 cm window)",
-   "assetId": "extra:bpy-curtains:roman-linen-oat-120",
+   "id": "living-curtain-2",
+   "name": "Natural linen wave curtains on black rod, 210x260",
+   "assetId": "extra:bpy-curtains:linen-natural-wave-black-210",
    "position": [
-    0.25625,
-    1.583283833320865,
+    0.34625,
+    0.06312866568914988,
     3.2512
    ],
    "rotation": 1.5707963267948966,
    "scale": [
     1,
-    0.9987282112665521,
+    0.9787390029325513,
     1
    ],
    "host": {
     "wallId": "wall-west",
     "offset": 1.3181,
-    "elevation": 1.583283833320865,
+    "elevation": 0.06312866568914988,
     "side": -1
    }
   },
   {
-   "id": "bedroom-window-blind",
-   "name": "Oat linen relaxed roman blind, 124x160 (fits 120 cm window)",
-   "assetId": "extra:bpy-curtains:roman-linen-oat-120",
-   "position": [
-    0.25625,
-    1.583283833320865,
-    6.9856
-   ],
-   "rotation": 1.5707963267948966,
-   "scale": [
-    1,
-    0.9987282112665521,
-    1
-   ],
-   "host": {
-    "wallId": "wall-west",
-    "offset": 5.0525,
-    "elevation": 1.583283833320865,
-    "side": -1
-   }
-  },
-  {
-   "id": "living-art-2",
-   "name": "Organic forms print 50 x 70 cm, sage, olive and clay abstract shapes,…",
-   "assetId": "extra:bpy-modernart:organic-forms-sage-black-50x70",
-   "position": [
-    4.85,
-    0.9,
-    4.7691
-   ],
-   "rotation": 3.141592653589793,
-   "scale": [
-    1,
-    1,
-    1
-   ],
-   "host": {
-    "wallId": "wall-living-bedroom",
-    "offset": 4.744599999999999,
-    "elevation": 0.9,
-    "side": -1
-   }
-  },
-  {
-   "id": "bedroom-art",
-   "name": "Organic forms print 50 x 70 cm, sage, olive and clay abstract shapes,…",
-   "assetId": "extra:bpy-modernart:organic-forms-sage-black-50x70",
-   "position": [
-    5.313900000000001,
-    1.35,
-    5.9387
-   ],
-   "rotation": -1.570796326794897,
-   "scale": [
-    1,
-    1,
-    1
-   ],
-   "host": {
-    "wallId": "wall-bedroom-hall",
-    "offset": 1.0971000000000002,
-    "elevation": 1.35,
-    "side": 1
-   }
-  },
-  {
-   "id": "bedroom-art-2",
-   "name": "Organic forms print 50 x 70 cm, sage, olive and clay abstract shapes,…",
-   "assetId": "extra:bpy-modernart:organic-forms-sage-black-50x70",
-   "position": [
-    5.313900000000001,
-    1.35,
-    6.5387
-   ],
-   "rotation": -1.570796326794897,
-   "scale": [
-    1,
-    1,
-    1
-   ],
-   "host": {
-    "wallId": "wall-bedroom-hall",
-    "offset": 1.6971000000000007,
-    "elevation": 1.35,
-    "side": 1
-   }
-  },
-  {
-   "id": "bedroom-floor-plant",
+   "id": "living-plant-2",
    "name": "Snake plant in ceramic pot",
    "assetId": "extra:generated-pilot:snake-plant-ceramic",
    "position": [
-    2.6,
+    5.8,
     0,
-    5.35
+    3
    ],
    "rotation": 0,
    "scale": [
@@ -708,74 +641,6 @@
     1,
     1
    ]
-  },
-  {
-   "id": "living-small-plant",
-   "name": "Calathea, small, in white glazed pot",
-   "assetId": "extra:plants:calathea-small-white-pot",
-   "position": [
-    4.12,
-    0.3979,
-    1.65
-   ],
-   "rotation": 0,
-   "scale": [
-    1,
-    1,
-    1
-   ],
-   "restsOn": "coffee-table"
-  },
-  {
-   "id": "dining-vase",
-   "name": "Jar vase, oxblood red glaze, 26 cm",
-   "assetId": "extra:tabletop:vase-jar-glazed-oxblood-26",
-   "position": [
-    1.54,
-    0.7555,
-    3.79
-   ],
-   "rotation": 0,
-   "scale": [
-    1,
-    1,
-    1
-   ],
-   "restsOn": "dining-table"
-  },
-  {
-   "id": "bedroom-cushions",
-   "name": "Cushion set of three: sage linen 50 cm, oat boucle 50 cm, rust velvet…",
-   "assetId": "extra:bpy-soft:cushion-set-sage-oat-rust",
-   "position": [
-    4.85,
-    0.55,
-    6.2
-   ],
-   "rotation": 4.71238898038469,
-   "scale": [
-    1,
-    1,
-    1
-   ],
-   "restsOn": "bed"
-  },
-  {
-   "id": "bedroom-throw",
-   "name": "Stonewashed linen throw 130 x 180 cm with knotted fringe, natural, fo…",
-   "assetId": "extra:bpy-soft:throw-linen-fringe-natural-folded",
-   "position": [
-    3.4,
-    0.55,
-    6.25
-   ],
-   "rotation": 0,
-   "scale": [
-    1,
-    1,
-    1
-   ],
-   "restsOn": "bed"
   }
  ],
  "components": [
@@ -1009,12 +874,12 @@
   },
   {
    "id": "dining-pendant",
-   "name": "Warm brass dining pendant",
+   "name": "Warm brass opal dining pendant",
    "kind": "light",
    "position": [
-    1.5395,
+    2.2494,
     1.5055,
-    3.7907
+    3.1492
    ],
    "dimensions": [
     0.45,
@@ -1026,37 +891,7 @@
    "phase": "new",
    "roomId": "living",
    "light": {
-    "brightness": 800,
-    "temperature": 2700,
-    "enabled": true
-   }
-  },
-  {
-   "id": "balcony-sconce",
-   "name": "Warm outdoor wall light",
-   "kind": "light",
-   "position": [
-    2.57,
-    1.7,
-    0.85
-   ],
-   "host": {
-    "wallId": "wall-balcony-east",
-    "offset": 0.85,
-    "elevation": 1.7,
-    "side": 1
-   },
-   "dimensions": [
-    0.2,
-    0.12,
-    0.25
-   ],
-   "rotation": 0,
-   "color": "#d9d3c7",
-   "phase": "new",
-   "roomId": "balcony",
-   "light": {
-    "brightness": 400,
+    "brightness": 1000,
     "temperature": 2700,
     "enabled": true
    }
@@ -1174,159 +1009,67 @@
   },
   "hall": {
    "zone": "interior",
-   "phase": "existing",
-   "ceilingDesign": {
-    "style": "quiet",
-    "drop": 0,
-    "inset": 0.55,
-    "brightness": 65,
-    "temperature": 2700,
-    "enabled": true
-   }
+   "phase": "existing"
   },
   "bedroom": {
    "zone": "interior",
-   "phase": "existing",
-   "ceilingDesign": {
-    "style": "quiet",
-    "drop": 0,
-    "inset": 0.55,
-    "brightness": 65,
-    "temperature": 2700,
-    "enabled": true
-   }
+   "phase": "existing"
   },
   "bathroom": {
    "zone": "interior",
-   "phase": "existing",
-   "ceilingDesign": {
-    "style": "quiet",
-    "drop": 0,
-    "inset": 0.55,
-    "brightness": 65,
-    "temperature": 2700,
-    "enabled": true
-   }
+   "phase": "existing"
   }
  },
  "catalog": [
   {
-   "id": "abo:B0714MJKX2",
-   "name": "Amazon Brand – Rivet Shaggy Short Rug, 7'7\" x 9'7\", Ivory",
+   "id": "abo:B0719STF79",
+   "name": "Amazon Brand – Rivet Diamond Trellis Tassel Wool Rug, 7'6\" x 9'6\", Ivory",
    "kind": "rug",
    "category": "rug",
    "dimensions": [
-    2.5282,
-    0.0477,
-    2.0093
+    3.2206,
+    0.0262,
+    2.3424
    ],
-   "color": "#afaaa1",
-   "price": 64000,
+   "color": "#574e43",
+   "price": 80000,
    "source": {
     "type": "gltf",
-    "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/2/B0714MJKX2.glb"
+    "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/9/B0719STF79.glb"
    }
   },
   {
-   "id": "abo:B07374C6R9",
-   "name": "Amazon Brand – Stone & Beam Glass Column Living Room Standing Floor Lamp With Light Bulb and Linen Shade, 59\"H, Black",
+   "id": "abo:B07B4ZFBWP",
+   "name": "Stone & Beam Modern Task Lamp, 18.5\"H, Antique Brass with Wireless Charging",
    "kind": "lamp",
    "category": "lamp",
    "dimensions": [
-    0.4198,
-    1.4753,
-    0.4198
+    0.1709,
+    0.3799,
+    0.2702
    ],
-   "color": "#dad8d5",
-   "price": 19000,
-   "source": {
-    "type": "gltf",
-    "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/9/B07374C6R9.glb"
-   }
-  },
-  {
-   "id": "abo:B075X2G512",
-   "name": "Stone & Beam Vintage Task Table Desk Lamp with LED Light Bulb - 6.5 x 10 x 14 Inches, Antique Brass",
-   "kind": "lamp",
-   "category": "lamp",
-   "dimensions": [
-    0.1492,
-    0.3707,
-    0.3389
-   ],
-   "color": "#a6916c",
+   "color": "#73654e",
    "price": 16000,
    "source": {
     "type": "gltf",
-    "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/2/B075X2G512.glb"
+    "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/P/B07B4ZFBWP.glb"
    }
   },
   {
-   "id": "abo:B07374P6MR",
-   "name": "Amazon Brand – Stone & Beam Modern Bedroom Table Desk Lamp With Light Bulb - 8 x 8 x 20.5 Inches, Wood Grain",
+   "id": "abo:B075X2LLWF",
+   "name": "Amazon Brand – Rivet Modern Glass Globe Living Room Table Desk Lamp With LED Light Bulb - 7 x 10 Inches, Brass Finish",
    "kind": "lamp",
    "category": "lamp",
    "dimensions": [
-    0.2439,
-    0.5362,
-    0.2436
+    0.1519,
+    0.2504,
+    0.1413
    ],
-   "color": "#e6e2df",
+   "color": "#b5b1ab",
    "price": 16000,
    "source": {
     "type": "gltf",
-    "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/R/B07374P6MR.glb"
-   }
-  },
-  {
-   "id": "abo:B071DQRXDR",
-   "name": "Amazon Brand – Rivet Modern Octagonal Metalwork Hanging Geometric Wall Mirror, 28 Inch Height, Black Finish",
-   "kind": "mirror",
-   "category": "Decoration",
-   "dimensions": [
-    0.71,
-    0.71,
-    0.0943
-   ],
-   "color": "#fcfcfb",
-   "price": 23000,
-   "source": {
-    "type": "gltf",
-    "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/R/B071DQRXDR.glb"
-   }
-  },
-  {
-   "id": "extra:bpy-curtains:roller-blackout-sand-150",
-   "name": "Sand blackout roller blind with white cassette, 154x160 (fits 150 cm window)",
-   "kind": "curtain",
-   "category": "Decoration",
-   "dimensions": [
-    1.54,
-    1.2215,
-    0.075
-   ],
-   "color": "#b8b4ad",
-   "price": 46000,
-   "source": {
-    "type": "gltf",
-    "url": "/api/catalog/models/extra-bpy-curtains-roller-blackout-sand-150.glb"
-   }
-  },
-  {
-   "id": "extra:bpy-curtains:roman-linen-natural-90",
-   "name": "Natural linen relaxed roman blind, 94x160 (fits 90 cm window)",
-   "kind": "curtain",
-   "category": "Decoration",
-   "dimensions": [
-    0.945,
-    1.0834,
-    0.0881
-   ],
-   "color": "#b8b4ad",
-   "price": 52000,
-   "source": {
-    "type": "gltf",
-    "url": "/api/catalog/models/extra-bpy-curtains-roman-linen-natural-90.glb"
+    "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/F/B075X2LLWF.glb"
    }
   },
   {
@@ -1364,20 +1107,20 @@
    }
   },
   {
-   "id": "extra:generated-pilot:snake-plant-ceramic",
-   "name": "Snake plant in ceramic pot",
-   "kind": "plant",
-   "category": "Home",
+   "id": "extra:wall-decor:mirror-round-brass-60",
+   "name": "Round wall mirror, slim brass frame, 60 cm",
+   "kind": "mirror",
+   "category": "Decoration",
    "dimensions": [
-    0.35,
-    0.8,
-    0.35
+    0.6,
+    0.6,
+    0.02
    ],
    "color": "#b8b4ad",
-   "price": 19000,
+   "price": 32000,
    "source": {
     "type": "gltf",
-    "url": "/api/catalog/models/extra-generated-pilot-snake-plant-ceramic.glb"
+    "url": "/api/catalog/models/extra-wall-decor-mirror-round-brass-60.glb"
    }
   },
   {
@@ -1398,56 +1141,124 @@
    }
   },
   {
-   "id": "extra:tabletop:vase-jar-glazed-oxblood-26",
-   "name": "Jar vase, oxblood red glaze, 26 cm",
-   "kind": "decor",
-   "category": "Decoration",
-   "dimensions": [
-    0.18,
-    0.26,
-    0.18
-   ],
-   "color": "#b8b4ad",
-   "price": 13000,
-   "source": {
-    "type": "gltf",
-    "url": "/api/catalog/models/extra-tabletop-vase-jar-glazed-oxblood-26.glb"
-   }
-  },
-  {
-   "id": "extra:plants:calathea-small-white-pot",
-   "name": "Calathea, small, in white glazed pot",
+   "id": "extra:bpy-balconyplants:boxwood-ball-square-planter",
+   "name": "Boxwood ball topiary in a 40 cm square fibre-cement planter",
    "kind": "plant",
    "category": "Home",
    "dimensions": [
-    0.213,
-    0.266,
-    0.254
+    0.4711,
+    0.8624,
+    0.4691
    ],
    "color": "#b8b4ad",
-   "price": 8000,
+   "price": 42000,
    "source": {
     "type": "gltf",
-    "url": "/api/catalog/models/extra-plants-calathea-small-white-pot.glb"
+    "url": "/api/catalog/models/extra-bpy-balconyplants-boxwood-ball-square-planter.glb"
    }
   },
   {
-   "id": "extra:bpy-curtains:roman-linen-oat-120",
-   "name": "Oat linen relaxed roman blind, 124x160 (fits 120 cm window)",
-   "category": "Decoration",
+   "id": "extra:bpy-curtains:roller-blackout-sand-150",
+   "name": "Sand blackout roller blind with white cassette, 154x160 (fits 150 cm window)",
    "kind": "curtain",
+   "category": "Decoration",
    "dimensions": [
-    1.245,
-    1.0881,
-    0.0907
+    1.54,
+    1.2215,
+    0.075
    ],
    "color": "#b8b4ad",
-   "price": 64000,
+   "price": 46000,
    "source": {
     "type": "gltf",
-    "url": "/api/catalog/models/extra-bpy-curtains-roman-linen-oat-120.glb"
+    "url": "/api/catalog/models/extra-bpy-curtains-roller-blackout-sand-150.glb"
+   }
+  },
+  {
+   "id": "extra:bpy-curtains:roman-linen-natural-90",
+   "name": "Natural linen relaxed roman blind, 94x160 (fits 90 cm window)",
+   "kind": "curtain",
+   "category": "Decoration",
+   "dimensions": [
+    0.945,
+    1.0834,
+    0.0881
+   ],
+   "color": "#b8b4ad",
+   "price": 52000,
+   "source": {
+    "type": "gltf",
+    "url": "/api/catalog/models/extra-bpy-curtains-roman-linen-natural-90.glb"
+   }
+  },
+  {
+   "id": "extra:generated-pilot:snake-plant-ceramic",
+   "name": "Snake plant in ceramic pot",
+   "kind": "plant",
+   "category": "Home",
+   "dimensions": [
+    0.35,
+    0.8,
+    0.35
+   ],
+   "color": "#b8b4ad",
+   "price": 19000,
+   "source": {
+    "type": "gltf",
+    "url": "/api/catalog/models/extra-generated-pilot-snake-plant-ceramic.glb"
+   }
+  },
+  {
+   "id": "abo:B07374C6R9",
+   "name": "Amazon Brand – Stone & Beam Glass Column Living Room Standing Floor Lamp With Light Bulb and Linen Shade, 59\"H, Black",
+   "kind": "lamp",
+   "category": "lamp",
+   "dimensions": [
+    0.4198,
+    1.4753,
+    0.4198
+   ],
+   "color": "#dad8d5",
+   "price": 19000,
+   "source": {
+    "type": "gltf",
+    "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/9/B07374C6R9.glb"
+   }
+  },
+  {
+   "id": "extra:plants:anthurium-small-sage-bowl",
+   "name": "Anthurium, small, in sage green bowl pot",
+   "kind": "plant",
+   "category": "Home",
+   "dimensions": [
+    0.481,
+    0.406,
+    0.351
+   ],
+   "color": "#b8b4ad",
+   "price": 12000,
+   "source": {
+    "type": "gltf",
+    "url": "/api/catalog/models/extra-plants-anthurium-small-sage-bowl.glb"
+   }
+  },
+  {
+   "id": "extra:bpy-curtains:linen-natural-wave-black-210",
+   "name": "Natural linen wave curtains on black rod, 210x260",
+   "kind": "curtain",
+   "category": "Decoration",
+   "dimensions": [
+    2.1,
+    2.6635,
+    0.2707
+   ],
+   "color": "#b8b4ad",
+   "price": 84000,
+   "source": {
+    "type": "gltf",
+    "url": "/api/catalog/models/extra-bpy-curtains-linen-natural-wave-black-210.glb"
    }
   }
  ],
- "edits": "Floor-length curtains behind the sofa, a dining chair and the desk hung through them; each became an oat linen roman blind centred on its window (the catalog has no shorter curtain wider than 1.54 m)."
+ "edits": "The dining window curtain (2.5 m) ran into the balcony wall; it is the 2.1 m natural linen curtain instead."
 }
