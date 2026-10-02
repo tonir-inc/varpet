@@ -591,12 +591,6 @@ body:has(.varpet-editor) [cmdk-item][data-selected="true"] {
   white-space: nowrap;
 }
 
-/* Pascal's own glass action bar (modes, measure, delete, camera) gives way to the dock. It has no prop to hide it;
- * this matches its utility classes, so recheck after a Pascal upgrade. */
-[data-viewer-bounds] > div:has(> .fixed.bottom-6.rounded-2xl) {
-  display: none;
-}
-
 /* ── Header (v1 .topbar): 52px paper band with the mark, the flat's name, the cost button and the save state. ── */
 .folio-navbar {
   display: flex;

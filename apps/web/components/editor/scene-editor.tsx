@@ -302,6 +302,8 @@ export function SceneEditor({ meta, initialGraph, initialPreviewSceneId = null, 
         onSaveStatusChange={setSaveStatus}
         previewScene={previewGraph ?? undefined}
         projectId={meta.projectId ?? meta.id}
+        // The Folio dock (viewerBanner) replaces Pascal's floating action menu.
+        showActionMenu={false}
         sidebarTabs={sidebarTabs}
         viewerBanner={previewing ? <PreviewBanner /> : <FolioDock />}
         viewerToolbarLeft={<FolioTools />}

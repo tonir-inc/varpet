@@ -195,6 +195,13 @@ export interface EditorProps {
    */
   multiSelectionFooter?: ReactNode
 
+  /**
+   * Show the floating action menu (modes, measure, delete, camera) at the
+   * bottom of the viewer. Hosts with their own tool dock turn it off.
+   * Default true.
+   */
+  showActionMenu?: boolean
+
   /** Host-owned content mounted inside the editor's React Three Fiber scene. */
   viewerSceneSlot?: ReactNode
   /** Host-owned SVG content mounted in the transformed floor-plan scene. */
@@ -1263,6 +1270,7 @@ function EditorContent({
   stageOverlay,
   inspectorFooter,
   multiSelectionFooter,
+  showActionMenu = true,
   viewerSceneSlot,
   floorplanSceneSlot,
   projectId,
@@ -1636,7 +1644,7 @@ function EditorContent({
               overlays={
                 <>
                   {!(isCaptureMode || stageOverlay) && <FloatingLevelSelector />}
-                  {!(isVersionPreviewMode || isCaptureMode || isStudioMode) && (
+                  {showActionMenu && !(isVersionPreviewMode || isCaptureMode || isStudioMode) && (
                     <div className="pointer-events-auto">
                       <ActionMenu />
                     </div>
@@ -1728,9 +1736,11 @@ function EditorContent({
 
           {/* Fixed UI overlays scoped to the viewer area */}
           <ViewerOverlays left={overlayLeft}>
-            <div className="pointer-events-auto">
-              <ActionMenu />
-            </div>
+            {showActionMenu && (
+              <div className="pointer-events-auto">
+                <ActionMenu />
+              </div>
+            )}
             <div className="pointer-events-auto">
               <PanelManager />
             </div>

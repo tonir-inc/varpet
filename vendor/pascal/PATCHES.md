@@ -11,3 +11,10 @@ Base: `@pascal-app/core@1.0.3` (`ebe69be2`). One commit each, so each can become
   before the tools/list schema normalisation, so host tools get the same `executeTool` wrapping.
 - Files: `packages/mcp/src/server.ts`.
 - Host side removed: `hideTools` in `packages/scene-mcp/src/server.ts`.
+
+## 2. Editor: `showActionMenu` prop
+- Motivation: hosts with their own tool dock had to hide the floating action menu with CSS matched on its utility
+  classes (`.fixed.bottom-6.rounded-2xl`), which breaks on any restyle.
+- Change: `<Editor showActionMenu={false}>` (default true) leaves the menu out in the v1 and v2 layouts.
+- Files: `packages/editor/src/components/editor/index.tsx`.
+- Host side removed: the action-bar rule in `apps/web/app/pascal-theme.css`.
