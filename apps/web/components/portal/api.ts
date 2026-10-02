@@ -65,11 +65,12 @@ export const accountApi = {
   },
 }
 
-/** Lane A's scene store (CONTRACTS.md): `POST /api/scenes {name}` -> SceneMeta with an `id`. */
-export async function createScene(name: string): Promise<string> {
+/** Lane A's scene store (CONTRACTS.md): `POST /api/scenes {name, templateId}` -> SceneMeta with an `id`.
+ *  `templateId` is a flat template (lib/flats/templates) or null for an empty scene (plan uploads). */
+export async function createScene(name: string, templateId: string | null): Promise<string> {
   const scene = await request<{ id?: unknown }>('/api/scenes', { network: ACCOUNT.network,
     unavailable: 'The editor cannot create apartments yet. Try again once the editor is available.', failed: 'Could not create the apartment.' },
-  'POST', { name })
+  'POST', { name, templateId })
   const id = typeof scene.id === 'string' ? scene.id : null
   if (!id) throw new PortalError('The editor did not return the new apartment.', 200, 'invalid')
   return id
