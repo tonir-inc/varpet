@@ -33,13 +33,59 @@ export interface V1Opening {
 }
 export interface V1Wall { id: string; start: Vec2; end: Vec2; height: number; thickness: number; color?: string; openings?: V1Opening[] }
 export interface V1Room { id: string; name: string; polygon: Vec2[]; color?: string }
+/** v1 renovation finishes: a material per room surface (names only; v1 drew them as flat colours). */
+export interface V1FinishMaterial { id: string; name: string }
+export interface V1FinishAssignment { entityId: string; surface: string; materialId: string }
 export interface V1Scene {
   format: 'varpet.editor'
   id: string
   name: string
   rooms: V1Room[]
   walls: V1Wall[]
-  project?: { metadata?: Record<string, { name?: string } | undefined> }
+  project?: {
+    metadata?: Record<string, { name?: string; zone?: string } | undefined>
+    materials?: V1FinishMaterial[]
+    finishes?: V1FinishAssignment[]
+  }
+}
+
+/** What a room's floor is made of, from its v1 name (and v1 zone metadata for outdoor rooms). */
+export type FloorKind = 'wet' | 'outdoor' | 'dry'
+
+const WET_ROOM = /bath|shower|\bwc\b|toilet|lavatory|ensuite|en-suite|laundry|utility/i
+const OUTDOOR_ROOM = /balcon|loggia|terrace|patio/i
+
+export function floorKind(name: string, zone?: string): FloorKind {
+  if ((zone && zone !== 'interior') || OUTDOOR_ROOM.test(name)) return 'outdoor'
+  if (WET_ROOM.test(name)) return 'wet'
+  // Kitchens, living rooms, bedrooms, halls and closets: v1 gave no kitchen its own finish, so they share the wood.
+  return 'dry'
+}
+
+/**
+ * Floor finish per kind, as slab `surface` slot refs. Wet rooms: Pascal's light porcelain (large tiles, grout);
+ * balconies: its dark porcelain, an outdoor tile; dry rooms: our v1 oak (registered by the editor's viewer look).
+ */
+export const FLOOR_FINISH: Record<FloorKind, string> = {
+  wet: 'library:flooring-lightceramic24',
+  outdoor: 'library:flooring-darkceramic22',
+  dry: 'library:varpet-oak',
+}
+
+/** A v1 floor material by name, when the flat assigned one: our finishes first, then tile for any tiled name. */
+const V1_FLOOR_MATERIAL: Array<[RegExp, string]> = [
+  [/travertine/i, 'library:varpet-travertine'],
+  [/marble/i, 'library:varpet-marble-white-alt'],
+  [/walnut/i, 'library:varpet-walnut'],
+  [/\bash\b/i, 'library:varpet-ash-light'],
+  [/oak|parquet|wood|laminate/i, 'library:varpet-oak'],
+  [/porcelain|ceramic|tile|stone/i, FLOOR_FINISH.wet],
+]
+
+function v1FloorFinish(scene: V1Scene, roomId: string): string | undefined {
+  const assignment = scene.project?.finishes?.find((f) => f.entityId === roomId && f.surface === 'floor')
+  const material = assignment && scene.project?.materials?.find((m) => m.id === assignment.materialId)
+  return material ? V1_FLOOR_MATERIAL.find(([pattern]) => pattern.test(material.name))?.[1] : undefined
 }
 
 export interface PascalGraph { nodes: Record<string, Record<string, unknown>>; rootNodeIds: string[]; collections: Record<string, never>; materials: Record<string, never> }
@@ -115,7 +161,10 @@ export function convertV1Scene(scene: V1Scene): ConvertedFlat {
         id: `zone_${key}`, name: room.name, parentId: levelId, polygon, spaceRole: 'room', ceilingHeight: wallHeight,
         ...(room.color ? { color: room.color } : {}), metadata: { v1Id: room.id },
       })),
-      add(SlabNode.parse({ id: `slab_${key}`, name: `${room.name} floor`, parentId: levelId, polygon, metadata: { v1Id: room.id } })),
+      add(SlabNode.parse({
+        id: `slab_${key}`, name: `${room.name} floor`, parentId: levelId, polygon, metadata: { v1Id: room.id },
+        slots: { surface: v1FloorFinish(scene, room.id) ?? FLOOR_FINISH[floorKind(room.name, scene.project?.metadata?.[room.id]?.zone)] },
+      })),
       add(CeilingNode.parse({ id: `ceiling_${key}`, name: `${room.name} ceiling`, parentId: levelId, polygon, metadata: { v1Id: room.id } })),
     )
     return { id: room.id, name: room.name, area: round(polygonArea(room.polygon), 2) }
