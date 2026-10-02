@@ -2,13 +2,15 @@
 
 import '../designer/designer-panel.css'
 import './intake.css'
-import { useRef, useState, type DragEvent } from 'react'
+import { useEffect, useRef, useState, type DragEvent } from 'react'
 import type { StreamTurnOptions } from '../../lib/agent-stream'
 import { shrinkPicture } from '../designer/composer'
 import { Icon } from '../designer/icons'
 import { DraftView, MessageView, RateLimitNotice, type ProposalHandlers } from '../designer/messages'
 import { LiveTurn } from '../designer/steps'
 import { useAgentChat } from '../designer/use-agent-chat'
+import { useLivePreview } from '../designer/use-live-preview'
+import { clearPlanHandoff, readPlanHandoff } from '../../lib/plan-handoff'
 
 export const PLAN_REQUEST = 'Here is the floor plan of my flat. Build it: walls, rooms with their names, doors and windows, at the plan’s scale.'
 
@@ -36,6 +38,9 @@ export function PlanIntake({ sceneId, onPreview, onApply, onDismiss, fetchImpl, 
   const [acting, setActing] = useState<string | null>(null)
   const input = useRef<HTMLInputElement>(null)
 
+  // A plan chosen on the portal ("Bring my plan to life") waits here for the person to start the build.
+  useEffect(() => { const handed = readPlanHandoff(sceneId); if (handed) setPlan(handed) }, [sceneId])
+
   const choose = async (file: File | undefined) => {
     if (input.current) input.current.value = ''
     if (!file) return
@@ -47,10 +52,12 @@ export function PlanIntake({ sceneId, onPreview, onApply, onDismiss, fetchImpl, 
   const onDrop = (event: DragEvent) => { event.preventDefault(); setDragging(false); void choose(event.dataTransfer.files[0]) }
   const start = () => {
     if (!plan || busy) return
+    clearPlanHandoff(sceneId)
     void chat.send(note.trim() ? `${PLAN_REQUEST}\n\n${note.trim()}` : PLAN_REQUEST, [plan.url])
   }
 
   const preview = (id: string | null) => { setPreviewing(id); onPreview?.(id) }
+  useLivePreview(state, previewing, preview)
   const act = async (id: string, action: 'apply' | 'dismiss') => {
     setActing(id)
     try {

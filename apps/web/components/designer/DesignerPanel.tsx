@@ -8,6 +8,7 @@ import { Icon, IconButton } from './icons'
 import { DraftView, MessageView, QueuedView, RateLimitNotice, type ProposalHandlers } from './messages'
 import { LiveTurn } from './steps'
 import { useAgentChat } from './use-agent-chat'
+import { useLivePreview } from './use-live-preview'
 
 export const DEFAULT_STARTERS = [
   'Furnish the living room',
@@ -49,8 +50,8 @@ export function DesignerPanel({ sceneId, onPreview, onApply, onDismiss, starters
   const preview = (id: string | null) => { setPreviewing(id); onPreview?.(id) }
   const exitPreview = () => { if (previewing) preview(null) }
 
-  // A new turn, a new thread or another scene leaves any preview.
-  useEffect(() => { if (busy) exitPreview() }, [busy]) // eslint-disable-line react-hooks/exhaustive-deps
+  // A turn shows the agent's working copy live; a new thread or another scene leaves any preview.
+  useLivePreview(state, previewing, preview)
   useEffect(() => () => { if (previewing) onPreview?.(null) }, [sceneId]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { setPreviewing(null); setImages([]) }, [sceneId])
 

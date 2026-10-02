@@ -154,6 +154,8 @@ export interface LiveTurn {
   draft: string
   progress: string
   proposal?: ProposalCard
+  /** The scene the agent edits this turn (the `session` event's proposal copy); null when it edits the flat. */
+  workSceneId?: string | null
   request: { text: string; images?: string[] }
 }
 
@@ -260,18 +262,19 @@ function toolStep(steps: Step[], event: Extract<AgentEvent, { type: 'tool' }>, a
     .slice(-MAX_STEPS)
 }
 
-/** When the turn ends anything still open did not finish in it; progress lines count as done. */
-function settle(steps: Step[], at: number): Step[] {
+/** When the turn ends anything still open did not finish in it; progress lines count as done. `t` is seconds since
+ * the turn started, like every Step time. */
+function settle(steps: Step[], t: number): Step[] {
   return steps.map((step) => {
-    if (step.status !== 'running') return step.end === undefined ? { ...step, end: at } : step
-    return step.key.startsWith('progress:') ? { ...step, status: 'done', end: at } : { ...step, status: 'unfinished' }
+    if (step.status !== 'running') return step.end === undefined ? { ...step, end: t } : step
+    return step.key.startsWith('progress:') ? { ...step, status: 'done', end: t } : { ...step, status: 'unfinished' }
   })
 }
 
 function endTurn(state: ChatState, at: number, reply: Omit<ChatMessage, 'steps'> | null): ChatState {
   const turn = state.turn
   if (!turn) return state
-  const steps = settle(turn.steps, at)
+  const steps = settle(turn.steps, seconds(turn, at))
   const messages = [...state.messages]
   const turnSteps = steps.length ? { steps, seconds: Math.floor(seconds(turn, at)) } : undefined
   if (reply) messages.push({ ...reply, ...(turnSteps ? { steps: turnSteps } : {}) })
@@ -290,7 +293,7 @@ function applyEvent(state: ChatState, event: AgentEvent, at: number, id: string)
   if (!turn) return state
   const t = seconds(turn, at)
   switch (event.type) {
-    case 'session': return { ...state, conversationId: event.conversationId }
+    case 'session': return { ...state, conversationId: event.conversationId, turn: { ...turn, workSceneId: event.proposalSceneId } }
     case 'progress': return { ...state, turn: { ...turn, progress: event.text, steps: progressStep(turn.steps, event.text, t) } }
     case 'message_delta': return { ...state, turn: { ...turn, draft: (turn.draft + event.text).slice(-20000) } }
     case 'tool': return { ...state, turn: { ...turn, steps: toolStep(turn.steps, event, t) } }

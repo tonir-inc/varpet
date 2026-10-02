@@ -3,7 +3,7 @@
 import type { AssetInput } from '@pascal-app/core'
 import { ItemsPanel } from '@pascal-app/editor'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { productToAsset, searchProducts } from '@/lib/scenes/catalog'
+import { productToAsset, rememberProducts, searchProducts } from '@/lib/scenes/catalog'
 
 const SEARCH_DEBOUNCE_MS = 250
 
@@ -18,6 +18,7 @@ function useFixtureFlag() {
 
 function toAssets(products: Awaited<ReturnType<typeof searchProducts>>): AssetInput[] {
   const fallback = `${window.location.origin}/pascal/icons/couch.webp`
+  rememberProducts(products)
   return products.map((product) => productToAsset(product, fallback))
 }
 

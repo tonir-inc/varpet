@@ -67,10 +67,10 @@ export const accountApi = {
 
 /** Lane A's scene store (CONTRACTS.md): `POST /api/scenes {name}` -> SceneMeta with an `id`. */
 export async function createScene(name: string): Promise<string> {
-  const scene = await request<Record<string, unknown>>('/api/scenes', { network: ACCOUNT.network,
+  const scene = await request<{ id?: unknown }>('/api/scenes', { network: ACCOUNT.network,
     unavailable: 'The editor cannot create apartments yet. Try again once the editor is available.', failed: 'Could not create the apartment.' },
   'POST', { name })
-  const id = typeof scene.id === 'string' ? scene.id : typeof (scene.meta as { id?: unknown } | undefined)?.id === 'string' ? (scene.meta as { id: string }).id : null
+  const id = typeof scene.id === 'string' ? scene.id : null
   if (!id) throw new PortalError('The editor did not return the new apartment.', 200, 'invalid')
   return id
 }

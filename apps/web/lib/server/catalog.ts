@@ -75,7 +75,10 @@ const strings = (value: unknown): string[] | undefined =>
 export function toProduct(raw: Record<string, unknown>, origin: string): Product | null {
   const size = Array.isArray(raw.size_m) ? raw.size_m : Array.isArray(raw.fit_size_m) ? raw.fit_size_m : null
   if (typeof raw.id !== 'string' || !raw.id || !size || size.length !== 3 || !size.every(n => typeof n === 'number' && Number.isFinite(n) && n > 0)) return null
-  const glbUrl = browserUrl(raw.glb_url, origin, 'models')
+  // Same model URL as the scene MCP's place_product: the catalog's optimized GLB by source id, relayed by this app
+  // (the listing's glb_url is often the raw S3 original, tens of MB).
+  const sourceId = typeof raw.source_id === 'string' ? raw.source_id : raw.id.includes(':') ? raw.id.split(':')[1] : null
+  const glbUrl = sourceId && MODEL.test(`${sourceId}.glb`) ? `${origin}/api/catalog/models/${encodeURIComponent(sourceId)}.glb` : browserUrl(raw.glb_url, origin, 'models')
   if (!glbUrl) return null
   const [w, d, h] = size as [number, number, number]
   const currency = typeof raw.currency === 'string' ? raw.currency : 'AMD'
