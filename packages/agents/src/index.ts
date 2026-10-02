@@ -121,7 +121,7 @@ function openStore(dbPath: string) {
   let store = stores.get(dbPath)
   if (!store) {
     mkdirSync(dirname(dbPath), { recursive: true })
-    store = createSceneStore({ PASCAL_DB_PATH: dbPath })
+    store = createSceneStore({ ...process.env, PASCAL_DB_PATH: dbPath })
     stores.set(dbPath, store)
   }
   return store
