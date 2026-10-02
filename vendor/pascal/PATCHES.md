@@ -65,3 +65,14 @@ Base: `@pascal-app/core@1.0.3` (`ebe69be2`). One commit each, so each can become
   `packages/editor/src/components/editor/index.tsx`, `packages/editor/src/components/editor/selection-manager.tsx`,
   `packages/editor/src/index.tsx`.
 - Host side: `FOLIO_HIGHLIGHT` in `apps/web/components/editor/scene-editor.tsx` (no workaround existed to remove).
+
+## 7. Viewer + nodes: cut-away walls hide their own doors and windows
+- Motivation: in `cutaway` and `down` modes a cut wall swapped to its see-through material, but its doors and windows
+  (child nodes) kept drawing, standing in mid-air; settled openings are also drawn from merged batches under the level,
+  which ignore the source's visibility. We hid them from the host every frame and marked them dirty to leave the batch.
+- Change: `WallCutoutCache.syncOpenings` sets each door/window group's visibility from its wall's `wallHidden` stamp
+  (shown again while the wall is hovered), on every wall apply and on registry changes; the node batch holds openings
+  of a cut-away wall out of its merged copies like tinted nodes (`collectTintedNodes`) and lets them rejoin when the
+  stamp lifts. The headless render page (view_scene) gets this too: no floating doors in its cutaway and down renders.
+- Files: `packages/viewer/src/systems/wall/wall-cutout-cache.ts`, `packages/nodes/src/shared/node-batch/candidates.ts`.
+- Host side removed: `setOpenings` and its per-frame bookkeeping in `apps/web/components/editor/clear-cutaway.tsx`.

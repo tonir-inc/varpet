@@ -292,6 +292,8 @@ export class WallCutoutCache {
     } else {
       for (const wall of this.walls.values()) this.apply(wall, viewer.wallMode, false)
     }
+    // Openings mount after their wall; a registry change brings them under the wall's state.
+    if (registryChanged) for (const wall of this.walls.values()) this.syncOpenings(wall)
     this.rebuilt.clear()
     this.transformed.clear()
     this.overrides = overrides
@@ -367,6 +369,25 @@ export class WallCutoutCache {
     wall.normal.setFromMatrixColumn(wall.matrix, 2).normalize()
   }
 
+  /**
+   * A cut-away wall takes its doors and windows with it (they are its children
+   * in the scene, but the cutaway only swaps the wall's own materials), except
+   * while the wall is hovered and drawn as a hover target. The node batch keeps
+   * openings of a cut-away wall out of its merged copies (`collectTintedNodes`).
+   */
+  private syncOpenings(wall: CachedWall): void {
+    const show = wall.mesh.userData.wallHidden !== true || this.viewer?.hoveredId === wall.node.id
+    const nodes = useScene.getState().nodes
+    for (const childId of wall.node.children ?? []) {
+      const child = nodes[childId as AnyNodeId]
+      if (child?.type !== 'door' && child?.type !== 'window') continue
+      const group = sceneRegistry.nodes.get(childId)
+      if (!group) continue
+      const visible = show && child.visible !== false
+      if (group.visible !== visible) group.visible = visible
+    }
+  }
+
   private apply(wall: CachedWall, mode: WallMode, refresh: boolean): void {
     if (mode === 'cutaway') {
       wall.negativeFacing = wallFacingNegative(
@@ -380,6 +401,7 @@ export class WallCutoutCache {
     // false on stamp lift; translucent walls must continue receiving events.
     const stamp = mode !== 'translucent' && hidden
     if (wall.mesh.userData.wallHidden !== stamp) wall.mesh.userData.wallHidden = stamp
+    this.syncOpenings(wall)
     const variant = hidden ? wall.hiddenVariant : wall.visibleVariant
     // Non-highlight hover owns a temporary material until its restore callback runs.
     const viewer = this.viewer!

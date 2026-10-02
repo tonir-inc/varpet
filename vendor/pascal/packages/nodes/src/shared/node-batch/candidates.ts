@@ -223,8 +223,10 @@ export function revealBatchedNode(nodeId: string): void {
 
 /**
  * Nodes the viewer is lighting up — plus hosted openings whose host wall is
- * lit or mid-gesture: a dragged wall carries its doors with it through live
- * overrides, and a batched copy would stay behind until commit.
+ * lit, mid-gesture or cut away: a dragged wall carries its doors with it
+ * through live overrides, and a batched copy would stay behind until commit;
+ * a cut-away wall hides its openings (WallCutoutCache), which a batched copy
+ * would keep drawing. Held out like a tint, they rejoin once it lifts.
  */
 export function collectTintedNodes(nodeIds: ReadonlySet<string>): Set<string> {
   const viewer = useViewer.getState()
@@ -248,7 +250,12 @@ export function collectTintedNodes(nodeIds: ReadonlySet<string>): Set<string> {
     if (!node || (node.type !== 'door' && node.type !== 'window')) continue
     const wallId = node.parentId as string | null
     if (!wallId) continue
-    if (wallLit.has(wallId) || overrides.get(wallId as AnyNodeId)) tinted.add(id)
+    if (
+      wallLit.has(wallId) ||
+      overrides.get(wallId as AnyNodeId) ||
+      sceneRegistry.nodes.get(wallId)?.userData.wallHidden === true
+    )
+      tinted.add(id)
   }
   return tinted
 }
