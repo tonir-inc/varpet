@@ -1,4 +1,7 @@
-// Eval cases: realistic buyer asks on our flat templates, one per skill branch (cases.json).
+// Eval cases. Two sets: `real` (evals/real/cases.json), real apartment projects with a published plan and photos of
+// the finished interior: the shell is traced from the plan, the designer furnishes it from the project's brief,
+// the critic compares the result with the project's photos. `synthetic` (cases.json): buyer asks on our flat
+// templates, one per skill branch, judged against matched real-room photos (evals/references).
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
@@ -19,7 +22,18 @@ export interface EvalCase {
   images?: string[]
   /** What a good answer does, for the critic. */
   expect: string
+  /** A traced shell (v1 flat spec, evals/real/shell.ts), relative to evals/; used instead of a template. */
+  shell?: string
+  /** The real project (evals/real/manifest.json) whose photos the critic compares the result with. */
+  project?: string
+  /** The rooms to judge (zone names): their facts and eye-level shots. Default: every room with furniture. */
+  rooms?: string[]
+  /** Real-room photos from evals/references the critic compares with (synthetic cases), relative to evals/. */
+  references?: string[]
 }
+
+export type CaseSet = 'synthetic' | 'real'
+export const CASE_FILES: Record<CaseSet, string> = { synthetic: 'cases.json', real: 'real/cases.json' }
 
 export const EVALS_DIR = import.meta.dirname
 export const TEMPLATE_IDS = ['sunday-b12121', 'orion-t7', 'orion-t8', 'm6-12-54']
@@ -41,14 +55,18 @@ export function parseCases(raw: unknown, baseDir = EVALS_DIR): EvalCase[] {
     for (const key of ['room', 'skill', 'expect'] as const) {
       if (typeof c[key] !== 'string' || !c[key]) throw new Error(`${where}: ${key} is required`)
     }
-    for (const image of c.images ?? []) {
+    for (const image of [...(c.images ?? []), ...(c.references ?? [])]) {
       if (!existsSync(join(baseDir, image))) throw new Error(`${where}: image not found: ${image}`)
+    }
+    if (c.shell !== undefined) {
+      if (c.templateId !== null) throw new Error(`${where}: a shell case has templateId null`)
+      if (!existsSync(join(baseDir, c.shell))) throw new Error(`${where}: shell not found: ${c.shell}`)
     }
     return c as EvalCase
   })
 }
 
-export function loadCases(file = join(EVALS_DIR, 'cases.json')): EvalCase[] {
+export function loadCases(file = join(EVALS_DIR, CASE_FILES.synthetic)): EvalCase[] {
   return parseCases(JSON.parse(readFileSync(file, 'utf8')))
 }
 

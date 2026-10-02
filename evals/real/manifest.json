@@ -1,0 +1,702 @@
+{
+  "_note": "Real apartment projects with a published plan and photos of the finished interior, for internal evaluation only. Images are not redistributed: run `node --experimental-strip-types evals/real/fetch.ts` to download them into evals/real/cache (gitignored). Credits: designer and photographer per project, source page linked.",
+  "projects": [
+    {
+      "id": "classica-con-brio-rome",
+      "title": "Classica con brio",
+      "designer": "Filippo Bombace (with Teresa Paratore)",
+      "photographer": "Serena Eller Vainicher",
+      "source": "https://www.archdaily.com/902123/classica-con-brio-filippo-bombace",
+      "city": "Rome",
+      "country": "Italy",
+      "year": 2018,
+      "areaM2": 110,
+      "bedrooms": 2,
+      "style": "classic-contemporary with glam accents (powder-blue arches, brass/black pendants, pink bedroom)",
+      "rooms": [
+        "soggiorno (living)",
+        "angolo cottura (kitchen-dining)",
+        "ingresso (entry)",
+        "corridoio (corridor)",
+        "letto 1 (bedroom)",
+        "letto 2 (bedroom)",
+        "studio (study)",
+        "bagno 1",
+        "bagno 2",
+        "lavanderia (laundry)",
+        "rip (storage)"
+      ],
+      "brief": "Young couple in a Parioli (Rome) period flat; light renovation adding a second bathroom, open kitchen-living with blue arch niche, soft pastel classic-modern look.",
+      "plan": {
+        "file": "plan.jpg",
+        "url": "https://images.adsttc.com/media/images/5ba1/b0c2/f197/cc36/9f00/03aa/large_jpg/classica_con_brio_plan_post_operam.jpg",
+        "note": "Post-renovation plan, furnished, every room labelled (Italian), scale bar 0-150 cm and north arrow; image 19 in the gallery is the pre-renovation (ante operam) plan"
+      },
+      "photos": [
+        {
+          "file": "01-living.jpg",
+          "room": "living",
+          "url": "https://images.adsttc.com/media/images/5ba1/b0a3/f197/cc36/9f00/03a9/large_jpg/005_classica_con_brio_fbombace.jpg"
+        },
+        {
+          "file": "02-living.jpg",
+          "room": "living",
+          "url": "https://images.adsttc.com/media/images/5ba1/b04d/f197/cc36/9f00/03a8/large_jpg/004_classica_con_brio_fbombace.jpg"
+        },
+        {
+          "file": "03-kitchen.jpg",
+          "room": "kitchen",
+          "url": "https://images.adsttc.com/media/images/5ba1/b12f/f197/cc36/9f00/03ae/large_jpg/014_classica_con_brio_fbombace.jpg"
+        },
+        {
+          "file": "04-kitchen.jpg",
+          "room": "kitchen",
+          "url": "https://images.adsttc.com/media/images/5ba1/b0f0/f197/cc1b/4800/008e/large_jpg/009_classica_con_brio_fbombace.jpg"
+        },
+        {
+          "file": "05-bedroom.jpg",
+          "room": "bedroom",
+          "url": "https://images.adsttc.com/media/images/5ba1/b157/f197/cc1b/4800/0091/large_jpg/017_classica_con_brio_fbombace.jpg"
+        },
+        {
+          "file": "06-bedroom.jpg",
+          "room": "bedroom",
+          "url": "https://images.adsttc.com/media/images/5ba1/b14a/f197/cc36/9f00/03af/large_jpg/016_classica_con_brio_fbombace.jpg"
+        },
+        {
+          "file": "07-hall.jpg",
+          "room": "hall",
+          "url": "https://images.adsttc.com/media/images/5ba1/b13d/f197/cc1b/4800/0090/large_jpg/015_classica_con_brio_fbombace.jpg"
+        },
+        {
+          "file": "08-bath.jpg",
+          "room": "bath",
+          "url": "https://images.adsttc.com/media/images/5ba1/b184/f197/cc36/9f00/03b2/large_jpg/020_classica_con_brio_fbombace.jpg"
+        }
+      ]
+    },
+    {
+      "id": "apartment-with-a-view-poznan",
+      "title": "Apartment With a View",
+      "designer": "Atelier Starzak Strebicki",
+      "photographer": "Mateusz Bieniaszczyk",
+      "source": "https://www.archdaily.com/946118/apartment-with-a-view-atelier-starzak-strebicki",
+      "city": "Poznan",
+      "country": "Poland",
+      "year": 2016,
+      "areaM2": 86,
+      "bedrooms": 1,
+      "style": "Scandinavian / light warm modern (white, ash wood, green checker tiles)",
+      "rooms": [
+        "1. Living room",
+        "2. Bedroom",
+        "3. Bathroom",
+        "4. Kitchen",
+        "5. Toilet",
+        "6. Wardrobe",
+        "7. Storage"
+      ],
+      "brief": "Seventh-floor flat made by joining two units, split into interpenetrating day and night zones around a central kitchen-dining island; bright Scandinavian palette.",
+      "plan": {
+        "file": "plan.jpg",
+        "url": "https://images.adsttc.com/media/images/5f3d/dc00/b357/6546/6300/01ae/large_jpg/Apartment_Marcel_Plan.jpg",
+        "note": "Clean furnished plan with numbered room legend and graphic scale bar 0-2 m; balconies shown"
+      },
+      "photos": [
+        {
+          "file": "01-living.jpg",
+          "room": "living",
+          "url": "https://images.adsttc.com/media/images/5f3d/dd86/b357/6546/6300/01b7/large_jpg/07.jpg"
+        },
+        {
+          "file": "02-living.jpg",
+          "room": "living",
+          "url": "https://images.adsttc.com/media/images/5f3d/de5a/b357/6546/6300/01bf/large_jpg/11.jpg"
+        },
+        {
+          "file": "03-kitchen.jpg",
+          "room": "kitchen",
+          "url": "https://images.adsttc.com/media/images/5f3d/dc44/b357/6531/7a00/02d0/large_jpg/02_gif.jpg"
+        },
+        {
+          "file": "04-dining.jpg",
+          "room": "dining",
+          "url": "https://images.adsttc.com/media/images/5f3d/dd16/b357/6531/7a00/02da/large_jpg/05.jpg"
+        },
+        {
+          "file": "05-kitchen.jpg",
+          "room": "kitchen",
+          "url": "https://images.adsttc.com/media/images/5f3d/dc8d/b357/6531/7a00/02d2/large_jpg/03.jpg"
+        },
+        {
+          "file": "06-bedroom.jpg",
+          "room": "bedroom",
+          "url": "https://images.adsttc.com/media/images/5f3d/dd4d/b357/6531/7a00/02dc/large_jpg/06.jpg"
+        },
+        {
+          "file": "07-bath.jpg",
+          "room": "bath",
+          "url": "https://images.adsttc.com/media/images/5f3d/ddfa/b357/6546/6300/01bb/large_jpg/09.jpg"
+        },
+        {
+          "file": "08-hall.jpg",
+          "room": "hall",
+          "url": "https://images.adsttc.com/media/images/5f3d/de7f/b357/6531/7a00/02e4/large_jpg/12.jpg"
+        }
+      ]
+    },
+    {
+      "id": "mumbai-apartment-kyiv",
+      "title": "Mumbai Apartment",
+      "designer": "Nelly Prodan Design",
+      "photographer": "Yevhenii Avramenko",
+      "source": "https://www.archdaily.com/963297/mumbai-apartment-nelly-prodan-design",
+      "city": "Kyiv",
+      "country": "Ukraine",
+      "year": 2020,
+      "areaM2": 62,
+      "bedrooms": 1,
+      "style": "art deco / glam (brass box, oxblood tiles and velvet, herringbone oak, walnut kitchen)",
+      "rooms": [
+        "1. Hall 5.1 m2",
+        "2. Bathroom 5.9 m2",
+        "3. Living room + kitchen 38.4 m2",
+        "4. Bedroom 11.9 m2"
+      ],
+      "brief": "Small Kyiv flat for a client inspired by London's Dishoom: Indian-colonial glam with brass, deep reds and walnut; glass-walled bedroom off an open living-kitchen.",
+      "plan": {
+        "file": "plan.jpg",
+        "url": "https://images.adsttc.com/media/images/60c4/e3f1/e1fe/0f01/6557/76cf/large_jpg/floorplan1.jpg",
+        "note": "Furnished plan with room legend AND room areas in m2 (hall 5.1, bath 5.9, living+kitchen 38.4, bedroom 11.9); no scale bar; large image only 906 px wide"
+      },
+      "photos": [
+        {
+          "file": "01-living.jpg",
+          "room": "living",
+          "url": "https://images.adsttc.com/media/images/60c4/e466/e1fe/0f01/6557/76d6/large_jpg/a35.jpg"
+        },
+        {
+          "file": "02-living.jpg",
+          "room": "living",
+          "url": "https://images.adsttc.com/media/images/60c4/e487/a8ac/3901/64cf/ab33/large_jpg/a37.jpg"
+        },
+        {
+          "file": "03-kitchen.jpg",
+          "room": "kitchen",
+          "url": "https://images.adsttc.com/media/images/60c4/e440/a8ac/3901/64cf/ab2f/large_jpg/a17.jpg"
+        },
+        {
+          "file": "04-kitchen.jpg",
+          "room": "kitchen",
+          "url": "https://images.adsttc.com/media/images/60c4/e437/e1fe/0f01/6557/76d3/large_jpg/a18.jpg"
+        },
+        {
+          "file": "05-bedroom.jpg",
+          "room": "bedroom",
+          "url": "https://images.adsttc.com/media/images/60c4/e495/e1fe/0f01/6557/76db/large_jpg/a46.jpg"
+        },
+        {
+          "file": "06-bedroom.jpg",
+          "room": "bedroom",
+          "url": "https://images.adsttc.com/media/images/60c4/e4af/e1fe/0f01/6557/76dd/large_jpg/a41.jpg"
+        },
+        {
+          "file": "07-hall.jpg",
+          "room": "hall",
+          "url": "https://images.adsttc.com/media/images/60c4/e466/e1fe/0f01/6557/76d5/large_jpg/a34.jpg"
+        },
+        {
+          "file": "08-bath.jpg",
+          "room": "bath",
+          "url": "https://images.adsttc.com/media/images/60c4/e420/e1fe/0f01/6557/76d1/large_jpg/a1.jpg"
+        }
+      ]
+    },
+    {
+      "id": "aureliano-coutinho-sao-paulo",
+      "title": "Aureliano Coutinho Apartment",
+      "designer": "JPG ARQ",
+      "photographer": "Pedro Kok",
+      "source": "https://www.archdaily.com/995482/aureliano-coutinho-apartment-jpg-arq",
+      "city": "Sao Paulo",
+      "country": "Brazil",
+      "year": 2020,
+      "areaM2": 106,
+      "bedrooms": 2,
+      "style": "mid-century / Brazilian modernist (exposed concrete frame, wood bookcases, vintage furniture)",
+      "rooms": [
+        "L (living)",
+        "K (kitchen)",
+        "OFF (office)",
+        "SLP (bedroom)",
+        "SLP (bedroom)",
+        "BTH (2 bathrooms)",
+        "balcony"
+      ],
+      "brief": "Book-lover's flat in a modernist block; walls demolished to reveal the concrete frame, one long concrete table, library walls, open living-kitchen-office.",
+      "plan": {
+        "file": "plan.jpg",
+        "url": "https://images.adsttc.com/media/images/63d1/8090/760d/d225/d226/ee1f/large_jpg/aureliano-plan-1.jpg",
+        "note": "Furnished plan with room codes (L, K, OFF, SLP, BTH), section markers and a graphic scale bar (unnumbered); sections at image 21"
+      },
+      "photos": [
+        {
+          "file": "01-living.jpg",
+          "room": "living",
+          "url": "https://images.adsttc.com/media/images/63d1/809f/760d/d225/d226/ee24/large_jpg/apartamento-aureliano-coutinho-jpg-arq_5.jpg"
+        },
+        {
+          "file": "02-living.jpg",
+          "room": "living",
+          "url": "https://images.adsttc.com/media/images/63d1/80a4/7643/4a51/a736/eeff/large_jpg/apartamento-aureliano-coutinho-jpg-arq_16.jpg"
+        },
+        {
+          "file": "03-living.jpg",
+          "room": "living",
+          "url": "https://images.adsttc.com/media/images/63d1/809c/760d/d279/49a0/a594/large_jpg/apartamento-aureliano-coutinho-jpg-arq_2.jpg"
+        },
+        {
+          "file": "04-dining.jpg",
+          "room": "dining",
+          "url": "https://images.adsttc.com/media/images/63d1/809d/7643/4a51/a736/eef7/large_jpg/apartamento-aureliano-coutinho-jpg-arq_1.jpg"
+        },
+        {
+          "file": "05-dining.jpg",
+          "room": "dining",
+          "url": "https://images.adsttc.com/media/images/63d1/809e/7643/4a51/a736/eef8/large_jpg/apartamento-aureliano-coutinho-jpg-arq_3.jpg"
+        },
+        {
+          "file": "06-kitchen.jpg",
+          "room": "kitchen",
+          "url": "https://images.adsttc.com/media/images/63d1/80a2/7643/4a51/a736/eefc/large_jpg/apartamento-aureliano-coutinho-jpg-arq_17.jpg"
+        },
+        {
+          "file": "07-hall.jpg",
+          "room": "hall",
+          "url": "https://images.adsttc.com/media/images/63d1/809f/760d/d225/d226/ee23/large_jpg/apartamento-aureliano-coutinho-jpg-arq_15.jpg"
+        },
+        {
+          "file": "08-bedroom.jpg",
+          "room": "bedroom",
+          "url": "https://images.adsttc.com/media/images/63d1/80a3/7643/4a51/a736/eefd/large_jpg/apartamento-aureliano-coutinho-jpg-arq_20.jpg"
+        }
+      ]
+    },
+    {
+      "id": "unfolding-home-slupsk",
+      "title": "The Unfolding Home",
+      "designer": "ACOS (A Collection of Stories)",
+      "photographer": "PION Studio",
+      "source": "https://www.archdaily.com/967292/the-unfolding-home-acos-a-collection-of-stories",
+      "city": "Slupsk",
+      "country": "Poland",
+      "year": 2020,
+      "areaM2": 65,
+      "bedrooms": 1,
+      "style": "minimal / Japandi (oak shelving wall, black volume, linen curtains)",
+      "rooms": [
+        "living",
+        "kitchen with island",
+        "dining",
+        "bedroom",
+        "bathroom",
+        "wardrobe / utility",
+        "hall",
+        "balcony"
+      ],
+      "brief": "Home for a young surgeon with shifting routines; flexible minimal oak-and-black interior with kitchen island, dining, daybed reading nook and compact bedroom.",
+      "plan": {
+        "file": "plan.jpg",
+        "url": "https://images.adsttc.com/media/images/6124/2bfb/f5da/7b01/65e8/e503/large_jpg/acos-the-unfolding-layout.jpg",
+        "note": "Clean furnished plan with floor-board hatching and scale bar 0-1-2 m; no labels; axonometric at image 21"
+      },
+      "photos": [
+        {
+          "file": "01-kitchen.jpg",
+          "room": "kitchen",
+          "url": "https://images.adsttc.com/media/images/6124/2c15/7cec/2f01/6621/47ec/large_jpg/acos-the-unfolding-home-sequence-02.jpg"
+        },
+        {
+          "file": "02-dining.jpg",
+          "room": "dining",
+          "url": "https://images.adsttc.com/media/images/6124/2beb/f5da/7b01/65e8/e4f7/large_jpg/acos-the-unfolding-02.jpg"
+        },
+        {
+          "file": "03-kitchen.jpg",
+          "room": "kitchen",
+          "url": "https://images.adsttc.com/media/images/6124/2bf0/f5da/7b01/65e8/e4fa/large_jpg/acos-the-unfolding-05.jpg"
+        },
+        {
+          "file": "04-living.jpg",
+          "room": "living",
+          "url": "https://images.adsttc.com/media/images/6124/2bf6/7cec/2f01/6621/47e8/large_jpg/acos-the-unfolding-09.jpg"
+        },
+        {
+          "file": "05-living.jpg",
+          "room": "living",
+          "url": "https://images.adsttc.com/media/images/6124/2bfa/7cec/2f01/6621/47ea/large_jpg/acos-the-unfolding-14.jpg"
+        },
+        {
+          "file": "06-bedroom.jpg",
+          "room": "bedroom",
+          "url": "https://images.adsttc.com/media/images/6124/2bf8/7cec/2f01/6621/47e9/large_jpg/acos-the-unfolding-15.jpg"
+        },
+        {
+          "file": "07-bath.jpg",
+          "room": "bath",
+          "url": "https://images.adsttc.com/media/images/6124/2bf8/f5da/7b01/65e8/e4ff/large_jpg/acos-the-unfolding-17.jpg"
+        },
+        {
+          "file": "08-hall.jpg",
+          "room": "hall",
+          "url": "https://images.adsttc.com/media/images/6124/2bef/f5da/7b01/65e8/e4f8/large_jpg/acos-the-unfolding-08.jpg"
+        }
+      ]
+    },
+    {
+      "id": "ts-apartment-yerevan",
+      "title": "TS Apartment",
+      "designer": "snkh studio",
+      "photographer": "Sona Manukyan & Ani Avagyan",
+      "source": "https://www.archdaily.com/895449/ts-apartment-snkh-studio",
+      "city": "Yerevan",
+      "country": "Armenia",
+      "year": 2018,
+      "areaM2": 110,
+      "bedrooms": 2,
+      "style": "minimal Scandinavian with colour accents (plywood joinery, red/teal walls, skylights)",
+      "rooms": [
+        "first floor: entry hall, bedroom with wardrobe wall, bathroom, stair",
+        "second floor: living-dining-kitchen with long table, bedroom/guest room, WC, terrace"
+      ],
+      "brief": "Duplex in a Stalin-era neoclassical building near the Cascade; attic floor opened to a skylit living-dining for hosting friends, bedroom easily converted for guests.",
+      "plan": {
+        "file": "plan.jpg",
+        "url": "https://images.adsttc.com/media/images/5b0e/a4a4/f197/ccc1/fc00/00d8/large_jpg/second-floor-plan.jpg",
+        "note": "Two-level duplex; this is the second-floor plan (furnished, scale bar 0-5 m); first-floor plan is at image 14 (same scale). Axonometric at 16"
+      },
+      "photos": [
+        {
+          "file": "01-dining.jpg",
+          "room": "dining",
+          "url": "https://images.adsttc.com/media/images/5b0e/a1c6/f197/cc28/2c00/00ad/large_jpg/-_Featured_Image.jpg"
+        },
+        {
+          "file": "02-dining.jpg",
+          "room": "dining",
+          "url": "https://images.adsttc.com/media/images/5b0e/a3f4/f197/ccc1/fc00/00d2/large_jpg/016.jpg"
+        },
+        {
+          "file": "03-living.jpg",
+          "room": "living",
+          "url": "https://images.adsttc.com/media/images/5b0e/a39e/f197/cc28/2c00/00b8/large_jpg/014.jpg"
+        },
+        {
+          "file": "04-bedroom.jpg",
+          "room": "bedroom",
+          "url": "https://images.adsttc.com/media/images/5b0e/a254/f197/cc28/2c00/00b1/large_jpg/004.jpg"
+        },
+        {
+          "file": "05-bedroom.jpg",
+          "room": "bedroom",
+          "url": "https://images.adsttc.com/media/images/5b0e/a297/f197/ccc1/fc00/00c7/large_jpg/006.jpg"
+        },
+        {
+          "file": "06-bedroom.jpg",
+          "room": "bedroom",
+          "url": "https://images.adsttc.com/media/images/5b0e/a264/f197/cc28/2c00/00b2/large_jpg/005.jpg"
+        },
+        {
+          "file": "07-hall.jpg",
+          "room": "hall",
+          "url": "https://images.adsttc.com/media/images/5b0e/a340/f197/cc28/2c00/00b5/large_jpg/011.jpg"
+        },
+        {
+          "file": "08-hall.jpg",
+          "room": "hall",
+          "url": "https://images.adsttc.com/media/images/5b0e/a222/f197/cc28/2c00/00b0/large_jpg/003.jpg"
+        }
+      ]
+    },
+    {
+      "id": "lazarz-apartment-poznan",
+      "title": "Apartment Interior within Poznan's Lazarz District",
+      "designer": "LBWA",
+      "photographer": "Zasoby Studio",
+      "source": "https://www.archdaily.com/1148723/a-play-of-color-in-an-apartment-interior-within-poznans-lazarz-district-lbwa",
+      "city": "Poznan",
+      "country": "Poland",
+      "year": 2024,
+      "areaM2": 68,
+      "bedrooms": 2,
+      "style": "warm modern / mid-century in a historic tenement (cobalt-blue kitchen, walnut, pine floor, boucle sofa)",
+      "rooms": [
+        "living + kitchen-dining",
+        "bedroom",
+        "second bedroom / study",
+        "bathroom",
+        "hall with built-in wardrobes",
+        "balcony"
+      ],
+      "brief": "Tenement flat in Lazarz keeping old pine boards and tall windows, with a colourful cobalt kitchen, round dining table and soft modern living set.",
+      "plan": {
+        "file": "plan.jpg",
+        "url": "https://images.adsttc.com/media/images/6a60/cae1/d7be/a801/8b1f/cc2d/large_jpg/plantest-24.jpg",
+        "note": "Clean furnished line plan (walls, doors, kitchen, beds, sofa), no labels, no scale or area figures"
+      },
+      "photos": [
+        {
+          "file": "01-living.jpg",
+          "room": "living",
+          "url": "https://images.adsttc.com/media/images/6a57/69f0/7c22/c800/01aa/654a/large_jpg/ZASOBY-0017-Z1004522-V1.jpg"
+        },
+        {
+          "file": "02-living.jpg",
+          "room": "living",
+          "url": "https://images.adsttc.com/media/images/6a57/69f0/7c22/c800/01aa/6549/large_jpg/ZASOBY-0016-Z2000409-V1.jpg"
+        },
+        {
+          "file": "03-kitchen.jpg",
+          "room": "kitchen",
+          "url": "https://images.adsttc.com/media/images/6a57/69f0/7c22/c800/01aa/654c/large_jpg/ZASOBY-0020-Z1004589-V1.jpg"
+        },
+        {
+          "file": "04-dining.jpg",
+          "room": "dining",
+          "url": "https://images.adsttc.com/media/images/6a57/69f0/7c22/c800/01aa/654e/large_jpg/ZASOBY-0022-Z1004606-V1.jpg"
+        },
+        {
+          "file": "05-kitchen.jpg",
+          "room": "kitchen",
+          "url": "https://images.adsttc.com/media/images/6a57/69f0/7c22/c800/01aa/6546/large_jpg/ZASOBY-0013-Z1004449-V1.jpg"
+        },
+        {
+          "file": "06-bedroom.jpg",
+          "room": "bedroom",
+          "url": "https://images.adsttc.com/media/images/6a57/69ef/7c22/c800/01aa/653a/large_jpg/ZASOBY-0004-Z1004339-V1.jpg"
+        },
+        {
+          "file": "07-bedroom.jpg",
+          "room": "bedroom",
+          "url": "https://images.adsttc.com/media/images/6a57/69ef/7c22/c800/01aa/6540/large_jpg/ZASOBY-0006-Z1004379-V1.jpg"
+        },
+        {
+          "file": "08-bath.jpg",
+          "room": "bath",
+          "url": "https://images.adsttc.com/media/images/6a57/69f0/7c22/c800/01aa/6554/large_jpg/ZASOBY-0030-Z1004635-V1.jpg"
+        }
+      ]
+    },
+    {
+      "id": "copenhagen-spirit-moscow",
+      "title": "Copenhagen Spirit",
+      "designer": "buro5",
+      "photographer": "Luciano Spinelli",
+      "source": "https://www.archdaily.com/892350/copenhagen-spirit-buro5",
+      "city": "Moscow",
+      "country": "Russia",
+      "year": 2018,
+      "areaM2": 57,
+      "bedrooms": 1,
+      "style": "Scandinavian with pastel colour blocking (sky blue, dusty pink, terrazzo, oak)",
+      "rooms": [
+        "living + kitchen-dining",
+        "bedroom with desk",
+        "bathroom",
+        "hall with wardrobes",
+        "balcony"
+      ],
+      "brief": "Flat for a client who lived for years in Copenhagen: minimal Danish feel, no curtains, pastel kitchen, sofa living and a bedroom with work desk.",
+      "plan": {
+        "file": "plan.jpg",
+        "url": "https://images.adsttc.com/media/images/5acd/e44a/f197/cc5c/9600/001d/large_jpg/Plan.jpg",
+        "note": "Bold black-wall furnished plan, very clean; no labels, no scale or areas"
+      },
+      "photos": [
+        {
+          "file": "01-living.jpg",
+          "room": "living",
+          "url": "https://images.adsttc.com/media/images/5acd/e51a/f197/ccc2/b400/000f/large_jpg/sasha_flat_hig_res_©_luciano_spinelli-3.jpg"
+        },
+        {
+          "file": "02-living.jpg",
+          "room": "living",
+          "url": "https://images.adsttc.com/media/images/5acd/e4f5/f197/cc5c/9600/001f/large_jpg/sasha_flat_hig_res_©_luciano_spinelli-2.jpg"
+        },
+        {
+          "file": "03-kitchen.jpg",
+          "room": "kitchen",
+          "url": "https://images.adsttc.com/media/images/5acd/e5d6/f197/cc5c/9600/0023/large_jpg/sasha_flat_hig_res_©_luciano_spinelli-9.jpg"
+        },
+        {
+          "file": "04-kitchen.jpg",
+          "room": "kitchen",
+          "url": "https://images.adsttc.com/media/images/5acd/e551/f197/ccc2/b400/0010/large_jpg/sasha_flat_hig_res_©_luciano_spinelli-5.jpg"
+        },
+        {
+          "file": "05-dining.jpg",
+          "room": "dining",
+          "url": "https://images.adsttc.com/media/images/5acd/e58e/f197/cc5c/9600/0022/large_jpg/sasha_flat_hig_res_©_luciano_spinelli-7.jpg"
+        },
+        {
+          "file": "06-bedroom.jpg",
+          "room": "bedroom",
+          "url": "https://images.adsttc.com/media/images/5acd/e647/f197/cc5c/9600/0024/large_jpg/sasha_flat_hig_res_©_luciano_spinelli-13.jpg"
+        },
+        {
+          "file": "07-bedroom.jpg",
+          "room": "bedroom",
+          "url": "https://images.adsttc.com/media/images/5acd/e626/f197/ccc2/b400/0014/large_jpg/sasha_flat_hig_res_©_luciano_spinelli-12.jpg"
+        },
+        {
+          "file": "08-bath.jpg",
+          "room": "bath",
+          "url": "https://images.adsttc.com/media/images/5acd/e6bd/f197/ccc2/b400/0017/large_jpg/sasha_flat_hig_res_©_luciano_spinelli-17.jpg"
+        }
+      ]
+    },
+    {
+      "id": "mazanka-apartment-kyiv",
+      "title": "Mazanka Apartment",
+      "designer": "Makhno Studio",
+      "photographer": "Serhii Kadulin",
+      "source": "https://www.archdaily.com/957923/mazanka-apartment-makhno-studio",
+      "city": "Kyiv",
+      "country": "Ukraine",
+      "year": 2020,
+      "areaM2": 98,
+      "bedrooms": 1,
+      "style": "warm modern / organic (clay-plaster walls, herringbone oak, rattan pendant, blush curtains)",
+      "rooms": [
+        "living (open)",
+        "kitchen with island",
+        "dining bay",
+        "bedroom with walk-through wardrobe",
+        "ensuite bathroom",
+        "guest WC",
+        "hall"
+      ],
+      "brief": "Young woman's eco-flat in a Kyiv tower over the Dnipro; clay \"mazanka\" plaster walls, open kitchen-living, round dining in the bay, bedroom suite with freestanding tub.",
+      "plan": {
+        "file": "plan.jpg",
+        "url": "https://images.adsttc.com/media/images/603e/f4d5/f91c/8119/8000/01a8/large_jpg/plan.jpg",
+        "note": "Furnished plan (beds, island, dining, sofa, baths), clean; no labels, scale or areas"
+      },
+      "photos": [
+        {
+          "file": "01-living.jpg",
+          "room": "living",
+          "url": "https://images.adsttc.com/media/images/603e/f570/f91c/817e/b300/01af/large_jpg/06_(1).jpg"
+        },
+        {
+          "file": "02-living.jpg",
+          "room": "living",
+          "url": "https://images.adsttc.com/media/images/603e/f599/f91c/8119/8000/01ad/large_jpg/06.jpg"
+        },
+        {
+          "file": "03-dining.jpg",
+          "room": "dining",
+          "url": "https://images.adsttc.com/media/images/603e/f50c/f91c/817e/b300/01ab/large_jpg/03_(1).jpg"
+        },
+        {
+          "file": "04-dining.jpg",
+          "room": "dining",
+          "url": "https://images.adsttc.com/media/images/603e/f4ca/f91c/817e/b300/01a9/large_jpg/01_(2).jpg"
+        },
+        {
+          "file": "05-kitchen.jpg",
+          "room": "kitchen",
+          "url": "https://images.adsttc.com/media/images/603e/f5ea/f91c/817e/b300/01b3/large_jpg/10.jpg"
+        },
+        {
+          "file": "06-bedroom.jpg",
+          "room": "bedroom",
+          "url": "https://images.adsttc.com/media/images/603e/f676/f91c/817e/b300/01b9/large_jpg/16_(1).jpg"
+        },
+        {
+          "file": "07-bedroom.jpg",
+          "room": "bedroom",
+          "url": "https://images.adsttc.com/media/images/603e/f6ab/f91c/817e/b300/01bb/large_jpg/16.jpg"
+        },
+        {
+          "file": "08-bath.jpg",
+          "room": "bath",
+          "url": "https://images.adsttc.com/media/images/603e/f72c/f91c/8119/8000/01bf/large_jpg/20.jpg"
+        }
+      ]
+    },
+    {
+      "id": "morgado-de-mateus-sao-paulo",
+      "title": "Morgado de Mateus Apartment",
+      "designer": "Guido Otero Arquitetura + Gabriel Cesar Arquitetura",
+      "photographer": "Camila Alba",
+      "source": "https://www.archdaily.com/1150276/morgado-de-mateus-apartment-guido-otero-arquitetura-plus-gabriel-cesar-arquitetura",
+      "city": "Sao Paulo",
+      "country": "Brazil",
+      "year": 2024,
+      "areaM2": 115,
+      "bedrooms": 3,
+      "style": "warm mid-century modern (teak joinery, green marble, terracotta floor, parquet)",
+      "rooms": [
+        "living",
+        "dining",
+        "kitchen",
+        "laundry",
+        "master bedroom",
+        "kids bedroom",
+        "study / TV room",
+        "2 bathrooms",
+        "powder room",
+        "corridor"
+      ],
+      "brief": "Family three-bedroom flat in Vila Mariana opened up from a compartmentalised layout; long teak kitchen wall, dining, kids room and a study, cross-ventilated.",
+      "plan": {
+        "file": "plan.jpg",
+        "url": "https://images.adsttc.com/media/images/6984/98fb/66e7/0600/01bd/0f03/large_jpg/GO-AMM-DE-1.jpg",
+        "note": "Furnished layout plan (\"Planta layout\"), north arrow, no scale bar or room labels; isometrics at images 22-23"
+      },
+      "photos": [
+        {
+          "file": "01-kitchen.jpg",
+          "room": "kitchen",
+          "url": "https://images.adsttc.com/media/images/6984/98fb/66e7/0600/01bd/0eff/large_jpg/GO-AMM-CamilaAlba-27.jpg"
+        },
+        {
+          "file": "02-kitchen.jpg",
+          "room": "kitchen",
+          "url": "https://images.adsttc.com/media/images/6984/98fb/66e7/0600/01bd/0ef9/large_jpg/GO-AMM-CamilaAlba-20.jpg"
+        },
+        {
+          "file": "03-dining.jpg",
+          "room": "dining",
+          "url": "https://images.adsttc.com/media/images/6984/98fb/66e7/0600/01bd/0efc/large_jpg/GO-AMM-CamilaAlba-24.jpg"
+        },
+        {
+          "file": "04-living.jpg",
+          "room": "living",
+          "url": "https://images.adsttc.com/media/images/6984/98fa/66e7/0600/01bd/0ef4/large_jpg/GO-AMM-CamilaAlba-11.jpg"
+        },
+        {
+          "file": "05-bedroom.jpg",
+          "room": "bedroom",
+          "url": "https://images.adsttc.com/media/images/6984/98f8/66e7/0600/01bd/0eee/large_jpg/GO-AMM-CamilaAlba-1.jpg"
+        },
+        {
+          "file": "06-study.jpg",
+          "room": "study",
+          "url": "https://images.adsttc.com/media/images/6984/98fa/66e7/0600/01bd/0ef3/large_jpg/GO-AMM-CamilaAlba-10.jpg"
+        },
+        {
+          "file": "07-kids.jpg",
+          "room": "kids",
+          "url": "https://images.adsttc.com/media/images/6984/98f8/66e7/0600/01bd/0eef/large_jpg/GO-AMM-CamilaAlba-5.jpg"
+        },
+        {
+          "file": "08-hall.jpg",
+          "room": "hall",
+          "url": "https://images.adsttc.com/media/images/6984/98f9/66e7/0600/01bd/0ef1/large_jpg/GO-AMM-CamilaAlba-7.jpg"
+        }
+      ]
+    }
+  ]
+}
