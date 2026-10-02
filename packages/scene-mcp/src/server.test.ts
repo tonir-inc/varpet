@@ -55,7 +55,7 @@ const json = (result: unknown) => JSON.parse((result as { content: Array<{ text:
 test('lists product tools, hides scene-switching tools, keeps Pascal tools', async () => {
   const { client } = await setup()
   const names = (await client.listTools()).tools.map((tool) => tool.name)
-  for (const name of ['search_products', 'get_product', 'place_product', 'create_room', 'check_collisions']) {
+  for (const name of ['search_products', 'get_product', 'place_product', 'list_finishes', 'set_wall_finish', 'set_floor_finish', 'get_scene', 'create_room', 'check_collisions']) {
     assert.ok(names.includes(name), name)
   }
   for (const name of HIDDEN_TOOLS) assert.ok(!names.includes(name), name)
@@ -133,7 +133,7 @@ test('no tool schema uses tuples (prefixItems): Claude Code silently drops such 
   }
 })
 
-test('walls the agent creates are saved with their interior and exterior sides', async () => {
+test('saving does not rewrite what the agent built: wall sides stay as Pascal left them', async () => {
   const { store, client, sceneId, levelId } = await setup()
   const room = await client.callTool({
     name: 'create_room',
@@ -141,9 +141,8 @@ test('walls the agent creates are saved with their interior and exterior sides',
   })
   assert.ok(!room.isError, JSON.stringify(room))
   const saved = (await store.load(sceneId))!
-  type Wall = { type: string; id: string; frontSide?: string; backSide?: string }
-  const nodes = saved.graph.nodes as Record<string, Wall>
-  for (const id of json(room).wallIds as string[]) {
-    assert.deepEqual([nodes[id]!.frontSide, nodes[id]!.backSide].sort(), ['exterior', 'interior'], id)
-  }
+  const live = json(await client.callTool({ name: 'get_node', arguments: { id: json(room).wallIds[0] } }))
+  const stored = saved.graph.nodes[json(room).wallIds[0]] as unknown as { frontSide?: string; backSide?: string }
+  assert.equal(stored.frontSide, live.node.frontSide)
+  assert.equal(stored.backSide, live.node.backSide)
 })

@@ -44,38 +44,22 @@ export const DEFAULT_EFFORT: Record<AgentRole, Effort> = { architect: 'high', de
 const MCP_SERVER = 'scene'
 const MCP_PREFIX = `mcp__${MCP_SERVER}__`
 
-const READ_TOOLS = [
-  'get_scene', 'get_node', 'describe_node', 'find_nodes', 'list_levels', 'get_level_summary', 'get_walls',
-  'get_zones', 'verify_scene', 'measure', 'validate_scene', 'check_collisions', 'list_units',
-]
-const EDIT_TOOLS = ['apply_patch', 'delete_node', 'undo', 'redo']
+/**
+ * Both agents get every tool the scene MCP serves (Pascal's plus ours) and are steered by their prompts, not by
+ * allow-lists. The scene server already removes the scene lifecycle tools (it is bound to one scene); they are denied
+ * here too. No shell or file built-ins: only Claude Code's two MCP resource tools, so the agent can read Pascal's
+ * guide and constraints (pascal://agent/guide, pascal://constraints/{levelId}).
+ */
+export const LIFECYCLE_TOOLS = [
+  'load_scene', 'save_scene', 'delete_scene', 'rename_scene', 'list_scenes', 'create_project', 'get_project_status',
+] as const
+export const BUILTIN_TOOLS = ['ListMcpResourcesTool', 'ReadMcpResourceTool'] as const
 
-/** The scene MCP tools each role may call. Everything else on the server is hidden from it. */
-export const ROLE_TOOLS: Record<AgentRole, string[]> = {
-  architect: [
-    ...READ_TOOLS, ...EDIT_TOOLS,
-    'create_room', 'create_wall', 'add_door', 'add_window', 'cut_opening', 'set_zone', 'create_level',
-    'create_story_shell', 'create_unit', 'set_unit_members', 'duplicate_level',
-  ],
-  designer: [...READ_TOOLS, ...EDIT_TOOLS, 'search_products', 'get_product', 'show_products', 'place_product'],
-}
-
-/** Every tool the scene server registers (Pascal 1.0.3 plus ours), so a role sees only its own. */
-const ALL_TOOLS = [
-  ...new Set([
-    ...ROLE_TOOLS.architect, ...ROLE_TOOLS.designer,
-    'place_item', 'search_assets', 'furnish_room', 'analyze_floorplan_image', 'analyze_room_photo', 'create_roof',
-    'create_stair_between_levels', 'create_from_template', 'create_house_from_brief', 'list_templates',
-    'export_glb', 'export_json', 'generate_variants', 'photo_to_scene', 'load_scene', 'save_scene', 'delete_scene',
-    'rename_scene', 'list_scenes', 'create_project', 'get_project_status',
-  ]),
-]
-
-export function toolFlags(role: AgentRole) {
-  const allowed = ROLE_TOOLS[role]
+export function toolFlags() {
   return {
-    allowed: allowed.map((name) => MCP_PREFIX + name).join(','),
-    disallowed: ALL_TOOLS.filter((name) => !allowed.includes(name)).map((name) => MCP_PREFIX + name).join(','),
+    builtin: BUILTIN_TOOLS.join(','),
+    allowed: [`mcp__${MCP_SERVER}`, ...BUILTIN_TOOLS].join(','),
+    disallowed: LIFECYCLE_TOOLS.map((name) => MCP_PREFIX + name).join(','),
   }
 }
 
@@ -227,7 +211,7 @@ export function claudeArgs(input: {
   mcpConfig: string
   systemPrompt: string
 }) {
-  const tools = toolFlags(input.role)
+  const tools = toolFlags()
   return [
     '-p',
     '--model', input.s.model,
@@ -236,7 +220,7 @@ export function claudeArgs(input: {
     '--verbose',
     '--include-partial-messages',
     '--input-format', 'stream-json',
-    '--tools', '',
+    '--tools', tools.builtin,
     '--setting-sources', '',
     '--strict-mcp-config',
     '--mcp-config', input.mcpConfig,

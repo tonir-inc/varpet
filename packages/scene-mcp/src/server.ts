@@ -1,14 +1,16 @@
-// Pascal's MCP server bound to one stored scene, plus varpet's product tools.
+// Pascal's MCP server bound to one stored scene, plus varpet's product and finish tools.
 // SceneBridge must load before any other @pascal-app import: it installs the requestAnimationFrame shim core needs.
 import { SceneBridge } from '@pascal-app/mcp/bridge'
 import { createPascalMcpServer } from '@pascal-app/mcp/server'
 import { createSceneOperations, type SceneOperations } from '@pascal-app/mcp/operations'
 import type { SceneStore } from '@pascal-app/mcp/storage'
 import { ItemNode } from '@pascal-app/core/schema'
+import { registerLibraryMaterials } from '@pascal-app/core'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import type { Catalog, ProductHit } from './catalog.ts'
-import { wallSideUpdates } from './wall-sides.ts'
+import { finishMaterialItems } from '../../contracts/src/finishes.ts'
+import { registerFinishTools } from './finishes.ts'
 
 /** Tools that would rebind or delete scenes. The agent is bound to one scene for its whole run. */
 export const HIDDEN_TOOLS = [
@@ -21,20 +23,24 @@ export const HIDDEN_TOOLS = [
   'get_project_status',
 ] as const
 
-/** Pascal's built-in demo catalog: never placed by our agents (they use place_product). */
+/** Pascal's built-in demo catalog: reachable, but not purchasable; the prompts steer agents to place_product. */
 export const BUILTIN_CATALOG_TOOLS = ['place_item', 'search_assets', 'furnish_room'] as const
 
 /** Our tools, added next to Pascal's. */
 export const PRODUCT_TOOLS = ['search_products', 'get_product', 'show_products', 'place_product'] as const
 
+export { FINISH_TOOLS } from './finishes.ts'
+
 export interface SceneServerOptions {
   store: SceneStore
   sceneId: string
   catalog: Catalog
+  /** Makes varpet's finish textures absolute here (VARPET_PUBLIC_ORIGIN); without it they stay origin-relative. */
+  publicOrigin?: string
 }
 
 /** Load the scene, bind Pascal's operations to it and build the server. Throws when the scene does not exist. */
-export async function createSceneServer({ store, sceneId, catalog }: SceneServerOptions): Promise<{
+export async function createSceneServer({ store, sceneId, catalog, publicOrigin }: SceneServerOptions): Promise<{
   server: McpServer
   operations: SceneOperations
 }> {
@@ -42,31 +48,23 @@ export async function createSceneServer({ store, sceneId, catalog }: SceneServer
   if (!scene) throw new Error(`scene_not_found: ${sceneId}`)
   const bridge = new SceneBridge()
   const operations = createSceneOperations({ bridge, store })
-  tagWallSidesOnExport(operations)
+  registerVarpetFinishes(publicOrigin)
   operations.loadJSON(scene.graph)
   operations.clearHistory()
   operations.setActiveScene(scene)
   const server = createPascalMcpServer({ bridge, store, operations, name: 'varpet-scene' })
   hideTools(server, HIDDEN_TOOLS)
   registerProductTools(server, operations, catalog)
+  registerFinishTools(server, operations, publishSnapshot)
   return { server, operations }
 }
 
-/**
- * Every graph the server saves or publishes passes through exportSceneGraph: tag the sides of walls the agent
- * created there, so the editor's cutaway can hide the near walls. The bridge keeps its own copy as is (no undo
- * entries); the tags are recomputed on each export and stay the same while the walls do.
- */
-function tagWallSidesOnExport(operations: SceneOperations) {
-  const exportSceneGraph = operations.exportSceneGraph.bind(operations)
-  operations.exportSceneGraph = () => {
-    const graph = exportSceneGraph()
-    const updates = wallSideUpdates(graph.nodes as never)
-    if (updates.length === 0) return graph
-    const nodes = { ...graph.nodes } as Record<string, unknown>
-    for (const { id, frontSide, backSide } of updates) nodes[id] = { ...(nodes[id] as object), frontSide, backSide }
-    return { ...graph, nodes: nodes as typeof graph.nodes }
-  }
+let finishesRegistered = false
+/** varpet's own finishes as Pascal library materials, so `library:varpet-*` refs resolve outside the browser too. */
+function registerVarpetFinishes(origin = '') {
+  if (finishesRegistered) return
+  finishesRegistered = true
+  registerLibraryMaterials(finishMaterialItems(origin) as never)
 }
 
 function hideTools(server: McpServer, names: readonly string[]) {
