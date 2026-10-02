@@ -5,6 +5,7 @@
 import {
   applySceneGraphToEditor,
   Editor,
+  type SaveStatus,
   type SceneGraph,
   useEditor,
   type SidebarTab,
@@ -19,6 +20,7 @@ import { ArchitectTab, DesignerTab } from './agent-tabs'
 import { CatalogTab } from './catalog-tab'
 import { railIcon, useFolioRailDefaults } from './folio-rail'
 import { FolioDock } from './folio-dock'
+import { FolioNavbar } from './folio-navbar'
 import { FolioTools } from './folio-tools'
 import { bindSceneEditorController, useSceneEditor } from './scene-editor-store'
 import { useCatalogMetadata } from './use-catalog-metadata'
@@ -62,6 +64,7 @@ export function SceneEditor({ meta, initialGraph, initialPreviewSceneId = null, 
   const previewingRef = useRef(false)
   const [conflict, setConflict] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
   const [previewGraph, setPreviewGraph] = useState<SceneGraph | null>(null)
   const previewSceneId = useSceneEditor((s) => s.previewSceneId)
   const previewError = useSceneEditor((s) => s.previewError)
@@ -277,27 +280,24 @@ export function SceneEditor({ meta, initialGraph, initialPreviewSceneId = null, 
   )
 
   const previewing = previewSceneId !== null && previewGraph !== null
-  const banner = conflict ? (
-    <div className="varpet-banner" role="alert">
-      <span>Another session saved first. Your last change is not saved.</span>
-      <button onClick={() => window.location.reload()} type="button">Reload</button>
-      <button onClick={() => setConflict(false)} type="button">Dismiss</button>
-    </div>
-  ) : saveError || previewError ? (
-    <div className="varpet-banner varpet-banner-danger" role="alert">
-      <span>{previewError ?? saveError}</span>
-    </div>
-  ) : null
-
   return (
     <div className="varpet-editor-stage">
-      {banner}
       <Editor
         isVersionPreviewMode={previewing}
         layoutVersion="v2"
+        navbarSlot={
+          <FolioNavbar
+            conflict={conflict}
+            name={meta.name}
+            onDismissConflict={() => setConflict(false)}
+            saveError={previewError ?? saveError}
+            saveStatus={saveStatus}
+          />
+        }
         onLoad={handleLoad}
         onLoaderChange={handleLoaderChange}
         onSave={handleSave}
+        onSaveStatusChange={setSaveStatus}
         previewScene={previewGraph ?? undefined}
         projectId={meta.projectId ?? meta.id}
         sidebarTabs={sidebarTabs}

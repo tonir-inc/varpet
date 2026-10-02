@@ -95,31 +95,6 @@ body:has(.varpet-editor) ::selection {
   width: 100vw;
 }
 
-.varpet-banner {
-  position: absolute;
-  top: 12px;
-  left: 50%;
-  z-index: 70;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  max-width: min(560px, calc(100vw - 32px));
-  transform: translateX(-50%);
-  padding: 8px 12px;
-  border: 1px solid var(--folio-line);
-  border-radius: 4px;
-  background: var(--folio-surface);
-  box-shadow: var(--folio-shadow);
-  font-size: 13px;
-}
-
-.varpet-banner-danger {
-  border-color: var(--folio-danger);
-  background: var(--folio-danger-wash);
-  color: var(--folio-danger);
-}
-
-.varpet-banner button,
 .varpet-preview-banner button {
   padding: 4px 10px;
   border: 1px solid var(--folio-control-line);
@@ -130,7 +105,6 @@ body:has(.varpet-editor) ::selection {
   font-weight: 600;
 }
 
-.varpet-banner button:hover,
 .varpet-preview-banner button:hover {
   background: var(--folio-hover);
 }
@@ -619,4 +593,213 @@ body:has(.varpet-editor) [cmdk-item][data-selected="true"] {
  * this matches its utility classes, so recheck after a Pascal upgrade. */
 [data-viewer-bounds] > div:has(> .fixed.bottom-6.rounded-2xl) {
   display: none;
+}
+
+/* ── Header (v1 .topbar): 52px paper band with the mark, the flat's name, the cost button and the save state. ── */
+.folio-navbar {
+  display: flex;
+  height: 52px;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 16px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--folio-line);
+  background: var(--folio-ground);
+  color: var(--folio-ink);
+  font-size: 14px;
+}
+
+.folio-brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: inherit;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.folio-mark {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border-radius: 2px;
+  background: var(--folio-teal);
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.folio-flat-name {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folio-navbar-actions {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.folio-num {
+  font-family: var(--font-folio-serif);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.folio-quote {
+  display: flex;
+  height: 34px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 3px;
+  background: var(--folio-teal);
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 600;
+  transition: background-color 140ms ease;
+}
+
+.folio-quote:hover {
+  background: var(--folio-teal-hover);
+}
+
+.folio-save-state {
+  margin: 0 4px;
+  color: var(--folio-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.folio-save-alert {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  border: 1px solid var(--folio-danger);
+  border-radius: 3px;
+  background: var(--folio-danger-wash);
+  color: var(--folio-danger);
+  font-size: 12px;
+}
+
+.folio-save-alert button {
+  padding: 2px 8px;
+  border: 1px solid var(--folio-control-line);
+  border-radius: 3px;
+  background: var(--folio-surface);
+  color: var(--folio-ink);
+  font: inherit;
+  font-weight: 600;
+}
+
+.folio-icon-button {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--folio-ink);
+}
+
+.folio-icon-button.folio-quiet {
+  width: 28px;
+  height: 28px;
+  color: var(--folio-muted);
+}
+
+.folio-icon-button:hover {
+  background: var(--folio-hover);
+  color: var(--folio-ink);
+}
+
+/* "What it costs" (v1 .folio-drawer): a centred dialog with serif prices and a 2px ink rule above the total. */
+.folio-costs {
+  width: min(520px, calc(100vw - 32px));
+  max-height: min(720px, calc(100dvh - 64px));
+  margin: auto;
+  padding: 18px 20px;
+  border: 1px solid var(--folio-line);
+  border-radius: 4px;
+  background: var(--folio-surface);
+  box-shadow: 0 12px 36px #15151529;
+  color: var(--folio-ink);
+  font-family: var(--font-folio-sans);
+  font-size: 14px;
+}
+
+.folio-costs::backdrop {
+  background: #15151533;
+}
+
+.folio-costs header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.folio-costs h2 {
+  margin: 0;
+  font-family: var(--font-folio-serif);
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.folio-group {
+  padding: 10px 0;
+  border-top: 1px solid var(--folio-line);
+}
+
+.folio-group h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.folio-group > p,
+.folio-note {
+  margin: 2px 0 8px;
+  color: var(--folio-muted);
+  font-size: 12px;
+}
+
+.folio-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 5px 0;
+}
+
+.folio-line small {
+  display: block;
+  color: var(--folio-muted);
+  font-size: 12px;
+}
+
+.folio-line > .folio-num {
+  white-space: nowrap;
+}
+
+.folio-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 2px solid var(--folio-ink);
+  font-weight: 600;
+}
+
+.folio-total strong {
+  font-size: 22px;
 }
