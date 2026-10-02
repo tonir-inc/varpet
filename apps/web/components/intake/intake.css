@@ -1,0 +1,19 @@
+/* Plan intake, in the v1 source dialog's language (apps/editor/src/features/intake.css): modal heading,
+ * a dashed upload well, the designer's step rows for the architect's work. Tokens come from designer-panel.css. */
+.intake-panel { display: flex; flex-direction: column; gap: var(--space-3); width: min(560px, 100%); padding: var(--space-5); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md); }
+.intake-panel .modal-heading { display: flex; align-items: center; justify-content: space-between; gap: 15px; }
+.intake-panel .modal-heading h2 { display: flex; align-items: center; gap: var(--space-2); color: var(--ink); font-family: var(--serif); font-size: var(--text-lg); font-weight: 600; line-height: 1.25; }
+.intake-panel .modal-intro { color: var(--muted); font-size: var(--text-sm); line-height: 1.5; }
+.intake-start { display: grid; gap: var(--space-3); }
+.intake-upload { display: grid; justify-items: center; gap: var(--space-1); padding: var(--space-5); border: 1px dashed var(--control-line); border-radius: var(--radius-md); background: var(--ground); color: var(--muted); text-align: center; cursor: pointer; transition: border-color var(--motion-feedback), background var(--motion-feedback); }
+.intake-upload:hover, .intake-dragging { border-color: var(--ink); background: var(--raised); }
+.intake-upload:focus-within { outline: 2px solid var(--focus); outline-offset: 2px; }
+.intake-upload strong { color: var(--ink); font-size: var(--text-md); font-weight: 600; overflow-wrap: anywhere; }
+.intake-upload span { font-size: var(--text-xs); }
+.intake-plan { display: block; max-width: 100%; max-height: 240px; margin-bottom: var(--space-2); object-fit: contain; background: var(--surface); border: 1px solid var(--line); }
+.intake-note { display: flex; flex-direction: column; gap: var(--space-2); color: var(--muted); font-size: var(--text-xs); }
+.intake-note textarea { width: 100%; padding: var(--space-2) var(--space-3); border: 1px solid var(--control-line); border-radius: var(--radius-sm); background: var(--surface); color: var(--ink); font-size: var(--text-sm); resize: vertical; }
+.intake-go { justify-self: start; }
+.intake-error { color: var(--danger); line-height: 1.5; }
+.intake-log { max-height: min(60vh, 560px); overflow-y: auto; padding-right: var(--space-1); }
+.intake-stop { justify-self: start; }
