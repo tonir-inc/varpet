@@ -295,12 +295,18 @@ export function SceneEditor({ meta, initialGraph, initialPreviewSceneId = null, 
 function PreviewBanner() {
   const clearPreview = useSceneEditor((s) => s.clearPreview)
   const applyPreview = useSceneEditor((s) => s.applyPreview)
+  const working = useSceneEditor((s) => s.previewWorking)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   return (
     <div className="varpet-preview-banner pointer-events-auto" role="status">
-      <span>Showing the designer&apos;s proposal. Nothing changes in your flat until you apply it.</span>
+      <span>
+        {working
+          ? 'The designer is working on a proposal. You can apply it when it is done.'
+          : 'Showing the designer\'s proposal. Nothing changes in your flat until you apply it.'}
+      </span>
       {error ? <span className="varpet-preview-error">{error}</span> : null}
+      {working ? null : (
       <button
         className="varpet-button-primary"
         disabled={busy}
@@ -315,6 +321,7 @@ function PreviewBanner() {
       >
         Apply
       </button>
+      )}
       <button disabled={busy} onClick={clearPreview} type="button">
         Back to my flat
       </button>

@@ -21,7 +21,8 @@ const FOLLOW_UPS = ['Show me another option', 'Why this layout?', 'Make it warme
 export interface DesignerPanelProps {
   sceneId: string
   /** Show a proposal scene in the editor, or null to go back to the flat. */
-  onPreview?: (proposalSceneId: string | null) => void
+  /** working: the agent is still editing it, so it must not be applied yet. */
+  onPreview?: (proposalSceneId: string | null, opts?: { working: boolean }) => void
   /** Copy the proposal onto the flat (POST /api/scenes/:id/apply). Reject to keep the card open with the error. */
   onApply?: (proposalSceneId: string) => void | Promise<void>
   onDismiss?: (proposalSceneId: string) => void | Promise<void>
@@ -47,7 +48,7 @@ export function DesignerPanel({ sceneId, onPreview, onApply, onDismiss, starters
   const [nearBottom, setNearBottom] = useState(true)
   const scroller = useRef<HTMLDivElement>(null)
 
-  const preview = (id: string | null) => { setPreviewing(id); onPreview?.(id) }
+  const preview = (id: string | null, working = false) => { setPreviewing(id); onPreview?.(id, { working }) }
   const exitPreview = () => { if (previewing) preview(null) }
 
   // A turn shows the agent's working copy live; a new thread or another scene leaves any preview.

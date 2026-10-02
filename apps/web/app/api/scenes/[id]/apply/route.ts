@@ -1,3 +1,4 @@
+import { isProposalBusy } from '@varpet/agents'
 import { z } from 'zod'
 import { json, parseIfMatch, readJson, storeError } from '@/lib/scenes/http'
 import { getEventStore } from '@/lib/scenes/store'
@@ -18,6 +19,9 @@ export async function POST(request: Request, { params }: RouteParams) {
   if (!parsed.success) return json({ error: 'invalid_request', details: parsed.error.issues }, { status: 400 })
   const { proposalSceneId } = parsed.data
   if (proposalSceneId === id) return json({ error: 'invalid_request', details: 'proposal is the base scene' }, { status: 400 })
+  if (isProposalBusy(proposalSceneId)) {
+    return json({ error: 'agent_working', details: 'The designer is still working on this proposal.' }, { status: 409 })
+  }
 
   const store = await getEventStore()
   try {

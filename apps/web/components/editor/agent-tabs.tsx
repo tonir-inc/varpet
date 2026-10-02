@@ -8,9 +8,9 @@ import { useSceneEditor } from './scene-editor-store'
 
 function useProposalHandlers() {
   return useMemo(() => ({
-    onPreview: (id: string | null) => {
+    onPreview: (id: string | null, opts?: { working: boolean }) => {
       const editor = useSceneEditor.getState()
-      if (id) editor.showPreview(id)
+      if (id) editor.showPreview(id, opts?.working ?? false)
       else editor.clearPreview()
     },
     onApply: async (id: string) => {

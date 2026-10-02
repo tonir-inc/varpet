@@ -383,7 +383,7 @@ function resultSummary(content: unknown) {
 
 /** Run one agent turn. Yields, in order: session, progress/message_delta/tool/rate_limit, at most one proposal,
  * then exactly one done or error. Never throws. */
-export async function* runTurn(role: AgentRole, req: TurnRequest, opts: RunTurnOptions = {}): AsyncGenerator<AgentEvent> {
+async function* runTurnUnguarded(role: AgentRole, req: TurnRequest, opts: RunTurnOptions = {}): AsyncGenerator<AgentEvent> {
   const started = Date.now()
   if (role !== 'architect' && role !== 'designer') {
     yield { type: 'error', message: `unknown role: ${String(role)}` }
@@ -550,4 +550,34 @@ export async function* runTurn(role: AgentRole, req: TurnRequest, opts: RunTurnO
 
 function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : String(error)
+}
+
+/** Proposals an agent is still editing in this process. On globalThis so every Next route bundle shares it. */
+function busyProposals(): Set<string> {
+  const key = Symbol.for('varpet.agents.busyProposals')
+  const holder = globalThis as unknown as Record<symbol, Set<string> | undefined>
+  return (holder[key] ??= new Set())
+}
+
+/** True while an agent turn is writing to this proposal; applying or deleting it then would lose the agent's work. */
+export function isProposalBusy(proposalSceneId: string): boolean {
+  return busyProposals().has(proposalSceneId)
+}
+
+/** Run one agent turn (see runTurnUnguarded); the proposal it edits counts as busy until its proposal event. */
+export async function* runTurn(...args: Parameters<typeof runTurnUnguarded>): AsyncGenerator<AgentEvent> {
+  let busy: string | null = null
+  const release = () => {
+    if (busy) busyProposals().delete(busy)
+    busy = null
+  }
+  try {
+    for await (const event of runTurnUnguarded(...args)) {
+      if (event.type === 'session' && event.proposalSceneId) busyProposals().add((busy = event.proposalSceneId))
+      if (event.type === 'proposal' || event.type === 'done' || event.type === 'error') release()
+      yield event
+    }
+  } finally {
+    release()
+  }
 }

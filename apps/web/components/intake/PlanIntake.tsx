@@ -17,7 +17,8 @@ export const PLAN_REQUEST = 'Here is the floor plan of my flat. Build it: walls,
 export interface PlanIntakeProps {
   /** The (empty) scene the architect builds into. */
   sceneId: string
-  onPreview?: (proposalSceneId: string | null) => void
+  /** working: the agent is still editing it, so it must not be applied yet. */
+  onPreview?: (proposalSceneId: string | null, opts?: { working: boolean }) => void
   onApply?: (proposalSceneId: string) => void | Promise<void>
   onDismiss?: (proposalSceneId: string) => void | Promise<void>
   fetchImpl?: StreamTurnOptions['fetchImpl']
@@ -56,7 +57,7 @@ export function PlanIntake({ sceneId, onPreview, onApply, onDismiss, fetchImpl, 
     void chat.send(note.trim() ? `${PLAN_REQUEST}\n\n${note.trim()}` : PLAN_REQUEST, [plan.url])
   }
 
-  const preview = (id: string | null) => { setPreviewing(id); onPreview?.(id) }
+  const preview = (id: string | null, working = false) => { setPreviewing(id); onPreview?.(id, { working }) }
   useLivePreview(state, previewing, preview)
   const act = async (id: string, action: 'apply' | 'dismiss') => {
     setActing(id)

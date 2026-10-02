@@ -19,7 +19,9 @@ export interface SceneEditorState {
   /** Proposal scene shown read-only in place of the base scene, or null. */
   previewSceneId: string | null
   previewError: string | null
-  showPreview: (proposalSceneId: string) => void
+  /** The agent is still editing the previewed proposal: it cannot be applied yet. */
+  previewWorking: boolean
+  showPreview: (proposalSceneId: string, working?: boolean) => void
   clearPreview: () => void
   applyPreview: (proposalSceneId?: string) => Promise<SceneMeta>
 }
@@ -37,11 +39,13 @@ export const useSceneEditor = create<SceneEditorState>((set, get) => ({
   version: 0,
   previewSceneId: null,
   previewError: null,
-  showPreview: (proposalSceneId) => set({ previewSceneId: proposalSceneId, previewError: null }),
-  clearPreview: () => set({ previewSceneId: null, previewError: null }),
+  previewWorking: false,
+  showPreview: (proposalSceneId, working = false) => set({ previewSceneId: proposalSceneId, previewError: null, previewWorking: working }),
+  clearPreview: () => set({ previewSceneId: null, previewError: null, previewWorking: false }),
   applyPreview: async (proposalSceneId) => {
     const proposal = proposalSceneId ?? get().previewSceneId
     if (!proposal) throw new Error('no proposal is being previewed')
+    if (proposal === get().previewSceneId && get().previewWorking) throw new Error('The designer is still working on this proposal.')
     if (!controller) throw new Error('no scene editor is open')
     return controller.apply(proposal)
   },

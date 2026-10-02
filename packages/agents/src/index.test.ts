@@ -6,7 +6,7 @@ import { test } from 'node:test'
 import { SceneBridge } from '@pascal-app/mcp/bridge'
 import { createSceneStore } from '@pascal-app/mcp/storage'
 import type { AgentEvent } from '../../contracts/src/index.ts'
-import { StreamMapper, proposalProducts, runTurn, toolFlags, userMessageLine } from './index.ts'
+import { StreamMapper, isProposalBusy, proposalProducts, runTurn, toolFlags, userMessageLine } from './index.ts'
 
 const root = resolve(import.meta.dirname, '../../..')
 const fakeClaude = join(import.meta.dirname, 'testdata/fake-claude.mjs')
@@ -156,4 +156,19 @@ test('the mapper skips subagent output and reports a failed result', () => {
   )
   assert.deepEqual(mapper.map({ type: 'result', subtype: 'error_max_turns', is_error: true }), [])
   assert.equal(mapper.result?.subtype, 'error_max_turns')
+})
+
+test('a proposal is busy from the session event until the agent hands it over', async () => {
+  const { env, sceneId } = await fixture()
+  let proposalSceneId: string | null = null
+  const busyAt: Record<string, boolean> = {}
+  for await (const event of runTurn('designer', { sceneId, message: 'two bedside tables' }, { root, env })) {
+    if (event.type === 'session') proposalSceneId = event.proposalSceneId
+    if (proposalSceneId) busyAt[event.type] = isProposalBusy(proposalSceneId)
+  }
+  assert.ok(proposalSceneId)
+  assert.equal(busyAt.session, true)
+  assert.equal(busyAt.tool, true)
+  assert.equal(busyAt.proposal, false)
+  assert.equal(isProposalBusy(proposalSceneId), false)
 })

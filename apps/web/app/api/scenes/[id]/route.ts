@@ -1,3 +1,4 @@
+import { isProposalBusy } from '@varpet/agents'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { countGraphNodes, isEmptyGraphOverwrite } from '@/lib/scenes/empty-graph-guard'
@@ -67,6 +68,9 @@ export async function PUT(request: Request, { params }: RouteParams) {
 
 export async function DELETE(request: Request, { params }: RouteParams) {
   const { id } = await params
+  if (isProposalBusy(id)) {
+    return json({ error: 'agent_working', details: 'An agent is still working on this scene.' }, { status: 409 })
+  }
   try {
     const removed = await (await getSceneStore()).delete(id, {
       expectedVersion: parseIfMatch(request.headers.get('If-Match')),
