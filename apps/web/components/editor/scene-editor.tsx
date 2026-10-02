@@ -21,6 +21,7 @@ import { hasPlanHandoff } from '@/lib/plan-handoff'
 import { ArchitectTab, DesignerTab } from './agent-tabs'
 import { CatalogTab } from './catalog-tab'
 import { bindSceneEditorController, useSceneEditor } from './scene-editor-store'
+import { useCatalogMetadata } from './use-catalog-metadata'
 
 type Tab = SidebarTab & { component: ComponentType }
 
@@ -63,6 +64,7 @@ export function SceneEditor({ meta, initialGraph, initialPreviewSceneId = null, 
   const [previewGraph, setPreviewGraph] = useState<SceneGraph | null>(null)
   const previewSceneId = useSceneEditor((s) => s.previewSceneId)
   const previewError = useSceneEditor((s) => s.previewError)
+  useCatalogMetadata()
 
   const setVersion = useCallback((version: number) => {
     versionRef.current = version

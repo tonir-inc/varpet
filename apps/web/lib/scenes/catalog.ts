@@ -34,6 +34,24 @@ export function productToAsset(product: Product, thumbnailFallback: string): Ass
   }
 }
 
+/** What an item placed from the catalog carries, the same as the agent's `place_product`. */
+export interface ProductMetadata {
+  productId: string
+  priceAmd: number | null
+  shop: string | null
+}
+
+// Products the catalog tab has shown, by id, so a placed tile (Pascal keeps only the asset) can be stamped.
+const seenProducts = new Map<string, ProductMetadata>()
+
+export function rememberProducts(products: Product[]) {
+  for (const product of products) seenProducts.set(product.id, { productId: product.id, priceAmd: product.priceAmd, shop: product.shop })
+}
+
+export function productMetadata(assetId: unknown): ProductMetadata | null {
+  return typeof assetId === 'string' ? (seenProducts.get(assetId) ?? null) : null
+}
+
 export interface CatalogQuery {
   q?: string
   kind?: string
