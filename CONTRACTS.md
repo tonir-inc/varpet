@@ -55,8 +55,20 @@ that file and this one in the same commit, and say so in the commit message.
   and timeouts are `isError` text; the turn goes on. Offered only when the MCP has a renderer (`VARPET_RENDER_URL`,
   default `<VARPET_PUBLIC_ORIGIN>/api/render`, `off` drops it); the MCP warms the renderer (`GET`) when it starts.
   The NDJSON `tool` event carries only the summary (`[image] <caption>`), never the image.
-- `place_product` writes an item node whose `asset.src` is `Product.glbUrl`, with `dimensions`, and
-  `metadata: {productId, priceAmd, shop}`; it publishes a live snapshot so open editors update.
+- `search_products` / `get_product` read the whole catalog (service scope `all`): nothing is hidden except items
+  without a model. Each result adds `mount: floor|surface|wall|ceiling` (the catalog's `tags.extra.placement`, else
+  kind and name; `mountOf` in `mount.ts`) and `flags?` (`size_conflict`, `model_sideways`, `no_price`, as text).
+  Search also takes `target_size` [w, h, d] (ranking; sent to the service as [w, d, h]) and `min_w|min_d|min_h`
+  (the piece's own sizes, filtered here over up to 6 service pages; `nextOffset` is the service offset). A service
+  side minimum and `mount` would be better: `docs/catalog-mount-and-min-size.patch`.
+- `place_product(product_id, target_id?, position?, rotation?, mount?, wall_id?, along?, height?, window_id?)` writes
+  an item node whose `asset.src` is `Product.glbUrl`, with `dimensions`, and `metadata: {productId, priceAmd, shop}`;
+  it publishes a live snapshot so open editors update. Floor and surface pieces are level children as before. Wall
+  pieces are wall children in Pascal's wall-side pose (`asset.attachTo: 'wall-side'`, `wallId`, `wallT`, `side`
+  = the face toward the room, `position` [along, bottom, +-thickness/2], rotation 0 or pi); ceiling pieces are
+  children of the ceiling over the point (`attachTo: 'ceiling'`, `position` [x, -drop, z]). `asset.offset` puts the
+  model's measured box (GLB accessor bounds) on the wall face or up to the ceiling. Results carry the pose
+  (`wall` or `ceiling`, `center`, `bottom`) and `notes`.
 - Saving never rewrites the graph the agent built (no wall-side tagging on save; the editor tags unknown wall sides
   at load for cutaway, `withWallSides` in `apps/web/components/editor/viewer-look.ts`).
 

@@ -1,0 +1,146 @@
+Catalog service: min_w/min_d/min_h hard filters and a mount per item (search_furniture, get_item).
+Draft for the main repo (catalog/), against catalog/search.py and catalog/mcp_server.py at 9b8a09fd (same as the VM).
+Not deployed. Apply in the main repo: patch -p1 < catalog-mount-and-min-size.patch; then catalog tests, then deploy.
+With it, packages/scene-mcp can send min_* to the service (exact paging, no 6-page cap) and read mount from it.
+
+diff -ru a/catalog/mcp_server.py b/catalog/mcp_server.py
+--- a/catalog/mcp_server.py	2026-10-03 01:49:46
++++ b/catalog/mcp_server.py	2026-10-03 01:49:46
+@@ -18,7 +18,7 @@
+ from mcp.server.mcpserver import MCPServer
+ 
+ from colors import PALETTE
+-from search import Query, fits, search, size_limits, kind_counts, validate_query
++from search import Query, fits, mount_of, search, size_limits, kind_counts, validate_query
+ from select_editor_set import EDITOR_KIND_OF
+ from room_kit import room_kit as build_room_kit
+ 
+@@ -89,6 +89,9 @@
+     max_w: float | None = None,
+     max_d: float | None = None,
+     max_h: float | None = None,
++    min_w: float | None = None,
++    min_d: float | None = None,
++    min_h: float | None = None,
+     allow_rotate: bool = True,
+     target_size: list[float] | None = None,
+     price_max: int | None = None,
+@@ -105,10 +108,13 @@
+     scope 'placeable' (default; 'editor' is the old name) searches every item the editor can place;
+     'all' searches the whole catalog.
+     room_items: ids already in the flat, to prefer pieces that go with them (style and look)
++    min_w/min_d/min_h: the item's own width, depth, height at least this (no turning; wall art for a big wall).
++    Each result has `mount` (floor | surface | wall | ceiling) and the catalog's mounting `notes`.
+     """
+     box, allow_rotate = size_limits(max_w, max_d, max_h, allow_rotate)
++    min_size = [min_w or 0, min_d or 0, min_h or 0] if any((min_w, min_d, min_h)) else None
+     q = Query(kind=kind, text=text, colors=colors or [], styles=styles or [], materials=materials or [],
+-              fit_box=box, allow_rotate=allow_rotate, target_size=target_size, price_max=price_max,
++              fit_box=box, allow_rotate=allow_rotate, min_size=min_size, target_size=target_size, price_max=price_max,
+               exclude_ids=exclude_ids or [], limit=limit, offset=offset, scope=scope,
+               room_items=room_items or [])
+     validate_query(q)
+@@ -202,13 +208,14 @@
+         cur = c.execute(
+             """select id, source, source_id, kind, name, brand, size_m, fit_size_m, size_status, size_evidence, price, currency,
+                       price_source, color_std, colors_img, materials, styles, glb_url, main_image_url, preview_url, image_urls, license,
+-                      tags->'extra'->>'placement' as placement
++                      tags->'extra'->>'placement' as placement, tags->'extra'->>'notes' as notes, tags
+                from item where id=%s""", (item_id,))
+         row = cur.fetchone()
+         if not row:
+             return {"error": f"no item {item_id}"}
+         rec = dict(zip([d.name for d in cur.description], row))
+     rec["wd_swapped"] = bool((rec["size_evidence"] or {}).get("wd_swapped"))
++    rec["mount"] = mount_of(rec["kind"], rec["name"], rec.pop("tags"), rec["size_m"])
+     return rec
+ 
+ 
+diff -ru a/catalog/search.py b/catalog/search.py
+--- a/catalog/search.py	2026-10-03 01:49:46
++++ b/catalog/search.py	2026-10-03 01:49:46
+@@ -90,6 +90,7 @@
+     styles: list[str] = field(default_factory=list)
+     materials: list[str] = field(default_factory=list)
+     fit_box: list[float] | None = None                     # max [w, d, h] in metres
++    min_size: list[float] | None = None                    # min [w, d, h] in metres, the item's own axes (0 = none)
+     allow_rotate: bool = True
+     target_size: list[float] | None = None
+     price_max: int | None = None
+@@ -291,7 +292,7 @@
+         raise ValueError("offset must be >= 0")
+     if q.scope not in ("placeable", "editor", "all"):
+         raise ValueError("scope must be one of: placeable, editor, all")
+-    for field in ("target_size", "fit_box"):
++    for field in ("target_size", "fit_box", "min_size"):
+         value = getattr(q, field)
+         if value is not None and len(value) != 3:
+             raise ValueError(f"{field} must contain exactly 3 dimensions [w, d, h]")
+@@ -331,6 +332,8 @@
+         margins = fits(size, q.fit_box, q.allow_rotate) if q.fit_box else None
+         if margins and min(margins) < 0:
+             fail.append({"fit": [round(m, 3) for m in margins]})
++        if q.min_size and any(s < m for s, m in zip(size, q.min_size)):
++            fail.append({"under_min": [round(s - m, 3) for s, m in zip(size, q.min_size)]})
+         if q.price_max is not None and (price is None or price > q.price_max):
+             fail.append({"price_over": (price or 0) - q.price_max})
+         if fail:
+@@ -461,7 +464,9 @@
+            "colors_astra": (astra.get("main_color") or []) + (astra.get("other_colors") or []),
+            "style_astra": astra.get("style") or [], "materials_astra": astra.get("materials") or [],
+            "wd_swapped": bool((ev or {}).get("wd_swapped")), "_fts": float(fts), "_astra": astra,
+-           "placement": ((tags or {}).get("extra") or {}).get("placement")}
++           "placement": ((tags or {}).get("extra") or {}).get("placement"),
++           "notes": ((tags or {}).get("extra") or {}).get("notes"),
++           "mount": mount_of(kind, name, tags, size)}
+     return rec, cimg, size, price
+ 
+ 
+@@ -525,6 +530,47 @@
+ def _minmax(x):
+     lo, hi = x.min(), x.max()
+     return (x - lo) / (hi - lo) if hi > lo else np.zeros_like(x)
++
++
++_PLACEMENT_MOUNT = {"floor": "floor", "surface": "surface", "wall": "wall", "wall-mounted": "wall",
++                   "ceiling": "ceiling", "ceiling-mounted": "ceiling"}
++_WALL_WORDS = re.compile(r"\bsconces?\b|\bwall[- ]?(mount(ed)?|hung|light|lamp|fixture|shel(f|ves)|cabinet|clock|decor|hanging)\b|\bfloating shel", re.I)
++_CEILING_WORDS = re.compile(r"\bpendants?\b|\bchandeliers?\b|\bceiling\b|\bflush[- ]?mount", re.I)
++_NOTE_MOUNT = re.compile(r"^(wall-mounted|wall-hung|ceiling)([^a-zA-Z0-9_]|$)", re.I)
++
++
++def mount_of(kind, name, tags, size):
++    """How an item goes up: floor | surface | wall | ceiling. The explicit placement tag, then mounting notes, then
++    kind and name (Amazon items have neither tag nor notes). Same rules as varpet v2's scene MCP (mount.ts)."""
++    extra = (tags or {}).get("extra") or {}
++    placement = _PLACEMENT_MOUNT.get(str(extra.get("placement") or "").strip().lower())
++    if placement:
++        return placement
++    note = _NOTE_MOUNT.match(str(extra.get("notes") or ""))
++    if note:
++        return "ceiling" if note.group(1).lower() == "ceiling" else "wall"
++    name, height = name or "", (size or [0, 0, 1])[2]
++    if kind in ("wall_art", "wall_hanging", "curtain", "blind", "radiator"):
++        return "wall"
++    if kind == "light":
++        return "wall" if _WALL_WORDS.search(name) else "floor" if re.search(r"\bfloor lamp", name, re.I) else "ceiling"
++    if kind == "lamp":
++        if _WALL_WORDS.search(name):
++            return "wall"
++        if _CEILING_WORDS.search(name):
++            return "ceiling"
++        return "floor" if re.search(r"\bfloor\b", name, re.I) or height >= 1 else "surface"
++    if kind == "mirror":
++        return "floor" if re.search(r"\bfloor\b|\bstanding\b|full[- ]length|\blean(er|ing)\b|\bcheval\b", name, re.I) else "wall"
++    if kind == "clock":
++        return "surface" if re.search(r"\b(table|desk|mantel|alarm|shelf) clock", name, re.I) else "wall"
++    if kind == "fan":
++        return "ceiling" if _CEILING_WORDS.search(name) else "floor"
++    if kind in ("tv", "decor", "laptop", "computer", "monitor", "printer", "game_console", "microwave", "speaker"):
++        return "surface"
++    if kind == "plant":
++        return "floor" if height >= 0.6 else "surface"
++    return "wall" if _WALL_WORDS.search(name) else "floor"
+ 
+ 
+ def _public(rec):

@@ -85,3 +85,13 @@ Base: `@pascal-app/core@1.0.3` (`ebe69be2`). One commit each, so each can become
 - Files: `packages/editor/src/components/editor/index.tsx`, `packages/editor/src/components/editor/editor-layout-v2.tsx`,
   `packages/editor/src/components/editor/editor-layout-mobile.tsx`.
 - Host side removed: the <body> class observer in `apps/web/components/editor/scene-editor.tsx`.
+
+## 9. Viewer + nodes: cut-away walls hide their wall-mounted items too
+- Motivation: patch 7 hid a cut wall's doors and windows, but items hosted on the wall (`asset.attachTo: 'wall' |
+  'wall-side'`: art, mirrors, wall lamps, curtains, which varpet's designer now hangs) kept drawing in mid-air, seen
+  from behind, in `cutaway` and `down` modes (editor and the headless render page).
+- Change: `WallCutoutCache.syncOpenings` treats `item` children of a wall like doors and windows; the node batch holds
+  wall-hosted items of a cut-away wall out of its merged copies (`collectTintedNodes`; items on floors, ceilings or
+  other items are unaffected).
+- Files: `packages/viewer/src/systems/wall/wall-cutout-cache.ts`, `packages/nodes/src/shared/node-batch/candidates.ts`.
+- Host side: none (no workaround existed).
