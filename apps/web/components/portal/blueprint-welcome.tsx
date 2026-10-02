@@ -1,12 +1,14 @@
 'use client'
 
 // The home page's drafting sheet (v1 portal/blueprint.ts, welcome half). Choosing a plan draws it on the sheet as
-// in v1. Building it in 3D is the plan intake (lane D) driving the architect agent (lane C); until that lands here,
-// the build step says so instead of starting.
+// in v1. "Bring my plan to life" makes an apartment (a Pascal scene plus the account record) and opens it in the
+// editor with the plan waiting in the plan intake, where the architect builds it.
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useRef, useState, type DragEvent } from 'react'
-import { bundlesApi, catalogHref, type BundleSummary } from './api'
+import { savePlanHandoff } from '@/lib/plan-handoff'
+import { accountApi, bundlesApi, catalogHref, createScene, editorHref, type BundleSummary } from './api'
+import { usePortal } from './frame'
 import { Icon } from './icons'
 import { BLUEPRINT_PAPER, drawInk, inkOfImage, reducedMotion } from './ink'
 
@@ -18,6 +20,8 @@ const MAX_PHOTOS = 10
 export function BlueprintWelcome({ audience, studioName }: { audience?: 'developer'; studioName?: string }) {
   const developer = audience === 'developer'
   const router = useRouter()
+  const { user, authenticate } = usePortal()
+  const [building, setBuilding] = useState(false)
   const ink = useRef<HTMLCanvasElement>(null)
   const picker = useRef<HTMLInputElement>(null)
   const photoPicker = useRef<HTMLInputElement>(null)
@@ -83,6 +87,24 @@ export function BlueprintWelcome({ audience, studioName }: { audience?: 'develop
     photoUrls.current.push(...added.map(photo => photo.url))
     setPhotos([...photos, ...added])
   }
+  /** A new apartment for this plan, then the editor, where the plan intake has the plan ready to build. */
+  async function bringToLife() {
+    if (!plan || building) return
+    setBuilding(true); setError(null)
+    try {
+      const account = user ?? await authenticate('register')
+      if (!account) { setBuilding(false); return }
+      const name = plan.name.replace(/\.[a-z]+$/i, '').trim().slice(0, 120) || 'My apartment'
+      const url = await dataUrl(plan)
+      const sceneId = await createScene(name)
+      await accountApi.createApartment({ name, templateId: null, sceneId })
+      savePlanHandoff(sceneId, { name: plan.name, url })
+      location.assign(editorHref(sceneId))
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Could not create the apartment. Please try again.')
+      setBuilding(false)
+    }
+  }
   const onDrop = (event: DragEvent) => { event.preventDefault(); setOver(false); void choose([...event.dataTransfer.files]) }
 
   return (
@@ -130,8 +152,9 @@ export function BlueprintWelcome({ audience, studioName }: { audience?: 'develop
               <button type="button" aria-label={`Remove ${photo.file.name}`} onClick={() => { URL.revokeObjectURL(photo.url); setPhotos(photos.filter((_, j) => j !== i)) }}><Icon name="close" /></button></span>
           ))}</div>
         </div>
-        <button type="button" className="portal-button portal-primary blueprint-build" disabled>Bring my plan to life <Icon name="arrow" /></button>
-        <p className="blueprint-build-note" role="status">Building in 3D from a plan arrives with the new plan intake. Your plan stays in this browser.</p>
+        <button type="button" className="portal-button portal-primary blueprint-build" disabled={building} onClick={() => void bringToLife()}>
+          {building ? 'Opening your apartment…' : 'Bring my plan to life'} <Icon name="arrow" /></button>
+        <p className="blueprint-build-note" role="status">{user ? 'Saved to your apartments. The architect builds it in the editor.' : 'Sign in or create an account to save this apartment.'}</p>
       </div>
       <p className="blueprint-error" role="alert" hidden={!error}>{error}</p>
       <div className="blueprint-bottom"><span><Icon name="layers" /> Your plan</span><i /><span><Icon name="walls" /> A space in 3D</span><i /><span><Icon name="home" /> Make it yours</span></div>
@@ -143,4 +166,13 @@ export function BlueprintWelcome({ audience, studioName }: { audience?: 'develop
         </div></details>}
     </section>
   )
+}
+
+function dataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => typeof reader.result === 'string' ? resolve(reader.result) : reject(new Error('This plan could not be read.'))
+    reader.onerror = () => reject(new Error('This plan could not be read.'))
+    reader.readAsDataURL(file)
+  })
 }
