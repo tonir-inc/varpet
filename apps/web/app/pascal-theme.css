@@ -206,3 +206,16 @@ body:has(.varpet-editor) ::selection {
 .varpet-not-found a {
   color: var(--folio-teal);
 }
+
+/* Pascal hardcodes a few dark greys (inputs, segmented controls); repaint them on paper. */
+body:has(.varpet-editor) .bg-\[\#2C2C2E\] {
+  background-color: var(--folio-raised);
+}
+
+body:has(.varpet-editor) .bg-\[\#3e3e3e\] {
+  background-color: var(--folio-surface);
+}
+
+body:has(.varpet-editor) .hover\:bg-\[\#3e3e3e\]:hover {
+  background-color: var(--folio-hover);
+}

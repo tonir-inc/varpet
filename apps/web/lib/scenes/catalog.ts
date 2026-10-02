@@ -8,7 +8,7 @@ type PanelCategory = 'furniture' | 'appliance' | 'kitchen' | 'bathroom' | 'outdo
 const CATEGORY_RULES: [PanelCategory, RegExp][] = [
   ['bathroom', /bath|shower|toilet|wc|bidet|basin|vanity|towel/i],
   ['kitchen', /kitchen|cooktop|hob|sink|countertop|worktop|range.?hood|extractor/i],
-  ['appliance', /appliance|fridge|refrigerator|freezer|oven|microwave|washer|washing|dryer|dishwasher|\btv\b|television|air.?con|heater/i],
+  ['appliance', /appliance|fridge|refrigerator|freezer|oven|microwave|washer|washing|dryer|dishwasher|\btv\b(?![ _-]?(stand|unit|cabinet))|television|air.?con|heater/i],
   ['outdoor', /outdoor|garden|balcony|terrace|patio/i],
 ]
 
