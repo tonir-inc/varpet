@@ -208,9 +208,14 @@ const quoted = (value: unknown) => typeof value === 'string' && value.trim() ? `
 export function toolLabel(rawName: string, input: unknown): string {
   const name = toolName(rawName), args = record(input)
   switch (name) {
-    case 'search_products': return `Searching Yerevan shops${quoted(args.q ?? args.query)}`
+    case 'search_products': return `Searching Yerevan shops${quoted(args.text ?? args.q ?? args.query)}`
     case 'get_product': return 'Reading a product’s details'
+    case 'show_products': return 'Looking at the pieces'
     case 'place_product': return 'Placing a piece in the flat'
+    case 'list_finishes': return args.surface === 'floor' ? 'Looking at floor finishes' : 'Looking at paints and finishes'
+    case 'set_wall_finish': return 'Painting a wall'
+    case 'set_floor_finish': return 'Changing a floor'
+    case 'ListMcpResourcesTool': case 'ReadMcpResourceTool': return 'Reading the editor’s guide'
     case 'get_scene': case 'get_level_summary': case 'describe_node': case 'get_node': case 'find_nodes': return 'Looking over your flat'
     case 'get_walls': return 'Reading the walls'
     case 'get_zones': return 'Reading the rooms'
