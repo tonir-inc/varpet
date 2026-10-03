@@ -472,6 +472,8 @@ function registerProductTools(server: McpServer, operations: SceneOperations, ca
           hangOut.neededDrop = neededDrop
         }
       }
+      // Over a table a low bottom is the point, not a warning.
+      const notes = under ? pose.notes.filter((n) => !n.startsWith('hangs down to')) : pose.notes
       const node = productItemNode(product, pose.position, rotation ?? 0, { attachTo: 'ceiling', bounds: hungBounds }, hung)
       const itemId = operations.createNode(node as never, pose.ceilingId as never)
       await publishSnapshot(operations, 'place_product')
@@ -485,7 +487,7 @@ function registerProductTools(server: McpServer, operations: SceneOperations, ca
         hang: hangOut,
         center: [pose.position[0], round(pose.bottom + height / 2), pose.position[2]],
         ...flags,
-        ...(pose.notes.length ? { notes: pose.notes } : {}),
+        ...(notes.length ? { notes } : {}),
       })
     },
   )
