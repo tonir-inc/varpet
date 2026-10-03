@@ -150,13 +150,16 @@ const PASCAL_TEXTURED: Array<[...Row, string]> = [
   ['concrete-polished', 'Polished concrete', 'concrete', F, '#6c6b6a', 'microcement industrial', 'concrete/concrete_polished/concrete_polished'],
 ]
 
-/** varpet v1 finishes, served from apps/web/public/finishes/<dir>. Tile size in metres from v1 material.json. */
-const VARPET_TEXTURED: Array<[...Row, { dir: string; tileM: number; roughness: number }]> = [
-  ['varpet-oak', 'Oak', 'wood', F, '#a27f58', 'oak planks natural', { dir: 'oak', tileM: 1.83, roughness: 0.55 }],
-  ['varpet-ash-light', 'Light ash', 'wood', F, '#ac957d', 'ash planks light', { dir: 'ash-light', tileM: 1, roughness: 0.55 }],
-  ['varpet-walnut', 'Walnut', 'wood', F, '#aa8a72', 'walnut planks', { dir: 'walnut', tileM: 1, roughness: 0.5 }],
-  ['varpet-travertine', 'Travertine', 'stone', WF, '#dfccac', 'travertine beige', { dir: 'travertine', tileM: 1.2, roughness: 0.7 }],
-  ['varpet-marble-white-alt', 'White marble', 'stone', WF, '#adaeb7', 'marble white', { dir: 'marble-white-alt', tileM: 1, roughness: 0.35 }],
+/**
+ * varpet v1 finishes, served from apps/web/public/finishes/<dir>. Tile size in metres from v1 material.json;
+ * `roughness` is the finish's mean roughness, `mapMean` the measured mean (green channel) of its roughness.jpg.
+ */
+const VARPET_TEXTURED: Array<[...Row, { dir: string; tileM: number; roughness: number; mapMean: number }]> = [
+  ['varpet-oak', 'Oak', 'wood', F, '#a27f58', 'oak planks natural', { dir: 'oak', tileM: 1.83, roughness: 0.55, mapMean: 0.53 }],
+  ['varpet-ash-light', 'Light ash', 'wood', F, '#ac957d', 'ash planks light', { dir: 'ash-light', tileM: 1, roughness: 0.55, mapMean: 0.62 }],
+  ['varpet-walnut', 'Walnut', 'wood', F, '#aa8a72', 'walnut planks', { dir: 'walnut', tileM: 1, roughness: 0.5, mapMean: 0.65 }],
+  ['varpet-travertine', 'Travertine', 'stone', WF, '#dfccac', 'travertine beige', { dir: 'travertine', tileM: 1.2, roughness: 0.7, mapMean: 0.04 }],
+  ['varpet-marble-white-alt', 'White marble', 'stone', WF, '#adaeb7', 'marble white', { dir: 'marble-white-alt', tileM: 1, roughness: 0.35, mapMean: 0.07 }],
 ]
 
 const PAINT_ROUGHNESS = 0.9
@@ -271,14 +274,19 @@ export function finishMaterialItems(origin = ''): FinishMaterialItem[] {
     const url = `${base}/finishes/${texture.dir}`
     // Pascal maps one texture repeat per metre at repeat 1.
     const repeat = 1 / texture.tileM
+    // three multiplies the material's roughness by the map, so a 0.55 finish over a 0.53-mean map rendered at 0.29
+    // (glossy, glaring wood floors). Scale so the product averages the finish's roughness; a map too dark to get
+    // there (the stones') is left out and the finish is evenly rough.
+    const keepMap = texture.mapMean >= texture.roughness / 2
+    const roughness = keepMap ? Math.min(1, texture.roughness / texture.mapMean) : texture.roughness
     return {
       ...common,
       category: finish.family,
       description: 'Varpet finish',
       previewThumbnailUrl: `${url}/basecolor.jpg`,
       preset: {
-        maps: { albedoMap: `${url}/basecolor.jpg`, normalMap: `${url}/normal.jpg`, roughnessMap: `${url}/roughness.jpg` },
-        mapProperties: { ...MAP_PROPERTIES, color: finish.color, roughness: texture.roughness, repeatX: repeat, repeatY: repeat, displacementScale: 0 },
+        maps: { albedoMap: `${url}/basecolor.jpg`, normalMap: `${url}/normal.jpg`, ...(keepMap ? { roughnessMap: `${url}/roughness.jpg` } : {}) },
+        mapProperties: { ...MAP_PROPERTIES, color: finish.color, roughness, repeatX: repeat, repeatY: repeat, displacementScale: 0 },
       },
     }
   })
