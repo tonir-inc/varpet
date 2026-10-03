@@ -136,3 +136,66 @@ test('bad bodies are 400; timeouts 504; failures 500, each with an error line', 
   assert.equal(broken.status, 500)
   assert.equal((await broken.json()).error, 'render_failed: no GPU')
 })
+
+// ---------------------------------------------------------------------------------------------------------------
+// The pool: K slots
+
+test('with concurrency K, K jobs run at once, each on its own slot, the rest wait in order', async () => {
+  const slotsSeen: number[] = []
+  const busy = new Set<number>()
+  let overlap = false
+  const driver: RenderDriver = {
+    async render(_r, slot = 0) {
+      if (busy.has(slot)) overlap = true
+      busy.add(slot)
+      slotsSeen.push(slot)
+      await delay(30)
+      busy.delete(slot)
+      return ok
+    },
+    async reset() {},
+  }
+  const queue = createRenderQueue(driver, { concurrency: 3 })
+  const results = await Promise.all(Array.from({ length: 7 }, () => queue.render(request)))
+  assert.equal(overlap, false, 'a slot never runs two jobs at once')
+  assert.deepEqual([...new Set(slotsSeen)].sort(), [0, 1, 2])
+  assert.equal(results.filter((r) => r.queuedMs < 20).length, 3, 'three start at once')
+  assert.ok(results[6]!.queuedMs >= 50, `the seventh job waited ${results[6]!.queuedMs} ms`)
+  assert.equal(queue.depth, 0)
+})
+
+test('a hung job on one slot times out and resets only that slot; the other slots keep drawing', async () => {
+  const resets: number[] = []
+  let hungOnce = false
+  const queue = createRenderQueue(
+    {
+      async render() {
+        if (!hungOnce) {
+          hungOnce = true
+          await new Promise(() => {})
+        }
+        await delay(10)
+        return ok
+      },
+      async reset(slot = 0) {
+        resets.push(slot)
+      },
+    },
+    { concurrency: 2, timeoutMs: 80 },
+  )
+  const hung = queue.render(request).catch((e: Error) => e.message)
+  const others = await Promise.all([queue.render(request), queue.render(request), queue.render(request)])
+  assert.ok(others.every((r) => r.slot === 1), 'the free slot drew the others while slot 0 hung')
+  assert.match(String(await hung), /^render_timeout: /)
+  assert.deepEqual(resets, [0])
+})
+
+test('the cold budget applies per slot', async () => {
+  const queue = createRenderQueue(
+    { async render() { await delay(60); return ok }, async reset() {} },
+    { concurrency: 2, timeoutMs: 20, coldTimeoutMs: 1000, isWarm: (slot) => slot === 0 },
+  )
+  const [a, b] = await Promise.allSettled([queue.render(request), queue.render(request)])
+  assert.equal(a.status, 'rejected')
+  assert.equal(b.status, 'fulfilled')
+})
