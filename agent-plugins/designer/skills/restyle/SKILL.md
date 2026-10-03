@@ -32,14 +32,14 @@ that lives in its surfaces (dark academia, art deco, Mediterranean).
 
 ## Furniture
 
-Replace the movable furniture that clashes with the style, keep what the buyer asked to keep, and finish the room as
-`furnish-room` describes it: complete stations, a conversation group, a focal point, layered light and the layers
-that make it lived in (textiles, curtains, dressed walls, books and objects, plants), all in the palette. A style is
-carried as much by its textiles, lamps, art and objects as by its sofa; a minimal style is still a full, warm room.
-Match wood tones across pieces; one statement piece per room.
+Replace the movable furniture that clashes with the style, keep what the buyer asked to keep, and finish the room
+with `furnish-room`'s steps from the plan on: every zone of the room used (a restyled living room with an empty
+kitchen leg is half done), stations, a rug sized to its group, cushions and throws on the seats, a made bed, dressed
+walls, light sized to what it lights, all in the palette. A style is carried as much by its textiles, lamps, art and
+objects as by its sofa; a minimal style is still a full, warm room. Match wood tones; the signature move is the
+style's strongest note (the velvet sofa against a lighter wall rather than lost in the same green).
 
-Then look at it with `view_scene` (`'inside'` and `'top'` for the room's zone) and keep going until it reads as the
-style at a glance and holds up as a real, lived-in room.
+Then review it as `furnish-room` step 7 does, room by room, and fix what the catalog can fix before answering.
 
-Done means: walls and floor changed when the brief asked for them, every piece chosen to the palette, the room
-holds up as lived in when you look at it, and the answer names each finish by its label and where it went.
+Done means: walls and floor changed when the brief asked for them, every piece chosen to the palette, the review
+finds nothing the catalog could fix, and the answer names each finish by its label and where it went.
