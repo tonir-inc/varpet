@@ -19,3 +19,12 @@ test('the designer is never offered the wall fittings or the newly placeable wal
   expect(result.results.map(product => product.sku)).toEqual(['table', 'abo-pendant']);
   expect(result.excluded_records).toBe(6);
 });
+
+test('the designer is never offered a product the editor rejects for its size (a 6 mm outdoor rug)', async () => {
+  const query: CatalogQuery = async () => ({ results: [
+    { ...row('thin-rug', 'rug', 'Striped polypropylene outdoor rug, balcony, 120 x 180 cm', 'extra'), size_m: [1.2, 1.8, 0.006] },
+    { ...row('rug', 'rug', 'Jute rug 160 x 230 cm', 'extra'), size_m: [1.6, 2.3, 0.01] },
+  ] });
+  const result = await searchCatalog({ limit: 20 }, query);
+  expect(result.results.map(product => product.sku)).toEqual(['rug']);
+});

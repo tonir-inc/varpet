@@ -56,6 +56,11 @@ EXTRA_FURNITURE_KINDS = (*(k for k in PLACEABLE_KINDS if k not in EXTRA_DECOR_KI
 FAMILY_KINDS = ("decor", "wall_art", "curtain")
 
 
+def editor_size_ok(size) -> bool:
+    """The editor takes a catalog product only when every size is 0.01-20 m (apps/editor/src/adapters/database-catalog.ts)."""
+    return bool(size) and len(size) == 3 and all(0.01 <= v <= 20 for v in size)
+
+
 def kinds_for(kind):
     if kind not in FAMILY_KINDS:
         return [kind]
@@ -348,7 +353,10 @@ def search(conn, q: Query):
         where.append(PLACEABLE)
     fts_text = q.text if q.text and "fts" in modes(q.text_mode, TEXT_ALIASES) else None
     passed, misses = [], []
+    placeable = q.scope in ("placeable", "editor")
     for static, cimg, size, price in _candidate_rows(conn, where, args, fts_text):
+        if placeable and not editor_size_ok(size):
+            continue  # the SQL bounds ABO sizes only; a 6 mm extra rug would come back and then fail to place
         rec = dict(static)
         fail = []
         margins = fits(size, q.fit_box, q.allow_rotate) if q.fit_box else None

@@ -278,6 +278,7 @@ export async function searchCatalog(input: unknown, query: CatalogQuery = queryC
     if ((request.kind && record.kind !== request.kind) || record.price > (request.price_max ?? Infinity)
       || bareBedBase(record)
       || designerCannotMount(record.kind, record.name ?? '', record.source)
+      || !record.size_m.every(v => v >= .01 && v <= 20)  // the editor rejects a product outside 0.01-20 m (a 6 mm rug)
       || !(fits(w, d) || (request.allow_rotate !== false && fits(d, w)))) { excluded++; continue; }
     const name = record.name ?? record.id;
     const item: PlaceItem = { id: record.id, kind: record.kind, name, size: record.size_m, sku: record.id, price: record.price,

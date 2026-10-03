@@ -120,3 +120,10 @@ def test_no_placement_adds_no_filter():
     conn = _Recorder()
     search(conn, Query(text="lamp"))
     assert "ceiling" not in conn.calls[-1][1]
+
+
+def test_editor_size_range_matches_the_editor_adapter():
+    from search import editor_size_ok
+    assert editor_size_ok([1.2, 1.8, 0.01]) and editor_size_ok([20, 0.5, 0.5])
+    assert not editor_size_ok([1.2, 1.8, 0.006])  # the 6 mm outdoor rug the editor rejected
+    assert not editor_size_ok([21, 1, 1]) and not editor_size_ok(None) and not editor_size_ok([1, 1])
