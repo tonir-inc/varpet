@@ -95,10 +95,30 @@ export function resolveBuildingForLevel(
   return null
 }
 
-// Call this once at app initialization. Returns an unsubscribe function that
+let spatialGridSyncUsers = 0
+let stopSpatialGridSync: (() => void) | null = null
+
+// Call this at app initialization. Returns an unsubscribe function that
 // detaches the scene-store listener (useful when the editor is unmounted so
 // the spatial grid singleton does not hold stale references to old scenes).
+// Reference-counted: the editor and every <Viewer> (whose FloorElevationSystem
+// reads slab elevations from the grid) may each call it; the scene-store
+// listener is attached once and detached when the last caller unsubscribes.
+// Each returned function is idempotent.
 export function initSpatialGridSync(): () => void {
+  if (spatialGridSyncUsers++ === 0) stopSpatialGridSync = startSpatialGridSync()
+  let released = false
+  return () => {
+    if (released) return
+    released = true
+    if (--spatialGridSyncUsers === 0) {
+      stopSpatialGridSync?.()
+      stopSpatialGridSync = null
+    }
+  }
+}
+
+function startSpatialGridSync(): () => void {
   const store = useScene
   // 1. Initial sync - process all existing nodes
   const state = store.getState()

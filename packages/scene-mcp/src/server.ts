@@ -12,8 +12,10 @@ import type { Catalog, ProductHit } from './catalog.ts'
 import { finishMaterialItems } from '../../contracts/src/finishes.ts'
 import { registerFinishTools } from './finishes.ts'
 import { registerViewSceneTool, type Renderer } from './view-scene.ts'
-import { httpModelBounds, type Bounds, type ModelBounds } from './model-bounds.ts'
-import { ceilingPose, defaultWallBottom, MOUNTS, nearestWall, wallPose, windowHang, type Mount } from './mount.ts'
+import { checkClearances } from './clearances.ts'
+import { hostOf, hostUnder, httpModelHeights, restOn, type ModelHeights } from './surface.ts'
+import { dropRange, hangAt, httpModelBounds, normalizeHang, type Bounds, type Hang, type ModelBounds } from './model-bounds.ts'
+import { ceilingPose, defaultWallBottom, MOUNTS, nearestWall, tableUnder, wallPose, windowHang, type Mount } from './mount.ts'
 
 /** Tools that would rebind or delete scenes. The agent is bound to one scene for its whole run. */
 export const HIDDEN_TOOLS = [
@@ -34,6 +36,9 @@ export const PRODUCT_TOOLS = ['search_products', 'get_product', 'show_products',
 
 export { FINISH_TOOLS } from './finishes.ts'
 
+/** Measured gaps: walkways, door swings, chair pull-out, bed access, storage fronts, glazing. */
+export const CHECK_TOOLS = ['check_clearances'] as const
+
 /** The agent's eyes: renders of its own work scene (needs a renderer, see view-scene.ts). */
 export const VIEW_TOOLS = ['view_scene'] as const
 
@@ -47,10 +52,12 @@ export interface SceneServerOptions {
   render?: Renderer
   /** Reads a model's box so hung pieces sit right whatever their origin (default: fetch the GLB). */
   modelBounds?: ModelBounds
+  /** Reads a host model's height map so surface pieces rest on a seat or mattress, not its box top (default: fetch). */
+  modelHeights?: ModelHeights
 }
 
 /** Load the scene, bind Pascal's operations to it and build the server. Throws when the scene does not exist. */
-export async function createSceneServer({ store, sceneId, catalog, publicOrigin, render, modelBounds = httpModelBounds() }: SceneServerOptions): Promise<{
+export async function createSceneServer({ store, sceneId, catalog, publicOrigin, render, modelBounds = httpModelBounds(), modelHeights = httpModelHeights() }: SceneServerOptions): Promise<{
   server: McpServer
   operations: SceneOperations
 }> {
@@ -69,8 +76,9 @@ export async function createSceneServer({ store, sceneId, catalog, publicOrigin,
     name: 'varpet-scene',
     hiddenTools: HIDDEN_TOOLS,
     registerHostTools: (host) => {
-      registerProductTools(host, operations, catalog, modelBounds)
+      registerProductTools(host, operations, catalog, modelBounds, modelHeights)
       registerFinishTools(host, operations, publishSnapshot)
+      registerClearanceTool(host, operations)
       if (render) registerViewSceneTool(host, operations, render)
     },
   })
@@ -141,6 +149,8 @@ export function productItemNode(
   position: [number, number, number],
   rotationY: number,
   mounting?: ItemMounting,
+  /** A set drop: the hung size and the GLB node overrides that make it (asset.nodeTransforms, Pascal patch 14). */
+  hung?: { dimensions: [number, number, number]; nodeTransforms: Record<string, { position?: [number, number, number]; scale?: [number, number, number] }> },
 ) {
   const depth = product.dimensions[2]
   return ItemNode.parse({
@@ -154,7 +164,8 @@ export function productItemNode(
       name: product.name,
       thumbnail: product.thumbnailUrl ?? '',
       src: product.glbUrl,
-      dimensions: product.dimensions,
+      dimensions: hung?.dimensions ?? product.dimensions,
+      ...(hung ? { nodeTransforms: hung.nodeTransforms } : {}),
       // Catalog models are floor-centred, in metres, Y up.
       offset: mounting ? mountOffset(mounting, depth) : [0, 0, 0],
       ...(mounting ? { attachTo: mounting.attachTo } : {}),
@@ -176,7 +187,7 @@ function failure(message: string) {
   return { content: [{ type: 'text' as const, text: message }], isError: true }
 }
 
-function registerProductTools(server: McpServer, operations: SceneOperations, catalog: Catalog, modelBounds: ModelBounds) {
+function registerProductTools(server: McpServer, operations: SceneOperations, catalog: Catalog, modelBounds: ModelBounds, modelHeights: ModelHeights) {
   server.registerTool(
     'search_products',
     {
@@ -186,7 +197,9 @@ function registerProductTools(server: McpServer, operations: SceneOperations, ca
         'filters; text, colors, styles, materials and target_size rank. Sizes are in metres; max_w/max_d/max_h allow ' +
         'rotation, min_w/min_d/min_h are the piece\'s own width, depth, height (a 1.2 m wide wall needs art with ' +
         'min_w ~0.8). Each result has dimensions [width, height, depth], priceAmd, shop, mount (floor | surface | ' +
-        'wall | ceiling: how it goes up; place_product hangs wall and ceiling pieces) and flags when something is ' +
+        'wall | ceiling: how it goes up; place_product hangs wall and ceiling pieces), for ceiling pieces drop (metres ' +
+        'from the ceiling to the fixture\'s bottom, read from the model, not the listing: a number when fixed, ' +
+        '{min, max} when the cord is adjustable) and flags when something is ' +
         'known to be off (size_conflict, model_sideways, no_price). Up to 20 per page; use offset/nextOffset. Kinds ' +
         'include bed, nightstand, wardrobe, dresser, sofa, chair, table, desk, cabinet, shelf, rug, lamp (floor, ' +
         'table and wall lamps), light (pendants, chandeliers, ceiling and wall lights), wall_art, mirror, clock, ' +
@@ -224,10 +237,8 @@ function registerProductTools(server: McpServer, operations: SceneOperations, ca
           ...(target_size ? { targetSize: target_size as [number, number, number] } : {}),
           limit: query.limit ?? 8,
         })
-        return text({
-          ...found,
-          results: found.results.map(({ glbUrl: _glb, thumbnailUrl: _thumb, ...rest }) => rest),
-        })
+        const results = await Promise.all(found.results.map((p) => withDrop(p, modelBounds)))
+        return text({ ...found, results })
       } catch (error) {
         return failure(`catalog_unavailable: ${String(error)}`)
       }
@@ -240,14 +251,15 @@ function registerProductTools(server: McpServer, operations: SceneOperations, ca
       title: 'Get product',
       description:
         'One catalog product by id: name, kind, dimensions [width, height, depth] in metres, priceAmd, shop, mount ' +
-        '(floor | surface | wall | ceiling) and flags.',
+        '(floor | surface | wall | ceiling), flags, and for ceiling pieces drop (from the model: a number when fixed, ' +
+        '{min, max} when adjustable).',
       inputSchema: { product_id: z.string().min(1) },
       annotations: { readOnlyHint: true },
     },
     async ({ product_id }) => {
       try {
         const product = await catalog.get(product_id)
-        return product ? text(product) : failure(`product_not_found: ${product_id}`)
+        return product ? text(await withDrop(product, modelBounds)) : failure(`product_not_found: ${product_id}`)
       } catch (error) {
         return failure(`catalog_unavailable: ${String(error)}`)
       }
@@ -284,8 +296,10 @@ function registerProductTools(server: McpServer, operations: SceneOperations, ca
         'Place a real catalog product, mounted the way it goes up (the product\'s mount, or `mount` to override, ' +
         'e.g. a TV on a wall or a leaning mirror on the floor). ' +
         'Floor and surface pieces: target_id is a level, zone (room) or slab; position is the footprint centre ' +
-        '[x, y, z] in level coordinates, metres, y = 0 on the floor (a surface piece: y = the top of what it stands ' +
-        'on); rotation is about the vertical axis in radians, at 0 width along x and the front facing +z; ' +
+        '[x, y, z] in level coordinates, metres, y = 0 on the floor. A surface piece (lamps, decor, cushions, throws, ' +
+        'bedding sets) with y = 0 over another piece rests on it: the table top, the sofa seat, the bed\'s mattress ' +
+        '(read from that piece\'s model, not its box), or give target_id = that piece (position defaults to its ' +
+        'centre, rotation to its own); a y > 0 is kept as given. rotation is about the vertical axis in radians, at 0 width along x and the front facing +z; ' +
         'rotation = atan2(dx, dz) turns the front toward (dx, dz). ' +
         'Wall pieces (art, mirrors, wall lamps, wall shelves, curtains, blinds) hang on a wall face, back on the ' +
         'wall, facing the room: give wall_id with along (metres from the wall\'s start to the piece\'s centre) and ' +
@@ -294,7 +308,11 @@ function registerProductTools(server: McpServer, operations: SceneOperations, ca
         'target_id) centres curtains and blinds on that window at a sensible height. Without a height art and ' +
         'mirrors centre near 1.5 m. ' +
         'Ceiling pieces (pendants, chandeliers, ceiling lights) hang from the room\'s ceiling, top at the ceiling: ' +
-        'position = the floor point under it (y ignored), or a zone alone for its middle. ' +
+        'position = the floor point under it (y ignored), or a zone alone for its middle. drop sets how high the ' +
+        "fixture's bottom hangs: metres above the table, desk or counter under it (or above the floor when nothing " +
+        "is under it, or with drop_above: 'floor'); usual: 0.75 above a dining table, 2.1+ above the floor in a " +
+        'walkway. Adjustable pieces (search drop {min, max}) are set to it within their cord; fixed ones hang at their ' +
+        "model's drop and the result says what the drop would need to be, so you can pick another. " +
         'Returns the item id, its footprint or wall/ceiling pose, and notes (clamped, covers a window, hangs low). ' +
         'Move a floor piece with apply_patch; re-place a hung piece (delete_node, then place_product) to move it.',
       inputSchema: {
@@ -307,6 +325,8 @@ function registerProductTools(server: McpServer, operations: SceneOperations, ca
         along: z.number().optional().describe("Wall pieces: metres from the wall's start to the piece's centre."),
         height: z.number().optional().describe('Wall pieces: bottom edge above the floor, metres.'),
         window_id: z.string().min(1).optional().describe('Curtains and blinds: the window to hang over.'),
+        drop: z.number().min(0).optional().describe("Ceiling pieces: metres from the table top (or floor) up to the fixture's bottom."),
+        drop_above: z.enum(['table', 'floor']).optional().describe('What drop is measured from: default the table under the point, else the floor.'),
       },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
     },
@@ -326,15 +346,37 @@ function registerProductTools(server: McpServer, operations: SceneOperations, ca
       const flags = product.flags?.length ? { flags: product.flags } : {}
 
       if (mount === 'floor' || mount === 'surface') {
-        if (!target) return failure('target_required: a floor or surface piece needs target_id (a level, zone or slab)')
-        if (!['level', 'zone', 'slab'].includes(target.type)) {
+        if (!target) return failure('target_required: a floor or surface piece needs target_id (a level, zone or slab; for a surface piece also the piece it goes on)')
+        const onItem = target.type === 'item'
+        if (onItem && mount !== 'surface') return failure(`bad_target: ${target_id} is an item; only a surface piece goes on one (mount: 'surface')`)
+        if (!onItem && !['level', 'zone', 'slab'].includes(target.type)) {
           return failure(`bad_target: ${target_id} is a ${target.type}; use a level, zone or slab (or mount: 'wall' / 'ceiling')`)
         }
-        if (!position) return failure('position_required: a floor or surface piece needs position [x, y, z]')
         const levelId = target.type === 'level' ? target_id : operations.resolveLevelId(target_id as never)
         if (!levelId) return failure(`no_level_for_target: ${target_id}`)
-        const angle = rotation ?? 0
-        const node = productItemNode(product, position as [number, number, number], angle)
+        const all = operations.getNodes() as unknown as Record<string, AnyNode>
+        let at = position as [number, number, number] | undefined
+        if (!at && onItem) at = [...((target.position as [number, number, number] | undefined) ?? [0, 0, 0])]
+        if (!at) return failure('position_required: a floor or surface piece needs position [x, y, z]')
+        at = [at[0], at[1], at[2]]
+        const angle = rotation ?? (onItem ? (((target.rotation as number[] | undefined) ?? [0, 0, 0])[1] ?? 0) : 0)
+        const notes: string[] = []
+        let on: Record<string, unknown> | undefined
+        // A surface piece lands on the piece under it (a seat, a mattress, a table top) unless given its own height.
+        if (mount === 'surface') {
+          const host = onItem ? hostOf(target) : hostUnder(all, levelId, [at[0], at[2]])
+          if (host && (onItem || at[1] < 0.05)) {
+            const src = (host.node.asset as { src?: string } | undefined)?.src
+            const map = src ? await modelHeights(src) : null
+            const rest = restOn(host, map, [at[0], at[2]], [product.dimensions[0], product.dimensions[2]], angle)
+            at[1] = rest.top
+            on = { id: host.id, name: host.name.slice(0, 60), top: rest.top, from: rest.from }
+            if (rest.from === 'box') notes.push(`rests on the top of ${host.id}'s box (${rest.top} m): its model could not be read, so a seat or mattress may be lower`)
+          } else if (!host && at[1] < 0.05) {
+            notes.push(`nothing under (${round(at[0])}, ${round(at[2])}): on the floor; give target_id = the piece it goes on, or position over it`)
+          }
+        }
+        const node = productItemNode(product, at, angle)
         const itemId = operations.createNode(node as never, levelId as never)
         await publishSnapshot(operations, 'place_product')
         const [w, , d] = product.dimensions
@@ -344,8 +386,11 @@ function registerProductTools(server: McpServer, operations: SceneOperations, ca
           itemId,
           levelId,
           ...placed,
-          footprint: { x: round(w * cos + d * sin), z: round(w * sin + d * cos), center: [position[0], position[2]] },
+          footprint: { x: round(w * cos + d * sin), z: round(w * sin + d * cos), center: [at[0], at[2]] },
+          ...(mount === 'surface' ? { bottom: at[1] } : {}),
+          ...(on ? { on } : {}),
           ...flags,
+          ...(notes.length ? { notes } : {}),
         })
       }
 
@@ -409,13 +454,57 @@ function registerProductTools(server: McpServer, operations: SceneOperations, ca
         return failure(`bad_target: ${target_id} is a ${target.type}; a ceiling piece takes a zone, ceiling or level`)
       }
       if (!point && !zone && target?.type !== 'ceiling') return failure('position_required: give position (the floor point under it) or a zone')
-      // The model's own height (Amazon lights include the cord or chain) decides how low it hangs.
+      // The model's own height (Amazon lights include the cord or chain) decides how low it hangs, unless its cord
+      // is a separate node (varpet's generated lights): then the drop is set by stretching it.
       const bounds = await modelBounds(product.glbUrl)
+      const hang = bounds?.hang ?? normalizeHang(product.hang)
       const [w, catalogHeight, d] = product.dimensions
-      const height = bounds ? Math.round((bounds.max[1] - bounds.min[1]) * 1000) / 1000 : catalogHeight
-      const pose = ceilingPose(nodes, levelId, point ?? null, zone, [w, height, d], target?.type === 'ceiling' ? target.id : undefined)
+      const modelDrop = bounds ? round(bounds.max[1] - bounds.min[1]) : hang ? hang.drop_m : catalogHeight
+      const ceilingId = target?.type === 'ceiling' ? target.id : undefined
+      let pose = ceilingPose(nodes, levelId, point ?? null, zone, [w, modelDrop, d], ceilingId)
       if ('error' in pose) return failure(pose.error)
-      const node = productItemNode(product, pose.position, rotation ?? 0, { attachTo: 'ceiling', bounds })
+      const under = tableUnder(nodes, levelId, [pose.position[0], pose.position[2]])
+      let height = modelDrop
+      let hung: Parameters<typeof productItemNode>[4]
+      let hungBounds: Bounds | null = bounds
+      let hangOut: Record<string, unknown> = hang?.adjustable
+        ? { adjustable: true, range: dropRange(hang) }
+        : { adjustable: false, drop: modelDrop }
+      if (args.drop !== undefined) {
+        const above = args.drop_above ?? (under ? 'table' : 'floor')
+        if (above === 'table' && !under) {
+          return failure(`no_table_under: nothing with a top under (${round(pose.position[0])}, ${round(pose.position[2])}); give drop_above: 'floor' or the table's centre as position`)
+        }
+        const base = above === 'table' ? under!.top : 0
+        const wantedBottom = base + args.drop
+        const neededDrop = round(pose.ceilingHeight - wantedBottom)
+        if (neededDrop <= 0) return failure(`drop_too_high: a bottom ${round(wantedBottom)} m above the floor is at or above the ${pose.ceilingHeight} m ceiling`)
+        if (hang?.adjustable) {
+          const set = hangAt(hang, neededDrop)
+          height = set.drop
+          const box: Bounds = bounds ?? { min: [-w / 2, -modelDrop, -d / 2], max: [w / 2, 0, d / 2] }
+          hung = { dimensions: [w, height, d], nodeTransforms: set.nodeTransforms }
+          hangOut = { adjustable: true, range: dropRange(hang), cord: set.cord, ...(set.clamped ? { clamped: true } : {}) }
+          // The measured x/z box stays; its bottom moves with the body.
+          hungBounds = { min: [box.min[0], box.max[1] - height, box.min[2]], max: box.max }
+          pose = ceilingPose(nodes, levelId, point ?? null, zone, [w, height, d], ceilingId)
+          if ('error' in pose) return failure(pose.error)
+        }
+        const got = round(pose.bottom - base)
+        const met = Math.abs(got - args.drop) <= 0.05
+        hangOut.asked = { drop: args.drop, above: above === 'table' ? under!.id : 'floor' }
+        hangOut.got = got
+        hangOut.met = met
+        if (!met) {
+          hangOut.note = hang?.adjustable
+            ? `cord at its ${got > args.drop ? 'shortest' : 'longest'}: bottom ${got} m above the ${above}, asked ${args.drop}; adjustable drop ${dropRange(hang)!.join('-')} m below the ceiling`
+            : `this model's drop is fixed at ${modelDrop} m below the ceiling (cord and shade are one mesh): bottom ${got} m above the ${above}, asked ${args.drop}. For that, pick a ceiling piece with drop ${neededDrop} m, or an adjustable one whose range holds it`
+          hangOut.neededDrop = neededDrop
+        }
+      }
+      // Over a table a low bottom is the point, not a warning.
+      const notes = under ? pose.notes.filter((n) => !n.startsWith('hangs down to')) : pose.notes
+      const node = productItemNode(product, pose.position, rotation ?? 0, { attachTo: 'ceiling', bounds: hungBounds }, hung)
       const itemId = operations.createNode(node as never, pose.ceilingId as never)
       await publishSnapshot(operations, 'place_product')
       return text({
@@ -424,15 +513,56 @@ function registerProductTools(server: McpServer, operations: SceneOperations, ca
         ...placed,
         ceiling: { id: pose.ceilingId, height: pose.ceilingHeight },
         bottom: pose.bottom,
+        ...(under ? { aboveTable: { id: under.id, top: under.top, gap: round(pose.bottom - under.top) } } : {}),
+        hang: hangOut,
         center: [pose.position[0], round(pose.bottom + height / 2), pose.position[2]],
         ...flags,
-        ...(pose.notes.length ? { notes: pose.notes } : {}),
+        ...(notes.length ? { notes } : {}),
       })
     },
   )
 }
 
+/** A product as the agent sees it: no model URLs; ceiling pieces with their drop from the model (cached reads). */
+async function withDrop(product: ProductHit, modelBounds: ModelBounds) {
+  const { glbUrl, thumbnailUrl: _thumb, hang: rawHang, ...rest } = product
+  if (product.mount !== 'ceiling') return rest
+  const bounds = await modelBounds(glbUrl).catch(() => null)
+  const hang: Hang | null = bounds?.hang ?? normalizeHang(rawHang)
+  if (hang?.adjustable) {
+    const [min, max] = dropRange(hang)!
+    return { ...rest, drop: { min: round(min), max: round(max) } }
+  }
+  const drop = bounds ? round(bounds.max[1] - bounds.min[1]) : hang?.drop_m
+  return drop === undefined ? rest : { ...rest, drop }
+}
+
 type AnyNode = { id: string; type: string; parentId?: string | null; [key: string]: unknown }
+
+function registerClearanceTool(server: McpServer, operations: SceneOperations) {
+  server.registerTool(
+    'check_clearances',
+    {
+      title: 'Check clearances',
+      description:
+        'Measure what a designer checks before presenting a room, from the scene (metres, to the cm): walkway ' +
+        'widths on the widest route between the room\'s doors and from its way in to each bed side and storage ' +
+        'front (the pinch, where, between which pieces); the clear depth in front of each door and how far each ' +
+        'hinged door opens before its leaf meets a piece; dining table edge to the nearest wall or piece on each ' +
+        'side (its own chairs ignored); bed sides (toward the foot) and foot; wardrobe and dresser fronts; sofa or ' +
+        'armchair to coffee table; tall pieces in front of windows. Returns measured findings per room with piece ' +
+        'ids and the usual targets, not verdicts: judge them against the brief. Pieces are floor items; rugs, flat ' +
+        'pieces, things standing on other pieces, and wall or ceiling pieces are not obstacles. Without zone_id, ' +
+        'every room with floor furniture. Use it after placing a room\'s furniture and after moving pieces.',
+      inputSchema: { zone_id: z.string().min(1).optional().describe('The room (zone) to measure.') },
+      annotations: { readOnlyHint: true },
+    },
+    async ({ zone_id }) => {
+      const report = checkClearances(operations.getNodes() as unknown as Record<string, AnyNode>, zone_id)
+      return 'error' in report ? failure(report.error) : text(report)
+    },
+  )
+}
 
 const OUTDOOR = /balcon|loggia|terrace|patio/i
 

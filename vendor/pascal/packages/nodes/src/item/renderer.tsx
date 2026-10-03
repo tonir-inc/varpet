@@ -689,6 +689,21 @@ const LoadedModelRenderer = ({
     }
   }, [shading, textures, colorPreset, node.slots, sceneMaterials])
 
+  // Named-node overrides (asset.nodeTransforms) on this instance's clone; the GLB cache keeps its own.
+  const nodeTransforms = node.asset.nodeTransforms
+  useLayoutEffect(() => {
+    const root = ref.current
+    if (!root || !nodeTransforms) return
+    for (const [name, transform] of Object.entries(nodeTransforms)) {
+      const target = root.getObjectByName(name)
+      if (!target) continue
+      if (transform.position) target.position.set(...transform.position)
+      if (transform.scale) target.scale.set(...transform.scale)
+      target.updateMatrix()
+    }
+    root.updateMatrixWorld(true)
+  }, [nodeTransforms])
+
   const interactive = interactiveRef.current
   const animEffect =
     interactive?.effects.find((e): e is AnimationEffect => e.kind === 'animation') ?? null

@@ -123,3 +123,25 @@ Base: `@pascal-app/core@1.0.3` (`ebe69be2`). One commit each, so each can become
 - Files: `packages/viewer/src/components/viewer/index.tsx`.
 - Host side: `CAPTURE_DPR = 2` in `apps/web/components/render/render-stage.tsx` (supersampled captures; no
   workaround existed).
+
+## 13. Core + viewer: a bare `<Viewer>` keeps the spatial grid in sync
+- Motivation: floor items stand on their slab only through `FloorElevationSystem`, which reads slab elevations from
+  the spatial grid; only the editor started `initSpatialGridSync`. The headless render page (view_scene) is a bare
+  `<Viewer>`, so there every floor item sat at the level base, 5 cm under the flat templates' slab top: rugs vanished
+  and the designer agent "fixed" them by raising them to y 0.05, which then floated 5 cm in the editor.
+- Change: `initSpatialGridSync` is reference-counted (the store listener attaches once, detaches with the last user;
+  each teardown is idempotent) and `FloorElevationSystem` holds one reference while mounted. In the editor this only
+  adds a user; its teardown (`clear()`) is unchanged.
+- Files: `packages/core/src/hooks/spatial-grid/spatial-grid-sync.ts` (+ test),
+  `packages/viewer/src/systems/floor-elevation/floor-elevation-system.tsx`.
+- Host side: none (scene y 0 is the floor top everywhere now; no host lift).
+
+## 14. Core + nodes: `asset.nodeTransforms` (per-instance overrides of named GLB nodes)
+- Motivation: varpet's generated pendants keep `canopy`, `cord` and `body` as separate glTF nodes so a drop can be set
+  at placement (cord scaled in Y, body moved to its end). An item could only transform its whole model.
+- Change: the item asset schema takes `nodeTransforms?: Record<nodeName, { position?, scale? }>`; the item renderer
+  applies them to its own clone after load (`getObjectByName`), so the GLB cache and other instances are untouched.
+  The node batch reads mesh world matrices, so merged copies follow.
+- Files: `packages/core/src/schema/nodes/item.ts`, `packages/nodes/src/item/renderer.tsx`.
+- Host side: `place_product(..., drop)` in `packages/scene-mcp` writes them (no workaround existed).
+||||||| aa9f269a

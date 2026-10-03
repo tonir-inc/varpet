@@ -3,6 +3,7 @@ import {
   type AnyNodeId,
   getEffectiveNode,
   getFloorStackedPosition,
+  initSpatialGridSync,
   type LiveTransform,
   nodeRegistry,
   sceneRegistry,
@@ -81,6 +82,10 @@ function restoreMountedExitPose(saved: MountedExitPose) {
 export const FloorElevationSystem = () => {
   const dirtyNodes = useScene((s) => s.dirtyNodes)
   const clearDirty = useScene((s) => s.clearDirty)
+  // The lift reads slab elevations from the spatial grid. The editor keeps the grid in sync, but a bare <Viewer>
+  // (a read-only or headless host) had no one doing it, so floor items sat at the level base, under their slab.
+  // Reference-counted: inside the editor this only adds a user.
+  useEffect(() => initSpatialGridSync(), [])
   const preview = useMemo(
     () => ({
       local: new Matrix4(),

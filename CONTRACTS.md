@@ -43,7 +43,7 @@ that file and this one in the same commit, and say so in the commit message.
 ## Scene MCP tools (lane C, `packages/scene-mcp`)
 - All of Pascal's tools except the scene lifecycle ones (`load_scene`, `save_scene`, `delete_scene`, `rename_scene`,
   `list_scenes`, `create_project`, `get_project_status`), plus `search_products`, `get_product`, `show_products`,
-  `place_product(product_id, ...)`, `list_finishes`, `set_wall_finish`, `set_floor_finish`.
+  `place_product(product_id, ...)`, `list_finishes`, `set_wall_finish`, `set_floor_finish`, `check_clearances`.
 - `view_scene(zone_id?, view?: 3d|top|inside = 3d, width? = 1024)`: the agent's eyes. Renders the MCP's current
   in-memory graph (this turn's edits included) through `POST /api/render` and returns MCP image content (JPEG,
   width x 3/4 width) plus one caption line: room, view, camera, orientation, renderer backend, time. Cameras
@@ -61,7 +61,12 @@ that file and this one in the same commit, and say so in the commit message.
   Search also takes `target_size` [w, h, d] (ranking; sent to the service as [w, d, h]) and `min_w|min_d|min_h`
   (the piece's own sizes, filtered here over up to 6 service pages; `nextOffset` is the service offset). A service
   side minimum and `mount` would be better: `docs/catalog-mount-and-min-size.patch`.
-- `place_product(product_id, target_id?, position?, rotation?, mount?, wall_id?, along?, height?, window_id?)` writes
+- Ceiling pieces in `search_products` / `get_product` results carry `drop`: metres from the ceiling to the fixture's
+  bottom, read from the model (GLB JSON chunk, streamed and cancelled; not the listing height, which for
+  `size_conflict` pendants includes a cord the model does not have): a number when fixed, `{min, max}` when adjustable.
+  Results never carry model URLs or `hang`.
+- `place_product(product_id, target_id?, position?, rotation?, mount?, wall_id?, along?, height?, window_id?, drop?,
+  drop_above?: table|floor)` writes
   an item node whose `asset.src` is `Product.glbUrl`, with `dimensions`, and `metadata: {productId, priceAmd, shop}`;
   it publishes a live snapshot so open editors update. Floor and surface pieces are level children as before. Wall
   pieces are wall children in Pascal's wall-side pose (`asset.attachTo: 'wall-side'`, `wallId`, `wallT`, `side`
@@ -69,6 +74,34 @@ that file and this one in the same commit, and say so in the commit message.
   children of the ceiling over the point (`attachTo: 'ceiling'`, `position` [x, -drop, z]). `asset.offset` puts the
   model's measured box (GLB accessor bounds) on the wall face or up to the ceiling. Results carry the pose
   (`wall` or `ceiling`, `center`, `bottom`) and `notes`.
+- Surface pieces (`mount: surface`; kinds cushion, pillow, throw_blanket, bedding and names like "bedding set" are
+  surface whatever their tag) placed with y < 0.05 over a floor piece, or with `target_id` = that piece (position
+  defaults to its centre, rotation to its own), rest on it: y = the lowest level (3 cm band) holding 30% of the host model's top over the piece's
+  footprint (`surface.ts`: the host GLB as a 4 cm height map, so a bed's mattress and a sofa's seat, not the headboard
+  or back), else the host's box top with a note. A y >= 0.05 is kept. Results add `bottom` and `on: {id, name, top,
+  from: model|box}`; nothing under a y-0 surface piece leaves it on the floor with a note.
+- Ceiling `drop`: the fixture's bottom above the table, desk or counter whose footprint holds the point
+  (`tableUnder` in `mount.ts`), else above the floor; `drop_above` forces one (`table` with nothing under is
+  `no_table_under`). Adjustable pieces follow the hang contract of varpet's generated lights (root extras
+  `varpet_hang`, else the catalog entry's `raw.hang`; nodes `canopy`, `cord`, `body`; README in the lights lane's
+  `catalog/blender/lights`): cord c = clamp(D - canopy_m - body_m, cord_min_m, cord_max_m), written as
+  `asset.nodeTransforms` `{cord: {scale: [1, c/cord_m, 1]}, body: {position: [x, -(canopy_m + c), z]}}` (Pascal patch
+  14), with `asset.dimensions` h = the set drop. Every other model (the 98 Amazon ceiling lights checked: one merged mesh, no cord
+  node) hangs at its model's drop. Ceiling results add `hang: {adjustable, drop | range, cord?, clamped?, asked?,
+  got?, met? (within 5 cm), neededDrop?, note?}` and `aboveTable: {id, top, gap}` whenever a table is under it.
+- `check_clearances(zone_id?)` (read-only; `clearances.ts`, pure): per room `{zone, name, findings, pieces: {id: short
+  name}}` plus `targets` (one line per check used). Findings, metres to the cm: `walkway {from, to, width, at,
+  between | blockedBy}` (widest route on a 5 cm grid between the room's doors and open-plan stretches of its outline,
+  and from its way in to each bed side and wardrobe/dresser/desk front; cells near either end do not set the width);
+  `door_approach {door, clear, to}` (target 0.65 m, Pascal's door keep-out depth); `door_swing {door, opens (deg),
+  by?}` (hinged leaves on their swing side: inward = the wall's front, flipped when the door is turned round);
+  `dining {piece, chairs, sides: [{side, clear, to}]}` (its own chairs within 0.7 m ignored); `bed {piece, sides,
+  foot}` (sides over the half toward the foot); `storage_front {piece, kind, front, to}`; `seating {piece, table,
+  gap}`; `window {window, piece, covers, of, gap, top, sill}`. Sides are compass names (north = -z). Obstacles are
+  floor items on the level; rugs and flat pieces (<= 5 cm), pieces standing on others (bottom > 0.25 m) and wall or
+  ceiling pieces are not. Without `zone_id`, every room with floor furniture. No verdicts.
+- Floor pieces stand on their slab everywhere: y 0 is the slab top in the editor and in renders (Pascal patch 13; the
+  flat templates' slabs are 0.05 m up). Never lift a piece by the slab elevation.
 - Saving never rewrites the graph the agent built (no wall-side tagging on save; the editor tags unknown wall sides
   at load for cutaway, `withWallSides` in `apps/web/components/editor/viewer-look.ts`).
 
