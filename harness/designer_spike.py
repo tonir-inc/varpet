@@ -106,6 +106,10 @@ class SpikeConversation:
     # Design pieces the customer's editor has held at some point (so an absent one was deleted, not unapplied).
     seen: set[str] = field(default_factory=set)
     budget: int | None = None
+    # Suggestion chips offered on the last turn: chip text -> the request the designer gets when the customer picks it.
+    offered: dict[str, str] = field(default_factory=dict)
+    # A recorded design arrived, but the turn that carried it only listed suggestions: the next turn continues it.
+    seed_pending: bool = False
 
 
 def strip_design(doc: dict, owned: list[str]) -> dict:
@@ -1015,6 +1019,13 @@ def _run_turn(state: SpikeConversation, turn_input, cancel: threading.Event, obs
         raise RuntimeError("The designer ran out of time on this request; try a smaller request or ask again")
     status = (completed or {}).get("status")
     if status != "completed":
+        reason = (completed or {}).get("error")
+        print(json.dumps({"type": "spike_turn_failed", "status": status, "error": reason}, default=str)[:2000],
+              file=__import__("sys").stderr, flush=True)
+        if isinstance(reason, dict) and reason.get("codexErrorInfo") == "usageLimitExceeded":
+            when = re.search(r"try again at ([^.]+)", str(reason.get("message") or ""))
+            raise RuntimeError("The designer has reached its usage limit" + (f"; it is back at {when.group(1)}" if when else "")
+                               + ". You can still move and rotate pieces yourself.")
         raise RuntimeError(f"The designer stopped before finishing ({status or 'no completion'})")
     return {"final": final, "usage": usage, "seconds": round(time.monotonic() - started, 1)}
 
@@ -1024,6 +1035,79 @@ def _draft_digest(workspace: Path) -> str:
         return hashlib.sha256(json.dumps(json.loads((workspace / "draft.json").read_text()), sort_keys=True).encode()).hexdigest()
     except (OSError, ValueError):
         return ""
+
+
+SUGGESTION_ASK = re.compile(r"\b(suggest(?:ion)?s?|recommend(?:ation)?s?|ideas?|improve(?:ments?)?|better|wrong|problems?|issues?)\b", re.I)
+ACTION = re.compile(r"^\s*suggestion:|\b(?:move|add|remove|delete|put|place|rotate|turn|replace|swap|make|paint|change|use|apply|"
+                    r"clear|fix|give|arrange|rearrange|keep|style|decorate|furnish|redo|try)\b", re.I)
+
+
+def wants_suggestions(request: str) -> bool:
+    """"What could be better?", "any suggestions?": a short ask for the flat's existing problems (no change yet).
+    Anything that names an action ("fix the walkways", "now improve the arrangement: move...") is a change."""
+    return bool(SUGGESTION_ASK.search(request)) and not ACTION.search(request) and len(request.split()) <= 15
+
+
+def record_baseline(workspace: Path) -> list[str]:
+    """baseline.json: the design's problems before this request (`check --final` lines). ./varpet check then blocks
+    only problems the request adds or worsens; the rest are the flat's own, offered as suggestions when asked."""
+    path = workspace / "baseline.json"
+    path.unlink(missing_ok=True)
+    check = _run([workspace / "varpet", "check", "--final"], cwd=workspace)
+    problems = [line[2:] for line in check.stdout.splitlines() if line.startswith("- ")]
+    if problems:
+        path.write_text(json.dumps({"problems": problems}, ensure_ascii=False, indent=1) + "\n")
+    return problems
+
+
+def suggestion_groups(workspace: Path) -> list[dict]:
+    result = _run([workspace / "varpet", "suggestions", "--json"], cwd=workspace)
+    try:
+        return json.loads(result.stdout.strip().splitlines()[-1]) if result.returncode == 0 else []
+    except (IndexError, ValueError):
+        return []
+
+
+def suggestions_reply(state: "SpikeConversation", conversation_id: str, groups: list[dict]) -> dict:
+    """The existing problems as optional suggestions, grouped; nothing changes until the customer picks one, and each
+    pick previews first. Each chip becomes a request for exactly that group (`state.offered`)."""
+    if not groups:
+        state.offered = {}
+        return {"type": "message", "conversationId": conversation_id,
+                "message": "I don't see anything in this flat that needs fixing. Ask me for any change you'd like."}
+    names = {str(item.get("id")): str(item.get("name") or item.get("id")).lower()
+             for item in (_read_draft(state.workspace / "draft.json") or {}).get("items", []) if isinstance(item, dict)}
+    by_name = re.compile(r"(?<![\w-])(" + "|".join(sorted(map(re.escape, names), key=len, reverse=True)) + r")(?![\w-])") if names else None
+
+    def plain_text(line: str) -> str:
+        text = by_name.sub(lambda match: names[match.group(1)], line) if by_name else line
+        return re.sub(r"\b(\w+) \1\b", r"\1", text)  # "desk desk has no task light"
+
+    def example(text: str) -> str:
+        return text if len(text) <= 110 else text[:110].rsplit(" ", 1)[0].rstrip(",;:") + "…"
+
+    parts = []
+    for index, group in enumerate(groups, 1):
+        plain = [plain_text(line) for line in group["plain"]]
+        more = f", and {len(plain) - 1} more" if len(plain) > 1 else ""
+        parts.append(f"{index}) {group['title']}: {example(plain[0])}{more}.")
+    question = ("Here is what could be better. It is all optional: each one shows a preview first, and you apply it or "
+                "not. " + " ".join(parts) + " Which would you like to see? You can also ask for one item on its own.")
+    state.offered = {group["chip"]: (f"{group['title']}: the customer picked this optional suggestion. Do exactly these "
+                                     "and change nothing else:\n" + "\n".join(f"- {line}" for line in group["lines"]))
+                     for group in groups}
+    chips = [group["chip"] for group in groups][:4]
+    if len(chips) < 2:  # a question carries two to four options
+        return {"type": "message", "conversationId": conversation_id, "message": question[:4000], "suggestions": chips}
+    return {"type": "question", "conversationId": conversation_id, "question": question[:1000], "options": chips}
+
+
+MOCK_AMOUNT = re.compile(r"(\d[\d,. ]*\d\s*(?:AMD|dram|֏))(?!\s*\(?mock)", re.I)
+
+
+def mock_amounts(text: str) -> str:
+    """Every dram amount the designer writes is labelled mock: catalog prices are not retailer offers yet."""
+    return MOCK_AMOUNT.sub(r"\1 (mock)", text)
 
 
 def _notes(workspace: Path) -> str | None:
@@ -1055,8 +1139,8 @@ def propose(conversation, conversation_id: str, body: dict, cancel: threading.Ev
     if first:
         conversation.spike = _workspace(conversation.root)
     state: SpikeConversation = conversation.spike
-    seeded = first and isinstance(body.get("design"), dict)
-    if seeded:
+    seeded = (first and isinstance(body.get("design"), dict)) or state.seed_pending
+    if first and isinstance(body.get("design"), dict):
         # Continue a recorded design live: its draft and owned pieces become this conversation's design.
         (state.workspace / "draft.json").write_text(json.dumps(body["design"]["draft"], ensure_ascii=False) + "\n")
         state.owned = [str(item) for item in body["design"]["owned"]]
@@ -1091,15 +1175,31 @@ def propose(conversation, conversation_id: str, body: dict, cancel: threading.Ev
             (state.workspace / "AGENTS.md").write_text(state.instructions)
         if cancel.is_set():
             raise RuntimeError("Request cancelled")
+        first_design = not state.owned and not (_read_draft(state.workspace / "draft.json") or {}).get("items")
+        # The customer picked a suggestion chip: the designer gets that group's problems as the request.
+        request = state.offered.pop(body["request"], None) or body["request"]
+        state.offered = {}
+        existing: list[str] = []
+        if first_design:
+            (state.workspace / "baseline.json").unlink(missing_ok=True)
+        else:
+            # A request on an existing design is judged against where it started, not against a perfect flat.
+            progress("Noting what the flat already has")
+            if seeded and first:
+                edits = sync_edits(state, body["scene"])
+            existing = record_baseline(state.workspace)
+            if request == body["request"] and wants_suggestions(request):
+                state.seed_pending = seeded
+                return suggestions_reply(state, conversation_id, suggestion_groups(state.workspace))
+        state.seed_pending = False
         progress("Warming up the renderer")
         spike.warm_renderer(state.workspace, state.rooms[0]["id"])
         lap("renderer")
         if seeded:
-            edits = sync_edits(state, body["scene"])
             earlier = "\n".join(f"- {text}" for text in requests[:-1])
-            text = (f"Customer follow-up: {body['request']}\nThis continues a design you made earlier for this customer; draft.json "
+            text = (f"Customer follow-up: {request}\nThis continues a design you made earlier for this customer; draft.json "
                     f"holds it and they applied it.{(' Their earlier requests:' + chr(10) + earlier) if earlier else ''} "
-                    + _turn_text(body["request"], False, edits, budget).split("\n", 1)[1])
+                    + _turn_text(request, False, edits, budget).split("\n", 1)[1])
         elif not first and not state.owned and not (_read_draft(state.workspace / "draft.json") or {}).get("items"):
             # The customer answered the designer's question: nothing is applied yet, so design (or finish) now.
             parts = sorted(path.stem for path in (state.workspace / "rooms").glob("*.json")) if (state.workspace / "rooms").is_dir() else []
@@ -1108,7 +1208,12 @@ def propose(conversation, conversation_id: str, body: dict, cancel: threading.Ev
             text = (f"Customer answer: {body['request']}\n{started} Follow this answer and the original request."
                     + (f"\nFurniture budget: {budget} AMD (budget.json; ./varpet check enforces it)." if budget else ""))
         else:
-            text = _turn_text(body["request"], first, edits, budget)
+            text = _turn_text(request, first, edits, budget)
+        if existing:
+            text += (f"\nThe flat already had {len(existing)} problems before this request (baseline.json; `./varpet suggestions` "
+                     "lists them). They are not yours to fix now and ./varpet check does not block on them: change only what "
+                     "the customer asked. If they asked what could be better, answer from `./varpet suggestions` and leave "
+                     "draft.json alone.")
         if image:
             from openai_codex import LocalImageInput, TextInput
             turn_input = [LocalImageInput(path=str(state.workspace / ("inspiration" + suffix))),
@@ -1120,7 +1225,6 @@ def propose(conversation, conversation_id: str, body: dict, cancel: threading.Ev
         rooms_before = _room_signatures(state.workspace)
         progress("Planning the flat" if first else "Thinking about your follow-up")
         observer = Progress(state.rooms, progress, state.workspace)
-        first_design = not state.owned and not (_read_draft(state.workspace / "draft.json") or {}).get("items")
         brief = "\n\n".join(requests)
         # A whole-flat first design runs on parallel room designers (run/SUBAGENT.md); a one-room request and
         # follow-ups keep the single thread. VARPET_SPIKE_PARALLEL=on|off|auto.
@@ -1149,7 +1253,7 @@ def propose(conversation, conversation_id: str, body: dict, cancel: threading.Ev
             result = _run_turn(state, turn_input, cancel, observer, timeout, parallel_config if parallel else None)
         watcher.stop()
         lap("designer")
-        reply = (result["final"] or "").strip()
+        reply = mock_amounts((result["final"] or "").strip())
         if _draft_digest(state.workspace) == before:
             asked = question_options(reply)
             if asked:
@@ -1169,7 +1273,7 @@ def propose(conversation, conversation_id: str, body: dict, cancel: threading.Ev
                                 f"run {tool} until it says GATES OK, and end with the same kind of short customer paragraph as before.",
                                 cancel, Progress(state.rooms, progress, state.workspace), timeout)
                 if (fix.get("final") or "").strip():
-                    reply = fix["final"].strip()
+                    reply = mock_amounts(fix["final"].strip())
             except RuntimeError:
                 if cancel.is_set():
                     raise
@@ -1189,11 +1293,12 @@ def propose(conversation, conversation_id: str, body: dict, cancel: threading.Ev
             return {"type": "message", "conversationId": conversation_id, "message": (reply[:4000 - len(note)] + note)[:4000]}
         after = _room_signatures(state.workspace)
         changed = [room["id"] for room in state.rooms if room["id"] in after and after[room["id"]] != rooms_before.get(room["id"])]
-        review = _review(state, brief, changed, cancel, progress, timeout, len(requests), reply, early,
+        # The reviewer looks at first designs only: on an existing design it would fix what the customer did not ask for.
+        review = _review(state, brief, changed if first_design else [], cancel, progress, timeout, len(requests), reply, early,
                          parallel_config if parallel else None, time.monotonic() - turn_started, flat=in_loop)
         lap("review")
         if review.get("reply"):
-            reply = review["reply"]
+            reply = mock_amounts(review["reply"])
         timings["critic"] = {key: value for key, value in review.items() if key not in ("reply", "notes")}
         review_notes = review.get("notes") or []
         progress("Preparing the preview")

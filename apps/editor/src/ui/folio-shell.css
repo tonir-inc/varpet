@@ -65,6 +65,7 @@
 .folio-quote:hover { background: var(--accent-hover); }
 .folio-num { font-family: var(--serif); font-weight: 600; font-variant-numeric: lining-nums tabular-nums; }
 .folio-quote .folio-num { font-size: 16px; }
+.folio-quote .folio-mock { font-size: 10px; letter-spacing: .06em; text-transform: uppercase; opacity: .75; margin-left: 2px; }
 
 .folio-ib { width: 36px; height: 36px; padding: 0; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--ink); }
 .folio-ib:hover { background: var(--hover); }
@@ -178,7 +179,7 @@
   .folio .folio-sandbox { font-size: 12px; padding-inline: 6px; }
   .folio .app-header .folio-sandbox, .folio .app-header [data-team-rename] { display: none; }
   .folio .app-header .folio-quote { width: 36px; padding: 0; }
-  .folio .app-header .folio-quote .folio-num { display: none; }
+  .folio .app-header .folio-quote .folio-num, .folio .app-header .folio-quote .folio-mock { display: none; }
   .folio .viewport-shell .right-panel { top: 112px; bottom: 112px; max-height: calc(100% - 224px); }
   .furniture-panel { top: 112px; bottom: 112px; width: min(280px, calc(100% - 72px)); }
 }

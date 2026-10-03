@@ -28,6 +28,11 @@ body.editor-arriving .viewport-shell > .design-onboarding:not(#viewport, #archit
 .design-live-dot { display: block; flex: none; width: 7px; height: 7px; margin-top: 8px; border-radius: 50%; background: #c9de91; animation: design-live-pulse 1.5s ease-in-out infinite; }
 .design-options { display: flex; flex-wrap: wrap; gap: 7px; margin: 0 0 15px; }
 .design-options button { color: #eaf2ee; background: #ffffff0a; border: 1px solid #bcd4d250; border-radius: 2px; padding: 7px 10px; font-size: 14px; }
+.design-arrangements { display: flex; gap: 0; margin: 0 0 16px; border: 1px solid #bcd4d250; border-radius: 2px; width: fit-content; }
+.design-arrangements button { color: #d1e2df; background: transparent; border: 0; padding: 7px 12px; font-size: 14px; cursor: pointer; }
+.design-arrangements button + button { border-left: 1px solid #bcd4d250; }
+.design-arrangements button[aria-checked="true"] { background: #d7e59f; color: #14342b; font-weight: 600; }
+.design-arrangements button:focus-visible { outline: 2px solid #d7e59f; outline-offset: 2px; }
 .design-navigation { position: absolute; right: 32px; bottom: 20px; margin: 0; color: #d0e0df; font-size: 13px; letter-spacing: .02em; }
 .design-navigation span { margin: 0 8px; opacity: .6; }
 .design-onboarding [hidden] { display: none !important; }

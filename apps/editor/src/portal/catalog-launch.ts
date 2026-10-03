@@ -4,6 +4,7 @@
  * person lands in Design with the developer's design in front of them. Nothing is written to an account here.
  */
 import { api } from './api';
+import type { BundlePresentation } from './blueprint-presentation';
 import { developerHref, catalogHref, type Bundle, type BundleSummary } from './bundles-contract';
 import { BundleError, bundlesApi, restoreBundle } from './bundles';
 import { BLUEPRINT_PAPER, setEditorSession } from './session';
@@ -21,6 +22,8 @@ export interface LaunchOptions {
   bundle?: Promise<Bundle>;
   /** Called once the editor is about to take over `host` (dispose the page that launched it). */
   beforeEditor?(): void;
+  /** Overrides for the Design brief (Experimental flats name who furnished them and link the developer's site). */
+  presentation?: Partial<Pick<BundlePresentation, 'developerHref' | 'furnishedBy'>>;
 }
 
 const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -69,7 +72,7 @@ export async function launchBundle(host: HTMLElement, id: string, options: Launc
       presentation: {
         paper: BLUEPRINT_PAPER, arriving: true, workflow: 'design',
         bundle: { id: bundle.id, name: bundle.name, developerName: bundle.developerName, developerHref: developerHref(bundle.developerSlug),
-          blueprintUrl: bundle.blueprintUrl, furnishedPieces: restored.scene.objects.length },
+          blueprintUrl: bundle.blueprintUrl, furnishedPieces: restored.scene.objects.length, ...options.presentation },
       },
     });
     const { editorView } = await import('../main');
