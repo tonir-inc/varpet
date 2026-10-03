@@ -156,6 +156,22 @@
           4.9031
         ],
         [
+          2.2496,
+          4.9031
+        ],
+        [
+          2.2496,
+          5.7027
+        ],
+        [
+          2.5656,
+          5.7027
+        ],
+        [
+          2.5656,
+          4.9031
+        ],
+        [
           5.2897,
           4.9031
         ],
@@ -176,11 +192,11 @@
       "polygon": [
         [
           6.9065,
-          4.938
+          4.9381
         ],
         [
           8.4704,
-          4.938
+          4.9381
         ],
         [
           8.4704,
@@ -463,6 +479,21 @@
       "openings": []
     },
     {
+      "id": "riser-bath",
+      "start": [
+        7.8731,
+        5.1931
+      ],
+      "end": [
+        8.6199,
+        5.1931
+      ],
+      "height": 2.7,
+      "thickness": 0.51,
+      "color": "#f2f0eb",
+      "openings": []
+    },
+    {
       "id": "wall-bath-west",
       "start": [
         6.845,
@@ -514,6 +545,21 @@
       ],
       "height": 2.7,
       "thickness": 0.123,
+      "color": "#f2f0eb",
+      "openings": []
+    },
+    {
+      "id": "struct-bedroom-stub",
+      "start": [
+        2.4076,
+        4.8416
+      ],
+      "end": [
+        2.4076,
+        5.7027
+      ],
+      "height": 2.7,
+      "thickness": 0.316,
       "color": "#f2f0eb",
       "openings": []
     },
@@ -933,6 +979,11 @@
         "phase": "existing",
         "review": "unreviewed"
       },
+      "riser-bath": {
+        "structuralRole": "unknown",
+        "phase": "existing",
+        "review": "unreviewed"
+      },
       "wall-bath-west": {
         "structuralRole": "unknown",
         "phase": "existing",
@@ -944,6 +995,11 @@
         "review": "unreviewed"
       },
       "wall-living-bedroom": {
+        "structuralRole": "unknown",
+        "phase": "existing",
+        "review": "unreviewed"
+      },
+      "struct-bedroom-stub": {
         "structuralRole": "unknown",
         "phase": "existing",
         "review": "unreviewed"
@@ -1391,6 +1447,22 @@
                   4.9031
                 ],
                 [
+                  2.2496,
+                  4.9031
+                ],
+                [
+                  2.2496,
+                  5.7027
+                ],
+                [
+                  2.5656,
+                  5.7027
+                ],
+                [
+                  2.5656,
+                  4.9031
+                ],
+                [
                   5.2897,
                   4.9031
                 ],
@@ -1411,11 +1483,11 @@
               "polygon": [
                 [
                   6.9065,
-                  4.938
+                  4.9381
                 ],
                 [
                   8.4704,
-                  4.938
+                  4.9381
                 ],
                 [
                   8.4704,
@@ -1698,6 +1770,21 @@
               "openings": []
             },
             {
+              "id": "riser-bath",
+              "start": [
+                7.8731,
+                5.1931
+              ],
+              "end": [
+                8.6199,
+                5.1931
+              ],
+              "height": 2.7,
+              "thickness": 0.51,
+              "color": "#f2f0eb",
+              "openings": []
+            },
+            {
               "id": "wall-bath-west",
               "start": [
                 6.845,
@@ -1749,6 +1836,21 @@
               ],
               "height": 2.7,
               "thickness": 0.123,
+              "color": "#f2f0eb",
+              "openings": []
+            },
+            {
+              "id": "struct-bedroom-stub",
+              "start": [
+                2.4076,
+                4.8416
+              ],
+              "end": [
+                2.4076,
+                5.7027
+              ],
+              "height": 2.7,
+              "thickness": 0.316,
               "color": "#f2f0eb",
               "openings": []
             },
@@ -2165,6 +2267,11 @@
               "phase": "existing",
               "review": "unreviewed"
             },
+            "riser-bath": {
+              "structuralRole": "unknown",
+              "phase": "existing",
+              "review": "unreviewed"
+            },
             "wall-bath-west": {
               "structuralRole": "unknown",
               "phase": "existing",
@@ -2176,6 +2283,11 @@
               "review": "unreviewed"
             },
             "wall-living-bedroom": {
+              "structuralRole": "unknown",
+              "phase": "existing",
+              "review": "unreviewed"
+            },
+            "struct-bedroom-stub": {
               "structuralRole": "unknown",
               "phase": "existing",
               "review": "unreviewed"
@@ -2620,6 +2732,22 @@
                   4.9031
                 ],
                 [
+                  2.2496,
+                  4.9031
+                ],
+                [
+                  2.2496,
+                  5.7027
+                ],
+                [
+                  2.5656,
+                  5.7027
+                ],
+                [
+                  2.5656,
+                  4.9031
+                ],
+                [
                   5.2897,
                   4.9031
                 ],
@@ -2640,11 +2768,11 @@
               "polygon": [
                 [
                   6.9065,
-                  4.938
+                  4.9381
                 ],
                 [
                   8.4704,
-                  4.938
+                  4.9381
                 ],
                 [
                   8.4704,
@@ -2927,6 +3055,21 @@
               "openings": []
             },
             {
+              "id": "riser-bath",
+              "start": [
+                7.8731,
+                5.1931
+              ],
+              "end": [
+                8.6199,
+                5.1931
+              ],
+              "height": 2.7,
+              "thickness": 0.51,
+              "color": "#f2f0eb",
+              "openings": []
+            },
+            {
               "id": "wall-bath-west",
               "start": [
                 6.845,
@@ -2978,6 +3121,21 @@
               ],
               "height": 2.7,
               "thickness": 0.123,
+              "color": "#f2f0eb",
+              "openings": []
+            },
+            {
+              "id": "struct-bedroom-stub",
+              "start": [
+                2.4076,
+                4.8416
+              ],
+              "end": [
+                2.4076,
+                5.7027
+              ],
+              "height": 2.7,
+              "thickness": 0.316,
               "color": "#f2f0eb",
               "openings": []
             },
@@ -3458,6 +3616,11 @@
               "phase": "existing",
               "review": "unreviewed"
             },
+            "riser-bath": {
+              "structuralRole": "unknown",
+              "phase": "existing",
+              "review": "unreviewed"
+            },
             "wall-bath-west": {
               "structuralRole": "unknown",
               "phase": "existing",
@@ -3469,6 +3632,11 @@
               "review": "unreviewed"
             },
             "wall-living-bedroom": {
+              "structuralRole": "unknown",
+              "phase": "existing",
+              "review": "unreviewed"
+            },
+            "struct-bedroom-stub": {
               "structuralRole": "unknown",
               "phase": "existing",
               "review": "unreviewed"
@@ -3913,6 +4081,22 @@
                   4.9031
                 ],
                 [
+                  2.2496,
+                  4.9031
+                ],
+                [
+                  2.2496,
+                  5.7027
+                ],
+                [
+                  2.5656,
+                  5.7027
+                ],
+                [
+                  2.5656,
+                  4.9031
+                ],
+                [
                   5.2897,
                   4.9031
                 ],
@@ -3933,11 +4117,11 @@
               "polygon": [
                 [
                   6.9065,
-                  4.938
+                  4.9381
                 ],
                 [
                   8.4704,
-                  4.938
+                  4.9381
                 ],
                 [
                   8.4704,
@@ -4220,6 +4404,21 @@
               "openings": []
             },
             {
+              "id": "riser-bath",
+              "start": [
+                7.8731,
+                5.1931
+              ],
+              "end": [
+                8.6199,
+                5.1931
+              ],
+              "height": 2.7,
+              "thickness": 0.51,
+              "color": "#f2f0eb",
+              "openings": []
+            },
+            {
               "id": "wall-bath-west",
               "start": [
                 6.845,
@@ -4271,6 +4470,21 @@
               ],
               "height": 2.7,
               "thickness": 0.123,
+              "color": "#f2f0eb",
+              "openings": []
+            },
+            {
+              "id": "struct-bedroom-stub",
+              "start": [
+                2.4076,
+                4.8416
+              ],
+              "end": [
+                2.4076,
+                5.7027
+              ],
+              "height": 2.7,
+              "thickness": 0.316,
               "color": "#f2f0eb",
               "openings": []
             },
@@ -4728,11 +4942,11 @@
             {
               "name": "Heated ladder towel rail, chrome, 120 cm tall, with side cable (93 cm overall), wall-mounted",
               "position": [
-                7.945,
-                0.4,
-                4.9961
+                6.9646,
+                0.9,
+                6.64
               ],
-              "rotation": 0,
+              "rotation": 1.5707963267948966,
               "scale": [
                 1,
                 1,
@@ -4741,10 +4955,10 @@
               "id": "trial-towel-rail",
               "assetId": "experimental:gaps:towel-rail-heated-ladder-50",
               "host": {
-                "wallId": "wall-shaft-bath",
-                "offset": 1.1000000000000005,
-                "elevation": 0.4,
-                "side": 1
+                "wallId": "wall-bath-west",
+                "offset": 1.8774999999999995,
+                "elevation": 0.9,
+                "side": -1
               }
             },
             {
@@ -5508,6 +5722,22 @@
                   4.9031
                 ],
                 [
+                  2.2496,
+                  4.9031
+                ],
+                [
+                  2.2496,
+                  5.7027
+                ],
+                [
+                  2.5656,
+                  5.7027
+                ],
+                [
+                  2.5656,
+                  4.9031
+                ],
+                [
                   5.2897,
                   4.9031
                 ],
@@ -5528,11 +5758,11 @@
               "polygon": [
                 [
                   6.9065,
-                  4.938
+                  4.9381
                 ],
                 [
                   8.4704,
-                  4.938
+                  4.9381
                 ],
                 [
                   8.4704,
@@ -5815,6 +6045,21 @@
               "openings": []
             },
             {
+              "id": "riser-bath",
+              "start": [
+                7.8731,
+                5.1931
+              ],
+              "end": [
+                8.6199,
+                5.1931
+              ],
+              "height": 2.7,
+              "thickness": 0.51,
+              "color": "#f2f0eb",
+              "openings": []
+            },
+            {
               "id": "wall-bath-west",
               "start": [
                 6.845,
@@ -5866,6 +6111,21 @@
               ],
               "height": 2.7,
               "thickness": 0.123,
+              "color": "#f2f0eb",
+              "openings": []
+            },
+            {
+              "id": "struct-bedroom-stub",
+              "start": [
+                2.4076,
+                4.8416
+              ],
+              "end": [
+                2.4076,
+                5.7027
+              ],
+              "height": 2.7,
+              "thickness": 0.316,
               "color": "#f2f0eb",
               "openings": []
             },

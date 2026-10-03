@@ -2,7 +2,7 @@
   <polygon id="balcony" class="room" data-name="Balcony" data-kind="balcony" data-printed="3.9 m2" points="535,347 670,347 670,445 535,445"/>
   <polygon id="living" class="room" data-name="Living room and kitchen" data-printed="31.6 m2" points="683,347 988,347 988,444 954,444 954,478 1005,478 1005,583 909,583 909,590 831,590 831,613 535,613 535,457 648,457 648,495 683,495 683,478 698,478 698,444 683,444"/>
   <polygon id="hall" class="room" data-name="Entrance hall" data-printed="8.0 m2" points="831,590 909,590 909,756 1005,756 1005,835 831,835"/>
-  <polygon id="bedroom" class="room" data-name="Bedroom" data-printed="19.2 m2" points="535,620 824,620 824,835 535,835"/>
+  <polygon id="bedroom" class="room" data-name="Bedroom" data-printed="19.2 m2" points="535,620 651,620 651,665.5 669,665.5 669,620 824,620 824,835 535,835"/>
   <polygon id="bathroom" class="room" data-name="Bathroom" data-printed="3.6 m2" points="916,622 1005,622 1005,750 916,750"/>
 
   <polygon id="wall-north-balcony" class="wall main" points="642,336 676.5,336 676.5,346 642,346"/><!-- the facade wall over the balcony's east end, drawn 0.18 m -->
@@ -19,9 +19,11 @@
   <polygon id="wall-east" class="wall main" points="1005,478 1022,478 1022,835 1005,835"/>
   <polygon id="wall-kitchen-bath" class="wall secondary" data-name="Kitchen side of the closed service shaft" points="909,583 1005,583 1005,602 909,602"/>
   <polygon id="wall-shaft-bath" class="wall secondary" data-name="Bathroom side of the closed service shaft" points="909,602 1005,602 1005,622 909,622"/>
+  <polygon id="riser-bath" class="wall secondary" data-name="Plumbing riser box (light-blue X), not floor" points="971,622 1005,622 1005,651 971,651"/>
   <polygon id="wall-bath-west" class="wall secondary" points="909,622 916,622 916,756 909,756"/>
   <polygon id="wall-bath-south" class="wall secondary" points="916,750 1005,750 1005,756 916,756"/>
   <polygon id="wall-living-bedroom" class="wall secondary" points="535,613 831,613 831,620 535,620"/>
+  <polygon id="struct-bedroom-stub" class="wall main" data-name="Structural wall (grey hatch) below the living/bedroom partition" points="651,620 669,620 669,665.5 651,665.5"/><!-- found by experimental/building3/selfcheck.py 2026-10-03 -->
   <polygon id="wall-bedroom-hall" class="wall secondary" points="824,620 831,620 831,835 824,835"/>
   <polygon id="wall-south" class="wall main" points="523,835 1005,835 1005,847 523,847"/>
 

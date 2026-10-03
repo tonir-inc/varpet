@@ -156,6 +156,22 @@
           4.9031
         ],
         [
+          2.2496,
+          4.9031
+        ],
+        [
+          2.2496,
+          5.7027
+        ],
+        [
+          2.5656,
+          5.7027
+        ],
+        [
+          2.5656,
+          4.9031
+        ],
+        [
           5.2897,
           4.9031
         ],
@@ -176,11 +192,11 @@
       "polygon": [
         [
           6.9065,
-          4.938
+          4.9381
         ],
         [
           8.4704,
-          4.938
+          4.9381
         ],
         [
           8.4704,
@@ -463,6 +479,21 @@
       "openings": []
     },
     {
+      "id": "riser-bath",
+      "start": [
+        7.8731,
+        5.1931
+      ],
+      "end": [
+        8.6199,
+        5.1931
+      ],
+      "height": 2.7,
+      "thickness": 0.51,
+      "color": "#f2f0eb",
+      "openings": []
+    },
+    {
       "id": "wall-bath-west",
       "start": [
         6.845,
@@ -514,6 +545,21 @@
       ],
       "height": 2.7,
       "thickness": 0.123,
+      "color": "#f2f0eb",
+      "openings": []
+    },
+    {
+      "id": "struct-bedroom-stub",
+      "start": [
+        2.4076,
+        4.8416
+      ],
+      "end": [
+        2.4076,
+        5.7027
+      ],
+      "height": 2.7,
+      "thickness": 0.316,
       "color": "#f2f0eb",
       "openings": []
     },
@@ -643,6 +689,11 @@
         "phase": "existing",
         "review": "unreviewed"
       },
+      "riser-bath": {
+        "structuralRole": "unknown",
+        "phase": "existing",
+        "review": "unreviewed"
+      },
       "wall-bath-west": {
         "structuralRole": "unknown",
         "phase": "existing",
@@ -654,6 +705,11 @@
         "review": "unreviewed"
       },
       "wall-living-bedroom": {
+        "structuralRole": "unknown",
+        "phase": "existing",
+        "review": "unreviewed"
+      },
+      "struct-bedroom-stub": {
         "structuralRole": "unknown",
         "phase": "existing",
         "review": "unreviewed"
