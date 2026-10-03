@@ -47,8 +47,11 @@ light, plants, a warm wall finish (`restyle`).
    the models. Prefer `sizeStatus: confirmed` for tight spots. A product renders as its model: a bed frame shows a bare
    mattress, so pick a bed sold with bedding or a made-up mattress. Place one product per call and wait for its
    result (parallel `place_product` calls race and fail).
-4. **Rug from the group.** With the group placed, read its extent and search rugs with `min_w`/`min_d` (and
-   `target_size`) so every seat's front legs land on it; under a bed it shows on both sides and past the foot.
+4. **Rug from the group.** With the group placed, take the rug's size from the pieces' positions: across, the
+   sofa's width and a little more; deep, from under the sofa's front legs to under the front legs of the seats
+   opposite. Under a bed it runs out on both sides and past the foot. Search with those as `min_w`/`min_d` and
+   `target_size`; the stock 5 x 8 ft rug is usually the mistake in a living room. A seat that cannot reach the rug
+   belongs closer to the group.
 5. **Layers.** Cushions (kind `cushion` or `decor`, "throw pillow") and throws (`throw_blanket`) go on sofas, chairs
    and beds with `mount: 'surface'` and y at the seat or mattress top (about 0.45 m on most sofas), else they land on
    the floor. Curtains wider than the window. Wall pieces sized to the wall or to the furniture under them.
@@ -57,13 +60,15 @@ light, plants, a warm wall finish (`restyle`).
    `place_product` takes a drop, set it; otherwise the result gives the bottom height, so pick a pendant whose length
    lands there.
 7. **Look as the critic will, room by room.** `view_scene` with the room's `zone_id`, `'inside'` and `'top'` (an
-   inside view facing a wall shows nothing; use `'3d'` then). Write down what a designer reviewing it would flag: a
-   bare seat or bed, a bare wall run, a rug that misses the seats' legs, a seat without a lamp, floor with no use, a
-   zone the brief implies but the room lacks. Fix what the catalog can fix and look again. Only what you cannot fix
+   inside view facing a wall shows nothing; use `'3d'` then). Write down what a designer reviewing it would flag:
+   walk each wall and say what stands or hangs on it; then the seats and beds (dressed?), the rug (under every
+   seat's legs?), each seat's lamp, the floor with no use, a zone the brief implies but the room lacks, all the
+   weight on one wall. Fix what the catalog can fix and look again. Only what you cannot fix
    goes in the answer as a trade-off.
 8. **Check.** `check_collisions` with `floorOnly: true` and `minimumClearance` 0.05, fix every overlap and every piece
    through a wall or in a door's path. Then the walkways: `check_clearances` when it is in your tools, otherwise
-   `measure`. A clearance under the rules (walkways 0.75-0.9 m, about 0.4 m sofa to coffee table, 0.9 m in front of
+   `measure` the gaps you will quote (sofa to table, chairs to walls, bed sides and foot, in front of storage). A
+   clearance under the rules (walkways 0.75-0.9 m, about 0.4 m sofa to coffee table, 0.9 m in front of
    wardrobes and around a dining table, 0.6 m beside a bed) is a change to make, not a number to report.
 
 Hung pieces: art, mirrors, wall lamps and shelves go on a wall by `wall_id`, `along` (metres from the wall's start to
