@@ -3,7 +3,7 @@
 // A finish id is a Pascal material-library id; walls and slabs store it as `library:<id>` in their slots.
 // No imports: the scene MCP loads this file directly under node --experimental-strip-types.
 
-export type FinishFamily = 'paint' | 'wood' | 'stone' | 'tile' | 'brick' | 'concrete'
+export type FinishFamily = 'paint' | 'wood' | 'stone' | 'tile' | 'brick' | 'concrete' | 'wallpaper'
 export type FinishSurface = 'wall' | 'floor'
 
 export interface Finish {
@@ -151,15 +151,22 @@ const PASCAL_TEXTURED: Array<[...Row, string]> = [
 ]
 
 /**
- * varpet v1 finishes, served from apps/web/public/finishes/<dir>. Tile size in metres from v1 material.json;
- * `roughness` the finish's (even) roughness.
+ * varpet's textured finishes, served from apps/web/public/finishes/<dir>: v1's (tile size in metres from v1
+ * material.json) and the wallpapers. `roughness` the finish's (even) roughness; `tint` the colour three multiplies
+ * the albedo map by (default the finish's representative colour, as v1 did; white keeps the texture's own colours).
  */
-const VARPET_TEXTURED: Array<[...Row, { dir: string; tileM: number; roughness: number }]> = [
+const VARPET_TEXTURED: Array<[...Row, { dir: string; tileM: number; roughness: number; tint?: string }]> = [
   ['varpet-oak', 'Oak', 'wood', F, '#a27f58', 'oak planks natural', { dir: 'oak', tileM: 1.83, roughness: 0.55 }],
   ['varpet-ash-light', 'Light ash', 'wood', F, '#ac957d', 'ash planks light', { dir: 'ash-light', tileM: 1, roughness: 0.55 }],
   ['varpet-walnut', 'Walnut', 'wood', F, '#aa8a72', 'walnut planks', { dir: 'walnut', tileM: 1, roughness: 0.5 }],
   ['varpet-travertine', 'Travertine', 'stone', WF, '#dfccac', 'travertine beige', { dir: 'travertine', tileM: 1.2, roughness: 0.7 }],
   ['varpet-marble-white-alt', 'White marble', 'stone', WF, '#adaeb7', 'marble white', { dir: 'marble-white-alt', tileM: 1, roughness: 0.35 }],
+  // Wallpapers: one tile is a 53 cm roll width (apps/web/scripts/make-wallpapers.py draws them seamless).
+  ['varpet-wallpaper-botanical', 'Botanical leaf wallpaper', 'wallpaper', W, '#d2d2c0', 'botanical leaves green cream pattern floral', { dir: 'wallpaper-botanical', tileM: 0.53, roughness: 0.85, tint: '#ffffff' }],
+  ['varpet-wallpaper-botanical-night', 'Dark botanical wallpaper', 'wallpaper', W, '#2d473b', 'botanical leaves green dark deep moody pattern', { dir: 'wallpaper-botanical-night', tileM: 0.53, roughness: 0.85, tint: '#ffffff' }],
+  ['varpet-wallpaper-stripe-sage', 'Sage stripe wallpaper', 'wallpaper', W, '#cfd1bd', 'stripe striped regency sage green cream pattern', { dir: 'wallpaper-stripe-sage', tileM: 0.53, roughness: 0.85, tint: '#ffffff' }],
+  ['varpet-wallpaper-trellis', 'Gold trellis wallpaper', 'wallpaper', W, '#e8e0ce', 'geometric trellis lattice gold cream pattern', { dir: 'wallpaper-trellis', tileM: 0.53, roughness: 0.8, tint: '#ffffff' }],
+  ['varpet-wallpaper-grasscloth', 'Natural grasscloth', 'wallpaper', W, '#d0b78d', 'grasscloth woven natural texture beige sisal', { dir: 'wallpaper-grasscloth', tileM: 0.53, roughness: 0.9, tint: '#ffffff' }],
 ]
 
 const PAINT_ROUGHNESS = 0.9
@@ -284,7 +291,7 @@ export function finishMaterialItems(origin = ''): FinishMaterialItem[] {
       previewThumbnailUrl: `${url}/basecolor.jpg`,
       preset: {
         maps: { albedoMap: `${url}/basecolor.jpg`, normalMap: `${url}/normal.jpg` },
-        mapProperties: { ...MAP_PROPERTIES, color: finish.color, roughness: texture.roughness, repeatX: repeat, repeatY: repeat, displacementScale: 0 },
+        mapProperties: { ...MAP_PROPERTIES, color: texture.tint ?? finish.color, roughness: texture.roughness, repeatX: repeat, repeatY: repeat, displacementScale: 0 },
       },
     }
   })

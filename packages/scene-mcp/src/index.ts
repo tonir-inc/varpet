@@ -6,6 +6,7 @@ export {
   HIDDEN_TOOLS,
   PRODUCT_TOOLS,
   VIEW_TOOLS,
+  WALL_TRIM_TOOLS,
   createSceneServer,
   productItemNode,
   publishSnapshot,

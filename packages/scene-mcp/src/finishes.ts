@@ -12,26 +12,26 @@ import {
 } from '../../contracts/src/finishes.ts'
 import { facesToward, slotForFace, type WallFace, type WallSlot, wallSideUpdates } from './wall-sides.ts'
 
-type AnyNode = { id: string; type: string; parentId?: string | null; name?: string; [key: string]: unknown }
+export type AnyNode = { id: string; type: string; parentId?: string | null; name?: string; [key: string]: unknown }
 type Point = [number, number]
 type Publish = (operations: SceneOperations, kind: string) => Promise<unknown>
 
 export const FINISH_TOOLS = ['list_finishes', 'set_wall_finish', 'set_floor_finish'] as const
 
-const FAMILIES = ['paint', 'wood', 'stone', 'tile', 'brick', 'concrete'] as const
+const FAMILIES = ['paint', 'wood', 'stone', 'tile', 'brick', 'concrete', 'wallpaper'] as const
 
-function text(payload: unknown) {
+export function text(payload: unknown) {
   return { content: [{ type: 'text' as const, text: JSON.stringify(payload) }] }
 }
 
-function failure(message: string) {
+export function failure(message: string) {
   return { content: [{ type: 'text' as const, text: message }], isError: true }
 }
 
 const brief = (finish: Finish) => ({ id: finish.id, label: finish.label, family: finish.family, color: finish.color })
 
 /** The finish, or an error that names the closest ones. */
-function resolveFinish(id: string, surface: FinishSurface): { finish: Finish } | { error: ReturnType<typeof failure> } {
+export function resolveFinish(id: string, surface: FinishSurface): { finish: Finish } | { error: ReturnType<typeof failure> } {
   const finish = getFinish(id)
   if (finish) return { finish }
   const close = suggestFinishes(id, surface)
@@ -41,11 +41,11 @@ function resolveFinish(id: string, surface: FinishSurface): { finish: Finish } |
   return { error: failure(`unknown_finish: ${id}.${hint}`) }
 }
 
-function surfaceNote(finish: Finish, surface: FinishSurface) {
+export function surfaceNote(finish: Finish, surface: FinishSurface) {
   return finish.surfaces.includes(surface) ? [] : [`${finish.label} is usually a ${finish.surfaces.join('/')} finish; applied anyway.`]
 }
 
-function nodesOf(operations: SceneOperations) {
+export function nodesOf(operations: SceneOperations) {
   return operations.getNodes() as unknown as Record<string, AnyNode>
 }
 
@@ -53,7 +53,7 @@ function polygonOf(node: AnyNode | undefined): Point[] | null {
   return node && Array.isArray(node.polygon) && node.polygon.length >= 3 ? (node.polygon as Point[]) : null
 }
 
-const wallLength = (wall: AnyNode) => {
+export const wallLength = (wall: AnyNode) => {
   const [sx, sy] = wall.start as Point
   const [ex, ey] = wall.end as Point
   return Math.round(Math.hypot(ex - sx, ey - sy) * 100) / 100
@@ -75,6 +75,98 @@ function centroid(polygon: Point[]): Point {
   return [sum[0] / polygon.length, sum[1] / polygon.length]
 }
 
+export interface WallTarget {
+  /** The wall as stored. */
+  stored: AnyNode
+  /** The wall with the side tags the editor will give it at load (equal to stored when it had tags). */
+  wall: AnyNode
+  /** The faces the call is about. */
+  faces: WallFace[]
+  /** The tags to store with the change when the wall had none (so load-time tagging cannot move the edit). */
+  tagged?: { frontSide: unknown; backSide: unknown }
+}
+
+/**
+ * The walls and faces a wall tool acts on: zone_id alone = every wall with a face toward the room; wall_ids (with
+ * zone_id to name the room) = those walls. side "room" = the face toward the room (the interior-tagged faces
+ * without a zone), "outside" = the other face, "both".
+ */
+export function wallTargets(
+  operations: SceneOperations,
+  { zone_id, wall_ids, side, verb }: { zone_id?: string; wall_ids?: string[]; side: 'room' | 'outside' | 'both'; verb: string },
+): { targets: WallTarget[]; notes: string[] } | { error: ReturnType<typeof failure> } {
+  if (!zone_id && !wall_ids?.length) return { error: failure('missing_target: give zone_id, wall_ids, or both') }
+  const nodes = nodesOf(operations)
+  let zonePolygon: Point[] | null = null
+  if (zone_id) {
+    const zone = nodes[zone_id]
+    if (!zone || zone.type !== 'zone') return { error: failure(`zone_not_found: ${zone_id}`) }
+    zonePolygon = polygonOf(zone)
+    if (!zonePolygon) return { error: failure(`zone_without_outline: ${zone_id}`) }
+  }
+
+  // Sides the editor will tag at load for walls stored as unknown (same rules, wall-sides.ts).
+  const predicted = new Map(wallSideUpdates(nodes as never).map((u) => [u.id, u]))
+  const withTags = (wall: AnyNode) => {
+    const tags = predicted.get(wall.id)
+    return tags ? { ...wall, frontSide: tags.frontSide, backSide: tags.backSide } : wall
+  }
+
+  let walls: AnyNode[]
+  if (wall_ids?.length) {
+    const missing = wall_ids.filter((id) => nodes[id]?.type !== 'wall')
+    if (missing.length) return { error: failure(`wall_not_found: ${missing.join(', ')}`) }
+    walls = wall_ids.map((id) => nodes[id]!)
+  } else {
+    const levelId = operations.resolveLevelId(zone_id as never)
+    walls = Object.values(nodes).filter(
+      (node) => node.type === 'wall' && node.parentId === levelId && facesToward(node, zonePolygon!).length > 0,
+    )
+    if (!walls.length) return { error: failure(`no_walls_around_zone: ${zone_id}`) }
+  }
+
+  const notes: string[] = []
+  const targets: WallTarget[] = []
+  for (const stored of walls) {
+    const wall = withTags(stored)
+    let faces: WallFace[]
+    if (side === 'both') faces = ['front', 'back']
+    else if (zonePolygon) {
+      const toward = facesToward(wall, zonePolygon)
+      if (!toward.length) return { error: failure(`wall_not_facing_zone: ${wall.id} does not border ${zone_id}`) }
+      faces = side === 'room' ? toward : (['front', 'back'] as WallFace[]).filter((face) => !toward.includes(face))
+      if (!faces.length) notes.push(`${wall.id}: both faces look into ${zone_id}; no outside face.`)
+    } else {
+      const wanted = side === 'room' ? 'interior' : 'exterior'
+      faces = (['front', 'back'] as WallFace[]).filter((face) => (face === 'front' ? wall.frontSide : wall.backSide) === wanted)
+      if (!faces.length) {
+        return {
+          error: failure(
+            `ambiguous_side: ${wall.id} has rooms on both sides or untagged sides; pass zone_id to say which room's side to ${verb}`,
+          ),
+        }
+      }
+    }
+    const tagged = wall !== stored ? { frontSide: wall.frontSide, backSide: wall.backSide } : undefined
+    targets.push({ stored, wall, faces, ...(tagged ? { tagged } : {}) })
+  }
+  return { targets, notes }
+}
+
+/** The band count a wall is split into (1 = not split; Pascal's faceBands). */
+export function bandCount(wall: AnyNode): number {
+  const bands = wall.faceBands as { enabled?: boolean; count?: number } | undefined
+  if (!bands?.enabled) return 1
+  return Math.max(1, Math.min(4, Math.round(bands.count ?? 3)))
+}
+
+/** The topmost band slot a split wall shows on one side (`upperInterior`, `topExterior`...), null when not split. */
+export function topBandSlot(wall: AnyNode, side: WallSlot): string | null {
+  const count = bandCount(wall)
+  if (count <= 1) return null
+  return `${count >= 4 ? 'top' : 'upper'}${side === 'interior' ? 'Interior' : 'Exterior'}`
+}
+
 export function registerFinishTools(server: McpServer, operations: SceneOperations, publish: Publish) {
   server.registerTool(
     'list_finishes',
@@ -82,7 +174,7 @@ export function registerFinishTools(server: McpServer, operations: SceneOperatio
       title: 'List finishes',
       description:
         'Finishes walls and floors can take: paint colours, wood floors (including chevron/herringbone parquet), stone, ' +
-        'tile, brick, concrete. Each has an id, label, family and colour. Use the id with set_wall_finish or ' +
+        'tile, brick, concrete, patterned wallpapers. Each has an id, label, family and colour. Use the id with set_wall_finish or ' +
         'set_floor_finish, or write `library:<id>` into a wall or slab slot with apply_patch. query ranks by words ' +
         '(e.g. "deep green", "herringbone oak").',
       inputSchema: {
@@ -107,7 +199,8 @@ export function registerFinishTools(server: McpServer, operations: SceneOperatio
         'Paint or clad walls. Give zone_id (a room) to finish every wall around it, or wall_ids (with zone_id to say ' +
         'which room they face). side: "room" = the face toward that room (or the interior faces when no zone is ' +
         'given), "outside" = the other face, "both". Writes the wall slot Pascal paints on that face and returns ' +
-        'which walls and slots changed; on walls with untagged sides it also stores the sides it used (sidesTagged).',
+        'which walls and slots changed; on walls with untagged sides it also stores the sides it used (sidesTagged). ' +
+        'On a wall with a wainscot (set_wainscot) it finishes the part above it. Skirting, crown, chair rail: set_wall_trim.',
       inputSchema: {
         finish_id: z.string().min(1),
         zone_id: z.string().optional(),
@@ -121,67 +214,25 @@ export function registerFinishTools(server: McpServer, operations: SceneOperatio
       if ('error' in resolved) return resolved.error
       const { finish } = resolved
       if (!zone_id && !wall_ids?.length) return failure('missing_target: give zone_id, wall_ids, or both')
-      const nodes = nodesOf(operations)
-
-      let zonePolygon: Point[] | null = null
-      if (zone_id) {
-        const zone = nodes[zone_id]
-        if (!zone || zone.type !== 'zone') return failure(`zone_not_found: ${zone_id}`)
-        zonePolygon = polygonOf(zone)
-        if (!zonePolygon) return failure(`zone_without_outline: ${zone_id}`)
-      }
-
-      // Sides the editor will tag at load for walls stored as unknown (same rules, wall-sides.ts).
-      const predicted = new Map(wallSideUpdates(nodes as never).map((u) => [u.id, u]))
-      const withTags = (wall: AnyNode) => {
-        const tags = predicted.get(wall.id)
-        return tags ? { ...wall, frontSide: tags.frontSide, backSide: tags.backSide } : wall
-      }
-
-      let walls: AnyNode[]
-      if (wall_ids?.length) {
-        const missing = wall_ids.filter((id) => nodes[id]?.type !== 'wall')
-        if (missing.length) return failure(`wall_not_found: ${missing.join(', ')}`)
-        walls = wall_ids.map((id) => nodes[id]!)
-      } else {
-        const levelId = operations.resolveLevelId(zone_id as never)
-        walls = Object.values(nodes).filter(
-          (node) => node.type === 'wall' && node.parentId === levelId && facesToward(node, zonePolygon!).length > 0,
-        )
-        if (!walls.length) return failure(`no_walls_around_zone: ${zone_id}`)
-      }
-
-      const notes = surfaceNote(finish, 'wall')
-      const changed: Array<{ id: string; name?: string; length: number; slots: WallSlot[]; sidesTagged?: { frontSide: unknown; backSide: unknown } }> = []
+      const targeted = wallTargets(operations, { zone_id, wall_ids, side, verb: 'finish' })
+      if ('error' in targeted) return targeted.error
+      const notes = [...surfaceNote(finish, 'wall'), ...targeted.notes]
+      const changed: Array<{ id: string; name?: string; length: number; slots: string[]; sidesTagged?: { frontSide: unknown; backSide: unknown } }> = []
       const patches: Array<{ op: 'update'; id: string; data: Record<string, unknown> }> = []
-      for (const stored of walls) {
-        const wall = withTags(stored)
-        let faces: WallFace[]
-        if (side === 'both') faces = ['front', 'back']
-        else if (zonePolygon) {
-          const toward = facesToward(wall, zonePolygon)
-          if (!toward.length) return failure(`wall_not_facing_zone: ${wall.id} does not border ${zone_id}`)
-          faces = side === 'room' ? toward : (['front', 'back'] as WallFace[]).filter((face) => !toward.includes(face))
-          if (!faces.length) notes.push(`${wall.id}: both faces look into ${zone_id}; no outside face.`)
-        } else {
-          const wanted = side === 'room' ? 'interior' : 'exterior'
-          faces = (['front', 'back'] as WallFace[]).filter((face) => (face === 'front' ? wall.frontSide : wall.backSide) === wanted)
-          if (!faces.length) {
-            return failure(
-              `ambiguous_side: ${wall.id} has rooms on both sides or untagged sides; pass zone_id to say which room's side to finish`,
-            )
-          }
-        }
-        const slots = [...new Set(faces.map((face) => slotForFace(wall, face)))]
-        if (!slots.length) continue
+      for (const { stored, wall, faces, tagged } of targeted.targets) {
+        const sides = [...new Set(faces.map((face) => slotForFace(wall, face)))]
+        if (!sides.length) continue
         if (side !== 'both' && faces.length === 1 && slotForFace(wall, 'front') === slotForFace(wall, 'back')) {
-          notes.push(`${wall.id}: both faces are tagged ${slots[0]} and share one slot, so both changed.`)
+          notes.push(`${wall.id}: both faces are tagged ${sides[0]} and share one slot, so both changed.`)
         }
+        // A wall split into bands (set_wainscot) shows its band slots instead of the whole-face slot: the finish
+        // goes to the topmost band too, so painting keeps working above a wainscot.
+        const top = sides.map((s) => topBandSlot(stored, s)).filter((slot): slot is string => slot !== null)
+        const slots = [...sides, ...top]
         const data: Record<string, unknown> = {
           slots: { ...((stored.slots as Record<string, string> | undefined) ?? {}), ...Object.fromEntries(slots.map((slot) => [slot, finish.ref])) },
         }
         // Keep the sides the slots were chosen by, so the editor's load-time tagging cannot move the paint.
-        const tagged = wall !== stored ? { frontSide: wall.frontSide, backSide: wall.backSide } : undefined
         if (tagged) Object.assign(data, tagged)
         patches.push({ op: 'update', id: stored.id, data })
         changed.push({ id: stored.id, name: stored.name, length: wallLength(stored), slots, ...(tagged ? { sidesTagged: tagged } : {}) })

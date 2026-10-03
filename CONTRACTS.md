@@ -43,7 +43,8 @@ that file and this one in the same commit, and say so in the commit message.
 ## Scene MCP tools (lane C, `packages/scene-mcp`)
 - All of Pascal's tools except the scene lifecycle ones (`load_scene`, `save_scene`, `delete_scene`, `rename_scene`,
   `list_scenes`, `create_project`, `get_project_status`), plus `search_products`, `get_product`, `show_products`,
-  `place_product(product_id, ...)`, `list_finishes`, `set_wall_finish`, `set_floor_finish`, `check_clearances`.
+  `place_product(product_id, ...)`, `list_finishes`, `set_wall_finish`, `set_floor_finish`, `set_wall_trim`,
+  `set_wainscot`, `check_clearances`.
 - `view_scene(zone_id?, view?: 3d|top|inside = 3d, width? = 1024)`: the agent's eyes. Renders the MCP's current
   in-memory graph (this turn's edits included) through `POST /api/render` and returns MCP image content (JPEG,
   width x 3/4 width) plus one caption line: room, view, camera, orientation, renderer backend, time. Cameras
@@ -141,6 +142,37 @@ that file and this one in the same commit, and say so in the commit message.
   its centre) gets `slots.surface`. -> `{finish, slab: {id, name}, notes?}`.
 - Both validate ids against the catalogue (`unknown_finish: <id>. Closest: ...`), note a finish used off its usual
   surface, apply as one undoable patch and publish a live snapshot. `apply_patch` on the same slots stays valid.
+- Wallpapers (family `wallpaper`, walls): botanical, dark botanical, sage stripe, gold trellis, grasscloth, textures in
+  `apps/web/public/finishes/wallpaper-*` (seamless, one tile = a 53 cm roll width; `apps/web/scripts/make-wallpapers.py`).
+  A textured varpet finish may set `tint` (three multiplies the albedo map by it; default the finish's `color`, as the
+  v1 finishes do); the wallpapers use white so their printed colours show as drawn.
+- Wall treatments (`packages/scene-mcp/src/wall-trim.ts`) write Pascal 1.0.3's own wall fields; no new node types.
+  Targets as `set_wall_finish` (`zone_id`, `wall_ids`, `side: room|outside|both`), side tags stored the same way.
+- `set_wall_trim(zone_id? | wall_ids, side?, skirting?, crown?, chair_rail?)`, each trim `{enabled? = true, height?,
+  proud?, profile?, finish_id?}`, chair rail also `at` (its bottom above the floor, Pascal `offsetY`, default 0.9).
+  `height` is the moulding's own height (Pascal defaults: skirting 0.12, crown 0.12, chair rail 0.055 m). Profiles per
+  kind (`flat|bevel|triangle|cove|bullnose` plus skirting `base-modern|colonial|shoe|ogee`, crown
+  `crown-cove|ogee|craftsman|layered`, rail `rail-rounded|ogee|picture|stepped`; the short form `ogee` is accepted);
+  another kind's profile is `unknown_profile`. Pascal keeps one config per wall (`wall.skirting|crown|chairRail`): size,
+  profile and `at` are shared by both faces; `enabled` adds the chosen faces to `sides` (`interior|exterior|both`) or
+  removes them. A face's trim side is the one Pascal draws on it (`resolveTreatmentSideSign`: interior = the
+  interior-tagged face, else the front; exterior = the exterior-tagged face, else the back), so a partition tagged
+  interior on both faces gets `interior` on its front and `exterior` on its back. `finish_id` goes into
+  `<kind>Interior|<kind>Exterior` for those trim sides. Without `at` on a wall with a wainscot the rail straddles its
+  top edge (bottom = wainscot height - rail height / 2). -> `{walls: [{id, name, length, skirting?|crown?|chair_rail?:
+  {sides, height, profile, at?} | {enabled: false}, slots?, sidesTagged?}], notes?}`.
+- `set_wainscot(zone_id? | wall_ids, side?, finish_id, height? = 0.9, enabled? = true)`: a lower part with its own
+  finish (panelling, half-height tile, a painted dado) through Pascal's face bands: `faceBands {enabled, count: 2,
+  lowerHeight}` and slots `lower<Side>` (the finish) / `upper<Side>` (what the face showed). Faces it does not touch
+  keep their look (their bands copy the whole-face slot; unset stays unset so the default shows). One height per wall.
+  An enabled chair rail moves onto the seam. `enabled: false` removes it from those faces and joins the wall again when
+  no face keeps one. Height is kept 10 cm under the wall top. -> `{finish?, walls: [{id, name, length, split, height?,
+  slots, chairRailAt?, sidesTagged?}], notes?}`.
+- On a split wall a face shows its band slots, not `interior|exterior`: `set_wall_finish` writes the whole-face slot
+  and the topmost band slot (`upper<Side>`, `top<Side>` at 4 bands), so painting finishes the part above a wainscot.
+- A wall between two rooms tagged interior on both faces shows one `interior` slot (and one `lowerInterior`) on both
+  faces: a finish or wainscot for one room shows in the other too (noted in the result). Trims do not share this.
+- Cut-away walls hide their trims (Pascal patch 16).
 
 ## Env
 See `.env.example`: `PASCAL_DB_PATH`, `VARPET_DATA_DIR`, `VARPET_CATALOG_URL`, `VARPET_PUBLIC_ORIGIN`,
