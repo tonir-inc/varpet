@@ -974,7 +974,7 @@ def _turn_text(request: str, first: bool, edits: dict | None = None, budget: int
 
 
 CLAUDE_TOOLS = "Bash,Read,Write,Edit,Glob,Grep"
-CLAUDE_LIMIT = re.compile(r"usage limit|rate limit|limit reached|hit your limit|out of extra usage", re.I)
+CLAUDE_LIMIT = re.compile(r"usage limit|rate limit|limit reached|hit your limit|out of extra usage|doesn.t include extra usage", re.I)
 # Hosts ./varpet reaches from the sandbox: the catalog service, the public app (catalog relay, models), ABO photos.
 CLAUDE_HOSTS = ("127.0.0.1", "localhost", "varpet.snek.page", "amazon-berkeley-objects.s3.amazonaws.com")
 
