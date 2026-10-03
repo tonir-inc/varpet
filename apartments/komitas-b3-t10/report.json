@@ -333,6 +333,12 @@
   }
  ],
  "furnished_export": "ok",
+ "options": {
+  "styled": {
+   "saved": "option.styled.json",
+   "pieces": 46
+  }
+ },
  "door_swings": {
   "door-entrance": {
    "mechanism": "hinged",

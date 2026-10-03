@@ -1,0 +1,3198 @@
+{
+ "name": "Styled",
+ "from": "Style this flat as a finished show flat, warm mid-century to match…",
+ "objects": [
+  {
+   "id": "desk",
+   "name": "Desk",
+   "assetId": "extra:bpy-office:desk-walnut-mcm-tapered",
+   "position": [
+    2.2728,
+    0,
+    0.7149
+   ],
+   "rotation": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "desk-chair",
+   "name": "Desk chair",
+   "assetId": "abo:B075Z8M22B",
+   "position": [
+    2.0389,
+    0,
+    1.3401
+   ],
+   "rotation": 3.141592653589793,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "bedside-4-north",
+   "name": "Bedside table",
+   "assetId": "abo:B075YZ16V4",
+   "position": [
+    0.4413,
+    0,
+    2.4152
+   ],
+   "rotation": 1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "bed-4",
+   "name": "Double bed",
+   "assetId": "extra:bpy-beds-dressed:mcm-walnut-cane-bed-160-terracotta",
+   "position": [
+    1.3031,
+    0,
+    3.6012
+   ],
+   "rotation": 1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "bedside-4-south",
+   "name": "Bedside table",
+   "assetId": "abo:B075YZ16V4",
+   "position": [
+    0.4413,
+    0,
+    4.786
+   ],
+   "rotation": 1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "wardrobe-4",
+   "name": "Wardrobe",
+   "assetId": "extra:bpy-bedroom:reeded-oak-3-door-wardrobe-150",
+   "position": [
+    1.0571,
+    0,
+    6.5778
+   ],
+   "rotation": 3.141592653589793,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "dining-table",
+   "name": "Dining table",
+   "assetId": "abo:B075YPTG8S",
+   "position": [
+    4.4838,
+    0,
+    1.3328
+   ],
+   "rotation": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "dining-chair-n1",
+   "name": "Dining chair",
+   "assetId": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "position": [
+    3.9719,
+    0,
+    0.633
+   ],
+   "rotation": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "dining-chair-n2",
+   "name": "Dining chair",
+   "assetId": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "position": [
+    4.4794,
+    0,
+    0.633
+   ],
+   "rotation": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "dining-chair-n3",
+   "name": "Dining chair",
+   "assetId": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "position": [
+    4.987,
+    0,
+    0.633
+   ],
+   "rotation": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "dining-chair-s1",
+   "name": "Dining chair",
+   "assetId": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "position": [
+    3.9719,
+    0,
+    2.035
+   ],
+   "rotation": 3.141592653589793,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "dining-chair-s2",
+   "name": "Dining chair",
+   "assetId": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "position": [
+    4.4794,
+    0,
+    2.035
+   ],
+   "rotation": 3.141592653589793,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "dining-chair-s3",
+   "name": "Dining chair",
+   "assetId": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "position": [
+    4.987,
+    0,
+    2.035
+   ],
+   "rotation": 3.141592653589793,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "dining-chair-w",
+   "name": "Dining chair",
+   "assetId": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "position": [
+    3.3271,
+    0,
+    1.3284
+   ],
+   "rotation": 1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "dining-chair-e",
+   "name": "Dining chair",
+   "assetId": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "position": [
+    5.6368,
+    0,
+    1.3284
+   ],
+   "rotation": -1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "armchair-north",
+   "name": "Armchair",
+   "assetId": "extra:bpy-living2:mcm-swivel-tub-armchair-cognac-leather",
+   "position": [
+    5.0752,
+    0,
+    3.0584
+   ],
+   "rotation": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "sofa",
+   "name": "Sofa",
+   "assetId": "abo:B07P5LM5D3",
+   "position": [
+    5.942,
+    0,
+    4.4394
+   ],
+   "rotation": -1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "coffee-table",
+   "name": "Coffee table",
+   "assetId": "abo:B07BVHL3SZ",
+   "position": [
+    5.0664,
+    0,
+    4.4
+   ],
+   "rotation": -1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "armchair-south",
+   "name": "Armchair",
+   "assetId": "extra:bpy-living2:mcm-swivel-tub-armchair-cognac-leather",
+   "position": [
+    5.0752,
+    0,
+    5.7637
+   ],
+   "rotation": 3.141592653589793,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "tv-unit-living",
+   "name": "TV unit",
+   "assetId": "abo:B07ML7P93X",
+   "position": [
+    3.2334,
+    0,
+    4.4044
+   ],
+   "rotation": 1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "tv-living",
+   "name": "TV",
+   "assetId": "extra:electronics:tv-50-feet-black",
+   "position": [
+    3.2334,
+    0.6814,
+    4.4044
+   ],
+   "rotation": 1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "restsOn": "tv-unit-living"
+  },
+  {
+   "id": "fridge",
+   "name": "Fridge",
+   "assetId": "extra:bpy-appliances:fridge-combi-stainless-60",
+   "position": [
+    6.0729,
+    0,
+    7.8341
+   ],
+   "rotation": -1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "wardrobe-hall",
+   "name": "Hall wardrobe",
+   "assetId": "extra:bpy-bedroom:mcm-walnut-wardrobe-drawers-110",
+   "position": [
+    1.1783,
+    0,
+    7.3366
+   ],
+   "rotation": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "hall-sofa",
+   "name": "Sofa",
+   "assetId": "abo:B084XMKQP5",
+   "position": [
+    1.196,
+    0,
+    10.4044
+   ],
+   "rotation": 1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "hall-sofa-end",
+   "name": "Armchair",
+   "assetId": "abo:B07DBB1QXR",
+   "position": [
+    1.8977,
+    0,
+    11.0287
+   ],
+   "rotation": 3.141592653589793,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "hall-table",
+   "name": "Coffee table",
+   "assetId": "abo:B01LWVEZ1C",
+   "position": [
+    2.0124,
+    0,
+    9.9563
+   ],
+   "rotation": -1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "wardrobe-5",
+   "name": "Wardrobe",
+   "assetId": "abo:B07GFS1VB6",
+   "position": [
+    5.3842,
+    0,
+    14.9456
+   ],
+   "rotation": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "bedside-5-north",
+   "name": "Bedside table",
+   "assetId": "abo:B072ZK885L",
+   "position": [
+    6.1653,
+    0,
+    15.4507
+   ],
+   "rotation": -1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "bed-5",
+   "name": "Double bed",
+   "assetId": "abo:B07HSF3Y12",
+   "position": [
+    5.3292,
+    0,
+    16.5761
+   ],
+   "rotation": -1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "bedside-5-south",
+   "name": "Bedside table",
+   "assetId": "abo:B072ZK885L",
+   "position": [
+    6.1653,
+    0,
+    17.6971
+   ],
+   "rotation": -1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "living-rug",
+   "name": "Amazon Brand – Stone & Beam Garrison Vintage Pattern Wool Area Rug, 5…",
+   "assetId": "abo:B0735T6948",
+   "position": [
+    5.066,
+    0,
+    4.4
+   ],
+   "rotation": 4.71238898038469,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "living-lamp",
+   "name": "Rivet Mid-Century Modern Theory 5-Arm Living Room Floor Lamp with Edi…",
+   "assetId": "abo:B073P25SXR",
+   "position": [
+    5.95,
+    0,
+    2.95
+   ],
+   "rotation": 4.71238898038469,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "living-lamp-2",
+   "name": "Amazon Brand – Rivet Adjustable Arm Mid-Century Modern Living Room St…",
+   "assetId": "abo:B07374SBFL",
+   "position": [
+    6.15,
+    0,
+    5.85
+   ],
+   "rotation": 4.71238898038469,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "living-plant",
+   "name": "Fiddle leaf fig bush, multi-stem, 180 cm, in fluted concrete planter",
+   "assetId": "extra:bpy-plants2:ficus-lyrata-bush-180",
+   "position": [
+    3.62,
+    0,
+    6.33
+   ],
+   "rotation": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "bedroom-4-rug",
+   "name": "Amazon Brand – Rivet Contemporary Linear Distressed Wool Area Rug, 5…",
+   "assetId": "abo:B0735RJPDH",
+   "position": [
+    1.69,
+    0,
+    3.6
+   ],
+   "rotation": 1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "bedroom-5-rug",
+   "name": "Amazon Brand – Rivet Muted Boho Rug, 5' x 8', Off-white",
+   "assetId": "abo:B071777YNX",
+   "position": [
+    4.85,
+    0,
+    16.58
+   ],
+   "rotation": 1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "hall-rug",
+   "name": "Rivet Stonewashed Sunset Rug, 4' x 6', Blush",
+   "assetId": "abo:B06XDD4YTD",
+   "position": [
+    2.01,
+    0,
+    10.4
+   ],
+   "rotation": 4.71238898038469,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "balcony-plant",
+   "name": "Zonal geraniums, trio of terracotta pots, red, pink and white",
+   "assetId": "extra:bpy-balconyplants:geranium-pots-trio",
+   "position": [
+    4.8,
+    0,
+    18.79
+   ],
+   "rotation": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "balcony-plant-2",
+   "name": "Lavender in a terracotta pot, 34 cm pot",
+   "assetId": "extra:bpy-balconyplants:lavender-terracotta-pot",
+   "position": [
+    5.45,
+    0,
+    18.85
+   ],
+   "rotation": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "living-wall_art",
+   "name": "Amazon Brand – Rivet Blue and Green Mid-Century Modern Botanical Anat…",
+   "assetId": "abo:B073NZPPRM",
+   "position": [
+    6.3972,
+    1.01515,
+    3.91
+   ],
+   "rotation": -1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "host": {
+    "wallId": "wall-east-living",
+    "offset": 0.7148000000000003,
+    "elevation": 1.01515,
+    "side": 1
+   }
+  },
+  {
+   "id": "living-wall_art-2",
+   "name": "Amazon Brand – Rivet Green Botanical Anatomy Print in Gold Frame Wall…",
+   "assetId": "abo:B073NZQR61",
+   "position": [
+    6.397049999999999,
+    1.01335,
+    4.44
+   ],
+   "rotation": -1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "host": {
+    "wallId": "wall-east-living",
+    "offset": 1.2448000000000006,
+    "elevation": 1.01335,
+    "side": 1
+   }
+  },
+  {
+   "id": "living-wall_art-3",
+   "name": "Amazon Brand – Rivet Green and Pink Botanical Anatomy Print in Gold F…",
+   "assetId": "abo:B073NZGLGM",
+   "position": [
+    6.400449999999999,
+    1.1005500000000001,
+    4.97
+   ],
+   "rotation": -1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "host": {
+    "wallId": "wall-east-living",
+    "offset": 1.7748,
+    "elevation": 1.1005500000000001,
+    "side": 1
+   }
+  },
+  {
+   "id": "living-wall_art-4",
+   "name": "Amazon Brand – Rivet Copper Metallic Foil Canvas Print Wall Art in Wh…",
+   "assetId": "abo:B073NZPP4V",
+   "position": [
+    3.0734,
+    0.97365,
+    1.33
+   ],
+   "rotation": 1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "host": {
+    "wallId": "wall-bedroom-living",
+    "offset": 1.1358000000000001,
+    "elevation": 0.97365,
+    "side": -1
+   }
+  },
+  {
+   "id": "living-wall_hanging",
+   "name": "Floating walnut wall shelf 120 cm, 38 mm thick, 24 cm deep, hidden br…",
+   "assetId": "extra:bpy-wall2:floating-shelf-walnut-120",
+   "position": [
+    3.174,
+    1.381,
+    2.9
+   ],
+   "rotation": 1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "host": {
+    "wallId": "wall-bedroom-living",
+    "offset": 2.7058,
+    "elevation": 1.381,
+    "side": -1
+   }
+  },
+  {
+   "id": "living-cushion",
+   "name": "Cushion set of three: sage linen 50 cm, oat boucle 50 cm, rust velvet…",
+   "assetId": "extra:bpy-soft:cushion-set-sage-oat-rust",
+   "position": [
+    6.2,
+    0.45,
+    4.44
+   ],
+   "rotation": 4.71238898038469,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "restsOn": "sofa"
+  },
+  {
+   "id": "living-throw_blanket",
+   "name": "Stonewashed linen throw 130 x 180 cm with knotted fringe, natural, fo…",
+   "assetId": "extra:bpy-soft:throw-linen-fringe-natural-folded",
+   "position": [
+    5.94,
+    0.45,
+    5.25
+   ],
+   "rotation": 4.71238898038469,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "restsOn": "sofa"
+  },
+  {
+   "id": "living-books",
+   "name": "Stack of three linen coffee-table books with a ceramic orb on top",
+   "assetId": "extra:bpy-styling:books-stack-ceramic-object",
+   "position": [
+    5.07,
+    0.508,
+    4.15
+   ],
+   "rotation": 4.71238898038469,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "restsOn": "coffee-table"
+  },
+  {
+   "id": "living-candle",
+   "name": "Brass candlestick trio with ivory taper candles",
+   "assetId": "extra:bpy-styling:candle-holders-brass",
+   "position": [
+    5.07,
+    0.508,
+    4.65
+   ],
+   "rotation": 4.71238898038469,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "restsOn": "coffee-table"
+  },
+  {
+   "id": "living-vase",
+   "name": "Bud vase set of four, small stoneware bottles with one dried stem",
+   "assetId": "extra:bpy-styling:vase-bud-set",
+   "position": [
+    4.48,
+    0.7533,
+    1.33
+   ],
+   "rotation": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "restsOn": "dining-table"
+  },
+  {
+   "id": "living-bowl",
+   "name": "Hand-carved apricot-wood bowl with adze facets, 26 cm",
+   "assetId": "extra:bpy-armenian:apricot-wood-bowl-carved",
+   "position": [
+    4.05,
+    0.7533,
+    1.33
+   ],
+   "rotation": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "restsOn": "dining-table"
+  },
+  {
+   "id": "living-planter",
+   "name": "Amazon Brand – Rivet Mid-Century Ceramic Planter with Iron Stand 9.1\"…",
+   "assetId": "abo:B075HR7LFF",
+   "position": [
+    3.17,
+    1.419,
+    2.55
+   ],
+   "rotation": 1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "restsOn": "living-wall_hanging"
+  },
+  {
+   "id": "living-books-2",
+   "name": "Pair of oak arch bookends holding 7 books",
+   "assetId": "extra:shelf-styling:books-7-with-oak-arch-bookends",
+   "position": [
+    3.17,
+    1.419,
+    3.1
+   ],
+   "rotation": 1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "restsOn": "living-wall_hanging"
+  },
+  {
+   "id": "bedroom-4-wall_art",
+   "name": "Amazon Brand – Rivet Calm Paradise Water Horizon at Dawn Canvas Wall…",
+   "assetId": "abo:B073NZPNNL",
+   "position": [
+    0.23049999999999998,
+    1.29925,
+    3.6
+   ],
+   "rotation": 1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "host": {
+    "wallId": "wall-west-bedroom",
+    "offset": 1.9053,
+    "elevation": 1.29925,
+    "side": -1
+   }
+  },
+  {
+   "id": "bedroom-4-wall_hanging",
+   "name": "Floating rift oak wall shelf 120 cm, 38 mm thick, 22 cm deep, hidden…",
+   "assetId": "extra:bpy-wall2:floating-shelf-oak-120",
+   "position": [
+    2.838,
+    1.481,
+    5.3
+   ],
+   "rotation": -1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "host": {
+    "wallId": "wall-bedroom-living",
+    "offset": 5.1057999999999995,
+    "elevation": 1.481,
+    "side": 1
+   }
+  },
+  {
+   "id": "bedroom-4-lamp",
+   "name": "Amazon Brand – Rivet Gold Bedside Table Desk Lamp with Light Bulb - 1…",
+   "assetId": "abo:B073751DMJ",
+   "position": [
+    0.44,
+    0.6181,
+    2.42
+   ],
+   "rotation": 1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "restsOn": "bedside-4-north"
+  },
+  {
+   "id": "bedroom-4-lamp-2",
+   "name": "Amazon Brand – Rivet Gold Bedside Table Desk Lamp with Light Bulb - 1…",
+   "assetId": "abo:B073751DMJ",
+   "position": [
+    0.44,
+    0.6181,
+    4.79
+   ],
+   "rotation": 1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "restsOn": "bedside-4-south"
+  },
+  {
+   "id": "bedroom-4-lamp-3",
+   "name": "Amazon Brand – Stone & Beam Glass Column Living Room Table Desk Lamp…",
+   "assetId": "abo:B07374QFJ3",
+   "position": [
+    2.75,
+    0.7419,
+    0.68
+   ],
+   "rotation": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "restsOn": "desk"
+  },
+  {
+   "id": "bedroom-4-planter",
+   "name": "Amazon Brand – Rivet Mid-Century Ceramic Planter with Iron Stand, 6.8…",
+   "assetId": "abo:B075HR7KVR",
+   "position": [
+    1.85,
+    0.7419,
+    0.68
+   ],
+   "rotation": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "restsOn": "desk"
+  },
+  {
+   "id": "bedroom-4-cushion",
+   "name": "Cushion set of three: sage linen 50 cm, oat boucle 50 cm, rust velvet…",
+   "assetId": "extra:bpy-soft:cushion-set-sage-oat-rust",
+   "position": [
+    0.55,
+    0.55,
+    3.6
+   ],
+   "rotation": 1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "restsOn": "bed-4"
+  },
+  {
+   "id": "bedroom-4-throw_blanket",
+   "name": "Chunky hand-knit throw 130 x 170 cm in cream merino, folded",
+   "assetId": "extra:bpy-soft:throw-chunky-knit-cream-folded",
+   "position": [
+    2,
+    0.55,
+    3.6
+   ],
+   "rotation": 1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "restsOn": "bed-4"
+  },
+  {
+   "id": "bedroom-4-books",
+   "name": "Pair of oak arch bookends holding 7 books",
+   "assetId": "extra:shelf-styling:books-7-with-oak-arch-bookends",
+   "position": [
+    2.84,
+    1.5190000000000001,
+    5
+   ],
+   "rotation": 4.71238898038469,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "restsOn": "bedroom-4-wall_hanging"
+  },
+  {
+   "id": "bedroom-4-vase",
+   "name": "Bud vase set of four, small stoneware bottles with one dried stem",
+   "assetId": "extra:bpy-styling:vase-bud-set",
+   "position": [
+    2.84,
+    1.5190000000000001,
+    5.55
+   ],
+   "rotation": 4.71238898038469,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "restsOn": "bedroom-4-wall_hanging"
+  },
+  {
+   "id": "bedroom-4-blind",
+   "name": "Oat linen relaxed roman blind, 124x160 (fits 120 cm window)",
+   "assetId": "extra:bpy-curtains:roman-linen-oat-120",
+   "position": [
+    1.8229,
+    1.5819000000000003,
+    0.39855
+   ],
+   "rotation": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "host": {
+    "wallId": "wall-north",
+    "offset": 0.6225,
+    "elevation": 1.5819000000000003,
+    "side": 1
+   }
+  },
+  {
+   "id": "bedroom-5-wall_art",
+   "name": "Amazon Brand – Stone & Beam Modern Photo of Rocky Cliffs by Sea in Si…",
+   "assetId": "abo:B073NZPN4Q",
+   "position": [
+    6.3849,
+    1.22245,
+    16.33
+   ],
+   "rotation": -1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "host": {
+    "wallId": "wall-east-bedroom",
+    "offset": 1.2190999999999974,
+    "elevation": 1.22245,
+    "side": 1
+   }
+  },
+  {
+   "id": "bedroom-5-wall_art-2",
+   "name": "Amazon Brand – Rivet Abstract Green and Blue Sea Breeze Canvas Wall A…",
+   "assetId": "abo:B073NZPPP8",
+   "position": [
+    6.38845,
+    1.22335,
+    16.83
+   ],
+   "rotation": -1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "host": {
+    "wallId": "wall-east-bedroom",
+    "offset": 1.7190999999999974,
+    "elevation": 1.22335,
+    "side": 1
+   }
+  },
+  {
+   "id": "bedroom-5-wall_hanging",
+   "name": "Floating rift oak wall shelf 120 cm, 38 mm thick, 22 cm deep, hidden…",
+   "assetId": "extra:bpy-wall2:floating-shelf-oak-120",
+   "position": [
+    3.3759,
+    1.381,
+    16.58
+   ],
+   "rotation": 1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "host": {
+    "wallId": "wall-west-long",
+    "offset": 4.964399999999998,
+    "elevation": 1.381,
+    "side": -1
+   }
+  },
+  {
+   "id": "bedroom-5-lamp",
+   "name": "Amazon Brand – Rivet Mid Century Modern Diamond Cut Concrete Bedside…",
+   "assetId": "abo:B07374SBFM",
+   "position": [
+    6.17,
+    0.5398,
+    15.45
+   ],
+   "rotation": 4.71238898038469,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "restsOn": "bedside-5-north"
+  },
+  {
+   "id": "bedroom-5-lamp-2",
+   "name": "Amazon Brand – Rivet Mid Century Modern Diamond Cut Concrete Bedside…",
+   "assetId": "abo:B07374SBFM",
+   "position": [
+    6.17,
+    0.5398,
+    17.7
+   ],
+   "rotation": 4.71238898038469,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "restsOn": "bedside-5-south"
+  },
+  {
+   "id": "bedroom-5-cushion",
+   "name": "Cushion set of three: navy linen 50 cm, navy and ecru ticking stripe…",
+   "assetId": "extra:bpy-soft:cushion-set-navy-white-stripe",
+   "position": [
+    6.1,
+    0.55,
+    16.58
+   ],
+   "rotation": 4.71238898038469,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "restsOn": "bed-5"
+  },
+  {
+   "id": "bedroom-5-throw_blanket",
+   "name": "Stonewashed linen throw 130 x 180 cm with knotted fringe, natural, fo…",
+   "assetId": "extra:bpy-soft:throw-linen-fringe-natural-folded",
+   "position": [
+    4.65,
+    0.55,
+    17.1
+   ],
+   "rotation": 4.71238898038469,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "restsOn": "bed-5"
+  },
+  {
+   "id": "bedroom-5-plant",
+   "name": "Amazon Brand – Rivet Mid-Century Ceramic Planter with Iron Stand 9.1\"…",
+   "assetId": "abo:B075HR7LFF",
+   "position": [
+    3.38,
+    1.419,
+    16.1
+   ],
+   "rotation": 1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "restsOn": "bedroom-5-wall_hanging"
+  },
+  {
+   "id": "bedroom-5-books",
+   "name": "Pair of black metal L-shaped bookends holding 7 books",
+   "assetId": "extra:shelf-styling:books-7-with-black-metal-bookends",
+   "position": [
+    3.38,
+    1.419,
+    16.6
+   ],
+   "rotation": 1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "restsOn": "bedroom-5-wall_hanging"
+  },
+  {
+   "id": "bedroom-5-lantern",
+   "name": "Vintage brass hurricane lantern, 29 cm",
+   "assetId": "extra:shelf-styling:lantern-brass-small-glass",
+   "position": [
+    3.38,
+    1.419,
+    16.98
+   ],
+   "rotation": 1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "restsOn": "bedroom-5-wall_hanging"
+  },
+  {
+   "id": "bedroom-5-blind",
+   "name": "Sand blackout roller blind with white cassette, 154x160 (fits 150 cm…",
+   "assetId": "extra:bpy-curtains:roller-blackout-sand-150",
+   "position": [
+    4.9517,
+    1.4485000000000003,
+    18.3744
+   ],
+   "rotation": 3.141592653589793,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "host": {
+    "wallId": "wall-bedroom-5-south",
+    "offset": 1.7918,
+    "elevation": 1.4485000000000003,
+    "side": -1
+   }
+  },
+  {
+   "id": "hall-mirror",
+   "name": "Amazon Brand – Stone & Beam Rustic Woven Frame Mirror, 48\" H, Natural",
+   "assetId": "abo:B071V8GJX9",
+   "position": [
+    4.32335,
+    0.8904,
+    8.3
+   ],
+   "rotation": -1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "host": {
+    "wallId": "wall-hall-east",
+    "offset": 1.3977000000000004,
+    "elevation": 0.8904,
+    "side": 1
+   }
+  },
+  {
+   "id": "hall-bowl",
+   "name": "Hand-carved apricot-wood bowl with adze facets, 26 cm",
+   "assetId": "extra:bpy-armenian:apricot-wood-bowl-carved",
+   "position": [
+    2.01,
+    0.4517,
+    9.72
+   ],
+   "rotation": 4.71238898038469,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "restsOn": "hall-table"
+  },
+  {
+   "id": "hall-lantern",
+   "name": "Hurricane lantern, clear glass on an oak base with a pillar candle",
+   "assetId": "extra:bpy-styling:lantern-hurricane",
+   "position": [
+    2.01,
+    0.4517,
+    10.2
+   ],
+   "rotation": 4.71238898038469,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "restsOn": "hall-table"
+  },
+  {
+   "id": "kitchen-wall_art",
+   "name": "Amazon Brand – Rivet Green and Pink Botanical Anatomy Print in Gold F…",
+   "assetId": "abo:B073NZGLGM",
+   "position": [
+    4.47385,
+    1.31055,
+    8
+   ],
+   "rotation": 1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "host": {
+    "wallId": "wall-hall-east",
+    "offset": 1.0976999999999997,
+    "elevation": 1.31055,
+    "side": -1
+   }
+  },
+  {
+   "id": "bathroom-7-mirror",
+   "name": "Amazon Brand – Rivet Modern Octagonal Metalwork Hanging Geometric Wal…",
+   "assetId": "abo:B071DQRXDR",
+   "position": [
+    5.15,
+    1.245,
+    11.718549999999999
+   ],
+   "rotation": 3.141592653589793,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "host": {
+    "wallId": "shaft-bath-bath",
+    "offset": 0.7456000000000005,
+    "elevation": 1.245,
+    "side": -1
+   }
+  },
+  {
+   "id": "bathroom-6-mirror",
+   "name": "Amazon Brand – Stone & Beam Rustic Wood and Rope Geo Mirror, 36\" H, N…",
+   "assetId": "abo:B0718ZKQK8",
+   "position": [
+    5.05,
+    1.1441000000000001,
+    12.343499999999999
+   ],
+   "rotation": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "host": {
+    "wallId": "shaft-bath-bath",
+    "offset": 0.6456,
+    "elevation": 1.1441000000000001,
+    "side": 1
+   }
+  },
+  {
+   "id": "living-blind",
+   "name": "Sand blackout roller blind with white cassette, fits a 180 cm window,…",
+   "assetId": "extra:bpy-gaps:roller-blackout-sand-180",
+   "position": [
+    4.4818,
+    1.4485000000000003,
+    0.39070000000000005
+   ],
+   "rotation": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "host": {
+    "wallId": "wall-north",
+    "offset": 3.2813999999999997,
+    "elevation": 1.4485000000000003,
+    "side": 1
+   }
+  },
+  {
+   "id": "hall-wall_art",
+   "name": "Amazon Brand – Stone & Beam Modern Red & Pink Floral Print Wall Art o…",
+   "assetId": "abo:B073NZPP8N",
+   "position": [
+    0.82755,
+    1.0426000000000002,
+    10.4
+   ],
+   "rotation": 1.5707963267948966,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "host": {
+    "wallId": "wall-hall-west-2",
+    "offset": 0.7880000000000003,
+    "elevation": 1.0426000000000002,
+    "side": -1
+   }
+  },
+  {
+   "id": "bathroom-7-rug",
+   "name": "Cotton waffle bath mat in oat, 80 x 50 cm",
+   "assetId": "extra:bpy-bathroom:bathmat-cotton-waffle",
+   "position": [
+    4.98,
+    0,
+    11.18
+   ],
+   "rotation": 3.141592653589793,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": "bathroom-6-rug",
+   "name": "Teak slatted bath mat, 60 x 36 cm",
+   "assetId": "extra:bpy-bathroom:bathmat-teak-slatted",
+   "position": [
+    5.36,
+    0,
+    13.58
+   ],
+   "rotation": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  }
+ ],
+ "components": [
+  {
+   "id": "worktop-east",
+   "name": "Worktop",
+   "kind": "worktop",
+   "position": [
+    6.1079,
+    0,
+    8.4337
+   ],
+   "dimensions": [
+    0.6,
+    0.9,
+    0.574
+   ],
+   "rotation": 0,
+   "color": "#f4f4f2",
+   "phase": "existing",
+   "roomId": "kitchen"
+  },
+  {
+   "id": "kitchen-sink",
+   "name": "Kitchen sink",
+   "kind": "sink",
+   "position": [
+    6.1079,
+    0,
+    8.9677
+   ],
+   "dimensions": [
+    0.494,
+    0.85,
+    0.6
+   ],
+   "rotation": -1.5707963267948966,
+   "color": "#f4f4f2",
+   "phase": "existing",
+   "roomId": "kitchen"
+  },
+  {
+   "id": "drainer",
+   "name": "Draining board",
+   "kind": "worktop",
+   "position": [
+    6.1079,
+    0,
+    9.3825
+   ],
+   "dimensions": [
+    0.6,
+    0.9,
+    0.335
+   ],
+   "rotation": 0,
+   "color": "#f4f4f2",
+   "phase": "existing",
+   "roomId": "kitchen"
+  },
+  {
+   "id": "worktop-corner",
+   "name": "Worktop",
+   "kind": "worktop",
+   "position": [
+    5.9224,
+    0,
+    9.8503
+   ],
+   "dimensions": [
+    0.971,
+    0.9,
+    0.6
+   ],
+   "rotation": 3.1416,
+   "color": "#f4f4f2",
+   "phase": "existing",
+   "roomId": "kitchen"
+  },
+  {
+   "id": "hob",
+   "name": "Hob",
+   "kind": "appliance",
+   "position": [
+    5.1282,
+    0,
+    9.8503
+   ],
+   "dimensions": [
+    0.618,
+    0.85,
+    0.6
+   ],
+   "rotation": 3.141592653589793,
+   "color": "#f4f4f2",
+   "phase": "existing",
+   "roomId": "kitchen"
+  },
+  {
+   "id": "worktop-west",
+   "name": "Worktop",
+   "kind": "worktop",
+   "position": [
+    4.6429,
+    0,
+    9.8503
+   ],
+   "dimensions": [
+    0.6,
+    0.9,
+    0.353
+   ],
+   "rotation": 1.5708,
+   "color": "#f4f4f2",
+   "phase": "existing",
+   "roomId": "kitchen"
+  },
+  {
+   "id": "toilet-7",
+   "name": "Toilet",
+   "kind": "toilet",
+   "position": [
+    5.9182,
+    0,
+    11.47
+   ],
+   "dimensions": [
+    0.397,
+    0.8,
+    0.591
+   ],
+   "rotation": 3.141592653589793,
+   "color": "#f4f4f2",
+   "phase": "existing",
+   "roomId": "bathroom-7"
+  },
+  {
+   "id": "basin-7",
+   "name": "Washbasin",
+   "kind": "sink",
+   "position": [
+    4.9781,
+    0,
+    11.6024
+   ],
+   "dimensions": [
+    0.459,
+    0.85,
+    0.327
+   ],
+   "rotation": 3.141592653589793,
+   "color": "#f4f4f2",
+   "phase": "existing",
+   "roomId": "bathroom-7"
+  },
+  {
+   "id": "basin-6",
+   "name": "Washbasin",
+   "kind": "sink",
+   "position": [
+    4.881,
+    0,
+    12.4806
+   ],
+   "dimensions": [
+    0.477,
+    0.85,
+    0.318
+   ],
+   "rotation": 0,
+   "color": "#f4f4f2",
+   "phase": "existing",
+   "roomId": "bathroom-6"
+  },
+  {
+   "id": "toilet-6",
+   "name": "Toilet",
+   "kind": "toilet",
+   "position": [
+    6.1079,
+    0,
+    12.7278
+   ],
+   "dimensions": [
+    0.388,
+    0.8,
+    0.6
+   ],
+   "rotation": -1.5707963267948966,
+   "color": "#f4f4f2",
+   "phase": "existing",
+   "roomId": "bathroom-6"
+  },
+  {
+   "id": "shower-6",
+   "name": "Walk-in shower",
+   "kind": "shower",
+   "position": [
+    5.7105,
+    0,
+    14.14
+   ],
+   "dimensions": [
+    1.183,
+    2,
+    0.741
+   ],
+   "rotation": 0,
+   "color": "#f4f4f2",
+   "phase": "existing",
+   "roomId": "bathroom-6"
+  },
+  {
+   "id": "railing-south",
+   "name": "Balcony railing",
+   "kind": "railing",
+   "position": [
+    4.4838,
+    0,
+    19.9037
+   ],
+   "dimensions": [
+    2.436,
+    1,
+    0.053
+   ],
+   "rotation": 0,
+   "color": "#f4f4f2",
+   "phase": "existing",
+   "roomId": "balcony"
+  },
+  {
+   "id": "dining-pendant",
+   "name": "Brass dome pendant",
+   "kind": "light",
+   "position": [
+    4.48,
+    1.5032999999999999,
+    1.33
+   ],
+   "dimensions": [
+    0.45,
+    0.45,
+    0.3
+   ],
+   "rotation": 0,
+   "color": "#B08D57",
+   "phase": "new",
+   "roomId": "living",
+   "light": {
+    "brightness": 800,
+    "temperature": 2700,
+    "enabled": true
+   }
+  }
+ ],
+ "finishes": [
+  {
+   "id": "spike:living:floor",
+   "entityId": "living",
+   "surface": "floor",
+   "materialId": "spike-finish:oak-herringbone|#b58f63"
+  },
+  {
+   "id": "spike:bedroom-4:floor",
+   "entityId": "bedroom-4",
+   "surface": "floor",
+   "materialId": "spike-finish:oak-herringbone|#b58f63"
+  },
+  {
+   "id": "spike:bedroom-5:floor",
+   "entityId": "bedroom-5",
+   "surface": "floor",
+   "materialId": "spike-finish:oak-herringbone|#b58f63"
+  },
+  {
+   "id": "spike:hall:floor",
+   "entityId": "hall",
+   "surface": "floor",
+   "materialId": "spike-finish:oak-herringbone|#b58f63"
+  },
+  {
+   "id": "spike:kitchen:floor",
+   "entityId": "kitchen",
+   "surface": "floor",
+   "materialId": "spike-finish:oak-herringbone|#b58f63"
+  },
+  {
+   "id": "spike:bathroom-7:floor",
+   "entityId": "bathroom-7",
+   "surface": "floor",
+   "materialId": "spike-finish:terrazzo|#ddd8cc"
+  },
+  {
+   "id": "spike:bathroom-6:floor",
+   "entityId": "bathroom-6",
+   "surface": "floor",
+   "materialId": "spike-finish:terrazzo|#ddd8cc"
+  },
+  {
+   "id": "spike:balcony:floor",
+   "entityId": "balcony",
+   "surface": "floor",
+   "materialId": "spike-finish:terracotta|#b87960"
+  },
+  {
+   "id": "spike:wall-east-bath-7:wall-front",
+   "entityId": "wall-east-bath-7",
+   "surface": "wall-front",
+   "materialId": "spike-finish:vertical-stack-sage|#aebba9"
+  },
+  {
+   "id": "spike:shaft-kitchen-bath:wall-front",
+   "entityId": "shaft-kitchen-bath",
+   "surface": "wall-front",
+   "materialId": "spike-finish:vertical-stack-sage|#aebba9"
+  },
+  {
+   "id": "spike:shaft-bath-bath:wall-back",
+   "entityId": "shaft-bath-bath",
+   "surface": "wall-back",
+   "materialId": "spike-finish:vertical-stack-sage|#aebba9"
+  },
+  {
+   "id": "spike:wall-east-bath-6:wall-front",
+   "entityId": "wall-east-bath-6",
+   "surface": "wall-front",
+   "materialId": "spike-finish:vertical-stack-sage|#aebba9"
+  },
+  {
+   "id": "spike:pylon-bath:wall-front",
+   "entityId": "pylon-bath",
+   "surface": "wall-front",
+   "materialId": "spike-finish:vertical-stack-sage|#aebba9"
+  },
+  {
+   "id": "spike:pylon-east-2:wall-front",
+   "entityId": "pylon-east-2",
+   "surface": "wall-front",
+   "materialId": "spike-finish:vertical-stack-sage|#aebba9"
+  },
+  {
+   "id": "spike:shaft-bath-bath:wall-front",
+   "entityId": "shaft-bath-bath",
+   "surface": "wall-front",
+   "materialId": "spike-finish:vertical-stack-sage|#aebba9"
+  },
+  {
+   "id": "spike:riser-bath-6:wall-back",
+   "entityId": "riser-bath-6",
+   "surface": "wall-back",
+   "materialId": "spike-finish:vertical-stack-sage|#aebba9"
+  },
+  {
+   "id": "spike:wall-bedroom-5-north:wall-back",
+   "entityId": "wall-bedroom-5-north",
+   "surface": "wall-back",
+   "materialId": "spike-finish:vertical-stack-sage|#aebba9"
+  },
+  {
+   "id": "spike:pylon-east-3:wall-front",
+   "entityId": "pylon-east-3",
+   "surface": "wall-front",
+   "materialId": "spike-finish:clay|#c98f7e"
+  },
+  {
+   "id": "spike:pylon-balcony:wall-front",
+   "entityId": "pylon-balcony",
+   "surface": "wall-front",
+   "materialId": "spike-finish:clay|#c98f7e"
+  },
+  {
+   "id": "spike:wall-bedroom-5-south:wall-front",
+   "entityId": "wall-bedroom-5-south",
+   "surface": "wall-front",
+   "materialId": "spike-finish:clay|#c98f7e"
+  },
+  {
+   "id": "spike:wall-north:wall-front",
+   "entityId": "wall-north",
+   "surface": "wall-front",
+   "materialId": "spike-finish:linen|#d8c9b5"
+  },
+  {
+   "id": "spike:pylon-ne:wall-front",
+   "entityId": "pylon-ne",
+   "surface": "wall-front",
+   "materialId": "spike-finish:linen|#d8c9b5"
+  },
+  {
+   "id": "spike:wall-bedroom-living:wall-back",
+   "entityId": "wall-bedroom-living",
+   "surface": "wall-back",
+   "materialId": "spike-finish:linen|#d8c9b5"
+  },
+  {
+   "id": "spike:pylon-nw:wall-front",
+   "entityId": "pylon-nw",
+   "surface": "wall-front",
+   "materialId": "spike-finish:linen|#d8c9b5"
+  },
+  {
+   "id": "spike:wall-bedroom-living:wall-front",
+   "entityId": "wall-bedroom-living",
+   "surface": "wall-front",
+   "materialId": "spike-finish:linen|#d8c9b5"
+  },
+  {
+   "id": "spike:wall-bedroom-hall:wall-back",
+   "entityId": "wall-bedroom-hall",
+   "surface": "wall-back",
+   "materialId": "spike-finish:linen|#d8c9b5"
+  },
+  {
+   "id": "spike:wall-west-long:wall-back",
+   "entityId": "wall-west-long",
+   "surface": "wall-back",
+   "materialId": "spike-finish:linen|#d8c9b5"
+  },
+  {
+   "id": "spike:wall-bedroom-5-north:wall-front",
+   "entityId": "wall-bedroom-5-north",
+   "surface": "wall-front",
+   "materialId": "spike-finish:linen|#d8c9b5"
+  },
+  {
+   "id": "spike:wall-bedroom-5-south:wall-back",
+   "entityId": "wall-bedroom-5-south",
+   "surface": "wall-back",
+   "materialId": "spike-finish:linen|#d8c9b5"
+  },
+  {
+   "id": "spike:column-w:wall-back",
+   "entityId": "column-w",
+   "surface": "wall-back",
+   "materialId": "spike-finish:clay|#c99a4b"
+  },
+  {
+   "id": "spike:wall-west-hall:wall-back",
+   "entityId": "wall-west-hall",
+   "surface": "wall-back",
+   "materialId": "spike-finish:clay|#c99a4b"
+  },
+  {
+   "id": "spike:wall-hall-sw:wall-back",
+   "entityId": "wall-hall-sw",
+   "surface": "wall-back",
+   "materialId": "spike-finish:clay|#c99a4b"
+  },
+  {
+   "id": "spike:wall-hall-west-2:wall-back",
+   "entityId": "wall-hall-west-2",
+   "surface": "wall-back",
+   "materialId": "spike-finish:clay|#c99a4b"
+  },
+  {
+   "id": "spike:wall-hall-south:wall-back",
+   "entityId": "wall-hall-south",
+   "surface": "wall-back",
+   "materialId": "spike-finish:clay|#c99a4b"
+  },
+  {
+   "id": "spike:shaft-hall:wall-back",
+   "entityId": "shaft-hall",
+   "surface": "wall-back",
+   "materialId": "spike-finish:clay|#c99a4b"
+  },
+  {
+   "id": "spike:wall-bedroom-hall:wall-front",
+   "entityId": "wall-bedroom-hall",
+   "surface": "wall-front",
+   "materialId": "spike-finish:clay|#c99a4b"
+  },
+  {
+   "id": "spike:wall-hall-east:wall-front",
+   "entityId": "wall-hall-east",
+   "surface": "wall-front",
+   "materialId": "spike-finish:clay|#c99a4b"
+  },
+  {
+   "id": "spike:pylon-kitchen:wall-front",
+   "entityId": "pylon-kitchen",
+   "surface": "wall-front",
+   "materialId": "spike-finish:sage|#a8b5a2"
+  },
+  {
+   "id": "spike:wall-east-kitchen:wall-front",
+   "entityId": "wall-east-kitchen",
+   "surface": "wall-front",
+   "materialId": "spike-finish:sage|#a8b5a2"
+  },
+  {
+   "id": "spike:wall-hall-east:wall-back",
+   "entityId": "wall-hall-east",
+   "surface": "wall-back",
+   "materialId": "spike-finish:sage|#a8b5a2"
+  },
+  {
+   "id": "spike:shaft-kitchen-bath:wall-back",
+   "entityId": "shaft-kitchen-bath",
+   "surface": "wall-back",
+   "materialId": "spike-finish:sage|#a8b5a2"
+  },
+  {
+   "id": "spike:pylon-east-1:wall-front",
+   "entityId": "pylon-east-1",
+   "surface": "wall-front",
+   "materialId": "spike-finish:olive|#3e5c4a"
+  },
+  {
+   "id": "spike:wall-east-living:wall-front",
+   "entityId": "wall-east-living",
+   "surface": "wall-front",
+   "materialId": "spike-finish:olive|#3e5c4a"
+  },
+  {
+   "id": "spike:pylon-west-1:wall-back",
+   "entityId": "pylon-west-1",
+   "surface": "wall-back",
+   "materialId": "spike-finish:clay|#c0704f"
+  },
+  {
+   "id": "spike:wall-west-bedroom:wall-back",
+   "entityId": "wall-west-bedroom",
+   "surface": "wall-back",
+   "materialId": "spike-finish:clay|#c0704f"
+  },
+  {
+   "id": "spike:pylon-west-2:wall-back",
+   "entityId": "pylon-west-2",
+   "surface": "wall-back",
+   "materialId": "spike-finish:clay|#c0704f"
+  },
+  {
+   "id": "spike:wall-east-bedroom:wall-front",
+   "entityId": "wall-east-bedroom",
+   "surface": "wall-front",
+   "materialId": "spike-finish:blue|#7d93a8"
+  }
+ ],
+ "materials": [
+  {
+   "id": "spike-finish:oak-herringbone|#b58f63",
+   "name": "Oak herringbone",
+   "color": "#B58F63",
+   "unit": "m2",
+   "unitCost": 0,
+   "thickness": 0.014,
+   "wastePercent": 0,
+   "notes": "[varpet-finish:oak-herringbone] Conceptual finish sample; no supplier or price has been specified. Set a quoted unit cost before budgeting."
+  },
+  {
+   "id": "spike-finish:terrazzo|#ddd8cc",
+   "name": "Ivory terrazzo",
+   "color": "#DDD8CC",
+   "unit": "m2",
+   "unitCost": 0,
+   "thickness": 0.01,
+   "wastePercent": 0,
+   "notes": "[varpet-finish:terrazzo] Conceptual finish sample; no supplier or price has been specified. Set a quoted unit cost before budgeting."
+  },
+  {
+   "id": "spike-finish:terracotta|#b87960",
+   "name": "Terracotta",
+   "color": "#B87960",
+   "unit": "m2",
+   "unitCost": 0,
+   "thickness": 0.01,
+   "wastePercent": 0,
+   "notes": "[varpet-finish:terracotta] Conceptual finish sample; no supplier or price has been specified. Set a quoted unit cost before budgeting."
+  },
+  {
+   "id": "spike-finish:vertical-stack-sage|#aebba9",
+   "name": "Sage vertical stack",
+   "color": "#AEBBA9",
+   "unit": "m2",
+   "unitCost": 0,
+   "thickness": 0.01,
+   "wastePercent": 0,
+   "notes": "[varpet-finish:vertical-stack-sage] Conceptual finish sample; no supplier or price has been specified. Set a quoted unit cost before budgeting."
+  },
+  {
+   "id": "spike-finish:clay|#c98f7e",
+   "name": "Blush clay",
+   "color": "#C98F7E",
+   "unit": "m2",
+   "unitCost": 0,
+   "thickness": 0.0002,
+   "wastePercent": 0,
+   "notes": "[varpet-finish:clay] Conceptual finish sample; no supplier or price has been specified. Set a quoted unit cost before budgeting."
+  },
+  {
+   "id": "spike-finish:linen|#d8c9b5",
+   "name": "Soft linen",
+   "color": "#D8C9B5",
+   "unit": "m2",
+   "unitCost": 0,
+   "thickness": 0.0002,
+   "wastePercent": 0,
+   "notes": "[varpet-finish:linen] Conceptual finish sample; no supplier or price has been specified. Set a quoted unit cost before budgeting."
+  },
+  {
+   "id": "spike-finish:clay|#c99a4b",
+   "name": "Blush clay",
+   "color": "#C99A4B",
+   "unit": "m2",
+   "unitCost": 0,
+   "thickness": 0.0002,
+   "wastePercent": 0,
+   "notes": "[varpet-finish:clay] Conceptual finish sample; no supplier or price has been specified. Set a quoted unit cost before budgeting."
+  },
+  {
+   "id": "spike-finish:sage|#a8b5a2",
+   "name": "Quiet sage",
+   "color": "#A8B5A2",
+   "unit": "m2",
+   "unitCost": 0,
+   "thickness": 0.0002,
+   "wastePercent": 0,
+   "notes": "[varpet-finish:sage] Conceptual finish sample; no supplier or price has been specified. Set a quoted unit cost before budgeting."
+  },
+  {
+   "id": "spike-finish:olive|#3e5c4a",
+   "name": "Olive grove",
+   "color": "#3E5C4A",
+   "unit": "m2",
+   "unitCost": 0,
+   "thickness": 0.0002,
+   "wastePercent": 0,
+   "notes": "[varpet-finish:olive] Conceptual finish sample; no supplier or price has been specified. Set a quoted unit cost before budgeting."
+  },
+  {
+   "id": "spike-finish:clay|#c0704f",
+   "name": "Blush clay",
+   "color": "#C0704F",
+   "unit": "m2",
+   "unitCost": 0,
+   "thickness": 0.0002,
+   "wastePercent": 0,
+   "notes": "[varpet-finish:clay] Conceptual finish sample; no supplier or price has been specified. Set a quoted unit cost before budgeting."
+  },
+  {
+   "id": "spike-finish:blue|#7d93a8",
+   "name": "Blue hour",
+   "color": "#7D93A8",
+   "unit": "m2",
+   "unitCost": 0,
+   "thickness": 0.0002,
+   "wastePercent": 0,
+   "notes": "[varpet-finish:blue] Conceptual finish sample; no supplier or price has been specified. Set a quoted unit cost before budgeting."
+  }
+ ],
+ "routes": [],
+ "metadata": {
+  "column-nw": {
+   "structuralRole": "unknown",
+   "phase": "existing",
+   "review": "unreviewed"
+  },
+  "pylon-nw": {
+   "structuralRole": "unknown",
+   "phase": "existing",
+   "review": "unreviewed"
+  },
+  "wall-north": {
+   "structuralRole": "unknown",
+   "phase": "existing",
+   "review": "unreviewed"
+  },
+  "pylon-ne": {
+   "structuralRole": "unknown",
+   "phase": "existing",
+   "review": "unreviewed"
+  },
+  "column-ne": {
+   "structuralRole": "unknown",
+   "phase": "existing",
+   "review": "unreviewed"
+  },
+  "pylon-west-1": {
+   "structuralRole": "unknown",
+   "phase": "existing",
+   "review": "unreviewed"
+  },
+  "wall-west-bedroom": {
+   "structuralRole": "unknown",
+   "phase": "existing",
+   "review": "unreviewed"
+  },
+  "pylon-west-2": {
+   "structuralRole": "unknown",
+   "phase": "existing",
+   "review": "unreviewed"
+  },
+  "column-w": {
+   "structuralRole": "unknown",
+   "phase": "existing",
+   "review": "unreviewed"
+  },
+  "wall-west-hall": {
+   "structuralRole": "unknown",
+   "phase": "existing",
+   "review": "unreviewed"
+  },
+  "wall-hall-sw": {
+   "structuralRole": "unknown",
+   "phase": "existing",
+   "review": "unreviewed"
+  },
+  "wall-hall-west-2": {
+   "structuralRole": "unknown",
+   "phase": "existing",
+   "review": "unreviewed"
+  },
+  "wall-hall-south": {
+   "structuralRole": "unknown",
+   "phase": "existing",
+   "review": "unreviewed"
+  },
+  "shaft-hall": {
+   "structuralRole": "unknown",
+   "phase": "existing",
+   "review": "unreviewed"
+  },
+  "wall-west-long": {
+   "structuralRole": "unknown",
+   "phase": "existing",
+   "review": "unreviewed"
+  },
+  "pylon-east-1": {
+   "structuralRole": "unknown",
+   "phase": "existing",
+   "review": "unreviewed"
+  },
+  "wall-east-living": {
+   "structuralRole": "unknown",
+   "phase": "existing",
+   "review": "unreviewed"
+  },
+  "pylon-kitchen": {
+   "structuralRole": "unknown",
+   "phase": "existing",
+   "review": "unreviewed"
+  },
+  "column-kitchen": {
+   "structuralRole": "unknown",
+   "phase": "existing",
+   "review": "unreviewed"
+  },
+  "wall-east-kitchen": {
+   "structuralRole": "unknown",
+   "phase": "existing",
+   "review": "unreviewed"
+  },
+  "wall-east-bath-7": {
+   "structuralRole": "unknown",
+   "phase": "existing",
+   "review": "unreviewed"
+  },
+  "wall-east-bath-6": {
+   "structuralRole": "unknown",
+   "phase": "existing",
+   "review": "unreviewed"
+  },
+  "pylon-bath": {
+   "structuralRole": "unknown",
+   "phase": "existing",
+   "review": "unreviewed"
+  },
+  "column-bath": {
+   "structuralRole": "unknown",
+   "phase": "existing",
+   "review": "unreviewed"
+  },
+  "pylon-east-2": {
+   "structuralRole": "unknown",
+   "phase": "existing",
+   "review": "unreviewed"
+  },
+  "wall-east-bedroom": {
+   "structuralRole": "unknown",
+   "phase": "existing",
+   "review": "unreviewed"
+  },
+  "pylon-east-3": {
+   "structuralRole": "unknown",
+   "phase": "existing",
+   "review": "unreviewed"
+  },
+  "pylon-balcony": {
+   "structuralRole": "unknown",
+   "phase": "existing",
+   "review": "unreviewed"
+  },
+  "column-balcony": {
+   "structuralRole": "unknown",
+   "phase": "existing",
+   "review": "unreviewed"
+  },
+  "wall-bedroom-living": {
+   "structuralRole": "unknown",
+   "phase": "existing",
+   "review": "unreviewed"
+  },
+  "wall-bedroom-hall": {
+   "structuralRole": "unknown",
+   "phase": "existing",
+   "review": "unreviewed"
+  },
+  "wall-hall-east": {
+   "structuralRole": "unknown",
+   "phase": "existing",
+   "review": "unreviewed"
+  },
+  "shaft-kitchen-bath": {
+   "structuralRole": "unknown",
+   "phase": "existing",
+   "review": "unreviewed"
+  },
+  "shaft-bath-bath": {
+   "structuralRole": "unknown",
+   "phase": "existing",
+   "review": "unreviewed"
+  },
+  "riser-bath-6": {
+   "structuralRole": "unknown",
+   "phase": "existing",
+   "review": "unreviewed"
+  },
+  "wall-bedroom-5-north": {
+   "structuralRole": "unknown",
+   "phase": "existing",
+   "review": "unreviewed"
+  },
+  "wall-bedroom-5-south": {
+   "structuralRole": "unknown",
+   "phase": "existing",
+   "review": "unreviewed"
+  },
+  "bedroom-4": {
+   "zone": "interior",
+   "phase": "existing",
+   "ceilingDesign": {
+    "style": "soft-glow",
+    "drop": 0.16,
+    "inset": 0.35,
+    "brightness": 55,
+    "temperature": 2700,
+    "enabled": true
+   }
+  },
+  "living": {
+   "zone": "interior",
+   "phase": "existing",
+   "ceilingDesign": {
+    "style": "soft-glow",
+    "drop": 0.16,
+    "inset": 0.35,
+    "brightness": 65,
+    "temperature": 2700,
+    "enabled": true
+   }
+  },
+  "kitchen": {
+   "zone": "interior",
+   "phase": "existing",
+   "ceilingDesign": {
+    "style": "architectural",
+    "drop": 0.06,
+    "inset": 0.6,
+    "brightness": 80,
+    "temperature": 3000,
+    "enabled": true
+   }
+  },
+  "hall": {
+   "zone": "interior",
+   "phase": "existing",
+   "ceilingDesign": {
+    "style": "quiet",
+    "drop": 0,
+    "inset": 0.55,
+    "brightness": 65,
+    "temperature": 2700,
+    "enabled": true
+   }
+  },
+  "bathroom-7": {
+   "zone": "interior",
+   "phase": "existing",
+   "ceilingDesign": {
+    "style": "quiet",
+    "drop": 0,
+    "inset": 0.35,
+    "brightness": 80,
+    "temperature": 3000,
+    "enabled": true
+   }
+  },
+  "bathroom-6": {
+   "zone": "interior",
+   "phase": "existing",
+   "ceilingDesign": {
+    "style": "quiet",
+    "drop": 0,
+    "inset": 0.35,
+    "brightness": 80,
+    "temperature": 3000,
+    "enabled": true
+   }
+  },
+  "bedroom-5": {
+   "zone": "interior",
+   "phase": "existing",
+   "ceilingDesign": {
+    "style": "soft-glow",
+    "drop": 0.16,
+    "inset": 0.35,
+    "brightness": 55,
+    "temperature": 2700,
+    "enabled": true
+   }
+  },
+  "balcony": {
+   "zone": "interior",
+   "phase": "existing",
+   "ceilingDesign": {
+    "style": "quiet",
+    "drop": 0,
+    "inset": 0.55,
+    "brightness": 45,
+    "temperature": 2700,
+    "enabled": true
+   }
+  },
+  "door-entrance": {
+   "mechanism": "hinged",
+   "hinge": "right",
+   "swing": -1
+  },
+  "door-bedroom-4": {
+   "mechanism": "hinged",
+   "hinge": "right",
+   "swing": -1
+  },
+  "door-bathroom-7": {
+   "mechanism": "hinged",
+   "hinge": "left",
+   "swing": 1
+  },
+  "door-bathroom-6": {
+   "mechanism": "hinged",
+   "hinge": "right",
+   "swing": 1
+  },
+  "door-bedroom-5": {
+   "mechanism": "hinged",
+   "hinge": "left",
+   "swing": 1
+  },
+  "door-balcony": {
+   "mechanism": "hinged",
+   "hinge": "left",
+   "swing": -1
+  }
+ },
+ "catalog": [
+  {
+   "id": "abo:B0735T6948",
+   "name": "Amazon Brand – Stone & Beam Garrison Vintage Pattern Wool Area Rug, 5 x 8 Foot, Grey Multi",
+   "kind": "rug",
+   "category": "rug",
+   "dimensions": [
+    2.6509,
+    0.011,
+    1.9709
+   ],
+   "color": "#b9ad96",
+   "price": 65000,
+   "source": {
+    "type": "gltf",
+    "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/8/B0735T6948.glb"
+   }
+  },
+  {
+   "id": "abo:B073P25SXR",
+   "name": "Rivet Mid-Century Modern Theory 5-Arm Living Room Floor Lamp with Edison Light Bulbs, 60\"H, Black and Brass Finish",
+   "kind": "lamp",
+   "category": "lamp",
+   "dimensions": [
+    0.599,
+    1.7207,
+    0.5716
+   ],
+   "color": "#dcd8cd",
+   "price": 24000,
+   "source": {
+    "type": "gltf",
+    "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/R/B073P25SXR.glb"
+   }
+  },
+  {
+   "id": "abo:B07374SBFL",
+   "name": "Amazon Brand – Rivet Adjustable Arm Mid-Century Modern Living Room Standing Floor Lamp - 59 Inches, Brushed Nickel",
+   "kind": "lamp",
+   "category": "lamp",
+   "dimensions": [
+    0.2501,
+    1.526,
+    0.4308
+   ],
+   "color": "#dddbd4",
+   "price": 18000,
+   "source": {
+    "type": "gltf",
+    "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/L/B07374SBFL.glb"
+   }
+  },
+  {
+   "id": "extra:bpy-plants2:ficus-lyrata-bush-180",
+   "name": "Fiddle leaf fig bush, multi-stem, 180 cm, in fluted concrete planter",
+   "kind": "plant",
+   "category": "Home",
+   "dimensions": [
+    0.9706,
+    1.8489,
+    1.0852
+   ],
+   "color": "#b8b4ad",
+   "price": 78000,
+   "source": {
+    "type": "gltf",
+    "url": "/api/catalog/models/extra-bpy-plants2-ficus-lyrata-bush-180.glb"
+   }
+  },
+  {
+   "id": "abo:B0735RJPDH",
+   "name": "Amazon Brand – Rivet Contemporary Linear Distressed Wool Area Rug, 5 x 8 Foot, Grey",
+   "kind": "rug",
+   "category": "rug",
+   "dimensions": [
+    2.4626,
+    0.011,
+    1.6327
+   ],
+   "color": "#dad8cc",
+   "price": 57000,
+   "source": {
+    "type": "gltf",
+    "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/H/B0735RJPDH.glb"
+   }
+  },
+  {
+   "id": "abo:B071777YNX",
+   "name": "Amazon Brand – Rivet Muted Boho Rug, 5' x 8', Off-white",
+   "kind": "rug",
+   "category": "rug",
+   "dimensions": [
+    2.4384,
+    0.0259,
+    1.706
+   ],
+   "color": "#d8d7d3",
+   "price": 58000,
+   "source": {
+    "type": "gltf",
+    "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/X/B071777YNX.glb"
+   }
+  },
+  {
+   "id": "abo:B06XDD4YTD",
+   "name": "Rivet Stonewashed Sunset Rug, 4' x 6', Blush",
+   "kind": "rug",
+   "category": "rug",
+   "dimensions": [
+    1.8288,
+    0.011,
+    1.2188
+   ],
+   "color": "#856960",
+   "price": 45000,
+   "source": {
+    "type": "gltf",
+    "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/D/B06XDD4YTD.glb"
+   }
+  },
+  {
+   "id": "extra:bpy-balconyplants:geranium-pots-trio",
+   "name": "Zonal geraniums, trio of terracotta pots, red, pink and white",
+   "kind": "plant",
+   "category": "Home",
+   "dimensions": [
+    0.7208,
+    0.4344,
+    0.2907
+   ],
+   "color": "#b8b4ad",
+   "price": 14000,
+   "source": {
+    "type": "gltf",
+    "url": "/api/catalog/models/extra-bpy-balconyplants-geranium-pots-trio.glb"
+   }
+  },
+  {
+   "id": "extra:bpy-balconyplants:lavender-terracotta-pot",
+   "name": "Lavender in a terracotta pot, 34 cm pot",
+   "kind": "plant",
+   "category": "Home",
+   "dimensions": [
+    0.3924,
+    0.6536,
+    0.3974
+   ],
+   "color": "#b8b4ad",
+   "price": 12000,
+   "source": {
+    "type": "gltf",
+    "url": "/api/catalog/models/extra-bpy-balconyplants-lavender-terracotta-pot.glb"
+   }
+  },
+  {
+   "id": "abo:B073NZPPRM",
+   "name": "Amazon Brand – Rivet Blue and Green Mid-Century Modern Botanical Anatomy in Gold Frame Print Wall Art, 18\" x 22\"",
+   "kind": "wall_art",
+   "category": "Decoration",
+   "dimensions": [
+    0.4493,
+    0.5497,
+    0.0214
+   ],
+   "color": "#c0c2c4",
+   "price": 13000,
+   "source": {
+    "type": "gltf",
+    "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/M/B073NZPPRM.glb"
+   }
+  },
+  {
+   "id": "abo:B073NZQR61",
+   "name": "Amazon Brand – Rivet Green Botanical Anatomy Print in Gold Frame Wall Art, 18\" x 22\"",
+   "kind": "wall_art",
+   "category": "Decoration",
+   "dimensions": [
+    0.4523,
+    0.5533,
+    0.0217
+   ],
+   "color": "#c1c2c1",
+   "price": 13000,
+   "source": {
+    "type": "gltf",
+    "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/1/B073NZQR61.glb"
+   }
+  },
+  {
+   "id": "abo:B073NZGLGM",
+   "name": "Amazon Brand – Rivet Green and Pink Botanical Anatomy Print in Gold Frame Wall Art, 13\" x 15\"",
+   "kind": "wall_art",
+   "category": "Decoration",
+   "dimensions": [
+    0.3097,
+    0.3789,
+    0.0149
+   ],
+   "color": "#161514",
+   "price": 13000,
+   "source": {
+    "type": "gltf",
+    "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/M/B073NZGLGM.glb"
+   }
+  },
+  {
+   "id": "abo:B073NZPP4V",
+   "name": "Amazon Brand – Rivet Copper Metallic Foil Canvas Print Wall Art in White Frame, 21.75\" x 17.75\"",
+   "kind": "wall_art",
+   "category": "Decoration",
+   "dimensions": [
+    0.4514,
+    0.5527,
+    0.0388
+   ],
+   "color": "#b6bcc1",
+   "price": 13000,
+   "source": {
+    "type": "gltf",
+    "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/V/B073NZPP4V.glb"
+   }
+  },
+  {
+   "id": "extra:bpy-wall2:floating-shelf-walnut-120",
+   "name": "Floating walnut wall shelf 120 cm, 38 mm thick, 24 cm deep, hidden bracket",
+   "kind": "wall_art",
+   "category": "Decoration",
+   "dimensions": [
+    1.2,
+    0.038,
+    0.24
+   ],
+   "color": "#b8b4ad",
+   "price": 45000,
+   "source": {
+    "type": "gltf",
+    "url": "/api/catalog/models/extra-bpy-wall2-floating-shelf-walnut-120.glb"
+   }
+  },
+  {
+   "id": "extra:bpy-soft:cushion-set-sage-oat-rust",
+   "name": "Cushion set of three: sage linen 50 cm, oat boucle 50 cm, rust velvet 45 cm",
+   "kind": "decor",
+   "category": "Decoration",
+   "dimensions": [
+    0.9619,
+    0.4529,
+    0.3665
+   ],
+   "color": "#b8b4ad",
+   "price": 42000,
+   "source": {
+    "type": "gltf",
+    "url": "/api/catalog/models/extra-bpy-soft-cushion-set-sage-oat-rust.glb"
+   }
+  },
+  {
+   "id": "extra:bpy-soft:throw-linen-fringe-natural-folded",
+   "name": "Stonewashed linen throw 130 x 180 cm with knotted fringe, natural, folded",
+   "kind": "decor",
+   "category": "Decoration",
+   "dimensions": [
+    0.4662,
+    0.059,
+    0.3921
+   ],
+   "color": "#b8b4ad",
+   "price": 32000,
+   "source": {
+    "type": "gltf",
+    "url": "/api/catalog/models/extra-bpy-soft-throw-linen-fringe-natural-folded.glb"
+   }
+  },
+  {
+   "id": "extra:bpy-styling:books-stack-ceramic-object",
+   "name": "Stack of three linen coffee-table books with a ceramic orb on top",
+   "kind": "decor",
+   "category": "Decoration",
+   "dimensions": [
+    0.31,
+    0.1872,
+    0.24
+   ],
+   "color": "#b8b4ad",
+   "price": 27000,
+   "source": {
+    "type": "gltf",
+    "url": "/api/catalog/models/extra-bpy-styling-books-stack-ceramic-object.glb"
+   }
+  },
+  {
+   "id": "extra:bpy-styling:candle-holders-brass",
+   "name": "Brass candlestick trio with ivory taper candles",
+   "kind": "decor",
+   "category": "Decoration",
+   "dimensions": [
+    0.243,
+    0.4061,
+    0.133
+   ],
+   "color": "#b8b4ad",
+   "price": 28000,
+   "source": {
+    "type": "gltf",
+    "url": "/api/catalog/models/extra-bpy-styling-candle-holders-brass.glb"
+   }
+  },
+  {
+   "id": "extra:bpy-styling:vase-bud-set",
+   "name": "Bud vase set of four, small stoneware bottles with one dried stem",
+   "kind": "decor",
+   "category": "Decoration",
+   "dimensions": [
+    0.2676,
+    0.317,
+    0.1169
+   ],
+   "color": "#b8b4ad",
+   "price": 18000,
+   "source": {
+    "type": "gltf",
+    "url": "/api/catalog/models/extra-bpy-styling-vase-bud-set.glb"
+   }
+  },
+  {
+   "id": "extra:bpy-armenian:apricot-wood-bowl-carved",
+   "name": "Hand-carved apricot-wood bowl with adze facets, 26 cm",
+   "kind": "decor",
+   "category": "Decoration",
+   "dimensions": [
+    0.259,
+    0.0991,
+    0.2609
+   ],
+   "color": "#b8b4ad",
+   "price": 27000,
+   "source": {
+    "type": "gltf",
+    "url": "/api/catalog/models/extra-bpy-armenian-apricot-wood-bowl-carved.glb"
+   }
+  },
+  {
+   "id": "abo:B075HR7LFF",
+   "name": "Amazon Brand – Rivet Mid-Century Ceramic Planter with Iron Stand 9.1\"H, Pale Green",
+   "kind": "decor",
+   "category": "Decoration",
+   "dimensions": [
+    0.1522,
+    0.2303,
+    0.1588
+   ],
+   "color": "#d4d4c6",
+   "price": 10000,
+   "source": {
+    "type": "gltf",
+    "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/F/B075HR7LFF.glb"
+   }
+  },
+  {
+   "id": "extra:shelf-styling:books-7-with-oak-arch-bookends",
+   "name": "Pair of oak arch bookends holding 7 books",
+   "kind": "decor",
+   "category": "Decoration",
+   "dimensions": [
+    0.378,
+    0.244,
+    0.17
+   ],
+   "color": "#b8b4ad",
+   "price": 33000,
+   "source": {
+    "type": "gltf",
+    "url": "/api/catalog/models/extra-shelf-styling-books-7-with-oak-arch-bookends.glb"
+   }
+  },
+  {
+   "id": "abo:B073NZPNNL",
+   "name": "Amazon Brand – Rivet Calm Paradise Water Horizon at Dawn Canvas Wall Art, Silver Frame, 31.75\" x 41.75\"",
+   "kind": "wall_art",
+   "category": "Decoration",
+   "dimensions": [
+    0.8009,
+    1.0615,
+    0.0372
+   ],
+   "color": "#c6b9ae",
+   "price": 13000,
+   "source": {
+    "type": "gltf",
+    "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/L/B073NZPNNL.glb"
+   }
+  },
+  {
+   "id": "extra:bpy-wall2:floating-shelf-oak-120",
+   "name": "Floating rift oak wall shelf 120 cm, 38 mm thick, 22 cm deep, hidden bracket",
+   "kind": "wall_art",
+   "category": "Decoration",
+   "dimensions": [
+    1.2,
+    0.038,
+    0.22
+   ],
+   "color": "#b8b4ad",
+   "price": 35000,
+   "source": {
+    "type": "gltf",
+    "url": "/api/catalog/models/extra-bpy-wall2-floating-shelf-oak-120.glb"
+   }
+  },
+  {
+   "id": "abo:B073751DMJ",
+   "name": "Amazon Brand – Rivet Gold Bedside Table Desk Lamp with Light Bulb - 18 Inches, Linen Shade",
+   "kind": "lamp",
+   "category": "lamp",
+   "dimensions": [
+    0.2525,
+    0.4579,
+    0.252
+   ],
+   "color": "#d9d6d1",
+   "price": 17000,
+   "source": {
+    "type": "gltf",
+    "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/J/B073751DMJ.glb"
+   }
+  },
+  {
+   "id": "abo:B07374QFJ3",
+   "name": "Amazon Brand – Stone & Beam Glass Column Living Room Table Desk Lamp With Light Bulb and Linen Shade, 23\"H, Black",
+   "kind": "lamp",
+   "category": "lamp",
+   "dimensions": [
+    0.2109,
+    0.5094,
+    0.2109
+   ],
+   "color": "#e3e1dc",
+   "price": 16000,
+   "source": {
+    "type": "gltf",
+    "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/3/B07374QFJ3.glb"
+   }
+  },
+  {
+   "id": "abo:B075HR7KVR",
+   "name": "Amazon Brand – Rivet Mid-Century Ceramic Planter with Iron Stand, 6.8\"H x 14.5\"W, Pale Green",
+   "kind": "decor",
+   "category": "Decoration",
+   "dimensions": [
+    0.3356,
+    0.1705,
+    0.3446
+   ],
+   "color": "#d1d2c6",
+   "price": 11000,
+   "source": {
+    "type": "gltf",
+    "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/R/B075HR7KVR.glb"
+   }
+  },
+  {
+   "id": "extra:bpy-soft:throw-chunky-knit-cream-folded",
+   "name": "Chunky hand-knit throw 130 x 170 cm in cream merino, folded",
+   "kind": "decor",
+   "category": "Decoration",
+   "dimensions": [
+    0.4649,
+    0.1478,
+    0.4274
+   ],
+   "color": "#b8b4ad",
+   "price": 48000,
+   "source": {
+    "type": "gltf",
+    "url": "/api/catalog/models/extra-bpy-soft-throw-chunky-knit-cream-folded.glb"
+   }
+  },
+  {
+   "id": "extra:bpy-curtains:roman-linen-oat-120",
+   "name": "Oat linen relaxed roman blind, 124x160 (fits 120 cm window)",
+   "kind": "curtain",
+   "category": "Decoration",
+   "dimensions": [
+    1.245,
+    1.0881,
+    0.0907
+   ],
+   "color": "#b8b4ad",
+   "price": 64000,
+   "source": {
+    "type": "gltf",
+    "url": "/api/catalog/models/extra-bpy-curtains-roman-linen-oat-120.glb"
+   }
+  },
+  {
+   "id": "abo:B073NZPN4Q",
+   "name": "Amazon Brand – Stone & Beam Modern Photo of Rocky Cliffs by Sea in Silver Frame, 18\" x 22\"",
+   "kind": "wall_art",
+   "category": "Decoration",
+   "dimensions": [
+    0.4488,
+    0.5551,
+    0.046
+   ],
+   "color": "#bcc1c6",
+   "price": 13000,
+   "source": {
+    "type": "gltf",
+    "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/Q/B073NZPN4Q.glb"
+   }
+  },
+  {
+   "id": "abo:B073NZPPP8",
+   "name": "Amazon Brand – Rivet Abstract Green and Blue Sea Breeze Canvas Wall Art in Silver Frame, 17.75\" x 21.75\"",
+   "kind": "wall_art",
+   "category": "Decoration",
+   "dimensions": [
+    0.4445,
+    0.5533,
+    0.0389
+   ],
+   "color": "#9bbcc4",
+   "price": 13000,
+   "source": {
+    "type": "gltf",
+    "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/8/B073NZPPP8.glb"
+   }
+  },
+  {
+   "id": "abo:B07374SBFM",
+   "name": "Amazon Brand – Rivet Mid Century Modern Diamond Cut Concrete Bedside Table Desk Lamp With Light Bulb - 20 Inches",
+   "kind": "lamp",
+   "category": "lamp",
+   "dimensions": [
+    0.2757,
+    0.5009,
+    0.2759
+   ],
+   "color": "#c4b9aa",
+   "price": 17000,
+   "source": {
+    "type": "gltf",
+    "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/M/B07374SBFM.glb"
+   }
+  },
+  {
+   "id": "extra:bpy-soft:cushion-set-navy-white-stripe",
+   "name": "Cushion set of three: navy linen 50 cm, navy and ecru ticking stripe 50 cm, white linen 45 cm with navy piping",
+   "kind": "decor",
+   "category": "Decoration",
+   "dimensions": [
+    0.9619,
+    0.4529,
+    0.3668
+   ],
+   "color": "#b8b4ad",
+   "price": 39000,
+   "source": {
+    "type": "gltf",
+    "url": "/api/catalog/models/extra-bpy-soft-cushion-set-navy-white-stripe.glb"
+   }
+  },
+  {
+   "id": "extra:shelf-styling:books-7-with-black-metal-bookends",
+   "name": "Pair of black metal L-shaped bookends holding 7 books",
+   "kind": "decor",
+   "category": "Decoration",
+   "dimensions": [
+    0.24,
+    0.267,
+    0.186
+   ],
+   "color": "#b8b4ad",
+   "price": 29000,
+   "source": {
+    "type": "gltf",
+    "url": "/api/catalog/models/extra-shelf-styling-books-7-with-black-metal-bookends.glb"
+   }
+  },
+  {
+   "id": "extra:shelf-styling:lantern-brass-small-glass",
+   "name": "Vintage brass hurricane lantern, 29 cm",
+   "kind": "decor",
+   "category": "Decoration",
+   "dimensions": [
+    0.122,
+    0.294,
+    0.097
+   ],
+   "color": "#b8b4ad",
+   "price": 15000,
+   "source": {
+    "type": "gltf",
+    "url": "/api/catalog/models/extra-shelf-styling-lantern-brass-small-glass.glb"
+   }
+  },
+  {
+   "id": "extra:bpy-curtains:roller-blackout-sand-150",
+   "name": "Sand blackout roller blind with white cassette, 154x160 (fits 150 cm window)",
+   "kind": "curtain",
+   "category": "Decoration",
+   "dimensions": [
+    1.54,
+    1.2215,
+    0.075
+   ],
+   "color": "#b8b4ad",
+   "price": 46000,
+   "source": {
+    "type": "gltf",
+    "url": "/api/catalog/models/extra-bpy-curtains-roller-blackout-sand-150.glb"
+   }
+  },
+  {
+   "id": "abo:B071V8GJX9",
+   "name": "Amazon Brand – Stone & Beam Rustic Woven Frame Mirror, 48\" H, Natural",
+   "kind": "mirror",
+   "category": "Decoration",
+   "dimensions": [
+    0.762,
+    1.2192,
+    0.0381
+   ],
+   "color": "#cacac5",
+   "price": 23000,
+   "source": {
+    "type": "gltf",
+    "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/9/B071V8GJX9.glb"
+   }
+  },
+  {
+   "id": "extra:bpy-styling:lantern-hurricane",
+   "name": "Hurricane lantern, clear glass on an oak base with a pillar candle",
+   "kind": "decor",
+   "category": "Decoration",
+   "dimensions": [
+    0.208,
+    0.3413,
+    0.208
+   ],
+   "color": "#b8b4ad",
+   "price": 23000,
+   "source": {
+    "type": "gltf",
+    "url": "/api/catalog/models/extra-bpy-styling-lantern-hurricane.glb"
+   }
+  },
+  {
+   "id": "abo:B071DQRXDR",
+   "name": "Amazon Brand – Rivet Modern Octagonal Metalwork Hanging Geometric Wall Mirror, 28 Inch Height, Black Finish",
+   "kind": "mirror",
+   "category": "Decoration",
+   "dimensions": [
+    0.71,
+    0.71,
+    0.0943
+   ],
+   "color": "#fcfcfb",
+   "price": 23000,
+   "source": {
+    "type": "gltf",
+    "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/R/B071DQRXDR.glb"
+   }
+  },
+  {
+   "id": "abo:B0718ZKQK8",
+   "name": "Amazon Brand – Stone & Beam Rustic Wood and Rope Geo Mirror, 36\" H, Natural",
+   "kind": "mirror",
+   "category": "Decoration",
+   "dimensions": [
+    0.6057,
+    0.9118,
+    0.0436
+   ],
+   "color": "#dad8d2",
+   "price": 23000,
+   "source": {
+    "type": "gltf",
+    "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/8/B0718ZKQK8.glb"
+   }
+  },
+  {
+   "id": "extra:bpy-gaps:roller-blackout-sand-180",
+   "name": "Sand blackout roller blind with white cassette, fits a 180 cm window, 160 cm drop (shown part-lowered)",
+   "kind": "curtain",
+   "category": "Decoration",
+   "dimensions": [
+    1.84,
+    1.2215,
+    0.075
+   ],
+   "color": "#b8b4ad",
+   "price": 58000,
+   "source": {
+    "type": "gltf",
+    "url": "/api/catalog/models/extra-bpy-gaps-roller-blackout-sand-180.glb"
+   }
+  },
+  {
+   "id": "abo:B073NZPP8N",
+   "name": "Amazon Brand – Stone & Beam Modern Red & Pink Floral Print Wall Art on Canvas, 30\" x 40\"",
+   "kind": "wall_art",
+   "category": "Decoration",
+   "dimensions": [
+    0.7617,
+    1.0148,
+    0.0309
+   ],
+   "color": "#b4a78e",
+   "price": 13000,
+   "source": {
+    "type": "gltf",
+    "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/N/B073NZPP8N.glb"
+   }
+  },
+  {
+   "id": "extra:bpy-bathroom:bathmat-cotton-waffle",
+   "name": "Cotton waffle bath mat in oat, 80 x 50 cm",
+   "kind": "rug",
+   "category": "rug",
+   "dimensions": [
+    0.8,
+    0.011,
+    0.5
+   ],
+   "color": "#b8b4ad",
+   "price": 14000,
+   "source": {
+    "type": "gltf",
+    "url": "/api/catalog/models/extra-bpy-bathroom-bathmat-cotton-waffle.glb"
+   }
+  },
+  {
+   "id": "extra:bpy-bathroom:bathmat-teak-slatted",
+   "name": "Teak slatted bath mat, 60 x 36 cm",
+   "kind": "rug",
+   "category": "rug",
+   "dimensions": [
+    0.6,
+    0.042,
+    0.36
+   ],
+   "color": "#b8b4ad",
+   "price": 26000,
+   "source": {
+    "type": "gltf",
+    "url": "/api/catalog/models/extra-bpy-bathroom-bathmat-teak-slatted.glb"
+   }
+  }
+ ]
+}
