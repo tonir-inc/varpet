@@ -83,3 +83,6 @@ export const developerHref = (slug: string) => `/?developer=${enc(slug)}`;
 export const studioHref = '/?view=studio';
 /** Opens the furnished bundle in the editor's Design phase, with its existing furniture and the designer chat. */
 export const bundleHref = (id: string) => `/?bundle=${enc(id)}`;
+/** Bundles that open as the recorded designer demo instead of the plain editor (the pitch flat). */
+const DEMO_SESSIONS: Record<string, string> = { 'sample-sunday-b12121': 'sunday-b12121' };
+export const demoHref = (id: string): string | undefined => DEMO_SESSIONS[id] && `/?editor&session=${enc(DEMO_SESSIONS[id])}`;

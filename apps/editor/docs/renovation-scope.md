@@ -1,6 +1,6 @@
 # From apartment visualization to renovation planning
 
-Product analysis and proposed roadmap, 2026-09-26. Requested direction: reconstruct an apartment from photos and/or its layout blueprint, make mistakes easy to correct, expose assumptions, then support renovation decisions. These are proposed capabilities, not implemented features or a commitment to deliver everything during the hackathon.
+Product analysis and proposed roadmap, 2026-09-26. Requested direction: reconstruct an apartment from photos and/or its layout blueprint, make mistakes easy to correct, expose assumptions, then support renovation decisions. These are proposed capabilities, not implemented features.
 
 **Implementation update:** the local renovation tools have since been added. See [the current workflow and explicit limits](renovation-implementation.md). The audit below preserves the starting point and broader product checklist; it does not describe the current shipped feature set.
 
@@ -192,6 +192,6 @@ Next acceptance slice: propose a partition/opening change, preview the differenc
 
 The existing constitution prohibits generated images and 2D previews. Keep editing, overlays, measurements, cutaways and top views on the live 3D model; separate 2D drawing/export work is not included here. Original source evidence is not to be replaced by generated imagery.
 
-This analysis read the repository constitution, current editor code and documentation, the running editor, and the Notion Docs landing page. The latter repeats the fidelity-first, one-scene, checked-ops principles. The Design doc and Hackathon plan could not be opened during this audit because browser access timed out; no agreement with unread detailed specifications is claimed. Reconcile the proposed roadmap with them before treating it as the event delivery schedule.
+This analysis read the repository constitution, current editor code and documentation, the running editor, and the Notion Docs landing page. The latter repeats the fidelity-first, one-scene, checked-ops principles. The Design doc could not be opened during this audit because browser access timed out; no agreement with unread detailed specifications is claimed. Reconcile the proposed roadmap with them before treating it as a delivery schedule.
 
 The structural and lighting references above inform terminology and product distinctions. They do not set local construction rules. Any future compliance feature needs an explicit jurisdiction, versioned rule sources, required inputs, and professional review boundaries. A successful geometry or switch simulation means only that the stated modeled test passed.

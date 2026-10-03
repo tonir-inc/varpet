@@ -225,7 +225,7 @@ class CodexRunner:
             lines.append("")
         photos = photos[:6]
         lines.append("Photos attached in this order: " + "; ".join(f"{i + 1}: {p}" for i, p in enumerate(photos)))
-        skill = self.repo / ".agents" / "skills" / "part-dsl-draft" / "SKILL.md"
+        skill = resolve_product_prompt("part-dsl-draft", self.repo)
         lines += ["", "# Skill: part-dsl-draft", _strip_frontmatter(skill.read_text())]
         return [TextInput("\n".join(lines)), *(LocalImageInput(path=p) for p in photos)]
 

@@ -123,5 +123,5 @@ DONE: 6 of 7
 Not proven: pixel-level screenshot QA (capture unavailable), interactive 3D drag
 across a new junction, repository-wide exclusive file ownership, and Notion
 writeback (the Chrome connection became unavailable after reading the required
-design, hackathon and engineering pages). The measured behavior and gotchas are
+design and engineering pages). The measured behavior and gotchas are
 recorded here for the next person.

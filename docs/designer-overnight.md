@@ -1,4 +1,4 @@
-# Designer overnight push (27 Sept 2026, code freeze 12:00)
+# Designer overnight push (27 Sept 2026)
 
 The spike designer (`packages/designer/spike`) is the product designer. Goal: pitch-perfect demo on the three demo
 flats (`apartments/` from `demo/flats`: sunday-b12121, orion-t8, orion-t7), with a live chat that furnishes whole flats

@@ -4,7 +4,7 @@ from pathlib import Path
 
 from .materials import library
 
-SKILL = Path(__file__).resolve().parents[2] / ".agents" / "skills" / "part-dsl-draft" / "SKILL.md"
+SKILL = Path(__file__).resolve().parents[2] / "harness" / "prompts" / "part-dsl-draft.md"
 START, END = "<!-- finishes:start -->", "<!-- finishes:end -->"
 
 

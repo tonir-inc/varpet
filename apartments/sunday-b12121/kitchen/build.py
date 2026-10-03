@@ -13,7 +13,7 @@ Ceiling 2.70.
 Layout: one-wall run on the blank east wall (drawers, induction hob under a boxed hood, drawers, tall bank with
 oven + combi tower and integrated fridge-freezer at the south end), an island in front of it with the sink and
 dishwasher and a seating ledge towards the living room, and a larder / coffee niche in the nook.
-Aisle run-worktop to island-worktop 1.20 m; island ends 1.07 m from the north wall and 1.10 m from the larder.
+Aisle run-worktop to island-worktop 0.96 m; island ends 1.07 m from the north wall and 1.10 m from the larder.
 Triangle: sink (island) -> hob 1.9 m, hob -> fridge 2.6 m, fridge -> sink 2.8 m.
 
 Each piece is built with the wall face at y = 0 (everything at y <= 0), front towards -Y, Z up; kit.export turns
@@ -118,15 +118,74 @@ def slab(x0, x1, z0, z1, finish, yb=CY0, handle="drawer", edge="x0", hz=None, le
         bar(hx, yf, hz if hz is not None else z1 - 0.04 - L / 2, L, vertical=True)
 
 
-def carcass(x0, x1, z0, z1, finish, y0=CY0, y1=CY1, plinth=True, voids=()):
-    """Carcass box (the visible gables in `finish`) on a dark plinth recessed 6 cm."""
+def carcass(x0, x1, z0, z1, finish, y0=CY0, y1=CY1, plinth=True, voids=(), pockets=()):
+    """Carcass box (the visible gables in `finish`) on a dark plinth recessed 6 cm.
+
+    voids: (cx, cy, w, d, z_bottom) hollowed up through the top (sink bowls); pockets: (px0, px1, pz0, pz1, depth)
+    cut into the front face, so an inset panel can sit behind the face instead of on it (no coplanar faces)."""
     spec, tint, rough = fin(finish)
     if plinth:
         kit.box((x1 - x0 - 0.004, y1 - y0 - 0.06, Z_PL), ((x0 + x1) / 2, (y0 + 0.06 + y1) / 2, 0), PLINTH, bevel=0.001,
                 roughness=0.7, name="plinth")
     c = parts.raw_box((x1 - x0, y1 - y0, z1 - z0), ((x0 + x1) / 2, (y0 + y1) / 2, z0), "carcass")
     cutters = [parts.raw_box((vw, vd, z1 + 0.1 - vz), (vx, vy, vz), "void") for vx, vy, vw, vd, vz in voids]
+    cutters += [parts.raw_box((px1 - px0, dp + 0.02, pz1 - pz0), ((px0 + px1) / 2, y0 + (dp - 0.02) / 2, pz0), "pocket")
+                for px0, px1, pz0, pz1, dp in pockets]
     parts.cut(c, cutters, spec, tint, bevel=0.0015, roughness=rough, grain="y")
+
+
+def ring_prism(r, w, z0, h, n=64, name="ring"):
+    """Closed annular prism (outer radius r, width w) from z0 to z0 + h, unfinished: groove cutter or inlay."""
+    import bmesh
+    me = bpy.data.meshes.new(name)
+    bm = bmesh.new()
+    loops = [[bm.verts.new((r_ * math.cos(2 * math.pi * i / n), r_ * math.sin(2 * math.pi * i / n), z)) for i in range(n)]
+             for r_, z in ((r, z0), (r, z0 + h), (r - w, z0), (r - w, z0 + h))]
+    ob, ot, ib, it = loops
+    for i in range(n):
+        j = (i + 1) % n
+        bm.faces.new((ob[i], ob[j], ot[j], ot[i]))   # outer wall
+        bm.faces.new((ib[j], ib[i], it[i], it[j]))   # inner wall
+        bm.faces.new((ot[i], ot[j], it[j], it[i]))   # top
+        bm.faces.new((ib[i], ib[j], ob[j], ob[i]))   # bottom
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    bm.to_mesh(me)
+    bm.free()
+    return parts._link(me, name)
+
+
+def inlay(host, pieces, host_spec, host_rough):
+    """Sink flush inlays into a finished host: each piece is (cutter, finish-callback). The cutter pockets the host
+    (after its bevel, so the pocket keeps sharp edges) and the callback builds the inlay filling the pocket with its
+    visible face flush with the host face, so no two faces lie over each other."""
+    parts.cut(host, [c for c, _ in pieces], host_spec, bevel=0.0, roughness=host_rough)
+    for _, make in pieces:
+        make()
+
+
+def oven(x0, x1, z0, z1, yb, compact=False):
+    """parts.oven with the window and the display set flush into the door and the strip (parts.oven lays them 1-2 mm
+    proud of the glass, which z-fights at a distance)."""
+    x0, x1, z0, z1 = x0 + 0.004, x1 - 0.004, z0 + 0.003, z1 - 0.003
+    w, cx = x1 - x0, (x0 + x1) / 2
+    strip = 0.09
+    s = kit.box((w, 0.022, strip), (cx, yb - 0.011, z1 - strip), "metal:#26262a", bevel=0.002, roughness=0.35, name="strip")
+    dz = z1 - strip / 2 - 0.015
+    inlay(s, [(parts.raw_box((0.09, 0.008, 0.03), (cx, yb - 0.022, dz), "c"),
+               lambda: kit.box((0.09, 0.004, 0.03), (cx, yb - 0.020, dz), "ceramic:#0a0a0a", bevel=0.0, roughness=0.05,
+                               name="display"))], "metal:#26262a", 0.35)
+    for sx in (-1, 1):
+        kit.cylinder(0.019, 0.018, (cx + sx * w * 0.32, yb - 0.022, z1 - strip / 2), STEEL, verts=28, bevel=0.003, rot=(90, 0, 0), name="dial")
+    dh = z1 - strip - z0 - 0.004
+    d = kit.box((w, 0.026, dh), (cx, yb - 0.013, z0), parts.GLASS_BLACK, bevel=0.003, roughness=0.05, name="door")
+    ww, wh, wz = w * 0.68, dh * (0.52 if not compact else 0.5), z0 + dh * 0.2
+    inlay(d, [(parts.raw_box((ww, 0.008, wh), (cx, yb - 0.026, wz), "c"),
+               lambda: kit.box((ww, 0.004, wh), (cx, yb - 0.024, wz), "ceramic:#27282b", bevel=0.0, roughness=0.04,
+                               name="window"))], parts.GLASS_BLACK, 0.05)
+    hz = z0 + dh - 0.045
+    for sx in (-1, 1):
+        kit.cylinder(0.006, 0.03, (cx + sx * w * 0.38, yb - 0.026, hz), STEEL, verts=12, bevel=0.0, rot=(90, 0, 0), name="standoff")
+    kit.cylinder(0.011, w * 0.84, (cx - w * 0.42, yb - 0.056, hz), STEEL, verts=24, bevel=0.002, rot=(0, 90, 0), name="handle")
 
 
 def drawers3(x0, x1, finish="green", yb=CY0):
@@ -146,11 +205,22 @@ def undermount_sink(cx, cy, bw, bd, depth=0.20):
 
 
 def hob80(cx, cy, z=Z_W):
-    """Frameless black glass induction hob, 78 x 52 cm, five zones and a touch slider."""
-    kit.box((0.78, 0.52, 0.005), (cx, cy, z), parts.GLASS_BLACK, bevel=0.002, roughness=0.06, name="hob")
+    """Frameless black glass induction hob, 78 x 52 cm, five zones and a touch slider, printed flush into the glass
+    (inlays through the glass, tops on the glass plane and bottoms on the worktop: nothing lies over anything)."""
+    glass = kit.box((0.78, 0.52, 0.005), (cx, cy, z), parts.GLASS_BLACK, bevel=0.002, roughness=0.06, name="hob")
+    zt, g = z + 0.005, 0.005   # glass top, inlay depth (the full glass)
+    pieces = []
     for dx, dy, r in ((-0.25, 0.10, 0.10), (-0.25, -0.11, 0.085), (0.0, 0.0, 0.13), (0.25, 0.10, 0.085), (0.25, -0.11, 0.10)):
-        parts.annulus(r, 0.004, (cx + dx, cy + dy, z + 0.005), "paint:#7a7a7a")
-    kit.box((0.26, 0.02, 0.0004), (cx, cy - 0.235, z + 0.005), "paint:#6a6a6a", bevel=0.0, name="slider")
+        def zone(dx=dx, dy=dy, r=r):
+            o = ring_prism(r, 0.004, zt - g, g, name="zone")
+            o.location = (cx + dx, cy + dy, 0)
+            kit.finish(o, "paint:#7a7a7a", smooth=False)
+        c = ring_prism(r, 0.004, zt - g - 0.001, g + 0.002, name="c")
+        c.location = (cx + dx, cy + dy, 0)
+        pieces.append((c, zone))
+    pieces.append((parts.raw_box((0.26, 0.02, g + 0.002), (cx, cy - 0.235, zt - g - 0.001), "c"),
+                   lambda: kit.box((0.26, 0.02, g), (cx, cy - 0.235, zt - g), "paint:#6a6a6a", bevel=0.0, name="slider")))
+    inlay(glass, pieces, parts.GLASS_BLACK, 0.06)
 
 
 # ---------------------------------------------------------------- styling props (shelves)
@@ -209,12 +279,14 @@ def east_run():
     kit.box((x_end - 0.003, sp_y1 - sp_y0, TALL - Z_W), ((0.003 + x_end) / 2, (sp_y0 + sp_y1) / 2, Z_W), TOP, TOP_T,
             bevel=0.002, name="splash")
 
-    # boxed hood: green canopy 90 x 48 from 1.55 to the top line, brass shadow band, dark filter underneath
+    # boxed hood: green canopy 90 x 48 from 1.55 to the top line, brass shadow band, dark filter underneath.
+    # The band is a 12 mm slice of the canopy (canopy below and above it), flush, so no brass face lies on a green one.
     hw, hd, hz0 = 0.90, 0.46, 1.55
     hy0 = sp_y0 - hd
-    kit.box((hw, hd, TALL - hz0), (hob_x, sp_y0 - hd / 2, hz0), GREEN, bevel=0.003, roughness=GREEN_R, name="hood")
-    kit.box((hw + 0.002, hd + 0.001, 0.012), (hob_x, sp_y0 - hd / 2 - 0.0005, hz0 + 0.03), BRASS, bevel=0.001,
-            roughness=0.3, name="hood-band")
+    bz0, bz1 = hz0 + 0.03, hz0 + 0.042
+    kit.box((hw, hd, bz0 - hz0), (hob_x, sp_y0 - hd / 2, hz0), GREEN, bevel=0.003, roughness=GREEN_R, name="hood")
+    kit.box((hw, hd, TALL - bz1), (hob_x, sp_y0 - hd / 2, bz1), GREEN, bevel=0.003, roughness=GREEN_R, name="hood")
+    kit.box((hw, hd, bz1 - bz0), (hob_x, sp_y0 - hd / 2, bz0), BRASS, bevel=0.001, roughness=0.3, name="hood-band")
     kit.box((hw - 0.08, hd - 0.08, 0.004), (hob_x, sp_y0 - hd / 2, hz0 - 0.004), "metal:#3a3a38", bevel=0.001,
             roughness=0.45, name="filter")
     for dx in (-0.2, 0.2):
@@ -254,15 +326,18 @@ def east_run():
         kit.cylinder(0.006, 0.2, (right0 + 0.2 + dx, -0.12 + 0.01 * (i - 1), Z_W + 0.1), OAK, OAK_T, verts=10, bevel=0.0, name="spoon")
 
     # tall bank, oak: gable on the open (north) side, oven + combi tower, integrated fridge-freezer
-    carcass(x_tall, L - 0.003, Z_PL, TALL, "oak")
     t0, tm, t1 = x_tall, x_tall + 0.60, L - 0.003
+    # dark recess behind the ovens: a pocket in the carcass front with the dark panel 4 mm behind the face
+    rx0, rx1, rd = t0 + 0.0035, tm - 0.0035, 0.02
+    carcass(x_tall, L - 0.003, Z_PL, TALL, "oak", pockets=[(rx0, rx1, 0.78, 1.83, rd)])
     kit.box((FT, CY1 - CY0 + FT, TALL), (t0 - FT / 2, (CY0 - FT + CY1) / 2, 0), OAK, OAK_T,
             bevel=0.0015, grain="y", name="gable")
     slab(t0, tm, Z_PL, 0.44, "oak")
     slab(t0, tm, 0.44, 0.78, "oak")
-    kit.box((0.60, 0.02, 1.05), ((t0 + tm) / 2, CY0 + 0.008, 0.78), "metal:#1a1a1c", bevel=0.0, name="recess")
-    parts.oven(t0, tm, 0.78, 1.38, CY0)
-    parts.oven(t0, tm, 1.38, 1.83, CY0, compact=True)
+    kit.box((rx1 - rx0, rd - 0.004, 1.05), ((rx0 + rx1) / 2, CY0 + (rd + 0.004) / 2, 0.78), "metal:#1a1a1c", bevel=0.0,
+            name="recess")
+    oven(t0, tm, 0.78, 1.38, CY0)
+    oven(t0, tm, 1.38, 1.83, CY0, compact=True)
     slab(t0, tm, 1.83, TALL, "oak", handle="door", edge="x0", hz=1.83 + 0.16)
     # fridge-freezer: hinges on the wall side, bars on the opening (north) edge
     slab(tm, t1, Z_PL, 0.78, "oak", handle="door", edge="x0", hz=0.78 - 0.24, length=0.36)
@@ -347,14 +422,15 @@ PIECES = {
         build=east_run, origin=(7.194, 4.341), theta=-math.pi / 2, kind="kitchen_counter", price=7850000, color="#3c5646",
         name="Made-to-measure kitchen run, green and oak, 481 cm: hob and hood, oven tower, fridge, terrazzo top"),
     "kitchen-island": dict(
-        build=island, origin=(7.194 - 0.620 - 1.20 - 0.475, 6.65), theta=math.pi / 2, kind="kitchen_island", price=3450000, color="#3c5646",
+        build=island, origin=(7.194 - 0.620 - 0.9607 - 0.475, 6.65), theta=math.pi / 2, kind="kitchen_island", price=3450000, color="#3c5646",
         name="Made-to-measure kitchen island, green, terrazzo waterfall, 248 x 95 cm: sink, dishwasher, seating"),
     "kitchen-larder": dict(
         build=larder, origin=(5.853, 9.593), theta=math.pi, kind="kitchen_cabinet", price=1650000, color="#c19568",
         name="Made-to-measure oak larder with coffee niche, 109 x 60 x 240 cm, fitted to the kitchen nook"),
 }
-# Island (built centred): its worktop's working edge (Blender y = -0.475) sits 1.20 m from the run's worktop edge
-# (x = 7.194 - 0.620); z = 6.65 leaves 1.07 m to the north wall and 1.10 m to the larder.
+# Island (built centred): its worktop's working edge (Blender y = -0.475) sits 0.96 m from the run's worktop edge
+# (x = 7.194 - 0.620), so its seating edge (x 4.664) stays just inside the kitchen (2487ef02); z = 6.65 leaves
+# 1.07 m to the north wall and 1.10 m to the larder.
 
 
 def world(frame, bx, by):

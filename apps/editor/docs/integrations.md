@@ -207,7 +207,7 @@ Save/load and JSON import resolve missing built IDs from their original architec
 
 The reported `catalog middleware must be implemented` assertion can mask a missing installed `@modelcontextprotocol/sdk`: the test's import guard matches the importing file path in the dependency error. Use the repository's pinned pnpm 10 (`npx --yes pnpm@10.0.0 install --frozen-lockfile` if the global pnpm is older), then run `node --test apps/editor/server/catalog.test.mjs`. The middleware and dependency declaration already exist.
 
-No Notion connector or exported Design doc/Hackathon plan was available in this session; this page records the changed contract for handoff.
+No Notion connector or exported Design doc was available in this session; this page records the changed contract for handoff.
 
 ## Decorations and wall placement
 

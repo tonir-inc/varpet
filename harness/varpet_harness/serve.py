@@ -332,6 +332,18 @@ def handler(repo: Path, runs: Path, runner_factory=None, *, classifier=None):
                 build_lock.release()
 
         def _build(self, route, size):
+            # Read the whole upload before answering: once the response starts, proxies (Cloudflare) may stop
+            # forwarding a slow plan-plus-photos body, and the half-read request looked like a client disconnect.
+            try:
+                raw = self.rfile.read(size)
+            except (ConnectionError, BrokenPipeError):
+                return
+            if len(raw) < size:
+                return self._json(400, {'error': 'The upload was interrupted. Please try again.'})
+            try:
+                body = json.loads(raw)
+            except ValueError:
+                return self._json(400, {'error': 'Expected a JSON body'})
             self.send_response(200)
             self._cors()
             self.send_header("Content-Type", "application/x-ndjson")
@@ -342,7 +354,6 @@ def handler(repo: Path, runs: Path, runner_factory=None, *, classifier=None):
                 self.wfile.flush()
 
             try:
-                body = json.loads(self.rfile.read(size))
                 progress = lambda m: line({"type": "progress", "message": _friendly(m)})
                 progress("Checking the plan")
                 verdict = _run_connected(check_plan(body, classifier), self._disconnected)

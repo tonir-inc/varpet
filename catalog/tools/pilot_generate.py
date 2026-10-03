@@ -217,7 +217,7 @@ async def build(codex: AsyncCodex, runner: CodexRunner, b: dict, root: Path, eff
     job = SimpleNamespace(id=slug, effort=effort)
     rec = {"slug": slug, "brief": b, "builder_tokens": 0, "reviewer_tokens": 0, "turns": 0, "fix_turns": 0,
            "look_rounds": [], "accept": False, "reasons": "", "renders": [], "error": None}
-    skill = _strip_frontmatter((REPO / ".agents/skills/part-dsl-draft/SKILL.md").read_text())
+    skill = _strip_frontmatter((REPO / "harness/prompts/part-dsl-draft.md").read_text())
     w, d, h = b["size_m"]
     first = "\n".join([
         f"Build one decor piece: {b.get('name') or slug}, a {b['kind']} in {b.get('style', 'modern')} style.",
