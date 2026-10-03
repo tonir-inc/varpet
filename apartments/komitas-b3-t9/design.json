@@ -162,6 +162,88 @@
     "vendor": "abo"
    },
    {
+    "id": "tv-unit-5",
+    "room_id": "bedroom-5",
+    "kind": "cabinet",
+    "name": "TV unit",
+    "pos": [
+     4.2243,
+     -6.8215
+    ],
+    "rot": 180,
+    "size": [
+     1.1978,
+     0.3466,
+     0.6814
+    ],
+    "keep": false,
+    "sku": "abo:B07ML7P93X",
+    "price": 20000,
+    "vendor": "abo"
+   },
+   {
+    "id": "tv-5",
+    "room_id": "bedroom-5",
+    "kind": "tv",
+    "name": "TV",
+    "pos": [
+     4.2243,
+     -6.8215
+    ],
+    "rot": 180,
+    "size": [
+     1.12,
+     0.222,
+     0.789
+    ],
+    "keep": false,
+    "sku": "extra:electronics:tv-50-feet-black",
+    "price": 240000,
+    "vendor": "extra",
+    "on": "tv-unit-5"
+   },
+   {
+    "id": "tv-unit-4",
+    "room_id": "bedroom-4",
+    "kind": "cabinet",
+    "name": "TV unit",
+    "pos": [
+     8.6471,
+     -8.9866
+    ],
+    "rot": 90,
+    "size": [
+     1.1978,
+     0.3466,
+     0.6814
+    ],
+    "keep": false,
+    "sku": "abo:B07ML7P93X",
+    "price": 20000,
+    "vendor": "abo"
+   },
+   {
+    "id": "tv-4",
+    "room_id": "bedroom-4",
+    "kind": "tv",
+    "name": "TV",
+    "pos": [
+     8.6471,
+     -8.9866
+    ],
+    "rot": 90,
+    "size": [
+     1.12,
+     0.222,
+     0.789
+    ],
+    "keep": false,
+    "sku": "extra:electronics:tv-50-feet-black",
+    "price": 240000,
+    "vendor": "extra",
+    "on": "tv-unit-4"
+   },
+   {
     "id": "tv-unit-living",
     "room_id": "living",
     "kind": "cabinet",
@@ -675,6 +757,10 @@
   "desk-chair-5",
   "wardrobe-bed5-south",
   "wardrobe-living",
+  "tv-unit-5",
+  "tv-5",
+  "tv-unit-4",
+  "tv-4",
   "tv-unit-living",
   "tv-living",
   "dining-table",

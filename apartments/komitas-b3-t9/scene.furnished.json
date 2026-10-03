@@ -1218,6 +1218,72 @@
       ]
     },
     {
+      "id": "tv-unit-5",
+      "name": "TV unit",
+      "assetId": "abo:B07ML7P93X",
+      "position": [
+        4.2243,
+        0,
+        6.8215
+      ],
+      "rotation": 3.141592653589793,
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "id": "tv-5",
+      "name": "TV",
+      "assetId": "extra:electronics:tv-50-feet-black",
+      "position": [
+        4.2243,
+        0.6814,
+        6.8215
+      ],
+      "rotation": 3.141592653589793,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "restsOn": "tv-unit-5"
+    },
+    {
+      "id": "tv-unit-4",
+      "name": "TV unit",
+      "assetId": "abo:B07ML7P93X",
+      "position": [
+        8.6471,
+        0,
+        8.9866
+      ],
+      "rotation": 1.5707963267948966,
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "id": "tv-4",
+      "name": "TV",
+      "assetId": "extra:electronics:tv-50-feet-black",
+      "position": [
+        8.6471,
+        0.6814,
+        8.9866
+      ],
+      "rotation": 1.5707963267948966,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "restsOn": "tv-unit-4"
+    },
+    {
       "id": "tv-unit-living",
       "name": "TV unit",
       "assetId": "abo:B07ML7P93X",

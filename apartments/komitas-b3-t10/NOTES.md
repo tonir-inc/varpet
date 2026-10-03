@@ -1,5 +1,12 @@
 # Komitas Park · Building 3 · Type 10 (b3-t10)
 
+## Current state (2026-10-03 13:45 +04; read this first, the sections below are history)
+- As drawn: 19 pieces. Deviations: dining set shifted ~0.17 m east (sofa pushed 0.19 m east with it); the TV stands
+  on a TV unit. Doors open as the plan draws them.
+- Build: faults 2 (facade pylons "not on a room edge"; walls right), 19/19. Audit: 1 fault, plan-inherent (balcony
+  door to bedroom door route at the drawn bed's foot). Styled: option.styled.json (made 13:14 before the door
+  swings; same 1 fault).
+
 Plan: `experimental/komitas-plans/b3-t10.png` (1684 x 1190), printed total 47.6 m2, 2 rooms (flat No. 4 on the plan).
 `trace.svg` is the "As drawn" option: walls, rooms, openings, fixtures and the plan's own furniture, every drawn piece.
 
@@ -105,3 +112,8 @@ timing: START=1791017328 END=1791018501
   balcony-bedroom door to the bedroom door. The drawn bed's foot ends 0.65 m from the wall at the bedroom door,
   whose swing the designer reserves; the bed alone reproduces it (a 3 cm narrower bed does not help), the empty
   shell passes. Styled (option.styled.json, made before the door swings) has the same one fault.
+- 13:43 fresh re-check (independent-verifier): walls, columns, doors (all 5 hinges and rooms), windows and fixtures
+  match; furniture all present. Remaining low items: the sofa sits 0.19 m east of where it is drawn (settle pushed it
+  clear of the pulled-out east dining chairs); secondary partitions come out 0.07 m thick against ~0.105 m drawn
+  (faces within 1-2 px; wall research). Correction: the bathroom dimension reads 2200, not 2300; the plan is
+  consistent (the "plan error" note above is a misreading).

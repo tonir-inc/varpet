@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1684 1190" data-printed="47.6 m2" data-option-name="As drawn">
   <!-- Komitas Park, building 3, type 10 (plan b3-t10.png, 1684 x 1190). Traced in the plan's own pixels, about 57 px/m.
-       Furniture is the plan's own arrangement, every drawn piece (six dining chairs). -->
+       Furniture is the plan's own arrangement, every drawn piece (six dining chairs); the dining set sits ~0.17 m east (NOTES.md). -->
   <polygon id="bedroom" class="room" data-name="Bedroom" data-printed="16.1 m2" points="486,410 599,410 599,433 651,433 651,410 830,410 830,565 486,565"/>
   <polygon id="living" class="room" data-name="Living room" data-printed="15.3 m2" points="559,569 835,569 835,650 829,650 829,751 559,751"/>
   <polygon id="kitchen" class="room" data-name="Kitchen" data-printed="4.7 m2" points="829,654 986,654 986,751 829,751"/>

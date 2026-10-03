@@ -92,7 +92,7 @@
   <polygon id="toilet-6" class="fixture" data-kind="toilet" data-name="Toilet" data-front="left" points="675,966 709,966 709,988 675,988"/>
   <polygon id="shower-6" class="fixture" data-kind="shower" data-name="Walk-in shower" points="636,1036 703,1036 703,1078 636,1078"/>
   <!-- Railing: the south slab edge only (the west edge is closed by the wall, the east by the pylon and column) -->
-  <polygon id="railing-south" class="fixture" data-kind="railing" data-name="Balcony railing" points="531,1382 664,1382 664,1385 531,1385"/>
+  <polygon id="railing-south" class="fixture" data-kind="railing" data-name="Balcony railing" points="531,1382 669,1382 669,1385 531,1385"/>
 
   <!-- Bedroom 4 -->
   <polygon id="desk" class="furniture" data-kind="desk" data-name="Desk" data-front="down" data-asset="extra:bpy-office:desk-walnut-mcm-tapered" points="436.5,276.5 513,276.5 513,316.5 436.5,316.5"/>

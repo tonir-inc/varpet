@@ -1,5 +1,14 @@
 # Komitas Park, building 3, type 8 (b3-t8)
 
+## Current state (2026-10-03 13:45 +04; read this first, the sections below are history)
+- As drawn: 23 pieces. Deviations from the plan: dining set shifted ~0.27 m east, ~0.18 m north and 7 of the 8 drawn
+  chairs (the south-east one stood in the balcony door's swing); living wall TV stands on a TV unit; bedroom wall TV
+  left out (a unit leaves 0.32 m past the bed's foot, the only way to the desk; the editor cannot wall-mount a TV);
+  bedroom bed is the 2.03 m teak bed. Doors open as the plan draws them.
+- Build: faults 0, 23/23. Audit: 2 faults, plan-inherent (hall routes past the door swings; same on the empty shell).
+- Open: the arc at the hall wardrobe's end (758-792 x 421-444) may be a rounded end shelf, not modelled.
+- Styled: pending (designer usage limit until 16:04).
+
 The plan is labelled "Bn. 2": 60.9 m2, 2 rooms. It is `experimental/komitas-plans/b3-t8.png` (1684 x 1190), copied here as `source.png`, which git excludes. The label file `labels/b3-t8.json` is an ungraded held-out reading. I used it only as a starting point and checked every box against the image.
 
 ## Scale

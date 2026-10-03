@@ -85,7 +85,7 @@
   <polygon id="railing-diagonal" class="fixture" data-kind="railing" data-name="Balcony railing" points="788,951 734,1005 731.9,1002.9 785.9,948.9"/>
   <polygon id="railing-south" class="fixture" data-kind="railing" data-name="Balcony railing" points="598,1002 732,1002 732,1005 598,1005"/>
 
-  <!-- Furniture exactly as the plan draws it -->
+  <!-- Furniture as the plan draws it; deviations (dining shift, one chair left out, TVs) in NOTES.md "Current state" -->
   <polygon id="sofa" class="furniture" data-kind="sofa" data-name="Sofa" data-front="right" points="578,639 622,639 622,765 578,765"/>
   <polygon id="armchair-north" class="furniture" data-kind="chair" data-name="Armchair" data-front="down" data-asset="extra:bpy-living2:mcm-swivel-tub-armchair-cognac-leather" points="631,605 673,605 673,646 631,646"/>
   <polygon id="armchair-south" class="furniture" data-kind="chair" data-name="Armchair" data-front="up" data-asset="extra:bpy-living2:mcm-swivel-tub-armchair-cognac-leather" points="631,758 673,758 673,799 631,799"/>
@@ -93,7 +93,7 @@
   <!-- The plan draws two flat TVs on wall brackets, one each side of the living/bedroom partition, and no TV unit -->
   <!-- The plan draws both TVs flat on the partition (wall brackets) and no TV unit. The editor cannot wall-mount a TV, so
        the living-room TV stands on a TV unit (2-5's media center). The bedroom TV is left out: a unit there leaves no way past
-       the foot of the bed (0.16 m). The bedroom bed is the 2.03 m teak bed, as long as the plan draws it. -->
+       the foot of the bed (0.32 m with this bed; 0.16 m with the 2.17 m walnut bed). The bedroom bed is the 2.03 m teak bed, as long as the plan draws it. -->
   <polygon id="tv-unit-living" class="furniture" data-kind="cabinet" data-name="TV unit" data-front="left" data-asset="abo:B07ML7P93X" points="752,667 772,667 772,737 752,737"/>
   <polygon id="tv-living" class="furniture" data-kind="tv" data-name="TV" data-front="left" data-on="tv-unit-living" data-asset="extra:electronics:tv-55-wall-black" points="765,667 772,667 772,737 765,737"/>
   <polygon id="dining-table" class="furniture" data-kind="table" data-name="Dining table" data-front="down" data-asset="abo:B075YPTG8S" points="610,815 707,815 707,861 610,861"/>

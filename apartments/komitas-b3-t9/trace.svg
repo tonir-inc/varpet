@@ -117,10 +117,14 @@
   <polygon id="wardrobe-bed5-south" class="furniture" data-kind="wardrobe" data-name="Wardrobe" data-front="up" data-asset="abo:B07QZ77FGN" data-fit="width" points="390,602 503,602 503,628 390,628"/>
   <!-- Living room -->
   <polygon id="wardrobe-living" class="furniture" data-kind="wardrobe" data-name="Wardrobe" data-front="down" data-asset="abo:B07QZ77FGN" data-fit="width" points="390,636 503,636 503,662 390,662"/>
+  <!-- Bedroom wall TVs stand on TV units moved just clear of their doors' swings (bedroom 5 unit 8 px west, bedroom 4 unit 7 px south). -->
+<polygon id="tv-unit-5" class="furniture" data-kind="cabinet" data-name="TV unit" data-front="up" data-asset="abo:B07ML7P93X" points="587,616 656,616 656,628 587,628"/>
+  <polygon id="tv-5" class="furniture" data-kind="tv" data-name="TV" data-front="up" data-on="tv-unit-5" data-asset="extra:electronics:tv-50-feet-black" points="591,620 652,620 652,627 591,627"/>
+  <polygon id="tv-unit-4" class="furniture" data-kind="cabinet" data-name="TV unit" data-front="right" data-asset="abo:B07ML7P93X" points="862,706 874,706 874,775 862,775"/>
+  <polygon id="tv-4" class="furniture" data-kind="tv" data-name="TV" data-front="right" data-on="tv-unit-4" data-asset="extra:electronics:tv-50-feet-black" points="863,710 870,710 870,771 863,771"/>
   <polygon id="tv-unit-living" class="furniture" data-kind="cabinet" data-name="TV unit" data-front="down" data-asset="abo:B07ML7P93X" points="572,634 641,634 641,646 572,646"/>
   <polygon id="tv-living" class="furniture" data-kind="tv" data-name="TV" data-front="down" data-on="tv-unit-living" data-asset="extra:electronics:tv-50-feet-black" points="576,635 637,635 637,642 576,642"/>
-  <!-- Coordinating session, after the fresh plan check and the plan's door swings: left out of As drawn are the two
-       bedroom wall TVs (a unit under each blocked its bedroom door), the hall L-sofa's corner seat (it and the bathroom-7
+  <!-- Coordinating session, after the fresh plan check and the plan's door swings: left out of As drawn are the hall L-sofa's corner seat (it and the bathroom-7
        door left a 0.25 m hall), and the dining table's two end chairs (with real chairs pulled clear, the plan's table
        does not fit between the living wardrobe and the balcony door's swing). -->
   <polygon id="dining-table" class="furniture" data-kind="table" data-name="Dining table" data-front="right" data-asset="abo:B075YMXWZC" points="420,686 466,686 466,782 420,782"/>

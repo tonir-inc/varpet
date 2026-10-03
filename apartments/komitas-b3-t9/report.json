@@ -25,11 +25,15 @@
   "wardrobe-bed5-north 0.005 m into bedroom-5",
   "bed-5 0.030 m into bedroom-5",
   "wardrobe-bed5-south 0.030 m into bedroom-5",
+  "tv-unit-5 0.075 m into bedroom-5",
+  "tv-unit-4 0.075 m into bedroom-4",
   "tv-unit-living 0.075 m into living",
   "sofa-living 0.050 m into living",
   "fridge 0.045 m into kitchen",
   "bed-4 0.065 m into bedroom-4",
   "sofa-hall 0.020 m into hall",
+  "tv-5 on tv-unit-5",
+  "tv-4 on tv-unit-4",
   "tv-living on tv-unit-living"
  ],
  "furniture": [
@@ -155,6 +159,66 @@
    ],
    "stretched_x": 1.2457,
    "name": "Amazon Brand - Movian Arga - Wardrobe, 123/160 x 50 x 182 cm (L x D x H), White "
+  },
+  {
+   "id": "tv-unit-5",
+   "kind": "cabinet",
+   "room": "bedroom-5",
+   "footprint_m": [
+    1.217,
+    0.212
+   ],
+   "asset": "abo:B07ML7P93X",
+   "asset_m": [
+    1.2,
+    0.35
+   ],
+   "name": "Amazon Brand \u2013 Ravenna Home Classic Solid Wood Media Center, 47.87\"W, Black"
+  },
+  {
+   "id": "tv-5",
+   "kind": "tv",
+   "room": "bedroom-5",
+   "footprint_m": [
+    1.076,
+    0.123
+   ],
+   "asset": "extra:electronics:tv-50-feet-black",
+   "asset_m": [
+    1.12,
+    0.22
+   ],
+   "name": "50\" TV on corner feet, black"
+  },
+  {
+   "id": "tv-unit-4",
+   "kind": "cabinet",
+   "room": "bedroom-4",
+   "footprint_m": [
+    1.217,
+    0.212
+   ],
+   "asset": "abo:B07ML7P93X",
+   "asset_m": [
+    1.2,
+    0.35
+   ],
+   "name": "Amazon Brand \u2013 Ravenna Home Classic Solid Wood Media Center, 47.87\"W, Black"
+  },
+  {
+   "id": "tv-4",
+   "kind": "tv",
+   "room": "bedroom-4",
+   "footprint_m": [
+    1.076,
+    0.123
+   ],
+   "asset": "extra:electronics:tv-50-feet-black",
+   "asset_m": [
+    1.12,
+    0.22
+   ],
+   "name": "50\" TV on corner feet, black"
   },
   {
    "id": "tv-unit-living",

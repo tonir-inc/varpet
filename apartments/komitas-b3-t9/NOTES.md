@@ -1,5 +1,13 @@
 # Komitas Park · Building 3 · Type 9 (b3-t9)
 
+## Current state (2026-10-03 13:45 +04; read this first, the sections below are history)
+- As drawn: 37 pieces. Deviations from the plan: the three wall TVs stand on TV units (bedroom 5's unit 8 px west,
+  bedroom 4's 7 px south, clear of their doors' swings: the editor cannot wall-mount a TV), hall corner seat left
+  out, the dining table's two end chairs left out (see the trace comment); hall sofa is a settee. Doors open as the
+  plan draws them. Fresh re-check 13:44: walls, columns, doors, windows, fixtures match.
+- Build: faults 0, 37/37. Audit: 0 faults.
+- Styled: pending (designer usage limit until 16:04).
+
 Plan `experimental/komitas-plans/b3-t9.png` (1684 x 1190), printed 95.8 m2, 3 rooms. Main trace = the plan's
 furniture as drawn (`data-option-name="As drawn"`).
 

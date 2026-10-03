@@ -1,5 +1,14 @@
 # Komitas Park · Building 3 · Type 7 (b3-t7), "As drawn"
 
+## Current state (2026-10-03 13:45 +04; read this first, the sections below are history)
+- As drawn: 30 pieces. Deviations from the plan: dining set shifted ~0.16 m east, ~0.14 m south (chairs pulled clear
+  of the table); bedroom 4 wall TV and its unit left out (walk past the bed); hall L-sofa = sofa + armchair; balcony
+  floor meets the bedroom-5 wall, its outer edge and railing 5 px in (railing runs to the pylon). Doors open as the
+  plan draws them. Fresh re-check 13:45: CONFIRMED with caveats (walls, columns, doors, windows, fixtures match).
+- Build: faults 4 ("not on a room edge", corner blocks; walls right), 30/30 picked. Audit: 7 faults, all
+  plan-inherent hall routes (door swings into the 1.1 m hall; the empty shell has the same 7).
+- Styled: pending (designer usage limit until 16:04).
+
 Plan: `experimental/komitas-plans/b3-t7.png` (1190 x 1684, portrait), copied to `source.png` (git-excluded).
 `trace.svg` is in the plan's own pixels; build: `uv run --project harness python apartments/_svg/build.py apartments/komitas-b3-t7`.
 
