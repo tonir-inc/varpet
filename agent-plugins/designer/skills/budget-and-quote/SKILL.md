@@ -11,12 +11,16 @@ The outcome is a complete room at or under the buyer's number, with a quote they
    buyer gave or state the rate you assumed.
 2. Split it before searching: the anchor pieces (sofa, bed, dining table, wardrobe) take about half, seating
    and storage a quarter, rugs, lamps, plants and decor the rest. Pass each role's share as `price_max`.
-3. Complete every station of the room and its layers first (`furnish-room`), then upgrade the piece the buyer
-   will touch most if money is left. A complete modest room beats a half room with one expensive piece.
+3. Furnish with `furnish-room`'s steps. Cushions, throws, a rug big enough for the group and art for the long
+   wall are cheap next to a sofa; budget for them from the start, and give the rug an anchor's share, since a rug
+   sized to the group costs more than a stock 5 x 8. Money left goes first to what the room still
+   lacks, then to an upgrade of the piece the buyer will touch most. A complete modest room beats a half room with
+   one expensive piece.
 4. Keep a running total as you place. Over budget: swap the most expensive replaceable piece for a cheaper one
    of the same size (`search_products` with its `kind`, `max_w`/`max_d` and a lower `price_max`).
 5. Prices come from the product records (`priceAmd`); a product with no price is "price on request", left out
-   of the total and named.
+   of the total and named. A listing sold as a set (a "set of 2" chairs) covers that many pieces: place one model
+   per chair, but quote and total the listing once per set.
 
 ## The quote
 
