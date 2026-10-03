@@ -55,7 +55,7 @@ const json = (result: unknown) => JSON.parse((result as { content: Array<{ text:
 test('lists product tools, hides scene-switching tools, keeps Pascal tools', async () => {
   const { client } = await setup()
   const names = (await client.listTools()).tools.map((tool) => tool.name)
-  for (const name of ['search_products', 'get_product', 'place_product', 'list_finishes', 'set_wall_finish', 'set_floor_finish', 'get_scene', 'create_room', 'check_collisions']) {
+  for (const name of ['search_products', 'get_product', 'place_product', 'list_finishes', 'set_wall_finish', 'set_floor_finish', 'get_scene', 'create_room', 'check_collisions', 'check_clearances']) {
     assert.ok(names.includes(name), name)
   }
   for (const name of HIDDEN_TOOLS) assert.ok(!names.includes(name), name)

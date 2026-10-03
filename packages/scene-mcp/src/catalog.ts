@@ -5,6 +5,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
 import type { Product } from '../../contracts/src/index.ts'
 import { mountOf, type Mount } from './mount.ts'
+import type { Hang } from './model-bounds.ts'
 
 /**
  * search_furniture filters, as the catalog service names them (max sizes in metres), plus ours: `targetSize` in
@@ -39,6 +40,8 @@ export interface ProductHit extends Product {
   mount: Mount
   /** What to check before trusting it; absent when nothing is known to be wrong. */
   flags?: string[]
+  /** Generated lights: the hang contract from the catalog entry (`raw.hang`); the GLB's root extras win over it. */
+  hang?: Hang
 }
 
 /**
@@ -100,6 +103,9 @@ export interface RawCatalogItem {
   glb_url?: string | null
   image?: string | null
   main_image_url?: string | null
+  /** Generated lights' hang data (the ingested entry keeps it in `raw`). */
+  hang?: Hang | null
+  raw?: { hang?: Hang | null } | null
 }
 
 /** Convert a catalog item to a Product: [w, d, h] to [w, h, d], model URL on the public origin. */
@@ -130,7 +136,13 @@ export function toProduct(raw: RawCatalogItem, publicOrigin: string): ProductHit
     sizeStatus: raw.size_status ?? null,
     mount: mountOf({ kind: raw.kind, name: raw.name, placement: raw.placement, size: dimensions }),
     ...(flags.length ? { flags } : {}),
+    ...(hangOf(raw) ? { hang: hangOf(raw)! } : {}),
   }
+}
+
+function hangOf(raw: RawCatalogItem): Hang | null {
+  const hang = raw.hang ?? raw.raw?.hang
+  return hang && typeof hang.drop_m === 'number' ? hang : null
 }
 
 /** Has a model the browser can load (an item without one cannot be placed at all, so search leaves it out). */

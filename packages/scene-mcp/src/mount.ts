@@ -397,3 +397,32 @@ function slabElevationAt(nodes: Nodes, levelId: string, at: Point) {
   }
   return 0
 }
+
+const TABLE_WORDS = /\btables?\b|\bdesks?\b|\bcounters?\b|\bisland\b|\bworktop\b|\bbar\b|\bsideboard\b|\bbuffet\b|\bconsole\b/i
+const TABLE_KINDS = new Set(['table', 'desk', 'counter', 'kitchen_island', 'island', 'sideboard'])
+
+/** The table, desk or counter whose footprint holds a floor point (the tallest one), with its top above the floor. */
+export function tableUnder(nodes: Nodes, levelId: string, [x, z]: Point): { id: string; name: string; top: number } | null {
+  let best: { id: string; name: string; top: number } | null = null
+  for (const n of Object.values(nodes)) {
+    if (n.type !== 'item' || n.parentId !== levelId) continue
+    const asset = n.asset as { attachTo?: string; category?: string; dimensions?: number[] } | undefined
+    if (!asset || asset.attachTo || !Array.isArray(asset.dimensions)) continue
+    const name = String(n.name ?? '')
+    if (!TABLE_KINDS.has(String(asset.category ?? '')) && !TABLE_WORDS.test(name)) continue
+    if (/\bcoffee\b|\bside table|\bend table|\bnightstand|\bbedside/i.test(name)) continue
+    const scale = (n.scale as number[] | undefined) ?? [1, 1, 1]
+    const [w, h, d] = asset.dimensions.map((v, i) => Math.abs(v * (scale[i] ?? 1)))
+    const [px, py, pz] = (n.position as number[] | undefined) ?? [0, 0, 0]
+    const yaw = ((n.rotation as number[] | undefined) ?? [0, 0, 0])[1] ?? 0
+    // Into the piece's frame (front +z at rotation 0; world = R(yaw) local).
+    const dx = x - px!
+    const dz = z - pz!
+    const lx = dx * Math.cos(yaw) - dz * Math.sin(yaw)
+    const lz = dx * Math.sin(yaw) + dz * Math.cos(yaw)
+    if (Math.abs(lx) > w! / 2 || Math.abs(lz) > d! / 2) continue
+    const top = round((py ?? 0) + h!)
+    if (!best || top > best.top) best = { id: n.id, name, top }
+  }
+  return best
+}

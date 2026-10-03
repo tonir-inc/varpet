@@ -8,7 +8,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
 import { FLAG_TEXT, searchPages, toProduct, type Catalog, type FetchPage, type ProductHit, type RawCatalogItem } from './catalog.ts'
 import { mountOf } from './mount.ts'
-import { gltfBounds, type Bounds } from './model-bounds.ts'
+import { gltfBounds, hangAt, normalizeHang, type Bounds } from './model-bounds.ts'
 import { createSceneServer } from './server.ts'
 
 const TEMPLATE = join(import.meta.dirname, '../../../apps/web/lib/flats/templates/sunday-b12121.json')
@@ -113,6 +113,9 @@ test('searchPages leaves out items without a model instead of failing the page',
 
 // ---- place_product mounting, on the Sunday flat ----
 
+// A generated light's hang contract (catalog/blender/lights in varpet-v2-lights): canopy, cord and body nodes.
+const CONE_HANG = { adjustable: true, cord_node: 'cord', body_node: 'body', canopy_m: 0.025, cord_m: 0.755, body_m: 0.2226, drop_m: 1.0026, cord_min_m: 0.1, cord_max_m: 2.0 }
+
 const products: Record<string, ProductHit> = Object.fromEntries(
   [
     toProduct(art('big', 1.2, 0.8), ORIGIN),
@@ -121,6 +124,8 @@ const products: Record<string, ProductHit> = Object.fromEntries(
     toProduct({ id: 'extra:curtain', name: 'Natural linen wave curtains, 210x260', kind: 'curtain', placement: 'wall', source: 'extra', size_m: [2.1, 0.27, 2.66], glb_url: 'http://c/models/extra-c.glb', price: 5 }, ORIGIN),
     toProduct({ id: 'abo:pendant', name: 'Glass ceiling pendant', kind: 'light', size_m: [0.3, 0.3, 1.05], price: 5 }, ORIGIN),
     toProduct({ id: 'abo:tv', name: '55 inch TV', kind: 'tv', size_m: [1.23, 0.06, 0.71], price: 5 }, ORIGIN),
+    toProduct({ id: 'extra:table', name: 'Oak dining table 140x80', kind: 'table', source: 'extra', size_m: [1.4, 0.8, 0.75], glb_url: 'http://c/models/extra-t.glb', price: 5 }, ORIGIN),
+    toProduct({ id: 'extra:cone', name: 'Pendant light, black metal cone 45 cm', kind: 'light', placement: 'ceiling', source: 'extra', size_m: [0.452, 0.452, 1.0026], glb_url: 'http://c/models/extra-cone.glb', price: 5, raw: { hang: CONE_HANG } }, ORIGIN),
   ].map((p) => [p.id, p]),
 )
 
@@ -141,7 +146,7 @@ type Item = {
   side?: string
   wallId?: string
   wallT?: number
-  asset: { attachTo?: string; offset: number[] }
+  asset: { attachTo?: string; offset: number[]; dimensions: number[]; nodeTransforms?: Record<string, { position?: number[]; scale?: number[] }> }
 }
 
 async function sundayScene() {
@@ -152,6 +157,7 @@ async function sundayScene() {
   // Models as the catalog serves them: generated ones stand on their origin, Amazon's lights hang from it.
   const bounds: Record<string, Bounds> = {
     'abo:pendant': { min: [-0.15, -1.2, -0.15], max: [0.15, 0, 0.15] },
+    'extra:cone': { min: [-0.226, -1.0026, -0.226], max: [0.226, 0, 0.226], hang: normalizeHang(CONE_HANG)! },
   }
   const modelBounds = async (url: string) => {
     const product = Object.values(products).find((p) => p.glbUrl === url)
@@ -169,7 +175,9 @@ async function sundayScene() {
     const saved = await store.load(meta.id)
     return { payload, item: saved!.graph.nodes[payload.itemId] as unknown as Item }
   }
-  return { place }
+  const call = async (name: string, args: Record<string, unknown>) =>
+    JSON.parse((await client.callTool({ name, arguments: args }) as { content: Array<{ text: string }> }).content[0]!.text)
+  return { place, call }
 }
 
 test('art hangs on the wall face toward the room: wall child, wall-side, model back on the face', async () => {
@@ -268,4 +276,74 @@ test('a partition with rooms on both sides needs the room', async () => {
   assert.match((out as { error: string }).error, /ambiguous_side/)
   const ok = (await place({ product_id: 'big', wall_id: 'wall_w-hall-south', target_id: 'zone_r-entrance', along: 1, height: 1.2 })) as { item: Item }
   assert.equal(ok.item.parentId, 'wall_w-hall-south')
+})
+
+test('a pendant with a separate cord hangs its bottom at the asked drop above the table under it', async () => {
+  const { place } = await sundayScene()
+  await place({ product_id: 'extra:table', target_id: 'zone_r-living', position: [-3, 0, -5] })
+  const { payload, item } = (await place({ product_id: 'extra:cone', target_id: 'zone_r-living', position: [-3, 0, -5], drop: 0.75 })) as { payload: any; item: Item }
+  assert.equal(payload.aboveTable.top, 0.75)
+  assert.equal(payload.bottom, 1.5)
+  assert.equal(payload.aboveTable.gap, 0.75)
+  assert.equal(payload.hang.met, true)
+  assert.equal(payload.hang.adjustable, true)
+  const height = payload.ceiling.height - 1.5
+  // The node overrides of the contract: cord stretched, body moved to the cord's end; the item spans the new drop.
+  const cord = height - 0.025 - 0.2226
+  assert.ok(Math.abs(item.asset.nodeTransforms!.cord!.scale![1]! - cord / 0.755) < 1e-3)
+  assert.ok(Math.abs(item.asset.nodeTransforms!.body!.position![1]! + 0.025 + cord) < 1e-3)
+  assert.ok(Math.abs(item.asset.dimensions[1]! - height) < 1e-3)
+  assert.ok(Math.abs(item.position[1]! + height) < 1e-3)
+  assert.ok(Math.abs(item.asset.offset[1]! - height) < 1e-3)
+})
+
+test('a fixed-drop pendant says what drop the ask needed; drop_above floor works without a table', async () => {
+  const { place } = await sundayScene()
+  await place({ product_id: 'extra:table', target_id: 'zone_r-living', position: [-3, 0, -5] })
+  const fixed = (await place({ product_id: 'abo:pendant', target_id: 'zone_r-living', position: [-3, 0, -5], drop: 0.75 })) as { payload: any; item: Item }
+  assert.equal(fixed.payload.hang.adjustable, false)
+  assert.equal(fixed.payload.hang.met, false)
+  assert.ok(Math.abs(fixed.payload.hang.neededDrop - (fixed.payload.ceiling.height - 1.5)) < 1e-3)
+  assert.match(fixed.payload.hang.note, /fixed at 1.2 m/)
+  assert.equal(fixed.item.asset.nodeTransforms, undefined)
+  const walkway = (await place({ product_id: 'extra:cone', target_id: 'zone_r-living', position: [-4, 0, -7], drop: 2.1 })) as { payload: any }
+  assert.equal(walkway.payload.aboveTable, undefined)
+  assert.equal(walkway.payload.bottom, 2.1)
+  const noTable = await place({ product_id: 'extra:cone', target_id: 'zone_r-living', position: [-4, 0, -7], drop: 0.7, drop_above: 'table' })
+  assert.match((noTable as { error: string }).error, /no_table_under/)
+})
+
+test('search and get show a ceiling piece\'s drop from its model: fixed, or the adjustable range', async () => {
+  const { call } = await sundayScene()
+  const found = await call('search_products', { kind: 'light' })
+  const byId = Object.fromEntries(found.results.map((r: any) => [r.id, r]))
+  assert.equal(byId['abo:pendant'].drop, 1.2)
+  assert.deepEqual(byId['extra:cone'].drop, { min: 0.348, max: 2.248 })
+  assert.equal(byId['abo:tv'].drop, undefined)
+  assert.equal(byId['extra:cone'].hang, undefined)
+  assert.equal((await call('get_product', { product_id: 'abo:pendant' })).drop, 1.2)
+})
+
+test('hangAt clamps the cord to its range', () => {
+  const hang = normalizeHang(CONE_HANG)!
+  const short = hangAt(hang, 0.1)
+  assert.equal(short.clamped, true)
+  assert.equal(short.cord, 0.1)
+  assert.equal(short.drop, 0.3476)
+  assert.deepEqual(hangAt(hang, 1).nodeTransforms.body, { position: [0, -0.7774, 0] })
+})
+
+test('gltfBounds reads the hang contract from the root extras, and drops it when the cord node is missing', () => {
+  const extras = { varpet_hang: JSON.stringify(CONE_HANG) }
+  const gltf = (names: string[]) => ({
+    scenes: [{ nodes: [0] }],
+    nodes: [
+      { name: 'pendant', extras, children: names.map((_, i) => i + 1) },
+      ...names.map((name) => ({ name, mesh: 0, ...(name === 'body' ? { translation: [0, -0.78, 0] } : {}) })),
+    ],
+    meshes: [{ primitives: [{ attributes: { POSITION: 0 } }] }],
+    accessors: [{ min: [-0.2, -0.2, -0.2], max: [0.2, 0, 0.2] }],
+  })
+  assert.equal(gltfBounds(gltf(['canopy', 'cord', 'body']))!.hang!.adjustable, true)
+  assert.deepEqual(gltfBounds(gltf(['canopy', 'body']))!.hang, { adjustable: false, drop_m: 1.0026 })
 })
