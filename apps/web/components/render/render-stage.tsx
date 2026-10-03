@@ -10,7 +10,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import type { RenderRequest } from '@varpet/contracts'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { PerspectiveCamera } from 'three'
-import { configureViewerLook, withWallSides } from '../editor/viewer-look'
+import { configureCaptureLook, withWallSides } from '../editor/viewer-look'
 
 type Job = RenderRequest & { key: number }
 type Backend = 'webgpu' | 'webgl'
@@ -44,9 +44,10 @@ export function RenderStage() {
   const pending = useRef<Pending | null>(null)
   const frameWaiters = useRef<Array<{ left: number; done: () => void }>>([])
   const backend = useRef<Backend>('webgl')
-  // Before <Viewer> mounts: finishes registered, default walls painted, SSGI tuned, as in the editor.
+  // Before <Viewer> mounts: finishes registered, default walls painted, SSGI tuned, as in the editor (with more
+  // SSGI slices: a still frame can afford them).
   useState(() => {
-    configureViewerLook()
+    configureCaptureLook()
     return null
   })
 
