@@ -56,6 +56,8 @@ export async function handleRender(request: Request, queue: RenderQueue, token: 
   const renderRequest = parsed.data as RenderRequest
   try {
     const result = await queue.render(renderRequest)
+    // One line per render: how long it waited for a page and how long it drew (the eval sums these).
+    console.log(`[render] slot ${result.slot} queued ${result.queuedMs} ms render ${result.renderMs} ms${result.cold ? ' cold' : ''} depth ${queue.depth}`)
     const response: RenderResponse = {
       image: result.image.toString('base64'),
       mimeType: 'image/jpeg',
