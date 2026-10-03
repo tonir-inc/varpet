@@ -20,7 +20,7 @@ export interface ViewPlan {
   description: string
 }
 
-const EYE_HEIGHT = 1.6
+const EYE_HEIGHT = 1.5
 const OUTDOOR_ZONE = /balcon|loggia|terrace|patio/i
 const round = (value: number, places = 2) => Math.round(value * 10 ** places) / 10 ** places
 const fmt = (p: number[]) => `(${p.map((v) => round(v)).join(', ')})`
@@ -99,68 +99,303 @@ function fitDistance(radius: number, fovDeg: number, aspect: number) {
   return radius / Math.sin(Math.min(vertical, horizontal) / 2)
 }
 
+// ---------------------------------------------------------------------------------------------------------------
+// Eye level: stand in a doorway or the corner opposite the room's focal wall, look across the room, never from
+// inside or right behind a piece of furniture.
+
 interface Viewpoint {
   eye: Point
   look: Point
   from: string
 }
 
-/** Doors in walls that border the zone: their centre in plan, and the unit normal pointing into the room. */
-function doorViewpoints(graph: Graph, zone: AnyNode, polygon: Point[]): Array<Viewpoint & { outdoor: boolean; depth: number }> {
-  const zones = zonesOf(graph)
-  const target = centroid(polygon)
-  const views: Array<Viewpoint & { outdoor: boolean; depth: number }> = []
-  for (const door of Object.values(graph.nodes)) {
-    if (door.type !== 'door') continue
-    const wall = graph.nodes[(door.wallId as string | undefined) ?? door.parentId ?? '']
+interface Candidate {
+  eye: Point
+  from: string
+  /** Tiebreak bonus: an indoor door reads as walking in; an outdoor door (balcony) looks back into the flat. */
+  bonus: number
+}
+
+/** A plan box with a height range: a piece of furniture or a built-in run, rotated by `yaw` about the vertical. */
+export interface Obstacle {
+  centre: Point
+  half: Point
+  yaw: number
+  bottom: number
+  top: number
+  name: string
+}
+
+const num = (value: unknown, fallback = 0) => (typeof value === 'number' && Number.isFinite(value) ? value : fallback)
+const yawOf = (rotation: unknown) => (Array.isArray(rotation) ? num(rotation[1]) : num(rotation))
+
+/**
+ * Floor-standing pieces and built-in cabinet runs as boxes. Wall- and ceiling-hung pieces (art, sconces, pendants)
+ * are left out: they hang above or flat against a wall, never between the camera and the room.
+ */
+export function obstacles(graph: Graph): Obstacle[] {
+  const out: Obstacle[] = []
+  for (const node of Object.values(graph.nodes)) {
+    const parent = graph.nodes[node.parentId ?? '']
+    if (parent?.type === 'wall' || parent?.type === 'ceiling') continue
+    const position = node.position as number[] | undefined
+    if (!Array.isArray(position)) continue
+    if (node.type === 'item') {
+      const asset = node.asset as { dimensions?: number[] } | undefined
+      const scale = (node.scale as number[] | undefined) ?? [1, 1, 1]
+      const [w, h, d] = [0, 1, 2].map((i) => Math.abs(num(asset?.dimensions?.[i], 0.5) * num(scale[i], 1)))
+      const bottom = num(position[1])
+      out.push({ centre: [num(position[0]), num(position[2])], half: [w! / 2, d! / 2], yaw: yawOf(node.rotation), bottom, top: bottom + h!, name: String(node.name ?? node.id) })
+    } else if (node.type === 'cabinet' && parent?.type === 'level') {
+      const height = num(node.plinthHeight, 0.1) + num(node.carcassHeight, 0.8) + num(node.countertopThickness, 0.02)
+      const tall = node.runTier === 'tall'
+      const bottom = node.runTier === 'wall' ? 1.4 : 0
+      out.push({
+        centre: [num(position[0]), num(position[2])],
+        half: [num(node.width, 0.6) / 2, num(node.depth, 0.6) / 2],
+        yaw: yawOf(node.rotation),
+        bottom,
+        top: tall ? 2.2 : bottom + height,
+        name: String(node.name ?? node.id),
+      })
+    }
+  }
+  return out
+}
+
+/** A plan point in an obstacle's own frame (Three.js yaw: local x = (cos, -sin), local z = (sin, cos)). */
+function toLocal(o: Obstacle, [x, z]: Point): Point {
+  const dx = x - o.centre[0]
+  const dz = z - o.centre[1]
+  const c = Math.cos(o.yaw)
+  const s = Math.sin(o.yaw)
+  return [dx * c - dz * s, dx * s + dz * c]
+}
+
+function insideBox(o: Obstacle, point: Point, margin: number) {
+  const [lx, lz] = toLocal(o, point)
+  return Math.abs(lx) <= o.half[0] + margin && Math.abs(lz) <= o.half[1] + margin
+}
+
+/** Distance along a 3D ray (unit direction) to an obstacle's box grown by `margin` in plan, or Infinity. */
+function rayHit(o: Obstacle, origin: Vec3, dir: Vec3, margin: number) {
+  const [ox, oz] = toLocal(o, [origin[0], origin[2]])
+  const c = Math.cos(o.yaw)
+  const s = Math.sin(o.yaw)
+  const local: Vec3 = [dir[0] * c - dir[2] * s, dir[1], dir[0] * s + dir[2] * c]
+  const lo: Vec3 = [-o.half[0] - margin, o.bottom, -o.half[1] - margin]
+  const hi: Vec3 = [o.half[0] + margin, o.top, o.half[1] + margin]
+  const from: Vec3 = [ox, origin[1], oz]
+  let near = 0
+  let far = Infinity
+  for (let axis = 0; axis < 3; axis++) {
+    const d = local[axis]!
+    if (Math.abs(d) < 1e-9) {
+      if (from[axis]! < lo[axis]! || from[axis]! > hi[axis]!) return Infinity
+      continue
+    }
+    const t1 = (lo[axis]! - from[axis]!) / d
+    const t2 = (hi[axis]! - from[axis]!) / d
+    near = Math.max(near, Math.min(t1, t2))
+    far = Math.min(far, Math.max(t1, t2))
+    if (near > far) return Infinity
+  }
+  return near
+}
+
+/**
+ * The pieces that fill the near field of a camera at `eye` looking at `look`: the eye standing in a piece's
+ * footprint, or a fan of rays across the frame (left to right, level and down toward the floor) hitting a piece
+ * within reach. Reach shortens as the rays tilt down, so a sofa back seen across the room does not count.
+ */
+export function nearFieldBlockers(eye: Point, look: Point, height: number, boxes: Obstacle[], scale = 1): string[] {
+  const hit = new Set<string>()
+  for (const o of boxes) if (o.top > 0.3 && insideBox(o, eye, 0.25)) hit.add(o.name)
+  const heading = Math.atan2(look[1] - eye[1], look[0] - eye[0])
+  const origin: Vec3 = [eye[0], height, eye[1]]
+  for (const yawDeg of [-32, -16, 0, 16, 32]) {
+    for (const [pitchDeg, reach] of [[0, 1.2], [-14, 1.0], [-28, 0.7]] as const) {
+      const yaw = heading + (yawDeg * Math.PI) / 180
+      const pitch = (pitchDeg * Math.PI) / 180
+      const dir: Vec3 = [Math.cos(yaw) * Math.cos(pitch), Math.sin(pitch), Math.sin(yaw) * Math.cos(pitch)]
+      for (const o of boxes) if (rayHit(o, origin, dir, 0.05) < reach * scale) hit.add(o.name)
+    }
+  }
+  return [...hit]
+}
+
+/** Share of the straight line between two plan points that runs inside the polygon. */
+function sightline(from: Point, to: Point, polygon: Point[]) {
+  const samples = 24
+  let inside = 0
+  for (let i = 1; i <= samples; i++) {
+    const t = i / samples
+    if (insidePolygon([from[0] + (to[0] - from[0]) * t, from[1] + (to[1] - from[1]) * t], polygon)) inside++
+  }
+  return inside / samples
+}
+
+/** Openings (doors, windows) in plan: centre, width, height, and the wall's unit direction. */
+function openingsOf(graph: Graph, type: 'door' | 'window') {
+  const out: Array<{ centre: Point; width: number; height: number; along: Point; thickness: number }> = []
+  for (const node of Object.values(graph.nodes)) {
+    if (node.type !== type) continue
+    const wall = graph.nodes[(node.wallId as string | undefined) ?? node.parentId ?? '']
     if (wall?.type !== 'wall' || !Array.isArray(wall.start) || !Array.isArray(wall.end)) continue
     const [sx, sz] = wall.start as Point
     const [ex, ez] = wall.end as Point
     const length = Math.hypot(ex - sx, ez - sz)
     if (length < 1e-6) continue
-    const ux = (ex - sx) / length
-    const uz = (ez - sz) / length
-    const along = ((door.position as number[] | undefined)?.[0] as number | undefined) ?? length / 2
-    const centre: Point = [sx + ux * along, sz + uz * along]
-    const step = ((wall.thickness as number | undefined) ?? 0.2) / 2 + 0.35
-    const normal: Point = [-uz, ux]
-    const front: Point = [centre[0] + normal[0] * step, centre[1] + normal[1] * step]
-    const back: Point = [centre[0] - normal[0] * step, centre[1] - normal[1] * step]
-    const frontIn = insidePolygon(front, polygon)
-    const backIn = insidePolygon(back, polygon)
-    if (frontIn === backIn) continue
-    const eye = frontIn ? front : back
-    const other = frontIn ? back : front
-    const neighbour = zones.find((z) => z.id !== zone.id && insidePolygon(other, z.polygon as Point[]))
-    views.push({
-      eye,
-      look: target,
-      from: `the door from ${neighbour?.name ? String(neighbour.name).toLowerCase() : 'outside'}`,
-      outdoor: OUTDOOR_ZONE.test(String(neighbour?.name ?? '')),
-      depth: Math.hypot(target[0] - eye[0], target[1] - eye[1]),
-    })
+    const u: Point = [(ex - sx) / length, (ez - sz) / length]
+    const at = num((node.position as number[] | undefined)?.[0], length / 2)
+    out.push({ centre: [sx + u[0] * at, sz + u[1] * at], width: num(node.width, 0.9), height: num(node.height, 1.4), along: u, thickness: num(wall.thickness, 0.2) })
   }
-  return views
+  return out
 }
 
-/** The corner (pulled 0.6 m toward the middle) with the longest view across the room. */
-function cornerViewpoint(polygon: Point[]): Viewpoint {
-  const middle = centroid(polygon)
-  let best: Viewpoint | null = null
-  let bestReach = -1
-  for (const [x, z] of polygon) {
-    const dx = middle[0] - x
-    const dz = middle[1] - z
-    const length = Math.hypot(dx, dz) || 1
-    const eye: Point = [x + (dx / length) * 0.6, z + (dz / length) * 0.6]
-    if (!insidePolygon(eye, polygon)) continue
-    const reach = Math.max(...polygon.map((p) => Math.hypot(p[0] - eye[0], p[1] - eye[1])))
-    if (reach > bestReach) {
-      bestReach = reach
-      best = { eye, look: middle, from: 'a corner' }
+function segmentDistance(point: Point, a: Point, b: Point) {
+  const dx = b[0] - a[0]
+  const dz = b[1] - a[1]
+  const len2 = dx * dx + dz * dz || 1e-9
+  const t = Math.max(0, Math.min(1, ((point[0] - a[0]) * dx + (point[1] - a[1]) * dz) / len2))
+  return { distance: Math.hypot(point[0] - (a[0] + t * dx), point[1] - (a[1] + t * dz)), t }
+}
+
+/**
+ * The room's focal wall: the outline edge carrying the most visual weight (pieces standing or hanging against it,
+ * by their face area; windows at half weight), or the longest edge in a room with nothing on its walls. Its focal
+ * point is the weighted middle of what stands against it.
+ */
+export function focalWall(graph: Graph, polygon: Point[]): { a: Point; b: Point; point: Point; why: string } {
+  const edges = polygon.map((a, i) => ({ a, b: polygon[(i + 1) % polygon.length]!, weight: 0, sum: 0 }))
+  const credit = (point: Point, weight: number, reach: number) => {
+    let best: { edge: (typeof edges)[number]; t: number; distance: number } | null = null
+    for (const edge of edges) {
+      const { distance, t } = segmentDistance(point, edge.a, edge.b)
+      if (distance <= reach && (!best || distance < best.distance)) best = { edge, t, distance }
+    }
+    if (!best) return
+    best.edge.weight += weight
+    best.edge.sum += weight * best.t
+  }
+  for (const node of Object.values(graph.nodes)) {
+    if (node.type !== 'item') continue
+    const parent = graph.nodes[node.parentId ?? '']
+    const position = node.position as number[] | undefined
+    const dims = ((node.asset as { dimensions?: number[] } | undefined)?.dimensions ?? []).map((v) => Math.abs(num(v)))
+    if (!Array.isArray(position) || dims.length < 3) continue
+    if (parent?.type === 'wall' && Array.isArray(parent.start) && Array.isArray(parent.end)) {
+      const [sx, sz] = parent.start as Point
+      const [ex, ez] = parent.end as Point
+      const length = Math.hypot(ex - sx, ez - sz) || 1
+      const along = num(position[0])
+      const u: Point = [(ex - sx) / length, (ez - sz) / length]
+      const side = num(position[2]) < 0 ? -1 : 1
+      // Hung on the face toward the item's side of the wall: credit it only when that face looks into this room.
+      const point: Point = [sx + u[0] * along - u[1] * 0.15 * side, sz + u[1] * along + u[0] * 0.15 * side]
+      if (!insidePolygon(point, polygon)) continue
+      credit(point, dims[0]! * dims[1]! * 1.5, 0.45)
+    } else if (parent?.type !== 'ceiling') {
+      const point: Point = [num(position[0]), num(position[2])]
+      if (!insidePolygon(point, polygon) || dims[1]! < 0.3 || /rug|carpet/i.test(String(node.name ?? ''))) continue
+      const reach = Math.max(dims[0]!, dims[2]!) / 2 + 0.6
+      credit(point, Math.max(dims[0]!, dims[2]!) * dims[1]!, reach)
     }
   }
-  return best ?? { eye: middle, look: [middle[0] + 1, middle[1]], from: 'the middle' }
+  for (const window of openingsOf(graph, 'window')) credit(window.centre, window.width * window.height * 0.5, window.thickness / 2 + 0.1)
+  const best = [...edges].sort((p, q) => q.weight - p.weight || Math.hypot(q.b[0] - q.a[0], q.b[1] - q.a[1]) - Math.hypot(p.b[0] - p.a[0], p.b[1] - p.a[1]))[0]!
+  const t = best.weight > 0 ? best.sum / best.weight : 0.5
+  return {
+    a: best.a,
+    b: best.b,
+    point: [best.a[0] + (best.b[0] - best.a[0]) * t, best.a[1] + (best.b[1] - best.a[1]) * t],
+    why: best.weight > 0 ? 'the wall with the most standing against it' : 'the longest wall',
+  }
+}
+
+/** Where a person can stand to take the room in: just inside each door, and each corner stepped in off both walls. */
+function standingSpots(graph: Graph, zone: AnyNode, polygon: Point[]): Candidate[] {
+  const zones = zonesOf(graph)
+  const box = bounds(polygon)
+  // 0.5 m off both walls, less in a narrow hall or closet so the spot stays inside it.
+  const inset = Math.min(0.5, 0.35 * Math.min(box.ex, box.ez))
+  const spots: Candidate[] = []
+  for (const door of openingsOf(graph, 'door')) {
+    const normal: Point = [-door.along[1], door.along[0]]
+    const step = door.thickness / 2 + 0.35
+    for (const sign of [1, -1]) {
+      const eye: Point = [door.centre[0] + normal[0] * step * sign, door.centre[1] + normal[1] * step * sign]
+      const other: Point = [door.centre[0] - normal[0] * step * sign, door.centre[1] - normal[1] * step * sign]
+      if (!insidePolygon(eye, polygon) || insidePolygon(other, polygon)) continue
+      const neighbour = zones.find((z) => z.id !== zone.id && insidePolygon(other, z.polygon as Point[]))
+      const outdoor = OUTDOOR_ZONE.test(String(neighbour?.name ?? ''))
+      spots.push({ eye, from: `the door from ${neighbour?.name ? String(neighbour.name).toLowerCase() : 'outside'}`, bonus: outdoor ? -1.5 : neighbour ? 0.6 : 0.3 })
+    }
+  }
+  for (let i = 0; i < polygon.length; i++) {
+    const corner = polygon[i]!
+    const prev = polygon[(i + polygon.length - 1) % polygon.length]!
+    const next = polygon[(i + 1) % polygon.length]!
+    const u1: Point = [prev[0] - corner[0], prev[1] - corner[1]]
+    const u2: Point = [next[0] - corner[0], next[1] - corner[1]]
+    const l1 = Math.hypot(...u1) || 1
+    const l2 = Math.hypot(...u2) || 1
+    for (const sign of [1, -1]) {
+      const eye: Point = [corner[0] + sign * inset * (u1[0] / l1 + u2[0] / l2), corner[1] + sign * inset * (u1[1] / l1 + u2[1] / l2)]
+      if (insidePolygon(eye, polygon)) {
+        spots.push({ eye, from: 'a corner', bonus: 0 })
+        break
+      }
+    }
+  }
+  return spots
+}
+
+/**
+ * The eye-level viewpoint: of the doorways and corners that see the focal wall without looking through a wall,
+ * the one farthest from it, favouring a view along the room's long side and an indoor door; stepped toward the
+ * focal wall (0.25 m at a time, up to 1.5 m) until no piece fills the near field, else the next spot.
+ */
+export function eyeViewpoint(graph: Graph, zone: AnyNode, polygon: Point[], height = EYE_HEIGHT): Viewpoint & { blockedBy: string[] } {
+  const boxes = obstacles(graph)
+  const focal = focalWall(graph, polygon)
+  const middle = centroid(polygon)
+  // Look at the focal wall's point, pulled 0.4 m into the room so the wall fills the back of the frame.
+  const inward: Point = [middle[0] - focal.point[0], middle[1] - focal.point[1]]
+  const inLength = Math.hypot(...inward) || 1
+  let look: Point = [focal.point[0] + (inward[0] / inLength) * 0.4, focal.point[1] + (inward[1] / inLength) * 0.4]
+  if (!insidePolygon(look, polygon)) look = middle
+  const box = bounds(polygon)
+  const long: Point = box.ex >= box.ez ? [1, 0] : [0, 1]
+  const spots = standingSpots(graph, zone, polygon)
+  // A spot right under the focal point sees nothing; in a closet-sized room every spot is that close, keep them.
+  const far = spots.filter((spot) => Math.hypot(look[0] - spot.eye[0], look[1] - spot.eye[1]) > 0.5)
+  const ranked = (far.length ? far : spots)
+    .map((spot) => {
+      const dx = look[0] - spot.eye[0]
+      const dz = look[1] - spot.eye[1]
+      const depth = Math.hypot(dx, dz)
+      const align = depth > 1e-6 ? Math.abs((dx * long[0] + dz * long[1]) / depth) : 0
+      return { ...spot, seen: sightline(spot.eye, look, polygon), score: depth * (0.7 + 0.3 * align) + spot.bonus }
+    })
+    .sort((a, b) => Number(b.seen >= 0.99) - Number(a.seen >= 0.99) || b.score - a.score)
+  let fallback: (Viewpoint & { blockedBy: string[] }) | null = null
+  for (const spot of ranked) {
+    const dx = look[0] - spot.eye[0]
+    const dz = look[1] - spot.eye[1]
+    const depth = Math.hypot(dx, dz)
+    // In a small room everything is near: the near field shrinks with the view's depth.
+    const reach = Math.min(1, depth / 3)
+    for (let step = 0; step <= 6 && (step === 0 || depth - step * 0.25 >= 1.2); step++) {
+      const eye: Point = [spot.eye[0] + (dx / depth) * step * 0.25, spot.eye[1] + (dz / depth) * step * 0.25]
+      if (!insidePolygon(eye, polygon)) break
+      const blockedBy = nearFieldBlockers(eye, look, height, boxes, reach)
+      const from = step ? `${spot.from}, stepped ${round(step * 0.25)} m in past the furniture` : spot.from
+      if (!blockedBy.length) return { eye, look, from: `${from}, facing ${focal.why}`, blockedBy }
+      if (!fallback || blockedBy.length < fallback.blockedBy.length) fallback = { eye, look, from: `${from}, facing ${focal.why}`, blockedBy }
+    }
+  }
+  return fallback ?? { eye: middle, look: Math.hypot(look[0] - middle[0], look[1] - middle[1]) > 0.3 ? look : [middle[0] + 1, middle[1]], from: 'the middle', blockedBy: [] }
 }
 
 export class ViewError extends Error {}
@@ -168,7 +403,7 @@ export class ViewError extends Error {}
 /**
  * The camera for one view of one room (or the whole flat without a zone): 'top' a plan-like orthographic view
  * from above, north (-z) up; '3d' a 3/4 view from above, walls toward the camera cut away; 'inside' eye level
- * from the room's door (an indoor door first) or its best corner.
+ * (1.5 m) from the doorway or corner opposite the room's focal wall, clear of furniture (eyeViewpoint).
  */
 export function planView(graph: Graph, { zoneId, view, width, height }: { zoneId?: string; view: View; width: number; height: number }): ViewPlan {
   const aspect = width / height
@@ -236,8 +471,7 @@ export function planView(graph: Graph, { zoneId, view, width, height }: { zoneId
   }
 
   if (!zone) throw new ViewError('inside_needs_zone: pass zone_id for an eye-level view')
-  const doors = doorViewpoints(graph, zone, outline).sort((a, b) => Number(a.outdoor) - Number(b.outdoor) || b.depth - a.depth)
-  const viewpoint: Viewpoint = doors[0] ?? cornerViewpoint(outline)
+  const viewpoint = eyeViewpoint(graph, zone, outline)
   const fov = 65
   const position: Vec3 = [viewpoint.eye[0], EYE_HEIGHT, viewpoint.eye[1]]
   const target: Vec3 = [viewpoint.look[0], 1.1, viewpoint.look[1]]
@@ -297,7 +531,7 @@ export function registerViewSceneTool(server: McpServer, operations: SceneOperat
         'as empty, crowded, unbalanced or wrong in scale (bare walls, a lonely sofa, nothing on the floor, ' +
         'lighting missing). view: "3d" (default) a 3/4 view from above with near walls cut away, best for balance ' +
         'and how full the room feels; "top" a plan from above (north, -z, up; the caption gives the x/z range so ' +
-        'you can aim moves), best for gaps, walkways and alignment; "inside" eye level from the door, best for ' +
+        'you can aim moves), best for gaps, walkways and alignment; "inside" eye level from the doorway or corner opposite the focal wall, best for ' +
         'how it feels to walk in. zone_id: the room (from get_zones); omit for the whole flat (not for "inside"). ' +
         'Takes a few seconds; one view per call.',
       inputSchema: {

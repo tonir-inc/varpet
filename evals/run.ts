@@ -34,7 +34,7 @@ import type { AgentEvent } from '../packages/contracts/src/index.ts'
 import { childEnv, closeAgentSessions, runTurn, userMessageLine } from '../packages/agents/src/index.ts'
 import { CASE_FILES, EVALS_DIR, loadCases, selectCases, type CaseSet, type EvalCase } from './cases.ts'
 import { CRITERIA, CRITIC_PROMPT, CRITIC_SCHEMA, criticInput, imageDataUrl as fileDataUrl, scoreOf } from './critic.ts'
-import { ROOM_VIEWS, roomSlug, roomZones } from './eye.ts'
+import { ROOM_VIEWS, judgedZones, roomSlug } from './eye.ts'
 import { planView } from '../packages/scene-mcp/src/view-scene.ts'
 import type { RenderResponse } from '../packages/contracts/src/index.ts'
 import { loadShell } from './real/shell.ts'
@@ -128,15 +128,19 @@ interface CaseMeta {
 // ---------------------------------------------------------------------------------------------------------------
 // Agent turns
 
-async function startScene(c: EvalCase, s: Pick<SceneStore, 'save'>) {
-  if (c.shell) return (await s.save({ name: `eval ${c.id}`, graph: loadShell(join(EVALS_DIR, c.shell)).graph as never })).id
+/** The scene a case starts from: its traced shell, its flat template, or Pascal's empty default site. */
+function startGraph(c: EvalCase): { nodes: Record<string, unknown> } {
+  if (c.shell) return loadShell(join(EVALS_DIR, c.shell)).graph as never
   if (c.templateId === null) {
     const bridge = new SceneBridge()
     bridge.loadDefault()
-    return (await s.save({ name: `eval ${c.id}`, graph: bridge.exportJSON() })).id
+    return bridge.exportJSON() as never
   }
-  const graph = readJson<never>(join(ROOT, 'apps/web/lib/flats/templates', `${c.templateId}.json`))
-  return (await s.save({ name: `eval ${c.id}`, graph })).id
+  return readJson(join(ROOT, 'apps/web/lib/flats/templates', `${c.templateId}.json`))
+}
+
+async function startScene(c: EvalCase, s: Pick<SceneStore, 'save'>) {
+  return (await s.save({ name: `eval ${c.id}`, graph: startGraph(c) as never })).id
 }
 
 function imageDataUrl(path: string) {
@@ -232,12 +236,16 @@ async function waitForServer(server: ChildProcess, timeoutMs = 240_000) {
   throw new Error(`dev server not up on ${origin}`)
 }
 
-/** The rooms a case is judged on: its `rooms`, else the room the ask is about, then every other room with furniture. */
+/** The rooms a case is judged on (eye.ts judgedZones: every room for a whole-flat ask), with a unique file slug each. */
 function judgedRooms(c: EvalCase, graph: { nodes: Record<string, unknown> }) {
-  if (c.rooms) return c.rooms
-  const furnished = roomFacts(graph).map((f) => f.room)
-  const asked = furnished.find((r) => r.toLowerCase() === c.room.toLowerCase())
-  return asked ? [asked, ...furnished.filter((r) => r !== asked)] : furnished
+  const zones = judgedZones(c, graph, startGraph(c))
+  const seen = new Map<string, number>()
+  return zones.map((z) => {
+    const slug = roomSlug(z.room)
+    const n = (seen.get(slug) ?? 0) + 1
+    seen.set(slug, n)
+    return { ...z, slug: n > 1 ? `${slug}-${n}` : slug }
+  })
 }
 
 function resultGraph(c: EvalCase) {
@@ -292,16 +300,20 @@ async function startServer() {
   return { stop }
 }
 
-async function render(request: object): Promise<RenderResponse> {
+// A run re-rendered later (or on another port) has model URLs pointing at the dev server that placed them.
+const MODEL_ORIGIN = /^https?:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?(?=\/api\/catalog\/models\/)/
+
+async function render(request: { graph?: unknown } & object): Promise<RenderResponse> {
+  const body = JSON.stringify(request, (key, value) => (key === 'src' && typeof value === 'string' ? value.replace(MODEL_ORIGIN, origin) : value))
   const response = await fetch(`${origin}/api/render`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(request),
+    body,
     signal: AbortSignal.timeout(200_000),
   })
-  const body = (await response.json().catch(() => null)) as (RenderResponse & { error?: string }) | null
-  if (!response.ok || !body?.image) throw new Error(body?.error ?? `render_failed: HTTP ${response.status}`)
-  return body
+  const result = (await response.json().catch(() => null)) as (RenderResponse & { error?: string }) | null
+  if (!response.ok || !result?.image) throw new Error(result?.error ?? `render_failed: HTTP ${response.status}`)
+  return result
 }
 
 // One Chrome for the editor screenshots, shared by the cases, opened on first use; at most `renderPages` editor pages
@@ -357,18 +369,21 @@ async function takeShots(c: EvalCase, say: Log, timing: CaseTiming) {
   // a room's three views go to the render pool together.
   const graph = resultGraph(c) ?? ((await store.load(sceneId))?.graph as { nodes: Record<string, unknown> } | undefined)
   if (!graph || existsSync(join(dir, 'rooms.json'))) return
-  const taken: Array<{ room: string; view: string; file: string; caption: string; backend: string; queuedMs: number; renderMs: number }> = []
-  for (const { room, zoneId } of roomZones(graph, judgedRooms(c, graph)).slice(0, 5)) {
+  const taken: Array<{ room: string; zoneId: string; view: string; file: string; caption: string; backend: string; queuedMs: number; renderMs: number }> = []
+  // Every judged room; an empty one gets its eye-level and top views only (a 3/4 view adds nothing to bare floor).
+  const facts = new Map(roomFacts(graph).map((f) => [f.zoneId, f]))
+  for (const { room, zoneId, slug } of judgedRooms(c, graph)) {
+    const views = facts.has(zoneId) ? ROOM_VIEWS : ROOM_VIEWS.filter((v) => v.view !== '3d')
     const shots = await Promise.all(
-      ROOM_VIEWS.map(async ({ view, prefix }) => {
-        const file = `${prefix}-${roomSlug(room)}.jpg`
+      views.map(async ({ view, prefix }) => {
+        const file = `${prefix}-${slug}.jpg`
         try {
           const plan = planView(graph as never, { zoneId, view, width: 1024, height: 768 })
           const result = await render({ ...plan.request, graph })
           say(`${view} of ${room}: queued ${result.queuedMs} ms, drawn in ${result.renderMs} ms`)
           timing.renders.push({ queuedMs: result.queuedMs, renderMs: result.renderMs })
           writeFileSync(join(dir, file), Buffer.from(result.image, 'base64'))
-          return [{ room, view, file, caption: plan.description, backend: result.backend, queuedMs: result.queuedMs, renderMs: result.renderMs }]
+          return [{ room, zoneId, view, file, caption: plan.description, backend: result.backend, queuedMs: result.queuedMs, renderMs: result.renderMs }]
         } catch (error) {
           say(`${view} of ${room} failed: ${String(error)}`)
           return []
@@ -388,7 +403,10 @@ async function runCritic(c: EvalCase, say: Log): Promise<Record<string, unknown>
   const dir = caseDir(c)
   const summary = readJson<CaseSummary>(join(dir, 'summary.json'))
   const graph = resultGraph(c)
-  const facts = graph ? roomFacts(graph, judgedRooms(c, graph)) : []
+  const judged = graph ? judgedRooms(c, graph) : []
+  const facts = graph ? roomFacts(graph, judged.map((r) => r.zoneId), startGraph(c)) : []
+  // roomFacts keeps the graph's zone order; the critic reads them in the judged order.
+  facts.sort((a, b) => judged.findIndex((r) => r.zoneId === a.zoneId) - judged.findIndex((r) => r.zoneId === b.zoneId))
   writeFileSync(join(dir, 'facts.json'), JSON.stringify(facts, null, 2))
   const input = criticInput(c, summary, facts, dir)
   const images = input.images.map((im) => fileDataUrl(im.path))

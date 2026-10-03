@@ -56,3 +56,24 @@ test('per-room renders follow the whole flat: eye level, top, 3/4 for each room'
     'top view of the whole flat', 'eye-level view of bedroom', 'top view of bedroom', '3/4 view of bedroom', 'top view of hall',
   ])
 })
+
+test('rooms.json sets the order and names of the room renders', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'critic-order-'))
+  for (const f of ['shot-eye-stair.jpg', 'shot-top-stair.jpg', 'shot-eye-living.jpg']) writeFileSync(join(dir, f), '')
+  writeFileSync(join(dir, 'rooms.json'), JSON.stringify([
+    { room: 'Living room', view: 'inside', file: 'shot-eye-living.jpg' },
+    { room: 'Stair', view: 'inside', file: 'shot-eye-stair.jpg' },
+    { room: 'Stair', view: 'top', file: 'shot-top-stair.jpg' },
+    { room: 'Stair', view: '3d', file: 'shot-3d-stair.jpg' },
+  ]))
+  assert.deepEqual(agentShots(dir).map((s) => s.label.replace(/.*, /, '')), ['eye-level view of Living room', 'eye-level view of Stair', 'top view of Stair'])
+})
+
+test('a whole-flat case tells the critic every room is judged and names the empty ones', () => {
+  const c = loadCases(join(EVALS_DIR, CASE_FILES.real)).find((x) => x.id === 'real-ts-yerevan')!
+  const project = loadProjects().find((p) => p.id === c.project)!
+  if (!cachedImages(project).photos.length) return // not fetched here
+  const facts = [{ room: 'Living room and kitchen', empty: false }, { room: 'Stair', empty: true }] as never
+  const { text } = criticInput(c, summary, facts, mkdtempSync(join(tmpdir(), 'critic-flat-')))
+  assert.match(text, /Judged rooms \(a whole-flat ask: every room of the flat\): Living room and kitchen, Stair\. Judged rooms with nothing in them: Stair\./)
+})
