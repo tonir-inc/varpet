@@ -114,3 +114,12 @@ Base: `@pascal-app/core@1.0.3` (`ebe69be2`). One commit each, so each can become
   `applyTextureProperties`, so cached and cloned preset maps carry it).
 - Files: `packages/viewer/src/lib/materials.ts`.
 - Host side: none (no workaround existed).
+
+## 12. Viewer: `dpr` prop
+- Motivation: the canvas pixel ratio was fixed to `[1, 1.5]` (1.25 on coarse pointers) clamped to the screen, so a
+  headless capture at devicePixelRatio 1 rendered at 1× with no anti-aliasing (the TSL pipeline has none): jagged
+  edges, aliased texture detail, visible SSAO grain.
+- Change: `<Viewer dpr={n}>` replaces the default range with a fixed ratio; unset keeps the old behaviour.
+- Files: `packages/viewer/src/components/viewer/index.tsx`.
+- Host side: `CAPTURE_DPR = 2` in `apps/web/components/render/render-stage.tsx` (supersampled captures; no
+  workaround existed).
