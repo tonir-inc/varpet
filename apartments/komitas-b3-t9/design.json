@@ -1,0 +1,705 @@
+{
+ "draft": {
+  "items": [
+   {
+    "id": "wardrobe-bed5-north",
+    "room_id": "bedroom-5",
+    "kind": "wardrobe",
+    "name": "Wardrobe",
+    "pos": [
+     1.1112,
+     -4.1147
+    ],
+    "rot": 0,
+    "size": [
+     1.94026899,
+     0.6292,
+     1.9604
+    ],
+    "keep": false,
+    "sku": "abo:B07GFSJ69T",
+    "price": 243000,
+    "vendor": "abo"
+   },
+   {
+    "id": "bed-5",
+    "room_id": "bedroom-5",
+    "kind": "bed",
+    "name": "Double bed",
+    "pos": [
+     4.3478,
+     -4.9422
+    ],
+    "rot": 0,
+    "size": [
+     1.7594,
+     2.1455,
+     1.071
+    ],
+    "keep": false,
+    "sku": "abo:B07HSF3Y12",
+    "price": 236000,
+    "vendor": "abo"
+   },
+   {
+    "id": "bedside-5-west",
+    "room_id": "bedroom-5",
+    "kind": "nightstand",
+    "name": "Bedside table",
+    "pos": [
+     3.2366,
+     -4.1185
+    ],
+    "rot": 0,
+    "size": [
+     0.4268,
+     0.347,
+     0.4478
+    ],
+    "keep": false,
+    "sku": "abo:B07GFRKNNH",
+    "price": 34000,
+    "vendor": "abo"
+   },
+   {
+    "id": "bedside-5-east",
+    "room_id": "bedroom-5",
+    "kind": "nightstand",
+    "name": "Bedside table",
+    "pos": [
+     5.4766,
+     -4.1185
+    ],
+    "rot": 0,
+    "size": [
+     0.4268,
+     0.347,
+     0.4478
+    ],
+    "keep": false,
+    "sku": "abo:B07GFRKNNH",
+    "price": 34000,
+    "vendor": "abo"
+   },
+   {
+    "id": "desk-5",
+    "room_id": "bedroom-5",
+    "kind": "desk",
+    "name": "Desk",
+    "pos": [
+     0.4674,
+     -5.556
+    ],
+    "rot": 90,
+    "size": [
+     1.3,
+     0.6,
+     0.7419
+    ],
+    "keep": false,
+    "sku": "extra:bpy-office:desk-walnut-mcm-tapered",
+    "price": 295000,
+    "vendor": "extra"
+   },
+   {
+    "id": "desk-chair-5",
+    "room_id": "bedroom-5",
+    "kind": "chair",
+    "name": "Desk chair",
+    "pos": [
+     1.0728,
+     -5.7853
+    ],
+    "rot": -90,
+    "size": [
+     0.5649,
+     0.585,
+     0.98
+    ],
+    "keep": false,
+    "sku": "abo:B07TFFF6V4",
+    "price": 56000,
+    "vendor": "abo"
+   },
+   {
+    "id": "wardrobe-bed5-south",
+    "room_id": "bedroom-5",
+    "kind": "wardrobe",
+    "name": "Wardrobe",
+    "pos": [
+     1.1377,
+     -6.743
+    ],
+    "rot": 180,
+    "size": [
+     1.9931200000000002,
+     0.5,
+     1.81
+    ],
+    "keep": false,
+    "sku": "abo:B07QZ77FGN",
+    "price": 98000,
+    "vendor": "abo"
+   },
+   {
+    "id": "wardrobe-living",
+    "room_id": "living",
+    "kind": "wardrobe",
+    "name": "Wardrobe",
+    "pos": [
+     1.1377,
+     -7.3727
+    ],
+    "rot": 0,
+    "size": [
+     1.9931200000000002,
+     0.5,
+     1.81
+    ],
+    "keep": false,
+    "sku": "abo:B07QZ77FGN",
+    "price": 98000,
+    "vendor": "abo"
+   },
+   {
+    "id": "tv-unit-living",
+    "room_id": "living",
+    "kind": "cabinet",
+    "name": "TV unit",
+    "pos": [
+     3.9598,
+     -7.289
+    ],
+    "rot": 0,
+    "size": [
+     1.1978,
+     0.3466,
+     0.6814
+    ],
+    "keep": false,
+    "sku": "abo:B07ML7P93X",
+    "price": 20000,
+    "vendor": "abo"
+   },
+   {
+    "id": "tv-living",
+    "room_id": "living",
+    "kind": "tv",
+    "name": "TV",
+    "pos": [
+     3.9598,
+     -7.289
+    ],
+    "rot": 0,
+    "size": [
+     1.12,
+     0.222,
+     0.789
+    ],
+    "keep": false,
+    "sku": "extra:electronics:tv-50-feet-black",
+    "price": 240000,
+    "vendor": "extra",
+    "on": "tv-unit-living"
+   },
+   {
+    "id": "dining-table",
+    "room_id": "living",
+    "kind": "table",
+    "name": "Dining table",
+    "pos": [
+     1.0759,
+     -8.872
+    ],
+    "rot": 90,
+    "size": [
+     1.6089,
+     0.8112,
+     0.7555
+    ],
+    "keep": false,
+    "sku": "abo:B075YMXWZC",
+    "price": 101000,
+    "vendor": "abo"
+   },
+   {
+    "id": "dining-chair-w1",
+    "room_id": "living",
+    "kind": "chair",
+    "name": "Dining chair",
+    "pos": [
+     0.4091,
+     -8.3693
+    ],
+    "rot": 90,
+    "size": [
+     0.4688,
+     0.4944,
+     0.8037
+    ],
+    "keep": false,
+    "sku": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+    "price": 175000,
+    "vendor": "extra"
+   },
+   {
+    "id": "dining-chair-w2",
+    "room_id": "living",
+    "kind": "chair",
+    "name": "Dining chair",
+    "pos": [
+     0.4091,
+     -8.8632
+    ],
+    "rot": 90,
+    "size": [
+     0.4688,
+     0.4944,
+     0.8037
+    ],
+    "keep": false,
+    "sku": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+    "price": 175000,
+    "vendor": "extra"
+   },
+   {
+    "id": "dining-chair-w3",
+    "room_id": "living",
+    "kind": "chair",
+    "name": "Dining chair",
+    "pos": [
+     0.4091,
+     -9.3747
+    ],
+    "rot": 90,
+    "size": [
+     0.4688,
+     0.4944,
+     0.8037
+    ],
+    "keep": false,
+    "sku": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+    "price": 175000,
+    "vendor": "extra"
+   },
+   {
+    "id": "dining-chair-e1",
+    "room_id": "living",
+    "kind": "chair",
+    "name": "Dining chair",
+    "pos": [
+     1.7404,
+     -8.3693
+    ],
+    "rot": -90,
+    "size": [
+     0.4688,
+     0.4944,
+     0.8037
+    ],
+    "keep": false,
+    "sku": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+    "price": 175000,
+    "vendor": "extra"
+   },
+   {
+    "id": "dining-chair-e2",
+    "room_id": "living",
+    "kind": "chair",
+    "name": "Dining chair",
+    "pos": [
+     1.7404,
+     -8.8632
+    ],
+    "rot": -90,
+    "size": [
+     0.4688,
+     0.4944,
+     0.8037
+    ],
+    "keep": false,
+    "sku": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+    "price": 175000,
+    "vendor": "extra"
+   },
+   {
+    "id": "dining-chair-e3",
+    "room_id": "living",
+    "kind": "chair",
+    "name": "Dining chair",
+    "pos": [
+     1.7404,
+     -9.3747
+    ],
+    "rot": -90,
+    "size": [
+     0.4688,
+     0.4944,
+     0.8037
+    ],
+    "keep": false,
+    "sku": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+    "price": 175000,
+    "vendor": "extra"
+   },
+   {
+    "id": "armchair-living",
+    "room_id": "living",
+    "kind": "chair",
+    "name": "Armchair",
+    "pos": [
+     2.6545,
+     -11.0944
+    ],
+    "rot": 90,
+    "size": [
+     0.6914,
+     0.6655,
+     0.6901
+    ],
+    "keep": false,
+    "sku": "extra:bpy-living2:mcm-swivel-tub-armchair-cognac-leather",
+    "price": 369000,
+    "vendor": "extra"
+   },
+   {
+    "id": "coffee-table",
+    "room_id": "living",
+    "kind": "coffee_table",
+    "name": "Coffee table",
+    "pos": [
+     4.0039,
+     -11.0856
+    ],
+    "rot": 0,
+    "size": [
+     1.2059,
+     0.5799,
+     0.3979
+    ],
+    "keep": false,
+    "sku": "abo:B07DBDMN5F",
+    "price": 79000,
+    "vendor": "abo"
+   },
+   {
+    "id": "sofa-living",
+    "room_id": "living",
+    "kind": "sofa",
+    "name": "Sofa",
+    "pos": [
+     3.995,
+     -11.9616
+    ],
+    "rot": 180,
+    "size": [
+     2.2177,
+     0.859,
+     0.8744
+    ],
+    "keep": false,
+    "sku": "abo:B07B4G5QD4",
+    "price": 287000,
+    "vendor": "abo"
+   },
+   {
+    "id": "kitchen-table",
+    "room_id": "kitchen",
+    "kind": "table",
+    "name": "Dining table",
+    "pos": [
+     6.1822,
+     -10.6534
+    ],
+    "rot": 90,
+    "size": [
+     1.1,
+     0.7,
+     0.7504
+    ],
+    "keep": false,
+    "sku": "extra:bpy-kitchen:japandi-oak-rectangular-table-110",
+    "price": 198000,
+    "vendor": "extra"
+   },
+   {
+    "id": "kitchen-chair-n",
+    "room_id": "kitchen",
+    "kind": "chair",
+    "name": "Dining chair",
+    "pos": [
+     6.1645,
+     -9.8429
+    ],
+    "rot": 0,
+    "size": [
+     0.4688,
+     0.4944,
+     0.8037
+    ],
+    "keep": false,
+    "sku": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+    "price": 175000,
+    "vendor": "extra"
+   },
+   {
+    "id": "kitchen-chair-e1",
+    "room_id": "kitchen",
+    "kind": "chair",
+    "name": "Dining chair",
+    "pos": [
+     6.7934,
+     -10.38
+    ],
+    "rot": -90,
+    "size": [
+     0.4688,
+     0.4944,
+     0.8037
+    ],
+    "keep": false,
+    "sku": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+    "price": 175000,
+    "vendor": "extra"
+   },
+   {
+    "id": "kitchen-chair-e2",
+    "room_id": "kitchen",
+    "kind": "chair",
+    "name": "Dining chair",
+    "pos": [
+     6.7934,
+     -10.918
+    ],
+    "rot": -90,
+    "size": [
+     0.4688,
+     0.4944,
+     0.8037
+    ],
+    "keep": false,
+    "sku": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+    "price": 175000,
+    "vendor": "extra"
+   },
+   {
+    "id": "fridge",
+    "room_id": "kitchen",
+    "kind": "fridge",
+    "name": "Fridge",
+    "pos": [
+     7.7599,
+     -12.0909
+    ],
+    "rot": -90,
+    "size": [
+     0.6,
+     0.6585,
+     1.85
+    ],
+    "keep": false,
+    "sku": "extra:bpy-appliances:fridge-combi-stainless-60",
+    "price": 380000,
+    "vendor": "extra"
+   },
+   {
+    "id": "bed-4",
+    "room_id": "bedroom-4",
+    "kind": "bed",
+    "name": "Double bed",
+    "pos": [
+     10.5267,
+     -8.8367
+    ],
+    "rot": -90,
+    "size": [
+     1.7594,
+     2.1455,
+     1.071
+    ],
+    "keep": false,
+    "sku": "abo:B07HSF3Y12",
+    "price": 236000,
+    "vendor": "abo"
+   },
+   {
+    "id": "bedside-4-north",
+    "room_id": "bedroom-4",
+    "kind": "nightstand",
+    "name": "Bedside table",
+    "pos": [
+     11.3678,
+     -7.7255
+    ],
+    "rot": -90,
+    "size": [
+     0.4268,
+     0.347,
+     0.4478
+    ],
+    "keep": false,
+    "sku": "abo:B07GFRKNNH",
+    "price": 34000,
+    "vendor": "abo"
+   },
+   {
+    "id": "bedside-4-south",
+    "room_id": "bedroom-4",
+    "kind": "nightstand",
+    "name": "Bedside table",
+    "pos": [
+     11.3678,
+     -9.9832
+    ],
+    "rot": -90,
+    "size": [
+     0.4268,
+     0.347,
+     0.4478
+    ],
+    "keep": false,
+    "sku": "abo:B07GFRKNNH",
+    "price": 34000,
+    "vendor": "abo"
+   },
+   {
+    "id": "desk-4",
+    "room_id": "bedroom-4",
+    "kind": "desk",
+    "name": "Desk",
+    "pos": [
+     10.9268,
+     -12.0468
+    ],
+    "rot": 180,
+    "size": [
+     1.3,
+     0.6,
+     0.7419
+    ],
+    "keep": false,
+    "sku": "extra:bpy-office:desk-walnut-mcm-tapered",
+    "price": 295000,
+    "vendor": "extra"
+   },
+   {
+    "id": "desk-chair-4",
+    "room_id": "bedroom-4",
+    "kind": "chair",
+    "name": "Desk chair",
+    "pos": [
+     11.1649,
+     -11.4426
+    ],
+    "rot": 0,
+    "size": [
+     0.5649,
+     0.585,
+     0.98
+    ],
+    "keep": false,
+    "sku": "abo:B07TFFF6V4",
+    "price": 56000,
+    "vendor": "abo"
+   },
+   {
+    "id": "wardrobe-bed4",
+    "room_id": "bedroom-4",
+    "kind": "wardrobe",
+    "name": "Wardrobe",
+    "pos": [
+     8.5104,
+     -11.553
+    ],
+    "rot": 90,
+    "size": [
+     1.6,
+     0.5,
+     1.81
+    ],
+    "keep": false,
+    "sku": "abo:B07QZ77FGN",
+    "price": 98000,
+    "vendor": "abo"
+   },
+   {
+    "id": "wardrobe-hall",
+    "room_id": "hall",
+    "kind": "wardrobe",
+    "name": "Hall wardrobe",
+    "pos": [
+     9.9126,
+     -2.8045
+    ],
+    "rot": 90,
+    "size": [
+     1.53456,
+     0.5,
+     1.81
+    ],
+    "keep": false,
+    "sku": "abo:B07QZ77FGN",
+    "price": 98000,
+    "vendor": "abo"
+   },
+   {
+    "id": "sofa-hall",
+    "room_id": "hall",
+    "kind": "sofa",
+    "name": "Hall sofa",
+    "pos": [
+     10.8915,
+     -6.9912
+    ],
+    "rot": 180,
+    "size": [
+     1.2974,
+     0.7792,
+     0.8887
+    ],
+    "keep": false,
+    "sku": "abo:B073G965TS",
+    "price": 231000,
+    "vendor": "abo"
+   }
+  ],
+  "finishes": [],
+  "lighting": []
+ },
+ "owned": [
+  "wardrobe-bed5-north",
+  "bed-5",
+  "bedside-5-west",
+  "bedside-5-east",
+  "desk-5",
+  "desk-chair-5",
+  "wardrobe-bed5-south",
+  "wardrobe-living",
+  "tv-unit-living",
+  "tv-living",
+  "dining-table",
+  "dining-chair-w1",
+  "dining-chair-w2",
+  "dining-chair-w3",
+  "dining-chair-e1",
+  "dining-chair-e2",
+  "dining-chair-e3",
+  "armchair-living",
+  "coffee-table",
+  "sofa-living",
+  "kitchen-table",
+  "kitchen-chair-n",
+  "kitchen-chair-e1",
+  "kitchen-chair-e2",
+  "fridge",
+  "bed-4",
+  "bedside-4-north",
+  "bedside-4-south",
+  "desk-4",
+  "desk-chair-4",
+  "wardrobe-bed4",
+  "wardrobe-hall",
+  "sofa-hall"
+ ],
+ "requests": []
+}

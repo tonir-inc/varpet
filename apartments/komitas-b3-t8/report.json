@@ -1,0 +1,437 @@
+{
+ "flat": "komitas-b3-t8",
+ "scale": "traced in pixels; scale 56.6 px/m from 10 dimension lines",
+ "transform": {
+  "px_per_m": 56.60578512396694,
+  "origin": [
+   565.0,
+   308.0
+  ]
+ },
+ "faults": [],
+ "empty_export": "ok",
+ "settled": [
+  "dining-chair-n1 0.295 m off dining-table",
+  "dining-chair-n2 0.295 m off dining-table",
+  "dining-chair-n3 0.295 m off dining-table",
+  "dining-chair-s1 0.310 m off dining-table",
+  "dining-chair-s2 0.310 m off dining-table",
+  "dining-chair-w 0.315 m off dining-table",
+  "dining-chair-e 0.280 m off dining-table",
+  "bedside-north 0.045 m off bed",
+  "bedside-south 0.045 m off bed",
+  "desk-chair 0.270 m off desk",
+  "sofa 0.030 m into living",
+  "armchair-south 0.235 m into living",
+  "tv-unit-living 0.005 m into living",
+  "fridge 0.035 m into kitchen",
+  "wardrobe-hall 0.020 m into hall",
+  "cupboard-hall 0.080 m into hall",
+  "bed 0.025 m into bedroom",
+  "tv-living on tv-unit-living"
+ ],
+ "furniture": [
+  {
+   "id": "sofa",
+   "kind": "sofa",
+   "room": "living",
+   "footprint_m": [
+    2.226,
+    0.777
+   ],
+   "asset": "abo:B07B4G5QD4",
+   "asset_m": [
+    2.22,
+    0.86
+   ],
+   "name": "Amazon Brand \u2013 Rivet Edgewest Low Back Modern Sofa, 87\"W, Blue"
+  },
+  {
+   "id": "armchair-north",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.742,
+    0.724
+   ],
+   "asset": "extra:bpy-living2:mcm-swivel-tub-armchair-cognac-leather",
+   "asset_m": [
+    0.69,
+    0.67
+   ],
+   "name": "Mid-century swivel tub armchair, walnut outer shell, cognac leather back and sea"
+  },
+  {
+   "id": "armchair-south",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.742,
+    0.724
+   ],
+   "asset": "extra:bpy-living2:mcm-swivel-tub-armchair-cognac-leather",
+   "asset_m": [
+    0.69,
+    0.67
+   ],
+   "name": "Mid-century swivel tub armchair, walnut outer shell, cognac leather back and sea"
+  },
+  {
+   "id": "coffee-table",
+   "kind": "table",
+   "room": "living",
+   "footprint_m": [
+    1.325,
+    0.548
+   ],
+   "asset": "abo:B07DB92J69",
+   "asset_m": [
+    1.33,
+    0.56
+   ],
+   "name": "Amazon Brand \u2013 Ravenna Home Anne Marie White Wood Shelf Curved Leg Storage Coffe"
+  },
+  {
+   "id": "tv-unit-living",
+   "kind": "cabinet",
+   "room": "living",
+   "footprint_m": [
+    1.237,
+    0.353
+   ],
+   "asset": "abo:B07ML7P93X",
+   "asset_m": [
+    1.2,
+    0.35
+   ],
+   "name": "Amazon Brand \u2013 Ravenna Home Classic Solid Wood Media Center, 47.87\"W, Black"
+  },
+  {
+   "id": "tv-living",
+   "kind": "tv",
+   "room": "living",
+   "footprint_m": [
+    1.237,
+    0.124
+   ],
+   "asset": "extra:electronics:tv-55-wall-black",
+   "asset_m": [
+    1.23,
+    0.12
+   ],
+   "name": "55\" flat-screen TV, wall-mounted, black"
+  },
+  {
+   "id": "dining-table",
+   "kind": "table",
+   "room": "living",
+   "footprint_m": [
+    1.714,
+    0.813
+   ],
+   "asset": "abo:B075YPTG8S",
+   "asset_m": [
+    1.79,
+    0.88
+   ],
+   "name": "Amazon Brand \u2013 Rivet Industrial Mid-Century Modern Hairpin Dining Table, 70.9\"L,"
+  },
+  {
+   "id": "dining-chair-n1",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.424,
+    0.424
+   ],
+   "asset": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "asset_m": [
+    0.47,
+    0.49
+   ],
+   "name": "Mid-century walnut dining chair, sculpted curved backrest, cognac leather uphols"
+  },
+  {
+   "id": "dining-chair-n2",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.424,
+    0.424
+   ],
+   "asset": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "asset_m": [
+    0.47,
+    0.49
+   ],
+   "name": "Mid-century walnut dining chair, sculpted curved backrest, cognac leather uphols"
+  },
+  {
+   "id": "dining-chair-n3",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.424,
+    0.424
+   ],
+   "asset": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "asset_m": [
+    0.47,
+    0.49
+   ],
+   "name": "Mid-century walnut dining chair, sculpted curved backrest, cognac leather uphols"
+  },
+  {
+   "id": "dining-chair-s1",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.424,
+    0.424
+   ],
+   "asset": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "asset_m": [
+    0.47,
+    0.49
+   ],
+   "name": "Mid-century walnut dining chair, sculpted curved backrest, cognac leather uphols"
+  },
+  {
+   "id": "dining-chair-s2",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.424,
+    0.424
+   ],
+   "asset": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "asset_m": [
+    0.47,
+    0.49
+   ],
+   "name": "Mid-century walnut dining chair, sculpted curved backrest, cognac leather uphols"
+  },
+  {
+   "id": "dining-chair-w",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.424,
+    0.424
+   ],
+   "asset": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "asset_m": [
+    0.47,
+    0.49
+   ],
+   "name": "Mid-century walnut dining chair, sculpted curved backrest, cognac leather uphols"
+  },
+  {
+   "id": "dining-chair-e",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.424,
+    0.424
+   ],
+   "asset": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "asset_m": [
+    0.47,
+    0.49
+   ],
+   "name": "Mid-century walnut dining chair, sculpted curved backrest, cognac leather uphols"
+  },
+  {
+   "id": "fridge",
+   "kind": "fridge",
+   "room": "kitchen",
+   "footprint_m": [
+    0.601,
+    0.601
+   ],
+   "asset": "extra:bpy-appliances:fridge-combi-stainless-60",
+   "asset_m": [
+    0.6,
+    0.66
+   ],
+   "name": "Fridge-freezer 60 cm, brushed stainless, bottom freezer, 185 cm"
+  },
+  {
+   "id": "wardrobe-hall",
+   "kind": "wardrobe",
+   "room": "hall",
+   "footprint_m": [
+    1.873,
+    0.601
+   ],
+   "asset": "abo:B07GFSJ69T",
+   "asset_m": [
+    1.78,
+    0.63
+   ],
+   "stretched_x": 1.0521,
+   "name": "Amazon Brand - Movian Kolva Sliding 2-Door Wardrobe, 180 x 61 x 197cm, White"
+  },
+  {
+   "id": "cupboard-hall",
+   "kind": "cabinet",
+   "room": "hall",
+   "footprint_m": [
+    0.989,
+    0.424
+   ],
+   "asset": "abo:B07RMYWFHY",
+   "asset_m": [
+    1.01,
+    0.57
+   ],
+   "stretched_x": 0.9832,
+   "name": "AmazonBasics Sideboard"
+  },
+  {
+   "id": "bed",
+   "kind": "bed",
+   "room": "bedroom",
+   "footprint_m": [
+    1.855,
+    1.996
+   ],
+   "asset": "abo:B085W6V8CN",
+   "asset_m": [
+    1.91,
+    2.03
+   ],
+   "name": "Amazon Brand - Solimo Draco Solid Sheesham Wood King Bed (Teak Finish)"
+  },
+  {
+   "id": "bedside-north",
+   "kind": "cabinet",
+   "room": "bedroom",
+   "footprint_m": [
+    0.442,
+    0.442
+   ],
+   "asset": "abo:B075YZ16V4",
+   "asset_m": [
+    0.46,
+    0.41
+   ],
+   "name": "Amazon Brand \u2013 Rivet Mid-Century Stark 2-Drawer Nightstand, 24\"H, Walnut"
+  },
+  {
+   "id": "bedside-south",
+   "kind": "cabinet",
+   "room": "bedroom",
+   "footprint_m": [
+    0.442,
+    0.442
+   ],
+   "asset": "abo:B075YZ16V4",
+   "asset_m": [
+    0.46,
+    0.41
+   ],
+   "name": "Amazon Brand \u2013 Rivet Mid-Century Stark 2-Drawer Nightstand, 24\"H, Walnut"
+  },
+  {
+   "id": "wardrobe-bedroom",
+   "kind": "wardrobe",
+   "room": "bedroom",
+   "footprint_m": [
+    1.36,
+    0.618
+   ],
+   "asset": "abo:B07GFS1R5B",
+   "asset_m": [
+    1.29,
+    0.51
+   ],
+   "name": "Amazon Brand - Movian Indre 3-Door 3-Drawer Wardrobe, 129 x 51 x 191cm, Dark Gre"
+  },
+  {
+   "id": "desk",
+   "kind": "desk",
+   "room": "bedroom",
+   "footprint_m": [
+    1.343,
+    0.724
+   ],
+   "asset": "extra:bpy-office:desk-walnut-mcm-tapered",
+   "asset_m": [
+    1.3,
+    0.6
+   ],
+   "name": "Mid-century walnut desk with three drawers and tapered legs, 130x60 cm"
+  },
+  {
+   "id": "desk-chair",
+   "kind": "chair",
+   "room": "bedroom",
+   "footprint_m": [
+    0.583,
+    0.601
+   ],
+   "asset": "abo:B075Z8769G",
+   "asset_m": [
+    0.64,
+    0.68
+   ],
+   "name": "Amazon Brand \u2013 Rivet Mid-Century Swope Curved Arm Swivel Office Chair, 26\"W, Fel"
+  }
+ ],
+ "furnished_export": "ok",
+ "door_swings": {
+  "door-entrance": {
+   "mechanism": "hinged",
+   "hinge": "left",
+   "swing": 1
+  },
+  "door-balcony": {
+   "mechanism": "hinged",
+   "hinge": "right",
+   "swing": -1
+  },
+  "door-bathroom": {
+   "mechanism": "hinged",
+   "hinge": "right",
+   "swing": 1
+  },
+  "door-bedroom": {
+   "mechanism": "hinged",
+   "hinge": "left",
+   "swing": 1
+  }
+ },
+ "rooms": [
+  {
+   "room": "Kitchen",
+   "m2": 3.83,
+   "printed": 3.8
+  },
+  {
+   "room": "Hall",
+   "m2": 9.91,
+   "printed": 10.0
+  },
+  {
+   "room": "Living room",
+   "m2": 23.61,
+   "printed": 23.8
+  },
+  {
+   "room": "Bedroom",
+   "m2": 14.54,
+   "printed": 14.6
+  },
+  {
+   "room": "Bathroom",
+   "m2": 3.13,
+   "printed": 3.2
+  },
+  {
+   "room": "Balcony",
+   "m2": 5.87,
+   "printed": 5.5
+  }
+ ]
+}

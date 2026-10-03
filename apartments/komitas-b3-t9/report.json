@@ -1,0 +1,616 @@
+{
+ "flat": "komitas-b3-t9",
+ "scale": "traced in pixels; scale 56.7 px/m from 16 dimension lines",
+ "transform": {
+  "px_per_m": 56.69540229885058,
+  "origin": [
+   382.0,
+   231.0
+  ]
+ },
+ "faults": [],
+ "empty_export": "ok",
+ "settled": [
+  "desk-chair-5 0.235 m off desk-5",
+  "dining-chair-w1 0.270 m off dining-table",
+  "dining-chair-w2 0.270 m off dining-table",
+  "dining-chair-w3 0.270 m off dining-table",
+  "dining-chair-e1 0.250 m off dining-table",
+  "dining-chair-e2 0.250 m off dining-table",
+  "dining-chair-e3 0.250 m off dining-table",
+  "kitchen-chair-n 0.105 m off kitchen-table",
+  "kitchen-chair-e1 0.135 m off kitchen-table",
+  "kitchen-chair-e2 0.135 m off kitchen-table",
+  "desk-chair-4 0.225 m off desk-4",
+  "wardrobe-bed5-north 0.005 m into bedroom-5",
+  "bed-5 0.030 m into bedroom-5",
+  "wardrobe-bed5-south 0.030 m into bedroom-5",
+  "tv-unit-living 0.075 m into living",
+  "sofa-living 0.050 m into living",
+  "fridge 0.045 m into kitchen",
+  "bed-4 0.065 m into bedroom-4",
+  "sofa-hall 0.020 m into hall",
+  "tv-living on tv-unit-living"
+ ],
+ "furniture": [
+  {
+   "id": "wardrobe-bed5-north",
+   "kind": "wardrobe",
+   "room": "bedroom-5",
+   "footprint_m": [
+    1.94,
+    0.6
+   ],
+   "asset": "abo:B07GFSJ69T",
+   "asset_m": [
+    1.78,
+    0.63
+   ],
+   "stretched_x": 1.0901,
+   "name": "Amazon Brand - Movian Kolva Sliding 2-Door Wardrobe, 180 x 61 x 197cm, White"
+  },
+  {
+   "id": "bed-5",
+   "kind": "bed",
+   "room": "bedroom-5",
+   "footprint_m": [
+    1.817,
+    2.028
+   ],
+   "asset": "abo:B07HSF3Y12",
+   "asset_m": [
+    1.76,
+    2.15
+   ],
+   "name": "Amazon Brand \u2013 Stone & Beam Rylee Modern Acacia Wood Queen Bed, 67.52\"W, Gray-Wa"
+  },
+  {
+   "id": "bedside-5-west",
+   "kind": "cabinet",
+   "room": "bedroom-5",
+   "footprint_m": [
+    0.406,
+    0.476
+   ],
+   "asset": "abo:B07GFRKNNH",
+   "asset_m": [
+    0.43,
+    0.35
+   ],
+   "name": "Amazon Brand -\u00a0Movian Havel 2-Drawer Bedside Table, 35 x 43 x 45cm, Dark Grey/Wh"
+  },
+  {
+   "id": "bedside-5-east",
+   "kind": "cabinet",
+   "room": "bedroom-5",
+   "footprint_m": [
+    0.406,
+    0.476
+   ],
+   "asset": "abo:B07GFRKNNH",
+   "asset_m": [
+    0.43,
+    0.35
+   ],
+   "name": "Amazon Brand -\u00a0Movian Havel 2-Drawer Bedside Table, 35 x 43 x 45cm, Dark Grey/Wh"
+  },
+  {
+   "id": "desk-5",
+   "kind": "desk",
+   "room": "bedroom-5",
+   "footprint_m": [
+    1.376,
+    0.688
+   ],
+   "asset": "extra:bpy-office:desk-walnut-mcm-tapered",
+   "asset_m": [
+    1.3,
+    0.6
+   ],
+   "name": "Mid-century walnut desk with three drawers and tapered legs, 130x60 cm"
+  },
+  {
+   "id": "desk-chair-5",
+   "kind": "chair",
+   "room": "bedroom-5",
+   "footprint_m": [
+    0.564,
+    0.582
+   ],
+   "asset": "abo:B07TFFF6V4",
+   "asset_m": [
+    0.56,
+    0.58
+   ],
+   "name": "AmazonBasics Mid-Back Guest/Reception Chair, with Contoured Mesh Seat \u2013 Grey"
+  },
+  {
+   "id": "wardrobe-bed5-south",
+   "kind": "wardrobe",
+   "room": "bedroom-5",
+   "footprint_m": [
+    1.993,
+    0.459
+   ],
+   "asset": "abo:B07QZ77FGN",
+   "asset_m": [
+    1.6,
+    0.5
+   ],
+   "stretched_x": 1.2457,
+   "name": "Amazon Brand - Movian Arga - Wardrobe, 123/160 x 50 x 182 cm (L x D x H), White "
+  },
+  {
+   "id": "wardrobe-living",
+   "kind": "wardrobe",
+   "room": "living",
+   "footprint_m": [
+    1.993,
+    0.459
+   ],
+   "asset": "abo:B07QZ77FGN",
+   "asset_m": [
+    1.6,
+    0.5
+   ],
+   "stretched_x": 1.2457,
+   "name": "Amazon Brand - Movian Arga - Wardrobe, 123/160 x 50 x 182 cm (L x D x H), White "
+  },
+  {
+   "id": "tv-unit-living",
+   "kind": "cabinet",
+   "room": "living",
+   "footprint_m": [
+    1.217,
+    0.212
+   ],
+   "asset": "abo:B07ML7P93X",
+   "asset_m": [
+    1.2,
+    0.35
+   ],
+   "name": "Amazon Brand \u2013 Ravenna Home Classic Solid Wood Media Center, 47.87\"W, Black"
+  },
+  {
+   "id": "tv-living",
+   "kind": "tv",
+   "room": "living",
+   "footprint_m": [
+    1.076,
+    0.123
+   ],
+   "asset": "extra:electronics:tv-50-feet-black",
+   "asset_m": [
+    1.12,
+    0.22
+   ],
+   "name": "50\" TV on corner feet, black"
+  },
+  {
+   "id": "dining-table",
+   "kind": "table",
+   "room": "living",
+   "footprint_m": [
+    1.693,
+    0.811
+   ],
+   "asset": "abo:B075YMXWZC",
+   "asset_m": [
+    1.61,
+    0.81
+   ],
+   "name": "Amazon Brand \u2013 Rivet Mid-Century Modern Oak Dining Table, 63\"L, Walnut Finish"
+  },
+  {
+   "id": "dining-chair-w1",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.406,
+    0.406
+   ],
+   "asset": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "asset_m": [
+    0.47,
+    0.49
+   ],
+   "name": "Mid-century walnut dining chair, sculpted curved backrest, cognac leather uphols"
+  },
+  {
+   "id": "dining-chair-w2",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.406,
+    0.406
+   ],
+   "asset": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "asset_m": [
+    0.47,
+    0.49
+   ],
+   "name": "Mid-century walnut dining chair, sculpted curved backrest, cognac leather uphols"
+  },
+  {
+   "id": "dining-chair-w3",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.406,
+    0.406
+   ],
+   "asset": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "asset_m": [
+    0.47,
+    0.49
+   ],
+   "name": "Mid-century walnut dining chair, sculpted curved backrest, cognac leather uphols"
+  },
+  {
+   "id": "dining-chair-e1",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.406,
+    0.406
+   ],
+   "asset": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "asset_m": [
+    0.47,
+    0.49
+   ],
+   "name": "Mid-century walnut dining chair, sculpted curved backrest, cognac leather uphols"
+  },
+  {
+   "id": "dining-chair-e2",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.406,
+    0.406
+   ],
+   "asset": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "asset_m": [
+    0.47,
+    0.49
+   ],
+   "name": "Mid-century walnut dining chair, sculpted curved backrest, cognac leather uphols"
+  },
+  {
+   "id": "dining-chair-e3",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.406,
+    0.406
+   ],
+   "asset": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "asset_m": [
+    0.47,
+    0.49
+   ],
+   "name": "Mid-century walnut dining chair, sculpted curved backrest, cognac leather uphols"
+  },
+  {
+   "id": "armchair-living",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.741,
+    0.723
+   ],
+   "asset": "extra:bpy-living2:mcm-swivel-tub-armchair-cognac-leather",
+   "asset_m": [
+    0.69,
+    0.67
+   ],
+   "name": "Mid-century swivel tub armchair, walnut outer shell, cognac leather back and sea"
+  },
+  {
+   "id": "coffee-table",
+   "kind": "table",
+   "room": "living",
+   "footprint_m": [
+    1.305,
+    0.547
+   ],
+   "asset": "abo:B07DBDMN5F",
+   "asset_m": [
+    1.21,
+    0.58
+   ],
+   "name": "Amazon Brand \u2013 Ravenna Home Parker Coffee Table, 47.2\"W, Glass & Gold"
+  },
+  {
+   "id": "sofa-living",
+   "kind": "sofa",
+   "room": "living",
+   "footprint_m": [
+    2.205,
+    0.776
+   ],
+   "asset": "abo:B07B4G5QD4",
+   "asset_m": [
+    2.22,
+    0.86
+   ],
+   "name": "Amazon Brand \u2013 Rivet Edgewest Low Back Modern Sofa, 87\"W, Blue"
+  },
+  {
+   "id": "kitchen-table",
+   "kind": "table",
+   "room": "kitchen",
+   "footprint_m": [
+    1.094,
+    0.688
+   ],
+   "asset": "extra:bpy-kitchen:japandi-oak-rectangular-table-110",
+   "asset_m": [
+    1.1,
+    0.7
+   ],
+   "name": "Japandi solid oak rectangular kitchen table for 4, soft-edged top, 110 x 70 cm"
+  },
+  {
+   "id": "kitchen-chair-n",
+   "kind": "chair",
+   "room": "kitchen",
+   "footprint_m": [
+    0.406,
+    0.317
+   ],
+   "asset": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "asset_m": [
+    0.47,
+    0.49
+   ],
+   "name": "Mid-century walnut dining chair, sculpted curved backrest, cognac leather uphols"
+  },
+  {
+   "id": "kitchen-chair-e1",
+   "kind": "chair",
+   "room": "kitchen",
+   "footprint_m": [
+    0.406,
+    0.335
+   ],
+   "asset": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "asset_m": [
+    0.47,
+    0.49
+   ],
+   "name": "Mid-century walnut dining chair, sculpted curved backrest, cognac leather uphols"
+  },
+  {
+   "id": "kitchen-chair-e2",
+   "kind": "chair",
+   "room": "kitchen",
+   "footprint_m": [
+    0.423,
+    0.335
+   ],
+   "asset": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "asset_m": [
+    0.47,
+    0.49
+   ],
+   "name": "Mid-century walnut dining chair, sculpted curved backrest, cognac leather uphols"
+  },
+  {
+   "id": "fridge",
+   "kind": "fridge",
+   "room": "kitchen",
+   "footprint_m": [
+    0.617,
+    0.582
+   ],
+   "asset": "extra:bpy-appliances:fridge-combi-stainless-60",
+   "asset_m": [
+    0.6,
+    0.66
+   ],
+   "name": "Fridge-freezer 60 cm, brushed stainless, bottom freezer, 185 cm"
+  },
+  {
+   "id": "bed-4",
+   "kind": "bed",
+   "room": "bedroom-4",
+   "footprint_m": [
+    1.834,
+    2.028
+   ],
+   "asset": "abo:B07HSF3Y12",
+   "asset_m": [
+    1.76,
+    2.15
+   ],
+   "name": "Amazon Brand \u2013 Stone & Beam Rylee Modern Acacia Wood Queen Bed, 67.52\"W, Gray-Wa"
+  },
+  {
+   "id": "bedside-4-north",
+   "kind": "cabinet",
+   "room": "bedroom-4",
+   "footprint_m": [
+    0.423,
+    0.441
+   ],
+   "asset": "abo:B07GFRKNNH",
+   "asset_m": [
+    0.43,
+    0.35
+   ],
+   "name": "Amazon Brand -\u00a0Movian Havel 2-Drawer Bedside Table, 35 x 43 x 45cm, Dark Grey/Wh"
+  },
+  {
+   "id": "bedside-4-south",
+   "kind": "cabinet",
+   "room": "bedroom-4",
+   "footprint_m": [
+    0.459,
+    0.441
+   ],
+   "asset": "abo:B07GFRKNNH",
+   "asset_m": [
+    0.43,
+    0.35
+   ],
+   "name": "Amazon Brand -\u00a0Movian Havel 2-Drawer Bedside Table, 35 x 43 x 45cm, Dark Grey/Wh"
+  },
+  {
+   "id": "desk-4",
+   "kind": "desk",
+   "room": "bedroom-4",
+   "footprint_m": [
+    1.358,
+    0.706
+   ],
+   "asset": "extra:bpy-office:desk-walnut-mcm-tapered",
+   "asset_m": [
+    1.3,
+    0.6
+   ],
+   "name": "Mid-century walnut desk with three drawers and tapered legs, 130x60 cm"
+  },
+  {
+   "id": "desk-chair-4",
+   "kind": "chair",
+   "room": "bedroom-4",
+   "footprint_m": [
+    0.564,
+    0.582
+   ],
+   "asset": "abo:B07TFFF6V4",
+   "asset_m": [
+    0.56,
+    0.58
+   ],
+   "name": "AmazonBasics Mid-Back Guest/Reception Chair, with Contoured Mesh Seat \u2013 Grey"
+  },
+  {
+   "id": "wardrobe-bed4",
+   "kind": "wardrobe",
+   "room": "bedroom-4",
+   "footprint_m": [
+    1.693,
+    0.582
+   ],
+   "asset": "abo:B07QZ77FGN",
+   "asset_m": [
+    1.6,
+    0.5
+   ],
+   "name": "Amazon Brand - Movian Arga - Wardrobe, 123/160 x 50 x 182 cm (L x D x H), White "
+  },
+  {
+   "id": "wardrobe-hall",
+   "kind": "wardrobe",
+   "room": "hall",
+   "footprint_m": [
+    1.535,
+    0.564
+   ],
+   "asset": "abo:B07QZ77FGN",
+   "asset_m": [
+    1.6,
+    0.5
+   ],
+   "stretched_x": 0.9591,
+   "name": "Amazon Brand - Movian Arga - Wardrobe, 123/160 x 50 x 182 cm (L x D x H), White "
+  },
+  {
+   "id": "sofa-hall",
+   "kind": "sofa",
+   "room": "hall",
+   "footprint_m": [
+    1.393,
+    0.758
+   ],
+   "asset": "abo:B073G965TS",
+   "asset_m": [
+    1.3,
+    0.78
+   ],
+   "name": "Amazon Brand \u2013 Stone & Beam Modern Sweeping Arm Settee, 51\"W, Oxford Stripe Char"
+  }
+ ],
+ "furnished_export": "ok",
+ "door_swings": {
+  "door-entrance": {
+   "mechanism": "hinged",
+   "hinge": "right",
+   "swing": 1
+  },
+  "door-balcony": {
+   "mechanism": "hinged",
+   "hinge": "left",
+   "swing": -1
+  },
+  "door-bathroom-7": {
+   "mechanism": "hinged",
+   "hinge": "left",
+   "swing": 1
+  },
+  "door-bathroom-6": {
+   "mechanism": "hinged",
+   "hinge": "left",
+   "swing": 1
+  },
+  "door-bedroom-5": {
+   "mechanism": "hinged",
+   "hinge": "right",
+   "swing": 1
+  },
+  "door-kitchen": {
+   "mechanism": "hinged",
+   "hinge": "left",
+   "swing": 1
+  },
+  "door-bedroom-4": {
+   "mechanism": "hinged",
+   "hinge": "left",
+   "swing": 1
+  }
+ },
+ "rooms": [
+  {
+   "room": "Hall",
+   "m2": 20.69,
+   "printed": 21.0
+  },
+  {
+   "room": "Living room",
+   "m2": 24.7,
+   "printed": 24.8
+  },
+  {
+   "room": "Kitchen",
+   "m2": 8.17,
+   "printed": 8.3
+  },
+  {
+   "room": "Bedroom",
+   "m2": 15.35,
+   "printed": 15.4
+  },
+  {
+   "room": "Bedroom",
+   "m2": 17.25,
+   "printed": 17.2
+  },
+  {
+   "room": "Bathroom",
+   "m2": 3.63,
+   "printed": 3.9
+  },
+  {
+   "room": "Bathroom",
+   "m2": 1.93,
+   "printed": 2.0
+  },
+  {
+   "room": "Balcony",
+   "m2": 3.37,
+   "printed": 3.2
+  }
+ ]
+}
