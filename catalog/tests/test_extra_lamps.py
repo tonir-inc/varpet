@@ -12,7 +12,7 @@ def matches(kind, slug, notes=None):
     conn.create_function("regexp", 2, lambda pattern, value: bool(re.search(pattern, value, re.I)))
     conn.create_function("split_part", 3, lambda value, sep, index: value.split(sep)[index - 1])
     row = conn.execute(
-        f"select 1 from (select ? as kind, ? as id, ? as tags, 'extra' as source, 'm.glb' as glb_url) where {predicate}",
+        f"select 1 from (select ? as kind, ? as id, ? as tags, 'extra' as source, 'm.glb' as glb_url, '' as name) where {predicate}",
         (kind, f"extra:generated-pilot:{slug}", json.dumps({"extra": {"notes": notes}})),
     ).fetchone()
     return row is not None

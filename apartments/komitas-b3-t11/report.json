@@ -1,6 +1,13 @@
 {
  "flat": "komitas-b3-t11",
  "scale": "traced in pixels; scale 56.9 px/m from 4 dimension lines",
+ "transform": {
+  "px_per_m": 56.9029057406095,
+  "origin": [
+   523.0,
+   341.0
+  ]
+ },
  "faults": [],
  "empty_export": "ok",
  "settled": [
@@ -302,7 +309,7 @@
     "sofa 0.050 m into living",
     "tv-unit 0.060 m into living",
     "fridge 0.055 m into living",
-    "bed 0.075 m into bedroom",
+    "bed 0.110 m into bedroom",
     "wardrobe-bedroom 0.060 m into bedroom",
     "tv on tv-unit"
    ]
@@ -316,25 +323,47 @@
    "pieces": 36
   }
  },
+ "door_swings": {
+  "door-balcony": {
+   "mechanism": "hinged",
+   "hinge": "left",
+   "swing": 1
+  },
+  "door-bathroom": {
+   "mechanism": "hinged",
+   "hinge": "right",
+   "swing": 1
+  },
+  "door-bedroom": {
+   "mechanism": "hinged",
+   "hinge": "right",
+   "swing": 1
+  },
+  "door-entrance": {
+   "mechanism": "hinged",
+   "hinge": "right",
+   "swing": -1
+  }
+ },
  "rooms": [
   {
    "room": "Balcony",
-   "m2": 4.09,
+   "m2": 4.13,
    "printed": 3.9
   },
   {
    "room": "Living room and kitchen",
-   "m2": 30.55,
+   "m2": 30.53,
    "printed": 31.6
   },
   {
    "room": "Entrance hall",
-   "m2": 7.94,
+   "m2": 8.24,
    "printed": 8.0
   },
   {
    "room": "Bedroom",
-   "m2": 19.32,
+   "m2": 18.94,
    "printed": 19.2
   },
   {

@@ -16,6 +16,8 @@ const repoRootDefault = fileURLToPath(new URL('../../../', import.meta.url));
 export const EXPERIMENTAL_FLATS = [
   { flat: 'komitas-b3-t11', developerSlug: 'komitas-park', developerName: 'Komitas Park', name: 'Type 11 · flat 2-5',
     building: 'Komitas Park · Building 3' },
+  ...[7, 8, 9, 10].map(type => ({ flat: `komitas-b3-t${type}`, developerSlug: 'komitas-park',
+    developerName: 'Komitas Park', name: `Type ${type}`, building: 'Komitas Park · Building 3' })),
 ];
 
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);

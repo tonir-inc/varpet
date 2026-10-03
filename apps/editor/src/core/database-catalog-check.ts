@@ -86,10 +86,14 @@ const extraStore = new EditorStore({ ...demoScene, objects: [] }, []);
 extraStore.registerCatalogAssets([extra.asset]);
 assert(extraStore.execute({ id: 'extra-add', label: 'Add washer', source: 'human', baseRevision: 0,
   operations: [{ type: 'add', object: { id: 'washer', name: 'Washer', assetId: extra.asset.id, position: [-2, 0, 0], rotation: 0, scale: [1, 1, 1] } }] }, true).ok, 'Extra washer registers and places');
-for (const patch of [{ id: 'unknown:washer' }, { kind: 'range_hood' },
+for (const patch of [{ id: 'unknown:washer' }, { kind: 'light' },
   { glb_url: 'http://evil.example:8765/models/extra-washer.glb' },
   { glb_url: 'http://100.107.246.46:8765/models/extra-washer.glb?redirect=evil' }]) {
   assert(catalogProduct({ ...row, id: 'extra:appliances:washer', kind: 'washing_machine', ...patch }) === null, 'Unknown prefixes, mounted kinds and unapproved URLs stay rejected');
+}
+for (const kind of ['range_hood', 'water_heater', 'towel_rail']) {
+  const fitting = catalogProduct({ ...row, id: `extra:test:${kind}`, kind, glb_url: `http://100.107.246.46:8765/models/extra-test-${kind}.glb` });
+  assert(fitting?.asset.kind === 'wall_art', `${kind} comes in as a wall piece`);
 }
 
 for (const [category, kinds] of Object.entries(catalogCategories)) for (const kind of kinds) {

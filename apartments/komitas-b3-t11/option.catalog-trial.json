@@ -404,11 +404,11 @@
   {
    "name": "Heated ladder towel rail, chrome, 120 cm tall, with side cable (93 cm overall), wall-mounted",
    "position": [
-    7.945,
-    0.4,
-    4.9961
+    6.9646,
+    0.9,
+    6.64
    ],
-   "rotation": 0,
+   "rotation": 1.5707963267948966,
    "scale": [
     1,
     1,
@@ -417,10 +417,10 @@
    "id": "trial-towel-rail",
    "assetId": "experimental:gaps:towel-rail-heated-ladder-50",
    "host": {
-    "wallId": "wall-shaft-bath",
-    "offset": 1.1000000000000005,
-    "elevation": 0.4,
-    "side": 1
+    "wallId": "wall-bath-west",
+    "offset": 1.8774999999999995,
+    "elevation": 0.9,
+    "side": -1
    }
   },
   {

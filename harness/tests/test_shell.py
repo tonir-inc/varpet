@@ -110,6 +110,19 @@ def test_wall_overshooting_a_corner_is_trimmed_to_it(tmp_path):
     assert abs(fixed.openings[0].offset - 1.47) < 1e-6  # the door stayed where it was
 
 
+def test_blocks_touching_only_at_a_corner_are_not_closed_into_an_l(tmp_path):
+    """Two hatched blocks that meet only at one corner (b3-t9's living column, 2-5's column-nw): the corner square
+    between their centrelines is floor, so tidying must not extend both into an L over it."""
+    s = flat()
+    s.walls += [Wall.model_validate({**wall("block-a", [1.0, 2.0], [1.6, 2.0]), "thickness": 0.4}),
+                Wall.model_validate({**wall("block-b", [1.75, 2.2], [1.75, 2.8]), "thickness": 0.3})]
+    path = tmp_path / "shell.json"
+    path.write_text(s.model_dump_json())
+    check_file(path, tmp_path)
+    walls = {w.id: w for w in Shell.model_validate_json(path.read_text()).walls}
+    assert walls["block-a"].end == (1.6, 2.0) and walls["block-b"].start == (1.75, 2.2)
+
+
 def fixture(i, kind, pos, dims, room="bed", host=None, **extra):
     body = {"id": i, "name": i, "kind": kind, "position": pos, "dimensions": dims, "color": WHITE, "roomId": room}
     if host:
@@ -431,3 +444,76 @@ def test_tidy_leaves_a_free_standing_end_alone():
     s.walls.append(Wall.model_validate(wall("island", [2.0, 1.5], [2.0, 2.5])))  # 1.5 m from anything
     tidy(s)
     assert s.walls[-1].start == (2.0, 1.5) and s.walls[-1].end == (2.0, 2.5)
+
+
+def test_a_closed_shaft_block_up_to_the_editors_1_m_is_a_wall():
+    """b3-t9's hall shaft is drawn 0.71 m thick, skins included: the editor takes walls up to 1 m."""
+    s = flat()
+    s.walls.append(Wall.model_validate({**wall("shaft", [1.0, 0.36], [2.0, 0.36]), "thickness": 0.71}))
+    s.rooms[0].polygon = [(0, 0), (1.0, 0), (1.0, 0.71), (2.0, 0.71), (2.0, 0), (5, 0), (5, 4), (0, 4)]
+    assert not [f for f in check(s) if f.get("wall") == "shaft"]
+    s.walls[-1].thickness = 1.05
+    assert any("thickness 1.05" in f["detail"] for f in check(s) if f.get("wall") == "shaft")
+
+
+def test_tidy_keeps_a_jamb_that_runs_on_past_the_wall_it_crosses():
+    """b3-t9's bedroom-5 door wall runs 0.16 m past the partition's centreline into the hall (a jamb drawn past the
+    partition's far face): that stub is drawn, not an overshoot. One that only reaches into the wall is trimmed."""
+    s = flat()
+    s.walls.append(Wall.model_validate({**wall("jamb", [6.0, 1.0], [6.0, 2.16])}))  # crosses w-cross at z 2.0
+    s.walls.append(Wall.model_validate({**wall("w-cross", [5.0, 2.0], [6.0, 2.0])}))
+    tidy(s, trace=True)
+    assert s.walls[-2].end == (6.0, 2.16)
+    s = flat()
+    s.walls.append(Wall.model_validate({**wall("jamb", [6.0, 1.0], [6.0, 2.07])}))  # within the 0.12 m wall's body
+    s.walls.append(Wall.model_validate({**wall("w-cross", [5.0, 2.0], [7.0, 2.0])}))
+    tidy(s)
+    assert abs(s.walls[-2].end[1] - 2.0) < 1e-6
+    s = flat()  # orion-t8's east wall: two collinear pieces meeting 0.11 m short of a T: they meet at the T, no overlap
+    s.walls += [Wall.model_validate(wall("upper", [6.0, 1.0], [6.0, 1.89])), Wall.model_validate(wall("lower", [6.0, 1.89], [6.0, 3.0])),
+                Wall.model_validate(wall("w-cross", [5.0, 2.0], [6.0, 2.0]))]
+    tidy(s)
+    walls = {w.id: w for w in s.walls}
+    assert abs(walls["upper"].end[1] - 2.0) < 1e-6 and abs(walls["lower"].start[1] - 2.0) < 1e-6
+
+
+def test_tidy_meets_ends_on_the_crossing_and_never_turns_an_offset_piece():
+    """b3-t9's south wall: a thinner piece under the balcony continues the facade wall 2.6 cm off its centreline, and
+    the balcony's east wall comes down onto both. Ends within 8 cm meet where the lines cross, each moving along its
+    own wall; the two parallel pieces keep their own lines (one point would turn one of them)."""
+    s = flat()
+    s.walls += [Wall.model_validate({**wall("facade", [3.0, 2.0], [4.5, 2.0]), "thickness": 0.21}),
+                Wall.model_validate({**wall("under-balcony", [2.6, 2.026], [3.0, 2.026]), "thickness": 0.16}),
+                Wall.model_validate({**wall("balcony-east", [3.0, 0.5], [3.0, 1.95]), "thickness": 0.19})]
+    tidy(s)
+    walls = {w.id: w for w in s.walls}
+    for wid in ("facade", "under-balcony", "balcony-east"):
+        w = walls[wid]
+        assert abs(w.start[0] - w.end[0]) < 1e-9 or abs(w.start[1] - w.end[1]) < 1e-9, f"{wid} turned: {w.start} {w.end}"
+    assert walls["facade"].start == (3.0, 2.0) and walls["under-balcony"].end == (3.0, 2.026)
+
+
+def test_a_model_written_shell_still_has_its_overshoot_trimmed():
+    """Outside a trace a free end poking past a wall's far face is an overshoot (an LLM shell), not a jamb."""
+    s = flat()
+    s.walls[4].end = (5.0, 4.12)  # the partition pokes 12 cm through the 0.12 m south facade
+    tidy(s)
+    assert abs(s.walls[4].end[1] - 4.0) < 1e-6
+
+
+def test_snapping_never_pulls_apart_a_corner_that_was_already_exact():
+    """A third piece continuing an exact L slightly off its line moves onto the corner; the L stays joined
+    whatever the wall order."""
+    for first in (True, False):
+        s = flat()
+        up = Wall.model_validate(wall("up", [8.03, -0.04], [8.03, -6.0]))
+        s.walls = [up, *s.walls] if first else [*s.walls, up]
+        tidy(s)
+        walls = {w.id: w for w in s.walls}
+        assert walls["w-n"].end == walls["w-e"].start
+        assert not [f for f in check(s) if f["check"] == "junction"]
+    s = flat()  # a parapet continuing the exact L between w-w and w-n
+    s.walls.append(Wall.model_validate(wall("parapet", [-0.04, 0.03], [-6.0, 0.03])))
+    tidy(s)
+    walls = {w.id: w for w in s.walls}
+    assert walls["w-w"].end == walls["w-n"].start

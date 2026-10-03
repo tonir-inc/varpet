@@ -3,7 +3,7 @@
  * file only reshapes its output and renders SVG -> PNG with @resvg/resvg-js. */
 import { readFile, writeFile } from 'node:fs/promises';
 import { Resvg } from '@resvg/resvg-js';
-import { catalogItems, createHttpCatalogQuery, type CatalogInput } from '../../src/catalog.js';
+import { catalogItems, createHttpCatalogQuery, designerCannotMount, type CatalogInput } from '../../src/catalog.js';
 
 export interface Product {
   sku: string;
@@ -89,6 +89,9 @@ export async function search(input: SearchInput = {}): Promise<Product[]> {
     const size = asSize(record.size_m);
     const price = asNumber(record.price);
     if (!sku || !kind || !name || !size || price === undefined) continue;
+    // What the editor would refuse never reaches the design: sizes outside its 0.01-20 m (6 mm rugs), and pieces
+    // only the editor can mount (src/catalog.ts designerCannotMount).
+    if (!size.every(v => v >= .01 && v <= 20) || designerCannotMount(kind, name, asString(record.source))) continue;
     if (!withinLimits({ size, price }, input)) continue;
     const image = asString(record.main_image_url) ?? asString(record.image) ?? asString(record.preview);
     products.push({

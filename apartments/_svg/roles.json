@@ -7,6 +7,7 @@
   {"name": "^dining chair", "height": [0.7, 1.0], "not": "stool|counter|\\bbar\\b|bench", "faces": ["(dining|bistro) table", 0.95]},
   {"name": "^desk chair", "height": [0.75, 1.15], "not": "stool|counter|\\bbar\\b", "faces": ["^desk$", 0.9]},
   {"name": "^armchair", "height": [0.65, 1.1], "not": "stool|dining|counter|office|desk|executive|recliner|kids", "faces": ["coffee table|sofa", 0.7]},
+  {"name": "^hall (sofa|corner seat)", "height": [0.65, 1.1], "not": "daybed|sleeper|sofa bed|stool|office|kids"},
   {"name": "^sofa", "height": [0.75, 1.1], "not": "daybed|bench seat|sleeper|sofa bed", "faces": ["coffee table", 0.9]},
   {"name": "^open wardrobe", "height": [1.6, 2.4], "not": "panel|armoire", "wall": true},
   {"name": "wardrobe", "height": [1.8, 2.4], "not": "\\bopen\\b|panel|armoire", "wall": true},

@@ -25,7 +25,8 @@ EDITOR_KIND_OF = {"desk": "table", "dresser": "cabinet", "wardrobe": "cabinet", 
                   "cushion": "decor", "throw_blanket": "decor", "basket": "decor", "tray": "decor",
                   "bowl": "decor", "lantern": "decor", "picture_frame": "decor", "toy": "decor",
                   "planter": "decor", "mattress": "decor", "clock": "wall_art", "wall_hanging": "wall_art",
-                  "crib": "bed", "changing_table": "dresser", "pet_bed": "decor", "blind": "curtain", "towel_rack": "shelf"}
+                  "crib": "bed", "changing_table": "dresser", "pet_bed": "decor", "blind": "curtain", "towel_rack": "shelf",
+                  "range_hood": "wall_art", "water_heater": "wall_art", "towel_rail": "wall_art"}
 SUBTYPE_COUNTS = {"desk": 40, "dresser": 15, "wardrobe": 10, "nightstand": 15,
                   "stool": 10, "ottoman": 5, "bench": 5}
 

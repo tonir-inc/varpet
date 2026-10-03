@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1684 1190" data-printed="47.6 m2" data-option-name="As drawn">
+  <!-- Komitas Park, building 3, type 10 (plan b3-t10.png, 1684 x 1190). Traced in the plan's own pixels, about 57 px/m.
+       Furniture is the plan's own arrangement, every drawn piece (six dining chairs); the dining set sits ~0.17 m east (NOTES.md). -->
+  <polygon id="bedroom" class="room" data-name="Bedroom" data-printed="16.1 m2" points="486,410 599,410 599,433 651,433 651,410 830,410 830,563.5 486,563.5"/>
+  <polygon id="living" class="room" data-name="Living room" data-printed="15.3 m2" points="559,570.5 835,570.5 835,648.5 829,648.5 829,751 559,751"/>
+  <polygon id="kitchen" class="room" data-name="Kitchen" data-printed="4.7 m2" points="829,655.5 986,655.5 986,751 829,751"/>
+  <polygon id="hall" class="room" data-name="Hall" data-printed="3.9 m2" points="835,524 949,524 949,573 915,573 915,648.5 835,648.5"/>
+  <polygon id="bathroom" class="room" data-name="Bathroom" data-printed="4.4 m2" points="953,524 1048,524 1048,649 919,649 919,577 953,577"/>
+  <polygon id="balcony" class="room" data-name="Balcony" data-kind="balcony" data-printed="3.2 m2" points="486,575 549,575 549,752 486,752"/>
+
+  <!-- Walls are written from their centrelines: at an L corner both centrelines end on the corner point, at a T the
+       stem ends on the other wall's centreline (what the converter joins). Columns and hatched pieces are tight to the
+       drawing, one polygon each. -->
+  <polygon id="wall-north-w" class="wall main" points="481,400 599,400 599,410 481,410"/>
+  <polygon id="column-n" class="wall main" data-name="Column" points="599,400 633,400 633,433 599,433"/>
+  <polygon id="pylon-n" class="wall main" data-name="Structural wall" points="633,400 651,400 651,433 633,433"/>
+  <polygon id="wall-north-e" class="wall main" points="651,400 835,400 835,410 651,410"/>
+  <polygon id="wall-west" class="wall main" points="476,405 486,405 486,570 476,570"/>
+  <polygon id="wall-bed-east" class="wall main" points="830,405 840,405 840,519 830,519"/>
+  <polygon id="wall-hall-north" class="wall main" points="835,514 1053,514 1053,524 835,524"/>
+  <polygon id="wall-bath-east" class="wall main" points="1048,519 1058,519 1058,652 1048,652"/>
+  <polygon id="wall-balcony-north" class="wall main" points="481,565 554,565 554,575 481,575"/>
+  <polygon id="wall-balcony-east" class="wall main" points="549,565 559,565 559,757 549,757"/>
+  <polygon id="wall-south-w" class="wall main" points="481,752 599,752 599,762 481,762"/>
+  <polygon id="column-sw" class="wall main" data-name="Column" points="599,751 633,751 633,784 599,784"/>
+  <polygon id="pylon-sw" class="wall main" data-name="Structural wall" points="633,751 650,751 650,785 633,785"/>
+  <polygon id="wall-south-strip" class="wall main" data-name="Structural wall" points="650,751 939,751 939,768 650,768"/>
+  <polygon id="column-se" class="wall main" data-name="Column" points="939,751 973,751 973,784 939,784"/>
+  <polygon id="pylon-se" class="wall main" data-name="Structural wall" points="973,751 1007,751 1007,784 973,784"/><!-- ends on the shaft's centreline (drawn to 1007.5) -->
+  <polygon id="pylon-se-east" class="wall main" data-name="Structural wall (grey hatch) under the shaft" points="1007,751 1024.5,751 1024.5,762.5 1007,762.5"/><!-- the hatched arm east of pylon-se, starting on the shaft's centreline so the shaft ends on it (an L) and does not reach down to pylon-se -->
+  <polygon id="shaft-kitchen" class="wall secondary" data-name="Closed service shaft (black X box)" points="990,652 1024,652 1024,751 990,751"/>
+
+  <polygon id="wall-bed-hall" class="wall secondary" points="828.5,519 835.5,519 835.5,567 828.5,567"/>
+  <polygon id="wall-bed-living" class="wall secondary" points="554,563.5 832,563.5 832,570.5 554,570.5"/>
+  <polygon id="wall-kitchen-north" class="wall secondary" points="828.5,648.5 1025,648.5 1025,655.5 828.5,655.5"/>
+  <polygon id="wall-bath-south-east" class="wall secondary" points="1025,649 1053,649 1053,660.5 1025,660.5"/>
+  <polygon id="wall-kitchen-east" class="wall secondary" points="986,652 990,652 990,751 986,751"/>
+  <polygon id="wall-niche-east" class="wall secondary" points="949,519 953,519 953,575 949,575"/>
+  <polygon id="wall-niche-south" class="wall secondary" points="917,573 951,573 951,577 917,577"/>
+  <polygon id="wall-bath-west" class="wall secondary" points="915,575 919,575 919,652 915,652"/>
+  <polygon id="riser-bath" class="wall secondary" data-name="Plumbing riser box (light-blue X)" points="1019,524 1048,524 1048,558 1019,558"/>
+
+  <line id="window-bedroom" class="window" x1="481" y1="450" x2="481" y2="542"/>
+  <line id="window-living" class="window" x1="554" y1="632" x2="554" y2="723"/>
+  <line id="door-balcony-living" class="door" data-hinge="554,586" data-opens="living" x1="554" y1="586" x2="554" y2="632"/>
+  <line id="door-balcony-bedroom" class="door" data-hinge="491,570" data-opens="bedroom" x1="491" y1="570" x2="538" y2="570"/>
+  <line id="door-bedroom" class="door" data-hinge="824,567" data-opens="bedroom" x1="772" y1="567" x2="824" y2="567"/>
+  <line id="door-entrance" class="door" data-hinge="902,519" data-opens="hall" x1="846" y1="519" x2="902" y2="519"/>
+  <line id="door-bathroom" class="door" data-hinge="917,629" data-opens="hall" x1="917" y1="584" x2="917" y2="629"/>
+
+  <line id="dim-6050" class="dimension" data-m="6.05" x1="486" y1="548" x2="830" y2="548"/>
+  <line id="dim-7500" class="dimension" data-m="7.5" x1="559" y1="697" x2="986" y2="697"/>
+  <line id="dim-2700" class="dimension" data-m="2.7" x1="670" y1="410" x2="670" y2="565"/>
+  <line id="dim-3200" class="dimension" data-m="3.2" x1="670" y1="569" x2="670" y2="752"/>
+  <line id="dim-1400" class="dimension" data-m="1.4" x1="835" y1="548" x2="915" y2="548"/>
+  <line id="dim-1700" class="dimension" data-m="1.7" x1="842" y1="654" x2="842" y2="751"/>
+
+  <!-- Kitchen: one L run (east leg under the hob, south leg from the fridge), cut where the hob, sink and draining board sit -->
+  <polygon id="worktop-north" class="fixture" data-kind="worktop" data-name="Worktop" points="950,655 986,655 986,669 950,669"/>
+  <polygon id="hob" class="fixture" data-kind="hob" data-name="Hob" data-front="left" points="950,670 986,670 986,705 950,705"/>
+  <polygon id="worktop-corner" class="fixture" data-kind="worktop" data-name="Worktop" points="950,705 986,705 986,751 950,751"/>
+  <polygon id="kitchen-sink" class="fixture" data-kind="sink" data-name="Kitchen sink" data-front="up" points="924,716 950,716 950,751 924,751"/>
+  <polygon id="drainer" class="fixture" data-kind="worktop" data-name="Draining board" points="904,716 924,716 924,751 904,751"/>
+  <polygon id="worktop-south" class="fixture" data-kind="worktop" data-name="Worktop" points="864,716 904,716 904,751 864,751"/>
+  <polygon id="toilet" class="fixture" data-kind="toilet" data-name="Toilet" data-front="up" points="966,615 988,615 988,650 966,650"/>
+  <polygon id="basin" class="fixture" data-kind="basin" data-name="Washbasin" data-front="up" points="930,630 957,630 957,650 930,650"/>
+  <polygon id="shower" class="fixture" data-kind="shower" data-name="Walk-in shower" points="1001,561 1048,561 1048,650 1001,650"/>
+  <polygon id="railing-west" class="fixture" data-kind="railing" data-name="Balcony railing" points="486,576 489,576 489,751 486,751"/>
+
+  <!-- Bedroom -->
+  <polygon id="wardrobe-bedroom" class="furniture" data-kind="wardrobe" data-name="Wardrobe" data-front="down" data-asset="abo:B07GFSJ69T" data-fit="width" points="486,411 599,411 599,445 486,445"/>
+  <polygon id="bed" class="furniture" data-kind="bed" data-name="Double bed" data-front="down" data-asset="abo:B085W6V8CN" points="675,411 779,411 779,525 675,525"/>
+  <polygon id="bedside-left" class="furniture" data-kind="cabinet" data-name="Bedside table" data-front="down" data-asset="extra:bpy-bathstore:table-bath-side-teak" points="651,411 675,411 675,437 651,437"/>
+  <polygon id="bedside-right" class="furniture" data-kind="cabinet" data-name="Bedside table" data-front="down" data-asset="extra:bpy-bathstore:table-bath-side-teak" points="779,411 804,411 804,437 779,437"/>
+  <polygon id="desk" class="furniture" data-kind="desk" data-name="Desk" data-front="up" data-asset="extra:bpy-office:desk-walnut-mcm-tapered" points="559,524 636,524 636,565 559,565"/>
+  <polygon id="desk-chair" class="furniture" data-kind="chair" data-name="Desk chair" data-front="down" data-asset="extra:bpy-office:chair-mcm-walnut-leather" points="595,505 627,505 627,538 595,538"/>
+  <!-- Living room: TV unit on the bedroom wall (the TV is not drawn: it stands on the unit), coffee table, sofa on the south wall -->
+  <polygon id="tv-unit" class="furniture" data-kind="cabinet" data-name="TV unit" data-front="down" data-asset="abo:B07ML7P93X" points="678,569.5 747,569.5 747,578.5 678,578.5"/>
+  <polygon id="tv" class="furniture" data-kind="tv" data-name="TV" data-front="down" data-on="tv-unit" data-asset="extra:electronics:tv-50-feet-black" points="680,570 745,570 745,576 680,576"/>
+  <polygon id="coffee-table" class="furniture" data-kind="table" data-name="Coffee table" data-front="up" data-asset="abo:B07DBDMN5F" points="675,661 749,661 749,690 675,690"/>
+  <polygon id="sofa" class="furniture" data-kind="sofa" data-name="Sofa" data-front="up" points="650,707 775,707 775,751 650,751"/>
+  <!-- Dining: the table runs north-south by the balcony window, six round chairs drawn half under it -->
+  <polygon id="dining-table" class="furniture" data-kind="table" data-name="Dining table" data-front="right" data-asset="extra:bpy-kitchen:japandi-oak-rectangular-table-110" points="588,640 634,640 634,708 588,708"/>
+  <polygon id="dining-chair-n" class="furniture" data-kind="chair" data-name="Dining chair" data-front="down" data-asset="extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather" points="599.5,629 622.5,629 622.5,652 599.5,652"/>
+  <polygon id="dining-chair-w1" class="furniture" data-kind="chair" data-name="Dining chair" data-front="right" data-asset="extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather" points="576.5,648.5 599.5,648.5 599.5,671.5 576.5,671.5"/>
+  <polygon id="dining-chair-e1" class="furniture" data-kind="chair" data-name="Dining chair" data-front="left" data-asset="extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather" points="622.5,648.5 645.5,648.5 645.5,671.5 622.5,671.5"/>
+  <polygon id="dining-chair-w2" class="furniture" data-kind="chair" data-name="Dining chair" data-front="right" data-asset="extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather" points="576.5,677 599.5,677 599.5,700 576.5,700"/>
+  <polygon id="dining-chair-e2" class="furniture" data-kind="chair" data-name="Dining chair" data-front="left" data-asset="extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather" points="622.5,677 645.5,677 645.5,700 622.5,700"/>
+  <polygon id="dining-chair-s" class="furniture" data-kind="chair" data-name="Dining chair" data-front="up" data-asset="extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather" points="599.5,696.5 622.5,696.5 622.5,719.5 599.5,719.5"/>
+  <!-- Kitchen: the fridge is the blue rectangle at the west end of the south counter -->
+  <polygon id="fridge" class="furniture" data-kind="fridge" data-name="Fridge" data-front="up" data-asset="extra:bpy-appliances:fridge-combi-stainless-60" points="829,716 864,716 864,751 829,751"/>
+  <!-- Hall: wardrobe in the niche beside the bathroom -->
+  <polygon id="wardrobe-hall" class="furniture" data-kind="wardrobe" data-name="Hall wardrobe" data-front="left" data-asset="extra:bpy-gaps:wardrobe-walnut-2-door-80" points="914,525 948,525 948,572 914,572"/>
+</svg>

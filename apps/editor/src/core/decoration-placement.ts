@@ -10,6 +10,10 @@ const WALL_SHELF_NAME = /\bfloating\b|\bwall[- ]?(mount(ed)?|shelf|shelves|shelv
 const WALL_DECOR_NAME = /\b(clock|wall hanging|macram[eé]|tapestry)\b|\bwall[- ]?mount(ed)?\b|\bwall (planter|vase|pocket|basket)s?\b/i;
 const SCONCE_NAME = /\bsconces?\b|\bwall[- ](lamp|light)s?\b/i;
 const CEILING_LAMP_NAME = /\bceiling (light|lamp)s?\b|\bpendant\b|\bflush[- ]mount(ed)?\b/i;
+/** Cooker hoods come from the catalog as wall pieces (kind range_hood -> wall_art); their bottom clears the hob. */
+const HOOD_NAME = /\b(cooker|extractor|chimney|range) (\w+ )?hoods?\b/i;
+/** A hood's bottom: a 0.9 m worktop plus the 0.65 m hob clearance hood makers ask for. */
+export const HOOD_BOTTOM = 1.55;
 
 /** Hung on a wall by mountDecoration: art, mirrors, curtains, clocks and wall hangings (kind wall_art, which the
  * catalog's wall_hanging and clock kinds become), wall shelves and picture ledges, wall planters and vases, sconces. */
@@ -104,7 +108,7 @@ export function mountDecoration(scene: SceneDocument, object: SceneObject, asset
         elevation = rod - asset.dimensions[1] * scale[1];
       } else {
         const leans = asset.kind === 'mirror' && asset.dimensions[1] * object.scale[1] > 1.4;
-        elevation = floor + (leans ? 0 : Math.max(.9, 1.5 - height! / 2));
+        elevation = floor + (leans ? 0 : HOOD_NAME.test(asset.name) ? HOOD_BOTTOM : Math.max(.9, 1.5 - height! / 2));
         if (!leans && requested !== undefined && Number.isFinite(requested) && Math.abs(requested - elevation) > HUNG_EPS) {
           // A chosen height (gallery walls, art sized over a sofa, a shelf over a desk) stays within safe bounds.
           const ceiling = hasRoomCeiling(scene, room) ? Math.min(wallTop, floor + roomCeilingHeight(scene, room)) : wallTop;

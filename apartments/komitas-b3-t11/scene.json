@@ -12,11 +12,11 @@
       "polygon": [
         [
           0.2109,
-          0.1054
+          0.088
         ],
         [
           2.5836,
-          0.1054
+          0.088
         ],
         [
           2.5836,
@@ -70,11 +70,11 @@
           4.3759
         ],
         [
-          5.483,
+          5.4127,
           4.3759
         ],
         [
-          5.483,
+          5.4127,
           4.7801
         ],
         [
@@ -121,7 +121,7 @@
       "name": "Entrance hall",
       "polygon": [
         [
-          5.4829,
+          5.4127,
           4.3759
         ],
         [
@@ -141,7 +141,7 @@
           8.6814
         ],
         [
-          5.4829,
+          5.4127,
           8.6814
         ]
       ],
@@ -156,11 +156,27 @@
           4.9031
         ],
         [
-          5.3249,
+          2.2496,
           4.9031
         ],
         [
-          5.3249,
+          2.2496,
+          5.7027
+        ],
+        [
+          2.5656,
+          5.7027
+        ],
+        [
+          2.5656,
+          4.9031
+        ],
+        [
+          5.2897,
+          4.9031
+        ],
+        [
+          5.2897,
           8.6814
         ],
         [
@@ -176,11 +192,11 @@
       "polygon": [
         [
           6.9065,
-          4.938
+          4.9381
         ],
         [
           8.4704,
-          4.938
+          4.9381
         ],
         [
           8.4704,
@@ -195,6 +211,21 @@
     }
   ],
   "walls": [
+    {
+      "id": "wall-north-balcony",
+      "start": [
+        2.0913,
+        0
+      ],
+      "end": [
+        2.6976,
+        0
+      ],
+      "height": 2.7,
+      "thickness": 0.176,
+      "color": "#f2f0eb",
+      "openings": []
+    },
     {
       "id": "wall-north",
       "start": [
@@ -301,7 +332,7 @@
       ],
       "end": [
         2.9436,
-        2.557
+        2.4076
       ],
       "height": 2.7,
       "thickness": 0.264,
@@ -315,7 +346,7 @@
         2.557
       ],
       "end": [
-        2.9436,
+        2.8118,
         2.557
       ],
       "height": 2.7,
@@ -448,6 +479,21 @@
       "openings": []
     },
     {
+      "id": "riser-bath",
+      "start": [
+        7.8731,
+        5.1931
+      ],
+      "end": [
+        8.6199,
+        5.1931
+      ],
+      "height": 2.7,
+      "thickness": 0.51,
+      "color": "#f2f0eb",
+      "openings": []
+    },
+    {
       "id": "wall-bath-west",
       "start": [
         6.845,
@@ -494,7 +540,7 @@
         4.8416
       ],
       "end": [
-        5.403900000000001,
+        5.3512,
         4.8416
       ],
       "height": 2.7,
@@ -503,17 +549,32 @@
       "openings": []
     },
     {
-      "id": "wall-bedroom-hall",
+      "id": "struct-bedroom-stub",
       "start": [
-        5.403900000000001,
+        2.4076,
         4.8416
       ],
       "end": [
-        5.4039,
+        2.4076,
+        5.7027
+      ],
+      "height": 2.7,
+      "thickness": 0.316,
+      "color": "#f2f0eb",
+      "openings": []
+    },
+    {
+      "id": "wall-bedroom-hall",
+      "start": [
+        5.3512,
+        4.8416
+      ],
+      "end": [
+        5.3512,
         8.7869
       ],
       "height": 2.7,
-      "thickness": 0.158,
+      "thickness": 0.123,
       "color": "#f2f0eb",
       "openings": [
         {
@@ -558,6 +619,11 @@
     "mode": "correct",
     "currency": "AMD",
     "metadata": {
+      "wall-north-balcony": {
+        "structuralRole": "unknown",
+        "phase": "existing",
+        "review": "unreviewed"
+      },
       "wall-north": {
         "structuralRole": "unknown",
         "phase": "existing",
@@ -623,6 +689,11 @@
         "phase": "existing",
         "review": "unreviewed"
       },
+      "riser-bath": {
+        "structuralRole": "unknown",
+        "phase": "existing",
+        "review": "unreviewed"
+      },
       "wall-bath-west": {
         "structuralRole": "unknown",
         "phase": "existing",
@@ -634,6 +705,11 @@
         "review": "unreviewed"
       },
       "wall-living-bedroom": {
+        "structuralRole": "unknown",
+        "phase": "existing",
+        "review": "unreviewed"
+      },
+      "struct-bedroom-stub": {
         "structuralRole": "unknown",
         "phase": "existing",
         "review": "unreviewed"
@@ -667,6 +743,26 @@
       "bathroom": {
         "zone": "interior",
         "phase": "existing"
+      },
+      "door-balcony": {
+        "mechanism": "hinged",
+        "hinge": "left",
+        "swing": 1
+      },
+      "door-bathroom": {
+        "mechanism": "hinged",
+        "hinge": "right",
+        "swing": 1
+      },
+      "door-bedroom": {
+        "mechanism": "hinged",
+        "hinge": "right",
+        "swing": 1
+      },
+      "door-entrance": {
+        "mechanism": "hinged",
+        "hinge": "right",
+        "swing": -1
       }
     },
     "components": [
@@ -884,12 +980,12 @@
         "name": "Balcony railing",
         "kind": "railing",
         "position": [
-          1.3971,
+          1.1511,
           0,
           0.1494
         ],
         "dimensions": [
-          2.337,
+          1.845,
           1,
           0.053
         ],

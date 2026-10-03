@@ -244,6 +244,14 @@ export function isBareBedBase(name: string): boolean {
     || (/\bmattress\b/i.test(name) && !/\bbed\b/i.test(name));
 }
 const bareBedBase = (raw: unknown) => object(raw) && raw.kind === 'bed' && isBareBedBase(typeof raw.name === 'string' ? raw.name : '');
+/** Wall fittings and the extra catalog's wall and ceiling lamps became placeable in search on 2026-10-03 for the editor,
+ * which mounts them (SCONCE_NAME, CEILING_LAMP_NAME, a hood over the hob). The designer cannot mount them yet (mounts.ts
+ * hangs only curtains and planters): offered, they would stand on the floor or a table. It keeps offering exactly what
+ * it offered before (the three ABO pendants and sconce were placeable already). */
+const MOUNTED_FITTINGS = new Set(['range_hood', 'water_heater', 'towel_rail']);
+const MOUNTED_LAMP = /\bsconces?\b|\bwall[- ](lamp|light)s?\b|\bceiling (light|lamp)s?\b|\bpendant\b|\bflush[- ]mount(ed)?\b/i;
+export const designerCannotMount = (kind: string, name: string, source: string | null | undefined) =>
+  MOUNTED_FITTINGS.has(kind) || (kind === 'lamp' && source !== 'abo' && MOUNTED_LAMP.test(name));
 
 /** Read-only catalog search. The injected query is also the deterministic test seam. */
 export async function searchCatalog(input: unknown, query: CatalogQuery = queryCatalog): Promise<CatalogResult> {
@@ -269,6 +277,8 @@ export async function searchCatalog(input: unknown, query: CatalogQuery = queryC
     const fits = (width: number, depth: number) => width <= (request.max_w ?? Infinity) && depth <= (request.max_d ?? Infinity) && h <= (request.max_h ?? Infinity);
     if ((request.kind && record.kind !== request.kind) || record.price > (request.price_max ?? Infinity)
       || bareBedBase(record)
+      || designerCannotMount(record.kind, record.name ?? '', record.source)
+      || !record.size_m.every(v => v >= .01 && v <= 20)  // the editor rejects a product outside 0.01-20 m (a 6 mm rug)
       || !(fits(w, d) || (request.allow_rotate !== false && fits(d, w)))) { excluded++; continue; }
     const name = record.name ?? record.id;
     const item: PlaceItem = { id: record.id, kind: record.kind, name, size: record.size_m, sku: record.id, price: record.price,

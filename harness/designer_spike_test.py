@@ -10,6 +10,42 @@ class SpikeServiceTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             designer_spike.engine({"VARPET_DESIGNER_ENGINE": "fast"})
 
+    def test_agent_defaults_to_codex_and_claude_turns_the_codex_critic_off(self):
+        self.assertEqual(designer_spike.agent({}), "codex")
+        self.assertTrue(designer_spike.critic_on({}))
+        self.assertEqual(designer_spike.agent({"VARPET_SPIKE_AGENT": "claude"}), "claude")
+        self.assertFalse(designer_spike.critic_on({"VARPET_SPIKE_AGENT": "claude"}))
+        self.assertFalse(designer_spike.critic_on({"VARPET_SPIKE_CRITIC": "0"}))
+        with self.assertRaises(ValueError):
+            designer_spike.agent({"VARPET_SPIKE_AGENT": "gpt"})
+
+    def test_claude_sandbox_keeps_writes_local_and_network_to_the_catalog(self):
+        import json
+        settings = json.loads(designer_spike.claude_settings({"VARPET_CATALOG_URL": "http://10.0.0.7:8765/mcp"}))["sandbox"]
+        self.assertTrue(settings["enabled"])
+        self.assertFalse(settings["allowUnsandboxedCommands"])
+        self.assertIn("10.0.0.7", settings["network"]["allowedDomains"])
+        self.assertNotIn("example.com", settings["network"]["allowedDomains"])
+
+    def test_forget_leaves_codex_conversations_alone(self):
+        import tempfile, unittest.mock
+        from pathlib import Path
+        with tempfile.TemporaryDirectory() as root, unittest.mock.patch.object(designer_spike.subprocess, "run") as run:
+            (Path(root) / "spike").mkdir()
+            with unittest.mock.patch.dict(designer_spike.os.environ, {"VARPET_SPIKE_AGENT": "codex"}):
+                designer_spike.forget(Path(root))
+            run.assert_not_called()
+
+    def test_claude_turn_text_names_an_attached_picture(self):
+        class Text:
+            text = "Customer request: style it"
+        class Picture:
+            path = "/w/inspiration.png"
+        self.assertEqual(designer_spike._claude_text("plain"), "plain")
+        text = designer_spike._claude_text([Picture(), Text()])
+        self.assertIn("/w/inspiration.png", text)
+        self.assertIn("style it", text)
+
     def test_strip_design_removes_only_the_designs_own_records(self):
         doc = {"objects": [{"id": "sofa"}, {"id": "own-chair"}],
                "project": {"components": [{"id": "pendant"}, {"id": "radiator"}],

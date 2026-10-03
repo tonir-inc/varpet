@@ -39,7 +39,8 @@ export const editorKindOf: Record<string, AssetKind> = { desk: 'table', dresser:
   vase: 'decor', candle: 'decor', sculpture: 'decor', books: 'decor', cushion: 'decor',
   throw_blanket: 'decor', basket: 'decor', tray: 'decor', bowl: 'decor', lantern: 'decor',
   picture_frame: 'decor', toy: 'decor', planter: 'decor', mattress: 'decor', clock: 'wall_art', wall_hanging: 'wall_art',
-  crib: 'bed', changing_table: 'dresser', pet_bed: 'decor', blind: 'curtain', towel_rack: 'shelf' };
+  crib: 'bed', changing_table: 'dresser', pet_bed: 'decor', blind: 'curtain', towel_rack: 'shelf',
+  range_hood: 'wall_art', water_heater: 'wall_art', towel_rail: 'wall_art' };
 const swings = { 'in-left': 'inward-left', 'in-right': 'inward-right', 'out-left': 'outward-left', 'out-right': 'outward-right' } as const;
 const plan = ([x, z]: Vec2): Vec2 => [x, -z];
 const digest = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('hex');

@@ -1,0 +1,401 @@
+{
+ "flat": "komitas-b3-t10",
+ "scale": "traced in pixels; scale 57.1 px/m from 6 dimension lines",
+ "transform": {
+  "px_per_m": 57.10084033613445,
+  "origin": [
+   481.0,
+   400.0
+  ]
+ },
+ "faults": [
+  {
+   "check": "wall",
+   "wall": "pylon-sw",
+   "detail": "not on a room edge (0.45 m off)"
+  },
+  {
+   "check": "wall",
+   "wall": "pylon-se",
+   "detail": "not on a room edge (0.18 m off)"
+  },
+  {
+   "check": "wall",
+   "wall": "pylon-se-east",
+   "detail": "not on a room edge (0.58 m off)"
+  }
+ ],
+ "empty_export": "ok",
+ "settled": [
+  "bedside-left 0.025 m off bed",
+  "bedside-right 0.015 m off bed",
+  "desk-chair 0.160 m off desk",
+  "dining-chair-n 0.225 m off dining-table",
+  "dining-chair-w1 0.205 m off dining-table",
+  "dining-chair-e1 0.205 m off dining-table",
+  "dining-chair-w2 0.205 m off dining-table",
+  "dining-chair-e2 0.205 m off dining-table",
+  "dining-chair-s 0.215 m off dining-table",
+  "bed 0.005 m into bedroom",
+  "tv-unit 0.120 m into living",
+  "sofa 0.196 m into living",
+  "fridge 0.030 m into kitchen",
+  "wardrobe-hall 0.010 m into hall",
+  "wardrobe-bedroom does not fit its room within 0.25 m",
+  "tv on tv-unit"
+ ],
+ "furniture": [
+  {
+   "id": "wardrobe-bedroom",
+   "kind": "wardrobe",
+   "room": "bedroom",
+   "footprint_m": [
+    1.979,
+    0.595
+   ],
+   "asset": "abo:B07GFSJ69T",
+   "asset_m": [
+    1.78,
+    0.63
+   ],
+   "stretched_x": 1.1118,
+   "name": "Amazon Brand - Movian Kolva Sliding 2-Door Wardrobe, 180 x 61 x 197cm, White"
+  },
+  {
+   "id": "bed",
+   "kind": "bed",
+   "room": "bedroom",
+   "footprint_m": [
+    1.821,
+    1.996
+   ],
+   "asset": "abo:B085W6V8CN",
+   "asset_m": [
+    1.91,
+    2.03
+   ],
+   "name": "Amazon Brand - Solimo Draco Solid Sheesham Wood King Bed (Teak Finish)"
+  },
+  {
+   "id": "bedside-left",
+   "kind": "cabinet",
+   "room": "bedroom",
+   "footprint_m": [
+    0.42,
+    0.455
+   ],
+   "asset": "extra:bpy-bathstore:table-bath-side-teak",
+   "asset_m": [
+    0.36,
+    0.36
+   ],
+   "name": "Round teak bath-side table with lower shelf"
+  },
+  {
+   "id": "bedside-right",
+   "kind": "cabinet",
+   "room": "bedroom",
+   "footprint_m": [
+    0.438,
+    0.455
+   ],
+   "asset": "extra:bpy-bathstore:table-bath-side-teak",
+   "asset_m": [
+    0.36,
+    0.36
+   ],
+   "name": "Round teak bath-side table with lower shelf"
+  },
+  {
+   "id": "desk",
+   "kind": "desk",
+   "room": "bedroom",
+   "footprint_m": [
+    1.348,
+    0.718
+   ],
+   "asset": "extra:bpy-office:desk-walnut-mcm-tapered",
+   "asset_m": [
+    1.3,
+    0.6
+   ],
+   "name": "Mid-century walnut desk with three drawers and tapered legs, 130x60 cm"
+  },
+  {
+   "id": "desk-chair",
+   "kind": "chair",
+   "room": "bedroom",
+   "footprint_m": [
+    0.56,
+    0.578
+   ],
+   "asset": "extra:bpy-office:chair-mcm-walnut-leather",
+   "asset_m": [
+    0.46,
+    0.5
+   ],
+   "name": "Mid-century walnut desk chair with cognac leather"
+  },
+  {
+   "id": "tv-unit",
+   "kind": "cabinet",
+   "room": "living",
+   "footprint_m": [
+    1.208,
+    0.158
+   ],
+   "asset": "abo:B07ML7P93X",
+   "asset_m": [
+    1.2,
+    0.35
+   ],
+   "name": "Amazon Brand \u2013 Ravenna Home Classic Solid Wood Media Center, 47.87\"W, Black"
+  },
+  {
+   "id": "tv",
+   "kind": "tv",
+   "room": "living",
+   "footprint_m": [
+    1.138,
+    0.105
+   ],
+   "asset": "extra:electronics:tv-50-feet-black",
+   "asset_m": [
+    1.12,
+    0.22
+   ],
+   "name": "50\" TV on corner feet, black"
+  },
+  {
+   "id": "coffee-table",
+   "kind": "table",
+   "room": "living",
+   "footprint_m": [
+    1.296,
+    0.508
+   ],
+   "asset": "abo:B07DBDMN5F",
+   "asset_m": [
+    1.21,
+    0.58
+   ],
+   "name": "Amazon Brand \u2013 Ravenna Home Parker Coffee Table, 47.2\"W, Glass & Gold"
+  },
+  {
+   "id": "sofa",
+   "kind": "sofa",
+   "room": "living",
+   "footprint_m": [
+    2.189,
+    0.771
+   ],
+   "asset": "abo:B07B4G5QD4",
+   "asset_m": [
+    2.22,
+    0.86
+   ],
+   "name": "Amazon Brand \u2013 Rivet Edgewest Low Back Modern Sofa, 87\"W, Blue"
+  },
+  {
+   "id": "dining-table",
+   "kind": "table",
+   "room": "living",
+   "footprint_m": [
+    1.191,
+    0.806
+   ],
+   "asset": "extra:bpy-kitchen:japandi-oak-rectangular-table-110",
+   "asset_m": [
+    1.1,
+    0.7
+   ],
+   "name": "Japandi solid oak rectangular kitchen table for 4, soft-edged top, 110 x 70 cm"
+  },
+  {
+   "id": "dining-chair-n",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.403,
+    0.403
+   ],
+   "asset": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "asset_m": [
+    0.47,
+    0.49
+   ],
+   "name": "Mid-century walnut dining chair, sculpted curved backrest, cognac leather uphols"
+  },
+  {
+   "id": "dining-chair-w1",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.403,
+    0.403
+   ],
+   "asset": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "asset_m": [
+    0.47,
+    0.49
+   ],
+   "name": "Mid-century walnut dining chair, sculpted curved backrest, cognac leather uphols"
+  },
+  {
+   "id": "dining-chair-e1",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.403,
+    0.403
+   ],
+   "asset": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "asset_m": [
+    0.47,
+    0.49
+   ],
+   "name": "Mid-century walnut dining chair, sculpted curved backrest, cognac leather uphols"
+  },
+  {
+   "id": "dining-chair-w2",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.403,
+    0.403
+   ],
+   "asset": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "asset_m": [
+    0.47,
+    0.49
+   ],
+   "name": "Mid-century walnut dining chair, sculpted curved backrest, cognac leather uphols"
+  },
+  {
+   "id": "dining-chair-e2",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.403,
+    0.403
+   ],
+   "asset": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "asset_m": [
+    0.47,
+    0.49
+   ],
+   "name": "Mid-century walnut dining chair, sculpted curved backrest, cognac leather uphols"
+  },
+  {
+   "id": "dining-chair-s",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.403,
+    0.403
+   ],
+   "asset": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "asset_m": [
+    0.47,
+    0.49
+   ],
+   "name": "Mid-century walnut dining chair, sculpted curved backrest, cognac leather uphols"
+  },
+  {
+   "id": "fridge",
+   "kind": "fridge",
+   "room": "kitchen",
+   "footprint_m": [
+    0.613,
+    0.613
+   ],
+   "asset": "extra:bpy-appliances:fridge-combi-stainless-60",
+   "asset_m": [
+    0.6,
+    0.66
+   ],
+   "name": "Fridge-freezer 60 cm, brushed stainless, bottom freezer, 185 cm"
+  },
+  {
+   "id": "wardrobe-hall",
+   "kind": "wardrobe",
+   "room": "hall",
+   "footprint_m": [
+    0.823,
+    0.595
+   ],
+   "asset": "extra:bpy-gaps:wardrobe-walnut-2-door-80",
+   "asset_m": [
+    0.8,
+    0.63
+   ],
+   "name": "Walnut 2-door wardrobe, closed, 80 x 63 x 210 cm"
+  }
+ ],
+ "furnished_export": "ok",
+ "options": {
+  "styled": {
+   "saved": "option.styled.json",
+   "pieces": 46
+  }
+ },
+ "door_swings": {
+  "door-entrance": {
+   "mechanism": "hinged",
+   "hinge": "right",
+   "swing": 1
+  },
+  "door-balcony-bedroom": {
+   "mechanism": "hinged",
+   "hinge": "left",
+   "swing": -1
+  },
+  "door-balcony-living": {
+   "mechanism": "hinged",
+   "hinge": "left",
+   "swing": -1
+  },
+  "door-bedroom": {
+   "mechanism": "hinged",
+   "hinge": "right",
+   "swing": -1
+  },
+  "door-bathroom": {
+   "mechanism": "hinged",
+   "hinge": "right",
+   "swing": 1
+  }
+ },
+ "rooms": [
+  {
+   "room": "Bedroom",
+   "m2": 15.83,
+   "printed": 16.1
+  },
+  {
+   "room": "Living room",
+   "m2": 15.09,
+   "printed": 15.3
+  },
+  {
+   "room": "Kitchen",
+   "m2": 4.6,
+   "printed": 4.7
+  },
+  {
+   "room": "Hall",
+   "m2": 3.55,
+   "printed": 3.9
+  },
+  {
+   "room": "Bathroom",
+   "m2": 4.39,
+   "printed": 4.4
+  },
+  {
+   "room": "Balcony",
+   "m2": 3.42,
+   "printed": 3.2
+  }
+ ]
+}

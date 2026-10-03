@@ -33,9 +33,20 @@ NATIVE_EXTRA_KINDS = (
 
 # Only decoration aliases extend the existing extra-model allowlist.
 EXTRA_DECOR_KINDS = tuple(kind for kind, target in EDITOR_KIND_OF.items() if target in {"decor", "wall_art"})
-WALL_EXTRA_KINDS = ("wall_art", "mirror", "clock", "wall_hanging")
-# Floor and table lamps; wall lamps stay out through the wall-evidence rule (the editor does not wall-mount lamps).
+# Wall-hung fittings the editor places through its wall_art kind (always hung on a wall). They stay their own catalog
+# kinds: kind=wall_art does not return them.
+WALL_FITTING_KINDS = ("range_hood", "water_heater", "towel_rail")
+WALL_EXTRA_KINDS = ("wall_art", "mirror", "clock", "wall_hanging", *WALL_FITTING_KINDS)
+# Floor and table lamps; a wall or ceiling lamp passes only when its name is one the editor mounts (lamp_mount in build_placeable_sql).
 EXTRA_LAMP_KINDS = ("lamp",)
+# The editor wall-mounts a lamp named like a sconce and hangs one named like a ceiling light from the ceiling
+# (apps/editor/src/core/decoration-placement.ts SCONCE_NAME, CEILING_LAMP_NAME); any other name would stand on the floor.
+SCONCE_NAME_SQL = "(^|[^a-z])(sconces?|wall[- ](lamp|light)s?)([^a-z]|$)"
+CEILING_LAMP_NAME_SQL = "(^|[^a-z])(ceiling (light|lamp)s?|pendant|flush[- ]mount(ed)?)([^a-z]|$)"
+# The editor hangs a hood over the hob only when its name says hood (decoration-placement.ts HOOD_NAME); any other
+# range_hood would hang at picture height, so it stays out.
+HOOD_NAME_SQL = "(^|[^a-z])(cooker|extractor|chimney|range) ([a-z0-9]+ )?hoods?([^a-z]|$)"
+PLACEMENTS = ("ceiling", "floor", "surface", "wall", "window")
 # Furniture and window textiles from pipelines that normalise their models and record a placement
 # (tags.extra.placement: bpy lanes, Poly Haven, pilot). Older extra furniture without one stays out.
 EXTRA_FURNITURE_KINDS = (*(k for k in PLACEABLE_KINDS if k not in EXTRA_DECOR_KINDS), "curtain", "blind")
@@ -45,10 +56,15 @@ EXTRA_FURNITURE_KINDS = (*(k for k in PLACEABLE_KINDS if k not in EXTRA_DECOR_KI
 FAMILY_KINDS = ("decor", "wall_art", "curtain")
 
 
+def editor_size_ok(size) -> bool:
+    """The editor takes a catalog product only when every size is 0.01-20 m (apps/editor/src/adapters/database-catalog.ts)."""
+    return bool(size) and len(size) == 3 and all(0.01 <= v <= 20 for v in size)
+
+
 def kinds_for(kind):
     if kind not in FAMILY_KINDS:
         return [kind]
-    return [kind, *(k for k, target in EDITOR_KIND_OF.items() if target == kind)]
+    return [kind, *(k for k, target in EDITOR_KIND_OF.items() if target == kind and k not in WALL_FITTING_KINDS)]
 
 
 def build_placeable_sql():
@@ -61,15 +77,22 @@ def build_placeable_sql():
     )
     # Explicit mounting evidence only; incidental prose and slugs are not evidence.
     supported_wall = (*WALL_EXTRA_KINDS, "curtain", "blind")
+    placement = "lower(coalesce(tags->'extra'->>'placement', ''))"
+    lamp_mount = (
+        "(kind = 'lamp' and ("
+        f"({placement} = 'wall' and not (name !~* '{SCONCE_NAME_SQL}'))"
+        f" or ({placement} = 'ceiling' and not (name !~* '{CEILING_LAMP_NAME_SQL}') and name !~* '{SCONCE_NAME_SQL}')"
+        "))"
+    )
     mount_ok = (
-        f"(kind in ({', '.join(repr(k) for k in supported_wall)}) or ("
+        f"(kind in ({', '.join(repr(k) for k in supported_wall)}) or {lamp_mount} or ("
         "lower(coalesce(tags->'extra'->>'placement', '')) not in "
         "('wall', 'wall-mounted', 'ceiling', 'ceiling-mounted')"
         " and coalesce(tags->'extra'->>'notes', '') !~* '^(wall-mounted|wall-hung|ceiling)([^a-zA-Z0-9_]|$)'))"
     )
     extra = (
         f"(kind in ({', '.join(repr(k) for k in (*NATIVE_EXTRA_KINDS, *EXTRA_DECOR_KINDS, *EXTRA_LAMP_KINDS))}) and source = 'extra'"
-        f" and glb_url is not null and {mount_ok})"
+        f" and glb_url is not null and {mount_ok} and (kind <> 'range_hood' or not (name !~* '{HOOD_NAME_SQL}')))"
     )
     furniture = (
         f"(kind in ({', '.join(repr(k) for k in EXTRA_FURNITURE_KINDS)}) and source = 'extra'"
@@ -105,6 +128,7 @@ class Query:
     collapse_variants: bool = True
     room_items: list[str] = field(default_factory=list)     # catalog ids already in the flat
     offset: int = 0
+    placement: str | None = None                           # tags.extra.placement: ceiling | floor | surface | wall | window
 
 
 _FAMILY_COLORS = set(PALETTE) | set(
@@ -289,6 +313,8 @@ def validate_query(q):
         raise ValueError("limit must be between 1 and 20")
     if q.offset < 0:
         raise ValueError("offset must be >= 0")
+    if q.placement is not None and q.placement not in PLACEMENTS:
+        raise ValueError(f"placement must be one of: {', '.join(PLACEMENTS)}")
     if q.scope not in ("placeable", "editor", "all"):
         raise ValueError("scope must be one of: placeable, editor, all")
     for field in ("target_size", "fit_box"):
@@ -318,6 +344,8 @@ def search(conn, q: Query):
     where, args = ["true"], []
     if q.kind:
         where.append("kind = any(%s)"); args.append(kinds_for(q.kind))
+    if q.placement:
+        where.append("lower(coalesce(tags->'extra'->>'placement', '')) = %s"); args.append(q.placement)
     excluded = excluded_ids(q)
     if excluded:
         where.append("not (id = any(%s))"); args.append(excluded)
@@ -325,7 +353,10 @@ def search(conn, q: Query):
         where.append(PLACEABLE)
     fts_text = q.text if q.text and "fts" in modes(q.text_mode, TEXT_ALIASES) else None
     passed, misses = [], []
+    placeable = q.scope in ("placeable", "editor")
     for static, cimg, size, price in _candidate_rows(conn, where, args, fts_text):
+        if placeable and not editor_size_ok(size):
+            continue  # the SQL bounds ABO sizes only; a 6 mm extra rug would come back and then fail to place
         rec = dict(static)
         fail = []
         margins = fits(size, q.fit_box, q.allow_rotate) if q.fit_box else None

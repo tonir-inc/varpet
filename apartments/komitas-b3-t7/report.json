@@ -1,0 +1,590 @@
+{
+ "flat": "komitas-b3-t7",
+ "scale": "traced in pixels; scale 56.6 px/m from 10 dimension lines",
+ "transform": {
+  "px_per_m": 56.64775145410697,
+  "origin": [
+   346.0,
+   256.0
+  ]
+ },
+ "faults": [
+  {
+   "check": "wall",
+   "wall": "column-nw",
+   "detail": "not on a room edge (0.30 m off)"
+  },
+  {
+   "check": "wall",
+   "wall": "column-ne",
+   "detail": "not on a room edge (0.30 m off)"
+  },
+  {
+   "check": "wall",
+   "wall": "pylon-balcony",
+   "detail": "not on a room edge (0.18 m off)"
+  },
+  {
+   "check": "wall",
+   "wall": "column-balcony",
+   "detail": "not on a room edge (0.32 m off)"
+  }
+ ],
+ "empty_export": "ok",
+ "settled": [
+  "desk-chair 0.250 m off desk",
+  "bedside-4-north 0.065 m off bed-4",
+  "bedside-4-south 0.055 m off bed-4",
+  "dining-chair-n1 0.285 m off dining-table",
+  "dining-chair-n2 0.285 m off dining-table",
+  "dining-chair-n3 0.285 m off dining-table",
+  "dining-chair-s1 0.305 m off dining-table",
+  "dining-chair-s2 0.305 m off dining-table",
+  "dining-chair-s3 0.305 m off dining-table",
+  "dining-chair-w 0.305 m off dining-table",
+  "dining-chair-e 0.310 m off dining-table",
+  "bed-4 0.085 m into bedroom-4",
+  "wardrobe-4 0.028 m into bedroom-4",
+  "sofa 0.069 m into living",
+  "tv-unit-living 0.100 m into living",
+  "fridge 0.035 m into kitchen",
+  "wardrobe-hall 0.015 m into hall",
+  "hall-sofa 0.055 m into hall",
+  "wardrobe-5 0.020 m into bedroom-5",
+  "bed-5 0.055 m into bedroom-5",
+  "tv-living on tv-unit-living"
+ ],
+ "furniture": [
+  {
+   "id": "desk",
+   "kind": "desk",
+   "room": "bedroom-4",
+   "footprint_m": [
+    1.35,
+    0.706
+   ],
+   "asset": "extra:bpy-office:desk-walnut-mcm-tapered",
+   "asset_m": [
+    1.3,
+    0.6
+   ],
+   "name": "Mid-century walnut desk with three drawers and tapered legs, 130x60 cm"
+  },
+  {
+   "id": "desk-chair",
+   "kind": "chair",
+   "room": "bedroom-4",
+   "footprint_m": [
+    0.583,
+    0.591
+   ],
+   "asset": "abo:B075Z8M22B",
+   "asset_m": [
+    0.61,
+    0.63
+   ],
+   "name": "Amazon Brand \u2013 Rivet Mid-Century Open Back Swivel Office Desk Chair, 24\"W, Marbl"
+  },
+  {
+   "id": "bedside-4-north",
+   "kind": "cabinet",
+   "room": "bedroom-4",
+   "footprint_m": [
+    0.441,
+    0.459
+   ],
+   "asset": "abo:B075YZ16V4",
+   "asset_m": [
+    0.46,
+    0.41
+   ],
+   "name": "Amazon Brand \u2013 Rivet Mid-Century Stark 2-Drawer Nightstand, 24\"H, Walnut"
+  },
+  {
+   "id": "bed-4",
+   "kind": "bed",
+   "room": "bedroom-4",
+   "footprint_m": [
+    1.801,
+    2.012
+   ],
+   "asset": "extra:bpy-beds-dressed:mcm-walnut-cane-bed-160-terracotta",
+   "asset_m": [
+    1.89,
+    2.17
+   ],
+   "name": "Mid-century walnut bed 160x200 with cane headboard, terracotta linen bedding"
+  },
+  {
+   "id": "bedside-4-south",
+   "kind": "cabinet",
+   "room": "bedroom-4",
+   "footprint_m": [
+    0.459,
+    0.459
+   ],
+   "asset": "abo:B075YZ16V4",
+   "asset_m": [
+    0.46,
+    0.41
+   ],
+   "name": "Amazon Brand \u2013 Rivet Mid-Century Stark 2-Drawer Nightstand, 24\"H, Walnut"
+  },
+  {
+   "id": "wardrobe-4",
+   "kind": "wardrobe",
+   "room": "bedroom-4",
+   "footprint_m": [
+    1.439,
+    0.609
+   ],
+   "asset": "extra:bpy-bedroom:reeded-oak-3-door-wardrobe-150",
+   "asset_m": [
+    1.5,
+    0.63
+   ],
+   "name": "Reeded rift oak three-door wardrobe, long brass bar handles, black plinth"
+  },
+  {
+   "id": "dining-table",
+   "kind": "table",
+   "room": "living",
+   "footprint_m": [
+    1.73,
+    0.812
+   ],
+   "asset": "abo:B075YPTG8S",
+   "asset_m": [
+    1.79,
+    0.88
+   ],
+   "name": "Amazon Brand \u2013 Rivet Industrial Mid-Century Modern Hairpin Dining Table, 70.9\"L,"
+  },
+  {
+   "id": "dining-chair-n1",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.406,
+    0.424
+   ],
+   "asset": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "asset_m": [
+    0.47,
+    0.49
+   ],
+   "name": "Mid-century walnut dining chair, sculpted curved backrest, cognac leather uphols"
+  },
+  {
+   "id": "dining-chair-n2",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.415,
+    0.424
+   ],
+   "asset": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "asset_m": [
+    0.47,
+    0.49
+   ],
+   "name": "Mid-century walnut dining chair, sculpted curved backrest, cognac leather uphols"
+  },
+  {
+   "id": "dining-chair-n3",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.406,
+    0.424
+   ],
+   "asset": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "asset_m": [
+    0.47,
+    0.49
+   ],
+   "name": "Mid-century walnut dining chair, sculpted curved backrest, cognac leather uphols"
+  },
+  {
+   "id": "dining-chair-s1",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.406,
+    0.424
+   ],
+   "asset": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "asset_m": [
+    0.47,
+    0.49
+   ],
+   "name": "Mid-century walnut dining chair, sculpted curved backrest, cognac leather uphols"
+  },
+  {
+   "id": "dining-chair-s2",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.415,
+    0.424
+   ],
+   "asset": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "asset_m": [
+    0.47,
+    0.49
+   ],
+   "name": "Mid-century walnut dining chair, sculpted curved backrest, cognac leather uphols"
+  },
+  {
+   "id": "dining-chair-s3",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.406,
+    0.424
+   ],
+   "asset": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "asset_m": [
+    0.47,
+    0.49
+   ],
+   "name": "Mid-century walnut dining chair, sculpted curved backrest, cognac leather uphols"
+  },
+  {
+   "id": "dining-chair-w",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.415,
+    0.415
+   ],
+   "asset": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "asset_m": [
+    0.47,
+    0.49
+   ],
+   "name": "Mid-century walnut dining chair, sculpted curved backrest, cognac leather uphols"
+  },
+  {
+   "id": "dining-chair-e",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.415,
+    0.415
+   ],
+   "asset": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+   "asset_m": [
+    0.47,
+    0.49
+   ],
+   "name": "Mid-century walnut dining chair, sculpted curved backrest, cognac leather uphols"
+  },
+  {
+   "id": "armchair-north",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.724,
+    0.715
+   ],
+   "asset": "extra:bpy-living2:mcm-swivel-tub-armchair-cognac-leather",
+   "asset_m": [
+    0.69,
+    0.67
+   ],
+   "name": "Mid-century swivel tub armchair, walnut outer shell, cognac leather back and sea"
+  },
+  {
+   "id": "sofa",
+   "kind": "sofa",
+   "room": "living",
+   "footprint_m": [
+    2.207,
+    0.777
+   ],
+   "asset": "abo:B07P5LM5D3",
+   "asset_m": [
+    2.26,
+    0.92
+   ],
+   "name": "Amazon Brand \u2013 Stone & Beam Leila Tufted Leather Sofa Couch, 88\"W, Saddle"
+  },
+  {
+   "id": "coffee-table",
+   "kind": "table",
+   "room": "living",
+   "footprint_m": [
+    1.315,
+    0.53
+   ],
+   "asset": "abo:B07BVHL3SZ",
+   "asset_m": [
+    1.22,
+    0.61
+   ],
+   "name": "Rivet Bowlyn Mid-Century - Modern Wood Coffee Table, 121,92 cm, Walnut Color"
+  },
+  {
+   "id": "armchair-south",
+   "kind": "chair",
+   "room": "living",
+   "footprint_m": [
+    0.724,
+    0.706
+   ],
+   "asset": "extra:bpy-living2:mcm-swivel-tub-armchair-cognac-leather",
+   "asset_m": [
+    0.69,
+    0.67
+   ],
+   "name": "Mid-century swivel tub armchair, walnut outer shell, cognac leather back and sea"
+  },
+  {
+   "id": "tv-unit-living",
+   "kind": "cabinet",
+   "room": "living",
+   "footprint_m": [
+    1.218,
+    0.159
+   ],
+   "asset": "abo:B07ML7P93X",
+   "asset_m": [
+    1.2,
+    0.35
+   ],
+   "name": "Amazon Brand \u2013 Ravenna Home Classic Solid Wood Media Center, 47.87\"W, Black"
+  },
+  {
+   "id": "tv-living",
+   "kind": "tv",
+   "room": "living",
+   "footprint_m": [
+    1.147,
+    0.124
+   ],
+   "asset": "extra:electronics:tv-50-feet-black",
+   "asset_m": [
+    1.12,
+    0.22
+   ],
+   "name": "50\" TV on corner feet, black"
+  },
+  {
+   "id": "fridge",
+   "kind": "fridge",
+   "room": "kitchen",
+   "footprint_m": [
+    0.6,
+    0.6
+   ],
+   "asset": "extra:bpy-appliances:fridge-combi-stainless-60",
+   "asset_m": [
+    0.6,
+    0.66
+   ],
+   "name": "Fridge-freezer 60 cm, brushed stainless, bottom freezer, 185 cm"
+  },
+  {
+   "id": "wardrobe-hall",
+   "kind": "wardrobe",
+   "room": "hall",
+   "footprint_m": [
+    1.156,
+    0.591
+   ],
+   "asset": "extra:bpy-bedroom:mcm-walnut-wardrobe-drawers-110",
+   "asset_m": [
+    1.12,
+    0.6
+   ],
+   "name": "Mid-century walnut wardrobe, two doors over two drawers, sculpted wood pulls, ta"
+  },
+  {
+   "id": "hall-sofa",
+   "kind": "sofa",
+   "room": "hall",
+   "footprint_m": [
+    1.907,
+    0.75
+   ],
+   "asset": "abo:B084XMKQP5",
+   "asset_m": [
+    2.01,
+    0.75
+   ],
+   "name": "Amazon Brand - Solimo Victoria Fabric 3 seater sofa (Grey & Blue)"
+  },
+  {
+   "id": "hall-sofa-end",
+   "kind": "chair",
+   "room": "hall",
+   "footprint_m": [
+    0.653,
+    0.768
+   ],
+   "asset": "abo:B07DBB1QXR",
+   "asset_m": [
+    0.63,
+    0.75
+   ],
+   "name": "Amazon Brand \u2013 Ravenna Home Jacobsen Contemporary Nailhead Sloped Arm Accent Cha"
+  },
+  {
+   "id": "hall-table",
+   "kind": "table",
+   "room": "hall",
+   "footprint_m": [
+    0.883,
+    0.424
+   ],
+   "asset": "abo:B01LWVEZ1C",
+   "asset_m": [
+    0.9,
+    0.45
+   ],
+   "name": "Amazon Brand - Alkove Waverly Large Coffee Table with Shelf in Light Oak Finish"
+  },
+  {
+   "id": "wardrobe-5",
+   "kind": "wardrobe",
+   "room": "bedroom-5",
+   "footprint_m": [
+    1.836,
+    0.6
+   ],
+   "asset": "abo:B07GFS1VB6",
+   "asset_m": [
+    1.78,
+    0.63
+   ],
+   "name": "Amazon Brand - Movian Kolva Sliding 2-Door Wardrobe, 180 x 61 x 197cm, Light Bro"
+  },
+  {
+   "id": "bedside-5-north",
+   "kind": "cabinet",
+   "room": "bedroom-5",
+   "footprint_m": [
+    0.45,
+    0.45
+   ],
+   "asset": "abo:B072ZK885L",
+   "asset_m": [
+    0.38,
+    0.38
+   ],
+   "name": "Amazon Brand \u2013 Rivet King Street Industrial Floating Side Table Night Stand, Wal"
+  },
+  {
+   "id": "bed-5",
+   "kind": "bed",
+   "room": "bedroom-5",
+   "footprint_m": [
+    1.801,
+    2.012
+   ],
+   "asset": "abo:B07HSF3Y12",
+   "asset_m": [
+    1.76,
+    2.15
+   ],
+   "name": "Amazon Brand \u2013 Stone & Beam Rylee Modern Acacia Wood Queen Bed, 67.52\"W, Gray-Wa"
+  },
+  {
+   "id": "bedside-5-south",
+   "kind": "cabinet",
+   "room": "bedroom-5",
+   "footprint_m": [
+    0.441,
+    0.45
+   ],
+   "asset": "abo:B072ZK885L",
+   "asset_m": [
+    0.38,
+    0.38
+   ],
+   "name": "Amazon Brand \u2013 Rivet King Street Industrial Floating Side Table Night Stand, Wal"
+  }
+ ],
+ "furnished_export": "ok",
+ "options": {
+  "styled": {
+   "saved": "option.styled.json",
+   "pieces": 84
+  }
+ },
+ "door_swings": {
+  "door-entrance": {
+   "mechanism": "hinged",
+   "hinge": "right",
+   "swing": -1
+  },
+  "door-bedroom-4": {
+   "mechanism": "hinged",
+   "hinge": "right",
+   "swing": -1
+  },
+  "door-bathroom-7": {
+   "mechanism": "hinged",
+   "hinge": "left",
+   "swing": 1
+  },
+  "door-bathroom-6": {
+   "mechanism": "hinged",
+   "hinge": "right",
+   "swing": 1
+  },
+  "door-bedroom-5": {
+   "mechanism": "hinged",
+   "hinge": "left",
+   "swing": 1
+  },
+  "door-balcony": {
+   "mechanism": "hinged",
+   "hinge": "left",
+   "swing": -1
+  }
+ },
+ "rooms": [
+  {
+   "room": "Bedroom",
+   "m2": 17.44,
+   "printed": 17.6
+  },
+  {
+   "room": "Living room",
+   "m2": 21.43,
+   "printed": 21.6
+  },
+  {
+   "room": "Kitchen",
+   "m2": 5.86,
+   "printed": 5.9
+  },
+  {
+   "room": "Hall",
+   "m2": 20.28,
+   "printed": 20.6
+  },
+  {
+   "room": "Bathroom",
+   "m2": 2.31,
+   "printed": 2.4
+  },
+  {
+   "room": "Bathroom",
+   "m2": 3.45,
+   "printed": 3.8
+  },
+  {
+   "room": "Bedroom",
+   "m2": 11.83,
+   "printed": 12.1
+  },
+  {
+   "room": "Balcony",
+   "m2": 3.79,
+   "printed": 3.6
+  }
+ ]
+}
