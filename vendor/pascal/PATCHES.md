@@ -95,3 +95,13 @@ Base: `@pascal-app/core@1.0.3` (`ebe69be2`). One commit each, so each can become
   other items are unaffected).
 - Files: `packages/viewer/src/systems/wall/wall-cutout-cache.ts`, `packages/nodes/src/shared/node-batch/candidates.ts`.
 - Host side: none (no workaround existed).
+
+## 10. Viewer: noise-free soft shadows for the key light
+- Motivation: three r186's `PCFShadowFilter` rotates 5 Vogel-disk taps per pixel by interleaved gradient noise, which
+  only averages out under TAA; Pascal has none, so every penumbra on walls and floors carried a fixed diagonal stripe
+  pattern, plainest in still captures (headless render page, snapshots). Measured on a Sunday bedroom wall (1024×768,
+  WebGPU): high-frequency noise 0.80 → 0.17 (0.07 with shadows off).
+- Change: `gridShadowFilter` (`lib/shadow-filter.ts`), a 4×4 grid of hardware-compared bilinear taps over ±`radius`
+  texels, set as the directional lights' `shadow.filterNode`. Same shadow map, bias and radius.
+- Files: `packages/viewer/src/lib/shadow-filter.ts`, `packages/viewer/src/components/viewer/lights.tsx`.
+- Host side: none (no workaround existed).
