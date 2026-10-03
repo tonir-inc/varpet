@@ -141,3 +141,22 @@ test('a floor finish the v1 flat assigned wins over the room default', () => {
   const slab = (Object.values(convertV1Scene(v1).graph.nodes) as Node[]).find((n) => n.type === 'slab' && n.metadata.v1Id === kitchen.id)!
   assert.equal(slab.slots.surface, 'library:varpet-travertine')
 })
+
+test('a v1 door keeps its hinge side and swing: v1 hinge/swing map to Pascal hingesSide/swingDirection', () => {
+  const v1 = source('komitas-b3-t9')
+  const meta = v1.project!.metadata!
+  const { graph } = convertV1Scene(v1)
+  const doors = (Object.values(graph.nodes) as Node[]).filter((n) => n.type === 'door')
+  const annotated = doors.filter((d) => meta[d.metadata.v1Id]?.hinge)
+  assert.ok(annotated.length >= 7)
+  for (const door of annotated) {
+    const m = meta[door.metadata.v1Id]!
+    assert.equal(door.hingesSide, m.hinge, door.id)
+    assert.equal(door.swingDirection, m.swing === 1 ? 'inward' : 'outward', door.id)
+  }
+  // a door without metadata keeps Pascal's defaults
+  const plain = convertV1Scene({ ...v1, project: { ...v1.project, metadata: {} } })
+  const first = (Object.values(plain.graph.nodes) as Node[]).find((n) => n.type === 'door')!
+  assert.equal(first.hingesSide, 'left')
+  assert.equal(first.swingDirection, 'inward')
+})

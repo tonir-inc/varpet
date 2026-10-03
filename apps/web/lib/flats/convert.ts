@@ -44,7 +44,7 @@ export interface V1Scene {
   rooms: V1Room[]
   walls: V1Wall[]
   project?: {
-    metadata?: Record<string, { name?: string; zone?: string } | undefined>
+    metadata?: Record<string, { name?: string; zone?: string; hinge?: 'left' | 'right'; swing?: 1 | -1 } | undefined>
     materials?: V1FinishMaterial[]
     finishes?: V1FinishAssignment[]
   }
@@ -122,6 +122,14 @@ function doorStyle(assetId: string | undefined): Record<string, unknown> {
   if (assetId?.includes('french')) return { doorType: 'french', leafCount: 2 }
   return {}
 }
+/** v1 door metadata (hinge at the wall-start or wall-end jamb, swing toward the wall's left normal or away) as
+ * Pascal's door fields: both measure along the wall from its start with the normal (-dz, dx), so they map 1:1. */
+function doorSwing(meta: { hinge?: 'left' | 'right'; swing?: 1 | -1 } | undefined): Record<string, unknown> {
+  return {
+    ...(meta?.hinge ? { hingesSide: meta.hinge } : {}),
+    ...(meta?.swing ? { swingDirection: meta.swing === 1 ? 'inward' : 'outward' } : {}),
+  }
+}
 function windowStyle(assetId: string | undefined): Record<string, unknown> {
   if (!assetId) return {}
   if (assetId.includes('slider')) return { windowType: 'sliding', columnRatios: [0.5, 0.5] }
@@ -185,7 +193,7 @@ export function convertV1Scene(scene: V1Scene): ConvertedFlat {
         metadata: { v1Id: opening.id, ...(opening.assetId ? { v1AssetId: opening.assetId } : {}) },
       }
       return opening.kind === 'door'
-        ? add(DoorNode.parse({ ...common, id: `door_${slug(opening.id)}`, position: [x, round(opening.height / 2), 0], ...doorStyle(opening.assetId) }))
+        ? add(DoorNode.parse({ ...common, id: `door_${slug(opening.id)}`, position: [x, round(opening.height / 2), 0], ...doorStyle(opening.assetId), ...doorSwing(scene.project?.metadata?.[opening.id]) }))
         : add(WindowNode.parse({ ...common, id: `window_${slug(opening.id)}`, position: [x, round(opening.sill + opening.height / 2), 0], ...windowStyle(opening.assetId) }))
     })
     levelChildren.push(add(WallNode.parse({
