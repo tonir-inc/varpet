@@ -10,6 +10,7 @@ import { FLAG_TEXT, searchPages, toProduct, type Catalog, type FetchPage, type P
 import { mountOf } from './mount.ts'
 import { gltfBounds, hangAt, normalizeHang, type Bounds } from './model-bounds.ts'
 import { createSceneServer } from './server.ts'
+import type { HeightMap } from './surface.ts'
 
 const TEMPLATE = join(import.meta.dirname, '../../../apps/web/lib/flats/templates/sunday-b12121.json')
 const ORIGIN = 'https://varpet.example'
@@ -124,6 +125,10 @@ const products: Record<string, ProductHit> = Object.fromEntries(
     toProduct({ id: 'extra:curtain', name: 'Natural linen wave curtains, 210x260', kind: 'curtain', placement: 'wall', source: 'extra', size_m: [2.1, 0.27, 2.66], glb_url: 'http://c/models/extra-c.glb', price: 5 }, ORIGIN),
     toProduct({ id: 'abo:pendant', name: 'Glass ceiling pendant', kind: 'light', size_m: [0.3, 0.3, 1.05], price: 5 }, ORIGIN),
     toProduct({ id: 'abo:tv', name: '55 inch TV', kind: 'tv', size_m: [1.23, 0.06, 0.71], price: 5 }, ORIGIN),
+    toProduct({ id: 'extra:bed', name: 'Oak bed 160x200 with tall headboard', kind: 'bed', source: 'extra', size_m: [1.7, 2.1, 1.1], glb_url: 'http://c/models/extra-bed.glb', price: 5 }, ORIGIN),
+    toProduct({ id: 'extra:sofa', name: 'Three seat sofa', kind: 'sofa', source: 'extra', size_m: [2.1, 0.9, 0.85], glb_url: 'http://c/models/extra-sofa.glb', price: 5 }, ORIGIN),
+    toProduct({ id: 'extra:bedding', name: 'Bedding set for a 160x200 queen bed: sage linen duvet', kind: 'throw_blanket', placement: 'surface', source: 'extra', size_m: [1.7, 2.03, 0.66], glb_url: 'http://c/models/extra-bedding.glb', price: 5 }, ORIGIN),
+    toProduct({ id: 'extra:cushions', name: 'Throw pillows, set of 2', kind: 'cushion', placement: 'floor', source: 'extra', size_m: [0.94, 0.45, 0.45], glb_url: 'http://c/models/extra-cushions.glb', price: 5 }, ORIGIN),
     toProduct({ id: 'extra:table', name: 'Oak dining table 140x80', kind: 'table', source: 'extra', size_m: [1.4, 0.8, 0.75], glb_url: 'http://c/models/extra-t.glb', price: 5 }, ORIGIN),
     toProduct({ id: 'extra:cone', name: 'Pendant light, black metal cone 45 cm', kind: 'light', placement: 'ceiling', source: 'extra', size_m: [0.452, 0.452, 1.0026], glb_url: 'http://c/models/extra-cone.glb', price: 5, raw: { hang: CONE_HANG } }, ORIGIN),
   ].map((p) => [p.id, p]),
@@ -163,7 +168,25 @@ async function sundayScene() {
     const product = Object.values(products).find((p) => p.glbUrl === url)
     return product ? (bounds[product.id] ?? null) : null
   }
-  const { server } = await createSceneServer({ store, sceneId: meta.id, catalog: fakeCatalog, modelBounds })
+  // Host models as height maps: a bed whose headboard (local z < -0.95) stands 1.1 m and whose mattress top is 0.52;
+  // a sofa whose back (local z < -0.25) is 0.85 and whose seat is 0.44. 5 cm cells over the model's box.
+  const heightMap = ([w, d]: [number, number], at: (x: number, z: number) => number): HeightMap => {
+    const cell = 0.05
+    const nx = Math.ceil(w / cell)
+    const nz = Math.ceil(d / cell)
+    const top = new Float32Array(nx * nz)
+    for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) top[j * nx + i] = at(-w / 2 + (i + 0.5) * cell, -d / 2 + (j + 0.5) * cell)
+    return { x0: -w / 2, z0: -d / 2, cell, nx, nz, top }
+  }
+  const heights: Record<string, HeightMap> = {
+    'extra:bed': heightMap([1.7, 2.1], (_x, z) => (z < -0.95 ? 1.1 : 0.52)),
+    'extra:sofa': heightMap([2.1, 0.9], (_x, z) => (z < -0.25 ? 0.85 : 0.44)),
+  }
+  const modelHeights = async (url: string) => {
+    const product = Object.values(products).find((p) => p.glbUrl === url)
+    return product ? (heights[product.id] ?? null) : null
+  }
+  const { server } = await createSceneServer({ store, sceneId: meta.id, catalog: fakeCatalog, modelBounds, modelHeights })
   const [a, b] = InMemoryTransport.createLinkedPair()
   const client = new Client({ name: 'test', version: '0' })
   await Promise.all([server.connect(a), client.connect(b)])
@@ -346,4 +369,34 @@ test('gltfBounds reads the hang contract from the root extras, and drops it when
   })
   assert.equal(gltfBounds(gltf(['canopy', 'cord', 'body']))!.hang!.adjustable, true)
   assert.deepEqual(gltfBounds(gltf(['canopy', 'body']))!.hang, { adjustable: false, drop_m: 1.0026 })
+})
+
+test('a bedding set placed over a bed rests on the mattress, not the headboard top', async () => {
+  const { place } = await sundayScene()
+  const bed = (await place({ product_id: 'extra:bed', target_id: 'zone_r-living', position: [-3, 0, -5] })) as { payload: any }
+  const { payload, item } = (await place({ product_id: 'extra:bedding', target_id: 'zone_r-living', position: [-3, 0, -5] })) as { payload: any; item: Item }
+  assert.equal(payload.mount, 'surface')
+  assert.deepEqual(payload.on, { id: bed.payload.itemId, name: 'Oak bed 160x200 with tall headboard', top: 0.52, from: 'model' })
+  assert.deepEqual(item.position, [-3, 0.52, -5])
+  // Or name the bed: position and rotation follow it.
+  const named = (await place({ product_id: 'extra:bedding', target_id: bed.payload.itemId })) as { payload: any; item: Item }
+  assert.equal(named.payload.on.top, 0.52)
+  assert.deepEqual(named.item.position, [-3, 0.52, -5])
+})
+
+test('cushions tagged floor still dress the sofa: they land on its seat; a given height is kept', async () => {
+  const { place } = await sundayScene()
+  const sofa = (await place({ product_id: 'extra:sofa', target_id: 'zone_r-living', position: [-3, 0, -5], rotation: Math.PI })) as { payload: any }
+  // Turned round, the sofa's back is toward +z; cushions centred 0.1 m in front of its middle sit on the seat.
+  const { payload, item } = (await place({ product_id: 'extra:cushions', target_id: 'zone_r-living', position: [-3, 0, -5.1], rotation: Math.PI })) as { payload: any; item: Item }
+  assert.equal(payload.mount, 'surface')
+  assert.equal(payload.on.id, sofa.payload.itemId)
+  assert.equal(item.position[1], 0.44)
+  const given = (await place({ product_id: 'extra:cushions', target_id: 'zone_r-living', position: [-3, 0.6, -5.1] })) as { item: Item }
+  assert.equal(given.item.position[1], 0.6)
+  const floor = (await place({ product_id: 'extra:cushions', target_id: 'zone_r-living', position: [-4.5, 0, -7] })) as { payload: any; item: Item }
+  assert.equal(floor.item.position[1], 0)
+  assert.match(floor.payload.notes[0], /nothing under/)
+  const refused = await place({ product_id: 'extra:sofa', target_id: sofa.payload.itemId })
+  assert.match((refused as { error: string }).error, /only a surface piece/)
 })

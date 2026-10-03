@@ -32,7 +32,7 @@ export interface Hang {
 
 type Mat = number[] // column-major 4x4
 type GltfNode = { name?: string; mesh?: number; children?: number[]; matrix?: number[]; translation?: number[]; rotation?: number[]; scale?: number[]; extras?: Record<string, unknown> }
-type Gltf = {
+export type Gltf = {
   scene?: number
   scenes?: Array<{ nodes?: number[] }>
   nodes?: GltfNode[]
@@ -40,7 +40,7 @@ type Gltf = {
   accessors?: Array<{ min?: number[]; max?: number[] }>
 }
 
-function compose(n: GltfNode): Mat {
+export function compose(n: GltfNode): Mat {
   if (n.matrix?.length === 16) return n.matrix
   const [tx, ty, tz] = n.translation ?? [0, 0, 0]
   const [x, y, z, w] = n.rotation ?? [0, 0, 0, 1]
@@ -53,7 +53,7 @@ function compose(n: GltfNode): Mat {
   ]
 }
 
-function multiply(a: Mat, b: Mat): Mat {
+export function multiply(a: Mat, b: Mat): Mat {
   const out = new Array<number>(16)
   for (let c = 0; c < 4; c++) {
     for (let r = 0; r < 4; r++) {

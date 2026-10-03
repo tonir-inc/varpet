@@ -30,6 +30,8 @@ const FLOOR_MIRROR = /\bfloor\b|\bstanding\b|full[- ]length|\blean(er|ing)\b|\bc
 const SURFACE_MIRROR = /\bvanity\b|\btable ?top\b|\btable mirror|\bmakeup\b|\bcountertop\b/i
 const SURFACE_CLOCK = /\b(table|desk|mantel|alarm|shelf) clock|\bclock,? (table|desk|mantel)\b/i
 const ALWAYS_WALL = new Set(['wall_art', 'wall_hanging', 'curtain', 'blind', 'radiator'])
+/** Soft goods that dress another piece; some catalog entries tag them 'floor'. */
+const ALWAYS_SURFACE = new Set(['cushion', 'pillow', 'throw_blanket', 'throw', 'bedding'])
 const SURFACE_KINDS = new Set(['decor', 'laptop', 'computer', 'monitor', 'printer', 'game_console', 'microwave', 'speaker', 'vase', 'candle', 'book', 'books'])
 
 /**
@@ -37,6 +39,7 @@ const SURFACE_KINDS = new Set(['decor', 'laptop', 'computer', 'monitor', 'printe
  * `size` is Pascal's [w, h, d]. A default, not a rule: place_product takes `mount` to override it (a TV on a wall).
  */
 export function mountOf(item: { kind: string; name: string; placement?: string | null; size?: [number, number, number] }): Mount {
+  if (ALWAYS_SURFACE.has(item.kind) || /\bbedding set\b|\bduvet\b|\bthrow pillows?\b|\bcushion set\b/i.test(item.name)) return 'surface'
   const tagged = item.placement ? PLACEMENT[item.placement.trim().toLowerCase()] : undefined
   if (tagged) return tagged
   const { kind, name } = item

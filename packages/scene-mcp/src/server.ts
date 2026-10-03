@@ -13,6 +13,7 @@ import { finishMaterialItems } from '../../contracts/src/finishes.ts'
 import { registerFinishTools } from './finishes.ts'
 import { registerViewSceneTool, type Renderer } from './view-scene.ts'
 import { checkClearances } from './clearances.ts'
+import { hostOf, hostUnder, httpModelHeights, restOn, type ModelHeights } from './surface.ts'
 import { dropRange, hangAt, httpModelBounds, normalizeHang, type Bounds, type Hang, type ModelBounds } from './model-bounds.ts'
 import { ceilingPose, defaultWallBottom, MOUNTS, nearestWall, tableUnder, wallPose, windowHang, type Mount } from './mount.ts'
 
@@ -51,10 +52,12 @@ export interface SceneServerOptions {
   render?: Renderer
   /** Reads a model's box so hung pieces sit right whatever their origin (default: fetch the GLB). */
   modelBounds?: ModelBounds
+  /** Reads a host model's height map so surface pieces rest on a seat or mattress, not its box top (default: fetch). */
+  modelHeights?: ModelHeights
 }
 
 /** Load the scene, bind Pascal's operations to it and build the server. Throws when the scene does not exist. */
-export async function createSceneServer({ store, sceneId, catalog, publicOrigin, render, modelBounds = httpModelBounds() }: SceneServerOptions): Promise<{
+export async function createSceneServer({ store, sceneId, catalog, publicOrigin, render, modelBounds = httpModelBounds(), modelHeights = httpModelHeights() }: SceneServerOptions): Promise<{
   server: McpServer
   operations: SceneOperations
 }> {
@@ -73,7 +76,7 @@ export async function createSceneServer({ store, sceneId, catalog, publicOrigin,
     name: 'varpet-scene',
     hiddenTools: HIDDEN_TOOLS,
     registerHostTools: (host) => {
-      registerProductTools(host, operations, catalog, modelBounds)
+      registerProductTools(host, operations, catalog, modelBounds, modelHeights)
       registerFinishTools(host, operations, publishSnapshot)
       registerClearanceTool(host, operations)
       if (render) registerViewSceneTool(host, operations, render)
@@ -184,7 +187,7 @@ function failure(message: string) {
   return { content: [{ type: 'text' as const, text: message }], isError: true }
 }
 
-function registerProductTools(server: McpServer, operations: SceneOperations, catalog: Catalog, modelBounds: ModelBounds) {
+function registerProductTools(server: McpServer, operations: SceneOperations, catalog: Catalog, modelBounds: ModelBounds, modelHeights: ModelHeights) {
   server.registerTool(
     'search_products',
     {
@@ -293,8 +296,10 @@ function registerProductTools(server: McpServer, operations: SceneOperations, ca
         'Place a real catalog product, mounted the way it goes up (the product\'s mount, or `mount` to override, ' +
         'e.g. a TV on a wall or a leaning mirror on the floor). ' +
         'Floor and surface pieces: target_id is a level, zone (room) or slab; position is the footprint centre ' +
-        '[x, y, z] in level coordinates, metres, y = 0 on the floor (a surface piece: y = the top of what it stands ' +
-        'on); rotation is about the vertical axis in radians, at 0 width along x and the front facing +z; ' +
+        '[x, y, z] in level coordinates, metres, y = 0 on the floor. A surface piece (lamps, decor, cushions, throws, ' +
+        'bedding sets) with y = 0 over another piece rests on it: the table top, the sofa seat, the bed\'s mattress ' +
+        '(read from that piece\'s model, not its box), or give target_id = that piece (position defaults to its ' +
+        'centre, rotation to its own); a y > 0 is kept as given. rotation is about the vertical axis in radians, at 0 width along x and the front facing +z; ' +
         'rotation = atan2(dx, dz) turns the front toward (dx, dz). ' +
         'Wall pieces (art, mirrors, wall lamps, wall shelves, curtains, blinds) hang on a wall face, back on the ' +
         'wall, facing the room: give wall_id with along (metres from the wall\'s start to the piece\'s centre) and ' +
@@ -341,15 +346,37 @@ function registerProductTools(server: McpServer, operations: SceneOperations, ca
       const flags = product.flags?.length ? { flags: product.flags } : {}
 
       if (mount === 'floor' || mount === 'surface') {
-        if (!target) return failure('target_required: a floor or surface piece needs target_id (a level, zone or slab)')
-        if (!['level', 'zone', 'slab'].includes(target.type)) {
+        if (!target) return failure('target_required: a floor or surface piece needs target_id (a level, zone or slab; for a surface piece also the piece it goes on)')
+        const onItem = target.type === 'item'
+        if (onItem && mount !== 'surface') return failure(`bad_target: ${target_id} is an item; only a surface piece goes on one (mount: 'surface')`)
+        if (!onItem && !['level', 'zone', 'slab'].includes(target.type)) {
           return failure(`bad_target: ${target_id} is a ${target.type}; use a level, zone or slab (or mount: 'wall' / 'ceiling')`)
         }
-        if (!position) return failure('position_required: a floor or surface piece needs position [x, y, z]')
         const levelId = target.type === 'level' ? target_id : operations.resolveLevelId(target_id as never)
         if (!levelId) return failure(`no_level_for_target: ${target_id}`)
-        const angle = rotation ?? 0
-        const node = productItemNode(product, position as [number, number, number], angle)
+        const all = operations.getNodes() as unknown as Record<string, AnyNode>
+        let at = position as [number, number, number] | undefined
+        if (!at && onItem) at = [...((target.position as [number, number, number] | undefined) ?? [0, 0, 0])]
+        if (!at) return failure('position_required: a floor or surface piece needs position [x, y, z]')
+        at = [at[0], at[1], at[2]]
+        const angle = rotation ?? (onItem ? (((target.rotation as number[] | undefined) ?? [0, 0, 0])[1] ?? 0) : 0)
+        const notes: string[] = []
+        let on: Record<string, unknown> | undefined
+        // A surface piece lands on the piece under it (a seat, a mattress, a table top) unless given its own height.
+        if (mount === 'surface') {
+          const host = onItem ? hostOf(target) : hostUnder(all, levelId, [at[0], at[2]])
+          if (host && (onItem || at[1] < 0.05)) {
+            const src = (host.node.asset as { src?: string } | undefined)?.src
+            const map = src ? await modelHeights(src) : null
+            const rest = restOn(host, map, [at[0], at[2]], [product.dimensions[0], product.dimensions[2]], angle)
+            at[1] = rest.top
+            on = { id: host.id, name: host.name.slice(0, 60), top: rest.top, from: rest.from }
+            if (rest.from === 'box') notes.push(`rests on the top of ${host.id}'s box (${rest.top} m): its model could not be read, so a seat or mattress may be lower`)
+          } else if (!host && at[1] < 0.05) {
+            notes.push(`nothing under (${round(at[0])}, ${round(at[2])}): on the floor; give target_id = the piece it goes on, or position over it`)
+          }
+        }
+        const node = productItemNode(product, at, angle)
         const itemId = operations.createNode(node as never, levelId as never)
         await publishSnapshot(operations, 'place_product')
         const [w, , d] = product.dimensions
@@ -359,8 +386,11 @@ function registerProductTools(server: McpServer, operations: SceneOperations, ca
           itemId,
           levelId,
           ...placed,
-          footprint: { x: round(w * cos + d * sin), z: round(w * sin + d * cos), center: [position[0], position[2]] },
+          footprint: { x: round(w * cos + d * sin), z: round(w * sin + d * cos), center: [at[0], at[2]] },
+          ...(mount === 'surface' ? { bottom: at[1] } : {}),
+          ...(on ? { on } : {}),
           ...flags,
+          ...(notes.length ? { notes } : {}),
         })
       }
 
