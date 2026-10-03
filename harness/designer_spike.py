@@ -37,6 +37,21 @@ def engine(environ=os.environ) -> str:
     return value
 
 
+def agent(environ=os.environ) -> str:
+    """VARPET_SPIKE_AGENT: the model behind the spike designer. `codex` (default: gpt-6-astra through the Codex SDK)
+    or `claude` (Claude Code headless, VARPET_SPIKE_CLAUDE_MODEL, default claude-opus-5-5): same workspace,
+    instructions, ./varpet tools and checks. The claude agent works alone: the parallel room designers and the critic
+    are Codex threads, so they are off with it."""
+    value = environ.get("VARPET_SPIKE_AGENT", "codex").strip().lower() or "codex"
+    if value not in ("codex", "claude"):
+        raise ValueError("VARPET_SPIKE_AGENT must be codex or claude")
+    return value
+
+
+def critic_on(environ=os.environ) -> bool:
+    return environ.get("VARPET_SPIKE_CRITIC", "1") != "0" and agent(environ) == "codex"
+
+
 _spike = None
 
 # What the service has warmed at boot; GET /designer/health reports it so the editor can say "warming up".
@@ -74,9 +89,10 @@ def warm_up(keepalive: float = 600.0, stop: threading.Event | None = None) -> No
     stop = stop or threading.Event()
     WARM["renderer"] = "starting"
     WARM["renderer"] = "ready" if _start_view_daemon() else "failed"
-    WARM["codex"] = "starting"
+    WARM["codex"] = "starting"  # the model agent; the editor reads this key whichever agent it is
     try:
-        WARM["codex"] = "ready" if _warm_codex() else "failed"
+        WARM["codex"] = ("ready" if shutil.which("claude") else "failed") if agent() == "claude" else (
+            "ready" if _warm_codex() else "failed")
     except Exception:
         WARM["codex"] = "failed"
     while not stop.wait(keepalive):
@@ -780,7 +796,7 @@ class EarlyReviews:
 
     def start(self, work: Path, rooms: list[str], signatures: dict[str, str | None]) -> None:
         critic = critic_module()
-        if critic is None or not rooms or os.environ.get("VARPET_SPIKE_CRITIC", "1") == "0" or tools() == "mcp":
+        if critic is None or not rooms or not critic_on() or tools() == "mcp":
             return
         try:
             spike_module().link_tools(work)
@@ -818,7 +834,7 @@ def _review(state: SpikeConversation, brief: str, rooms: list[str], cancel: thre
     early reviews already saw as they are now are not reviewed again); on blocker or major issues resume the
     designer thread once to fix them. A fix that fails the check is rolled back."""
     critic = critic_module()
-    if critic is None or not rooms or os.environ.get("VARPET_SPIKE_CRITIC", "1") == "0" or tools() == "mcp":
+    if critic is None or not rooms or not critic_on() or tools() == "mcp":
         return {"skipped": True}
     names = {room["id"]: room.get("name") or room["id"] for room in state.rooms}
     started = time.monotonic()
@@ -957,8 +973,112 @@ def _turn_text(request: str, first: bool, edits: dict | None = None, budget: int
             "question, answer it in that paragraph and leave draft.json alone.")
 
 
+CLAUDE_TOOLS = "Bash,Read,Write,Edit,Glob,Grep"
+CLAUDE_LIMIT = re.compile(r"usage limit|rate limit|limit reached|out of extra usage", re.I)
+
+
+def _claude_text(turn_input) -> str:
+    """Claude Code takes text: an attached inspiration picture is named by path for it to Read."""
+    if isinstance(turn_input, str):
+        return turn_input
+    parts = []
+    for part in turn_input:
+        if hasattr(part, "text"):
+            parts.append(part.text)
+        elif hasattr(part, "path"):
+            parts.append(f"(Picture attached by the customer: {part.path}. Read it before you design.)")
+    return "\n".join(parts)
+
+
+def _run_turn_claude(state: SpikeConversation, turn_input, cancel: threading.Event, observer: Progress,
+                     timeout: float) -> dict:
+    """One turn of the spike designer on Claude Code headless (VARPET_SPIKE_AGENT=claude). The session id plays the
+    Codex thread id, so a follow-up resumes the same conversation. Only project settings load (the workspace has
+    none): no personal CLAUDE.md, hooks or MCP servers; tools are the shell and file tools in the workspace, no web."""
+    model = os.environ.get("VARPET_SPIKE_CLAUDE_MODEL", "claude-opus-5-5")
+    command = ["claude", "-p", _claude_text(turn_input), "--model", model, "--output-format", "stream-json", "--verbose",
+               "--setting-sources", "project", "--strict-mcp-config", "--mcp-config", '{"mcpServers": {}}',
+               "--append-system-prompt", state.instructions or "", "--permission-mode", "acceptEdits",
+               "--allowedTools", CLAUDE_TOOLS, "--disallowedTools", "WebFetch,WebSearch,Task"]
+    if state.thread_id:
+        command += ["--resume", state.thread_id]
+    started = time.monotonic()
+    errors = (state.workspace / "claude.stderr").open("w")
+    process = subprocess.Popen(command, cwd=state.workspace, stdout=subprocess.PIPE, stderr=errors, text=True,
+                               stdin=subprocess.DEVNULL)
+    timed_out = threading.Event()
+    done = threading.Event()
+
+    def watch():
+        deadline = time.monotonic() + timeout
+        while not done.wait(0.5):
+            if cancel.is_set() or time.monotonic() > deadline:
+                if not cancel.is_set():
+                    timed_out.set()
+                process.kill()
+                return
+
+    watcher = threading.Thread(target=watch, daemon=True)
+    watcher.start()
+    commands: dict[str, str] = {}
+    final = result = None
+    try:
+        with (state.workspace / "events.jsonl").open("a") as log:
+            for line in process.stdout:
+                try:
+                    event = json.loads(line)
+                except ValueError:
+                    continue
+                log.write(json.dumps({"t": round(time.monotonic() - started, 3), "claude": event}, ensure_ascii=False) + "\n")
+                kind = event.get("type")
+                if kind == "system" and event.get("session_id"):
+                    state.thread_id = event["session_id"]
+                elif kind == "assistant":
+                    for block in (event.get("message") or {}).get("content") or []:
+                        if block.get("type") == "text" and block.get("text"):
+                            observer.item("item/completed", {"type": "agentMessage", "phase": "commentary", "text": block["text"]})
+                        elif block.get("type") == "tool_use":
+                            tool_input = block.get("input") or {}
+                            if block.get("name") == "Bash":
+                                commands[block["id"]] = str(tool_input.get("command") or "")
+                                observer.item("item/started", {"type": "commandExecution", "command": commands[block["id"]]})
+                            elif block.get("name") == "Read" and str(tool_input.get("file_path", "")).endswith(".png"):
+                                observer.item("item/completed", {"type": "imageView", "path": tool_input["file_path"]})
+                elif kind == "user":
+                    for block in (event.get("message") or {}).get("content") or []:
+                        if block.get("type") == "tool_result" and block.get("tool_use_id") in commands:
+                            content = block.get("content")
+                            text = content if isinstance(content, str) else "\n".join(
+                                c.get("text", "") for c in content or [] if isinstance(c, dict))
+                            observer.item("item/completed", {"type": "commandExecution", "command": commands[block["tool_use_id"]],
+                                                             "aggregatedOutput": text, "exitCode": 1 if block.get("is_error") else 0})
+                elif kind == "result":
+                    result = event
+                    final = event.get("result")
+                    state.thread_id = event.get("session_id") or state.thread_id
+        process.wait()
+    finally:
+        done.set()
+        watcher.join()
+        errors.close()
+    if cancel.is_set():
+        raise RuntimeError("Request cancelled")
+    if timed_out.is_set():
+        raise RuntimeError("The designer ran out of time on this request; try a smaller request or ask again")
+    if not result or result.get("is_error") or result.get("subtype") != "success":
+        detail = json.dumps(result, default=str)[:1500] if result else (state.workspace / "claude.stderr").read_text()[-1500:]
+        print(json.dumps({"type": "spike_turn_failed", "agent": "claude", "detail": detail}), file=__import__("sys").stderr, flush=True)
+        if CLAUDE_LIMIT.search(detail or ""):
+            raise RuntimeError("The designer has reached its usage limit. You can still move and rotate pieces yourself.")
+        raise RuntimeError("The designer stopped before finishing")
+    usage = result.get("usage") or {}
+    return {"final": final, "usage": {**usage, "costUsd": result.get("total_cost_usd")}, "seconds": round(time.monotonic() - started, 1)}
+
+
 def _run_turn(state: SpikeConversation, turn_input, cancel: threading.Event, observer: Progress, timeout: float,
               config: dict | None = None) -> dict:
+    if agent() == "claude":
+        return _run_turn_claude(state, turn_input, cancel, observer, timeout)
     spike = spike_module()
     from openai_codex import ApprovalMode, Codex, CodexConfig, Sandbox
     from openai_codex.generated.v2_all import ReasoningEffort
@@ -1231,7 +1351,7 @@ def propose(conversation, conversation_id: str, body: dict, cancel: threading.Ev
         mode = os.environ.get("VARPET_SPIKE_PARALLEL", "auto")
         parallel_config = None
         # Room sub-agents work through ./varpet in a shell: the scene MCP designer works alone.
-        if (RUN / "SUBAGENT.md").exists() and mode != "off" and tools() != "mcp":
+        if (RUN / "SUBAGENT.md").exists() and mode != "off" and tools() != "mcp" and agent() == "codex":
             parallel_config = spike.codex_config(EFFORT, "workspace-write", True, _codex_extra(state),
                                                  subagents=(RUN / "SUBAGENT.md").read_text())
         parallel = parallel_config is not None and first_design and (mode == "on" or whole_flat(brief, state.rooms))
@@ -1239,7 +1359,7 @@ def propose(conversation, conversation_id: str, body: dict, cancel: threading.Ev
         critic = critic_module()
         # Parallel room designers get the critic inside the loop (critic.Reviewer: each room designer asks for a review
         # with ./varpet review and fixes it while its context is warm); the end is then one whole-flat pass.
-        in_loop = parallel and critic is not None and hasattr(critic, "Reviewer") and os.environ.get("VARPET_SPIKE_CRITIC", "1") != "0" and tools() != "mcp"
+        in_loop = parallel and critic is not None and hasattr(critic, "Reviewer") and critic_on() and tools() != "mcp"
         early = (EarlyReviews(brief, progress, {room["id"]: room.get("name") or room["id"] for room in state.rooms})
                  if first_design and not in_loop else None)
         watcher = DraftWatcher(state, progress, body, turn, observer=observer,

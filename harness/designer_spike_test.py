@@ -10,6 +10,25 @@ class SpikeServiceTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             designer_spike.engine({"VARPET_DESIGNER_ENGINE": "fast"})
 
+    def test_agent_defaults_to_codex_and_claude_turns_the_codex_critic_off(self):
+        self.assertEqual(designer_spike.agent({}), "codex")
+        self.assertTrue(designer_spike.critic_on({}))
+        self.assertEqual(designer_spike.agent({"VARPET_SPIKE_AGENT": "claude"}), "claude")
+        self.assertFalse(designer_spike.critic_on({"VARPET_SPIKE_AGENT": "claude"}))
+        self.assertFalse(designer_spike.critic_on({"VARPET_SPIKE_CRITIC": "0"}))
+        with self.assertRaises(ValueError):
+            designer_spike.agent({"VARPET_SPIKE_AGENT": "gpt"})
+
+    def test_claude_turn_text_names_an_attached_picture(self):
+        class Text:
+            text = "Customer request: style it"
+        class Picture:
+            path = "/w/inspiration.png"
+        self.assertEqual(designer_spike._claude_text("plain"), "plain")
+        text = designer_spike._claude_text([Picture(), Text()])
+        self.assertIn("/w/inspiration.png", text)
+        self.assertIn("style it", text)
+
     def test_strip_design_removes_only_the_designs_own_records(self):
         doc = {"objects": [{"id": "sofa"}, {"id": "own-chair"}],
                "project": {"components": [{"id": "pendant"}, {"id": "radiator"}],
