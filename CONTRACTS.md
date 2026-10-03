@@ -76,7 +76,7 @@ that file and this one in the same commit, and say so in the commit message.
   (`wall` or `ceiling`, `center`, `bottom`) and `notes`.
 - Surface pieces (`mount: surface`; kinds cushion, pillow, throw_blanket, bedding and names like "bedding set" are
   surface whatever their tag) placed with y < 0.05 over a floor piece, or with `target_id` = that piece (position
-  defaults to its centre, rotation to its own), rest on it: y = the median top of the host's model over the piece's
+  defaults to its centre, rotation to its own), rest on it: y = the lowest level (3 cm band) holding 30% of the host model's top over the piece's
   footprint (`surface.ts`: the host GLB as a 4 cm height map, so a bed's mattress and a sofa's seat, not the headboard
   or back), else the host's box top with a note. A y >= 0.05 is kept. Results add `bottom` and `on: {id, name, top,
   from: model|box}`; nothing under a y-0 surface piece leaves it on the floor with a note.

@@ -1,7 +1,7 @@
 // Where a surface piece rests: on the top of the floor piece under it (a table top, a sofa seat, a bed's mattress).
 // A box top is wrong for beds and sofas (the headboard or the back is the tallest part), so the host's model is read
 // as a height map: every triangle sampled every few cm, the highest point kept per cell, in the model's own frame.
-// The rest height under a footprint is the median of those cells, which skips a headboard band or a sofa back.
+// The rest height under a footprint is the lowest level holding 30% of those cells: past a headboard or sofa back.
 import { compose, glbJson, multiply, type Gltf } from './model-bounds.ts'
 
 type Point = [number, number]
@@ -112,7 +112,7 @@ export function glbHeightMap(bytes: Uint8Array): HeightMap | null {
   return { x0, z0, cell: CELL, nx, nz, top }
 }
 
-/** Median model height over a rectangle in the model's frame, or null when the model has nothing there. */
+/** The level a piece rests at over a rectangle in the model's frame, or null when the model has nothing there. */
 export function restHeight(map: HeightMap, [cx, cz]: Point, [hx, hz]: Point): number | null {
   const values: number[] = []
   const i0 = Math.max(0, Math.floor((cx - hx - map.x0) / map.cell))
@@ -122,6 +122,15 @@ export function restHeight(map: HeightMap, [cx, cz]: Point, [hx, hz]: Point): nu
   for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) if (!Number.isNaN(map.top[j * map.nx + i]!)) values.push(map.top[j * map.nx + i]!)
   if (!values.length) return null
   values.sort((a, b) => a - b)
+  // The lowest level that carries at least 30% of the footprint: a seat in front of a sofa back, a mattress inside
+  // its headboard and rails. Levels are 3 cm bands grown from the lowest value up.
+  let start = 0
+  while (start < values.length) {
+    let end = start
+    while (end + 1 < values.length && values[end + 1]! - values[start]! <= 0.03) end++
+    if (end - start + 1 >= 0.3 * values.length) return values[Math.floor((start + end) / 2)]!
+    start = end + 1
+  }
   return values[Math.floor(values.length / 2)]!
 }
 
