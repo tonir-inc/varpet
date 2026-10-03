@@ -7,7 +7,10 @@
 // default macOS Google Chrome, else Playwright's own lookup), VARPET_CHROME_ARGS (space-separated flags, replaces the
 // defaults), VARPET_RENDER_PAGE_ORIGIN (where the page loads; default VARPET_PUBLIC_ORIGIN, so model URLs in graphs
 // are same-origin), VARPET_RENDER_IDLE_MS (close the browser after this idle time; default 15 min),
-// VARPET_RENDER_TIMEOUT_MS (per warm job; default 60 s), VARPET_RENDER_DUMP_DIR (debugging: save every image there).
+// VARPET_RENDER_TIMEOUT_MS (per warm job; default 60 s), VARPET_RENDER_DUMP_DIR (debugging: save every image there),
+// VARPET_RENDER_RECYCLE_EVERY (reopen a page after this many renders; default 20), VARPET_RENDER_RECYCLE_HEAP_MB
+// (or once its JS heap passes this; default 1024). A page's renderer process otherwise grows by a few hundred MB per
+// new scene (model caches, GPU buffers) to several GB.
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { Browser, Page } from 'playwright-core'
@@ -30,6 +33,8 @@ export function renderConcurrency(env: NodeJS.ProcessEnv = process.env) {
 
 interface Slot {
   page: Page | null
+  /** Renders on this page since it opened. */
+  renders: number
   inflight: number
   lastNetwork: number
   /** The page being opened, so a warm-up and a first job share one load. */
@@ -56,7 +61,7 @@ const state: BrowserState = ((globalThis as Record<string, unknown>)[STATE_KEY] 
     queue: null,
   } satisfies BrowserState) as BrowserState
 
-const slotOf = (i: number): Slot => (state.slots[i] ??= { page: null, inflight: 0, lastNetwork: 0, opening: null })
+const slotOf = (i: number): Slot => (state.slots[i] ??= { page: null, renders: 0, inflight: 0, lastNetwork: 0, opening: null })
 
 function pageOrigin(env: NodeJS.ProcessEnv) {
   const origin = env.VARPET_RENDER_PAGE_ORIGIN ?? env.VARPET_PUBLIC_ORIGIN
@@ -105,6 +110,7 @@ async function openPage(env: NodeJS.ProcessEnv, slot: Slot): Promise<Page> {
   const context = await browser.newContext({ viewport: { width: 1024, height: 768 }, deviceScaleFactor: 1 })
   const page = await context.newPage()
   page.on('close', () => void context.close().catch(() => {}))
+  slot.renders = 0
   slot.inflight = 0
   slot.lastNetwork = Date.now()
   const started = () => {
@@ -136,6 +142,32 @@ export async function warmUp(env: NodeJS.ProcessEnv = process.env) {
   scheduleIdleClose(env)
   const anyCold = cold || rest.some((r) => r.cold)
   return { cold: anyCold, ms: anyCold ? Date.now() - started : 0 }
+}
+
+/** Whether a page that has drawn `renders` jobs and holds `heapBytes` of JS heap should be closed and reopened. */
+export function shouldRecycle(renders: number, heapBytes: number, env: Record<string, string | undefined> = process.env) {
+  const every = Math.floor(Number(env.VARPET_RENDER_RECYCLE_EVERY)) || 20
+  const heapMb = Number(env.VARPET_RENDER_RECYCLE_HEAP_MB) || 1024
+  return renders >= every || heapBytes >= heapMb * 1024 * 1024
+}
+
+/**
+ * Close the slot's page (its context and renderer process go with it) and open a fresh one in the background, so the
+ * next job waits for a page load rather than a full cold start.
+ */
+function recycle(env: NodeJS.ProcessEnv, i: number) {
+  const slot = slotOf(i)
+  const page = slot.page
+  slot.page = null
+  slot.renders = 0
+  void (async () => {
+    await page?.close().catch(() => {})
+    if (slot.page || slot.opening) return
+    slot.opening = openPage(env, slot).finally(() => {
+      slot.opening = null
+    })
+    await slot.opening
+  })().catch((error) => console.error('[render] reopening a recycled page failed:', error instanceof Error ? error.message : error))
 }
 
 /** Wait until no request of the slot's page has been open for quietMs (late model and texture loads), at most maxMs. */
@@ -173,6 +205,15 @@ export function createBrowserDriver(env: NodeJS.ProcessEnv = process.env): Rende
         const stamp = new Date().toISOString().replace(/[:.]/g, '-')
         writeFileSync(join(env.VARPET_RENDER_DUMP_DIR, `${stamp}-s${i}-${request.wallMode}.jpg`), image)
       }
+      const slot = slotOf(i)
+      slot.renders++
+      const info = await page.evaluate(() => window.__varpetInfo?.()).catch(() => undefined)
+      const heapMb = info?.heapMb ?? 0
+      console.log(`[render] slot ${i} page render ${slot.renders}: JS heap ${heapMb} MB, ${info?.geometries ?? '?'} geometries, ${info?.textures ?? '?'} textures on the GPU`)
+      if (shouldRecycle(slot.renders, heapMb * 2 ** 20, env)) {
+        console.log(`[render] slot ${i} recycled after ${slot.renders} renders (JS heap ${heapMb} MB)`)
+        recycle(env, i)
+      }
       scheduleIdleClose(env)
       return { image, backend, cold }
     },
@@ -180,6 +221,7 @@ export function createBrowserDriver(env: NodeJS.ProcessEnv = process.env): Rende
       const slot = slotOf(i)
       const page = slot.page
       slot.page = null
+      slot.renders = 0
       await page?.close().catch(() => {})
       if (!state.browser?.isConnected()) await closeAll()
     },

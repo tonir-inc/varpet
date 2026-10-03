@@ -199,3 +199,12 @@ test('the cold budget applies per slot', async () => {
   assert.equal(a.status, 'rejected')
   assert.equal(b.status, 'fulfilled')
 })
+
+test('a render page is recycled after N renders or when its JS heap passes the limit', async () => {
+  const { shouldRecycle } = await import('./browser.ts')
+  assert.equal(shouldRecycle(19, 100e6, {}), false)
+  assert.equal(shouldRecycle(20, 100e6, {}), true)
+  assert.equal(shouldRecycle(3, 1600 * 1024 * 1024, {}), true)
+  assert.equal(shouldRecycle(5, 0, { VARPET_RENDER_RECYCLE_EVERY: '5' }), true)
+  assert.equal(shouldRecycle(5, 600 * 1024 * 1024, { VARPET_RENDER_RECYCLE_HEAP_MB: '500' }), true)
+})
