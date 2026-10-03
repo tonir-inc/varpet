@@ -1,10 +1,10 @@
-// Eye-level camera per room for the critic's renders: the same rule as the scene MCP's view_scene 'inside' view
-// (packages/scene-mcp view-scene.ts, eyes lane): stand in the room's door, preferring a door to another room over a
-// balcony or entrance door, stepped into the room, looking at the room's centre; with no door, stand near the corner
-// farthest from the centre. Rendered through a Pascal `spawn` node and the editor's Inside (first-person) view.
-// The eval now renders its room views through POST /api/render with view_scene's own cameras (`roomShots` below,
-// `planView` in packages/scene-mcp/src/view-scene.ts); the spawn path stays for the editor.
-import { insidePolygon } from './room-facts.ts'
+// Which rooms the critic judges (judgedZones) and the views it gets of each (ROOM_VIEWS). The eval renders its room
+// views through POST /api/render with view_scene's own cameras (`planView` in packages/scene-mcp/src/view-scene.ts:
+// eye level from the doorway or corner opposite the focal wall, clear of furniture).
+// eyeSpots/withSpawn below are the older spawn-node path for the editor's Inside view: stand in the room's door,
+// stepped in, looking at the room's centre; with no door, near the corner farthest from the centre.
+import type { EvalCase } from './cases.ts'
+import { changedZones, insidePolygon, roomFacts } from './room-facts.ts'
 
 type Json = Record<string, any>
 type Vec2 = [number, number]
@@ -145,4 +145,37 @@ export function roomZones(graph: Graph, rooms: string[]): Array<{ room: string; 
     const best = named.sort((a, b) => count(b) - count(a))[0]
     return best ? [{ room: String(best.name), zoneId: String(best.id) }] : []
   })
+}
+
+/** A whole-flat ask: a real project, a case about the whole flat, or a brief that asks to furnish the flat. */
+export function wholeFlat(c: Pick<EvalCase, 'room' | 'turns' | 'project'>) {
+  return Boolean(c.project) || /\b(whole|entire) (flat|apartment)\b/i.test(c.room) || c.turns.some((t) => /\b(whole|entire) (flat|apartment)\b|furnish the (flat|apartment)/i.test(t))
+}
+
+/**
+ * The zones the critic judges, in order. A designer's whole-flat ask: every room of the flat, halls, corridors,
+ * entrances, kitchens and bathrooms included (the case's `rooms` first, then the rest, largest first). A one-room
+ * ask: that room (or the case's `rooms`) and every room the agent changed. The architect: the case's `rooms`, else
+ * every room with furniture.
+ */
+export function judgedZones(c: EvalCase, graph: Graph, start: Graph | null): Array<{ room: string; zoneId: string }> {
+  const nodes = Object.values(graph.nodes) as Json[]
+  const zones = nodes.filter((n) => n.type === 'zone' && Array.isArray(n.polygon) && n.polygon.length >= 3)
+  const area = (z: Json) => {
+    let sum = 0
+    const p = z.polygon as Vec2[]
+    for (let i = 0; i < p.length; i++) sum += p[i]![0] * p[(i + 1) % p.length]![1] - p[(i + 1) % p.length]![0] * p[i]![1]
+    return Math.abs(sum) / 2
+  }
+  const named = (names: string[]) => roomZones(graph, names).map((r) => r.zoneId)
+  let ids: string[]
+  if (c.role === 'architect') {
+    ids = c.rooms ? named(c.rooms) : named(roomFacts(graph).map((f) => f.room))
+  } else if (wholeFlat(c)) {
+    ids = [...named(c.rooms ?? []), ...[...zones].sort((a, b) => area(b) - area(a)).map((z) => String(z.id))]
+  } else {
+    ids = [...named(c.rooms ?? [c.room]), ...(start ? changedZones(graph, start) : named(roomFacts(graph).map((f) => f.room)))]
+  }
+  const byId = new Map(zones.map((z) => [String(z.id), z]))
+  return [...new Set(ids)].flatMap((id) => (byId.has(id) ? [{ room: String(byId.get(id)!.name ?? id), zoneId: id }] : []))
 }

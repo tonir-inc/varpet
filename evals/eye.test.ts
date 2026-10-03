@@ -52,3 +52,17 @@ test('room shots go to the named zone, the furnished one when two share a name',
   assert.deepEqual(roomZones(twin, ['Living', 'Hall', 'living', 'Garage']), [{ room: 'living', zoneId: 'living_2' }, { room: 'Hall', zoneId: 'hall' }])
   assert.equal(roomSlug('Living room & kitchen'), 'living-room-kitchen')
 })
+
+test('judged rooms: every room for a whole-flat ask, the asked room plus changed rooms otherwise', async () => {
+  const { judgedZones, wholeFlat } = await import('./eye.ts')
+  const base = { id: 'x', role: 'designer', templateId: null, skill: 'furnish-room', expect: '-' } as const
+  const sofa = { id: 'sofa', type: 'item', parentId: 'level_1', position: [5, 0, 2], rotation: [0, 0, 0], asset: { name: 'Sofa', dimensions: [1, 1, 1] } }
+  const result = { nodes: { ...graph.nodes, sofa } }
+  const flat = { ...base, room: 'whole flat', turns: ['Furnish the whole flat'] }
+  assert.equal(wholeFlat(flat), true)
+  assert.equal(wholeFlat({ ...base, room: 'Living', turns: ['Make the living room cosier'] }), false)
+  // Largest first after the listed rooms: living (16 m2), then hall and balcony (8 m2 each).
+  assert.deepEqual(judgedZones({ ...flat, rooms: ['Hall'] }, result, graph).map((z) => z.room), ['Hall', 'Living', 'Balcony'])
+  // One room asked; the agent also put a sofa in the hall.
+  assert.deepEqual(judgedZones({ ...base, room: 'Living', turns: ['Furnish the living room'] }, result, graph).map((z) => z.room), ['Living', 'Hall'])
+})

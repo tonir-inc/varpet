@@ -8,6 +8,13 @@
 //   against it (within 0.35 m) and nothing hung on it.
 // - seatsWithoutSurface / seatsWithoutLight: seats and beds with no table-like surface within 0.6 m, or no lamp
 //   within 1.2 m (plan distance between footprints; a pendant over a table counts for the chairs around it).
+// - itemsPerM2: pieces of every kind (hung ones too) per m2 of floor. empty: no piece at all.
+// - openFloor: the largest connected stretch of floor farther than 0.9 m from any floor piece, rug or built-in
+//   cabinet run (m2, its share of the floor, its centre): an empty corridor or a bare middle shows up here.
+// - finishes: the floor's finish and the room-facing wall finishes by length, and whether each is still what the
+//   scene started with (the template's or shell's default) when the start scene is given.
+// - kitchen: built-in base cabinet runs (part of the shell, not the agent's work) and how much of their length has
+//   anything above it on the wall (wall units, shelves, a hung piece): the wall over a counter is the designer's to dress.
 
 type Json = Record<string, any>
 export interface Graph {
@@ -17,6 +24,7 @@ type Vec2 = [number, number]
 
 export interface RoomFacts {
   room: string
+  zoneId: string
   areaM2: number
   ceilingM: number | null
   pieces: number
@@ -24,6 +32,16 @@ export interface RoomFacts {
   rugShare: number
   wallLengthM: number
   bareWallM: number
+  bareWallShare: number
+  itemsPerM2: number
+  empty: boolean
+  openFloor: { largestM2: number; share: number; centre: Vec2 } | null
+  finishes: {
+    floor: string | null
+    floorUnchanged: boolean | null
+    walls: Array<{ finish: string; m: number; unchanged: boolean | null }>
+  }
+  kitchen: { baseRunM: number; dressedAboveM: number } | null
   counts: {
     seating: number
     beds: number
@@ -220,8 +238,147 @@ function openings(graph: Graph): Array<[Vec2, Vec2]> {
 
 const STEP = 0.1
 
-/** Facts for every zone that holds at least one item (or only `rooms`, when given). */
-export function roomFacts(graph: Graph, rooms?: string[]): RoomFacts[] {
+const libraryRef = (ref: unknown) => (typeof ref === 'string' && ref ? ref.replace(/^library:/, '') : null)
+
+/** The slab under a zone: the one whose outline matches the zone's (same centroid, same area within 10%). */
+function slabOf(graph: Graph, polygon: Vec2[]): Json | undefined {
+  const area = polygonArea(polygon)
+  const middle = meanPoint(polygon)
+  return (Object.values(graph.nodes) as Json[]).find((n) => {
+    if (n.type !== 'slab' || !Array.isArray(n.polygon) || n.polygon.length < 3) return false
+    const other = n.polygon as Vec2[]
+    return insidePolygon(middle, other) && Math.abs(polygonArea(other) - area) <= 0.1 * area
+  })
+}
+
+function meanPoint(polygon: Vec2[]): Vec2 {
+  return [polygon.reduce((s, p) => s + p[0], 0) / polygon.length, polygon.reduce((s, p) => s + p[1], 0) / polygon.length]
+}
+
+/**
+ * The finish each wall shows into the room, by length: sampled every 0.1 m along each wall, a face counts where the
+ * point just off it lies in the room. A face shows its side tag's slot (interior/exterior), untagged front ->
+ * interior and back -> exterior, as Pascal paints it (scene-mcp wall-sides.ts slotForFace).
+ */
+function wallFinishes(graph: Graph, polygon: Vec2[], start?: Graph) {
+  const byFinish = new Map<string, { m: number; unchanged: number; known: boolean }>()
+  for (const wall of Object.values(graph.nodes) as Json[]) {
+    if (wall.type !== 'wall' || !Array.isArray(wall.start) || !Array.isArray(wall.end)) continue
+    const [sx, sz] = wall.start as Vec2
+    const [ex, ez] = wall.end as Vec2
+    const length = Math.hypot(ex - sx, ez - sz)
+    if (length < 1e-6) continue
+    const [nx, nz] = [-(ez - sz) / length, (ex - sx) / length]
+    const offset = Number(wall.thickness ?? 0.2) / 2 + 0.1
+    const n = Math.max(1, Math.round(length / STEP))
+    for (const [face, sign] of [['front', 1], ['back', -1]] as const) {
+      let m = 0
+      for (let k = 0; k < n; k++) {
+        const t = (k + 0.5) / n
+        if (insidePolygon([sx + (ex - sx) * t + nx * offset * sign, sz + (ez - sz) * t + nz * offset * sign], polygon)) m += length / n
+      }
+      if (m < 0.05) continue
+      const tag = face === 'front' ? wall.frontSide : wall.backSide
+      const slot = tag === 'interior' || tag === 'exterior' ? tag : face === 'front' ? 'interior' : 'exterior'
+      const finish = libraryRef(wall.slots?.[slot]) ?? 'default'
+      const before = start ? (start.nodes[wall.id] as Json | undefined) : undefined
+      const unchanged = before ? (libraryRef(before.slots?.[slot]) ?? 'default') === finish : false
+      const entry = byFinish.get(finish) ?? { m: 0, unchanged: 0, known: Boolean(start) }
+      entry.m += m
+      if (unchanged) entry.unchanged += m
+      byFinish.set(finish, entry)
+    }
+  }
+  return [...byFinish.entries()]
+    .sort((a, b) => b[1].m - a[1].m)
+    .map(([finish, e]) => ({ finish, m: round(e.m, 10), unchanged: e.known ? e.unchanged >= e.m / 2 : null }))
+}
+
+/** Built-in base runs (cabinet nodes) standing in the room, and how much of their length has something above it. */
+function kitchenFacts(graph: Graph, polygon: Vec2[], inRoom: Piece[]) {
+  const cabinets = (Object.values(graph.nodes) as Json[]).filter((n) => n.type === 'cabinet' && Array.isArray(n.position))
+  const base = cabinets.filter((c) => (c.runTier ?? 'base') === 'base' && insidePolygon([c.position[0], c.position[2]], polygon))
+  if (!base.length) return null
+  const above = [
+    ...cabinets.filter((c) => c.runTier === 'wall' || c.runTier === 'tall').map((c) => cabinetPiece(c)),
+    ...inRoom.filter((p) => p.hung || (p.h >= 1.5 && p.y < 0.05)),
+  ]
+  let run = 0
+  let dressed = 0
+  for (const c of base) {
+    const piece = cabinetPiece(c)
+    const n = Math.max(1, Math.round(piece.w / STEP))
+    for (let k = 0; k < n; k++) {
+      const along = -piece.w / 2 + (piece.w * (k + 0.5)) / n
+      const point: Vec2 = [piece.at[0] + Math.cos(piece.rot) * along, piece.at[1] - Math.sin(piece.rot) * along]
+      run += piece.w / n
+      if (above.some((p) => p !== piece && nearPiece(point, p, 0.45))) dressed += piece.w / n
+    }
+  }
+  return { baseRunM: round(run, 10), dressedAboveM: round(dressed, 10) }
+}
+
+function cabinetPiece(c: Json): Piece {
+  const yaw = Number(Array.isArray(c.rotation) ? c.rotation[1] : c.rotation ?? 0)
+  const h = Number(c.plinthHeight ?? 0.1) + Number(c.carcassHeight ?? 0.8)
+  return {
+    name: String(c.name ?? c.id), role: 'storage', at: [Number(c.position[0]), Number(c.position[2])], y: c.runTier === 'wall' ? 1.4 : 0,
+    w: Number(c.width ?? 0.6), h: c.runTier === 'tall' ? 2.2 : h, d: Number(c.depth ?? 0.6), rot: yaw, hung: c.runTier === 'wall', mount: 'floor',
+  }
+}
+
+const OPEN_MARGIN = 0.9
+const GRID = 0.2
+
+/** The largest connected patch of floor cells farther than OPEN_MARGIN from every floor piece, rug and cabinet run. */
+function openFloor(polygon: Vec2[], area: number, blockers: Piece[]): RoomFacts['openFloor'] {
+  const xs = polygon.map((p) => p[0])
+  const zs = polygon.map((p) => p[1])
+  const [x0, z0] = [Math.min(...xs), Math.min(...zs)]
+  const cols = Math.ceil((Math.max(...xs) - x0) / GRID)
+  const rows = Math.ceil((Math.max(...zs) - z0) / GRID)
+  const open = new Set<number>()
+  for (let i = 0; i < cols; i++) {
+    for (let j = 0; j < rows; j++) {
+      const point: Vec2 = [x0 + (i + 0.5) * GRID, z0 + (j + 0.5) * GRID]
+      if (insidePolygon(point, polygon) && !blockers.some((p) => nearPiece(point, p, OPEN_MARGIN))) open.add(i * rows + j)
+    }
+  }
+  let best: number[] = []
+  const seen = new Set<number>()
+  for (const cell of open) {
+    if (seen.has(cell)) continue
+    const patch: number[] = []
+    const queue = [cell]
+    seen.add(cell)
+    while (queue.length) {
+      const c = queue.pop()!
+      patch.push(c)
+      const [i, j] = [Math.floor(c / rows), c % rows]
+      for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const [ni, nj] = [i + di!, j + dj!]
+        const next = ni * rows + nj
+        if (ni < 0 || nj < 0 || ni >= cols || nj >= rows || seen.has(next) || !open.has(next)) continue
+        seen.add(next)
+        queue.push(next)
+      }
+    }
+    if (patch.length > best.length) best = patch
+  }
+  const m2 = Math.min(best.length * GRID * GRID, area)
+  if (m2 < 0.5) return null
+  const centre: Vec2 = [
+    round(x0 + (best.reduce((s, c) => s + Math.floor(c / rows), 0) / best.length + 0.5) * GRID, 10),
+    round(z0 + (best.reduce((s, c) => s + (c % rows), 0) / best.length + 0.5) * GRID, 10),
+  ]
+  return { largestM2: round(m2, 10), share: round(m2 / (area || 1)), centre }
+}
+
+/**
+ * Facts for every zone that holds at least one item, or only for `rooms` (zone ids or names, empty rooms too).
+ * With the scene the agent started from (`start`), the finishes say whether they are still its defaults.
+ */
+export function roomFacts(graph: Graph, rooms?: string[], start?: Graph): RoomFacts[] {
   const nodes = Object.values(graph.nodes) as Json[]
   const zones = nodes.filter((n) => n.type === 'zone' && Array.isArray(n.polygon) && n.polygon.length >= 3)
   const pieces = nodes.filter((n) => n.type === 'item').map((n) => pieceOf(n, graph.nodes))
@@ -232,7 +389,7 @@ export function roomFacts(graph: Graph, rooms?: string[]): RoomFacts[] {
     const name = String(zone.name ?? zone.id)
     const polygon = zone.polygon as Vec2[]
     const inRoom = pieces.filter((p) => insidePolygon(p.at, polygon))
-    if (wanted ? !wanted.includes(name.toLowerCase()) : !inRoom.length) continue
+    if (wanted ? !wanted.includes(name.toLowerCase()) && !wanted.includes(String(zone.id).toLowerCase()) : !inRoom.length) continue
     const area = polygonArea(polygon)
     const floor = inRoom.filter((p) => !p.hung && p.y < 0.05)
 
@@ -261,8 +418,15 @@ export function roomFacts(graph: Graph, rooms?: string[]): RoomFacts[] {
         ? 'ceiling'
         : p.hung || /sconce|wall light/i.test(p.name) ? 'wall' : p.y < 0.05 && p.h >= 1 ? 'floor' : 'table'
     const count = (role: Role) => inRoom.filter((p) => p.role === role).length
+    const cabinets = (Object.values(graph.nodes) as Json[])
+      .filter((n) => n.type === 'cabinet' && Array.isArray(n.position) && n.runTier !== 'wall' && insidePolygon([n.position[0], n.position[2]], polygon))
+      .map(cabinetPiece)
+    const slab = slabOf(graph, polygon)
+    const startSlab = slab && start ? (start.nodes[slab.id] as Json | undefined) : undefined
+    const floorFinish = libraryRef(slab?.slots?.surface)
     out.push({
       room: name,
+      zoneId: String(zone.id),
       areaM2: round(area, 10),
       ceilingM: typeof zone.ceilingHeight === 'number' ? round(zone.ceilingHeight) : null,
       pieces: inRoom.length,
@@ -270,6 +434,16 @@ export function roomFacts(graph: Graph, rooms?: string[]): RoomFacts[] {
       rugShare: round(floor.filter((p) => p.role === 'rug').reduce((s, p) => s + p.w * p.d, 0) / (area || 1)),
       wallLengthM: round(wall, 10),
       bareWallM: round(bare, 10),
+      bareWallShare: round(bare / (wall || 1)),
+      itemsPerM2: round(inRoom.length / (area || 1)),
+      empty: inRoom.length === 0,
+      openFloor: openFloor(polygon, area, [...floor, ...cabinets]),
+      finishes: {
+        floor: floorFinish,
+        floorUnchanged: slab && start ? (startSlab ? libraryRef(startSlab.slots?.surface) === floorFinish : false) : null,
+        walls: wallFinishes(graph, polygon, start),
+      },
+      kitchen: kitchenFacts(graph, polygon, inRoom),
       counts: {
         seating: count('seat'),
         beds: count('bed'),
@@ -292,4 +466,38 @@ export function roomFacts(graph: Graph, rooms?: string[]): RoomFacts[] {
     })
   }
   return out
+}
+
+/**
+ * Zones the agent changed between the start scene and its result: an item added, removed, moved or turned in it,
+ * its floor refinished, or a wall face that looks into it repainted.
+ */
+export function changedZones(graph: Graph, start: Graph): string[] {
+  const zones = (Object.values(graph.nodes) as Json[]).filter((n) => n.type === 'zone' && Array.isArray(n.polygon) && n.polygon.length >= 3)
+  const changed = new Set<string>()
+  const mark = (point: Vec2) => {
+    for (const zone of zones) if (insidePolygon(point, zone.polygon)) changed.add(String(zone.id))
+  }
+  const same = (a: unknown, b: unknown) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null)
+  for (const [id, node] of Object.entries(graph.nodes) as Array<[string, Json]>) {
+    const before = start.nodes[id] as Json | undefined
+    if (node.type === 'item' && (!before || !same(before.position, node.position) || !same(before.rotation, node.rotation) || before.parentId !== node.parentId)) {
+      mark(worldPose(node, graph.nodes).at)
+      if (before) mark(worldPose(before, start.nodes).at)
+    }
+    if (node.type === 'slab' && Array.isArray(node.polygon) && !same(before?.slots, node.slots)) mark(meanPoint(node.polygon))
+    if (node.type === 'wall' && Array.isArray(node.start) && Array.isArray(node.end) && !same(before?.slots, node.slots)) {
+      const [sx, sz] = node.start as Vec2
+      const [ex, ez] = node.end as Vec2
+      const length = Math.hypot(ex - sx, ez - sz) || 1
+      const offset = Number(node.thickness ?? 0.2) / 2 + 0.1
+      for (const t of [0.25, 0.5, 0.75]) {
+        for (const sign of [1, -1]) mark([sx + (ex - sx) * t - ((ez - sz) / length) * offset * sign, sz + (ez - sz) * t + ((ex - sx) / length) * offset * sign])
+      }
+    }
+  }
+  for (const [id, node] of Object.entries(start.nodes) as Array<[string, Json]>) {
+    if (node.type === 'item' && !(id in graph.nodes)) mark(worldPose(node, start.nodes).at)
+  }
+  return zones.map((z) => String(z.id)).filter((id) => changed.has(id))
 }

@@ -50,10 +50,60 @@ test('facts for the furnished room only, with shares, bare wall and seat station
   assert.deepEqual(living!.seatsWithoutLight, ['Reading armchair'])
 })
 
-test('named rooms are reported even when empty', () => {
+test('named rooms are reported even when empty, by name or zone id', () => {
   const [empty] = roomFacts(graph, ['empty'])
   assert.equal(empty!.pieces, 0)
+  assert.equal(empty!.empty, true)
   assert.equal(empty!.bareWallM, empty!.wallLengthM)
+  assert.equal(empty!.bareWallShare, 1)
+  assert.equal(empty!.itemsPerM2, 0)
+  assert.deepEqual(empty!.openFloor, { largestM2: 4, share: 1, centre: [11, 1] })
+  assert.deepEqual(roomFacts(graph, ['zone_b']).map((f) => f.zoneId), ['zone_b'])
+})
+
+test('open floor: the largest stretch of floor 0.9 m clear of every floor piece', () => {
+  const [living] = roomFacts(graph, ['Living'])
+  assert.equal(living!.empty, false)
+  assert.equal(living!.itemsPerM2, 0.3)
+  // The rug and sofa fill the north half, the armchair the south-west corner: what is left is the south-east.
+  assert.ok(living!.openFloor && living!.openFloor.largestM2 > 0.5 && living!.openFloor.largestM2 < 4, JSON.stringify(living!.openFloor))
+  assert.ok(living!.openFloor!.centre[1] < 2.5)
+})
+
+test('finishes: what the floor and each wall face show, and whether it is still the start scene\'s', () => {
+  const finished = {
+    nodes: {
+      ...graph.nodes,
+      slab_a: { id: 'slab_a', type: 'slab', polygon: [[0, 0], [4, 0], [4, 5], [0, 5]], slots: { surface: 'library:oak' } },
+      // The south wall runs west to east: its front (left normal, +z) faces the room.
+      wall_s: { ...graph.nodes.wall_s, thickness: 0.1, slots: { interior: 'library:terracotta', exterior: 'library:white' } },
+      // The east wall runs south to north: its front (left normal, -x) faces the room and is tagged interior.
+      wall_e: { id: 'wall_e', type: 'wall', start: [4, 0], end: [4, 5], thickness: 0.1, frontSide: 'interior', backSide: 'exterior', slots: { interior: 'library:white', exterior: 'library:sand' } },
+    },
+  }
+  const start = { nodes: { ...finished.nodes, wall_s: { ...finished.nodes.wall_s, slots: { interior: 'library:white', exterior: 'library:white' } } } }
+  const [living] = roomFacts(finished, ['Living'], start)
+  assert.equal(living!.finishes.floor, 'oak')
+  assert.equal(living!.finishes.floorUnchanged, true)
+  assert.deepEqual(living!.finishes.walls, [
+    { finish: 'white', m: 5, unchanged: true },
+    { finish: 'terracotta', m: 4, unchanged: false },
+  ])
+  assert.equal(roomFacts(finished, ['Living'])[0]!.finishes.floorUnchanged, null, 'unknown without a start scene')
+})
+
+test('kitchen: a built-in base run and how much of it has something above on the wall', () => {
+  const kitchen = {
+    nodes: {
+      ...graph.nodes,
+      run: { id: 'run', type: 'cabinet', runTier: 'base', position: [2, 0, 0.3], rotation: 0, width: 3, depth: 0.6, carcassHeight: 0.8 },
+      shelf: item('shelf', 'shelf', 'Wall shelf', [1, 1.5, 0.15], [1, 0.3, 0.1]),
+    },
+  }
+  assert.equal(roomFacts(graph, ['Living'])[0]!.kitchen, null)
+  const facts = roomFacts(kitchen, ['Living'])[0]!.kitchen!
+  assert.equal(facts.baseRunM, 3)
+  assert.ok(facts.dressedAboveM > 0.9 && facts.dressedAboveM < 2.1, JSON.stringify(facts))
 })
 
 test('wall and ceiling children count where they hang, not at their local coordinates', () => {
@@ -74,4 +124,16 @@ test('wall and ceiling children count where they hang, not at their local coordi
   assert.deepEqual([pendant.mount, pendant.at, Math.round(pendant.y * 100) / 100], ['ceiling', [2, 3.5], 2.2])
   const [living] = roomFacts(mounted, ['Living'])
   assert.deepEqual([living!.counts.lights.wall, living!.counts.lights.ceiling], [1, 1])
+})
+
+test('changed zones: items added, moved or removed, floors and walls refinished', async () => {
+  const { changedZones } = await import('./room-facts.ts')
+  const start = { nodes: { ...graph.nodes, slab_b: { id: 'slab_b', type: 'slab', polygon: [[10, 0], [12, 0], [12, 2], [10, 2]], slots: { surface: 'library:oak' } } } }
+  assert.deepEqual(changedZones(start, start), [])
+  const moved = { nodes: { ...start.nodes, lamp: { ...start.nodes.lamp, position: [3, 0, 4.6] } } }
+  assert.deepEqual(changedZones(moved, start), ['zone_a'])
+  const floored = { nodes: { ...start.nodes, slab_b: { ...start.nodes.slab_b, slots: { surface: 'library:tile' } } } }
+  assert.deepEqual(changedZones(floored, start), ['zone_b'])
+  const { art: _art, ...rest } = start.nodes
+  assert.deepEqual(changedZones({ nodes: rest }, start), ['zone_a'])
 })
