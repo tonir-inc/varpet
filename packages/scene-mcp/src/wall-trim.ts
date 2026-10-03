@@ -8,9 +8,11 @@ import type { Finish } from '../../contracts/src/finishes.ts'
 import {
   type AnyNode,
   bandCount,
+  commitWallPatches,
   failure,
   resolveFinish,
   surfaceNote,
+  splitsOf,
   text,
   wallLength,
   wallTargets,
@@ -160,7 +162,7 @@ export function wainscotPatch(
 }
 
 const TARGET = {
-  zone_id: z.string().optional().describe('The room. Alone: every wall around it.'),
+  zone_id: z.string().optional().describe('The room. Alone: every wall face around it; walls running on into the next room are split at its edge (see `split`).'),
   wall_ids: z.array(z.string()).optional().describe('Only these walls (with zone_id to say which room they face).'),
   side: z.enum(['room', 'outside', 'both']).optional().describe('Default "room": the face toward the room.'),
 }
@@ -267,9 +269,9 @@ export function registerWallTrimTools(server: McpServer, operations: SceneOperat
       }
       if (!patches.length) return failure('nothing_to_change')
       for (const finish of finishes.values()) notes.push(...surfaceNote(finish, 'wall'))
-      operations.applyPatch(patches as never)
+      commitWallPatches(operations, targeted.plan, patches)
       await publish(operations, 'set_wall_trim')
-      return text({ walls: changed, ...(notes.length ? { notes: [...new Set(notes)] } : {}) })
+      return text({ walls: changed, ...splitsOf(targeted.plan), ...(notes.length ? { notes: [...new Set(notes)] } : {}) })
     },
   )
 
@@ -339,9 +341,9 @@ export function registerWallTrimTools(server: McpServer, operations: SceneOperat
         })
       }
       if (!patches.length) return failure('nothing_to_change')
-      operations.applyPatch(patches as never)
+      commitWallPatches(operations, targeted.plan, patches)
       await publish(operations, 'set_wainscot')
-      return text({ ...(finish ? { finish: { id: finish.id, label: finish.label, family: finish.family } } : {}), walls: changed, ...(notes.length ? { notes } : {}) })
+      return text({ ...(finish ? { finish: { id: finish.id, label: finish.label, family: finish.family } } : {}), walls: changed, ...splitsOf(targeted.plan), ...(notes.length ? { notes } : {}) })
     },
   )
 }

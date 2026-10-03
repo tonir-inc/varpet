@@ -68,6 +68,7 @@ const CURVED_WALL_3D_ENDPOINT_INSET = 0.0015
 const WALL_FACE_NORMAL_Y_EPSILON = 0.6
 const WALL_FACE_EDGE_DISTANCE_EPSILON = 0.003
 const WALL_BAND_SPLIT_EPSILON = 1e-5
+const WALL_OPENING_EDGE_EPSILON = 0.01
 const WALL_BAND_SLOT_MATERIAL_INDEX: Record<WallSurfaceSlotId, number> = {
   interior: 1,
   exterior: 2,
@@ -405,6 +406,8 @@ function assignWallMaterialGroups(
     getWallThickness(wall) * 0.02,
     WALL_FACE_EDGE_DISTANCE_EPSILON,
   )
+  // Local z = 0 is the centreline only on straight walls (curved ones keep edge-material caps).
+  const followsFace = !isCurvedWall(wall)
 
   for (let triangleIndex = 0; triangleIndex < triangleCount; triangleIndex += 1) {
     const baseIndex = triangleIndex * 3
@@ -427,16 +430,25 @@ function assignWallMaterialGroups(
 
     normal.normalize()
 
-    if (Math.abs(normal.y) >= WALL_FACE_NORMAL_Y_EPSILON) {
-      triangleMaterials[triangleIndex] = 0
-      continue
-    }
-
     centroid
       .copy(a)
       .add(b)
       .add(c)
       .multiplyScalar(1 / 3)
+
+    if (Math.abs(normal.y) >= WALL_FACE_NORMAL_Y_EPSILON) {
+      // Opening soffits and sills follow the face on their side of the centreline; the wall's
+      // top and bottom keep the edge material.
+      const insideOpening =
+        followsFace &&
+        centroid.y > WALL_OPENING_EDGE_EPSILON &&
+        centroid.y < effectiveWallHeight - WALL_OPENING_EDGE_EPSILON
+      triangleMaterials[triangleIndex] = insideOpening
+        ? getWallFaceMaterialIndex(wall, centroid.z > 0 ? 'front' : 'back', centroid.y, effectiveWallHeight)
+        : 0
+      continue
+    }
+
     projectedCentroid.set(centroid.x, centroid.z)
 
     let nearestTag: WallBoundaryEdgeTag | null = null
@@ -450,13 +462,13 @@ function assignWallMaterialGroups(
       }
     }
 
-    if (!nearestTag || nearestDistance > maxBoundaryDistance) {
-      triangleMaterials[triangleIndex] = 0
-      continue
-    }
-
-    if (nearestTag === 'base') {
-      triangleMaterials[triangleIndex] = 0
+    if (!nearestTag || nearestDistance > maxBoundaryDistance || nearestTag === 'base') {
+      // End caps, returns and opening reveals: the half on each side of the centreline (the
+      // geometry is split there) shows that face's finish, so a painted room has no bare edges.
+      triangleMaterials[triangleIndex] =
+        followsFace && centroid.y > 0
+          ? getWallFaceMaterialIndex(wall, centroid.z > 0 ? 'front' : 'back', centroid.y, effectiveWallHeight)
+          : 0
       continue
     }
 
@@ -486,13 +498,22 @@ function interpolateSplitVertex(a: SplitVertex, b: SplitVertex, t: number): Spli
 }
 
 function clipPolygonByY(polygon: SplitVertex[], planeY: number, keepBelow: boolean): SplitVertex[] {
+  return clipPolygonByAxis(polygon, 'y', planeY, keepBelow)
+}
+
+function clipPolygonByAxis(
+  polygon: SplitVertex[],
+  axis: 'y' | 'z',
+  plane: number,
+  keepBelow: boolean,
+): SplitVertex[] {
   const out: SplitVertex[] = []
   if (polygon.length === 0) return out
 
   const isInside = (vertex: SplitVertex) =>
     keepBelow
-      ? vertex.y <= planeY + WALL_BAND_SPLIT_EPSILON
-      : vertex.y >= planeY - WALL_BAND_SPLIT_EPSILON
+      ? vertex[axis] <= plane + WALL_BAND_SPLIT_EPSILON
+      : vertex[axis] >= plane - WALL_BAND_SPLIT_EPSILON
 
   for (let index = 0; index < polygon.length; index += 1) {
     const current = polygon[index]!
@@ -501,9 +522,9 @@ function clipPolygonByY(polygon: SplitVertex[], planeY: number, keepBelow: boole
     const previousInside = isInside(previous)
 
     if (currentInside !== previousInside) {
-      const denom = current.y - previous.y
+      const denom = current[axis] - previous[axis]
       if (Math.abs(denom) > WALL_BAND_SPLIT_EPSILON) {
-        out.push(interpolateSplitVertex(previous, current, (planeY - previous.y) / denom))
+        out.push(interpolateSplitVertex(previous, current, (plane - previous[axis]) / denom))
       }
     }
     if (currentInside) out.push(current)
@@ -522,9 +543,14 @@ function triangulateSplitPolygon(polygon: SplitVertex[], positions: number[]) {
   }
 }
 
+/**
+ * Splits the wall at its band heights and, with `atCentreline`, at local z = 0, so caps, returns
+ * and opening reveals fall into a half per face (assignWallMaterialGroups gives each its face).
+ */
 function splitGeometryAtHorizontalPlanes(
   geometry: THREE.BufferGeometry,
   planes: number[],
+  atCentreline = false,
 ): THREE.BufferGeometry {
   const splitPlanes = Array.from(
     new Set(
@@ -533,7 +559,7 @@ function splitGeometryAtHorizontalPlanes(
         .map((plane) => Math.round(plane / WALL_BAND_SPLIT_EPSILON) * WALL_BAND_SPLIT_EPSILON),
     ),
   ).sort((a, b) => a - b)
-  if (splitPlanes.length === 0) return geometry
+  if (splitPlanes.length === 0 && !atCentreline) return geometry
 
   const source = geometry.index ? geometry.toNonIndexed() : geometry
   const position = source.getAttribute('position')
@@ -565,6 +591,17 @@ function splitGeometryAtHorizontalPlanes(
         if (above.length >= 3) next.push(above)
       }
       polygons = next
+    }
+
+    if (atCentreline) {
+      polygons = polygons.flatMap((polygon) => {
+        const minZ = Math.min(...polygon.map((vertex) => vertex.z))
+        const maxZ = Math.max(...polygon.map((vertex) => vertex.z))
+        if (minZ >= -WALL_BAND_SPLIT_EPSILON || maxZ <= WALL_BAND_SPLIT_EPSILON) return [polygon]
+        return [clipPolygonByAxis(polygon, 'z', 0, true), clipPolygonByAxis(polygon, 'z', 0, false)].filter(
+          (part) => part.length >= 3,
+        )
+      })
     }
 
     for (const polygon of polygons) triangulateSplitPolygon(polygon, positions)
@@ -1408,6 +1445,7 @@ export function generateExtrudedWall(
     const splitGeometry = splitGeometryAtHorizontalPlanes(
       geometry,
       getWallBandSplitPlanes(wallNode, effectiveWallHeight),
+      !isCurvedWall(wallNode),
     )
     splitGeometry.computeVertexNormals()
     assignWallMaterialGroups(splitGeometry, wallNode, boundaryEdges, effectiveWallHeight)
@@ -1466,6 +1504,7 @@ export function generateExtrudedWall(
   const splitResultGeometry = splitGeometryAtHorizontalPlanes(
     resultGeometry,
     getWallBandSplitPlanes(wallNode, effectiveWallHeight),
+    !isCurvedWall(wallNode),
   )
   splitResultGeometry.computeVertexNormals()
   assignWallMaterialGroups(splitResultGeometry, wallNode, boundaryEdges, effectiveWallHeight)

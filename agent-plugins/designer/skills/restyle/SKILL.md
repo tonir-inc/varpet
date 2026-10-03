@@ -23,9 +23,13 @@ floor.
 
 1. `list_finishes` with `surface` and a `query` in plain colour words ("deep green", "herringbone oak") and use
    only ids it returns. A guessed `library:` id renders as nothing.
-2. Walls: `set_wall_finish` with the room's `zone_id` for all its walls, or `wall_ids` plus `zone_id` for an
-   accent wall (usually the longest solid wall the sofa or bed backs onto or faces). Shared walls change only
-   the face toward this room.
+2. Walls: every room in scope gets its walls decided. First one considered base on all of them:
+   `set_wall_finish` with only the room's `zone_id` covers every face around it (piers, returns, column ends,
+   reveals). Then at most one accent, always a whole plane: the full wall behind the sofa or bed (or the one they
+   face), with every segment and pier on that plane in `wall_ids` plus `zone_id` (`get_walls` shows them), or a
+   whole small room by its `zone_id`. Never an accent on a lone segment. Shared walls change only the face toward
+   this room; a zone call splits a wall that runs on into the next room at its edge and returns the pieces
+   (`split`): take the accent's ids from that result or a fresh `get_walls`, not from a list read before it. Wainscots and trims go on by `zone_id` too.
 3. Floors: `set_floor_finish` with the `zone_id`. Wet rooms and balconies take tile or stone; living rooms and
    bedrooms wood. A whole-flat floor change is one call per room.
 4. Trims: `set_wall_trim`, when it is in your tools, for skirting, crown moulding or a chair rail in the palette

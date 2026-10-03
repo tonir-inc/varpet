@@ -161,3 +161,14 @@ Base: `@pascal-app/core@1.0.3` (`ebe69be2`). One commit each, so each can become
   every frame (shown while the wall is hovered, as openings are), so trims mounted onto an already cut wall never show.
 - Files: `packages/nodes/src/wall/treatments.tsx`.
 - Host side: none (no workaround existed).
+
+## 17. Viewer: wall end caps, returns and opening reveals follow the face finish
+- Motivation: every wall triangle that is not on the front or back face (end caps, the returns of piers and columns,
+  door and window reveals, soffits and sills) drew Pascal's role material (material index 0), whatever the slots said.
+  A painted room kept a white edge on every pier and opening, so it read half done (Felix on the Sunday flat).
+- Change: straight walls are also split at their centreline (local z = 0, next to the band split), and those
+  triangles take the finish of the face on their side (`getWallFaceMaterialIndex`, bands included): each room's half
+  of a reveal or a pier end shows that room's paint, the seam at mid-thickness where a frame sits. Soffits and sills
+  inside openings do the same; the wall's top and bottom and curved walls keep the edge material.
+- Files: `packages/viewer/src/systems/wall/wall-system.tsx`.
+- Host side: none (no workaround existed); varpet's zone-scoped wall tools paint the faces those halves follow.

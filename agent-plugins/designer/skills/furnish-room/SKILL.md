@@ -19,7 +19,9 @@ lobby. A first pass the buyer calls empty has failed, however correct each piece
   their wall or the piece below; a pendant to its table or the room.
 - **Layers.** Textiles, dressed walls (art, mirrors, shelves, a storage wall), books and objects on surfaces, plants
   at different heights. A lone plant in an empty corner is filler: ask what furniture that spot is for.
-- **Surfaces.** A chosen wall colour and floor, an accent where it earns its place, trims when you can set them.
+- **Surfaces.** A chosen floor and one wall colour on all the room's walls (by `zone_id`); an accent only as a whole
+  plane (the full wall behind the sofa or bed, piers included) or a whole small room, never a lone segment; trims
+  when you can set them.
 - **Light.** Something overhead, a lamp at every seat and bed side, an accent that makes a corner glow.
 - **The concept.** Its palette and materials repeated (match the wood tones), its signature move visible.
 
