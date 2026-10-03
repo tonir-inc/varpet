@@ -9,7 +9,7 @@ import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
 import type { RenderRequest, RenderResponse } from '../../contracts/src/index.ts'
 import { toProduct, type Catalog, type ProductHit } from './catalog.ts'
 import { createSceneServer } from './server.ts'
-import { planView, type Renderer } from './view-scene.ts'
+import { focalWall, nearFieldBlockers, obstacles, planView, type Renderer } from './view-scene.ts'
 
 type Point = [number, number]
 const TEMPLATE = join(import.meta.dirname, '../../../apps/web/lib/flats/templates/sunday-b12121.json')
@@ -52,23 +52,74 @@ test('3d: from above and outside the room on the diagonal pointing away from the
   assert.match(plan.description, /from the north-west/)
 })
 
-test('inside: eye level inside the room, from an indoor door when there is one', () => {
+test('inside: eye level (1.5 m) inside the room, looking across it', () => {
   const graph = sunday()
   for (const zoneId of ['zone_r-bedroom-6', 'zone_r-living', 'zone_r-kitchen']) {
     const plan = planView(graph, { zoneId, view: 'inside', ...size })
     const { position, target } = plan.request.camera
     const polygon = graph.nodes[zoneId]!.polygon!
-    assert.equal(position[1], 1.6)
+    assert.equal(position[1], 1.5)
     assert.ok(inside([position[0], position[2]], polygon), `${zoneId}: eye ${position} is in the room`)
-    assert.ok(Math.hypot(target[0] - position[0], target[2] - position[2]) > 1, 'looks across the room')
+    assert.ok(Math.hypot(target[0] - position[0], target[2] - position[2]) > 1.5, 'looks across the room')
     assert.equal(plan.request.wallMode, 'up')
   }
-  // The bedroom has a door from the entrance hall; the living room only opens to its balcony through a door.
-  assert.match(planView(graph, { zoneId: 'zone_r-bedroom-6', view: 'inside', ...size }).description, /from the door from (?!balcony)/)
-  assert.match(planView(graph, { zoneId: 'zone_r-living', view: 'inside', ...size }).description, /from the door from balcony/)
 })
 
-test('a room without doors is seen from its best corner', () => {
+// A 4 x 6 m room (x 0..4, z 0..6), a door in the middle of the west wall to a hall.
+function boxRoom(items: Record<string, unknown> = {}) {
+  return {
+    nodes: {
+      zone_room: { id: 'zone_room', type: 'zone', name: 'Living', polygon: [[0, 0], [4, 0], [4, 6], [0, 6]] as Point[] },
+      zone_hall: { id: 'zone_hall', type: 'zone', name: 'Hall', polygon: [[-2, 0], [0, 0], [0, 6], [-2, 6]] as Point[] },
+      wall_w: { id: 'wall_w', type: 'wall', start: [0, 0], end: [0, 6], thickness: 0.1 },
+      door_w: { id: 'door_w', type: 'door', parentId: 'wall_w', wallId: 'wall_w', position: [3, 1.05, 0], width: 0.9 },
+      level: { id: 'level', type: 'level' },
+      ...items,
+    } as Record<string, { id: string; type: string; polygon?: Point[]; [key: string]: unknown }>,
+  }
+}
+const piece = (id: string, name: string, position: number[], dimensions: number[], yaw = 0) => ({
+  id, type: 'item', name, parentId: 'level', position, rotation: [0, yaw, 0], scale: [1, 1, 1], asset: { name, dimensions },
+})
+
+test('inside: the camera stands opposite the focal wall (the one with the sofa) and faces it', () => {
+  const graph = boxRoom({ sofa: piece('sofa', 'Sofa', [2, 0, 5.5], [2.2, 0.85, 0.9], Math.PI) })
+  const plan = planView(graph, { zoneId: 'zone_room', view: 'inside', ...size })
+  const { position, target } = plan.request.camera
+  assert.ok(position[2] < 1.5, `stands at the south end: ${position}`)
+  assert.ok(target[2] > 4.5, `looks at the sofa wall: ${target}`)
+  assert.match(plan.description, /facing the wall with the most standing against it/)
+})
+
+test('inside: never from inside or right behind a piece; the camera moves until the near field is clear', () => {
+  const sofa = piece('sofa', 'Sofa', [2, 0, 5.5], [2.2, 0.85, 0.9], Math.PI)
+  const free = planView(boxRoom({ sofa }), { zoneId: 'zone_room', view: 'inside', ...size }).request.camera.position
+  // A tall cabinet where the camera stood, and one beside it: the next view must clear both.
+  const graph = boxRoom({
+    sofa,
+    tall: piece('tall', 'Tall cabinet', [free[0], 0, free[2]], [0.9, 1.9, 0.5]),
+    side: piece('side', 'Bookcase', [free[0] + 0.7, 0, free[2] + 0.3], [0.8, 1.8, 0.4]),
+  })
+  const { position, target } = planView(graph, { zoneId: 'zone_room', view: 'inside', ...size }).request.camera
+  const eye: Point = [position[0], position[2]]
+  assert.deepEqual(nearFieldBlockers(eye, [target[0], target[2]], position[1], obstacles(graph)), [])
+  assert.ok(Math.hypot(eye[0] - free[0], eye[1] - free[2]) > 0.4, `moved off the cabinet: ${eye}`)
+  // The rule itself: an eye inside a piece, or a piece filling the frame, is blocked.
+  assert.deepEqual(nearFieldBlockers([free[0], free[2]], [2, 5], 1.5, obstacles(graph)).sort(), ['Bookcase', 'Tall cabinet'])
+  assert.deepEqual(nearFieldBlockers([2, 1], [2, 5], 1.5, obstacles(boxRoom({ sofa }))), [], 'a sofa across the room is not near')
+})
+
+test('focal wall: the most furnished wall, else the window wall, else the longest', () => {
+  assert.deepEqual(focalWall(boxRoom(), boxRoom().nodes.zone_room!.polygon!).why, 'the longest wall')
+  const withWindow = boxRoom({
+    wall_n: { id: 'wall_n', type: 'wall', start: [0, 0], end: [4, 0], thickness: 0.1 },
+    win: { id: 'win', type: 'window', parentId: 'wall_n', wallId: 'wall_n', position: [2, 1.5, 0], width: 1.5, height: 1.4 },
+  })
+  const focal = focalWall(withWindow, withWindow.nodes.zone_room!.polygon!)
+  assert.deepEqual(focal.point, [2, 0])
+})
+
+test('a room without doors is seen from a corner', () => {
   const graph = sunday()
   for (const [id, node] of Object.entries(graph.nodes)) if (node.type === 'door') delete graph.nodes[id]
   const plan = planView(graph, { zoneId: 'zone_r-bedroom-9', view: 'inside', ...size })
