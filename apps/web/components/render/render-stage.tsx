@@ -33,6 +33,12 @@ declare global {
 /** Frames after Pascal reports the scene ready, before the job resolves. */
 const SETTLE_FRAMES = 20
 
+/**
+ * Supersampling: the canvas renders at 2× and the page shows it at 1×, so the screenshot averages four samples
+ * per pixel (anti-aliased edges, crisper textures, quieter SSAO). Pascal's pipeline has no AA of its own.
+ */
+const CAPTURE_DPR = 2
+
 export function RenderStage() {
   const [job, setJob] = useState<Job | null>(null)
   const pending = useRef<Pending | null>(null)
@@ -108,6 +114,7 @@ export function RenderStage() {
   return (
     <div style={{ position: 'fixed', inset: 0, background: '#fafafa' }}>
       <Viewer
+        dpr={CAPTURE_DPR}
         maxFps={60}
         onSceneReadyChange={onSceneReadyChange}
         renderContext="editor"
