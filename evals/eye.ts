@@ -1,8 +1,9 @@
 // Eye-level camera per room for the critic's renders: the same rule as the scene MCP's view_scene 'inside' view
 // (packages/scene-mcp view-scene.ts, eyes lane): stand in the room's door, preferring a door to another room over a
 // balcony or entrance door, stepped into the room, looking at the room's centre; with no door, stand near the corner
-// farthest from the centre. Rendered through a Pascal `spawn` node and the editor's Inside (first-person) view, until
-// the render endpoint lands.
+// farthest from the centre. Rendered through a Pascal `spawn` node and the editor's Inside (first-person) view.
+// The eval now renders its room views through POST /api/render with view_scene's own cameras (`roomShots` below,
+// `planView` in packages/scene-mcp/src/view-scene.ts); the spawn path stays for the editor.
 import { insidePolygon } from './room-facts.ts'
 
 type Json = Record<string, any>
@@ -119,4 +120,29 @@ export function withSpawn(graph: Graph & Record<string, unknown>, spot: EyeSpot)
   nodes[id] = { object: 'node', id, type: 'spawn', name: `eye ${spot.room}`, parentId: level.id, visible: true, metadata: {}, position: spot.position, rotation: spot.yaw }
   level.children = [...(level.children ?? []), id]
   return { ...graph, nodes }
+}
+
+/** The per-room views the eval renders, in the order the critic sees them, with their file name prefix. */
+export const ROOM_VIEWS = [
+  { view: 'inside', prefix: 'shot-eye', label: 'eye-level view' },
+  { view: 'top', prefix: 'shot-top', label: 'top view' },
+  { view: '3d', prefix: 'shot-3d', label: '3/4 view' },
+] as const
+
+export const roomSlug = (room: string) => room.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+
+/**
+ * The zone to render for each judged room (by name, case-insensitive). When several zones share a name, the one with
+ * the most items standing in it. Rooms with no zone are left out.
+ */
+export function roomZones(graph: Graph, rooms: string[]): Array<{ room: string; zoneId: string }> {
+  const nodes = Object.values(graph.nodes) as Json[]
+  const zones = nodes.filter((n) => n.type === 'zone' && Array.isArray(n.polygon) && n.polygon.length >= 3)
+  const items = nodes.filter((n) => n.type === 'item' && Array.isArray(n.position))
+  const count = (zone: Json) => items.filter((i) => insidePolygon([i.position[0], i.position[2]], zone.polygon)).length
+  return [...new Map(rooms.map((r) => [r.toLowerCase(), r])).values()].flatMap((room) => {
+    const named = zones.filter((z) => String(z.name ?? '').toLowerCase() === room.toLowerCase())
+    const best = named.sort((a, b) => count(b) - count(a))[0]
+    return best ? [{ room: String(best.name), zoneId: String(best.id) }] : []
+  })
 }

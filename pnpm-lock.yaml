@@ -104,6 +104,9 @@ importers:
 
   evals:
     dependencies:
+      '@pascal-app/core':
+        specifier: workspace:*
+        version: link:../vendor/pascal/packages/core
       '@pascal-app/mcp':
         specifier: workspace:*
         version: link:../vendor/pascal/packages/mcp

@@ -1,0 +1,34 @@
+{
+  "id": "mazanka-apartment-kyiv",
+  "name": "Mazanka Apartment, Kyiv (traced)",
+  "note": "Traced by hand on the cached plan (1280 x 905 px). No scale bar, dimensions or areas: 75 px/m makes the outer wall outline about 98 m2 (the published area); traced net rooms 86 m2 (88%). Cross-checked with the furniture: double bed 129 x 143 px = 1.7 x 1.9 m, kitchen counter 43 px = 0.57 m, entrance door 68 px = 0.9 m, round table 1.2 m. Rooms at the inner wall faces; the bedroom/living partition and the bathroom/hall wall are put on one line (x 530). The bay's corner pier is kept, its curved glazing is two straight segments. The bedroom opens to the living room through a sliding door at the top of the partition; the walk-through wardrobe zone is part of the bedroom; the utility niche and ducts east of the guest WC are left out. Kitchen as drawn: base run with hob and sink on the partition, a tall-unit wall on to the entrance, tall shoe cupboards in the hall, an island with a lower table end.",
+  "scale": 75,
+  "origin": [270, 90],
+  "height": 2.8,
+  "thickness": 0.15,
+  "rooms": [
+    { "name": "Bedroom", "rect": [270, 150, 530, 585] },
+    { "name": "Bathroom", "rect": [270, 585, 530, 786] },
+    { "name": "Living room and kitchen", "polygon": [[530, 128], [665, 128], [716, 192], [716, 205], [797, 205], [797, 167], [812, 118], [850, 90], [1020, 90], [1020, 692], [774, 692], [530, 692]] },
+    { "name": "Hall", "rect": [530, 692, 774, 800] },
+    { "name": "WC", "rect": [774, 692, 935, 795] }
+  ],
+  "open": [[530, 692, 774, 692]],
+  "openings": [
+    { "kind": "window", "at": [409, 150], "width": 1.4 },
+    { "kind": "window", "at": [606, 128], "width": 1.6, "sill": 0.3, "height": 2.2 },
+    { "kind": "window", "at": [690, 160], "width": 1.1, "sill": 0.3, "height": 2.2 },
+    { "kind": "window", "at": [831, 104], "width": 0.6, "sill": 0.3, "height": 2.2 },
+    { "kind": "window", "at": [905, 90], "width": 1.5, "sill": 0.3, "height": 2.2 },
+    { "kind": "door", "at": [530, 246], "width": 1.1 },
+    { "kind": "door", "at": [350, 585], "width": 0.9 },
+    { "kind": "door", "at": [629, 800], "width": 0.95 },
+    { "kind": "door", "at": [774, 728], "width": 0.75 }
+  ],
+  "kitchen": [
+    { "from": [530, 500], "to": [530, 290], "hob": [556, 353], "sink": [556, 432] },
+    { "from": [530, 800], "to": [530, 500], "tall": true },
+    { "from": [663, 800], "to": [765, 800], "tall": true, "depth": 0.45 },
+    { "from": [684, 280], "to": [684, 458], "island": true, "depth": 1.0 }
+  ]
+}

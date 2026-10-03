@@ -1,0 +1,39 @@
+{
+  "id": "aureliano-coutinho-sao-paulo",
+  "name": "Aureliano Coutinho Apartment, Sao Paulo (traced)",
+  "note": "Traced by hand on the cached plan (905 x 1280 px, evals/real/fetch.ts), scale from the plan's unnumbered three-segment bar read as 0-3 m (64.7 px/m; the double bed 2.0 x 1.7 m and doors 0.75-0.8 m agree). The open living / kitchen / office / corridor space is split along the drawn beam lines (columns at the beam crossings left out) with open segments between the parts; the stair and lift core and the south balcony left out (the bedrooms' sliding glass kept as full-height windows, the living room's balcony door kept); the slightly skewed east wall squared off; the corridor cupboards and the wardrobe between the bedrooms folded into the rooms. Kitchen as drawn: a wall run with hob and sink under the core, and the freestanding fridge and pantry block between office and kitchen as a free-standing tall run; the concrete dining table is not cabinetry and is left out.",
+  "scale": 64.7,
+  "origin": [116, 400],
+  "height": 2.7,
+  "thickness": 0.15,
+  "rooms": [
+    { "name": "Bathroom", "rect": [116, 400, 228, 562] },
+    { "name": "Bathroom 2", "rect": [116, 562, 228, 721] },
+    { "name": "Laundry", "rect": [423, 233, 520, 400] },
+    { "name": "Study", "rect": [228, 400, 467, 612] },
+    { "name": "Kitchen", "polygon": [[467, 400], [520, 400], [520, 432], [787, 432], [787, 612], [467, 612]] },
+    { "name": "Hall", "rect": [228, 612, 546, 721] },
+    { "name": "Living room", "rect": [546, 612, 787, 1032] },
+    { "name": "Bedroom", "rect": [116, 721, 338, 959] },
+    { "name": "Bedroom 2", "rect": [338, 721, 546, 959] }
+  ],
+  "open": [[467, 400, 467, 612], [228, 612, 787, 612], [546, 612, 546, 721]],
+  "openings": [
+    { "kind": "window", "at": [165, 400], "width": 0.9, "sill": 1.4, "height": 0.8 },
+    { "kind": "window", "at": [328, 400], "width": 2.9, "sill": 0.9, "height": 1.4 },
+    { "kind": "window", "at": [226, 959], "width": 1.35, "sill": 0.05, "height": 2.1 },
+    { "kind": "window", "at": [442, 959], "width": 1.4, "sill": 0.05, "height": 2.1 },
+    { "kind": "window", "at": [667, 1032], "width": 3.4, "sill": 0.9, "height": 1.5 },
+    { "kind": "door", "at": [228, 430], "width": 0.65 },
+    { "kind": "door", "at": [197, 721], "width": 0.7 },
+    { "kind": "door", "at": [260, 721], "width": 0.75 },
+    { "kind": "door", "at": [388, 721], "width": 0.8 },
+    { "kind": "door", "at": [486, 400], "width": 0.75 },
+    { "kind": "door", "at": [738, 432], "width": 1.0 },
+    { "kind": "door", "at": [546, 1003], "width": 0.8 }
+  ],
+  "kitchen": [
+    { "from": [520, 432], "to": [700, 432], "depth": 0.7, "hob": [542, 460], "sink": [632, 458] },
+    { "from": [440, 613], "to": [440, 460], "tall": true, "island": true, "depth": 0.8 }
+  ]
+}

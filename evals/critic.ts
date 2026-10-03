@@ -5,6 +5,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import type { EvalCase } from './cases.ts'
 import { EVALS_DIR } from './cases.ts'
+import { ROOM_VIEWS } from './eye.ts'
 import { cachedImages, loadProjects } from './real/fetch.ts'
 import type { RoomFacts } from './room-facts.ts'
 import type { CaseSummary } from './summary.ts'
@@ -14,8 +15,8 @@ export type Criterion = (typeof CRITERIA)[number]
 
 export const CRITIC_PROMPT = `You review one job by varpet's AI interior designer (or its architect) in a flat. You get the brief, the agent's
 final words, a data summary of what it changed (products with sizes, positions and prices; wall and floor finishes;
-tool errors), measured facts per furnished room, renders of the result (top view, 3/4 view, and an eye-level view
-per furnished room when available), and real rooms to compare with: for a real project, the plan and photos of how
+tool errors), measured facts per furnished room, renders of the result (top and 3/4 views of the whole flat, then per
+judged room an eye-level, a top and a 3/4 view, when available), and real rooms to compare with: for a real project, the plan and photos of how
 the real designer actually finished that same flat; otherwise photos of real, lived-in rooms of the same type.
 
 Judge from evidence: what the renders show, backed by the data and facts. Renders can be rough (simple lighting,
@@ -72,14 +73,22 @@ export interface CriticImage {
   path: string
 }
 
-/** The agent's renders in a case folder: top, 3/4, then one eye-level view per room (shot-eye-<room>.jpg|png). */
+/**
+ * The agent's renders in a case folder: the whole flat's top and 3/4 view, then per room (by file name) its eye-level,
+ * top and 3/4 view (shot-eye|top|3d-<room>.jpg|png).
+ */
 export function agentShots(dir: string): CriticImage[] {
   const files = existsSync(dir) ? readdirSync(dir) : []
   const shots: CriticImage[] = []
   if (files.includes('shot-top.png')) shots.push({ label: "agent's result, top view of the whole flat", path: join(dir, 'shot-top.png') })
   if (files.includes('shot-3d.png')) shots.push({ label: "agent's result, 3/4 view of the whole flat", path: join(dir, 'shot-3d.png') })
-  for (const file of files.filter((f) => /^shot-eye-.+\.(png|jpe?g)$/.test(f)).sort()) {
-    shots.push({ label: `agent's result, eye-level view of ${file.replace(/^shot-eye-|\.(png|jpe?g)$/g, '').replace(/-/g, ' ')}`, path: join(dir, file) })
+  const roomFile = /^shot-(?:eye|top|3d)-(.+)\.(?:png|jpe?g)$/
+  const rooms = [...new Set(files.flatMap((f) => roomFile.exec(f)?.[1] ?? []))].sort()
+  for (const room of rooms) {
+    for (const { prefix, label } of ROOM_VIEWS) {
+      const file = files.find((f) => new RegExp(`^${prefix}-${room}\\.(png|jpe?g)$`).test(f))
+      if (file) shots.push({ label: `agent's result, ${label} of ${room.replace(/-/g, ' ')}`, path: join(dir, file) })
+    }
   }
   return shots
 }
@@ -99,7 +108,8 @@ export function realImages(c: EvalCase): { images: CriticImage[]; text: string }
       text:
         `Real project: "${project.title}" by ${project.designer}, ${project.city}, ${project.areaM2} m2, ${project.style}. ` +
         `Brief from the project: ${project.brief} The agent got the same empty shell (traced from this plan) and the brief; ` +
-        'compare its result room by room with how the real designer finished it: what each room contains, completeness and layering, layout logic, style, scale.',
+        'compare its result room by room with how the real designer finished it: what each room contains, completeness and layering, layout logic, style, scale. ' +
+        'Kitchen units drawn on the plan were built into the shell before the agent started; they are not its work.',
     }
   }
   return {

@@ -2,6 +2,7 @@
 // report's columns. Pure, so it is tested without spending a turn.
 import type { AgentEvent } from '../packages/contracts/src/index.ts'
 import type { EvalCase } from './cases.ts'
+import { worldPose } from './room-facts.ts'
 
 type Json = Record<string, any>
 interface Graph {
@@ -24,6 +25,8 @@ export interface PlacedItem {
   at: [number, number]
   rotationDeg: number
   room: string | null
+  /** How it stands: on the floor (or a surface), hung on a wall, or from the ceiling. */
+  mount: 'floor' | 'wall' | 'ceiling'
 }
 
 export interface CaseSummary {
@@ -78,15 +81,17 @@ export function summarize(c: EvalCase, turns: TurnLog[], base: Graph | null, pro
   const added: PlacedItem[] = []
   for (const [id, node] of Object.entries(proposal?.nodes ?? {}) as Array<[string, Json]>) {
     if (node.type !== 'item' || (base && id in base.nodes)) continue
-    const at: [number, number] = [round(node.position?.[0] ?? 0), round(node.position?.[2] ?? 0)]
+    const pose = worldPose(node, proposal!.nodes)
+    const at: [number, number] = [round(pose.at[0]), round(pose.at[1])]
     added.push({
       name: node.asset?.name ?? node.name ?? id,
       productId: typeof node.metadata?.productId === 'string' ? node.metadata.productId : null,
       priceAmd: typeof node.metadata?.priceAmd === 'number' ? node.metadata.priceAmd : null,
       size: (node.asset?.dimensions ?? []).map((v: number) => round(v)),
       at,
-      rotationDeg: Math.round(((node.rotation?.[1] ?? 0) * 180) / Math.PI),
+      rotationDeg: Math.round((pose.rot * 180) / Math.PI),
       room: roomOf(at),
+      mount: pose.mount,
     })
   }
   const removed = Object.entries(base?.nodes ?? {})

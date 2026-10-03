@@ -1,0 +1,36 @@
+{
+  "id": "lazarz-apartment-poznan",
+  "name": "Lazarz Apartment, Poznan (traced)",
+  "note": "Traced by hand on the cached plan (1280 x 853 px, evals/real/fetch.ts). No scale bar, dimensions or areas: 54 px/m from the manifest area (68 m2; traced net total 64.0 m2, 94%) cross-checked with the entrance door (48 px = 0.9 m), kitchen counters (32 px = 0.6 m), the double bed (88 x 105 px = 1.6 x 1.95 m), the study's single bed (46 x 100 px = 0.85 x 1.85 m) and the bathtub (88 px = 1.6 m). Tenement walls squared off; the balcony below the bedroom left out (its right-hand opening kept as a door, a guess, the left one as a window). The thick hall/bedroom wall is a pair of slanted walls; the shaft between the study and the bathroom is folded into the bathroom (so the envelope closes); the 0.14 m jog in the living room's north wall above the kitchen are dropped; built-in wardrobes stay inside their rooms (bedroom, hall); the walk-in wardrobe off the hall is a small room. The hall opens to the living room through a leafless doorway (open segment). Kitchen as drawn: an L of base units on the east and north walls with sink and hob on the east run; the shallow cabinet on the east wall by the sofa is left out.",
+  "scale": 54,
+  "origin": [463, 103],
+  "height": 3.2,
+  "thickness": 0.15,
+  "rooms": [
+    { "name": "Study", "rect": [463, 110, 590, 306] },
+    { "name": "Bathroom", "polygon": [[590, 103], [735, 103], [735, 313], [660, 313], [660, 243], [590, 243]] },
+    { "name": "Wardrobe", "rect": [463, 306, 590, 398] },
+    { "name": "Hall", "polygon": [[590, 243], [660, 243], [660, 313], [742, 313], [742, 445], [640, 445], [590, 398]] },
+    { "name": "Bedroom", "polygon": [[463, 398], [570, 398], [620, 445], [620, 665], [463, 665]] },
+    { "name": "Living room and kitchen", "rect": [620, 445, 818, 748] }
+  ],
+  "open": [[662, 445, 710, 445]],
+  "openings": [
+    { "kind": "window", "at": [530, 110], "width": 0.95, "sill": 0.7, "height": 2.0 },
+    { "kind": "window", "at": [645, 103], "width": 0.85, "sill": 0.9, "height": 1.8 },
+    { "kind": "window", "at": [725, 103], "width": 0.3, "sill": 0.9, "height": 1.8 },
+    { "kind": "window", "at": [498, 665], "width": 0.95, "sill": 0.7, "height": 2.0 },
+    { "kind": "door", "at": [576, 665], "width": 0.9, "height": 2.4 },
+    { "kind": "window", "at": [668, 748], "width": 1.0, "sill": 0.7, "height": 2.0 },
+    { "kind": "window", "at": [766, 748], "width": 1.0, "sill": 0.7, "height": 2.0 },
+    { "kind": "door", "at": [742, 381], "width": 0.9 },
+    { "kind": "door", "at": [590, 276], "width": 0.85 },
+    { "kind": "door", "at": [590, 330], "width": 0.85 },
+    { "kind": "door", "at": [622, 243], "width": 0.8 },
+    { "kind": "door", "at": [620, 593], "width": 1.1, "height": 2.4 }
+  ],
+  "kitchen": [
+    { "from": [818, 445], "to": [818, 613], "sink": [800, 510], "hob": [802, 587] },
+    { "from": [723, 445], "to": [785, 445] }
+  ]
+}

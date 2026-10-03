@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { roleOf, roomFacts } from './room-facts.ts'
+import { roleOf, roomFacts, worldPose } from './room-facts.ts'
 
 const item = (id: string, category: string, name: string, position: number[], dimensions: number[], rotation = 0) => ({
   id, type: 'item', name, position, rotation: [0, rotation, 0], asset: { category, name, dimensions },
@@ -54,4 +54,24 @@ test('named rooms are reported even when empty', () => {
   const [empty] = roomFacts(graph, ['empty'])
   assert.equal(empty!.pieces, 0)
   assert.equal(empty!.bareWallM, empty!.wallLengthM)
+})
+
+test('wall and ceiling children count where they hang, not at their local coordinates', () => {
+  // The north wall runs east to west (4,5) -> (0,5): its left normal points south, into the room.
+  const mounted = {
+    nodes: {
+      ...graph.nodes,
+      level_1: { id: 'level_1', type: 'level', height: 2.8 },
+      wall_n: { id: 'wall_n', type: 'wall', start: [4, 5], end: [0, 5], thickness: 0.2, children: ['sconce'] },
+      ceiling_a: { id: 'ceiling_a', type: 'ceiling', polygon: [[0, 0], [4, 0], [4, 5], [0, 5]], children: ['pendant'] },
+      sconce: { ...item('sconce', 'lamp', 'Brass wall sconce', [1, 1.6, 0.1], [0.2, 0.3, 0.2]), parentId: 'wall_n' },
+      pendant: { ...item('pendant', 'lamp', 'Rattan pendant', [2, -0.6, 3.5], [0.5, 0.4, 0.5]), parentId: 'ceiling_a' },
+    },
+  }
+  const sconce = worldPose(mounted.nodes.sconce, mounted.nodes)
+  assert.deepEqual([sconce.mount, sconce.at.map((v) => Math.round(v * 100) / 100), sconce.y], ['wall', [3, 4.8], 1.6])
+  const pendant = worldPose(mounted.nodes.pendant, mounted.nodes)
+  assert.deepEqual([pendant.mount, pendant.at, Math.round(pendant.y * 100) / 100], ['ceiling', [2, 3.5], 2.2])
+  const [living] = roomFacts(mounted, ['Living'])
+  assert.deepEqual([living!.counts.lights.wall, living!.counts.lights.ceiling], [1, 1])
 })

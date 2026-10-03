@@ -22,5 +22,101 @@
     "skill": "furnish-room",
     "turns": ["Furnish the whole flat for us, a couple who host friends often. Bright Scandinavian: white walls, light ash wood, a touch of green. A living room to sit and talk, a dining table for six by the kitchen, and a calm bedroom."],
     "expect": "Each room finished as completely as the real project's photos: a conversation group on a rug with side tables and layered light, dining for six with light over it, a bedroom with bedside stations, storage and textiles, a usable hall; prices and total."
+  },
+  {
+    "id": "real-classica-rome",
+    "role": "designer",
+    "templateId": null,
+    "shell": "real/shells/classica-con-brio-rome.json",
+    "project": "classica-con-brio-rome",
+    "room": "whole flat",
+    "rooms": ["Living room and kitchen", "Bedroom", "Bedroom 2", "Entrance"],
+    "skill": "furnish-room",
+    "turns": ["Furnish the whole flat for us, a young couple, floors and walls too. A period flat in Rome, soft pastel classic-modern: a living room with the open kitchen and a dining place, our bedroom, a guest bedroom and an entrance hall where you can sit."],
+    "expect": "Each room finished as completely as the real project's photos: a living group on a rug with side tables and lamps, a dining place by the kitchen, two bedrooms with bedside stations and storage, a furnished entrance; pastel classic-modern finishes; prices and total."
+  },
+  {
+    "id": "real-aureliano-sao-paulo",
+    "role": "designer",
+    "templateId": null,
+    "shell": "real/shells/aureliano-coutinho-sao-paulo.json",
+    "project": "aureliano-coutinho-sao-paulo",
+    "room": "whole flat",
+    "rooms": ["Living room", "Kitchen", "Hall", "Bedroom"],
+    "skill": "furnish-room",
+    "turns": ["Furnish the whole flat for me. I read a lot: library walls for my books, raw concrete and warm wood, a long table by the kitchen for eating and working, a living room to read and talk in, and a calm bedroom."],
+    "expect": "Each room finished as completely as the real project's photos: a reading and conversation group in the living room, a long table by the kitchen with light over it, bookshelves along the hall, a bedroom with bedside stations and storage; prices and total."
+  },
+  {
+    "id": "real-unfolding-slupsk",
+    "role": "designer",
+    "templateId": null,
+    "shell": "real/shells/unfolding-home-slupsk.json",
+    "project": "unfolding-home-slupsk",
+    "room": "whole flat",
+    "rooms": ["Living room and kitchen", "Bedroom", "Hall"],
+    "skill": "furnish-room",
+    "turns": ["Furnish the flat for me, a surgeon with shifting hours. Minimal, oak and black: a dining table by the kitchen island, a sofa to rest on, a daybed reading nook, and a compact, calm bedroom."],
+    "expect": "Each room finished as completely as the real project's photos: a dining table by the island, a sofa group with a rug, side table and lamp, a reading nook, a bedroom with bedside stations, a usable hall; prices and total."
+  },
+  {
+    "id": "real-ts-yerevan",
+    "role": "designer",
+    "templateId": null,
+    "shell": "real/shells/ts-apartment-yerevan.json",
+    "project": "ts-apartment-yerevan",
+    "room": "whole flat",
+    "rooms": ["Living room and kitchen", "Bedroom"],
+    "skill": "furnish-room",
+    "turns": ["Furnish this floor of our duplex, the attic. We host friends often: a long dining table for ten, a living area to sit and talk, and a bedroom that easily works as a guest room. A neoclassical building, warm modern inside."],
+    "expect": "Each room finished as completely as the real project's photos: a long dining table for ten with light over it, a conversation group on a rug, a bedroom that also works for guests with bedside stations and storage; prices and total."
+  },
+  {
+    "id": "real-lazarz-poznan",
+    "role": "designer",
+    "templateId": null,
+    "shell": "real/shells/lazarz-apartment-poznan.json",
+    "project": "lazarz-apartment-poznan",
+    "room": "whole flat",
+    "rooms": ["Living room and kitchen", "Bedroom", "Study"],
+    "skill": "furnish-room",
+    "turns": ["Furnish the whole flat for us. An old tenement with pine floors and tall windows: a colourful kitchen corner with a round table for four, a soft modern living area, our bedroom, and a small study with a guest bed."],
+    "expect": "Each room finished as completely as the real project's photos: a round dining table for four by the kitchen, a sofa group on a rug with lamps, a bedroom with bedside stations and storage, a study with a desk and a guest bed; colour in the kitchen; prices and total."
+  },
+  {
+    "id": "real-copenhagen-moscow",
+    "role": "designer",
+    "templateId": null,
+    "shell": "real/shells/copenhagen-spirit-moscow.json",
+    "project": "copenhagen-spirit-moscow",
+    "room": "whole flat",
+    "rooms": ["Living room and kitchen", "Bedroom", "Hall"],
+    "skill": "furnish-room",
+    "turns": ["Furnish the whole flat for me. I lived for years in Copenhagen: minimal Danish, light wood, soft pastels, no curtains. A sofa to sit on with friends, a small table to eat at by the kitchen, and a bedroom with a work desk."],
+    "expect": "Each room finished as completely as the real project's photos: a sofa group on a rug with side table and lamp, a small dining table by the kitchen, a bedroom with bedside stations, storage and a desk with a chair and lamp, a dressed hall; no curtains; prices and total."
+  },
+  {
+    "id": "real-mazanka-kyiv",
+    "role": "designer",
+    "templateId": null,
+    "shell": "real/shells/mazanka-apartment-kyiv.json",
+    "project": "mazanka-apartment-kyiv",
+    "room": "whole flat",
+    "rooms": ["Living room and kitchen", "Bedroom", "Hall"],
+    "skill": "furnish-room",
+    "turns": ["Furnish the whole flat for me, floors and walls too. Eco and earthy: clay plaster walls, natural wood, linen, plants. An open living room with the kitchen, a round dining table for six in the bay window, and a calm bedroom."],
+    "expect": "Each room finished as completely as the real project's photos: a round table for six in the bay with light over it, a living group on a rug with side tables and lamps, a calm bedroom with bedside stations and storage, a usable hall; earthy finishes; prices and total."
+  },
+  {
+    "id": "real-morgado-sao-paulo",
+    "role": "designer",
+    "templateId": null,
+    "shell": "real/shells/morgado-de-mateus-sao-paulo.json",
+    "project": "morgado-de-mateus-sao-paulo",
+    "room": "whole flat",
+    "rooms": ["Living room and dining", "Bedroom", "Bedroom 2", "Study"],
+    "skill": "furnish-room",
+    "turns": ["Furnish the whole flat for our family with a young child. Warm Brazilian modern, teak and light colours: a living room with a dining table for six, our bedroom, a kids room, and a study that doubles as a TV room."],
+    "expect": "Each room finished as completely as the real project's photos: a living group on a rug and a dining table for six with light over it, a main bedroom with bedside stations and storage, a kids room with bed, storage and play space, a study/TV room with desk and sofa; prices and total."
   }
 ]

@@ -48,3 +48,11 @@ test('real cases name a manifest project and its traced shell; cached photos rea
     assert.match(text, new RegExp(project!.designer.split(' ')[0]!))
   }
 })
+
+test('per-room renders follow the whole flat: eye level, top, 3/4 for each room', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'critic-rooms-'))
+  for (const f of ['shot-top.png', 'shot-3d-bedroom.jpg', 'shot-eye-bedroom.jpg', 'shot-top-bedroom.jpg', 'shot-top-hall.jpg']) writeFileSync(join(dir, f), '')
+  assert.deepEqual(agentShots(dir).map((s) => s.label.replace(/.*, /, '')), [
+    'top view of the whole flat', 'eye-level view of bedroom', 'top view of bedroom', '3/4 view of bedroom', 'top view of hall',
+  ])
+})

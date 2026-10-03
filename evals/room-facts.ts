@@ -107,20 +107,59 @@ interface Piece {
   d: number
   rot: number
   hung: boolean
+  mount: 'floor' | 'wall' | 'ceiling'
 }
 
-function pieceOf(node: Json): Piece {
+/**
+ * Where an item stands in the flat. place_product hangs wall pieces as wall children in the wall's frame
+ * ([along, bottom, +-thickness/2], rotation about the wall) and ceiling pieces as ceiling children ([x, -drop, z]);
+ * floor and surface pieces are level children in plan coordinates. `at` is the plan point the piece covers (a wall
+ * piece's centre in front of its face), `y` its bottom above the floor, `rot` its yaw in the flat.
+ */
+export function worldPose(node: Json, nodes: Record<string, unknown>): { at: Vec2; y: number; rot: number; mount: 'floor' | 'wall' | 'ceiling' } {
+  const position = (node.position ?? [0, 0, 0]) as number[]
+  const yaw = Number(node.rotation?.[1] ?? (typeof node.rotation === 'number' ? node.rotation : 0))
+  const parent = nodes[String(node.parentId)] as Json | undefined
+  if (parent?.type === 'wall' && Array.isArray(parent.start) && Array.isArray(parent.end)) {
+    const [sx, sz] = parent.start as Vec2
+    const [ex, ez] = parent.end as Vec2
+    const length = Math.hypot(ex - sx, ez - sz) || 1
+    const dir: Vec2 = [(ex - sx) / length, (ez - sz) / length]
+    const normal: Vec2 = [-dir[1], dir[0]]
+    const face = Number(position[2] ?? 0)
+    const depth = Number(node.asset?.dimensions?.[2] ?? 0.05)
+    const out = face + (face < 0 ? -1 : 1) * Math.max(depth / 2, 0.1)
+    const along = Number(position[0] ?? 0)
+    return {
+      at: [sx + dir[0] * along + normal[0] * out, sz + dir[1] * along + normal[1] * out],
+      y: Number(position[1] ?? 0),
+      rot: Math.atan2(-dir[1], dir[0]) + yaw,
+      mount: 'wall',
+    }
+  }
+  if (parent?.type === 'ceiling') {
+    const level = Object.values(nodes).find((n) => (n as Json).type === 'level') as Json | undefined
+    const height = Number(parent.height ?? level?.height ?? 2.7)
+    const [cx = 0, , cz = 0] = (parent.position ?? [0, 0, 0]) as number[]
+    return { at: [cx + Number(position[0] ?? 0), cz + Number(position[2] ?? 0)], y: height + Number(position[1] ?? 0), rot: yaw, mount: 'ceiling' }
+  }
+  return { at: [Number(position[0] ?? 0), Number(position[2] ?? 0)], y: Number(position[1] ?? 0), rot: yaw, mount: 'floor' }
+}
+
+function pieceOf(node: Json, nodes: Record<string, unknown>): Piece {
   const [w = 0.5, h = 0.5, d = 0.5] = (node.asset?.dimensions ?? []) as number[]
-  const y = Number(node.position?.[1] ?? 0)
+  const pose = worldPose(node, nodes)
   const role = roleOf(node)
   return {
     name: String(node.asset?.name ?? node.name ?? node.id).slice(0, 60),
     role,
-    at: [Number(node.position?.[0] ?? 0), Number(node.position?.[2] ?? 0)],
-    y, w, h, d,
-    rot: Number(node.rotation?.[1] ?? 0),
-    // Hung on a wall: off the floor and thin (art, mirrors, sconces, wall shelves).
-    hung: y >= 0.3 && Math.min(w, d) <= 0.12,
+    at: pose.at,
+    y: pose.y,
+    w, h, d,
+    rot: pose.rot,
+    // Hung: on a wall (mounted, or off the floor and thin: art, mirrors, sconces, wall shelves) or from the ceiling.
+    hung: pose.mount !== 'floor' || (pose.y >= 0.3 && Math.min(w, d) <= 0.12),
+    mount: pose.mount,
   }
 }
 
@@ -185,7 +224,7 @@ const STEP = 0.1
 export function roomFacts(graph: Graph, rooms?: string[]): RoomFacts[] {
   const nodes = Object.values(graph.nodes) as Json[]
   const zones = nodes.filter((n) => n.type === 'zone' && Array.isArray(n.polygon) && n.polygon.length >= 3)
-  const pieces = nodes.filter((n) => n.type === 'item').map(pieceOf)
+  const pieces = nodes.filter((n) => n.type === 'item').map((n) => pieceOf(n, graph.nodes))
   const gaps = openings(graph)
   const wanted = rooms?.map((r) => r.toLowerCase())
   const out: RoomFacts[] = []
@@ -218,7 +257,9 @@ export function roomFacts(graph: Graph, rooms?: string[]): RoomFacts[] {
     const surfaces = inRoom.filter((p) => p.role === 'surface' || p.role === 'storage')
     const lights = inRoom.filter((p) => p.role === 'light')
     const lightKind = (p: Piece) =>
-      /pendant|chandelier|ceiling/i.test(p.name) || p.y >= 1.5 ? 'ceiling' : p.hung || /sconce|wall light/i.test(p.name) ? 'wall' : p.y < 0.05 && p.h >= 1 ? 'floor' : 'table'
+      p.mount === 'ceiling' || (p.mount === 'floor' && (/pendant|chandelier|ceiling/i.test(p.name) || p.y >= 1.5))
+        ? 'ceiling'
+        : p.hung || /sconce|wall light/i.test(p.name) ? 'wall' : p.y < 0.05 && p.h >= 1 ? 'floor' : 'table'
     const count = (role: Role) => inRoom.filter((p) => p.role === role).length
     out.push({
       room: name,

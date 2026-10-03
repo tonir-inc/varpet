@@ -1,0 +1,29 @@
+{
+  "id": "ts-apartment-yerevan",
+  "name": "TS Apartment, Yerevan, second floor (traced)",
+  "note": "Duplex: only the second (attic) floor is in the cached plan (1280 x 759 px, evals/real/fetch.ts) and only it is traced; the stair down is a room named Stair. Scale from the plan's 0-5 m bar (332 px for 5 m = 66.4 px/m; kitchen counter 0.6 m deep and WC door 0.75 m agree). No printed areas (published 110 m2 is both floors). Thick masonry walls at inner faces, partitions on centre lines; the small wall jogs (niche left of the kitchen, the slanted wall at the bedroom's south-east corner) squared off; the bay at the living room's south-west (glazing at x 277-282) cut at the glazing. Terrace left out; its two folding glass doors kept as doors. The bedroom's folding partition is a wall with two wide doors (2.0 and 0.9 m). The hatched landing below the stair is in the living room; the Stair is open on its south side. The radiator-like mark on the bedroom's south wall is taken as a window. Kitchen as drawn: one straight run on the north wall with hob and sink.",
+  "scale": 66.4,
+  "origin": [282, 92],
+  "height": 2.7,
+  "thickness": 0.12,
+  "rooms": [
+    { "name": "Living room and kitchen", "polygon": [[282, 92], [545, 92], [545, 180], [630, 180], [630, 337], [812, 337], [812, 269], [849, 269], [849, 492], [542, 492], [542, 585], [282, 585]] },
+    { "name": "WC", "polygon": [[545, 92], [589, 92], [589, 107], [700, 107], [700, 180], [545, 180]] },
+    { "name": "Stair", "rect": [630, 180, 812, 337] },
+    { "name": "Bedroom", "polygon": [[849, 180], [1162, 180], [1162, 430], [1117, 430], [1117, 492], [849, 492]] }
+  ],
+  "open": [[630, 337, 812, 337]],
+  "openings": [
+    { "kind": "door", "at": [282, 201], "width": 1.9, "height": 2.2 },
+    { "kind": "door", "at": [282, 391], "width": 2.3, "height": 2.2 },
+    { "kind": "window", "at": [282, 546], "width": 1.1, "sill": 0.3, "height": 2.0 },
+    { "kind": "door", "at": [604, 180], "width": 0.75 },
+    { "kind": "door", "at": [849, 339], "width": 2.0 },
+    { "kind": "door", "at": [849, 461], "width": 0.9 },
+    { "kind": "window", "at": [1162, 224], "width": 0.5, "sill": 0.9, "height": 1.2 },
+    { "kind": "window", "at": [941, 492], "width": 1.1 }
+  ],
+  "kitchen": [
+    { "from": [283, 92], "to": [545, 92], "sink": [469, 112], "hob": [380, 112] }
+  ]
+}

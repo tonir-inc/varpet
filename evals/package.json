@@ -9,6 +9,7 @@
     "test": "node --test --experimental-strip-types *.test.ts real/*.test.ts architect/*.test.ts"
   },
   "dependencies": {
+    "@pascal-app/core": "workspace:*",
     "@pascal-app/mcp": "workspace:*",
     "playwright-core": "1.63.0"
   },
