@@ -25,18 +25,23 @@ function server() {
     const text = String(args.text ?? args.query ?? ''), kind = args.kind ? String(args.kind) : '';
     const limit = Number(args.limit) || 10, rows = [];
     let offset = Number(args.offset) || 0;
-    for (let page = 0; page < 4 && offset !== null && rows.length < limit; page++) {
+    // Filters drop rows after paging, so keep paging (up to 20 pages) until `limit` rows pass. Like the tailnet server,
+    // `next_offset` says where to carry on (null at the end) and `candidates` counts the rows that passed so far.
+    for (let page = 0; page < 20 && offset !== null && rows.length < limit; page++) {
       const data = await getJson(`search?${new URLSearchParams({ text, kind, ...(offset ? { offset: String(offset) } : {}) })}`);
-      for (const r of data.results ?? []) {
+      const results = data.results ?? [];
+      let i = 0;
+      for (; i < results.length && rows.length < limit; i++) {
+        const r = results[i];
         const [w, d, h] = r.fit_size_m ?? r.size_m ?? [0, 0, 0];
         if ((args.max_w && w > args.max_w) || (args.max_d && d > args.max_d) || (args.max_h && h > args.max_h)
           || (args.min_w && w < args.min_w) || (args.min_d && d < args.min_d) || (args.min_h && h < args.min_h)
           || (args.max_price && r.price > args.max_price)) continue;
         rows.push(r);
       }
-      offset = typeof data.next_offset === 'number' ? data.next_offset : null;
+      offset = i < results.length ? offset + i : typeof data.next_offset === 'number' ? data.next_offset : null;
     }
-    return reply({ results: rows.slice(0, limit), total: rows.length });
+    return reply({ results: rows, candidates: rows.length, next_offset: offset });
   });
   s.registerTool('get_item', { description: 'One item', inputSchema: { item_id: z.string() } }, async ({ item_id }) => {
     const data = await getJson(`items?${new URLSearchParams({ ids: item_id })}`);
@@ -49,6 +54,7 @@ function server() {
 }
 
 createServer(async (req, res) => {
+  try {
   const url = req.url ?? '';
   const m = /^\/models\/([A-Za-z0-9_-]{1,120}\.glb)$/.exec(url);
   if (m) {
@@ -62,7 +68,8 @@ createServer(async (req, res) => {
   if (url.startsWith('/mcp')) {
     if (req.method !== 'POST') { res.writeHead(405); return res.end(); }
     const chunks = []; for await (const c of req) chunks.push(c);
-    const body = JSON.parse(Buffer.concat(chunks).toString() || '{}');
+    let body;
+    try { body = JSON.parse(Buffer.concat(chunks).toString() || '{}'); } catch { res.writeHead(400); return res.end(); }
     const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true });
     const s = server();
     res.on('close', () => { transport.close(); s.close(); });
@@ -70,4 +77,10 @@ createServer(async (req, res) => {
     return transport.handleRequest(req, res, body);
   }
   res.writeHead(404); res.end();
+  } catch (err) {
+    // an upstream or transport failure must not take the relay down (it crashed twice on 2026-10-02)
+    console.error('relay error', err);
+    if (!res.headersSent) res.writeHead(502);
+    res.end();
+  }
 }).listen(8766, '127.0.0.1', () => console.log('catalog relay on 8766 (/models, /mcp)'));

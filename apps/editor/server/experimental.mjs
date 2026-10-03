@@ -94,7 +94,9 @@ export function createExperimentalHandler(options = {}) {
       // The flat's pieces as the designer's own design (apartments/_svg/design.ts), sent with its first request.
       const design = join(repoRoot, 'apartments', flat.summary.id, 'design.json');
       if (!existsSync(design)) return send(response, 404, { error: 'This flat has no designer design.', code: 'not_found' });
-      return send(response, 200, { design: JSON.parse(readFileSync(design, 'utf8')) });
+      // build.py rewrites design.json while the dev server runs: a half-written file is a JSON error, not an HTML 500.
+      try { return send(response, 200, { design: JSON.parse(readFileSync(design, 'utf8')) }); }
+      catch { return send(response, 500, { error: 'This flat\'s design could not be read.', code: 'unavailable' }); }
     }
     if (match[2]) {
       response.statusCode = 200;

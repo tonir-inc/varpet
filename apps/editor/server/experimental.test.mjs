@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
-import { mkdtemp, mkdir, copyFile, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, copyFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -69,6 +69,20 @@ test('the flat’s pieces are served as the designer’s own design, every scene
   assert.deepEqual([...design.owned].sort(), ids);
   assert.deepEqual(design.draft.items.map(item => item.id).sort(), ids);
   for (const item of design.draft.items) assert.ok(item.sku && item.price > 0 && item.vendor && item.keep === false, `${item.id} is a priced, movable design piece`);
+});
+
+test('a half-written design.json answers with a JSON error, not an HTML 500', async t => {
+  const copy = await mkdtemp(join(tmpdir(), 'varpet-experimental-'));
+  t.after(() => rm(copy, { recursive: true }));
+  const flat = join(copy, 'apartments/komitas-b3-t11');
+  await mkdir(join(flat, 'review'), { recursive: true });
+  for (const file of ['startup.json', 'trace.svg', 'name.txt', 'review/top.png']) await copyFile(join(repo, 'apartments/komitas-b3-t11', file), join(flat, file));
+  await writeFile(join(flat, 'design.json'), '{"owned": ["a"');
+  const origin = await serve(t, copy);
+  const response = await fetch(`${origin}/api/experimental/flats/komitas-b3-t11/design`);
+  assert.equal(response.status, 500);
+  assert.equal(response.headers.get('content-type'), 'application/json; charset=utf-8');
+  assert.equal((await response.json()).code, 'unavailable');
 });
 
 test('unknown flats and other paths are not served', async t => {
