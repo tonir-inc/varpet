@@ -974,7 +974,35 @@ def _turn_text(request: str, first: bool, edits: dict | None = None, budget: int
 
 
 CLAUDE_TOOLS = "Bash,Read,Write,Edit,Glob,Grep"
-CLAUDE_LIMIT = re.compile(r"usage limit|rate limit|limit reached|out of extra usage", re.I)
+CLAUDE_LIMIT = re.compile(r"usage limit|rate limit|limit reached|hit your limit|out of extra usage", re.I)
+# Hosts ./varpet reaches from the sandbox: the catalog service, the public app (catalog relay, models), ABO photos.
+CLAUDE_HOSTS = ("127.0.0.1", "localhost", "varpet.snek.page", "amazon-berkeley-objects.s3.amazonaws.com")
+
+
+def claude_settings(environ=os.environ) -> str:
+    """Claude Code's OS sandbox for the designer's shell: writes only in the workspace (and temp), network only to
+    the catalog and the app; a command that would leave the sandbox is refused, not asked about."""
+    from urllib.parse import urlparse
+    hosts = [*CLAUDE_HOSTS]
+    catalog = urlparse(environ.get("VARPET_CATALOG_URL", "http://100.107.246.46:8765/mcp")).hostname
+    if catalog and catalog not in hosts:
+        hosts.append(catalog)
+    return json.dumps({"sandbox": {"enabled": True, "autoAllowBashIfSandboxed": True, "allowUnsandboxedCommands": False,
+                                   "network": {"allowedDomains": hosts}}})
+
+
+def forget(root: Path) -> None:
+    """Delete Claude Code's own state (transcripts, file history) for every designer workspace under `root`: the
+    conversation's files go, so its Claude session goes too. No-op for the Codex agent (its home is under root)."""
+    if agent() != "claude" or not shutil.which("claude"):
+        return
+    for workspace in [root / "spike", *root.glob("*/spike")]:
+        if workspace.is_dir():
+            try:
+                subprocess.run(["claude", "purge", "-y", str(workspace.resolve())], capture_output=True, timeout=30,
+                               stdin=subprocess.DEVNULL)
+            except (OSError, subprocess.TimeoutExpired):
+                pass
 
 
 def _claude_text(turn_input) -> str:
@@ -998,14 +1026,25 @@ def _run_turn_claude(state: SpikeConversation, turn_input, cancel: threading.Eve
     model = os.environ.get("VARPET_SPIKE_CLAUDE_MODEL", "claude-opus-5-5")
     command = ["claude", "-p", _claude_text(turn_input), "--model", model, "--output-format", "stream-json", "--verbose",
                "--setting-sources", "project", "--strict-mcp-config", "--mcp-config", '{"mcpServers": {}}',
-               "--append-system-prompt", state.instructions or "", "--permission-mode", "acceptEdits",
-               "--allowedTools", CLAUDE_TOOLS, "--disallowedTools", "WebFetch,WebSearch,Task"]
+               "--append-system-prompt", state.instructions or "", "--tools", CLAUDE_TOOLS,
+               "--permission-mode", "acceptEdits", "--allowedTools", "Bash", "--permission-prompts", "none",
+               "--settings", claude_settings()]
     if state.thread_id:
         command += ["--resume", state.thread_id]
     started = time.monotonic()
     errors = (state.workspace / "claude.stderr").open("w")
+    # Its own process group: cancel and timeout stop the shell commands it started, not only claude.
+    # Node's fetch (./varpet) reaches the network only through the sandbox's proxy, and only follows it when told to.
     process = subprocess.Popen(command, cwd=state.workspace, stdout=subprocess.PIPE, stderr=errors, text=True,
-                               stdin=subprocess.DEVNULL)
+                               stdin=subprocess.DEVNULL, start_new_session=True, env={**os.environ, "NODE_USE_ENV_PROXY": "1"})
+
+    def stop():
+        if process.poll() is None:
+            try:
+                os.killpg(process.pid, 9)
+            except (ProcessLookupError, PermissionError):
+                pass
+            process.wait()
     timed_out = threading.Event()
     done = threading.Event()
 
@@ -1015,13 +1054,14 @@ def _run_turn_claude(state: SpikeConversation, turn_input, cancel: threading.Eve
             if cancel.is_set() or time.monotonic() > deadline:
                 if not cancel.is_set():
                     timed_out.set()
-                process.kill()
+                stop()
                 return
 
     watcher = threading.Thread(target=watch, daemon=True)
     watcher.start()
     commands: dict[str, str] = {}
     final = result = None
+    limited = False
     try:
         with (state.workspace / "events.jsonl").open("a") as log:
             for line in process.stdout:
@@ -1031,7 +1071,9 @@ def _run_turn_claude(state: SpikeConversation, turn_input, cancel: threading.Eve
                     continue
                 log.write(json.dumps({"t": round(time.monotonic() - started, 3), "claude": event}, ensure_ascii=False) + "\n")
                 kind = event.get("type")
-                if kind == "system" and event.get("session_id"):
+                if kind == "rate_limit_event":
+                    limited = limited or (event.get("rate_limit_info") or {}).get("status") not in (None, "allowed", "allowed_warning")
+                elif kind == "system" and event.get("session_id"):
                     state.thread_id = event["session_id"]
                 elif kind == "assistant":
                     for block in (event.get("message") or {}).get("content") or []:
@@ -1060,6 +1102,7 @@ def _run_turn_claude(state: SpikeConversation, turn_input, cancel: threading.Eve
     finally:
         done.set()
         watcher.join()
+        stop()  # the read loop failed: nobody reads its output any more
         errors.close()
     if cancel.is_set():
         raise RuntimeError("Request cancelled")
@@ -1068,7 +1111,7 @@ def _run_turn_claude(state: SpikeConversation, turn_input, cancel: threading.Eve
     if not result or result.get("is_error") or result.get("subtype") != "success":
         detail = json.dumps(result, default=str)[:1500] if result else (state.workspace / "claude.stderr").read_text()[-1500:]
         print(json.dumps({"type": "spike_turn_failed", "agent": "claude", "detail": detail}), file=__import__("sys").stderr, flush=True)
-        if CLAUDE_LIMIT.search(detail or ""):
+        if limited or CLAUDE_LIMIT.search(detail or ""):
             raise RuntimeError("The designer has reached its usage limit. You can still move and rotate pieces yourself.")
         raise RuntimeError("The designer stopped before finishing")
     usage = result.get("usage") or {}

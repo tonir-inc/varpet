@@ -54,6 +54,7 @@ def cleanup_service_directories():
             descriptor = os.open(root / ".owner", os.O_RDWR | os.O_NOFOLLOW)
             with os.fdopen(descriptor, "w") as owner:
                 fcntl.flock(owner, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                designer_spike.forget(root)
                 shutil.rmtree(root)
         except OSError:
             # Busy, vanished, or inaccessible: another instance must remain undisturbed.
@@ -225,6 +226,7 @@ class DesignerService:
             for conversation_id, conversation in list(self.conversations.items()):
                 if conversation.cancel is None and not conversation.ending and conversation.last_activity <= cutoff:
                     try:
+                        designer_spike.forget(conversation.root)
                         shutil.rmtree(conversation.root)
                     except FileNotFoundError:
                         pass
@@ -268,6 +270,7 @@ class DesignerService:
             if self.conversations.get(conversation_id) is not conversation:
                 raise ValueError("Unknown conversationId")
             self.conversations.pop(conversation_id,None)
+            designer_spike.forget(conversation.root)
             shutil.rmtree(conversation.root,ignore_errors=False)
 
     def _process(self, command, cancel, *, env=None, on_output=None):
@@ -564,6 +567,7 @@ class DesignerService:
                 # A failed first turn never delivered an id the client could later DELETE.
                 if not conversation.ending and "conversationId" not in body and (cancel.is_set() or outcome == "error"):
                     try:
+                        designer_spike.forget(conversation.root)
                         shutil.rmtree(conversation.root)
                     except FileNotFoundError:
                         self.conversations.pop(conversation_id, None)
