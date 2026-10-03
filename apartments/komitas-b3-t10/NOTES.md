@@ -6,6 +6,22 @@
 - Build: faults 2 (facade pylons "not on a room edge"; walls right), 19/19. Audit: 1 fault, plan-inherent (balcony
   door to bedroom door route at the drawn bed's foot). Styled: option.styled.json (made 13:14 before the door
   swings; same 1 fault).
+- Walls after Ashot's wall review (2026-10-03 14:47 +04, `experimental/wall-review/marks/b3-t10.json`): the
+  bedroom/living partition (563.5-570.5), the bedroom/hall partition (828.5-835.5, ending in an L with it) and the
+  kitchen's north wall (648.5-655.5, to the shaft) are traced tight to the drawn bands (0.12 m, were 0.07-0.09 m and
+  2-3 px off); east of the shaft the bathroom's south wall is its own 0.2 m piece (1025-1053 x 649-660.5); the
+  grey-hatched arm under the shaft is modelled (`pylon-se-east`, 1007-1024.5 x 751-762.5; pylon-se ends on the
+  shaft's centreline so the shaft meets the arm and not the pylon). Rooms follow the new faces.
+  Build: faults 3 (the two facade pylons plus pylon-se-east, all "not on a room edge": structure outside every
+  room; walls right), 19/19. Audit: 0 (was 1: the balcony-door to bedroom-door route now passes). Styled: 9 faults, all from its saved
+  positions against the corrected walls (its TV unit against the old partition face, its hall and kitchen art on the
+  old thin kitchen wall, its curtain hosted on wall-balcony-east whose start moved 3 px north onto the partition's
+  centreline, now touching two dining chairs): Styled needs remaking on the new walls.
+  The other partitions (kitchen east, niche, bathroom west) are still 1-2 px thinner than drawn: traced tight they
+  shrink the hall below its printed-area tolerance and the kitchen edge pushes the shaft off a room edge.
+- Outside the flat, deliberately not modelled (Ashot: "not wrong, as long as it is not going to trip you"): the
+  facade walls' outer corner stubs: the west wall above the north wall (476-486 x 389-400, mark 7) and below the
+  south-west wall (476-486 x 749-772, marks 5-6), and the north-east one east of x 840.
 
 Plan: `experimental/komitas-plans/b3-t10.png` (1684 x 1190), printed total 47.6 m2, 2 rooms (flat No. 4 on the plan).
 `trace.svg` is the "As drawn" option: walls, rooms, openings, fixtures and the plan's own furniture, every drawn piece.
@@ -39,18 +55,21 @@ the wall faces (486-549 x 575-752); the plan's own 1000 x 2900 lines give 2.9 m2
   973-1008). Each is its own `wall main` polygon, tight to the drawing. Columns are traced 34 x 33 px so their axis is
   horizontal: a 34 x 34 square reads as a vertical wall and fails the room-edge check.
 - Walls are written from their centrelines: at an L both centrelines end on the corner point, and at a T the stem ends on
-  the other wall's centreline. The shell's tidy merges any two wall ends within 8 cm, so offset butt joints came out
-  skewed. Consequences, each 2-5 px (3-9 cm):
+  the other wall's centreline. The shell's tidy merged any two wall ends within 8 cm, so offset butt joints came out
+  skewed (fixed 2026-10-03: ends now meet where the two lines cross, and parallel offset pieces stay apart; the two
+  partitions below are re-traced tight). Consequences then, each 2-5 px (3-9 cm):
   - The bedroom/living partition is traced at y 563-567; the plan draws it at 565-569. Its end meets the balcony wall's
     end exactly.
   - The bedroom/hall partition is collinear with the thick bedroom east wall (x 835); the plan has its bedroom face
     flush at 830.
   - The facade walls' outer corner stubs (west wall above y 405, south-west wall west of x 481, north-east wall east
     of 840) are not traced.
-- Dropped: the small grey-hatched piece under the shaft (1008-1025 x 751-762). The shell's gap closing joined it to the
-  shaft, and the editor's mitre then stretched it down to y 785 (empty plan). It is outside every room.
+- (Modelled since 2026-10-03 as `pylon-se-east`, see Current state.) Was dropped: the small grey-hatched piece under the
+  shaft (1008-1025 x 751-762). The shell's gap closing joined it to the shaft, and the editor's mitre then stretched
+  it down to y 785 (empty plan). It is outside every room.
 - Black X box by the kitchen: a closed shaft (`wall secondary`, 990-1024 x 652-751, including its exterior skin), with
-  its kitchen-side wall separate (986-990). As one piece it would be 0.665 m thick, over the 0.6 m limit.
+  its kitchen-side wall separate (986-990). (The shell's limit is 1 m since 2026-10-03; one piece would now pass, but
+  its centreline would move and pull pylon-se into an L with the shaft.)
 - Light-blue X box in the bathroom (1019-1048 x 524-558): a plumbing riser box, `wall secondary`. The bathroom polygon
   includes it, as the printed 4.4 m2 does (4.43 traced). Cutting it out leaves the bathroom's north and east walls off
   a room edge.

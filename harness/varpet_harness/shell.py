@@ -55,6 +55,7 @@ GAP_CLOSE_M = 0.25  # a wall end this close to another wall meant to meet it; no
 SQUARE_DEG = 5.0  # a wall this close to an axis is meant square: plans are, eyeballed pixels are not
 SKEW_MIN_DEG = 0.5  # below this a skew is rounding
 NUDGE_M = 0.10  # tidy() pushes a free fixture this far out of a wall body; deeper stays a fault for the model
+THICK_M = (0.05, 1.0)  # wall thickness; 1 m is the editor's own limit (validation.ts): a closed shaft block is 0.7 m
 
 
 class Opening(BaseModel):
@@ -186,7 +187,7 @@ def check(shell: Shell) -> list[dict]:
             faults.append({"check": "wall", "wall": w.id, "detail": f"{skew:.1f} degrees off square; the plan draws it straight: "
                            "make it exactly horizontal or vertical (move its gridline, not one end)"})
         parapet = not w.openings and PARAPET_M <= w.height < HEIGHT_M[0]
-        if not 0.05 <= w.thickness <= 0.6 or not (HEIGHT_M[0] <= w.height <= HEIGHT_M[1] or parapet):
+        if not THICK_M[0] <= w.thickness <= THICK_M[1] or not (HEIGHT_M[0] <= w.height <= HEIGHT_M[1] or parapet):
             faults.append({"check": "wall", "wall": w.id, "detail": f"thickness {w.thickness} or height {w.height} out of range"})
         # A wall end sits at the corner of two wall centrelines: the room corner is up to both half-thicknesses away
         off = max(boundaries.distance(line.interpolate(t, normalized=True)) - _corner_reach(shell, w, t) for t in (0, 0.5, 1))
@@ -505,13 +506,35 @@ def _move_end(w: Wall, which: str, point: tuple[float, float]) -> None:
 
 def _snap_junctions(shell: Shell) -> None:
     ends = [(w, k) for w in shell.walls for k in ("start", "end")]
-    # 1. ends within SNAP_M of each other become one exact point
+    # 1. ends within SNAP_M of each other become one exact point: where the two walls' lines cross, each end
+    # moving along its own wall, so neither turns. Parallel walls whose lines are offset (a thinner piece
+    # continuing a wall) keep their ends: one point would turn one of them.
     for i, (w, k) in enumerate(ends):
-        p = getattr(w, k)
         for w2, k2 in ends[i + 1 :]:
-            q = getattr(w2, k2)
-            if w2 is not w and 0 < LineString([p, q]).length <= SNAP_M:
-                _move_end(w2, k2, p)
+            p, q = getattr(w, k), getattr(w2, k2)
+            if w2 is w or not 0 < LineString([p, q]).length <= SNAP_M:
+                continue
+            hit = _crossing(w, w2)
+            ux, uz = (w.end[0] - w.start[0]) / _len(w), (w.end[1] - w.start[1]) / _len(w)
+            vx, vz = (w2.end[0] - w2.start[0]) / _len(w2), (w2.end[1] - w2.start[1]) / _len(w2)
+            # An end already shared exactly with a third wall is pinned: moving it would pull that joint apart.
+            pinned = lambda wall, key, partner: any(x is not wall and x is not partner and getattr(x, e) == getattr(wall, key)
+                                                    for x in shell.walls for e in ("start", "end"))
+            pw, pw2 = pinned(w, k, w2), pinned(w2, k2, w)
+            if pw and pw2:
+                continue
+            if hit is not None and abs(ux * vz - uz * vx) >= 0.5 and not (pw or pw2):  # 30 degrees or more apart: a corner
+                point = (hit[0], hit[1])
+                if max(LineString([p, point]).length, LineString([q, point]).length) <= 2 * SNAP_M:
+                    _move_end(w, k, point)
+                    _move_end(w2, k2, point)
+                    continue
+            if abs(-(q[0] - p[0]) * uz + (q[1] - p[1]) * ux) > EDITOR_EPS and abs(ux * vz - uz * vx) < 0.5:
+                continue
+            free, fixed = ((w, k), q) if pw2 else ((w2, k2), p)
+            if hit is not None and abs(ux * vz - uz * vx) >= 0.5 and LineString([getattr(*free), hit[:2]]).length <= EDITOR_EPS:
+                continue  # a corner whose other end is pinned, and this end already sits on that wall's line
+            _move_end(*free, fixed)
     # 2. an end within SNAP_M of where its wall crosses another wall moves onto the crossing
     for w in shell.walls:
         for other in shell.walls:
@@ -530,10 +553,12 @@ def _snap_junctions(shell: Shell) -> None:
                     _move_end(w, which, (x, z))
 
 
-def _close_gaps(shell: Shell) -> None:
-    """Wall ends that stop short of (or run past) the wall they meet, by up to GAP_CLOSE_M, move along their
+def _close_gaps(shell: Shell, trace: bool = False) -> None:
+    """Wall ends that stop short of (or run into) the wall they meet, by up to GAP_CLOSE_M, move along their
     own line to its centreline; where the crossing lies past the other wall's end too (an L corner), that
-    end moves as well. The model often ends a wall at the room's inside corner instead of the wall centre."""
+    end moves as well. The model often ends a wall at the room's inside corner instead of the wall centre.
+    In a trace (`trace`: walls measured off a plan image) a free end that sticks out beyond the other wall's far
+    face is drawn that way (a door jamb) and stays; in a model-written shell it is an overshoot and is trimmed."""
     for w in shell.walls:
         for which, at in (("start", 0.0), ("end", 1.0)):
             p, best = getattr(w, which), None
@@ -553,6 +578,9 @@ def _close_gaps(shell: Shell) -> None:
                 past = max(-s_ * lo, (s_ - 1) * lo, 0.0)  # how far the crossing lies beyond o's ends
                 if move <= EDITOR_EPS or move > GAP_CLOSE_M or past > GAP_CLOSE_M or (0 < t < 1 and move > SNAP_M and past):
                     continue
+                if trace and 0 < t < 1 and move > o.thickness / 2 + CLAMP_M and not any(
+                        x is not w and x is not o and LineString([x.start, x.end]).distance(Point(p)) <= SNAP_M for x in shell.walls):
+                    continue  # a free end clear past o's far face: a drawn stub (a door jamb), not an overshoot
                 if past > EDITOR_EPS and any(Polygon(r.polygon).buffer(-0.01).contains(Point(x, z)) for r in shell.rooms):
                     continue  # two blocks touching only at a corner: that corner is floor, not an L to close
                 if best is None or move + past < best[0]:
@@ -839,13 +867,13 @@ def _nudge_out_of_walls(shell: Shell) -> None:
             c.position = tuple(round(v, 4) for v in moved.position)
 
 
-def tidy(shell: Shell) -> Shell:
+def tidy(shell: Shell, trace: bool = False) -> Shell:
     """Mechanical fixes in code, not a model turn: drop collinear and near-duplicate
     polygon points (within 1 cm) and keep rooms under the editor's 32 points."""
     _dedupe_ids(shell)
     _unrotate(shell)
     _snap_junctions(shell)
-    _close_gaps(shell)
+    _close_gaps(shell, trace)
     _snap_junctions(shell)  # ends that closed onto a corner become that exact corner
     for r in shell.rooms:
         poly = Polygon(r.polygon)
@@ -875,9 +903,9 @@ def tidy(shell: Shell) -> Shell:
     return shell
 
 
-def check_file(path: Path, workdir: Path) -> list[dict]:
+def check_file(path: Path, workdir: Path, trace: bool = False) -> list[dict]:
     try:
-        shell = tidy(Shell.model_validate_json(path.read_text()))
+        shell = tidy(Shell.model_validate_json(path.read_text()), trace)
     except (ValidationError, ValueError) as e:
         return [{"check": "format", "detail": str(e)}]
     path.write_text(shell.model_dump_json(indent=1))

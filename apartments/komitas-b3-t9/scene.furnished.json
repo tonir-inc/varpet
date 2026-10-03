@@ -23,11 +23,11 @@
           7.3903
         ],
         [
-          7.5666,
+          7.4963,
           7.3903
         ],
         [
-          7.5666,
+          7.4963,
           8.5897
         ],
         [
@@ -63,11 +63,11 @@
           3.598
         ],
         [
-          9.6129,
+          9.6126,
           3.598
         ],
         [
-          9.6129,
+          9.6126,
           2.0109
         ],
         [
@@ -365,11 +365,11 @@
         ],
         [
           2.0989,
-          12.3994
+          12.4524
         ],
         [
           0.1058,
-          12.3994
+          12.4524
         ]
       ],
       "color": "#e8e4dc"
@@ -528,7 +528,7 @@
         3.9024
       ],
       "end": [
-        9.3129,
+        9.2556,
         3.9024
       ],
       "height": 2.7,
@@ -539,7 +539,7 @@
     {
       "id": "struct-hall-north",
       "start": [
-        9.3129,
+        9.2556,
         3.704
       ],
       "end": [
@@ -695,9 +695,24 @@
       "openings": []
     },
     {
-      "id": "wall-south",
+      "id": "wall-south-balcony",
       "start": [
         1.7991,
+        12.5319
+      ],
+      "end": [
+        2.1959,
+        12.5319
+      ],
+      "height": 2.7,
+      "thickness": 0.159,
+      "color": "#f2f0eb",
+      "openings": []
+    },
+    {
+      "id": "wall-south",
+      "start": [
+        2.1959,
         12.5054
       ],
       "end": [
@@ -711,7 +726,7 @@
         {
           "id": "window-living-south",
           "kind": "window",
-          "offset": 1.3405,
+          "offset": 0.9436,
           "width": 1.6227,
           "height": 1.4,
           "sill": 0.9,
@@ -720,7 +735,7 @@
         {
           "id": "window-kitchen",
           "kind": "window",
-          "offset": 4.339,
+          "offset": 3.9421000000000004,
           "width": 0.8643,
           "height": 1.4,
           "sill": 0.9,
@@ -729,7 +744,7 @@
         {
           "id": "window-bedroom-4",
           "kind": "window",
-          "offset": 7.3375,
+          "offset": 6.9406,
           "width": 1.5874,
           "height": 1.4,
           "sill": 0.9,
@@ -815,22 +830,22 @@
     {
       "id": "shaft-hall",
       "start": [
-        9.3129,
+        9.2556,
         1.7991
       ],
       "end": [
-        9.3129,
+        9.2556,
         4.0039
       ],
       "height": 2.7,
-      "thickness": 0.6,
+      "thickness": 0.714,
       "color": "#f2f0eb",
       "openings": []
     },
     {
       "id": "wall-bath7-ne",
       "start": [
-        9.3129,
+        9.2556,
         4.0039
       ],
       "end": [
@@ -945,7 +960,7 @@
       ],
       "end": [
         5.7588,
-        7.0552
+        7.214
       ],
       "height": 2.7,
       "thickness": 0.123,
@@ -984,7 +999,7 @@
         7.0552
       ],
       "end": [
-        5.7588,
+        5.758800000000001,
         7.0552
       ],
       "height": 2.7,
@@ -999,7 +1014,7 @@
         8.6427
       ],
       "end": [
-        7.5668,
+        7.4962,
         8.6427
       ],
       "height": 2.7,
@@ -1025,7 +1040,7 @@
       ],
       "end": [
         5.7588,
-        8.6427
+        8.5016
       ],
       "height": 2.7,
       "thickness": 0.123,
@@ -1035,15 +1050,15 @@
     {
       "id": "shaft-kitchen",
       "start": [
-        7.8666,
+        7.8313,
         7.3904
       ],
       "end": [
-        7.8666,
+        7.8313,
         8.6956
       ],
       "height": 2.7,
-      "thickness": 0.6,
+      "thickness": 0.67,
       "color": "#f2f0eb",
       "openings": []
     },
@@ -1775,6 +1790,11 @@
         "review": "unreviewed"
       },
       "wall-balcony-east": {
+        "structuralRole": "unknown",
+        "phase": "existing",
+        "review": "unreviewed"
+      },
+      "wall-south-balcony": {
         "structuralRole": "unknown",
         "phase": "existing",
         "review": "unreviewed"

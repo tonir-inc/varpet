@@ -2,7 +2,7 @@
   <!-- Komitas Park building 3 type 9 (plan b3-t9.png), traced in the plan's own pixels. Furniture exactly as the plan
        draws it. Rooms from the plan's table: 1 hall 21.0, 2 living 24.8, 3 kitchen 8.3, 4 bedroom 15.4, 5 bedroom 17.2,
        6 bathroom 3.9, 7 bathroom 2.0, 8 balcony 3.2. -->
-  <polygon id="hall" class="room" data-name="Hall" data-printed="21.0 m2" points="961,243 1040,243 1040,650 811,650 811,718 705,718 705,640 712,640 712,566 935,566 935,447 960,447 960,435 927,435 927,345 961,345"/>
+  <polygon id="hall" class="room" data-name="Hall" data-printed="21.0 m2" points="961,243 1040,243 1040,650 807,650 807,718 705,718 705,640 712,640 712,566 935,566 935,447 960,447 960,435 927,435 927,345 961,345"/>
   <polygon id="living" class="room" data-name="Living room" data-printed="24.8 m2" points="388,634 504,634 504,660 521,660 521,634 705,634 705,866 712,866 712,934 512,934 512,838 553,838 553,804 536,804 536,781 501,781 501,827 388,827"/>
   <polygon id="kitchen" class="room" data-name="Kitchen" data-printed="8.3 m2" points="712,724 845,724 845,804 807,804 807,838 841,838 841,934 712,934"/>
   <polygon id="bedroom-4" class="room" data-name="Bedroom" data-printed="15.4 m2" points="862,656 1040,656 1040,934 847,934 847,838 909,838 909,804 862,804"/>
@@ -31,7 +31,8 @@
   <polygon id="column-living" class="wall main" points="501,804.5 536,804.5 536,838 501,838"/>
   <polygon id="struct-living-col-east" class="wall main" points="536,804 553,804 553,838 536,838"/>
   <polygon id="wall-balcony-east" class="wall main" points="501,838 512,838 512,934 501,934"/>
-  <polygon id="wall-south" class="wall main" points="484,934 1040,934 1040,946 484,946"/>
+  <polygon id="wall-south-balcony" class="wall main" points="484,937 501,937 501,946 484,946"/><!-- the south wall under the balcony is drawn thinner (y 937-946) than the facade wall east of it -->
+  <polygon id="wall-south" class="wall main" points="501,934 1040,934 1040,946 501,946"/>
   <polygon id="struct-kitchen-bed4" class="wall main" points="845,650 862,650 862,804 845,804"/>
   <polygon id="struct-kitchen-col-west" class="wall main" points="807,804.5 841,804.5 841,838 807,838"/>
   <polygon id="column-kitchen" class="wall main" points="841,804.5 875,804.5 875,838 841,838"/>
@@ -41,7 +42,7 @@
   <!-- Partitions and closed shafts (solid, never floor). The white X box inside the bedroom 5 / bathroom 6 wall is
        part of that wall; the black X boxes (hall niche, by the kitchen) and the light-blue riser box in bathroom 6
        are solid blocks. -->
-  <polygon id="shaft-hall" class="wall secondary" data-name="Closed service shaft by the hall" points="893,333 927,333 927,435 893,435"/><!-- drawn 887-927 (0.71 m): the shell caps walls at 0.6 m and a separate outer skin has no room edge, so the 6 px outer skin is left off -->
+  <polygon id="shaft-hall" class="wall secondary" data-name="Closed service shaft by the hall" points="886.5,333 927,333 927,435 886.5,435"/><!-- as drawn, outer skin included (0.71 m) -->
   <polygon id="wall-bath7-ne" class="wall secondary" points="909,447 935,447 935,469 909,469"/>
   <polygon id="wall-bath7-east" class="wall secondary" points="929,469 935,469 935,563 929,563"/><!-- ends on the bathroom-south centreline -->
   <polygon id="wall-bath7-south" class="wall secondary" points="861,560 929,560 929,566 861,566"/>
@@ -51,9 +52,9 @@
   <polygon id="wall-bed5-door" class="wall secondary" points="705,566 712,566 712,640 705,640"/>
   <polygon id="wall-bed5-living-west" class="wall secondary" points="388,628 504,628 504,634 388,634"/>
   <polygon id="wall-bed5-living-east" class="wall secondary" points="521,628 705,628 705,634 521,634"/>
-  <polygon id="wall-kitchen-top" class="wall secondary" points="705,718 811,718 811,724 705,724"/>
-  <polygon id="wall-kitchen-west" class="wall secondary" points="705,724 712,724 712,866 705,866"/>
-  <polygon id="shaft-kitchen" class="wall secondary" data-name="Closed service shaft by the kitchen" points="811,650 845,650 845,724 811,724"/><!-- drawn 807-845 (0.67 m): the shell caps walls at 0.6 m, so the hall face sits 4 px (7 cm) into the shaft -->
+  <polygon id="wall-kitchen-top" class="wall secondary" points="705,718 807,718 807,724 705,724"/>
+  <polygon id="wall-kitchen-west" class="wall secondary" points="705,713 712,713 712,866 705,866"/><!-- from y 713: the plan draws its end 0.1 m past the kitchen-top wall, into the hall -->
+  <polygon id="shaft-kitchen" class="wall secondary" data-name="Closed service shaft by the kitchen" points="807,650 845,650 845,724 807,724"/><!-- as drawn (0.67 m) -->
   <polygon id="wall-kitchen-bed4" class="wall secondary" points="841,838 847,838 847,934 841,934"/>
   <polygon id="wall-bed4-north" class="wall secondary" points="862,650 1040,650 1040,656 862,656"/>
 

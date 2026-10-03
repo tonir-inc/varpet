@@ -7,6 +7,13 @@
   plan draws them. Fresh re-check 13:44: walls, columns, doors, windows, fixtures match.
 - Build: faults 0, 37/37. Audit: 0 faults.
 - Styled: pending (designer usage limit until 16:04).
+- Walls after Ashot's wall review (2026-10-03 14:47 +04, `experimental/wall-review/marks/b3-t9.json`): both shafts at
+  their drawn width, outer skins included (hall 886.5-927 = 0.71 m, kitchen 807-845 = 0.67 m; the shell now takes walls
+  up to the editor's 1 m); the bedroom-5 door jamb runs to y 640 and the kitchen's west wall starts at y 713 (the shell
+  no longer trims an end that sticks out past the far face of the wall it crosses); the south wall under the balcony
+  is its own thinner piece (484-501 x 937-946). Build faults 0, 37/37; audit 0.
+- Outside the flat, deliberately not modelled (Ashot: "not wrong, as long as it is not going to trip you"): the south
+  wall's stub east of the east wall (1051-1066 x 937-947, mark 9).
 
 Plan `experimental/komitas-plans/b3-t9.png` (1684 x 1190), printed 95.8 m2, 3 rooms. Main trace = the plan's
 furniture as drawn (`data-option-name="As drawn"`).
@@ -63,14 +70,14 @@ furniture as drawn (`data-option-name="As drawn"`).
   editor mitres these corners, so the drawn corner is filled.
 - struct-bed5-ne is traced 536-553 x 442.5-469 (drawn from y 435). Its top 7.5 px is covered by the column and
   struct-north, which `tidy()` joins on its centreline. Traced from 435, its free end failed "not on a room edge".
-- The shell caps walls at 0.6 m. The hall shaft (drawn 887-927, 0.71 m) is traced 893-927, leaving off its 6 px outer
-  skin. The kitchen shaft (drawn 807-845, 0.67 m) is traced 811-845, and the hall face sits 4 px into it.
+- (Fixed 2026-10-03: the shell's limit is now 1 m and both shafts are traced at their drawn width.) Was: the shell
+  capped walls at 0.6 m, so the hall shaft lost its 6 px outer skin and the kitchen shaft 4 px.
 - Converter issue, not the trace: `_close_gaps` treats the living-room hatch top and hatch east (which touch only at
   the corner 536,804) as an L. It extends both to their centreline crossing (544.5, 792.5), which adds about
   0.3 x 0.4 m of wall in the living-room floor corner. Proposed fix in the session report; tested on a scratch copy:
   faults stay 0 and the pieces keep their drawn extent.
-- Converter issue: wall-bed5-door is cut at the partition centreline (y 631). This drops the drawn 0.16 m jamb that
-  sticks out below the partition into the hall (y 634-640).
+- (Fixed 2026-10-03 in `_close_gaps`.) Was: wall-bed5-door was cut at the partition centreline (y 631), dropping the
+  drawn 0.16 m jamb below the partition (y 634-640).
 - review/top.png draws walls with square caps, so each wall is one thickness longer than the editor draws it, and
   columns look oversized. It also ignores `data-fit` stretch, so the fitted wardrobes show at model width.
 

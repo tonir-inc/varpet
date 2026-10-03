@@ -8,6 +8,13 @@
 - Build: faults 0, 23/23. Audit: 2 faults, plan-inherent (hall routes past the door swings; same on the empty shell).
 - Open: the arc at the hall wardrobe's end (758-792 x 421-444) may be a rounded end shelf, not modelled.
 - Styled: pending (designer usage limit until 16:04).
+- Walls after Ashot's wall review (2026-10-03 14:47 +04, `experimental/wall-review/marks/b3-t8.json`): the balcony's
+  south-west wall end is drawn thinner east of the west wall, so it is traced 577-598 x 1010.5-1017.5 (0.12 m) and the
+  west wall runs down to 1017.5 (mark 2); the balcony floor reaches its face (577-598 x 1005-1010.5). Build faults 0,
+  23/23; audit 2 (unchanged). The shell now takes walls up to the editor's 1 m, so the 0.6 m workarounds below
+  (shaft-kitchen from y 303.1, hall column and pylon 33.8 px) are no longer needed; they are within 1 px and stay.
+- Outside the flat, deliberately not modelled (Ashot: "not wrong, as long as it is not going to trip you"): the wall
+  piece west of the balcony's west wall (551-565 x 1005-1017, mark 1).
 
 The plan is labelled "Bn. 2": 60.9 m2, 2 rooms. It is `experimental/komitas-plans/b3-t8.png` (1684 x 1190), copied here as `source.png`, which git excludes. The label file `labels/b3-t8.json` is an ungraded held-out reading. I used it only as a starting point and checked every box against the image.
 

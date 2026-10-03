@@ -1,10 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1684 1190" data-printed="66.3 m2" data-option-name="Adjusted">
   <polygon id="balcony" class="room" data-name="Balcony" data-kind="balcony" data-printed="3.9 m2" points="535,347 670,347 670,445 535,445"/>
-  <polygon id="living" class="room" data-name="Living room and kitchen" data-printed="31.6 m2" points="683,347 988,347 988,444 954,444 954,478 1005,478 1005,583 909,583 909,590 835,590 835,613 535,613 535,457 648,457 648,495 683,495 683,478 698,478 698,444 683,444"/>
-  <polygon id="hall" class="room" data-name="Entrance hall" data-printed="8.0 m2" points="835,590 909,590 909,756 1005,756 1005,835 835,835"/>
-  <polygon id="bedroom" class="room" data-name="Bedroom" data-printed="19.2 m2" points="535,620 826,620 826,835 535,835"/>
+  <polygon id="living" class="room" data-name="Living room and kitchen" data-printed="31.6 m2" points="683,347 988,347 988,444 954,444 954,478 1005,478 1005,583 909,583 909,590 831,590 831,613 535,613 535,457 648,457 648,495 683,495 683,478 698,478 698,444 683,444"/>
+  <polygon id="hall" class="room" data-name="Entrance hall" data-printed="8.0 m2" points="831,590 909,590 909,756 1005,756 1005,835 831,835"/>
+  <polygon id="bedroom" class="room" data-name="Bedroom" data-printed="19.2 m2" points="535,620 824,620 824,835 535,835"/>
   <polygon id="bathroom" class="room" data-name="Bathroom" data-printed="3.6 m2" points="916,622 1005,622 1005,750 916,750"/>
 
+  <polygon id="wall-north-balcony" class="wall main" points="642,336 676.5,336 676.5,346 642,346"/><!-- the facade wall over the balcony's east end, drawn 0.18 m -->
   <polygon id="wall-north" class="wall main" points="676,335 994,335 994,347 676,347"/>
   <polygon id="wall-balcony-east" class="wall main" points="670,347 683,347 683,444 670,444"/>
   <polygon id="wall-balcony-south" class="wall main" points="535,445 648,445 648,457 535,457"/>
@@ -20,8 +21,8 @@
   <polygon id="wall-shaft-bath" class="wall secondary" data-name="Bathroom side of the closed service shaft" points="909,602 1005,602 1005,622 909,622"/>
   <polygon id="wall-bath-west" class="wall secondary" points="909,622 916,622 916,756 909,756"/>
   <polygon id="wall-bath-south" class="wall secondary" points="916,750 1005,750 1005,756 916,756"/>
-  <polygon id="wall-living-bedroom" class="wall secondary" points="535,613 835,613 835,620 535,620"/>
-  <polygon id="wall-bedroom-hall" class="wall secondary" points="826,620 835,620 835,835 826,835"/>
+  <polygon id="wall-living-bedroom" class="wall secondary" points="535,613 831,613 831,620 535,620"/>
+  <polygon id="wall-bedroom-hall" class="wall secondary" points="824,620 831,620 831,835 824,835"/>
   <polygon id="wall-south" class="wall main" points="523,835 1005,835 1005,847 523,847"/>
 
   <line id="window-living-1" class="window" x1="695" y1="341" x2="825" y2="341"/>
@@ -50,7 +51,7 @@
     <polygon id="shower" class="fixture" data-kind="shower" data-name="Walk-in shower" points="948,704 1005,704 1005,749 948,749"/>
   <polygon id="basin" class="fixture" data-kind="basin" data-name="Washbasin" points="988,665 1005,665 1005,690 988,690"/>
   <polygon id="railing-west" class="fixture" data-kind="railing" data-name="Balcony railing" points="536,349 539,349 539,444 536,444"/>
-  <polygon id="railing-north" class="fixture" data-kind="railing" data-name="Balcony railing" points="536,348 669,348 669,351 536,351"/>
+  <polygon id="railing-north" class="fixture" data-kind="railing" data-name="Balcony railing" points="536,348 641,348 641,351 536,351"/>
 
   <polygon id="sofa" class="furniture" data-kind="sofa" data-name="Sofa" data-front="down" points="717,348 841,348 841,390 717,390"/>
   <polygon id="armchair-west" class="furniture" data-kind="chair" data-name="Armchair" data-front="right" data-asset="extra:bpy-living2:mcm-swivel-tub-armchair-cognac-leather" points="684,401 722,401 722,442 684,442"/>

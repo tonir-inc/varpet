@@ -27,6 +27,7 @@ const ROLES: { width_tolerance: number; depth_under: number; depth_over: number;
 /** The narrowest route allowed between two doors (the designer's 5 cm grid reads a 0.60 m gap as 0.55). */
 const ROUTE_M = 0.55;
 const role = (name: string) => ROLES.roles.find(r => new RegExp(r.name, 'i').test(name));
+const DECOR = new Set(['decor', 'wall_art', 'mirror', 'curtain', 'lamp', 'plant', 'rug']);
 
 const inside = (p: V, poly: V[]) => {
   let hit = false;
@@ -84,7 +85,9 @@ function audit(flat: string, option?: { id: string; snapshot: Record<string, unk
     const a = assets.get(o.assetId);
     if (!a) { faults.push(`${o.id}: model ${o.assetId} missing from startup.json`); continue; }
     const [w, h, d] = a.dimensions, label = `${o.id} (${o.name}, ${a.name.slice(0, 50)})`;
-    const rule = role(o.name);
+    // Roles describe the plan's furniture; styling (decor, art, lamps, rugs, textiles, plants) is named by the catalog
+    // ("Armchair cushion pair" is not an armchair).
+    const rule = DECOR.has(a.kind) ? undefined : role(o.name);
     if (!rule) unruled.add(o.name);
     else {
       if (rule.height && (h < rule.height[0] || h > rule.height[1])) faults.push(`${label}: height ${h.toFixed(2)} m outside ${rule.height[0]}-${rule.height[1]}`);

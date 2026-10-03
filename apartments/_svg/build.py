@@ -472,7 +472,7 @@ def build(flat: Path) -> dict:
     orient(raw["rooms"], raw["components"])  # the trace knows a fitting's axis, not which side is its front
     fixture_fronts(svg, raw["components"])  # ...unless the trace says so
     (flat / "shell.json").write_text(json.dumps(raw, indent=1))
-    faults = check_file(flat / "shell.json", flat / "review")  # tidies in place, like the architect's check
+    faults = check_file(flat / "shell.json", flat / "review", trace=True)  # tidies in place, like the architect's check (a trace keeps drawn jambs)
     shell = Shell.model_validate_json((flat / "shell.json").read_text())
     structure = to_editor(shell)
     title = (flat / "name.txt").read_text().strip() if (flat / "name.txt").exists() else flat.name  # shown in the editor's top bar

@@ -36,11 +36,11 @@
         ],
         [
           6.1121,
-          2.8897
+          2.8632
         ],
         [
           0.0875,
-          2.8897
+          2.8632
         ]
       ],
       "color": "#c8b89a"
@@ -51,19 +51,19 @@
       "polygon": [
         [
           1.3659,
-          2.9246
+          2.9862
         ],
         [
           6.1996,
-          2.9246
+          2.9862
         ],
         [
           6.1996,
-          4.3782
+          4.3519
         ],
         [
           6.0945,
-          4.3782
+          4.3519
         ],
         [
           6.0945,
@@ -82,11 +82,11 @@
       "polygon": [
         [
           6.0945,
-          4.4482
+          4.4747
         ],
         [
           8.844,
-          4.4482
+          4.4747
         ],
         [
           8.844,
@@ -104,7 +104,7 @@
       "name": "Hall",
       "polygon": [
         [
-          6.1996,
+          6.2085,
           2.1715
         ],
         [
@@ -121,11 +121,11 @@
         ],
         [
           7.6006,
-          4.3782
+          4.3517
         ],
         [
-          6.1996,
-          4.3782
+          6.2085,
+          4.3517
         ]
       ],
       "color": "#c8b89a"
@@ -144,11 +144,11 @@
         ],
         [
           9.9299,
-          4.3782
+          4.3609
         ],
         [
           7.6706,
-          4.3782
+          4.3609
         ],
         [
           7.6706,
@@ -289,7 +289,7 @@
     {
       "id": "wall-hall-north",
       "start": [
-        6.1996,
+        6.147,
         2.084
       ],
       "end": [
@@ -303,7 +303,7 @@
         {
           "id": "door-entrance",
           "kind": "door",
-          "offset": 0.1926,
+          "offset": 0.24519999999999997,
           "width": 0.9807,
           "height": 2.05,
           "sill": 0,
@@ -319,7 +319,7 @@
       ],
       "end": [
         10.0174,
-        4.4132
+        4.4614
       ],
       "height": 2.7,
       "thickness": 0.175,
@@ -355,7 +355,7 @@
       "id": "wall-balcony-east",
       "start": [
         1.2784,
-        2.9772
+        2.9247
       ],
       "end": [
         1.2784,
@@ -368,7 +368,7 @@
         {
           "id": "door-balcony-living",
           "kind": "door",
-          "offset": 0.28020000000000034,
+          "offset": 0.3327000000000001,
           "width": 0.8056,
           "height": 2.05,
           "sill": 0,
@@ -377,7 +377,7 @@
         {
           "id": "window-living",
           "kind": "window",
-          "offset": 1.0858000000000003,
+          "offset": 1.1383,
           "width": 1.5937,
           "height": 1.4,
           "sill": 0.9,
@@ -467,11 +467,26 @@
         6.436
       ],
       "end": [
-        9.2293,
+        9.2118,
         6.436
       ],
       "height": 2.7,
       "thickness": 0.578,
+      "color": "#f2f0eb",
+      "openings": []
+    },
+    {
+      "id": "pylon-se-east",
+      "start": [
+        9.2118,
+        6.2477
+      ],
+      "end": [
+        9.5182,
+        6.2477
+      ],
+      "height": 2.7,
+      "thickness": 0.201,
       "color": "#f2f0eb",
       "openings": []
     },
@@ -483,7 +498,7 @@
       ],
       "end": [
         9.2118,
-        6.147
+        6.2477
       ],
       "height": 2.7,
       "thickness": 0.595,
@@ -493,15 +508,15 @@
     {
       "id": "wall-bed-hall",
       "start": [
-        6.1996,
+        6.147,
         2.084
       ],
       "end": [
-        6.1996,
-        2.8896
+        6.147,
+        2.9247
       ],
       "height": 2.7,
-      "thickness": 0.088,
+      "thickness": 0.123,
       "color": "#f2f0eb",
       "openings": []
     },
@@ -509,14 +524,14 @@
       "id": "wall-bed-living",
       "start": [
         1.2784,
-        2.8896
+        2.9247
       ],
       "end": [
-        6.1996,
-        2.8896
+        6.147,
+        2.9247
       ],
       "height": 2.7,
-      "thickness": 0.07,
+      "thickness": 0.123,
       "color": "#f2f0eb",
       "openings": [
         {
@@ -533,15 +548,30 @@
     {
       "id": "wall-kitchen-north",
       "start": [
-        6.0945,
+        6.0857,
         4.4132
       ],
       "end": [
-        10.0174,
+        9.527,
         4.4132
       ],
       "height": 2.7,
-      "thickness": 0.07,
+      "thickness": 0.123,
+      "color": "#f2f0eb",
+      "openings": []
+    },
+    {
+      "id": "wall-bath-south-east",
+      "start": [
+        9.527,
+        4.4614
+      ],
+      "end": [
+        10.0174,
+        4.4614
+      ],
+      "height": 2.7,
+      "thickness": 0.201,
       "color": "#f2f0eb",
       "openings": []
     },
@@ -716,6 +746,11 @@
         "phase": "existing",
         "review": "unreviewed"
       },
+      "pylon-se-east": {
+        "structuralRole": "unknown",
+        "phase": "existing",
+        "review": "unreviewed"
+      },
       "shaft-kitchen": {
         "structuralRole": "unknown",
         "phase": "existing",
@@ -732,6 +767,11 @@
         "review": "unreviewed"
       },
       "wall-kitchen-north": {
+        "structuralRole": "unknown",
+        "phase": "existing",
+        "review": "unreviewed"
+      },
+      "wall-bath-south-east": {
         "structuralRole": "unknown",
         "phase": "existing",
         "review": "unreviewed"
@@ -819,7 +859,7 @@
         "position": [
           8.5288,
           0,
-          4.5884
+          4.5972
         ],
         "dimensions": [
           0.63,
@@ -933,7 +973,7 @@
         "position": [
           8.6864,
           0,
-          4.0717
+          4.0452
         ],
         "dimensions": [
           0.385,
@@ -952,7 +992,7 @@
         "position": [
           8.0997,
           0,
-          4.2031
+          4.1767
         ],
         "dimensions": [
           0.473,
@@ -971,7 +1011,7 @@
         "position": [
           9.5182,
           0,
-          3.5987
+          3.5547
         ],
         "dimensions": [
           1.559,

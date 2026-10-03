@@ -380,6 +380,12 @@
   }
  ],
  "furnished_export": "ok",
+ "options": {
+  "styled": {
+   "saved": "option.styled.json",
+   "pieces": 55
+  }
+ },
  "door_swings": {
   "door-entrance": {
    "mechanism": "hinged",
@@ -430,7 +436,7 @@
   },
   {
    "room": "Balcony",
-   "m2": 5.87,
+   "m2": 5.9,
    "printed": 5.5
   }
  ]

@@ -17,7 +17,12 @@
   {
    "check": "wall",
    "wall": "pylon-se",
-   "detail": "not on a room edge (0.19 m off)"
+   "detail": "not on a room edge (0.18 m off)"
+  },
+  {
+   "check": "wall",
+   "wall": "pylon-se-east",
+   "detail": "not on a room edge (0.58 m off)"
   }
  ],
  "empty_export": "ok",
@@ -32,7 +37,7 @@
   "dining-chair-e2 0.205 m off dining-table",
   "dining-chair-s 0.215 m off dining-table",
   "bed 0.005 m into bedroom",
-  "tv-unit 0.060 m into living",
+  "tv-unit 0.120 m into living",
   "sofa 0.196 m into living",
   "fridge 0.030 m into kitchen",
   "wardrobe-hall 0.010 m into hall",
@@ -328,12 +333,6 @@
   }
  ],
  "furnished_export": "ok",
- "options": {
-  "styled": {
-   "saved": "option.styled.json",
-   "pieces": 44
-  }
- },
  "door_swings": {
   "door-entrance": {
    "mechanism": "hinged",
@@ -364,27 +363,27 @@
  "rooms": [
   {
    "room": "Bedroom",
-   "m2": 15.99,
+   "m2": 15.83,
    "printed": 16.1
   },
   {
    "room": "Living room",
-   "m2": 15.39,
+   "m2": 15.09,
    "printed": 15.3
   },
   {
    "room": "Kitchen",
-   "m2": 4.67,
+   "m2": 4.6,
    "printed": 4.7
   },
   {
    "room": "Hall",
-   "m2": 3.6,
+   "m2": 3.55,
    "printed": 3.9
   },
   {
    "room": "Bathroom",
-   "m2": 4.43,
+   "m2": 4.39,
    "printed": 4.4
   },
   {

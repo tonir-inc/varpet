@@ -7,7 +7,7 @@
   <polygon id="living" class="room" data-name="Living room" data-printed="23.8 m2" points="577,465 679,465 679,506 724,506 724,541 761,541 761,614 772,614 772,800 761,800 761,875 742,875 742,892 577,892"/>
   <polygon id="bedroom" class="room" data-name="Bedroom" data-printed="14.6 m2" points="778,580 931,580 931,891 840,891 840,875 778,875"/>
   <polygon id="bathroom" class="room" data-name="Bathroom" data-printed="3.2 m2" points="860,433 931,433 931,574 860,574"/>
-  <polygon id="balcony" class="room" data-name="Balcony" data-kind="balcony" data-printed="5.5 m2" points="577,909 788,909 788,951 734,1005 577,1005"/>
+  <polygon id="balcony" class="room" data-name="Balcony" data-kind="balcony" data-printed="5.5 m2" points="577,909 788,909 788,951 734,1005 598,1005 598,1010.5 577,1010.5"/>
 
   <!-- Exterior and party walls (dark grey band) -->
     <!-- The hall's north-east outer corner: the two walls meet on their centrelines (798,308) so the editor mitres the corner -->
@@ -19,8 +19,8 @@
   <polygon id="wall-south-east" class="wall main" points="889,891 942,891 942,906 889,906"/>
   <polygon id="wall-bedroom-window" class="wall main" points="840,891 889,891 889,906 840,906"/>
   <polygon id="wall-south-living" class="wall main" points="605,892 742,892 742,909 605,909"/>
-  <polygon id="wall-balcony-west" class="wall main" points="565,909 577,909 577,1005 565,1005"/>
-  <polygon id="wall-balcony-sw" class="wall main" data-name="Wall end at the balcony's south-west corner" points="565,1005 598,1005 598,1017 565,1017"/>
+  <polygon id="wall-balcony-west" class="wall main" points="565,909 577,909 577,1017.5 565,1017.5"/>
+  <polygon id="wall-balcony-sw" class="wall main" data-name="Wall end at the balcony's south-west corner" points="577,1010.5 598,1010.5 598,1017.5 577,1017.5"/><!-- east of the west wall the plan draws it thinner (y 1010.5-1017.5); the balcony floor reaches its face -->
 
   <!-- Structure: green-hatched columns on the axis crosses and grey-hatched structural walls, one polygon each.
        The squares are drawn 34-35 px; traced 33.8 px across so they stay within the checker's 0.6 m wall limit. -->

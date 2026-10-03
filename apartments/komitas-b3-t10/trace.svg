@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1684 1190" data-printed="47.6 m2" data-option-name="As drawn">
   <!-- Komitas Park, building 3, type 10 (plan b3-t10.png, 1684 x 1190). Traced in the plan's own pixels, about 57 px/m.
        Furniture is the plan's own arrangement, every drawn piece (six dining chairs); the dining set sits ~0.17 m east (NOTES.md). -->
-  <polygon id="bedroom" class="room" data-name="Bedroom" data-printed="16.1 m2" points="486,410 599,410 599,433 651,433 651,410 830,410 830,565 486,565"/>
-  <polygon id="living" class="room" data-name="Living room" data-printed="15.3 m2" points="559,569 835,569 835,650 829,650 829,751 559,751"/>
-  <polygon id="kitchen" class="room" data-name="Kitchen" data-printed="4.7 m2" points="829,654 986,654 986,751 829,751"/>
-  <polygon id="hall" class="room" data-name="Hall" data-printed="3.9 m2" points="835,524 949,524 949,573 915,573 915,650 835,650"/>
-  <polygon id="bathroom" class="room" data-name="Bathroom" data-printed="4.4 m2" points="953,524 1048,524 1048,650 919,650 919,577 953,577"/>
+  <polygon id="bedroom" class="room" data-name="Bedroom" data-printed="16.1 m2" points="486,410 599,410 599,433 651,433 651,410 830,410 830,563.5 486,563.5"/>
+  <polygon id="living" class="room" data-name="Living room" data-printed="15.3 m2" points="559,570.5 835,570.5 835,648.5 829,648.5 829,751 559,751"/>
+  <polygon id="kitchen" class="room" data-name="Kitchen" data-printed="4.7 m2" points="829,655.5 986,655.5 986,751 829,751"/>
+  <polygon id="hall" class="room" data-name="Hall" data-printed="3.9 m2" points="835,524 949,524 949,573 915,573 915,648.5 835,648.5"/>
+  <polygon id="bathroom" class="room" data-name="Bathroom" data-printed="4.4 m2" points="953,524 1048,524 1048,649 919,649 919,577 953,577"/>
   <polygon id="balcony" class="room" data-name="Balcony" data-kind="balcony" data-printed="3.2 m2" points="486,575 549,575 549,752 486,752"/>
 
   <!-- Walls are written from their centrelines: at an L corner both centrelines end on the corner point, at a T the
@@ -26,12 +26,14 @@
   <polygon id="pylon-sw" class="wall main" data-name="Structural wall" points="633,751 650,751 650,785 633,785"/>
   <polygon id="wall-south-strip" class="wall main" data-name="Structural wall" points="650,751 939,751 939,768 650,768"/>
   <polygon id="column-se" class="wall main" data-name="Column" points="939,751 973,751 973,784 939,784"/>
-  <polygon id="pylon-se" class="wall main" data-name="Structural wall" points="973,751 1008,751 1008,784 973,784"/>
+  <polygon id="pylon-se" class="wall main" data-name="Structural wall" points="973,751 1007,751 1007,784 973,784"/><!-- ends on the shaft's centreline (drawn to 1007.5) -->
+  <polygon id="pylon-se-east" class="wall main" data-name="Structural wall (grey hatch) under the shaft" points="1007,751 1024.5,751 1024.5,762.5 1007,762.5"/><!-- the hatched arm east of pylon-se, starting on the shaft's centreline so the shaft ends on it (an L) and does not reach down to pylon-se -->
   <polygon id="shaft-kitchen" class="wall secondary" data-name="Closed service shaft (black X box)" points="990,652 1024,652 1024,751 990,751"/>
 
-  <polygon id="wall-bed-hall" class="wall secondary" points="832.5,519 837.5,519 837.5,565 832.5,565"/>
-  <polygon id="wall-bed-living" class="wall secondary" points="554,563 835,563 835,567 554,567"/>
-  <polygon id="wall-kitchen-north" class="wall secondary" points="829,650 1053,650 1053,654 829,654"/>
+  <polygon id="wall-bed-hall" class="wall secondary" points="828.5,519 835.5,519 835.5,567 828.5,567"/>
+  <polygon id="wall-bed-living" class="wall secondary" points="554,563.5 832,563.5 832,570.5 554,570.5"/>
+  <polygon id="wall-kitchen-north" class="wall secondary" points="828.5,648.5 1025,648.5 1025,655.5 828.5,655.5"/>
+  <polygon id="wall-bath-south-east" class="wall secondary" points="1025,649 1053,649 1053,660.5 1025,660.5"/>
   <polygon id="wall-kitchen-east" class="wall secondary" points="986,652 990,652 990,751 986,751"/>
   <polygon id="wall-niche-east" class="wall secondary" points="949,519 953,519 953,575 949,575"/>
   <polygon id="wall-niche-south" class="wall secondary" points="917,573 951,573 951,577 917,577"/>

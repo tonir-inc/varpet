@@ -8,6 +8,10 @@
 - Build: faults 4 ("not on a room edge", corner blocks; walls right), 30/30 picked. Audit: 7 faults, all
   plan-inherent hall routes (door swings into the 1.1 m hall; the empty shell has the same 7).
 - Styled: pending (designer usage limit until 16:04).
+- Wall review (2026-10-03 14:47 +04, `experimental/wall-review/marks/b3-t7.json`): no wall changes. Marks 1-4 are
+  the editor's mitred corners ("overlap? i think this does not matter").
+- Outside the flat, deliberately not modelled (Ashot: "not wrong, as long as it is not going to trip you"): the
+  grey-hatched block under the balcony's south-west corner (474-530 x 1380-1398, marks 5-6).
 
 Plan: `experimental/komitas-plans/b3-t7.png` (1190 x 1684, portrait), copied to `source.png` (git-excluded).
 `trace.svg` is in the plan's own pixels; build: `uv run --project harness python apartments/_svg/build.py apartments/komitas-b3-t7`.
