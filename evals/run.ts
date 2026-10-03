@@ -89,16 +89,8 @@ const env: NodeJS.ProcessEnv = {
   VARPET_RENDER_CONCURRENCY: String(renderPages),
   ...(flags.skills === 'off' ? { VARPET_AGENT_PLUGIN_DIR: 'off' } : {}),
 }
-// Pascal's SQLite store keeps one connection per store and awaits inside its write transaction, so two saves at once
-// on one store fail ("cannot start a transaction within a transaction"). The runner's saves and loads take turns, and
-// so do turn starts (runTurn copies the base scene to a proposal on the agents' own store before its session event).
-const sceneDb = new Semaphore(1)
-const turnStarts = new Semaphore(1)
-const rawStore = await createSceneStore(env)
-const store: Pick<SceneStore, 'save' | 'load'> = {
-  save: (opts) => sceneDb.run(() => rawStore.save(opts)),
-  load: (id) => sceneDb.run(() => rawStore.load(id)),
-}
+// Concurrent saves on one store are safe since vendor/pascal patch 15 (writes queue per store).
+const store: Pick<SceneStore, 'save' | 'load'> = await createSceneStore(env)
 
 type Log = (...parts: unknown[]) => void
 const stamp = () => `[eval ${new Date().toISOString().slice(11, 19)}]`
@@ -183,9 +175,7 @@ async function runAgent(c: EvalCase, say: Log) {
       failed = null
       limited = undefined
       await spendCall('turn', `${c.id} ${i + 1}/${c.turns.length}${attempt ? ' retry' : ''}`, say)
-      const started = await turnStarts.acquire()
       for await (const event of runTurn(c.role, { ...request, ...(meta.conversationId ? { conversationId: meta.conversationId } : {}) }, { root: ROOT, env, onRawLine: (l) => appendFileSync(rawFile, `${l}\n`) })) {
-        started() // the first event comes after the proposal copy
         appendFileSync(eventsFile, `${JSON.stringify(event)}\n`)
         if (event.type === 'session') Object.assign(meta, { conversationId: event.conversationId, proposalSceneId: event.proposalSceneId })
         if (event.type === 'tool' && event.status === 'running') say(`  ${event.name}`)
@@ -195,7 +185,6 @@ async function runAgent(c: EvalCase, say: Log) {
         }
         if (event.type === 'error') failed = event.message
       }
-      started()
       if (failed && (limited !== undefined || RATE_LIMIT.test(failed))) {
         writeFileSync(join(dir, `turn-${i + 1}.error.txt`), failed)
         throw new RateLimited(failed, limited ?? null)

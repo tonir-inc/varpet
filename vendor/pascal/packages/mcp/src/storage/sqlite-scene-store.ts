@@ -665,7 +665,17 @@ export class SqliteSceneStore implements SceneStore {
     `)
   }
 
-  private async withWriteTransaction<T>(fn: (db: SqliteDatabase) => T | Promise<T>): Promise<T> {
+  // varpet patch 15: one connection, so writes queue; an async `fn` would otherwise let a second
+  // BEGIN run inside the first transaction ("cannot start a transaction within a transaction").
+  private writeQueue: Promise<unknown> = Promise.resolve()
+
+  private withWriteTransaction<T>(fn: (db: SqliteDatabase) => T | Promise<T>): Promise<T> {
+    const run = this.writeQueue.then(() => this.runWriteTransaction(fn))
+    this.writeQueue = run.catch(() => undefined)
+    return run
+  }
+
+  private async runWriteTransaction<T>(fn: (db: SqliteDatabase) => T | Promise<T>): Promise<T> {
     const db = await this.database()
     db.exec('BEGIN IMMEDIATE')
     try {

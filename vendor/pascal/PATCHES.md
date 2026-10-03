@@ -144,4 +144,11 @@ Base: `@pascal-app/core@1.0.3` (`ebe69be2`). One commit each, so each can become
   The node batch reads mesh world matrices, so merged copies follow.
 - Files: `packages/core/src/schema/nodes/item.ts`, `packages/nodes/src/item/renderer.tsx`.
 - Host side: `place_product(..., drop)` in `packages/scene-mcp` writes them (no workaround existed).
-||||||| aa9f269a
+
+## 15. MCP: the SQLite scene store queues its writes
+- Motivation: one store keeps one connection, and `withWriteTransaction` awaits an async callback between BEGIN and
+  COMMIT, so two concurrent saves on the same store (two designer turns starting together in the web app, parallel
+  evals) ran a second BEGIN inside the first: "cannot start a transaction within a transaction".
+- Change: writes chain on a per-store promise queue; each transaction runs after the previous one settles.
+- Files: `packages/mcp/src/storage/sqlite-scene-store.ts`.
+- Host side: test `packages/scene-mcp/src/store-concurrency.test.ts`; the eval runner's serialising workaround can go.
