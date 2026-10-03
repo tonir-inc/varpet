@@ -6,8 +6,8 @@ description: Restyle a room to a named style or mood, including wall paint and f
 # Restyle a room
 
 The outcome is a room whose furniture, walls and floor read as one look the buyer recognises from the words they
-used. Walls and floors are part of the brief whenever it says renovate, paint, colours, floors or names a style
-that lives in its surfaces (dark academia, art deco, Mediterranean).
+used, on top of what the building already is: a style named for an old tenement with pine floors keeps a pine-toned
+floor.
 
 ## Styles as palettes (start here, adapt to the brief)
 
@@ -28,7 +28,11 @@ that lives in its surfaces (dark academia, art deco, Mediterranean).
    the face toward this room.
 3. Floors: `set_floor_finish` with the `zone_id`. Wet rooms and balconies take tile or stone; living rooms and
    bedrooms wood. A whole-flat floor change is one call per room.
-4. If the finish tools are missing from the tool list, say so plainly and name the finish you would choose.
+4. Trims: `set_wall_trim`, when it is in your tools, for skirting, crown moulding or a chair rail in the palette
+   (painted to the wall for calm, contrasting for a period room).
+5. Kitchens: the wall behind the run takes the backsplash; tile or stone on that wall face (`wall_ids`) when the
+   catalog has no panel.
+6. If the finish tools are missing from the tool list, say so plainly and name the finish you would choose.
 
 ## Furniture
 
@@ -39,7 +43,7 @@ walls, light sized to what it lights, all in the palette. A style is carried as 
 objects as by its sofa; a minimal style is still a full, warm room. Match wood tones; the signature move is the
 style's strongest note (the velvet sofa against a lighter wall rather than lost in the same green).
 
-Then review it as `furnish-room` step 7 does, room by room, and fix what the catalog can fix before answering.
+Then review it as `furnish-room` step 8 does, room by room, and fix what the catalog can fix before answering.
 
-Done means: walls and floor changed when the brief asked for them, every piece chosen to the palette, the review
+Done means: every room's walls, floor and pieces chosen to the palette, the review
 finds nothing the catalog could fix, and the answer names each finish by its label and where it went.
