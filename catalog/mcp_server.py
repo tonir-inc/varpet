@@ -97,6 +97,7 @@ def search_furniture(
     offset: int = 0,
     scope: str = "placeable",
     room_items: list[str] | None = None,
+    placement: str | None = None,
 ) -> dict:
     """Find furniture. kind/max size/price are hard filters; colors (palette names), styles, materials
     and free text rank the rest. Returns up to `limit` (max 20) items from `offset`, `candidates` (how many
@@ -105,12 +106,13 @@ def search_furniture(
     scope 'placeable' (default; 'editor' is the old name) searches every item the editor can place;
     'all' searches the whole catalog.
     room_items: ids already in the flat, to prefer pieces that go with them (style and look)
+    placement: only pieces tagged for this mounting: ceiling, floor, surface (on furniture), wall or window
     """
     box, allow_rotate = size_limits(max_w, max_d, max_h, allow_rotate)
     q = Query(kind=kind, text=text, colors=colors or [], styles=styles or [], materials=materials or [],
               fit_box=box, allow_rotate=allow_rotate, target_size=target_size, price_max=price_max,
               exclude_ids=exclude_ids or [], limit=limit, offset=offset, scope=scope,
-              room_items=room_items or [])
+              room_items=room_items or [], placement=placement)
     validate_query(q)
     with _conn() as c:
         return search(c, q)

@@ -44,7 +44,7 @@ def extra_matches():
     def matches(kind="tv", slug="floor-model", tags=None, source="extra", glb="model.glb",
                 group="home"):
         row = conn.execute(
-            f"select 1 from (select ? as kind, ? as id, ? as tags, ? as source, ? as glb_url) "
+            f"select 1 from (select ? as kind, ? as id, ? as tags, ? as source, ? as glb_url, '' as name) "
             f"where {predicate}",
             (kind, f"extra:{group}:{slug}", json.dumps(tags) if tags is not None else None, source, glb),
         ).fetchone()
@@ -60,7 +60,7 @@ def test_extra_floor_kinds_are_placeable(extra_matches, kind):
 
 
 @pytest.mark.parametrize("kind", [
-    "range_hood", "mirror_bathroom", "towel_rail", "air_conditioner", "curtain",
+    "mirror_bathroom", "air_conditioner", "curtain",
     "chair", "unknown",
 ])
 def test_extra_unsupported_kinds_are_excluded(extra_matches, kind):

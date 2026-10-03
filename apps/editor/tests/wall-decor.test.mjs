@@ -9,7 +9,7 @@ const root = fileURLToPath(new URL('..', import.meta.url));
 const output = await mkdtemp(join(tmpdir(), 'wall-decor-'));
 after(() => rm(output, { recursive: true }));
 await build({root,ssr:{noExternal:true},configFile:false,publicDir:false,logLevel:'error',plugins:[{name:'entry',resolveId(id){if(id.endsWith('wall-decor-entry'))return '\0entry';},load(id){if(id==='\0entry')return `export * from '${root}/src/core/store.ts'; export * from '${root}/src/core/validation.ts'; export * from '${root}/src/core/decoration-placement.ts'; export * from '${root}/src/core/furniture-support.ts'; export * from '${root}/src/adapters/database-catalog.ts';`;}}],build:{ssr:'wall-decor-entry',target:'node22',outDir:output,rolldownOptions:{output:{entryFileNames:'test.mjs'}}}});
-const {EditorStore,validateScene,placementIssues,mountDecoration,rehangObjects,wallDecoration,wallShelf,catalogProduct}=await import(pathToFileURL(join(output,'test.mjs')));
+const {EditorStore,validateScene,placementIssues,mountDecoration,rehangObjects,wallDecoration,wallShelf,catalogProduct,HOOD_BOTTOM}=await import(pathToFileURL(join(output,'test.mjs')));
 
 const asset=(id,kind,dimensions,name=id)=>({id,name,kind,dimensions,category:'Decoration',color:'#ffffff',price:0,source:{type:'procedural'}});
 const art=asset('art','wall_art',[.5,.4,.03],'Framed print');
@@ -44,6 +44,17 @@ test('without a request the standard height applies, and the standard stays vali
   const big=mountDecoration(scene(),object('t','tall'),tall);
   near(big.position[1],.9,'tall art keeps its standard height'); // top 2.7, above ceiling - 0.1
   assert.deepEqual(placementIssues({...scene(),objects:[big]},catalog),[]);
+});
+
+test('a cooker hood hangs with its bottom 0.65 m over a 0.9 m worktop; a water heater keeps the standard height', () => {
+  const hood=asset('hood','wall_art',[.6,.8,.5],'Chimney cooker hood 60 cm, stainless');
+  const heater=asset('heater','wall_art',[.5,.98,.28],'Slim electric water heater 50 L, white, wall-hung');
+  near(HOOD_BOTTOM,1.55,'hood bottom');
+  const hung=mountDecoration(scene(),object('h','hood'),hood);
+  near(hung.position[1],1.55,'hood bottom over the hob');
+  assert.deepEqual(placementIssues({...scene(),objects:[hung]},[hood]),[]);
+  near(rehangObjects({...scene(),objects:[hung]},[hood]).objects[0].position[1],1.55,'re-hang keeps the hood height');
+  near(mountDecoration(scene(),object('w','heater'),heater).position[1],Math.max(.9,1.5-.98/2),'heater standard bottom');
 });
 
 test('requested heights clamp to floor + 0.3 and ceiling - 0.1, and may not cover an opening', () => {

@@ -1,0 +1,21 @@
+import { expect, test } from 'vitest';
+import { searchCatalog, type CatalogQuery } from '../src/catalog.js';
+
+// Real names from the catalog (2026-10-03): placeable in search for the editor, which mounts them; the designer cannot.
+const row = (id: string, kind: string, name: string, source: string) => ({ id, kind, name, source, size_m: [.6, .5, .8], price: 100000, currency: 'AMD' });
+
+test('the designer is never offered the wall fittings or the newly placeable wall and ceiling lamps it cannot mount', async () => {
+  const query: CatalogQuery = async () => ({ results: [
+    row('hood', 'range_hood', 'Chimney cooker hood 60 cm, stainless', 'extra'),
+    row('heater', 'water_heater', 'Slim electric water heater 50 L, white, wall-hung', 'extra'),
+    row('rail', 'towel_rail', 'Chrome ladder towel rail, 50 x 80 cm, wall-mounted', 'extra'),
+    row('sconce', 'lamp', 'Oak paper-cone sconce', 'extra'),
+    row('flush', 'lamp', 'Flush ceiling light, opal glass 35 cm', 'extra'),
+    row('pendant', 'lamp', 'Pendant light, opal glass globe 30 cm', 'extra'),
+    row('table', 'lamp', 'Opal glass mushroom table lamp', 'extra'),
+    row('abo-pendant', 'lamp', 'Amazon Basics Pendant Lamp - 15.7" x 15.7" x 60", Matte Black', 'abo'),
+  ] });
+  const result = await searchCatalog({ limit: 20 }, query);
+  expect(result.results.map(product => product.sku)).toEqual(['table', 'abo-pendant']);
+  expect(result.excluded_records).toBe(6);
+});
