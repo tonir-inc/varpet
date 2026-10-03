@@ -301,7 +301,7 @@
       ],
       "end": [
         2.9436,
-        2.557
+        2.4076
       ],
       "height": 2.7,
       "thickness": 0.264,
@@ -315,7 +315,7 @@
         2.557
       ],
       "end": [
-        2.9436,
+        2.8118,
         2.557
       ],
       "height": 2.7,
@@ -784,7 +784,7 @@
       "name": "Wardrobe",
       "assetId": "abo:B07GFSJ69T",
       "position": [
-        1.2214,
+        1.2264,
         0,
         5.2267
       ],
@@ -957,6 +957,26 @@
       "bathroom": {
         "zone": "interior",
         "phase": "existing"
+      },
+      "door-balcony": {
+        "mechanism": "hinged",
+        "hinge": "left",
+        "swing": 1
+      },
+      "door-bathroom": {
+        "mechanism": "hinged",
+        "hinge": "right",
+        "swing": 1
+      },
+      "door-bedroom": {
+        "mechanism": "hinged",
+        "hinge": "right",
+        "swing": 1
+      },
+      "door-entrance": {
+        "mechanism": "hinged",
+        "hinge": "right",
+        "swing": -1
       }
     },
     "components": [
@@ -1496,7 +1516,7 @@
               ],
               "end": [
                 2.9436,
-                2.557
+                2.4076
               ],
               "height": 2.7,
               "thickness": 0.264,
@@ -1510,7 +1530,7 @@
                 2.557
               ],
               "end": [
-                2.9436,
+                2.8118,
                 2.557
               ],
               "height": 2.7,
@@ -1979,7 +1999,7 @@
               "name": "Wardrobe",
               "assetId": "abo:B07GFSJ69T",
               "position": [
-                1.2214,
+                1.2264,
                 0,
                 5.2267
               ],
@@ -2149,6 +2169,26 @@
             "bathroom": {
               "zone": "interior",
               "phase": "existing"
+            },
+            "door-balcony": {
+              "mechanism": "hinged",
+              "hinge": "left",
+              "swing": 1
+            },
+            "door-bathroom": {
+              "mechanism": "hinged",
+              "hinge": "right",
+              "swing": 1
+            },
+            "door-bedroom": {
+              "mechanism": "hinged",
+              "hinge": "right",
+              "swing": 1
+            },
+            "door-entrance": {
+              "mechanism": "hinged",
+              "hinge": "right",
+              "swing": -1
             }
           },
           "components": [
@@ -2685,7 +2725,7 @@
               ],
               "end": [
                 2.9436,
-                2.557
+                2.4076
               ],
               "height": 2.7,
               "thickness": 0.264,
@@ -2699,7 +2739,7 @@
                 2.557
               ],
               "end": [
-                2.9436,
+                2.8118,
                 2.557
               ],
               "height": 2.7,
@@ -3088,7 +3128,7 @@
               "name": "Wardrobe",
               "assetId": "abo:B07GFSJ69T",
               "position": [
-                1.2214,
+                1.2264,
                 0,
                 5.2267
               ],
@@ -3402,6 +3442,26 @@
             "bathroom": {
               "zone": "interior",
               "phase": "existing"
+            },
+            "door-balcony": {
+              "mechanism": "hinged",
+              "hinge": "left",
+              "swing": 1
+            },
+            "door-bathroom": {
+              "mechanism": "hinged",
+              "hinge": "right",
+              "swing": 1
+            },
+            "door-bedroom": {
+              "mechanism": "hinged",
+              "hinge": "right",
+              "swing": 1
+            },
+            "door-entrance": {
+              "mechanism": "hinged",
+              "hinge": "right",
+              "swing": -1
             }
           },
           "components": [
@@ -3938,7 +3998,7 @@
               ],
               "end": [
                 2.9436,
-                2.557
+                2.4076
               ],
               "height": 2.7,
               "thickness": 0.264,
@@ -3952,7 +4012,7 @@
                 2.557
               ],
               "end": [
-                2.9436,
+                2.8118,
                 2.557
               ],
               "height": 2.7,
@@ -4962,6 +5022,26 @@
             "bathroom": {
               "zone": "interior",
               "phase": "existing"
+            },
+            "door-balcony": {
+              "mechanism": "hinged",
+              "hinge": "left",
+              "swing": 1
+            },
+            "door-bathroom": {
+              "mechanism": "hinged",
+              "hinge": "right",
+              "swing": 1
+            },
+            "door-bedroom": {
+              "mechanism": "hinged",
+              "hinge": "right",
+              "swing": 1
+            },
+            "door-entrance": {
+              "mechanism": "hinged",
+              "hinge": "right",
+              "swing": -1
             }
           },
           "components": [
@@ -5498,7 +5578,7 @@
               ],
               "end": [
                 2.9436,
-                2.557
+                2.4076
               ],
               "height": 2.7,
               "thickness": 0.264,
@@ -5512,7 +5592,7 @@
                 2.557
               ],
               "end": [
-                2.9436,
+                2.8118,
                 2.557
               ],
               "height": 2.7,
@@ -6494,6 +6574,26 @@
             "bathroom": {
               "zone": "interior",
               "phase": "existing"
+            },
+            "door-balcony": {
+              "mechanism": "hinged",
+              "hinge": "left",
+              "swing": 1
+            },
+            "door-bathroom": {
+              "mechanism": "hinged",
+              "hinge": "right",
+              "swing": 1
+            },
+            "door-bedroom": {
+              "mechanism": "hinged",
+              "hinge": "right",
+              "swing": 1
+            },
+            "door-entrance": {
+              "mechanism": "hinged",
+              "hinge": "right",
+              "swing": -1
             }
           },
           "components": [

@@ -162,6 +162,7 @@ def fixture_fronts(svg: str, components: list[dict]) -> list[str]:
 
 def footprint(o: dict, a: dict, at: tuple[float, float] | None = None) -> Polygon:
     w, _, d = a["dimensions"]
+    w *= (o.get("scale") or [1])[0]  # data-fit="width" stretches or narrows the model to its traced width
     x, z = at or (o["position"][0], o["position"][2])
     r = o["rotation"]
     return Polygon([(x + math.cos(r) * sx * w / 2 + math.sin(r) * sz * d / 2, z - math.sin(r) * sx * w / 2 + math.cos(r) * sz * d / 2)
@@ -410,6 +411,56 @@ def design_options(flat: Path, svg: str, variants: list[Path], v1: dict, compone
     return list(models.values())
 
 
+def door_swings(svg: str, transform: dict, paths: list[Path]) -> dict:
+    """A traced door says which end its hinge is at (data-hinge="x,y" in plan pixels, at or near that end of the door
+    line) and which room the leaf opens into (data-opens="<room id>"). The editor's door metadata (door-barriers.ts)
+    measures both along the host wall: hinge "left" pivots at the opening's end nearer the wall's start, "right" at
+    the other end; swing 1 opens towards the wall's left-hand normal (-dz, dx), -1 the other way. Written into each
+    scene's project metadata and every design option's snapshot; returns {door id: metadata}."""
+    px, (ox, oy) = transform["px_per_m"], transform["origin"]
+    wanted = {a["id"]: a for _, c, a, _ in _elements(svg) if "door" in c and a.get("id") and (a.get("data-hinge") or a.get("data-opens"))}
+    if not wanted:
+        return {}
+    scene = json.loads(paths[0].read_text())
+    rooms = {r["id"]: Polygon(r["polygon"]) for r in scene["rooms"]}
+    found = {}
+    for wall in scene["walls"]:
+        (sx, sz), (ex, ez) = wall["start"], wall["end"]
+        length = math.hypot(ex - sx, ez - sz)
+        dx, dz = (ex - sx) / length, (ez - sz) / length
+        for o in wall.get("openings") or []:
+            a = wanted.get(o["id"])
+            if a is None:
+                continue
+            meta = {"mechanism": "hinged"}  # the designer bridge reads hinge and swing only on a hinged door
+            if a.get("data-hinge"):
+                hx, hy = (float(v) for v in a["data-hinge"].split(","))
+                along = ((hx - ox) / px - sx) * dx + ((hy - oy) / px - sz) * dz
+                meta["hinge"] = "left" if abs(along - o["offset"]) <= abs(along - o["offset"] - o["width"]) else "right"
+            if a.get("data-opens"):
+                room = rooms[a["data-opens"]]
+                mid = o["offset"] + o["width"] / 2
+                cx, cz = sx + dx * mid, sz + dz * mid
+                probe = wall["thickness"] / 2 + 0.15
+                side = [sign for sign in (1, -1) if room.contains(Point(cx - dz * probe * sign, cz + dx * probe * sign))]
+                if not side:
+                    raise ValueError(f"{o['id']}: data-opens={a['data-opens']} is on neither side of its wall")
+                meta["swing"] = side[0]
+            found[o["id"]] = meta
+    missing = sorted(set(wanted) - set(found))
+    if missing:
+        raise ValueError(f"doors with data-hinge/data-opens not found in the scene: {missing}")
+    for path in paths:
+        data = json.loads(path.read_text())
+        project = data.get("project") or {}
+        for metadata in [project.get("metadata")] + [o["snapshot"].get("metadata") for o in project.get("options") or []]:
+            if metadata is not None:
+                for oid, meta in found.items():
+                    metadata[oid] = {**metadata.get(oid, {}), **meta}
+        path.write_text(json.dumps(data, indent=2, ensure_ascii=False))
+    return found
+
+
 def build(flat: Path) -> dict:
     svg = (flat / "trace.svg").read_text()
     plan = next(p for p in flat.iterdir() if p.stem in ("source", "plan") and p.suffix.lower() in (".png", ".jpg", ".jpeg"))
@@ -428,7 +479,7 @@ def build(flat: Path) -> dict:
     v1 = {"format": "varpet.editor", "version": 1, "id": flat.name, "name": title, "units": "m", "upAxis": "Y",
           "rooms": structure["rooms"], "walls": structure["walls"], "objects": []}
     components = structure.get("components", [])
-    report = {"flat": flat.name, "scale": raw["notes"][0], "faults": faults}
+    report = {"flat": flat.name, "scale": raw["notes"][0], "transform": transform, "faults": faults}
     report["empty_export"] = export(v1, components, [], flat / "scene.json", work) or "ok"
     objects, used, picks = furniture(svg, transform, structure["rooms"], catalog())
     report["settled"] = settle(objects, {a["id"]: a for a in used}, structure["rooms"], components) + rest(objects, {a["id"]: a for a in used})
@@ -437,6 +488,8 @@ def build(flat: Path) -> dict:
     variants = sorted(flat.glob("trace.*.svg"))
     if report["furnished_export"] == "ok" and (variants or any(flat.glob("option.*.json"))):
         used = design_options(flat, svg, variants, v1, components, structure["rooms"], transform, used, work, report)
+    if report["empty_export"] == "ok" and report["furnished_export"] == "ok":
+        report["door_swings"] = door_swings(svg, transform, [flat / "scene.json", flat / "scene.furnished.json"])
     if report["furnished_export"] == "ok":  # what the editor needs to open it with no catalog service: the scene and its models
         (flat / "startup.json").write_text(json.dumps({"scene": json.loads((flat / "scene.furnished.json").read_text()),
                                                        "catalog": used}))

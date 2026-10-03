@@ -1,6 +1,13 @@
 {
  "flat": "komitas-b3-t11",
  "scale": "traced in pixels; scale 56.9 px/m from 4 dimension lines",
+ "transform": {
+  "px_per_m": 56.9029057406095,
+  "origin": [
+   523.0,
+   341.0
+  ]
+ },
  "faults": [],
  "empty_export": "ok",
  "settled": [
@@ -314,6 +321,28 @@
   "styled": {
    "saved": "option.styled.json",
    "pieces": 36
+  }
+ },
+ "door_swings": {
+  "door-balcony": {
+   "mechanism": "hinged",
+   "hinge": "left",
+   "swing": 1
+  },
+  "door-bathroom": {
+   "mechanism": "hinged",
+   "hinge": "right",
+   "swing": 1
+  },
+  "door-bedroom": {
+   "mechanism": "hinged",
+   "hinge": "right",
+   "swing": 1
+  },
+  "door-entrance": {
+   "mechanism": "hinged",
+   "hinge": "right",
+   "swing": -1
   }
  },
  "rooms": [

@@ -185,5 +185,192 @@
    "type": "gltf",
    "url": "/api/catalog/models/extra-electronics-tv-50-feet-black.glb"
   }
+ },
+ "extra:bpy-gaps:wardrobe-walnut-2-door-80": {
+  "id": "extra:bpy-gaps:wardrobe-walnut-2-door-80",
+  "name": "Walnut 2-door wardrobe, closed, 80 x 63 x 210 cm",
+  "category": "wardrobe",
+  "kind": "wardrobe",
+  "dimensions": [
+   0.8,
+   2.1,
+   0.6345
+  ],
+  "color": "#b8b4ad",
+  "price": 368000,
+  "source": {
+   "type": "gltf",
+   "url": "/api/catalog/models/extra-bpy-gaps-wardrobe-walnut-2-door-80.glb"
+  }
+ },
+ "extra:bpy-kitchen:japandi-oak-rectangular-table-110": {
+  "id": "extra:bpy-kitchen:japandi-oak-rectangular-table-110",
+  "name": "Japandi solid oak rectangular kitchen table for 4, soft-edged top, 110 x 70 cm",
+  "category": "table",
+  "kind": "table",
+  "dimensions": [
+   1.1,
+   0.7504,
+   0.7
+  ],
+  "color": "#b8b4ad",
+  "price": 198000,
+  "source": {
+   "type": "gltf",
+   "url": "/api/catalog/models/extra-bpy-kitchen-japandi-oak-rectangular-table-110.glb"
+  }
+ },
+ "abo:B072ZK885L": {
+  "id": "abo:B072ZK885L",
+  "name": "Amazon Brand – Rivet King Street Industrial Floating Side Table Night Stand, Walnut, Black Metal, Glass",
+  "category": "table",
+  "kind": "table",
+  "dimensions": [
+   0.3776,
+   0.5398,
+   0.3776
+  ],
+  "color": "#f8f8f6",
+  "price": 59000,
+  "source": {
+   "type": "gltf",
+   "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/L/B072ZK885L.glb"
+  }
+ },
+ "extra:electronics:tv-55-wall-black": {
+  "id": "extra:electronics:tv-55-wall-black",
+  "name": "55\" flat-screen TV, wall-mounted, black",
+  "category": "tv",
+  "kind": "tv",
+  "dimensions": [
+   1.23,
+   0.724,
+   0.123
+  ],
+  "color": "#b8b4ad",
+  "price": 320000,
+  "source": {
+   "type": "gltf",
+   "url": "/api/catalog/models/extra-electronics-tv-55-wall-black.glb"
+  }
+ },
+ "extra:bpy-bathstore:table-bath-side-teak": {
+  "id": "extra:bpy-bathstore:table-bath-side-teak",
+  "name": "Round teak bath-side table with lower shelf",
+  "category": "table",
+  "kind": "table",
+  "dimensions": [
+   0.36,
+   0.5952,
+   0.36
+  ],
+  "color": "#b8b4ad",
+  "price": 34000,
+  "source": {
+   "type": "gltf",
+   "url": "/api/catalog/models/extra-bpy-bathstore-table-bath-side-teak.glb"
+  }
+ },
+ "extra:bpy-bedroom:cane-panel-oak-wardrobe-100": {
+  "id": "extra:bpy-bedroom:cane-panel-oak-wardrobe-100",
+  "name": "Rift oak two-door wardrobe with Vienna cane panels and oak knobs, on square legs",
+  "category": "wardrobe",
+  "kind": "wardrobe",
+  "dimensions": [
+   1,
+   1.95,
+   0.601
+  ],
+  "color": "#b8b4ad",
+  "price": 512000,
+  "source": {
+   "type": "gltf",
+   "url": "/api/catalog/models/extra-bpy-bedroom-cane-panel-oak-wardrobe-100.glb"
+  }
+ },
+ "extra:bpy-bedroom:mcm-walnut-wardrobe-drawers-110": {
+  "id": "extra:bpy-bedroom:mcm-walnut-wardrobe-drawers-110",
+  "name": "Mid-century walnut wardrobe, two doors over two drawers, sculpted wood pulls, tapered legs",
+  "category": "wardrobe",
+  "kind": "wardrobe",
+  "dimensions": [
+   1.116,
+   1.901,
+   0.603
+  ],
+  "color": "#b8b4ad",
+  "price": 545000,
+  "source": {
+   "type": "gltf",
+   "url": "/api/catalog/models/extra-bpy-bedroom-mcm-walnut-wardrobe-drawers-110.glb"
+  }
+ },
+ "extra:bpy-bedroom:reeded-oak-3-door-wardrobe-150": {
+  "id": "extra:bpy-bedroom:reeded-oak-3-door-wardrobe-150",
+  "name": "Reeded rift oak three-door wardrobe, long brass bar handles, black plinth",
+  "category": "wardrobe",
+  "kind": "wardrobe",
+  "dimensions": [
+   1.5,
+   2.1,
+   0.6345
+  ],
+  "color": "#b8b4ad",
+  "price": 638000,
+  "source": {
+   "type": "gltf",
+   "url": "/api/catalog/models/extra-bpy-bedroom-reeded-oak-3-door-wardrobe-150.glb"
+  }
+ },
+ "abo:B07HSF3Y12": {
+  "id": "abo:B07HSF3Y12",
+  "name": "Amazon Brand – Stone & Beam Rylee Modern Acacia Wood Queen Bed, 67.52\"W, Gray-Wash Acacia",
+  "category": "bed",
+  "kind": "bed",
+  "dimensions": [
+   1.7594,
+   1.071,
+   2.1455
+  ],
+  "color": "#d3cfd2",
+  "price": 236000,
+  "source": {
+   "type": "gltf",
+   "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/2/B07HSF3Y12.glb"
+  }
+ },
+ "abo:B07BVHL3SZ": {
+  "id": "abo:B07BVHL3SZ",
+  "name": "Rivet Bowlyn Mid-Century - Modern Wood Coffee Table, 121,92 cm, Walnut Color",
+  "category": "table",
+  "kind": "table",
+  "dimensions": [
+   1.2207,
+   0.508,
+   0.6097
+  ],
+  "color": "#543321",
+  "price": 81000,
+  "source": {
+   "type": "gltf",
+   "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/Z/B07BVHL3SZ.glb"
+  }
+ },
+ "abo:B07QZ77FGN": {
+  "id": "abo:B07QZ77FGN",
+  "name": "Amazon Brand - Movian Arga - Wardrobe, 123/160 x 50 x 182 cm (L x D x H), White Frame with Dark Grey Curtain",
+  "category": "wardrobe",
+  "kind": "wardrobe",
+  "dimensions": [
+   1.6,
+   1.81,
+   0.5
+  ],
+  "color": "#3e3e3e",
+  "price": 98000,
+  "source": {
+   "type": "gltf",
+   "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/N/B07QZ77FGN.glb"
+  }
  }
 }

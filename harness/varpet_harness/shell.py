@@ -553,6 +553,8 @@ def _close_gaps(shell: Shell) -> None:
                 past = max(-s_ * lo, (s_ - 1) * lo, 0.0)  # how far the crossing lies beyond o's ends
                 if move <= EDITOR_EPS or move > GAP_CLOSE_M or past > GAP_CLOSE_M or (0 < t < 1 and move > SNAP_M and past):
                     continue
+                if past > EDITOR_EPS and any(Polygon(r.polygon).buffer(-0.01).contains(Point(x, z)) for r in shell.rooms):
+                    continue  # two blocks touching only at a corner: that corner is floor, not an L to close
                 if best is None or move + past < best[0]:
                     best = (move + past, (x, z), o, s_)
             if best is None:

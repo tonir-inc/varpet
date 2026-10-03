@@ -110,6 +110,19 @@ def test_wall_overshooting_a_corner_is_trimmed_to_it(tmp_path):
     assert abs(fixed.openings[0].offset - 1.47) < 1e-6  # the door stayed where it was
 
 
+def test_blocks_touching_only_at_a_corner_are_not_closed_into_an_l(tmp_path):
+    """Two hatched blocks that meet only at one corner (b3-t9's living column, 2-5's column-nw): the corner square
+    between their centrelines is floor, so tidying must not extend both into an L over it."""
+    s = flat()
+    s.walls += [Wall.model_validate({**wall("block-a", [1.0, 2.0], [1.6, 2.0]), "thickness": 0.4}),
+                Wall.model_validate({**wall("block-b", [1.75, 2.2], [1.75, 2.8]), "thickness": 0.3})]
+    path = tmp_path / "shell.json"
+    path.write_text(s.model_dump_json())
+    check_file(path, tmp_path)
+    walls = {w.id: w for w in Shell.model_validate_json(path.read_text()).walls}
+    assert walls["block-a"].end == (1.6, 2.0) and walls["block-b"].start == (1.75, 2.2)
+
+
 def fixture(i, kind, pos, dims, room="bed", host=None, **extra):
     body = {"id": i, "name": i, "kind": kind, "position": pos, "dimensions": dims, "color": WHITE, "roomId": room}
     if host:

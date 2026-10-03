@@ -18,7 +18,7 @@ import { checkLayout } from '../../packages/designer/src/layout.ts';
 
 type V = [number, number];
 interface Asset { id: string; name: string; kind: string; dimensions: [number, number, number] }
-interface Obj { id: string; name: string; assetId: string; position: [number, number, number]; rotation: number }
+interface Obj { id: string; name: string; assetId: string; position: [number, number, number]; rotation: number; scale?: [number, number, number] }
 interface Pick { id: string; footprint_m: [number, number] }
 
 interface Role { name: string; height?: [number, number]; not?: string; min_width?: number; wall?: boolean; faces?: [string, number]; beside?: string }
@@ -46,7 +46,13 @@ function audit(flat: string, option?: { id: string; snapshot: Record<string, unk
     Object.assign(scene.project, { components, finishes, routes, options: [], activeOptionId: undefined });
   }
   const catalog: Asset[] = JSON.parse(readFileSync(join(flat, 'startup.json'), 'utf8')).catalog;
-  const picks: Pick[] = JSON.parse(readFileSync(join(flat, 'report.json'), 'utf8')).furniture;
+  const report = JSON.parse(readFileSync(join(flat, 'report.json'), 'utf8'));
+  const picks: Pick[] = report.furniture;
+  // Where a route is narrowest, in the plan's pixels when build.py recorded the trace transform (designer plan axes
+  // flip z: editor [x, z] is designer [x, -z]).
+  const where = (p?: V) => !p ? '' : report.transform
+    ? ` at plan px ${Math.round(report.transform.origin[0] + p[0] * report.transform.px_per_m)},${Math.round(report.transform.origin[1] - p[1] * report.transform.px_per_m)}`
+    : ` at ${p[0].toFixed(2)},${(-p[1]).toFixed(2)} m`;
   const assets = new Map(catalog.map(a => [a.id, a]));
   const rooms: V[][] = scene.rooms.map((r: { polygon: V[] }) => r.polygon);
   const inRoom = (p: V) => rooms.some(poly => inside(p, poly));
@@ -63,7 +69,7 @@ function audit(flat: string, option?: { id: string; snapshot: Record<string, unk
     const route = e.check === 'walkway' && w?.from.startsWith('door:') && w.to.startsWith('door:');
     const width = /no accessible path/.test(e.message) ? 0 : Number(/([\d.]+) m path/.exec(e.message)?.[1] ?? Infinity);
     const narrow = route && width < ROUTE_M - 1e-6;
-    if (['containment', 'collision', 'door_swing'].includes(e.check) && e.severity === 'hard' || narrow) faults.push(`layout ${e.check}: ${e.message}`);
+    if (['containment', 'collision', 'door_swing'].includes(e.check) && e.severity === 'hard' || narrow) faults.push(`layout ${e.check}: ${e.message}${narrow ? where((e as { at?: V }).at) : ''}`);
     else notes.push(`${e.check}: ${e.message}`);
   }
 
@@ -87,9 +93,9 @@ function audit(flat: string, option?: { id: string; snapshot: Record<string, unk
     }
     const pick = picks.find(p => p.id === o.id);
     if (pick) {
-      const [tw, td] = pick.footprint_m;
-      if (Math.abs(w - tw) > ROLES.width_tolerance + 1e-6 || d - td < -ROLES.depth_under - 1e-6 || d - td > ROLES.depth_over + 1e-6)
-        faults.push(`${label}: model ${w.toFixed(2)} x ${d.toFixed(2)} m vs traced ${tw} x ${td} (width ±${ROLES.width_tolerance}, depth -${ROLES.depth_under}/+${ROLES.depth_over})`);
+      const [tw, td] = pick.footprint_m, ws = w * (o.scale?.[0] ?? 1);  // data-fit="width" stretches the model across the traced width
+      if (Math.abs(ws - tw) > ROLES.width_tolerance + 1e-6 || d - td < -ROLES.depth_under - 1e-6 || d - td > ROLES.depth_over + 1e-6)
+        faults.push(`${label}: model ${ws.toFixed(2)} x ${d.toFixed(2)} m vs traced ${tw} x ${td} (width ±${ROLES.width_tolerance}, depth -${ROLES.depth_under}/+${ROLES.depth_over})`);
     }
     const [fx, fz] = front(o), [x, z] = at(o);
     if (!inRoom([x + fx * (d / 2 + 0.05), z + fz * (d / 2 + 0.05)])) faults.push(`${label}: front faces into a wall`);
@@ -100,15 +106,22 @@ function audit(flat: string, option?: { id: string; snapshot: Record<string, unk
     const nearest = (re: RegExp) => objects.filter(t => t !== o && re.test(t.name) && roomOf(at(t)) === roomOf(at(o)))
       .sort((p, q) => Math.hypot(...sub(at(p), at(o))) - Math.hypot(...sub(at(q), at(o))))[0];
     if (rule?.faces) {
-      const target = nearest(new RegExp(rule.faces[0], 'i'));
-      if (!target) faults.push(`${label}: nothing to face (${rule.faces[0]})`);
-      else {
-        // Facing means the line straight out of its front meets the target within 1.5 m (a corner chair at a long
-        // table faces the table edge, not its centre); failing that, the angle to the target's centre decides.
+      // Facing any piece of the room the role names counts (an armchair at the end of a corner sofa faces the
+      // coffee table, not the sofa beside it); the nearest one is named when none is faced.
+      const re = new RegExp(rule.faces[0], 'i');
+      const targets = objects.filter(t => t !== o && re.test(t.name) && roomOf(at(t)) === roomOf(at(o)))
+        .sort((p, q) => Math.hypot(...sub(at(p), at(o))) - Math.hypot(...sub(at(q), at(o))));
+      // Facing means the line straight out of its front meets the target within 1.5 m (a corner chair at a long
+      // table faces the table edge, not its centre); failing that, the angle to the target's centre decides.
+      const cosTo = (target: Obj) => { const [dx, dz] = sub(at(target), at(o)); return (fx * dx + fz * dz) / (Math.hypot(dx, dz) || 1); };
+      const faced = (target: Obj) => {
         const box = footprintOf(target);
-        const hits = Array.from({ length: 30 }, (_, i) => (i + 1) * 0.05).some(t => inside([x + fx * t, z + fz * t], box));
-        const [dx, dz] = sub(at(target), at(o)), cos = (fx * dx + fz * dz) / (Math.hypot(dx, dz) || 1);
-        if (!hits && cos < rule.faces[1]) faults.push(`${label}: faces ${(Math.acos(Math.max(-1, Math.min(1, cos))) * 180 / Math.PI).toFixed(0)}° away from ${target.id}`);
+        return Array.from({ length: 30 }, (_, i) => (i + 1) * 0.05).some(t => inside([x + fx * t, z + fz * t], box)) || cosTo(target) >= rule.faces![1];
+      };
+      if (!targets.length) faults.push(`${label}: nothing to face (${rule.faces[0]})`);
+      else if (!targets.some(faced)) {
+        const cos = cosTo(targets[0]!);
+        faults.push(`${label}: faces ${(Math.acos(Math.max(-1, Math.min(1, cos))) * 180 / Math.PI).toFixed(0)}° away from ${targets[0]!.id}`);
       }
     }
     if (rule?.beside) {

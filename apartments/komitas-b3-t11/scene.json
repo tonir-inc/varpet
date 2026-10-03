@@ -301,7 +301,7 @@
       ],
       "end": [
         2.9436,
-        2.557
+        2.4076
       ],
       "height": 2.7,
       "thickness": 0.264,
@@ -315,7 +315,7 @@
         2.557
       ],
       "end": [
-        2.9436,
+        2.8118,
         2.557
       ],
       "height": 2.7,
@@ -667,6 +667,26 @@
       "bathroom": {
         "zone": "interior",
         "phase": "existing"
+      },
+      "door-balcony": {
+        "mechanism": "hinged",
+        "hinge": "left",
+        "swing": 1
+      },
+      "door-bathroom": {
+        "mechanism": "hinged",
+        "hinge": "right",
+        "swing": 1
+      },
+      "door-bedroom": {
+        "mechanism": "hinged",
+        "hinge": "right",
+        "swing": 1
+      },
+      "door-entrance": {
+        "mechanism": "hinged",
+        "hinge": "right",
+        "swing": -1
       }
     },
     "components": [
