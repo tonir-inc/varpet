@@ -22,8 +22,10 @@ import {
   createMaterialFromPresetRef,
   type RenderShading,
   resolveMaterialRef,
+  useViewer,
 } from '@pascal-app/viewer'
-import { memo, useEffect, useMemo } from 'react'
+import { useFrame } from '@react-three/fiber'
+import { memo, useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { mergeGeometries as mergeBufferGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { resolveWallOpeningCeiling } from '../shared/wall-opening-ceiling'
@@ -660,8 +662,19 @@ export const WallTreatments = memo(function WallTreatments({
     [trimEntries],
   )
 
+  // A cut-away wall (WallCutoutCache stamps `wallHidden` on the wall mesh, this group's parent) takes its trims
+  // with it, as it does its doors, windows and wall items, except while hovered. Checked every frame so trims
+  // mounted onto an already cut wall never show.
+  const group = useRef<THREE.Group>(null)
+  useFrame(() => {
+    const root = group.current
+    if (!root) return
+    const visible = root.parent?.userData.wallHidden !== true || useViewer.getState().hoveredId === node.id
+    if (root.visible !== visible) root.visible = visible
+  })
+
   return (
-    <>
+    <group ref={group}>
       {trimEntries.map((entry) => (
         <mesh
           castShadow
@@ -672,6 +685,6 @@ export const WallTreatments = memo(function WallTreatments({
           userData={{ slotId: entry.slotId }}
         />
       ))}
-    </>
+    </group>
   )
 })

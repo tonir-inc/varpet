@@ -152,3 +152,12 @@ Base: `@pascal-app/core@1.0.3` (`ebe69be2`). One commit each, so each can become
 - Change: writes chain on a per-store promise queue; each transaction runs after the previous one settles.
 - Files: `packages/mcp/src/storage/sqlite-scene-store.ts`.
 - Host side: test `packages/scene-mcp/src/store-concurrency.test.ts`; the eval runner's serialising workaround can go.
+
+## 16. Nodes: cut-away walls hide their trims
+- Motivation: patches 7 and 9 took a cut wall's openings and wall items with it, but skirting, crown and chair rail
+  (`WallTreatments`, children of the wall mesh) kept drawing: in `cutaway` and `down` modes every cut wall left
+  floating white rails at 0, 0.9 and 2.6 m (seen once varpet's `set_wall_trim` started writing trims).
+- Change: `WallTreatments` wraps its meshes in a group whose visibility follows the wall mesh's `wallHidden` stamp
+  every frame (shown while the wall is hovered, as openings are), so trims mounted onto an already cut wall never show.
+- Files: `packages/nodes/src/wall/treatments.tsx`.
+- Host side: none (no workaround existed).
