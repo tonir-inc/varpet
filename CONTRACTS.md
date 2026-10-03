@@ -134,10 +134,24 @@ that file and this one in the same commit, and say so in the commit message.
   `set_room_floor_construction`; neither exists in 1.0.3.)
 - `list_finishes(surface?, family?, query?)` -> `{count, finishes: [{id, label, family, color}]}`.
 - `set_wall_finish(finish_id, zone_id?, wall_ids?, side?: room|outside|both = room)`: with `zone_id` alone, every
-  wall with a face toward the room; with `wall_ids` (and `zone_id` to name the room) those walls. "room" is the
-  face toward the room, or the interior-tagged faces without a zone (an untagged or two-room wall then fails with
-  `ambiguous_side`). Writes `library:<id>` into the slot that face shows, keeps the other slot, and stores the side
-  tags it used on walls that had none. -> `{finish, walls: [{id, name, length, slots}], notes?}`.
+  wall face that bounds the room: any face with part of its length (sampled every 2 cm, 5 cm out) looking into the
+  zone, so piers, short returns and both faces of a wall standing inside the room count; a column or return whose far
+  face is buried in another wall gets that face too, so its end caps show the finish whole (caps and reveals follow
+  the face on their half, Pascal patch 17). With `wall_ids` (and `zone_id` to name the room) those walls. "room" is
+  the face toward the room, or the interior-tagged faces without a zone (an untagged or two-room wall then fails
+  with `ambiguous_side`). Writes `library:<id>` into the slot that face shows, keeps the other slot, and stores the
+  side tags it used on walls that had none. -> `{finish, walls: [{id, name, length, slots}], split?, notes?}`.
+- Zone-scoped wall tools split walls. Pascal has one slot per face, so with `zone_id` (`set_wall_finish`,
+  `set_wainscot`, `set_wall_trim`) a wall whose face runs on into another zone (a room, a balcony) is first divided
+  at the room's edge with Pascal's own `planWallDivisions` (the editor's wall split): only where the edge crosses
+  that face, at the middle of what separates the two (a partition's centreline, or the open boundary), moved to
+  the edge of a door or window it falls just inside of (up to 15 cm). The first piece keeps the wall's id; doors,
+  windows and hung items move to the piece they sit on (position, `wallId`, `wallT`); slots, trims, bands, tags and
+  `metadata.v1Id` are copied to every piece; geometry is unchanged. Where an opening or hung item spans the edge the
+  wall is not split and the whole face changes (noted). The split and the finish are one undoable patch. The result's
+  `split: [{wall, pieces}]` (pieces in order along the wall) names the new ids: callers (agents, eval scorers) must
+  not hold wall ids across a zone-scoped wall call. With `wall_ids` and `zone_id`, a named wall that was split stands
+  for its pieces facing the room.
 - `set_floor_finish(finish_id, zone_id? | slab_id?)`: the zone's slab (same `metadata.v1Id`, else the slab under
   its centre) gets `slots.surface`. -> `{finish, slab: {id, name}, notes?}`.
 - Both validate ids against the catalogue (`unknown_finish: <id>. Closest: ...`), note a finish used off its usual
@@ -172,6 +186,8 @@ that file and this one in the same commit, and say so in the commit message.
   and the topmost band slot (`upper<Side>`, `top<Side>` at 4 bands), so painting finishes the part above a wainscot.
 - A wall between two rooms tagged interior on both faces shows one `interior` slot (and one `lowerInterior`) on both
   faces: a finish or wainscot for one room shows in the other too (noted in the result). Trims do not share this.
+- After a zone-scoped call every face on the room's outline shows the finish and no face on a neighbouring zone's
+  outline does (tests: `finishes-sunday.test.ts`, Sunday living room and bedroom 9).
 - Cut-away walls hide their trims (Pascal patch 16).
 
 ## Env
