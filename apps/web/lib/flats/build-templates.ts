@@ -11,6 +11,11 @@ export const SOURCES: Array<{ id: string; name: string; note: string }> = [
   { id: 'orion-t7', name: 'Orion · Type 7', note: 'Three bedrooms, open living and kitchen' },
   { id: 'orion-t8', name: 'Orion · Type 8', note: 'Two bedrooms and a reading room' },
   { id: 'm6-12-54', name: 'M6-12-54', note: 'Two bedrooms, two balconies' },
+  { id: 'komitas-b3-t11', name: 'Komitas Park · B3 Type 11 (2-5)', note: 'One bedroom, balcony' },
+  { id: 'komitas-b3-t7', name: 'Komitas Park · B3 Type 7', note: 'Two bedrooms, two bathrooms, balcony' },
+  { id: 'komitas-b3-t8', name: 'Komitas Park · B3 Type 8', note: 'One bedroom, balcony' },
+  { id: 'komitas-b3-t9', name: 'Komitas Park · B3 Type 9', note: 'Two bedrooms, two bathrooms, balcony' },
+  { id: 'komitas-b3-t10', name: 'Komitas Park · B3 Type 10', note: 'One bedroom, balcony' },
 ]
 
 export function buildTemplate(dir: string, id: string) {
