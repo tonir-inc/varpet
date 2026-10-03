@@ -11,6 +11,7 @@ import { z } from 'zod'
 import type { Catalog, ProductHit } from './catalog.ts'
 import { finishMaterialItems } from '../../contracts/src/finishes.ts'
 import { registerFinishTools } from './finishes.ts'
+import { registerWallTrimTools } from './wall-trim.ts'
 import { registerViewSceneTool, type Renderer } from './view-scene.ts'
 import { checkClearances } from './clearances.ts'
 import { hostOf, hostUnder, httpModelHeights, restOn, type ModelHeights } from './surface.ts'
@@ -35,6 +36,7 @@ export const BUILTIN_CATALOG_TOOLS = ['place_item', 'search_assets', 'furnish_ro
 export const PRODUCT_TOOLS = ['search_products', 'get_product', 'show_products', 'place_product'] as const
 
 export { FINISH_TOOLS } from './finishes.ts'
+export { WALL_TRIM_TOOLS } from './wall-trim.ts'
 
 /** Measured gaps: walkways, door swings, chair pull-out, bed access, storage fronts, glazing. */
 export const CHECK_TOOLS = ['check_clearances'] as const
@@ -78,6 +80,7 @@ export async function createSceneServer({ store, sceneId, catalog, publicOrigin,
     registerHostTools: (host) => {
       registerProductTools(host, operations, catalog, modelBounds, modelHeights)
       registerFinishTools(host, operations, publishSnapshot)
+      registerWallTrimTools(host, operations, publishSnapshot)
       registerClearanceTool(host, operations)
       if (render) registerViewSceneTool(host, operations, render)
     },
