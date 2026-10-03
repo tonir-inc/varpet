@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import re
 import subprocess
 import sys
@@ -53,12 +54,19 @@ ROLES = json.loads((Path(__file__).resolve().parent / "roles.json").read_text())
 FRONT = {"down": 0.0, "up": math.pi, "right": math.pi / 2, "left": -math.pi / 2}
 
 
+def write_atomic(path: Path, text: str) -> None:
+    """Flats build in parallel and share the caches: write whole or not at all."""
+    tmp = path.with_name(f"{path.name}.{os.getpid()}.tmp")
+    tmp.write_text(text)
+    os.replace(tmp, path)
+
+
 def catalog() -> list[dict]:
     """The 900 editor-ready catalog models (cached: the service is only on the tailnet)."""
     try:
         with urllib.request.urlopen(CATALOG_URL, timeout=10) as r:
             assets = json.loads(r.read())
-        CACHE.write_text(json.dumps(assets))
+        write_atomic(CACHE, json.dumps(assets))
         return assets
     except OSError:
         return json.loads(CACHE.read_text())
@@ -95,7 +103,7 @@ def pinned_assets(ids: set[str], known: set[str]) -> list[dict]:
                     asset = editor_asset(item)
                     if asset:
                         cached[asset["id"]] = asset
-            PINNED_CACHE.write_text(json.dumps(cached, indent=1, ensure_ascii=False))
+            write_atomic(PINNED_CACHE, json.dumps(cached, indent=1, ensure_ascii=False))
             break
         except OSError:
             continue
