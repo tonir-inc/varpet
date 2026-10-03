@@ -126,6 +126,10 @@ function pickTextureLoader(url: string): THREE.TextureLoader {
   // Texture / Promise<Texture>); cast for typing.
   return isKtx2Url(url) ? (ktx2Loader as unknown as THREE.TextureLoader) : textureLoader
 }
+// Floors and walls are mostly seen at grazing angles; trilinear filtering alone blurs their textures to mush a few
+// metres out. 8× anisotropic filtering keeps them sharp for little cost (WebGPU samplers clamp to the device max).
+const SURFACE_TEXTURE_ANISOTROPY = 8
+
 const wrapMap = {
   Repeat: THREE.RepeatWrapping,
   ClampToEdge: THREE.ClampToEdgeWrapping,
@@ -226,6 +230,7 @@ function getTexture(material?: MaterialSchema): THREE.Texture | undefined {
   const texture = pickTextureLoader(resolvedUrl).load(resolvedUrl)
   texture.wrapS = THREE.RepeatWrapping
   texture.wrapT = THREE.RepeatWrapping
+  texture.anisotropy = SURFACE_TEXTURE_ANISOTROPY
 
   const [repeatX, repeatY] = resolveTextureRepeat(textureConfig.repeat, textureConfig.scale)
   texture.repeat.set(repeatX, repeatY)
@@ -263,6 +268,7 @@ function applyTextureProperties(
   texture.repeat.set(props.repeatX, props.repeatY)
   texture.rotation = props.rotation
   texture.flipY = props.flipY
+  texture.anisotropy = SURFACE_TEXTURE_ANISOTROPY
   texture.updateMatrix()
   texture.channel = getTextureChannel(slot)
   texture.colorSpace = SRGB_TEXTURE_SLOTS.includes(slot ?? 'map')

@@ -96,7 +96,35 @@ Base: `@pascal-app/core@1.0.3` (`ebe69be2`). One commit each, so each can become
 - Files: `packages/viewer/src/systems/wall/wall-cutout-cache.ts`, `packages/nodes/src/shared/node-batch/candidates.ts`.
 - Host side: none (no workaround existed).
 
-## 10. Core + viewer: a bare `<Viewer>` keeps the spatial grid in sync
+## 10. Viewer: noise-free soft shadows for the key light
+- Motivation: three r186's `PCFShadowFilter` rotates 5 Vogel-disk taps per pixel by interleaved gradient noise, which
+  only averages out under TAA; Pascal has none, so every penumbra on walls and floors carried a fixed diagonal stripe
+  pattern, plainest in still captures (headless render page, snapshots). Measured on a Sunday bedroom wall (1024×768,
+  WebGPU): high-frequency noise 0.80 → 0.17 (0.07 with shadows off).
+- Change: `gridShadowFilter` (`lib/shadow-filter.ts`), a 4×4 grid of hardware-compared bilinear taps over ±`radius`
+  texels, set as the directional lights' `shadow.filterNode`. Same shadow map, bias and radius.
+- Files: `packages/viewer/src/lib/shadow-filter.ts`, `packages/viewer/src/components/viewer/lights.tsx`.
+- Host side: none (no workaround existed).
+
+## 11. Viewer: anisotropic filtering on surface textures
+- Motivation: material textures (floors, wall finishes, Pascal's library and host-registered ones) loaded with
+  three's default anisotropy 1, so a floor seen at eye level smeared into streaks a couple of metres out.
+  Measured on a Sunday entrance floor (eye level, 1024×768, WebGPU): mean horizontal pixel gradient 1.87 → 4.15.
+- Change: `SURFACE_TEXTURE_ANISOTROPY = 8` on every texture `lib/materials.ts` builds (`getTexture`,
+  `applyTextureProperties`, so cached and cloned preset maps carry it).
+- Files: `packages/viewer/src/lib/materials.ts`.
+- Host side: none (no workaround existed).
+
+## 12. Viewer: `dpr` prop
+- Motivation: the canvas pixel ratio was fixed to `[1, 1.5]` (1.25 on coarse pointers) clamped to the screen, so a
+  headless capture at devicePixelRatio 1 rendered at 1× with no anti-aliasing (the TSL pipeline has none): jagged
+  edges, aliased texture detail, visible SSAO grain.
+- Change: `<Viewer dpr={n}>` replaces the default range with a fixed ratio; unset keeps the old behaviour.
+- Files: `packages/viewer/src/components/viewer/index.tsx`.
+- Host side: `CAPTURE_DPR = 2` in `apps/web/components/render/render-stage.tsx` (supersampled captures; no
+  workaround existed).
+
+## 13. Core + viewer: a bare `<Viewer>` keeps the spatial grid in sync
 - Motivation: floor items stand on their slab only through `FloorElevationSystem`, which reads slab elevations from
   the spatial grid; only the editor started `initSpatialGridSync`. The headless render page (view_scene) is a bare
   `<Viewer>`, so there every floor item sat at the level base, 5 cm under the flat templates' slab top: rugs vanished
@@ -108,7 +136,7 @@ Base: `@pascal-app/core@1.0.3` (`ebe69be2`). One commit each, so each can become
   `packages/viewer/src/systems/floor-elevation/floor-elevation-system.tsx`.
 - Host side: none (scene y 0 is the floor top everywhere now; no host lift).
 
-## 11. Core + nodes: `asset.nodeTransforms` (per-instance overrides of named GLB nodes)
+## 14. Core + nodes: `asset.nodeTransforms` (per-instance overrides of named GLB nodes)
 - Motivation: varpet's generated pendants keep `canopy`, `cord` and `body` as separate glTF nodes so a drop can be set
   at placement (cord scaled in Y, body moved to its end). An item could only transform its whole model.
 - Change: the item asset schema takes `nodeTransforms?: Record<nodeName, { position?, scale? }>`; the item renderer
@@ -116,3 +144,4 @@ Base: `@pascal-app/core@1.0.3` (`ebe69be2`). One commit each, so each can become
   The node batch reads mesh world matrices, so merged copies follow.
 - Files: `packages/core/src/schema/nodes/item.ts`, `packages/nodes/src/item/renderer.tsx`.
 - Host side: `place_product(..., drop)` in `packages/scene-mcp` writes them (no workaround existed).
+||||||| aa9f269a

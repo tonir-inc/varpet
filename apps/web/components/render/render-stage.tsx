@@ -10,7 +10,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import type { RenderRequest } from '@varpet/contracts'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { PerspectiveCamera } from 'three'
-import { configureViewerLook, withWallSides } from '../editor/viewer-look'
+import { configureCaptureLook, withWallSides } from '../editor/viewer-look'
 
 type Job = RenderRequest & { key: number }
 type Backend = 'webgpu' | 'webgl'
@@ -33,14 +33,21 @@ declare global {
 /** Frames after Pascal reports the scene ready, before the job resolves. */
 const SETTLE_FRAMES = 20
 
+/**
+ * Supersampling: the canvas renders at 2× and the page shows it at 1×, so the screenshot averages four samples
+ * per pixel (anti-aliased edges, crisper textures, quieter SSAO). Pascal's pipeline has no AA of its own.
+ */
+const CAPTURE_DPR = 2
+
 export function RenderStage() {
   const [job, setJob] = useState<Job | null>(null)
   const pending = useRef<Pending | null>(null)
   const frameWaiters = useRef<Array<{ left: number; done: () => void }>>([])
   const backend = useRef<Backend>('webgl')
-  // Before <Viewer> mounts: finishes registered, default walls painted, SSGI tuned, as in the editor.
+  // Before <Viewer> mounts: finishes registered, default walls painted, SSGI tuned, as in the editor (with more
+  // SSGI slices: a still frame can afford them).
   useState(() => {
-    configureViewerLook()
+    configureCaptureLook()
     return null
   })
 
@@ -108,6 +115,7 @@ export function RenderStage() {
   return (
     <div style={{ position: 'fixed', inset: 0, background: '#fafafa' }}>
       <Viewer
+        dpr={CAPTURE_DPR}
         maxFps={60}
         onSceneReadyChange={onSceneReadyChange}
         renderContext="editor"

@@ -146,7 +146,7 @@ export function productItemNode(
   position: [number, number, number],
   rotationY: number,
   mounting?: ItemMounting,
-  /** A set drop: the hung size and the GLB node overrides that make it (asset.nodeTransforms, Pascal patch 10). */
+  /** A set drop: the hung size and the GLB node overrides that make it (asset.nodeTransforms, Pascal patch 14). */
   hung?: { dimensions: [number, number, number]; nodeTransforms: Record<string, { position?: [number, number, number]; scale?: [number, number, number] }> },
 ) {
   const depth = product.dimensions[2]

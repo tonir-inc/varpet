@@ -80,7 +80,7 @@ that file and this one in the same commit, and say so in the commit message.
   `varpet_hang`, else the catalog entry's `raw.hang`; nodes `canopy`, `cord`, `body`; README in the lights lane's
   `catalog/blender/lights`): cord c = clamp(D - canopy_m - body_m, cord_min_m, cord_max_m), written as
   `asset.nodeTransforms` `{cord: {scale: [1, c/cord_m, 1]}, body: {position: [x, -(canopy_m + c), z]}}` (Pascal patch
-  11), with `asset.dimensions` h = the set drop. Every other model (the 98 Amazon ceiling lights checked: one merged mesh, no cord
+  14), with `asset.dimensions` h = the set drop. Every other model (the 98 Amazon ceiling lights checked: one merged mesh, no cord
   node) hangs at its model's drop. Ceiling results add `hang: {adjustable, drop | range, cord?, clamped?, asked?,
   got?, met? (within 5 cm), neededDrop?, note?}` and `aboveTable: {id, top, gap}` whenever a table is under it.
 - `check_clearances(zone_id?)` (read-only; `clearances.ts`, pure): per room `{zone, name, findings, pieces: {id: short
@@ -94,7 +94,7 @@ that file and this one in the same commit, and say so in the commit message.
   gap}`; `window {window, piece, covers, of, gap, top, sill}`. Sides are compass names (north = -z). Obstacles are
   floor items on the level; rugs and flat pieces (<= 5 cm), pieces standing on others (bottom > 0.25 m) and wall or
   ceiling pieces are not. Without `zone_id`, every room with floor furniture. No verdicts.
-- Floor pieces stand on their slab everywhere: y 0 is the slab top in the editor and in renders (Pascal patch 10; the
+- Floor pieces stand on their slab everywhere: y 0 is the slab top in the editor and in renders (Pascal patch 13; the
   flat templates' slabs are 0.05 m up). Never lift a piece by the slab elevation.
 - Saving never rewrites the graph the agent built (no wall-side tagging on save; the editor tags unknown wall sides
   at load for cutaway, `withWallSides` in `apps/web/components/editor/viewer-look.ts`).
