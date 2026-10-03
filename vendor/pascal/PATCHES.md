@@ -95,3 +95,15 @@ Base: `@pascal-app/core@1.0.3` (`ebe69be2`). One commit each, so each can become
   other items are unaffected).
 - Files: `packages/viewer/src/systems/wall/wall-cutout-cache.ts`, `packages/nodes/src/shared/node-batch/candidates.ts`.
 - Host side: none (no workaround existed).
+
+## 10. Core + viewer: a bare `<Viewer>` keeps the spatial grid in sync
+- Motivation: floor items stand on their slab only through `FloorElevationSystem`, which reads slab elevations from
+  the spatial grid; only the editor started `initSpatialGridSync`. The headless render page (view_scene) is a bare
+  `<Viewer>`, so there every floor item sat at the level base, 5 cm under the flat templates' slab top: rugs vanished
+  and the designer agent "fixed" them by raising them to y 0.05, which then floated 5 cm in the editor.
+- Change: `initSpatialGridSync` is reference-counted (the store listener attaches once, detaches with the last user;
+  each teardown is idempotent) and `FloorElevationSystem` holds one reference while mounted. In the editor this only
+  adds a user; its teardown (`clear()`) is unchanged.
+- Files: `packages/core/src/hooks/spatial-grid/spatial-grid-sync.ts` (+ test),
+  `packages/viewer/src/systems/floor-elevation/floor-elevation-system.tsx`.
+- Host side: none (scene y 0 is the floor top everywhere now; no host lift).

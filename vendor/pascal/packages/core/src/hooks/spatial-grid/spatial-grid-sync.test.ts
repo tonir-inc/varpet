@@ -887,3 +887,40 @@ describe('bulk slab-change guard', () => {
     expect(useScene.getState().dirtyNodes.has(wall.id as AnyNodeId)).toBe(true)
   })
 })
+
+describe('initSpatialGridSync reference counting (an editor and a bare viewer both start it)', () => {
+  const slab = SlabNode.parse({ id: 'slab_rc', parentId: 'level_rc', polygon: SQUARE, elevation: 0.05 })
+  const level = makeLevel('level_rc', 0, 2.5, [])
+
+  function setLevelOnly() {
+    useScene.setState({
+      collections: {},
+      dirtyNodes: new Set<AnyNodeId>(),
+      nodes: { level_rc: level } as never,
+      readOnly: false,
+      rootNodeIds: ['level_rc'] as AnyNodeId[],
+    } as never)
+    clearSceneHistory()
+  }
+  const addSlab = () =>
+    useScene.setState({ nodes: { ...useScene.getState().nodes, slab_rc: slab as AnyNode } as never })
+
+  beforeEach(() => {
+    spatialGridManager.clear()
+    setLevelOnly()
+  })
+
+  test('the listener stays while any user holds it, and a teardown called twice counts once', () => {
+    const viewer = initSpatialGridSync()
+    const editor = initSpatialGridSync()
+    editor()
+    editor()
+    addSlab()
+    expect(spatialGridManager.getSlabElevationAt('level_rc', 2, 2)).toBe(0.05)
+    viewer()
+    spatialGridManager.clear()
+    setLevelOnly()
+    addSlab()
+    expect(spatialGridManager.getSlabElevationAt('level_rc', 2, 2)).toBe(0)
+  })
+})
