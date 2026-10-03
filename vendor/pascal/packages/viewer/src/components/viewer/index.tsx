@@ -413,6 +413,12 @@ interface ViewerProps {
   disablePostFx?: boolean
   /** Keep the mounted renderer/context warm without advancing scene frames. */
   renderPaused?: boolean
+  /**
+   * Fixed device pixel ratio for the canvas, replacing the default `[1, 1.5]` range (1.25 on coarse pointers)
+   * clamped to the screen's ratio. Capture surfaces pass 2 to supersample: the post-processing pipeline has no
+   * anti-aliasing, and a 2× canvas shown at 1× averages edges, texture detail and SSGI noise.
+   */
+  dpr?: number
   /** Host-provided immersive XR session wrappers for the main scene. */
   immersive?: ViewerImmersiveSession
 }
@@ -447,6 +453,7 @@ const Viewer = forwardRef<ViewerHandle, ViewerProps>(function Viewer(
     disablePostFx = false,
     renderPaused = false,
     immersive,
+    dpr,
   },
   ref,
 ) {
@@ -576,7 +583,7 @@ const Viewer = forwardRef<ViewerHandle, ViewerProps>(function Viewer(
         className={`transition-colors duration-700 ${
           transparentBackground ? 'bg-transparent' : isDark ? 'bg-[#1f2433]' : 'bg-[#fafafa]'
         }`}
-        dpr={[1, maxDpr]}
+        dpr={dpr ?? [1, maxDpr]}
         events={pointerEvents}
         frameloop="never"
         gl={

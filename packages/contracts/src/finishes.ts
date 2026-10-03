@@ -150,7 +150,10 @@ const PASCAL_TEXTURED: Array<[...Row, string]> = [
   ['concrete-polished', 'Polished concrete', 'concrete', F, '#6c6b6a', 'microcement industrial', 'concrete/concrete_polished/concrete_polished'],
 ]
 
-/** varpet v1 finishes, served from apps/web/public/finishes/<dir>. Tile size in metres from v1 material.json. */
+/**
+ * varpet v1 finishes, served from apps/web/public/finishes/<dir>. Tile size in metres from v1 material.json;
+ * `roughness` the finish's (even) roughness.
+ */
 const VARPET_TEXTURED: Array<[...Row, { dir: string; tileM: number; roughness: number }]> = [
   ['varpet-oak', 'Oak', 'wood', F, '#a27f58', 'oak planks natural', { dir: 'oak', tileM: 1.83, roughness: 0.55 }],
   ['varpet-ash-light', 'Light ash', 'wood', F, '#ac957d', 'ash planks light', { dir: 'ash-light', tileM: 1, roughness: 0.55 }],
@@ -271,13 +274,16 @@ export function finishMaterialItems(origin = ''): FinishMaterialItem[] {
     const url = `${base}/finishes/${texture.dir}`
     // Pascal maps one texture repeat per metre at repeat 1.
     const repeat = 1 / texture.tileM
+    // No roughness map: v1 used roughness.jpg only to vary the finish's roughness by ±25%; three multiplies the map
+    // in at full contrast (oak's spans 0.07-0.94), which drew grey glinting streaks across sunlit floors and, under
+    // 0.55, glossy glare (0.29 on average). The grain lives in the albedo and normal maps.
     return {
       ...common,
       category: finish.family,
       description: 'Varpet finish',
       previewThumbnailUrl: `${url}/basecolor.jpg`,
       preset: {
-        maps: { albedoMap: `${url}/basecolor.jpg`, normalMap: `${url}/normal.jpg`, roughnessMap: `${url}/roughness.jpg` },
+        maps: { albedoMap: `${url}/basecolor.jpg`, normalMap: `${url}/normal.jpg` },
         mapProperties: { ...MAP_PROPERTIES, color: finish.color, roughness: texture.roughness, repeatX: repeat, repeatY: repeat, displacementScale: 0 },
       },
     }

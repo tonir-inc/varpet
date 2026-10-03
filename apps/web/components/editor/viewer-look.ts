@@ -47,11 +47,23 @@ export function applyViewerLookDefaults() {
   } catch {}
 }
 
-// SSGI: Pascal ships AO only (giIntensity 0); a little indirect light gives walls the floor's warmth.
+// SSGI: Pascal ships AO only (giIntensity 0); a little indirect light gives walls the floor's warmth. Thickness 0.2
+// (Pascal 0.5) treats things standing off a wall as thin, so a lamp or plant no longer casts a dark AO halo on the
+// wall a hand's width behind it.
 function tuneGlobalIllumination() {
   SSGI_PARAMS.giIntensity = 1
   SSGI_PARAMS.sliceCount = 2
   SSGI_PARAMS.stepCount = 8
+  SSGI_PARAMS.thickness = 0.2
+}
+
+/**
+ * Still captures (the headless render page): twice the SSGI slices for quieter AO. Doubles the SSGI cost, so the
+ * editor keeps 2 (measured on a furnished Sunday flat at 1540×1272: GPU 17-20 ms a frame at 2 slices, 30-39 at 4).
+ */
+export function configureCaptureLook() {
+  configureViewerLook()
+  SSGI_PARAMS.sliceCount = 4
 }
 
 /** Warm white matte paint from Pascal's library; the flat templates write the same ref into each wall's slots. */

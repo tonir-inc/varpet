@@ -95,3 +95,31 @@ Base: `@pascal-app/core@1.0.3` (`ebe69be2`). One commit each, so each can become
   other items are unaffected).
 - Files: `packages/viewer/src/systems/wall/wall-cutout-cache.ts`, `packages/nodes/src/shared/node-batch/candidates.ts`.
 - Host side: none (no workaround existed).
+
+## 10. Viewer: noise-free soft shadows for the key light
+- Motivation: three r186's `PCFShadowFilter` rotates 5 Vogel-disk taps per pixel by interleaved gradient noise, which
+  only averages out under TAA; Pascal has none, so every penumbra on walls and floors carried a fixed diagonal stripe
+  pattern, plainest in still captures (headless render page, snapshots). Measured on a Sunday bedroom wall (1024×768,
+  WebGPU): high-frequency noise 0.80 → 0.17 (0.07 with shadows off).
+- Change: `gridShadowFilter` (`lib/shadow-filter.ts`), a 4×4 grid of hardware-compared bilinear taps over ±`radius`
+  texels, set as the directional lights' `shadow.filterNode`. Same shadow map, bias and radius.
+- Files: `packages/viewer/src/lib/shadow-filter.ts`, `packages/viewer/src/components/viewer/lights.tsx`.
+- Host side: none (no workaround existed).
+
+## 11. Viewer: anisotropic filtering on surface textures
+- Motivation: material textures (floors, wall finishes, Pascal's library and host-registered ones) loaded with
+  three's default anisotropy 1, so a floor seen at eye level smeared into streaks a couple of metres out.
+  Measured on a Sunday entrance floor (eye level, 1024×768, WebGPU): mean horizontal pixel gradient 1.87 → 4.15.
+- Change: `SURFACE_TEXTURE_ANISOTROPY = 8` on every texture `lib/materials.ts` builds (`getTexture`,
+  `applyTextureProperties`, so cached and cloned preset maps carry it).
+- Files: `packages/viewer/src/lib/materials.ts`.
+- Host side: none (no workaround existed).
+
+## 12. Viewer: `dpr` prop
+- Motivation: the canvas pixel ratio was fixed to `[1, 1.5]` (1.25 on coarse pointers) clamped to the screen, so a
+  headless capture at devicePixelRatio 1 rendered at 1× with no anti-aliasing (the TSL pipeline has none): jagged
+  edges, aliased texture detail, visible SSAO grain.
+- Change: `<Viewer dpr={n}>` replaces the default range with a fixed ratio; unset keeps the old behaviour.
+- Files: `packages/viewer/src/components/viewer/index.tsx`.
+- Host side: `CAPTURE_DPR = 2` in `apps/web/components/render/render-stage.tsx` (supersampled captures; no
+  workaround existed).

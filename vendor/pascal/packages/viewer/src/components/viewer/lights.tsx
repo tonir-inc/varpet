@@ -9,6 +9,7 @@ import type {
 } from 'three/webgpu'
 import * as THREE from 'three/webgpu'
 import { SHADOW_ONLY_LAYER } from '../../lib/layers'
+import { gridShadowFilter } from '../../lib/shadow-filter'
 import { getSceneTheme } from '../../lib/scene-themes'
 import useViewer from '../../store/use-viewer'
 import { useSceneAtmosphere } from './scene-atmosphere'
@@ -310,6 +311,8 @@ export function Lights() {
             }
             ref={(light) => {
               lightRefs.current[index] = light
+              // Noise-free penumbra (no TAA here to resolve three's IGN-rotated PCF taps).
+              if (light?.shadow) (light.shadow as { filterNode?: unknown }).filterNode = gridShadowFilter
             }}
             shadow-bias={SHADOW_DEPTH_BIAS}
             shadow-mapSize={[1024, 1024]}
