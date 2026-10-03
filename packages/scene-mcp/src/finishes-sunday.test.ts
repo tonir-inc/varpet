@@ -156,6 +156,9 @@ test('set_wall_trim on a bedroom puts skirting on every face around it and on no
 
 test('splitting a wall at a room edge keeps its geometry, its door and its hung art where they were', async () => {
   const { call, nodes, operations } = await sunday()
+  // A wainscot, skirting and chair rail on both faces first (by wall id, no room: no split yet).
+  await call('set_wainscot', { wall_ids: ['wall_w-spine'], side: 'both', finish_id: 'wood-woodfine24', height: 1.1 })
+  await call('set_wall_trim', { wall_ids: ['wall_w-spine'], side: 'both', skirting: { profile: 'ogee' }, chair_rail: {} })
   const before = await nodes()
   const spine = before['wall_w-spine']!
   const length = Math.hypot((spine.end as Point)[0] - (spine.start as Point)[0], (spine.end as Point)[1] - (spine.start as Point)[1])
@@ -184,6 +187,7 @@ test('splitting a wall at a room edge keeps its geometry, its door and its hung 
     assert.equal(piece.thickness, spine.thickness)
     assert.equal(piece.height, spine.height)
     assert.equal((piece.metadata as { v1Id?: string }).v1Id, 'w-spine')
+    for (const field of ['faceBands', 'skirting', 'chairRail', 'crown', 'frontSide', 'backSide']) assert.deepEqual(piece[field], spine[field], `${piece.id} ${field}`)
     offsets.set(piece.id, total)
     total += Math.hypot((piece.end as Point)[0] - (piece.start as Point)[0], (piece.end as Point)[1] - (piece.start as Point)[1])
   }

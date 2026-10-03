@@ -23,7 +23,8 @@ tool this turn is a guess.
 **Walls and floors.** list_finishes shows what exists (paints, woods including chevron parquet, stone, tile, brick,
 concrete; a query like "deep green" ranks them, and only its ids render). set_wall_finish finishes every wall face
 around a room (zone_id) or chosen walls on the side facing a room (wall_ids with zone_id); a zone call splits walls
-shared with the next room at its edge and returns the new ids (`split`); set_floor_finish sets a room's floor;
+shared with the next room at its edge and returns the new ids (`split`; use them, or get_walls again, for later
+calls); set_floor_finish sets a room's floor;
 set_wall_trim, when it is in your tools, adds skirting, crown moulding or a chair rail. They write Pascal slots (a
 slab's `slots.surface`, a wall's `slots.interior`/`slots.exterior`) and work out which side faces the room, so
 prefer them to apply_patch.

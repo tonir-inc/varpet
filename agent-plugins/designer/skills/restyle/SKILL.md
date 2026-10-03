@@ -29,7 +29,7 @@ floor.
    face), with every segment and pier on that plane in `wall_ids` plus `zone_id` (`get_walls` shows them), or a
    whole small room by its `zone_id`. Never an accent on a lone segment. Shared walls change only the face toward
    this room; a zone call splits a wall that runs on into the next room at its edge and returns the pieces
-   (`split`): use those ids afterwards. Wainscots and trims go on by `zone_id` too.
+   (`split`): take the accent's ids from that result or a fresh `get_walls`, not from a list read before it. Wainscots and trims go on by `zone_id` too.
 3. Floors: `set_floor_finish` with the `zone_id`. Wet rooms and balconies take tile or stone; living rooms and
    bedrooms wood. A whole-flat floor change is one call per room.
 4. Trims: `set_wall_trim`, when it is in your tools, for skirting, crown moulding or a chair rail in the palette
