@@ -112,6 +112,18 @@ const assetSchema = z.object({
   offset: z.tuple([z.number(), z.number(), z.number()]).default([0, 0, 0]),
   rotation: z.tuple([z.number(), z.number(), z.number()]).default([0, 0, 0]),
   scale: z.tuple([z.number(), z.number(), z.number()]).default([1, 1, 1]),
+  // Per-instance overrides for named nodes inside the GLB, keyed by glTF node name: a pendant's
+  // `cord` stretched in Y and its `body` moved down sets the drop without another model file.
+  // Replaces the named node's local position / scale; nodes not named keep the GLB's own.
+  nodeTransforms: z
+    .record(
+      z.string(),
+      z.object({
+        position: z.tuple([z.number(), z.number(), z.number()]).optional(),
+        scale: z.tuple([z.number(), z.number(), z.number()]).optional(),
+      }),
+    )
+    .optional(),
   surface: z
     .object({
       height: z.number(), // where things rest

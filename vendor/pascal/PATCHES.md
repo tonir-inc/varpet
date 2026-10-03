@@ -107,3 +107,12 @@ Base: `@pascal-app/core@1.0.3` (`ebe69be2`). One commit each, so each can become
 - Files: `packages/core/src/hooks/spatial-grid/spatial-grid-sync.ts` (+ test),
   `packages/viewer/src/systems/floor-elevation/floor-elevation-system.tsx`.
 - Host side: none (scene y 0 is the floor top everywhere now; no host lift).
+
+## 11. Core + nodes: `asset.nodeTransforms` (per-instance overrides of named GLB nodes)
+- Motivation: varpet's generated pendants keep `canopy`, `cord` and `body` as separate glTF nodes so a drop can be set
+  at placement (cord scaled in Y, body moved to its end). An item could only transform its whole model.
+- Change: the item asset schema takes `nodeTransforms?: Record<nodeName, { position?, scale? }>`; the item renderer
+  applies them to its own clone after load (`getObjectByName`), so the GLB cache and other instances are untouched.
+  The node batch reads mesh world matrices, so merged copies follow.
+- Files: `packages/core/src/schema/nodes/item.ts`, `packages/nodes/src/item/renderer.tsx`.
+- Host side: `place_product(..., drop)` in `packages/scene-mcp` writes them (no workaround existed).
