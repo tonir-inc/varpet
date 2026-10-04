@@ -30,7 +30,7 @@ the real room. The evidence rules are Pascal's `furniture-fit` skill; this is th
    styles for a look) and `max_w`/`max_d` no larger than the free space; `show_products` the shortlist.
 3. `delete_node` the old item, `place_product` the new one at the old pose, then re-seat related pieces if the
    size changed (sofa to coffee table 0.36-0.46 m; the rug still under every seat's front legs; cushions and throw
-   moved onto the new piece) and run `check_collisions`, and `check_clearances` when it is in your tools.
+   moved onto the new piece) and run `check_collisions` and `check_clearances`.
 4. Answer with old and new name and price, the saving or extra, and any clearance that changed.
 
 Done means: a verdict from a check (not from arithmetic alone), or the swap placed, checked and priced.

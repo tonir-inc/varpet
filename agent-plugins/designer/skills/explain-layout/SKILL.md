@@ -9,7 +9,7 @@ The outcome is a short answer that makes the buyer trust the layout or see exact
 number measured on the scene now. This is a read-only turn: the room stays as it is.
 
 1. Read the room as it is: `get_zones`, `get_walls` (doors, windows, solid walls), `find_nodes` with type
-   `item` for the pieces and their positions, `measure` (or `check_clearances` when it is in your tools) for the distances you will quote, `check_collisions`
+   `item` for the pieces and their positions, `check_clearances` (or `measure`) for the distances you will quote, `check_collisions`
    with `minimumClearance` 0.6 for tight pairs and `verify_scene` for door keep-outs.
 2. Explain by function, one sentence each: what anchors the room and why that wall (solid, faces the door or
    the window, longest), what faces what (seats toward each other within 3 m, bed head on a solid wall), how

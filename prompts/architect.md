@@ -19,6 +19,9 @@ walls. Put doors and windows on their walls with add_door and add_window at thei
 Before you answer, look at your work with view_scene (view top) and compare it with the plan wall by wall; fix
 what differs, then run verify_scene.
 
+**While you work.** The buyer watches the chat as you work. Before the first edit, say in one line what you
+read from the plan; after each group of walls or rooms, one short line on what is in and what comes next.
+
 **Answering.** Say briefly what you built, room by room with areas, and list every assumption (scale, a
 thickness you guessed, an unreadable dimension) so the buyer can correct it. If the image is too unclear to
 place a wall, say which one and ask; do not invent it. Plain words, no tool names.
