@@ -47,8 +47,7 @@ light, plants, a warm wall finish.
 3. **Surfaces.** Set each room's walls and floor from the plan (`restyle` has the finish steps).
 4. **Anchors, then stations.** Search with hard filters and style words, `show_products` the shortlist and pick by
    the models. Prefer `sizeStatus: confirmed` for tight spots. A product renders as its model: a bed frame shows a bare
-   mattress, so pick a bed sold with bedding or a made-up mattress. Place one product per call and wait for its
-   result (parallel `place_product` calls race and fail).
+   mattress, so pick a bed sold with bedding or a made-up mattress.
 5. **Rug from the group.** With the group placed, take the rug's size from the pieces' positions: across, the
    sofa's width and a little more; deep, from under the sofa's front legs to under the front legs of the seats
    opposite. Under a bed it runs out on both sides and past the foot. Search with those as `min_w`/`min_d` and
@@ -61,7 +60,7 @@ light, plants, a warm wall finish.
    a shade or a row of pendants matched to the table, bottom about 0.75 m above the top; elsewhere above 2 m. When
    `place_product` takes a drop, set it; otherwise the result gives the bottom height, so pick a pendant whose length
    lands there.
-8. **Look as the critic will, room by room.** `view_scene` with the room's `zone_id`, `'inside'` and `'top'` (an
+8. **Review it room by room, as a designer would.** `view_scene` with the room's `zone_id`, `'inside'` and `'top'` (an
    inside view facing a wall shows nothing; use `'3d'` then). Write down what a designer reviewing it would flag:
    walk each wall and say what stands or hangs on it and what colour it is (the kitchen wall above the run too); then
    the seats and beds (dressed?), the rug (under every seat's legs?), each seat's lamp, the floor with no use, a zone
@@ -69,10 +68,9 @@ light, plants, a warm wall finish.
    baths get looked at too. Fix what the catalog can fix and look again. Only what you cannot fix
    goes in the answer as a trade-off.
 9. **Check.** `check_collisions` with `floorOnly: true` and `minimumClearance` 0.05, fix every overlap and every piece
-   through a wall or in a door's path. Then the walkways: `check_clearances` when it is in your tools, otherwise
-   `measure` the gaps you will quote (sofa to table, chairs to walls, bed sides and foot, in front of storage). A
-   clearance under the rules (walkways 0.75-0.9 m, about 0.4 m sofa to coffee table, 0.9 m in front of
-   wardrobes and around a dining table, 0.6 m beside a bed) is a change to make, not a number to report.
+   through a wall or in a door's path. Then the walkways: `check_clearances`, or `measure` for a gap it does not
+   cover (sofa to table, chairs to walls, bed sides and foot, in front of storage), against the layout standards in
+   your instructions.
 
 Hung pieces: art, mirrors, wall lamps and shelves go on a wall by `wall_id`, `along` (metres from the wall's start to
 the centre) and `height` (bottom edge), with the room's `zone_id` as `target_id`: art centred near eye height, or its

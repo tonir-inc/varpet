@@ -32,11 +32,10 @@ floor.
    (`split`): take the accent's ids from that result or a fresh `get_walls`, not from a list read before it. Wainscots and trims go on by `zone_id` too.
 3. Floors: `set_floor_finish` with the `zone_id`. Wet rooms and balconies take tile or stone; living rooms and
    bedrooms wood. A whole-flat floor change is one call per room.
-4. Trims: `set_wall_trim`, when it is in your tools, for skirting, crown moulding or a chair rail in the palette
+4. Trims: `set_wall_trim` for skirting, crown moulding or a chair rail in the palette
    (painted to the wall for calm, contrasting for a period room).
 5. Kitchens: the wall behind the run takes the backsplash; tile or stone on that wall face (`wall_ids`) when the
    catalog has no panel.
-6. If the finish tools are missing from the tool list, say so plainly and name the finish you would choose.
 
 ## Furniture
 

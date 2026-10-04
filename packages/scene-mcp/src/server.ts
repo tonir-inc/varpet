@@ -96,11 +96,20 @@ function registerVarpetFinishes(origin = '') {
   registerLibraryMaterials(finishMaterialItems(origin) as never)
 }
 
+const publishQueues = new WeakMap<SceneOperations, Promise<unknown>>()
+
 /**
  * Persist the bound scene and append a live event so open editors update. Mirrors Pascal's
- * publishLiveSceneSnapshot (not exported in @pascal-app/mcp 1.0.3).
+ * publishLiveSceneSnapshot (not exported in @pascal-app/mcp 1.0.3). Publishes on one scene run one at a time:
+ * each saves against the version the previous one wrote, so parallel tool calls do not conflict.
  */
-export async function publishSnapshot(operations: SceneOperations, kind: string) {
+export function publishSnapshot(operations: SceneOperations, kind: string) {
+  const run = (publishQueues.get(operations) ?? Promise.resolve()).then(() => publishNow(operations, kind))
+  publishQueues.set(operations, run.catch(() => undefined))
+  return run
+}
+
+async function publishNow(operations: SceneOperations, kind: string) {
   const active = operations.getActiveScene()
   if (!active) throw new Error('scene_unbound')
   const graph = operations.exportSceneGraph()
