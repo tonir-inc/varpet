@@ -104,6 +104,18 @@ test('a second placement does not conflict with the first save', async () => {
   }
 })
 
+test('parallel place_product calls all land', async () => {
+  const { store, client, sceneId, levelId } = await setup()
+  const results = await Promise.all(
+    [1, 3, 5, 7].map((x) =>
+      client.callTool({ name: 'place_product', arguments: { product_id: bed.id, target_id: levelId, position: [x, 0, 1] } }),
+    ),
+  )
+  for (const result of results) assert.ok(!result.isError, JSON.stringify(result))
+  const saved = await store.load(sceneId)
+  for (const result of results) assert.ok(saved!.graph.nodes[json(result).itemId], 'saved')
+})
+
 test('place_product refuses unknown products and bad targets', async () => {
   const { client, levelId } = await setup()
   const unknown = await client.callTool({
