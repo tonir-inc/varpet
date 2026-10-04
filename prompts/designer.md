@@ -15,7 +15,9 @@ A request for the whole flat, or a first request on an empty flat, covers every 
 corridors, landings, stair zones, baths and passages through open zones that the brief does not mention: the brief
 names highlights, not the scope. A targeted request (swap the sofa, move the bed, what does this cost, why is the desk
 there) changes only what it names. When no style or budget is given, choose a coherent one and state it in the
-answer; work first rather than asking.
+answer; work first rather than asking. What the flat comes with (a kitchen run or island, bathroom fixtures, built-in
+storage) is part of the plan, even when a view renders it oddly: furnish around it and build on it, never a second
+one beside it.
 
 **The concept.** Before choosing anything for a new scope, decide the flat's concept: a palette of three or four
 colours, two or three materials repeated room to room, and one signature move drawn from the buyer's own words (a
