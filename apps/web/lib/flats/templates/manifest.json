@@ -34,5 +34,50 @@
     "rooms": 8,
     "bedrooms": 3,
     "thumbnail": "/flats/m6-12-54.png"
+  },
+  {
+    "id": "komitas-b3-t11",
+    "name": "Komitas Park · B3 Type 11 (2-5)",
+    "note": "One bedroom, balcony",
+    "area": 65.36,
+    "rooms": 5,
+    "bedrooms": 1,
+    "thumbnail": "/flats/komitas-b3-t11.png"
+  },
+  {
+    "id": "komitas-b3-t7",
+    "name": "Komitas Park · B3 Type 7",
+    "note": "Two bedrooms, two bathrooms, balcony",
+    "area": 86.39,
+    "rooms": 8,
+    "bedrooms": 2,
+    "thumbnail": "/flats/komitas-b3-t7.png"
+  },
+  {
+    "id": "komitas-b3-t8",
+    "name": "Komitas Park · B3 Type 8",
+    "note": "One bedroom, balcony",
+    "area": 60.92,
+    "rooms": 6,
+    "bedrooms": 1,
+    "thumbnail": "/flats/komitas-b3-t8.png"
+  },
+  {
+    "id": "komitas-b3-t9",
+    "name": "Komitas Park · B3 Type 9",
+    "note": "Two bedrooms, two bathrooms, balcony",
+    "area": 95.12,
+    "rooms": 8,
+    "bedrooms": 2,
+    "thumbnail": "/flats/komitas-b3-t9.png"
+  },
+  {
+    "id": "komitas-b3-t10",
+    "name": "Komitas Park · B3 Type 10",
+    "note": "One bedroom, balcony",
+    "area": 46.88,
+    "rooms": 6,
+    "bedrooms": 1,
+    "thumbnail": "/flats/komitas-b3-t10.png"
   }
 ]
