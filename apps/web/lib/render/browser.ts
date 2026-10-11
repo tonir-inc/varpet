@@ -63,9 +63,9 @@ const state: BrowserState = ((globalThis as Record<string, unknown>)[STATE_KEY] 
 
 const slotOf = (i: number): Slot => (state.slots[i] ??= { page: null, renders: 0, inflight: 0, lastNetwork: 0, opening: null })
 
+// Unset (a plain `pnpm dev`): this server on localhost, the same default the agents give the scene MCP.
 function pageOrigin(env: NodeJS.ProcessEnv) {
-  const origin = env.VARPET_RENDER_PAGE_ORIGIN ?? env.VARPET_PUBLIC_ORIGIN
-  if (!origin) throw new Error('VARPET_PUBLIC_ORIGIN (or VARPET_RENDER_PAGE_ORIGIN) is not set')
+  const origin = env.VARPET_RENDER_PAGE_ORIGIN ?? env.VARPET_PUBLIC_ORIGIN ?? `http://localhost:${env.PORT || 3010}`
   return origin.replace(/\/$/, '')
 }
 
