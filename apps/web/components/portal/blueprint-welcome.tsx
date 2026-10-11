@@ -20,7 +20,7 @@ const MAX_PHOTOS = 10
 export function BlueprintWelcome({ audience, studioName }: { audience?: 'developer'; studioName?: string }) {
   const developer = audience === 'developer'
   const router = useRouter()
-  const { user, authenticate } = usePortal()
+  const { user } = usePortal()
   const [building, setBuilding] = useState(false)
   const ink = useRef<HTMLCanvasElement>(null)
   const picker = useRef<HTMLInputElement>(null)
@@ -92,12 +92,11 @@ export function BlueprintWelcome({ audience, studioName }: { audience?: 'develop
     if (!plan || building) return
     setBuilding(true); setError(null)
     try {
-      const account = user ?? await authenticate('register')
-      if (!account) { setBuilding(false); return }
       const name = plan.name.replace(/\.[a-z]+$/i, '').trim().slice(0, 120) || 'My apartment'
       const url = await dataUrl(plan)
       const sceneId = await createScene(name, null)
-      await accountApi.createApartment({ name, templateId: null, sceneId })
+      // Signed in: the apartment is also saved to the account. Signed out: the scene still opens in the editor.
+      if (user) await accountApi.createApartment({ name, templateId: null, sceneId })
       savePlanHandoff(sceneId, { name: plan.name, url })
       location.assign(editorHref(sceneId))
     } catch (cause) {
@@ -154,7 +153,7 @@ export function BlueprintWelcome({ audience, studioName }: { audience?: 'develop
         </div>
         <button type="button" className="portal-button portal-primary blueprint-build" disabled={building} onClick={() => void bringToLife()}>
           {building ? 'Opening your apartment…' : 'Bring my plan to life'} <Icon name="arrow" /></button>
-        <p className="blueprint-build-note" role="status">{user ? 'Saved to your apartments. The architect builds it in the editor.' : 'Sign in or create an account to save this apartment.'}</p>
+        <p className="blueprint-build-note" role="status">{user ? 'Saved to your apartments. The architect builds it in the editor.' : 'The architect builds it in the editor. Sign in any time to keep it in your apartments.'}</p>
       </div>
       <p className="blueprint-error" role="alert" hidden={!error}>{error}</p>
       <div className="blueprint-bottom"><span><Icon name="layers" /> Your plan</span><i /><span><Icon name="walls" /> A space in 3D</span><i /><span><Icon name="home" /> Make it yours</span></div>
