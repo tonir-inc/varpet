@@ -46,18 +46,18 @@ plan-reading pass went from 95.3% to 98.3% on held-out plans (Sept 2026).
 ## 3. Build (Pascal tools)
 
 - `get_level_summary` gives the level id; a new flat starts with an empty level.
-- Walls: draw the first with `create_wall`, then the rest in one or a few `apply_patch` batches (one call is
-  atomic and saves once; looping one-op calls is slow). A wall node: `{type: "wall", start: [x, z], end: [x, z],
-  thickness, height}` with `parentId` the level. Exterior and load-bearing walls 0.25-0.4 m, partitions
-  0.1-0.12 m, height 2.7-3.0 m. Measure each thickness off the plan at your scale.
-- Rooms: one zone per room with the polygon on the inner faces (`set_zone`, or `{type: "zone", name, polygon}`
-  in a batch), corners in order (L shapes and bays are real corners), and a slab with the same polygon
-  (`{type: "slab", name: "<room> floor", polygon}`) so its floor can take a finish. `create_room` draws its own
-  walls: only for a free-standing room, else walls double. Bathrooms, WCs and balconies get a tile floor
+- Build element by element with Pascal's own tools, one wall, room or opening per call, and read each result
+  before the next: a wrong coordinate shows up on the wall it belongs to, not inside a batch of thirty.
+  `apply_patch` is for changing nodes that already exist when no other tool expresses the change.
+- Walls: `create_wall` with start and end in level coordinates, thickness and height. Exterior and load-bearing
+  walls 0.25-0.4 m, partitions 0.1-0.12 m, height 2.7-3.0 m. Measure each thickness off the plan at your scale.
+- Rooms: `set_zone` per room with the polygon on the inner faces, corners in order (L shapes and bays are real
+  corners), and a slab with the same polygon so its floor can take a finish (no tool makes a slab: `apply_patch`
+  with `{type: "slab", name: "<room> floor", polygon}` under the level). `create_room` draws its own walls:
+  only for a free-standing room, else walls double. Bathrooms, WCs and balconies get a tile floor
   (`list_finishes` with surface floor, then `set_floor_finish`); other rooms keep the default.
 - Doors and windows: `add_door` / `add_window` with `t` the opening's centre along the wall (0 start, 1 end) and
-  the real width, or in a batch `{type: "door"|"window", wallId, position: [metres from wall start to the
-  centre, sill + height / 2, 0], width, height}` with `parentId` the wall.
+  the real width.
 - Edits are sequential: wait for one call's result before the next.
 
 ## 4. Check against the plan, then answer
