@@ -6,6 +6,11 @@ const GRAPHS: Record<string, () => Promise<{ default: unknown }>> = {
   'orion-t7': () => import('./templates/orion-t7.json'),
   'orion-t8': () => import('./templates/orion-t8.json'),
   'm6-12-54': () => import('./templates/m6-12-54.json'),
+  'komitas-b3-t11': () => import('./templates/komitas-b3-t11.json'),
+  'komitas-b3-t7': () => import('./templates/komitas-b3-t7.json'),
+  'komitas-b3-t8': () => import('./templates/komitas-b3-t8.json'),
+  'komitas-b3-t9': () => import('./templates/komitas-b3-t9.json'),
+  'komitas-b3-t10': () => import('./templates/komitas-b3-t10.json'),
 }
 
 /** A fresh copy of the template's graph, or null for an unknown id. */
