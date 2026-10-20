@@ -2,7 +2,7 @@
  *   npx tsx cli.ts describe | check [--warnings] [--final] | render-plan [out.png] [--room id]
  *     | render-view [out.png] [--room id] [--camera overview|eye|eye2|top] [--time day|evening] [--width 768] [--height 512]   (no --room: whole flat, overview/top)
  *     | requirements [--room id] (the brief's counts per room, requirements.json) | review --part <room> (independent critic) | at-window <room> <window> <w> <d> <h> (curtain/blind placement JSON) | materials | swatches [out.png] | restyle [id role=#rrggbb ...] | search --kind k [--text t] [--max-w n --max-d n --max-h n --max-price n --limit n]
- *     | sheet sku1 sku2 ... [out.png] | merge
+ *     | sheet sku1 sku2 ... [out.png] | merge | suggestions (baseline.json: the flat's problems before this request)
  *     | script <file.ts> | js '<code>' | undo [n] | redo [n]   (lib/sdk.ts scene scripting: the Studio's functions are in scope; the draft saves when the script ends without error)
  *     | check --facts (hard gates only: physics, editor validity, budget, catalog)
  * Optional --scene path / --draft path override the cwd files. `--part <room>` works on one room's file rooms/<room>.json
@@ -166,14 +166,31 @@ async function main(): Promise<number> {
       const r = await check(scene, draft, { budget, brief: existsSync(briefPath) ? readFileSync(briefPath, 'utf8') : undefined,
         requirements: loadRequirements(scenePath), ...(final ? { styling: 'hard' as const } : {}) });
       const ids = new Set(draft.items.map(item => item.id));
-      const problems = roomId ? r.problems.filter(line => about(line, roomId, ids)) : r.problems;
+      const all = roomId ? r.problems.filter(line => about(line, roomId, ids)) : r.problems;
+      // baseline.json (a follow-up): problems the flat already had before this request do not block it.
+      const { loadBaseline, splitByBaseline } = await import('./lib/baseline.ts');
+      const base = loadBaseline(scenePath), { added: problems, existing } = base ? splitByBaseline(all, base) : { added: all, existing: [] };
       say(!problems.length ? 'OK' : `FAIL (${problems.length} hard)`);
       for (const p of problems) say(`- ${p}`);
+      if (existing.length) say(`~ ${existing.length} problem${existing.length === 1 ? ' was' : 's were'} already in the flat before this request; `
+        + 'they do not block it and are not yours to fix unless the customer asks (./varpet suggestions lists them)');
       say(roomId ? `${draft.items.length} items in ${roomId} (rooms/${roomId}.json); whole-flat rules and the budget are checked after merge` : r.summary);
       const { requirementAdvice } = await import('./lib/requirements.ts');
       for (const line of requirementAdvice(draft)) if (!roomId || about(line, roomId, ids)) say(`~ ${line}`);
       if (verbose) for (const w of await warnings(scene, draft)) if (!roomId || about(w, roomId, ids)) say(`~ ${w}`);
       return problems.length ? 1 : 0;
+    }
+    case 'suggestions': {
+      // The flat's existing problems (baseline.json) as optional suggestions in at most four groups.
+      const { loadBaseline, suggestionGroups, plainSuggestion } = await import('./lib/baseline.ts');
+      const base = loadBaseline(scenePath);
+      if (bool('json')) { say(JSON.stringify(suggestionGroups(base?.problems ?? []).map(g => ({ ...g, plain: g.lines.map(plainSuggestion) })))); return 0; }
+      if (!base?.problems.length) { say('no existing problems recorded for this request'); return 0; }
+      for (const g of suggestionGroups(base.problems)) {
+        say(`${g.title} (customer chip: "${g.chip}"):`);
+        for (const line of g.lines) say(`- ${plainSuggestion(line)}`);
+      }
+      return 0;
     }
     case 'render-plan': {
       const roomId = flag('room'), out = argv[0] ?? `plan${roomId ? '-' + roomId : ''}.png`;

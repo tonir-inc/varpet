@@ -39,6 +39,17 @@ async function start() {
     await launchBundle(host, bundleId, {beforeEditor: () => { host.innerHTML = ''; }});
     return;
   }
+  const experimentalId = route.get('experimental');
+  if (experimentalId) {
+    const {launchExperimental} = await import('./portal/experimental');
+    await launchExperimental(host, experimentalId, {beforeEditor: () => { host.innerHTML = ''; }});
+    return;
+  }
+  if (route.get('view') === 'experimental') {
+    const {mountExperimental} = await import('./portal/experimental');
+    await mountExperimental(host);
+    return;
+  }
   if (route.get('view') === 'catalog') {
     const {mountCatalog} = await import('./portal/catalog');
     await mountCatalog(host);

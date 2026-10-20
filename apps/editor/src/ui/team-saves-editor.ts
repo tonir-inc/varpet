@@ -12,9 +12,12 @@ export function mountTeamSaves(deps:{store:EditorStore;products:()=>CatalogProdu
  actions.innerHTML='<button class="button quiet" data-team-rename>Rename</button><details><summary class="button quiet" aria-label="Team apartment actions">⋯</summary><div class="team-save-menu"><button class="button quiet" data-team-versions>Versions</button><a href="/?view=apartments">Saved apartments</a><button class="button quiet" data-team-reload hidden>Reload theirs</button><button class="button quiet" data-team-copy hidden>Save mine as a copy</button></div></details>';
  document.querySelector('.project-name')!.after(actions);
  const button=(key:string)=>actions.querySelector<HTMLButtonElement>(`[data-team-${key}]`)!;
- const dirty=()=>deps.active()&&(creating||(controller?controller.dirty:attempted||store.revision>0||Boolean(deps.draft)));
+ // An opened catalog or Experimental design (templateId) is still in the catalog: unsaved only once edited. An upload
+ // draft exists nowhere else, so it counts as unsaved from the start.
+ const unsavedDraft=()=>Boolean(deps.draft&&!deps.draft.templateId);
+ const dirty=()=>deps.active()&&(creating||(controller?controller.dirty:attempted||store.revision>0||unsavedDraft()));
  function render(){actions.hidden=!deps.active();if(!deps.active())return;
-  document.querySelector('#save-state')!.textContent=creating?'Saving…':controller?.status??'Unsaved changes';
+  document.querySelector('#save-state')!.textContent=creating?'Saving…':controller?.status??(dirty()?'Unsaved changes':'Not saved yet');
   document.querySelector('#project-name')!.textContent=flat?.name??store.scene.name;
   document.querySelector('.project-name > span')!.textContent='Team apartment';
   const save=document.querySelector<HTMLButtonElement>('#save')!;save.title='Save to team · ⌘S';save.disabled=creating||Boolean(controller?.saving)||deps.proposal();

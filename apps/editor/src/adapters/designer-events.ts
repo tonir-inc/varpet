@@ -40,6 +40,6 @@ export function designerEventProgress(event:DesignerEvent):string {
     return `${labels[event.state]} ${event.slotId}${event.state==='failed'?`: ${event.reason}`:''}`;
   }
   if(event.name==='quote'&&event.refs?.currency==='AMD'&&event.refs.cost_dram!==undefined)
-    return `${event.summary} · ${event.refs.cost_dram.toLocaleString('en-US')} ֏${event.refs.price_source==='catalog'?'':event.refs.price_source==='mock'?' · sample prices':' · unverified prices'}`;
+    return `${event.summary} · ${event.refs.cost_dram.toLocaleString('en-US')} ֏${event.refs.price_source==='catalog'?' · catalog prices (mock)':event.refs.price_source==='mock'?' · sample (mock) prices':' · unverified prices'}`;
   return event.summary;
 }

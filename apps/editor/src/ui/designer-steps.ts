@@ -45,7 +45,7 @@ export function designerToolLabel(event: Extract<DesignerEvent, { type: 'tool' }
     case 'ask': return 'Preparing a question for you';
     case 'quote': {
       if (refs.currency !== 'AMD' || refs.cost_dram === undefined) return 'Pricing the pieces';
-      const source = refs.price_source === 'catalog' ? '' : refs.price_source === 'mock' ? ' (sample prices)' : ' (unverified prices)';
+      const source = refs.price_source === 'catalog' ? ' (catalog prices, mock)' : refs.price_source === 'mock' ? ' (mock prices)' : ' (unverified prices)';
       return `Pricing the pieces · ${refs.cost_dram.toLocaleString('en-US')} ֏${source}`;
     }
     default: return event.summary;

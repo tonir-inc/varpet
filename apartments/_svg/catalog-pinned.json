@@ -1,0 +1,189 @@
+{
+ "extra:bpy-bedroom:reeded-oak-2-door-wardrobe-100": {
+  "id": "extra:bpy-bedroom:reeded-oak-2-door-wardrobe-100",
+  "name": "Reeded rift oak two-door wardrobe, long brass bar handles, black plinth",
+  "category": "wardrobe",
+  "kind": "wardrobe",
+  "dimensions": [
+   1,
+   2,
+   0.6345
+  ],
+  "color": "#b8b4ad",
+  "price": 468000,
+  "source": {
+   "type": "gltf",
+   "url": "/api/catalog/models/extra-bpy-bedroom-reeded-oak-2-door-wardrobe-100.glb"
+  }
+ },
+ "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather": {
+  "id": "extra:bpy-dining:mcm-walnut-dining-chair-cognac-leather",
+  "name": "Mid-century walnut dining chair, sculpted curved backrest, cognac leather upholstered seat, tapered legs",
+  "category": "chair",
+  "kind": "chair",
+  "dimensions": [
+   0.4688,
+   0.8037,
+   0.4944
+  ],
+  "color": "#b8b4ad",
+  "price": 175000,
+  "source": {
+   "type": "gltf",
+   "url": "/api/catalog/models/extra-bpy-dining-mcm-walnut-dining-chair-cognac-leather.glb"
+  }
+ },
+ "abo:B07ML7P93X": {
+  "id": "abo:B07ML7P93X",
+  "name": "Amazon Brand – Ravenna Home Classic Solid Wood Media Center, 47.87\"W, Black",
+  "category": "cabinet",
+  "kind": "cabinet",
+  "dimensions": [
+   1.1978,
+   0.6814,
+   0.3466
+  ],
+  "color": "#3d373c",
+  "price": 20000,
+  "source": {
+   "type": "gltf",
+   "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/X/B07ML7P93X.glb"
+  }
+ },
+ "abo:B075YMXWZC": {
+  "id": "abo:B075YMXWZC",
+  "name": "Amazon Brand – Rivet Mid-Century Modern Oak Dining Table, 63\"L, Walnut Finish",
+  "category": "table",
+  "kind": "table",
+  "dimensions": [
+   1.6089,
+   0.7555,
+   0.8112
+  ],
+  "color": "#875a42",
+  "price": 101000,
+  "source": {
+   "type": "gltf",
+   "url": "https://amazon-berkeley-objects.s3.amazonaws.com/3dmodels/original/C/B075YMXWZC.glb"
+  }
+ },
+ "extra:bpy-beds-dressed:mcm-walnut-cane-bed-160-terracotta": {
+  "id": "extra:bpy-beds-dressed:mcm-walnut-cane-bed-160-terracotta",
+  "name": "Mid-century walnut bed 160x200 with cane headboard, terracotta linen bedding",
+  "category": "bed",
+  "kind": "bed",
+  "dimensions": [
+   1.8887,
+   1.0767,
+   2.1706
+  ],
+  "color": "#b8b4ad",
+  "price": 575000,
+  "source": {
+   "type": "gltf",
+   "url": "/api/catalog/models/extra-bpy-beds-dressed-mcm-walnut-cane-bed-160-terracotta.glb"
+  }
+ },
+ "extra:bpy-living2:mcm-swivel-tub-armchair-cognac-leather": {
+  "id": "extra:bpy-living2:mcm-swivel-tub-armchair-cognac-leather",
+  "name": "Mid-century swivel tub armchair, walnut outer shell, cognac leather back and seat cushion, four-star walnut base",
+  "category": "chair",
+  "kind": "chair",
+  "dimensions": [
+   0.6914,
+   0.6901,
+   0.6655
+  ],
+  "color": "#b8b4ad",
+  "price": 369000,
+  "source": {
+   "type": "gltf",
+   "url": "/api/catalog/models/extra-bpy-living2-mcm-swivel-tub-armchair-cognac-leather.glb"
+  }
+ },
+ "extra:bpy-office:chair-mcm-walnut-leather": {
+  "id": "extra:bpy-office:chair-mcm-walnut-leather",
+  "name": "Mid-century walnut desk chair with cognac leather",
+  "category": "chair",
+  "kind": "chair",
+  "dimensions": [
+   0.4641,
+   0.7659,
+   0.5002
+  ],
+  "color": "#b8b4ad",
+  "price": 139000,
+  "source": {
+   "type": "gltf",
+   "url": "/api/catalog/models/extra-bpy-office-chair-mcm-walnut-leather.glb"
+  }
+ },
+ "extra:bpy-office:desk-walnut-mcm-tapered": {
+  "id": "extra:bpy-office:desk-walnut-mcm-tapered",
+  "name": "Mid-century walnut desk with three drawers and tapered legs, 130x60 cm",
+  "category": "desk",
+  "kind": "desk",
+  "dimensions": [
+   1.3,
+   0.7419,
+   0.6
+  ],
+  "color": "#b8b4ad",
+  "price": 295000,
+  "source": {
+   "type": "gltf",
+   "url": "/api/catalog/models/extra-bpy-office-desk-walnut-mcm-tapered.glb"
+  }
+ },
+ "extra:bpy-appliances:fridge-combi-stainless-60": {
+  "id": "extra:bpy-appliances:fridge-combi-stainless-60",
+  "name": "Fridge-freezer 60 cm, brushed stainless, bottom freezer, 185 cm",
+  "category": "fridge",
+  "kind": "fridge",
+  "dimensions": [
+   0.6,
+   1.85,
+   0.6585
+  ],
+  "color": "#b8b4ad",
+  "price": 380000,
+  "source": {
+   "type": "gltf",
+   "url": "/api/catalog/models/extra-bpy-appliances-fridge-combi-stainless-60.glb"
+  }
+ },
+ "extra:bpy-appliances:washing-machine-front-loader-white-60": {
+  "id": "extra:bpy-appliances:washing-machine-front-loader-white-60",
+  "name": "Front-loading washing machine 60 cm, white, 9 kg",
+  "category": "washing_machine",
+  "kind": "washing_machine",
+  "dimensions": [
+   0.6,
+   0.85,
+   0.644
+  ],
+  "color": "#b8b4ad",
+  "price": 235000,
+  "source": {
+   "type": "gltf",
+   "url": "/api/catalog/models/extra-bpy-appliances-washing-machine-front-loader-white-60.glb"
+  }
+ },
+ "extra:electronics:tv-50-feet-black": {
+  "id": "extra:electronics:tv-50-feet-black",
+  "name": "50\" TV on corner feet, black",
+  "category": "tv",
+  "kind": "tv",
+  "dimensions": [
+   1.12,
+   0.789,
+   0.222
+  ],
+  "color": "#b8b4ad",
+  "price": 240000,
+  "source": {
+   "type": "gltf",
+   "url": "/api/catalog/models/extra-electronics-tv-50-feet-black.glb"
+  }
+ }
+}

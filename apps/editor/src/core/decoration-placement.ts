@@ -9,6 +9,7 @@ export const CURTAIN_ROD_GAP = 0.03;
 const WALL_SHELF_NAME = /\bfloating\b|\bwall[- ]?(mount(ed)?|shelf|shelves|shelving|unit)\b|\b(picture|photo) ledge\b/i;
 const WALL_DECOR_NAME = /\b(clock|wall hanging|macram[eé]|tapestry)\b|\bwall[- ]?mount(ed)?\b|\bwall (planter|vase|pocket|basket)s?\b/i;
 const SCONCE_NAME = /\bsconces?\b|\bwall[- ](lamp|light)s?\b/i;
+const CEILING_LAMP_NAME = /\bceiling (light|lamp)s?\b|\bpendant\b|\bflush[- ]mount(ed)?\b/i;
 
 /** Hung on a wall by mountDecoration: art, mirrors, curtains, clocks and wall hangings (kind wall_art, which the
  * catalog's wall_hanging and clock kinds become), wall shelves and picture ledges, wall planters and vases, sconces. */
@@ -31,6 +32,8 @@ export function wallShelf(asset: CatalogAsset): boolean {
 
 /** Hanging planters hang from the ceiling; wall, deck and railing planters do not. */
 export function hangsFromCeiling(asset: CatalogAsset): boolean {
+  // Ceiling and pendant lamps hang from the ceiling like hanging plants; wall and floor lamps do not.
+  if (asset.kind === 'lamp') return CEILING_LAMP_NAME.test(asset.name) && !SCONCE_NAME.test(asset.name);
   return (asset.kind === 'plant' || asset.kind === 'decor')
     && (/\bhanging\b/i.test(asset.name) || /(^|:)hanging-/i.test(asset.id))
     && /\b(plant|planter|pot|basket)s?\b/i.test(asset.name)
@@ -43,8 +46,8 @@ const activeRoomAt = (scene: SceneDocument, x: number, z: number) =>
 /** Top of the item touches the room's ceiling; the footprint centre stays where it was asked. */
 export function hangFromCeiling(scene: SceneDocument, object: SceneObject, asset: CatalogAsset): SceneObject {
   const room = activeRoomAt(scene, object.position[0], object.position[2]);
-  if (!room) throw new Error('Hang this plant inside a room.');
-  if (!hasRoomCeiling(scene, room)) throw new Error('This outdoor space has no ceiling to hang a plant from.');
+  if (!room) throw new Error('Hang this piece inside a room.');
+  if (!hasRoomCeiling(scene, room)) throw new Error('This outdoor space has no ceiling to hang it from.');
   const floor = scene.project?.metadata[room.id]?.elevation ?? 0;
   const y = floor + roomCeilingHeight(scene, room) - furnitureDimensions(object, asset)[1];
   if (!(y >= floor)) throw new Error('This hanging plant is taller than the room.');

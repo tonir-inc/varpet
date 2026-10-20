@@ -31,12 +31,21 @@ against the plan's own table.
    edge a wall with `"open": true` and a door with `"leaf": false` spanning its full length.
 4. **Doors and windows fill the whole gap** the plan leaves in the wall; a narrower opening
    leaves a stub of wall that is not there.
-5. **Grey rectangles with an X are service shafts** (gas/kitchen, water): `fixed[]`
-   `{kind: "shaft", pos: [cx, cy, 0], size: [w, d, 3.0], rot: 0}`, solid, never floor.
-   Blue/cyan X boxes are fixtures (a shower tray; on a balcony an AC or heater unit).
+5. **X boxes** (a rectangle with both diagonals): dark ones anywhere and light-blue ones in a
+   bathroom (a plumbing riser box) are unused service shafts: `fixed[]` `{kind: "shaft", pos: [cx, cy, 0],
+   size: [w, d, 3.0], rot: 0}`, solid, never floor. White X boxes inside a thick wall are part of the
+   wall. A light-blue one on a balcony is the AC outdoor unit place (provisional, Ashot 2026-10-02).
+   Not a shower tray, not a washing machine.
+5a. **Structure (Komitas Park):** a green-hatched ~0.6 m square on a red axis cross is a
+   reinforced-concrete column; grey hatch beside it or along an axis is a structural wall. Both are
+   solid and never move. One element per separate hatched piece: an L of two grey pieces round a
+   column is two walls and a column. Legend and evidence: `experimental/plan-symbols.md` (local to the
+   experimental worktree).
 6. **Balconies:** a room whose name contains "Balcony"; its floor edge lies on the facade wall
    line (the converter snaps gaps up to 0.5 m; beyond that the balcony floats). No parapets: the
-   viewer draws railings. Every room, balconies included, has a door or an open passage.
+   viewer draws railings, on the open slab edges only (the ~0.2 m band between the tiles and the
+   outer grey line; none where a wall closes the edge). Every room, balconies included, has a door
+   or an open passage.
 7. **Nothing floats:** fixed items start at z 0.
 8. **Windows** in these developers' flats are floor-to-ceiling: sill 0, head 2.6, unless the
    plan shows otherwise.

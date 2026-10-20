@@ -1,0 +1,23 @@
+{
+ "_doc": "What a traced piece's data-name asks of its model. build.py picks within these; audit.ts checks against them. name: regex on data-name (case-insensitive). height: model height range in metres. not: regex on the model name that is the wrong thing. wall: stands with its back to a wall. faces: regex on the data-name of what it faces in the same room, with the minimum cosine. The first matching role wins. Footprint: width within width_tolerance of the traced width, depth from depth_under below to depth_over above the traced depth (plans draw sofas and TV units shallower than real ones; a shallower wardrobe in a niche blocks nothing).",
+ "width_tolerance": 0.10,
+ "depth_under": 0.15,
+ "depth_over": 0.20,
+ "roles": [
+  {"name": "^dining chair", "height": [0.7, 1.0], "not": "stool|counter|\\bbar\\b|bench", "faces": ["(dining|bistro) table", 0.95]},
+  {"name": "^desk chair", "height": [0.75, 1.15], "not": "stool|counter|\\bbar\\b", "faces": ["^desk$", 0.9]},
+  {"name": "^armchair", "height": [0.65, 1.1], "not": "stool|dining|counter|office|desk|executive|recliner|kids", "faces": ["coffee table|sofa", 0.7]},
+  {"name": "^sofa", "height": [0.75, 1.1], "not": "daybed|bench seat|sleeper|sofa bed", "faces": ["coffee table", 0.9]},
+  {"name": "^open wardrobe", "height": [1.6, 2.4], "not": "panel|armoire", "wall": true},
+  {"name": "wardrobe", "height": [1.8, 2.4], "not": "\\bopen\\b|panel|armoire", "wall": true},
+  {"name": "^double bed", "height": [0.3, 1.4], "min_width": 1.35, "wall": true},
+  {"name": "^bedside", "height": [0.4, 0.75], "beside": "bed"},
+  {"name": "^tv unit", "height": [0.3, 0.75], "wall": true},
+  {"name": "^dining table", "height": [0.72, 0.79]},
+  {"name": "^coffee table", "height": [0.3, 0.55]},
+  {"name": "^desk$", "height": [0.7, 0.79], "wall": true},
+  {"name": "^fridge", "height": [1.4, 2.1], "not": "under-?counter|mini|wine", "wall": true},
+  {"name": "^washing machine", "height": [0.8, 0.9], "not": "stack|dryer", "wall": true},
+  {"name": "^tv$", "height": [0.4, 1.0], "not": "projector|crt|easel|frame"}
+ ]
+}

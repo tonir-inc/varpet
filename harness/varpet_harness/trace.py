@@ -157,9 +157,12 @@ def to_shell(svg: str) -> dict:
         width = (t[1] - t[0]) / px_per_m
         if width < 0.2:
             continue
+        # data-height / data-sill (metres) override the usual 2.05 m door and 0.9 + 1.4 m window; data-asset pins the model
         walls[i]["openings"].append({"id": a.get("id") or f"{kind}-{j + 1}", "kind": kind,
                                      "offset": round(t[0] / px_per_m, 4), "width": round(width, 4),
-                                     "height": 2.05 if kind == "door" else 1.4, "sill": 0 if kind == "door" else 0.9})
+                                     "height": float(a.get("data-height") or (2.05 if kind == "door" else 1.4)),
+                                     "sill": float(a.get("data-sill") or (0 if kind == "door" else 0.9)),
+                                     **({"assetId": a["data-asset"]} if a.get("data-asset") else {})})
 
     rooms, printed = [], {}
     for i, (tag, c, a, p) in enumerate(els):

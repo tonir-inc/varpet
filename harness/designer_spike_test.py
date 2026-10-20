@@ -53,6 +53,38 @@ class SpikeServiceTest(unittest.TestCase):
         observer.item("item/started", {"type": "commandExecution", "command": "./varpet restyle k-run fronts=#1f3a5f"})
         self.assertEqual(lines, ["Restyling the made-to-measure pieces"])
 
+    def test_suggestion_asks_and_changes_are_told_apart(self):
+        for ask in ("any suggestions?", "What could be better here?", "what's wrong with this flat", "what would you improve?"):
+            self.assertTrue(designer_spike.wants_suggestions(ask), ask)
+        for change in ("move the coffee table 10 cm closer to the TV unit", "fix the walkways", "make it better",
+                       "Suggestion: add the lighting", "make the sofa blue",
+                       "Now improve the arrangement as a designer would: give every door a clear path"):
+            self.assertFalse(designer_spike.wants_suggestions(change), change)
+
+    def test_every_dram_amount_is_labelled_mock(self):
+        self.assertEqual(designer_spike.mock_amounts("The total stays 4,111,000 AMD; a lamp is 12 000 dram (mock)."),
+                         "The total stays 4,111,000 AMD (mock); a lamp is 12 000 dram (mock).")
+
+    def test_suggestions_are_offered_as_optional_groups_and_a_chip_becomes_its_request(self):
+        import json, tempfile
+        from pathlib import Path
+        with tempfile.TemporaryDirectory() as root:
+            state = designer_spike.SpikeConversation(workspace=Path(root), home=Path(root), config={})
+            (Path(root) / "draft.json").write_text(json.dumps({"items": [{"id": "desk-1", "name": "Desk"}]}))
+            groups = [{"id": "lighting", "title": "Lighting", "chip": "Suggestion: add the lighting",
+                       "lines": ["lighting: desk desk-1 has no task light"], "plain": ["desk desk-1 has no task light"]},
+                      {"id": "walls", "title": "Art, plants and wall colour", "chip": "Suggestion: add art, plants and wall colour",
+                       "lines": ["paint: hall has no wall colour"], "plain": ["hall has no wall colour"]}]
+            reply = designer_spike.suggestions_reply(state, "c1", groups)
+            self.assertEqual(reply["type"], "question")
+            self.assertEqual(reply["options"], ["Suggestion: add the lighting", "Suggestion: add art, plants and wall colour"])
+            self.assertIn("optional", reply["question"])
+            self.assertIn("1) Lighting: desk has no task light.", reply["question"])
+            self.assertLessEqual(len(reply["question"]), 1000)
+            self.assertIn("lighting: desk desk-1 has no task light", state.offered["Suggestion: add the lighting"])
+            self.assertIn("change nothing else", state.offered["Suggestion: add the lighting"])
+            self.assertNotIn("suggestions", designer_spike.suggestions_reply(state, "c1", []))
+
 
 if __name__ == "__main__":
     unittest.main()

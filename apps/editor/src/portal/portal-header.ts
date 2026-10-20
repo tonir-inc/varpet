@@ -10,7 +10,7 @@ import { catalogHref } from './bundles-contract';
 import './portal.css';
 
 /** The nav item marked as the current page; `null` when the page is not one of the tabs (a developer profile). */
-export type PortalTab = 'explore' | 'catalog' | 'apartments' | null;
+export type PortalTab = 'explore' | 'catalog' | 'apartments' | 'experimental' | null;
 
 export function escapeHtml(value: string): string {
   return value.replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]!);
@@ -23,7 +23,7 @@ export function renderPortalHeader(active: PortalTab): string {
   const current = (tab: PortalTab) => active === tab ? ' aria-current="page"' : '';
   return `<header class="portal-header"><div class="portal-header-inner">
       ${brand}
-      <nav class="portal-nav" aria-label="Main navigation"><a href="/"${current('explore')}>Start with a plan</a><a href="${catalogHref}"${current('catalog')} title="Developer plans with a furnished 3D apartment">Catalog</a><a href="/?editor=sandbox" title="Explore an empty apartment and save to the team">Sandbox</a><a href="/?view=apartments"${current('apartments')}>Saved apartments</a></nav>
+      <nav class="portal-nav" aria-label="Main navigation"><a href="/"${current('explore')}>Start with a plan</a><a href="${catalogHref}"${current('catalog')} title="Developer plans with a furnished 3D apartment">Catalog</a><a href="/?editor=sandbox" title="Explore an empty apartment and save to the team">Sandbox</a><a href="/?view=apartments"${current('apartments')}>Saved apartments</a><a href="/?view=experimental"${current('experimental')} title="Developer plans furnished for pitching">Experimental</a></nav>
       <div class="portal-account"><span class="portal-account-loading" role="status">Checking account…</span></div>
     </div></header>
     <div class="portal-notice" role="status" hidden></div>`;
