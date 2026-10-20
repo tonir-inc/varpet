@@ -28,22 +28,6 @@
       "port": 5174
     },
     {
-      "name": "buyer-worktree",
-      "runtimeExecutable": "pnpm",
-      "runtimeArgs": [
-        "--dir",
-        "/Users/snek/dev/worktrees/varpet-buyer/apps/buyer",
-        "exec",
-        "vite",
-        "--host",
-        "127.0.0.1",
-        "--port",
-        "5195",
-        "--strictPort"
-      ],
-      "port": 5195
-    },
-    {
       "name": "editor-blueprint",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": [
@@ -122,54 +106,6 @@
       "port": 5181
     },
     {
-      "name": "editor-folio-worktree",
-      "runtimeExecutable": "pnpm",
-      "runtimeArgs": [
-        "--dir",
-        "/Users/snek/dev/worktrees/varpet-buyer/apps/editor",
-        "exec",
-        "vite",
-        "--host",
-        "127.0.0.1",
-        "--port",
-        "5196",
-        "--strictPort"
-      ],
-      "port": 5196
-    },
-    {
-      "name": "buyer-demo-pink",
-      "runtimeExecutable": "pnpm",
-      "runtimeArgs": [
-        "--dir",
-        "/Users/snek/dev/worktrees/varpet-demo-pink/apps/buyer",
-        "exec",
-        "vite",
-        "--host",
-        "127.0.0.1",
-        "--port",
-        "5197",
-        "--strictPort"
-      ],
-      "port": 5197
-    },
-    {
-      "name": "showcase-folio-worktree",
-      "runtimeExecutable": "pnpm",
-      "runtimeArgs": [
-        "--dir",
-        "/Users/snek/dev/worktrees/varpet-buyer/apps/showcase",
-        "exec",
-        "vite",
-        "--host",
-        "127.0.0.1",
-        "--port",
-        "5191",
-        "--strictPort"
-      ],
-      "port": 5191
-    },
-    {
       "name": "designer-service",
       "runtimeExecutable": "uv",
       "runtimeArgs": [
@@ -198,22 +134,6 @@
         "--strictPort"
       ],
       "port": 5177
-    },
-    {
-      "name": "editor-perf",
-      "runtimeExecutable": "pnpm",
-      "runtimeArgs": [
-        "--dir",
-        "/Users/snek/dev/worktrees/varpet-perf/apps/editor",
-        "exec",
-        "vite",
-        "--host",
-        "127.0.0.1",
-        "--port",
-        "5199",
-        "--strictPort"
-      ],
-      "port": 5199
     }
   ]
 }
