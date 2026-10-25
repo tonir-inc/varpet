@@ -520,16 +520,20 @@ export function warmRenderer(url: string, token?: string) {
     .catch(() => {})
 }
 
-export function registerViewSceneTool(server: McpServer, operations: SceneOperations, render: Renderer) {
+/** coach: false drops the designer's look-after-furnishing advice, leaving what the views are. */
+export function registerViewSceneTool(server: McpServer, operations: SceneOperations, render: Renderer, { coach = true } = {}) {
   server.registerTool(
     'view_scene',
     {
       title: 'View scene',
       description:
         'See the room as the person sees it in the editor: a picture of your current work scene, including every ' +
-        'change you made so far. Look after placing furniture and before you say you are done, then fix what reads ' +
-        'as empty, crowded, unbalanced or wrong in scale (bare walls, a lonely sofa, nothing on the floor, ' +
-        'lighting missing). view: "3d" (default) a 3/4 view from above with near walls cut away, best for balance ' +
+        'change you made so far. ' +
+        (coach
+          ? 'Look after placing furniture and before you say you are done, then fix what reads as empty, crowded, ' +
+            'unbalanced or wrong in scale (bare walls, a lonely sofa, nothing on the floor, lighting missing). '
+          : '') +
+        'view: "3d" (default) a 3/4 view from above with near walls cut away, best for balance ' +
         'and how full the room feels; "top" a plan from above (north, -z, up; the caption gives the x/z range so ' +
         'you can aim moves), best for gaps, walkways and alignment; "inside" eye level from the doorway or corner opposite the focal wall, best for ' +
         'how it feels to walk in. zone_id: the room (from get_zones); omit for the whole flat (not for "inside"). ' +

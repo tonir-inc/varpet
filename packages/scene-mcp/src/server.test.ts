@@ -9,7 +9,8 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
 import type { Catalog, ProductHit } from './catalog.ts'
 import { toProduct } from './catalog.ts'
-import { createSceneServer, HIDDEN_TOOLS } from './server.ts'
+import { CHECK_TOOLS, createSceneServer, FINISH_TOOLS, HIDDEN_TOOLS, PRODUCT_TOOLS, WALL_TRIM_TOOLS } from './server.ts'
+import type { Renderer } from './view-scene.ts'
 
 const bed = toProduct(
   {
@@ -35,7 +36,7 @@ const fakeCatalog: Catalog = {
   },
 }
 
-async function setup() {
+async function setup(options: { extras?: boolean; render?: Renderer } = {}) {
   const dir = mkdtempSync(join(tmpdir(), 'scene-mcp-'))
   const store = await createSceneStore({ PASCAL_DB_PATH: join(dir, 'pascal.db') })
   const bridge = new SceneBridge()
@@ -43,7 +44,7 @@ async function setup() {
   const graph = bridge.exportJSON()
   const meta = await store.save({ name: 'Test flat', graph })
   const levelId = Object.values(graph.nodes).find((node) => (node as { type: string }).type === 'level')!.id as string
-  const { server } = await createSceneServer({ store, sceneId: meta.id, catalog: fakeCatalog })
+  const { server } = await createSceneServer({ store, sceneId: meta.id, catalog: fakeCatalog, ...options })
   const [a, b] = InMemoryTransport.createLinkedPair()
   const client = new Client({ name: 'test', version: '0' })
   await Promise.all([server.connect(a), client.connect(b)])
@@ -59,6 +60,17 @@ test('lists product tools, hides scene-switching tools, keeps Pascal tools', asy
     assert.ok(names.includes(name), name)
   }
   for (const name of HIDDEN_TOOLS) assert.ok(!names.includes(name), name)
+})
+
+test('extras off: Pascal tools and view_scene only, without the designer advice', async () => {
+  const render: Renderer = async () => ({ image: '', mimeType: 'image/png', width: 1, height: 1, renderMs: 0, backend: 'webgl' }) as never
+  const { client } = await setup({ extras: false, render })
+  const tools = (await client.listTools()).tools
+  const names = tools.map((tool) => tool.name)
+  for (const name of ['get_scene', 'create_wall', 'create_room', 'apply_patch', 'check_collisions', 'view_scene']) assert.ok(names.includes(name), name)
+  for (const name of [...PRODUCT_TOOLS, ...FINISH_TOOLS, ...WALL_TRIM_TOOLS, ...CHECK_TOOLS, ...HIDDEN_TOOLS]) assert.ok(!names.includes(name), name)
+  const view = tools.find((tool) => tool.name === 'view_scene')!
+  assert.ok(!/furniture|sofa/.test(view.description ?? ''), view.description)
 })
 
 test('place_product writes a real item node into the bound scene and publishes an event', async () => {

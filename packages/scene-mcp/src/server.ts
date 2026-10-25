@@ -56,10 +56,12 @@ export interface SceneServerOptions {
   modelBounds?: ModelBounds
   /** Reads a host model's height map so surface pieces rest on a seat or mattress, not its box top (default: fetch). */
   modelHeights?: ModelHeights
+  /** false: Pascal's own tools plus view_scene only, no varpet products, finishes, trims or clearance check. */
+  extras?: boolean
 }
 
 /** Load the scene, bind Pascal's operations to it and build the server. Throws when the scene does not exist. */
-export async function createSceneServer({ store, sceneId, catalog, publicOrigin, render, modelBounds = httpModelBounds(), modelHeights = httpModelHeights() }: SceneServerOptions): Promise<{
+export async function createSceneServer({ store, sceneId, catalog, publicOrigin, render, modelBounds = httpModelBounds(), modelHeights = httpModelHeights(), extras = true }: SceneServerOptions): Promise<{
   server: McpServer
   operations: SceneOperations
 }> {
@@ -67,7 +69,7 @@ export async function createSceneServer({ store, sceneId, catalog, publicOrigin,
   if (!scene) throw new Error(`scene_not_found: ${sceneId}`)
   const bridge = new SceneBridge()
   const operations = createSceneOperations({ bridge, store })
-  registerVarpetFinishes(publicOrigin)
+  if (extras) registerVarpetFinishes(publicOrigin)
   operations.loadJSON(scene.graph)
   operations.clearHistory()
   operations.setActiveScene(scene)
@@ -75,14 +77,16 @@ export async function createSceneServer({ store, sceneId, catalog, publicOrigin,
     bridge,
     store,
     operations,
-    name: 'varpet-scene',
+    name: extras ? 'varpet-scene' : 'pascal-eyes',
     hiddenTools: HIDDEN_TOOLS,
     registerHostTools: (host) => {
-      registerProductTools(host, operations, catalog, modelBounds, modelHeights)
-      registerFinishTools(host, operations, publishSnapshot)
-      registerWallTrimTools(host, operations, publishSnapshot)
-      registerClearanceTool(host, operations)
-      if (render) registerViewSceneTool(host, operations, render)
+      if (extras) {
+        registerProductTools(host, operations, catalog, modelBounds, modelHeights)
+        registerFinishTools(host, operations, publishSnapshot)
+        registerWallTrimTools(host, operations, publishSnapshot)
+        registerClearanceTool(host, operations)
+      }
+      if (render) registerViewSceneTool(host, operations, render, { coach: extras })
     },
   })
   return { server, operations }
